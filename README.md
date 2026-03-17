@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](deploy/docker/)
 [![Tests](https://img.shields.io/badge/tests-252_passing-brightgreen)]()
-[![GitHub Release](https://img.shields.io/github/v/release/iuliandita/digarr?include_prereleases)](https://github.com/iuliandita/digarr/releases)
+[![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
 **Discover new music for your Lidarr library.** Digarr analyzes your listening history from ListenBrainz or Last.fm, finds similar artists using MusicBrainz and AI, scores and ranks them, and lets you approve recommendations that get added straight to Lidarr.
 
