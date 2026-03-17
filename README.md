@@ -152,6 +152,31 @@ bun run test        # vitest (252 tests)
 
 ---
 
+## How This Was Built
+
+This project was built with the help of agentic AI coding tools. The design, architecture decisions, feature priorities, and quality standards were driven by a human; the implementation was a collaborative effort between human direction and AI code generation. We believe in transparency about how software is made.
+
+### Quality assurance
+
+The codebase went through multiple rounds of verification before release:
+
+- **252 unit and integration tests** across 26 test files covering all API clients, pipeline stages, server routes, and UI components
+- **Static analysis** -- zero errors from both TypeScript strict mode (`noUncheckedIndexedAccess`, `isolatedModules`) and Biome linter across 96 source files
+- **Security audit** that identified and fixed 7 findings:
+  - CORS restricted to configured origin (no wildcard in production)
+  - Settings API allowlisted to prevent arbitrary field injection
+  - Setup endpoint locked after initial configuration to prevent re-registration
+  - URL validation on all test/connection endpoints to prevent SSRF
+  - Streaming link URLs sanitized at render time to prevent XSS via `javascript:` URIs
+  - Recommendation status validated against a known enum
+  - Input validation on all user-facing endpoints
+- **Dependency audit** -- 1 moderate advisory (esbuild, dev-only, not exploitable in production)
+- **Iterative testing** -- the app was deployed and tested end-to-end against a real Lidarr instance, ListenBrainz account, and AI provider, with bugs found and fixed across multiple rounds
+
+If you find issues, please [open an issue](https://github.com/iuliandita/digarr/issues).
+
+---
+
 ## License
 
 MIT -- see [LICENSE](LICENSE).
