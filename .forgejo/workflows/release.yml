@@ -5,8 +5,8 @@ on:
       - "v*"
 
 env:
-  REGISTRY: FORGEJO_REGISTRY_HOST
-  IMAGE_NAME: FORGEJO_REGISTRY_IMAGE
+  REGISTRY: ${{ vars.REGISTRY_HOST }}
+  IMAGE_NAME: ${{ vars.REGISTRY_IMAGE }}
 
 jobs:
   docker:
