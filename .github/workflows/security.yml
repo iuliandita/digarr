@@ -15,7 +15,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - name: Dependency audit
-        run: bun audit
+        run: bun audit --level high
 
   codeql:
     runs-on: ubuntu-latest
