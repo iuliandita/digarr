@@ -136,10 +136,9 @@ export class PipelineOrchestrator extends EventEmitter {
       // resolve. Pass an empty array; genre overlap scoring will be zero for
       // library genres until task-12 query modules populate this.
       const libraryGenres: string[] = []
-      // Rejected MBIDs and feedback history come from DB queries (task 12).
-      // For now pass empty structures so the pipeline can run end-to-end.
-      const rejectedMbids = new Map<string, Date>()
-      const feedbackHistory = new Map<string, { approved: number; total: number }>()
+      // Load rejection cooldown list and feedback history from DB
+      const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
+      const feedbackHistory = await db.getFeedbackHistory()
 
       // -- Stage 2: ANALYZE ---------------------------------------------------
 

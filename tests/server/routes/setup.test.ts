@@ -15,7 +15,8 @@ function makeMockOrchestrator() {
 
 function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   return {
-    db: {},
+    db: { execute: vi.fn(async () => []) } as unknown as AppDependencies['db'],
+    storeDb: {} as unknown as AppDependencies['storeDb'],
     orchestrator: makeMockOrchestrator() as unknown as AppDependencies['orchestrator'],
     scheduler: {} as AppDependencies['scheduler'],
     isSetupComplete: vi.fn(async () => false),

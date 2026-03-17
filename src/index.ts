@@ -5,10 +5,12 @@ import { PipelineScheduler } from './core/pipeline/scheduler'
 import type { StoreDb } from './core/pipeline/store'
 import { db, pool } from './db'
 import { getArtistById, upsertArtist } from './db/queries/artists'
-import { getBatch, listBatches } from './db/queries/batches'
+import { completeBatch, getBatch, listBatches } from './db/queries/batches'
 import {
   bulkUpdateStatus,
+  getGenreFeedbackHistory,
   getRecommendation,
+  getRejectedArtistMbids,
   insertRecommendation,
   listRecommendations,
   updateRecommendationStatus,
@@ -34,18 +36,24 @@ const storeDb: StoreDb = {
     if (!row) throw new Error('insertBatch: no row returned')
     return row
   },
+  completeBatch: async (id) => {
+    await completeBatch(db, id, { discovered: 0, filtered: 0, scored: 0, added: 0, failed: 0 })
+  },
   upsertArtist: async (data) => {
     const row = await upsertArtist(db, data)
     return { id: row.id }
   },
   insertRecommendation: (data) => insertRecommendation(db, data),
+  getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
+  getFeedbackHistory: () => getGenreFeedbackHistory(db),
 }
 
 const orchestrator = new PipelineOrchestrator()
 const scheduler = new PipelineScheduler()
 
 const app = createApp({
-  db: storeDb,
+  db,
+  storeDb,
   orchestrator,
   scheduler,
   isSetupComplete: () => isSetupComplete(db),
@@ -68,6 +76,24 @@ const app = createApp({
 
 const port = Number(process.env.PORT ?? 3000)
 const server = serve({ fetch: app.fetch, port })
+
+// Start scheduler if settings with a cron expression exist
+getSettings(db)
+  .then((settings) => {
+    const cron = settings?.preferences?.scheduleCron
+    if (cron) {
+      scheduler.start(cron, async () => {
+        const currentSettings = await getSettings(db)
+        if (currentSettings) {
+          await orchestrator.run({ db: storeDb, settings: currentSettings })
+        }
+      })
+      console.log(`Scheduler started with cron: ${cron}`)
+    }
+  })
+  .catch((err: unknown) => {
+    console.error('Failed to load settings for scheduler:', err)
+  })
 
 console.log(`Digarr running on http://localhost:${port}`)
 

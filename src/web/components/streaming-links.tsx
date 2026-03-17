@@ -20,10 +20,25 @@ const SERVICES: Record<string, ServiceConfig> = {
     color: '#1db954',
     fallback: (name) => `https://open.spotify.com/search/${encodeURIComponent(name)}`,
   },
-  youtube_music: {
+  youtube: {
     label: 'YT Music',
     color: '#ff0000',
     fallback: (name) => `https://music.youtube.com/search?q=${encodeURIComponent(name)}`,
+  },
+  appleMusic: {
+    label: 'Apple Music',
+    color: '#fc3c44',
+    fallback: (name) => `https://music.apple.com/search?term=${encodeURIComponent(name)}`,
+  },
+  deezer: {
+    label: 'Deezer',
+    color: '#a238ff',
+    fallback: (name) => `https://www.deezer.com/search/${encodeURIComponent(name)}`,
+  },
+  tidal: {
+    label: 'Tidal',
+    color: '#00ffff',
+    fallback: () => '',
   },
   soundcloud: {
     label: 'SoundCloud',
@@ -40,7 +55,10 @@ const SERVICES: Record<string, ServiceConfig> = {
 // Abbreviated initials for the icon buttons
 const SERVICE_INITIALS: Record<string, string> = {
   spotify: 'SP',
-  youtube_music: 'YT',
+  youtube: 'YT',
+  appleMusic: 'AM',
+  deezer: 'DZ',
+  tidal: 'TD',
   soundcloud: 'SC',
   bandcamp: 'BC',
 }

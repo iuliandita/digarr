@@ -12,6 +12,14 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       progressHandler = (progress: unknown) => {
         try {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(progress)}\n\n`))
+          // Close stream when pipeline signals completion via progress event
+          if (
+            progress !== null &&
+            typeof progress === 'object' &&
+            (progress as Record<string, unknown>).stage === 'complete'
+          ) {
+            controller.close()
+          }
         } catch {
           // Controller may be closed already
         }

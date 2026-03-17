@@ -22,7 +22,8 @@ import { settingsRoutes } from './routes/settings'
 import { setupRoutes } from './routes/setup'
 
 export type AppDependencies = {
-  db: unknown
+  db: import('@/db').Database
+  storeDb: import('@/core/pipeline/store').StoreDb
   orchestrator: PipelineOrchestrator
   scheduler: PipelineScheduler
   isSetupComplete: () => Promise<boolean>
@@ -57,7 +58,7 @@ export function createApp(deps: AppDependencies) {
     }),
   )
   app.use('*', setupGuard(deps.isSetupComplete))
-  app.route('/', healthRoutes())
+  app.route('/', healthRoutes({ db: deps.db }))
   app.route('/', setupRoutes(deps))
   app.route('/', settingsRoutes(deps))
   app.route('/', pipelineRoutes(deps))

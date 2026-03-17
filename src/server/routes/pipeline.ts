@@ -16,9 +16,9 @@ export function pipelineRoutes(deps: AppDependencies) {
       return c.json({ error: 'Settings not found' }, 400)
     }
 
-    // Fire-and-forget -- cast to PipelineDeps since AppDependencies uses loose types
+    // Fire-and-forget
     deps.orchestrator
-      .run({ db: deps.db, settings } as unknown as PipelineDeps)
+      .run({ db: deps.storeDb, settings } as unknown as PipelineDeps)
       .catch((err: unknown) => {
         console.error('Pipeline run failed:', err)
       })
@@ -150,9 +150,7 @@ export function pipelineRoutes(deps: AppDependencies) {
 
         const resolved = await resolve(discovered, mb, undefined, lidarr)
         const scored = score(resolved, [], weights as never, new Map())
-        const existingMbids = await (
-          deps.db as { getExistingRecommendationMbids: () => Promise<Set<string>> }
-        ).getExistingRecommendationMbids()
+        const existingMbids = await deps.storeDb.getExistingRecommendationMbids()
         for (const mbid of existingMbids) libraryMbids.add(mbid)
 
         const filtered = filter(
@@ -164,7 +162,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         )
 
         if (filtered.length > 0) {
-          await store(filtered, deps.db as never)
+          await store(filtered, deps.storeDb)
         }
       } catch (err) {
         console.error('Quick discover failed:', err)

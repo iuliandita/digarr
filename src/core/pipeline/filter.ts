@@ -3,7 +3,7 @@ import type { ScoredArtist } from '@/core/types'
 export function filter(
   artists: ScoredArtist[],
   libraryMbids: Set<string>,
-  rejectedMbids: Map<string, Date>,
+  rejectedMbids: Set<string> | Map<string, Date>,
   cooldownDays: number,
   scoreThreshold: number,
 ): ScoredArtist[] {
@@ -15,10 +15,15 @@ export function filter(
     if (libraryMbids.has(artist.mbid)) return false
 
     // Remove artists rejected within the cooldown window
-    const rejectedAt = rejectedMbids.get(artist.mbid)
-    if (rejectedAt !== undefined) {
-      const elapsed = now.getTime() - rejectedAt.getTime()
-      if (elapsed < cooldownMs) return false
+    if (rejectedMbids instanceof Map) {
+      const rejectedAt = rejectedMbids.get(artist.mbid)
+      if (rejectedAt !== undefined) {
+        const elapsed = now.getTime() - rejectedAt.getTime()
+        if (elapsed < cooldownMs) return false
+      }
+    } else {
+      // Set<string>: DB query already applied cooldown window filter
+      if (rejectedMbids.has(artist.mbid)) return false
     }
 
     // Remove artists below score threshold

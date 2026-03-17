@@ -571,10 +571,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 // --- Recommendations Tab ---
 
 const DEFAULT_WEIGHTS: ScoringWeights = {
-  consensus: 0.25,
+  consensus: 0.3,
   similarity: 0.25,
   genreOverlap: 0.2,
-  aiConfidence: 0.2,
+  aiConfidence: 0.15,
   feedbackBoost: 0.1,
 }
 
@@ -589,9 +589,9 @@ function RecommendationsTab({ settings }: { settings: Settings }) {
   const [aiConfidence, setAiConfidence] = useState(weights.aiConfidence)
   const [feedbackBoost, setFeedbackBoost] = useState(weights.feedbackBoost)
   const [rejectionCooldown, setRejectionCooldown] = useState(
-    String(prefs.rejectionCooldownDays ?? 30),
+    String(prefs.rejectionCooldownDays ?? 90),
   )
-  const [topArtistsLimit, setTopArtistsLimit] = useState(String(prefs.topArtistsLimit ?? 50))
+  const [topArtistsLimit, setTopArtistsLimit] = useState(String(prefs.topArtistsLimit ?? 30))
   const [librarySeedRatio, setLibrarySeedRatio] = useState(prefs.librarySeedRatio ?? 0.3)
   const [saving, setSaving] = useState(false)
 

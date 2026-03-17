@@ -125,8 +125,11 @@ function makeDb() {
   return {
     getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set()),
     insertBatch: vi.fn().mockResolvedValue({ id: 42 }),
+    completeBatch: vi.fn().mockResolvedValue(undefined),
     upsertArtist: vi.fn().mockResolvedValue({ id: 1 }),
     insertRecommendation: vi.fn().mockResolvedValue(undefined),
+    getRejectedMbids: vi.fn().mockResolvedValue(new Set()),
+    getFeedbackHistory: vi.fn().mockResolvedValue(new Map()),
     // Extra methods the orchestrator needs for stale batch cleanup
     updateBatch: vi.fn().mockResolvedValue(undefined),
   }

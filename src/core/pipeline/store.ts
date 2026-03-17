@@ -6,6 +6,8 @@ export interface StoreDb {
 
   insertBatch: (data: { status: string; stats: Record<string, unknown> }) => Promise<{ id: number }>
 
+  completeBatch: (id: number) => Promise<void>
+
   upsertArtist: (data: {
     mbid: string
     name: string
@@ -24,12 +26,16 @@ export interface StoreDb {
     aiReasoning?: string
     status: string
   }) => Promise<void>
+
+  getRejectedMbids: (cooldownDays: number) => Promise<Set<string>>
+
+  getFeedbackHistory: () => Promise<Map<string, { approved: number; total: number }>>
 }
 
 export async function store(artists: ScoredArtist[], db: StoreDb): Promise<number> {
-  // Create the batch row
+  // Create the batch row in running state
   const batch = await db.insertBatch({
-    status: 'complete',
+    status: 'running',
     stats: {
       total: artists.length,
       createdAt: new Date().toISOString(),
@@ -59,6 +65,9 @@ export async function store(artists: ScoredArtist[], db: StoreDb): Promise<numbe
       status: 'pending',
     })
   }
+
+  // Mark batch as completed after all inserts succeed
+  await db.completeBatch(batchId)
 
   return batchId
 }

@@ -28,25 +28,12 @@ export function listeningRoutes(deps: AppDependencies) {
           settings.lastfmUsername as string,
           settings.lastfmApiKey as string,
         )
-        const result = await client.getRecentTracks()
-        const lfmTracks = result as {
-          recenttracks?: {
-            track?: Array<{
-              artist?: { '#text'?: string; mbid?: string }
-              name?: string
-              image?: Array<{ '#text'?: string; size?: string }>
-            }>
-          }
-        }
-        for (const t of lfmTracks?.recenttracks?.track?.slice(0, 10) ?? []) {
-          // Last.fm includes album art in the track data
-          const img = t.image?.find((i) => i.size === 'medium' || i.size === 'large')
+        const recentTracks = await client.getRecentTracks()
+        for (const t of recentTracks.slice(0, 10)) {
           tracks.push({
-            artist: t.artist?.['#text'] ?? 'Unknown',
+            artist: t.artist['#text'] ?? 'Unknown',
             track: t.name ?? 'Unknown',
             source: 'lastfm',
-            imageUrl: img?.['#text'] || undefined,
-            mbid: t.artist?.mbid || undefined,
           })
         }
       } catch {

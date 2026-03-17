@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { artists } from '@/db/schema'
 
@@ -22,11 +22,11 @@ export async function upsertArtist(db: Database, artist: ArtistInsert): Promise<
       target: artists.mbid,
       set: {
         name: artist.name,
-        disambiguation: artist.disambiguation ?? null,
-        tags: artist.tags ?? null,
-        genres: artist.genres ?? null,
-        imageUrl: artist.imageUrl ?? null,
-        streamingUrls: artist.streamingUrls ?? null,
+        disambiguation: sql`COALESCE(excluded.disambiguation, ${artists.disambiguation})`,
+        tags: sql`COALESCE(excluded.tags, ${artists.tags})`,
+        genres: sql`COALESCE(excluded.genres, ${artists.genres})`,
+        imageUrl: sql`COALESCE(excluded.image_url, ${artists.imageUrl})`,
+        streamingUrls: sql`COALESCE(excluded.streaming_urls, ${artists.streamingUrls})`,
         cachedAt: new Date(),
       },
     })
