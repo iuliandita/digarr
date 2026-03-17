@@ -1,0 +1,49 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      production:
+        patterns:
+          - "hono"
+          - "drizzle-*"
+          - "pg"
+          - "@anthropic-ai/*"
+          - "openai"
+          - "p-queue"
+          - "croner"
+          - "@hono/*"
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "vite"
+          - "vitest"
+          - "@biomejs/*"
+          - "drizzle-kit"
+        update-types:
+          - minor
+          - patch
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
+          - "@types/react*"
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "jsdom"
+
+  - package-ecosystem: docker
+    directory: /deploy/docker
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
