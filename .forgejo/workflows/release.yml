@@ -5,8 +5,8 @@ on:
       - "v*"
 
 env:
-  REGISTRY: ${{ vars.REGISTRY_HOST }}
-  IMAGE_NAME: ${{ vars.REGISTRY_IMAGE }}
+  REGISTRY: ${{ secrets.REGISTRY_HOST }}
+  IMAGE_NAME: ${{ secrets.REGISTRY_IMAGE }}
 
 jobs:
   docker:
