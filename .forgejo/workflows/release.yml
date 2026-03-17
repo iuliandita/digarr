@@ -13,6 +13,8 @@ jobs:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
+        env:
+          GIT_SSL_NO_VERIFY: "true"
 
       - name: Log in to Forgejo registry
         uses: docker/login-action@v3

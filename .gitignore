@@ -7,13 +7,11 @@ dist/
 *.log
 
 # ===========================
-# AI
+# Local
 # ===========================
 AGENTS.md
-.claude
-PLAN.md
 CLAUDE.md
-***REMOVED***
-***REMOVED***/.cache
-***REMOVED***
+PLAN.md
+.claude/
 .worktrees/
+docs/local/
