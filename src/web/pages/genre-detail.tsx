@@ -120,12 +120,26 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
             aria-label={isPlaying ? 'Stop preview' : 'Play preview'}
           >
             {isPlaying ? (
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="currentColor"
+                aria-hidden="true"
+                focusable="false"
+              >
                 <rect x="1" y="1" width="3" height="8" />
                 <rect x="6" y="1" width="3" height="8" />
               </svg>
             ) : (
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="currentColor"
+                aria-hidden="true"
+                focusable="false"
+              >
                 <path d="M2 1l7 4-7 4V1z" />
               </svg>
             )}

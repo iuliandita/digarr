@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { getAlbums } from '../lib/api'
 import { Hint } from './hint'
@@ -109,6 +109,26 @@ export function TodaysPick({
         backgroundPosition: 'center',
       }
     : { background: `hsl(${hue}, 40%, 35%)` }
+  const highlightedReasoning = rec.aiReasoning
+    ? (() => {
+        const parts = rec.aiReasoning.split(
+          new RegExp(`(${artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+        )
+        let offset = 0
+
+        return parts.map((part) => {
+          const key = `${offset}:${part}`
+          offset += part.length
+          return part.toLowerCase() === artist.name.toLowerCase() ? (
+            <span key={key} className="text-text font-semibold">
+              {part}
+            </span>
+          ) : (
+            <Fragment key={key}>{part}</Fragment>
+          )
+        })
+      })()
+    : null
 
   return (
     <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
@@ -176,19 +196,7 @@ export function TodaysPick({
         )}
 
         {rec.aiReasoning && (
-          <p className="text-xs text-muted mt-2 line-clamp-5">
-            {rec.aiReasoning
-              .split(new RegExp(`(${artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
-              .map((part, i) =>
-                part.toLowerCase() === artist.name.toLowerCase() ? (
-                  <span key={i} className="text-text font-semibold">
-                    {part}
-                  </span>
-                ) : (
-                  part
-                ),
-              )}
-          </p>
+          <p className="text-xs text-muted mt-2 line-clamp-5">{highlightedReasoning}</p>
         )}
 
         <div className="mt-3">

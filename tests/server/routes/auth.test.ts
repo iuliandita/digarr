@@ -2,6 +2,8 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { hashPassword } from '@/core/auth'
+import { clearAllSessions } from '@/core/sessions'
 
 // Registration is closed by default (DIGARR_DISABLE_REGISTRATION defaults to true).
 // Override to false so registration tests can create users.
@@ -12,8 +14,7 @@ vi.mock('@/config/env', async (importOriginal) => {
     envConfig: { ...original.envConfig, disableRegistration: false },
   }
 })
-import { hashPassword } from '@/core/auth'
-import { clearAllSessions } from '@/core/sessions'
+
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 

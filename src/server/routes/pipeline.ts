@@ -318,10 +318,7 @@ export function pipelineRoutes(deps: AppDependencies) {
               })
             }
           } catch (err: unknown) {
-            console.warn(
-              'MusicBrainz disambiguation lookup failed:',
-              errMsg(err),
-            )
+            console.warn('MusicBrainz disambiguation lookup failed:', errMsg(err))
           }
         }
       } catch (err: unknown) {
