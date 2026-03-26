@@ -37,7 +37,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.1.0",
     "jsdom": "^29.0.0",
-    "lucide-react": "^0.577.0",
+    "lucide-react": "^1.7.0",
     "prettier": "^3.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -45,12 +45,12 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vite": "^8.0.3",
     "vitest": "^4.1.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.79.0",
+    "@anthropic-ai/sdk": "^0.80.0",
     "@hono/node-server": "^1.19.11",
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.1",
