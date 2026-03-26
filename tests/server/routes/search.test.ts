@@ -2,6 +2,7 @@
 
 import { Hono } from 'hono'
 import { describe, expect, it, vi } from 'vitest'
+import type { SearchSourceDescriptor } from '@/core/search/catalog'
 import type { MergedSearchResult } from '@/core/search/multi-source'
 import { type SearchDeps, searchRoutes } from '@/server/routes/search'
 
@@ -18,10 +19,33 @@ function makeResult(name: string): MergedSearchResult {
 
 function makeDeps(overrides: Partial<SearchDeps> = {}): SearchDeps {
   return {
+    listSources: vi.fn().mockResolvedValue([] satisfies SearchSourceDescriptor[]),
     search: vi.fn().mockResolvedValue([makeResult('Portishead'), makeResult('Massive Attack')]),
     ...overrides,
   }
 }
+
+describe('GET /api/search/sources', () => {
+  it('returns source metadata from the deps', async () => {
+    const listSources = vi.fn().mockResolvedValue([
+      { id: 'deezer', label: 'Deezer', available: true },
+      {
+        id: 'spotify',
+        label: 'Spotify',
+        available: false,
+        reason: 'Connect Spotify in Settings to enable search.',
+      },
+    ] satisfies SearchSourceDescriptor[])
+    const app = new Hono()
+    app.route('/', searchRoutes(makeDeps({ listSources })))
+
+    const res = await app.request('/api/search/sources')
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { sources: SearchSourceDescriptor[] }
+    expect(body.sources).toHaveLength(2)
+    expect(listSources).toHaveBeenCalled()
+  })
+})
 
 describe('GET /api/search', () => {
   it('returns 400 when q is missing', async () => {

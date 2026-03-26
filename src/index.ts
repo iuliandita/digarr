@@ -24,6 +24,7 @@ import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
 import { createDefaultRegistry } from './core/providers/registry'
+import { buildSearchSourceCatalog } from './core/search/catalog'
 import type { SearchSource } from './core/search/multi-source'
 import { multiSourceSearch } from './core/search/multi-source'
 import { createBandcampSearchSource } from './core/search/sources/bandcamp'
@@ -658,6 +659,13 @@ const app = createApp({
     },
   },
   search: {
+    listSources: async (userId) => {
+      const spotifyOAuth = userId ? await getOAuthToken(db, userId, 'spotify') : null
+      return buildSearchSourceCatalog({
+        hasSpotifyOAuth: Boolean(spotifyOAuth),
+        hasTidalSearch: false,
+      })
+    },
     search: async (query, opts) => {
       const sources: SearchSource[] = [...staticSearchSources]
 

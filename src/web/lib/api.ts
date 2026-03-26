@@ -433,6 +433,15 @@ export type SearchResult = {
   inRecommendations: boolean
 }
 
+export type SearchSourceOption = {
+  id: string
+  label: string
+  available: boolean
+  reason?: string
+}
+
+export const getSearchSources = () => fetchApi<{ sources: SearchSourceOption[] }>('/search/sources')
+
 export async function searchArtists(
   query: string,
   sources?: string[],

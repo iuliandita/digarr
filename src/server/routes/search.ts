@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
+import type { SearchSourceDescriptor } from '@/core/search/catalog'
 import type { MergedSearchResult } from '@/core/search/multi-source'
 import type { HonoEnv } from '@/server/types'
 
 export type SearchDeps = {
+  listSources: (userId?: number) => Promise<SearchSourceDescriptor[]>
   search: (
     query: string,
     opts?: { limit?: number; sources?: string[]; userId?: number },
@@ -11,6 +13,12 @@ export type SearchDeps = {
 
 export function searchRoutes(deps: SearchDeps) {
   const router = new Hono<HonoEnv>()
+
+  router.get('/api/search/sources', async (c) => {
+    const userId = c.get('userId')
+    const sources = await deps.listSources(userId)
+    return c.json({ sources })
+  })
 
   router.get('/api/search', async (c) => {
     const query = c.req.query('q')
