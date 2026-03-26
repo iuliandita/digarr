@@ -31,7 +31,7 @@ Not just "here are similar artists." Digarr collects your taste from up to 6 sou
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and get instant AI-powered results. No menus, no filters -- just plain English.
 
 ### Auto-Playlists ("Digarr Digest")
-Generate curated playlists from your approved recommendations and push them to Navidrome, Jellyfin, Plex, or Spotify automatically. Four strategies: Weekly Digest, Genre Focus, Mood Mix, and Rediscover (forgotten gems from weeks ago).
+Generate curated playlists from your approved recommendations, download them as M3U/XSPF, or push them to Navidrome, Jellyfin, or Plex automatically. Four strategies: Weekly Digest, Genre Focus, Mood Mix, and Rediscover (forgotten gems from weeks ago).
 
 ### Genre Deep Dive
 Browse your library by genre, then explore three discovery tabs: **Recommended** (approved artists in that genre), **Trending** (recent discoveries), and **Deep Cuts** (hidden gems with low popularity). Preview tracks and queue artists directly from genre pages.
@@ -52,10 +52,11 @@ Editor classics (Tokyo Night, Catppuccin, Dracula, One Dark, Nord, Gruvbox, Sola
 - **Auto-approve** -- automatically add high-scoring recommendations to your targets after each scan
 - **Artist logos** -- fanart.tv clearlogo support via Lidarr, displayed on the dashboard hero and expanded recommendation cards
 - **Subscriptions** -- pluggable adapter system for scheduled discovery from Spotify playlists/charts, Last.fm tags/charts, ListenBrainz feeds, genre searches, and similar-artist seeds
+- **Temporary similar-artist caveat** -- `similar` subscriptions currently need Last.fm as a provider; ListenBrainz-only similar lookups are blocked until that upstream endpoint is available again
 - **Cross-platform search** -- search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simultaneously with merged, deduplicated results
 
 ### Playlists & Targets
-- **Auto-playlists** -- 4 strategies (Weekly Digest, Genre Focus, Mood Mix, Rediscover) pushed to Navidrome, Jellyfin, Plex, or Spotify on their own schedule
+- **Auto-playlists** -- 4 strategies (Weekly Digest, Genre Focus, Mood Mix, Rediscover) generated on their own schedule, exportable as JSON/CSV/M3U/XSPF, and pushable to Navidrome, Jellyfin, or Plex
 - **Target registry** -- pluggable approval targets: Lidarr (download + monitor with per-user quality/metadata/root folder preferences), Spotify Playlist (OAuth push), Navidrome/Jellyfin/Plex (playlist API)
 - **Export** -- JSON, CSV, M3U, XSPF (with artist images, AI reasoning, streaming links, and MusicBrainz metadata)
 - **Lidarr-optional** -- works without Lidarr in pure discovery mode

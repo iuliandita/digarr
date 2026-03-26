@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { Pencil, Play } from 'lucide-react'
+import { Download, Pencil, Play } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Hint } from '../components/hint'
 import { Skeleton } from '../components/ui/skeleton'
 import {
+  exportPlaylistApi,
   generatePlaylistApi,
   getPlaylist,
   type PlaylistRow,
@@ -134,6 +135,7 @@ function PlaylistActions({
   onRefetch: () => void
 }) {
   const [generating, setGenerating] = useState(false)
+  const [exporting, setExporting] = useState<string | null>(null)
 
   async function handleGenerate() {
     setGenerating(true)
@@ -148,8 +150,20 @@ function PlaylistActions({
     }
   }
 
+  async function handleExport(format: 'm3u' | 'xspf') {
+    setExporting(format)
+    try {
+      await exportPlaylistApi(playlist.id, format)
+      toast.success(`${format.toUpperCase()} downloaded`)
+    } catch {
+      toast.error('Failed to download playlist')
+    } finally {
+      setExporting(null)
+    }
+  }
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       <button
         type="button"
         onClick={handleGenerate}
@@ -175,6 +189,18 @@ function PlaylistActions({
         )}
         {generating ? 'Generating...' : 'Generate Now'}
       </button>
+      {(['m3u', 'xspf'] as const).map((format) => (
+        <button
+          key={format}
+          type="button"
+          onClick={() => handleExport(format)}
+          disabled={exporting !== null}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-md text-sm text-muted hover:text-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <Download size={14} aria-hidden="true" />
+          {exporting === format ? 'Downloading...' : `Download ${format.toUpperCase()}`}
+        </button>
+      ))}
       <button
         type="button"
         onClick={onEdit}
@@ -272,7 +298,8 @@ export function PlaylistDetailPage() {
 
       <Hint id="playlist-detail-intro-tip" type="inline">
         This playlist was generated from your approved recommendations. Click Generate Now to
-        refresh it with new picks.
+        refresh it with new picks, download it as M3U or XSPF, or add a playlist target to push
+        future runs to Navidrome, Jellyfin, or Plex automatically.
       </Hint>
 
       {/* Actions */}

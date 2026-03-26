@@ -154,13 +154,14 @@ describe('createListenBrainzClient', () => {
       expect(result[0]).toMatchObject({ name: 'Thom Yorke', score: 0.95 })
     })
 
-    it('returns empty array on 404 (endpoint may not exist)', async () => {
+    it('throws a clear error on 404 so callers do not treat it as empty data', async () => {
       const { HttpError } = await import('@/core/clients/http')
       const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
       mockGet.mockRejectedValueOnce(new HttpError(404, 'Not Found', `/1/artist/${mbid}/similar`))
       const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      const result = await client.getSimilarArtists(mbid)
-      expect(result).toEqual([])
+      await expect(client.getSimilarArtists(mbid)).rejects.toThrow(
+        'ListenBrainz similar artists endpoint unavailable (404)',
+      )
     })
 
     it('re-throws non-404 errors from getSimilarArtists', async () => {

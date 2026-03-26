@@ -1,5 +1,12 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import {
+  exportPlaylistToCsv,
+  exportPlaylistToJson,
+  exportPlaylistToM3u,
+  exportPlaylistToXspf,
+  type PlaylistExportFormat,
+} from '@/core/playlists/export'
 import type { PlaylistScheduler } from '@/core/playlists/scheduler'
 import type { Database } from '@/db'
 import type { PlaylistInsert, PlaylistRow, PlaylistTrackRow } from '@/db/queries/playlists'
@@ -29,6 +36,30 @@ const ALLOWED_UPDATE_FIELDS = new Set<string>([
   'config',
   'enabled',
 ])
+
+const PLAYLIST_EXPORT_CONTENT_TYPES: Record<PlaylistExportFormat, string> = {
+  json: 'application/json',
+  csv: 'text/csv',
+  m3u: 'audio/x-mpegurl',
+  xspf: 'application/xspf+xml',
+}
+
+const PLAYLIST_EXPORTERS: Record<
+  PlaylistExportFormat,
+  (args: { name: string; tracks: PlaylistTrackRow[] }) => string
+> = {
+  json: ({ tracks }) => exportPlaylistToJson(tracks),
+  csv: ({ tracks }) => exportPlaylistToCsv(tracks),
+  m3u: ({ tracks }) => exportPlaylistToM3u(tracks),
+  xspf: ({ name, tracks }) => exportPlaylistToXspf(tracks, { title: name }),
+}
+
+function sanitizeFilename(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
 export function playlistRoutes(deps: PlaylistDeps) {
   const router = new Hono<HonoEnv>()
@@ -126,6 +157,37 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
 
     return c.json(result)
+  })
+
+  // GET /api/playlists/:id/export/:format
+  router.get('/api/playlists/:id/export/:format', async (c) => {
+    const userId = c.get('userId')
+    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+
+    const id = Number(c.req.param('id'))
+    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+
+    const format = c.req.param('format') as PlaylistExportFormat
+    const exporter = PLAYLIST_EXPORTERS[format]
+    const contentType = PLAYLIST_EXPORT_CONTENT_TYPES[format]
+    if (!exporter || !contentType) {
+      return c.json({ error: 'Unsupported format. Use json, csv, m3u, or xspf' }, 400)
+    }
+
+    const result = await getPlaylistWithTracks(db, id)
+    if (!result) return c.json({ error: 'Not found' }, 404)
+    if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+
+    const tracks = result.tracks.slice().sort((a, b) => a.position - b.position)
+    const filename = sanitizeFilename(result.playlist.name) || `playlist-${id}`
+    const body = exporter({ name: result.playlist.name, tracks })
+
+    return new Response(body, {
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}.${format}"`,
+      },
+    })
   })
 
   // PATCH /api/playlists/:id

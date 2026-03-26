@@ -59,4 +59,30 @@ describe('enrichSearchResultsWithImages', () => {
       { url: 'https://img.example/existing.jpg', source: 'deezer' },
     ])
   })
+
+  it('keeps search results when Lidarr lookup fails', async () => {
+    const results = await enrichSearchResultsWithImages([makeResult()], {
+      getCachedImages: async () => new Map(),
+      lookupLidarrImage: async () => {
+        throw new Error('skyhook unavailable')
+      },
+    })
+
+    expect(results[0]?.name).toBe('Scorpions')
+    expect(results[0]?.images).toEqual([])
+  })
+
+  it('keeps search results when image cache persistence fails', async () => {
+    const results = await enrichSearchResultsWithImages([makeResult()], {
+      getCachedImages: async () => new Map(),
+      lookupLidarrImage: async () => 'https://img.example/lidarr.jpg',
+      cacheImage: async () => {
+        throw new Error('db unavailable')
+      },
+    })
+
+    expect(results[0]?.images).toEqual([
+      { url: 'https://img.example/lidarr.jpg', source: 'lidarr' },
+    ])
+  })
 })

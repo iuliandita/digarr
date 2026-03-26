@@ -411,13 +411,25 @@ export async function exportRecommendations(
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
   if (!response.ok) throw new Error('Export failed')
+  await downloadResponseBlob(
+    response,
+    `digarr-export-${new Date().toISOString().slice(0, 10)}.${format}`,
+  )
+}
+
+async function downloadResponseBlob(response: Response, fallbackFilename: string): Promise<void> {
   const blob = await response.blob()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `digarr-export-${new Date().toISOString().slice(0, 10)}.${format}`
+  a.download = getDownloadFilename(response.headers.get('content-disposition'), fallbackFilename)
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function getDownloadFilename(contentDisposition: string | null, fallbackFilename: string): string {
+  const match = /filename="([^"]+)"/.exec(contentDisposition ?? '')
+  return match?.[1] ?? fallbackFilename
 }
 
 // Search
@@ -667,6 +679,18 @@ export const deletePlaylistApi = (id: number) =>
 
 export const generatePlaylistApi = (id: number) =>
   fetchApi<{ status: string }>(`/playlists/${id}/generate`, { method: 'POST' })
+
+export async function exportPlaylistApi(
+  id: number,
+  format: 'json' | 'csv' | 'm3u' | 'xspf',
+): Promise<void> {
+  const token = getStoredToken()
+  const response = await fetch(`${BASE}/playlists/${id}/export/${format}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!response.ok) throw new Error('Playlist export failed')
+  await downloadResponseBlob(response, `playlist-${id}.${format}`)
+}
 
 export const getPlaylistScheduler = () =>
   fetchApi<{ nextRun: string | null; cron: string | null; enabled: boolean }>(

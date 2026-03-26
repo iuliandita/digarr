@@ -39,11 +39,21 @@ export async function enrichSearchResultsWithImages(
 
   const lookedUp = await Promise.all(
     stillMissing.map(async (result) => {
-      const url = await deps.lookupLidarrImage?.(result.mbid as string)
-      if (!url) return [result.mbid as string, undefined] as const
+      try {
+        const mbid = result.mbid as string
+        const url = await deps.lookupLidarrImage?.(mbid)
+        if (!url) return [mbid, undefined] as const
 
-      await deps.cacheImage?.(result.mbid as string, url)
-      return [result.mbid as string, url] as const
+        try {
+          await deps.cacheImage?.(mbid, url)
+        } catch {
+          // A cache write failure should not block search results.
+        }
+
+        return [mbid, url] as const
+      } catch {
+        return [result.mbid as string, undefined] as const
+      }
     }),
   )
 

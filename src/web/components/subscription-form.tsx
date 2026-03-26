@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { CronPicker } from './cron-picker'
 
+const LISTENBRAINZ_SIMILAR_ERROR =
+  'ListenBrainz similar-artist lookups are currently unavailable. Add Last.fm or choose a different subscription type.'
+
 export type SubscriptionFormData = {
   name: string
   sourceType: string
@@ -41,6 +44,15 @@ const WEIGHT_PRESETS = [
   { value: 'default', label: 'Default' },
   { value: 'genre', label: 'Genre-optimized' },
 ] as const
+
+function getUnsupportedSimilarProviderError(
+  sourceType: string,
+  providers: string[],
+): string | null {
+  return sourceType === 'similar' && providers.length === 1 && providers[0] === 'listenbrainz'
+    ? LISTENBRAINZ_SIMILAR_ERROR
+    : null
+}
 
 export function SubscriptionForm({
   initial,
@@ -101,6 +113,11 @@ export function SubscriptionForm({
     }
     if (providers.length === 0) {
       setError('Select at least one source')
+      return
+    }
+    const unsupportedProviderError = getUnsupportedSimilarProviderError(sourceType, providers)
+    if (unsupportedProviderError) {
+      setError(unsupportedProviderError)
       return
     }
     setError(null)
@@ -267,6 +284,9 @@ export function SubscriptionForm({
             </div>
             {providers.length === 0 && (
               <p className="text-xs text-reject mt-1">Select at least one source</p>
+            )}
+            {providers.length > 0 && getUnsupportedSimilarProviderError(sourceType, providers) && (
+              <p className="text-xs text-reject mt-1">{LISTENBRAINZ_SIMILAR_ERROR}</p>
             )}
           </div>
 

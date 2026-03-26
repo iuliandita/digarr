@@ -260,6 +260,41 @@ describe('GET /api/playlists/:id', () => {
   })
 })
 
+describe('GET /api/playlists/:id/export/:format', () => {
+  it('exports a playlist as M3U for the owner', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/playlists/1/export/m3u')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('audio/x-mpegurl')
+    expect(res.headers.get('content-disposition')).toContain('weekly-mix.m3u')
+    const body = await res.text()
+    expect(body).toContain('#EXTM3U')
+    expect(body).toContain('Radiohead - Creep')
+  })
+
+  it('exports a playlist as XSPF for the owner', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/playlists/1/export/xspf')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('application/xspf+xml')
+    const body = await res.text()
+    expect(body).toContain('<?xml')
+    expect(body).toContain('<title>Weekly Mix</title>')
+  })
+
+  it('returns 400 for unsupported export format', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/playlists/1/export/xml')
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 403 for non-owner export access', async () => {
+    const app = createTestApp(makeDeps(), 999)
+    const res = await app.request('/api/playlists/1/export/m3u')
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('PATCH /api/playlists/:id', () => {
   it('updates allowed fields for owner', async () => {
     const deps = makeDeps()

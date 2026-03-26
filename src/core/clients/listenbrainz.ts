@@ -82,7 +82,7 @@ export function createListenBrainzClient(username: string, token: string) {
       return res.map((a) => ({ name: a.name, score: a.score }))
     } catch (err: unknown) {
       if (err instanceof HttpError && err.status === 404) {
-        return []
+        throw new Error('ListenBrainz similar artists endpoint unavailable (404)')
       }
       throw err
     }

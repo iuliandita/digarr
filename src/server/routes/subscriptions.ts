@@ -3,6 +3,9 @@ import { Hono } from 'hono'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
 
+const LISTENBRAINZ_SIMILAR_ERROR =
+  'ListenBrainz similar-artist lookups are currently unavailable. Add Last.fm or choose a different subscription type.'
+
 const ALLOWED_UPDATE_FIELDS = new Set([
   'name',
   'enabled',
@@ -14,6 +17,45 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   'scoringWeightPreset',
   'scoringWeightOverrides',
 ])
+
+function normalizeProviders(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
+function resolveSubscriptionProviders(
+  sourceConfig: Record<string, unknown>,
+  sourceProvider?: string,
+): string[] {
+  const fromConfig = normalizeProviders(sourceConfig.providers)
+  const resolved = fromConfig.length > 0 ? fromConfig : normalizeProviders(sourceProvider)
+  return [...new Set(resolved)]
+}
+
+function getUnsupportedSimilarProviderError(
+  sourceType: string,
+  sourceConfig: Record<string, unknown>,
+  sourceProvider?: string,
+): string | null {
+  if (sourceType !== 'similar') {
+    return null
+  }
+
+  const providers = resolveSubscriptionProviders(sourceConfig, sourceProvider)
+  return providers.length === 1 && providers[0] === 'listenbrainz'
+    ? LISTENBRAINZ_SIMILAR_ERROR
+    : null
+}
 
 export function subscriptionRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -175,6 +217,14 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (!cron || typeof cron !== 'string') {
       return c.json({ error: 'cron is required' }, 400)
     }
+    const unsupportedProviderError = getUnsupportedSimilarProviderError(
+      sourceType,
+      sourceConfig as Record<string, unknown>,
+      sourceProvider,
+    )
+    if (unsupportedProviderError) {
+      return c.json({ error: unsupportedProviderError }, 400)
+    }
 
     try {
       new Cron(cron, { maxRuns: 0 })
@@ -273,6 +323,21 @@ export function subscriptionRoutes(deps: AppDependencies) {
       }
     }
     update.action = 'add_to_recommendations'
+    const nextSourceConfig =
+      Object.hasOwn(update, 'sourceConfig') &&
+      update.sourceConfig &&
+      typeof update.sourceConfig === 'object' &&
+      !Array.isArray(update.sourceConfig)
+        ? (update.sourceConfig as Record<string, unknown>)
+        : (existing.sourceConfig as Record<string, unknown>)
+    const unsupportedProviderError = getUnsupportedSimilarProviderError(
+      existing.sourceType,
+      nextSourceConfig,
+      existing.sourceProvider,
+    )
+    if (unsupportedProviderError) {
+      return c.json({ error: unsupportedProviderError }, 400)
+    }
 
     if (Object.hasOwn(update, 'cron') && update.cron !== undefined) {
       try {
