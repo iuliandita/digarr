@@ -40,6 +40,7 @@ import { createListenBrainzAdapter } from './core/subscriptions/adapters/listenb
 import { createSimilarAdapter } from './core/subscriptions/adapters/similar'
 import { createSpotifyChartsAdapter } from './core/subscriptions/adapters/spotify-charts'
 import { createSpotifyPlaylistAdapter } from './core/subscriptions/adapters/spotify-playlist'
+import { resolveSubscriptionSourceConnections } from './core/subscriptions/connections'
 import { AdapterRegistry } from './core/subscriptions/registry'
 import { runSubscription } from './core/subscriptions/runner'
 import type {
@@ -316,13 +317,11 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
   const feedbackHistory = await storeDb.getFeedbackHistory()
 
-  // Source connections are per-user only (no global fallback)
   const userConns = sub.userId ? await getUserConnections(db, sub.userId) : null
-
-  const lbUsername = userConns?.listenbrainzUsername ?? null
-  const lbToken = userConns?.listenbrainzToken ?? null
-  const lfUsername = userConns?.lastfmUsername ?? null
-  const lfApiKey = userConns?.lastfmApiKey ?? null
+  const { lbUsername, lbToken, lfUsername, lfApiKey } = resolveSubscriptionSourceConnections(
+    settings,
+    userConns,
+  )
   const dcToken = userConns?.discogsToken ?? null
   const dcUsername = userConns?.discogsUsername ?? null
 
@@ -348,7 +347,11 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   if (!adapterRegistry) {
     adapterRegistry = new AdapterRegistry()
     adapterRegistry.register(createGenreAdapter(sourceRegistry.withCapability('genreArtists')))
-    adapterRegistry.register(createSimilarAdapter(sourceRegistry.withCapability('similarArtists')))
+    adapterRegistry.register(
+      createSimilarAdapter(sourceRegistry.withCapability('similarArtists'), {
+        searchArtist: createMusicBrainzClient().searchArtist,
+      }),
+    )
 
     // Last.fm adapters -- only if the user has a Last.fm API key
     if (lfApiKey) {

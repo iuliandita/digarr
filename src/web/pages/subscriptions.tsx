@@ -336,11 +336,9 @@ export default function SubscriptionsPage() {
   const configuredSources = (() => {
     if (!settings) return []
     const sources: string[] = []
-    // Only check per-user connections (global last.fm/discogs fields are legacy leftovers).
-    // The _*Scope markers indicate user-level data was loaded by the settings endpoint.
-    if (settings._lastfmScope && settings.lastfmUsername) sources.push('lastfm')
-    if (settings._listenbrainzScope && settings.listenbrainzUsername) sources.push('listenbrainz')
-    if (settings._discogsScope && settings.discogsUsername) sources.push('discogs')
+    if (settings.lastfmUsername && settings.lastfmApiKey) sources.push('lastfm')
+    if (settings.listenbrainzUsername && settings.listenbrainzToken) sources.push('listenbrainz')
+    if (settings.discogsUsername && settings.discogsToken) sources.push('discogs')
     if (spotifyStatus?.connected) sources.push('spotify')
     return sources
   })()
@@ -490,37 +488,36 @@ export default function SubscriptionsPage() {
       )}
 
       {/* Empty state */}
-      {!isLoading && subscriptions && subscriptions.length === 0 && (
-        <>
-          {subscriptionMode === 'ai-only' ? (
-            <div className="bg-surface border border-border rounded-lg px-4 py-12 text-center space-y-3">
-              <p className="text-sm font-medium text-text">AI-only mode</p>
-              <p className="text-xs text-muted">
-                Discovery runs on the pipeline schedule with no external feed subscriptions.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowPresets(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
-              >
-                <LayoutGrid size={14} />
-                Switch to a preset
-              </button>
-            </div>
-          ) : (
-            <div className="bg-surface border border-border rounded-lg p-6 space-y-6">
-              <SubscriptionPresets
-                connectedServices={configuredSources}
-                onComplete={() => {
-                  invalidate()
-                  setShowPresets(false)
-                }}
-                onCustom={() => setShowForm({ mode: 'create' })}
-              />
-            </div>
-          )}
-        </>
-      )}
+      {!isLoading &&
+        subscriptions &&
+        subscriptions.length === 0 &&
+        (subscriptionMode === 'ai-only' ? (
+          <div className="bg-surface border border-border rounded-lg px-4 py-12 text-center space-y-3">
+            <p className="text-sm font-medium text-text">AI-only mode</p>
+            <p className="text-xs text-muted">
+              Discovery runs on the pipeline schedule with no external feed subscriptions.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPresets(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
+            >
+              <LayoutGrid size={14} />
+              Switch to a preset
+            </button>
+          </div>
+        ) : (
+          <div className="bg-surface border border-border rounded-lg p-6 space-y-6">
+            <SubscriptionPresets
+              connectedServices={configuredSources}
+              onComplete={() => {
+                invalidate()
+                setShowPresets(false)
+              }}
+              onCustom={() => setShowForm({ mode: 'create' })}
+            />
+          </div>
+        ))}
 
       {/* Inline presets panel (shown when list is non-empty and user clicked Presets) */}
       {!isLoading && subscriptions && subscriptions.length > 0 && showPresets && (

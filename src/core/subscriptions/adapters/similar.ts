@@ -7,6 +7,11 @@ import type {
 } from '@/core/subscriptions/types'
 
 type SeedArtist = { name: string; mbid?: string }
+type SimilarAdapterDeps = {
+  searchArtist?: (
+    query: string,
+  ) => Promise<{ artists: Array<{ id: string; name: string; score: number }> }>
+}
 
 const CONFIG_FIELDS: AdapterConfigField[] = [
   {
@@ -53,7 +58,37 @@ function parseSeeds(raw: unknown): SeedArtist[] {
   return []
 }
 
-export function createSimilarAdapter(sources: DiscoverySource[]): SubscriptionAdapter {
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase()
+}
+
+async function resolveSeedMbids(
+  seeds: SeedArtist[],
+  searchArtist: NonNullable<SimilarAdapterDeps['searchArtist']>,
+): Promise<SeedArtist[]> {
+  return Promise.all(
+    seeds.map(async (seed) => {
+      if (seed.mbid) return seed
+
+      try {
+        const searchResult = await searchArtist(seed.name)
+        const match =
+          searchResult.artists.find(
+            (artist) => normalizeName(artist.name) === normalizeName(seed.name),
+          ) ?? searchResult.artists[0]
+
+        return match ? { ...seed, mbid: match.id } : seed
+      } catch {
+        return seed
+      }
+    }),
+  )
+}
+
+export function createSimilarAdapter(
+  sources: DiscoverySource[],
+  deps: SimilarAdapterDeps = {},
+): SubscriptionAdapter {
   return {
     type: 'similar',
     label: 'Similar Artists',
@@ -82,8 +117,13 @@ export function createSimilarAdapter(sources: DiscoverySource[]): SubscriptionAd
 
       if (capable.length === 0) return { artists: [] }
 
+      const resolvedSeeds =
+        deps.searchArtist && capable.some((source) => source.id === 'listenbrainz')
+          ? await resolveSeedMbids(seeds, deps.searchArtist)
+          : seeds
+
       // Fan out: all seeds x all sources
-      const calls = seeds.flatMap((seed) =>
+      const calls = resolvedSeeds.flatMap((seed) =>
         capable.map((source) =>
           source.getSimilarArtists(seed.name, seed.mbid).then((entries) =>
             entries.map((entry) => ({

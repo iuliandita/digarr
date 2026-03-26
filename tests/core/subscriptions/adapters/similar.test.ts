@@ -74,6 +74,24 @@ describe('createSimilarAdapter', () => {
     expect(getSimilarArtists).toHaveBeenCalledWith('Radiohead', 'mbid-rh')
   })
 
+  it('resolves missing MBIDs before calling ListenBrainz', async () => {
+    const listenbrainz = makeSource('listenbrainz', [
+      { name: 'Artist B', similarityScore: 0.8, source: 'listenbrainz' },
+    ])
+    const searchArtist = vi.fn().mockResolvedValue({
+      artists: [{ id: 'mbid-seed', name: 'Artist A', score: 100 }],
+    })
+    const adapter = createSimilarAdapter([listenbrainz], { searchArtist })
+
+    await adapter.fetch({
+      seedArtists: [{ name: 'Artist A' }],
+      providers: ['listenbrainz'],
+    })
+
+    expect(searchArtist).toHaveBeenCalledWith('Artist A')
+    expect(listenbrainz.getSimilarArtists).toHaveBeenCalledWith('Artist A', 'mbid-seed')
+  })
+
   it('deduplicates artists across seeds by lowercase name', async () => {
     const source = makeSource('lastfm', [])
     const getSimilarFn = vi.mocked(source.getSimilarArtists)
