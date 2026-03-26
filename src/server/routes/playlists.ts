@@ -1,34 +1,24 @@
+import { Cron } from 'croner'
 import { Hono } from 'hono'
-import type { GenerationResult } from '@/core/playlists/generator'
-import { generatePlaylist } from '@/core/playlists/generator'
 import type { PlaylistScheduler } from '@/core/playlists/scheduler'
-import { buildStrategyDeps } from '@/core/playlists/strategy-deps'
-import type { PlaylistItem } from '@/core/targets/types'
 import type { Database } from '@/db'
-import type {
-  PlaylistInsert,
-  PlaylistRow,
-  PlaylistTrackInsert,
-  PlaylistTrackRow,
-} from '@/db/queries/playlists'
+import type { PlaylistInsert, PlaylistRow, PlaylistTrackRow } from '@/db/queries/playlists'
 import {
   createPlaylist,
   deletePlaylist,
   getPlaylistsByUser,
   getPlaylistWithTracks,
-  replacePlaylistTracks,
   updatePlaylist,
 } from '@/db/queries/playlists'
 import { getSettings } from '@/db/queries/settings'
-import type { TargetRow } from '@/db/queries/targets'
 import { mergePreferences, type PlaylistConfig, type PlaylistStrategy } from '@/db/schema'
 import type { HonoEnv } from '@/server/types'
 
 export type PlaylistDeps = {
   db: Database
   playlistScheduler: PlaylistScheduler
-  getTargetsByUser: (userId: number) => Promise<TargetRow[]>
-  buildPlaylistTarget: (row: TargetRow) => import('@/core/targets/types').DestinationTarget | null
+  runPlaylistGeneration: (playlistId: number) => Promise<void>
+  restartPlaylistScheduler: () => Promise<void>
 }
 
 const ALLOWED_UPDATE_FIELDS = new Set<string>([
@@ -40,79 +30,6 @@ const ALLOWED_UPDATE_FIELDS = new Set<string>([
   'enabled',
 ])
 
-async function runGeneration(
-  db: Database,
-  playlist: PlaylistRow,
-  deps: PlaylistDeps,
-): Promise<void> {
-  const userId = playlist.userId
-  const strategyDeps = buildStrategyDeps(db, userId ?? null)
-
-  const cfg = playlist.config ?? {
-    size: 25,
-    trackSourcePriority: ['spotify' as const],
-  }
-
-  const generationConfig = {
-    size: cfg.size,
-    genre: cfg.genre,
-    mood: cfg.mood,
-    trackSourcePriority: cfg.trackSourcePriority,
-  }
-
-  const result: GenerationResult = await generatePlaylist(
-    playlist.strategy as PlaylistStrategy,
-    generationConfig,
-    strategyDeps,
-    {}, // no track resolver deps -- tracks come from strategy
-  )
-
-  const trackInserts: PlaylistTrackInsert[] = result.tracks.map((t, i) => ({
-    playlistId: playlist.id,
-    artistName: t.artistName,
-    trackName: t.trackName ?? null,
-    mbid: t.mbid ?? null,
-    spotifyUri: t.spotifyUri ?? null,
-    deezerId: t.deezerId ?? null,
-    localPath: t.localPath ?? null,
-    position: i,
-  }))
-
-  await replacePlaylistTracks(db, playlist.id, trackInserts)
-  await updatePlaylist(db, playlist.id, {
-    lastGeneratedAt: new Date(),
-    trackCount: result.tracks.length,
-  })
-
-  // Push to configured targets if any
-  if (playlist.targetIds.length > 0 && userId != null) {
-    const targetRows = await deps.getTargetsByUser(userId)
-    const enabledTargetRows = targetRows.filter(
-      (r) => r.enabled && playlist.targetIds.includes(r.id),
-    )
-
-    const playlistItems: PlaylistItem[] = result.tracks.map((t) => ({
-      artistName: t.artistName,
-      artistMbid: t.mbid ?? '',
-      trackName: t.trackName ?? undefined,
-      trackMbid: t.mbid ?? undefined,
-    }))
-
-    for (const targetRow of enabledTargetRows) {
-      const target = deps.buildPlaylistTarget(targetRow)
-      if (!target?.createPlaylist) continue
-      try {
-        await target.createPlaylist(playlist.name, playlistItems)
-      } catch (err: unknown) {
-        console.error(
-          `[playlists] Failed to push to target ${targetRow.type}(${targetRow.id}):`,
-          err,
-        )
-      }
-    }
-  }
-}
-
 export function playlistRoutes(deps: PlaylistDeps) {
   const router = new Hono<HonoEnv>()
   const { db } = deps
@@ -122,12 +39,25 @@ export function playlistRoutes(deps: PlaylistDeps) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const next = deps.playlistScheduler.nextRun()
     const settings = await getSettings(db)
     const prefs = mergePreferences(settings?.preferences as Record<string, unknown> | null)
+    const playlists = await getPlaylistsByUser(db, userId)
+    const jobsByName = new Map(deps.playlistScheduler.listJobs().map((job) => [job.name, job]))
+    const nextRuns = playlists
+      .map((playlist) => jobsByName.get(`playlist-${playlist.id}`)?.nextRun ?? null)
+      .filter((run): run is Date => run instanceof Date)
+      .sort((a, b) => a.getTime() - b.getTime())
+    const scheduledCrons = [
+      ...new Set(
+        playlists
+          .map((playlist) => playlist.schedule)
+          .filter((cron): cron is string => Boolean(cron)),
+      ),
+    ]
+
     return c.json({
-      nextRun: next ? next.toISOString() : null,
-      cron: prefs.playlistSchedule ?? null,
+      nextRun: nextRuns[0]?.toISOString() ?? null,
+      cron: scheduledCrons.length === 1 ? scheduledCrons[0] : null,
       enabled: prefs.playlistEnabled ?? false,
     })
   })
@@ -160,6 +90,13 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (!validStrategies.includes(strategy)) {
       return c.json({ error: `strategy must be one of: ${validStrategies.join(', ')}` }, 400)
     }
+    if (body.schedule != null && typeof body.schedule === 'string') {
+      try {
+        new Cron(body.schedule, { maxRuns: 0 })
+      } catch {
+        return c.json({ error: 'Invalid schedule cron expression' }, 400)
+      }
+    }
 
     const data: PlaylistInsert = {
       name,
@@ -172,6 +109,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
     }
 
     const row = await createPlaylist(db, data)
+    await deps.restartPlaylistScheduler()
     return c.json(row, 201)
   })
 
@@ -210,7 +148,16 @@ export function playlistRoutes(deps: PlaylistDeps) {
       }
     }
 
+    if (Object.hasOwn(update, 'schedule') && update.schedule != null) {
+      try {
+        new Cron(String(update.schedule), { maxRuns: 0 })
+      } catch {
+        return c.json({ error: 'Invalid schedule cron expression' }, 400)
+      }
+    }
+
     await updatePlaylist(db, id, update)
+    await deps.restartPlaylistScheduler()
     return c.json({ updated: true })
   })
 
@@ -227,6 +174,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
 
     await deletePlaylist(db, id)
+    await deps.restartPlaylistScheduler()
     return c.json({ deleted: true })
   })
 
@@ -242,11 +190,9 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (!result) return c.json({ error: 'Not found' }, 404)
     if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
 
-    const playlist = result.playlist
-
     // Fire-and-forget
     Promise.resolve()
-      .then(() => runGeneration(db, playlist, deps))
+      .then(() => deps.runPlaylistGeneration(id))
       .catch((err: unknown) => {
         console.error(`[playlists] Generation failed for playlist ${id}:`, err)
       })

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Hint } from '../components/hint'
 import { PlaylistCard } from '../components/playlist-card'
@@ -95,6 +96,8 @@ function SkeletonGrid() {
 
 export function PlaylistsPage() {
   const queryClient = useQueryClient()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [formMode, setFormMode] = useState<'create' | 'edit' | null>(null)
   const [editingPlaylist, setEditingPlaylist] = useState<PlaylistRow | null>(null)
 
@@ -111,6 +114,18 @@ export function PlaylistsPage() {
     queryKey: ['playlists', 'scheduler'],
     queryFn: getPlaylistScheduler,
   })
+
+  useEffect(() => {
+    const editId = (location.state as { editId?: number } | null)?.editId
+    if (!editId || playlists.length === 0) return
+
+    const playlist = playlists.find((row) => row.id === editId)
+    if (!playlist) return
+
+    setEditingPlaylist(playlist)
+    setFormMode('edit')
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.pathname, location.state, navigate, playlists])
 
   function openCreate() {
     setEditingPlaylist(null)

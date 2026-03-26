@@ -95,6 +95,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getBatch: vi.fn(async () => null),
     getArtistById: vi.fn(async () => null),
     restartScheduler: vi.fn(),
+    restartPlaylistScheduler: vi.fn(),
     createUser: vi.fn(async () => ({
       id: 1,
       username: 'test',
@@ -255,7 +256,11 @@ describe('POST /api/subscriptions', () => {
     })
     expect(res.status).toBe(201)
     expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Test Sub', userId: USER_ID }),
+      expect.objectContaining({
+        name: 'Test Sub',
+        userId: USER_ID,
+        action: 'add_to_recommendations',
+      }),
     )
   })
 

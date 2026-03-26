@@ -3,36 +3,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PlaylistScheduler } from '@/core/playlists/scheduler'
 
-// Mock croner so tests don't run real timers
-vi.mock('croner', () => {
-  class MockCron {
-    private _nextRun: Date | null
-
-    constructor(
-      _expression: string,
-      private fn: () => Promise<void>,
-    ) {
-      // Schedule a next run 1 minute from now
-      this._nextRun = new Date(Date.now() + 60_000)
-    }
-
-    stop() {
-      this._nextRun = null
-    }
-
-    nextRun(): Date | null {
-      return this._nextRun
-    }
-
-    // Test helper: manually trigger the cron callback
-    async trigger() {
-      await this.fn()
-    }
-  }
-
-  return { Cron: MockCron }
-})
-
 describe('PlaylistScheduler', () => {
   let scheduler: PlaylistScheduler
 
@@ -41,55 +11,75 @@ describe('PlaylistScheduler', () => {
   })
 
   afterEach(() => {
-    scheduler.stop()
+    scheduler.stopAll()
   })
 
-  it('starts and reports a next run time', () => {
-    const runFn = vi.fn(async () => {})
-    scheduler.start('0 6 * * 1', runFn)
+  it('adds named jobs and exposes them via has()', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
 
-    const next = scheduler.nextRun()
+    expect(scheduler.has('playlist-1')).toBe(true)
+  })
+
+  it('replaces an existing job with the same name', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
+    scheduler.schedule('playlist-1', '0 8 * * 0', async () => {})
+
+    expect(scheduler.listJobs()).toHaveLength(1)
+    expect(scheduler.listJobs()[0]?.expression).toBe('0 8 * * 0')
+  })
+
+  it('returns the next run for a named job', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
+
+    const next = scheduler.nextRun('playlist-1')
+
     expect(next).toBeInstanceOf(Date)
-    expect(next?.getTime()).toBeGreaterThan(Date.now())
   })
 
-  it('nextRun returns null before start', () => {
-    expect(scheduler.nextRun()).toBeNull()
+  it('returns the earliest next run when called without a name', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
+    scheduler.schedule('playlist-2', '0 8 * * 0', async () => {})
+
+    const earliest = scheduler.nextRun()
+    const allRuns = scheduler
+      .listJobs()
+      .map((job) => job.nextRun)
+      .filter((run): run is Date => run instanceof Date)
+      .sort((a, b) => a.getTime() - b.getTime())
+
+    expect(earliest?.toISOString()).toBe(allRuns[0]?.toISOString())
   })
 
-  it('stop clears the job', () => {
-    const runFn = vi.fn(async () => {})
-    scheduler.start('0 6 * * 1', runFn)
-    expect(scheduler.nextRun()).not.toBeNull()
+  it('removes a job cleanly', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
 
-    scheduler.stop()
-    expect(scheduler.nextRun()).toBeNull()
+    scheduler.remove('playlist-1')
+
+    expect(scheduler.has('playlist-1')).toBe(false)
+    expect(scheduler.nextRun('playlist-1')).toBeNull()
   })
 
-  it('start replaces an existing job', () => {
-    const fn1 = vi.fn(async () => {})
-    const fn2 = vi.fn(async () => {})
+  it('stopAll clears every scheduled playlist job', () => {
+    scheduler.schedule('playlist-1', '0 6 * * 1', async () => {})
+    scheduler.schedule('playlist-2', '0 8 * * 0', async () => {})
 
-    scheduler.start('0 6 * * 1', fn1)
-    const first = scheduler.nextRun()
+    scheduler.stopAll()
 
-    scheduler.start('0 7 * * 2', fn2)
-    const second = scheduler.nextRun()
-
-    // Both return a Date -- the job was replaced
-    expect(first).toBeInstanceOf(Date)
-    expect(second).toBeInstanceOf(Date)
+    expect(scheduler.listJobs()).toEqual([])
   })
 
-  it('swallows errors thrown by the run function', async () => {
-    const errorFn = vi.fn(async () => {
+  it('swallows callback errors when the job is triggered', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    scheduler.schedule('playlist-1', '* * * * * *', async () => {
       throw new Error('boom')
     })
 
-    scheduler.start('0 6 * * 1', errorFn)
+    const internalJob = (
+      scheduler as unknown as { jobs: Map<string, { cron: { trigger: () => Promise<void> } }> }
+    ).jobs.get('playlist-1')
 
-    // Trigger the cron via the mock helper -- should not throw
-    const job = (scheduler as unknown as { job: { trigger: () => Promise<void> } }).job
-    await expect(job.trigger()).resolves.toBeUndefined()
+    await expect(internalJob?.cron.trigger()).resolves.toBeUndefined()
+
+    consoleSpy.mockRestore()
   })
 })

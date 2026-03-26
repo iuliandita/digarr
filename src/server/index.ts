@@ -92,6 +92,7 @@ export type AppDependencies = {
   // Artist query functions
   getArtistById: (id: number) => Promise<ArtistRow | null>
   restartScheduler: (cron: string | null) => void
+  restartPlaylistScheduler: () => Promise<void>
   // User query functions
   createUser: (data: {
     username: string

@@ -1,4 +1,5 @@
 import PQueue from 'p-queue'
+import { computeNameRelevance } from './relevance'
 
 export type SearchSource = {
   id: string
@@ -38,6 +39,15 @@ type SearchOptions = {
 }
 
 const SOURCE_TIMEOUT_MS = 5000
+
+function popularityTieBreaker(result: MergedSearchResult): number {
+  const popularity = result.popularity ?? 0
+  const listeners = result.listeners ?? 0
+  const normalizedListeners = listeners > 0 ? Math.log10(listeners + 1) : 0
+  const sourceConfidence = result.sources.length * 10
+  const imageBonus = result.images.length > 0 ? 2 : 0
+  return popularity + normalizedListeners + sourceConfidence + imageBonus
+}
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -149,8 +159,18 @@ export async function multiSourceSearch(
 
   const merged = Array.from(byKey.values())
 
-  // Sort by source count descending (more sources = higher confidence)
-  merged.sort((a, b) => b.sources.length - a.sources.length)
+  merged.sort((a, b) => {
+    const relevanceDiff = computeNameRelevance(query, b.name) - computeNameRelevance(query, a.name)
+    if (relevanceDiff !== 0) return relevanceDiff
+
+    const sourceDiff = b.sources.length - a.sources.length
+    if (sourceDiff !== 0) return sourceDiff
+
+    const popularityDiff = popularityTieBreaker(b) - popularityTieBreaker(a)
+    if (popularityDiff !== 0) return popularityDiff
+
+    return a.name.length - b.name.length
+  })
 
   return merged.slice(0, limit)
 }

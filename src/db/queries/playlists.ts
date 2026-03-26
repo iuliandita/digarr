@@ -57,6 +57,10 @@ export async function getPlaylistsByUser(db: Database, userId: number): Promise<
   return rows
 }
 
+export async function getEnabledPlaylists(db: Database): Promise<PlaylistRow[]> {
+  return db.select().from(playlists).where(eq(playlists.enabled, true))
+}
+
 export async function getPlaylistWithTracks(
   db: Database,
   playlistId: number,

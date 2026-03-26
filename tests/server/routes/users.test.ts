@@ -79,6 +79,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getBatch: vi.fn(async () => null),
     getArtistById: vi.fn(async () => null),
     restartScheduler: vi.fn(),
+    restartPlaylistScheduler: vi.fn(),
     createUser: vi.fn(async (data) => ({
       id: 1,
       username: data.username,

@@ -20,6 +20,13 @@ export type SpotifyRecentTrack = {
   playedAt: string
 }
 
+export type SpotifySearchTrack = {
+  name: string
+  artists: string[]
+  uri: string
+  popularity: number
+}
+
 // Raw Spotify API response shapes
 type SpotifyTopArtistsResponse = {
   items: Array<{
@@ -43,6 +50,17 @@ type SpotifyRecentlyPlayedResponse = {
 type SpotifyProfileResponse = {
   display_name: string
   id: string
+}
+
+type SpotifySearchTracksResponse = {
+  tracks: {
+    items: Array<{
+      name: string
+      uri: string
+      popularity: number
+      artists: Array<{ name: string }>
+    }>
+  }
 }
 
 export function createSpotifyClient(accessToken: string, options?: { baseUrl?: string }) {
@@ -84,6 +102,21 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
     }))
   }
 
+  async function searchTracks(query: string, limit = 10): Promise<SpotifySearchTrack[]> {
+    const params = new URLSearchParams({
+      q: query,
+      type: 'track',
+      limit: String(limit),
+    })
+    const res = await get<SpotifySearchTracksResponse>(`/search?${params}`)
+    return res.tracks.items.map((item) => ({
+      name: item.name,
+      artists: item.artists.map((artist) => artist.name),
+      uri: item.uri,
+      popularity: item.popularity,
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const profile = await get<SpotifyProfileResponse>('/me')
@@ -100,6 +133,7 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
   return {
     getTopArtists,
     getRecentlyPlayed,
+    searchTracks,
     testConnection,
   }
 }

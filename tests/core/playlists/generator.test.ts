@@ -203,6 +203,15 @@ describe('mood_mix strategy', () => {
     expect(lower.map((a) => a.name)).toEqual(upper.map((a) => a.name))
   })
 
+  it('matches alias moods like d&d against adjacent genre tags', async () => {
+    const deps = makeStrategyDeps()
+    const impl = getStrategy('mood_mix')
+
+    const artists = await impl.selectArtists(deps, { size: 9, mood: 'd&d' })
+
+    expect(artists.map((artist) => artist.name)).toContain('Boards of Canada')
+  })
+
   it('returns all artists sorted by score when mood is not provided', async () => {
     const deps = makeStrategyDeps()
     const impl = getStrategy('mood_mix')

@@ -7,25 +7,32 @@ import { createBandcampClient } from '@/core/clients/bandcamp'
 let server: http.Server
 let baseUrl: string
 
-// Sample Bandcamp-like HTML with band result items
+// Sample current Bandcamp-like HTML with artist result items
 const SAMPLE_HTML_TWO_BANDS = `
 <!DOCTYPE html>
 <html>
 <body>
 <ul class="result-items">
-  <li class="searchresult band" itemtype="b">
+  <li class="searchresult data-search" data-search='{"type":"b","id":1}'>
     <div class="result-info">
       <div class="heading">
-        <a href="https://portishead.bandcamp.com">Portishead</a>
+        <a href="https://portishead.bandcamp.com/album/live-at-roseland?from=search">Portishead</a>
       </div>
-      <div class="genre">trip-hop</div>
+      <div class="itemurl">
+        <a href="https://portishead.bandcamp.com/?from=search">https://portishead.bandcamp.com/?from=search</a>
+      </div>
+      <div class="itemtype">ARTIST</div>
+      <div class="genre">genre: trip-hop</div>
       <img src="https://f4.bcbits.com/portishead_thumb.jpg" />
     </div>
   </li>
-  <li class="searchresult band" itemtype="b">
+  <li class="searchresult data-search" data-search='{"type":"b","id":2}'>
     <div class="result-info">
       <div class="heading">
         <a href="https://massiveattack.bandcamp.com">Massive Attack</a>
+      </div>
+      <div class="itemurl">
+        <a href="https://massiveattack.bandcamp.com/">https://massiveattack.bandcamp.com/</a>
       </div>
       <div class="genre">electronic</div>
     </div>
@@ -38,9 +45,10 @@ const SAMPLE_HTML_TWO_BANDS = `
 // HTML with a non-band result (album, itemtype=a) mixed in
 const SAMPLE_HTML_MIXED = `
 <ul>
-  <li class="searchresult album" itemtype="a">
+  <li class="searchresult album" data-search='{"type":"a","id":10}'>
     <div class="result-info">
       <div class="heading"><a href="https://portishead.bandcamp.com/album/dummy">Dummy</a></div>
+      <div class="itemtype">ALBUM</div>
     </div>
   </li>
   <li class="searchresult band" itemtype="b">
@@ -110,7 +118,7 @@ afterAll(() => {
 
 describe('createBandcampClient', () => {
   describe('searchArtists(query, limit)', () => {
-    it('parses band results from HTML', async () => {
+    it('parses artist results from current Bandcamp HTML', async () => {
       const client = createBandcampClient({ baseUrl })
       const results = await client.searchArtists('portishead')
       expect(results).toHaveLength(2)
@@ -122,12 +130,12 @@ describe('createBandcampClient', () => {
       })
     })
 
-    it('returns genre and imageUrl as optional fields', async () => {
+    it('normalizes item URLs and keeps genre and imageUrl optional', async () => {
       const client = createBandcampClient({ baseUrl })
       const results = await client.searchArtists('portishead')
-      // Second result has genre but no image
       expect(results[1]).toMatchObject({
         name: 'Massive Attack',
+        url: 'https://massiveattack.bandcamp.com',
         genre: 'electronic',
       })
       expect(results[1]?.imageUrl).toBeUndefined()

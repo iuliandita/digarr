@@ -34,8 +34,11 @@ const mockTrack = {
 }
 
 const mockPlaylistScheduler = {
-  start: vi.fn(),
-  stop: vi.fn(),
+  schedule: vi.fn(),
+  remove: vi.fn(),
+  has: vi.fn(() => false),
+  listJobs: vi.fn(() => [] as Array<{ name: string; expression: string; nextRun: Date | null }>),
+  stopAll: vi.fn(),
   nextRun: vi.fn(() => null as Date | null),
 }
 
@@ -50,8 +53,8 @@ function makeDeps(overrides: Partial<PlaylistDeps> = {}): PlaylistDeps {
   return {
     db: mockDb as unknown as PlaylistDeps['db'],
     playlistScheduler: mockPlaylistScheduler as unknown as PlaylistDeps['playlistScheduler'],
-    getTargetsByUser: vi.fn().mockResolvedValue([]),
-    buildPlaylistTarget: vi.fn().mockReturnValue(null),
+    runPlaylistGeneration: vi.fn().mockResolvedValue(undefined),
+    restartPlaylistScheduler: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -95,6 +98,7 @@ vi.mock('@/db/queries/settings', () => ({
 beforeEach(async () => {
   vi.clearAllMocks()
   mockPlaylistScheduler.nextRun.mockReturnValue(null)
+  mockPlaylistScheduler.listJobs.mockReturnValue([])
 
   const {
     createPlaylist,
@@ -137,7 +141,13 @@ describe('GET /api/playlists/scheduler', () => {
       makeDeps({
         playlistScheduler: {
           ...mockPlaylistScheduler,
-          nextRun: () => nextDate,
+          listJobs: () => [
+            {
+              name: 'playlist-1',
+              expression: '0 6 * * 1',
+              nextRun: nextDate,
+            },
+          ],
         } as unknown as PlaylistDeps['playlistScheduler'],
       }),
       USER_ID,
@@ -173,7 +183,8 @@ describe('GET /api/playlists', () => {
 
 describe('POST /api/playlists', () => {
   it('creates a playlist with valid body', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -182,6 +193,7 @@ describe('POST /api/playlists', () => {
     expect(res.status).toBe(201)
     const body = (await res.json()) as { id: number }
     expect(typeof body.id).toBe('number')
+    expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
   it('returns 400 when name is missing', async () => {
@@ -200,6 +212,16 @@ describe('POST /api/playlists', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'My Mix', strategy: 'not_a_strategy' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid schedule cron', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/playlists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'My Mix', strategy: 'weekly_digest', schedule: 'not a cron' }),
     })
     expect(res.status).toBe(400)
   })
@@ -240,7 +262,8 @@ describe('GET /api/playlists/:id', () => {
 
 describe('PATCH /api/playlists/:id', () => {
   it('updates allowed fields for owner', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/playlists/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -249,6 +272,7 @@ describe('PATCH /api/playlists/:id', () => {
     expect(res.status).toBe(200)
     const body = (await res.json()) as { updated: boolean }
     expect(body.updated).toBe(true)
+    expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
   it('returns 403 for non-owner', async () => {
@@ -264,11 +288,13 @@ describe('PATCH /api/playlists/:id', () => {
 
 describe('DELETE /api/playlists/:id', () => {
   it('deletes playlist for owner', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/playlists/1', { method: 'DELETE' })
     expect(res.status).toBe(200)
     const body = (await res.json()) as { deleted: boolean }
     expect(body.deleted).toBe(true)
+    expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
   it('returns 403 for non-owner', async () => {
@@ -280,11 +306,13 @@ describe('DELETE /api/playlists/:id', () => {
 
 describe('POST /api/playlists/:id/generate', () => {
   it('returns 202 and fires generation for owner', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/playlists/1/generate', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = (await res.json()) as { status: string }
     expect(body.status).toBe('generating')
+    expect(deps.runPlaylistGeneration).toHaveBeenCalledWith(1)
   })
 
   it('returns 403 for non-owner', async () => {

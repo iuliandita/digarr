@@ -21,16 +21,34 @@ export type BandcampSearchResult = {
 }
 
 // Regexes for HTML scraping. These are fragile by nature.
-// Targeting .result-info .heading a (artist name + URL) and .result-info .genre
+// Targeting .result-info .heading a (artist name + URL), .itemurl for clean URLs,
+// and both legacy and current result-type markers.
 const RE_RESULT_BLOCK = /<li class="searchresult[^"]*"[^>]*>([\s\S]*?)<\/li>/g
 const RE_HEADING_LINK =
   /<div class="heading"[^>]*>[\s\S]*?<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/
+const RE_ITEMURL_LINK =
+  /<div class="itemurl"[^>]*>[\s\S]*?<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/
 const RE_GENRE = /<div class="genre"[^>]*>([\s\S]*?)<\/div>/
+const RE_ITEM_TYPE = /<div class="itemtype"[^>]*>([\s\S]*?)<\/div>/
 const RE_IMAGE = /<img[^>]+src="([^"]+)"[^>]*>/
 const RE_HTML_TAG = /<[^>]+>/g
+const RE_BAND_TYPE_MARKER =
+  /itemtype=(?:"|')b(?:"|')|data-search=(?:"|')[\s\S]*?(?:"|&quot;)type(?:"|&quot;)\s*:\s*(?:"|&quot;)b(?:"|&quot;)[\s\S]*?(?:"|')/i
 
 function stripHtml(s: string): string {
   return s.replace(RE_HTML_TAG, '').trim()
+}
+
+function normalizeBandcampUrl(rawUrl: string): string {
+  const trimmed = stripHtml(rawUrl)
+  if (!trimmed) return ''
+
+  try {
+    const parsed = new URL(trimmed)
+    return `${parsed.origin}${parsed.pathname}`.replace(/\/+$/, '')
+  } catch {
+    return trimmed.replace(/\?.*$/, '').replace(/\/+$/, '')
+  }
 }
 
 function parseSearchResults(html: string, limit: number): BandcampSearchResult[] {
@@ -46,27 +64,33 @@ function parseSearchResults(html: string, limit: number): BandcampSearchResult[]
     const block = match[1] ?? ''
     const full = match[0]
 
-    // Only pick up band/artist results (itemtype=b)
-    if (!full.includes('itemtype="b"') && !full.includes("itemtype='b'")) {
+    const itemTypeMatch = RE_ITEM_TYPE.exec(block)
+    const itemType = itemTypeMatch ? stripHtml(itemTypeMatch[1] ?? '').toLowerCase() : ''
+    const isArtistResult = itemType === 'artist'
+
+    // Only pick up artist/band results.
+    if (!isArtistResult && !RE_BAND_TYPE_MARKER.test(full)) {
       continue
     }
 
     const headingMatch = RE_HEADING_LINK.exec(block)
     if (!headingMatch) continue
 
-    const rawUrl = (headingMatch[1] ?? '').trim()
+    const itemUrlMatch = RE_ITEMURL_LINK.exec(block)
+    const rawUrl = (itemUrlMatch?.[1] ?? itemUrlMatch?.[2] ?? headingMatch[1] ?? '').trim()
     const rawName = stripHtml(headingMatch[2] ?? '')
-    if (!rawName || !rawUrl) continue
+    const normalizedUrl = normalizeBandcampUrl(rawUrl)
+    if (!rawName || !normalizedUrl) continue
 
     const genreMatch = RE_GENRE.exec(block)
-    const genre = genreMatch ? stripHtml(genreMatch[1] ?? '') : undefined
+    const genre = genreMatch ? stripHtml(genreMatch[1] ?? '').replace(/^genre:\s*/i, '') : undefined
 
     const imageMatch = RE_IMAGE.exec(block)
     const imageUrl = imageMatch ? (imageMatch[1] ?? '').trim() : undefined
 
     results.push({
       name: rawName,
-      url: rawUrl,
+      url: normalizedUrl,
       genre: genre || undefined,
       imageUrl: imageUrl || undefined,
     })

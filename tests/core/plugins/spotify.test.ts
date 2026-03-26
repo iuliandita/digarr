@@ -27,6 +27,7 @@ describe('createSpotifySource()', () => {
           playedAt: '2025-01-15T10:25:00Z',
         },
       ]),
+      searchTracks: vi.fn().mockResolvedValue([]),
       testConnection: vi.fn().mockResolvedValue({
         success: true,
         message: 'Connected to Spotify as testuser',

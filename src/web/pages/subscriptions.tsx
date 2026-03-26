@@ -175,14 +175,7 @@ function SubscriptionCard({
     return sub.sourceType
   })()
 
-  const actionLabel =
-    sub.action === 'auto_approve'
-      ? 'Auto-approve'
-      : sub.action === 'auto_add_to_target'
-        ? 'Auto-add'
-        : sub.action === 'notify_only'
-          ? 'Notify only'
-          : 'Add to queue'
+  const actionLabel = 'Add to recommendations'
 
   return (
     <div className="bg-surface border border-border rounded-lg">

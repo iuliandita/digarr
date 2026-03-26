@@ -34,6 +34,7 @@ function makeDeps() {
     getBatch: vi.fn(async () => null),
     getArtistById: vi.fn(async () => null),
     restartScheduler: vi.fn(),
+    restartPlaylistScheduler: vi.fn(),
     createUser: vi.fn(async () => ({
       id: 1,
       username: 'test',

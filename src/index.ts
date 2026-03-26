@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server'
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { canAutoSetup, envConfig } from './config/env'
 import { hashPassword } from './core/auth'
@@ -9,6 +9,7 @@ import { createDeezerClient } from './core/clients/deezer'
 import { createJellyfinClient } from './core/clients/jellyfin'
 import { createLidarrClient } from './core/clients/lidarr'
 import { createMusicBrainzClient } from './core/clients/musicbrainz'
+import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { GenreService } from './core/genre/service'
 import { LibraryHealthService } from './core/library/health'
@@ -25,6 +26,7 @@ import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
 import { createDefaultRegistry } from './core/providers/registry'
 import { buildSearchSourceCatalog } from './core/search/catalog'
+import { enrichSearchResultsWithImages } from './core/search/enrich'
 import type { SearchSource } from './core/search/multi-source'
 import { multiSourceSearch } from './core/search/multi-source'
 import { createBandcampSearchSource } from './core/search/sources/bandcamp'
@@ -66,7 +68,8 @@ import {
 } from './db/queries/genres'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
-  getPlaylistsDueForGeneration,
+  getEnabledPlaylists,
+  getPlaylistWithTracks,
   replacePlaylistTracks,
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
@@ -243,6 +246,21 @@ function makeLazyLidarrClient() {
 
 const lazyLidarrClient = makeLazyLidarrClient()
 
+function extractSearchImageUrl(
+  results: Array<{ images?: Array<{ coverType: string; remoteUrl?: string }> }>,
+): string | undefined {
+  const artist = results[0]
+  if (!artist?.images?.length) return undefined
+
+  for (const type of ['poster', 'fanart', 'banner']) {
+    const image = artist.images.find((entry) => entry.coverType === type && entry.remoteUrl)
+    if (image?.remoteUrl) return image.remoteUrl
+  }
+
+  return artist.images.find((entry) => entry.coverType !== 'clearlogo' && entry.remoteUrl)
+    ?.remoteUrl
+}
+
 const libraryHealth = new LibraryHealthService({
   lidarrClient: lazyLidarrClient,
   artistCache: {
@@ -396,6 +414,9 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     scoringWeightOverrides: sub.scoringWeightOverrides,
   }
 
+  const libraryArtists = lidarrClient ? await lidarrClient.getArtists() : []
+  const libraryGenres = [...new Set(libraryArtists.flatMap((artist) => artist.genres ?? []))]
+
   await runSubscription(subscriptionConfig, adapter, {
     db: storeDb,
     queries: {
@@ -408,10 +429,8 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     userId: sub.userId ?? undefined,
     // Populate library MBIDs from Lidarr so subscriptions don't recommend
     // artists already in the library (same dedup the main pipeline does)
-    libraryMbids: lidarrClient
-      ? new Set((await lidarrClient.getArtists()).map((a) => a.foreignArtistId))
-      : new Set<string>(),
-    libraryGenres: [],
+    libraryMbids: new Set(libraryArtists.map((artist) => artist.foreignArtistId)),
+    libraryGenres,
     rejectedMbids,
     feedbackHistory,
     cooldownDays: prefs.rejectionCooldownDays,
@@ -419,54 +438,136 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   })
 }
 
-// Run generation for all playlists that are due (called by the playlist scheduler)
-async function runAllPlaylists(): Promise<void> {
-  const due = await getPlaylistsDueForGeneration(db)
-  if (due.length === 0) return
-  console.log(`[playlist-scheduler] ${due.length} playlist(s) due for generation`)
+async function buildPlaylistResolverDeps(userId: number | null) {
+  const mbClient = createMusicBrainzClient()
+  const resolverDeps: import('./core/playlists/types').TrackResolverDeps = {
+    musicbrainzRecordings: (artistMbid) => mbClient.getRecordings(artistMbid),
+  }
 
-  for (const playlist of due) {
-    try {
-      const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
-      const cfg = playlist.config ?? { size: 25, trackSourcePriority: ['spotify' as const] }
-      const result = await generatePlaylist(
-        playlist.strategy as import('./db/schema').PlaylistStrategy,
-        {
-          size: cfg.size,
-          genre: cfg.genre,
-          mood: cfg.mood,
-          trackSourcePriority: cfg.trackSourcePriority,
-        },
-        strategyDeps,
-        {},
-      )
-
-      const trackInserts = result.tracks.map((t, i) => ({
-        playlistId: playlist.id,
-        artistName: t.artistName,
-        trackName: t.trackName ?? null,
-        mbid: t.mbid ?? null,
-        spotifyUri: t.spotifyUri ?? null,
-        deezerId: t.deezerId ?? null,
-        localPath: t.localPath ?? null,
-        position: i,
-      }))
-
-      await replacePlaylistTracks(db, playlist.id, trackInserts)
-      await updatePlaylistRow(db, playlist.id, {
-        lastGeneratedAt: new Date(),
-        trackCount: result.tracks.length,
-      })
-
-      console.log(
-        `[playlist-scheduler] Playlist '${playlist.name}' (id=${playlist.id}): ${result.tracks.length} tracks`,
-      )
-    } catch (err: unknown) {
-      console.error(
-        `[playlist-scheduler] Failed to generate playlist '${playlist.name}' (id=${playlist.id}):`,
-        err,
-      )
+  if (userId != null) {
+    const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
+    if (spotifyOAuthRow) {
+      resolverDeps.spotifySearch = async (query, limit = 10) => {
+        const accessToken = await resolveSpotifyToken(db, userId)
+        const client = createSpotifyClient(accessToken)
+        return client.searchTracks(query, limit)
+      }
     }
+  }
+
+  return resolverDeps
+}
+
+async function executePlaylistGeneration(playlistId: number): Promise<void> {
+  const result = await getPlaylistWithTracks(db, playlistId)
+  if (!result) {
+    console.warn(`[playlist-scheduler] Playlist ${playlistId} not found -- skipping`)
+    return
+  }
+
+  const playlist = result.playlist
+  const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
+  const resolverDeps = await buildPlaylistResolverDeps(playlist.userId ?? null)
+  const cfg = playlist.config ?? { size: 25, trackSourcePriority: ['spotify' as const] }
+  const generation = await generatePlaylist(
+    playlist.strategy as import('./db/schema').PlaylistStrategy,
+    {
+      size: cfg.size,
+      genre: cfg.genre,
+      mood: cfg.mood,
+      trackSourcePriority: cfg.trackSourcePriority,
+    },
+    strategyDeps,
+    resolverDeps,
+  )
+
+  const trackInserts = generation.tracks.map((track, index) => ({
+    playlistId: playlist.id,
+    artistName: track.artistName,
+    trackName: track.trackName ?? null,
+    mbid: track.mbid ?? null,
+    spotifyUri: track.spotifyUri ?? null,
+    deezerId: track.deezerId ?? null,
+    localPath: track.localPath ?? null,
+    position: index,
+  }))
+
+  await replacePlaylistTracks(db, playlist.id, trackInserts)
+  await updatePlaylistRow(db, playlist.id, {
+    lastGeneratedAt: new Date(),
+    trackCount: generation.tracks.length,
+  })
+
+  if (playlist.targetIds.length > 0 && playlist.userId != null) {
+    const targetRows = await getTargetsByUser(db, playlist.userId)
+    const enabledTargetRows = targetRows.filter(
+      (row) => row.enabled && playlist.targetIds.includes(row.id),
+    )
+    const playlistItems = generation.tracks.map((track) => ({
+      artistName: track.artistName,
+      artistMbid: '',
+      trackName: track.trackName ?? undefined,
+      trackMbid: track.mbid ?? undefined,
+    }))
+
+    for (const targetRow of enabledTargetRows) {
+      let target:
+        | ReturnType<typeof createNavidromePlaylistTarget>
+        | ReturnType<typeof createJellyfinPlaylistTarget>
+        | ReturnType<typeof createPlexPlaylistTarget>
+        | null = null
+
+      if (targetRow.type === 'navidrome-playlist') {
+        target = createNavidromePlaylistTarget(targetRow.id, {
+          url: targetRow.config.url as string,
+          username: targetRow.config.username as string,
+          password: targetRow.config.password as string,
+        })
+      } else if (targetRow.type === 'jellyfin-playlist') {
+        target = createJellyfinPlaylistTarget(targetRow.id, {
+          url: targetRow.config.url as string,
+          apiKey: targetRow.config.apiKey as string,
+          userId: targetRow.config.userId as string,
+        })
+      } else if (targetRow.type === 'plex-playlist') {
+        target = createPlexPlaylistTarget(targetRow.id, {
+          url: targetRow.config.url as string,
+          token: targetRow.config.token as string,
+        })
+      }
+
+      if (!target?.createPlaylist) continue
+
+      try {
+        await target.createPlaylist(playlist.name, playlistItems)
+      } catch (err: unknown) {
+        console.error(
+          `[playlists] Failed to push to target ${targetRow.type}(${targetRow.id}):`,
+          err,
+        )
+      }
+    }
+  }
+
+  console.log(
+    `[playlist-scheduler] Playlist '${playlist.name}' (id=${playlist.id}): ${generation.tracks.length} tracks`,
+  )
+}
+
+async function restartPlaylistScheduler(): Promise<void> {
+  playlistScheduler.stopAll()
+
+  const settings = await getSettings(db)
+  const prefs = mergePreferences(settings?.preferences)
+  if (!prefs.playlistEnabled) return
+
+  const playlists = await getEnabledPlaylists(db)
+  for (const playlist of playlists) {
+    if (!playlist.schedule) continue
+
+    playlistScheduler.schedule(`playlist-${playlist.id}`, playlist.schedule, async () => {
+      await executePlaylistGeneration(playlist.id)
+    })
   }
 }
 
@@ -541,6 +642,7 @@ const app = createApp({
     scheduler.schedule('main-pipeline', cron, runPipeline)
     console.log(`Scheduler restarted with cron: ${cron}`)
   },
+  restartPlaylistScheduler,
   createUser: (data) => createUser(db, data),
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
@@ -636,30 +738,8 @@ const app = createApp({
   playlistDeps: {
     db,
     playlistScheduler,
-    getTargetsByUser: (userId) => getTargetsByUser(db, userId),
-    buildPlaylistTarget: (row) => {
-      if (row.type === 'navidrome-playlist') {
-        return createNavidromePlaylistTarget(row.id, {
-          url: row.config.url as string,
-          username: row.config.username as string,
-          password: row.config.password as string,
-        })
-      }
-      if (row.type === 'jellyfin-playlist') {
-        return createJellyfinPlaylistTarget(row.id, {
-          url: row.config.url as string,
-          apiKey: row.config.apiKey as string,
-          userId: row.config.userId as string,
-        })
-      }
-      if (row.type === 'plex-playlist') {
-        return createPlexPlaylistTarget(row.id, {
-          url: row.config.url as string,
-          token: row.config.token as string,
-        })
-      }
-      return null
-    },
+    runPlaylistGeneration: (playlistId) => executePlaylistGeneration(playlistId),
+    restartPlaylistScheduler,
   },
   search: {
     listSources: async (userId) => {
@@ -691,7 +771,36 @@ const app = createApp({
       // once TIDAL client ID/secret are exposed via settings (not yet implemented).
 
       const filtered = opts?.sources ? sources.filter((s) => opts.sources?.includes(s.id)) : sources
-      return multiSourceSearch(query, filtered, { limit: opts?.limit })
+      const merged = await multiSourceSearch(query, filtered, { limit: opts?.limit })
+
+      return enrichSearchResultsWithImages(merged, {
+        getCachedImages: async (mbids) => {
+          if (mbids.length === 0) return new Map<string, string>()
+
+          const rows = await db
+            .select({ mbid: artists.mbid, imageUrl: artists.imageUrl })
+            .from(artists)
+            .where(inArray(artists.mbid, mbids))
+
+          return new Map(
+            rows
+              .filter((row): row is { mbid: string; imageUrl: string } => Boolean(row.imageUrl))
+              .map((row) => [row.mbid, row.imageUrl]),
+          )
+        },
+        lookupLidarrImage: async (mbid) => {
+          const results = (await lazyLidarrClient.lookupArtist(`lidarr:${mbid}`)) as Array<{
+            images?: Array<{ coverType: string; remoteUrl?: string }>
+          }>
+          return extractSearchImageUrl(results)
+        },
+        cacheImage: async (mbid, url) => {
+          await db
+            .update(artists)
+            .set({ imageUrl: url, imageFailedAt: null })
+            .where(eq(artists.mbid, mbid))
+        },
+      })
     },
   },
 })
@@ -778,9 +887,7 @@ const server = serve({ fetch: app.fetch, port })
       console.log(`Subscription '${sub.name}' (id=${sub.id}) scheduled with cron: ${sub.cron}`)
     }
 
-    if (prefs.playlistSchedule && prefs.playlistEnabled) {
-      playlistScheduler.start(prefs.playlistSchedule, runAllPlaylists)
-    }
+    await restartPlaylistScheduler()
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }
@@ -825,7 +932,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, async () => {
     console.log(`${signal} received, shutting down...`)
     scheduler.stopAll()
-    playlistScheduler.stop()
+    playlistScheduler.stopAll()
     server.close()
     await new Promise((resolve) => setTimeout(resolve, 5000))
     await pool.end()

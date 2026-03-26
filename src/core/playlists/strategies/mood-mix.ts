@@ -1,11 +1,63 @@
 import type { PlaylistStrategyImpl, StrategyArtist, StrategyDeps } from './types'
 import { TRACKS_PER_ARTIST } from './types'
 
-// Simple keyword match: does any genre tag on the artist contain the mood word?
+const MOOD_ALIASES: Record<string, string[]> = {
+  'd and d': [
+    'fantasy',
+    'dungeon synth',
+    'dungeon',
+    'medieval',
+    'dark ambient',
+    'ambient',
+    'folk',
+    'soundtrack',
+    'epic',
+  ],
+  dnd: [
+    'fantasy',
+    'dungeon synth',
+    'dungeon',
+    'medieval',
+    'dark ambient',
+    'ambient',
+    'folk',
+    'soundtrack',
+    'epic',
+  ],
+  'dungeons and dragons': [
+    'fantasy',
+    'dungeon synth',
+    'dungeon',
+    'medieval',
+    'dark ambient',
+    'ambient',
+    'folk',
+    'soundtrack',
+    'epic',
+  ],
+}
+
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .replaceAll('&', ' and ')
+    .replaceAll(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function getMoodKeywords(mood: string): string[] {
+  const normalizedMood = normalize(mood)
+  const aliases = MOOD_ALIASES[normalizedMood] ?? []
+  return [normalizedMood, ...aliases].filter(Boolean)
+}
+
 function artistMatchesMood(artist: StrategyArtist, mood: string): boolean {
   if (!artist.genres || artist.genres.length === 0) return false
-  const keyword = mood.toLowerCase()
-  return artist.genres.some((g) => g.toLowerCase().includes(keyword))
+  const keywords = getMoodKeywords(mood)
+  return artist.genres.some((genre) => {
+    const normalizedGenre = normalize(genre)
+    return keywords.some((keyword) => normalizedGenre.includes(keyword))
+  })
 }
 
 export const moodMixStrategy: PlaylistStrategyImpl = {

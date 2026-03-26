@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { CronPicker } from './cron-picker'
 
 export type SubscriptionFormData = {
@@ -37,13 +37,6 @@ const SOURCE_PROVIDERS: ReadonlyArray<{
   { value: 'discogs', label: 'Discogs', capabilities: ['genreArtists'] },
 ]
 
-const ACTIONS = [
-  { value: 'add_to_recommendations', label: 'Add to recommendations' },
-  { value: 'auto_approve', label: 'Auto-approve (above threshold)' },
-  { value: 'auto_add_to_target', label: 'Auto-add to target' },
-  { value: 'notify_only', label: 'Notify only (webhook)' },
-] as const
-
 const WEIGHT_PRESETS = [
   { value: 'default', label: 'Default' },
   { value: 'genre', label: 'Genre-optimized' },
@@ -71,8 +64,6 @@ export function SubscriptionForm({
   const [cron, setCron] = useState(initial?.cron ?? '0 8 * * 0')
   const [enabled, setEnabled] = useState(initial?.enabled ?? true)
   const [maxArtists, setMaxArtists] = useState(initial?.maxArtistsPerRun ?? 20)
-  const [action, setAction] = useState(initial?.action ?? 'add_to_recommendations')
-  const [scoreThreshold, setScoreThreshold] = useState(initial?.scoreThreshold ?? null)
   const [weightPreset, setWeightPreset] = useState(
     initial?.scoringWeightPreset ??
       ((initial?.sourceType ?? 'genre') === 'similar' ? 'default' : 'genre'),
@@ -80,13 +71,19 @@ export function SubscriptionForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Reset providers when source type changes (only show relevant ones)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset providers on source type change
-  useEffect(() => {
-    const cap = sourceType === 'similar' ? 'similarArtists' : 'genreArtists'
-    const relevant = SOURCE_PROVIDERS.filter((p) => p.capabilities.includes(cap))
-    setProviders(configuredSources.filter((id) => relevant.some((p) => p.value === id)))
-  }, [sourceType])
+  function handleSourceTypeChange(nextType: string) {
+    setSourceType(nextType)
+    const capability = nextType === 'similar' ? 'similarArtists' : 'genreArtists'
+    const relevant = configuredSources.filter((id) =>
+      SOURCE_PROVIDERS.some(
+        (provider) => provider.value === id && provider.capabilities.includes(capability),
+      ),
+    )
+    setProviders((prev) => {
+      const kept = prev.filter((id) => relevant.includes(id))
+      return kept.length > 0 ? kept : relevant
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,8 +124,8 @@ export function SubscriptionForm({
         cron,
         enabled,
         maxArtistsPerRun: maxArtists,
-        action,
-        scoreThreshold: action === 'auto_approve' ? (scoreThreshold ?? 0.7) : null,
+        action: 'add_to_recommendations',
+        scoreThreshold: null,
         scoringWeightPreset: weightPreset,
       })
     } catch (err: unknown) {
@@ -187,7 +184,7 @@ export function SubscriptionForm({
             <select
               id="sub-source-type"
               value={sourceType}
-              onChange={(e) => setSourceType(e.target.value)}
+              onChange={(e) => handleSourceTypeChange(e.target.value)}
               className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
             >
               {SOURCE_TYPES.map((t) => (
@@ -294,44 +291,6 @@ export function SubscriptionForm({
               className="w-24 px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
             />
           </div>
-
-          {/* Action */}
-          <div>
-            <label htmlFor="sub-action" className="block text-sm font-medium text-text mb-1">
-              Action
-            </label>
-            <select
-              id="sub-action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-            >
-              {ACTIONS.map((a) => (
-                <option key={a.value} value={a.value}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Score threshold (for auto-approve action) */}
-          {action === 'auto_approve' && (
-            <div>
-              <label htmlFor="sub-threshold" className="block text-sm font-medium text-text mb-1">
-                Score threshold (0-1)
-              </label>
-              <input
-                id="sub-threshold"
-                type="number"
-                min={0}
-                max={1}
-                step={0.05}
-                value={scoreThreshold ?? 0.7}
-                onChange={(e) => setScoreThreshold(Number(e.target.value))}
-                className="w-24 px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-              />
-            </div>
-          )}
 
           {/* Weight preset */}
           <div>

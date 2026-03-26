@@ -53,6 +53,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getBatch: vi.fn(async () => null),
     getArtistById: vi.fn(async () => null),
     restartScheduler: vi.fn(),
+    restartPlaylistScheduler: vi.fn(),
     createUser: vi.fn(async () => ({
       id: 1,
       username: 'test',
@@ -238,6 +239,18 @@ describe('PATCH /api/settings', () => {
     })
     expect(res.status).toBe(200)
     expect(restartScheduler).not.toHaveBeenCalled()
+  })
+
+  it('restarts playlist scheduling when playlist preferences change', async () => {
+    const restartPlaylistScheduler = vi.fn(async () => {})
+    const app = createApp(makeDeps({ restartPlaylistScheduler }))
+    const res = await app.request('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: { playlistEnabled: true } }),
+    })
+    expect(res.status).toBe(200)
+    expect(restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
   it('does not restart scheduler when no preferences in body', async () => {

@@ -229,6 +229,10 @@ export function settingsRoutes(deps: AppDependencies) {
       }
     }
 
+    if (prefs?.playlistEnabled !== undefined || prefs?.playlistSchedule !== undefined) {
+      await deps.restartPlaylistScheduler()
+    }
+
     const response = await buildSettingsResponse(deps, userId, isAdmin)
     if (!response) {
       return c.json({ error: 'Settings not found' }, 404)

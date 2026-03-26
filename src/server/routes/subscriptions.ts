@@ -10,7 +10,6 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   'maxArtistsPerRun',
   'listenerRange',
   'cron',
-  'action',
   'scoreThreshold',
   'scoringWeightPreset',
   'scoringWeightOverrides',
@@ -193,8 +192,8 @@ export function subscriptionRoutes(deps: AppDependencies) {
       enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
       maxArtistsPerRun:
         typeof body.maxArtistsPerRun === 'number' ? body.maxArtistsPerRun : undefined,
-      action: typeof body.action === 'string' ? body.action : undefined,
-      scoreThreshold: typeof body.scoreThreshold === 'number' ? body.scoreThreshold : undefined,
+      action: 'add_to_recommendations',
+      scoreThreshold: undefined,
       listenerRange:
         body.listenerRange && typeof body.listenerRange === 'object'
           ? (body.listenerRange as { min?: number; max?: number })
@@ -273,6 +272,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
         update[key] = (body as Record<string, unknown>)[key]
       }
     }
+    update.action = 'add_to_recommendations'
 
     if (Object.hasOwn(update, 'cron') && update.cron !== undefined) {
       try {

@@ -172,6 +172,41 @@ describe('multiSourceSearch', () => {
     expect(results[1]?.name).toBe('Artist B')
   })
 
+  it('keeps the most probable exact match ahead of noisier multi-source matches', async () => {
+    const exact: SearchResult = {
+      name: 'Scorpions',
+      mbid: mbid1,
+      images: [],
+      genres: ['rock'],
+      sourceId: 'musicbrainz',
+    }
+    const noisyA: SearchResult = {
+      name: 'Scorpions Tribute Band',
+      mbid: mbid2,
+      images: [{ url: 'https://img.example/noisy.jpg', source: 'deezer' }],
+      genres: ['rock'],
+      listeners: 500_000,
+      sourceId: 'deezer',
+    }
+    const noisyB: SearchResult = {
+      name: 'Scorpions Tribute Band',
+      mbid: mbid2,
+      images: [],
+      genres: ['hard rock'],
+      sourceId: 'bandcamp',
+    }
+
+    const results = await multiSourceSearch('scorpions', [
+      makeSource('musicbrainz', [exact]),
+      makeSource('deezer', [noisyA]),
+      makeSource('bandcamp', [noisyB]),
+    ])
+
+    expect(results[0]?.name).toBe('Scorpions')
+    expect(results[1]?.name).toBe('Scorpions Tribute Band')
+    expect(results[1]?.sources).toHaveLength(2)
+  })
+
   it('respects limit', async () => {
     const manyResults: SearchResult[] = Array.from({ length: 30 }, (_, i) => ({
       name: `Artist ${i}`,

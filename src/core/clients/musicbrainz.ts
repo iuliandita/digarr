@@ -34,6 +34,12 @@ export type MBReleaseGroup = {
   firstReleaseDate?: string
 }
 
+export type MBRecording = {
+  id: string
+  title: string
+  isrcs?: string[]
+}
+
 export type StreamingUrls = {
   spotify?: string
   youtube?: string
@@ -107,6 +113,27 @@ export function createMusicBrainzClient() {
     }))
   }
 
+  async function getRecordings(artistMbid: string, limit = 25): Promise<MBRecording[]> {
+    const params = new URLSearchParams({
+      artist: artistMbid,
+      fmt: 'json',
+      limit: String(limit),
+    })
+    const data = await request<{
+      recordings?: Array<{
+        id: string
+        title: string
+        isrcs?: string[]
+      }>
+    }>(`/recording?${params}`)
+
+    return (data.recordings ?? []).map((recording) => ({
+      id: recording.id,
+      title: recording.title,
+      isrcs: recording.isrcs,
+    }))
+  }
+
   function extractStreamingUrls(relations: MBRelation[]): StreamingUrls {
     const result: StreamingUrls = {}
 
@@ -131,6 +158,7 @@ export function createMusicBrainzClient() {
     lookupArtist,
     searchArtist,
     getReleaseGroups,
+    getRecordings,
     extractStreamingUrls,
   }
 }
