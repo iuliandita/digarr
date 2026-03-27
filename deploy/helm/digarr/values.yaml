@@ -31,6 +31,10 @@ resources:
     cpu: 500m
     memory: 512Mi
 
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+
 env:
   PORT: "3000"
   LOG_LEVEL: info
