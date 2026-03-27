@@ -1,7 +1,7 @@
 import type { ListeningActivityEntry } from '@/core/plugins/types'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
-import { createHttpClient, HttpError } from './http'
+import { createHttpClient } from './http'
 
 const BASE_URL = 'https://api.listenbrainz.org'
 
@@ -40,11 +40,14 @@ type LbListeningActivityResponse = {
   }
 }
 
-type LbSimilarArtistEntry = {
-  name: string
-  artist_mbid?: string
-  score: number
+type LbRadioRecording = {
+  recording_mbid: string
+  similar_artist_mbid: string
+  similar_artist_name: string
+  total_listen_count: number
 }
+
+type LbRadioResponse = Record<string, LbRadioRecording[]>
 
 export function createListenBrainzClient(username: string, token: string) {
   const http = createHttpClient({
@@ -77,15 +80,27 @@ export function createListenBrainzClient(username: string, token: string) {
   }
 
   async function getSimilarArtists(mbid: string): Promise<SimilarArtist[]> {
-    try {
-      const res = await http.get<LbSimilarArtistEntry[]>(`/1/artist/${mbid}/similar`)
-      return res.map((a) => ({ name: a.name, score: a.score }))
-    } catch (err: unknown) {
-      if (err instanceof HttpError && err.status === 404) {
-        throw new Error('ListenBrainz similar artists endpoint unavailable (404)')
+    const params = new URLSearchParams({
+      mode: 'easy',
+      max_similar_artists: '25',
+      max_recordings_per_artist: '1',
+      pop_begin: '0',
+      pop_end: '100',
+    })
+    const res = await http.get<LbRadioResponse>(`/1/lb-radio/artist/${mbid}?${params.toString()}`)
+    // Each key is an artist MBID containing recordings from that similar artist.
+    // Deduplicate by MBID and filter out the seed artist.
+    const seen = new Set<string>()
+    const artists: SimilarArtist[] = []
+    for (const recordings of Object.values(res)) {
+      for (const rec of recordings) {
+        if (rec.similar_artist_mbid === mbid) continue
+        if (seen.has(rec.similar_artist_mbid)) continue
+        seen.add(rec.similar_artist_mbid)
+        artists.push({ name: rec.similar_artist_name, score: 0.7 })
       }
-      throw err
     }
+    return artists
   }
 
   async function testConnection(): Promise<ServiceTestResult> {

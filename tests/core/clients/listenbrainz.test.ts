@@ -141,37 +141,91 @@ describe('createListenBrainzClient', () => {
   })
 
   describe('getSimilarArtists(mbid)', () => {
-    it('GETs /1/artist/{mbid}/similar and returns similar artists', async () => {
+    it('GETs /1/lb-radio/artist/{mbid} and extracts unique similar artists', async () => {
       const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
-      mockGet.mockResolvedValueOnce([
-        { name: 'Thom Yorke', artist_mbid: 'some-mbid', score: 0.95 },
-        { name: 'Portishead', artist_mbid: 'other-mbid', score: 0.82 },
-      ])
+      mockGet.mockResolvedValueOnce({
+        'some-mbid': [
+          {
+            recording_mbid: 'rec-1',
+            similar_artist_mbid: 'some-mbid',
+            similar_artist_name: 'Thom Yorke',
+            total_listen_count: 500,
+          },
+        ],
+        'other-mbid': [
+          {
+            recording_mbid: 'rec-2',
+            similar_artist_mbid: 'other-mbid',
+            similar_artist_name: 'Portishead',
+            total_listen_count: 300,
+          },
+        ],
+      })
       const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
       const result = await client.getSimilarArtists(mbid)
-      expect(mockGet).toHaveBeenCalledWith(`/1/artist/${mbid}/similar`)
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`/1/lb-radio/artist/${mbid}`))
       expect(result).toHaveLength(2)
-      expect(result[0]).toMatchObject({ name: 'Thom Yorke', score: 0.95 })
+      expect(result[0]).toMatchObject({ name: 'Thom Yorke', score: 0.7 })
+      expect(result[1]).toMatchObject({ name: 'Portishead', score: 0.7 })
     })
 
-    it('throws a clear error on 404 so callers do not treat it as empty data', async () => {
-      const { HttpError } = await import('@/core/clients/http')
-      const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
-      mockGet.mockRejectedValueOnce(new HttpError(404, 'Not Found', `/1/artist/${mbid}/similar`))
+    it('filters out the seed artist from results', async () => {
+      const mbid = 'seed-mbid'
+      mockGet.mockResolvedValueOnce({
+        'seed-mbid': [
+          {
+            recording_mbid: 'rec-self',
+            similar_artist_mbid: 'seed-mbid',
+            similar_artist_name: 'Seed Artist',
+            total_listen_count: 1000,
+          },
+        ],
+        'other-mbid': [
+          {
+            recording_mbid: 'rec-other',
+            similar_artist_mbid: 'other-mbid',
+            similar_artist_name: 'Other Artist',
+            total_listen_count: 200,
+          },
+        ],
+      })
       const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      await expect(client.getSimilarArtists(mbid)).rejects.toThrow(
-        'ListenBrainz similar artists endpoint unavailable (404)',
-      )
+      const result = await client.getSimilarArtists(mbid)
+      expect(result).toHaveLength(1)
+      expect(result[0]?.name).toBe('Other Artist')
     })
 
-    it('re-throws non-404 errors from getSimilarArtists', async () => {
-      const { HttpError } = await import('@/core/clients/http')
+    it('deduplicates artists appearing in multiple recording groups', async () => {
       const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
-      mockGet.mockRejectedValueOnce(
-        new HttpError(500, 'Internal Server Error', `/1/artist/${mbid}/similar`),
-      )
+      mockGet.mockResolvedValueOnce({
+        group1: [
+          {
+            recording_mbid: 'rec-1',
+            similar_artist_mbid: 'dup-mbid',
+            similar_artist_name: 'Dupe',
+            total_listen_count: 100,
+          },
+        ],
+        group2: [
+          {
+            recording_mbid: 'rec-2',
+            similar_artist_mbid: 'dup-mbid',
+            similar_artist_name: 'Dupe',
+            total_listen_count: 200,
+          },
+        ],
+      })
       const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      await expect(client.getSimilarArtists(mbid)).rejects.toThrow(HttpError)
+      const result = await client.getSimilarArtists(mbid)
+      expect(result).toHaveLength(1)
+    })
+
+    it('returns empty array when API returns empty response', async () => {
+      const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+      mockGet.mockResolvedValueOnce({})
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getSimilarArtists(mbid)
+      expect(result).toEqual([])
     })
   })
 
