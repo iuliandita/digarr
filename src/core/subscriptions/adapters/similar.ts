@@ -122,17 +122,20 @@ export function createSimilarAdapter(
           ? await resolveSeedMbids(seeds, deps.searchArtist)
           : seeds
 
-      // Fan out: all seeds x all sources
+      // Fan out: all seeds x all sources (catch per-call so one failure doesn't kill the batch)
       const calls = resolvedSeeds.flatMap((seed) =>
         capable.map((source) =>
-          source.getSimilarArtists(seed.name, seed.mbid).then((entries) =>
-            entries.map((entry) => ({
-              name: entry.name,
-              mbid: entry.mbid,
-              similarityScore: entry.similarityScore,
-              source: `similar-subscription:${source.id}`,
-            })),
-          ),
+          source
+            .getSimilarArtists(seed.name, seed.mbid)
+            .then((entries) =>
+              entries.map((entry) => ({
+                name: entry.name,
+                mbid: entry.mbid,
+                similarityScore: entry.similarityScore,
+                source: `similar-subscription:${source.id}`,
+              })),
+            )
+            .catch(() => [] as ReturnType<typeof deduplicateByName>),
         ),
       )
 

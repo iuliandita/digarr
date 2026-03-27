@@ -68,15 +68,23 @@ export function createMusicBrainzClient() {
 
   async function request<T>(path: string): Promise<T> {
     return queue.add(async () => {
-      const res = await fetch(`${BASE_URL}${path}`, {
-        headers: { 'User-Agent': USER_AGENT },
-      })
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
 
-      if (!res.ok) {
-        throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+      try {
+        const res = await fetch(`${BASE_URL}${path}`, {
+          headers: { 'User-Agent': USER_AGENT },
+          signal: controller.signal,
+        })
+
+        if (!res.ok) {
+          throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+        }
+
+        return res.json() as Promise<T>
+      } finally {
+        clearTimeout(timer)
       }
-
-      return res.json() as Promise<T>
     }) as Promise<T>
   }
 
