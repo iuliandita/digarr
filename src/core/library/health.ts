@@ -422,17 +422,16 @@ function extractImageUrl(results: unknown[]): string | null {
     if (typeof result !== 'object' || result === null) continue
     const r = result as Record<string, unknown>
 
-    // Look for images array (Lidarr lookup format)
+    // Look for images array (Lidarr lookup format -- remoteUrl is the CDN URL)
     if (Array.isArray(r.images)) {
       for (const img of r.images as Array<Record<string, unknown>>) {
-        if (img.coverType === 'poster' && typeof img.url === 'string') return img.url
+        if (img.coverType === 'poster' && typeof img.remoteUrl === 'string') return img.remoteUrl
       }
       for (const img of r.images as Array<Record<string, unknown>>) {
-        if (img.coverType === 'fanart' && typeof img.url === 'string') return img.url
+        if (img.coverType === 'fanart' && typeof img.remoteUrl === 'string') return img.remoteUrl
       }
-      // Fall back to any image URL
       for (const img of r.images as Array<Record<string, unknown>>) {
-        if (typeof img.url === 'string') return img.url
+        if (img.coverType !== 'clearlogo' && typeof img.remoteUrl === 'string') return img.remoteUrl
       }
     }
 

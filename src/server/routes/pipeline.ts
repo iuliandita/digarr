@@ -67,12 +67,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
-      warmArtist: deps.skyhookWarmer
-        ? (
-            (warmer) => (mbid: string) =>
-              warmer.warm(mbid)
-          )(deps.skyhookWarmer)
-        : undefined,
+      warmArtist: deps.skyhookWarmer ? (mbid: string) => deps.skyhookWarmer!.warm(mbid) : undefined,
     }
 
     // Fire-and-forget

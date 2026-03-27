@@ -29,7 +29,8 @@ function decryptWithKey(ivStr: string, encStr: string, tagStr: string, key: Buff
   const encrypted = Buffer.from(encStr, 'base64')
   const tag = Buffer.from(tagStr, 'base64')
 
-  const decipher = createDecipheriv(ALGORITHM, key, iv)
+  if (tag.byteLength !== 16) throw new Error('Invalid auth tag length')
+  const decipher = createDecipheriv(ALGORITHM, key, iv, { authTagLength: 16 })
   decipher.setAuthTag(tag)
   return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8')
 }

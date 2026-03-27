@@ -5,7 +5,7 @@
 [![Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](deploy/docker/)
-[![Tests](https://img.shields.io/badge/tests-1081_passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1110_passing-brightgreen)]()
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
 **AI-powered music discovery for your *arr stack.** Digarr analyzes your listening history from ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, or Discogs, finds similar artists using MusicBrainz and AI, scores and ranks them, and lets you approve recommendations -- optionally adding them straight to Lidarr, pushing them to a Spotify playlist, or generating weekly discovery playlists for your media server.
@@ -52,7 +52,6 @@ Editor classics (Tokyo Night, Catppuccin, Dracula, One Dark, Nord, Gruvbox, Sola
 - **Auto-approve** -- automatically add high-scoring recommendations to your targets after each scan
 - **Artist logos** -- fanart.tv clearlogo support via Lidarr, displayed on the dashboard hero and expanded recommendation cards
 - **Subscriptions** -- pluggable adapter system for scheduled discovery from Spotify playlists/charts, Last.fm tags/charts, ListenBrainz feeds, genre searches, and similar-artist seeds
-- **Temporary similar-artist caveat** -- `similar` subscriptions currently need Last.fm as a provider; ListenBrainz-only similar lookups are blocked until that upstream endpoint is available again
 - **Cross-platform search** -- search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simultaneously with merged, deduplicated results
 
 ### Playlists & Targets

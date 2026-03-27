@@ -203,12 +203,12 @@ export function settingsRoutes(deps: AppDependencies) {
       }
     }
 
-    if (userId && Object.keys(userUpdate).length > 0) {
-      await updateUserConnections(deps.db, userId, userUpdate)
-    }
-
     if (!isAdmin && Object.keys(globalFields).length > 0) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
+    }
+
+    if (userId && Object.keys(userUpdate).length > 0) {
+      await updateUserConnections(deps.db, userId, userUpdate)
     }
 
     if (Object.keys(globalFields).length > 0) {

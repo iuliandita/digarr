@@ -565,7 +565,9 @@ describe('LibraryHealthService', () => {
       await service.runChecks()
 
       const imageUrl = 'https://fanart.tv/img/bjork-poster.jpg'
-      mocks.lookupArtist.mockResolvedValue([{ images: [{ coverType: 'poster', url: imageUrl }] }])
+      mocks.lookupArtist.mockResolvedValue([
+        { images: [{ coverType: 'poster', remoteUrl: imageUrl }] },
+      ])
       mocks.cacheUpdateImageUrl.mockResolvedValue(undefined)
 
       const progress = await service.fixCheck('image-gaps')
