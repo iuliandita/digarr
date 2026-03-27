@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { errMsg } from '@/core/validation'
 import type { PlaylistInsert, PlaylistRow } from '../lib/api'
 import { CronPicker } from './cron-picker'
 
@@ -80,7 +81,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
         enabled,
       })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(errMsg(err))
     } finally {
       setSubmitting(false)
     }

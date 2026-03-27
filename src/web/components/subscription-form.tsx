@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { errMsg } from '@/core/validation'
 import { CronPicker } from './cron-picker'
 
 export type SubscriptionFormData = {
@@ -164,7 +165,7 @@ export function SubscriptionForm({
         scoringWeightPreset: weightPreset,
       })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(errMsg(err))
     } finally {
       setSubmitting(false)
     }

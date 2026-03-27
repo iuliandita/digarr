@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { Field } from '../components/field'
 import { Hint } from '../components/hint'
@@ -1808,7 +1809,7 @@ function AccountTab() {
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to change password'
+      const msg = errMsg(err)
       toast.error(
         msg.includes('401') || msg.includes('403') ? 'Current password is incorrect' : msg,
       )

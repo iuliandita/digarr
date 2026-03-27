@@ -1,5 +1,5 @@
 # Build stage
-FROM oven/bun:1.3.11 AS builder
+FROM oven/bun:1.3.11@sha256:0733e50325078969732ebe3b15ce4c4be5082f18c4ac1a0f0ca4839c2e4e42a7 AS builder
 WORKDIR /app
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
@@ -8,7 +8,7 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Runtime stage -- production deps only
-FROM oven/bun:1.3.11-slim
+FROM oven/bun:1.3.11-slim@sha256:478281fdd196871c7e51ba6a820b7803a8ae97042ec86cdbc2e1c6b6626442d9
 WORKDIR /app
 
 # Non-root user

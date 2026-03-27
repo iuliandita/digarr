@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { errMsg } from '@/core/validation'
 import { Hint } from '../components/hint'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -28,13 +29,13 @@ export function UserManagementPage() {
   const toggleAdmin = useMutation({
     mutationFn: ({ id, isAdmin }: { id: number; isAdmin: boolean }) => updateUserAdmin(id, isAdmin),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update user'),
+    onError: (err) => toast.error(errMsg(err)),
   })
 
   const deleteUser = useMutation({
     mutationFn: (id: number) => deleteUserApi(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to delete user'),
+    onError: (err) => toast.error(errMsg(err)),
   })
 
   const createUser = useMutation({
@@ -49,7 +50,7 @@ export function UserManagementPage() {
       setShowForm(false)
     },
     onError: (err) => {
-      const msg = err instanceof Error ? err.message : 'Failed to create user'
+      const msg = errMsg(err)
       toast.error(msg.includes('409') ? 'Username already taken' : msg)
     },
   })

@@ -28,6 +28,7 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
+import { errMsg } from '@/core/validation'
 import { VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
 import { BottomNav } from './components/bottom-nav'
@@ -421,7 +422,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   triggerPipeline()
                     .then(() => toast.success('Scan started -- check Dashboard for progress'))
                     .catch((err) => {
-                      const msg = err instanceof Error ? err.message : 'Failed to start scan'
+                      const msg = errMsg(err)
                       toast.error(msg.includes('409') ? 'Scan already running' : msg)
                     })
                 }

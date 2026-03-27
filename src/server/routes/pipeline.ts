@@ -11,9 +11,10 @@ import { store } from '@/core/pipeline/store'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
 import { errMsg } from '@/core/validation'
 import { upsertArtist } from '@/db/queries/artists'
-import { getUserById, getUserConnections } from '@/db/queries/users'
+import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { createPipelineSSEStream } from '@/server/sse'
 import type { HonoEnv } from '@/server/types'
 
@@ -44,13 +45,11 @@ export function pipelineRoutes(deps: AppDependencies) {
     }
 
     // Read per-user preferences, fallback to global
-    let userPreferences = settings.preferences as Record<string, unknown> | null
-    if (userId) {
-      const user = await getUserById(deps.db, userId)
-      if (user?.preferences && Object.keys(user.preferences).length > 0) {
-        userPreferences = user.preferences as Record<string, unknown>
-      }
-    }
+    const userPreferences = await resolveUserPreferences(
+      deps.db,
+      settings.preferences as Record<string, unknown> | null,
+      userId,
+    )
 
     // Build auto-approve deps -- closures capture userId for per-user target lookup
     const autoApproveDeps: AutoApproveDeps = {
@@ -203,20 +202,18 @@ export function pipelineRoutes(deps: AppDependencies) {
         if (discovered.length === 0) return
 
         // Read per-user preferences for quick-discover, fallback to global
-        let qdPreferences = settings.preferences as Record<string, unknown> | null
-        if (quickDiscoverUserId) {
-          const qdUser = await getUserById(deps.db, quickDiscoverUserId)
-          if (qdUser?.preferences && Object.keys(qdUser.preferences).length > 0) {
-            qdPreferences = qdUser.preferences as Record<string, unknown>
-          }
-        }
+        const qdPreferences = await resolveUserPreferences(
+          deps.db,
+          settings.preferences as Record<string, unknown> | null,
+          quickDiscoverUserId,
+        )
         const prefs = mergePreferences(qdPreferences)
 
         const resolved = await resolve(discovered, mb, undefined, lidarr ?? undefined)
         const rejectedMbids = await deps.storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
         const feedbackHistory = await deps.storeDb.getFeedbackHistory()
         const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
-        const existingMbids = await deps.storeDb.getExistingRecommendationMbids()
+        const existingMbids = await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
         for (const mbid of existingMbids) libraryMbids.add(mbid)
 
         const filtered = filter(

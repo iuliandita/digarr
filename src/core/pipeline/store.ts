@@ -2,7 +2,7 @@ import type { ScoredArtist } from '@/core/types'
 
 // Minimal database interface -- only what store() needs
 export interface StoreDb {
-  getExistingRecommendationMbids: () => Promise<Set<string>>
+  getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
 
   insertBatch: (data: {
     status: string

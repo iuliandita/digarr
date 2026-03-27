@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, isNull, or } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { canAutoSetup, envConfig } from './config/env'
 import { hashPassword } from './core/auth'
@@ -146,11 +146,15 @@ console.log('Database migrations applied')
 setSessionStore(sessionQueries(db))
 
 const storeDb: StoreDb = {
-  getExistingRecommendationMbids: async () => {
-    const rows = await db
+  getExistingRecommendationMbids: async (userId) => {
+    const base = db
       .select({ mbid: artists.mbid })
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    const rows =
+      userId !== undefined
+        ? await base.where(or(eq(recommendations.userId, userId), isNull(recommendations.userId)))
+        : await base
     return new Set(rows.map((r) => r.mbid))
   },
   insertBatch: async (data) => {

@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { AppDependencies } from '@/server'
+import { resolveUserPreferences } from '@/server/helpers/preferences'
 import type { HonoEnv } from '@/server/types'
 
 type TargetWithCapabilities = Awaited<
@@ -70,13 +71,8 @@ async function buildAddOptions(
   const globalPrefs = (settings?.preferences as Record<string, unknown> | null) ?? {}
 
   // Merge per-user preferences over global
-  let prefs = globalPrefs
-  if (userId) {
-    const user = await deps.getUserById(userId)
-    if (user?.preferences && Object.keys(user.preferences).length > 0) {
-      prefs = { ...globalPrefs, ...(user.preferences as Record<string, unknown>) }
-    }
-  }
+  const resolved = await resolveUserPreferences(deps.getUserById, globalPrefs, userId)
+  const prefs = resolved && resolved !== globalPrefs ? { ...globalPrefs, ...resolved } : globalPrefs
 
   return {
     ...(overrides.monitorOption != null ? { monitorOption: overrides.monitorOption } : {}),

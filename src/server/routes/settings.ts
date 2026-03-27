@@ -5,6 +5,16 @@ import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
 import { errMsg, isHttpUrl } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
+
+function isCloudMetadata(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname
+    return hostname === '169.254.169.254' || hostname === 'metadata.google.internal'
+  } catch {
+    return false
+  }
+}
+
 import type { AppDependencies } from '@/server'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
@@ -250,6 +260,9 @@ export function settingsRoutes(deps: AppDependencies) {
       if (typeof val === 'string' && val && !isHttpUrl(val)) {
         return c.json({ success: false, message: 'URL must start with http:// or https://' }, 400)
       }
+      if (typeof val === 'string' && val && isCloudMetadata(val)) {
+        return c.json({ success: false, message: 'Cloud metadata endpoints are not allowed' }, 400)
+      }
     }
 
     // Fall back to stored credentials when the request sends empty keys
@@ -387,6 +400,12 @@ export function settingsRoutes(deps: AppDependencies) {
         if (issuerUrl && !isHttpUrl(issuerUrl)) {
           return c.json(
             { success: false, message: 'Issuer URL must start with http:// or https://' },
+            400,
+          )
+        }
+        if (issuerUrl && isCloudMetadata(issuerUrl)) {
+          return c.json(
+            { success: false, message: 'Cloud metadata endpoints are not allowed' },
             400,
           )
         }

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
@@ -1180,7 +1181,7 @@ export function DiscoverPage() {
             triggerPipeline()
               .then(() => toast.success('Scan started -- check Dashboard for progress'))
               .catch((err) => {
-                const msg = err instanceof Error ? err.message : 'Failed to start scan'
+                const msg = errMsg(err)
                 toast.error(msg.includes('409') ? 'Scan already running' : msg)
               })
           }

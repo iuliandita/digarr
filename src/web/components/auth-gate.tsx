@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { errMsg } from '@/core/validation'
 import {
   AUTH_EXPIRED_EVENT,
   clearStoredToken,
@@ -150,11 +151,7 @@ function LoginForm({
       const res = await loginUser(username.trim(), password)
       onSuccess(res.token)
     } catch (err: unknown) {
-      setError(
-        err instanceof Error && err.message.includes('401')
-          ? 'Invalid credentials'
-          : 'Login failed',
-      )
+      setError(errMsg(err).includes('401') ? 'Invalid credentials' : 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -319,7 +316,7 @@ function RegisterForm({
       const res = await registerUser(username.trim(), password)
       onSuccess(res.token)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Registration failed'
+      const msg = errMsg(err)
       if (msg.includes('409')) {
         setError('Username already taken')
       } else if (msg.includes('400')) {

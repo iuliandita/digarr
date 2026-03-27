@@ -225,7 +225,7 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'filter',
         message: `Filtering ${scored.length} scored artists...`,
       })
-      const existingMbids = await db.getExistingRecommendationMbids()
+      const existingMbids = await db.getExistingRecommendationMbids(deps.userId)
       for (const mbid of existingMbids) {
         libraryMbids.add(mbid)
       }
