@@ -34,14 +34,22 @@ async function plexFetch<T>(
   options?: { method?: string; body?: URLSearchParams },
 ): Promise<T> {
   const url = `${baseUrl.replace(/\/+$/, '')}${path}`
-  const res = await fetch(url, {
-    method: options?.method ?? 'GET',
-    headers: {
-      'X-Plex-Token': token,
-      Accept: 'application/json',
-    },
-    body: options?.body,
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: options?.method ?? 'GET',
+      headers: {
+        'X-Plex-Token': token,
+        Accept: 'application/json',
+      },
+      body: options?.body,
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`Plex API ${res.status}: ${text}`)

@@ -28,34 +28,45 @@ export class OllamaProvider implements RecommendationProvider {
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
     const prompt = buildRecommendationPrompt(profile)
 
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [{ role: 'user', content: prompt }],
-        format: 'json',
-        stream: false,
-      }),
-    })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 60_000)
+    try {
+      const response = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [{ role: 'user', content: prompt }],
+          format: 'json',
+          stream: false,
+        }),
+        signal: controller.signal,
+      })
 
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`)
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = (await response.json()) as OllamaChatResponse
+      const content = data.message?.content
+
+      if (!content) {
+        throw new Error('Empty response from Ollama API')
+      }
+
+      return parseRecommendationResponse(content)
+    } finally {
+      clearTimeout(timer)
     }
-
-    const data = (await response.json()) as OllamaChatResponse
-    const content = data.message?.content
-
-    if (!content) {
-      throw new Error('Empty response from Ollama API')
-    }
-
-    return parseRecommendationResponse(content)
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
     try {
-      const response = await fetch(`${this.baseUrl}/api/tags`)
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        signal: controller.signal,
+      })
 
       if (!response.ok) {
         return {
@@ -73,6 +84,8 @@ export class OllamaProvider implements RecommendationProvider {
       }
     } catch (err: unknown) {
       return { success: false, message: errMsg(err) }
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

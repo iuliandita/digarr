@@ -15,14 +15,22 @@ async function jellyfinFetch<T>(
   options?: { method?: string; body?: unknown },
 ): Promise<T> {
   const url = `${baseUrl.replace(/\/+$/, '')}${path}`
-  const res = await fetch(url, {
-    method: options?.method ?? 'GET',
-    headers: {
-      'X-Emby-Token': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: options?.body ? JSON.stringify(options.body) : undefined,
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: options?.method ?? 'GET',
+      headers: {
+        'X-Emby-Token': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: options?.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`Jellyfin API ${res.status}: ${text}`)

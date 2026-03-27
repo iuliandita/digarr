@@ -106,16 +106,24 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
   const queue = new PQueue({ concurrency: 1, interval: 2000, intervalCap: 1 })
 
   async function fetchHtml(url: string): Promise<string> {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    })
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} from ${url}`)
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+        signal: controller.signal,
+      })
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} from ${url}`)
+      }
+      return res.text()
+    } finally {
+      clearTimeout(timer)
     }
-    return res.text()
   }
 
   async function searchArtists(query: string, limit = 25): Promise<BandcampSearchResult[]> {

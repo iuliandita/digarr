@@ -18,36 +18,45 @@ export class GeminiProvider implements RecommendationProvider {
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
     const prompt = buildRecommendationPrompt(profile)
 
-    const res = await fetch(`${API_BASE}/${this.model}:generateContent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': this.apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          maxOutputTokens: 4096,
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 60_000)
+    try {
+      const res = await fetch(`${API_BASE}/${this.model}:generateContent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': this.apiKey,
         },
-      }),
-    })
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: 4096,
+          },
+        }),
+        signal: controller.signal,
+      })
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => '')
-      throw new Error(`Gemini API error: ${res.status} ${res.statusText} ${body}`)
+      if (!res.ok) {
+        const body = await res.text().catch(() => '')
+        throw new Error(`Gemini API error: ${res.status} ${res.statusText} ${body}`)
+      }
+
+      const data = (await res.json()) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+      }
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!text) throw new Error('Empty response from Gemini')
+
+      return parseRecommendationResponse(text)
+    } finally {
+      clearTimeout(timer)
     }
-
-    const data = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-    }
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) throw new Error('Empty response from Gemini')
-
-    return parseRecommendationResponse(text)
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
     try {
       const res = await fetch(`${API_BASE}/${this.model}:generateContent`, {
         method: 'POST',
@@ -59,6 +68,7 @@ export class GeminiProvider implements RecommendationProvider {
           contents: [{ parts: [{ text: 'ping' }] }],
           generationConfig: { maxOutputTokens: 10 },
         }),
+        signal: controller.signal,
       })
 
       if (res.ok) {
@@ -71,6 +81,8 @@ export class GeminiProvider implements RecommendationProvider {
         success: false,
         message: errMsg(err),
       }
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

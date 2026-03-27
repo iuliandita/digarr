@@ -186,7 +186,10 @@ describe('OllamaProvider', () => {
 
       await provider.testConnection()
 
-      expect(fetchSpy).toHaveBeenCalledWith('http://localhost:11434/api/tags')
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'http://localhost:11434/api/tags',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
     })
   })
 })

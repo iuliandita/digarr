@@ -80,9 +80,17 @@ export function createListenBrainzAdapter(deps: {
 
 async function fetchFreshReleases(token: string): Promise<AdapterResult> {
   const url = `${LB_BASE}/explore/fresh-releases?days=14`
-  const res = await fetch(url, {
-    headers: { Authorization: `Token ${token}` },
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: `Token ${token}` },
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!res.ok) {
     throw new Error(`ListenBrainz fresh-releases fetch failed: ${res.status} ${res.statusText}`)
@@ -104,9 +112,17 @@ async function fetchFreshReleases(token: string): Promise<AdapterResult> {
 
 async function fetchWeeklyJams(username: string, token: string): Promise<AdapterResult> {
   const url = `${LB_BASE}/user/${encodeURIComponent(username)}/playlists`
-  const res = await fetch(url, {
-    headers: { Authorization: `Token ${token}` },
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: `Token ${token}` },
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!res.ok) {
     throw new Error(`ListenBrainz weekly-jams fetch failed: ${res.status} ${res.statusText}`)

@@ -32,9 +32,17 @@ export function createSpotifySearchSource(deps: {
         q: query,
         limit: String(Math.min(limit, 50)),
       })
-      const res = await fetch(`${baseUrl}/search?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
+      let res: Response
+      try {
+        res = await fetch(`${baseUrl}/search?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        })
+      } finally {
+        clearTimeout(timer)
+      }
       if (!res.ok) {
         throw new Error(`Spotify search HTTP ${res.status}`)
       }

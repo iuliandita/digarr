@@ -15,14 +15,22 @@ async function spotifyFetch<T>(
   path: string,
   options?: { method?: string; body?: unknown },
 ): Promise<T> {
-  const res = await fetch(`${SPOTIFY_API}${path}`, {
-    method: options?.method ?? 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: options?.body ? JSON.stringify(options.body) : undefined,
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(`${SPOTIFY_API}${path}`, {
+      method: options?.method ?? 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: options?.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`Spotify API ${res.status}: ${text}`)

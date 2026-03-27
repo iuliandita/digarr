@@ -19,47 +19,56 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
 
-    const res = await fetch(`${this.baseUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: 'Respond with a JSON array only.' },
-          { role: 'user', content: prompt },
-        ],
-        max_completion_tokens: 4096,
-      }),
-    })
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '')
-      throw new Error(`API error: ${res.status} ${body}`)
-    }
-
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    const text = data.choices?.[0]?.message?.content
-    if (!text) throw new Error('Empty response')
-
-    // OpenAI-compatible endpoints may wrap arrays in objects
-    let parsed: unknown
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 60_000)
     try {
-      parsed = JSON.parse(text)
-    } catch {
-      return parseRecommendationResponse(text)
-    }
+      const res = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: 'system', content: 'Respond with a JSON array only.' },
+            { role: 'user', content: prompt },
+          ],
+          max_completion_tokens: 4096,
+        }),
+        signal: controller.signal,
+      })
 
-    if (Array.isArray(parsed)) {
-      return parseRecommendationResponse(text)
+      if (!res.ok) {
+        const body = await res.text().catch(() => '')
+        throw new Error(`API error: ${res.status} ${body}`)
+      }
+
+      const data = (await res.json()) as {
+        choices?: Array<{ message?: { content?: string } }>
+      }
+      const text = data.choices?.[0]?.message?.content
+      if (!text) throw new Error('Empty response')
+
+      // OpenAI-compatible endpoints may wrap arrays in objects
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(text)
+      } catch {
+        return parseRecommendationResponse(text)
+      }
+
+      if (Array.isArray(parsed)) {
+        return parseRecommendationResponse(text)
+      }
+      const values = Object.values(parsed as Record<string, unknown>)
+      const arr = values.find(Array.isArray)
+      return parseRecommendationResponse(arr ? JSON.stringify(arr) : text)
+    } finally {
+      clearTimeout(timer)
     }
-    const values = Object.values(parsed as Record<string, unknown>)
-    const arr = values.find(Array.isArray)
-    return parseRecommendationResponse(arr ? JSON.stringify(arr) : text)
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
@@ -72,6 +81,7 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
           messages: [{ role: 'user', content: 'ping' }],
           max_completion_tokens: 10,
         }),
+        signal: controller.signal,
       })
 
       if (res.ok) {
@@ -84,6 +94,8 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
         success: false,
         message: errMsg(err),
       }
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

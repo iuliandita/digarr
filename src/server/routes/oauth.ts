@@ -106,18 +106,26 @@ export function oauthRoutes(deps: AppDependencies) {
           pending.refreshToken ??
           `${c.req.header('x-forwarded-proto') ?? 'http'}://${c.req.header('host')}/api/auth/oauth/spotify/callback`
 
-        const tokenRes = await fetch(SPOTIFY_TOKEN_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-          },
-          body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: redirectUri,
-          }),
-        })
+        const controller = new AbortController()
+        const tokenTimer = setTimeout(() => controller.abort(), 10_000)
+        let tokenRes: Response
+        try {
+          tokenRes = await fetch(SPOTIFY_TOKEN_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+            },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              code,
+              redirect_uri: redirectUri,
+            }),
+            signal: controller.signal,
+          })
+        } finally {
+          clearTimeout(tokenTimer)
+        }
 
         if (!tokenRes.ok) {
           console.error(`Spotify token exchange failed: ${tokenRes.status}`)

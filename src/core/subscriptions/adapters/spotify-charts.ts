@@ -86,9 +86,17 @@ export function createSpotifyChartsAdapter(deps: {
 
       const token = await deps.getToken()
       const url = `${baseUrl}/playlists/${playlistId}?fields=tracks.items(track(artists(name,id)))`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
+      let res: Response
+      try {
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        })
+      } finally {
+        clearTimeout(timer)
+      }
 
       if (!res.ok) {
         throw new Error(`Spotify charts fetch failed: ${res.status} ${res.statusText}`)

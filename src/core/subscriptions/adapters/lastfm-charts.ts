@@ -28,7 +28,14 @@ export function createLastfmChartsAdapter(deps: { apiKey: string }): Subscriptio
 
       const url = `https://ws.audioscrobbler.com/2.0/?method=chart.gettopartists&api_key=${deps.apiKey}&format=json&limit=${limit}`
 
-      const res = await fetch(url)
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
+      let res: Response
+      try {
+        res = await fetch(url, { signal: controller.signal })
+      } finally {
+        clearTimeout(timer)
+      }
       if (!res.ok) {
         throw new Error(`Last.fm charts fetch failed: ${res.status} ${res.statusText}`)
       }

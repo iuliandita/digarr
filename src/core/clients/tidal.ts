@@ -67,23 +67,30 @@ export function createTidalClient(config: {
       client_secret: config.clientSecret,
     })
 
-    const res = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    })
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
+    try {
+      const res = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+        signal: controller.signal,
+      })
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => '(unreadable)')
-      throw new Error(`TIDAL auth failed (${res.status}): ${text}`)
-    }
+      if (!res.ok) {
+        const text = await res.text().catch(() => '(unreadable)')
+        throw new Error(`TIDAL auth failed (${res.status}): ${text}`)
+      }
 
-    const data = (await res.json()) as TidalTokenResponse
-    cachedToken = {
-      token: data.access_token,
-      expiresAt: now + data.expires_in * 1000,
+      const data = (await res.json()) as TidalTokenResponse
+      cachedToken = {
+        token: data.access_token,
+        expiresAt: now + data.expires_in * 1000,
+      }
+      return cachedToken.token
+    } finally {
+      clearTimeout(timer)
     }
-    return cachedToken.token
   }
 
   function extractImageUrl(item: TidalArtistItem): string | undefined {

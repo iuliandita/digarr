@@ -44,7 +44,14 @@ export function createLastfmTagAdapter(deps: { apiKey: string }): SubscriptionAd
       const limit = options?.limit ?? 50
       const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists&tag=${encodeURIComponent(tag)}&api_key=${deps.apiKey}&format=json&limit=${limit}`
 
-      const res = await fetch(url)
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
+      let res: Response
+      try {
+        res = await fetch(url, { signal: controller.signal })
+      } finally {
+        clearTimeout(timer)
+      }
       if (!res.ok) {
         throw new Error(`Last.fm tag fetch failed: ${res.status} ${res.statusText}`)
       }
