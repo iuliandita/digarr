@@ -121,7 +121,13 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
             <Button
               size="sm"
               className="bg-approve text-bg hover:bg-approve/90"
-              disabled={loading || error || profiles.length === 0}
+              disabled={
+                loading ||
+                error ||
+                profiles.length === 0 ||
+                metadataProfiles.length === 0 ||
+                rootFolders.length === 0
+              }
               onClick={() =>
                 onConfirm({
                   monitorOption,
