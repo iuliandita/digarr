@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import type { HonoEnv } from '@/server/types'
@@ -68,18 +69,18 @@ async function buildAddOptions(
   },
 ): Promise<Record<string, unknown>> {
   const settings = await deps.getSettings()
-  const globalPrefs = (settings?.preferences as Record<string, unknown> | null) ?? {}
+  const globalPrefs = settings?.preferences ?? null
 
   // Merge per-user preferences over global
   const resolved = await resolveUserPreferences(deps.getUserById, globalPrefs, userId)
-  const prefs = resolved && resolved !== globalPrefs ? { ...globalPrefs, ...resolved } : globalPrefs
+  const prefs = mergePreferences(resolved ?? globalPrefs)
 
   return {
     ...(overrides.monitorOption != null ? { monitorOption: overrides.monitorOption } : {}),
     ...(overrides.selectedAlbumIds ? { selectedAlbumIds: overrides.selectedAlbumIds } : {}),
-    qualityProfileId: overrides.qualityProfileId ?? Number(prefs.qualityProfileId ?? 1),
-    metadataProfileId: overrides.metadataProfileId ?? Number(prefs.metadataProfileId ?? 1),
-    rootFolderId: overrides.rootFolderId ?? Number(prefs.rootFolderId ?? 1),
+    qualityProfileId: overrides.qualityProfileId ?? prefs.qualityProfileId,
+    metadataProfileId: overrides.metadataProfileId ?? prefs.metadataProfileId,
+    rootFolderId: overrides.rootFolderId ?? prefs.rootFolderId,
   }
 }
 

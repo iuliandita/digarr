@@ -1,9 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '../lib/utils'
 
-// ---------------------------------------------------------------------------
 // Icons (inline SVG -- consistent with existing component style)
-// ---------------------------------------------------------------------------
 
 function DashboardIcon({ className }: { className?: string }) {
   return (
@@ -84,9 +82,7 @@ function SettingsIcon({ className }: { className?: string }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Nav items config
-// ---------------------------------------------------------------------------
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', Icon: DashboardIcon, exact: true },
@@ -96,9 +92,7 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', Icon: SettingsIcon, exact: false },
 ] as const
 
-// ---------------------------------------------------------------------------
 // BottomNav
-// ---------------------------------------------------------------------------
 
 /**
  * Mobile-only bottom navigation bar. Hidden on md+ breakpoints.

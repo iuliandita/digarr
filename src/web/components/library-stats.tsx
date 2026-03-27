@@ -1,9 +1,5 @@
 import type { LibraryStats } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatBytes(bytes: number): string {
   if (bytes >= 1_099_511_627_776) return `${(bytes / 1_099_511_627_776).toFixed(1)} TB`
   if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} GB`
@@ -12,9 +8,7 @@ function formatBytes(bytes: number): string {
   return `${bytes} B`
 }
 
-// ---------------------------------------------------------------------------
 // LibraryStatsDisplay
-// ---------------------------------------------------------------------------
 
 type Props = {
   stats: LibraryStats

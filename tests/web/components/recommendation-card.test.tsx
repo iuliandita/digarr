@@ -134,7 +134,7 @@ describe('RecommendationCard', () => {
         expanded
       />,
     )
-    expect(screen.getByText('AI Reasoning')).toBeInTheDocument()
+    expect(screen.getByText('Why this artist')).toBeInTheDocument()
     expect(screen.getByText('Great match for your indie taste.')).toBeInTheDocument()
     expect(screen.getByText('Source Scores')).toBeInTheDocument()
     expect(screen.getByText('LB')).toBeInTheDocument()
@@ -195,7 +195,7 @@ describe('RecommendationCard', () => {
     )
     expect(screen.getByText('Unknown Artist')).toBeInTheDocument()
     // No AI reasoning section
-    expect(screen.queryByText('AI Reasoning')).not.toBeInTheDocument()
+    expect(screen.queryByText('Why this artist')).not.toBeInTheDocument()
     // No source scores section
     expect(screen.queryByText('Source Scores')).not.toBeInTheDocument()
   })

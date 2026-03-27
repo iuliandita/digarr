@@ -2,10 +2,6 @@ import type { ReactNode } from 'react'
 import { useSwipe } from '../hooks/use-swipe'
 import { cn } from '../lib/utils'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type SwipeCardProps = {
   onSwipeLeft?: () => void
   onSwipeRight?: () => void
@@ -14,9 +10,7 @@ type SwipeCardProps = {
   children: ReactNode
 }
 
-// ---------------------------------------------------------------------------
 // Icons (inline SVG to avoid adding a dep)
-// ---------------------------------------------------------------------------
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -55,9 +49,7 @@ function XIcon({ className }: { className?: string }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // SwipeCard
-// ---------------------------------------------------------------------------
 
 /**
  * Wraps children with touch-based swipe gestures.

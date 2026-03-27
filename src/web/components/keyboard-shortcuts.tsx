@@ -1,17 +1,11 @@
 import { useEffect } from 'react'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type KeyboardShortcutsProps = {
   open: boolean
   onClose: () => void
 }
 
-// ---------------------------------------------------------------------------
 // Shortcut data
-// ---------------------------------------------------------------------------
 
 const SHORTCUTS: { key: string; label: string }[] = [
   { key: 'j', label: 'Next card' },
@@ -24,9 +18,7 @@ const SHORTCUTS: { key: string; label: string }[] = [
   { key: '\u2192', label: 'Next card (stack view)' },
 ]
 
-// ---------------------------------------------------------------------------
 // Component
-// ---------------------------------------------------------------------------
 
 export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
   // Close on Escape (handled in hook, but belt-and-suspenders here)

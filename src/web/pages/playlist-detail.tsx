@@ -13,10 +13,6 @@ import {
   type PlaylistTrackRow,
 } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return 'Never'
   const date = new Date(dateStr)
@@ -67,9 +63,7 @@ function detectSource(track: PlaylistTrackRow): string {
   return 'local'
 }
 
-// ---------------------------------------------------------------------------
 // Skeleton loader
-// ---------------------------------------------------------------------------
 
 function DetailSkeleton() {
   return (
@@ -92,9 +86,7 @@ function DetailSkeleton() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Track row
-// ---------------------------------------------------------------------------
 
 function TrackRow({ track, index }: { track: PlaylistTrackRow; index: number }) {
   const source = detectSource(track)
@@ -121,9 +113,7 @@ function TrackRow({ track, index }: { track: PlaylistTrackRow; index: number }) 
   )
 }
 
-// ---------------------------------------------------------------------------
 // Header actions
-// ---------------------------------------------------------------------------
 
 function PlaylistActions({
   playlist,
@@ -213,9 +203,7 @@ function PlaylistActions({
   )
 }
 
-// ---------------------------------------------------------------------------
 // PlaylistDetailPage
-// ---------------------------------------------------------------------------
 
 export function PlaylistDetailPage() {
   const { id } = useParams<{ id: string }>()

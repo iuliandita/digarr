@@ -16,10 +16,6 @@ import {
   updatePlaylistApi,
 } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const CRON_LABELS: Record<string, string> = {
   '0 0 * * *': 'Daily',
   '0 6 * * 1': 'Every Monday',
@@ -63,10 +59,6 @@ function formatSchedulerSubtitle(info: {
   return 'No schedule configured'
 }
 
-// ---------------------------------------------------------------------------
-// Skeleton grid
-// ---------------------------------------------------------------------------
-
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -90,9 +82,7 @@ function SkeletonGrid() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // PlaylistsPage
-// ---------------------------------------------------------------------------
 
 export function PlaylistsPage() {
   const queryClient = useQueryClient()

@@ -1,9 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export type SwipeDirection = 'left' | 'right' | null
 
 export type SwipeState = {
@@ -19,9 +15,7 @@ export type UseSwipeOptions = {
   onSwipeRight?: () => void
 }
 
-// ---------------------------------------------------------------------------
 // Hook
-// ---------------------------------------------------------------------------
 
 /**
  * Touch-based swipe detection.

@@ -9,10 +9,6 @@ import { Hint } from './hint'
 import { StreamingLinks } from './streaming-links'
 import { Button } from './ui/button'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export type Recommendation = {
   id: number
   score: number
@@ -52,15 +48,13 @@ type RecommendationCardProps = {
   onApproveToTarget?: (recId: number, targetId: string) => void
 }
 
-// ---------------------------------------------------------------------------
 // Source dot config
-// ---------------------------------------------------------------------------
 
 const SOURCE_COLORS: Record<string, { label: string; color: string }> = {
   listenbrainz: { label: 'LB', color: '#7a9cb8' },
   lastfm: { label: 'LFM', color: '#c47a7a' },
   musicbrainz: { label: 'MB', color: '#d4a574' },
-  ai: { label: 'AI', color: '#9b7ab8' },
+  ai: { label: 'Rec', color: '#9b7ab8' },
 }
 
 const SUBSCRIPTION_COLORS: Record<string, string> = {
@@ -100,9 +94,7 @@ function formatSourceLabel(sourceKey: string): string {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Status display
-// ---------------------------------------------------------------------------
 
 function StatusBadge({
   status,
@@ -145,9 +137,7 @@ function StatusBadge({
   return null
 }
 
-// ---------------------------------------------------------------------------
 // Genre pills
-// ---------------------------------------------------------------------------
 
 function GenrePills({
   genres,
@@ -182,9 +172,7 @@ function GenrePills({
   )
 }
 
-// ---------------------------------------------------------------------------
 // Target-aware approve dropdown
-// ---------------------------------------------------------------------------
 
 import { TargetIcon, targetActionLabel } from './target-utils'
 
@@ -252,9 +240,7 @@ function ApproveDropdown({
   )
 }
 
-// ---------------------------------------------------------------------------
 // Action buttons (shared between compact and expanded views)
-// ---------------------------------------------------------------------------
 
 function ActionButtons({
   rec,
@@ -357,10 +343,6 @@ function ActionButtons({
   }
   return null
 }
-
-// ---------------------------------------------------------------------------
-// Card
-// ---------------------------------------------------------------------------
 
 export function RecommendationCard({
   recommendation: rec,
@@ -605,8 +587,8 @@ export function RecommendationCard({
                 onApproveToTarget={onApproveToTarget}
               />
               <Hint id="rec-card-click-tip" type="inline">
-                Click on a recommendation to see albums, streaming links, and AI reasoning. Swipe
-                right to approve on mobile.
+                Click on a recommendation to see albums, streaming links, and more. Swipe right to
+                approve on mobile.
               </Hint>
             </>
           )}
@@ -655,10 +637,10 @@ export function RecommendationCard({
               </a>
             </div>
 
-            {/* AI reasoning */}
+            {/* Recommendation reasoning */}
             {rec.aiReasoning && (
               <div className="mx-4 border-l-2 border-accent bg-surface/50 px-3 py-2 rounded-r">
-                <p className="text-xs text-muted uppercase tracking-wide mb-1">AI Reasoning</p>
+                <p className="text-xs text-muted uppercase tracking-wide mb-1">Why this artist</p>
                 <p className="text-sm text-text italic">{rec.aiReasoning}</p>
               </div>
             )}

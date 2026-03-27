@@ -1,5 +1,6 @@
 import type { Database } from '@/db'
 import { getUserById, type UserPublic } from '@/db/queries/users'
+import type { Preferences } from '@/db/schema'
 
 /**
  * Resolve per-user preferences with fallback to global.
@@ -11,16 +12,16 @@ import { getUserById, type UserPublic } from '@/db/queries/users'
  */
 export async function resolveUserPreferences(
   dbOrLookup: Database | ((id: number) => Promise<UserPublic | null>),
-  globalPrefs: Record<string, unknown> | null,
+  globalPrefs: Partial<Preferences> | null,
   userId?: number,
-): Promise<Record<string, unknown> | null> {
+): Promise<Partial<Preferences> | null> {
   if (!userId) return globalPrefs
   const user =
     typeof dbOrLookup === 'function'
       ? await dbOrLookup(userId)
       : await getUserById(dbOrLookup, userId)
-  if (user?.preferences && Object.keys(user.preferences as Record<string, unknown>).length > 0) {
-    return user.preferences as Record<string, unknown>
+  if (user?.preferences && Object.keys(user.preferences).length > 0) {
+    return user.preferences
   }
   return globalPrefs
 }

@@ -40,7 +40,7 @@ export async function getSettings(db: Database): Promise<SettingsRow | null> {
 }
 
 export async function updateSettings(db: Database, partial: SettingsPartial): Promise<void> {
-  const encrypted = encryptFields(partial as Record<string, unknown>, SENSITIVE_SETTINGS)
+  const encrypted = encryptFields(partial, SENSITIVE_SETTINGS)
   await db
     .update(settings)
     .set({ ...encrypted, updatedAt: new Date() })
@@ -48,7 +48,7 @@ export async function updateSettings(db: Database, partial: SettingsPartial): Pr
 }
 
 export async function completeSetup(db: Database, config: SetupConfig): Promise<SettingsRow> {
-  const encrypted = encryptFields(config as Record<string, unknown>, SENSITIVE_SETTINGS)
+  const encrypted = encryptFields(config, SENSITIVE_SETTINGS)
   const rows = await db
     .insert(settings)
     .values({ ...encrypted, setupComplete: true, id: 1 })

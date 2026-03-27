@@ -9,10 +9,6 @@ import type { GenreArtist, LibraryArtist } from '../lib/api'
 import { getGenre, getGenreArtists, quickDiscover, warmArtists } from '../lib/api'
 import { usePreviewContext } from '../lib/preview-context'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type GenreDetail = GenreInfo & { subGenres: GenreInfo[]; libraryArtists: LibraryArtist[] }
 
 type DetailTab = 'library' | 'recommended' | 'trending' | 'deep_cuts'
@@ -44,9 +40,7 @@ const TAB_EMPTY_LABELS: Record<DetailTab, string> = {
     'No deep cuts found. These appear after scanning -- artists with low popularity or few genre tags.',
 }
 
-// ---------------------------------------------------------------------------
 // Library artist card
-// ---------------------------------------------------------------------------
 
 function LibraryArtistCard({ artist }: { artist: LibraryArtist }) {
   const genres = artist.genres ?? []
@@ -66,9 +60,7 @@ function LibraryArtistCard({ artist }: { artist: LibraryArtist }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Genre artist card (for recommendation-backed tabs)
-// ---------------------------------------------------------------------------
 
 function GenreArtistCard({ artist }: { artist: GenreArtist }) {
   const [discovering, setDiscovering] = useState(false)
@@ -158,9 +150,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Tab content grid skeleton
-// ---------------------------------------------------------------------------
 
 function TabSkeleton() {
   return (
@@ -172,9 +162,7 @@ function TabSkeleton() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Skeleton loader
-// ---------------------------------------------------------------------------
 
 function DetailSkeleton() {
   return (
@@ -193,9 +181,7 @@ function DetailSkeleton() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Genre detail page
-// ---------------------------------------------------------------------------
 
 export function GenreDetailPage() {
   const { slug } = useParams<{ slug: string }>()

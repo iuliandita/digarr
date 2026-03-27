@@ -1,8 +1,6 @@
 import { useState } from 'react'
 
-// ---------------------------------------------------------------------------
 // ArtistThumb
-// ---------------------------------------------------------------------------
 
 /**
  * Artist avatar: shows the image if available, falls back to a colored

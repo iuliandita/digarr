@@ -241,7 +241,6 @@ export const playlistTracks = pgTable('playlist_tracks', {
   position: integer('position').notNull(),
 })
 
-// Types
 export type PlaylistConfig = {
   size: number // default 25
   genre?: string // for genre_focus strategy
@@ -314,16 +313,14 @@ export const DEFAULT_PREFERENCES: Preferences = {
  * Handles the scoringWeights sub-object so neither level is left with
  * undefined fields when the DB row contains only a partial preference set.
  */
-export function mergePreferences(
-  raw: Preferences | Record<string, unknown> | null | undefined,
-): Preferences {
-  const partial = (raw ?? {}) as Record<string, unknown>
+export function mergePreferences(raw: Partial<Preferences> | null | undefined): Preferences {
+  const partial = raw ?? {}
   return {
     ...DEFAULT_PREFERENCES,
     ...partial,
     scoringWeights: {
       ...DEFAULT_PREFERENCES.scoringWeights,
-      ...(partial.scoringWeights as Record<string, number> | undefined),
+      ...partial.scoringWeights,
     },
   }
 }

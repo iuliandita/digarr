@@ -135,7 +135,7 @@ export async function updateUserConnections(
   userId: number,
   data: Partial<UserConnections>,
 ): Promise<void> {
-  const encrypted = encryptFields(data as Record<string, unknown>, SENSITIVE_USER_CONNECTIONS)
+  const encrypted = encryptFields(data, SENSITIVE_USER_CONNECTIONS)
   await db.update(users).set(encrypted).where(eq(users.id, userId))
 }
 

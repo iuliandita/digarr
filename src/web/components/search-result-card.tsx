@@ -8,9 +8,7 @@ import { usePreviewContext } from '../lib/preview-context'
 import { cn } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 
-// ---------------------------------------------------------------------------
 // Source badge config
-// ---------------------------------------------------------------------------
 
 const SOURCE_STYLES: Record<string, { label: string; bg: string; text: string }> = {
   spotify: { label: 'Spotify', bg: 'bg-green-500/20', text: 'text-green-400' },
@@ -20,9 +18,7 @@ const SOURCE_STYLES: Record<string, { label: string; bg: string; text: string }>
   bandcamp: { label: 'Bandcamp', bg: 'bg-teal-500/20', text: 'text-teal-400' },
 }
 
-// ---------------------------------------------------------------------------
 // SearchResultCard
-// ---------------------------------------------------------------------------
 
 type SearchResultCardProps = {
   result: SearchResult

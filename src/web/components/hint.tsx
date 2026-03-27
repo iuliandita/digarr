@@ -1,4 +1,4 @@
-import { Info, Lightbulb, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useHints } from '../hooks/use-hints'
 
 type HintProps = {
@@ -18,7 +18,6 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
       <div
         className={`flex items-start gap-2 px-3 py-2 bg-surface border border-border rounded-md text-sm text-muted ${className}`}
       >
-        <Info size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
         <span className="flex-1">{children}</span>
         <button
           type="button"
@@ -35,10 +34,9 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
   if (type === 'spotlight') {
     return (
       <div
-        className={`flex items-start gap-3 px-4 py-3 bg-accent/10 border border-accent/30 rounded-lg text-sm ${className}`}
+        className={`flex items-start gap-2 px-3 py-2 border-l-2 border-accent bg-surface text-sm ${className}`}
       >
-        <Lightbulb size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
-        <span className="flex-1 text-text">{children}</span>
+        <span className="flex-1 text-muted">{children}</span>
         <button
           type="button"
           onClick={() => dismissHint(id)}
@@ -54,7 +52,6 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
   if (type === 'empty-state') {
     return (
       <div className={`text-center space-y-3 py-6 ${className}`}>
-        <Lightbulb size={24} className="mx-auto text-accent opacity-70" aria-hidden="true" />
         <div className="text-sm text-muted max-w-sm mx-auto">{children}</div>
         <button
           type="button"
@@ -70,9 +67,8 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
   // post-action: toast-like
   return (
     <div
-      className={`flex items-start gap-3 px-4 py-3 bg-surface border border-border rounded-lg shadow-md text-sm ${className}`}
+      className={`flex items-start gap-2 px-3 py-2 bg-surface border border-border rounded-lg text-sm ${className}`}
     >
-      <Info size={15} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
       <span className="flex-1 text-text">{children}</span>
       <button
         type="button"

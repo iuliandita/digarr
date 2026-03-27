@@ -31,10 +31,6 @@ import {
   updateSubscriptionApi,
 } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Never'
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -72,9 +68,7 @@ function runStatus(run: SubscriptionRun): { label: string; className: string } {
   return { label: 'Done', className: 'text-approve' }
 }
 
-// ---------------------------------------------------------------------------
 // RunHistoryPanel
-// ---------------------------------------------------------------------------
 
 function RunHistoryPanel({ subscriptionId }: { subscriptionId: number }) {
   const { data: runs, isLoading } = useQuery({
@@ -143,9 +137,7 @@ function RunHistoryPanel({ subscriptionId }: { subscriptionId: number }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // SubscriptionCard
-// ---------------------------------------------------------------------------
 
 function SubscriptionCard({
   sub,
@@ -290,9 +282,7 @@ function SubscriptionCard({
   )
 }
 
-// ---------------------------------------------------------------------------
 // SubscriptionsPage
-// ---------------------------------------------------------------------------
 
 export default function SubscriptionsPage() {
   const queryClient = useQueryClient()

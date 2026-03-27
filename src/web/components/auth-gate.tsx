@@ -117,9 +117,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Login form (username/password + legacy token fallback)
-// ---------------------------------------------------------------------------
 
 function LoginForm({
   onSuccess,
@@ -282,9 +280,7 @@ function LoginForm({
   )
 }
 
-// ---------------------------------------------------------------------------
 // Registration form (first-time setup)
-// ---------------------------------------------------------------------------
 
 function RegisterForm({
   onSuccess,

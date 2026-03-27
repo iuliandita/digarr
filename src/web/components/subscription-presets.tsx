@@ -38,8 +38,8 @@ const PRESETS: Preset[] = [
   },
   {
     id: 'ai-only',
-    icon: '🤖',
-    title: 'Just AI',
+    icon: '🎯',
+    title: 'Discovery Only',
     description: 'Pipeline-only, no external feeds',
   },
   {

@@ -13,14 +13,14 @@ type SSEProgress = {
 const STAGES = ['collect', 'analyze', 'discover', 'resolve', 'score', 'filter', 'store', 'complete']
 
 const STAGE_LABELS: Record<string, string> = {
-  collect: 'Collecting Library',
-  analyze: 'Analyzing Taste',
-  discover: 'Discovering Artists',
-  resolve: 'Resolving via MusicBrainz',
-  score: 'Scoring Results',
-  filter: 'Filtering Candidates',
-  store: 'Saving Recommendations',
-  complete: 'Complete',
+  collect: 'Reading library',
+  analyze: 'Building taste profile',
+  discover: 'Finding new artists',
+  resolve: 'Looking up metadata',
+  score: 'Ranking matches',
+  filter: 'Removing duplicates',
+  store: 'Saving results',
+  complete: 'Done',
 }
 
 function stageIndex(stage: string): number {

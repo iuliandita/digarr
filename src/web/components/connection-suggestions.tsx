@@ -41,7 +41,7 @@ export function ConnectionSuggestions({ service, onClose }: ConnectionSuggestion
   if (suggestions.length === 0) return null
 
   return (
-    <div className="rounded-lg border border-accent/30 bg-accent/5 p-4 space-y-3">
+    <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-text">Suggestions for {displayName}</h3>
         <button

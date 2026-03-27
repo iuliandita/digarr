@@ -1,9 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export type PreviewSource = {
   type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
   url: string
@@ -28,9 +24,7 @@ const INITIAL_STATE: PreviewState = {
   error: null,
 }
 
-// ---------------------------------------------------------------------------
 // Source resolvers
-// ---------------------------------------------------------------------------
 
 function resolveSpotifyEmbed(spotifyUrl: string): PreviewSource | null {
   const match = spotifyUrl.match(/spotify\.com\/(artist|album|track)\/([A-Za-z0-9]+)/)
@@ -74,9 +68,7 @@ function resolveYouTubeEmbed(youtubeUrl: string): PreviewSource | null {
   return null
 }
 
-// ---------------------------------------------------------------------------
 // Public: exported for testing
-// ---------------------------------------------------------------------------
 
 export async function resolvePreviewSource(
   streamingUrls: Record<string, string> | null,
@@ -100,9 +92,7 @@ export async function resolvePreviewSource(
   return null
 }
 
-// ---------------------------------------------------------------------------
 // Hook
-// ---------------------------------------------------------------------------
 
 /**
  * Manages music preview playback state.

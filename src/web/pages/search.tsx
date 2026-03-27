@@ -5,9 +5,7 @@ import { SearchResultCard } from '../components/search-result-card'
 import { getSearchSources, searchArtists } from '../lib/api'
 import { cn } from '../lib/utils'
 
-// ---------------------------------------------------------------------------
 // Source filter config
-// ---------------------------------------------------------------------------
 
 const SOURCE_ORDER = ['spotify', 'deezer', 'musicbrainz', 'tidal', 'bandcamp'] as const
 type SourceId = (typeof SOURCE_ORDER)[number]
@@ -40,9 +38,7 @@ const SOURCE_STYLES = {
   },
 } as const
 
-// ---------------------------------------------------------------------------
 // SearchPage
-// ---------------------------------------------------------------------------
 
 export function SearchPage() {
   const [query, setQuery] = useState('')

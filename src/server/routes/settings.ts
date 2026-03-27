@@ -5,6 +5,7 @@ import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
 import { errMsg, isHttpUrl } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
+import type { Preferences } from '@/db/schema'
 
 function isCloudMetadata(url: string): boolean {
   try {
@@ -225,7 +226,7 @@ export function settingsRoutes(deps: AppDependencies) {
       await deps.updateSettings(globalFields)
     }
 
-    const prefs = globalFields.preferences as Record<string, unknown> | undefined
+    const prefs = globalFields.preferences as Partial<Preferences> | undefined
     if (prefs?.scheduleCron !== undefined && typeof prefs.scheduleCron === 'string') {
       try {
         deps.restartScheduler(prefs.scheduleCron || null)
@@ -434,8 +435,8 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     const stored = await deps.getSettings()
-    const prefs = stored?.preferences as Record<string, unknown> | undefined
-    const url = prefs?.webhookUrl as string | undefined
+    const prefs = stored?.preferences
+    const url = prefs?.webhookUrl
     if (!url) {
       return c.json({ success: false, message: 'No webhook URL configured' })
     }

@@ -76,33 +76,27 @@ export function decryptField(value: string | null | undefined): typeof value {
 }
 
 /** Encrypt specific string fields in an object. */
-export function encryptFields<T extends Record<string, unknown>>(
-  obj: T,
-  fields: readonly string[],
-): T {
+export function encryptFields<T extends object>(obj: T, fields: readonly string[]): T {
   if (!derivedKey) return obj
-  const copy = { ...obj }
+  const copy = { ...obj } as Record<string, unknown>
   for (const f of fields) {
     if (typeof copy[f] === 'string') {
-      ;(copy as Record<string, unknown>)[f] = encryptField(copy[f] as string)
+      copy[f] = encryptField(copy[f] as string)
     }
   }
-  return copy
+  return copy as T
 }
 
 /** Decrypt specific string fields in an object. */
-export function decryptFields<T extends Record<string, unknown>>(
-  obj: T,
-  fields: readonly string[],
-): T {
+export function decryptFields<T extends object>(obj: T, fields: readonly string[]): T {
   if (!derivedKey) return obj
-  const copy = { ...obj }
+  const copy = { ...obj } as Record<string, unknown>
   for (const f of fields) {
     if (typeof copy[f] === 'string') {
-      ;(copy as Record<string, unknown>)[f] = decryptField(copy[f] as string)
+      copy[f] = decryptField(copy[f] as string)
     }
   }
-  return copy
+  return copy as T
 }
 
 // Sensitive field lists per table

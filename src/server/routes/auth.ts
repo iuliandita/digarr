@@ -164,7 +164,7 @@ export function authRoutes(deps: AppDependencies) {
     if (!userId) return c.json({ error: 'Not authenticated' }, 401)
     const user = await deps.getUserById(userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
-    const merged = mergePreferences(user.preferences as Record<string, unknown> | null)
+    const merged = mergePreferences(user.preferences)
     return c.json(merged)
   })
 

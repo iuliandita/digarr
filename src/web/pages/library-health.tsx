@@ -23,10 +23,6 @@ const DEFERRED_FIXES = new Set(['missing-metadata', 'genre-gaps', 'missing-album
 const RESCAN_DELAY_DEFERRED = 30_000
 const RESCAN_DELAY_IMMEDIATE = 5_000
 
-// ---------------------------------------------------------------------------
-// Loading skeletons
-// ---------------------------------------------------------------------------
-
 function ChecksSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -62,9 +58,7 @@ function StatsSkeleton() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // LibraryHealthPage
-// ---------------------------------------------------------------------------
 
 export function LibraryHealthPage() {
   const queryClient = useQueryClient()

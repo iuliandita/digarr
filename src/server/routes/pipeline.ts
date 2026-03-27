@@ -45,11 +45,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     }
 
     // Read per-user preferences, fallback to global
-    const userPreferences = await resolveUserPreferences(
-      deps.db,
-      settings.preferences as Record<string, unknown> | null,
-      userId,
-    )
+    const userPreferences = await resolveUserPreferences(deps.db, settings.preferences, userId)
 
     // Build auto-approve deps -- closures capture userId for per-user target lookup
     const autoApproveDeps: AutoApproveDeps = {
@@ -204,7 +200,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         // Read per-user preferences for quick-discover, fallback to global
         const qdPreferences = await resolveUserPreferences(
           deps.db,
-          settings.preferences as Record<string, unknown> | null,
+          settings.preferences,
           quickDiscoverUserId,
         )
         const prefs = mergePreferences(qdPreferences)

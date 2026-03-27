@@ -71,7 +71,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
     const settings = await getSettings(db)
-    const prefs = mergePreferences(settings?.preferences as Record<string, unknown> | null)
+    const prefs = mergePreferences(settings?.preferences)
     const playlists = await getPlaylistsByUser(db, userId)
     const jobsByName = new Map(deps.playlistScheduler.listJobs().map((job) => [job.name, job]))
     const nextRuns = playlists

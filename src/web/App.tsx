@@ -72,17 +72,13 @@ import { SetupWizard } from './pages/setup'
 import SubscriptionsPage from './pages/subscriptions'
 import { UserManagementPage } from './pages/user-management'
 
-// ---------------------------------------------------------------------------
 // Service worker registration
-// ---------------------------------------------------------------------------
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {})
 }
 
-// ---------------------------------------------------------------------------
 // Mobile nav toggle
-// ---------------------------------------------------------------------------
 
 function MobileMenuIcon({ open }: { open: boolean }) {
   return (
@@ -104,9 +100,7 @@ function MobileMenuIcon({ open }: { open: boolean }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Nav dropdown
-// ---------------------------------------------------------------------------
 
 function NavDropdown({
   label,
@@ -164,9 +158,7 @@ function NavDropdown({
   )
 }
 
-// ---------------------------------------------------------------------------
 // App shell
-// ---------------------------------------------------------------------------
 
 function ThemePicker({
   mode,

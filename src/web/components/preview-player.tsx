@@ -1,19 +1,13 @@
 import { Music, X } from 'lucide-react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
 
-// ---------------------------------------------------------------------------
 // Source label helpers
-// ---------------------------------------------------------------------------
 
 const SOURCE_LABELS: Record<PreviewSource['type'], string> = {
   'spotify-embed': 'Spotify',
   'deezer-audio': 'Deezer',
   'youtube-embed': 'YouTube',
 }
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
 
 type Props = {
   playing: boolean
@@ -23,9 +17,7 @@ type Props = {
   onStop: () => void
 }
 
-// ---------------------------------------------------------------------------
 // PreviewPlayer
-// ---------------------------------------------------------------------------
 
 /**
  * Global mini-player bar fixed to the bottom of the viewport.

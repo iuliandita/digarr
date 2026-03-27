@@ -38,10 +38,10 @@ export function MoodPromptBar({
     setQueued((prev) => new Set([...prev, artistName]))
     try {
       await quickDiscover(artistName)
-      toast.success(`Queued "${artistName}" for discovery`)
+      toast.success(`Added "${artistName}" to recommendations`)
       onQueued()
     } catch {
-      toast.error(`Failed to queue "${artistName}"`)
+      toast.error(`Failed to add "${artistName}"`)
       setQueued((prev) => {
         const next = new Set(prev)
         next.delete(artistName)
@@ -57,7 +57,7 @@ export function MoodPromptBar({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder='Try: "something like Boards of Canada but darker"'
+          placeholder="rainy day jazz, upbeat 90s pop, dark ambient..."
           maxLength={500}
           className="flex-1 bg-surface border border-border rounded px-3 py-1.5 text-sm text-text placeholder:text-muted/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-1px]"
         />
@@ -106,11 +106,11 @@ export function MoodPromptBar({
                       </span>
                     ) : existingArtistNames.has(r.artistName.toLowerCase()) ? (
                       <span className="text-[10px] text-muted px-2 py-1 bg-bg border border-border rounded">
-                        In queue
+                        Pending review
                       </span>
                     ) : queued.has(r.artistName) ? (
                       <span className="text-[10px] text-approve px-2 py-1 bg-approve/10 border border-approve/20 rounded">
-                        Queued
+                        Added
                       </span>
                     ) : (
                       <button
@@ -118,7 +118,7 @@ export function MoodPromptBar({
                         onClick={() => handleAddToQueue(r.artistName)}
                         className="text-[10px] px-2 py-1 bg-accent/10 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
                       >
-                        + Queue
+                        + Discover
                       </button>
                     )}
                   </div>

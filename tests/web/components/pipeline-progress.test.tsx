@@ -18,10 +18,6 @@ function renderWithQuery(ui: ReactElement) {
   return render(ui, { wrapper: createQueryWrapper() })
 }
 
-// ---------------------------------------------------------------------------
-// Mock API and hooks
-// ---------------------------------------------------------------------------
-
 vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(),
   getStoredToken: vi.fn(() => null),
@@ -42,10 +38,6 @@ import { useSSE } from '@/web/lib/hooks'
 
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
 const mockUseSSE = vi.mocked(useSSE)
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe('PipelineProgress', () => {
   beforeEach(() => {
@@ -75,7 +67,7 @@ describe('PipelineProgress', () => {
     renderWithQuery(<PipelineProgress />)
 
     await waitFor(() => {
-      expect(screen.getByText('Analyzing Taste')).toBeInTheDocument()
+      expect(screen.getByText('Building taste profile')).toBeInTheDocument()
       // analyze is index 1, so (1+1)/8 = 25%
       expect(screen.getByText('25%')).toBeInTheDocument()
     })
@@ -91,7 +83,7 @@ describe('PipelineProgress', () => {
     renderWithQuery(<PipelineProgress />)
 
     await waitFor(() => {
-      expect(screen.getByText('Resolving via MusicBrainz')).toBeInTheDocument()
+      expect(screen.getByText('Looking up metadata')).toBeInTheDocument()
       expect(screen.getByText('5/20')).toBeInTheDocument()
       expect(screen.getByText('Looking up artists...')).toBeInTheDocument()
     })
@@ -107,7 +99,7 @@ describe('PipelineProgress', () => {
     renderWithQuery(<PipelineProgress />)
 
     await waitFor(() => {
-      expect(screen.getByText('Complete')).toBeInTheDocument()
+      expect(screen.getByText('Done')).toBeInTheDocument()
       expect(screen.getByText('100%')).toBeInTheDocument()
     })
   })
@@ -126,7 +118,7 @@ describe('PipelineProgress', () => {
 
     // The component uses setTimeout(onComplete, 500) -- advance timers
     await waitFor(() => {
-      expect(screen.getByText('Complete')).toBeInTheDocument()
+      expect(screen.getByText('Done')).toBeInTheDocument()
     })
     vi.advanceTimersByTime(600)
     expect(onComplete).toHaveBeenCalledTimes(1)

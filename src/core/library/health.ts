@@ -9,10 +9,6 @@ import type {
 } from '@/core/library/types'
 import { errMsg } from '@/core/validation'
 
-// ---------------------------------------------------------------------------
-// Dependency types
-// ---------------------------------------------------------------------------
-
 type ArtistCacheEntry = {
   id: number
   mbid: string
@@ -37,10 +33,6 @@ type HealthServiceDeps = {
     updateImageUrl?: (mbid: string, imageUrl: string) => Promise<void>
   }
 }
-
-// ---------------------------------------------------------------------------
-// Check metadata
-// ---------------------------------------------------------------------------
 
 const CHECK_META: Record<
   HealthCheckId,
@@ -84,10 +76,6 @@ const CHECK_META: Record<
   },
 }
 
-// ---------------------------------------------------------------------------
-// Service
-// ---------------------------------------------------------------------------
-
 export class LibraryHealthService {
   private deps: HealthServiceDeps
   private cachedResults: HealthCheckResult[] | null = null
@@ -101,9 +89,7 @@ export class LibraryHealthService {
     return this._scanning
   }
 
-  // -------------------------------------------------------------------------
   // startScan -- fire-and-forget, returns immediately
-  // -------------------------------------------------------------------------
 
   startScan(): void {
     if (this._scanning) return
@@ -114,10 +100,6 @@ export class LibraryHealthService {
         this._scanning = false
       })
   }
-
-  // -------------------------------------------------------------------------
-  // runChecks
-  // -------------------------------------------------------------------------
 
   async runChecks(): Promise<HealthCheckResult[]> {
     const [lidarrArtists, cachedArtists] = await Promise.all([
@@ -142,17 +124,9 @@ export class LibraryHealthService {
     return results
   }
 
-  // -------------------------------------------------------------------------
-  // getLastResults
-  // -------------------------------------------------------------------------
-
   getLastResults(): HealthCheckResult[] | null {
     return this.cachedResults
   }
-
-  // -------------------------------------------------------------------------
-  // fixCheck
-  // -------------------------------------------------------------------------
 
   async fixCheck(checkId: HealthCheckId): Promise<HealthFixProgress> {
     if (checkId === 'duplicate-artists') {
@@ -192,9 +166,7 @@ export class LibraryHealthService {
     return progress
   }
 
-  // -------------------------------------------------------------------------
   // getStats
-  // -------------------------------------------------------------------------
 
   async getStats(): Promise<LibraryStats> {
     const [lidarrArtists, rootFolders] = await Promise.all([
@@ -225,9 +197,7 @@ export class LibraryHealthService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // Private: individual checks
-  // -------------------------------------------------------------------------
 
   private checkMissingMetadata(
     artists: LidarrArtist[],
@@ -379,9 +349,7 @@ export class LibraryHealthService {
     return { ...meta, id: 'image-gaps', count: items.length, items }
   }
 
-  // -------------------------------------------------------------------------
   // Private: fix dispatch
-  // -------------------------------------------------------------------------
 
   private async applyFix(checkId: HealthCheckId, item: HealthCheckItem): Promise<void> {
     switch (checkId) {
@@ -412,10 +380,6 @@ export class LibraryHealthService {
     }
   }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function extractImageUrl(results: unknown[]): string | null {
   for (const result of results) {

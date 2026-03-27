@@ -6,7 +6,6 @@ import { ApproveDialog } from '../components/approve-dialog'
 import { ArtistThumb } from '../components/artist-thumb'
 import { Hint } from '../components/hint'
 import type { MonitorOption } from '../components/monitoring-options'
-import { MoodPromptBar } from '../components/mood-prompt-bar'
 import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
@@ -31,8 +30,6 @@ import {
   updateRecommendation,
 } from '../lib/api'
 
-// Helpers
-
 function relativeTime(dateStr: string | Date): string {
   const ms = Date.now() - new Date(dateStr).getTime()
   const future = ms < 0
@@ -45,8 +42,6 @@ function relativeTime(dateStr: string | Date): string {
   const days = Math.floor(hrs / 24)
   return future ? `in ${days}d` : `${days}d ago`
 }
-
-// SectionHeader
 
 function SectionHeader({
   title,
@@ -68,8 +63,6 @@ function SectionHeader({
     </div>
   )
 }
-
-// SubscriptionPulse
 
 function SubscriptionPulse({
   subs,
@@ -123,8 +116,6 @@ function SubscriptionPulse({
     </div>
   )
 }
-
-// ListeningActivity
 
 function ListeningActivity({
   data,
@@ -189,8 +180,6 @@ function ListeningActivity({
   )
 }
 
-// TasteProfile
-
 function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; loading: boolean }) {
   return (
     <div>
@@ -228,8 +217,6 @@ function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; l
     </div>
   )
 }
-
-// ActivityFeed
 
 function ActivityFeed({
   entries,
@@ -287,8 +274,6 @@ function ActivityFeed({
     </div>
   )
 }
-
-// Dashboard
 
 export function Dashboard() {
   const queryClient = useQueryClient()
@@ -396,10 +381,16 @@ export function Dashboard() {
   }, [pickData, approvedData, queryClient])
 
   const allPending = (pickData?.items ?? []) as Recommendation[]
-  const currentPick = allPending.find((r) => !skippedIds.has(r.id) && !actedIds.has(r.id)) ?? null
 
-  // Existing artist names for mood prompt dedup
-  const existingArtistNames = new Set(allPending.map((r) => r.artist.name.toLowerCase()))
+  // Daily pick rotation: use date as seed to show a different rec each day.
+  // Pool is filtered to recs the user hasn't acted on this session.
+  const currentPick = (() => {
+    const pool = allPending.filter((r) => !skippedIds.has(r.id) && !actedIds.has(r.id))
+    if (pool.length === 0) return null
+    const day = new Date().toDateString()
+    const hash = [...day].reduce((acc, c) => acc * 31 + c.charCodeAt(0), 0)
+    return pool[Math.abs(hash) % pool.length] ?? null
+  })()
 
   // Recently approved recs for the gallery
   const approvedRecs = (approvedData?.items ?? []) as Recommendation[]
@@ -459,14 +450,6 @@ export function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
-      {/* MoodPromptBar (full width) */}
-      <MoodPromptBar
-        existingArtistNames={existingArtistNames}
-        onQueued={() => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-        }}
-      />
-
       {/* Pipeline progress (self-hides) */}
       <PipelineProgress
         onComplete={() => {

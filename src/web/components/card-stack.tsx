@@ -12,9 +12,7 @@ type CardStackProps = {
   onDetail: (id: number) => void
 }
 
-// ---------------------------------------------------------------------------
 // Score ring (simple circle progress)
-// ---------------------------------------------------------------------------
 
 function ScoreRing({ score }: { score: number }) {
   const pct = Math.round(score * 100)
@@ -53,9 +51,7 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Single card in the stack
-// ---------------------------------------------------------------------------
 
 function StackCard({
   rec,
@@ -121,7 +117,7 @@ function StackCard({
           </div>
         )}
 
-        {/* AI reasoning */}
+        {/* Recommendation reasoning */}
         {rec.aiReasoning && (
           <p className="text-xs text-muted italic leading-relaxed line-clamp-3">
             {rec.aiReasoning}
@@ -197,9 +193,7 @@ function StackCard({
   )
 }
 
-// ---------------------------------------------------------------------------
 // CardStack
-// ---------------------------------------------------------------------------
 
 /**
  * Dating-app style card stack: one card at a time, swipe left/right to act.

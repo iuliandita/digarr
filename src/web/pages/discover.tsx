@@ -28,10 +28,6 @@ import {
   updateRecommendation,
 } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type ViewMode = 'grid' | 'list' | 'stack'
 
@@ -65,10 +61,6 @@ const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const PAGE_SIZE = 50
 
-// ---------------------------------------------------------------------------
-// Skeleton grid
-// ---------------------------------------------------------------------------
-
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,9 +88,7 @@ function SkeletonGrid() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Empty state
-// ---------------------------------------------------------------------------
 
 function EmptyState({ filter }: { filter: FilterTab }) {
   const messages: Record<FilterTab, string> = {
@@ -114,9 +104,7 @@ function EmptyState({ filter }: { filter: FilterTab }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // View mode icons (inline SVG)
-// ---------------------------------------------------------------------------
 
 function GridIcon() {
   return (
@@ -182,9 +170,7 @@ function StackIcon() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Feedback insights
-// ---------------------------------------------------------------------------
 
 function FeedbackInsights() {
   const [genreRates, setGenreRates] = useState<
@@ -239,9 +225,7 @@ function FeedbackInsights() {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Export dropdown
-// ---------------------------------------------------------------------------
 
 function ExportDropdown({ filter }: { filter?: string }) {
   const [open, setOpen] = useState(false)
@@ -298,9 +282,7 @@ function ExportDropdown({ filter }: { filter?: string }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Discover page
-// ---------------------------------------------------------------------------
 
 export function DiscoverPage() {
   const queryClient = useQueryClient()
@@ -371,9 +353,7 @@ export function DiscoverPage() {
   const items = (data?.items ?? []) as Recommendation[]
   const total = data?.total ?? 0
 
-  // ---------------------------------------------------------------------------
   // Warm status
-  // ---------------------------------------------------------------------------
 
   const mbids = items
     .map((r) => r.artist.mbid)
@@ -389,10 +369,6 @@ export function DiscoverPage() {
   })
 
   const warmStatuses = warmData?.statuses ?? {}
-
-  // ---------------------------------------------------------------------------
-  // Targets (for multi-target approve dropdown)
-  // ---------------------------------------------------------------------------
 
   const { data: targetsData } = useQuery({
     queryKey: ['targets'],
@@ -438,9 +414,7 @@ export function DiscoverPage() {
     [refetch, targets],
   )
 
-  // ---------------------------------------------------------------------------
   // Undo toast
-  // ---------------------------------------------------------------------------
 
   type UndoEntry = { id: number; prevStatus: string }
   const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null)
@@ -491,10 +465,6 @@ export function DiscoverPage() {
     approved: approvedCountData?.total ?? 0,
     rejected: rejectedCountData?.total ?? 0,
   }
-
-  // ---------------------------------------------------------------------------
-  // Actions
-  // ---------------------------------------------------------------------------
 
   const handleApproveWithOptions = useCallback(
     async (
@@ -698,10 +668,6 @@ export function DiscoverPage() {
     [expandedId],
   )
 
-  // ---------------------------------------------------------------------------
-  // Keyboard shortcuts
-  // ---------------------------------------------------------------------------
-
   const itemsRef = useRef(items)
   itemsRef.current = items
 
@@ -747,10 +713,6 @@ export function DiscoverPage() {
     },
     viewMode !== 'stack',
   )
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
 
   const pendingAboveThreshold = items.filter(
     (r) => r.score * 100 >= approveThreshold && r.status === 'pending',

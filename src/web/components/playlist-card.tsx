@@ -9,10 +9,6 @@ import {
   updatePlaylistApi,
 } from '../lib/api'
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return 'Never'
   const date = new Date(dateStr)
@@ -48,9 +44,7 @@ const STRATEGY_BADGES: Record<string, { label: string; className: string }> = {
   rediscover: { label: 'Rediscover', className: 'bg-amber-500/15 text-amber-400' },
 }
 
-// ---------------------------------------------------------------------------
 // Toggle (inline switch)
-// ---------------------------------------------------------------------------
 
 function Toggle({
   checked,
@@ -81,9 +75,7 @@ function Toggle({
   )
 }
 
-// ---------------------------------------------------------------------------
 // PlaylistCard
-// ---------------------------------------------------------------------------
 
 type PlaylistCardProps = {
   playlist: PlaylistRow
