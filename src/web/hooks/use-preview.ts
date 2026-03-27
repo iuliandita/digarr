@@ -167,6 +167,7 @@ export function usePreview() {
         audioRef.current.src = ''
       }
 
+      const targetMbid = mbid
       currentMbidRef.current = mbid
       setStateAndRef(() => ({
         playing: false,
@@ -178,6 +179,9 @@ export function usePreview() {
       }))
 
       const source = await resolvePreviewSource(streamingUrls, artistName)
+
+      // Guard: user started a different preview while we were resolving
+      if (currentMbidRef.current !== targetMbid) return
 
       if (!source) {
         setStateAndRef((s) => ({

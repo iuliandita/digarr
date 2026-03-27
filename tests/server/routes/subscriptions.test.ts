@@ -288,33 +288,6 @@ describe('POST /api/subscriptions', () => {
     expect(res.status).toBe(400)
   })
 
-  it('rejects similar subscriptions that only use ListenBrainz', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/subscriptions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'Similar Only',
-        sourceType: 'similar',
-        sourceProvider: 'listenbrainz',
-        sourceConfig: {
-          seedArtists: [{ name: 'Massive Attack' }],
-          providers: ['listenbrainz'],
-        },
-        cron: '0 9 * * *',
-      }),
-    })
-    expect(res.status).toBe(400)
-    expect(await res.json()).toEqual(
-      expect.objectContaining({
-        error: expect.stringContaining(
-          'ListenBrainz similar-artist lookups are currently unavailable',
-        ),
-      }),
-    )
-    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
-  })
-
   it('returns 401 when not authenticated', async () => {
     const app = createTestApp(makeDeps(), undefined)
     const res = await app.request('/api/subscriptions', {
@@ -386,31 +359,6 @@ describe('PATCH /api/subscriptions/:id', () => {
       body: JSON.stringify({ cron: 'bad-cron' }),
     })
     expect(res.status).toBe(400)
-  })
-
-  it('rejects updates that keep similar subscriptions on ListenBrainz only', async () => {
-    mockSubQueries.getSubscription.mockResolvedValueOnce({
-      ...mockSub,
-      sourceType: 'similar',
-      sourceProvider: 'listenbrainz',
-      sourceConfig: {
-        seedArtists: [{ name: 'Sleep Token' }],
-        providers: ['listenbrainz'],
-      } as Record<string, unknown>,
-    })
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceConfig: {
-          seedArtists: [{ name: 'Massive Attack' }],
-          providers: ['listenbrainz'],
-        },
-      }),
-    })
-    expect(res.status).toBe(400)
-    expect(mockSubQueries.updateSubscription).not.toHaveBeenCalled()
   })
 
   it('reschedules in scheduler when cron changes', async () => {

@@ -17,5 +17,6 @@ PLAN.md
 SECURITY-AUDIT.md
 .claude/
 .worktrees/
+.playwright-mcp/
 docs/local/
 .superpowers/

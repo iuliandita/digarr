@@ -12,7 +12,13 @@ export function useSSE(url: string) {
     const authedUrl = token ? `${url}${separator}token=${encodeURIComponent(token)}` : url
     const source = new EventSource(authedUrl)
     source.onopen = () => setConnected(true)
-    source.onmessage = (e) => setData(JSON.parse(e.data as string) as unknown)
+    source.onmessage = (e) => {
+      try {
+        setData(JSON.parse(e.data as string) as unknown)
+      } catch {
+        // Ignore malformed SSE messages (keep-alive pings, partial writes)
+      }
+    }
     source.onerror = () => setConnected(false)
     return () => source.close()
   }, [url])

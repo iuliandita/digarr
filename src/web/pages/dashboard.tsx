@@ -488,7 +488,8 @@ export function Dashboard() {
             onSkip={handleSkip}
             onRunScan={() => {
               triggerPipeline()
-              toast.success('Scan started')
+                .then(() => toast.success('Scan started'))
+                .catch(() => toast.error('Failed to start scan'))
             }}
             targets={targets}
             onApproveToTarget={handleApproveToTarget}

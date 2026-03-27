@@ -165,14 +165,16 @@ function SubscriptionCard({
   const [expanded, setExpanded] = useState(false)
 
   const sourceLabel = (() => {
-    if (sub.sourceType === 'genre') {
-      return (sub.sourceConfig as { genre?: string })?.genre ?? null
-    }
+    const cfg = sub.sourceConfig as Record<string, unknown>
+    if (sub.sourceType === 'genre') return (cfg.genre as string) ?? null
     if (sub.sourceType === 'similar') {
-      const seeds = (sub.sourceConfig as { seedArtists?: Array<{ name: string }> })?.seedArtists
+      const seeds = cfg.seedArtists as Array<{ name: string }> | undefined
       return seeds?.map((s) => s.name).join(', ') ?? null
     }
-    return sub.sourceType
+    if (sub.sourceType === 'lastfm-tag') return (cfg.tag as string) ?? null
+    if (sub.sourceType === 'listenbrainz') return (cfg.feedType as string) ?? null
+    if (sub.sourceType === 'spotify-playlist') return (cfg.playlistName as string) ?? null
+    return null
   })()
 
   const actionLabel = 'Add to recommendations'
@@ -219,7 +221,9 @@ function SubscriptionCard({
             <span>
               Last: <span className="text-text">{formatDate(sub.lastRunAt)}</span>
               {sub.lastResultCount != null && (
-                <span className="ml-1 text-approve">({sub.lastResultCount} found)</span>
+                <span className={`ml-1 ${sub.lastResultCount > 0 ? 'text-approve' : 'text-muted'}`}>
+                  ({sub.lastResultCount} found)
+                </span>
               )}
             </span>
             {sub.lastError && (
