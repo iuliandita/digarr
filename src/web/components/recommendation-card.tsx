@@ -28,6 +28,8 @@ export type Recommendation = {
     imageUrl: string | null
     logoUrl?: string | null
     streamingUrls: Record<string, string> | null
+    beginYear?: number | null
+    endYear?: number | null
   }
 }
 
