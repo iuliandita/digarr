@@ -1,9 +1,11 @@
 import { ChevronDown, Pause, Play } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { GENRE_COLORS } from '../lib/constants'
 import { usePreviewContext } from '../lib/preview-context'
 import { cn } from '../lib/utils'
+import { getArtistTopTracks } from '../lib/api'
 import { ArtistThumb } from './artist-thumb'
 import { Hint } from './hint'
 import { StreamingLinks } from './streaming-links'
@@ -346,6 +348,88 @@ function ActionButtons({
   return null
 }
 
+function TopTracks({ artistId }: { artistId: number }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['top-tracks', artistId],
+    queryFn: () => getArtistTopTracks(artistId),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const [playingUrl, setPlayingUrl] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  function handlePlay(previewUrl: string) {
+    if (playingUrl === previewUrl) {
+      audioRef.current?.pause()
+      setPlayingUrl(null)
+      return
+    }
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+    const audio = new Audio(previewUrl)
+    audioRef.current = audio
+    audio.onended = () => setPlayingUrl(null)
+    audio.onerror = () => setPlayingUrl(null)
+    audio.play().catch(() => setPlayingUrl(null))
+    setPlayingUrl(previewUrl)
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause()
+    }
+  }, [])
+
+  const tracks = data?.tracks ?? []
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2 mt-3">
+        <div className="text-xs font-medium text-muted">Top Tracks</div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-4 bg-surface rounded animate-pulse w-3/4" />
+        ))}
+      </div>
+    )
+  }
+
+  if (tracks.length === 0) return null
+
+  return (
+    <div className="space-y-1.5 mt-3">
+      <div className="text-xs font-medium text-muted">Top Tracks</div>
+      {tracks.map((track, i) => (
+        <div key={i} className="flex items-center gap-2 text-sm">
+          {track.previewUrl ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                handlePlay(track.previewUrl!)
+              }}
+              className="text-accent hover:text-accent/80 transition-colors shrink-0 w-4 text-center"
+              aria-label={playingUrl === track.previewUrl ? 'Stop preview' : 'Play preview'}
+            >
+              {playingUrl === track.previewUrl ? '\u23F8' : '\u25B6'}
+            </button>
+          ) : (
+            <span className="text-muted shrink-0 w-4 text-center">{'\u266A'}</span>
+          )}
+          <span className="text-text truncate">{track.name}</span>
+          {track.durationMs != null && (
+            <span className="text-muted text-xs ml-auto shrink-0">
+              {Math.floor(track.durationMs / 60000)}:
+              {String(Math.floor((track.durationMs % 60000) / 1000)).padStart(2, '0')}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function RecommendationCard({
   recommendation: rec,
   onApprove,
@@ -646,6 +730,11 @@ export function RecommendationCard({
                 <p className="text-sm text-text italic">{rec.aiReasoning}</p>
               </div>
             )}
+
+            {/* Top tracks */}
+            <div className="px-4">
+              <TopTracks artistId={rec.artist.id} />
+            </div>
 
             {/* Per-source scores */}
             {rec.sources && Object.keys(rec.sources).length > 0 && (
