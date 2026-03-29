@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 export type PreviewSource = {
   type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
@@ -174,11 +175,8 @@ export function usePreview() {
       if (currentMbidRef.current !== targetMbid) return
 
       if (!source) {
-        setStateAndRef((s) => ({
-          ...s,
-          loading: false,
-          error: 'No preview available for this artist.',
-        }))
+        setStateAndRef(() => INITIAL_STATE)
+        toast.error('No preview available for this artist')
         return
       }
 
@@ -192,13 +190,8 @@ export function usePreview() {
           await audio.play()
           setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
         } catch {
-          setStateAndRef((s) => ({
-            ...s,
-            source,
-            loading: false,
-            playing: false,
-            error: 'Playback blocked -- click to retry.',
-          }))
+          setStateAndRef(() => INITIAL_STATE)
+          toast.error('Playback blocked by browser -- try clicking again')
         }
         return
       }
