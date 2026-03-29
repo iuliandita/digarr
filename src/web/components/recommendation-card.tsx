@@ -408,8 +408,8 @@ function TopTracks({ artistId }: { artistId: number }) {
   return (
     <div className="space-y-1.5 mt-3">
       <div className="text-xs font-medium text-muted">Top Tracks</div>
-      {tracks.map((track, i) => (
-        <div key={`${track.name}-${i}`} className="flex items-center gap-2 text-sm">
+      {tracks.map((track) => (
+        <div key={track.name} className="flex items-center gap-2 text-sm">
           {track.previewUrl ? (
             <button
               type="button"
@@ -420,10 +420,16 @@ function TopTracks({ artistId }: { artistId: number }) {
               className="text-accent hover:text-accent/80 transition-colors shrink-0 w-4 text-center"
               aria-label={playingUrl === track.previewUrl ? 'Stop preview' : 'Play preview'}
             >
-              {playingUrl === track.previewUrl ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+              {playingUrl === track.previewUrl ? (
+                <Pause className="w-3 h-3" />
+              ) : (
+                <Play className="w-3 h-3" />
+              )}
             </button>
           ) : (
-            <span className="text-muted shrink-0 w-4 text-center"><Music className="w-3 h-3" /></span>
+            <span className="text-muted shrink-0 w-4 text-center">
+              <Music className="w-3 h-3" />
+            </span>
           )}
           <span className="text-text truncate">{track.name}</span>
           {track.durationMs != null && (

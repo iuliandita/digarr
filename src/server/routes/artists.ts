@@ -70,10 +70,7 @@ export function artistRoutes(deps: AppDependencies) {
 
     // Cache result in DB (self-contained timestamp, independent of artist cachedAt)
     const topTracksCache: TopTracksCache = { tracks, cachedAt: new Date().toISOString() }
-    await deps.db
-      .update(artists)
-      .set({ topTracks: topTracksCache })
-      .where(eq(artists.id, id))
+    await deps.db.update(artists).set({ topTracks: topTracksCache }).where(eq(artists.id, id))
 
     return c.json({ tracks })
   })
