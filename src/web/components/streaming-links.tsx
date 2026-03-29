@@ -85,7 +85,7 @@ function SpotifyEmbed({ url }: SpotifyEmbedProps) {
     <iframe
       src={embedUrl}
       width="100%"
-      height="80"
+      height="84"
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
       className="rounded border border-border mt-2"

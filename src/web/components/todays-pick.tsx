@@ -64,7 +64,7 @@ export function TodaysPick({
   if (loading) {
     return (
       <div className="bg-surface border border-border rounded-lg overflow-hidden h-full">
-        <Skeleton className="h-52 w-full" />
+        <Skeleton className="h-72 w-full" />
         <div className="p-4 space-y-3">
           <Skeleton className="h-5 w-2/3" />
           <Skeleton className="h-3 w-full" />
@@ -133,7 +133,7 @@ export function TodaysPick({
   return (
     <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
       {/* Banner -- fills ~40% of card height */}
-      <div className="relative shrink-0 h-52" style={bannerStyle}>
+      <div className="relative shrink-0 h-72" style={bannerStyle}>
         {hasImage && (
           <img
             src={bannerUrl}

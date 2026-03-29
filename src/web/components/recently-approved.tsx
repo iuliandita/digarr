@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getAlbums } from '../lib/api'
 import { Skeleton } from './ui/skeleton'
 
 // RecentlyApproved
@@ -7,25 +9,45 @@ import { Skeleton } from './ui/skeleton'
 type RecentlyApprovedProps = {
   recs: Array<{
     id: number
-    artist: { name: string; imageUrl?: string | null; genres?: string[] | null }
+    artist: { name: string; mbid?: string; imageUrl?: string | null; genres?: string[] | null }
   }>
   loading: boolean
 }
 
 const SLOTS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'] as const
 
-function Tile({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
+function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?: string | null }) {
   const [imgError, setImgError] = useState(false)
+  const [coverError, setCoverError] = useState(false)
   const hue = Math.abs([...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360)
+
+  // Fetch album data for cover fallback when no artist image
+  const needsFallback = !imageUrl || imgError
+  const { data: albumData } = useQuery({
+    queryKey: ['tile-albums', mbid],
+    queryFn: () => getAlbums(mbid!),
+    enabled: needsFallback && !!mbid,
+    staleTime: 5 * 60_000,
+  })
+
+  const firstAlbumId = albumData?.find((a: { type: string }) => a.type === 'Album')?.id
+  const coverUrl = firstAlbumId
+    ? `https://coverartarchive.org/release-group/${firstAlbumId}/front-500`
+    : null
+
+  const displayUrl = (!imgError && imageUrl) || (!coverError && coverUrl)
 
   return (
     <Link to="/discover" className="aspect-square rounded-lg overflow-hidden relative group block">
-      {imageUrl && !imgError ? (
+      {displayUrl ? (
         <img
-          src={imageUrl}
+          src={displayUrl}
           alt={name}
           className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
+          onError={() => {
+            if (displayUrl === imageUrl) setImgError(true)
+            else setCoverError(true)
+          }}
         />
       ) : (
         <div className="w-full h-full" style={{ background: `hsl(${hue}, 40%, 45%)` }} />
@@ -61,7 +83,12 @@ export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
   return (
     <div className="grid grid-cols-3 gap-1.5">
       {recs.slice(0, 9).map((rec) => (
-        <Tile key={rec.id} name={rec.artist.name} imageUrl={rec.artist.imageUrl} />
+        <Tile
+          key={rec.id}
+          name={rec.artist.name}
+          mbid={rec.artist.mbid}
+          imageUrl={rec.artist.imageUrl}
+        />
       ))}
       {SLOTS.slice(recs.length).map((key) => (
         <div key={key} className="aspect-square rounded-lg bg-bg border border-border" />
