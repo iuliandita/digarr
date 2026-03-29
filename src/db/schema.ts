@@ -90,6 +90,12 @@ export const subscriptions = pgTable('subscriptions', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+export type TopTrack = {
+  name: string
+  previewUrl?: string
+  durationMs?: number
+}
+
 export const artists = pgTable('artists', {
   id: serial('id').primaryKey(),
   mbid: uuid('mbid').unique().notNull(),
@@ -102,6 +108,9 @@ export const artists = pgTable('artists', {
   streamingUrls: jsonb('streaming_urls').$type<Record<string, string>>(),
   imageFailedAt: timestamp('image_failed_at', { withTimezone: true }),
   cachedAt: timestamp('cached_at', { withTimezone: true }),
+  beginYear: integer('begin_year'),
+  endYear: integer('end_year'),
+  topTracks: jsonb('top_tracks').$type<TopTrack[]>(),
 })
 
 export const recommendationBatches = pgTable('recommendation_batches', {
