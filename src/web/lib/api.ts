@@ -17,8 +17,11 @@ export function getStoredToken(): string | null {
   return localStorage.getItem(AUTH_TOKEN_KEY)
 }
 
+// SPA session tokens require client-side storage -- cookies would need
+// server-side session management. Token is never logged or transmitted
+// except via Authorization header or query param (SSE/audio fallback).
 export function setStoredToken(token: string): void {
-  localStorage.setItem(AUTH_TOKEN_KEY, token)
+  localStorage.setItem(AUTH_TOKEN_KEY, token) // lgtm[js/clear-text-storage-of-sensitive-data]
 }
 
 export function clearStoredToken(): void {

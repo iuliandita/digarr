@@ -21,7 +21,8 @@ function buildSubsonicUrl(
 ): string {
   const base = baseUrl.replace(/\/+$/, '')
   const salt = randomBytes(8).toString('hex')
-  const token = createHash('md5')
+  // Subsonic API spec mandates md5(password + salt) auth -- no alternative
+  const token = createHash('md5') // lgtm[js/insufficient-password-hash]
     .update(password + salt)
     .digest('hex')
   const params = new URLSearchParams({

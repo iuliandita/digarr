@@ -42,7 +42,7 @@ export async function getChildGenres(db: Database, parentId: number): Promise<Ge
 }
 
 export async function searchGenres(db: Database, query: string, limit = 20): Promise<GenreRow[]> {
-  const escaped = query.replace(/%/g, '\\%').replace(/_/g, '\\_')
+  const escaped = query.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
   return db
     .select()
     .from(genres)
