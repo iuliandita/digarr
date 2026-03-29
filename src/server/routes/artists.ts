@@ -75,6 +75,31 @@ export function artistRoutes(deps: AppDependencies) {
     return c.json({ tracks })
   })
 
+  // Proxy Deezer preview audio to avoid CORS issues in browsers
+  router.get('/api/preview/audio', async (c) => {
+    const url = c.req.query('url')
+    if (!url || !url.startsWith('https://cdns-preview-')) {
+      return c.json({ error: 'Invalid preview URL' }, 400)
+    }
+    try {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), 10_000)
+      const res = await fetch(url, { signal: controller.signal })
+      clearTimeout(timer)
+      if (!res.ok || !res.body) {
+        return c.json({ error: 'Preview not available' }, 502)
+      }
+      return new Response(res.body, {
+        headers: {
+          'Content-Type': res.headers.get('Content-Type') ?? 'audio/mpeg',
+          'Cache-Control': 'public, max-age=86400',
+        },
+      })
+    } catch {
+      return c.json({ error: 'Preview fetch failed' }, 502)
+    }
+  })
+
   router.get('/api/albums/:mbid', async (c) => {
     const mbid = c.req.param('mbid')
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mbid)) {

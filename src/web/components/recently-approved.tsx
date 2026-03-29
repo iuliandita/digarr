@@ -23,7 +23,7 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
 
   // Fetch album data for cover fallback when no artist image
   const needsFallback = !imageUrl || imgError
-  const { data: albumData } = useQuery({
+  const { data: albumData, isLoading: albumLoading } = useQuery({
     queryKey: ['tile-albums', mbid],
     queryFn: () => getAlbums(mbid!),
     enabled: needsFallback && !!mbid,
@@ -36,6 +36,7 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
     : null
 
   const displayUrl = (!imgError && imageUrl) || (!coverError && coverUrl)
+  const showShimmer = needsFallback && albumLoading
 
   return (
     <Link to="/discover" className="aspect-square rounded-lg overflow-hidden relative group block">
@@ -48,6 +49,11 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
             if (displayUrl === imageUrl) setImgError(true)
             else setCoverError(true)
           }}
+        />
+      ) : showShimmer ? (
+        <div
+          className="w-full h-full animate-pulse"
+          style={{ background: `hsl(${hue}, 30%, 30%)` }}
         />
       ) : (
         <div className="w-full h-full" style={{ background: `hsl(${hue}, 40%, 45%)` }} />

@@ -371,7 +371,9 @@ function TopTracks({ artistId }: { artistId: number }) {
       audioRef.current.onerror = null
       audioRef.current.src = ''
     }
-    const audio = new Audio(previewUrl)
+    // Proxy through backend to avoid Deezer CORS blocking
+    const proxyUrl = `/api/preview/audio?url=${encodeURIComponent(previewUrl)}`
+    const audio = new Audio(proxyUrl)
     audioRef.current = audio
     audio.onended = () => setPlayingUrl(null)
     audio.onerror = () => setPlayingUrl(null)

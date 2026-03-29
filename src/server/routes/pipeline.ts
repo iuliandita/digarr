@@ -157,20 +157,42 @@ export function pipelineRoutes(deps: AppDependencies) {
           ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
           : new Set<string>()
 
-        // Add the seed artist itself as a direct pick
+        // Add the seed artist directly (bypasses dedup filter)
+        const seedDiscovered = [
+          {
+            name: artistName,
+            similarityScore: 1.0,
+            aiReasoning: 'Directly added from mood discovery.',
+            source: 'mood' as const,
+          },
+        ]
+        const seedResolved = await resolve(seedDiscovered, mb, undefined, lidarr ?? undefined)
+        if (seedResolved.length > 0) {
+          const seedScored = score(
+            seedResolved,
+            [],
+            {
+              consensus: 0,
+              similarity: 0,
+              genreOverlap: 0,
+              aiConfidence: 0,
+              feedbackBoost: 0,
+              popularity: 0,
+            },
+            new Map(),
+          )
+          // Force score to 1.0 -- direct user pick
+          for (const s of seedScored) s.score = 1.0
+          await store(seedScored, deps.storeDb, { userId: quickDiscoverUserId })
+        }
+
+        // Find similar artists via Last.fm + AI
         const discovered: Array<{
           name: string
           similarityScore: number
           aiReasoning?: string
           source: string
-        }> = [
-          {
-            name: artistName,
-            similarityScore: 1.0,
-            aiReasoning: 'Directly added from mood discovery.',
-            source: 'mood',
-          },
-        ]
+        }> = []
 
         // Get similar from Last.fm
         if (lastfmApiKey && lastfmApiKey !== '***') {
