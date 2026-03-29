@@ -8,8 +8,20 @@ export type MBArtist = {
   id: string
   name: string
   disambiguation?: string
+  'life-span'?: {
+    begin?: string
+    end?: string
+    ended?: boolean
+  }
   tags?: Array<{ name: string; count: number }>
   relations?: MBRelation[]
+}
+
+/** Extract year from MB date string ("1985", "1985-03", "1985-03-15") */
+export function parseYear(dateStr?: string): number | undefined {
+  if (!dateStr) return undefined
+  const year = Number.parseInt(dateStr.substring(0, 4), 10)
+  return Number.isNaN(year) ? undefined : year
 }
 
 export type MBRelation = {

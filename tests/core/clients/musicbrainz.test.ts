@@ -5,6 +5,7 @@ import {
   type MBArtist,
   type MBRelation,
   type MBSearchResult,
+  parseYear,
 } from '@/core/clients/musicbrainz'
 import { VERSION } from '@/version'
 
@@ -93,6 +94,27 @@ const MOCK_SEARCH_RESPONSE: MBSearchResult = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+describe('parseYear', () => {
+  it('parses full date string', () => {
+    expect(parseYear('1985-03-15')).toBe(1985)
+  })
+  it('parses year-month string', () => {
+    expect(parseYear('1985-03')).toBe(1985)
+  })
+  it('parses year-only string', () => {
+    expect(parseYear('1985')).toBe(1985)
+  })
+  it('returns undefined for empty string', () => {
+    expect(parseYear('')).toBeUndefined()
+  })
+  it('returns undefined for undefined', () => {
+    expect(parseYear(undefined)).toBeUndefined()
+  })
+  it('returns undefined for garbage input', () => {
+    expect(parseYear('not-a-date')).toBeUndefined()
+  })
 })
 
 describe('createMusicBrainzClient', () => {
