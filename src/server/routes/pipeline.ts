@@ -157,8 +157,22 @@ export function pipelineRoutes(deps: AppDependencies) {
           ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
           : new Set<string>()
 
+        // Add the seed artist itself as a direct pick
+        const discovered: Array<{
+          name: string
+          similarityScore: number
+          aiReasoning?: string
+          source: string
+        }> = [
+          {
+            name: artistName,
+            similarityScore: 1.0,
+            aiReasoning: 'Directly added from mood discovery.',
+            source: 'mood',
+          },
+        ]
+
         // Get similar from Last.fm
-        const discovered = []
         if (lastfmApiKey && lastfmApiKey !== '***') {
           const lfm = createLastFmClient(lastfmUsername, lastfmApiKey)
           try {

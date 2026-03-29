@@ -38,7 +38,7 @@ export function MoodPromptBar({
     setQueued((prev) => new Set([...prev, artistName]))
     try {
       await quickDiscover(artistName)
-      toast.success(`Added "${artistName}" to recommendations`)
+      toast.success(`Added "${artistName}" and discovering similar artists`)
       onQueued()
     } catch {
       toast.error(`Failed to add "${artistName}"`)
