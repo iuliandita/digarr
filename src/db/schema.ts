@@ -96,6 +96,11 @@ export type TopTrack = {
   durationMs?: number
 }
 
+export type TopTracksCache = {
+  tracks: TopTrack[]
+  cachedAt: string
+}
+
 export const artists = pgTable('artists', {
   id: serial('id').primaryKey(),
   mbid: uuid('mbid').unique().notNull(),
@@ -110,7 +115,7 @@ export const artists = pgTable('artists', {
   cachedAt: timestamp('cached_at', { withTimezone: true }),
   beginYear: integer('begin_year'),
   endYear: integer('end_year'),
-  topTracks: jsonb('top_tracks').$type<TopTrack[]>(),
+  topTracks: jsonb('top_tracks').$type<TopTracksCache>(),
 })
 
 export const recommendationBatches = pgTable('recommendation_batches', {

@@ -697,10 +697,7 @@ export const getPlaylistScheduler = () =>
   )
 
 // Artist top tracks
-export async function getArtistTopTracks(artistId: number): Promise<{
-  tracks: Array<{ name: string; previewUrl?: string; durationMs?: number }>
-}> {
-  const res = await fetch(`/api/artists/${artistId}/top-tracks`)
-  if (!res.ok) throw new Error('Failed to fetch top tracks')
-  return res.json()
-}
+export const getArtistTopTracks = (artistId: number) =>
+  fetchApi<{ tracks: Array<{ name: string; previewUrl?: string; durationMs?: number }> }>(
+    `/artists/${artistId}/top-tracks`,
+  )

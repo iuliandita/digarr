@@ -186,18 +186,19 @@ describe('GET /api/artists/:id/top-tracks', () => {
   })
 
   it('returns cached tracks when fresh', async () => {
-    const cachedTracks = [
-      { name: 'Glory Box', previewUrl: 'https://cdn.deezer.com/preview/1.mp3', durationMs: 30000 },
-      { name: 'Sour Times', durationMs: 32000 },
-    ]
-    const recentCachedAt = new Date(Date.now() - 1000 * 60 * 60) // 1 hour ago
+    const cachedTracks = {
+      tracks: [
+        { name: 'Glory Box', previewUrl: 'https://cdn.deezer.com/preview/1.mp3', durationMs: 30000 },
+        { name: 'Sour Times', durationMs: 32000 },
+      ],
+      cachedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
+    }
 
     const app = createApp(
       makeDeps({
         getArtistById: vi.fn(async () => ({
           ...MOCK_ARTIST,
           topTracks: cachedTracks,
-          cachedAt: recentCachedAt,
         })),
       }),
     )
@@ -212,20 +213,23 @@ describe('GET /api/artists/:id/top-tracks', () => {
 
   it('does not call external APIs when cache is fresh', async () => {
     const { createDeezerClient } = await import('@/core/clients/deezer')
-    const deezerMock = createDeezerClient as ReturnType<typeof vi.fn>
+    const mockClient = (createDeezerClient as unknown as () => Record<string, ReturnType<typeof vi.fn>>)()
 
     const app = createApp(
       makeDeps({
         getArtistById: vi.fn(async () => ({
           ...MOCK_ARTIST,
-          topTracks: [{ name: 'Glory Box' }],
-          cachedAt: new Date(Date.now() - 1000 * 60 * 60),
+          topTracks: {
+            tracks: [{ name: 'Glory Box' }],
+            cachedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          },
         })),
       }),
     )
 
     await app.request('/api/artists/1/top-tracks')
-    expect(deezerMock).not.toHaveBeenCalled()
+    expect(mockClient.searchArtists).not.toHaveBeenCalled()
+    expect(mockClient.getArtistTopTracks).not.toHaveBeenCalled()
   })
 
   it('fetches from Deezer when no cached tracks', async () => {
@@ -323,8 +327,10 @@ describe('GET /api/artists/:id/top-tracks', () => {
       makeDeps({
         getArtistById: vi.fn(async () => ({
           ...MOCK_ARTIST,
-          topTracks: [{ name: 'Old Track' }],
-          cachedAt: staleCachedAt,
+          topTracks: {
+            tracks: [{ name: 'Old Track' }],
+            cachedAt: staleCachedAt.toISOString(),
+          },
         })),
       }),
     )
