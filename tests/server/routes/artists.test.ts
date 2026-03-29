@@ -188,7 +188,11 @@ describe('GET /api/artists/:id/top-tracks', () => {
   it('returns cached tracks when fresh', async () => {
     const cachedTracks = {
       tracks: [
-        { name: 'Glory Box', previewUrl: 'https://cdn.deezer.com/preview/1.mp3', durationMs: 30000 },
+        {
+          name: 'Glory Box',
+          previewUrl: 'https://cdn.deezer.com/preview/1.mp3',
+          durationMs: 30000,
+        },
         { name: 'Sour Times', durationMs: 32000 },
       ],
       cachedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
@@ -213,7 +217,9 @@ describe('GET /api/artists/:id/top-tracks', () => {
 
   it('does not call external APIs when cache is fresh', async () => {
     const { createDeezerClient } = await import('@/core/clients/deezer')
-    const mockClient = (createDeezerClient as unknown as () => Record<string, ReturnType<typeof vi.fn>>)()
+    const mockClient = (
+      createDeezerClient as unknown as () => Record<string, ReturnType<typeof vi.fn>>
+    )()
 
     const app = createApp(
       makeDeps({
@@ -235,11 +241,16 @@ describe('GET /api/artists/:id/top-tracks', () => {
   it('fetches from Deezer when no cached tracks', async () => {
     const { createDeezerClient } = await import('@/core/clients/deezer')
     const deezerMock = createDeezerClient as ReturnType<typeof vi.fn>
-    const mockSearchArtists = vi.fn(async () => [{ id: 42, name: 'Portishead', fans: 100000, url: 'https://deezer.com/artist/42' }])
+    const mockSearchArtists = vi.fn(async () => [
+      { id: 42, name: 'Portishead', fans: 100000, url: 'https://deezer.com/artist/42' },
+    ])
     const mockGetTopTracks = vi.fn(async () => [
       { name: 'Glory Box', previewUrl: 'https://cdn.deezer.com/preview/1.mp3', durationMs: 30000 },
     ])
-    deezerMock.mockReturnValue({ searchArtists: mockSearchArtists, getArtistTopTracks: mockGetTopTracks })
+    deezerMock.mockReturnValue({
+      searchArtists: mockSearchArtists,
+      getArtistTopTracks: mockGetTopTracks,
+    })
 
     const app = createApp(
       makeDeps({
@@ -267,7 +278,9 @@ describe('GET /api/artists/:id/top-tracks', () => {
     const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
     const mbMock = createMusicBrainzClient as ReturnType<typeof vi.fn>
     mbMock.mockReturnValue({
-      getRecordings: vi.fn(async () => { throw new Error('MB timeout') }),
+      getRecordings: vi.fn(async () => {
+        throw new Error('MB timeout')
+      }),
     })
 
     const app = createApp(
@@ -317,9 +330,14 @@ describe('GET /api/artists/:id/top-tracks', () => {
   it('re-fetches when cache is stale (older than 30 days)', async () => {
     const { createDeezerClient } = await import('@/core/clients/deezer')
     const deezerMock = createDeezerClient as ReturnType<typeof vi.fn>
-    const mockSearchArtists = vi.fn(async () => [{ id: 42, name: 'Portishead', fans: 100000, url: 'https://deezer.com/artist/42' }])
+    const mockSearchArtists = vi.fn(async () => [
+      { id: 42, name: 'Portishead', fans: 100000, url: 'https://deezer.com/artist/42' },
+    ])
     const mockGetTopTracks = vi.fn(async () => [{ name: 'Numb', durationMs: 28000 }])
-    deezerMock.mockReturnValue({ searchArtists: mockSearchArtists, getArtistTopTracks: mockGetTopTracks })
+    deezerMock.mockReturnValue({
+      searchArtists: mockSearchArtists,
+      getArtistTopTracks: mockGetTopTracks,
+    })
 
     const staleCachedAt = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) // 31 days ago
 
