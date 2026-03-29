@@ -44,6 +44,8 @@ export type ResolvedArtist = {
   streamingUrls: Record<string, string>
   suggestedAlbum?: { releaseGroupId?: string; title: string; type?: string }
   discoveries: DiscoveredArtist[]
+  beginYear?: number
+  endYear?: number
 }
 
 export type ScoredArtist = ResolvedArtist & {

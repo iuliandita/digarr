@@ -1,4 +1,5 @@
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
+import { parseYear } from '@/core/clients/musicbrainz'
 import type { DiscoveredArtist, PipelineProgress, ResolvedArtist } from '@/core/types'
 
 interface MusicBrainzClient {
@@ -195,6 +196,8 @@ async function buildResolvedArtist(
     streamingUrls,
     suggestedAlbum,
     discoveries,
+    beginYear: parseYear(mbArtist['life-span']?.begin),
+    endYear: parseYear(mbArtist['life-span']?.end),
   }
 }
 

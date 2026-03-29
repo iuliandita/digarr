@@ -401,4 +401,59 @@ describe('resolve()', () => {
       expect(result[0]?.suggestedAlbum).toEqual({ title: 'OK Computer' })
     })
   })
+
+  describe('life-span era data', () => {
+    it('attaches beginYear and endYear from MB life-span', async () => {
+      const discovered: DiscoveredArtist[] = [
+        { name: 'The Beatles', mbid: 'mbid-beatles', similarityScore: 0.9, source: 'ai' },
+      ]
+      const mb = makeMb(
+        makeMbArtist({
+          id: 'mbid-beatles',
+          name: 'The Beatles',
+          'life-span': { begin: '1960-08-17', end: '1970-04-10', ended: true },
+        }),
+      )
+
+      const result = await resolve(discovered, mb)
+
+      expect(result[0]?.beginYear).toBe(1960)
+      expect(result[0]?.endYear).toBe(1970)
+    })
+
+    it('attaches only beginYear when end is absent (active artist)', async () => {
+      const discovered: DiscoveredArtist[] = [
+        { name: 'Active Band', mbid: 'mbid-active', similarityScore: 0.8, source: 'ai' },
+      ]
+      const mb = makeMb(
+        makeMbArtist({
+          id: 'mbid-active',
+          name: 'Active Band',
+          'life-span': { begin: '1994', ended: false },
+        }),
+      )
+
+      const result = await resolve(discovered, mb)
+
+      expect(result[0]?.beginYear).toBe(1994)
+      expect(result[0]?.endYear).toBeUndefined()
+    })
+
+    it('leaves beginYear and endYear undefined when life-span is absent', async () => {
+      const discovered: DiscoveredArtist[] = [
+        { name: 'No Dates', mbid: 'mbid-nodates', similarityScore: 0.7, source: 'ai' },
+      ]
+      const mb = makeMb(
+        makeMbArtist({
+          id: 'mbid-nodates',
+          name: 'No Dates',
+        }),
+      )
+
+      const result = await resolve(discovered, mb)
+
+      expect(result[0]?.beginYear).toBeUndefined()
+      expect(result[0]?.endYear).toBeUndefined()
+    })
+  })
 })
