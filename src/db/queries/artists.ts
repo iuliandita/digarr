@@ -14,6 +14,8 @@ export type ArtistInsert = {
   logoUrl?: string | null
   imageFailed?: boolean
   streamingUrls?: Record<string, string> | null
+  beginYear?: number | null
+  endYear?: number | null
 }
 
 export async function upsertArtist(db: Database, artist: ArtistInsert): Promise<ArtistRow> {
@@ -38,6 +40,8 @@ export async function upsertArtist(db: Database, artist: ArtistInsert): Promise<
         imageUrl: sql`COALESCE(excluded.image_url, ${artists.imageUrl})`,
         logoUrl: sql`COALESCE(excluded.logo_url, ${artists.logoUrl})`,
         streamingUrls: sql`COALESCE(excluded.streaming_urls, ${artists.streamingUrls})`,
+        beginYear: sql`COALESCE(excluded.begin_year, ${artists.beginYear})`,
+        endYear: sql`COALESCE(excluded.end_year, ${artists.endYear})`,
         // Clear negative cache when image found; set it when lookup failed; preserve otherwise
         imageFailedAt: artist.imageUrl
           ? sql`NULL`

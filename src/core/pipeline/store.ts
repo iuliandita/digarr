@@ -25,6 +25,8 @@ export interface StoreDb {
     logoUrl?: string
     imageFailed?: boolean
     streamingUrls: Record<string, string>
+    beginYear?: number
+    endYear?: number
   }) => Promise<{ id: number }>
 
   insertRecommendation: (data: {
@@ -85,6 +87,8 @@ export async function store(
         logoUrl: artist.logoUrl,
         imageFailed: artist.imageFailed,
         streamingUrls: artist.streamingUrls,
+        beginYear: artist.beginYear,
+        endYear: artist.endYear,
       })
 
       await db.insertRecommendation({
