@@ -1,11 +1,11 @@
+import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, Pause, Play } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useClickOutside } from '../hooks/use-click-outside'
+import { getArtistTopTracks } from '../lib/api'
 import { GENRE_COLORS } from '../lib/constants'
 import { usePreviewContext } from '../lib/preview-context'
 import { cn } from '../lib/utils'
-import { getArtistTopTracks } from '../lib/api'
 import { ArtistThumb } from './artist-thumb'
 import { Hint } from './hint'
 import { StreamingLinks } from './streaming-links'
@@ -407,7 +407,7 @@ function TopTracks({ artistId }: { artistId: number }) {
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                handlePlay(track.previewUrl!)
+                if (track.previewUrl) handlePlay(track.previewUrl)
               }}
               className="text-accent hover:text-accent/80 transition-colors shrink-0 w-4 text-center"
               aria-label={playingUrl === track.previewUrl ? 'Stop preview' : 'Play preview'}

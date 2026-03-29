@@ -37,8 +37,16 @@ beforeAll(async () => {
 
       sendJson(res, 200, {
         data: [
-          { title: 'Glory Box', preview: 'https://cdns-preview.deezer.com/track/1.mp3', duration: 245 },
-          { title: 'Sour Times', preview: 'https://cdns-preview.deezer.com/track/2.mp3', duration: 217 },
+          {
+            title: 'Glory Box',
+            preview: 'https://cdns-preview.deezer.com/track/1.mp3',
+            duration: 245,
+          },
+          {
+            title: 'Sour Times',
+            preview: 'https://cdns-preview.deezer.com/track/2.mp3',
+            duration: 217,
+          },
           { title: 'Roads', preview: '', duration: 303 },
         ],
       })

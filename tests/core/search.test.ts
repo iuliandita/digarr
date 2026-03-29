@@ -33,6 +33,7 @@ describe('search source catalog', () => {
 describe('Deezer search source', () => {
   it('prioritizes close name matches and trims noisy results', async () => {
     const source = createDeezerSearchSource({
+      getArtistTopTracks: async () => [],
       searchArtists: async () => [
         { id: 1, name: 'Head Radio', fans: 999_999, url: 'https://deezer.example/head-radio' },
         { id: 2, name: 'Radiohead', fans: 500_000, url: 'https://deezer.example/radiohead' },

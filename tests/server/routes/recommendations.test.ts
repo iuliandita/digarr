@@ -43,6 +43,9 @@ const mockArtist = {
   streamingUrls: null,
   imageFailedAt: null,
   cachedAt: new Date('2024-01-01'),
+  beginYear: null,
+  endYear: null,
+  topTracks: null,
 }
 
 const mockRecommendation = {
