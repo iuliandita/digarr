@@ -18,6 +18,33 @@ beforeAll(async () => {
     const parsed = new URL(req.url ?? '/', `http://localhost`)
     const path = parsed.pathname
 
+    const artistTopMatch = path.match(/^\/artist\/(\d+)\/top$/)
+    if (artistTopMatch) {
+      const artistId = Number(artistTopMatch[1])
+
+      if (artistId === 999) {
+        sendJson(res, 200, {
+          data: [],
+          error: { type: 'Exception', message: 'Artist not found', code: 800 },
+        })
+        return
+      }
+
+      if (artistId === 998) {
+        sendJson(res, 200, { data: [] })
+        return
+      }
+
+      sendJson(res, 200, {
+        data: [
+          { title: 'Glory Box', preview: 'https://cdns-preview.deezer.com/track/1.mp3', duration: 245 },
+          { title: 'Sour Times', preview: 'https://cdns-preview.deezer.com/track/2.mp3', duration: 217 },
+          { title: 'Roads', preview: '', duration: 303 },
+        ],
+      })
+      return
+    }
+
     if (path === '/search/artist') {
       const q = parsed.searchParams.get('q') ?? ''
 
@@ -139,6 +166,55 @@ describe('createDeezerClient', () => {
       const result = await client.testConnection()
       expect(result.success).toBe(false)
       expect(typeof result.message).toBe('string')
+    })
+  })
+
+  describe('getArtistTopTracks(artistId, limit)', () => {
+    it('returns top tracks for an artist', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const tracks = await client.getArtistTopTracks(1234)
+      expect(tracks).toHaveLength(3)
+      expect(tracks[0]).toEqual({
+        name: 'Glory Box',
+        previewUrl: 'https://cdns-preview.deezer.com/track/1.mp3',
+        durationMs: 245000,
+      })
+      expect(tracks[1]).toEqual({
+        name: 'Sour Times',
+        previewUrl: 'https://cdns-preview.deezer.com/track/2.mp3',
+        durationMs: 217000,
+      })
+    })
+
+    it('converts duration from seconds to milliseconds', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const tracks = await client.getArtistTopTracks(1234)
+      expect(tracks[0]?.durationMs).toBe(245 * 1000)
+      expect(tracks[2]?.durationMs).toBe(303 * 1000)
+    })
+
+    it('omits previewUrl when preview is empty string', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const tracks = await client.getArtistTopTracks(1234)
+      expect(tracks[2]?.previewUrl).toBeUndefined()
+    })
+
+    it('returns empty array on API error', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const tracks = await client.getArtistTopTracks(999)
+      expect(tracks).toEqual([])
+    })
+
+    it('returns empty array when data is empty', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const tracks = await client.getArtistTopTracks(998)
+      expect(tracks).toEqual([])
+    })
+
+    it('returns empty array when server is unreachable', async () => {
+      const client = createDeezerClient({ baseUrl: 'http://127.0.0.1:1' })
+      const tracks = await client.getArtistTopTracks(1234)
+      expect(tracks).toEqual([])
     })
   })
 

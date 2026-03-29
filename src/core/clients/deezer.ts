@@ -1,6 +1,7 @@
 import { createHttpClient } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
+import type { TopTrack } from '@/db/schema'
 
 const DEFAULT_BASE_URL = 'https://api.deezer.com'
 
@@ -27,6 +28,17 @@ type DeezerSearchResponse = {
   error?: { type: string; message: string; code: number }
 }
 
+type DeezerTrackItem = {
+  title: string
+  preview: string
+  duration: number // seconds
+}
+
+type DeezerTopTracksResponse = {
+  data: DeezerTrackItem[]
+  error?: { type: string; message: string; code: number }
+}
+
 export function createDeezerClient(config?: { baseUrl?: string }) {
   const baseUrl = config?.baseUrl ?? DEFAULT_BASE_URL
   const http = createHttpClient({ baseUrl })
@@ -46,6 +58,23 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     }))
   }
 
+  async function getArtistTopTracks(artistId: number, limit = 5): Promise<TopTrack[]> {
+    try {
+      const params = new URLSearchParams({ limit: String(limit) })
+      const res = await http.get<DeezerTopTracksResponse>(
+        `/artist/${artistId}/top?${params.toString()}`,
+      )
+      if (res.error || !res.data) return []
+      return res.data.map((track) => ({
+        name: track.title,
+        previewUrl: track.preview || undefined,
+        durationMs: track.duration * 1000,
+      }))
+    } catch {
+      return []
+    }
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const results = await searchArtists('test', 1)
@@ -61,6 +90,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
 
   return {
     searchArtists,
+    getArtistTopTracks,
     testConnection,
   }
 }
