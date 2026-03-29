@@ -358,7 +358,7 @@ function TopTracks({ artistId }: { artistId: number }) {
   const [playingUrl, setPlayingUrl] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  function handlePlay(previewUrl: string) {
+  async function handlePlay(previewUrl: string) {
     if (playingUrl === previewUrl) {
       audioRef.current?.pause()
       setPlayingUrl(null)
@@ -371,14 +371,30 @@ function TopTracks({ artistId }: { artistId: number }) {
       audioRef.current.onerror = null
       audioRef.current.src = ''
     }
-    // Proxy through backend to avoid Deezer CORS blocking
-    const proxyUrl = `/api/preview/audio?url=${encodeURIComponent(previewUrl)}`
-    const audio = new Audio(proxyUrl)
-    audioRef.current = audio
-    audio.onended = () => setPlayingUrl(null)
-    audio.onerror = () => setPlayingUrl(null)
-    audio.play().catch(() => setPlayingUrl(null))
     setPlayingUrl(previewUrl)
+    try {
+      // Fetch through auth'd proxy, play as blob to avoid CORS + auth issues
+      const token = localStorage.getItem('digarr-auth-token')
+      const res = await fetch(`/api/preview/audio?url=${encodeURIComponent(previewUrl)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) throw new Error('Preview fetch failed')
+      const blob = await res.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const audio = new Audio(blobUrl)
+      audioRef.current = audio
+      audio.onended = () => {
+        setPlayingUrl(null)
+        URL.revokeObjectURL(blobUrl)
+      }
+      audio.onerror = () => {
+        setPlayingUrl(null)
+        URL.revokeObjectURL(blobUrl)
+      }
+      await audio.play()
+    } catch {
+      setPlayingUrl(null)
+    }
   }
 
   useEffect(() => {
@@ -516,14 +532,14 @@ export function RecommendationCard({
           {/* Left edge: reject */}
           <button
             type="button"
-            className="hidden md:group-hover:flex absolute left-0 top-0 bottom-0 z-10 items-center justify-center w-10 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
+            className="hidden md:group-hover:flex absolute left-1 top-0 bottom-0 z-10 items-center justify-center w-10 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
             onClick={(e) => {
               e.stopPropagation()
               onReject(rec.id)
             }}
             aria-label="Reject"
           >
-            <span className="w-8 h-8 rounded-full bg-reject/20 border border-reject/40 text-reject hover:bg-reject/40 transition-colors flex items-center justify-center shadow-md">
+            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -543,14 +559,14 @@ export function RecommendationCard({
           {/* Right edge: approve */}
           <button
             type="button"
-            className="hidden md:group-hover:flex absolute right-0 top-0 bottom-0 z-10 items-center justify-center w-10 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
+            className="hidden md:group-hover:flex absolute right-1 top-0 bottom-0 z-10 items-center justify-center w-10 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
             onClick={(e) => {
               e.stopPropagation()
               onApprove(rec.id)
             }}
             aria-label="Approve"
           >
-            <span className="w-8 h-8 rounded-full bg-approve/20 border border-approve/40 text-approve hover:bg-approve/40 transition-colors flex items-center justify-center shadow-md">
+            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"

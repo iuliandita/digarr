@@ -152,39 +152,43 @@ export function pipelineRoutes(deps: AppDependencies) {
             : null
         const mb = createMusicBrainzClient()
 
+        // Add the seed artist directly (bypasses dedup, no Lidarr dependency)
+        try {
+          const seedDiscovered = [
+            {
+              name: artistName,
+              similarityScore: 1.0,
+              aiReasoning: 'Directly added from mood discovery.',
+              source: 'mood' as const,
+            },
+          ]
+          // Resolve via MB only (no Lidarr image lookup -- avoids SkyHook dependency)
+          const seedResolved = await resolve(seedDiscovered, mb)
+          if (seedResolved.length > 0) {
+            const seedScored = score(
+              seedResolved,
+              [],
+              {
+                consensus: 0,
+                similarity: 0,
+                genreOverlap: 0,
+                aiConfidence: 0,
+                feedbackBoost: 0,
+                popularity: 0,
+              },
+              new Map(),
+            )
+            for (const s of seedScored) s.score = 1.0
+            await store(seedScored, deps.storeDb, { userId: quickDiscoverUserId })
+          }
+        } catch (err: unknown) {
+          console.warn('Seed artist store failed:', errMsg(err))
+        }
+
         // Get library MBIDs -- intermediate array is immediately GC-eligible
         const libraryMbids = lidarr
           ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
           : new Set<string>()
-
-        // Add the seed artist directly (bypasses dedup filter)
-        const seedDiscovered = [
-          {
-            name: artistName,
-            similarityScore: 1.0,
-            aiReasoning: 'Directly added from mood discovery.',
-            source: 'mood' as const,
-          },
-        ]
-        const seedResolved = await resolve(seedDiscovered, mb, undefined, lidarr ?? undefined)
-        if (seedResolved.length > 0) {
-          const seedScored = score(
-            seedResolved,
-            [],
-            {
-              consensus: 0,
-              similarity: 0,
-              genreOverlap: 0,
-              aiConfidence: 0,
-              feedbackBoost: 0,
-              popularity: 0,
-            },
-            new Map(),
-          )
-          // Force score to 1.0 -- direct user pick
-          for (const s of seedScored) s.score = 1.0
-          await store(seedScored, deps.storeDb, { userId: quickDiscoverUserId })
-        }
 
         // Find similar artists via Last.fm + AI
         const discovered: Array<{
