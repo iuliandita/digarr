@@ -54,7 +54,7 @@ export function setStoredMode(mode: Mode): void {
 export function getStoredColorTheme(): ColorTheme {
   const stored = localStorage.getItem(COLOR_KEY)
   if (COLOR_THEMES.some((t) => t.id === stored)) return stored as ColorTheme
-  return 'tokyonight'
+  return 'youtarr'
 }
 
 export function setStoredColorTheme(theme: ColorTheme): void {

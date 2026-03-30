@@ -48,6 +48,41 @@ body:
     validations:
       required: false
 
+  - type: checkboxes
+    id: listening-sources
+    attributes:
+      label: Listening sources
+      description: Which listening sources do you have connected?
+      options:
+        - label: ListenBrainz
+        - label: Last.fm
+        - label: Spotify
+        - label: Plex
+        - label: Jellyfin
+        - label: Discogs
+
+  - type: checkboxes
+    id: targets
+    attributes:
+      label: Targets / integrations
+      description: Which targets or integrations are you using?
+      options:
+        - label: Lidarr
+        - label: Navidrome
+        - label: Jellyfin playlists
+        - label: Plex playlists
+        - label: Spotify playlists
+        - label: None (discovery only)
+
+  - type: input
+    id: ai-provider
+    attributes:
+      label: AI provider and model
+      description: Which AI provider and model are you using for recommendations?
+      placeholder: "e.g. Gemini / gemini-2.5-flash, Anthropic / claude-haiku, Ollama / llama3"
+    validations:
+      required: false
+
   - type: textarea
     id: logs
     attributes:
