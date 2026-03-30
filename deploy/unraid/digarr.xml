@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Digarr</Name>
+  <Repository>docker.io/iuliandita/digarr:latest</Repository>
+  <Registry>https://hub.docker.com/r/iuliandita/digarr</Registry>
+  <Branch>
+    <Tag>latest</Tag>
+    <TagDescription>Latest stable release</TagDescription>
+  </Branch>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/iuliandita/digarr/discussions</Support>
+  <Project>https://github.com/iuliandita/digarr</Project>
+  <Overview>
+    AI-powered music discovery engine for self-hosted music stacks.
+    Connects to Lidarr, Last.fm, ListenBrainz, Spotify, and more to find
+    new artists you will actually like. Supports auto-playlists, subscription
+    feeds, mood-based discovery, and genre browsing.
+
+    REQUIRES a PostgreSQL database. Point DATABASE_URL at your existing
+    postgres instance, or install a postgres container first.
+  </Overview>
+  <Category>MediaApp:Music</Category>
+  <WebUI>http://[IP]:[PORT:3000]</WebUI>
+  <Icon>https://raw.githubusercontent.com/iuliandita/digarr/main/docs/logo.png</Icon>
+  <ExtraParams/>
+  <DonateText/>
+  <DonateLink/>
+  <DonateImg/>
+
+  <!-- Required -->
+  <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp"
+    Description="Port for the web interface" Type="Port" Display="always"
+    Required="true" Mask="false"/>
+
+  <Config Name="Database URL" Target="DATABASE_URL" Default=""
+    Description="PostgreSQL connection string, e.g. postgresql://user:pass@host:5432/digarr"
+    Type="Variable" Display="always" Required="true" Mask="false"/>
+
+  <!-- Auth (recommended) -->
+  <Config Name="Initial Username" Target="DIGARR_INITIAL_USERNAME" Default=""
+    Description="Auto-create this admin user on first boot"
+    Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="Initial Password" Target="DIGARR_INITIAL_PASSWORD" Default=""
+    Description="Password for the initial admin user (min 8 chars)"
+    Type="Variable" Display="always" Required="false" Mask="true"/>
+
+  <!-- AI Provider -->
+  <Config Name="AI Provider" Target="AI_PROVIDER" Default=""
+    Description="AI provider: anthropic, openai, gemini, ollama, openai-compatible (or configure in UI)"
+    Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="AI Model" Target="AI_MODEL" Default=""
+    Description="Model name, e.g. gpt-4o-mini, claude-sonnet-4-5-20250514"
+    Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="AI API Key" Target="AI_API_KEY" Default=""
+    Description="API key for the AI provider"
+    Type="Variable" Display="always" Required="false" Mask="true"/>
+
+  <Config Name="AI Base URL" Target="AI_BASE_URL" Default=""
+    Description="Base URL for openai-compatible or ollama (e.g. http://ollama:11434)"
+    Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <!-- Lidarr -->
+  <Config Name="Lidarr URL" Target="LIDARR_URL" Default=""
+    Description="Lidarr instance URL, e.g. http://lidarr:8686 (optional -- discovery works without Lidarr)"
+    Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="Lidarr API Key" Target="LIDARR_API_KEY" Default=""
+    Description="Lidarr API key (Settings > General in Lidarr)"
+    Type="Variable" Display="always" Required="false" Mask="true"/>
+
+  <!-- Listening sources -->
+  <Config Name="ListenBrainz Username" Target="LISTENBRAINZ_USERNAME" Default=""
+    Description="ListenBrainz username for taste analysis"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="ListenBrainz Token" Target="LISTENBRAINZ_TOKEN" Default=""
+    Description="ListenBrainz user token"
+    Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="Last.fm Username" Target="LASTFM_USERNAME" Default=""
+    Description="Last.fm username for taste analysis"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Last.fm API Key" Target="LASTFM_API_KEY" Default=""
+    Description="Last.fm API key"
+    Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <!-- Security -->
+  <Config Name="Allowed Origin" Target="ALLOWED_ORIGIN" Default=""
+    Description="CORS allowed origin, e.g. https://digarr.example.com (required for reverse proxy)"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Encryption Key" Target="DIGARR_ENCRYPTION_KEY" Default=""
+    Description="32+ char key for encrypting stored API tokens (auto-generated if blank)"
+    Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true"
+    Description="Set to false to allow new user registration"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Skip TLS Verify" Target="SKIP_TLS_VERIFY" Default="false"
+    Description="Skip TLS certificate verification for Lidarr/Jellyfin connections"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Webhook URL" Target="WEBHOOK_URL" Default=""
+    Description="Discord, Slack, ntfy, or any HTTP endpoint for notifications"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+</Container>
