@@ -155,7 +155,7 @@ export function TodaysPick({
         >
           <span className="text-accent text-xl font-bold leading-none">{scorePercent}</span>
           <span className="text-accent/70 text-xs font-semibold">%</span>
-          <span className="text-white/50 text-[9px] ml-1 uppercase tracking-wider">match</span>
+          <span className="text-white/50 text-micro-sm ml-1 uppercase tracking-wider">match</span>
         </div>
 
         {/* Artist name / logo */}
@@ -187,7 +187,7 @@ export function TodaysPick({
             {artist.genres.slice(0, 6).map((genre) => (
               <span
                 key={genre}
-                className="text-[10px] px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
+                className="text-micro px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
               >
                 {genre}
               </span>

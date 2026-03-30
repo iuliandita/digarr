@@ -53,7 +53,7 @@ function LibraryArtistCard({ artist }: { artist: LibraryArtist }) {
           <p className="text-xs text-muted truncate">{artist.disambiguation}</p>
         )}
         {genres.length > 0 && (
-          <p className="text-[10px] text-muted truncate mt-0.5">{genres.slice(0, 3).join(', ')}</p>
+          <p className="text-micro text-muted truncate mt-0.5">{genres.slice(0, 3).join(', ')}</p>
         )}
       </div>
     </div>
@@ -88,7 +88,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-text truncate">{artist.name}</p>
-          <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent">
+          <span className="shrink-0 text-micro font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent">
             {(artist.score * 100).toFixed(0)}
           </span>
         </div>
@@ -96,7 +96,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
           <p className="text-xs text-muted truncate mt-0.5">{artist.aiReasoning}</p>
         )}
         {genres.length > 0 && (
-          <p className="text-[10px] text-muted truncate mt-0.5">{genres.slice(0, 3).join(', ')}</p>
+          <p className="text-micro text-muted truncate mt-0.5">{genres.slice(0, 3).join(', ')}</p>
         )}
       </div>
       <div className="shrink-0 flex items-center gap-1.5">

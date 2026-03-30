@@ -11,6 +11,26 @@
   --color-info: #7dcfff;
   --color-text: #c0caf5;
   --color-muted: #565f89;
+
+  /* Compact text sizes for badges, pills, labels */
+  --font-size-micro: 0.625rem; /* 10px */
+  --font-size-micro-sm: 0.5625rem; /* 9px */
+  --font-size-micro-lg: 0.6875rem; /* 11px */
+
+  /* Service brand colors -- overridable per theme */
+  --color-svc-spotify: #1db954;
+  --color-svc-youtube: #ff0000;
+  --color-svc-apple: #fc3c44;
+  --color-svc-deezer: #a238ff;
+  --color-svc-tidal: #00ffff;
+  --color-svc-soundcloud: #ff5500;
+  --color-svc-bandcamp: #1da0c3;
+  --color-svc-unknown: #6b7084;
+  --color-svc-listenbrainz: #7a9cb8;
+  --color-svc-lastfm: #c47a7a;
+  --color-svc-musicbrainz: #d4a574;
+  --color-svc-ai: #9b7ab8;
+  --color-svc-webhook: #60a5fa;
 }
 
 /* Tokyo Night - Dark (Storm) */

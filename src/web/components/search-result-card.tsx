@@ -83,12 +83,12 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
           <h3 className="font-semibold text-text text-sm leading-tight truncate">{result.name}</h3>
           <div className="flex items-center gap-1 shrink-0">
             {result.inLibrary && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-approve/15 text-approve font-medium">
+              <span className="text-micro px-1.5 py-0.5 rounded bg-approve/15 text-approve font-medium">
                 Library
               </span>
             )}
             {(result.inRecommendations || queued) && !result.inLibrary && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-info/15 text-info font-medium">
+              <span className="text-micro px-1.5 py-0.5 rounded bg-info/15 text-info font-medium">
                 In queue
               </span>
             )}
@@ -102,7 +102,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               <span
                 key={g}
                 className={cn(
-                  'text-[10px] px-1.5 py-0.5 rounded font-medium',
+                  'text-micro px-1.5 py-0.5 rounded font-medium',
                   GENRE_COLORS[i % GENRE_COLORS.length],
                 )}
               >
@@ -123,7 +123,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
             const badge = (
               <span
                 className={cn(
-                  'text-[10px] px-1.5 py-0.5 rounded font-medium',
+                  'text-micro px-1.5 py-0.5 rounded font-medium',
                   style.bg,
                   style.text,
                   s.url ? 'cursor-pointer hover:opacity-80 transition-opacity' : '',
@@ -143,7 +143,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
           })}
 
           {typeof result.popularity === 'number' && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-border text-muted font-medium">
+            <span className="text-micro px-1.5 py-0.5 rounded bg-border text-muted font-medium">
               {result.popularity}% pop
             </span>
           )}
@@ -155,7 +155,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
             <button
               type="button"
               onClick={handlePreview}
-              className="flex items-center gap-1 text-[11px] text-muted hover:text-text transition-colors"
+              className="flex items-center gap-1 text-micro-lg text-muted hover:text-text transition-colors"
               title={isPlaying ? 'Stop preview' : 'Preview'}
             >
               {isPlaying ? <Pause size={12} /> : <Play size={12} />}
@@ -168,7 +168,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               type="button"
               onClick={handleQuickDiscover}
               disabled={queuing}
-              className="flex items-center gap-1 text-[11px] text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-1 text-micro-lg text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
               title="Add to discovery queue"
             >
               <Zap size={12} />

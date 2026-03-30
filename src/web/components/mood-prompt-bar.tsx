@@ -94,7 +94,7 @@ export function MoodPromptBar({
                       {r.genres.slice(0, 3).map((g) => (
                         <span
                           key={g}
-                          className="text-[10px] px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
+                          className="text-micro px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
                         >
                           {g}
                         </span>
@@ -103,22 +103,22 @@ export function MoodPromptBar({
                   </div>
                   <div className="shrink-0">
                     {r.inLibrary ? (
-                      <span className="text-[10px] text-muted px-2 py-1 bg-bg border border-border rounded">
+                      <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
                         In library
                       </span>
                     ) : existingArtistNames.has(r.artistName.toLowerCase()) ? (
-                      <span className="text-[10px] text-muted px-2 py-1 bg-bg border border-border rounded">
+                      <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
                         Pending review
                       </span>
                     ) : queued.has(r.artistName) ? (
-                      <span className="text-[10px] text-approve px-2 py-1 bg-approve/10 border border-approve/20 rounded">
+                      <span className="text-micro text-approve px-2 py-1 bg-approve/10 border border-approve/20 rounded">
                         Added
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleAddToQueue(r.artistName)}
-                        className="text-[10px] px-2 py-1 bg-accent/10 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
+                        className="text-micro px-2 py-1 bg-accent/10 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
                       >
                         + Discover
                       </button>

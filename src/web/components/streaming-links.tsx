@@ -21,37 +21,37 @@ type ServiceConfig = {
 const SERVICES: Record<string, ServiceConfig> = {
   spotify: {
     label: 'Spotify',
-    color: '#1db954',
+    color: 'var(--color-svc-spotify)',
     fallback: (name) => `https://open.spotify.com/search/${encodeURIComponent(name)}`,
   },
   youtube: {
     label: 'YT Music',
-    color: '#ff0000',
+    color: 'var(--color-svc-youtube)',
     fallback: (name) => `https://music.youtube.com/search?q=${encodeURIComponent(name)}`,
   },
   appleMusic: {
     label: 'Apple Music',
-    color: '#fc3c44',
+    color: 'var(--color-svc-apple)',
     fallback: (name) => `https://music.apple.com/search?term=${encodeURIComponent(name)}`,
   },
   deezer: {
     label: 'Deezer',
-    color: '#a238ff',
+    color: 'var(--color-svc-deezer)',
     fallback: (name) => `https://www.deezer.com/search/${encodeURIComponent(name)}`,
   },
   tidal: {
     label: 'Tidal',
-    color: '#00ffff',
+    color: 'var(--color-svc-tidal)',
     fallback: () => '',
   },
   soundcloud: {
     label: 'SoundCloud',
-    color: '#ff5500',
+    color: 'var(--color-svc-soundcloud)',
     fallback: () => '',
   },
   bandcamp: {
     label: 'Bandcamp',
-    color: '#1da0c3',
+    color: 'var(--color-svc-bandcamp)',
     fallback: () => '',
   },
 }
@@ -123,7 +123,7 @@ export function StreamingLinks({
   // Also include any extra keys from streamingUrls that aren't in SERVICES
   for (const [key, url] of Object.entries(urls)) {
     if (!SERVICES[key] && url) {
-      links.push({ key, label: key, url, color: '#6b7084' })
+      links.push({ key, label: key, url, color: 'var(--color-svc-unknown)' })
     }
   }
 
@@ -138,7 +138,7 @@ export function StreamingLinks({
           <button
             type="button"
             onClick={onPlay}
-            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold border border-green-500/40 text-green-500 bg-surface/50 hover:opacity-80 transition-opacity"
+            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border border-green-500/40 text-green-500 bg-surface/50 hover:opacity-80 transition-opacity"
           >
             {isPlaying ? 'STOP' : 'PLAY'}
           </button>
@@ -151,7 +151,7 @@ export function StreamingLinks({
             rel="noopener noreferrer"
             title={label}
             style={{ borderColor: `${color}40`, color }}
-            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold border bg-surface/50 hover:opacity-80 transition-opacity"
+            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border bg-surface/50 hover:opacity-80 transition-opacity"
           >
             {SERVICE_INITIALS[key] ?? label.slice(0, 2).toUpperCase()}
           </a>

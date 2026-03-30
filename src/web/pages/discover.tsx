@@ -5,6 +5,7 @@ import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
+import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
@@ -220,11 +221,11 @@ function FeedbackInsights() {
                     style={{ width: `${Math.round(g.rate * 100)}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-muted tabular-nums">
+                <span className="text-micro text-muted tabular-nums">
                   {Math.round(g.rate * 100)}%
                 </span>
               </div>
-              <div className="text-[10px] text-muted mt-0.5">{g.total} rated</div>
+              <div className="text-micro text-muted mt-0.5">{g.total} rated</div>
             </div>
           ))}
         </div>
@@ -310,6 +311,7 @@ export function DiscoverPage() {
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set())
   const [bulkActing, setBulkActing] = useState(false)
   const [albumPickerRecId, setAlbumPickerRecId] = useState<number | null>(null)
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
   const [activeDecades, setActiveDecades] = useState<Set<Decade>>(new Set())
   const [approveDialogState, setApproveDialogState] = useState<{
     recId: number
@@ -609,7 +611,6 @@ export function DiscoverPage() {
   }
 
   async function handleClearAll() {
-    if (!confirm('Reject all pending recommendations? This cannot be undone.')) return
     try {
       const pending = await getRecommendations({ status: 'pending', limit: '10000' })
       const ids = (pending.items as Array<{ id: number }>).map((r) => r.id)
@@ -879,7 +880,7 @@ export function DiscoverPage() {
                 {filter === 'pending' && (
                   <button
                     type="button"
-                    onClick={handleClearAll}
+                    onClick={() => setShowClearAllConfirm(true)}
                     className="px-2 py-1 text-xs text-muted hover:text-red-400 transition-colors"
                     title="Rejects all pending recommendations at once -- useful after reviewing a batch"
                   >
@@ -1288,6 +1289,18 @@ export function DiscoverPage() {
             />
           )
         })()}
+      {showClearAllConfirm && (
+        <ConfirmDialog
+          title="Reject all pending"
+          message="Reject all pending recommendations? This cannot be undone."
+          confirmLabel="Reject All"
+          onConfirm={() => {
+            setShowClearAllConfirm(false)
+            handleClearAll()
+          }}
+          onCancel={() => setShowClearAllConfirm(false)}
+        />
+      )}
     </div>
   )
 }

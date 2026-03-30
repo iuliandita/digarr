@@ -5,7 +5,7 @@ function ServiceLogo({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) {
     return (
-      <span className="flex items-center justify-center w-6 h-6 rounded bg-surface text-[10px] font-bold text-muted">
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-surface text-micro font-bold text-muted">
         {alt.charAt(0)}
       </span>
     )
@@ -56,7 +56,7 @@ export function DiscogsIcon() {
 
 export function WebhookIcon() {
   return (
-    <span className="flex items-center justify-center w-6 h-6 text-[#60a5fa]">
+    <span className="flex items-center justify-center w-6 h-6 text-svc-webhook">
       <Bell size={18} />
     </span>
   )

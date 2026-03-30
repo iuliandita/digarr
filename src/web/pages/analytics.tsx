@@ -159,7 +159,7 @@ function DiscoveryChart({ batches }: { batches: AnalyticsBatch[] }) {
           )
         })}
       </div>
-      <div className="flex justify-between mt-2 text-[10px] text-muted">
+      <div className="flex justify-between mt-2 text-micro text-muted">
         <span>{firstDate ? formatDate(firstDate).split(',')[0] : ''}</span>
         <span>{lastDate ? formatDate(lastDate).split(',')[0] : ''}</span>
       </div>
@@ -281,7 +281,7 @@ function ScoreDistribution({ buckets }: { buckets: ScoreBucket[] }) {
       </div>
       <div className="flex gap-1 mt-1.5">
         {buckets.map((b) => (
-          <span key={b.bucket} className="flex-1 text-center text-[9px] text-muted truncate">
+          <span key={b.bucket} className="flex-1 text-center text-micro-sm text-muted truncate">
             {b.bucket.replace('%', '')}
           </span>
         ))}
@@ -336,7 +336,7 @@ function ApprovalTrendChart({ trend }: { trend: ApprovalTrend[] }) {
           )
         })}
       </svg>
-      <div className="flex justify-between mt-1.5 text-[10px] text-muted">
+      <div className="flex justify-between mt-1.5 text-micro text-muted">
         <span>{firstDate ? formatDate(firstDate).split(',')[0] : ''}</span>
         <span>{lastDate ? formatDate(lastDate).split(',')[0] : ''}</span>
       </div>

@@ -32,6 +32,7 @@ import { errMsg } from '@/core/validation'
 import { VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
 import { BottomNav } from './components/bottom-nav'
+import { ErrorBoundary } from './components/error-boundary'
 import { KeyboardShortcuts } from './components/keyboard-shortcuts'
 import { PreviewPlayer } from './components/preview-player'
 import { useClickOutside } from './hooks/use-click-outside'
@@ -196,7 +197,7 @@ function ThemePicker({
           role="menu"
           className="absolute right-0 top-full mt-1 w-48 bg-surface border border-border rounded-lg shadow-lg z-50 py-1"
         >
-          <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted">Mode</div>
+          <div className="px-3 py-1.5 text-micro uppercase tracking-wider text-muted">Mode</div>
           {(['dark', 'light', 'system'] as const).map((m) => {
             const Icon = m === 'dark' ? Moon : m === 'light' ? Sun : Monitor
             return (
@@ -216,7 +217,7 @@ function ThemePicker({
           <div className="max-h-[320px] overflow-y-auto">
             {(['Editor', 'Streaming'] as const).map((group) => (
               <div key={group}>
-                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted sticky top-0 bg-surface">
+                <div className="px-3 py-1.5 text-micro uppercase tracking-wider text-muted sticky top-0 bg-surface">
                   {group}
                 </div>
                 {COLOR_THEMES.filter((t) => t.group === group).map((t) => (
@@ -563,7 +564,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           loading={preview.state.loading}
           onStop={preview.stop}
         />
-        <footer className="hidden md:block fixed bottom-2 right-3 text-[10px] text-muted select-none pointer-events-none z-10">
+        <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}
         </footer>
       </div>
@@ -595,23 +596,25 @@ function InnerApp() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/discover" element={<DiscoverPage />} />
-            <Route path="/genres" element={<GenresPage />} />
-            <Route path="/genres/:slug" element={<GenreDetailPage />} />
-            <Route path="/playlists" element={<PlaylistsPage />} />
-            <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
-            <Route path="/subscriptions" element={<SubscriptionsPage />} />
-            <Route path="/library/health" element={<LibraryHealthPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/users" element={<UserManagementPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </AppShell>
+        <ErrorBoundary>
+          <AppShell>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/discover" element={<DiscoverPage />} />
+              <Route path="/genres" element={<GenresPage />} />
+              <Route path="/genres/:slug" element={<GenreDetailPage />} />
+              <Route path="/playlists" element={<PlaylistsPage />} />
+              <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+              <Route path="/subscriptions" element={<SubscriptionsPage />} />
+              <Route path="/library/health" element={<LibraryHealthPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/users" element={<UserManagementPage />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </AppShell>
+        </ErrorBoundary>
         <Toaster theme="system" />
       </BrowserRouter>
     </QueryClientProvider>

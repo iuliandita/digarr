@@ -56,10 +56,10 @@ type RecommendationCardProps = {
 // Source dot config
 
 const SOURCE_COLORS: Record<string, { label: string; color: string }> = {
-  listenbrainz: { label: 'LB', color: '#7a9cb8' },
-  lastfm: { label: 'LFM', color: '#c47a7a' },
-  musicbrainz: { label: 'MB', color: '#d4a574' },
-  ai: { label: 'Rec', color: '#9b7ab8' },
+  listenbrainz: { label: 'LB', color: 'var(--color-svc-listenbrainz)' },
+  lastfm: { label: 'LFM', color: 'var(--color-svc-lastfm)' },
+  musicbrainz: { label: 'MB', color: 'var(--color-svc-musicbrainz)' },
+  ai: { label: 'Rec', color: 'var(--color-svc-ai)' },
 }
 
 const SUBSCRIPTION_COLORS: Record<string, string> = {
@@ -161,7 +161,7 @@ function GenrePills({
         <span
           key={g}
           className={cn(
-            'text-[10px] px-1.5 py-0.5 rounded-full shrink-0',
+            'text-micro px-1.5 py-0.5 rounded-full shrink-0',
             GENRE_COLORS[i % GENRE_COLORS.length],
           )}
         >
@@ -169,7 +169,7 @@ function GenrePills({
         </span>
       ))}
       {genres.length > max && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface text-muted shrink-0">
+        <span className="text-micro px-1.5 py-0.5 rounded-full bg-surface text-muted shrink-0">
           +{genres.length - max}
         </span>
       )}
@@ -734,7 +734,7 @@ export function RecommendationCard({
               )}
               <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5 flex items-baseline gap-0.5">
                 <span className="text-accent text-lg font-bold leading-none">{pct}</span>
-                <span className="text-white/50 text-[9px] ml-1 uppercase tracking-wider">
+                <span className="text-white/50 text-micro-sm ml-1 uppercase tracking-wider">
                   match
                 </span>
               </div>
@@ -791,7 +791,7 @@ export function RecommendationCard({
                       <div key={key} className="flex items-center gap-1.5">
                         <span
                           className={cn(
-                            'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                            'text-micro px-1.5 py-0.5 rounded-full font-medium',
                             getSourceBadgeClass(key),
                           )}
                         >

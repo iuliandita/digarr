@@ -1187,7 +1187,7 @@ function TargetTypeIcon({ type }: { type: string }) {
   const src = iconMap[type]
   if (src) return <img src={src} alt="" className="w-5 h-5" />
   return (
-    <span className="w-5 h-5 rounded bg-accent/20 text-accent text-[10px] font-bold flex items-center justify-center uppercase">
+    <span className="w-5 h-5 rounded bg-accent/20 text-accent text-micro font-bold flex items-center justify-center uppercase">
       {type.charAt(0)}
     </span>
   )

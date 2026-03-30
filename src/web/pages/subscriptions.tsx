@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
 import { SubscriptionForm, type SubscriptionFormData } from '../components/subscription-form'
 import { SubscriptionPresets } from '../components/subscription-presets'
@@ -294,6 +295,10 @@ export default function SubscriptionsPage() {
     | null
   >(null)
   const [showPresets, setShowPresets] = useState(false)
+  const [confirmDeleteSub, setConfirmDeleteSub] = useState<{
+    id: number
+    name: string
+  } | null>(null)
 
   // Auto-open create form when ?genre= is present
   useEffect(() => {
@@ -547,11 +552,7 @@ export default function SubscriptionsPage() {
                   sub,
                 })
               }
-              onDelete={() => {
-                if (confirm(`Delete "${sub.name}"?`)) {
-                  deleteMutation.mutate(sub.id)
-                }
-              }}
+              onDelete={() => setConfirmDeleteSub({ id: sub.id, name: sub.name })}
               onToggle={() => toggleMutation.mutate({ id: sub.id, enabled: !sub.enabled })}
               onRunNow={() => runNowMutation.mutate(sub.id)}
             />
@@ -588,6 +589,18 @@ export default function SubscriptionsPage() {
             }
           }}
           onCancel={() => setShowForm(null)}
+        />
+      )}
+      {confirmDeleteSub && (
+        <ConfirmDialog
+          title="Delete subscription"
+          message={`Delete "${confirmDeleteSub.name}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={() => {
+            deleteMutation.mutate(confirmDeleteSub.id)
+            setConfirmDeleteSub(null)
+          }}
+          onCancel={() => setConfirmDeleteSub(null)}
         />
       )}
     </div>

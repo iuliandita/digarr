@@ -89,7 +89,7 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
           ))}
         </div>
 
-        <p className="mt-5 text-[10px] text-muted text-center">
+        <p className="mt-5 text-micro text-muted text-center">
           Shortcuts are disabled when a text field is focused.
         </p>
       </div>

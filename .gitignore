@@ -20,3 +20,5 @@ SECURITY-AUDIT.md
 .playwright-mcp/
 docs/local/
 .superpowers/
+.planning/
+UI-REVIEW.md

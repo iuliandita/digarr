@@ -17,7 +17,7 @@ function AlbumCover({ mbid, title }: { mbid: string; title: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) {
     return (
-      <div className="w-10 h-10 rounded bg-bg shrink-0 flex items-center justify-center text-[10px] font-bold text-muted">
+      <div className="w-10 h-10 rounded bg-bg shrink-0 flex items-center justify-center text-micro font-bold text-muted">
         {title.slice(0, 2).toUpperCase()}
       </div>
     )
@@ -180,7 +180,7 @@ export function AlbumPicker({
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm text-text truncate">{album.title}</span>
                             {isSuggested && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent shrink-0">
+                              <span className="text-micro px-1.5 py-0.5 rounded-full bg-accent/20 text-accent shrink-0">
                                 AI pick
                               </span>
                             )}

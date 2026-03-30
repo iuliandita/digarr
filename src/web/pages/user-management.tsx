@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { errMsg } from '@/core/validation'
+import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -17,6 +18,10 @@ import {
 export function UserManagementPage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState<{
+    id: number
+    username: string
+  } | null>(null)
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [newIsAdmin, setNewIsAdmin] = useState(false)
@@ -174,11 +179,7 @@ export function UserManagementPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => {
-                    if (confirm(`Delete user "${user.username}"?`)) {
-                      deleteUser.mutate(user.id)
-                    }
-                  }}
+                  onClick={() => setConfirmDeleteUser({ id: user.id, username: user.username })}
                   disabled={deleteUser.isPending || isSelf || isLastAdmin}
                   title={
                     isSelf
@@ -195,6 +196,18 @@ export function UserManagementPage() {
           )
         })}
       </div>
+      {confirmDeleteUser && (
+        <ConfirmDialog
+          title="Delete user"
+          message={`Delete user "${confirmDeleteUser.username}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={() => {
+            deleteUser.mutate(confirmDeleteUser.id)
+            setConfirmDeleteUser(null)
+          }}
+          onCancel={() => setConfirmDeleteUser(null)}
+        />
+      )}
     </div>
   )
 }

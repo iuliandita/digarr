@@ -121,7 +121,7 @@ export function BottomNav() {
             {({ isActive }) => (
               <>
                 <Icon className={isActive ? 'text-accent' : undefined} />
-                <span className="text-[10px] font-medium leading-none">{label}</span>
+                <span className="text-micro font-medium leading-none">{label}</span>
               </>
             )}
           </NavLink>

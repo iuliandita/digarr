@@ -106,7 +106,7 @@ function TrackRow({ track, index }: { track: PlaylistTrackRow; index: number }) 
         </p>
         <p className="text-xs text-muted truncate">{track.artistName}</p>
       </div>
-      <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${badge.className}`}>
+      <span className={`shrink-0 text-micro font-medium px-1.5 py-0.5 rounded ${badge.className}`}>
         {badge.label}
       </span>
     </div>
@@ -262,7 +262,7 @@ export function PlaylistDetailPage() {
         <div className="flex items-start gap-3 flex-wrap">
           <h1 className="text-2xl font-bold text-text leading-tight">{playlist.name}</h1>
           <span
-            className={`mt-0.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${badge.className}`}
+            className={`mt-0.5 text-micro-lg font-medium px-2 py-0.5 rounded-full ${badge.className}`}
           >
             {badge.label}
           </span>

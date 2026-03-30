@@ -8,6 +8,7 @@ import {
   type PlaylistRow,
   updatePlaylistApi,
 } from '../lib/api'
+import { ConfirmDialog } from './confirm-dialog'
 
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return 'Never'
@@ -85,6 +86,7 @@ type PlaylistCardProps = {
 
 export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps) {
   const [generating, setGenerating] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const navigate = useNavigate()
 
   const badge = STRATEGY_BADGES[playlist.strategy] ?? {
@@ -115,7 +117,6 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
   }
 
   async function handleDelete() {
-    if (!confirm(`Delete playlist "${playlist.name}"? This cannot be undone.`)) return
     try {
       await deletePlaylistApi(playlist.id)
       toast.success(`Deleted "${playlist.name}"`)
@@ -142,7 +143,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
           {playlist.name}
         </p>
         <span
-          className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${badge.className}`}
+          className={`shrink-0 text-micro-lg font-medium px-2 py-0.5 rounded-full ${badge.className}`}
         >
           {badge.label}
         </span>
@@ -212,7 +213,10 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
           </button>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowDeleteConfirm(true)
+            }}
             className="p-2 text-muted hover:text-reject transition-colors"
             title="Delete playlist"
             aria-label="Delete playlist"
@@ -229,7 +233,21 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
         />
       </div>
 
-      {!playlist.enabled && <p className="text-[11px] text-muted/60 text-center -mt-1">Disabled</p>}
+      {!playlist.enabled && (
+        <p className="text-micro-lg text-muted/60 text-center -mt-1">Disabled</p>
+      )}
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete playlist"
+          message={`Delete "${playlist.name}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={() => {
+            setShowDeleteConfirm(false)
+            handleDelete()
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   )
 }

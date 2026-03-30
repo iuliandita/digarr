@@ -104,7 +104,7 @@ function StackCard({
               <span
                 key={tag}
                 className={cn(
-                  'text-[10px] px-1.5 py-0.5 rounded-full',
+                  'text-micro px-1.5 py-0.5 rounded-full',
                   i % 4 === 0 && 'bg-accent/10 text-accent',
                   i % 4 === 1 && 'bg-info/10 text-info',
                   i % 4 === 2 && 'bg-approve/10 text-approve',
@@ -378,7 +378,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
 
       {/* Swipe hint */}
       {rec?.status === 'pending' && (
-        <p className="text-[10px] text-muted">Swipe right to approve, left to reject</p>
+        <p className="text-micro text-muted">Swipe right to approve, left to reject</p>
       )}
     </div>
   )
