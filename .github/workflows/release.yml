@@ -69,7 +69,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            docker.io/iuliandita/digarr
           tags: |
             type=semver,pattern={{version}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag.outputs.value }}
