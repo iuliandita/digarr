@@ -6,6 +6,7 @@ export function filter(
   rejectedMbids: Set<string> | Map<string, Date>,
   cooldownDays: number,
   scoreThreshold: number,
+  topArtistNames?: Set<string>,
 ): ScoredArtist[] {
   const now = new Date()
   const cooldownMs = cooldownDays * 24 * 60 * 60 * 1000
@@ -13,6 +14,9 @@ export function filter(
   return artists.filter((artist) => {
     // Remove artists already in library
     if (libraryMbids.has(artist.mbid)) return false
+
+    // Remove artists the user already listens to (by name)
+    if (topArtistNames?.has(artist.name.toLowerCase())) return false
 
     // Remove artists rejected within the cooldown window
     if (rejectedMbids instanceof Map) {

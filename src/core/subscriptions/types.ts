@@ -113,6 +113,8 @@ export type SubscriptionRunDeps = {
   feedbackHistory: Map<string, { approved: number; total: number }>
   cooldownDays: number
   defaultScoreThreshold: number
+  /** Lowercase names of the user's top listened artists -- excluded from results. */
+  topArtistNames?: Set<string>
 }
 
 /** DB query interface for the subscription runner. */

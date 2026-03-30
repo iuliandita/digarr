@@ -105,4 +105,45 @@ describe('filter()', () => {
     const result = filter([], new Set(), new Map(), 90, 0.5)
     expect(result).toEqual([])
   })
+
+  describe('top artist name exclusion', () => {
+    it('removes artists whose name matches a top listened artist', () => {
+      const artist = makeArtist('mbid-vu', 0.8)
+      artist.name = 'The Velvet Underground'
+      const topNames = new Set(['the velvet underground'])
+
+      const result = filter([artist], new Set(), new Map(), 90, 0.5, topNames)
+
+      expect(result).toHaveLength(0)
+    })
+
+    it('name check is case-insensitive (resolved name has different casing)', () => {
+      const artist = makeArtist('mbid-sy', 0.8)
+      artist.name = 'Sonic Youth'
+      const topNames = new Set(['sonic youth'])
+
+      const result = filter([artist], new Set(), new Map(), 90, 0.5, topNames)
+
+      expect(result).toHaveLength(0)
+    })
+
+    it('does not exclude when topArtistNames is not provided', () => {
+      const artist = makeArtist('mbid-vu', 0.8)
+      artist.name = 'The Velvet Underground'
+
+      const result = filter([artist], new Set(), new Map(), 90, 0.5)
+
+      expect(result).toHaveLength(1)
+    })
+
+    it('does not exclude artists with different names', () => {
+      const artist = makeArtist('mbid-du', 0.8)
+      artist.name = 'Digital Underground'
+      const topNames = new Set(['the velvet underground'])
+
+      const result = filter([artist], new Set(), new Map(), 90, 0.5, topNames)
+
+      expect(result).toHaveLength(1)
+    })
+  })
 })

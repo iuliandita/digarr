@@ -229,12 +229,22 @@ export class PipelineOrchestrator extends EventEmitter {
       for (const mbid of existingMbids) {
         libraryMbids.add(mbid)
       }
+
+      // Also exclude top artists from listening history -- the AI prompt asks
+      // models to skip these, but smaller models ignore the instruction.
+      const topArtistNames = new Set<string>()
+      for (const artist of tasteProfile.topArtists) {
+        topArtistNames.add(artist.name.toLowerCase())
+        if (artist.mbid) libraryMbids.add(artist.mbid)
+      }
+
       const filtered = filter(
         scored,
         libraryMbids,
         rejectedMbids,
         prefs.rejectionCooldownDays,
         prefs.scoreThreshold,
+        topArtistNames,
       )
 
       this.emit('progress', {

@@ -88,6 +88,7 @@ async function executePipeline(
     deps.rejectedMbids,
     deps.cooldownDays,
     threshold,
+    deps.topArtistNames,
   )
 
   let batchId: number | undefined
