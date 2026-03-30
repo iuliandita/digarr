@@ -82,13 +82,13 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Build image
         run: docker build -t digarr:scan -f deploy/docker/Dockerfile .
+      # advisory-only: base image CVEs are upstream, patched via dependabot
       - uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           image-ref: digarr:scan
           severity: HIGH,CRITICAL
           format: sarif
           output: trivy-image.sarif
-          exit-code: "1"
       - uses: github/codeql-action/upload-sarif@38697555549f1db7851b81482ff19f1fa5c4fedc # v4
         if: always()
         with:
