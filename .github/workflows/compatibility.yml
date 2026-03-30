@@ -1,0 +1,97 @@
+name: Compatibility
+
+on:
+  pull_request:
+    paths:
+      - "deploy/docker/**"
+      - ".github/workflows/compatibility.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  podman:
+    name: Podman (rootless)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install podman-compose
+        run: pip install podman-compose
+
+      - name: Prepare env
+        run: |
+          cp deploy/docker/.env.example deploy/docker/.env
+          sed -i 's/^DB_PASS=.*$/DB_PASS=testpass123/' deploy/docker/.env
+
+      - name: Start services
+        working-directory: deploy/docker
+        run: podman-compose up -d
+
+      - name: Wait for healthy app
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after ${i}s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App failed to become healthy"
+          podman-compose -f deploy/docker/docker-compose.yml logs
+          exit 1
+
+      - name: Tear down
+        if: always()
+        working-directory: deploy/docker
+        run: podman-compose down -v
+
+  docker-macos:
+    name: Docker Desktop (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Docker
+        run: |
+          brew install --cask docker
+          open /Applications/Docker.app
+          for i in $(seq 1 60); do
+            if docker info > /dev/null 2>&1; then
+              echo "Docker ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+          docker info > /dev/null 2>&1 || { echo "Docker failed to start"; exit 1; }
+
+      - name: Prepare env
+        run: |
+          cp deploy/docker/.env.example deploy/docker/.env
+          sed -i '' 's/^DB_PASS=.*$/DB_PASS=testpass123/' deploy/docker/.env
+
+      - name: Start services
+        working-directory: deploy/docker
+        run: docker compose up -d
+
+      - name: Wait for healthy app
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after ${i}s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App failed to become healthy"
+          docker compose -f deploy/docker/docker-compose.yml logs
+          exit 1
+
+      - name: Tear down
+        if: always()
+        working-directory: deploy/docker
+        run: docker compose down -v

@@ -1,3 +1,8 @@
+# Podman users on Fedora/RHEL with SELinux enforcing:
+# Add :Z to the postgres volume mount:
+#   volumes:
+#     - pgdata:/var/lib/postgresql/data:Z
+
 services:
   app:
     image: docker.io/iuliandita/digarr:latest
