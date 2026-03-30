@@ -17,6 +17,7 @@ updates:
           - "p-queue"
           - "croner"
           - "@hono/*"
+          - "openid-client"
       dev-tools:
         patterns:
           - "typescript"
@@ -24,6 +25,8 @@ updates:
           - "vitest"
           - "@biomejs/*"
           - "drizzle-kit"
+          - "@vitejs/*"
+          - "@types/bun"
         update-types:
           - minor
           - patch
@@ -33,10 +36,15 @@ updates:
           - "react-dom"
           - "react-router-dom"
           - "@types/react*"
+          - "@tanstack/*"
       testing:
         patterns:
           - "@testing-library/*"
           - "jsdom"
+      frontend:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
 
   - package-ecosystem: docker
     directory: /deploy/docker

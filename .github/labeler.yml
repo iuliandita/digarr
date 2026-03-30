@@ -8,6 +8,7 @@ backend:
           - "src/server/**"
           - "src/core/**"
           - "src/db/**"
+          - "src/config/**"
           - "src/index.ts"
 
 pipeline:
@@ -39,3 +40,21 @@ docs:
 tests:
   - changed-files:
       - any-glob-to-any-file: "tests/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "bun.lock"
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "biome.json"
+          - "tsconfig*.json"
+          - "vite.config.*"
+          - "drizzle.config.*"
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file: "scripts/**"

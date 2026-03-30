@@ -9,17 +9,13 @@ jobs:
   lint-typecheck-test:
     runs-on: docker
     container:
-      image: oven/bun:1
-      env:
-        NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      image: oven/bun:1.3.11
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-        env:
-          GIT_SSL_NO_VERIFY: "true"
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
@@ -28,17 +24,13 @@ jobs:
   build:
     runs-on: docker
     container:
-      image: oven/bun:1
-      env:
-        NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      image: oven/bun:1.3.11
     needs: lint-typecheck-test
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-        env:
-          GIT_SSL_NO_VERIFY: "true"
       - run: bun install --frozen-lockfile
       - run: bun run build
