@@ -1,8 +1,8 @@
 services:
   app:
-    image: docker.io/iuliandita/digarr:latest
-    # Pin to a specific version for stability:
-    # image: docker.io/iuliandita/digarr:0.12.18
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
     ports:
       - "${PORT:-3000}:3000"
     environment:

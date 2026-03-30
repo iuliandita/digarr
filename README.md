@@ -75,9 +75,11 @@ Search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simu
 ## Quick Start
 
 ```sh
-git clone https://github.com/iuliandita/digarr.git
-cd digarr/deploy/docker
+mkdir digarr && cd digarr
+curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
+curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 cp .env.example .env
+# Edit .env -- set DB_PASS at minimum
 docker compose up -d
 ```
 
@@ -124,7 +126,7 @@ All configuration is done through the web UI after initial setup -- connections,
 
 | Method | Path | Notes |
 |--------|------|-------|
-| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. |
+| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
 | Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
 
