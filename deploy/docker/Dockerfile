@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Global ARG -- must be before any FROM to use in FROM instructions
 ARG RUNTIME_IMAGE=oven/bun:1.3.11-slim
 
@@ -17,7 +19,8 @@ WORKDIR /app
 # Non-root user (bun base image ships with bun:bun at UID/GID 1000)
 
 COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile --production && rm -rf /tmp/*
+RUN bun install --frozen-lockfile --production \
+    && rm -rf /tmp/* /home/bun/.bun/install/cache
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
