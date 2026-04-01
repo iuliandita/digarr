@@ -34,8 +34,12 @@ export async function discover(
     const librarySlots = Math.max(1, Math.round(topArtistsLimit * librarySeedRatio))
     const listeningSlots = topArtistsLimit - librarySlots
 
-    // Shuffle library artists so we don't always seed the same ones
-    const shuffled = [...libraryArtists].sort(() => Math.random() - 0.5)
+    // Fisher-Yates shuffle for uniform distribution
+    const shuffled = [...libraryArtists]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
     // Exclude artists already in topArtists
     const topMbids = new Set(topArtists.map((a) => a.mbid).filter(Boolean))
     const librarySeeds = shuffled

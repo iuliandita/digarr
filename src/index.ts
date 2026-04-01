@@ -14,6 +14,7 @@ import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { GenreService } from './core/genre/service'
 import { LibraryHealthService } from './core/library/health'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
+import { analyze } from './core/pipeline/analyze'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
@@ -420,6 +421,20 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
 
   const libraryArtists = lidarrClient ? await lidarrClient.getArtists() : []
   const libraryGenres = [...new Set(libraryArtists.flatMap((artist) => artist.genres ?? []))]
+  const libraryMbids = new Set(libraryArtists.map((artist) => artist.foreignArtistId))
+
+  // Build topArtistNames from listening sources so subscriptions exclude
+  // artists the user already listens to (same exclusion as main pipeline)
+  let topArtistNames: Set<string> | undefined
+  const sources = sourceRegistry.all()
+  if (sources.length > 0) {
+    const profile = await analyze(sources)
+    topArtistNames = new Set<string>()
+    for (const artist of profile.topArtists) {
+      topArtistNames.add(artist.name.toLowerCase())
+      if (artist.mbid) libraryMbids.add(artist.mbid)
+    }
+  }
 
   await runSubscription(subscriptionConfig, adapter, {
     db: storeDb,
@@ -431,14 +446,13 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     mbClient: createMusicBrainzClient() as SubMBClient,
     lidarr: lidarrClient ?? undefined,
     userId: sub.userId ?? undefined,
-    // Populate library MBIDs from Lidarr so subscriptions don't recommend
-    // artists already in the library (same dedup the main pipeline does)
-    libraryMbids: new Set(libraryArtists.map((artist) => artist.foreignArtistId)),
+    libraryMbids,
     libraryGenres,
     rejectedMbids,
     feedbackHistory,
     cooldownDays: prefs.rejectionCooldownDays,
     defaultScoreThreshold: prefs.scoreThreshold,
+    topArtistNames,
   })
 }
 

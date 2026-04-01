@@ -278,7 +278,7 @@ export class PipelineOrchestrator extends EventEmitter {
         sendWebhook(webhookUrl, {
           event: 'batch_complete',
           batchId,
-          stats: { discovered: filtered.length, added: filtered.length, failed: 0 },
+          stats: { discovered: scored.length, added: filtered.length, failed: 0 },
           message: `Scan complete: ${filtered.length} new recommendations found.`,
           timestamp: new Date().toISOString(),
         }).catch((err) => console.error('Webhook send failed:', err))

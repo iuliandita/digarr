@@ -90,12 +90,20 @@ export function parseRecommendationResponse(text: string): AiRecommendation[] {
     throw new Error('No JSON array found in AI response')
   }
 
-  // Extract from array start; handle trailing text after the array
+  // Extract from array start; track string context so brackets inside
+  // JSON string values (e.g. "[Deluxe Edition]") don't confuse depth
   let depth = 0
   let arrayEnd = -1
+  let inString = false
   for (let i = arrayStart; i < cleaned.length; i++) {
-    if (cleaned[i] === '[') depth++
-    else if (cleaned[i] === ']') {
+    const ch = cleaned[i]
+    if (ch === '"' && cleaned[i - 1] !== '\\') {
+      inString = !inString
+      continue
+    }
+    if (inString) continue
+    if (ch === '[') depth++
+    else if (ch === ']') {
       depth--
       if (depth === 0) {
         arrayEnd = i
