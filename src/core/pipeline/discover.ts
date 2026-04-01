@@ -38,7 +38,9 @@ export async function discover(
     const shuffled = [...libraryArtists]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      const tmp = shuffled[i]!
+      shuffled[i] = shuffled[j]!
+      shuffled[j] = tmp
     }
     // Exclude artists already in topArtists
     const topMbids = new Set(topArtists.map((a) => a.mbid).filter(Boolean))
