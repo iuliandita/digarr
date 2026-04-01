@@ -97,9 +97,13 @@ export function parseRecommendationResponse(text: string): AiRecommendation[] {
   let inString = false
   for (let i = arrayStart; i < cleaned.length; i++) {
     const ch = cleaned[i]
-    if (ch === '"' && cleaned[i - 1] !== '\\') {
-      inString = !inString
-      continue
+    if (ch === '"') {
+      let backslashes = 0
+      for (let k = i - 1; k >= 0 && cleaned[k] === '\\'; k--) backslashes++
+      if (backslashes % 2 === 0) {
+        inString = !inString
+        continue
+      }
     }
     if (inString) continue
     if (ch === '[') depth++
