@@ -58,6 +58,9 @@ export const envConfig = {
   // Webhook (injected into preferences during auto-setup only)
   webhookUrl: env('WEBHOOK_URL'),
 
+  // Fanart.tv (fallback image source when SkyHook is down)
+  fanartApiKey: env('FANART_API_KEY'),
+
   // Encryption (optional -- encrypts API keys and tokens at rest in the DB)
   encryptionKey: env('DIGARR_ENCRYPTION_KEY'),
 

@@ -291,6 +291,8 @@ export type Preferences = {
   playlistEnabled?: boolean // default false
   dismissedHints?: string[] // for UX hints system
   subscriptionMode?: 'active' | 'ai-only' | null
+  fanartApiKey?: string
+  metadataFallbackUrl?: string
 }
 
 export type ScoringWeights = Preferences['scoringWeights']

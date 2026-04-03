@@ -67,3 +67,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            FANART_API_KEY=${{ secrets.FANART_API_KEY }}

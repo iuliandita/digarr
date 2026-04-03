@@ -10,6 +10,8 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 COPY . .
 ENV NODE_ENV=production
+ARG FANART_API_KEY=""
+ENV FANART_API_KEY=$FANART_API_KEY
 RUN bun run build
 
 # Runtime stage -- override RUNTIME_IMAGE for alpine variant

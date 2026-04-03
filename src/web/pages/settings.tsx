@@ -1473,6 +1473,7 @@ function RecommendationsTabInner({
   const [autoApproveMonitorOption, setAutoApproveMonitorOption] = useState(
     (prefs.autoApproveMonitorOption as string) ?? 'all',
   )
+  const [fanartApiKey, setFanartApiKey] = useState((prefs.fanartApiKey as string) ?? '')
   const [saving, setSaving] = useState(false)
 
   const weightSum =
@@ -1499,6 +1500,7 @@ function RecommendationsTabInner({
         autoApproveEnabled,
         autoApproveThreshold,
         autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
+        fanartApiKey: fanartApiKey || undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       toast.success('Recommendation settings saved')
@@ -1693,6 +1695,25 @@ function RecommendationsTabInner({
               step={0.05}
               onChange={setLibrarySeedRatio}
             />
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              Image Sources
+            </h3>
+            <p className="text-xs text-muted">
+              Artist images come from Lidarr/SkyHook by default. A fanart.tv API key enables a
+              fallback when SkyHook is down.
+            </p>
+            <Field label="Fanart.tv API key (optional)" id="fanart-api-key">
+              <Input
+                id="fanart-api-key"
+                type="password"
+                value={fanartApiKey}
+                onChange={(e) => setFanartApiKey(e.target.value)}
+                placeholder="Personal API key from fanart.tv"
+              />
+            </Field>
           </section>
         </div>
       </CollapsibleSection>
