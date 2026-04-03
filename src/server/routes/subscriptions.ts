@@ -263,6 +263,62 @@ export function subscriptionRoutes(deps: AppDependencies) {
     )
   })
 
+  router.post('/api/subscriptions/import/csv', async (c) => {
+    const userId = c.get('userId')
+    if (!userId) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const body = await c.req.parseBody()
+    const file = body.file
+    if (!file || !(file instanceof File)) {
+      return c.json({ error: 'No file uploaded' }, 400)
+    }
+
+    const MAX_SIZE = 1_048_576 // 1MB
+    if (file.size > MAX_SIZE) {
+      return c.json({ error: 'File too large (max 1MB)' }, 413)
+    }
+
+    const { parseCsvArtists } = await import('@/core/subscriptions/adapters/csv-import')
+    const text = await file.text()
+    const artists = parseCsvArtists(text, 500)
+
+    if (artists.length === 0) {
+      return c.json({ error: 'No valid artist names found in CSV' }, 400)
+    }
+
+    const subscription = await deps.subscriptionQueries.createSubscription({
+      name: `CSV Import (${artists.length} artists)`,
+      userId,
+      sourceType: 'csv-import',
+      sourceProvider: 'csv',
+      sourceConfig: { artists },
+      cron: '0 0 1 1 *', // never recurs -- just a carrier for the one-shot run
+      enabled: false,
+      maxArtistsPerRun: artists.length,
+      action: 'add_to_recommendations',
+      scoringWeightPreset: 'default',
+    })
+
+    Promise.resolve()
+      .then(() => deps.runSubscription(subscription.id))
+      .catch((err: unknown) => {
+        console.error('CSV import failed:', err)
+      })
+
+    const truncated = artists.length >= 500
+    return c.json(
+      {
+        message: `Importing ${artists.length} artists${truncated ? ' (truncated to 500)' : ''}`,
+        subscriptionId: subscription.id,
+        artistCount: artists.length,
+        truncated,
+      },
+      202,
+    )
+  })
+
   router.post('/api/subscriptions/bulk-toggle', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)

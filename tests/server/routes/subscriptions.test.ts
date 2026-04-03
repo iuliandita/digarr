@@ -623,3 +623,79 @@ describe('GET /api/subscriptions/:id/runs', () => {
     expect(res.status).toBe(404)
   })
 })
+
+describe('POST /api/subscriptions/import/csv', () => {
+  it('imports artists from a CSV file', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const formData = new FormData()
+    formData.append(
+      'file',
+      new Blob(['artist\nRadiohead\nPortishead'], { type: 'text/csv' }),
+      'artists.csv',
+    )
+
+    const res = await app.request('/api/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.artistCount).toBe(2)
+    expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: USER_ID,
+        sourceType: 'csv-import',
+        sourceProvider: 'csv',
+      }),
+    )
+  })
+
+  it('returns 400 when no file is uploaded', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/subscriptions/import/csv', {
+      method: 'POST',
+      body: new FormData(),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when CSV has no valid artists', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const formData = new FormData()
+    formData.append('file', new Blob([''], { type: 'text/csv' }), 'empty.csv')
+
+    const res = await app.request('/api/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 413 when file exceeds 1MB', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const formData = new FormData()
+    const bigContent = 'a'.repeat(1_048_577) // 1MB + 1 byte
+    formData.append('file', new Blob([bigContent], { type: 'text/csv' }), 'big.csv')
+
+    const res = await app.request('/api/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+    expect(res.status).toBe(413)
+  })
+
+  it('returns 401 when not authenticated', async () => {
+    const app = createTestApp(makeDeps(), undefined)
+    const formData = new FormData()
+    formData.append('file', new Blob(['artist\nRadiohead'], { type: 'text/csv' }), 'a.csv')
+
+    const res = await app.request('/api/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+    expect(res.status).toBe(401)
+  })
+})
