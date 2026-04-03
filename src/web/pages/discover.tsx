@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
@@ -95,15 +96,60 @@ function SkeletonGrid() {
 // Empty state
 
 function EmptyState({ filter }: { filter: FilterTab }) {
-  const messages: Record<FilterTab, string> = {
-    all: 'No recommendations yet. Run a scan to discover new artists.',
+  if (filter === 'all') {
+    return (
+      <div className="py-16 text-center space-y-3">
+        <p className="text-muted text-sm">
+          No recommendations yet. Import some favorite artists or run your first scan to get
+          started.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <Link
+            to="/subscriptions"
+            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+          >
+            Import artists
+          </Link>
+          <button
+            type="button"
+            onClick={() =>
+              triggerPipeline()
+                .then(() => toast.success('Scan started -- check Dashboard for progress'))
+                .catch((err) => {
+                  const msg =
+                    typeof err === 'object' && err !== null && 'message' in err
+                      ? String(err.message)
+                      : String(err)
+                  toast.error(msg.includes('409') ? 'Scan already running' : msg)
+                })
+            }
+            className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
+          >
+            Run a scan
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (filter === 'approved') {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-muted text-sm">
+          You haven't approved any artists yet. Check the Pending tab to see what Digarr found for
+          you.
+        </p>
+      </div>
+    )
+  }
+
+  const messages: Record<string, string> = {
     pending: "No pending recommendations. You're all caught up.",
-    approved: 'No approved recommendations yet.',
     rejected: 'No rejected recommendations.',
   }
   return (
     <div className="py-16 text-center">
-      <p className="text-muted text-sm">{messages[filter]}</p>
+      <p className="text-muted text-sm">{messages[filter] ?? ''}</p>
     </div>
   )
 }
