@@ -154,6 +154,11 @@ export function subscriptionRoutes(deps: AppDependencies) {
           ],
           requiredService: 'listenbrainz',
         },
+        {
+          type: 'csv-import',
+          label: 'CSV Import',
+          configFields: [],
+        },
       ],
     })
   })

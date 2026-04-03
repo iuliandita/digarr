@@ -36,6 +36,7 @@ import { createMusicBrainzSearchSource } from './core/search/sources/musicbrainz
 import { createSpotifySearchSource } from './core/search/sources/spotify'
 import { setSessionStore } from './core/sessions'
 import { resolveSpotifyToken } from './core/spotify-auth'
+import { createCsvImportAdapter } from './core/subscriptions/adapters/csv-import'
 import { createGenreAdapter } from './core/subscriptions/adapters/genre'
 import { createLastfmChartsAdapter } from './core/subscriptions/adapters/lastfm-charts'
 import { createLastfmTagAdapter } from './core/subscriptions/adapters/lastfm-tag'
@@ -376,6 +377,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
         searchArtist: createMusicBrainzClient().searchArtist,
       }),
     )
+    adapterRegistry.register(createCsvImportAdapter())
 
     // Last.fm adapters -- only if the user has a Last.fm API key
     if (lfApiKey) {
