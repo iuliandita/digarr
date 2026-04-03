@@ -39,6 +39,7 @@ import {
   getOAuthStatus,
   getSettings,
   getUserPreferences,
+  importSpotifyLikedSongs,
   initiateOAuth,
   listTargets,
   logoutUser,
@@ -210,6 +211,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   )
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
+  const [importingSpotifyLikes, setImportingSpotifyLikes] = useState(false)
 
   const [tests, setTests] = useState<Record<string, ServiceTestState>>({})
   const [saving, setSaving] = useState<Record<string, boolean>>({})
@@ -404,6 +406,18 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       toast.success('Spotify disconnected')
     } catch {
       toast.error('Failed to disconnect Spotify')
+    }
+  }
+
+  async function startSpotifyLikedSongsImport() {
+    setImportingSpotifyLikes(true)
+    try {
+      const res = await importSpotifyLikedSongs()
+      toast.success(res.created ? 'Spotify Liked Songs import started' : 'Import started again')
+    } catch {
+      toast.error('Failed to start Spotify Liked Songs import')
+    } finally {
+      setImportingSpotifyLikes(false)
     }
   }
 
@@ -843,10 +857,23 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           icon={<SpotifyIcon />}
         >
           {spotifyConnected ? (
-            <div className="flex justify-end gap-2 pt-1">
-              <Button size="sm" variant="outline" onClick={disconnectSpotify}>
-                Disconnect
-              </Button>
+            <div className="space-y-3">
+              <p className="text-sm text-muted">
+                Cold start: import artists from your Spotify Liked Songs into recommendations for a
+                fast first scan.
+              </p>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button
+                  size="sm"
+                  onClick={startSpotifyLikedSongsImport}
+                  disabled={importingSpotifyLikes}
+                >
+                  {importingSpotifyLikes ? 'Importing...' : 'Import Liked Songs'}
+                </Button>
+                <Button size="sm" variant="outline" onClick={disconnectSpotify}>
+                  Disconnect
+                </Button>
+              </div>
             </div>
           ) : (
             <>

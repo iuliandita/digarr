@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
 
@@ -73,6 +74,12 @@ export function subscriptionRoutes(deps: AppDependencies) {
               placeholder: 'e.g. 37i9dQZEVXbMDoHDwVN2tF or open.spotify.com/playlist/...',
             },
           ],
+          requiredService: 'spotify',
+        },
+        {
+          type: 'spotify-liked-songs',
+          label: 'Spotify Liked Songs',
+          configFields: [],
           requiredService: 'spotify',
         },
         {
@@ -209,6 +216,51 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     return c.json(sub, 201)
+  })
+
+  router.post('/api/subscriptions/import/spotify-liked-songs', async (c) => {
+    const userId = c.get('userId')
+    if (!userId) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
+    if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
+      return c.json({ error: 'Spotify is not connected' }, 400)
+    }
+
+    const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
+    const existing = existingSubs.find((sub) => sub.sourceType === 'spotify-liked-songs')
+
+    const subscription =
+      existing ??
+      (await deps.subscriptionQueries.createSubscription({
+        name: 'Spotify Liked Songs',
+        userId,
+        sourceType: 'spotify-liked-songs',
+        sourceProvider: 'spotify',
+        sourceConfig: {},
+        cron: '0 6 * * 1',
+        enabled: false,
+        maxArtistsPerRun: 100,
+        action: 'add_to_recommendations',
+        scoringWeightPreset: 'default',
+      }))
+
+    Promise.resolve()
+      .then(() => deps.runSubscription(subscription.id))
+      .catch((err: unknown) => {
+        console.error('Spotify liked songs import failed:', err)
+      })
+
+    return c.json(
+      {
+        message: 'Spotify Liked Songs import started',
+        subscriptionId: subscription.id,
+        created: !existing,
+      },
+      202,
+    )
   })
 
   router.post('/api/subscriptions/bulk-toggle', async (c) => {

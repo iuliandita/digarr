@@ -5,6 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 
+vi.mock('@/db/queries/oauth-tokens', () => ({
+  getOAuthToken: vi.fn(),
+}))
+
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
   return Object.assign(emitter, {
@@ -186,8 +190,11 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
 // with a pre-auth middleware that sets userId on the context.
 
 import { Hono } from 'hono'
+import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import { genreRoutes } from '@/server/routes/genres'
 import { subscriptionRoutes } from '@/server/routes/subscriptions'
+
+const mockGetOAuthToken = getOAuthToken as ReturnType<typeof vi.fn>
 
 function createTestApp(deps: AppDependencies, userId: number | undefined) {
   const app = new Hono()
@@ -205,6 +212,18 @@ function createTestApp(deps: AppDependencies, userId: number | undefined) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockGetOAuthToken.mockResolvedValue({
+    userId: USER_ID,
+    provider: 'spotify',
+    accessToken: 'spotify-token',
+    refreshToken: 'refresh-token',
+    expiresAt: new Date('2026-05-01'),
+    scopes: 'user-library-read',
+    clientId: 'cid',
+    clientSecret: 'secret',
+    createdAt: new Date('2026-04-01'),
+    updatedAt: new Date('2026-04-01'),
+  })
   mockSubQueries.createSubscription.mockResolvedValue(mockSub)
   mockSubQueries.getSubscription.mockImplementation(async (id: number) =>
     id === 1 ? mockSub : null,
@@ -311,6 +330,56 @@ describe('POST /api/subscriptions', () => {
       validBody.cron,
       expect.any(Function),
     )
+  })
+})
+
+describe('POST /api/subscriptions/import/spotify-liked-songs', () => {
+  it('creates a helper subscription on first import and starts a run', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-liked-songs', {
+      method: 'POST',
+    })
+
+    expect(res.status).toBe(202)
+    expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: USER_ID,
+        sourceType: 'spotify-liked-songs',
+        sourceProvider: 'spotify',
+        enabled: false,
+      }),
+    )
+    expect(mockGetOAuthToken).toHaveBeenCalled()
+  })
+
+  it('reuses an existing helper subscription instead of creating duplicates', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([
+      { ...mockSub, sourceType: 'spotify-liked-songs', sourceProvider: 'spotify' },
+    ])
+
+    const runSubscription = vi.fn(async () => {})
+    const app = createTestApp(makeDeps({ runSubscription }), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-liked-songs', {
+      method: 'POST',
+    })
+
+    expect(res.status).toBe(202)
+    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
+    expect(runSubscription).toHaveBeenCalledWith(1)
+  })
+
+  it('returns 400 when Spotify is not connected', async () => {
+    mockGetOAuthToken.mockResolvedValueOnce(null)
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-liked-songs', {
+      method: 'POST',
+    })
+
+    expect(res.status).toBe(400)
+    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
   })
 })
 

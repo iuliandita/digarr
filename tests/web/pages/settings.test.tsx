@@ -36,6 +36,11 @@ vi.mock('@/web/lib/api', () => ({
   exportRecommendations: vi.fn().mockResolvedValue(undefined),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: true }),
   getOAuthStatus: vi.fn().mockResolvedValue({ connected: false, scopes: null }),
+  importSpotifyLikedSongs: vi.fn().mockResolvedValue({
+    message: 'started',
+    subscriptionId: 1,
+    created: true,
+  }),
   initiateOAuth: vi.fn().mockResolvedValue({ authUrl: '' }),
   disconnectOAuth: vi.fn().mockResolvedValue(undefined),
   changePassword: vi.fn().mockResolvedValue({ ok: true }),
@@ -72,18 +77,22 @@ import {
   getLidarrMetadataProfiles,
   getLidarrProfiles,
   getLidarrRootFolders,
+  getOAuthStatus,
   getSettings,
+  importSpotifyLikedSongs,
   testService,
   updateSettings,
 } from '@/web/lib/api'
 import { SettingsPage } from '@/web/pages/settings'
 
-const mockGetSettings = vi.mocked(getSettings)
-const mockUpdateSettings = vi.mocked(updateSettings)
-const mockTestService = vi.mocked(testService)
-const mockGetLidarrProfiles = vi.mocked(getLidarrProfiles)
-const mockGetLidarrMetadataProfiles = vi.mocked(getLidarrMetadataProfiles)
-const mockGetLidarrRootFolders = vi.mocked(getLidarrRootFolders)
+const mockGetSettings = getSettings as ReturnType<typeof vi.fn>
+const mockUpdateSettings = updateSettings as ReturnType<typeof vi.fn>
+const mockTestService = testService as ReturnType<typeof vi.fn>
+const mockGetLidarrProfiles = getLidarrProfiles as ReturnType<typeof vi.fn>
+const mockGetLidarrMetadataProfiles = getLidarrMetadataProfiles as ReturnType<typeof vi.fn>
+const mockGetLidarrRootFolders = getLidarrRootFolders as ReturnType<typeof vi.fn>
+const mockGetOAuthStatus = getOAuthStatus as ReturnType<typeof vi.fn>
+const mockImportSpotifyLikedSongs = importSpotifyLikedSongs as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -241,5 +250,21 @@ describe('SettingsPage', () => {
       expect(screen.getByText(/Failed to load settings/i)).toBeInTheDocument()
     })
     expect(screen.getByText('Retry')).toBeInTheDocument()
+  })
+
+  it('shows Spotify import action when Spotify is connected', async () => {
+    setupMocks()
+    mockGetOAuthStatus.mockResolvedValue({ connected: true, scopes: 'user-library-read' })
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Import Liked Songs')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Import Liked Songs'))
+
+    await waitFor(() => {
+      expect(mockImportSpotifyLikedSongs).toHaveBeenCalled()
+    })
   })
 })

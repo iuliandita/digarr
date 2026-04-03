@@ -166,6 +166,7 @@ function SubscriptionCard({
     }
     if (sub.sourceType === 'lastfm-tag') return (cfg.tag as string) ?? null
     if (sub.sourceType === 'listenbrainz') return (cfg.feedType as string) ?? null
+    if (sub.sourceType === 'spotify-liked-songs') return 'Liked Songs'
     if (sub.sourceType === 'spotify-playlist') return (cfg.playlistName as string) ?? null
     return null
   })()

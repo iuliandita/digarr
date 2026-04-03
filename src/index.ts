@@ -42,6 +42,7 @@ import { createLastfmTagAdapter } from './core/subscriptions/adapters/lastfm-tag
 import { createListenBrainzAdapter } from './core/subscriptions/adapters/listenbrainz'
 import { createSimilarAdapter } from './core/subscriptions/adapters/similar'
 import { createSpotifyChartsAdapter } from './core/subscriptions/adapters/spotify-charts'
+import { createSpotifyLikedSongsAdapter } from './core/subscriptions/adapters/spotify-liked-songs'
 import { createSpotifyPlaylistAdapter } from './core/subscriptions/adapters/spotify-playlist'
 import { resolveSubscriptionSourceConnections } from './core/subscriptions/connections'
 import { AdapterRegistry } from './core/subscriptions/registry'
@@ -392,6 +393,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
       if (spotifyOAuthRow) {
         const getToken = () => resolveSpotifyToken(db, userId)
+        adapterRegistry.register(createSpotifyLikedSongsAdapter({ getToken }))
         adapterRegistry.register(createSpotifyPlaylistAdapter({ getToken }))
         adapterRegistry.register(createSpotifyChartsAdapter({ getToken }))
       }

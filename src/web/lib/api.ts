@@ -579,6 +579,12 @@ export const deleteSubscriptionApi = (id: number) =>
 export const triggerSubscriptionRun = (id: number) =>
   fetchApi<{ message: string }>(`/subscriptions/${id}/run`, { method: 'POST' })
 
+export const importSpotifyLikedSongs = () =>
+  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
+    '/subscriptions/import/spotify-liked-songs',
+    { method: 'POST' },
+  )
+
 export const getSubscriptionRuns = (id: number) =>
   fetchApi<SubscriptionRun[]>(`/subscriptions/${id}/runs`)
 
