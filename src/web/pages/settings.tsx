@@ -40,6 +40,7 @@ import {
   getSettings,
   getUserPreferences,
   importSpotifyLikedSongs,
+  importSpotifyPlaylist,
   initiateOAuth,
   listTargets,
   logoutUser,
@@ -212,6 +213,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
   const [importingSpotifyLikes, setImportingSpotifyLikes] = useState(false)
+  const [importingPlaylist, setImportingPlaylist] = useState(false)
+  const [playlistIdInput, setPlaylistIdInput] = useState('')
 
   const [tests, setTests] = useState<Record<string, ServiceTestState>>({})
   const [saving, setSaving] = useState<Record<string, boolean>>({})
@@ -418,6 +421,22 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       toast.error('Failed to start Spotify Liked Songs import')
     } finally {
       setImportingSpotifyLikes(false)
+    }
+  }
+
+  async function startSpotifyPlaylistImport() {
+    if (!playlistIdInput.trim()) return
+    setImportingPlaylist(true)
+    try {
+      const res = await importSpotifyPlaylist(playlistIdInput.trim())
+      toast.success(
+        res.created ? 'Playlist import started' : 'Import started again for this playlist',
+      )
+      setPlaylistIdInput('')
+    } catch {
+      toast.error('Failed to start playlist import')
+    } finally {
+      setImportingPlaylist(false)
     }
   }
 
@@ -859,8 +878,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           {spotifyConnected ? (
             <div className="space-y-3">
               <p className="text-sm text-muted">
-                Cold start: import artists from your Spotify Liked Songs into recommendations for a
-                fast first scan.
+                Import artists from your Spotify account to seed your recommendations.
               </p>
               <div className="flex justify-end gap-2 pt-1">
                 <Button
@@ -872,6 +890,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 </Button>
                 <Button size="sm" variant="outline" onClick={disconnectSpotify}>
                   Disconnect
+                </Button>
+              </div>
+              <div className="flex gap-1.5 pt-1">
+                <input
+                  type="text"
+                  value={playlistIdInput}
+                  onChange={(e) => setPlaylistIdInput(e.target.value)}
+                  placeholder="Playlist URL or ID"
+                  className="flex-1 min-w-0 px-2.5 py-1.5 text-sm bg-bg border border-border rounded-md text-text placeholder:text-muted/60 focus:outline-none focus:border-accent"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') startSpotifyPlaylistImport()
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={startSpotifyPlaylistImport}
+                  disabled={!playlistIdInput.trim() || importingPlaylist}
+                >
+                  {importingPlaylist ? 'Importing...' : 'Import Playlist'}
                 </Button>
               </div>
             </div>
