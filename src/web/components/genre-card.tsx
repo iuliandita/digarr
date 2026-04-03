@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { hueFromName } from '../lib/utils'
 
 export type GenreCardProps = {
   name: string
@@ -7,14 +8,9 @@ export type GenreCardProps = {
   exampleArtists?: string[]
 }
 
-// Stable hue from genre name -- same hash as ArtistThumb
-function genreHue(name: string): number {
-  return Math.abs([...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360)
-}
-
 export function GenreCard({ name, slug, artistCount, exampleArtists }: GenreCardProps) {
   const navigate = useNavigate()
-  const hue = genreHue(name)
+  const hue = hueFromName(name)
 
   return (
     <button

@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import { Fragment, useRef, useState } from 'react'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { getAlbums } from '../lib/api'
+import { hueFromName } from '../lib/utils'
 import { Hint } from './hint'
 import { StreamingLinks } from './streaming-links'
 import { Skeleton } from './ui/skeleton'
@@ -91,7 +92,7 @@ export function TodaysPick({
   }
 
   const { artist } = rec
-  const hue = Math.abs([...artist.name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360)
+  const hue = hueFromName(artist.name)
   const scorePercent = Math.round(rec.score * 100)
 
   // Fallback chain: artist image -> first album cover (Cover Art Archive) -> gradient

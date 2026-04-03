@@ -6,7 +6,7 @@ import { useClickOutside } from '../hooks/use-click-outside'
 import { getArtistTopTracks } from '../lib/api'
 import { GENRE_COLORS } from '../lib/constants'
 import { usePreviewContext } from '../lib/preview-context'
-import { cn } from '../lib/utils'
+import { cn, hueFromName } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import { Hint } from './hint'
 import { StreamingLinks } from './streaming-links'
@@ -716,7 +716,7 @@ export function RecommendationCard({
                 rec.artist.imageUrl
                   ? { backgroundImage: `url(${rec.artist.imageUrl.replace(/[()'"]/g, '')})` }
                   : {
-                      background: `hsl(${Math.abs([...rec.artist.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360)}, 40%, 25%)`,
+                      background: `hsl(${hueFromName(rec.artist.name)}, 40%, 25%)`,
                     }
               }
             >

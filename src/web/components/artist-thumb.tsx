@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { hueFromName } from '../lib/utils'
 
 // ArtistThumb
 
@@ -24,7 +25,7 @@ export function ArtistThumb({
 }) {
   const [imgError, setImgError] = useState(false)
   const px = size * 4
-  const hue = Math.abs([...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360)
+  const hue = hueFromName(name)
 
   const sizeStyle = fill ? undefined : { width: `${px}px`, height: `${px}px` }
   const sizeClass = fill ? 'w-full h-full' : 'shrink-0'

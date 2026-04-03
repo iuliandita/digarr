@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAlbums } from '../lib/api'
+import { hueFromName } from '../lib/utils'
 import { Skeleton } from './ui/skeleton'
 
 // RecentlyApproved
@@ -19,7 +20,7 @@ const SLOTS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'] as const
 function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?: string | null }) {
   const [imgError, setImgError] = useState(false)
   const [coverError, setCoverError] = useState(false)
-  const hue = Math.abs([...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360)
+  const hue = hueFromName(name)
 
   // Fetch album data for cover fallback when no artist image
   const needsFallback = !imageUrl || imgError
