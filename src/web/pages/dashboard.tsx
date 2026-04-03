@@ -463,7 +463,10 @@ export function Dashboard() {
           queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
         }}
-        isFirstScan={!pickData || pickData.items.length === 0}
+        isFirstScan={
+          (!pickData || pickData.items.length === 0) &&
+          (!approvedData || approvedData.items.length === 0)
+        }
       />
 
       {/* Today's Pick + Recently Approved */}

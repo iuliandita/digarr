@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, FileUp, Music, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { importCsvFile, importSpotifyLikedSongs, importSpotifyPlaylist } from '../lib/api'
 
@@ -102,9 +103,9 @@ export function ImportArtists({
             ) : (
               <p className="text-xs text-muted italic">
                 Connect Spotify in{' '}
-                <a href="/settings" className="text-accent hover:underline">
+                <Link to="/settings" className="text-accent hover:underline">
                   Settings
-                </a>{' '}
+                </Link>{' '}
                 first
               </p>
             )}
@@ -141,9 +142,9 @@ export function ImportArtists({
             ) : (
               <p className="text-xs text-muted italic">
                 Connect Spotify in{' '}
-                <a href="/settings" className="text-accent hover:underline">
+                <Link to="/settings" className="text-accent hover:underline">
                   Settings
-                </a>{' '}
+                </Link>{' '}
                 first
               </p>
             )}
