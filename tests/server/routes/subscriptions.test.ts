@@ -699,3 +699,98 @@ describe('POST /api/subscriptions/import/csv', () => {
     expect(res.status).toBe(401)
   })
 })
+
+describe('POST /api/subscriptions/import/spotify-playlist', () => {
+  beforeEach(() => {
+    // Drain any leftover Once queue entries from earlier tests that don't consume them
+    mockSubQueries.getSubscriptionsByUser.mockReset()
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValue([mockSub])
+  })
+
+  it('creates a subscription for a new playlist and starts a run', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
+    })
+
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.created).toBe(true)
+    expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: USER_ID,
+        sourceType: 'spotify-playlist',
+        sourceProvider: 'spotify',
+        sourceConfig: { playlistId: '37i9dQZEVXbMDoHDwVN2tF' },
+      }),
+    )
+  })
+
+  it('reuses existing subscription for same playlist', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([
+      {
+        ...mockSub,
+        sourceType: 'spotify-playlist',
+        sourceProvider: 'spotify',
+        sourceConfig: { playlistId: '37i9dQZEVXbMDoHDwVN2tF' },
+      },
+    ])
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
+    })
+
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.created).toBe(false)
+  })
+
+  it('normalizes playlist URLs to bare IDs', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        playlistId: 'https://open.spotify.com/playlist/37i9dQZEVXbMDoHDwVN2tF?si=abc',
+      }),
+    })
+
+    expect(res.status).toBe(202)
+    expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceConfig: { playlistId: '37i9dQZEVXbMDoHDwVN2tF' },
+      }),
+    )
+  })
+
+  it('returns 400 when playlistId is missing', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/subscriptions/import/spotify-playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when Spotify is not connected', async () => {
+    mockGetOAuthToken.mockResolvedValueOnce(null)
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-playlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
+    })
+    expect(res.status).toBe(400)
+  })
+})
