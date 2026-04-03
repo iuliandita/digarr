@@ -35,16 +35,6 @@ type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
 
 const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s+']
 
-const DECADE_RANGES: Record<Decade, [number, number]> = {
-  '60s': [1960, 1969],
-  '70s': [1970, 1979],
-  '80s': [1980, 1989],
-  '90s': [1990, 1999],
-  '00s': [2000, 2009],
-  '10s': [2010, 2019],
-  '20s+': [2020, 2099],
-}
-
 const VIEW_MODE_KEY = 'digarr:discover-view'
 
 function getStoredViewMode(): ViewMode {
@@ -353,6 +343,8 @@ export function DiscoverPage() {
     }
   }
 
+  const decadesParam = activeDecades.size > 0 ? [...activeDecades].join(',') : undefined
+
   const queryParams: Record<string, string> = {
     sort: 'score_desc',
     limit: String(PAGE_SIZE),
@@ -360,26 +352,15 @@ export function DiscoverPage() {
   }
   const statusParam = STATUS_PARAM[filter]
   if (statusParam) queryParams.status = statusParam
+  if (decadesParam) queryParams.decades = decadesParam
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['recommendations', { filter, page }],
+    queryKey: ['recommendations', { filter, page, decades: [...activeDecades].sort().join(',') }],
     queryFn: () => getRecommendations(queryParams),
   })
 
   const items = (data?.items ?? []) as Recommendation[]
   const total = data?.total ?? 0
-
-  const filteredItems = useMemo(() => {
-    if (activeDecades.size === 0) return items
-    return items.filter((r) => {
-      const year = r.artist.beginYear
-      if (year == null) return false
-      return [...activeDecades].some((decade) => {
-        const [min, max] = DECADE_RANGES[decade]
-        return year >= min && year <= max
-      })
-    })
-  }, [items, activeDecades])
 
   // Warm status
 
@@ -591,7 +572,7 @@ export function DiscoverPage() {
   }
 
   async function handleApproveAbove() {
-    const eligible = filteredItems.filter(
+    const eligible = items.filter(
       (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
     )
     if (eligible.length === 0) {
@@ -741,7 +722,7 @@ export function DiscoverPage() {
     viewMode !== 'stack',
   )
 
-  const pendingAboveThreshold = filteredItems.filter(
+  const pendingAboveThreshold = items.filter(
     (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
   ).length
 
@@ -908,6 +889,7 @@ export function DiscoverPage() {
                   }
                   return next
                 })
+                setPage(0)
               }}
               className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
                 activeDecades.has(decade)
@@ -921,7 +903,10 @@ export function DiscoverPage() {
           {activeDecades.size > 0 && (
             <button
               type="button"
-              onClick={() => setActiveDecades(new Set())}
+              onClick={() => {
+                setActiveDecades(new Set())
+                setPage(0)
+              }}
               className="px-2 py-1 text-xs text-muted hover:text-text transition-colors"
             >
               Clear
@@ -965,7 +950,7 @@ export function DiscoverPage() {
             </div>
           ) : (
             <CardStack
-              recommendations={filteredItems}
+              recommendations={items}
               onApprove={handleApprove}
               onReject={handleReject}
               onDetail={(id) => {
@@ -980,11 +965,11 @@ export function DiscoverPage() {
         {viewMode === 'grid' &&
           (loading ? (
             <SkeletonGrid />
-          ) : filteredItems.length === 0 ? (
+          ) : items.length === 0 ? (
             <EmptyState filter={filter} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredItems.map((rec) => {
+              {items.map((rec) => {
                 const isExpanded = expandedId === rec.id
                 const isActing = actingIds.has(rec.id)
                 const isPending = rec.status === 'pending'
@@ -1046,11 +1031,11 @@ export function DiscoverPage() {
         {viewMode === 'list' &&
           (loading ? (
             <SkeletonGrid />
-          ) : filteredItems.length === 0 ? (
+          ) : items.length === 0 ? (
             <EmptyState filter={filter} />
           ) : (
             <div className="flex flex-col gap-3">
-              {filteredItems.map((rec) => {
+              {items.map((rec) => {
                 const isActing = actingIds.has(rec.id)
                 const isPending = rec.status === 'pending'
                 const swipeEnabled = !bulkMode && isPending && !isActing

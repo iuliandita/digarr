@@ -7,10 +7,28 @@ type ArtistRow = typeof artists.$inferSelect
 
 export type RecommendationWithArtist = RecommendationRow & { artist: ArtistRow }
 
+const DECADE_RANGES: Record<string, [number, number]> = {
+  '60s': [1960, 1969],
+  '70s': [1970, 1979],
+  '80s': [1980, 1989],
+  '90s': [1990, 1999],
+  '00s': [2000, 2009],
+  '10s': [2010, 2019],
+  '20s+': [2020, 2099],
+}
+
+export function parseDecades(raw: string): Array<[number, number]> {
+  return raw
+    .split(',')
+    .map((d) => DECADE_RANGES[d.trim()])
+    .filter((v): v is [number, number] => v != null)
+}
+
 export type ListRecommendationsFilters = {
   status?: string
   batchId?: number
   userId?: number
+  decades?: string
   sort?: 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc'
   limit?: number
   offset?: number
@@ -25,7 +43,7 @@ export async function listRecommendations(
   db: Database,
   filters: ListRecommendationsFilters = {},
 ): Promise<ListRecommendationsResult> {
-  const { status, batchId, userId, sort = 'score_desc', limit = 20, offset = 0 } = filters
+  const { status, batchId, userId, decades, sort = 'score_desc', limit = 20, offset = 0 } = filters
 
   const conditions = []
   if (status !== undefined) {
@@ -37,6 +55,16 @@ export async function listRecommendations(
   }
   if (batchId !== undefined) conditions.push(eq(recommendations.batchId, batchId))
   if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
+
+  if (decades) {
+    const ranges = parseDecades(decades)
+    if (ranges.length > 0) {
+      const orClauses = ranges.map(
+        ([min, max]) => sql`(${artists.beginYear} >= ${min} AND ${artists.beginYear} <= ${max})`,
+      )
+      conditions.push(sql`(${sql.join(orClauses, sql` OR `)})`)
+    }
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -61,7 +89,13 @@ export async function listRecommendations(
       .orderBy(orderBy)
       .limit(limit)
       .offset(offset),
-    db.select({ total: count() }).from(recommendations).where(where),
+    decades
+      ? db
+          .select({ total: count() })
+          .from(recommendations)
+          .innerJoin(artists, eq(recommendations.artistId, artists.id))
+          .where(where)
+      : db.select({ total: count() }).from(recommendations).where(where),
   ])
 
   const items = rows.map((r) => ({ ...r.recommendation, artist: r.artist }))

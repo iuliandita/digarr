@@ -94,6 +94,7 @@ export function recommendationRoutes(deps: AppDependencies) {
       status: query.status,
       batchId: query.batchId !== undefined ? Number(query.batchId) : undefined,
       userId,
+      decades: query.decades || undefined,
       sort: query.sort as 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc' | undefined,
       limit:
         query.limit !== undefined
