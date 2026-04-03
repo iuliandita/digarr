@@ -103,7 +103,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             RUNTIME_IMAGE=${{ matrix.runtime-image }}
-            FANART_API_KEY=${{ secrets.FANART_API_KEY }}
 
       - name: Generate SBOM (container)
         if: matrix.variant == 'debian'

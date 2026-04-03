@@ -12,6 +12,7 @@ const noopPreview = {
   hasPreview: () => false,
   currentMbid: null,
   playing: false,
+  globalPlayId: 0,
 }
 
 function renderWithQuery(ui: ReactElement) {
