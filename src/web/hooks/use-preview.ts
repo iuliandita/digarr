@@ -108,6 +108,8 @@ export function usePreview() {
   const stateRef = useRef<PreviewState>(INITIAL_STATE)
   const currentMbidRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const globalPlayIdRef = useRef(0)
+  const [globalPlayId, setGlobalPlayId] = useState(0)
 
   // Keep stateRef in sync so callbacks don't close over stale state
   const setStateAndRef = useCallback((updater: (s: PreviewState) => PreviewState) => {
@@ -133,6 +135,11 @@ export function usePreview() {
       artistName: string,
       streamingUrls: Record<string, string> | null,
     ): Promise<void> => {
+      // Always increment globalPlayId so TopTracks local audio is cancelled
+      // regardless of whether this is a new artist, resume, or toggle-pause
+      globalPlayIdRef.current += 1
+      setGlobalPlayId(globalPlayIdRef.current)
+
       // Toggle pause if same artist is already playing
       if (currentMbidRef.current === mbid && stateRef.current.playing) {
         audioRef.current?.pause()
@@ -207,5 +214,5 @@ export function usePreview() {
     return Boolean(streamingUrls.spotify || streamingUrls.deezer || streamingUrls.youtube)
   }, [])
 
-  return { state, play, stop, hasPreview }
+  return { state, play, stop, hasPreview, globalPlayId }
 }

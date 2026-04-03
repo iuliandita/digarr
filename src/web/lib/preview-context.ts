@@ -6,6 +6,7 @@ type PreviewContextValue = {
   hasPreview: (streamingUrls: Record<string, string> | null) => boolean
   currentMbid: string | null
   playing: boolean
+  globalPlayId: number
 }
 
 export const PreviewContext = createContext<PreviewContextValue | null>(null)

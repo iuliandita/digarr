@@ -337,6 +337,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         hasPreview: preview.hasPreview,
         currentMbid: preview.state.artistMbid,
         playing: preview.state.playing,
+        globalPlayId: preview.globalPlayId,
       }}
     >
       <div className="min-h-screen bg-bg">
