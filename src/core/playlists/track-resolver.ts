@@ -65,6 +65,30 @@ async function resolveFromSpotify(
   }
 }
 
+async function resolveFromDeezer(
+  artistName: string,
+  deps: TrackResolverDeps,
+  limit: number,
+): Promise<ResolvedTrack[]> {
+  if (!deps.deezerSearch) return []
+
+  try {
+    const results = await deps.deezerSearch(`artist:"${artistName}"`, limit)
+    return results
+      .sort((a, b) => b.rank - a.rank)
+      .slice(0, limit)
+      .map((t) => ({
+        artistName,
+        trackName: t.name,
+        deezerId: t.id,
+        source: 'deezer' as const,
+      }))
+  } catch (error: unknown) {
+    console.warn('[track-resolver]', error)
+    return []
+  }
+}
+
 async function resolveFromMusicBrainz(
   artistName: string,
   artistMbid: string,
@@ -103,8 +127,9 @@ export async function resolveTracksForArtist(
       tracks = await resolveFromLocal(artistName, deps, limit)
     } else if (source === 'spotify') {
       tracks = await resolveFromSpotify(artistName, deps, limit)
+    } else if (source === 'deezer') {
+      tracks = await resolveFromDeezer(artistName, deps, limit)
     }
-    // 'deezer' slot is reserved for future implementation
 
     if (tracks.length > 0) return tracks
   }

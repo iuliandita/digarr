@@ -92,6 +92,47 @@ beforeAll(async () => {
       return
     }
 
+    if (path === '/search/track') {
+      const q = parsed.searchParams.get('q') ?? ''
+
+      if (q === 'trackfail') {
+        res.writeHead(500, { 'Content-Type': 'text/plain' })
+        res.end('server error')
+        return
+      }
+
+      if (q === 'trackapierror') {
+        sendJson(res, 200, {
+          data: [],
+          error: { type: 'Exception', message: 'Service Unavailable', code: 700 },
+        })
+        return
+      }
+
+      sendJson(res, 200, {
+        data: [
+          {
+            id: 101,
+            title: 'Creep',
+            preview: 'https://cdns-preview.deezer.com/track/101.mp3',
+            duration: 238,
+            rank: 980000,
+            artist: { name: 'Radiohead' },
+          },
+          {
+            id: 102,
+            title: 'Karma Police',
+            preview: 'https://cdns-preview.deezer.com/track/102.mp3',
+            duration: 262,
+            rank: 920000,
+            artist: { name: 'Radiohead' },
+          },
+        ],
+        total: 2,
+      })
+      return
+    }
+
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('not found')
   })
@@ -223,6 +264,28 @@ describe('createDeezerClient', () => {
       const client = createDeezerClient({ baseUrl: 'http://127.0.0.1:1' })
       const tracks = await client.getArtistTopTracks(1234)
       expect(tracks).toEqual([])
+    })
+  })
+
+  describe('searchTracks(query, limit)', () => {
+    it('returns mapped track search results on success', async () => {
+      const client = createDeezerClient({ baseUrl })
+      const results = await client.searchTracks('artist:"Radiohead"', 2)
+
+      expect(results).toEqual([
+        { id: '101', name: 'Creep', artists: ['Radiohead'], rank: 980000 },
+        { id: '102', name: 'Karma Police', artists: ['Radiohead'], rank: 920000 },
+      ])
+    })
+
+    it('throws on HTTP error', async () => {
+      const client = createDeezerClient({ baseUrl })
+      await expect(client.searchTracks('trackfail')).rejects.toThrow()
+    })
+
+    it('throws when API returns error field', async () => {
+      const client = createDeezerClient({ baseUrl })
+      await expect(client.searchTracks('trackapierror')).rejects.toThrow(/Deezer API error/)
     })
   })
 

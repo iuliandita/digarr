@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { resolvePlaylistTracks, resolveTracksForArtist } from '@/core/playlists/track-resolver'
 import type {
+  DeezerTrackSearchResult,
   LocalTrack,
   MBRecording,
   SpotifySearchResult,
@@ -25,6 +26,13 @@ const SPOTIFY_RESULTS: SpotifySearchResult[] = [
   { name: 'Creep', artists: ['Radiohead'], uri: 'spotify:track:2', popularity: 92 },
   { name: 'Paranoid Android', artists: ['Radiohead'], uri: 'spotify:track:3', popularity: 78 },
   { name: 'Exit Music', artists: ['Radiohead'], uri: 'spotify:track:4', popularity: 70 },
+]
+
+const DEEZER_RESULTS: DeezerTrackSearchResult[] = [
+  { id: 'dz-1', name: 'Creep', artists: ['Radiohead'], rank: 980000 },
+  { id: 'dz-2', name: 'Karma Police', artists: ['Radiohead'], rank: 920000 },
+  { id: 'dz-3', name: 'Paranoid Android', artists: ['Radiohead'], rank: 870000 },
+  { id: 'dz-4', name: 'Exit Music', artists: ['Radiohead'], rank: 810000 },
 ]
 
 const MB_RECORDINGS: MBRecording[] = [
@@ -142,6 +150,51 @@ describe('resolveTracksForArtist()', () => {
       })
 
       expect(spotifySearch).toHaveBeenCalledWith('artist:Radiohead', 3)
+    })
+  })
+
+  describe('deezer fallback', () => {
+    it('falls back to Deezer when Spotify is not configured', async () => {
+      const deps: TrackResolverDeps = {
+        deezerSearch: vi.fn().mockResolvedValue(DEEZER_RESULTS),
+      }
+      const config: TrackResolverConfig = { tracksPerArtist: 3, sourcePriority: ['deezer'] }
+
+      const tracks = await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, config)
+
+      expect(tracks).toHaveLength(3)
+      expect(tracks.every((t) => t.source === 'deezer')).toBe(true)
+      expect(tracks[0]).toMatchObject({
+        artistName: 'Radiohead',
+        trackName: 'Creep',
+        deezerId: 'dz-1',
+        source: 'deezer',
+      })
+    })
+
+    it('passes Deezer artist query syntax to deezerSearch', async () => {
+      const deezerSearch = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+      const deps: TrackResolverDeps = { deezerSearch }
+
+      await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, {
+        ...DEFAULT_CONFIG,
+        sourcePriority: ['deezer'],
+      })
+
+      expect(deezerSearch).toHaveBeenCalledWith('artist:"Radiohead"', 3)
+    })
+
+    it('sorts Deezer results by rank descending', async () => {
+      const [first, second, third, fourth] = DEEZER_RESULTS
+      if (!first || !second || !third || !fourth) throw new Error('Missing Deezer fixtures')
+      const deps: TrackResolverDeps = {
+        deezerSearch: vi.fn().mockResolvedValue([third, first, fourth, second]),
+      }
+      const config: TrackResolverConfig = { tracksPerArtist: 4, sourcePriority: ['deezer'] }
+
+      const tracks = await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, config)
+
+      expect(tracks.map((track) => track.deezerId)).toEqual(['dz-1', 'dz-2', 'dz-3', 'dz-4'])
     })
   })
 
@@ -279,10 +332,24 @@ describe('resolveTracksForArtist()', () => {
       expect(tracks.every((t) => t.source === 'musicbrainz')).toBe(true)
     })
 
+    it('falls through to MusicBrainz when Deezer throws', async () => {
+      const deps: TrackResolverDeps = {
+        deezerSearch: vi.fn().mockRejectedValue(new Error('rate limited')),
+        musicbrainzRecordings: vi.fn().mockResolvedValue(MB_RECORDINGS),
+      }
+      const tracks = await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, {
+        ...DEFAULT_CONFIG,
+        sourcePriority: ['deezer'],
+      })
+
+      expect(tracks.every((t) => t.source === 'musicbrainz')).toBe(true)
+    })
+
     it('returns [] when all sources throw', async () => {
       const deps: TrackResolverDeps = {
         jellyfinSearch: vi.fn().mockRejectedValue(new Error('timeout')),
         spotifySearch: vi.fn().mockRejectedValue(new Error('rate limited')),
+        deezerSearch: vi.fn().mockRejectedValue(new Error('rate limited')),
         musicbrainzRecordings: vi.fn().mockRejectedValue(new Error('service unavailable')),
       }
       const tracks = await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, DEFAULT_CONFIG)
@@ -322,6 +389,24 @@ describe('resolvePlaylistTracks()', () => {
     expect(spotifySearch).toHaveBeenCalledTimes(2)
     expect(spotifySearch).toHaveBeenCalledWith('artist:Radiohead', 2)
     expect(spotifySearch).toHaveBeenCalledWith('artist:Portishead', 2)
+  })
+
+  it('processes multiple artists with Deezer when selected in sourcePriority', async () => {
+    const deezerSearch = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+    const deps: TrackResolverDeps = { deezerSearch }
+    const config: TrackResolverConfig = { tracksPerArtist: 2, sourcePriority: ['deezer'] }
+
+    const artists = [
+      { name: 'Radiohead', mbid: ARTIST_MBID },
+      { name: 'Portishead', mbid: 'portishead-mbid' },
+    ]
+
+    const tracks = await resolvePlaylistTracks(artists, deps, config)
+
+    expect(tracks).toHaveLength(4)
+    expect(deezerSearch).toHaveBeenCalledTimes(2)
+    expect(deezerSearch).toHaveBeenCalledWith('artist:"Radiohead"', 2)
+    expect(deezerSearch).toHaveBeenCalledWith('artist:"Portishead"', 2)
   })
 
   it('returns tracks in artist order (not interleaved)', async () => {

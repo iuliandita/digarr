@@ -15,6 +15,13 @@ export type SpotifySearchResult = {
   popularity: number
 }
 
+export type DeezerTrackSearchResult = {
+  id: string
+  name: string
+  artists: string[]
+  rank: number
+}
+
 export type LocalTrack = {
   name: string
   artist: string
@@ -30,6 +37,7 @@ export type MBRecording = {
 
 export type TrackResolverDeps = {
   spotifySearch?: (query: string, limit?: number) => Promise<SpotifySearchResult[]>
+  deezerSearch?: (query: string, limit?: number) => Promise<DeezerTrackSearchResult[]>
   jellyfinSearch?: (artist: string) => Promise<LocalTrack[]>
   navidromeSearch?: (artist: string) => Promise<LocalTrack[]>
   plexSearch?: (artist: string) => Promise<LocalTrack[]>

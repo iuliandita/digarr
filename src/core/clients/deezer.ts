@@ -29,13 +29,22 @@ type DeezerSearchResponse = {
 }
 
 type DeezerTrackItem = {
+  id?: number
   title: string
   preview: string
   duration: number // seconds
+  rank?: number
+  artist?: { name?: string }
 }
 
 type DeezerTopTracksResponse = {
   data: DeezerTrackItem[]
+  error?: { type: string; message: string; code: number }
+}
+
+type DeezerTrackSearchResponse = {
+  data: DeezerTrackItem[]
+  total?: number
   error?: { type: string; message: string; code: number }
 }
 
@@ -75,6 +84,29 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     }
   }
 
+  async function searchTracks(
+    query: string,
+    limit = 25,
+  ): Promise<Array<{ id: string; name: string; artists: string[]; rank: number }>> {
+    const params = new URLSearchParams({ q: query, limit: String(limit) })
+    const res = await http.get<DeezerTrackSearchResponse>(`/search/track?${params.toString()}`)
+    if (res.error) {
+      throw new Error(`Deezer API error: ${res.error.message}`)
+    }
+    return (res.data ?? []).flatMap((item) =>
+      item.id && item.title
+        ? [
+            {
+              id: String(item.id),
+              name: item.title,
+              artists: item.artist?.name ? [item.artist.name] : [],
+              rank: item.rank ?? 0,
+            },
+          ]
+        : [],
+    )
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const results = await searchArtists('test', 1)
@@ -90,6 +122,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
 
   return {
     searchArtists,
+    searchTracks,
     getArtistTopTracks,
     testConnection,
   }

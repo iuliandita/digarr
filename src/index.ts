@@ -458,8 +458,10 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
 
 async function buildPlaylistResolverDeps(userId: number | null) {
   const mbClient = createMusicBrainzClient()
+  const deezerClient = createDeezerClient()
   const resolverDeps: import('./core/playlists/types').TrackResolverDeps = {
     musicbrainzRecordings: (artistMbid) => mbClient.getRecordings(artistMbid),
+    deezerSearch: (query, limit = 10) => deezerClient.searchTracks(query, limit),
   }
 
   if (userId != null) {

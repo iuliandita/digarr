@@ -45,6 +45,7 @@ describe('Deezer search source', () => {
         },
         { id: 4, name: 'Radioheater', fans: 750_000, url: 'https://deezer.example/radioheater' },
       ],
+      searchTracks: async () => [],
       testConnection: async () => ({ success: true, message: 'ok' }),
     })
 
