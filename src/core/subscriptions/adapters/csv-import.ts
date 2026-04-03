@@ -15,7 +15,7 @@ export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
 
   if (lines.length === 0) return []
 
-  const firstLine = lines[0]
+  const firstLine = lines[0] as string
   const columns = firstLine.split(',').map((col) => col.trim())
   const headerIdx = columns.findIndex((col) => KNOWN_HEADERS.includes(col.toLowerCase()))
 
@@ -37,7 +37,7 @@ export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
   const artists: string[] = []
 
   for (let i = startRow; i < lines.length && artists.length < maxArtists; i++) {
-    const cols = lines[i].split(',')
+    const cols = (lines[i] as string).split(',')
     const name = (cols[artistColumn] ?? '').trim()
     if (!name) continue
     const key = name.toLowerCase()

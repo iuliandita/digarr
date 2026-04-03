@@ -41,7 +41,11 @@ export class ApiError extends Error {
 export const AUTH_EXPIRED_EVENT = 'digarr:auth-expired'
 
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = {}
+  // Skip Content-Type for FormData -- browser sets it with the correct boundary
+  if (!(options?.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
   const token = getStoredToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
@@ -584,6 +588,30 @@ export const importSpotifyLikedSongs = () =>
     '/subscriptions/import/spotify-liked-songs',
     { method: 'POST' },
   )
+
+export const importSpotifyPlaylist = (playlistId: string) =>
+  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
+    '/subscriptions/import/spotify-playlist',
+    {
+      method: 'POST',
+      body: JSON.stringify({ playlistId }),
+    },
+  )
+
+export const importCsvFile = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return fetchApi<{
+    message: string
+    subscriptionId: number
+    artistCount: number
+    truncated: boolean
+  }>('/subscriptions/import/csv', {
+    method: 'POST',
+    body: formData,
+    // Do NOT set Content-Type -- browser sets it with boundary for FormData
+  })
+}
 
 export const getSubscriptionRuns = (id: number) =>
   fetchApi<SubscriptionRun[]>(`/subscriptions/${id}/runs`)
