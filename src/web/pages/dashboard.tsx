@@ -74,14 +74,14 @@ function SubscriptionPulse({
   if (!subs || subs.length === 0) {
     return (
       <div>
-        <SectionHeader title="Subscriptions" linkText="Manage" linkTo="/subscriptions" />
-        <div className="bg-surface border border-border rounded-lg p-6 text-center">
-          <p className="text-sm text-muted">No subscriptions yet</p>
-          <Link
-            to="/subscriptions"
-            className="text-xs text-accent hover:underline mt-1 inline-block"
-          >
-            Create one
+        <SectionHeader title="Subscriptions" linkText="Get started" linkTo="/subscriptions" />
+        <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
+          <p className="text-sm text-muted">
+            You haven't set up any automatic discovery yet. Digarr can find new artists for you on a
+            schedule.
+          </p>
+          <Link to="/subscriptions" className="text-xs text-accent hover:underline inline-block">
+            Set up automatic discovery
           </Link>
         </div>
       </div>
@@ -154,10 +154,13 @@ function ListeningActivity({
         </div>
       </div>
       {!data || data.tracks.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg p-6 text-center">
-          <p className="text-sm text-muted">Connect a listening source in Settings</p>
-          <Link to="/settings" className="text-xs text-accent hover:underline mt-1 inline-block">
-            Settings
+        <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
+          <p className="text-sm text-muted">
+            Connect your Spotify, Last.fm, or ListenBrainz account so Digarr can learn what you
+            listen to.
+          </p>
+          <Link to="/settings" className="text-xs text-accent hover:underline inline-block">
+            Connect an account
           </Link>
         </div>
       ) : (
@@ -193,7 +196,8 @@ function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; l
           </div>
         ) : !genres || genres.length === 0 ? (
           <p className="text-sm text-muted text-center py-4">
-            Approve some recommendations to build your taste profile
+            As you approve or reject artist recommendations, Digarr learns your taste and gets
+            better at finding music you'll like.
           </p>
         ) : (
           <div className="space-y-2.5">
@@ -236,7 +240,9 @@ function ActivityFeed({
             ))}
           </div>
         ) : !entries || entries.length === 0 ? (
-          <p className="text-sm text-muted text-center py-6">No recent activity</p>
+          <p className="text-sm text-muted text-center py-6">
+            Nothing here yet. Activity will show up as you discover and approve new artists.
+          </p>
         ) : (
           <div className="divide-y divide-border">
             {entries.map((entry) => (
