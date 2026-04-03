@@ -23,6 +23,7 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
 import { Skeleton } from '../components/ui/skeleton'
+import { useInstallPrompt } from '../hooks/use-install-prompt'
 import {
   AUTH_EXPIRED_EVENT,
   changePassword,
@@ -1778,6 +1779,7 @@ function AccountTab() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const { canInstall, showIosHint, promptInstall, dismiss } = useInstallPrompt()
 
   async function handleLogout() {
     try {
@@ -1873,6 +1875,44 @@ function AccountTab() {
           </Button>
         </form>
       </section>
+
+      {(canInstall || showIosHint) && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">App</h2>
+          <div className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-text">Install Digarr</p>
+              {showIosHint ? (
+                <p className="text-xs text-muted mt-0.5">
+                  Tap the share button, then "Add to Home Screen"
+                </p>
+              ) : (
+                <p className="text-xs text-muted mt-0.5">
+                  Add to your home screen for quick access
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={dismiss}
+                className="text-xs text-muted hover:text-text transition-colors"
+              >
+                Dismiss
+              </button>
+              {canInstall && (
+                <button
+                  type="button"
+                  onClick={promptInstall}
+                  className="px-3 py-1.5 text-xs font-medium bg-accent text-accent-fg rounded hover:bg-accent/90 transition-colors"
+                >
+                  Install
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
