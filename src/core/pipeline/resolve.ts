@@ -21,6 +21,10 @@ interface FanartClient {
   getArtistImages: (mbid: string) => Promise<{ url?: string; logoUrl?: string }>
 }
 
+interface MusicinfoClient {
+  lookupArtistImages: (mbid: string) => Promise<{ url?: string; logoUrl?: string }>
+}
+
 /** Fraction of discovery genres found in MB tags. Returns -1 when either list is empty (no data). */
 function genreOverlapScore(discoveryGenres: string[], mbTags: Array<{ name: string }>): number {
   if (discoveryGenres.length === 0 || mbTags.length === 0) return -1
@@ -35,6 +39,7 @@ export async function resolve(
   onProgress?: (progress: PipelineProgress) => void,
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
+  musicinfo?: MusicinfoClient | null,
 ): Promise<ResolvedArtist[]> {
   // Group by MBID (if known) then by name, to deduplicate
   const byMbid = new Map<string, DiscoveredArtist[]>()
@@ -68,7 +73,7 @@ export async function resolve(
 
     try {
       const mbArtist = await mb.lookupArtist(mbid)
-      resolved.push(await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart))
+      resolved.push(await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo))
     } catch {
       // Drop unresolvable
     }
@@ -118,7 +123,9 @@ export async function resolve(
       if (discoveryGenres.length > 0 && bestOverlap === 0) continue
 
       if (!bestCandidate || byMbid.has(bestCandidate.id)) continue
-      resolved.push(await buildResolvedArtist(bestCandidate, discoveries, mb, lidarr, fanart))
+      resolved.push(
+        await buildResolvedArtist(bestCandidate, discoveries, mb, lidarr, fanart, musicinfo),
+      )
       byMbid.set(bestCandidate.id, discoveries)
     } catch {
       // Drop unresolvable
@@ -183,12 +190,13 @@ async function buildResolvedArtist(
   mb: MusicBrainzClient,
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
+  musicinfo?: MusicinfoClient | null,
 ): Promise<ResolvedArtist> {
   const tags = (mbArtist.tags ?? []).map((t) => t.name)
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
 
-  // Get artist image from Lidarr's metadata, falling back to fanart.tv
-  const imageResult = await fetchLidarrImage(mbArtist.id, lidarr, fanart)
+  // Get artist image from Lidarr's metadata, falling back to fanart.tv then musicinfo.pro
+  const imageResult = await fetchLidarrImage(mbArtist.id, lidarr, fanart, musicinfo)
 
   // Resolve suggested album from AI discoveries
   const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
@@ -231,6 +239,7 @@ async function fetchLidarrImage(
   mbid: string,
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
+  musicinfo?: MusicinfoClient | null,
 ): Promise<{ url?: string; logoUrl?: string; failed: boolean }> {
   // Step 1: Try Lidarr (existing behavior)
   if (lidarr) {
@@ -256,5 +265,15 @@ async function fetchLidarrImage(
     }
   }
 
-  return { failed: !lidarr && !fanart ? false : true }
+  // Step 3: Try musicinfo.pro (SkyHook mirror)
+  if (musicinfo) {
+    try {
+      const result = await musicinfo.lookupArtistImages(mbid)
+      if (result.url) return { ...result, failed: false }
+    } catch {
+      // musicinfo failed
+    }
+  }
+
+  return { failed: Boolean(lidarr ?? fanart ?? musicinfo) }
 }

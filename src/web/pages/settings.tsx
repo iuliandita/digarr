@@ -1474,6 +1474,9 @@ function RecommendationsTabInner({
     (prefs.autoApproveMonitorOption as string) ?? 'all',
   )
   const [fanartApiKey, setFanartApiKey] = useState((prefs.fanartApiKey as string) ?? '')
+  const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
+    (prefs.metadataFallbackUrl as string) ?? '',
+  )
   const [saving, setSaving] = useState(false)
 
   const weightSum =
@@ -1501,6 +1504,7 @@ function RecommendationsTabInner({
         autoApproveThreshold,
         autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
         fanartApiKey: fanartApiKey || undefined,
+        metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       toast.success('Recommendation settings saved')
@@ -1714,6 +1718,18 @@ function RecommendationsTabInner({
                 placeholder="Personal API key from fanart.tv"
               />
             </Field>
+            <Field label="Metadata fallback URL (optional)" id="metadata-fallback-url">
+              <Input
+                id="metadata-fallback-url"
+                value={metadataFallbackUrl}
+                onChange={(e) => setMetadataFallbackUrl(e.target.value)}
+                placeholder="https://api.musicinfo.pro"
+              />
+            </Field>
+            <p className="text-micro text-muted">
+              Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your
+              own hearring-aid instance URL if self-hosting.
+            </p>
           </section>
         </div>
       </CollapsibleSection>
