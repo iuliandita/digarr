@@ -220,13 +220,7 @@ export async function getGenreArtists(
       })
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
-      .where(
-        and(
-          genreCondition,
-          inArray(recommendations.status, ['approved', 'added_to_lidarr']),
-          userCondition,
-        ),
-      )
+      .where(and(genreCondition, eq(recommendations.status, 'approved'), userCondition))
       .orderBy(desc(recommendations.score))
       .limit(limit)
     return rows
