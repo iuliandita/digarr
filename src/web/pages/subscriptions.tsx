@@ -14,6 +14,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
+import { ImportArtists } from '../components/import-artists'
 import { SubscriptionForm, type SubscriptionFormData } from '../components/subscription-form'
 import { SubscriptionPresets } from '../components/subscription-presets'
 import { Skeleton } from '../components/ui/skeleton'
@@ -461,6 +462,12 @@ export default function SubscriptionsPage() {
         similar-artist subscription to grow your library while you sleep.
       </Hint>
 
+      <ImportArtists
+        spotifyConnected={spotifyStatus?.connected ?? false}
+        defaultExpanded={!subscriptions || subscriptions.length === 0}
+        onImportStarted={invalidate}
+      />
+
       {/* Loading state */}
       {isLoading && (
         <div className="space-y-3">
@@ -481,36 +488,41 @@ export default function SubscriptionsPage() {
       )}
 
       {/* Empty state */}
-      {!isLoading &&
-        subscriptions &&
-        subscriptions.length === 0 &&
-        (subscriptionMode === 'ai-only' && !showPresets ? (
-          <div className="bg-surface border border-border rounded-lg px-4 py-12 text-center space-y-3">
-            <p className="text-sm font-medium text-text">AI-only mode</p>
-            <p className="text-xs text-muted">
-              Discovery runs on the pipeline schedule with no external feed subscriptions.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowPresets(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
-            >
-              <LayoutGrid size={14} />
-              Switch to a preset
-            </button>
-          </div>
-        ) : (
-          <div className="bg-surface border border-border rounded-lg p-6 space-y-6">
-            <SubscriptionPresets
-              connectedServices={configuredSources}
-              onComplete={() => {
-                invalidate()
-                setShowPresets(false)
-              }}
-              onCustom={() => setShowForm({ mode: 'create' })}
-            />
-          </div>
-        ))}
+      {!isLoading && subscriptions && subscriptions.length === 0 && (
+        <div className="space-y-4">
+          <p className="text-sm text-muted">
+            Import your favorite artists to get started, or set up automatic discovery to keep
+            finding new music.
+          </p>
+          {subscriptionMode === 'ai-only' && !showPresets ? (
+            <div className="bg-surface border border-border rounded-lg px-4 py-12 text-center space-y-3">
+              <p className="text-sm font-medium text-text">AI-only mode</p>
+              <p className="text-xs text-muted">
+                Discovery runs on the pipeline schedule with no external feed subscriptions.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowPresets(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
+              >
+                <LayoutGrid size={14} />
+                Switch to a preset
+              </button>
+            </div>
+          ) : (
+            <div className="bg-surface border border-border rounded-lg p-6 space-y-6">
+              <SubscriptionPresets
+                connectedServices={configuredSources}
+                onComplete={() => {
+                  invalidate()
+                  setShowPresets(false)
+                }}
+                onCustom={() => setShowForm({ mode: 'create' })}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Inline presets panel (shown when list is non-empty and user clicked Presets) */}
       {!isLoading && subscriptions && subscriptions.length > 0 && showPresets && (
