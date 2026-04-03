@@ -1473,9 +1473,9 @@ function RecommendationsTabInner({
   const [autoApproveMonitorOption, setAutoApproveMonitorOption] = useState(
     (prefs.autoApproveMonitorOption as string) ?? 'all',
   )
-  const [fanartApiKey, setFanartApiKey] = useState((prefs.fanartApiKey as string) ?? '')
+  const [fanartApiKey, setFanartApiKey] = useState(String(prefs.fanartApiKey ?? ''))
   const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
-    (prefs.metadataFallbackUrl as string) ?? '',
+    String(prefs.metadataFallbackUrl ?? ''),
   )
   const [saving, setSaving] = useState(false)
 
@@ -1503,7 +1503,7 @@ function RecommendationsTabInner({
         autoApproveEnabled,
         autoApproveThreshold,
         autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
-        fanartApiKey: fanartApiKey || undefined,
+        fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
         metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })

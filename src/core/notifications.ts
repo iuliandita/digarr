@@ -13,7 +13,7 @@ export type WebhookPayload = {
   timestamp: string
 }
 
-function isPrivateIp(address: string): boolean {
+export function isPrivateIp(address: string): boolean {
   if (/^127\./.test(address)) return true
   if (/^10\./.test(address)) return true
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(address)) return true

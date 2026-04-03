@@ -1,15 +1,11 @@
 import { createHttpClient } from './http'
+import type { ImageResult } from './image-utils'
 
 type FanartResponse = {
   artistthumb?: Array<{ url: string; likes: string }>
   artistbackground?: Array<{ url: string; likes: string }>
   hdmusiclogo?: Array<{ url: string; likes: string }>
   musiclogo?: Array<{ url: string; likes: string }>
-}
-
-export type FanartImageResult = {
-  url?: string
-  logoUrl?: string
 }
 
 export function createFanartClient(apiKey: string, baseUrl = 'https://webservice.fanart.tv/v3') {
@@ -21,7 +17,7 @@ export function createFanartClient(apiKey: string, baseUrl = 'https://webservice
   })
 
   return {
-    async getArtistImages(mbid: string): Promise<FanartImageResult> {
+    async getArtistImages(mbid: string): Promise<ImageResult> {
       try {
         const data = await http.get<FanartResponse>(`/music/${mbid}`)
         const thumb = data.artistthumb?.[0]?.url

@@ -1,7 +1,11 @@
+import { lookup } from 'node:dns/promises'
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
+import { decryptField, encryptField } from '@/core/crypto'
+import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
 import { clearUserSessions, createSession, deleteSession } from '@/core/sessions'
+import { isHttpUrl } from '@/core/validation'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -25,7 +29,11 @@ const ALLOWED_PREF_KEYS = new Set([
   'qualityProfileId',
   'metadataProfileId',
   'rootFolderId',
+  'fanartApiKey',
+  'metadataFallbackUrl',
 ])
+
+const SENSITIVE_PREF_KEYS = ['fanartApiKey'] as const
 
 export function authRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -165,7 +173,15 @@ export function authRoutes(deps: AppDependencies) {
     const user = await deps.getUserById(userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
     const merged = mergePreferences(user.preferences)
-    return c.json(merged)
+    // Decrypt sensitive fields, then mask for the response
+    const response = { ...merged } as Record<string, unknown>
+    for (const key of SENSITIVE_PREF_KEYS) {
+      const val = response[key]
+      if (typeof val === 'string' && val) {
+        response[key] = '***'
+      }
+    }
+    return c.json(response)
   })
 
   // Update the authenticated user's preferences (partial merge)
@@ -182,6 +198,37 @@ export function authRoutes(deps: AppDependencies) {
         filtered[key] = value
       }
     }
+
+    // SSRF protection: validate metadataFallbackUrl against private IP ranges
+    const fallbackUrl = filtered.metadataFallbackUrl
+    if (typeof fallbackUrl === 'string' && fallbackUrl) {
+      if (!isHttpUrl(fallbackUrl)) {
+        return c.json({ error: 'Metadata fallback URL must use http:// or https://' }, 400)
+      }
+      if (isPrivateUrl(fallbackUrl)) {
+        return c.json({ error: 'Metadata fallback URL must not point to a private address' }, 400)
+      }
+      try {
+        const hostname = new URL(fallbackUrl).hostname
+        const { address } = await lookup(hostname)
+        if (isPrivateIp(address)) {
+          return c.json({ error: 'Metadata fallback URL resolves to a private/internal IP' }, 400)
+        }
+      } catch {
+        return c.json({ error: 'Could not resolve metadata fallback URL hostname' }, 400)
+      }
+    }
+
+    // Encrypt sensitive preference values before storage (skip masked placeholders)
+    for (const key of SENSITIVE_PREF_KEYS) {
+      const val = filtered[key]
+      if (val === '***') {
+        delete filtered[key]
+      } else if (typeof val === 'string' && val) {
+        filtered[key] = encryptField(val)
+      }
+    }
+
     // Merge incoming with existing to preserve fields not being updated
     const current = (user.preferences ?? {}) as Record<string, unknown>
     const updated = { ...current, ...filtered }

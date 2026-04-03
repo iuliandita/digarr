@@ -1,3 +1,4 @@
+import { extractImages, type ImageEntry } from '@/core/clients/image-utils'
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import { parseYear } from '@/core/clients/musicbrainz'
 import type { DiscoveredArtist, PipelineProgress, ResolvedArtist } from '@/core/types'
@@ -196,7 +197,7 @@ async function buildResolvedArtist(
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
 
   // Get artist image from Lidarr's metadata, falling back to fanart.tv then musicinfo.pro
-  const imageResult = await fetchLidarrImage(mbArtist.id, lidarr, fanart, musicinfo)
+  const imageResult = await fetchArtistImage(mbArtist.id, lidarr, fanart, musicinfo)
 
   // Resolve suggested album from AI discoveries
   const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
@@ -221,27 +222,13 @@ async function buildResolvedArtist(
   }
 }
 
-type ImageEntry = { coverType: string; remoteUrl?: string }
-
-/** Shared image extraction from Lidarr/SkyHook-shaped responses. */
-export function extractImages(images: ImageEntry[]): { url?: string; logoUrl?: string } {
-  const logo = images.find((i) => i.coverType === 'clearlogo' && i.remoteUrl)
-  const logoUrl = logo?.remoteUrl
-  for (const type of ['poster', 'fanart', 'banner']) {
-    const img = images.find((i) => i.coverType === type && i.remoteUrl)
-    if (img?.remoteUrl) return { url: img.remoteUrl, logoUrl }
-  }
-  const fallback = images.find((i) => i.coverType !== 'clearlogo' && i.remoteUrl)
-  return fallback?.remoteUrl ? { url: fallback.remoteUrl, logoUrl } : { logoUrl }
-}
-
-async function fetchLidarrImage(
+async function fetchArtistImage(
   mbid: string,
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
 ): Promise<{ url?: string; logoUrl?: string; failed: boolean }> {
-  // Step 1: Try Lidarr (existing behavior)
+  // Fallback chain: Lidarr -> fanart.tv -> musicinfo.pro
   if (lidarr) {
     try {
       const results = await lidarr.lookupArtist(`lidarr:${mbid}`)
@@ -250,29 +237,21 @@ async function fetchLidarrImage(
         const extracted = extractImages(artist.images)
         if (extracted.url) return { ...extracted, failed: false }
       }
-    } catch {
-      // Lidarr failed, fall through to fanart.tv
-    }
+    } catch {}
   }
 
-  // Step 2: Try fanart.tv direct
   if (fanart) {
     try {
       const result = await fanart.getArtistImages(mbid)
       if (result.url) return { ...result, failed: false }
-    } catch {
-      // fanart.tv failed
-    }
+    } catch {}
   }
 
-  // Step 3: Try musicinfo.pro (SkyHook mirror)
   if (musicinfo) {
     try {
       const result = await musicinfo.lookupArtistImages(mbid)
       if (result.url) return { ...result, failed: false }
-    } catch {
-      // musicinfo failed
-    }
+    } catch {}
   }
 
   return { failed: Boolean(lidarr ?? fanart ?? musicinfo) }

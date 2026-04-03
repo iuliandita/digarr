@@ -3,6 +3,7 @@ import { createFanartClient } from '@/core/clients/fanart'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createMusicinfoClient } from '@/core/clients/musicinfo'
+import { decryptField } from '@/core/crypto'
 import { sendWebhook } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
@@ -86,11 +87,12 @@ export class PipelineOrchestrator extends EventEmitter {
           ? createLidarrClient(settings.lidarrUrl, settings.lidarrApiKey, settings.skipTlsVerify)
           : null
 
-      const fanartApiKey = prefs.fanartApiKey ?? null
+      const fanartApiKey = decryptField(prefs.fanartApiKey) ?? null
       const fanartClient = fanartApiKey ? createFanartClient(fanartApiKey) : null
 
-      const metadataFallbackUrl = prefs.metadataFallbackUrl ?? undefined
-      const musicinfoClient = createMusicinfoClient(metadataFallbackUrl)
+      const musicinfoClient = prefs.metadataFallbackUrl
+        ? createMusicinfoClient(prefs.metadataFallbackUrl)
+        : null
 
       // Per-user connections take precedence over global settings
       const { userConnections } = deps

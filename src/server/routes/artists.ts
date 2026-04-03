@@ -80,7 +80,7 @@ export function artistRoutes(deps: AppDependencies) {
     rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview' }),
     async (c) => {
       const url = c.req.query('url')
-      if (!url || !url.match(/^https:\/\/cdn[st]-?preview[a-z-]*\.dzcdn\.net\//)) {
+      if (!url || !url.match(/^https:\/\/cdn[st]-?preview[a-z0-9-]*\.dzcdn\.net\//)) {
         return c.json({ error: 'Invalid preview URL' }, 400)
       }
       try {
