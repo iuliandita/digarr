@@ -13,6 +13,7 @@ dist/
 # ===========================
 AGENTS.md
 CLAUDE.md
+ROADMAP.md
 PLAN.md
 SECURITY-AUDIT.md
 .claude/
