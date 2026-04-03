@@ -225,7 +225,7 @@ export type GenreArtistView = 'recommended' | 'trending' | 'deep_cuts'
 
 /**
  * Returns artists from the recommendations table for a given genre, scoped by view:
- *  - recommended: approved/added artists sorted by score desc
+ *  - recommended: approved artists not yet added to the library, sorted by score desc
  *  - trending: any status, batches from last 30 days, sorted by score desc
  *  - deep_cuts: pending artists with low spotify popularity or few genre tags
  */
@@ -254,13 +254,7 @@ export async function getGenreArtists(
       })
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
-      .where(
-        and(
-          genreCondition,
-          inArray(recommendations.status, ['approved', 'added_to_lidarr']),
-          userCondition,
-        ),
-      )
+      .where(and(genreCondition, eq(recommendations.status, 'approved'), userCondition))
       .orderBy(desc(recommendations.score))
       .limit(limit)
     return rows

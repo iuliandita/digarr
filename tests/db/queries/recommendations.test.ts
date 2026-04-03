@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
-import { getGenreFeedbackHistory, getRejectedArtistMbids } from '@/db/queries/recommendations'
+import {
+  getGenreArtists,
+  getGenreFeedbackHistory,
+  getRejectedArtistMbids,
+} from '@/db/queries/recommendations'
 
 // Build a mock drizzle db that returns a fixed result when awaited.
 // The query chain: db.select({...}).from(...).innerJoin(...).where(...) -> rows
@@ -21,6 +25,26 @@ function makeMockDb(rows: unknown[]): Database {
     transaction: vi.fn(),
     execute: vi.fn(),
   } as unknown as Database
+}
+
+function collectParamValues(node: unknown): unknown[] {
+  const values: unknown[] = []
+
+  function visit(value: unknown): void {
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item)
+      return
+    }
+
+    if (!value || typeof value !== 'object') return
+
+    const param = value as { value?: unknown; queryChunks?: unknown[] }
+    if ('value' in param) values.push(param.value)
+    if (Array.isArray(param.queryChunks)) visit(param.queryChunks)
+  }
+
+  visit(node)
+  return values
 }
 
 describe('getGenreFeedbackHistory', () => {
@@ -93,5 +117,32 @@ describe('getRejectedArtistMbids', () => {
     await getRejectedArtistMbids(db, 30)
 
     expect(chain.where).toHaveBeenCalledOnce()
+  })
+})
+
+describe('getGenreArtists', () => {
+  it('keeps added_to_lidarr artists out of the recommended tab filter', async () => {
+    const rows: unknown[] = []
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      leftJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue(rows),
+    }
+    const db = {
+      select: vi.fn().mockReturnValue(chain),
+    } as unknown as Database
+
+    await getGenreArtists(db, 'trip-hop', 'recommended', 20, 1)
+
+    expect(chain.where).toHaveBeenCalledOnce()
+
+    const whereClause = chain.where.mock.calls[0]?.[0]
+    const params = collectParamValues(whereClause)
+
+    expect(params).toContain('approved')
+    expect(params).not.toContain('added_to_lidarr')
   })
 })
