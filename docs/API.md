@@ -330,6 +330,36 @@ Query params: `range` (week/month/year), `limit` (1-50).
 
 ---
 
+## Admin (Admin)
+
+All `/api/admin/*` endpoints require admin authentication.
+
+### Backup & Restore
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
+| POST | `/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
+| GET | `/admin/backup/last` | Admin | Last auto-backup metadata. |
+
+### Upgrade
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/admin/migrations/pending` | Admin | Pending migration status. |
+
+### Data Hygiene
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/admin/hygiene/clear-image-failures` | Admin | Reset image failure cache. Query: `?olderThan=7d` |
+| POST | `/admin/hygiene/rebuild-genres` | Admin | Rebuild genre table from artist data. |
+| POST | `/admin/hygiene/rescore` | Admin | Re-score recommendations. Query: `?status=pending` (default), `?status=pending,approved` |
+| POST | `/admin/hygiene/dedupe` | Admin | Find and remove duplicate recommendations. |
+| POST | `/admin/hygiene/ai-audit` | Admin | Audit AI reasoning. Query: `?autoFix=true`. Returns 202 when auto-fix starts. |
+| GET | `/admin/hygiene/ai-audit/results` | Admin | Poll auto-fix progress. |
+| POST | `/admin/hygiene/purge-sessions` | Admin | Delete expired login sessions. |
+
 ## Health
 
 | Method | Path | Auth | Description |

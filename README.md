@@ -122,6 +122,29 @@ All configuration is done through the web UI after initial setup -- connections,
 
 ---
 
+## Backup & Restore
+
+Digarr provides application-level backup and restore through the admin UI (Settings > Administration) or API.
+
+**Manual backup:** `POST /api/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist/genre caches (larger file, but avoids re-fetching from MusicBrainz).
+
+**Restore:** `POST /api/admin/restore` accepts a backup JSON file. Uses upsert (additive merge, not destructive replace). If the encryption key differs from the backup, affected credential fields are listed for manual re-entry.
+
+**Auto-backup before migrations:** When the app detects pending database migrations on startup, it automatically saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). Keeps the last 5 auto-backups. Disable with `DIGARR_AUTO_BACKUP=false`.
+
+### Data Hygiene
+
+Admin tools available under Settings > Administration > Data Hygiene:
+
+- **Clear Image Failures** -- reset failed image cache for retry
+- **Rebuild Genre Cache** -- regenerate from artist tags
+- **Re-score Recommendations** -- recalculate with current weights
+- **Dedupe Repair** -- merge duplicate recommendations
+- **AI Reasoning Audit** -- detect and fix AI hallucinations
+- **Purge Sessions** -- clean expired login sessions
+
+---
+
 ## Deployment
 
 | Method | Path | Notes |
