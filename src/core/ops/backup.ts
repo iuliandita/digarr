@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { getKeyFingerprint } from '@/core/crypto'
+import {
+  getKeyFingerprint,
+  SENSITIVE_OAUTH,
+  SENSITIVE_SETTINGS,
+  SENSITIVE_TARGET_CONFIG,
+  SENSITIVE_USER_CONNECTIONS,
+} from '@/core/crypto'
 import {
   artistMetadata,
   artists,
@@ -17,7 +23,7 @@ import {
   targets,
   users,
 } from '@/db/schema'
-import type { BackupFile, BackupOptions, OpsDb } from './types'
+import type { BackupFile, BackupOptions, OpsDb, RestoreOptions, RestoreResult } from './types'
 
 function getAppVersion(): string {
   try {
@@ -95,4 +101,106 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
   }
 
   return backup
+}
+
+// ── Restore ────────────────────────────────────
+
+const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
+  settings: SENSITIVE_SETTINGS,
+  users: SENSITIVE_USER_CONNECTIONS,
+  oauthTokens: SENSITIVE_OAUTH,
+  oidcTokens: SENSITIVE_OAUTH,
+  targets: SENSITIVE_TARGET_CONFIG,
+}
+
+// Table restore order respects FK dependencies
+const RESTORE_ORDER: {
+  key: keyof BackupFile['data']
+  // biome-ignore lint/suspicious/noExplicitAny: drizzle table type
+  table: any
+}[] = [
+  { key: 'settings', table: settings },
+  { key: 'users', table: users },
+  { key: 'artists', table: artists },
+  { key: 'genres', table: genres },
+  { key: 'artistMetadata', table: artistMetadata },
+  { key: 'oauthTokens', table: oauthTokens },
+  { key: 'oidcTokens', table: oidcTokens },
+  { key: 'targets', table: targets },
+  { key: 'subscriptions', table: subscriptions },
+  { key: 'playlists', table: playlists },
+  { key: 'recommendationBatches', table: recommendationBatches },
+  { key: 'subscriptionRuns', table: subscriptionRuns },
+  { key: 'recommendations', table: recommendations },
+  { key: 'playlistTracks', table: playlistTracks },
+]
+
+function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
+  const currentFp = getKeyFingerprint()
+  const backupFp = backup.encryptionKeyHash
+
+  if (!backupFp && !currentFp) return { mismatch: false, fields: [] }
+  if (backupFp !== currentFp) {
+    const fields: string[] = []
+    for (const [tableKey, sensitiveFields] of Object.entries(ENCRYPTED_FIELD_MAP)) {
+      const rows = backup.data[tableKey as keyof BackupFile['data']]
+      if (rows && Array.isArray(rows) && rows.length > 0) {
+        for (const field of sensitiveFields) {
+          fields.push(`${tableKey}.${field}`)
+        }
+      }
+    }
+    return { mismatch: true, fields }
+  }
+  return { mismatch: false, fields: [] }
+}
+
+export async function restoreBackup(
+  db: OpsDb,
+  backup: BackupFile,
+  options: RestoreOptions = {},
+): Promise<RestoreResult> {
+  if (backup.version !== 1) {
+    throw new Error(`Unsupported backup version: ${backup.version}`)
+  }
+
+  const { mismatch, fields } = detectEncryptionMismatch(backup)
+
+  if (mismatch && !options.force) {
+    return {
+      tablesRestored: {},
+      warnings: ['Encryption key mismatch. Use force=true to restore anyway.'],
+      encryptionMismatch: true,
+      affectedEncryptedFields: fields,
+    }
+  }
+
+  const tablesRestored: Record<string, number> = {}
+  const warnings: string[] = []
+
+  for (const { key, table } of RESTORE_ORDER) {
+    const rows = backup.data[key]
+    if (!rows || !Array.isArray(rows) || rows.length === 0) continue
+
+    try {
+      for (const row of rows) {
+        // biome-ignore lint/suspicious/noExplicitAny: drizzle insert builder type is opaque
+        await (db.insert(table).values(row as never) as any).onConflictDoUpdate({
+          target: table.id ?? table.mbid ?? table.slug ?? table.nameNormalized ?? table.token,
+          set: row,
+        })
+      }
+      tablesRestored[key] = rows.length
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      warnings.push(`Failed to restore ${key}: ${msg}`)
+    }
+  }
+
+  return {
+    tablesRestored,
+    warnings,
+    encryptionMismatch: mismatch,
+    affectedEncryptedFields: mismatch ? fields : [],
+  }
 }

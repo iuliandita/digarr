@@ -3,8 +3,8 @@
 import { getTableName } from 'drizzle-orm'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { initEncryption } from '@/core/crypto'
-import { createBackup } from '@/core/ops/backup'
-import type { OpsDb } from '@/core/ops/types'
+import { createBackup, restoreBackup } from '@/core/ops/backup'
+import type { BackupFile, OpsDb } from '@/core/ops/types'
 
 function makeMockDb(tableData: Record<string, unknown[]> = {}): OpsDb {
   return {
@@ -107,5 +107,125 @@ describe('createBackup', () => {
 
     // Clean up
     initEncryption(undefined)
+  })
+})
+
+function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
+  return {
+    version: 1,
+    appVersion: '0.14.0',
+    createdAt: '2026-04-04T12:00:00Z',
+    encryptionKeyHash: null,
+    includesCaches: false,
+    data: {
+      settings: [{ id: 1, lidarrUrl: 'http://lidarr:8686' }],
+      users: [{ id: 1, username: 'admin', passwordHash: 'hash' }],
+      oauthTokens: [],
+      oidcTokens: [],
+      targets: [],
+      subscriptions: [],
+      subscriptionRuns: [],
+      recommendationBatches: [],
+      recommendations: [],
+      playlists: [],
+      playlistTracks: [],
+    },
+    ...overrides,
+  }
+}
+
+function makeMockUpsertDb(): OpsDb & { insertCalls: Record<string, unknown[][]> } {
+  const insertCalls: Record<string, unknown[][]> = {}
+  return {
+    insertCalls,
+    insert: vi.fn().mockImplementation((table: unknown) => {
+      const name = getTableName(table as Parameters<typeof getTableName>[0])
+      return {
+        values: vi.fn().mockImplementation((rows: unknown[]) => {
+          if (!insertCalls[name]) insertCalls[name] = []
+          insertCalls[name].push(Array.isArray(rows) ? rows : [rows])
+          return {
+            onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+            onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+          }
+        }),
+      }
+    }),
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockResolvedValue([]),
+    }),
+  } as unknown as OpsDb & { insertCalls: Record<string, unknown[][]> }
+}
+
+describe('restoreBackup', () => {
+  it('validates backup file version', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile({ version: 999 })
+    await expect(restoreBackup(db, backup)).rejects.toThrow('Unsupported backup version')
+  })
+
+  it('detects encryption key mismatch and rejects without force', async () => {
+    initEncryption('different-key')
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile({ encryptionKeyHash: 'sha256:0000000000' })
+    const result = await restoreBackup(db, backup, { force: false })
+
+    expect(result.encryptionMismatch).toBe(true)
+    expect(result.affectedEncryptedFields.length).toBeGreaterThan(0)
+    expect(result.tablesRestored).toEqual({})
+
+    initEncryption(undefined)
+  })
+
+  it('restores with force despite key mismatch', async () => {
+    initEncryption('different-key')
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile({ encryptionKeyHash: 'sha256:0000000000' })
+    const result = await restoreBackup(db, backup, { force: true })
+
+    expect(result.encryptionMismatch).toBe(true)
+    expect(Object.keys(result.tablesRestored).length).toBeGreaterThan(0)
+
+    initEncryption(undefined)
+  })
+
+  it('restores tables in FK dependency order', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    backup.data.targets = [{ id: 1, type: 'lidarr', userId: 1 }]
+    await restoreBackup(db, backup)
+
+    const tableOrder = Object.keys(db.insertCalls)
+    const settingsIdx = tableOrder.indexOf('settings')
+    const usersIdx = tableOrder.indexOf('users')
+    const targetsIdx = tableOrder.indexOf('targets')
+
+    // settings and users must come before targets
+    expect(settingsIdx).toBeLessThan(targetsIdx)
+    expect(usersIdx).toBeLessThan(targetsIdx)
+  })
+
+  it('returns count of restored rows per table', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    backup.data.users = [
+      { id: 1, username: 'admin' },
+      { id: 2, username: 'user2' },
+    ]
+    const result = await restoreBackup(db, backup)
+
+    expect(result.tablesRestored.users).toBe(2)
+    expect(result.tablesRestored.settings).toBe(1)
+  })
+
+  it('skips empty tables without error', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    backup.data.targets = []
+    backup.data.subscriptions = []
+    const result = await restoreBackup(db, backup)
+
+    expect(result.tablesRestored.targets).toBeUndefined()
+    expect(result.warnings).toHaveLength(0)
   })
 })
