@@ -37,6 +37,7 @@ import { requestLogger } from './middleware/logger'
 import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
 import { setupGuard } from './middleware/setup-guard'
+import { adminRoutes } from './routes/admin'
 import { analyticsRoutes } from './routes/analytics'
 import { artistRoutes } from './routes/artists'
 import { authRoutes } from './routes/auth'
@@ -265,9 +266,11 @@ export function createApp(deps: AppDependencies) {
   app.route('/', pipelineRoutes(deps))
   app.route('/', recommendationRoutes(deps))
   app.route('/', batchRoutes(deps))
+  app.use('/api/admin/*', adminGuard(deps.getUserById))
   app.use('/api/analytics/*', adminGuard(deps.getUserById))
   app.use('/api/library/*', adminGuard(deps.getUserById))
 
+  app.route('/', adminRoutes({ db: deps.db }))
   app.route('/', analyticsRoutes(deps))
   app.route('/', artistRoutes(deps))
   app.route('/', lidarrRoutes(deps))
