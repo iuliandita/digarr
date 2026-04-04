@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/web/components/confirm-dialog'
-import { downloadBackup, getLastAutoBackup, restoreBackupApi } from '@/web/lib/api'
+import { ApiError, downloadBackup, getLastAutoBackup, restoreBackupApi } from '@/web/lib/api'
 
 export function BackupSection() {
   const [includeCaches, setIncludeCaches] = useState(false)
@@ -50,12 +50,12 @@ export function BackupSection() {
         }
       }
     } catch (err: unknown) {
-      const apiErr = err as { status?: number; data?: { affectedFields?: string[] } }
-      if (apiErr.status === 409) {
+      if (err instanceof ApiError && err.status === 409) {
+        const body = err.data as { affectedFields?: string[] }
         setConfirmRestore({
           file,
           mismatch: true,
-          affectedFields: apiErr.data?.affectedFields ?? [],
+          affectedFields: body.affectedFields ?? [],
         })
       } else {
         toast.error('Failed to restore backup')

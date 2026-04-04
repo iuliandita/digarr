@@ -137,11 +137,13 @@ Admin-only endpoints return 403 for non-admin users.
 | POST | `/api/subscriptions/:id/run` | Yes | Trigger manual run (202) |
 | GET | `/api/subscriptions/:id/runs` | Yes | Run history |
 | POST | `/api/subscriptions/import/spotify-liked-songs` | Yes | Create/reuse the helper Spotify Liked Songs subscription and trigger an import run (202) |
+| POST | `/api/subscriptions/import/spotify-playlist` | Yes | Import from a Spotify playlist (accepts URL, URI, or bare ID). Returns 202. |
+| POST | `/api/subscriptions/import/csv` | Yes | Upload CSV of artist names (multipart form, field: `file`, max 1MB, 500 artists). Returns 202. |
 | GET | `/api/subscriptions/adapter-types` | Yes | Available adapter types with config schemas |
 | GET | `/api/subscriptions/scheduler` | Yes | Scheduler job status |
 | POST | `/api/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
 
-**Adapter types**: `genre`, `similar`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `lastfm-tag`, `lastfm-charts`, `listenbrainz`
+**Adapter types**: `genre`, `similar`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
 
 **POST /api/subscriptions** body:
 ```json
@@ -338,27 +340,27 @@ All `/api/admin/*` endpoints require admin authentication.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
-| POST | `/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
-| GET | `/admin/backup/last` | Admin | Last auto-backup metadata. |
+| POST | `/api/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
+| POST | `/api/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
+| GET | `/api/admin/backup/last` | Admin | Last auto-backup metadata. |
 
 ### Upgrade
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/admin/migrations/pending` | Admin | Pending migration status. |
+| GET | `/api/admin/migrations/pending` | Admin | Pending migration status. |
 
 ### Data Hygiene
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/admin/hygiene/clear-image-failures` | Admin | Reset image failure cache. Query: `?olderThan=7d` |
-| POST | `/admin/hygiene/rebuild-genres` | Admin | Rebuild genre table from artist data. |
-| POST | `/admin/hygiene/rescore` | Admin | Re-score recommendations. Query: `?status=pending` (default), `?status=pending,approved` |
-| POST | `/admin/hygiene/dedupe` | Admin | Find and remove duplicate recommendations. |
-| POST | `/admin/hygiene/ai-audit` | Admin | Audit AI reasoning. Query: `?autoFix=true`. Returns 202 when auto-fix starts. |
-| GET | `/admin/hygiene/ai-audit/results` | Admin | Poll auto-fix progress. |
-| POST | `/admin/hygiene/purge-sessions` | Admin | Delete expired login sessions. |
+| POST | `/api/admin/hygiene/clear-image-failures` | Admin | Reset image failure cache. Query: `?olderThan=7d` |
+| POST | `/api/admin/hygiene/rebuild-genres` | Admin | Rebuild genre table from artist data. |
+| POST | `/api/admin/hygiene/rescore` | Admin | Re-score recommendations. Query: `?status=pending` (default), `?status=pending,approved` |
+| POST | `/api/admin/hygiene/dedupe` | Admin | Find and remove duplicate recommendations. |
+| POST | `/api/admin/hygiene/ai-audit` | Admin | Audit AI reasoning. Query: `?autoFix=true`. Returns 202 when auto-fix starts. |
+| GET | `/api/admin/hygiene/ai-audit/results` | Admin | Poll auto-fix progress. |
+| POST | `/api/admin/hygiene/purge-sessions` | Admin | Delete expired login sessions. |
 
 ## Health
 

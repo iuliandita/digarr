@@ -768,7 +768,7 @@ export const restoreBackupApi = async (file: File, force = false) => {
 }
 
 export const getLastAutoBackup = () =>
-  fetchApi<{ lastAutoBackup: { path: string; createdAt: string } | null }>('/admin/backup/last')
+  fetchApi<{ lastAutoBackup: { filename: string; createdAt: string } | null }>('/admin/backup/last')
 
 // ── Admin: Migrations ──────────────────────────
 
@@ -778,7 +778,7 @@ export const getPendingMigrations = () =>
     targetVersion: string | null
     pendingCount: number
     pendingMigrations: string[]
-    lastAutoBackup: { path: string; createdAt: string } | null
+    lastAutoBackup: { filename: string; createdAt: string } | null
   }>('/admin/migrations/pending')
 
 // ── Admin: Hygiene ─────────────────────────────

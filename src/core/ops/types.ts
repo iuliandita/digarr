@@ -72,7 +72,7 @@ export interface MigrationStatus {
   pendingCount: number
   pendingMigrations: string[]
   lastAutoBackup: {
-    path: string
+    filename: string
     createdAt: string
   } | null
 }

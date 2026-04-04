@@ -49,11 +49,13 @@ describe('getPendingMigrations', () => {
 
   it('returns zero pending when all migrations are applied', async () => {
     const mockDb = {
-      execute: vi.fn().mockResolvedValue([
-        { hash: 'h0', created_at: '1' },
-        { hash: 'h1', created_at: '2' },
-        { hash: 'h2', created_at: '3' },
-      ]),
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          { hash: 'h0', created_at: '1' },
+          { hash: 'h1', created_at: '2' },
+          { hash: 'h2', created_at: '3' },
+        ],
+      }),
     }
 
     const result = await getPendingMigrations(mockDb as never)
@@ -63,7 +65,7 @@ describe('getPendingMigrations', () => {
 
   it('detects pending migrations', async () => {
     const mockDb = {
-      execute: vi.fn().mockResolvedValue([{ hash: 'h0', created_at: '1' }]),
+      execute: vi.fn().mockResolvedValue({ rows: [{ hash: 'h0', created_at: '1' }] }),
     }
 
     const result = await getPendingMigrations(mockDb as never)
@@ -78,7 +80,7 @@ describe('getPendingMigrations', () => {
 
   it('handles empty database (fresh install)', async () => {
     const mockDb = {
-      execute: vi.fn().mockResolvedValue([]),
+      execute: vi.fn().mockResolvedValue({ rows: [] }),
     }
 
     const result = await getPendingMigrations(mockDb as never)
@@ -90,7 +92,7 @@ describe('getPendingMigrations', () => {
   it('returns empty when journal file is missing', async () => {
     vi.mocked(existsSync).mockReturnValue(false)
     const mockDb = {
-      execute: vi.fn().mockResolvedValue([]),
+      execute: vi.fn().mockResolvedValue({ rows: [] }),
     }
 
     const result = await getPendingMigrations(mockDb as never)

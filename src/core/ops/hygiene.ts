@@ -97,16 +97,11 @@ function slugify(name: string): string {
 export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
   const start = Date.now()
 
-  // Collect all genre names from artists and metadata
   // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  const artistRows = await (db as any)
-    .select({ tags: artists.tags, genres: artists.genres })
-    .from(artists)
-
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  const metaRows = await (db as any)
-    .select({ spotifyGenres: artistMetadata.spotifyGenres })
-    .from(artistMetadata)
+  const [artistRows, metaRows] = await Promise.all([
+    (db as any).select({ tags: artists.tags, genres: artists.genres }).from(artists),
+    (db as any).select({ spotifyGenres: artistMetadata.spotifyGenres }).from(artistMetadata),
+  ])
 
   const genreCounts = new Map<string, number>()
 
@@ -274,6 +269,10 @@ export async function aiReasoningAudit(
     if (!namePresent && !genreOverlap) {
       flaggedIds.push(rec.recId as number)
     }
+  }
+
+  if (auditState.inProgress) {
+    return { scanned: 0, flagged: 0, flaggedIds: [], autoFixStarted: false }
   }
 
   const autoFixStarted = !!(autoFix?.enabled && flaggedIds.length > 0)

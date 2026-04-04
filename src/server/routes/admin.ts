@@ -21,6 +21,15 @@ export interface AdminDeps {
   generateReasoning?: (artistName: string, genres: string[]) => Promise<string>
 }
 
+const VALID_STATUSES = new Set([
+  'pending',
+  'approved',
+  'rejected',
+  'added_to_lidarr',
+  'add_failed',
+  'duplicate',
+])
+
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
 
@@ -119,9 +128,14 @@ export function adminRoutes(deps: AdminDeps) {
     const user = await deps.getUserById(userId)
     const prefs = mergePreferences(user?.preferences as never)
     const statusParam = c.req.query('status') ?? 'pending'
-    const statuses = statusParam.split(',')
+    const statuses = statusParam.split(',').filter((s) => VALID_STATUSES.has(s))
+    if (statuses.length === 0) {
+      return c.json({ error: 'No valid status values provided' }, 400)
+    }
 
-    const result = await rescoreRecommendations(deps.db, prefs.scoringWeights, [], statuses)
+    // Library genres unavailable in offline rescore -- zero the weight to avoid score drift
+    const adjustedWeights = { ...prefs.scoringWeights, genreOverlap: 0 }
+    const result = await rescoreRecommendations(deps.db, adjustedWeights, [], statuses)
     return c.json(result)
   })
 

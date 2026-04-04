@@ -7,7 +7,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { sql } from 'drizzle-orm'
 import { createBackup } from './backup'
 import type { MigrationStatus, OpsDb, PreFlightResult } from './types'
@@ -52,10 +52,10 @@ export async function getPendingMigrations(db: OpsDb): Promise<MigrationStatus> 
 
   let appliedCount = 0
   try {
-    const rows = await (db as unknown as { execute: (q: unknown) => Promise<unknown[]> }).execute(
-      sql`SELECT hash, created_at FROM "__drizzle_migrations" ORDER BY created_at`,
-    )
-    appliedCount = Array.isArray(rows) ? rows.length : 0
+    const result = await (
+      db as unknown as { execute: (q: unknown) => Promise<{ rows: unknown[] }> }
+    ).execute(sql`SELECT hash, created_at FROM "__drizzle_migrations" ORDER BY created_at`)
+    appliedCount = Array.isArray(result.rows) ? result.rows.length : 0
   } catch {
     // Table doesn't exist yet (completely fresh DB)
     appliedCount = 0
@@ -88,10 +88,10 @@ function getLastAutoBackup(): MigrationStatus['lastAutoBackup'] {
 
   const first = files[0]
   if (!first) return null
-  const path = join(dir, first)
+  const fullPath = join(dir, first)
   try {
-    const stat = statSync(path)
-    return { path, createdAt: stat.mtime.toISOString() }
+    const stat = statSync(fullPath)
+    return { filename: basename(fullPath), createdAt: stat.mtime.toISOString() }
   } catch {
     return null
   }

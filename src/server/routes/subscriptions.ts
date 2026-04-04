@@ -261,11 +261,9 @@ export function subscriptionRoutes(deps: AppDependencies) {
         scoringWeightPreset: 'default',
       }))
 
-    Promise.resolve()
-      .then(() => deps.runSubscription(subscription.id))
-      .catch((err: unknown) => {
-        console.error('Spotify liked songs import failed:', err)
-      })
+    deps.runSubscription(subscription.id).catch((err: unknown) => {
+      console.error('Spotify liked songs import failed:', err)
+    })
 
     return c.json(
       {
@@ -315,11 +313,9 @@ export function subscriptionRoutes(deps: AppDependencies) {
       scoringWeightPreset: 'default',
     })
 
-    Promise.resolve()
-      .then(() => deps.runSubscription(subscription.id))
-      .catch((err: unknown) => {
-        console.error('CSV import failed:', err)
-      })
+    deps.runSubscription(subscription.id).catch((err: unknown) => {
+      console.error('CSV import failed:', err)
+    })
 
     const truncated = artists.length >= 500
     return c.json(
@@ -375,11 +371,9 @@ export function subscriptionRoutes(deps: AppDependencies) {
         scoringWeightPreset: 'default',
       }))
 
-    Promise.resolve()
-      .then(() => deps.runSubscription(subscription.id))
-      .catch((err: unknown) => {
-        console.error('Spotify playlist import failed:', err)
-      })
+    deps.runSubscription(subscription.id).catch((err: unknown) => {
+      console.error('Spotify playlist import failed:', err)
+    })
 
     return c.json(
       {
@@ -515,12 +509,9 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Forbidden' }, 403)
     }
 
-    // Fire-and-forget
-    Promise.resolve()
-      .then(() => deps.runSubscription(id))
-      .catch((err: unknown) => {
-        console.error(`Manual subscription run failed (id=${id}):`, err)
-      })
+    deps.runSubscription(id).catch((err: unknown) => {
+      console.error(`Manual subscription run failed (id=${id}):`, err)
+    })
 
     return c.json({ message: 'Subscription run started' }, 202)
   })

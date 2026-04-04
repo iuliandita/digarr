@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { getTableColumns } from 'drizzle-orm'
 import {
   getKeyFingerprint,
   SENSITIVE_OAUTH,
@@ -135,6 +136,16 @@ const RESTORE_ORDER: {
   { key: 'playlistTracks', table: playlistTracks },
 ]
 
+// biome-ignore lint/suspicious/noExplicitAny: drizzle table type is opaque
+function filterToSchemaColumns(table: any, row: Record<string, unknown>): Record<string, unknown> {
+  const allowed = new Set(Object.keys(getTableColumns(table)))
+  const filtered: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(row)) {
+    if (allowed.has(key)) filtered[key] = value
+  }
+  return filtered
+}
+
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
   const currentFp = getKeyFingerprint()
   const backupFp = backup.encryptionKeyHash
@@ -184,10 +195,11 @@ export async function restoreBackup(
 
     try {
       for (const row of rows) {
+        const safeRow = filterToSchemaColumns(table, row)
         // biome-ignore lint/suspicious/noExplicitAny: drizzle insert builder type is opaque
-        await (db.insert(table).values(row as never) as any).onConflictDoUpdate({
+        await (db.insert(table).values(safeRow as never) as any).onConflictDoUpdate({
           target: table.id ?? table.mbid ?? table.slug ?? table.nameNormalized ?? table.token,
-          set: row,
+          set: safeRow,
         })
       }
       tablesRestored[key] = rows.length
