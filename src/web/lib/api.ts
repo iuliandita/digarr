@@ -738,3 +738,57 @@ export const getArtistTopTracks = (artistId: number) =>
   fetchApi<{ tracks: Array<{ name: string; previewUrl?: string; durationMs?: number }> }>(
     `/artists/${artistId}/top-tracks`,
   )
+
+// ── Admin: Backup & Restore ────────────────────
+
+export async function downloadBackup(includeCaches = false): Promise<void> {
+  const token = getStoredToken()
+  const qs = includeCaches ? '?includeCaches=true' : ''
+  const res = await fetch(`${BASE}/admin/backup${qs}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => ({})))
+  await downloadResponseBlob(res, 'digarr-backup.json')
+}
+
+export const restoreBackupApi = async (file: File, force = false) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const qs = force ? '?force=true' : ''
+  return fetchApi<{
+    tablesRestored: Record<string, number>
+    warnings: string[]
+    encryptionMismatch: boolean
+    affectedEncryptedFields: string[]
+  }>(`/admin/restore${qs}`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export const getLastAutoBackup = () =>
+  fetchApi<{ lastAutoBackup: { path: string; createdAt: string } | null }>('/admin/backup/last')
+
+// ── Admin: Migrations ──────────────────────────
+
+export const getPendingMigrations = () =>
+  fetchApi<{
+    currentVersion: string | null
+    targetVersion: string | null
+    pendingCount: number
+    pendingMigrations: string[]
+    lastAutoBackup: { path: string; createdAt: string } | null
+  }>('/admin/migrations/pending')
+
+// ── Admin: Hygiene ─────────────────────────────
+
+export const runHygieneTool = (tool: string, params?: Record<string, string>) => {
+  const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
+  return fetchApi<Record<string, unknown>>(`/admin/hygiene/${tool}${qs}`, { method: 'POST' })
+}
+
+export const getAiAuditResults = () =>
+  fetchApi<{ flaggedIds: number[]; fixedIds: number[]; inProgress: boolean }>(
+    '/admin/hygiene/ai-audit/results',
+  )
