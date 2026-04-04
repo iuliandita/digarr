@@ -270,7 +270,14 @@ export function createApp(deps: AppDependencies) {
   app.use('/api/analytics/*', adminGuard(deps.getUserById))
   app.use('/api/library/*', adminGuard(deps.getUserById))
 
-  app.route('/', adminRoutes({ db: deps.db }))
+  app.route(
+    '/',
+    adminRoutes({
+      db: deps.db,
+      getUserById: deps.getUserById,
+      getSettings: deps.getSettings,
+    }),
+  )
   app.route('/', analyticsRoutes(deps))
   app.route('/', artistRoutes(deps))
   app.route('/', lidarrRoutes(deps))
