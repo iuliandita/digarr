@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
+import { AdministrationTab } from '../components/admin/administration-tab'
 import { Field } from '../components/field'
 import { Hint } from '../components/hint'
 import { ServiceCard } from '../components/service-card'
@@ -81,7 +82,15 @@ type Settings = {
   _lastfmScope?: 'user' | 'global'
 }
 
-type Tab = 'connections' | 'targets' | 'recommendations' | 'schedule' | 'account' | 'auth' | 'users'
+type Tab =
+  | 'connections'
+  | 'targets'
+  | 'recommendations'
+  | 'schedule'
+  | 'account'
+  | 'auth'
+  | 'users'
+  | 'administration'
 
 function TabBar({
   active,
@@ -100,6 +109,7 @@ function TabBar({
     { id: 'account', label: 'Account' },
     { id: 'auth', label: 'Authentication', adminOnly: true },
     { id: 'users', label: 'Users', adminOnly: true },
+    { id: 'administration', label: 'Administration', adminOnly: true },
   ]
   const tabs = allTabs.filter((t) => !t.adminOnly || isAdmin)
   return (
@@ -2238,6 +2248,7 @@ export function SettingsPage() {
       {tab === 'account' && <AccountTab />}
       {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
       {tab === 'users' && <UserManagementPage />}
+      {tab === 'administration' && <AdministrationTab />}
     </div>
   )
 }
