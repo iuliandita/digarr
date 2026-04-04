@@ -40,7 +40,13 @@ export function createHttpClient(config: HttpClientConfig) {
         clearTimeout(timer)
 
         if (res.ok) {
-          return (await res.json()) as T
+          const text = await res.text()
+          if (!text) return undefined as T
+          try {
+            return JSON.parse(text) as T
+          } catch {
+            throw new HttpError(res.status, `Invalid JSON: ${text.slice(0, 200)}`, url)
+          }
         }
 
         if (res.status >= 500 && attempt < retries) {

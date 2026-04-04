@@ -136,25 +136,32 @@ function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
 
 function makeMockUpsertDb(): OpsDb & { insertCalls: Record<string, unknown[][]> } {
   const insertCalls: Record<string, unknown[][]> = {}
-  return {
+  const insertFn = vi.fn().mockImplementation((table: unknown) => {
+    const name = getTableName(table as Parameters<typeof getTableName>[0])
+    return {
+      values: vi.fn().mockImplementation((rows: unknown[]) => {
+        if (!insertCalls[name]) insertCalls[name] = []
+        insertCalls[name].push(Array.isArray(rows) ? rows : [rows])
+        return {
+          onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+          onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+        }
+      }),
+    }
+  })
+  const selectFn = vi.fn().mockReturnValue({
+    from: vi.fn().mockResolvedValue([]),
+  })
+  const db = {
     insertCalls,
-    insert: vi.fn().mockImplementation((table: unknown) => {
-      const name = getTableName(table as Parameters<typeof getTableName>[0])
-      return {
-        values: vi.fn().mockImplementation((rows: unknown[]) => {
-          if (!insertCalls[name]) insertCalls[name] = []
-          insertCalls[name].push(Array.isArray(rows) ? rows : [rows])
-          return {
-            onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
-            onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
-          }
-        }),
-      }
+    insert: insertFn,
+    select: selectFn,
+    // Restore wraps everything in a transaction -- call the callback with `this`
+    transaction: vi.fn().mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
+      await cb(db)
     }),
-    select: vi.fn().mockReturnValue({
-      from: vi.fn().mockResolvedValue([]),
-    }),
-  } as unknown as OpsDb & { insertCalls: Record<string, unknown[][]> }
+  }
+  return db as unknown as OpsDb & { insertCalls: Record<string, unknown[][]> }
 }
 
 describe('restoreBackup', () => {

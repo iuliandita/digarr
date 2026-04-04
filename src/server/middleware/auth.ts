@@ -58,12 +58,15 @@ export function authGuard(hasUsers: () => Promise<boolean>) {
       }
     }
 
-    // Fall back to legacy DIGARR_AUTH_TOKEN (no userId, no admin, no per-user features)
+    // Fall back to legacy DIGARR_AUTH_TOKEN (read-only, first user, no admin)
     const legacyToken = envConfig.authToken
     if (legacyToken && provided && safeCompare(provided, legacyToken)) {
       console.warn(
         `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} -- no admin access, no per-user features. Migrate to user sessions.`,
       )
+      // Assign userId=1 (first user) so downstream queries scope correctly
+      // instead of matching NULL userId records
+      c.set('userId', 1)
       return next()
     }
 

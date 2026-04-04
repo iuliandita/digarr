@@ -171,6 +171,11 @@ export function createApp(deps: AppDependencies) {
   // Log all requests first -- before auth/cors so we capture everything
   app.use('*', requestLogger())
 
+  if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
+    console.warn(
+      'ALLOWED_ORIGIN is not set in production -- CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
+    )
+  }
   app.use(
     '*',
     cors({
@@ -258,6 +263,12 @@ export function createApp(deps: AppDependencies) {
   app.use('/api/auth/login', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'auth' }))
   app.use('/api/auth/register', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'reg' }))
   app.use('/api/auth/change-password', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'chpw' }))
+  // Rate limit AI-consuming endpoints to prevent API budget exhaustion
+  app.use('/api/mood/discover', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'mood' }))
+  app.use(
+    '/api/pipeline/quick-discover',
+    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
+  )
   app.route('/', authRoutes(deps))
   app.route('/', oauthRoutes(deps))
   app.route('/', healthRoutes({ db: deps.db }))

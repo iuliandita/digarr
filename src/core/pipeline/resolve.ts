@@ -237,21 +237,27 @@ async function fetchArtistImage(
         const extracted = extractImages(artist.images)
         if (extracted.url) return { ...extracted, failed: false }
       }
-    } catch {}
+    } catch (err) {
+      console.warn(`[resolve] Lidarr image lookup failed for ${mbid}:`, err)
+    }
   }
 
   if (fanart) {
     try {
       const result = await fanart.getArtistImages(mbid)
       if (result.url) return { ...result, failed: false }
-    } catch {}
+    } catch (err) {
+      console.warn(`[resolve] fanart.tv image lookup failed for ${mbid}:`, err)
+    }
   }
 
   if (musicinfo) {
     try {
       const result = await musicinfo.lookupArtistImages(mbid)
       if (result.url) return { ...result, failed: false }
-    } catch {}
+    } catch (err) {
+      console.warn(`[resolve] musicinfo image lookup failed for ${mbid}:`, err)
+    }
   }
 
   return { failed: Boolean(lidarr ?? fanart ?? musicinfo) }

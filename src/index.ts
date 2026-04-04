@@ -137,6 +137,10 @@ import { createApp } from './server'
 initEncryption(envConfig.encryptionKey)
 if (isEncryptionEnabled()) {
   console.log('Field-level encryption enabled')
+} else if (process.env.NODE_ENV === 'production') {
+  console.warn(
+    'WARNING: DIGARR_ENCRYPTION_KEY is not set -- API keys and tokens are stored as plaintext in the database. Set this variable for production security.',
+  )
 } else {
   console.log('Field-level encryption disabled (set DIGARR_ENCRYPTION_KEY to enable)')
 }
@@ -955,15 +959,37 @@ if (!envConfig.authToken && !envConfig.initialUsername) {
   )
 }
 
-// Graceful shutdown
+// Graceful shutdown -- wait for in-flight pipeline runs before exiting
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, async () => {
     console.log(`${signal} received, shutting down...`)
     scheduler.stopAll()
     playlistScheduler.stopAll()
     server.close()
-    await new Promise((resolve) => setTimeout(resolve, 5000))
+    // Hard deadline: exit no matter what after 30s
+    const deadline = setTimeout(() => {
+      console.warn('Shutdown deadline exceeded, forcing exit')
+      process.exit(1)
+    }, 30_000)
+    deadline.unref()
+    // Wait for pipeline to finish if running (up to 25s)
+    if (orchestrator.isRunning) {
+      console.log('Waiting for pipeline to finish...')
+      await new Promise<void>((resolve) => {
+        const check = setInterval(() => {
+          if (!orchestrator.isRunning) {
+            clearInterval(check)
+            resolve()
+          }
+        }, 500)
+        setTimeout(() => {
+          clearInterval(check)
+          resolve()
+        }, 25_000)
+      })
+    }
     await pool.end()
+    clearTimeout(deadline)
     process.exit(0)
   })
 }

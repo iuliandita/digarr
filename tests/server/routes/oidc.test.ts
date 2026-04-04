@@ -6,6 +6,14 @@ import type { OidcService } from '@/core/auth/oidc'
 import { clearAllSessions } from '@/core/sessions'
 import { oidcRoutes } from '@/server/routes/oidc'
 
+vi.mock('@/config/env', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/config/env')>()
+  return {
+    ...original,
+    envConfig: { ...original.envConfig, allowedOrigin: 'http://localhost:3000' },
+  }
+})
+
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'mock-session-token-123'),
   hashPassword: vi.fn(() => 'mocked-hash'),
@@ -90,9 +98,8 @@ describe('GET /api/auth/oidc/login', () => {
     expect(res.headers.get('Location')).toBe(
       'https://idp.example.com/authorize?state=abc&code_challenge=xyz',
     )
-    // Hono's test client uses localhost with a dynamic port
     expect(deps.mockOidcService.getAuthorizationUrl).toHaveBeenCalledWith(
-      expect.stringContaining('/api/auth/oidc/callback'),
+      'http://localhost:3000/api/auth/oidc/callback',
     )
   })
 })

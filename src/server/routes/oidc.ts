@@ -21,15 +21,10 @@ type OidcRouteDeps = {
   updateUser: (id: number, data: { oidcSubject?: string; email?: string }) => Promise<void>
 }
 
-function buildRedirectUri(c: { req: { header: (name: string) => string | undefined } }): string {
-  // Prefer configured ALLOWED_ORIGIN to prevent Host header spoofing (CWE-601)
-  if (envConfig.allowedOrigin) {
-    return `${envConfig.allowedOrigin}/api/auth/oidc/callback`
-  }
-  // Fallback to headers only for development / unconfigured instances
-  const protocol = c.req.header('X-Forwarded-Proto') ?? 'http'
-  const host = c.req.header('Host') ?? 'localhost:3000'
-  return `${protocol}://${host}/api/auth/oidc/callback`
+function buildRedirectUri(): string | null {
+  // Require ALLOWED_ORIGIN for OIDC to prevent Host header spoofing (CWE-601)
+  if (!envConfig.allowedOrigin) return null
+  return `${envConfig.allowedOrigin}/api/auth/oidc/callback`
 }
 
 export function oidcRoutes(deps: OidcRouteDeps) {
@@ -38,7 +33,9 @@ export function oidcRoutes(deps: OidcRouteDeps) {
   router.get('/api/auth/oidc/login', async (c) => {
     const oidcService = await deps.getOidcService()
     if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
-    const redirectUri = buildRedirectUri(c)
+    const redirectUri = buildRedirectUri()
+    if (!redirectUri)
+      return c.json({ error: 'ALLOWED_ORIGIN must be set when OIDC is enabled' }, 500)
     const { url } = await oidcService.getAuthorizationUrl(redirectUri)
     return c.redirect(url)
   })
@@ -48,9 +45,10 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       const oidcService = await deps.getOidcService()
       if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
 
+      if (!envConfig.allowedOrigin) {
+        return c.redirect('/#oidc_error=ALLOWED_ORIGIN+must+be+set+when+OIDC+is+enabled')
+      }
       const baseUrl = envConfig.allowedOrigin
-        ? envConfig.allowedOrigin
-        : `${c.req.header('X-Forwarded-Proto') ?? 'http'}://${c.req.header('Host') ?? 'localhost:3000'}`
 
       const reqUrl = new URL(c.req.url)
       const callbackUrl = new URL(`${baseUrl}${reqUrl.pathname}${reqUrl.search}`)

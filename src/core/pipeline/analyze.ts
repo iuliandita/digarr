@@ -9,7 +9,7 @@ export async function analyze(sources: DiscoverySource[]): Promise<TasteProfile>
   await Promise.all(
     sources.map(async (source) => {
       const artists = await source.getTopArtists()
-      allArtists.push(...artists)
+      for (const a of artists) allArtists.push(a)
 
       if (source.getListeningActivity) {
         const activity = await source.getListeningActivity()

@@ -193,27 +193,41 @@ export async function restoreBackup(
     }
   }
 
+  // Use natural keys for upsert conflict targets where available.
+  // Serial IDs are unstable across database instances.
+  const CONFLICT_TARGETS: Partial<Record<keyof BackupFile['data'], unknown>> = {
+    settings: settings.id,
+    artists: artists.mbid,
+    genres: genres.slug,
+    artistMetadata: artistMetadata.nameNormalized,
+  }
+
   const tablesRestored: Record<string, number> = {}
   const warnings: string[] = []
 
-  for (const { key, table } of RESTORE_ORDER) {
-    const rows = backup.data[key]
-    if (!rows || !Array.isArray(rows) || rows.length === 0) continue
+  // Wrap in a transaction so partial failures roll back cleanly
+  try {
+    // biome-ignore lint/suspicious/noExplicitAny: drizzle transaction type
+    await (db as any).transaction(async (tx: OpsDb) => {
+      for (const { key, table } of RESTORE_ORDER) {
+        const rows = backup.data[key]
+        if (!rows || !Array.isArray(rows) || rows.length === 0) continue
 
-    try {
-      for (const row of rows) {
-        const safeRow = filterToSchemaColumns(table, row)
-        // biome-ignore lint/suspicious/noExplicitAny: drizzle insert builder type is opaque
-        await (db.insert(table).values(safeRow as never) as any).onConflictDoUpdate({
-          target: table.id ?? table.mbid ?? table.slug ?? table.nameNormalized ?? table.token,
-          set: safeRow,
-        })
+        const conflictTarget = CONFLICT_TARGETS[key] ?? table.id
+        for (const row of rows) {
+          const safeRow = filterToSchemaColumns(table, row)
+          // biome-ignore lint/suspicious/noExplicitAny: drizzle insert builder type is opaque
+          await (tx.insert(table).values(safeRow as never) as any).onConflictDoUpdate({
+            target: conflictTarget,
+            set: safeRow,
+          })
+        }
+        tablesRestored[key] = rows.length
       }
-      tablesRestored[key] = rows.length
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      warnings.push(`Failed to restore ${key}: ${msg}`)
-    }
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    warnings.push(`Restore failed (rolled back): ${msg}`)
   }
 
   return {

@@ -1,5 +1,27 @@
 import type { ResolvedArtist, ScoredArtist } from '@/core/types'
-import type { Preferences } from '@/db/schema'
+import type { Preferences, ScoringWeights } from '@/db/schema'
+
+/** Compute a weighted composite score, clamped to [0, 1]. */
+export function computeWeightedScore(
+  weights: ScoringWeights,
+  components: {
+    consensus: number
+    similarity: number
+    genreOverlap: number
+    aiConfidence: number
+    feedbackBoost: number
+    popularity: number
+  },
+): number {
+  const raw =
+    weights.consensus * components.consensus +
+    weights.similarity * components.similarity +
+    weights.genreOverlap * components.genreOverlap +
+    weights.aiConfidence * components.aiConfidence +
+    weights.feedbackBoost * components.feedbackBoost +
+    (weights.popularity ?? 0) * components.popularity
+  return Math.max(0, Math.min(1, raw))
+}
 
 export function score(
   artists: ResolvedArtist[],
@@ -9,7 +31,6 @@ export function score(
   popularityMap?: Map<string, number>,
 ): ScoredArtist[] {
   const libraryGenreSet = new Set(libraryGenres.map((g) => g.toLowerCase()))
-  const popularityWeight = weights.popularity ?? 0
 
   const scored = artists.map((artist): ScoredArtist => {
     // How many distinct sources found this artist (capped at 1.0, max 4 sources)
@@ -49,14 +70,15 @@ export function score(
     // Popularity: normalized 0-1 from artist_metadata, 0 if not found
     const popularity = popularityMap?.get(artist.name.trim().toLowerCase()) ?? 0
 
-    // Weighted composite score
-    const finalScore =
-      weights.consensus * consensus +
-      weights.similarity * similarity +
-      weights.genreOverlap * genreOverlap +
-      weights.aiConfidence * aiConfidence +
-      weights.feedbackBoost * feedbackBoost +
-      popularityWeight * popularity
+    // Weighted composite score (clamped to [0, 1])
+    const finalScore = computeWeightedScore(weights, {
+      consensus,
+      similarity,
+      genreOverlap,
+      aiConfidence,
+      feedbackBoost,
+      popularity,
+    })
 
     // AI reasoning from first AI discovery
     const aiDiscovery = artist.discoveries.find((d) => d.source === 'ai')

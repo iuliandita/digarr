@@ -1,4 +1,6 @@
 import { and, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm'
+import { computeWeightedScore } from '@/core/pipeline/score'
+import type { ScoringWeights } from '@/db/schema'
 import { artistMetadata, artists, genres, recommendations, sessions } from '@/db/schema'
 import type { AiAuditResult, AiAuditStatus, HygieneResult, OpsDb } from './types'
 
@@ -147,15 +149,6 @@ export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
 
 // ── Rescore Recommendations ─────────────────────
 
-interface ScoringWeights {
-  consensus: number
-  similarity: number
-  genreOverlap: number
-  aiConfidence: number
-  feedbackBoost: number
-  popularity: number
-}
-
 function computeGenreOverlap(artistGenres: string[], libraryGenres: string[]): number {
   if (artistGenres.length === 0 || libraryGenres.length === 0) return 0
   const libSet = new Set(libraryGenres.map((g) => g.toLowerCase()))
@@ -172,22 +165,14 @@ function rescoreOne(
   const sourceKeys = Object.keys(sources)
   const sourceValues = Object.values(sources)
 
-  const consensus = Math.min(sourceKeys.length / 3, 1)
-  const similarity = sourceValues.length > 0 ? Math.max(...sourceValues) : 0
-  const genreOverlap = computeGenreOverlap(artistGenres, libraryGenres)
-  const aiConfidence = sources.ai ?? 0
-  const feedbackBoost = 0
-  const popularity = 0
-
-  const score =
-    weights.consensus * consensus +
-    weights.similarity * similarity +
-    weights.genreOverlap * genreOverlap +
-    weights.aiConfidence * aiConfidence +
-    weights.feedbackBoost * feedbackBoost +
-    weights.popularity * popularity
-
-  return Math.max(0, Math.min(1, score))
+  return computeWeightedScore(weights, {
+    consensus: Math.min(sourceKeys.length / 3, 1),
+    similarity: sourceValues.length > 0 ? Math.max(...sourceValues) : 0,
+    genreOverlap: computeGenreOverlap(artistGenres, libraryGenres),
+    aiConfidence: sources.ai ?? 0,
+    feedbackBoost: 0,
+    popularity: 0,
+  })
 }
 
 export async function rescoreRecommendations(
@@ -241,6 +226,12 @@ export async function aiReasoningAudit(
     generateReasoning: (artistName: string, genres: string[]) => Promise<string>
   },
 ): Promise<AiAuditResult> {
+  // Lock immediately to prevent concurrent audits (TOCTOU fix)
+  if (auditState.inProgress) {
+    return { scanned: 0, flagged: 0, flaggedIds: [], autoFixStarted: false }
+  }
+  auditState = { flaggedIds: [], fixedIds: [], inProgress: true }
+
   // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
   const recs = await (db as any)
     .select({
@@ -269,10 +260,6 @@ export async function aiReasoningAudit(
     if (!namePresent && !genreOverlap) {
       flaggedIds.push(rec.recId as number)
     }
-  }
-
-  if (auditState.inProgress) {
-    return { scanned: 0, flagged: 0, flaggedIds: [], autoFixStarted: false }
   }
 
   const autoFixStarted = !!(autoFix?.enabled && flaggedIds.length > 0)

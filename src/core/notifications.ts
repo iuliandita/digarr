@@ -80,14 +80,18 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
     return
   }
 
-  // DNS rebinding mitigation: verify the resolved IP is also not private
+  // DNS rebinding mitigation: resolve hostname, verify the IP, then fetch using
+  // the resolved IP directly to prevent TOCTOU rebinding attacks
+  let resolvedAddress: string
+  let parsedUrl: URL
   try {
-    const hostname = new URL(url).hostname
-    const { address } = await lookup(hostname)
+    parsedUrl = new URL(url)
+    const { address } = await lookup(parsedUrl.hostname)
     if (isPrivateIp(address)) {
       console.error('Webhook URL resolves to a private/internal IP address')
       return
     }
+    resolvedAddress = address
   } catch {
     console.error('Webhook URL hostname resolution failed')
     return
@@ -99,10 +103,21 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
   const safeUrl = url.replace(/:\/\/[^@]*@/, '://***@')
   const body = isDiscordWebhook(url) ? formatDiscordPayload(payload) : payload
 
+  // Pin the resolved IP to prevent DNS rebinding between check and use.
+  // For HTTPS this only works when the server accepts the IP directly;
+  // most webhook targets (Discord, Slack) use SNI so we keep the original URL
+  // for https:// and only pin for http://.
+  const fetchUrl =
+    parsedUrl.protocol === 'http:' ? url.replace(parsedUrl.hostname, resolvedAddress) : url
+  const fetchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (parsedUrl.protocol === 'http:' && resolvedAddress !== parsedUrl.hostname) {
+    fetchHeaders.Host = parsedUrl.hostname
+  }
+
   try {
-    const res = await fetch(url, {
+    const res = await fetch(fetchUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: fetchHeaders,
       body: JSON.stringify(body),
       signal: controller.signal,
       redirect: 'manual',
