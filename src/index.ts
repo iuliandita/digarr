@@ -11,6 +11,7 @@ import { createLidarrClient } from './core/clients/lidarr'
 import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
+import { runPreFlightCheck } from './core/ops/upgrade'
 import { GenreService } from './core/genre/service'
 import { LibraryHealthService } from './core/library/health'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
@@ -139,6 +140,9 @@ if (isEncryptionEnabled()) {
 } else {
   console.log('Field-level encryption disabled (set DIGARR_ENCRYPTION_KEY to enable)')
 }
+
+// Pre-flight check: detect pending migrations and auto-backup if needed.
+await runPreFlightCheck(db)
 
 // Run pending database migrations before anything else.
 // Uses drizzle-orm's programmatic migrator -- safe to run every boot (idempotent).

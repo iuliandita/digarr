@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
+import { getPendingMigrations } from '@/core/ops/upgrade'
 import type { HonoEnv } from '@/server/types'
 
 export interface AdminDeps {
@@ -68,9 +69,16 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  // GET /api/admin/backup/last -- last auto-backup metadata (stub, implemented in Task 6)
+  // GET /api/admin/backup/last -- last auto-backup metadata
   router.get('/api/admin/backup/last', async (c) => {
-    return c.json({ lastAutoBackup: null })
+    const status = await getPendingMigrations(deps.db)
+    return c.json({ lastAutoBackup: status.lastAutoBackup })
+  })
+
+  // GET /api/admin/migrations/pending -- pending migration status
+  router.get('/api/admin/migrations/pending', async (c) => {
+    const status = await getPendingMigrations(deps.db)
+    return c.json(status)
   })
 
   return router

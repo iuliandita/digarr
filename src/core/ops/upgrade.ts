@@ -65,8 +65,8 @@ export async function getPendingMigrations(db: OpsDb): Promise<MigrationStatus> 
   const pendingEntries = allEntries.slice(appliedCount)
 
   return {
-    currentVersion: appliedCount > 0 ? allEntries[appliedCount - 1].tag : null,
-    targetVersion: allEntries.length > 0 ? allEntries[allEntries.length - 1].tag : null,
+    currentVersion: appliedCount > 0 ? (allEntries[appliedCount - 1]?.tag ?? null) : null,
+    targetVersion: allEntries.length > 0 ? (allEntries[allEntries.length - 1]?.tag ?? null) : null,
     pendingCount: pendingEntries.length,
     pendingMigrations: pendingEntries.map((e) => e.tag),
     lastAutoBackup: getLastAutoBackup(),
@@ -86,8 +86,9 @@ function getLastAutoBackup(): MigrationStatus['lastAutoBackup'] {
     .sort()
     .reverse()
 
-  if (files.length === 0) return null
-  const path = join(dir, files[0])
+  const first = files[0]
+  if (!first) return null
+  const path = join(dir, first)
   try {
     const stat = statSync(path)
     return { path, createdAt: stat.mtime.toISOString() }
