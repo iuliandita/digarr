@@ -24,6 +24,17 @@ export function isEncryptionEnabled(): boolean {
   return derivedKey !== null
 }
 
+/**
+ * Returns a SHA-256 hash of the first 8 bytes of the derived encryption key.
+ * Used to detect key mismatches during backup restore without exposing the key.
+ */
+export function getKeyFingerprint(): string | null {
+  if (!derivedKey) return null
+  const slice = derivedKey.subarray(0, 8)
+  const hash = createHash('sha256').update(slice).digest('hex')
+  return `sha256:${hash}`
+}
+
 function decryptWithKey(ivStr: string, encStr: string, tagStr: string, key: Buffer): string {
   const iv = Buffer.from(ivStr, 'base64')
   const encrypted = Buffer.from(encStr, 'base64')
