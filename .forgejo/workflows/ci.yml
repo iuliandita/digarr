@@ -34,3 +34,63 @@ jobs:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
       - run: bun run build
+
+  smoke-test:
+    runs-on: docker
+    container:
+      image: oven/bun:1.3.11
+    needs: build
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: digarr_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Install git
+        run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 1
+      - run: bun install --frozen-lockfile
+      - name: Run API smoke tests
+        run: bun run test -- tests/e2e/api/
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
+
+  browser-test:
+    runs-on: docker
+    container:
+      image: oven/bun:1.3.11
+    needs: smoke-test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: digarr_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Install git
+        run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 1
+      - run: bun install --frozen-lockfile
+      - name: Install Playwright
+        run: bunx playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: bun run test:e2e
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
