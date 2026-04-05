@@ -74,6 +74,10 @@ export function pipelineRoutes(deps: AppDependencies) {
         providerRegistry: deps.providerRegistry,
         userConnections,
         autoApproveDeps,
+        jobRecorder: (deps as Record<string, unknown>).jobRecorder as
+          | import('@/core/jobs/types').JobRecorder
+          | undefined,
+        trigger: 'manual',
       } as unknown as PipelineDeps)
       .catch((err: unknown) => {
         console.error('Pipeline run failed:', err)
@@ -139,6 +143,16 @@ export function pipelineRoutes(deps: AppDependencies) {
 
     // Fire-and-forget a focused pipeline run with just this artist as seed
     ;(async () => {
+      const jobRecorder = (deps as Record<string, unknown>).jobRecorder as
+        | import('@/core/jobs/types').JobRecorder
+        | undefined
+      const jobId = jobRecorder
+        ? await jobRecorder.start({
+            type: 'quick_discover',
+            userId: quickDiscoverUserId,
+            metadata: { seedArtist: artistName },
+          })
+        : null
       try {
         const lidarrUrl = settings.lidarrUrl as string | null
         const lidarrApiKey = settings.lidarrApiKey as string | null
@@ -238,7 +252,14 @@ export function pipelineRoutes(deps: AppDependencies) {
           }
         }
 
-        if (discovered.length === 0) return
+        if (discovered.length === 0) {
+          if (jobId != null && jobRecorder) {
+            await jobRecorder.complete(jobId, {
+              metadata: { seedArtist: artistName, artistsDiscovered: 0, artistsStored: 0 },
+            })
+          }
+          return
+        }
 
         // Read per-user preferences for quick-discover, fallback to global
         const qdPreferences = await resolveUserPreferences(
@@ -266,7 +287,20 @@ export function pipelineRoutes(deps: AppDependencies) {
         if (filtered.length > 0) {
           await store(filtered, deps.storeDb, { userId: quickDiscoverUserId })
         }
+
+        if (jobId != null && jobRecorder) {
+          await jobRecorder.complete(jobId, {
+            metadata: {
+              seedArtist: artistName,
+              artistsDiscovered: discovered.length,
+              artistsStored: filtered.length,
+            },
+          })
+        }
       } catch (err: unknown) {
+        if (jobId != null && jobRecorder) {
+          await jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
+        }
         console.error('Quick discover failed:', err)
       }
     })()

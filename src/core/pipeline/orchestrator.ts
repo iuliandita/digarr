@@ -13,6 +13,7 @@ import { createPlexSource } from '@/core/plugins/plex'
 import { SourceRegistry } from '@/core/plugins/registry'
 import { createSpotifySource } from '@/core/plugins/spotify'
 import type { AiProviderRegistry } from '@/core/providers/registry'
+import { errMsg } from '@/core/validation'
 import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { analyze } from './analyze'
@@ -49,6 +50,8 @@ export interface PipelineDeps {
   providerRegistry?: AiProviderRegistry
   userConnections?: UserConnections | null
   autoApproveDeps?: AutoApproveDeps | null
+  jobRecorder?: import('@/core/jobs/types').JobRecorder
+  trigger?: 'scheduled' | 'manual'
 }
 
 export class PipelineOrchestrator extends EventEmitter {
@@ -77,10 +80,20 @@ export class PipelineOrchestrator extends EventEmitter {
     this.currentMessage = null
     this._currentUserId = deps.userId
 
+    let jobId: number | null = null
+
     try {
       const { db, settings, providerRegistry } = deps
       // Merge with defaults so partially-saved preferences don't leave fields undefined
       const prefs: Preferences = mergePreferences(settings.preferences)
+
+      jobId = deps.jobRecorder
+        ? await deps.jobRecorder.start({
+            type: 'pipeline',
+            userId: deps.userId,
+            metadata: { trigger: deps.trigger ?? 'manual' },
+          })
+        : null
 
       const lidarrClient =
         settings.lidarrUrl && settings.lidarrApiKey
@@ -202,6 +215,43 @@ export class PipelineOrchestrator extends EventEmitter {
         message: `Discovered ${discovered.length} candidate artists`,
       })
 
+      // Collect per-source results for job recording
+      const sourceResults: Record<string, import('@/core/jobs/types').SourceResult> = {}
+
+      // Mark unconfigured sources as skipped
+      const knownSourceIds = ['listenbrainz', 'lastfm', 'spotify', 'plex', 'jellyfin', 'discogs']
+      for (const id of knownSourceIds) {
+        if (!registry.all().some((s) => s.id === id)) {
+          sourceResults[id] = { status: 'skipped', reason: 'not_configured' }
+        }
+      }
+      if (!aiProvider) {
+        sourceResults.ai = { status: 'skipped', reason: 'not_configured' }
+      }
+
+      // Tally source contributions from discovered artists
+      const sourceArtistCounts = new Map<string, number>()
+      for (const d of discovered) {
+        const src = d.source ?? 'unknown'
+        sourceArtistCounts.set(src, (sourceArtistCounts.get(src) ?? 0) + 1)
+      }
+      for (const source of registry.all()) {
+        if (!sourceResults[source.id]) {
+          const count = sourceArtistCounts.get(source.id) ?? 0
+          sourceResults[source.id] =
+            count > 0
+              ? { status: 'ok', artists: count }
+              : { status: 'error', error: 'No artists returned' }
+        }
+      }
+      if (aiProvider) {
+        const aiCount = sourceArtistCounts.get('ai') ?? 0
+        sourceResults.ai =
+          aiCount > 0
+            ? { status: 'ok', artists: aiCount }
+            : { status: 'error', error: 'No artists returned' }
+      }
+
       this.emit('progress', {
         stage: 'resolve',
         message: `Resolving ${discovered.length} artists via MusicBrainz...`,
@@ -300,8 +350,25 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'complete',
         message: `Done! ${filtered.length} new recommendations found.`,
       })
+
+      if (jobId != null && deps.jobRecorder) {
+        await deps.jobRecorder.complete(jobId, {
+          metadata: {
+            trigger: deps.trigger ?? 'manual',
+            artistsDiscovered: scored.length,
+            artistsStored: filtered.length,
+            artistsFiltered: scored.length - filtered.length,
+          },
+          sourceResults,
+          batchId,
+        })
+      }
+
       return { batchId }
     } catch (err: unknown) {
+      if (jobId != null && deps.jobRecorder) {
+        await deps.jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
+      }
       this.emit('error', err)
       throw err
     } finally {
