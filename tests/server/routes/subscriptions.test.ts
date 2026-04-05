@@ -178,6 +178,23 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       getTopGenresForUser: vi.fn(async () => []),
       getRecentActivity: vi.fn(async () => []),
     },
+    jobRecorder: {
+      start: vi.fn().mockResolvedValue(1),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
+    },
+    jobQueries: {
+      listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+      getJobById: vi.fn().mockResolvedValue(null),
+      getJobHealth: vi.fn().mockResolvedValue({
+        pipeline: { status: 'ok', lastRun: null, nextRun: null },
+        subscriptions: { status: 'ok', healthy: 0, total: 0 },
+        playlists: { status: 'ok', lastRun: null },
+        sources: {},
+      }),
+      getJobsForSubscription: vi.fn().mockResolvedValue([]),
+    },
     ...overrides,
   }
 }

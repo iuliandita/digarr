@@ -45,6 +45,7 @@ import { dashboardRoutes } from './routes/dashboard'
 import { exportRoutes } from './routes/exports'
 import { genreRoutes } from './routes/genres'
 import { healthRoutes } from './routes/health'
+import { jobRoutes } from './routes/jobs'
 import { libraryRoutes } from './routes/library'
 import { lidarrRoutes } from './routes/lidarr'
 import { listeningRoutes } from './routes/listening'
@@ -156,6 +157,16 @@ export type AppDependencies = {
       isAdmin: boolean,
       limit?: number,
     ) => Promise<ActivityEntry[]>
+  }
+  // Job recording & queries
+  jobRecorder: import('@/core/jobs/types').JobRecorder
+  jobQueries: {
+    listJobs: (
+      filters?: import('@/db/queries/jobs').ListJobsFilters,
+    ) => Promise<{ items: unknown[]; total: number }>
+    getJobById: (id: number) => Promise<unknown | null>
+    getJobHealth: (nextRun: Date | null) => Promise<unknown>
+    getJobsForSubscription: (subId: number, limit?: number) => Promise<unknown[]>
   }
   // Playlist deps (optional -- omit in test environments without a DB)
   playlistDeps?: PlaylistDeps
@@ -314,6 +325,18 @@ export function createApp(deps: AppDependencies) {
   app.route('/', userRoutes(deps))
   app.route('/', targetRoutes(deps))
   app.route('/', dashboardRoutes(deps))
+  app.route(
+    '/',
+    jobRoutes({
+      getUserById: deps.getUserById,
+      jobQueries: deps.jobQueries,
+      scheduler: {
+        get nextRun() {
+          return deps.scheduler.nextRun('main-pipeline')
+        },
+      },
+    }),
+  )
   app.route('/', exportRoutes(deps))
   if (deps.playlistDeps) {
     app.route('/', playlistRoutes(deps.playlistDeps))

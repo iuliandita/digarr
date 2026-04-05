@@ -13,6 +13,7 @@ import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { GenreService } from './core/genre/service'
 import { createJobRecorder } from './core/jobs/recorder'
+import { startStuckDetector } from './core/jobs/stuck-detector'
 import { LibraryHealthService } from './core/library/health'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -72,6 +73,7 @@ import {
   searchGenres,
   upsertGenre,
 } from './db/queries/genres'
+import * as jobQueries from './db/queries/jobs'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
   getEnabledPlaylists,
@@ -132,8 +134,8 @@ import {
 } from './db/schema'
 import { createApp } from './server'
 
-// Job recording -- initialized during boot (Task 10 will fill this in)
-const jobRecorder: import('@/core/jobs/types').JobRecorder | null = null
+// Job recording -- initialized after DB setup, before createApp()
+let jobRecorder: import('./core/jobs/types').JobRecorder
 
 // Initialize encryption before any DB operations.
 initEncryption(envConfig.encryptionKey)
@@ -196,6 +198,10 @@ const storeDb: StoreDb = {
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),
 }
+
+jobRecorder = createJobRecorder(db)
+// Mark stuck jobs at startup
+jobRecorder.markStuck().catch((err) => console.error('[startup] Stuck detection failed:', err))
 
 const orchestrator = new PipelineOrchestrator()
 const scheduler = new SubscriptionScheduler()
@@ -500,13 +506,11 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
   const playlist = result.playlist
 
   try {
-    if (jobRecorder) {
-      jobId = await jobRecorder.start({
-        type: 'playlist',
-        userId: playlist.userId ?? undefined,
-        metadata: { playlistName: playlist.name, strategy: playlist.strategy },
-      })
-    }
+    jobId = await jobRecorder.start({
+      type: 'playlist',
+      userId: playlist.userId ?? undefined,
+      metadata: { playlistName: playlist.name, strategy: playlist.strategy },
+    })
 
     const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
     const resolverDeps = await buildPlaylistResolverDeps(playlist.userId ?? null)
@@ -595,7 +599,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
       `[playlist-scheduler] Playlist '${playlist.name}' (id=${playlist.id}): ${generation.tracks.length} tracks`,
     )
 
-    if (jobId != null && jobRecorder) {
+    if (jobId != null) {
       await jobRecorder.complete(jobId, {
         metadata: {
           playlistName: playlist.name,
@@ -605,7 +609,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
       })
     }
   } catch (err: unknown) {
-    if (jobId != null && jobRecorder) {
+    if (jobId != null) {
       await jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
     }
     throw err
@@ -761,6 +765,13 @@ const app = createApp({
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),
+  },
+  jobRecorder,
+  jobQueries: {
+    listJobs: (filters) => jobQueries.listJobs(db, filters),
+    getJobById: (id) => jobQueries.getJobById(db, id),
+    getJobHealth: (nextRun) => jobQueries.getJobHealth(db, nextRun),
+    getJobsForSubscription: (subId, limit) => jobQueries.getJobsForSubscription(db, subId, limit),
   },
   getEnabledTargetsForUser: async (userId) => {
     const rows = await getTargetsByUser(db, userId)
@@ -946,6 +957,9 @@ const server = serve({ fetch: app.fetch, port })
     }
 
     await restartPlaylistScheduler()
+
+    // Start stuck job detector
+    startStuckDetector(jobRecorder)
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }
