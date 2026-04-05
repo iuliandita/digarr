@@ -149,16 +149,18 @@ export const recommendations = pgTable('recommendations', {
   actedOnAt: timestamp('acted_on_at', { withTimezone: true }),
 })
 
-export const subscriptionRuns = pgTable('subscription_runs', {
+export const jobRuns = pgTable('job_runs', {
   id: serial('id').primaryKey(),
-  subscriptionId: integer('subscription_id')
-    .notNull()
-    .references(() => subscriptions.id),
+  type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
+  status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
+  userId: integer('user_id').references(() => users.id),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
-  artistsFound: integer('artists_found').default(0),
-  artistsNew: integer('artists_new').default(0),
+  durationMs: integer('duration_ms'),
   error: text('error'),
+  metadata: jsonb('metadata').notNull().default({}),
+  sourceResults: jsonb('source_results'),
+  subscriptionId: integer('subscription_id').references(() => subscriptions.id),
   batchId: integer('batch_id').references(() => recommendationBatches.id),
 })
 
