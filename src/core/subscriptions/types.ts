@@ -42,33 +42,6 @@ export type SubscriptionConfig = {
   scoringWeightOverrides: Record<string, number> | null
 }
 
-/** Run record shape returned from insertRun (mirrors subscriptionRuns.$inferSelect). */
-export type SubscriptionRunRow = {
-  id: number
-  subscriptionId: number
-  startedAt: Date
-  completedAt: Date | null
-  artistsFound: number | null
-  artistsNew: number | null
-  error: string | null
-  batchId: number | null
-}
-
-/** Data needed to create a run record. */
-export type RunInsert = {
-  subscriptionId: number
-  batchId?: number | null
-}
-
-/** Data needed to complete a run record. */
-export type RunComplete = {
-  completedAt: Date
-  artistsFound?: number
-  artistsNew?: number
-  error?: string | null
-  batchId?: number | null
-}
-
 /** Data for updating subscription metadata after a run. */
 export type SubscriptionUpdate = {
   lastRunAt?: Date | null
@@ -106,6 +79,7 @@ export type SubscriptionRunDeps = {
   mbClient: MusicBrainzClient
   lidarr?: LidarrLookupClient
   userId?: number
+  jobRecorder: import('@/core/jobs/types').JobRecorder
   // Pipeline context
   libraryMbids: Set<string>
   libraryGenres: string[]
@@ -119,8 +93,6 @@ export type SubscriptionRunDeps = {
 
 /** DB query interface for the subscription runner. */
 export interface SubscriptionQueries {
-  insertRun(data: RunInsert): Promise<SubscriptionRunRow>
-  completeRun(id: number, data: RunComplete): Promise<void>
   updateSubscription(id: number, data: SubscriptionUpdate): Promise<void>
 }
 

@@ -48,18 +48,13 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
       getFeedbackHistory: vi.fn().mockResolvedValue(new Map()),
     },
     queries: {
-      insertRun: vi.fn().mockResolvedValue({
-        id: 10,
-        subscriptionId: 1,
-        startedAt: new Date(),
-        completedAt: null,
-        artistsFound: null,
-        artistsNew: null,
-        error: null,
-        batchId: null,
-      }),
-      completeRun: vi.fn().mockResolvedValue(undefined),
       updateSubscription: vi.fn().mockResolvedValue(undefined),
+    },
+    jobRecorder: {
+      start: vi.fn().mockResolvedValue(10),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
     },
     mbClient: {
       lookupArtist: vi.fn().mockResolvedValue({}),
@@ -102,14 +97,16 @@ describe('runSubscription', () => {
     expect(fetchFn).toHaveBeenCalledWith({ foo: 'bar' }, { limit: 15 })
   })
 
-  it('inserts a run record before fetching', async () => {
+  it('starts a job record before fetching', async () => {
     const subscription = makeSubscription()
     const deps = makeDeps()
     const adapter = makeAdapter()
 
     await runSubscription(subscription, adapter, deps)
 
-    expect(deps.queries.insertRun).toHaveBeenCalledWith({ subscriptionId: 1 })
+    expect(deps.jobRecorder.start).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'subscription', subscriptionId: 1 }),
+    )
   })
 
   it('completes empty when adapter returns no artists', async () => {
@@ -120,9 +117,11 @@ describe('runSubscription', () => {
     const result = await runSubscription(subscription, adapter, deps)
 
     expect(resolveMock).not.toHaveBeenCalled()
-    expect(deps.queries.completeRun).toHaveBeenCalledWith(
+    expect(deps.jobRecorder.complete).toHaveBeenCalledWith(
       10,
-      expect.objectContaining({ artistsFound: 0, artistsNew: 0 }),
+      expect.objectContaining({
+        metadata: expect.objectContaining({ artistsFound: 0, artistsNew: 0 }),
+      }),
     )
     expect(result.artistsFound).toBe(0)
     expect(result.artistsNew).toBe(0)
@@ -211,10 +210,7 @@ describe('runSubscription', () => {
 
     await expect(runSubscription(subscription, adapter, deps)).rejects.toThrow('adapter exploded')
 
-    expect(deps.queries.completeRun).toHaveBeenCalledWith(
-      10,
-      expect.objectContaining({ error: 'adapter exploded' }),
-    )
+    expect(deps.jobRecorder.fail).toHaveBeenCalledWith(10, 'adapter exploded')
     expect(deps.queries.updateSubscription).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ lastError: 'adapter exploded' }),

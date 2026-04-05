@@ -23,10 +23,9 @@ import type {
 } from '@/db/queries/recommendations'
 import type { SettingsRow, SetupConfig } from '@/db/queries/settings'
 import type { SubscriptionInsert, SubscriptionUpdate } from '@/db/queries/subscriptions'
-import type { subscriptionRuns, subscriptions } from '@/db/schema'
+import type { subscriptions } from '@/db/schema'
 
 type SubscriptionRow = typeof subscriptions.$inferSelect
-type SubscriptionRunRow = typeof subscriptionRuns.$inferSelect
 
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
 import type { UserPublic } from '@/db/queries/users'
@@ -130,7 +129,6 @@ export type AppDependencies = {
     getEnabledSubscriptions: () => Promise<SubscriptionRow[]>
     updateSubscription: (id: number, data: SubscriptionUpdate) => Promise<void>
     deleteSubscription: (id: number) => Promise<void>
-    getRunsForSubscription: (id: number, limit?: number) => Promise<SubscriptionRunRow[]>
   }
   // Manual subscription trigger
   runSubscription: (id: number) => Promise<void>

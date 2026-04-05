@@ -124,7 +124,7 @@ function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
       oidcTokens: [],
       targets: [],
       subscriptions: [],
-      subscriptionRuns: [],
+      jobRuns: [],
       recommendationBatches: [],
       recommendations: [],
       playlists: [],

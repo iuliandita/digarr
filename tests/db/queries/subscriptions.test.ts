@@ -1,15 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
-import type { RunInsert, SubscriptionInsert } from '@/db/queries/subscriptions'
+import type { SubscriptionInsert } from '@/db/queries/subscriptions'
 import {
-  completeRun,
   createSubscription,
   deleteSubscription,
   getEnabledSubscriptions,
-  getRunsForSubscription,
   getSubscription,
   getSubscriptionsByUser,
-  insertRun,
   updateSubscription,
 } from '@/db/queries/subscriptions'
 
@@ -35,17 +32,6 @@ type SubscriptionRow = {
   updatedAt: Date
 }
 
-type RunRow = {
-  id: number
-  subscriptionId: number
-  startedAt: Date
-  completedAt: Date | null
-  artistsFound: number | null
-  artistsNew: number | null
-  error: string | null
-  batchId: number | null
-}
-
 function makeSubRow(data: SubscriptionInsert, id = 1): SubscriptionRow {
   return {
     id,
@@ -67,19 +53,6 @@ function makeSubRow(data: SubscriptionInsert, id = 1): SubscriptionRow {
     lastError: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-  }
-}
-
-function makeRunRow(data: RunInsert, id = 1): RunRow {
-  return {
-    id,
-    subscriptionId: data.subscriptionId,
-    startedAt: new Date(),
-    completedAt: null,
-    artistsFound: 0,
-    artistsNew: 0,
-    error: null,
-    batchId: data.batchId ?? null,
   }
 }
 
@@ -225,103 +198,5 @@ describe('deleteSubscription', () => {
     await deleteSubscription(db, 7)
 
     expect(chain.where).toHaveBeenCalledOnce()
-  })
-})
-
-describe('insertRun', () => {
-  it('returns the created run row', async () => {
-    const run: RunInsert = { subscriptionId: 1 }
-    const row = makeRunRow(run, 10)
-    const chain = {
-      values: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([row]),
-    }
-    const db = { insert: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await insertRun(db, run)
-
-    expect(result.id).toBe(10)
-    expect(result.subscriptionId).toBe(1)
-  })
-
-  it('throws when no row returned', async () => {
-    const chain = {
-      values: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([]),
-    }
-    const db = { insert: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    await expect(insertRun(db, { subscriptionId: 1 })).rejects.toThrow('insertRun: no row returned')
-  })
-})
-
-describe('completeRun', () => {
-  it('calls update with completed data', async () => {
-    const chain = {
-      set: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(undefined),
-    }
-    const db = { update: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const completedAt = new Date()
-    await completeRun(db, 5, { completedAt, artistsFound: 10, artistsNew: 3 })
-
-    expect(chain.set).toHaveBeenCalledOnce()
-    // biome-ignore lint/style/noNonNullAssertion: mock call args
-    const setArg = chain.set.mock.calls[0]![0]
-    expect(setArg.completedAt).toBe(completedAt)
-    expect(setArg.artistsFound).toBe(10)
-    expect(setArg.artistsNew).toBe(3)
-    expect(chain.where).toHaveBeenCalledOnce()
-  })
-
-  it('defaults artistsFound and artistsNew to 0 when not provided', async () => {
-    const chain = {
-      set: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(undefined),
-    }
-    const db = { update: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    await completeRun(db, 1, { completedAt: new Date() })
-
-    // biome-ignore lint/style/noNonNullAssertion: mock call args
-    const setArg = chain.set.mock.calls[0]![0]
-    expect(setArg.artistsFound).toBe(0)
-    expect(setArg.artistsNew).toBe(0)
-  })
-})
-
-describe('getRunsForSubscription', () => {
-  it('returns runs ordered by startedAt desc with default limit', async () => {
-    const rows: RunRow[] = [
-      makeRunRow({ subscriptionId: 2 }, 3),
-      makeRunRow({ subscriptionId: 2 }, 2),
-    ]
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      orderBy: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue(rows),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await getRunsForSubscription(db, 2)
-
-    expect(result).toHaveLength(2)
-    expect(chain.orderBy).toHaveBeenCalledOnce()
-    expect(chain.limit).toHaveBeenCalledWith(20)
-  })
-
-  it('respects custom limit', async () => {
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      orderBy: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue([]),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    await getRunsForSubscription(db, 1, 5)
-    expect(chain.limit).toHaveBeenCalledWith(5)
   })
 })

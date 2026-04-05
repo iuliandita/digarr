@@ -2,9 +2,9 @@ import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
 import type { Database } from '@/db'
 import {
   artists,
+  jobRuns,
   recommendationBatches,
   recommendations,
-  subscriptionRuns,
   subscriptions,
   users,
 } from '@/db/schema'
@@ -116,32 +116,33 @@ export async function getRecentActivity(
     })
   }
 
-  // 2. Recent subscription runs
-  const subRunQuery = db
+  // 2. Recent subscription runs (from job_runs)
+  const typeFilter = eq(jobRuns.type, 'subscription')
+  const subRunWhere =
+    userId && !isAdmin ? and(typeFilter, eq(subscriptions.userId, userId)) : typeFilter
+
+  const recentRuns = await db
     .select({
-      startedAt: subscriptionRuns.startedAt,
-      artistsFound: subscriptionRuns.artistsFound,
-      artistsNew: subscriptionRuns.artistsNew,
+      startedAt: jobRuns.startedAt,
+      metadata: jobRuns.metadata,
       subName: subscriptions.name,
       subUserId: subscriptions.userId,
     })
-    .from(subscriptionRuns)
-    .innerJoin(subscriptions, eq(subscriptionRuns.subscriptionId, subscriptions.id))
-
-  const subRunWhere = userId && !isAdmin ? eq(subscriptions.userId, userId) : undefined
-
-  const recentRuns = subRunWhere
-    ? await subRunQuery.where(subRunWhere).orderBy(desc(subscriptionRuns.startedAt)).limit(5)
-    : await subRunQuery.orderBy(desc(subscriptionRuns.startedAt)).limit(5)
+    .from(jobRuns)
+    .innerJoin(subscriptions, eq(jobRuns.subscriptionId, subscriptions.id))
+    .where(subRunWhere)
+    .orderBy(desc(jobRuns.startedAt))
+    .limit(5)
 
   for (const run of recentRuns) {
+    const meta = (run.metadata ?? {}) as Record<string, unknown>
     entries.push({
       type: 'subscription_run',
       timestamp: run.startedAt.toISOString(),
       data: {
         subscriptionName: run.subName,
-        artistsFound: run.artistsFound ?? 0,
-        artistsNew: run.artistsNew ?? 0,
+        artistsFound: (meta.artistsFound as number) ?? 0,
+        artistsNew: (meta.artistsNew as number) ?? 0,
       },
     })
   }

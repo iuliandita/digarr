@@ -18,7 +18,7 @@ export interface BackupData {
   oidcTokens: Record<string, unknown>[]
   targets: Record<string, unknown>[]
   subscriptions: Record<string, unknown>[]
-  subscriptionRuns: Record<string, unknown>[]
+  jobRuns: Record<string, unknown>[]
   recommendationBatches: Record<string, unknown>[]
   recommendations: Record<string, unknown>[]
   playlists: Record<string, unknown>[]

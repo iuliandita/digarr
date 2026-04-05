@@ -1,9 +1,8 @@
-import { desc, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import type { Database } from '@/db'
-import { subscriptionRuns, subscriptions } from '@/db/schema'
+import { subscriptions } from '@/db/schema'
 
 type SubscriptionRow = typeof subscriptions.$inferSelect
-type SubscriptionRunRow = typeof subscriptionRuns.$inferSelect
 
 export type SubscriptionInsert = {
   name: string
@@ -26,19 +25,6 @@ export type SubscriptionUpdate = Partial<SubscriptionInsert> & {
   lastResultCount?: number | null
   lastError?: string | null
   enabled?: boolean
-}
-
-export type RunInsert = {
-  subscriptionId: number
-  batchId?: number | null
-}
-
-export type RunComplete = {
-  completedAt: Date
-  artistsFound?: number
-  artistsNew?: number
-  error?: string | null
-  batchId?: number | null
 }
 
 export async function createSubscription(
@@ -80,43 +66,4 @@ export async function updateSubscription(
 
 export async function deleteSubscription(db: Database, id: number): Promise<void> {
   await db.delete(subscriptions).where(eq(subscriptions.id, id))
-}
-
-export async function insertRun(db: Database, data: RunInsert): Promise<SubscriptionRunRow> {
-  const rows = await db
-    .insert(subscriptionRuns)
-    .values({
-      subscriptionId: data.subscriptionId,
-      batchId: data.batchId,
-    })
-    .returning()
-  const row = rows[0]
-  if (!row) throw new Error('insertRun: no row returned')
-  return row
-}
-
-export async function completeRun(db: Database, id: number, data: RunComplete): Promise<void> {
-  await db
-    .update(subscriptionRuns)
-    .set({
-      completedAt: data.completedAt,
-      artistsFound: data.artistsFound ?? 0,
-      artistsNew: data.artistsNew ?? 0,
-      error: data.error ?? null,
-      batchId: data.batchId ?? null,
-    })
-    .where(eq(subscriptionRuns.id, id))
-}
-
-export async function getRunsForSubscription(
-  db: Database,
-  subscriptionId: number,
-  limit = 20,
-): Promise<SubscriptionRunRow[]> {
-  return db
-    .select()
-    .from(subscriptionRuns)
-    .where(eq(subscriptionRuns.subscriptionId, subscriptionId))
-    .orderBy(desc(subscriptionRuns.startedAt))
-    .limit(limit)
 }

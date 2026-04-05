@@ -12,6 +12,7 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { GenreService } from './core/genre/service'
+import { createJobRecorder } from './core/jobs/recorder'
 import { LibraryHealthService } from './core/library/health'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -91,14 +92,11 @@ import { sessionQueries } from './db/queries/sessions'
 import type { SetupConfig } from './db/queries/settings'
 import { completeSetup, getSettings, isSetupComplete, updateSettings } from './db/queries/settings'
 import {
-  completeRun,
   createSubscription,
   deleteSubscription,
   getEnabledSubscriptions,
-  getRunsForSubscription,
   getSubscription,
   getSubscriptionsByUser,
-  insertRun,
   updateSubscription,
 } from './db/queries/subscriptions'
 import type { TargetInsert } from './db/queries/targets'
@@ -305,9 +303,6 @@ const subscriptionQueriesImpl = {
   updateSubscription: (id: number, data: Parameters<typeof updateSubscription>[2]) =>
     updateSubscription(db, id, data),
   deleteSubscription: (id: number) => deleteSubscription(db, id),
-  getRunsForSubscription: (id: number, limit?: number) => getRunsForSubscription(db, id, limit),
-  insertRun: (data: Parameters<typeof insertRun>[1]) => insertRun(db, data),
-  completeRun: (id: number, data: Parameters<typeof completeRun>[2]) => completeRun(db, id, data),
 }
 
 // Cache adapter registries per user -- building one per execution is redundant when
@@ -451,10 +446,9 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   await runSubscription(subscriptionConfig, adapter, {
     db: storeDb,
     queries: {
-      insertRun: (data) => insertRun(db, data),
-      completeRun: (id, data) => completeRun(db, id, data),
       updateSubscription: (id, data) => updateSubscription(db, id, data),
     },
+    jobRecorder: createJobRecorder(db),
     mbClient: createMusicBrainzClient() as SubMBClient,
     lidarr: lidarrClient ?? undefined,
     userId: sub.userId ?? undefined,

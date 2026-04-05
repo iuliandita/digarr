@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import { getJobsForSubscription } from '@/db/queries/jobs'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
@@ -531,7 +532,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Forbidden' }, 403)
     }
 
-    const runs = await deps.subscriptionQueries.getRunsForSubscription(id)
+    const runs = await getJobsForSubscription(deps.db, id)
     return c.json(runs)
   })
 
