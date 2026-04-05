@@ -20,6 +20,8 @@ async function approveToTargets(
   artist: { mbid: string; name: string },
   targets: TargetWithCapabilities[],
   addOptions: Record<string, unknown>,
+  jobRecorder?: import('@/core/jobs/types').JobRecorder,
+  userId?: number,
 ): Promise<ApproveResult> {
   if (targets.length === 0) {
     return { status: 'approved', targetActions: {} }
@@ -32,8 +34,31 @@ async function approveToTargets(
 
   for (const target of targets) {
     if (!target.capabilities?.includes('addArtist')) continue
+
+    const targetJobId = jobRecorder
+      ? await jobRecorder.start({
+          type: 'target',
+          userId,
+          metadata: {
+            targetType: target.type,
+            artistName: artist.name,
+            mbid: artist.mbid,
+            action: 'add',
+          },
+        })
+      : null
+
     const result = await target.addArtist?.(artist, addOptions)
-    if (!result) continue
+
+    if (!result) {
+      if (targetJobId != null && jobRecorder) {
+        await jobRecorder.complete(targetJobId, {
+          metadata: { targetType: target.type, artistName: artist.name, skipped: true },
+        })
+      }
+      continue
+    }
+
     targetActions[target.id] = {
       status: result.success ? 'added' : 'failed',
       externalId: result.externalId,
@@ -43,6 +68,22 @@ async function approveToTargets(
     if (target.type === 'lidarr') {
       if (result.success && result.externalId) lidarrArtistId = result.externalId
       if (result.error) lidarrError = result.error
+    }
+
+    if (targetJobId != null && jobRecorder) {
+      if (result.success) {
+        await jobRecorder.complete(targetJobId, {
+          metadata: {
+            targetType: target.type,
+            artistName: artist.name,
+            externalId: result.externalId,
+          },
+        })
+      } else {
+        await jobRecorder
+          .fail(targetJobId, result.error ?? 'Target returned failure')
+          .catch(() => {})
+      }
     }
   }
 
@@ -190,10 +231,16 @@ export function recommendationRoutes(deps: AppDependencies) {
         rootFolderId: rfOverride,
       })
 
+      const jobRecorder = (deps as Record<string, unknown>).jobRecorder as
+        | import('@/core/jobs/types').JobRecorder
+        | undefined
+
       const result = await approveToTargets(
         { mbid: rec.artist.mbid, name: rec.artist.name },
         effectiveTargets,
         addOptions,
+        jobRecorder,
+        userId,
       )
 
       const extra: Record<string, unknown> = { targetActions: result.targetActions }
@@ -262,6 +309,10 @@ export function recommendationRoutes(deps: AppDependencies) {
       rootFolderId: rfOverride,
     })
 
+    const bulkJobRecorder = (deps as Record<string, unknown>).jobRecorder as
+      | import('@/core/jobs/types').JobRecorder
+      | undefined
+
     const results: Array<{ id: number; status: string; error?: string }> = []
 
     for (const id of ids) {
@@ -279,6 +330,8 @@ export function recommendationRoutes(deps: AppDependencies) {
         { mbid: rec.artist.mbid, name: rec.artist.name },
         effectiveTargets,
         addOptions,
+        bulkJobRecorder,
+        userId,
       )
 
       const extra: Record<string, unknown> = { targetActions: result.targetActions }

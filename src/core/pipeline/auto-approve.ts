@@ -17,6 +17,8 @@ export type AutoApproveDeps = {
     extra?: StatusUpdateExtra,
   ) => Promise<void>
   warmArtist?: (mbid: string) => Promise<void>
+  jobRecorder?: import('@/core/jobs/types').JobRecorder
+  userId?: number
 }
 
 type AutoApproveConfig = {
@@ -69,11 +71,33 @@ export async function autoApprove(
     let lidarrResult: { externalId?: number | string; error?: string } | null = null
 
     for (const target of addTargets) {
+      const targetJobId = deps.jobRecorder
+        ? await deps.jobRecorder.start({
+            type: 'target',
+            userId: deps.userId,
+            metadata: {
+              targetType: target.type,
+              artistName: rec.artist.name,
+              mbid: rec.artist.mbid,
+              action: 'add',
+            },
+          })
+        : null
+
       const result = await target.addArtist?.(
         { mbid: rec.artist.mbid, name: rec.artist.name },
         addOptions,
       )
-      if (!result) continue
+
+      if (!result) {
+        if (targetJobId != null && deps.jobRecorder) {
+          await deps.jobRecorder.complete(targetJobId, {
+            metadata: { targetType: target.type, artistName: rec.artist.name, skipped: true },
+          })
+        }
+        continue
+      }
+
       targetActions[target.id] = {
         status: result.success ? 'added' : 'failed',
         externalId: result.externalId,
@@ -81,6 +105,22 @@ export async function autoApprove(
       }
       if (result.success) anySuccess = true
       if (target.type === 'lidarr') lidarrResult = result
+
+      if (targetJobId != null && deps.jobRecorder) {
+        if (result.success) {
+          await deps.jobRecorder.complete(targetJobId, {
+            metadata: {
+              targetType: target.type,
+              artistName: rec.artist.name,
+              externalId: result.externalId,
+            },
+          })
+        } else {
+          await deps.jobRecorder
+            .fail(targetJobId, result.error ?? 'Target returned failure')
+            .catch(() => {})
+        }
+      }
     }
 
     const extra: StatusUpdateExtra = { targetActions }
