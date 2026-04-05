@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
@@ -132,6 +132,14 @@ function TabBar({
           {t.label}
         </button>
       ))}
+      {isAdmin && (
+        <Link
+          to="/settings/jobs"
+          className="px-3 sm:px-4 py-2 text-sm font-medium border-b-2 border-transparent -mb-px transition-colors whitespace-nowrap shrink-0 text-muted hover:text-text"
+        >
+          Job History
+        </Link>
+      )}
     </div>
   )
 }

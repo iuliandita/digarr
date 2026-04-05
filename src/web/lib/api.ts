@@ -792,3 +792,49 @@ export const getAiAuditResults = () =>
   fetchApi<{ flaggedIds: number[]; fixedIds: number[]; inProgress: boolean }>(
     '/admin/hygiene/ai-audit/results',
   )
+
+// ── Jobs ─────────────────────────────────────
+
+export type JobRun = {
+  id: number
+  type: string
+  status: string
+  userId: number | null
+  startedAt: string
+  completedAt: string | null
+  durationMs: number | null
+  error: string | null
+  metadata: Record<string, unknown>
+  sourceResults: Record<
+    string,
+    { status: string; artists?: number; ms?: number; error?: string; reason?: string }
+  > | null
+  subscriptionId: number | null
+  batchId: number | null
+}
+
+export type JobHealth = {
+  pipeline: { status: string; lastRun: string | null; nextRun: string | null }
+  subscriptions: { status: string; healthy: number; total: number }
+  playlists: { status: string; lastRun: string | null }
+  sources: Record<string, string>
+}
+
+export const getJobHealth = () => fetchApi<JobHealth>('/jobs/health')
+
+export const listJobs = (params?: {
+  type?: string
+  status?: string
+  limit?: number
+  offset?: number
+}) => {
+  const sp = new URLSearchParams()
+  if (params?.type) sp.set('type', params.type)
+  if (params?.status) sp.set('status', params.status)
+  if (params?.limit) sp.set('limit', String(params.limit))
+  if (params?.offset) sp.set('offset', String(params.offset))
+  const qs = sp.toString()
+  return fetchApi<{ items: JobRun[]; total: number }>(`/jobs${qs ? `?${qs}` : ''}`)
+}
+
+export const getJob = (id: number) => fetchApi<JobRun>(`/jobs/${id}`)

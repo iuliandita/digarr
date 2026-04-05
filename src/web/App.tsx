@@ -56,6 +56,7 @@ import { Dashboard } from './pages/dashboard'
 import { DiscoverPage } from './pages/discover'
 import { GenreDetailPage } from './pages/genre-detail'
 import { GenresPage } from './pages/genres'
+import JobHistoryPage from './pages/job-history'
 import { LibraryHealthPage } from './pages/library-health'
 import { PlaylistDetailPage } from './pages/playlist-detail'
 import { PlaylistsPage } from './pages/playlists'
@@ -599,6 +600,7 @@ function InnerApp() {
               <Route path="/library/health" element={<LibraryHealthPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/jobs" element={<JobHistoryPage />} />
               <Route path="/users" element={<UserManagementPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

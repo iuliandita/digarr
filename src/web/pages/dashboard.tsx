@@ -8,12 +8,14 @@ import { Hint } from '../components/hint'
 import type { MonitorOption } from '../components/monitoring-options'
 import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
+import { SystemHealthCard } from '../components/system-health-card'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   type ActivityEntry,
   approveRecommendation,
   approveToTarget,
+  getCurrentUser,
   getDashboardActivity,
   getDashboardTaste,
   getRecentListens,
@@ -287,6 +289,13 @@ export function Dashboard() {
   const [actedIds, setActedIds] = useState<Set<number>>(new Set())
   const [listenRange, setListenRange] = useState<'week' | 'month'>('month')
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+    staleTime: 60_000,
+  })
+  const isAdmin = currentUser?.isAdmin ?? false
+
   // Pending pick -- fetch 10 so skip has runway
   const { data: pickData, isLoading: pickLoading } = useQuery({
     queryKey: ['dashboard-pick'],
@@ -456,6 +465,8 @@ export function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
+      {isAdmin && <SystemHealthCard />}
+
       {/* Pipeline progress (self-hides) */}
       <PipelineProgress
         onComplete={() => {
