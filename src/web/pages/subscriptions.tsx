@@ -56,17 +56,17 @@ function formatRelative(dateStr: string | null): string {
   return `${minutes}m`
 }
 
-function formatDuration(startedAt: string, completedAt: string | null): string {
-  if (!completedAt) return '--'
-  const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime()
+function formatDurationMs(ms: number | null): string {
+  if (ms == null) return '--'
   const secs = Math.round(ms / 1000)
   if (secs < 60) return `${secs}s`
   return `${Math.floor(secs / 60)}m ${secs % 60}s`
 }
 
 function runStatus(run: SubscriptionRun): { label: string; className: string } {
-  if (run.error) return { label: 'Failed', className: 'text-reject' }
-  if (!run.completedAt) return { label: 'Running', className: 'text-accent' }
+  if (run.status === 'failed' || run.error) return { label: 'Failed', className: 'text-reject' }
+  if (run.status === 'running') return { label: 'Running', className: 'text-accent' }
+  if (run.status === 'stuck') return { label: 'Stuck', className: 'text-amber-500' }
   return { label: 'Done', className: 'text-approve' }
 }
 
@@ -114,11 +114,13 @@ function RunHistoryPanel({ subscriptionId }: { subscriptionId: number }) {
             return (
               <tr key={run.id} className="hover:bg-bg/50 transition-colors">
                 <td className="px-2 py-1.5 text-text">{formatDate(run.startedAt)}</td>
-                <td className="px-2 py-1.5 text-muted">
-                  {formatDuration(run.startedAt, run.completedAt)}
+                <td className="px-2 py-1.5 text-muted">{formatDurationMs(run.durationMs)}</td>
+                <td className="px-2 py-1.5 text-right text-text">
+                  {(run.metadata?.artistsFound as number) ?? 0}
                 </td>
-                <td className="px-2 py-1.5 text-right text-text">{run.artistsFound}</td>
-                <td className="px-2 py-1.5 text-right text-text">{run.artistsNew}</td>
+                <td className="px-2 py-1.5 text-right text-text">
+                  {(run.metadata?.artistsNew as number) ?? 0}
+                </td>
                 <td className="px-2 py-1.5">
                   <span className={`text-xs font-medium ${status.className}`}>{status.label}</span>
                   {run.error && (

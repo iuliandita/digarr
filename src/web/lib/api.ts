@@ -535,12 +535,14 @@ export type Subscription = {
 
 export type SubscriptionRun = {
   id: number
-  subscriptionId: number
+  type: string
+  status: string
   startedAt: string
   completedAt: string | null
-  artistsFound: number
-  artistsNew: number
+  durationMs: number | null
   error: string | null
+  metadata: Record<string, unknown>
+  subscriptionId: number | null
   batchId: number | null
 }
 
