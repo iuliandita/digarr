@@ -14,7 +14,9 @@
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "overrides": {
     "brace-expansion": "5.0.5",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-query": "^5.90.21",
     "@testing-library/jest-dom": "^6.9.1",
