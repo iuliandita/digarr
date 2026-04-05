@@ -15,17 +15,19 @@ describe('search source catalog', () => {
         id: 'spotify',
         label: 'Spotify',
         available: false,
+        stability: 'stable',
         reason: 'Connect Spotify in Settings to enable search.',
       },
-      { id: 'deezer', label: 'Deezer', available: true },
-      { id: 'musicbrainz', label: 'MusicBrainz', available: true },
+      { id: 'deezer', label: 'Deezer', available: true, stability: 'stable' },
+      { id: 'musicbrainz', label: 'MusicBrainz', available: true, stability: 'stable' },
       {
         id: 'tidal',
         label: 'TIDAL',
         available: false,
+        stability: 'experimental',
         reason: 'TIDAL search is not configured yet.',
       },
-      { id: 'bandcamp', label: 'Bandcamp', available: true },
+      { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' },
     ])
   })
 })

@@ -53,6 +53,13 @@ vi.mock('@/web/lib/api', () => ({
   getStoredToken: vi.fn(() => null),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
   updateUserPreferences: vi.fn().mockResolvedValue({}),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: false }),
+  getJobHealth: vi.fn().mockResolvedValue({
+    pipeline: { status: 'ok', lastRun: null, nextRun: null },
+    subscriptions: { status: 'ok', healthy: 0, total: 0 },
+    playlists: { status: 'ok', lastRun: null },
+    sources: {},
+  }),
 }))
 
 // Mock useSSE to avoid EventSource in jsdom
