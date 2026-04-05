@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import { errMsg } from '@/core/validation'
 import { getJobsForSubscription } from '@/db/queries/jobs'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
@@ -510,9 +511,28 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Forbidden' }, 403)
     }
 
-    deps.runSubscription(id).catch((err: unknown) => {
-      console.error(`Manual subscription run failed (id=${id}):`, err)
-    })
+    try {
+      await deps.runSubscription(id)
+    } catch (err: unknown) {
+      const msg = errMsg(err)
+      if (
+        msg.includes('401') ||
+        msg.includes('403') ||
+        msg.includes('ECONNREFUSED') ||
+        msg.includes('spotify')
+      ) {
+        return c.json(
+          {
+            error: 'Spotify is unavailable',
+            service: 'spotify',
+            retryable: true,
+            detail: msg,
+          },
+          503,
+        )
+      }
+      throw err
+    }
 
     return c.json({ message: 'Subscription run started' }, 202)
   })

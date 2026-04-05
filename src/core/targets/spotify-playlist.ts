@@ -119,7 +119,7 @@ export function createSpotifyPlaylistTarget(
           success: false,
           targetType: 'spotify-playlist',
           targetId,
-          error: errMsg(err),
+          error: `Spotify API unreachable: ${errMsg(err)}`,
         }
       }
     },
