@@ -15,7 +15,7 @@ describe('E2E: recommendations list', () => {
   it('returns paginated recommendations', async () => {
     const rec = makeRecommendation({ status: 'pending' })
     const { app } = createTestApp({
-      listRecommendations: vi.fn(async () => ({ items: [rec], total: 1 })),
+      listRecommendations: vi.fn(async () => ({ items: [rec], total: 1 })) as never,
     })
 
     const res = await app.request('/api/recommendations', {
@@ -32,7 +32,7 @@ describe('E2E: approve/reject', () => {
   it('rejects a recommendation', async () => {
     const rec = makeRecommendation({ id: 2, status: 'pending' })
     const { app, deps } = createTestApp({
-      getRecommendation: vi.fn(async () => rec),
+      getRecommendation: vi.fn(async () => rec) as never,
       filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     })
 

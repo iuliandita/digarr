@@ -90,7 +90,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       updateTarget: vi.fn(),
       deleteTarget: vi.fn(),
     },
-    testTargetConnection: vi.fn(async () => ({ success: true })),
+    testTargetConnection: vi.fn(async () => ({ success: true, message: 'OK' })),
     getEnabledTargetsForUser: vi.fn(async () => []),
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {

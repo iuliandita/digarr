@@ -23,7 +23,7 @@ describe('E2E: subscription CRUD', () => {
       lastError: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }))
+    })) as never
     const { app } = createTestApp({
       subscriptionQueries: {
         createSubscription,
@@ -73,7 +73,7 @@ describe('E2E: subscription CRUD', () => {
       subscriptionQueries: {
         createSubscription: vi.fn(),
         getSubscription: vi.fn(async () => null),
-        getSubscriptionsByUser: vi.fn(async () => [sub]),
+        getSubscriptionsByUser: vi.fn(async () => [sub] as never),
         getEnabledSubscriptions: vi.fn(async () => []),
         updateSubscription: vi.fn(),
         deleteSubscription: vi.fn(),
@@ -97,9 +97,9 @@ describe('E2E: subscription run', () => {
     const { app } = createTestApp({
       subscriptionQueries: {
         createSubscription: vi.fn(),
-        getSubscription: vi.fn(async () => sub),
-        getSubscriptionsByUser: vi.fn(async () => [sub]),
-        getEnabledSubscriptions: vi.fn(async () => [sub]),
+        getSubscription: vi.fn(async () => sub as never),
+        getSubscriptionsByUser: vi.fn(async () => [sub] as never),
+        getEnabledSubscriptions: vi.fn(async () => [sub] as never),
         updateSubscription: vi.fn(),
         deleteSubscription: vi.fn(),
       },

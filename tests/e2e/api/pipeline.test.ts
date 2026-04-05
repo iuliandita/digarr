@@ -54,7 +54,7 @@ describe('E2E: pipeline scan', () => {
   it('returns 409 when pipeline is already running', async () => {
     const { app, deps } = createTestApp()
     // Simulate running state
-    ;(deps.orchestrator as Record<string, unknown>).isRunning = true
+    ;(deps.orchestrator as unknown as Record<string, unknown>).isRunning = true
 
     const runRes = await app.request('/api/pipeline/run', {
       method: 'POST',
