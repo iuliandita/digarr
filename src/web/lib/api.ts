@@ -455,6 +455,7 @@ export type SearchSourceOption = {
   id: string
   label: string
   available: boolean
+  stability?: 'stable' | 'experimental'
   reason?: string
 }
 

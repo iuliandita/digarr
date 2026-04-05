@@ -59,6 +59,7 @@ export function SearchPage() {
       label: known?.label ?? style.label,
       active: style.active,
       available: known?.available ?? style.defaultAvailable,
+      stability: known?.stability,
       reason: known?.reason,
     }
   })
@@ -132,6 +133,11 @@ export function SearchPage() {
               )}
             >
               {s.label}
+              {s.stability === 'experimental' && (
+                <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                  Experimental
+                </span>
+              )}
             </button>
           )
         })}

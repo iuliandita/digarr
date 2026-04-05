@@ -5,6 +5,7 @@ export type SearchSource = {
   id: string
   name: string
   available: boolean
+  stability?: 'stable' | 'experimental'
   search(query: string, limit: number): Promise<SearchResult[]>
 }
 
