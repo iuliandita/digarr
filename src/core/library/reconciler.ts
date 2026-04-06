@@ -135,14 +135,20 @@ export async function reconcileArtist(
     return unreconciledRow(artist, nameNormalized, 'no_candidate')
   }
 
-  // Steps 3-5 land in Task 9 / Task 10. For now: if exactly one candidate
-  // exists and there is no anchor, treat it as name_exact. If there are
-  // multiple candidates, mark ambiguous (Task 10 will add disambiguation).
+  // Step 3: anchor against already-known MBIDs from earlier sources
+  const anchored = candidates.filter((c) => ctx.knownMbids.has(c.id))
+  if (anchored.length === 1 && anchored[0]) {
+    ctx.counts.matchedNameAnchored += 1
+    return matchedRow(artist, nameNormalized, anchored[0].id, 'name_anchored', 0.85)
+  }
+
+  // Step 4: exact normalized-name match (only when there's exactly one candidate)
   if (candidates.length === 1 && candidates[0]) {
     ctx.counts.matchedNameExact += 1
     return matchedRow(artist, nameNormalized, candidates[0].id, 'name_exact', 0.7)
   }
 
+  // Step 5 (Task 10) will go here. For now: ambiguous.
   ctx.counts.unreconciledAmbiguous += 1
   return unreconciledRow(artist, nameNormalized, 'ambiguous')
 }

@@ -138,3 +138,66 @@ describe('reconcileArtist -- Step 2 (cache short-circuit)', () => {
     expect(result.unreconciledReason).toBe('no_candidate')
   })
 })
+
+describe('reconcileArtist -- Step 3 (anchoring)', () => {
+  it('anchors when MB returns multiple candidates and one matches knownMbids', async () => {
+    const ctx = makeCtx({
+      knownMbids: new Set([VALID_MBID]),
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn(),
+      },
+    })
+    const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.mbid).toBe(VALID_MBID)
+    expect(result.matchMethod).toBe('name_anchored')
+    expect(result.matchConfidence).toBe(0.85)
+    expect(ctx.counts.matchedNameAnchored).toBe(1)
+  })
+
+  it('does not anchor when zero candidates match knownMbids', async () => {
+    const ctx = makeCtx({
+      knownMbids: new Set(['other-mbid-not-matching']),
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn().mockResolvedValue([]),
+      },
+    })
+    const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    // Will fall through to Step 5 disambiguation in Task 10. For now (Task 9),
+    // since there's no album data, expect "ambiguous" -- Task 10 may rewrite this.
+    expect(result.matchMethod).toBeNull()
+    expect(result.unreconciledReason).toBe('ambiguous')
+  })
+
+  it('falls through to ambiguous when 2+ candidates match knownMbids', async () => {
+    const ctx = makeCtx({
+      knownMbids: new Set([VALID_MBID, OTHER_MBID]),
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn().mockResolvedValue([]),
+      },
+    })
+    const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.matchMethod).toBeNull()
+    expect(result.unreconciledReason).toBe('ambiguous')
+  })
+})
