@@ -39,6 +39,23 @@ type PlexHistoryResponse = {
   }
 }
 
+type PlexAllArtistsResponse = {
+  MediaContainer: {
+    totalSize?: number
+    Metadata?: Array<{
+      ratingKey: string
+      title: string
+      Genre?: Array<{ tag: string }>
+    }>
+  }
+}
+
+export type PlexLibraryArtist = {
+  ratingKey: string
+  name: string
+  genres: string[]
+}
+
 export function createPlexClient(url: string, token: string, options?: { baseUrl?: string }) {
   const baseUrl = options?.baseUrl ?? url.replace(/\/+$/, '')
 
@@ -92,6 +109,45 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
       }))
   }
 
+  /**
+   * Return every artist in the music library, paginated. Default page size 200
+   * so a 5000-artist library is 25 requests at PQueue concurrency 3.
+   *
+   * Genres come from Plex's Genre tags. The default Plex Music agent does
+   * not provide MBIDs, so the reconciler must look them up.
+   */
+  async function getAllArtists(options?: { pageSize?: number }): Promise<PlexLibraryArtist[]> {
+    const sectionId = await getMusicSectionId()
+    const pageSize = options?.pageSize ?? 200
+
+    const all: PlexLibraryArtist[] = []
+    let start = 0
+    let total = Number.POSITIVE_INFINITY
+
+    while (start < total) {
+      const params = new URLSearchParams({
+        type: '8',
+        sort: 'titleSort',
+        'X-Plex-Container-Start': String(start),
+        'X-Plex-Container-Size': String(pageSize),
+      })
+      const res = await get<PlexAllArtistsResponse>(`/library/sections/${sectionId}/all?${params}`)
+      const metadata = res.MediaContainer.Metadata ?? []
+      total = res.MediaContainer.totalSize ?? metadata.length
+      for (const m of metadata) {
+        all.push({
+          ratingKey: m.ratingKey,
+          name: m.title,
+          genres: (m.Genre ?? []).map((g) => g.tag),
+        })
+      }
+      if (metadata.length === 0) break
+      start += metadata.length
+    }
+
+    return all
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const sectionId = await getMusicSectionId()
@@ -108,6 +164,7 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
   return {
     getMusicSectionId,
     getTopArtists,
+    getAllArtists,
     getRecentlyPlayed,
     testConnection,
   }
