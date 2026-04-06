@@ -7,6 +7,10 @@ import { emptyLibrarySyncCounts, type LibrarySyncStore } from './store'
 
 const LIBRARY_SYNC_JOB_TYPE: JobType = 'library_sync'
 
+/** Sentinel substring used by callers to detect "source not configured" failures
+ *  and trigger fallback retry logic. Keep in sync with syncSpecificSource error msg. */
+export const SOURCE_NOT_CONFIGURED_ERROR = 'not configured'
+
 type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
   'searchArtist' | 'getReleaseGroups'
@@ -201,7 +205,11 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         userId === null ? await deps.buildGlobalSources() : await deps.buildPerUserSources(userId)
       const src = sources.find((s) => s.id === sourceId)
       if (!src) {
-        return { source: sourceId, status: 'failed', error: `Source '${sourceId}' not configured` }
+        return {
+          source: sourceId,
+          status: 'failed',
+          error: `Source '${sourceId}' ${SOURCE_NOT_CONFIGURED_ERROR}`,
+        }
       }
       return syncSource(src, userId, options)
     },

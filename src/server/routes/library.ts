@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
-import type { SyncOrchestrator } from '@/core/library/sync'
+import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
 import type { HealthCheckId } from '@/core/library/types'
 import { errMsg } from '@/core/validation'
 import { rateLimiter } from '@/server/middleware/rate-limit'
@@ -107,19 +107,20 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   app.post('/api/library/sync', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Auth required' }, 401)
-    const body = await c.req.json().catch(() => ({}))
+    const raw = await c.req.json().catch(() => null)
+    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
     const source = typeof body.source === 'string' ? body.source : undefined
     if (source) {
       let result = await deps.librarySync.syncSpecificSource(userId, source, { force: true })
-      if (
-        result.status === 'failed' &&
-        'error' in result &&
-        result.error.includes('not configured')
-      ) {
-        // Retry as global source
+      // Per-user source not configured -- retry as a global source. This is safe today because
+      // (a) the route is admin-gated and (b) per-user/global source IDs do not overlap. If a
+      // future source becomes both per-user AND global, restrict this fallback to known-global
+      // IDs to avoid letting per-user calls trigger global syncs they shouldn't reach.
+      if (result.status === 'failed' && result.error.includes(SOURCE_NOT_CONFIGURED_ERROR)) {
         result = await deps.librarySync.syncSpecificSource(null, source, { force: true })
       }
-      return c.json(result, 202)
+      const status = result.status === 'completed' ? 200 : result.status === 'failed' ? 502 : 202
+      return c.json(result, status)
     } else {
       const summary = await deps.librarySync.syncForUser(userId, { force: true })
       // Also kick off global (Lidarr) without blocking
@@ -142,8 +143,9 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   app.post('/api/library/overrides', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Auth required' }, 401)
-    const body = await c.req.json().catch(() => ({}))
-    const { source, sourceArtistId, correctMbid, note } = body as Record<string, unknown>
+    const raw = await c.req.json().catch(() => null)
+    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+    const { source, sourceArtistId, correctMbid, note } = body
     if (typeof source !== 'string' || !source) {
       return c.json({ error: 'source is required' }, 400)
     }

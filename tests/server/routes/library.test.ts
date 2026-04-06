@@ -537,21 +537,29 @@ describe('GET /api/library/sources', () => {
 })
 
 describe('POST /api/library/sync', () => {
-  it('awaits syncForUser and returns its summary in the 202 body', async () => {
-    const { app, librarySync } = makeSyncApp()
+  it('POST /api/library/sync awaits syncForUser and returns its summary in 202 body', async () => {
+    let resolved = false
+    const syncForUser = vi.fn(async () => {
+      await new Promise((r) => setTimeout(r, 10))
+      resolved = true
+      return { userId: 1, results: [] }
+    })
+    const syncGlobal = vi.fn(async () => ({ userId: null, results: [] }))
+    const { app } = makeSyncApp({ syncForUser, syncGlobal })
+
     const res = await app.request('/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
+
+    expect(resolved).toBe(true) // proves the route awaited
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.userId).toBe(1)
     expect(body.results).toEqual([])
-    expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(42, {
-      force: true,
-    })
-    expect(librarySync.syncGlobal as ReturnType<typeof vi.fn>).toHaveBeenCalledWith({ force: true })
+    expect(syncForUser).toHaveBeenCalledWith(42, { force: true })
+    expect(syncGlobal).toHaveBeenCalledWith({ force: true })
   })
 
   it('fires syncSpecificSource when source provided', async () => {
@@ -561,7 +569,7 @@ describe('POST /api/library/sync', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ source: 'plex' }),
     })
-    expect(res.status).toBe(202)
+    expect(res.status).toBe(200)
     expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       42,
       'plex',
@@ -590,12 +598,32 @@ describe('POST /api/library/sync', () => {
       body: JSON.stringify({ source: 'plex' }),
     })
 
-    expect(res.status).toBe(202)
+    expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('completed')
     expect(syncSpecificSource).toHaveBeenCalledTimes(2)
     expect(syncSpecificSource).toHaveBeenNthCalledWith(1, 42, 'plex', { force: true })
     expect(syncSpecificSource).toHaveBeenNthCalledWith(2, null, 'plex', { force: true })
+  })
+
+  it('POST /api/library/sync returns 202 (not 500) when body is JSON null', async () => {
+    const { app } = makeSyncApp()
+    const res = await app.request('/api/library/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'null',
+    })
+    expect(res.status).toBe(202)
+  })
+
+  it('POST /api/library/overrides returns 400 (not 500) when body is JSON null', async () => {
+    const { app } = makeSyncApp()
+    const res = await app.request('/api/library/overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'null',
+    })
+    expect(res.status).toBe(400)
   })
 })
 
