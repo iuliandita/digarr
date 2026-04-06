@@ -136,7 +136,6 @@ import {
   artists,
   DEFAULT_PREFERENCES,
   libraryArtists,
-  librarySyncState,
   mergePreferences,
   recommendationBatches,
   recommendations,
@@ -168,6 +167,13 @@ console.log('Database migrations applied')
 
 // Wire up DB-backed session store after migrations are applied.
 setSessionStore(sessionQueries(db))
+
+// Read library sync interval once; used by both the orchestrator's stale
+// check and the background scheduler. Runtime changes require a restart.
+const bootSettings = await getSettings(db)
+const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
+
+const librarySyncStore = createLibrarySyncStore(db)
 
 const storeDb: StoreDb = {
   getExistingRecommendationMbids: async (userId) => {
@@ -223,14 +229,7 @@ const storeDb: StoreDb = {
       .from(libraryArtists)
       .where(and(...conds.filter((c): c is NonNullable<typeof c> => c !== undefined)))
   },
-  userHasAnySyncState: async (userId) => {
-    const rows = await db
-      .select({ id: librarySyncState.id })
-      .from(librarySyncState)
-      .where(or(eq(librarySyncState.userId, userId), isNull(librarySyncState.userId)))
-      .limit(1)
-    return rows.length > 0
-  },
+  userHasAnySyncState: (userId) => librarySyncStore.userHasAnySyncState(userId),
 }
 
 jobRecorder = createJobRecorder(db)
@@ -334,8 +333,6 @@ const skyhookWarmer = new SkyHookWarmer({ lookupArtist: lazyLidarrClient.lookupA
 // Library sync orchestrator + per-source factories
 // ---------------------------------------------------------------------------
 
-const librarySyncStore = createLibrarySyncStore(db)
-
 // Helper that builds per-user sources from user connection rows.
 async function buildPerUserLibrarySources(userId: number) {
   const conns = await getUserConnections(db, userId)
@@ -373,7 +370,7 @@ const librarySyncOrchestrator: SyncOrchestrator = createSyncOrchestrator({
   mbClient: createMusicBrainzClient(),
   buildPerUserSources: buildPerUserLibrarySources,
   buildGlobalSources: buildGlobalLibrarySources,
-  staleHours: 6,
+  staleHours: librarySyncIntervalHours,
 })
 
 const runPipeline = async (userId?: number) => {
@@ -1069,7 +1066,6 @@ const server = serve({ fetch: app.fetch, port })
     await restartPlaylistScheduler()
 
     // Library sync scheduler -- background, idempotent. Boot fire is non-blocking.
-    const librarySyncIntervalHours = settings?.librarySyncIntervalHours ?? 6
     startLibrarySyncScheduler({
       intervalHours: librarySyncIntervalHours,
       orchestrator: librarySyncOrchestrator,
