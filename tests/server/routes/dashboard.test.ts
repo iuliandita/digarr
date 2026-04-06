@@ -104,6 +104,8 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       isStale: vi.fn(() => false),
     } as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
+    librarySync: {} as unknown as AppDependencies['librarySync'],
+    librarySyncStore: {} as unknown as AppDependencies['librarySyncStore'],
     targetQueries: {
       createTarget: vi.fn().mockResolvedValue({ id: 1 }),
       getTargetsByUser: vi.fn().mockResolvedValue([]),

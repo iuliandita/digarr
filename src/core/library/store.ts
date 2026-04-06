@@ -69,7 +69,13 @@ export interface LibrarySyncStore {
   getKnownMbidsForUser(userId: number): Promise<Set<string>>
 
   userHasAnySyncState(userId: number): Promise<boolean>
+
+  listSyncStateForUser(userId: number): Promise<LibrarySyncStateRow[]>
+
+  listUnreconciledForUser(userId: number): Promise<LibraryArtistRow[]>
 }
+
+export type LibraryArtistRow = typeof libraryArtists.$inferSelect
 
 export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   return {
@@ -290,6 +296,26 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
         .where(or(eq(librarySyncState.userId, userId), isNull(librarySyncState.userId)))
         .limit(1)
       return rows.length > 0
+    },
+
+    async listSyncStateForUser(userId) {
+      const rows = await database
+        .select()
+        .from(librarySyncState)
+        .where(or(eq(librarySyncState.userId, userId), isNull(librarySyncState.userId)))
+      return rows as LibrarySyncStateRow[]
+    },
+
+    async listUnreconciledForUser(userId) {
+      return database
+        .select()
+        .from(libraryArtists)
+        .where(
+          and(
+            isNull(libraryArtists.mbid),
+            or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
+          ),
+        )
     },
   }
 }

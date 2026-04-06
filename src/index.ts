@@ -826,6 +826,8 @@ const app = createApp({
   genreService,
   libraryHealth,
   skyhookWarmer,
+  librarySync: librarySyncOrchestrator,
+  librarySyncStore,
   subscriptionQueries: subscriptionQueriesImpl,
   runSubscription: (id) => executeSubscription(id),
   targetQueries: {

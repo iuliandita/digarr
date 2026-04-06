@@ -8,6 +8,8 @@ import type { OidcService } from '@/core/auth/oidc'
 import type { GenreService } from '@/core/genre/service'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
+import type { LibrarySyncStore } from '@/core/library/store'
+import type { SyncOrchestrator } from '@/core/library/sync'
 import type { PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import type { SubscriptionScheduler } from '@/core/pipeline/subscription-scheduler'
 import type { AiProviderRegistry } from '@/core/providers/registry'
@@ -122,6 +124,9 @@ export type AppDependencies = {
   libraryHealth: LibraryHealthService
   // SkyHook cache warmer (optional -- absent if Lidarr is not configured)
   skyhookWarmer?: SkyHookWarmer | null
+  // Library sync orchestrator + store
+  librarySync: SyncOrchestrator
+  librarySyncStore: LibrarySyncStore
   // Subscription query functions
   subscriptionQueries: {
     createSubscription: (data: SubscriptionInsert) => Promise<SubscriptionRow>
@@ -350,7 +355,12 @@ export function createApp(deps: AppDependencies) {
   )
   app.route(
     '/',
-    libraryRoutes({ libraryHealth: deps.libraryHealth, skyhookWarmer: deps.skyhookWarmer }),
+    libraryRoutes({
+      libraryHealth: deps.libraryHealth,
+      skyhookWarmer: deps.skyhookWarmer,
+      librarySync: deps.librarySync,
+      librarySyncStore: deps.librarySyncStore,
+    }),
   )
   if (deps.search) {
     app.route('/', searchRoutes(deps.search))

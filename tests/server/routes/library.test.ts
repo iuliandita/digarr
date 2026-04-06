@@ -1,10 +1,12 @@
 // @vitest-environment node
 
 import { EventEmitter } from 'node:events'
+import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
+import type { HonoEnv } from '@/server/types'
 
 vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(),
@@ -57,6 +59,49 @@ function makeMockLibraryHealth(opts: { hasCached?: boolean; scanning?: boolean }
     scanning: opts.scanning ?? false,
     fixCheck: vi.fn(async () => mockFixProgress),
     getStats: vi.fn(async () => mockStats),
+  }
+}
+
+function zeroCounts() {
+  return {
+    total: 0,
+    matchedMbid: 0,
+    matchedNameExact: 0,
+    matchedNameAnchored: 0,
+    matchedDisambiguated: 0,
+    unreconciledAmbiguous: 0,
+    unreconciledNoCandidate: 0,
+    cacheHits: 0,
+    mbApiCalls: 0,
+  }
+}
+
+function makeMockLibrarySync() {
+  return {
+    syncGlobal: vi.fn(async () => ({ userId: null, results: [] })),
+    syncForUser: vi.fn(async () => ({ userId: 1, results: [] })),
+    syncSpecificSource: vi.fn(async () => ({
+      source: 'plex',
+      status: 'completed' as const,
+      counts: zeroCounts(),
+    })),
+  }
+}
+
+function makeMockLibrarySyncStore() {
+  return {
+    replaceLibraryArtists: vi.fn(async () => zeroCounts()),
+    findReconciledByNormalizedName: vi.fn(async () => []),
+    getLibrarySyncState: vi.fn(async () => null),
+    upsertLibrarySyncState: vi.fn(async () => {}),
+    getOverride: vi.fn(async () => null),
+    getAllOverrides: vi.fn(async () => new Map()),
+    upsertOverride: vi.fn(async () => {}),
+    deleteOverride: vi.fn(async () => {}),
+    getKnownMbidsForUser: vi.fn(async () => new Set<string>()),
+    userHasAnySyncState: vi.fn(async () => false),
+    listSyncStateForUser: vi.fn(async () => []),
+    listUnreconciledForUser: vi.fn(async () => []),
   }
 }
 
@@ -164,6 +209,8 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       }),
       getJobsForSubscription: vi.fn().mockResolvedValue([]),
     },
+    librarySync: makeMockLibrarySync() as unknown as AppDependencies['librarySync'],
+    librarySyncStore: makeMockLibrarySyncStore() as unknown as AppDependencies['librarySyncStore'],
     ...overrides,
   }
 }
@@ -410,5 +457,230 @@ describe('GET /api/library/warm/status', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.statuses).toEqual({})
+  })
+})
+
+// ---------------------------------------------------------------------------
+// New sync/sources/unreconciled/overrides/reconcile routes
+//
+// These handlers require userId to be set on the context. Rather than fighting
+// the authSkipped+userId gap in the full createApp path, we mount libraryRoutes
+// directly with a tiny middleware that sets userId -- same pattern as jobs.test.ts.
+// ---------------------------------------------------------------------------
+
+import { libraryRoutes } from '@/server/routes/library'
+
+function makeSyncApp(
+  librarySyncOverride?: Record<string, unknown>,
+  librarySyncStoreOverride?: Record<string, unknown>,
+) {
+  const librarySync = {
+    ...makeMockLibrarySync(),
+    ...librarySyncOverride,
+  } as unknown as AppDependencies['librarySync']
+  const librarySyncStore = {
+    ...makeMockLibrarySyncStore(),
+    ...librarySyncStoreOverride,
+  } as unknown as AppDependencies['librarySyncStore']
+  const app = new Hono<HonoEnv>()
+  app.use('*', async (c, next) => {
+    c.set('userId', 42)
+    return next()
+  })
+  app.route(
+    '/',
+    libraryRoutes({
+      libraryHealth: makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth'],
+      skyhookWarmer: null,
+      librarySync,
+      librarySyncStore,
+    }),
+  )
+  return { app, librarySync, librarySyncStore }
+}
+
+describe('GET /api/library/sources', () => {
+  it('returns sync state rows for the authed user', async () => {
+    const mockRows = [
+      {
+        userId: 42,
+        source: 'plex',
+        lastSyncStartedAt: null,
+        lastSyncCompletedAt: null,
+        lastSyncStatus: 'completed',
+        lastSyncError: null,
+        lastSyncCounts: null,
+      },
+      {
+        userId: null,
+        source: 'lidarr',
+        lastSyncStartedAt: null,
+        lastSyncCompletedAt: null,
+        lastSyncStatus: null,
+        lastSyncError: null,
+        lastSyncCounts: null,
+      },
+    ]
+    const { app, librarySyncStore } = makeSyncApp(undefined, {
+      listSyncStateForUser: vi.fn(async () => mockRows),
+    })
+    const res = await app.request('/api/library/sources')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.sources).toHaveLength(2)
+    expect(body.sources[0].source).toBe('plex')
+    expect(body.sources[1].source).toBe('lidarr')
+    expect(
+      (librarySyncStore.listSyncStateForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
+    ).toBe(42)
+  })
+})
+
+describe('POST /api/library/sync', () => {
+  it('fires syncForUser with force:true and returns 202', async () => {
+    const { app, librarySync } = makeSyncApp()
+    const res = await app.request('/api/library/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    // syncForUser is fire-and-forget; give micro-tasks a tick to flush
+    await Promise.resolve()
+    expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(42, {
+      force: true,
+    })
+  })
+
+  it('fires syncSpecificSource when source provided', async () => {
+    const { app, librarySync } = makeSyncApp()
+    const res = await app.request('/api/library/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'plex' }),
+    })
+    expect(res.status).toBe(202)
+    await Promise.resolve()
+    expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      'plex',
+      { force: true },
+    )
+  })
+})
+
+describe('GET /api/library/unreconciled', () => {
+  it('returns unreconciled rows for the authed user', async () => {
+    const mockItems = [
+      {
+        id: 1,
+        userId: 42,
+        source: 'plex',
+        sourceArtistId: 'plex-123',
+        name: 'Unknown Artist',
+        nameNormalized: 'unknown artist',
+        mbid: null,
+        matchMethod: null,
+        matchConfidence: null,
+        genres: null,
+        syncedAt: new Date(),
+      },
+    ]
+    const { app, librarySyncStore } = makeSyncApp(undefined, {
+      listUnreconciledForUser: vi.fn(async () => mockItems),
+    })
+    const res = await app.request('/api/library/unreconciled')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.items).toHaveLength(1)
+    expect(body.items[0].source).toBe('plex')
+    expect(
+      (librarySyncStore.listUnreconciledForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
+    ).toBe(42)
+  })
+})
+
+describe('POST /api/library/overrides', () => {
+  it('calls upsertOverride with correct args and returns ok', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        sourceArtistId: 'plex-123',
+        correctMbid: 'abc-mbid',
+        note: 'manual fix',
+      }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    expect(librarySyncStore.upsertOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      'plex',
+      'plex-123',
+      'abc-mbid',
+      'manual fix',
+    )
+  })
+
+  it('coerces empty string correctMbid to null', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    await app.request('/api/library/overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'plex', sourceArtistId: 'plex-123', correctMbid: '' }),
+    })
+    expect(librarySyncStore.upsertOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      'plex',
+      'plex-123',
+      null,
+      undefined,
+    )
+  })
+
+  it('returns 400 when source is missing', async () => {
+    const { app } = makeSyncApp()
+    const res = await app.request('/api/library/overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sourceArtistId: 'plex-123' }),
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/source/i)
+  })
+})
+
+describe('DELETE /api/library/overrides/:source/:sourceArtistId', () => {
+  it('calls deleteOverride with correct args', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/overrides/plex/plex-123', { method: 'DELETE' })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    expect(librarySyncStore.deleteOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      'plex',
+      'plex-123',
+    )
+  })
+})
+
+describe('POST /api/library/reconcile', () => {
+  it('fires syncForUser with force:true and returns 202', async () => {
+    const { app, librarySync } = makeSyncApp()
+    const res = await app.request('/api/library/reconcile', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    await Promise.resolve()
+    expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(42, {
+      force: true,
+    })
   })
 })
