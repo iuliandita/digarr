@@ -86,6 +86,42 @@ function emptyCounts(): LibrarySyncCounts {
 }
 
 export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncStore {
+  async function getLibrarySyncState(
+    userId: number | null,
+    source: string,
+  ): Promise<LibrarySyncStateRow | null> {
+    const userClause =
+      userId === null ? isNull(librarySyncState.userId) : eq(librarySyncState.userId, userId)
+    const rows = await database
+      .select()
+      .from(librarySyncState)
+      .where(and(userClause, eq(librarySyncState.source, source)))
+      .limit(1)
+    const row = rows[0]
+    if (!row) return null
+    return row as LibrarySyncStateRow
+  }
+
+  async function getOverride(
+    userId: number,
+    source: string,
+    sourceArtistId: string,
+  ): Promise<ReconcilerOverride | null> {
+    const rows = await database
+      .select()
+      .from(libraryMatchOverrides)
+      .where(
+        and(
+          eq(libraryMatchOverrides.userId, userId),
+          eq(libraryMatchOverrides.source, source),
+          eq(libraryMatchOverrides.sourceArtistId, sourceArtistId),
+        ),
+      )
+      .limit(1)
+    const row = rows[0]
+    return row ? { correctMbid: row.correctMbid } : null
+  }
+
   return {
     async replaceLibraryArtists(userId, source, artists) {
       const counts = emptyCounts()
@@ -156,21 +192,10 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
       )
     },
 
-    async getLibrarySyncState(userId, source) {
-      const userClause =
-        userId === null ? isNull(librarySyncState.userId) : eq(librarySyncState.userId, userId)
-      const rows = await database
-        .select()
-        .from(librarySyncState)
-        .where(and(userClause, eq(librarySyncState.source, source)))
-        .limit(1)
-      const row = rows[0]
-      if (!row) return null
-      return row as LibrarySyncStateRow
-    },
+    getLibrarySyncState,
 
     async upsertLibrarySyncState(userId, source, patch) {
-      const existing = await this.getLibrarySyncState(userId, source)
+      const existing = await getLibrarySyncState(userId, source)
       if (existing) {
         const userClause =
           userId === null ? isNull(librarySyncState.userId) : eq(librarySyncState.userId, userId)
@@ -191,21 +216,7 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
       }
     },
 
-    async getOverride(userId, source, sourceArtistId) {
-      const rows = await database
-        .select()
-        .from(libraryMatchOverrides)
-        .where(
-          and(
-            eq(libraryMatchOverrides.userId, userId),
-            eq(libraryMatchOverrides.source, source),
-            eq(libraryMatchOverrides.sourceArtistId, sourceArtistId),
-          ),
-        )
-        .limit(1)
-      const row = rows[0]
-      return row ? { correctMbid: row.correctMbid } : null
-    },
+    getOverride,
 
     async getAllOverrides(userId) {
       const rows = await database
@@ -220,7 +231,7 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
     },
 
     async upsertOverride(userId, source, sourceArtistId, correctMbid, note) {
-      const existing = await this.getOverride(userId, source, sourceArtistId)
+      const existing = await getOverride(userId, source, sourceArtistId)
       if (existing) {
         await database
           .update(libraryMatchOverrides)
