@@ -456,9 +456,6 @@ export const librarySyncState = pgTable(
     lastSyncCounts: jsonb('last_sync_counts').$type<LibrarySyncCounts>(),
   },
   (table) => ({
-    naturalKey: uniqueIndex('library_sync_state_natural_key_idx').on(
-      table.userId,
-      table.source,
-    ),
+    naturalKey: uniqueIndex('library_sync_state_natural_key_idx').on(table.userId, table.source),
   }),
 )
