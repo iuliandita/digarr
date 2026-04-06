@@ -3,7 +3,7 @@ import type { JobRecorder, JobType } from '@/core/jobs/types'
 import { errMsg } from '@/core/validation'
 import { type ReconcilerContext, reconcileArtist } from './reconciler'
 import type { LibrarySource } from './sources/types'
-import type { LibrarySyncStore } from './store'
+import { emptyLibrarySyncCounts, type LibrarySyncStore } from './store'
 
 const LIBRARY_SYNC_JOB_TYPE: JobType = 'library_sync'
 
@@ -49,20 +49,6 @@ export type SyncOrchestratorDeps = {
   staleHours: number
 }
 
-function emptyCounts(): ReconcilerContext['counts'] {
-  return {
-    total: 0,
-    matchedMbid: 0,
-    matchedNameExact: 0,
-    matchedNameAnchored: 0,
-    matchedDisambiguated: 0,
-    unreconciledAmbiguous: 0,
-    unreconciledNoCandidate: 0,
-    cacheHits: 0,
-    mbApiCalls: 0,
-  }
-}
-
 export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
   const inFlight = new Map<string, Promise<SourceSyncResult>>()
 
@@ -100,26 +86,27 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       }
     }
 
-    const jobId = await deps.recorder.start({
-      type: LIBRARY_SYNC_JOB_TYPE,
-      userId: userId ?? undefined,
-      metadata: { source: source.id },
-    })
-
-    await deps.store.upsertLibrarySyncState(userId, source.id, {
-      lastSyncStartedAt: new Date(),
-      lastSyncStatus: 'running',
-      lastSyncError: null,
-    })
-
+    let jobId: number | null = null
     try {
+      jobId = await deps.recorder.start({
+        type: LIBRARY_SYNC_JOB_TYPE,
+        userId: userId ?? undefined,
+        metadata: { source: source.id },
+      })
+
+      await deps.store.upsertLibrarySyncState(userId, source.id, {
+        lastSyncStartedAt: new Date(),
+        lastSyncStatus: 'running',
+        lastSyncError: null,
+      })
+
       options?.onProgress?.(`Syncing ${source.name}...`)
       const rawArtists = await source.listArtists()
 
       const overrides = userId != null ? await deps.store.getAllOverrides(userId) : new Map()
       const knownMbids =
         userId != null ? await deps.store.getKnownMbidsForUser(userId) : new Set<string>()
-      const counts = emptyCounts()
+      const counts = emptyLibrarySyncCounts()
       const ctx: ReconcilerContext = {
         userId,
         overrides,
@@ -155,11 +142,23 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       return { source: source.id, status: 'completed', counts: merged }
     } catch (err: unknown) {
       const error = errMsg(err)
-      await deps.store.upsertLibrarySyncState(userId, source.id, {
-        lastSyncStatus: 'failed',
-        lastSyncError: error,
-      })
-      await deps.recorder.fail(jobId, error)
+      // The state-update itself can fail if the DB is the source of the original error.
+      // Swallow secondary failures so they don't escape doSync.
+      try {
+        await deps.store.upsertLibrarySyncState(userId, source.id, {
+          lastSyncStatus: 'failed',
+          lastSyncError: error,
+        })
+      } catch {
+        // best-effort
+      }
+      if (jobId !== null) {
+        try {
+          await deps.recorder.fail(jobId, error)
+        } catch {
+          // best-effort
+        }
+      }
       return { source: source.id, status: 'failed', error }
     }
   }

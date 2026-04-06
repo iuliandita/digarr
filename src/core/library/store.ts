@@ -71,7 +71,7 @@ export interface LibrarySyncStore {
   userHasAnySyncState(userId: number): Promise<boolean>
 }
 
-function emptyCounts(): LibrarySyncCounts {
+export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   return {
     total: 0,
     matchedMbid: 0,
@@ -124,7 +124,7 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
 
   return {
     async replaceLibraryArtists(userId, source, artists) {
-      const counts = emptyCounts()
+      const counts = emptyLibrarySyncCounts()
       for (const a of artists) {
         counts.total += 1
         switch (a.matchMethod) {
