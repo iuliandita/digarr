@@ -203,10 +203,20 @@ export function pipelineRoutes(deps: AppDependencies) {
           console.warn('Seed artist store failed:', errMsg(err))
         }
 
-        // Get library MBIDs -- intermediate array is immediately GC-eligible
-        const libraryMbids = lidarr
-          ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
-          : new Set<string>()
+        // Get library MBIDs. Quick-discover prioritizes speed over freshness:
+        // we read from the cache without triggering a sync. The background scheduler
+        // keeps the cache fresh; an empty cache means no dedup (matches the old behavior).
+        let libraryMbids: Set<string>
+        if (typeof deps.storeDb.getLibraryArtistsForUser === 'function' && quickDiscoverUserId) {
+          const cached = await deps.storeDb.getLibraryArtistsForUser(quickDiscoverUserId, {
+            onlyReconciled: true,
+          })
+          libraryMbids = new Set(cached.map((a) => a.mbid).filter((m): m is string => m !== null))
+        } else {
+          libraryMbids = lidarr
+            ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
+            : new Set<string>()
+        }
 
         // Find similar artists via Last.fm + AI
         const discovered: Array<{
