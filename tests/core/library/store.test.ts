@@ -1,0 +1,196 @@
+// @vitest-environment node
+
+import { eq } from 'drizzle-orm'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { ReconciledArtist } from '@/core/library/reconciler'
+import { createLibrarySyncStore } from '@/core/library/store'
+import { db } from '@/db'
+import { libraryArtists, libraryMatchOverrides, librarySyncState, users } from '@/db/schema'
+
+const TEST_USER = { username: 'libstore-test-user', passwordHash: 'x' }
+
+let userId: number
+
+beforeEach(async () => {
+  // Clean and reseed
+  await db.delete(libraryArtists)
+  await db.delete(librarySyncState)
+  await db.delete(libraryMatchOverrides)
+  await db.delete(users).where(eq(users.username, TEST_USER.username))
+  const inserted = await db.insert(users).values(TEST_USER).returning({ id: users.id })
+  if (!inserted[0]) throw new Error('failed to seed user')
+  userId = inserted[0].id
+})
+
+afterEach(async () => {
+  await db.delete(libraryArtists)
+  await db.delete(librarySyncState)
+  await db.delete(libraryMatchOverrides)
+  await db.delete(users).where(eq(users.id, userId))
+})
+
+function reconciled(
+  opts: Partial<ReconciledArtist> & { sourceArtistId: string; name: string },
+): ReconciledArtist {
+  return {
+    sourceArtistId: opts.sourceArtistId,
+    name: opts.name,
+    nameNormalized: opts.nameNormalized ?? opts.name.toLowerCase(),
+    mbid: opts.mbid ?? null,
+    matchMethod: opts.matchMethod ?? null,
+    matchConfidence: opts.matchConfidence ?? null,
+    genres: opts.genres ?? [],
+    unreconciledReason: opts.unreconciledReason,
+  }
+}
+
+describe('LibrarySyncStore', () => {
+  it('replaceLibraryArtists writes rows and reports counts', async () => {
+    const store = createLibrarySyncStore(db)
+    const counts = await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({
+        sourceArtistId: 'rk-1',
+        name: 'Bush',
+        mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        matchMethod: 'mbid',
+        matchConfidence: 1.0,
+      }),
+      reconciled({
+        sourceArtistId: 'rk-2',
+        name: 'NoMatch',
+        unreconciledReason: 'no_candidate',
+      }),
+    ])
+
+    expect(counts.total).toBe(2)
+    expect(counts.matchedMbid).toBe(1)
+    expect(counts.unreconciledNoCandidate).toBe(1)
+
+    const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
+    expect(rows).toHaveLength(2)
+  })
+
+  it('replaceLibraryArtists is truncate-and-replace per source/user', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({ sourceArtistId: 'rk-1', name: 'Bush' }),
+    ])
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({ sourceArtistId: 'rk-2', name: 'Radiohead' }),
+    ])
+    const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.sourceArtistId).toBe('rk-2')
+  })
+
+  it('replaceLibraryArtists for source A does not touch source B', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({ sourceArtistId: 'rk-1', name: 'Bush' }),
+    ])
+    await store.replaceLibraryArtists(userId, 'jellyfin', [
+      reconciled({ sourceArtistId: 'jf-1', name: 'Radiohead' }),
+    ])
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({ sourceArtistId: 'rk-3', name: 'Portishead' }),
+    ])
+    const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
+    expect(rows).toHaveLength(2)
+    expect(rows.map((r) => r.source).sort()).toEqual(['jellyfin', 'plex'])
+  })
+
+  it('findReconciledByNormalizedName returns rows scoped to user + global', async () => {
+    const store = createLibrarySyncStore(db)
+    // Global Lidarr row (userId = null)
+    await store.replaceLibraryArtists(null, 'lidarr', [
+      reconciled({
+        sourceArtistId: '1',
+        name: 'Bush',
+        nameNormalized: 'bush',
+        mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        matchMethod: 'mbid',
+      }),
+    ])
+    // Per-user Plex row
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({
+        sourceArtistId: 'rk-1',
+        name: 'Radiohead',
+        nameNormalized: 'radiohead',
+        mbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+        matchMethod: 'mbid',
+      }),
+    ])
+
+    const bushHits = await store.findReconciledByNormalizedName(userId, 'bush')
+    expect(bushHits).toHaveLength(1)
+    expect(bushHits[0]?.source).toBe('lidarr')
+
+    const radioheadHits = await store.findReconciledByNormalizedName(userId, 'radiohead')
+    expect(radioheadHits).toHaveLength(1)
+    expect(radioheadHits[0]?.source).toBe('plex')
+  })
+
+  it('findReconciledByNormalizedName excludes rows with null mbid', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, 'plex', [
+      reconciled({
+        sourceArtistId: 'rk-1',
+        name: 'Bush',
+        nameNormalized: 'bush',
+        unreconciledReason: 'no_candidate',
+      }),
+    ])
+    const hits = await store.findReconciledByNormalizedName(userId, 'bush')
+    expect(hits).toHaveLength(0)
+  })
+
+  it('upsert/get sync state round-trips', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.upsertLibrarySyncState(userId, 'plex', {
+      lastSyncStartedAt: new Date('2026-04-06T12:00:00Z'),
+      lastSyncStatus: 'running',
+    })
+    const state = await store.getLibrarySyncState(userId, 'plex')
+    expect(state?.lastSyncStatus).toBe('running')
+
+    await store.upsertLibrarySyncState(userId, 'plex', {
+      lastSyncCompletedAt: new Date('2026-04-06T12:05:00Z'),
+      lastSyncStatus: 'completed',
+      lastSyncCounts: {
+        total: 100,
+        matchedMbid: 80,
+        matchedNameExact: 10,
+        matchedNameAnchored: 5,
+        matchedDisambiguated: 0,
+        unreconciledAmbiguous: 2,
+        unreconciledNoCandidate: 3,
+        cacheHits: 0,
+        mbApiCalls: 20,
+      },
+    })
+    const state2 = await store.getLibrarySyncState(userId, 'plex')
+    expect(state2?.lastSyncStatus).toBe('completed')
+    expect(state2?.lastSyncCounts?.total).toBe(100)
+  })
+
+  it('override CRUD round-trips', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.upsertOverride(
+      userId,
+      'plex',
+      'rk-1',
+      '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+      'fix',
+    )
+    const got = await store.getOverride(userId, 'plex', 'rk-1')
+    expect(got?.correctMbid).toBe('8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11')
+
+    const all = await store.getAllOverrides(userId)
+    expect(all.size).toBe(1)
+    expect(all.get('plex:rk-1')?.correctMbid).toBe('8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11')
+
+    await store.deleteOverride(userId, 'plex', 'rk-1')
+    expect(await store.getOverride(userId, 'plex', 'rk-1')).toBeNull()
+  })
+})
