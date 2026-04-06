@@ -537,7 +537,7 @@ describe('GET /api/library/sources', () => {
 })
 
 describe('POST /api/library/sync', () => {
-  it('fires syncForUser with force:true and returns 202', async () => {
+  it('awaits syncForUser and returns its summary in the 202 body', async () => {
     const { app, librarySync } = makeSyncApp()
     const res = await app.request('/api/library/sync', {
       method: 'POST',
@@ -546,12 +546,12 @@ describe('POST /api/library/sync', () => {
     })
     expect(res.status).toBe(202)
     const body = await res.json()
-    expect(body.ok).toBe(true)
-    // syncForUser is fire-and-forget; give micro-tasks a tick to flush
-    await Promise.resolve()
+    expect(body.userId).toBe(1)
+    expect(body.results).toEqual([])
     expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(42, {
       force: true,
     })
+    expect(librarySync.syncGlobal as ReturnType<typeof vi.fn>).toHaveBeenCalledWith({ force: true })
   })
 
   it('fires syncSpecificSource when source provided', async () => {
@@ -562,12 +562,40 @@ describe('POST /api/library/sync', () => {
       body: JSON.stringify({ source: 'plex' }),
     })
     expect(res.status).toBe(202)
-    await Promise.resolve()
     expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       42,
       'plex',
       { force: true },
     )
+  })
+
+  it('retries syncSpecificSource with userId=null when source not configured', async () => {
+    const syncSpecificSource = vi
+      .fn()
+      .mockResolvedValueOnce({
+        source: 'plex',
+        status: 'failed',
+        error: "Source 'plex' not configured",
+      })
+      .mockResolvedValueOnce({
+        source: 'plex',
+        status: 'completed',
+        counts: zeroCounts(),
+      })
+    const { app } = makeSyncApp({ syncSpecificSource })
+
+    const res = await app.request('/api/library/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'plex' }),
+    })
+
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.status).toBe('completed')
+    expect(syncSpecificSource).toHaveBeenCalledTimes(2)
+    expect(syncSpecificSource).toHaveBeenNthCalledWith(1, 42, 'plex', { force: true })
+    expect(syncSpecificSource).toHaveBeenNthCalledWith(2, null, 'plex', { force: true })
   })
 })
 

@@ -111,22 +111,23 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const source = typeof body.source === 'string' ? body.source : undefined
     if (source) {
       let result = await deps.librarySync.syncSpecificSource(userId, source, { force: true })
-      if (result.status === 'failed' && result.error.includes('not configured')) {
+      if (
+        result.status === 'failed' &&
+        'error' in result &&
+        result.error.includes('not configured')
+      ) {
         // Retry as global source
         result = await deps.librarySync.syncSpecificSource(null, source, { force: true })
       }
-      deps.librarySync.syncGlobal({ force: true }).catch((err: unknown) => {
-        console.error('[library/sync] global sync error:', errMsg(err))
-      })
+      return c.json(result, 202)
     } else {
-      deps.librarySync.syncForUser(userId, { force: true }).catch((err: unknown) => {
-        console.error('[library/sync] per-user sync error:', errMsg(err))
+      const summary = await deps.librarySync.syncForUser(userId, { force: true })
+      // Also kick off global (Lidarr) without blocking
+      void deps.librarySync.syncGlobal({ force: true }).catch((err: unknown) => {
+        console.error('[library/sync] global sync failed:', errMsg(err))
       })
-      deps.librarySync.syncGlobal({ force: true }).catch((err: unknown) => {
-        console.error('[library/sync] global sync error:', errMsg(err))
-      })
+      return c.json(summary, 202)
     }
-    return c.json({ ok: true }, 202)
   })
 
   // GET /api/library/unreconciled -- rows where mbid IS NULL for current user + global
