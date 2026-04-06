@@ -51,6 +51,23 @@ export interface StoreDb {
   } | null>
 
   getPopularityMap?: () => Promise<Map<string, number>>
+
+  getLibraryArtistsForUser?: (
+    userId: number,
+    options?: { onlyReconciled?: boolean; source?: string },
+  ) => Promise<
+    Array<{
+      mbid: string | null
+      name: string
+      source: string
+      sourceArtistId: string
+      genres: string[] | null
+      matchMethod: string | null
+      matchConfidence: number | null
+    }>
+  >
+
+  userHasAnySyncState?: (userId: number) => Promise<boolean>
 }
 
 export type StoreOptions = {

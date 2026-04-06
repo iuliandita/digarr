@@ -449,4 +449,72 @@ describe('PipelineOrchestrator', () => {
       'At least one listening source or AI provider must be configured',
     )
   })
+
+  it('uses sync orchestrator when librarySync dep is provided', async () => {
+    const db = makeDb()
+    const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
+      ...db,
+      getLibraryArtistsForUser: vi.fn(async () => [
+        {
+          mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          name: 'Radiohead',
+          source: 'lidarr',
+          sourceArtistId: '1',
+          genres: ['rock'],
+          matchMethod: 'mbid',
+          matchConfidence: 1.0,
+        },
+      ]),
+      userHasAnySyncState: vi.fn(async () => true),
+    }
+    const syncForUser = vi.fn(async () => ({ userId: 1, results: [] }))
+
+    await orchestrator.run({
+      db: dbWithLibrary,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    expect(syncForUser).toHaveBeenCalledWith(1, expect.anything())
+    expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalledWith(1, { onlyReconciled: true })
+    // collect() should NOT be called when the new library path is used
+    expect(mockCollect).not.toHaveBeenCalled()
+  })
+
+  it('fire-and-forgets first library sync when user has no prior sync state', async () => {
+    const db = makeDb()
+    let firstSyncResolved = false
+    const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
+      ...db,
+      getLibraryArtistsForUser: vi.fn(async () => []),
+      userHasAnySyncState: vi.fn(async () => false), // first sync ever
+    }
+    const syncForUser = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          // Never resolves during the test -- simulates a slow first sync
+          setTimeout(() => {
+            firstSyncResolved = true
+            resolve({ userId: 1, results: [] })
+          }, 1000)
+        }),
+    )
+
+    const result = await orchestrator.run({
+      db: dbWithLibrary,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    // Pipeline must complete WITHOUT waiting for the slow first sync
+    expect(result).toEqual({ batchId: 42 })
+    expect(syncForUser).toHaveBeenCalled()
+    expect(firstSyncResolved).toBe(false)
+    // It should still read from the (empty) cache
+    expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalled()
+  })
 })

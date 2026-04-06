@@ -52,6 +52,13 @@ export interface PipelineDeps {
   autoApproveDeps?: AutoApproveDeps | null
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   trigger?: 'scheduled' | 'manual'
+  /** Optional library sync trigger; if absent, falls back to direct collect() */
+  librarySync?: {
+    syncForUser: (
+      userId: number,
+      options?: { force?: boolean; onProgress?: (msg: string) => void },
+    ) => Promise<unknown>
+  }
 }
 
 export class PipelineOrchestrator extends EventEmitter {
@@ -168,15 +175,61 @@ export class PipelineOrchestrator extends EventEmitter {
 
       const mbClient = createMusicBrainzClient()
 
-      this.emit('progress', { stage: 'collect', message: 'Fetching your Lidarr library...' })
+      this.emit('progress', { stage: 'collect', message: 'Loading your library...' })
 
-      // Block-scope libraryArtists so the full array can be GC'd after we
-      // extract what we need. For large libraries (2000+ artists) this is
-      // the primary source of memory pressure.
       let libraryMbids: Set<string>
       let libraryGenres: string[]
       let librarySeeds: Array<{ mbid: string; name: string }>
-      {
+
+      const userIdForSync = deps.userId
+      const useNewLibraryPath =
+        deps.librarySync !== undefined &&
+        userIdForSync !== undefined &&
+        typeof db.getLibraryArtistsForUser === 'function' &&
+        typeof db.userHasAnySyncState === 'function'
+
+      if (
+        useNewLibraryPath &&
+        deps.librarySync &&
+        userIdForSync !== undefined &&
+        db.userHasAnySyncState &&
+        db.getLibraryArtistsForUser
+      ) {
+        const hasAnyState = await db.userHasAnySyncState(userIdForSync)
+        if (!hasAnyState) {
+          // First-sync detection: fire-and-forget so the pipeline doesn't hang
+          // for the slow MB lookups on a fresh install.
+          void deps.librarySync
+            .syncForUser(userIdForSync)
+            .catch((err: unknown) => console.error('[pipeline] first library sync failed:', err))
+          this.emit('progress', {
+            stage: 'collect',
+            message: 'First library sync running in background -- proceeding without it',
+          })
+        } else {
+          await deps.librarySync.syncForUser(userIdForSync, {
+            onProgress: (msg) => this.emit('progress', { stage: 'collect', message: msg }),
+          })
+        }
+
+        const libraryArtists = await db.getLibraryArtistsForUser(userIdForSync, {
+          onlyReconciled: true,
+        })
+        libraryMbids = new Set(
+          libraryArtists.map((a) => a.mbid).filter((m): m is string => m !== null),
+        )
+        libraryGenres = [...new Set(libraryArtists.flatMap((a) => a.genres ?? []))]
+        librarySeeds = libraryArtists
+          .filter((a): a is typeof a & { mbid: string } => a.mbid !== null)
+          .map((a) => ({ mbid: a.mbid, name: a.name }))
+
+        const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
+        this.emit('progress', {
+          stage: 'collect',
+          message: `Loaded ${libraryMbids.size} library artists across ${sourceCount} source${sourceCount === 1 ? '' : 's'}`,
+        })
+      } else {
+        // Legacy path: direct Lidarr fetch (used when sync orchestrator is not wired)
         const libraryArtists = await collect(lidarrClient)
         this.emit('progress', {
           stage: 'collect',
@@ -184,9 +237,7 @@ export class PipelineOrchestrator extends EventEmitter {
         })
         libraryMbids = new Set(libraryArtists.map((a) => a.mbid))
         libraryGenres = [...new Set(libraryArtists.flatMap((a) => a.genres))]
-        // discover() only needs mbid + name for seed selection
         librarySeeds = libraryArtists.map((a) => ({ mbid: a.mbid, name: a.name }))
-        // libraryArtists goes out of scope here -- eligible for GC
       }
 
       const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
