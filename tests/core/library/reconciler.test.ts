@@ -201,3 +201,117 @@ describe('reconcileArtist -- Step 3 (anchoring)', () => {
     expect(result.unreconciledReason).toBe('ambiguous')
   })
 })
+
+describe('reconcileArtist -- Step 5 (album-overlap disambiguation)', () => {
+  it('picks winner when album overlap is clear', async () => {
+    const ctx = makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn().mockImplementation((mbid: string) => {
+          if (mbid === VALID_MBID) {
+            return Promise.resolve([
+              { id: 'rg1', title: 'Sixteen Stone', type: 'Album' },
+              { id: 'rg2', title: 'Razorblade Suitcase', type: 'Album' },
+              { id: 'rg3', title: 'The Science of Things', type: 'Album' },
+            ])
+          }
+          return Promise.resolve([{ id: 'rg9', title: 'Korean Album', type: 'Album' }])
+        }),
+      },
+    })
+    const artist: LibraryArtist = {
+      sourceArtistId: 'rk-1',
+      name: 'Bush',
+      knownAlbumTitles: ['Sixteen Stone', 'Razorblade Suitcase'],
+    }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.mbid).toBe(VALID_MBID)
+    expect(result.matchMethod).toBe('name_disambiguated')
+    expect(result.matchConfidence).toBe(0.5)
+    expect(ctx.counts.matchedDisambiguated).toBe(1)
+  })
+
+  it('returns ambiguous when no album data is available', async () => {
+    const ctx = makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn(),
+      },
+    })
+    const artist: LibraryArtist = {
+      sourceArtistId: 'rk-1',
+      name: 'Bush',
+      knownAlbumTitles: [],
+    }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.matchMethod).toBeNull()
+    expect(result.unreconciledReason).toBe('ambiguous')
+    expect(ctx.mbClient.getReleaseGroups).not.toHaveBeenCalled()
+  })
+
+  it('returns ambiguous when overlap is not 2x runner-up', async () => {
+    const ctx = makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn().mockImplementation((mbid: string) => {
+          if (mbid === VALID_MBID) {
+            return Promise.resolve([
+              { id: 'rg1', title: 'Album One', type: 'Album' },
+              { id: 'rg2', title: 'Album Two', type: 'Album' },
+            ])
+          }
+          return Promise.resolve([
+            { id: 'rg3', title: 'Album One', type: 'Album' },
+            { id: 'rg4', title: 'Album Two', type: 'Album' },
+          ])
+        }),
+      },
+    })
+    const artist: LibraryArtist = {
+      sourceArtistId: 'rk-1',
+      name: 'Bush',
+      knownAlbumTitles: ['Album One', 'Album Two'],
+    }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.matchMethod).toBeNull()
+    expect(result.unreconciledReason).toBe('ambiguous')
+  })
+
+  it('returns ambiguous when winner has fewer than 2 overlaps', async () => {
+    const ctx = makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi
+          .fn()
+          .mockResolvedValue([{ id: 'rg1', title: 'Only One', type: 'Album' }]),
+      },
+    })
+    const artist: LibraryArtist = {
+      sourceArtistId: 'rk-1',
+      name: 'Bush',
+      knownAlbumTitles: ['Only One'],
+    }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.unreconciledReason).toBe('ambiguous')
+  })
+})

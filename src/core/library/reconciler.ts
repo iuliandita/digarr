@@ -148,7 +148,35 @@ export async function reconcileArtist(
     return matchedRow(artist, nameNormalized, candidates[0].id, 'name_exact', 0.7)
   }
 
-  // Step 5 (Task 10) will go here. For now: ambiguous.
+  // Step 5: album-overlap disambiguation
+  const sourceAlbumTitles = artist.knownAlbumTitles ?? []
+  if (sourceAlbumTitles.length > 0 && candidates.length >= 2) {
+    const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
+    const scored = await Promise.all(
+      candidates.map(async (c) => {
+        const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
+        const mbTitles = new Set(releaseGroups.map((rg) => normalizeArtistName(rg.title)))
+        let overlap = 0
+        for (const t of normalizedSourceTitles) {
+          if (mbTitles.has(t)) overlap += 1
+        }
+        return { candidate: c, overlap }
+      }),
+    )
+    scored.sort((a, b) => b.overlap - a.overlap)
+    const winner = scored[0]
+    const runnerUp = scored[1]
+    if (
+      winner &&
+      winner.overlap >= 2 &&
+      (runnerUp === undefined || runnerUp.overlap === 0 || winner.overlap >= 2 * runnerUp.overlap)
+    ) {
+      ctx.counts.matchedDisambiguated += 1
+      return matchedRow(artist, nameNormalized, winner.candidate.id, 'name_disambiguated', 0.5)
+    }
+  }
+
+  // Fall through to ambiguous when disambiguation can't decide
   ctx.counts.unreconciledAmbiguous += 1
   return unreconciledRow(artist, nameNormalized, 'ambiguous')
 }
