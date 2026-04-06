@@ -10,6 +10,13 @@ export type JellyfinArtist = {
   isFavorite: boolean
 }
 
+export type JellyfinLibraryArtist = {
+  id: string
+  name: string
+  mbid?: string
+  genres: string[]
+}
+
 export type JellyfinRecentTrack = {
   artistName: string
   trackName: string
@@ -161,6 +168,53 @@ export function createJellyfinClient(
     })
   }
 
+  /**
+   * Return every artist in the user's music library, paginated. When the
+   * MB metadata agent is enabled (the common case), each artist will have
+   * its MBID under ProviderIds.MusicBrainzArtist.
+   */
+  async function getAllArtists(options?: { pageSize?: number }): Promise<JellyfinLibraryArtist[]> {
+    const userId = await getUserId()
+    const pageSize = options?.pageSize ?? 200
+
+    const all: JellyfinLibraryArtist[] = []
+    let startIndex = 0
+    let total = Number.POSITIVE_INFINITY
+
+    while (startIndex < total) {
+      const params = new URLSearchParams({
+        IncludeItemTypes: 'MusicArtist',
+        Recursive: 'true',
+        Fields: 'Genres,ProviderIds',
+        StartIndex: String(startIndex),
+        Limit: String(pageSize),
+      })
+      const res = await get<{
+        TotalRecordCount: number
+        Items: Array<{
+          Id: string
+          Name: string
+          Genres?: string[]
+          ProviderIds?: { MusicBrainzArtist?: string }
+        }>
+      }>(`/Users/${userId}/Items?${params}`)
+
+      total = res.TotalRecordCount ?? res.Items.length
+      for (const item of res.Items) {
+        all.push({
+          id: item.Id,
+          name: item.Name,
+          mbid: item.ProviderIds?.MusicBrainzArtist?.trim() || undefined,
+          genres: item.Genres ?? [],
+        })
+      }
+      if (res.Items.length === 0) break
+      startIndex += res.Items.length
+    }
+
+    return all
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<JellyfinSystemInfo>('/System/Info')
@@ -181,6 +235,7 @@ export function createJellyfinClient(
 
   return {
     getTopArtists,
+    getAllArtists,
     getRecentlyPlayed,
     getFavoriteArtists,
     testConnection,
