@@ -1,4 +1,10 @@
-export type JobType = 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
+export type JobType =
+  | 'pipeline'
+  | 'quick_discover'
+  | 'subscription'
+  | 'target'
+  | 'playlist'
+  | 'library_sync'
 export type JobStatus = 'running' | 'completed' | 'failed' | 'stuck'
 export type SourceStatus = 'ok' | 'error' | 'skipped'
 

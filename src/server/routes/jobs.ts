@@ -11,6 +11,7 @@ const VALID_TYPES = new Set<string>([
   'subscription',
   'target',
   'playlist',
+  'library_sync',
 ])
 const VALID_STATUSES = new Set<string>(['running', 'completed', 'failed', 'stuck'])
 
