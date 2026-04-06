@@ -1,6 +1,7 @@
 import {
   type AnyPgColumn,
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -9,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -31,6 +33,7 @@ export const settings = pgTable('settings', {
   skipTlsVerify: boolean('skip_tls_verify').default(false).notNull(),
   preferences: jsonb('preferences').$type<Preferences>(),
   setupComplete: boolean('setup_complete').default(false).notNull(),
+  librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
@@ -344,3 +347,118 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
     },
   }
 }
+
+export const libraryArtists = pgTable(
+  'library_artists',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    // null = global config (Lidarr), non-null = per-user (Plex/Jellyfin/Emby)
+    source: text('source').notNull(),
+    // 'lidarr' | 'plex' | 'jellyfin' | 'emby'
+    sourceArtistId: text('source_artist_id').notNull(),
+    name: text('name').notNull(),
+    nameNormalized: text('name_normalized').notNull(),
+    mbid: uuid('mbid'),
+    // null when reconciliation failed; dedup query uses `WHERE mbid IS NOT NULL`
+    matchMethod: text('match_method'),
+    // 'mbid' | 'name_exact' | 'name_anchored' | 'name_disambiguated' | null
+    matchConfidence: real('match_confidence'),
+    genres: text('genres').array(),
+    syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    naturalKey: uniqueIndex('library_artists_natural_key_idx').on(
+      table.userId,
+      table.source,
+      table.sourceArtistId,
+    ),
+    dedupIdx: index('library_artists_dedup_idx').on(table.userId, table.mbid),
+    nameIdx: index('library_artists_name_idx').on(table.userId, table.nameNormalized),
+  }),
+)
+
+export const libraryAlbums = pgTable(
+  'library_albums',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(),
+    sourceAlbumId: text('source_album_id').notNull(),
+    sourceArtistId: text('source_artist_id').notNull(),
+    title: text('title').notNull(),
+    titleNormalized: text('title_normalized').notNull(),
+    albumMbid: uuid('album_mbid'),
+    artistMbid: uuid('artist_mbid'),
+    releaseYear: integer('release_year'),
+    primaryType: text('primary_type'),
+    matchMethod: text('match_method'),
+    matchConfidence: real('match_confidence'),
+    syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    naturalKey: uniqueIndex('library_albums_natural_key_idx').on(
+      table.userId,
+      table.source,
+      table.sourceAlbumId,
+    ),
+    artistLookup: index('library_albums_artist_idx').on(table.userId, table.artistMbid),
+  }),
+)
+
+export const libraryMatchOverrides = pgTable(
+  'library_match_overrides',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(),
+    sourceArtistId: text('source_artist_id').notNull(),
+    correctMbid: uuid('correct_mbid'),
+    // null means "this row has no MB equivalent, leave unreconciled forever"
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    naturalKey: uniqueIndex('library_match_overrides_natural_key_idx').on(
+      table.userId,
+      table.source,
+      table.sourceArtistId,
+    ),
+  }),
+)
+
+export type LibrarySyncCounts = {
+  total: number
+  matchedMbid: number
+  matchedNameExact: number
+  matchedNameAnchored: number
+  matchedDisambiguated: number
+  unreconciledAmbiguous: number
+  unreconciledNoCandidate: number
+  cacheHits: number
+  mbApiCalls: number
+  estimatedSecondsRemaining?: number
+  albumsSynced?: number
+}
+
+export const librarySyncState = pgTable(
+  'library_sync_state',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(),
+    lastSyncStartedAt: timestamp('last_sync_started_at', { withTimezone: true }),
+    lastSyncCompletedAt: timestamp('last_sync_completed_at', { withTimezone: true }),
+    lastSyncStatus: text('last_sync_status'),
+    // 'running' | 'completed' | 'failed'
+    lastSyncError: text('last_sync_error'),
+    lastSyncCounts: jsonb('last_sync_counts').$type<LibrarySyncCounts>(),
+  },
+  (table) => ({
+    naturalKey: uniqueIndex('library_sync_state_natural_key_idx').on(
+      table.userId,
+      table.source,
+    ),
+  }),
+)
