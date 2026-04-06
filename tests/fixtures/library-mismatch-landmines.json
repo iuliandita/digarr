@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "id": "the-beatles-article-stripping",
+      "input": { "name": "The Beatles", "sourceArtistId": "lid-1" },
+      "expected": { "matchMethod": "mbid", "matchConfidence": 1.0 },
+      "reason": "Article stripping during normalization"
+    },
+    {
+      "id": "sigur-ros-diacritic",
+      "input": { "name": "Sigur Rós", "sourceArtistId": "lid-2" },
+      "expected": { "matchMethod": "mbid", "matchConfidence": 1.0 },
+      "reason": "Diacritic stripping"
+    },
+    {
+      "id": "tyler-the-creator-comma-article",
+      "input": { "name": "Tyler, The Creator", "sourceArtistId": "lid-3" },
+      "expected": { "matchMethod": "mbid", "matchConfidence": 1.0 },
+      "reason": "Comma + article handling"
+    }
+  ]
+}
