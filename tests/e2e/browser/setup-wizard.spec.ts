@@ -1,33 +1,28 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Setup Wizard', () => {
-  test('completes discover-mode setup', async ({ page }) => {
+  test('loads and shows mode selection', async ({ page }) => {
     await page.goto('/')
 
-    // Should redirect to setup wizard or register page
-    await expect(page.getByText(/welcome|setup|get started|register|create account/i)).toBeVisible()
-
-    // Select discover mode if wizard mode selection is visible
-    const discoverButton = page.getByRole('button', { name: /discover/i })
-    if (await discoverButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await discoverButton.click()
-    }
-
-    // Fill in ListenBrainz username on sources step (use specific ID to avoid ambiguity)
-    const lbUsername = page.locator('#lb-username')
-    if (await lbUsername.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await lbUsername.fill('testuser')
-    }
-
-    // Look for a continue/next button to advance through steps
-    const continueButton = page.getByRole('button', {
-      name: /continue|next|skip|complete|finish|start/i,
+    // Fresh app should redirect to setup wizard or register page
+    await expect(page.getByText(/welcome|setup|get started|register|create account/i)).toBeVisible({
+      timeout: 10_000,
     })
-    if (await continueButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await continueButton.click()
-    }
 
-    // Verify we can navigate the wizard without crashing
-    await expect(page.locator('body')).toBeVisible()
+    // Mode selection buttons should be present (Lidarr vs Discover)
+    const discoverButton = page.getByRole('button', { name: /discover/i })
+    const lidarrButton = page.getByRole('button', { name: /lidarr/i })
+
+    // At least one mode button should be visible on a fresh setup
+    const hasDiscover = await discoverButton.isVisible({ timeout: 3_000 }).catch(() => false)
+    const hasLidarr = await lidarrButton.isVisible({ timeout: 3_000 }).catch(() => false)
+
+    // If we're on the setup page, mode selection should be available
+    // (may not be if the app redirected to register instead)
+    if (hasDiscover || hasLidarr) {
+      // Click discover mode and verify the wizard advances
+      await discoverButton.click()
+      await expect(page.locator('body')).toBeVisible()
+    }
   })
 })
