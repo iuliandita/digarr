@@ -458,7 +458,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     queries: {
       updateSubscription: (id, data) => updateSubscription(db, id, data),
     },
-    jobRecorder: createJobRecorder(db),
+    jobRecorder,
     mbClient: createMusicBrainzClient() as SubMBClient,
     lidarr: lidarrClient ?? undefined,
     userId: sub.userId ?? undefined,

@@ -153,15 +153,17 @@ export const jobRuns = pgTable('job_runs', {
   id: serial('id').primaryKey(),
   type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
   status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
-  userId: integer('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   durationMs: integer('duration_ms'),
   error: text('error'),
   metadata: jsonb('metadata').notNull().default({}),
   sourceResults: jsonb('source_results'),
-  subscriptionId: integer('subscription_id').references(() => subscriptions.id),
-  batchId: integer('batch_id').references(() => recommendationBatches.id),
+  subscriptionId: integer('subscription_id').references(() => subscriptions.id, {
+    onDelete: 'set null',
+  }),
+  batchId: integer('batch_id').references(() => recommendationBatches.id, { onDelete: 'set null' }),
 })
 
 export const targets = pgTable('targets', {

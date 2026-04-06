@@ -87,13 +87,17 @@ export class PipelineOrchestrator extends EventEmitter {
       // Merge with defaults so partially-saved preferences don't leave fields undefined
       const prefs: Preferences = mergePreferences(settings.preferences)
 
-      jobId = deps.jobRecorder
-        ? await deps.jobRecorder.start({
+      if (deps.jobRecorder) {
+        try {
+          jobId = await deps.jobRecorder.start({
             type: 'pipeline',
             userId: deps.userId,
             metadata: { trigger: deps.trigger ?? 'manual' },
           })
-        : null
+        } catch (err) {
+          console.error('[pipeline] Failed to record job start:', err)
+        }
+      }
 
       const lidarrClient =
         settings.lidarrUrl && settings.lidarrApiKey

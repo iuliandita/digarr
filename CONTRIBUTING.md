@@ -63,9 +63,11 @@ TypeScript strict mode is enforced. No `any` -- use `unknown`, generics, or prop
 ```sh
 bun run test         # run once
 bun run test:watch   # watch mode
+bun run test:e2e     # Playwright browser tests (needs dev servers running)
+bun run test:e2e:ui  # Playwright UI mode
 ```
 
-Tests live in `tests/`. Keep them close to the code they cover.
+Tests live in `tests/`. Keep them close to the code they cover. E2E tests are in `tests/e2e/` with `api/` (vitest, API smoke tests) and `browser/` (Playwright) subdirectories. Browser tests require `bunx playwright install --with-deps chromium` first.
 
 ---
 

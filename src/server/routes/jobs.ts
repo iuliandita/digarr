@@ -1,8 +1,18 @@
 import { Hono } from 'hono'
-import type { JobType } from '@/core/jobs/types'
+import type { JobRunRow, JobType } from '@/core/jobs/types'
+import type { HealthSummary } from '@/db/queries/jobs'
 import type { AppDependencies } from '@/server'
 import { adminGuard } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
+
+const VALID_TYPES = new Set<string>([
+  'pipeline',
+  'quick_discover',
+  'subscription',
+  'target',
+  'playlist',
+])
+const VALID_STATUSES = new Set<string>(['running', 'completed', 'failed', 'stuck'])
 
 type JobRouteDeps = Pick<AppDependencies, 'getUserById'> & {
   jobQueries: {
@@ -11,9 +21,9 @@ type JobRouteDeps = Pick<AppDependencies, 'getUserById'> & {
       status?: string
       limit?: number
       offset?: number
-    }) => Promise<{ items: unknown[]; total: number }>
-    getJobById: (id: number) => Promise<unknown | null>
-    getJobHealth: (nextRun: Date | null) => Promise<unknown>
+    }) => Promise<{ items: JobRunRow[]; total: number }>
+    getJobById: (id: number) => Promise<JobRunRow | null>
+    getJobHealth: (nextRun: Date | null) => Promise<HealthSummary>
   }
   scheduler: { nextRun: Date | null }
 }
@@ -41,8 +51,10 @@ export function jobRoutes(deps: JobRouteDeps) {
 
   // Paginated job list
   router.get('/api/jobs', async (c) => {
-    const type = c.req.query('type') as JobType | undefined
-    const status = c.req.query('status')
+    const typeParam = c.req.query('type')
+    const type = typeParam && VALID_TYPES.has(typeParam) ? (typeParam as JobType) : undefined
+    const statusParam = c.req.query('status')
+    const status = statusParam && VALID_STATUSES.has(statusParam) ? statusParam : undefined
     const limit = Math.min(Number(c.req.query('limit')) || 50, 100)
     const offset = Number(c.req.query('offset')) || 0
     const result = await deps.jobQueries.listJobs({ type, status, limit, offset })

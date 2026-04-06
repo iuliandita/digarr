@@ -32,6 +32,7 @@ import {
   triggerSubscriptionRun,
   updateSubscriptionApi,
 } from '../lib/api'
+import { formatDuration } from '../lib/format-time'
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Never'
@@ -54,13 +55,6 @@ function formatRelative(dateStr: string | null): string {
   if (hours > 24) return `${Math.floor(hours / 24)}d`
   if (hours > 0) return `${hours}h ${minutes}m`
   return `${minutes}m`
-}
-
-function formatDurationMs(ms: number | null): string {
-  if (ms == null) return '--'
-  const secs = Math.round(ms / 1000)
-  if (secs < 60) return `${secs}s`
-  return `${Math.floor(secs / 60)}m ${secs % 60}s`
 }
 
 function runStatus(run: SubscriptionRun): { label: string; className: string } {
@@ -114,7 +108,7 @@ function RunHistoryPanel({ subscriptionId }: { subscriptionId: number }) {
             return (
               <tr key={run.id} className="hover:bg-bg/50 transition-colors">
                 <td className="px-2 py-1.5 text-text">{formatDate(run.startedAt)}</td>
-                <td className="px-2 py-1.5 text-muted">{formatDurationMs(run.durationMs)}</td>
+                <td className="px-2 py-1.5 text-muted">{formatDuration(run.durationMs)}</td>
                 <td className="px-2 py-1.5 text-right text-text">
                   {(run.metadata?.artistsFound as number) ?? 0}
                 </td>

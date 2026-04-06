@@ -796,7 +796,7 @@ export const getAiAuditResults = () =>
     '/admin/hygiene/ai-audit/results',
   )
 
-// ── Jobs ─────────────────────────────────────
+// Jobs
 
 export type JobRun = {
   id: number
@@ -834,8 +834,8 @@ export const listJobs = (params?: {
   const sp = new URLSearchParams()
   if (params?.type) sp.set('type', params.type)
   if (params?.status) sp.set('status', params.status)
-  if (params?.limit) sp.set('limit', String(params.limit))
-  if (params?.offset) sp.set('offset', String(params.offset))
+  if (params?.limit !== undefined) sp.set('limit', String(params.limit))
+  if (params?.offset !== undefined) sp.set('offset', String(params.offset))
   const qs = sp.toString()
   return fetchApi<{ items: JobRun[]; total: number }>(`/jobs${qs ? `?${qs}` : ''}`)
 }

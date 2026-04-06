@@ -239,6 +239,8 @@ Admin-only endpoints return 403 for non-admin users.
 
 **Sources**: `spotify`, `deezer`, `musicbrainz`, `tidal`, `bandcamp`
 
+Each source includes a `stability` field (`stable` or `experimental`). TIDAL and Bandcamp are experimental.
+
 ---
 
 ## Analytics (Admin)
@@ -294,6 +296,22 @@ Query params: `status`, `batchId`. Limit: 10,000 rows.
 | GET | `/api/listening/recent` | Yes | Recent listening history (Last.fm/ListenBrainz) |
 
 Query params: `range` (week/month/year), `limit` (1-50).
+
+---
+
+## Jobs (Admin)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/jobs` | Admin | Paginated job list |
+| GET | `/api/jobs/:id` | Admin | Single job detail |
+| GET | `/api/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, sources) |
+
+**GET /api/jobs** query params:
+- `type` -- `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`
+- `status` -- `running`, `completed`, `failed`, `stuck`
+- `limit` -- 1-100 (default 50)
+- `offset` -- pagination offset
 
 ---
 

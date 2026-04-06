@@ -9,10 +9,6 @@ vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
 }))
 
-vi.mock('@/db/queries/jobs', () => ({
-  getJobsForSubscription: vi.fn(async () => []),
-}))
-
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
   return Object.assign(emitter, {
@@ -622,13 +618,13 @@ describe('POST /api/subscriptions/:id/run', () => {
 
 describe('GET /api/subscriptions/:id/runs', () => {
   it('returns run history for owned subscription', async () => {
-    const { getJobsForSubscription } = await import('@/db/queries/jobs')
-    const app = createTestApp(makeDeps(), USER_ID)
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/subscriptions/1/runs')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body)).toBe(true)
-    expect(getJobsForSubscription).toHaveBeenCalledWith(expect.anything(), 1)
+    expect(deps.jobQueries.getJobsForSubscription).toHaveBeenCalledWith(1)
   })
 
   it('returns 403 for non-owner', async () => {

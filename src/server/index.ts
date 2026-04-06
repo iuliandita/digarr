@@ -163,10 +163,13 @@ export type AppDependencies = {
   jobQueries: {
     listJobs: (
       filters?: import('@/db/queries/jobs').ListJobsFilters,
-    ) => Promise<{ items: unknown[]; total: number }>
-    getJobById: (id: number) => Promise<unknown | null>
-    getJobHealth: (nextRun: Date | null) => Promise<unknown>
-    getJobsForSubscription: (subId: number, limit?: number) => Promise<unknown[]>
+    ) => Promise<{ items: import('@/core/jobs/types').JobRunRow[]; total: number }>
+    getJobById: (id: number) => Promise<import('@/core/jobs/types').JobRunRow | null>
+    getJobHealth: (nextRun: Date | null) => Promise<import('@/db/queries/jobs').HealthSummary>
+    getJobsForSubscription: (
+      subId: number,
+      limit?: number,
+    ) => Promise<import('@/core/jobs/types').JobRunRow[]>
   }
   // Playlist deps (optional -- omit in test environments without a DB)
   playlistDeps?: PlaylistDeps

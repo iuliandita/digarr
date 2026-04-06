@@ -1,7 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
 import { errMsg } from '@/core/validation'
-import { getJobsForSubscription } from '@/db/queries/jobs'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
@@ -521,12 +520,12 @@ export function subscriptionRoutes(deps: AppDependencies) {
         msg.includes('ECONNREFUSED') ||
         msg.includes('spotify')
       ) {
+        console.error('[subscriptions] run error:', msg)
         return c.json(
           {
-            error: 'Spotify is unavailable',
+            error: 'Source service is temporarily unavailable',
             service: 'spotify',
             retryable: true,
-            detail: msg,
           },
           503,
         )
@@ -552,7 +551,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Forbidden' }, 403)
     }
 
-    const runs = await getJobsForSubscription(deps.db, id)
+    const runs = await deps.jobQueries.getJobsForSubscription(id)
     return c.json(runs)
   })
 

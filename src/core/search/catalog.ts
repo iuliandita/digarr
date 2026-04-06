@@ -19,18 +19,18 @@ export function buildSearchSourceCatalog(
       id: 'spotify',
       label: 'Spotify',
       available: options.hasSpotifyOAuth,
-      stability: 'stable' as const,
+      stability: 'stable',
       reason: options.hasSpotifyOAuth ? undefined : 'Connect Spotify in Settings to enable search.',
     },
-    { id: 'deezer', label: 'Deezer', available: true, stability: 'stable' as const },
-    { id: 'musicbrainz', label: 'MusicBrainz', available: true, stability: 'stable' as const },
+    { id: 'deezer', label: 'Deezer', available: true, stability: 'stable' },
+    { id: 'musicbrainz', label: 'MusicBrainz', available: true, stability: 'stable' },
     {
       id: 'tidal',
       label: 'TIDAL',
       available: options.hasTidalSearch,
-      stability: 'experimental' as const,
+      stability: 'experimental',
       reason: options.hasTidalSearch ? undefined : 'TIDAL search is not configured yet.',
     },
-    { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' as const },
+    { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' },
   ]
 }

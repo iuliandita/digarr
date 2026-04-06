@@ -105,7 +105,8 @@ describe('createJobRecorder', () => {
 
       await recorder.complete(1)
 
-      const setArg = db._mocks.updateSet.mock.calls[0][0]
+      const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
+      expect(setArg).toBeDefined()
       expect(setArg.completedAt).toBeInstanceOf(Date)
     })
 
@@ -134,7 +135,8 @@ describe('createJobRecorder', () => {
 
       await recorder.complete(1)
 
-      const setArg = db._mocks.updateSet.mock.calls[0][0]
+      const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
+      expect(setArg).toBeDefined()
       expect(setArg.sourceResults).toBeUndefined()
       expect(setArg.batchId).toBeUndefined()
     })
@@ -160,7 +162,8 @@ describe('createJobRecorder', () => {
 
       await recorder.fail(5, 'err')
 
-      const setArg = db._mocks.updateSet.mock.calls[0][0]
+      const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
+      expect(setArg).toBeDefined()
       expect(setArg.completedAt).toBeInstanceOf(Date)
     })
   })

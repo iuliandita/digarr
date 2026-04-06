@@ -1,21 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getJobHealth } from '../lib/api'
+import { formatRelativeTime } from '../lib/format-time'
 
 function StatusDot({ status }: { status: string }) {
   const color =
     status === 'ok' ? 'bg-green-500' : status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
-}
-
-function formatRelative(iso: string | null): string {
-  if (!iso) return 'never'
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
 }
 
 function formatUntil(iso: string | null): string {
@@ -60,7 +51,7 @@ export function SystemHealthCard() {
             <StatusDot status={data.pipeline.status} /> Pipeline
           </span>
           <span className="text-muted">
-            last: {formatRelative(data.pipeline.lastRun)}
+            last: {formatRelativeTime(data.pipeline.lastRun)}
             {data.pipeline.nextRun && <> &middot; next: {formatUntil(data.pipeline.nextRun)}</>}
           </span>
         </div>
@@ -76,7 +67,7 @@ export function SystemHealthCard() {
           <span className="flex items-center gap-2">
             <StatusDot status={data.playlists.status} /> Playlists
           </span>
-          <span className="text-muted">last: {formatRelative(data.playlists.lastRun)}</span>
+          <span className="text-muted">last: {formatRelativeTime(data.playlists.lastRun)}</span>
         </div>
         {sourceEntries.length > 0 && (
           <div className="flex items-center justify-between">

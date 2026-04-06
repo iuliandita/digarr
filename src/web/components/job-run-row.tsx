@@ -1,24 +1,6 @@
 import { useState } from 'react'
 import type { JobRun } from '../lib/api'
-
-function formatDuration(ms: number | null): string {
-  if (ms == null) return '--'
-  if (ms < 1000) return `${ms}ms`
-  const seconds = Math.floor(ms / 1000)
-  if (seconds < 60) return `${seconds}s`
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso)
-  const diff = Date.now() - d.getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  if (hours < 48) return 'Yesterday'
-  return d.toLocaleDateString()
-}
+import { formatDuration, formatRelativeTime } from '../lib/format-time'
 
 const TYPE_LABELS: Record<string, string> = {
   pipeline: 'Pipeline scan',
@@ -103,7 +85,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
         </div>
         <div className="flex items-center gap-4 text-xs text-muted">
           <span>{formatDuration(job.durationMs)}</span>
-          <span>{formatTime(job.startedAt)}</span>
+          <span>{formatRelativeTime(job.startedAt)}</span>
         </div>
       </div>
 

@@ -231,15 +231,11 @@ export function recommendationRoutes(deps: AppDependencies) {
         rootFolderId: rfOverride,
       })
 
-      const jobRecorder = (deps as Record<string, unknown>).jobRecorder as
-        | import('@/core/jobs/types').JobRecorder
-        | undefined
-
       const result = await approveToTargets(
         { mbid: rec.artist.mbid, name: rec.artist.name },
         effectiveTargets,
         addOptions,
-        jobRecorder,
+        deps.jobRecorder,
         userId,
       )
 
@@ -309,10 +305,6 @@ export function recommendationRoutes(deps: AppDependencies) {
       rootFolderId: rfOverride,
     })
 
-    const bulkJobRecorder = (deps as Record<string, unknown>).jobRecorder as
-      | import('@/core/jobs/types').JobRecorder
-      | undefined
-
     const results: Array<{ id: number; status: string; error?: string }> = []
 
     for (const id of ids) {
@@ -330,7 +322,7 @@ export function recommendationRoutes(deps: AppDependencies) {
         { mbid: rec.artist.mbid, name: rec.artist.name },
         effectiveTargets,
         addOptions,
-        bulkJobRecorder,
+        deps.jobRecorder,
         userId,
       )
 

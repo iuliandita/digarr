@@ -36,7 +36,7 @@ export function createJobRecorder(db: Database): JobRecorder {
         .set({
           status: 'completed',
           completedAt: now,
-          durationMs: sql<number>`EXTRACT(EPOCH FROM (${now.toISOString()}::timestamptz - ${jobRuns.startedAt}))::integer * 1000`,
+          durationMs: sql<number>`ROUND(EXTRACT(EPOCH FROM (NOW() - ${jobRuns.startedAt})) * 1000)::integer`,
           ...(params?.metadata != null
             ? {
                 metadata: sql`${jobRuns.metadata} || ${JSON.stringify(params.metadata)}::jsonb`,
@@ -51,14 +51,17 @@ export function createJobRecorder(db: Database): JobRecorder {
     },
 
     async fail(jobId: number, error: string): Promise<void> {
+      const MAX_ERROR_LENGTH = 2048
+      const truncatedError =
+        error.length > MAX_ERROR_LENGTH ? `${error.slice(0, MAX_ERROR_LENGTH)}...` : error
       const now = new Date()
       await db
         .update(jobRuns)
         .set({
           status: 'failed',
           completedAt: now,
-          durationMs: sql<number>`EXTRACT(EPOCH FROM (${now.toISOString()}::timestamptz - ${jobRuns.startedAt}))::integer * 1000`,
-          error,
+          durationMs: sql<number>`ROUND(EXTRACT(EPOCH FROM (NOW() - ${jobRuns.startedAt})) * 1000)::integer`,
+          error: truncatedError,
         })
         .where(eq(jobRuns.id, jobId))
     },

@@ -74,9 +74,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         providerRegistry: deps.providerRegistry,
         userConnections,
         autoApproveDeps,
-        jobRecorder: (deps as Record<string, unknown>).jobRecorder as
-          | import('@/core/jobs/types').JobRecorder
-          | undefined,
+        jobRecorder: deps.jobRecorder,
         trigger: 'manual',
       } as unknown as PipelineDeps)
       .catch((err: unknown) => {
@@ -143,16 +141,19 @@ export function pipelineRoutes(deps: AppDependencies) {
 
     // Fire-and-forget a focused pipeline run with just this artist as seed
     ;(async () => {
-      const jobRecorder = (deps as Record<string, unknown>).jobRecorder as
-        | import('@/core/jobs/types').JobRecorder
-        | undefined
-      const jobId = jobRecorder
-        ? await jobRecorder.start({
+      const jobRecorder = deps.jobRecorder
+      let jobId: number | null = null
+      if (jobRecorder) {
+        try {
+          jobId = await jobRecorder.start({
             type: 'quick_discover',
             userId: quickDiscoverUserId,
             metadata: { seedArtist: artistName },
           })
-        : null
+        } catch (err) {
+          console.error('[quick-discover] Failed to record job start:', err)
+        }
+      }
       try {
         const lidarrUrl = settings.lidarrUrl as string | null
         const lidarrApiKey = settings.lidarrApiKey as string | null

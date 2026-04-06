@@ -12,6 +12,7 @@
 - [ ] `bun run lint` passes
 - [ ] `bun run typecheck` passes
 - [ ] `bun run test` passes
+- [ ] `bun run test:e2e` passes (if UI changes)
 - [ ] Tested manually (describe below)
 
 ## Notes

@@ -50,7 +50,7 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
     oidcRows,
     targetRows,
     subRows,
-    subRunRows,
+    jobRunRows,
     batchRows,
     recRows,
     playlistRows,
@@ -82,7 +82,7 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
       oidcTokens: oidcRows,
       targets: targetRows,
       subscriptions: subRows,
-      jobRuns: subRunRows,
+      jobRuns: jobRunRows,
       recommendationBatches: batchRows,
       recommendations: recRows,
       playlists: playlistRows,
@@ -207,6 +207,12 @@ export async function restoreBackup(
 
   // Wrap in a transaction so partial failures roll back cleanly
   try {
+    // Backward compatibility: map old subscriptionRuns to jobRuns format
+    const backupData = backup.data as unknown as Record<string, unknown[]>
+    if (backupData.subscriptionRuns?.length && !backup.data.jobRuns?.length) {
+      backup.data.jobRuns = backupData.subscriptionRuns as Record<string, unknown>[]
+    }
+
     // biome-ignore lint/suspicious/noExplicitAny: drizzle transaction type
     await (db as any).transaction(async (tx: OpsDb) => {
       for (const { key, table } of RESTORE_ORDER) {

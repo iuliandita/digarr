@@ -9,10 +9,18 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
   },
-  webServer: {
-    command: 'bun run dev',
-    port: 5173,
-    reuseExistingServer: true,
-    timeout: 30_000,
-  },
+  webServer: [
+    {
+      command: 'bun run dev',
+      port: 3000,
+      reuseExistingServer: true,
+      timeout: 30_000,
+    },
+    {
+      command: 'bun run dev:web',
+      port: 5173,
+      reuseExistingServer: true,
+      timeout: 30_000,
+    },
+  ],
 })
