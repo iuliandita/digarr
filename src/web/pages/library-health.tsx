@@ -4,6 +4,8 @@ import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { HealthCheckCard } from '../components/health-check-card'
 import { Hint } from '../components/hint'
+import { LibraryFirstSyncBanner } from '../components/library-first-sync-banner'
+import { LibrarySourcesPanel } from '../components/library-sources-panel'
 import { LibraryStatsDisplay } from '../components/library-stats'
 import { Skeleton } from '../components/ui/skeleton'
 import {
@@ -153,6 +155,8 @@ export function LibraryHealthPage() {
         </button>
       </div>
 
+      <LibraryFirstSyncBanner />
+
       <Hint id="library-health-intro-tip" type="inline">
         Library health checks your Lidarr library for common issues like missing metadata,
         unmonitored artists, or genre gaps. Run a scan to see what needs attention.
@@ -197,6 +201,9 @@ export function LibraryHealthPage() {
           </div>
         ) : null}
       </div>
+
+      {/* Library sources */}
+      <LibrarySourcesPanel />
 
       {/* Divider */}
       <hr className="border-border" />
