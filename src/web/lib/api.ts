@@ -341,6 +341,82 @@ export const warmArtists = (mbids: string[]) =>
     body: JSON.stringify({ mbids }),
   })
 
+// Library sync
+// LibrarySyncCounts mirrors src/db/schema.ts -- redeclared here to avoid pulling drizzle into the web bundle
+export type LibrarySyncCounts = {
+  total: number
+  matchedMbid: number
+  matchedNameExact: number
+  matchedNameAnchored: number
+  matchedDisambiguated: number
+  unreconciledAmbiguous: number
+  unreconciledNoCandidate: number
+  cacheHits: number
+  mbApiCalls: number
+  estimatedSecondsRemaining?: number
+  albumsSynced?: number
+}
+export type LibrarySyncSourceRow = {
+  id: number
+  userId: number | null
+  source: string
+  lastSyncStartedAt: string | null
+  lastSyncCompletedAt: string | null
+  lastSyncStatus: string | null
+  lastSyncError: string | null
+  lastSyncCounts: LibrarySyncCounts | null
+}
+export type LibraryUnreconciledRow = {
+  id: number
+  userId: number | null
+  source: string
+  sourceArtistId: string
+  name: string
+  nameNormalized: string
+  mbid: string | null
+  matchMethod: string | null
+  matchConfidence: number | null
+  genres: string[] | null
+  syncedAt: string
+}
+export type LibrarySourceSyncResult =
+  | { source: string; status: 'completed'; counts: LibrarySyncCounts }
+  | { source: string; status: 'skipped_fresh'; counts: LibrarySyncCounts | null }
+  | { source: string; status: 'failed'; error: string }
+export type LibrarySyncSummary = {
+  userId: number | null
+  results: LibrarySourceSyncResult[]
+}
+export type LibraryOverrideInput = {
+  source: string
+  sourceArtistId: string
+  correctMbid: string | null
+  note?: string
+}
+export const getLibrarySources = () =>
+  fetchApi<{ sources: LibrarySyncSourceRow[] }>('/library/sources')
+// Returns LibrarySourceSyncResult when source is given, LibrarySyncSummary when not.
+// Caller can distinguish by presence of `results` (summary) vs `status` (single result).
+export const triggerLibrarySync = (source?: string) =>
+  fetchApi<LibrarySourceSyncResult | LibrarySyncSummary>('/library/sync', {
+    method: 'POST',
+    body: JSON.stringify(source ? { source } : {}),
+  })
+export const getLibraryUnreconciled = () =>
+  fetchApi<{ items: LibraryUnreconciledRow[] }>('/library/unreconciled')
+export const saveLibraryOverride = (payload: LibraryOverrideInput) =>
+  fetchApi<{ ok: true }>('/library/overrides', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+export const deleteLibraryOverride = (source: string, sourceArtistId: string) =>
+  fetchApi<{ ok: true }>(
+    `/library/overrides/${encodeURIComponent(source)}/${encodeURIComponent(sourceArtistId)}`,
+    { method: 'DELETE' },
+  )
+export const rerunLibraryReconciler = () =>
+  fetchApi<LibrarySyncSummary>('/library/reconcile', { method: 'POST' })
+
 // User management (admin)
 export const listUsers = () =>
   fetchApi<
