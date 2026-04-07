@@ -16,6 +16,7 @@ const VALID_CHECK_IDS: Set<string> = new Set([
   'genre-gaps',
   'image-gaps',
 ])
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type LibraryRouteDeps = {
   libraryHealth: LibraryHealthService
@@ -122,11 +123,8 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
       const status = result.status === 'completed' ? 200 : result.status === 'failed' ? 502 : 202
       return c.json(result, status)
     } else {
+      await deps.librarySync.syncGlobal({ force: true })
       const summary = await deps.librarySync.syncForUser(userId, { force: true })
-      // Also kick off global (Lidarr) without blocking
-      void deps.librarySync.syncGlobal({ force: true }).catch((err: unknown) => {
-        console.error('[library/sync] global sync failed:', errMsg(err))
-      })
       return c.json(summary, 202)
     }
   })
@@ -153,6 +151,9 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
       return c.json({ error: 'sourceArtistId is required' }, 400)
     }
     const mbid = correctMbid === '' || correctMbid == null ? null : (correctMbid as string)
+    if (mbid !== null && !UUID_RE.test(mbid)) {
+      return c.json({ error: 'correctMbid must be a valid UUID' }, 400)
+    }
     await deps.librarySyncStore.upsertOverride(
       userId,
       source,

@@ -38,6 +38,14 @@ All screenshots use the Youtarr theme.
 
 ![Library Health](screenshots/library-health.png)
 
+## Library Reconciliation
+
+Screenshot pending. This page covers the unreconciled-artist review and manual override flow.
+
+## Library Sources Panel
+
+Screenshot pending. This panel lives on the Library Health page and shows per-source sync status.
+
 ## Analytics
 
 ![Analytics](screenshots/analytics.png)

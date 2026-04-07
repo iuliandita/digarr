@@ -267,6 +267,12 @@ Each source includes a `stability` field (`stable` or `experimental`). TIDAL and
 | GET | `/api/library/stats` | Admin | Library statistics |
 | POST | `/api/library/warm` | Admin | Warm SkyHook cache for MBIDs (202) |
 | GET | `/api/library/warm/status?mbids=` | Admin | SkyHook warm status |
+| GET | `/api/library/sources` | Admin | Per-source sync state for global + per-user library sources |
+| POST | `/api/library/sync` | Admin | Run a manual library sync for all sources or a specific source |
+| GET | `/api/library/unreconciled` | Admin | List unreconciled library artists still needing a match |
+| POST | `/api/library/overrides` | Admin | Save a manual MBID override or an “ignore forever” decision |
+| DELETE | `/api/library/overrides/:source/:sourceArtistId` | Admin | Remove a saved manual override |
+| POST | `/api/library/reconcile` | Admin | Trigger a background reconcile pass after override changes |
 
 ---
 

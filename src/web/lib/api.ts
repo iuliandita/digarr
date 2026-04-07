@@ -415,7 +415,7 @@ export const deleteLibraryOverride = (source: string, sourceArtistId: string) =>
     { method: 'DELETE' },
   )
 export const rerunLibraryReconciler = () =>
-  fetchApi<LibrarySyncSummary>('/library/reconcile', { method: 'POST' })
+  fetchApi<{ ok: true }>('/library/reconcile', { method: 'POST' })
 
 // User management (admin)
 export const listUsers = () =>

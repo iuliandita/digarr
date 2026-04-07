@@ -1,0 +1,30 @@
+{
+  "description": "Synthetic baseline for the Lidarr-only pipeline path. Generated to lock in slice 1 behavior so future changes can be diffed.",
+  "lidarrArtists": [
+    {
+      "id": 1,
+      "artistName": "Radiohead",
+      "foreignArtistId": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+      "qualityProfileId": 1,
+      "rootFolderPath": "/music",
+      "monitored": true,
+      "status": "continuing",
+      "genres": ["alternative rock", "art rock"]
+    },
+    {
+      "id": 2,
+      "artistName": "Portishead",
+      "foreignArtistId": "8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11",
+      "qualityProfileId": 1,
+      "rootFolderPath": "/music",
+      "monitored": true,
+      "status": "continuing",
+      "genres": ["trip hop"]
+    }
+  ],
+  "expectedLibraryMbids": [
+    "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+    "8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11"
+  ],
+  "expectedLibraryGenres": ["alternative rock", "art rock", "trip hop"]
+}

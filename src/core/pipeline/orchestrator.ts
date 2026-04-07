@@ -18,7 +18,6 @@ import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { analyze } from './analyze'
 import { type AutoApproveDeps, autoApprove } from './auto-approve'
-import { collect } from './collect'
 import { discover } from './discover'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
@@ -46,14 +45,13 @@ export interface PipelineSettings {
 export interface PipelineDeps {
   db: StoreDb
   settings: PipelineSettings
-  userId?: number
+  userId: number
   providerRegistry?: AiProviderRegistry
   userConnections?: UserConnections | null
   autoApproveDeps?: AutoApproveDeps | null
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   trigger?: 'scheduled' | 'manual'
-  /** Optional library sync trigger; if absent, falls back to direct collect() */
-  librarySync?: {
+  librarySync: {
     syncForUser: (
       userId: number,
       options?: { force?: boolean; onProgress?: (msg: string) => void },
@@ -173,72 +171,55 @@ export class PipelineOrchestrator extends EventEmitter {
         throw new Error('At least one listening source or AI provider must be configured')
       }
 
+      if (
+        deps.userId === undefined ||
+        deps.librarySync === undefined ||
+        typeof db.getLibraryArtistsForUser !== 'function' ||
+        typeof db.userHasAnySyncState !== 'function'
+      ) {
+        throw new Error(
+          'Pipeline orchestrator requires librarySync, userId, and library StoreDb methods',
+        )
+      }
+
       const mbClient = createMusicBrainzClient()
 
       this.emit('progress', { stage: 'collect', message: 'Loading your library...' })
 
-      let libraryMbids: Set<string>
-      let libraryGenres: string[]
-      let librarySeeds: Array<{ mbid: string; name: string }>
-
       const userIdForSync = deps.userId
-      const useNewLibraryPath =
-        deps.librarySync !== undefined &&
-        userIdForSync !== undefined &&
-        typeof db.getLibraryArtistsForUser === 'function' &&
-        typeof db.userHasAnySyncState === 'function'
-
-      if (
-        useNewLibraryPath &&
-        deps.librarySync &&
-        userIdForSync !== undefined &&
-        db.userHasAnySyncState &&
-        db.getLibraryArtistsForUser
-      ) {
-        const hasAnyState = await db.userHasAnySyncState(userIdForSync)
-        if (!hasAnyState) {
-          // First-sync detection: fire-and-forget so the pipeline doesn't hang
-          // for the slow MB lookups on a fresh install.
-          void deps.librarySync
-            .syncForUser(userIdForSync)
-            .catch((err: unknown) => console.error('[pipeline] first library sync failed:', err))
-          this.emit('progress', {
-            stage: 'collect',
-            message: 'First library sync running in background -- proceeding without it',
-          })
-        } else {
-          await deps.librarySync.syncForUser(userIdForSync, {
-            onProgress: (msg) => this.emit('progress', { stage: 'collect', message: msg }),
-          })
-        }
-
-        const libraryArtists = await db.getLibraryArtistsForUser(userIdForSync, {
-          onlyReconciled: true,
-        })
-        libraryMbids = new Set(
-          libraryArtists.map((a) => a.mbid).filter((m): m is string => m !== null),
-        )
-        libraryGenres = [...new Set(libraryArtists.flatMap((a) => a.genres ?? []))]
-        librarySeeds = libraryArtists
-          .filter((a): a is typeof a & { mbid: string } => a.mbid !== null)
-          .map((a) => ({ mbid: a.mbid, name: a.name }))
-
-        const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
+      const hasAnyState = await db.userHasAnySyncState(userIdForSync)
+      if (!hasAnyState) {
+        // First-sync detection: fire-and-forget so the pipeline doesn't hang
+        // for the slow MB lookups on a fresh install.
+        void deps.librarySync
+          .syncForUser(userIdForSync)
+          .catch((err: unknown) => console.error('[pipeline] first library sync failed:', err))
         this.emit('progress', {
           stage: 'collect',
-          message: `Loaded ${libraryMbids.size} library artists across ${sourceCount} source${sourceCount === 1 ? '' : 's'}`,
+          message: 'First library sync running in background -- proceeding without it',
         })
       } else {
-        // Legacy path: direct Lidarr fetch (used when sync orchestrator is not wired)
-        const libraryArtists = await collect(lidarrClient)
-        this.emit('progress', {
-          stage: 'collect',
-          message: `Found ${libraryArtists.length} artists in your library`,
+        await deps.librarySync.syncForUser(userIdForSync, {
+          onProgress: (msg) => this.emit('progress', { stage: 'collect', message: msg }),
         })
-        libraryMbids = new Set(libraryArtists.map((a) => a.mbid))
-        libraryGenres = [...new Set(libraryArtists.flatMap((a) => a.genres))]
-        librarySeeds = libraryArtists.map((a) => ({ mbid: a.mbid, name: a.name }))
       }
+
+      const libraryArtists = await db.getLibraryArtistsForUser(userIdForSync, {
+        onlyReconciled: true,
+      })
+      const libraryMbids = new Set(
+        libraryArtists.map((a) => a.mbid).filter((m): m is string => m !== null),
+      )
+      const libraryGenres = [...new Set(libraryArtists.flatMap((a) => a.genres ?? []))]
+      const librarySeeds = libraryArtists
+        .filter((a): a is typeof a & { mbid: string } => a.mbid !== null)
+        .map((a) => ({ mbid: a.mbid, name: a.name }))
+
+      const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
+      this.emit('progress', {
+        stage: 'collect',
+        message: `Loaded ${libraryMbids.size} library artists across ${sourceCount} source${sourceCount === 1 ? '' : 's'}`,
+      })
 
       const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
       const feedbackHistory = await db.getFeedbackHistory()

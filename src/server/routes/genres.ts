@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { createLidarrClient } from '@/core/clients/lidarr'
-import { collect } from '@/core/pipeline/collect'
+import { createLidarrLibrarySource } from '@/core/library/sources/lidarr'
 import { getArtistsByGenre, getGenreEnrichments } from '@/db/queries/artists'
 import { getGenreArtists } from '@/db/queries/recommendations'
 import type { AppDependencies } from '@/server'
@@ -82,8 +82,13 @@ export function genreRoutes(deps: AppDependencies) {
     )
 
     // Fire-and-forget
-    collect(lidarr)
-      .then((artists) => deps.genreService.seedFromLibrary(artists))
+    createLidarrLibrarySource(lidarr)
+      .listArtists()
+      .then((artists) =>
+        deps.genreService.seedFromLibrary(
+          artists.map((artist) => ({ genres: artist.genres ?? [] })),
+        ),
+      )
       .catch((err: unknown) => {
         console.error('Genre seed failed:', err)
       })

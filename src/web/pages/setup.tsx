@@ -714,6 +714,14 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
         <StepIndicator current={step} total={totalSteps} />
 
         <div className="rounded-lg border border-border bg-surface p-6">
+          {mode === 'lidarr' && results.lidarr === true && step >= sourcesStep && (
+            <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
+              <p className="text-sm text-muted">
+                Connected. We&apos;ll start syncing your library in the background. The first sync
+                may take a while (see Library Health for progress).
+              </p>
+            </div>
+          )}
           {step === 1 && (
             <StepMode
               mode={mode}
@@ -754,7 +762,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
             <StepDone
               form={form}
               results={results}
-              mode={mode!}
+              mode={mode === 'lidarr' ? 'lidarr' : 'discover'}
               onStart={handleStart}
               starting={starting}
             />

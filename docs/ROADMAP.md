@@ -87,6 +87,7 @@ Good ideas with no timeline yet.
 - Taste DNA / shareable profile
 - Audition playlists ("try before you add")
 - Interactive API docs (Swagger/Scalar UI)
+- Multi-language UI (translated static strings, AI translation for dynamic content)
 
 ## Experiments
 
@@ -101,6 +102,9 @@ Low confidence. Would build only with real demand.
 - Social / collaborative discovery
 - Advanced analytics export
 - Navidrome WASM plugin
+- TUI client (terminal UI for discovery and approval)
+- Native desktop client (Linux/Mac/Windows) -- PWA install already covers most of this
+- Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
 

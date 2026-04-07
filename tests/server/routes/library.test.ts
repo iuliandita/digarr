@@ -537,14 +537,19 @@ describe('GET /api/library/sources', () => {
 })
 
 describe('POST /api/library/sync', () => {
-  it('POST /api/library/sync awaits syncForUser and returns its summary in 202 body', async () => {
+  it('POST /api/library/sync runs global before user sync and returns the user summary', async () => {
+    const order: string[] = []
     let resolved = false
     const syncForUser = vi.fn(async () => {
+      order.push('user')
       await new Promise((r) => setTimeout(r, 10))
       resolved = true
       return { userId: 1, results: [] }
     })
-    const syncGlobal = vi.fn(async () => ({ userId: null, results: [] }))
+    const syncGlobal = vi.fn(async () => {
+      order.push('global')
+      return { userId: null, results: [] }
+    })
     const { app } = makeSyncApp({ syncForUser, syncGlobal })
 
     const res = await app.request('/api/library/sync', {
@@ -558,6 +563,7 @@ describe('POST /api/library/sync', () => {
     const body = await res.json()
     expect(body.userId).toBe(1)
     expect(body.results).toEqual([])
+    expect(order).toEqual(['global', 'user'])
     expect(syncForUser).toHaveBeenCalledWith(42, { force: true })
     expect(syncGlobal).toHaveBeenCalledWith({ force: true })
   })
@@ -667,7 +673,7 @@ describe('POST /api/library/overrides', () => {
       body: JSON.stringify({
         source: 'plex',
         sourceArtistId: 'plex-123',
-        correctMbid: 'abc-mbid',
+        correctMbid: '123e4567-e89b-12d3-a456-426614174000',
         note: 'manual fix',
       }),
     })
@@ -678,7 +684,7 @@ describe('POST /api/library/overrides', () => {
       42,
       'plex',
       'plex-123',
-      'abc-mbid',
+      '123e4567-e89b-12d3-a456-426614174000',
       'manual fix',
     )
   })
@@ -697,6 +703,22 @@ describe('POST /api/library/overrides', () => {
       null,
       undefined,
     )
+  })
+
+  it('returns 400 when correctMbid is not a UUID', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        sourceArtistId: 'plex-123',
+        correctMbid: 'not-a-uuid',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(librarySyncStore.upsertOverride as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
   })
 
   it('returns 400 when source is missing', async () => {

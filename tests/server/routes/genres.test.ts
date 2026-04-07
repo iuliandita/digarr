@@ -12,10 +12,6 @@ vi.mock('@/core/clients/lidarr', () => ({
   })),
 }))
 
-vi.mock('@/core/pipeline/collect', () => ({
-  collect: vi.fn(async () => []),
-}))
-
 vi.mock('@/db/queries/artists', () => ({
   getGenreEnrichments: vi.fn(async () => {
     const m = new Map()

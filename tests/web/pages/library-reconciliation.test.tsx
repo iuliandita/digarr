@@ -1,0 +1,177 @@
+// @vitest-environment jsdom
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+function renderWithQuery(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return render(
+    <MemoryRouter>
+      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+    </MemoryRouter>,
+  )
+}
+
+vi.mock('@/web/lib/api', () => ({
+  getLibraryUnreconciled: vi.fn(),
+  saveLibraryOverride: vi.fn(),
+  rerunLibraryReconciler: vi.fn(),
+}))
+
+import { getLibraryUnreconciled, rerunLibraryReconciler, saveLibraryOverride } from '@/web/lib/api'
+import { LibraryReconciliationPage } from '@/web/pages/library-reconciliation'
+
+const mockGetLibraryUnreconciled = vi.mocked(getLibraryUnreconciled)
+const mockRerunLibraryReconciler = vi.mocked(rerunLibraryReconciler)
+const mockSaveLibraryOverride = vi.mocked(saveLibraryOverride)
+
+const makeRow = (
+  overrides: Partial<{
+    id: number
+    source: string
+    sourceArtistId: string
+    name: string
+    nameNormalized: string
+  }> = {},
+) => ({
+  id: 1,
+  userId: 1,
+  source: 'plex',
+  sourceArtistId: 'plex-1',
+  name: 'Bush',
+  nameNormalized: 'bush',
+  mbid: null,
+  matchMethod: null,
+  matchConfidence: null,
+  genres: ['rock'],
+  syncedAt: '2026-04-07T12:00:00.000Z',
+  ...overrides,
+})
+
+describe('LibraryReconciliationPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockRerunLibraryReconciler.mockResolvedValue({ ok: true })
+  })
+
+  it('groups unreconciled rows by source', async () => {
+    mockGetLibraryUnreconciled.mockResolvedValue({
+      items: [
+        makeRow(),
+        makeRow({
+          id: 2,
+          sourceArtistId: 'plex-2',
+          name: 'Failure',
+          nameNormalized: 'failure',
+        }),
+        makeRow({
+          id: 3,
+          source: 'jellyfin',
+          sourceArtistId: 'jf-1',
+          name: 'Lolita',
+          nameNormalized: 'lolita',
+        }),
+      ],
+    })
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('plex (2)')).toBeInTheDocument()
+    })
+
+    expect(
+      screen.getByText('3 artists could not be automatically matched to MusicBrainz.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('jellyfin (1)')).toBeInTheDocument()
+    expect(screen.getByText('Bush')).toBeInTheDocument()
+    expect(screen.getByText('Failure')).toBeInTheDocument()
+    expect(screen.getByText('Lolita')).toBeInTheDocument()
+  })
+
+  it('shows a validation error for an invalid MBID', async () => {
+    mockGetLibraryUnreconciled.mockResolvedValue({ items: [makeRow()] })
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    const input = await screen.findByPlaceholderText('Paste MBID (UUID)')
+    fireEvent.change(input, { target: { value: 'not-a-uuid' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Pin' }))
+
+    expect(await screen.findByText('Not a valid MBID (UUID expected)')).toBeInTheDocument()
+    expect(mockSaveLibraryOverride).not.toHaveBeenCalled()
+  })
+
+  it('shows a fetch error instead of the empty state when loading fails', async () => {
+    mockGetLibraryUnreconciled.mockRejectedValue(new Error('network down'))
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    expect(await screen.findByText('Could not load unreconciled artists.')).toBeInTheDocument()
+    expect(screen.getByText('network down')).toBeInTheDocument()
+    expect(
+      screen.queryByText('No unreconciled artists. Your library is fully matched.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('pins an MBID override and refreshes the page data', async () => {
+    const row = makeRow()
+    mockGetLibraryUnreconciled
+      .mockResolvedValueOnce({ items: [row] })
+      .mockResolvedValueOnce({ items: [] })
+    mockSaveLibraryOverride.mockResolvedValue({ ok: true })
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    const input = await screen.findByPlaceholderText('Paste MBID (UUID)')
+    fireEvent.change(input, { target: { value: '123e4567-e89b-12d3-a456-426614174000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Pin' }))
+
+    await waitFor(() => {
+      expect(mockSaveLibraryOverride).toHaveBeenCalledWith({
+        source: 'plex',
+        sourceArtistId: 'plex-1',
+        correctMbid: '123e4567-e89b-12d3-a456-426614174000',
+      })
+    })
+    expect(mockRerunLibraryReconciler).toHaveBeenCalledTimes(1)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No unreconciled artists. Your library is fully matched.'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('ignores a row forever and refreshes the page data', async () => {
+    const row = makeRow()
+    mockGetLibraryUnreconciled
+      .mockResolvedValueOnce({ items: [row] })
+      .mockResolvedValueOnce({ items: [] })
+    mockSaveLibraryOverride.mockResolvedValue({ ok: true })
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ignore forever' }))
+
+    await waitFor(() => {
+      expect(mockSaveLibraryOverride).toHaveBeenCalledWith({
+        source: 'plex',
+        sourceArtistId: 'plex-1',
+        correctMbid: null,
+      })
+    })
+    expect(mockRerunLibraryReconciler).toHaveBeenCalledTimes(1)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No unreconciled artists. Your library is fully matched.'),
+      ).toBeInTheDocument()
+    })
+  })
+})

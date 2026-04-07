@@ -58,6 +58,7 @@ import { GenreDetailPage } from './pages/genre-detail'
 import { GenresPage } from './pages/genres'
 import JobHistoryPage from './pages/job-history'
 import { LibraryHealthPage } from './pages/library-health'
+import { LibraryReconciliationPage } from './pages/library-reconciliation'
 import { PlaylistDetailPage } from './pages/playlist-detail'
 import { PlaylistsPage } from './pages/playlists'
 import { SearchPage } from './pages/search'
@@ -378,6 +379,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     icon={<HeartPulse size={14} aria-hidden="true" />}
                     items={[
                       { to: '/library/health', label: 'Health', icon: <HeartPulse size={14} /> },
+                      {
+                        to: '/library/reconciliation',
+                        label: 'Reconciliation',
+                        icon: <RefreshCw size={14} />,
+                      },
                       { to: '/analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
                     ]}
                   />
@@ -508,6 +514,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
               )}
               {currentUser?.isAdmin && (
                 <NavLink
+                  to="/library/reconciliation"
+                  className={mobileNavLinkClass}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <RefreshCw size={14} aria-hidden="true" />
+                    Reconciliation
+                  </span>
+                </NavLink>
+              )}
+              {currentUser?.isAdmin && (
+                <NavLink
                   to="/analytics"
                   className={mobileNavLinkClass}
                   onClick={() => setMenuOpen(false)}
@@ -598,6 +616,7 @@ function InnerApp() {
               <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
               <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/library/health" element={<LibraryHealthPage />} />
+              <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/jobs" element={<JobHistoryPage />} />

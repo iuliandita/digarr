@@ -21,7 +21,8 @@
   "overrides": {
     "brace-expansion": "5.0.5",
     "esbuild": "0.27.4",
-    "picomatch": "4.0.4"
+    "picomatch": "4.0.4",
+    "vite": "8.0.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
@@ -50,7 +51,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "typescript": "^6.0.2",
-    "vite": "^8.0.3",
+    "vite": "^8.0.5",
     "vitest": "^4.1.2"
   },
   "dependencies": {

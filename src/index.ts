@@ -383,6 +383,7 @@ const runPipeline = async (userId?: number) => {
     const admin = allUsers.find((u) => u.isAdmin) ?? allUsers[0]
     resolvedUserId = admin?.id
   }
+  if (resolvedUserId === undefined) return
   await orchestrator.run({
     db: storeDb,
     settings: currentSettings,

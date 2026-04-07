@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull, or } from 'drizzle-orm'
+import { and, eq, getTableColumns, isNotNull, isNull, or } from 'drizzle-orm'
 import { db as defaultDb } from '@/db'
 import {
   type LibrarySyncCounts,
@@ -308,12 +308,21 @@ export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncSto
 
     async listUnreconciledForUser(userId) {
       return database
-        .select()
+        .select({ ...getTableColumns(libraryArtists) })
         .from(libraryArtists)
+        .leftJoin(
+          libraryMatchOverrides,
+          and(
+            eq(libraryMatchOverrides.userId, userId),
+            eq(libraryMatchOverrides.source, libraryArtists.source),
+            eq(libraryMatchOverrides.sourceArtistId, libraryArtists.sourceArtistId),
+          ),
+        )
         .where(
           and(
             isNull(libraryArtists.mbid),
             or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
+            isNull(libraryMatchOverrides.id),
           ),
         )
     },
