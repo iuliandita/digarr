@@ -4,10 +4,20 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type ReconcilerContext, reconcileArtist } from '@/core/library/reconciler'
 import { createLibrarySyncStore } from '@/core/library/store'
-import { db } from '@/db'
-import { users } from '@/db/schema'
 
 let userId: number
+const SHOULD_RUN =
+  process.env.DATABASE_URL !== undefined ||
+  (process.env.DB_HOST !== undefined &&
+    process.env.DB_USER !== undefined &&
+    process.env.DB_NAME !== undefined)
+let db: import('@/db').Database
+let users: typeof import('@/db/schema').users
+
+if (SHOULD_RUN) {
+  ;({ db } = await import('@/db'))
+  ;({ users } = await import('@/db/schema'))
+}
 
 beforeEach(async () => {
   await db.delete(users).where(eq(users.username, 'cache-perf-test'))
@@ -23,7 +33,7 @@ afterEach(async () => {
   await db.delete(users).where(eq(users.id, userId))
 })
 
-describe('reconciler cache short-circuit performance', () => {
+describe.skipIf(!SHOULD_RUN)('reconciler cache short-circuit performance', () => {
   it('warm cache yields cache hits without MB API calls', async () => {
     const store = createLibrarySyncStore(db)
     const names = Array.from({ length: 100 }, (_, i) => {

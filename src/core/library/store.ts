@@ -1,5 +1,4 @@
 import { and, eq, getTableColumns, isNotNull, isNull, or } from 'drizzle-orm'
-import { db as defaultDb } from '@/db'
 import {
   type LibrarySyncCounts,
   libraryArtists,
@@ -8,7 +7,7 @@ import {
 } from '@/db/schema'
 import type { ReconciledArtist, ReconcilerOverride } from './reconciler'
 
-type Db = typeof defaultDb
+type Db = import('@/db').Database
 
 export type LibrarySyncStateRow = {
   userId: number | null
@@ -91,7 +90,7 @@ export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   }
 }
 
-export function createLibrarySyncStore(database: Db = defaultDb): LibrarySyncStore {
+export function createLibrarySyncStore(database: Db): LibrarySyncStore {
   async function getLibrarySyncState(
     userId: number | null,
     source: string,

@@ -4,13 +4,28 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ReconciledArtist } from '@/core/library/reconciler'
 import { createLibrarySyncStore } from '@/core/library/store'
-import { db } from '@/db'
-import { libraryArtists, libraryMatchOverrides, librarySyncState, users } from '@/db/schema'
 
 const TEST_USER = { username: 'libstore-test-user', passwordHash: 'x' }
 const LIDARR_SOURCE = 'lidarr-store-test'
 const PLEX_SOURCE = 'plex-store-test'
 const JELLYFIN_SOURCE = 'jellyfin-store-test'
+const SHOULD_RUN =
+  process.env.DATABASE_URL !== undefined ||
+  (process.env.DB_HOST !== undefined &&
+    process.env.DB_USER !== undefined &&
+    process.env.DB_NAME !== undefined)
+let db: import('@/db').Database
+let libraryArtists: typeof import('@/db/schema').libraryArtists
+let libraryMatchOverrides: typeof import('@/db/schema').libraryMatchOverrides
+let librarySyncState: typeof import('@/db/schema').librarySyncState
+let users: typeof import('@/db/schema').users
+
+if (SHOULD_RUN) {
+  ;({ db } = await import('@/db'))
+  ;({ libraryArtists, libraryMatchOverrides, librarySyncState, users } = await import(
+    '@/db/schema'
+  ))
+}
 
 let userId: number
 
@@ -54,7 +69,7 @@ function reconciled(
   }
 }
 
-describe('LibrarySyncStore', () => {
+describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
   it('replaceLibraryArtists writes rows and reports counts', async () => {
     const store = createLibrarySyncStore(db)
     const counts = await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
