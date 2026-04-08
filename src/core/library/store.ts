@@ -182,7 +182,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
           userId === null ? isNull(libraryArtists.userId) : eq(libraryArtists.userId, userId)
         const albumUserClause =
           userId === null ? isNull(libraryAlbums.userId) : eq(libraryAlbums.userId, userId)
-        await tx.delete(libraryArtists).where(and(artistUserClause, eq(libraryArtists.source, source)))
+        await tx
+          .delete(libraryArtists)
+          .where(and(artistUserClause, eq(libraryArtists.source, source)))
         await tx.delete(libraryAlbums).where(and(albumUserClause, eq(libraryAlbums.source, source)))
 
         if (artists.length > 0) {

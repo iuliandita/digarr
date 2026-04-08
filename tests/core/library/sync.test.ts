@@ -72,7 +72,7 @@ function source(id: string, mbidQuality: 'high' | 'low' = 'high'): LibrarySource
 
 function sourceWithAlbums(
   id: string,
-  artists: Array<{ sourceArtistId: string; name: string; mbid?: string }>,
+  artists: Array<{ sourceArtistId: string; name: string; mbid?: string | null }>,
   albumsByArtist: Record<string, LibraryAlbum[]>,
 ): LibrarySource {
   return {
@@ -81,7 +81,9 @@ function sourceWithAlbums(
     capabilities: ['listArtists', 'listAlbums'],
     userId: null,
     mbidQuality: 'high',
-    listArtists: vi.fn(async () => artists),
+    listArtists: vi.fn(
+      async () => artists as unknown as Awaited<ReturnType<LibrarySource['listArtists']>>,
+    ),
     listAlbums: vi.fn(async (sourceArtistId: string) => albumsByArtist[sourceArtistId] ?? []),
     testConnection: async () => ({ success: true, message: 'ok' }),
   }
@@ -302,6 +304,27 @@ describe('createSyncOrchestrator', () => {
     expect(store.replaceLibrarySnapshot).not.toHaveBeenCalled()
   })
 
+  it('does not call listAlbums for matched artists with null mbid', async () => {
+    const a = sourceWithAlbums('lidarr', [{ sourceArtistId: '1', name: 'Radiohead', mbid: null }], {
+      '1': [{ sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' }],
+    })
+
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    expect(summary.results[0]?.status).toBe('completed')
+    expect(a.listAlbums).not.toHaveBeenCalled()
+    expect(store.replaceLibrarySnapshot).toHaveBeenCalledWith(1, 'lidarr', expect.any(Array), [])
+  })
+
   it('fails the source sync when album reconciliation throws', async () => {
     const a = sourceWithAlbums(
       'lidarr',
@@ -352,7 +375,11 @@ describe('createSyncOrchestrator', () => {
         { sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' },
         { sourceArtistId: '2', name: 'Portishead', mbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11' },
         { sourceArtistId: '3', name: 'Björk', mbid: '2dc91a0a-0e78-4e45-a0b7-7fbd9dbe8f5d' },
-        { sourceArtistId: '4', name: 'Massive Attack', mbid: '9c0b5d7e-2f4a-4a55-8a0f-4fb1c5fd9d37' },
+        {
+          sourceArtistId: '4',
+          name: 'Massive Attack',
+          mbid: '9c0b5d7e-2f4a-4a55-8a0f-4fb1c5fd9d37',
+        },
       ]),
       listAlbums: vi.fn(async (sourceArtistId: string) => {
         albumTaskStarted.push(sourceArtistId)

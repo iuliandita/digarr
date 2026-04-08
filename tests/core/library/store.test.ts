@@ -193,6 +193,57 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     expect(rows[0]?.sourceAlbumId).toBe('alb-2')
   })
 
+  it('replaceLibrarySnapshot rolls back artist and album writes on persistence failure', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
+      reconciled({ sourceArtistId: 'rk-seed', name: 'Seed Artist', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }),
+    ])
+    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'alb-seed',
+        sourceArtistId: 'rk-seed',
+        title: 'Seed Album',
+        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+      }),
+    ])
+
+    await expect(
+      store.replaceLibrarySnapshot(
+        userId,
+        PLEX_SOURCE,
+        [
+          reconciled({
+            sourceArtistId: 'rk-1',
+            name: 'Radiohead',
+            mbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+            matchMethod: 'mbid',
+          }),
+        ],
+        [
+          reconciledAlbum({
+            sourceAlbumId: 'alb-1',
+            sourceArtistId: 'rk-1',
+            title: 'OK Computer',
+            artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+          }),
+          reconciledAlbum({
+            sourceAlbumId: 'alb-1',
+            sourceArtistId: 'rk-1',
+            title: 'OK Computer (duplicate)',
+            artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+          }),
+        ],
+      ),
+    ).rejects.toThrow()
+
+    const artists = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
+    const albums = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
+    expect(artists).toHaveLength(1)
+    expect(artists[0]?.sourceArtistId).toBe('rk-seed')
+    expect(albums).toHaveLength(1)
+    expect(albums[0]?.sourceAlbumId).toBe('alb-seed')
+  })
+
   it('findReconciledByNormalizedName returns rows scoped to user + global', async () => {
     const store = createLibrarySyncStore(db)
     // Global Lidarr row (userId = null)

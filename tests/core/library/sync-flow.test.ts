@@ -199,7 +199,7 @@ describe.skipIf(!SHOULD_RUN)('library sync flow integration', () => {
         { sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' },
       ]),
       testConnection: async () => ({ success: true, message: 'ok' }),
-    }
+    } satisfies LibrarySource
 
     const orchestrator = createSyncOrchestrator({
       store,
@@ -222,7 +222,10 @@ describe.skipIf(!SHOULD_RUN)('library sync flow integration', () => {
 
     await orchestrator.syncGlobal({ force: true })
 
-    const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE_ID))
+    const rows = await db
+      .select()
+      .from(libraryAlbums)
+      .where(eq(libraryAlbums.source, LIDARR_SOURCE_ID))
     expect(rows).toHaveLength(1)
     expect(rows[0]?.title).toBe('OK Computer')
     expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
@@ -243,7 +246,7 @@ describe.skipIf(!SHOULD_RUN)('library sync flow integration', () => {
         throw new Error('album boom')
       }),
       testConnection: async () => ({ success: true, message: 'ok' }),
-    }
+    } satisfies LibrarySource
 
     const orchestrator = createSyncOrchestrator({
       store,
