@@ -88,6 +88,18 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       })),
     } as unknown as AppDependencies['librarySync'],
     librarySyncStore: {
+      replaceLibrarySnapshot: vi.fn(async () => ({
+        total: 0,
+        matchedMbid: 0,
+        matchedNameExact: 0,
+        matchedNameAnchored: 0,
+        matchedDisambiguated: 0,
+        unreconciledAmbiguous: 0,
+        unreconciledNoCandidate: 0,
+        cacheHits: 0,
+        mbApiCalls: 0,
+        albumsSynced: 0,
+      })),
       replaceLibraryArtists: vi.fn(async () => ({
         total: 0,
         matchedMbid: 0,

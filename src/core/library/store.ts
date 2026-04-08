@@ -30,6 +30,13 @@ export type LibrarySyncStorePatch = Partial<{
 }>
 
 export interface LibrarySyncStore {
+  replaceLibrarySnapshot(
+    userId: number | null,
+    source: string,
+    artists: ReconciledArtist[],
+    albums: ReconciledAlbum[],
+  ): Promise<LibrarySyncCounts>
+
   replaceLibraryArtists(
     userId: number | null,
     source: string,
@@ -99,6 +106,36 @@ export function emptyLibrarySyncCounts(): LibrarySyncCounts {
 }
 
 export function createLibrarySyncStore(database: Db): LibrarySyncStore {
+  function makeUserClause(userId: number | null) {
+    return userId === null ? isNull(libraryArtists.userId) : eq(libraryArtists.userId, userId)
+  }
+
+  function countArtists(artists: ReconciledArtist[]): LibrarySyncCounts {
+    const counts = emptyLibrarySyncCounts()
+    for (const a of artists) {
+      counts.total += 1
+      switch (a.matchMethod) {
+        case 'mbid':
+          counts.matchedMbid += 1
+          break
+        case 'name_exact':
+          counts.matchedNameExact += 1
+          break
+        case 'name_anchored':
+          counts.matchedNameAnchored += 1
+          break
+        case 'name_disambiguated':
+          counts.matchedDisambiguated += 1
+          break
+        case null:
+          if (a.unreconciledReason === 'ambiguous') counts.unreconciledAmbiguous += 1
+          else if (a.unreconciledReason === 'no_candidate') counts.unreconciledNoCandidate += 1
+          break
+      }
+    }
+    return counts
+  }
+
   async function getLibrarySyncState(
     userId: number | null,
     source: string,
@@ -136,34 +173,63 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
   }
 
   return {
-    async replaceLibraryArtists(userId, source, artists) {
-      const counts = emptyLibrarySyncCounts()
-      for (const a of artists) {
-        counts.total += 1
-        switch (a.matchMethod) {
-          case 'mbid':
-            counts.matchedMbid += 1
-            break
-          case 'name_exact':
-            counts.matchedNameExact += 1
-            break
-          case 'name_anchored':
-            counts.matchedNameAnchored += 1
-            break
-          case 'name_disambiguated':
-            counts.matchedDisambiguated += 1
-            break
-          case null:
-            if (a.unreconciledReason === 'ambiguous') counts.unreconciledAmbiguous += 1
-            else if (a.unreconciledReason === 'no_candidate') counts.unreconciledNoCandidate += 1
-            break
+    async replaceLibrarySnapshot(userId, source, artists, albums) {
+      const counts = countArtists(artists)
+      counts.albumsSynced = albums.length
+
+      await database.transaction(async (tx) => {
+        const artistUserClause =
+          userId === null ? isNull(libraryArtists.userId) : eq(libraryArtists.userId, userId)
+        const albumUserClause =
+          userId === null ? isNull(libraryAlbums.userId) : eq(libraryAlbums.userId, userId)
+        await tx.delete(libraryArtists).where(and(artistUserClause, eq(libraryArtists.source, source)))
+        await tx.delete(libraryAlbums).where(and(albumUserClause, eq(libraryAlbums.source, source)))
+
+        if (artists.length > 0) {
+          await tx.insert(libraryArtists).values(
+            artists.map((a) => ({
+              userId,
+              source,
+              sourceArtistId: a.sourceArtistId,
+              name: a.name,
+              nameNormalized: a.nameNormalized,
+              mbid: a.mbid,
+              matchMethod: a.matchMethod,
+              matchConfidence: a.matchConfidence,
+              genres: a.genres,
+            })),
+          )
         }
-      }
+
+        if (albums.length > 0) {
+          await tx.insert(libraryAlbums).values(
+            albums.map((album) => ({
+              userId,
+              source,
+              sourceAlbumId: album.sourceAlbumId,
+              sourceArtistId: album.sourceArtistId,
+              title: album.title,
+              titleNormalized: album.titleNormalized,
+              albumMbid: album.albumMbid,
+              artistMbid: album.artistMbid,
+              releaseYear: album.releaseYear,
+              primaryType: album.primaryType,
+              matchMethod: album.matchMethod,
+              matchConfidence: album.matchConfidence,
+            })),
+          )
+        }
+      })
+
+      return counts
+    },
+
+    async replaceLibraryArtists(userId, source, artists) {
+      const counts = countArtists(artists)
 
       await database.transaction(async (tx) => {
         // Truncate per (userId, source)
-        const userClause =
-          userId === null ? isNull(libraryArtists.userId) : eq(libraryArtists.userId, userId)
+        const userClause = makeUserClause(userId)
         await tx.delete(libraryArtists).where(and(userClause, eq(libraryArtists.source, source)))
 
         if (artists.length === 0) return

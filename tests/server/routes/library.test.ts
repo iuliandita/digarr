@@ -90,6 +90,7 @@ function makeMockLibrarySync() {
 
 function makeMockLibrarySyncStore() {
   return {
+    replaceLibrarySnapshot: vi.fn(async () => zeroCounts()),
     replaceLibraryArtists: vi.fn(async () => zeroCounts()),
     findReconciledByNormalizedName: vi.fn(async () => []),
     getLibrarySyncState: vi.fn(async () => null),
