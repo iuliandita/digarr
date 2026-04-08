@@ -832,6 +832,26 @@ describe('Mounted library admin gating', () => {
 })
 
 describe('Mounted library legacy-token gating', () => {
+  it('rejects legacy-token auth for admin-only library maintenance even when user 1 is admin', async () => {
+    const token = 'legacy-library-token'
+    const libraryHealth = makeMockLibraryHealth()
+    const app = await createMountedAppWithLegacyToken(token, {
+      getUserById: vi.fn(async () => ({
+        id: 1,
+        username: 'admin',
+        isAdmin: true,
+      })) as unknown as AppDependencies['getUserById'],
+      libraryHealth: libraryHealth as unknown as AppDependencies['libraryHealth'],
+    })
+
+    const res = await app.request('/api/library/health', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(403)
+    expect((libraryHealth.getLastResults as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0)
+  })
+
   it('rejects legacy-token auth for per-user library sources', async () => {
     const token = 'legacy-library-token'
     const app = await createMountedAppWithLegacyToken(token)

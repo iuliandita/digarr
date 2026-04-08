@@ -60,7 +60,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
     const auth = requireUser(c)
     if (!auth.ok) return auth
-    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, false)
+    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, false, c.get('legacyTokenAuth'))
     if (!isAdmin) {
       return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
     }
