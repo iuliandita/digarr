@@ -4,7 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/web/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/web/lib/api')>()
+  return {
+    ...actual,
+    getArtistTopTracks: vi.fn().mockResolvedValue([]),
+    getLibraryAlbumCoverage: vi.fn(),
+  }
+})
+
 import { type Recommendation, RecommendationCard } from '@/web/components/recommendation-card'
+import { getLibraryAlbumCoverage } from '@/web/lib/api'
 import { PreviewContext } from '@/web/lib/preview-context'
 
 // ---------------------------------------------------------------------------
@@ -63,9 +74,17 @@ describe('RecommendationCard', () => {
   const onApprove = vi.fn()
   const onReject = vi.fn()
   const onClick = vi.fn()
+  const mockGetLibraryAlbumCoverage = vi.mocked(getLibraryAlbumCoverage)
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetLibraryAlbumCoverage.mockResolvedValue({
+      artistMbid: 'mbid-001',
+      ownedCount: 3,
+      totalCount: 8,
+      owned: [{ albumMbid: 'owned-a', title: 'Owned A', releaseYear: 2001 }],
+      missing: [{ albumMbid: 'missing-b', title: 'Missing B', releaseYear: 2004 }],
+    })
   })
 
   it('renders artist name and score badge', () => {
@@ -244,5 +263,15 @@ describe('RecommendationCard', () => {
 
     expect(screen.getByText('Add to Main Lidarr')).toBeInTheDocument()
     expect(screen.queryByText('Add to Spotify playlist')).not.toBeInTheDocument()
+  })
+
+  it('renders album coverage when the artist has library data', async () => {
+    withPreview(
+      <RecommendationCard recommendation={makeRec()} onApprove={onApprove} onReject={onReject} />,
+    )
+
+    expect(
+      await screen.findByRole('button', { name: 'You own 3/8 studio albums' }),
+    ).toBeInTheDocument()
   })
 })

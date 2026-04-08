@@ -9,6 +9,7 @@ import { usePreviewContext } from '../lib/preview-context'
 import { cn, hueFromName } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import { Hint } from './hint'
+import { LibraryAlbumCoverageBadge } from './library-album-coverage-badge'
 import { StreamingLinks } from './streaming-links'
 import { Button } from './ui/button'
 
@@ -699,6 +700,8 @@ export function RecommendationCard({
               id={rec.id}
             />
           )}
+
+          {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
 
           {/* Action buttons -- compact mode only, hidden in bulk mode */}
           {!expanded && (
