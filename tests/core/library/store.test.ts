@@ -2,6 +2,7 @@
 
 import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { ReconciledAlbum } from '@/core/library/album-reconciler'
 import type { ReconciledArtist } from '@/core/library/reconciler'
 import { createLibrarySyncStore } from '@/core/library/store'
 
@@ -15,6 +16,7 @@ const SHOULD_RUN =
     process.env.DB_USER !== undefined &&
     process.env.DB_NAME !== undefined)
 let db: import('@/db').Database
+let libraryAlbums: typeof import('@/db/schema').libraryAlbums
 let libraryArtists: typeof import('@/db/schema').libraryArtists
 let libraryMatchOverrides: typeof import('@/db/schema').libraryMatchOverrides
 let librarySyncState: typeof import('@/db/schema').librarySyncState
@@ -22,7 +24,7 @@ let users: typeof import('@/db/schema').users
 
 if (SHOULD_RUN) {
   ;({ db } = await import('@/db'))
-  ;({ libraryArtists, libraryMatchOverrides, librarySyncState, users } = await import(
+  ;({ libraryAlbums, libraryArtists, libraryMatchOverrides, librarySyncState, users } = await import(
     '@/db/schema'
   ))
 }
@@ -66,6 +68,28 @@ function reconciled(
     matchConfidence: opts.matchConfidence ?? null,
     genres: opts.genres ?? [],
     unreconciledReason: opts.unreconciledReason,
+  }
+}
+
+function reconciledAlbum(
+  overrides: Partial<ReconciledAlbum> & {
+    sourceAlbumId: string
+    sourceArtistId: string
+    title: string
+    artistMbid: string
+  },
+): ReconciledAlbum {
+  return {
+    sourceAlbumId: overrides.sourceAlbumId,
+    sourceArtistId: overrides.sourceArtistId,
+    title: overrides.title,
+    titleNormalized: overrides.titleNormalized ?? overrides.title.toLowerCase(),
+    albumMbid: overrides.albumMbid ?? null,
+    artistMbid: overrides.artistMbid,
+    releaseYear: overrides.releaseYear ?? null,
+    primaryType: overrides.primaryType ?? 'Album',
+    matchMethod: overrides.matchMethod ?? null,
+    matchConfidence: overrides.matchConfidence ?? null,
   }
 }
 
@@ -122,6 +146,51 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r.source).sort()).toEqual([JELLYFIN_SOURCE, PLEX_SOURCE])
+  })
+
+  it('replaceLibraryAlbums writes rows and returns total count', async () => {
+    const store = createLibrarySyncStore(db)
+    const result = await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'alb-1',
+        sourceArtistId: 'rk-1',
+        title: 'Dummy',
+        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        albumMbid: '11111111-1111-1111-1111-111111111111',
+        matchMethod: 'title_exact',
+        matchConfidence: 0.8,
+      }),
+    ])
+
+    expect(result.total).toBe(1)
+    const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.title).toBe('Dummy')
+    expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
+  })
+
+  it('replaceLibraryAlbums is truncate-and-replace per source/user', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'alb-1',
+        sourceArtistId: 'rk-1',
+        title: 'Dummy',
+        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+      }),
+    ])
+    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'alb-2',
+        sourceArtistId: 'rk-2',
+        title: 'Dummy 2',
+        artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+      }),
+    ])
+
+    const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.sourceAlbumId).toBe('alb-2')
   })
 
   it('findReconciledByNormalizedName returns rows scoped to user + global', async () => {

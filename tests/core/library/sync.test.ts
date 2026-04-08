@@ -17,6 +17,7 @@ function makeStore(): LibrarySyncStore {
       cacheHits: 0,
       mbApiCalls: 0,
     })),
+    replaceLibraryAlbums: vi.fn(async () => ({ total: 0 })),
     findReconciledByNormalizedName: vi.fn(async () => []),
     getLibrarySyncState: vi.fn(async () => null),
     upsertLibrarySyncState: vi.fn(async () => {}),

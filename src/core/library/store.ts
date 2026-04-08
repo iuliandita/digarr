@@ -1,10 +1,12 @@
 import { and, eq, getTableColumns, isNotNull, isNull, or } from 'drizzle-orm'
 import {
   type LibrarySyncCounts,
+  libraryAlbums,
   libraryArtists,
   libraryMatchOverrides,
   librarySyncState,
 } from '@/db/schema'
+import type { ReconciledAlbum } from './album-reconciler'
 import type { ReconciledArtist, ReconcilerOverride } from './reconciler'
 
 type Db = import('@/db').Database
@@ -33,6 +35,12 @@ export interface LibrarySyncStore {
     source: string,
     artists: ReconciledArtist[],
   ): Promise<LibrarySyncCounts>
+
+  replaceLibraryAlbums(
+    userId: number | null,
+    source: string,
+    albums: ReconciledAlbum[],
+  ): Promise<{ total: number }>
 
   findReconciledByNormalizedName(
     userId: number,
@@ -175,6 +183,35 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
       })
 
       return counts
+    },
+
+    async replaceLibraryAlbums(userId, source, albums) {
+      await database.transaction(async (tx) => {
+        const userClause =
+          userId === null ? isNull(libraryAlbums.userId) : eq(libraryAlbums.userId, userId)
+        await tx.delete(libraryAlbums).where(and(userClause, eq(libraryAlbums.source, source)))
+
+        if (albums.length === 0) return
+
+        await tx.insert(libraryAlbums).values(
+          albums.map((album) => ({
+            userId,
+            source,
+            sourceAlbumId: album.sourceAlbumId,
+            sourceArtistId: album.sourceArtistId,
+            title: album.title,
+            titleNormalized: album.titleNormalized,
+            albumMbid: album.albumMbid,
+            artistMbid: album.artistMbid,
+            releaseYear: album.releaseYear,
+            primaryType: album.primaryType,
+            matchMethod: album.matchMethod,
+            matchConfidence: album.matchConfidence,
+          })),
+        )
+      })
+
+      return { total: albums.length }
     },
 
     async findReconciledByNormalizedName(userId, nameNormalized) {
