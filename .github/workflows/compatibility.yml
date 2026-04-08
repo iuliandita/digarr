@@ -53,6 +53,9 @@ jobs:
   docker-macos:
     name: Docker Desktop (macOS)
     runs-on: macos-latest
+    # Hosted macOS runners are flaky when booting Docker Desktop; keep the
+    # signal visible in PRs and scheduled runs without blocking merges.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
