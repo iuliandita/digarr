@@ -130,7 +130,6 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         reconciled.push(await reconcileArtist(artist, source.id, ctx))
       }
 
-      const writtenCounts = await deps.store.replaceLibraryArtists(userId, source.id, reconciled)
       let albumsSynced = 0
       if (source.capabilities.includes('listAlbums') && source.listAlbums) {
         const albumQueue = new PQueue({ concurrency: 3 })
@@ -152,11 +151,19 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
           )
         }
 
-        await Promise.all(albumTasks)
+        const albumResults = await Promise.allSettled(albumTasks)
         await albumQueue.onIdle()
+        const albumFailure = albumResults.find(
+          (result): result is PromiseRejectedResult => result.status === 'rejected',
+        )
+        if (albumFailure) {
+          throw albumFailure.reason
+        }
+
         const albumWrite = await deps.store.replaceLibraryAlbums(userId, source.id, albumRows)
         albumsSynced = albumWrite.total
       }
+      const writtenCounts = await deps.store.replaceLibraryArtists(userId, source.id, reconciled)
       // Merge writer counts (tally pass) with reconciler counts (cacheHits, mbApiCalls)
       const merged = {
         ...writtenCounts,

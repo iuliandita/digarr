@@ -315,4 +315,42 @@ describe('createSyncOrchestrator', () => {
     expect(summary.results[0]?.status).toBe('failed')
     expect(store.replaceLibraryAlbums).not.toHaveBeenCalled()
   })
+
+  it('waits for queued album tasks to settle before returning a failure', async () => {
+    const albumTaskSettled: string[] = []
+    const a: LibrarySource = {
+      id: 'lidarr',
+      name: 'lidarr',
+      capabilities: ['listArtists', 'listAlbums'],
+      userId: null,
+      mbidQuality: 'high',
+      listArtists: vi.fn(async () => [
+        { sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' },
+        { sourceArtistId: '2', name: 'Portishead', mbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11' },
+      ]),
+      listAlbums: vi.fn(async (sourceArtistId: string) => {
+        if (sourceArtistId === '1') {
+          throw new Error('album boom')
+        }
+        await new Promise((resolve) => setTimeout(resolve, 25))
+        albumTaskSettled.push(sourceArtistId)
+        return []
+      }),
+      testConnection: async () => ({ success: true, message: 'ok' }),
+    }
+
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    expect(summary.results[0]?.status).toBe('failed')
+    expect(albumTaskSettled).toContain('2')
+  })
 })

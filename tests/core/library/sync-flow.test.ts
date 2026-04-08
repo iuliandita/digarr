@@ -227,4 +227,40 @@ describe.skipIf(!SHOULD_RUN)('library sync flow integration', () => {
     expect(rows[0]?.title).toBe('OK Computer')
     expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
   })
+
+  it('does not leave artist rows behind when album sync fails', async () => {
+    const store = createLibrarySyncStore(db)
+    const lidarr = {
+      id: LIDARR_SOURCE_ID,
+      name: 'lidarr',
+      capabilities: ['listArtists', 'listAlbums'],
+      userId: null,
+      mbidQuality: 'high' as const,
+      listArtists: vi.fn(async () => [
+        { sourceArtistId: '1', name: 'Radiohead', mbid: RADIOHEAD_MBID },
+      ]),
+      listAlbums: vi.fn(async () => {
+        throw new Error('album boom')
+      }),
+      testConnection: async () => ({ success: true, message: 'ok' }),
+    }
+
+    const orchestrator = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [],
+      buildGlobalSources: async () => [lidarr],
+      staleHours: 6,
+    })
+
+    const summary = await orchestrator.syncGlobal({ force: true })
+
+    expect(summary.results[0]?.status).toBe('failed')
+    const artistRows = await db
+      .select()
+      .from(libraryArtists)
+      .where(eq(libraryArtists.source, LIDARR_SOURCE_ID))
+    expect(artistRows).toHaveLength(0)
+  })
 })
