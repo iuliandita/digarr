@@ -106,4 +106,32 @@ describe('lidarr LibrarySource', () => {
       },
     ])
   })
+
+  it('listAlbums preserves Lidarr EP primary type', async () => {
+    const client = {
+      getArtists: vi.fn(),
+      getAlbums: vi.fn().mockResolvedValue([
+        {
+          id: 11,
+          title: 'Kid A Mnesia',
+          artistId: 1,
+          foreignAlbumId: '22222222-2222-2222-2222-222222222222',
+          monitored: true,
+          albumType: 'EP',
+        },
+      ]),
+      testConnection: vi.fn(),
+    }
+    const source = createLidarrLibrarySource(client as never)
+    const albums = await source.listAlbums?.('1')
+    expect(albums).toEqual([
+      {
+        sourceAlbumId: '11',
+        sourceArtistId: '1',
+        title: 'Kid A Mnesia',
+        mbid: '22222222-2222-2222-2222-222222222222',
+        primaryType: 'EP',
+      },
+    ])
+  })
 })
