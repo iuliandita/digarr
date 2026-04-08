@@ -99,9 +99,12 @@ export function LibrarySourcesPanel() {
 
                 {counts != null && (
                   <div className="text-xs text-muted">
-                    {counts.total} artists -- {counts.matchedMbid} MBID, {counts.matchedNameExact}{' '}
-                    exact, {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
-                    disambiguated, {unreconciled} unreconciled
+                    {counts.total} artists
+                    {typeof counts.albumsSynced === 'number' ? ` -- ${counts.albumsSynced} albums` : ''}
+                    {' -- '}
+                    {counts.matchedMbid} MBID, {counts.matchedNameExact} exact,{' '}
+                    {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated} disambiguated,{' '}
+                    {unreconciled} unreconciled
                   </div>
                 )}
 
