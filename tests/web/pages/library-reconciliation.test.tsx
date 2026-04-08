@@ -19,14 +19,22 @@ function renderWithQuery(ui: ReactElement) {
 
 vi.mock('@/web/lib/api', () => ({
   getLibraryUnreconciled: vi.fn(),
+  getLibraryUnreconciledAlbums: vi.fn(),
   saveLibraryOverride: vi.fn(),
+  saveLibraryAlbumOverride: vi.fn(),
   rerunLibraryReconciler: vi.fn(),
 }))
 
-import { getLibraryUnreconciled, rerunLibraryReconciler, saveLibraryOverride } from '@/web/lib/api'
+import {
+  getLibraryUnreconciled,
+  getLibraryUnreconciledAlbums,
+  rerunLibraryReconciler,
+  saveLibraryOverride,
+} from '@/web/lib/api'
 import { LibraryReconciliationPage } from '@/web/pages/library-reconciliation'
 
 const mockGetLibraryUnreconciled = vi.mocked(getLibraryUnreconciled)
+const mockGetLibraryUnreconciledAlbums = vi.mocked(getLibraryUnreconciledAlbums)
 const mockRerunLibraryReconciler = vi.mocked(rerunLibraryReconciler)
 const mockSaveLibraryOverride = vi.mocked(saveLibraryOverride)
 
@@ -53,9 +61,38 @@ const makeRow = (
   ...overrides,
 })
 
+const makeAlbumRow = (
+  overrides: Partial<{
+    id: number
+    source: string
+    sourceAlbumId: string
+    sourceArtistId: string
+    title: string
+    titleNormalized: string
+    artistMbid: string | null
+    releaseYear: number | null
+    primaryType: string | null
+  }> = {},
+) => ({
+  id: 11,
+  userId: 1,
+  source: 'plex',
+  sourceAlbumId: 'alb-1',
+  sourceArtistId: 'artist-1',
+  title: 'Unknown Album',
+  titleNormalized: 'unknown album',
+  albumMbid: null,
+  artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+  releaseYear: 1999,
+  primaryType: 'Album',
+  syncedAt: '2026-04-07T12:00:00.000Z',
+  ...overrides,
+})
+
 describe('LibraryReconciliationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetLibraryUnreconciledAlbums.mockResolvedValue({ items: [] })
     mockRerunLibraryReconciler.mockResolvedValue({ ok: true })
   })
 
@@ -92,6 +129,17 @@ describe('LibraryReconciliationPage', () => {
     expect(screen.getByText('Bush')).toBeInTheDocument()
     expect(screen.getByText('Failure')).toBeInTheDocument()
     expect(screen.getByText('Lolita')).toBeInTheDocument()
+  })
+
+  it('renders a second section for unreconciled albums', async () => {
+    mockGetLibraryUnreconciled.mockResolvedValue({ items: [] })
+    mockGetLibraryUnreconciledAlbums.mockResolvedValue({ items: [makeAlbumRow()] })
+
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    expect(await screen.findByText('Unreconciled Albums')).toBeInTheDocument()
+    expect(await screen.findByText('Unknown Album')).toBeInTheDocument()
+    expect(screen.getByText('plex - Album - 1999')).toBeInTheDocument()
   })
 
   it('shows a validation error for an invalid MBID', async () => {

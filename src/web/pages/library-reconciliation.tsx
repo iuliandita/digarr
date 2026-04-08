@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { LibraryUnreconciledAlbumRowComponent } from '../components/library-unreconciled-album-row'
 import { LibraryUnreconciledRowComponent } from '../components/library-unreconciled-row'
-import { getLibraryUnreconciled } from '../lib/api'
+import { getLibraryUnreconciled, getLibraryUnreconciledAlbums } from '../lib/api'
 
 export function LibraryReconciliationPage() {
   const queryClient = useQueryClient()
@@ -8,8 +9,18 @@ export function LibraryReconciliationPage() {
     queryKey: ['library', 'unreconciled'],
     queryFn: getLibraryUnreconciled,
   })
+  const {
+    data: albumData,
+    error: albumError,
+    isError: isAlbumError,
+    isLoading: isAlbumLoading,
+  } = useQuery({
+    queryKey: ['library', 'unreconciled-albums'],
+    queryFn: getLibraryUnreconciledAlbums,
+  })
 
   const items = data?.items ?? []
+  const albumItems = albumData?.items ?? []
   const grouped = new Map<string, typeof items>()
 
   for (const row of items) {
@@ -20,6 +31,7 @@ export function LibraryReconciliationPage() {
 
   function handleResolved() {
     queryClient.invalidateQueries({ queryKey: ['library', 'unreconciled'] })
+    queryClient.invalidateQueries({ queryKey: ['library', 'unreconciled-albums'] })
     queryClient.invalidateQueries({ queryKey: ['library', 'sources'] })
   }
 
@@ -72,6 +84,50 @@ export function LibraryReconciliationPage() {
             </div>
           </section>
         ))}
+
+      <section className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-text">Unreconciled Albums</h2>
+          <p className="text-sm text-muted">
+            {isAlbumLoading
+              ? 'Loading unreconciled albums...'
+              : `${albumItems.length} albums could not be automatically matched to MusicBrainz.`}
+          </p>
+        </div>
+
+        {isAlbumLoading && (
+          <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-muted text-sm">
+            Loading unreconciled albums...
+          </div>
+        )}
+
+        {isAlbumError && (
+          <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center space-y-2">
+            <div className="text-sm text-text">Could not load unreconciled albums.</div>
+            <div className="text-sm text-muted">
+              {albumError instanceof Error ? albumError.message : 'Unknown error'}
+            </div>
+          </div>
+        )}
+
+        {!isAlbumLoading && !isAlbumError && albumItems.length === 0 && (
+          <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-muted text-sm">
+            No unreconciled albums.
+          </div>
+        )}
+
+        {!isAlbumError && albumItems.length > 0 && (
+          <div className="space-y-2">
+            {albumItems.map((row) => (
+              <LibraryUnreconciledAlbumRowComponent
+                key={row.id}
+                row={row}
+                onResolved={handleResolved}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
