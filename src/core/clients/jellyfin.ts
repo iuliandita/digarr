@@ -226,30 +226,47 @@ export function createJellyfinClient(
 
   async function getAlbumsForArtist(artistId: string): Promise<JellyfinLibraryAlbum[]> {
     const userId = await getUserId()
-    const params = new URLSearchParams({
-      ParentId: artistId,
-      IncludeItemTypes: 'MusicAlbum',
-      Recursive: 'true',
-      Fields: 'ProviderIds,ProductionYear',
-    })
+    const pageSize = 200
+    const all: JellyfinLibraryAlbum[] = []
+    let startIndex = 0
+    let total = Number.POSITIVE_INFINITY
 
-    const res = await get<{
-      Items: Array<{
-        Id: string
-        Name: string
-        ProductionYear?: number
-        ProviderIds?: { MusicBrainzReleaseGroup?: string; MusicBrainzAlbum?: string }
-      }>
-    }>(`/Users/${userId}/Items?${params}`)
+    while (startIndex < total) {
+      const params = new URLSearchParams({
+        ParentId: artistId,
+        IncludeItemTypes: 'MusicAlbum',
+        Recursive: 'true',
+        Fields: 'ProviderIds,ProductionYear',
+        StartIndex: String(startIndex),
+        Limit: String(pageSize),
+      })
 
-    return (res.Items ?? []).map((item) => ({
-      id: item.Id,
-      artistId,
-      title: item.Name,
-      mbid: item.ProviderIds?.MusicBrainzReleaseGroup?.trim() || undefined,
-      releaseYear: item.ProductionYear,
-      primaryType: 'Album',
-    }))
+      const res = await get<{
+        TotalRecordCount: number
+        Items: Array<{
+          Id: string
+          Name: string
+          ProductionYear?: number
+          ProviderIds?: { MusicBrainzReleaseGroup?: string; MusicBrainzAlbum?: string }
+        }>
+      }>(`/Users/${userId}/Items?${params}`)
+
+      total = res.TotalRecordCount ?? res.Items.length
+      for (const item of res.Items) {
+        all.push({
+          id: item.Id,
+          artistId,
+          title: item.Name,
+          mbid: item.ProviderIds?.MusicBrainzReleaseGroup?.trim() || undefined,
+          releaseYear: item.ProductionYear,
+          primaryType: 'Album',
+        })
+      }
+      if (res.Items.length === 0) break
+      startIndex += res.Items.length
+    }
+
+    return all
   }
 
   async function testConnection(): Promise<ServiceTestResult> {

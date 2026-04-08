@@ -196,8 +196,6 @@ export function createPlexClient(
       const metadata = res.MediaContainer.Metadata ?? []
       if (res.MediaContainer.totalSize != null) {
         total = res.MediaContainer.totalSize
-      } else if (total == null && metadata.length < pageSize) {
-        break
       }
       for (const item of metadata) {
         all.push({
@@ -210,6 +208,7 @@ export function createPlexClient(
       }
       if (metadata.length === 0) break
       start += metadata.length
+      if (total == null && metadata.length < pageSize) break
     }
 
     return all

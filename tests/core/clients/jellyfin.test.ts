@@ -76,6 +76,78 @@ describe('jellyfin client.getAllArtists()', () => {
 })
 
 describe('jellyfin client.getAlbumsForArtist()', () => {
+  it('paginates through multiple album pages', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'test-api-key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+
+    mockGet.mockResolvedValueOnce({
+      TotalRecordCount: 3,
+      Items: [
+        {
+          Id: 'jf-alb-1',
+          Name: 'Kid A',
+          ProductionYear: 2000,
+          ProviderIds: {
+            MusicBrainzReleaseGroup: '11111111-1111-1111-1111-111111111111',
+          },
+        },
+        {
+          Id: 'jf-alb-2',
+          Name: 'Amnesiac',
+          ProductionYear: 2001,
+          ProviderIds: {
+            MusicBrainzReleaseGroup: '22222222-2222-2222-2222-222222222222',
+          },
+        },
+      ],
+    })
+    mockGet.mockResolvedValueOnce({
+      TotalRecordCount: 3,
+      Items: [
+        {
+          Id: 'jf-alb-3',
+          Name: 'Hail to the Thief',
+          ProductionYear: 2003,
+          ProviderIds: {
+            MusicBrainzReleaseGroup: '33333333-3333-3333-3333-333333333333',
+          },
+        },
+      ],
+    })
+
+    const albums = await client.getAlbumsForArtist('jf-artist-1')
+
+    expect(albums).toEqual([
+      {
+        id: 'jf-alb-1',
+        artistId: 'jf-artist-1',
+        title: 'Kid A',
+        mbid: '11111111-1111-1111-1111-111111111111',
+        releaseYear: 2000,
+        primaryType: 'Album',
+      },
+      {
+        id: 'jf-alb-2',
+        artistId: 'jf-artist-1',
+        title: 'Amnesiac',
+        mbid: '22222222-2222-2222-2222-222222222222',
+        releaseYear: 2001,
+        primaryType: 'Album',
+      },
+      {
+        id: 'jf-alb-3',
+        artistId: 'jf-artist-1',
+        title: 'Hail to the Thief',
+        mbid: '33333333-3333-3333-3333-333333333333',
+        releaseYear: 2003,
+        primaryType: 'Album',
+      },
+    ])
+  })
+
   it('prefers MusicBrainzReleaseGroup over MusicBrainzAlbum', async () => {
     const client = createJellyfinClient(
       'http://jf:8096',

@@ -79,6 +79,35 @@ describe('plex client.getAllArtists()', () => {
 })
 
 describe('plex client.getAlbumsForArtist()', () => {
+  it('includes a final partial page even when totalSize is missing', async () => {
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        Metadata: [
+          {
+            ratingKey: 'alb-final',
+            parentRatingKey: 'artist-1',
+            title: 'A Moon Shaped Pool',
+            year: 2016,
+          },
+        ],
+      },
+    })
+
+    const albums = await client.getAlbumsForArtist('artist-1')
+
+    expect(albums).toEqual([
+      {
+        ratingKey: 'alb-final',
+        artistRatingKey: 'artist-1',
+        title: 'A Moon Shaped Pool',
+        releaseYear: 2016,
+        primaryType: 'Album',
+      },
+    ])
+  })
+
   it('paginates through the album library', async () => {
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
 
