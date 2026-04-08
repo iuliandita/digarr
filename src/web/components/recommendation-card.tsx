@@ -179,7 +179,7 @@ function GenrePills({
 
 // Target-aware approve dropdown
 
-import { TargetIcon, targetActionLabel } from './target-utils'
+import { canApproveArtistToTarget, TargetIcon, targetActionLabel } from './target-utils'
 
 function ApproveDropdown({
   recId,
@@ -195,6 +195,7 @@ function ApproveDropdown({
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   useClickOutside(ref, () => setOpen(false), open)
+  const actionableTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
 
   return (
     <div ref={ref} className="relative">
@@ -224,7 +225,7 @@ function ApproveDropdown({
       </div>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-10 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
-          {targets.map((t) => (
+          {actionableTargets.map((t) => (
             <button
               key={t.id}
               type="button"

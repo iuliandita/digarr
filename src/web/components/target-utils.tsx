@@ -11,6 +11,10 @@ export function TargetIcon({ type }: { type: string }) {
   }
 }
 
+export function canApproveArtistToTarget(type: string): boolean {
+  return type === 'lidarr'
+}
+
 export function targetActionLabel(type: string, name: string): string {
   switch (type) {
     case 'lidarr':

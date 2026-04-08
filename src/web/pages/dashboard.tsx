@@ -9,6 +9,7 @@ import type { MonitorOption } from '../components/monitoring-options'
 import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
 import { SystemHealthCard } from '../components/system-health-card'
+import { canApproveArtistToTarget } from '../components/target-utils'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
 import { Skeleton } from '../components/ui/skeleton'
 import {
@@ -308,7 +309,7 @@ export function Dashboard() {
     queryKey: ['dashboard-approved'],
     queryFn: () =>
       getRecommendations({
-        status: 'added_to_lidarr,approved',
+        status: 'added_to_lidarr,add_failed,approved',
         sort: 'acted_on_desc',
         limit: '9',
       }),
@@ -358,6 +359,7 @@ export function Dashboard() {
   })
 
   const targets = targetsData ?? []
+  const approveTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
 
   // User preferences (for ApproveDialog defaults)
   const { data: prefsData } = useQuery({
@@ -495,7 +497,7 @@ export function Dashboard() {
                 .then(() => toast.success('Scan started'))
                 .catch(() => toast.error('Failed to start scan'))
             }}
-            targets={targets}
+            targets={approveTargets}
             onApproveToTarget={handleApproveToTarget}
           />
         </div>

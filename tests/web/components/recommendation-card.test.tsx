@@ -225,4 +225,24 @@ describe('RecommendationCard', () => {
     expect(screen.getByText('Add Failed')).toBeInTheDocument()
     expect(screen.getByText('Artist not found in MB')).toBeInTheDocument()
   })
+
+  it('hides playlist-only targets from the approve dropdown', () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        targets={[
+          { id: 1, type: 'lidarr', name: 'Main Lidarr' },
+          { id: 2, type: 'spotify-playlist', name: 'Spotify Mixes' },
+        ]}
+        onApproveToTarget={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '' }))
+
+    expect(screen.getByText('Add to Main Lidarr')).toBeInTheDocument()
+    expect(screen.queryByText('Add to Spotify playlist')).not.toBeInTheDocument()
+  })
 })

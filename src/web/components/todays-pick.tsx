@@ -24,7 +24,7 @@ export type Recommendation = {
   }
 }
 
-import { TargetIcon, targetActionLabel } from './target-utils'
+import { canApproveArtistToTarget, TargetIcon, targetActionLabel } from './target-utils'
 
 type TodaysPickProps = {
   rec: Recommendation | null
@@ -51,6 +51,9 @@ export function TodaysPick({
   const [coverError, setCoverError] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const actionableTargets = (targets ?? []).filter((target) =>
+    canApproveArtistToTarget(target.type),
+  )
 
   useClickOutside(dropdownRef, () => setDropdownOpen(false), dropdownOpen)
 
@@ -230,7 +233,7 @@ export function TodaysPick({
         >
           Skip
         </button>
-        {targets && targets.length > 1 ? (
+        {actionableTargets.length > 1 ? (
           <div ref={dropdownRef} className="relative flex-1">
             <div className="flex">
               <button
@@ -251,7 +254,7 @@ export function TodaysPick({
             </div>
             {dropdownOpen && (
               <div className="absolute right-0 bottom-full mb-1 z-20 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
-                {targets.map((t) => (
+                {actionableTargets.map((t) => (
                   <button
                     key={t.id}
                     type="button"

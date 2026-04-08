@@ -121,6 +121,19 @@ const approvedRec = {
   },
 }
 
+const addFailedRec = {
+  id: 3,
+  score: 0.72,
+  status: 'add_failed',
+  artist: {
+    id: 12,
+    name: 'Alcest',
+    genres: ['blackgaze'],
+    imageUrl: 'https://example.com/alcest.jpg',
+    streamingUrls: null,
+  },
+}
+
 function setupMocks() {
   mockGetRecommendations.mockImplementation((params) => {
     const p = params as Record<string, string> | undefined
@@ -241,6 +254,26 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Run Scan')).toBeInTheDocument()
+    })
+  })
+
+  it('shows add_failed recommendations in Recently Approved', async () => {
+    setupMocks()
+    mockGetRecommendations.mockImplementation((params) => {
+      const p = params as Record<string, string> | undefined
+      if (p?.status === 'pending') {
+        return Promise.resolve({ items: [pendingRec], total: 1 })
+      }
+      if (p?.status === 'added_to_lidarr,add_failed,approved') {
+        return Promise.resolve({ items: [addFailedRec], total: 1 })
+      }
+      return Promise.resolve({ items: [], total: 0 })
+    })
+
+    renderWithQuery(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Alcest')).toBeInTheDocument()
     })
   })
 })

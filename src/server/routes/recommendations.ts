@@ -23,7 +23,9 @@ async function approveToTargets(
   jobRecorder?: import('@/core/jobs/types').JobRecorder,
   userId?: number,
 ): Promise<ApproveResult> {
-  if (targets.length === 0) {
+  const actionableTargets = targets.filter((target) => target.capabilities?.includes('addArtist'))
+
+  if (actionableTargets.length === 0) {
     return { status: 'approved', targetActions: {} }
   }
 
@@ -32,9 +34,7 @@ async function approveToTargets(
   let lidarrArtistId: number | string | undefined
   let lidarrError: string | undefined
 
-  for (const target of targets) {
-    if (!target.capabilities?.includes('addArtist')) continue
-
+  for (const target of actionableTargets) {
     const targetJobId = jobRecorder
       ? await jobRecorder.start({
           type: 'target',
@@ -87,7 +87,7 @@ async function approveToTargets(
     }
   }
 
-  const hasLidarr = targets.some((t) => t.type === 'lidarr')
+  const hasLidarr = actionableTargets.some((t) => t.type === 'lidarr')
   const status = anySuccess ? (hasLidarr ? 'added_to_lidarr' : 'approved') : 'add_failed'
   return { status, targetActions, lidarrArtistId, lidarrError }
 }

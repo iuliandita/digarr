@@ -118,6 +118,37 @@ describe('target-aware approval', () => {
     expect(body.status).toBe('add_failed')
   })
 
+  it('approves with createPlaylist-only targets -- sets approved', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    const spotifyTarget = {
+      id: 'spotify-playlist-1',
+      type: 'spotify-playlist',
+      capabilities: ['createPlaylist'],
+      createPlaylist: vi.fn(),
+      testConnection: vi.fn(),
+    }
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
+
+    const app = createTestApp()
+    const res = await app.request('/api/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+
+    const body = await res.json()
+    expect(body.status).toBe('approved')
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'approved',
+      expect.objectContaining({ targetActions: {} }),
+    )
+    expect(spotifyTarget.createPlaylist).not.toHaveBeenCalled()
+  })
+
   it('approves to specific target via targetId', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
@@ -259,5 +290,31 @@ describe('target-aware approval', () => {
 
     const body = await res.json()
     expect(body.results[0].status).toBe('approved')
+  })
+
+  it('bulk approve with createPlaylist-only targets marks all as approved', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    const spotifyTarget = {
+      id: 'spotify-playlist-1',
+      type: 'spotify-playlist',
+      capabilities: ['createPlaylist'],
+      createPlaylist: vi.fn(),
+      testConnection: vi.fn(),
+    }
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
+
+    const app = createTestApp()
+    const res = await app.request('/api/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [1], action: 'approve' }),
+    })
+
+    const body = await res.json()
+    expect(body.results[0].status).toBe('approved')
+    expect(spotifyTarget.createPlaylist).not.toHaveBeenCalled()
   })
 })

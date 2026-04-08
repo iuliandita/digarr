@@ -12,6 +12,7 @@ import { MonitoringOptions, type MonitorOption } from '../components/monitoring-
 import { MoodPromptBar } from '../components/mood-prompt-bar'
 import { type Recommendation, RecommendationCard } from '../components/recommendation-card'
 import { SwipeCard } from '../components/swipe-card'
+import { canApproveArtistToTarget } from '../components/target-utils'
 import { Skeleton } from '../components/ui/skeleton'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
@@ -432,7 +433,8 @@ export function DiscoverPage() {
   })
 
   const targets = targetsData ?? []
-  const hasMultipleTargets = targets.length > 1
+  const approveTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
+  const hasMultipleTargets = approveTargets.length > 1
   const hasLidarrTarget = targets.some((t) => t.type === 'lidarr')
 
   const existingArtistNames = useMemo(
@@ -1052,7 +1054,7 @@ export function DiscoverPage() {
                             | 'unknown'
                             | undefined
                         }
-                        targets={hasMultipleTargets ? targets : undefined}
+                        targets={hasMultipleTargets ? approveTargets : undefined}
                         onApproveToTarget={hasMultipleTargets ? handleApproveToTarget : undefined}
                         approveNode={
                           !isActing && !bulkMode && !hasMultipleTargets ? (
@@ -1108,7 +1110,7 @@ export function DiscoverPage() {
                       warmStatus={
                         warmStatuses[rec.artist.mbid] as 'warm' | 'warming' | 'unknown' | undefined
                       }
-                      targets={hasMultipleTargets ? targets : undefined}
+                      targets={hasMultipleTargets ? approveTargets : undefined}
                       onApproveToTarget={hasMultipleTargets ? handleApproveToTarget : undefined}
                       approveNode={
                         !isActing && !bulkMode && !hasMultipleTargets ? (
