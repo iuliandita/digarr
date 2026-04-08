@@ -63,7 +63,7 @@ describe('LibraryAlbumCoverageBadge', () => {
   })
 
   it('waits to fetch until the badge is near the viewport when IntersectionObserver is available', async () => {
-    let observerCallback: IntersectionObserverCallback | null = null
+    let observerCallback: IntersectionObserverCallback | undefined
 
     class MockIntersectionObserver {
       constructor(callback: IntersectionObserverCallback) {
@@ -78,18 +78,23 @@ describe('LibraryAlbumCoverageBadge', () => {
       }
       root = null
       rootMargin = '0px'
+      scrollMargin = '0px'
       thresholds = []
     }
 
-    globalThis.IntersectionObserver = MockIntersectionObserver as typeof IntersectionObserver
+    globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver
 
     renderWithQuery(<LibraryAlbumCoverageBadge artistMbid="artist-1" />)
 
     expect(mockGetLibraryAlbumCoverage).not.toHaveBeenCalled()
+    expect(observerCallback).toBeDefined()
+    if (!observerCallback) {
+      throw new Error('Expected IntersectionObserver callback to be registered')
+    }
 
-    observerCallback?.(
+    observerCallback(
       [{ isIntersecting: true } as IntersectionObserverEntry],
-      {} as IntersectionObserver,
+      new MockIntersectionObserver(() => {}) as unknown as IntersectionObserver,
     )
 
     await waitFor(() => {
