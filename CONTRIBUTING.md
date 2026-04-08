@@ -61,13 +61,17 @@ TypeScript strict mode is enforced. No `any` -- use `unknown`, generics, or prop
 ## Testing
 
 ```sh
+bun run lint
+bun run typecheck
 bun run test         # run once
 bun run test:watch   # watch mode
 bun run test:e2e     # Playwright browser tests (needs dev servers running)
 bun run test:e2e:ui  # Playwright UI mode
 ```
 
-Tests live in `tests/`. Keep them close to the code they cover. E2E tests are in `tests/e2e/` with `api/` (vitest, API smoke tests) and `browser/` (Playwright) subdirectories. Browser tests require `bunx playwright install --with-deps chromium` first.
+Tests live in `tests/`. Keep them close to the code they cover. E2E coverage lives in `tests/e2e/` with `api/` (Vitest smoke tests) and `browser/` (Playwright) subdirectories. Browser tests require `bunx playwright install --with-deps chromium` first, plus both dev servers running (`bun run dev` on `:3000` and `bun run dev:web` on `:5173`).
+
+For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
 ---
 
@@ -76,8 +80,9 @@ Tests live in `tests/`. Keep them close to the code they cover. E2E tests are in
 1. Fork and create a branch: `git checkout -b feat/my-thing`
 2. Make your changes, keeping commits focused
 3. Confirm `lint`, `typecheck`, and `test` all pass
-4. Open a PR against `main` -- fill in the template
-5. A maintainer will review; be ready to iterate
+4. Run `bun run test:e2e` if your change affects routes, workflows, or UI behavior
+5. Open a PR against `main` -- fill in the template
+6. A maintainer will review; be ready to iterate
 
 ---
 

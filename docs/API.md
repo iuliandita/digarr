@@ -39,11 +39,16 @@ Admin-only endpoints return 403 for non-admin users.
 | GET | `/api/setup/status` | No | Check if setup is complete |
 | POST | `/api/setup/complete` | No | Complete initial setup |
 
+Setup validation rules:
+- `aiProvider` and `aiModel` are required
+- At least one listening source is required: `listenbrainzUsername` or `lastfmUsername`
+- Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
+
 **POST /api/setup/complete** body:
 ```json
 {
-  "aiProvider": "anthropic",
-  "aiModel": "claude-sonnet-4-20250514",
+  "aiProvider": "openai",
+  "aiModel": "gpt-4o-mini",
   "listenbrainzUsername": "user",
   "lastfmUsername": "user",
   "lidarrUrl": "http://lidarr:8686",
@@ -234,12 +239,19 @@ Admin-only endpoints return 403 for non-admin users.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/search?q=&sources=&limit=` | Yes | Cross-platform artist search |
+| GET | `/api/search` | Yes | Cross-platform artist search |
 | GET | `/api/search/sources` | Yes | Available search sources |
 
 **Sources**: `spotify`, `deezer`, `musicbrainz`, `tidal`, `bandcamp`
 
 Each source includes a `stability` field (`stable` or `experimental`). TIDAL and Bandcamp are experimental.
+
+**GET /api/search** query params:
+- `q` -- required search string
+- `sources` -- optional comma-separated source IDs
+- `limit` -- 1-50 (default 20)
+
+When one enabled source fails, Digarr still returns results from the healthy sources when possible.
 
 ---
 
@@ -266,7 +278,7 @@ Each source includes a `stability` field (`stable` or `experimental`). TIDAL and
 | POST | `/api/library/health/:checkId/fix` | Admin | Apply fix for a health check |
 | GET | `/api/library/stats` | Admin | Library statistics |
 | POST | `/api/library/warm` | Admin | Warm SkyHook cache for MBIDs (202) |
-| GET | `/api/library/warm/status?mbids=` | Admin | SkyHook warm status |
+| GET | `/api/library/warm/status` | Admin | SkyHook warm status |
 | GET | `/api/library/sources` | Admin | Per-source sync state for global + per-user library sources |
 | POST | `/api/library/sync` | Admin | Run a manual library sync for all sources or a specific source |
 | GET | `/api/library/unreconciled` | Admin | List unreconciled library artists still needing a match |
@@ -277,6 +289,54 @@ Each source includes a `stability` field (`stable` or `experimental`). TIDAL and
 **GET /api/library/sources** response notes:
 - `lastSyncCounts.albumsSynced` is present for album-capable sources after a successful sync
 - Lidarr, Plex, and Jellyfin source rows now include artist sync counts plus the number of reconciled album rows written for that source snapshot
+
+**POST /api/library/warm** body:
+```json
+{
+  "mbids": ["f59c5520-5f46-4d2c-b2c4-822eabf53419"]
+}
+```
+
+Notes:
+- `mbids` must be a non-empty array of strings
+- Only the first 50 MBIDs are queued per request
+
+**GET /api/library/warm/status** query params:
+- `mbids` -- comma-separated MBIDs to inspect (up to 100)
+
+**POST /api/library/sync** notes:
+- Rate limited: 5/min
+- Empty body runs global source sync plus a forced sync for the current user and returns `202`
+- `{ "source": "lidarr" }` runs a single source and returns `200` on completion, `202` if still running, or `502` on sync failure
+- If the requested source is not configured for the current user, Digarr retries it as a global source
+
+**POST /api/library/sync** body:
+```json
+{
+  "source": "plex"
+}
+```
+
+**GET /api/library/unreconciled** response notes:
+- Returns unreconciled rows from both the current user's sources and any global sources visible to that user
+
+**POST /api/library/overrides** body:
+```json
+{
+  "source": "plex",
+  "sourceArtistId": "artist-123",
+  "correctMbid": "f59c5520-5f46-4d2c-b2c4-822eabf53419",
+  "note": "Matched against album overlap"
+}
+```
+
+Override notes:
+- Set `correctMbid` to `null` or `""` to store an ignore decision instead of a correction
+- `correctMbid`, when present, must be a valid UUID
+
+**POST /api/library/reconcile** notes:
+- Triggers a forced sync for the current user and returns `202`
+- This currently re-fetches source data; there is no reconcile-only path yet
 
 ---
 
@@ -335,6 +395,10 @@ Query params: `range` (week/month/year), `limit` (1-50).
 | POST | `/api/settings/test-webhook` | Admin | Send test webhook |
 
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `discogs`, `spotify`, `oidc`
+
+Settings notes:
+- Non-admin users can update only their own connection fields; global setting changes return `403`
+- `lidarr` and `ai` test calls require admin access when user-session auth is active
 
 ---
 

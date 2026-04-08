@@ -40,11 +40,11 @@ All screenshots use the Youtarr theme.
 
 ## Library Reconciliation
 
-Screenshot pending. This page covers the unreconciled-artist review and manual override flow.
+No committed screenshot yet. This page shipped in `v0.17.0` and covers unreconciled-artist review plus manual correct/ignore override flow.
 
 ## Library Sources Panel
 
-Screenshot pending. This panel lives on the Library Health page and shows per-source sync status.
+No committed screenshot yet. This admin panel shipped in `v0.17.0` and expanded in `v0.18.0` with per-source album sync counts and snapshot status.
 
 ## Analytics
 

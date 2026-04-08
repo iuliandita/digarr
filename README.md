@@ -14,7 +14,7 @@
 
 **AI-powered music discovery for your *arr stack.** Connect your listening sources (ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Discogs), pick an AI provider, and Digarr builds a taste profile, discovers new artists through a 7-stage pipeline, and scores them with a weighted formula that learns from your feedback. Approve what you like -- artists go straight to Lidarr, Spotify playlists, or your media server. Describe a mood in plain English and get instant results. Import artists from Spotify Liked Songs for a faster cold start. Set up subscriptions that discover new music on a schedule while you sleep. Generate weekly digest playlists automatically. Browse your library by genre with deep-cut discovery. All self-hosted, all yours.
 
-> **Beta software -- working toward v1.0.** Usable and actively developed, but expect rough edges. Things move fast during the beta -- there may be several releases per day with bug fixes, new features, and improvements. Check the [releases page](https://github.com/iuliandita/digarr/releases) frequently and read the release notes before updating. We'd love your help: set it up, break things, [report issues](https://github.com/iuliandita/digarr/issues), and share your feature ideas.
+> **Beta software -- working toward v1.0.** Usable and actively developed, but expect rough edges. Things move fast during the beta -- there may be several releases per day with bug fixes, new features, and improvements. Check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. We'd love your help: set it up, break things, [report issues](https://github.com/iuliandita/digarr/issues), and share your feature ideas.
 >
 > Free and open source, forever. No tracking, no telemetry, no data collection -- your music taste stays on your server.
 
@@ -85,6 +85,8 @@ docker compose up -d
 
 Open `http://localhost:3000` and complete the setup wizard. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
 
+For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, `AI_MODEL`, and at least one listening source (`LISTENBRAINZ_USERNAME` or `LASTFM_USERNAME`). Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode.
+
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
@@ -118,7 +120,7 @@ Runs on a cron schedule, manually, or via subscriptions for targeted discovery.
 
 ## Configuration
 
-All configuration is done through the web UI after initial setup -- connections, scoring weights, cron schedule, and preferences are all set there. If you connect Spotify, Settings > Connections now includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. See [`.env.example`](.env.example) for the full list of environment variable fallbacks (useful for zero-touch Docker deployments).
+All configuration is done through the web UI after initial setup -- connections, scoring weights, cron schedule, and preferences are all set there. If you connect Spotify, Settings > Connections now includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials, AI provider/model, and at least one listening source; the UI setup wizard enforces the same minimums. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 ---
 
@@ -131,6 +133,8 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 **Restore:** `POST /api/admin/restore` accepts a backup JSON file. Runs in a single transaction (atomic rollback on failure). Uses upsert with natural keys for cross-instance compatibility. If the encryption key differs from the backup, affected credential fields are listed for manual re-entry.
 
 **Auto-backup before migrations:** When the app detects pending database migrations on startup, it automatically saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). Keeps the last 5 auto-backups. Disable with `DIGARR_AUTO_BACKUP=false`.
+
+**Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
 
 ### Data Hygiene
 
