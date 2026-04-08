@@ -110,4 +110,38 @@ describe('jellyfin client.getAlbumsForArtist()', () => {
       },
     ])
   })
+
+  it('does not fall back to MusicBrainzAlbum when release-group id is missing', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'test-api-key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+
+    mockGet.mockResolvedValueOnce({
+      Items: [
+        {
+          Id: 'jf-alb-2',
+          Name: 'Amnesiac',
+          ProductionYear: 2001,
+          ProviderIds: {
+            MusicBrainzAlbum: '22222222-2222-2222-2222-222222222222',
+          },
+        },
+      ],
+    })
+
+    const albums = await client.getAlbumsForArtist('jf-artist-1')
+
+    expect(albums).toEqual([
+      {
+        id: 'jf-alb-2',
+        artistId: 'jf-artist-1',
+        title: 'Amnesiac',
+        mbid: undefined,
+        releaseYear: 2001,
+        primaryType: 'Album',
+      },
+    ])
+  })
 })

@@ -9,6 +9,7 @@ describe('plex LibrarySource', () => {
     expect(source.id).toBe('plex')
     expect(source.mbidQuality).toBe('low')
     expect(source.capabilities).toContain('listArtists')
+    expect(source.capabilities).toContain('listAlbums')
     expect(source.userId).toBe(7)
   })
 

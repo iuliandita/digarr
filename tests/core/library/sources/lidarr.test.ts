@@ -32,6 +32,7 @@ describe('lidarr LibrarySource', () => {
     expect(source.id).toBe('lidarr')
     expect(source.mbidQuality).toBe('high')
     expect(source.capabilities).toContain('listArtists')
+    expect(source.capabilities).toContain('listAlbums')
     expect(source.userId).toBeNull()
   })
 

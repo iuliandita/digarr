@@ -169,9 +169,9 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
     const pageSize = 200
     const all: PlexLibraryAlbum[] = []
     let start = 0
-    let total = Number.POSITIVE_INFINITY
+    let total: number | undefined
 
-    while (start < total) {
+    while (start < (total ?? Number.POSITIVE_INFINITY)) {
       const params = new URLSearchParams({
         type: '9',
         'X-Plex-Container-Start': String(start),
@@ -190,7 +190,11 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
       }>(`/library/metadata/${artistRatingKey}/children?${params}`)
 
       const metadata = res.MediaContainer.Metadata ?? []
-      total = res.MediaContainer.totalSize ?? metadata.length
+      if (res.MediaContainer.totalSize != null) {
+        total = res.MediaContainer.totalSize
+      } else if (total == null && metadata.length < pageSize) {
+        break
+      }
       for (const item of metadata) {
         all.push({
           ratingKey: item.ratingKey,

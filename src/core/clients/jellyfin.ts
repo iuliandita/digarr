@@ -246,10 +246,7 @@ export function createJellyfinClient(
       id: item.Id,
       artistId,
       title: item.Name,
-      mbid:
-        item.ProviderIds?.MusicBrainzReleaseGroup?.trim() ||
-        item.ProviderIds?.MusicBrainzAlbum?.trim() ||
-        undefined,
+      mbid: item.ProviderIds?.MusicBrainzReleaseGroup?.trim() || undefined,
       releaseYear: item.ProductionYear,
       primaryType: 'Album',
     }))

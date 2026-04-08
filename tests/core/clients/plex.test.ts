@@ -82,20 +82,29 @@ describe('plex client.getAlbumsForArtist()', () => {
   it('paginates through the album library', async () => {
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
 
-    // first page of 3 albums
+    // first page of 5 albums
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
-        totalSize: 3,
+        totalSize: 5,
         Metadata: [
           { ratingKey: 'alb-1', parentRatingKey: 'artist-1', title: 'Kid A', year: 2000 },
           { ratingKey: 'alb-2', parentRatingKey: 'artist-1', title: 'Amnesiac', year: 2001 },
         ],
       },
     })
-    // second page: final album
+    // second page omits totalSize, but more albums remain
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
-        Metadata: [{ ratingKey: 'alb-3', parentRatingKey: 'artist-1', title: 'In Rainbows', year: 2007 }],
+        Metadata: [
+          { ratingKey: 'alb-3', parentRatingKey: 'artist-1', title: 'Hail to the Thief', year: 2003 },
+          { ratingKey: 'alb-4', parentRatingKey: 'artist-1', title: 'In Rainbows', year: 2007 },
+        ],
+      },
+    })
+    // third page: final album
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        Metadata: [{ ratingKey: 'alb-5', parentRatingKey: 'artist-1', title: 'The King of Limbs', year: 2011 }],
       },
     })
 
@@ -119,8 +128,22 @@ describe('plex client.getAlbumsForArtist()', () => {
       {
         ratingKey: 'alb-3',
         artistRatingKey: 'artist-1',
+        title: 'Hail to the Thief',
+        releaseYear: 2003,
+        primaryType: 'Album',
+      },
+      {
+        ratingKey: 'alb-4',
+        artistRatingKey: 'artist-1',
         title: 'In Rainbows',
         releaseYear: 2007,
+        primaryType: 'Album',
+      },
+      {
+        ratingKey: 'alb-5',
+        artistRatingKey: 'artist-1',
+        title: 'The King of Limbs',
+        releaseYear: 2011,
         primaryType: 'Album',
       },
     ])
