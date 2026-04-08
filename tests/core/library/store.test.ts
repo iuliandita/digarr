@@ -17,6 +17,7 @@ const SHOULD_RUN =
     process.env.DB_NAME !== undefined)
 let db: import('@/db').Database
 let libraryAlbums: typeof import('@/db/schema').libraryAlbums
+let libraryAlbumMatchOverrides: typeof import('@/db/schema').libraryAlbumMatchOverrides
 let libraryArtists: typeof import('@/db/schema').libraryArtists
 let libraryMatchOverrides: typeof import('@/db/schema').libraryMatchOverrides
 let librarySyncState: typeof import('@/db/schema').librarySyncState
@@ -24,16 +25,28 @@ let users: typeof import('@/db/schema').users
 
 if (SHOULD_RUN) {
   ;({ db } = await import('@/db'))
-  ;({ libraryAlbums, libraryArtists, libraryMatchOverrides, librarySyncState, users } =
-    await import('@/db/schema'))
+  ;({
+    libraryAlbums,
+    libraryAlbumMatchOverrides,
+    libraryArtists,
+    libraryMatchOverrides,
+    librarySyncState,
+    users,
+  } = await import('@/db/schema'))
 }
 
 let userId: number
 
 beforeEach(async () => {
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, LIDARR_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, PLEX_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, JELLYFIN_SOURCE))
+  await db
+    .delete(libraryAlbumMatchOverrides)
+    .where(eq(libraryAlbumMatchOverrides.source, PLEX_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, LIDARR_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, PLEX_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, JELLYFIN_SOURCE))
@@ -45,9 +58,15 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
+  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, LIDARR_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, PLEX_SOURCE))
   await db.delete(libraryArtists).where(eq(libraryArtists.source, JELLYFIN_SOURCE))
+  await db
+    .delete(libraryAlbumMatchOverrides)
+    .where(eq(libraryAlbumMatchOverrides.source, PLEX_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, LIDARR_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, PLEX_SOURCE))
   await db.delete(librarySyncState).where(eq(librarySyncState.source, JELLYFIN_SOURCE))
@@ -364,5 +383,64 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     )
 
     expect(await store.listUnreconciledForUser(userId)).toHaveLength(0)
+  })
+
+  it('album override CRUD round-trips', async () => {
+    const store = createLibrarySyncStore(db)
+
+    await store.upsertAlbumOverride(
+      userId,
+      'plex',
+      'album-1',
+      '11111111-1111-1111-1111-111111111111',
+      'manual fix',
+    )
+
+    const overrides = await store.listAlbumOverrides(userId)
+    expect(overrides).toHaveLength(1)
+    expect(overrides[0]).toMatchObject({
+      userId,
+      source: 'plex',
+      sourceAlbumId: 'album-1',
+      correctAlbumMbid: '11111111-1111-1111-1111-111111111111',
+      note: 'manual fix',
+    })
+
+    await store.upsertAlbumOverride(userId, 'plex', 'album-1', null, 'ignore')
+
+    const updated = await store.listAlbumOverrides(userId)
+    expect(updated).toHaveLength(1)
+    expect(updated[0]).toMatchObject({
+      source: 'plex',
+      sourceAlbumId: 'album-1',
+      correctAlbumMbid: null,
+      note: 'ignore',
+    })
+
+    await store.deleteAlbumOverride(userId, 'plex', 'album-1')
+    expect(await store.listAlbumOverrides(userId)).toEqual([])
+  })
+
+  it('listUnreconciledAlbumsForUser hides rows that already have an override', async () => {
+    const store = createLibrarySyncStore(db)
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+
+    await store.replaceLibraryAlbums(userId, 'plex', [
+      reconciledAlbum({
+        sourceAlbumId: 'album-1',
+        sourceArtistId: 'artist-1',
+        title: 'Unknown Album',
+        titleNormalized: 'unknown album',
+        albumMbid: null,
+        artistMbid,
+        primaryType: 'Album',
+      }),
+    ])
+
+    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(1)
+
+    await store.upsertAlbumOverride(userId, 'plex', 'album-1', null, 'ignore')
+
+    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(0)
   })
 })

@@ -1,6 +1,7 @@
 import { and, eq, getTableColumns, isNotNull, isNull, or } from 'drizzle-orm'
 import {
   type LibrarySyncCounts,
+  libraryAlbumMatchOverrides,
   libraryAlbums,
   libraryArtists,
   libraryMatchOverrides,
@@ -80,6 +81,18 @@ export interface LibrarySyncStore {
 
   deleteOverride(userId: number, source: string, sourceArtistId: string): Promise<void>
 
+  upsertAlbumOverride(
+    userId: number,
+    source: string,
+    sourceAlbumId: string,
+    correctAlbumMbid: string | null,
+    note?: string,
+  ): Promise<void>
+
+  deleteAlbumOverride(userId: number, source: string, sourceAlbumId: string): Promise<void>
+
+  listAlbumOverrides(userId: number): Promise<LibraryAlbumOverrideRow[]>
+
   getKnownMbidsForUser(userId: number): Promise<Set<string>>
 
   userHasAnySyncState(userId: number): Promise<boolean>
@@ -87,9 +100,18 @@ export interface LibrarySyncStore {
   listSyncStateForUser(userId: number): Promise<LibrarySyncStateRow[]>
 
   listUnreconciledForUser(userId: number): Promise<LibraryArtistRow[]>
+
+  listUnreconciledAlbumsForUser(userId: number): Promise<LibraryAlbumRow[]>
+
+  listOwnedAlbumsForArtist(
+    userId: number,
+    artistMbid: string,
+  ): Promise<Array<{ albumMbid: string; title: string; releaseYear: number | null }>>
 }
 
 export type LibraryArtistRow = typeof libraryArtists.$inferSelect
+export type LibraryAlbumRow = typeof libraryAlbums.$inferSelect
+export type LibraryAlbumOverrideRow = typeof libraryAlbumMatchOverrides.$inferSelect
 
 export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   return {
@@ -376,6 +398,60 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         )
     },
 
+    async upsertAlbumOverride(userId, source, sourceAlbumId, correctAlbumMbid, note) {
+      const existing = await database
+        .select({ id: libraryAlbumMatchOverrides.id })
+        .from(libraryAlbumMatchOverrides)
+        .where(
+          and(
+            eq(libraryAlbumMatchOverrides.userId, userId),
+            eq(libraryAlbumMatchOverrides.source, source),
+            eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
+          ),
+        )
+        .limit(1)
+
+      if (existing[0]) {
+        await database
+          .update(libraryAlbumMatchOverrides)
+          .set({ correctAlbumMbid, note: note ?? null, updatedAt: new Date() })
+          .where(
+            and(
+              eq(libraryAlbumMatchOverrides.userId, userId),
+              eq(libraryAlbumMatchOverrides.source, source),
+              eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
+            ),
+          )
+      } else {
+        await database.insert(libraryAlbumMatchOverrides).values({
+          userId,
+          source,
+          sourceAlbumId,
+          correctAlbumMbid,
+          note: note ?? null,
+        })
+      }
+    },
+
+    async deleteAlbumOverride(userId, source, sourceAlbumId) {
+      await database
+        .delete(libraryAlbumMatchOverrides)
+        .where(
+          and(
+            eq(libraryAlbumMatchOverrides.userId, userId),
+            eq(libraryAlbumMatchOverrides.source, source),
+            eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
+          ),
+        )
+    },
+
+    async listAlbumOverrides(userId) {
+      return database
+        .select()
+        .from(libraryAlbumMatchOverrides)
+        .where(eq(libraryAlbumMatchOverrides.userId, userId))
+    },
+
     async getKnownMbidsForUser(userId) {
       const rows = await database
         .select({ mbid: libraryArtists.mbid })
@@ -429,6 +505,52 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
             isNull(libraryMatchOverrides.id),
           ),
         )
+    },
+
+    async listUnreconciledAlbumsForUser(userId) {
+      return database
+        .select({ ...getTableColumns(libraryAlbums) })
+        .from(libraryAlbums)
+        .leftJoin(
+          libraryAlbumMatchOverrides,
+          and(
+            eq(libraryAlbumMatchOverrides.userId, userId),
+            eq(libraryAlbumMatchOverrides.source, libraryAlbums.source),
+            eq(libraryAlbumMatchOverrides.sourceAlbumId, libraryAlbums.sourceAlbumId),
+          ),
+        )
+        .where(
+          and(
+            isNull(libraryAlbums.albumMbid),
+            or(eq(libraryAlbums.userId, userId), isNull(libraryAlbums.userId)),
+            isNull(libraryAlbumMatchOverrides.id),
+          ),
+        )
+    },
+
+    async listOwnedAlbumsForArtist(userId, artistMbid) {
+      const rows = await database
+        .select({
+          albumMbid: libraryAlbums.albumMbid,
+          title: libraryAlbums.title,
+          releaseYear: libraryAlbums.releaseYear,
+        })
+        .from(libraryAlbums)
+        .where(
+          and(
+            eq(libraryAlbums.artistMbid, artistMbid),
+            eq(libraryAlbums.primaryType, 'Album'),
+            isNotNull(libraryAlbums.albumMbid),
+            or(eq(libraryAlbums.userId, userId), isNull(libraryAlbums.userId)),
+          ),
+        )
+
+      return rows.filter(
+        (
+          row,
+        ): row is { albumMbid: string; title: string; releaseYear: number | null } =>
+          row.albumMbid !== null,
+      )
     },
   }
 }
