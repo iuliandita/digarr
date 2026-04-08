@@ -11,9 +11,12 @@ describe('createAlbumCoverageService', () => {
       store: {
         listOwnedAlbumsForArtist: async () => [
           {
+            source: 'plex',
+            sourceAlbumId: 'album-1',
             albumMbid: OWNED_RELEASE_GROUP_MBID,
             title: 'Dummy',
             releaseYear: 1991,
+            primaryType: 'Album',
           },
         ],
       },
@@ -41,9 +44,9 @@ describe('createAlbumCoverageService', () => {
       },
     })
 
-    const result = await service.getCoverage(7, ARTIST_MBID)
+    const result = await service.getCoverageForArtist(7, ARTIST_MBID)
 
-    expect(result.isHidden).toBe(false)
+    expect(result.artistMbid).toBe(ARTIST_MBID)
     expect(result.ownedCount).toBe(1)
     expect(result.totalCount).toBe(2)
     expect(result.owned).toEqual([
@@ -62,7 +65,7 @@ describe('createAlbumCoverageService', () => {
     ])
   })
 
-  it('hides badge state when artist has no studio albums in MusicBrainz', async () => {
+  it('returns zero coverage when artist has no studio albums in MusicBrainz', async () => {
     const service = createAlbumCoverageService({
       store: {
         listOwnedAlbumsForArtist: async () => [],
@@ -79,9 +82,9 @@ describe('createAlbumCoverageService', () => {
       },
     })
 
-    const result = await service.getCoverage(7, ARTIST_MBID)
+    const result = await service.getCoverageForArtist(7, ARTIST_MBID)
 
-    expect(result.isHidden).toBe(true)
+    expect(result.artistMbid).toBe(ARTIST_MBID)
     expect(result.ownedCount).toBe(0)
     expect(result.totalCount).toBe(0)
     expect(result.owned).toEqual([])

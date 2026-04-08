@@ -3,9 +3,12 @@ import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 type MBClient = Pick<ReturnType<typeof createMusicBrainzClient>, 'getReleaseGroups'>
 
 type OwnedAlbum = {
+  source: string
+  sourceAlbumId: string
   albumMbid: string
   title: string
   releaseYear: number | null
+  primaryType: string | null
 }
 
 type CoverageAlbum = {
@@ -15,7 +18,7 @@ type CoverageAlbum = {
 }
 
 export type AlbumCoverage = {
-  isHidden: boolean
+  artistMbid: string
   ownedCount: number
   totalCount: number
   owned: CoverageAlbum[]
@@ -29,7 +32,7 @@ export function createAlbumCoverageService(deps: {
   mbClient: MBClient
 }) {
   return {
-    async getCoverage(userId: number, artistMbid: string): Promise<AlbumCoverage> {
+    async getCoverageForArtist(userId: number, artistMbid: string): Promise<AlbumCoverage> {
       const [ownedAlbums, releaseGroups] = await Promise.all([
         deps.store.listOwnedAlbumsForArtist(userId, artistMbid),
         deps.mbClient.getReleaseGroups(artistMbid),
@@ -52,7 +55,7 @@ export function createAlbumCoverageService(deps: {
       const missing = studioAlbums.filter((album) => !ownedByMbid.has(album.albumMbid))
 
       return {
-        isHidden: studioAlbums.length === 0,
+        artistMbid,
         ownedCount: owned.length,
         totalCount: studioAlbums.length,
         owned,

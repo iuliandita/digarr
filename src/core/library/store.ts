@@ -91,7 +91,9 @@ export interface LibrarySyncStore {
 
   deleteAlbumOverride(userId: number, source: string, sourceAlbumId: string): Promise<void>
 
-  listAlbumOverrides(userId: number): Promise<LibraryAlbumOverrideRow[]>
+  listAlbumOverrides(
+    userId: number,
+  ): Promise<Array<{ source: string; sourceAlbumId: string; correctAlbumMbid: string | null }>>
 
   getKnownMbidsForUser(userId: number): Promise<Set<string>>
 
@@ -106,7 +108,16 @@ export interface LibrarySyncStore {
   listOwnedAlbumsForArtist(
     userId: number,
     artistMbid: string,
-  ): Promise<Array<{ albumMbid: string; title: string; releaseYear: number | null }>>
+  ): Promise<
+    Array<{
+      source: string
+      sourceAlbumId: string
+      albumMbid: string
+      title: string
+      releaseYear: number | null
+      primaryType: string | null
+    }>
+  >
 }
 
 export type LibraryArtistRow = typeof libraryArtists.$inferSelect
@@ -447,7 +458,11 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
 
     async listAlbumOverrides(userId) {
       return database
-        .select()
+        .select({
+          source: libraryAlbumMatchOverrides.source,
+          sourceAlbumId: libraryAlbumMatchOverrides.sourceAlbumId,
+          correctAlbumMbid: libraryAlbumMatchOverrides.correctAlbumMbid,
+        })
         .from(libraryAlbumMatchOverrides)
         .where(eq(libraryAlbumMatchOverrides.userId, userId))
     },
@@ -531,9 +546,12 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
     async listOwnedAlbumsForArtist(userId, artistMbid) {
       const rows = await database
         .select({
+          source: libraryAlbums.source,
+          sourceAlbumId: libraryAlbums.sourceAlbumId,
           albumMbid: libraryAlbums.albumMbid,
           title: libraryAlbums.title,
           releaseYear: libraryAlbums.releaseYear,
+          primaryType: libraryAlbums.primaryType,
         })
         .from(libraryAlbums)
         .where(
@@ -548,7 +566,14 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
       return rows.filter(
         (
           row,
-        ): row is { albumMbid: string; title: string; releaseYear: number | null } =>
+        ): row is {
+          source: string
+          sourceAlbumId: string
+          albumMbid: string
+          title: string
+          releaseYear: number | null
+          primaryType: string | null
+        } =>
           row.albumMbid !== null,
       )
     },

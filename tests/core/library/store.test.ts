@@ -397,25 +397,24 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     )
 
     const overrides = await store.listAlbumOverrides(userId)
-    expect(overrides).toHaveLength(1)
-    expect(overrides[0]).toMatchObject({
-      userId,
-      source: 'plex',
-      sourceAlbumId: 'album-1',
-      correctAlbumMbid: '11111111-1111-1111-1111-111111111111',
-      note: 'manual fix',
-    })
+    expect(overrides).toEqual([
+      {
+        source: 'plex',
+        sourceAlbumId: 'album-1',
+        correctAlbumMbid: '11111111-1111-1111-1111-111111111111',
+      },
+    ])
 
     await store.upsertAlbumOverride(userId, 'plex', 'album-1', null, 'ignore')
 
     const updated = await store.listAlbumOverrides(userId)
-    expect(updated).toHaveLength(1)
-    expect(updated[0]).toMatchObject({
-      source: 'plex',
-      sourceAlbumId: 'album-1',
-      correctAlbumMbid: null,
-      note: 'ignore',
-    })
+    expect(updated).toEqual([
+      {
+        source: 'plex',
+        sourceAlbumId: 'album-1',
+        correctAlbumMbid: null,
+      },
+    ])
 
     await store.deleteAlbumOverride(userId, 'plex', 'album-1')
     expect(await store.listAlbumOverrides(userId)).toEqual([])
