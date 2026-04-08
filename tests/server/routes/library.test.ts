@@ -791,6 +791,33 @@ describe('GET /api/library/album-coverage/:artistMbid', () => {
   })
 })
 
+describe('Mounted library admin gating', () => {
+  it('blocks non-admin users from library maintenance endpoints in the real app mount', async () => {
+    const token = 'library-maintenance-session-token'
+    await createSession(9, token)
+    const libraryHealth = makeMockLibraryHealth()
+    const app = createApp(
+      makeDeps({
+        getUserCount: vi.fn(async () => 1),
+        getUserById: vi.fn(async () => ({
+          id: 9,
+          username: 'listener',
+          isAdmin: false,
+        })) as unknown as AppDependencies['getUserById'],
+        libraryHealth: libraryHealth as unknown as AppDependencies['libraryHealth'],
+      }),
+    )
+
+    const res = await app.request('/api/library/health/scan', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(403)
+    expect((libraryHealth.startScan as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0)
+  })
+})
+
 describe('GET /api/library/unreconciled-albums', () => {
   it('returns unreconciled album rows for admins', async () => {
     const mockItems = [
@@ -892,6 +919,79 @@ describe('POST /api/library/overrides', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toMatch(/source/i)
+  })
+})
+
+describe('POST /api/library/album-overrides', () => {
+  it('calls upsertAlbumOverride with correct args for admins', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/album-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        sourceAlbumId: 'album-1',
+        correctAlbumMbid: '123e4567-e89b-12d3-a456-426614174000',
+        note: 'manual album fix',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      'plex',
+      'album-1',
+      '123e4567-e89b-12d3-a456-426614174000',
+      'manual album fix',
+    )
+  })
+
+  it('returns 400 when correctAlbumMbid is not a UUID', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/album-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        sourceAlbumId: 'album-1',
+        correctAlbumMbid: 'not-a-uuid',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 when sourceAlbumId is missing', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await app.request('/api/library/album-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        correctAlbumMbid: '123e4567-e89b-12d3-a456-426614174000',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('returns 403 for non-admin users', async () => {
+    const { app, librarySyncStore } = makeSyncApp(undefined, undefined, { isAdmin: false })
+    const res = await app.request('/api/library/album-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'plex',
+        sourceAlbumId: 'album-1',
+        correctAlbumMbid: '123e4567-e89b-12d3-a456-426614174000',
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
   })
 })
 

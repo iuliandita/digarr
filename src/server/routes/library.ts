@@ -1,4 +1,5 @@
 import { Hono, type Context } from 'hono'
+import type { AlbumCoverage } from '@/core/library/album-coverage'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
@@ -25,7 +26,7 @@ type LibraryRouteDeps = {
   librarySync: SyncOrchestrator
   librarySyncStore: LibrarySyncStore
   albumCoverage: {
-    getCoverageForArtist: (userId: number, artistMbid: string) => Promise<unknown>
+    getCoverageForArtist: (userId: number, artistMbid: string) => Promise<AlbumCoverage>
   }
   getUserById: (id: number) => Promise<{ isAdmin: boolean } | null>
 }
@@ -42,9 +43,12 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   }
 
   async function requireAdmin(c: Context<HonoEnv>) {
+    if (c.get('authSkipped')) {
+      return { ok: true as const, userId: c.get('userId') ?? 0 }
+    }
     const auth = requireUser(c)
     if (!auth.ok) return auth
-    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, c.get('authSkipped'))
+    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, false)
     if (!isAdmin) {
       return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
     }
@@ -52,19 +56,25 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   }
 
   // GET /api/library/health -- return cached results + scanning status
-  app.get('/api/library/health', (c) => {
+  app.get('/api/library/health', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     const checks = deps.libraryHealth.getLastResults() ?? []
     return c.json({ checks, scanning: deps.libraryHealth.scanning })
   })
 
   // POST /api/library/health/scan -- kick off background scan, return 202
-  app.post('/api/library/health/scan', (c) => {
+  app.post('/api/library/health/scan', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     deps.libraryHealth.startScan()
     return c.json({ scanning: true }, 202)
   })
 
   // POST /api/library/health/:checkId/fix -- trigger fix for a check
   app.post('/api/library/health/:checkId/fix', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     const checkId = c.req.param('checkId')
     if (!VALID_CHECK_IDS.has(checkId)) {
       return c.json({ error: 'Invalid check ID' }, 400)
@@ -79,12 +89,16 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/stats -- library statistics
   app.get('/api/library/stats', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     const stats = await deps.libraryHealth.getStats()
     return c.json(stats)
   })
 
   // POST /api/library/warm -- trigger background warming for a batch of MBIDs
   app.post('/api/library/warm', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
       return c.json({ error: 'SkyHook warming not available (Lidarr not configured)' }, 400)
     }
@@ -106,6 +120,8 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/warm/status -- check warm status for MBIDs
   app.get('/api/library/warm/status', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
       return c.json({ statuses: {} })
     }
