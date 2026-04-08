@@ -181,8 +181,19 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  delete process.env.DIGARR_AUTH_TOKEN
   await clearAllSessions()
 })
+
+async function createMountedAppWithLegacyToken(
+  token: string,
+  overrides: Partial<AppDependencies> = {},
+) {
+  vi.resetModules()
+  process.env.DIGARR_AUTH_TOKEN = token
+  const { createApp } = await import('@/server')
+  return createApp(makeDeps(overrides))
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/users
@@ -225,6 +236,19 @@ describe('GET /api/users', () => {
     // No Authorization header, but users exist so auth is required
     const res = await app.request('/api/users')
     expect(res.status).toBe(401)
+  })
+
+  it('returns 403 for legacy token even when user 1 is admin', async () => {
+    const token = 'legacy-users-token'
+    const app = await createMountedAppWithLegacyToken(token, {
+      getUserById: vi.fn(async (id: number) => (id === 1 ? adminUser : null)),
+    })
+
+    const res = await app.request('/api/users', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(403)
   })
 })
 

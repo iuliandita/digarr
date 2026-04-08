@@ -45,7 +45,7 @@ export function targetRoutes(deps: TargetDeps) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'))))
+    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'), c.get('legacyTokenAuth'))))
       return c.json({ error: 'Admin access required' }, 403)
 
     const body = await c.req.json()
@@ -82,7 +82,7 @@ export function targetRoutes(deps: TargetDeps) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'))))
+    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'), c.get('legacyTokenAuth'))))
       return c.json({ error: 'Admin access required' }, 403)
 
     const id = Number(c.req.param('id'))
@@ -105,7 +105,7 @@ export function targetRoutes(deps: TargetDeps) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'))))
+    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'), c.get('legacyTokenAuth'))))
       return c.json({ error: 'Admin access required' }, 403)
 
     const id = Number(c.req.param('id'))

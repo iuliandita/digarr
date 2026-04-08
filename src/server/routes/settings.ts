@@ -151,7 +151,12 @@ export function settingsRoutes(deps: AppDependencies) {
 
   router.get('/api/settings', async (c) => {
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'))
+    const isAdmin = await resolveAdmin(
+      userId,
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
     const response = await buildSettingsResponse(deps, userId, isAdmin)
     if (!response) {
       return c.json({ error: 'Settings not found' }, 404)
@@ -200,7 +205,12 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(userId, deps.getUserById, c.get('authSkipped'))
+    const isAdmin = await resolveAdmin(
+      userId,
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
 
     // Split fields into user-connection vs global
     const userUpdate: Record<string, string | null> = {}
@@ -273,8 +283,13 @@ export function settingsRoutes(deps: AppDependencies) {
 
     // Admin-only services: lidarr, ai -- only enforced when user sessions are active
     if (testUserId && (service === 'lidarr' || service === 'ai')) {
-      const caller = await deps.getUserById(testUserId)
-      if (!caller?.isAdmin) {
+      const isAdmin = await resolveAdmin(
+        testUserId,
+        deps.getUserById,
+        c.get('authSkipped'),
+        c.get('legacyTokenAuth'),
+      )
+      if (!isAdmin) {
         return c.json({ success: false, message: 'Admin access required' }, 403)
       }
     }
@@ -430,7 +445,14 @@ export function settingsRoutes(deps: AppDependencies) {
   // Test webhook by sending a test payload to the configured URL
   router.post('/api/settings/test-webhook', async (c) => {
     const userId = c.get('userId')
-    if (!(await resolveAdmin(userId, deps.getUserById, c.get('authSkipped')))) {
+    if (
+      !(await resolveAdmin(
+        userId,
+        deps.getUserById,
+        c.get('authSkipped'),
+        c.get('legacyTokenAuth'),
+      ))
+    ) {
       return c.json({ success: false, message: 'Admin access required' }, 403)
     }
 

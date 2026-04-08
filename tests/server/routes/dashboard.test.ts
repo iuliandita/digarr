@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { dashboardRoutes } from '@/server/routes/dashboard'
@@ -173,6 +173,20 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+afterEach(() => {
+  delete process.env.DIGARR_AUTH_TOKEN
+})
+
+async function createMountedAppWithLegacyToken(
+  token: string,
+  overrides: Partial<AppDependencies> = {},
+) {
+  vi.resetModules()
+  process.env.DIGARR_AUTH_TOKEN = token
+  const { createApp } = await import('@/server')
+  return createApp(makeDeps(overrides))
+}
+
 describe('GET /api/dashboard/taste', () => {
   it('returns array of taste genres', async () => {
     const mockResult = [{ genre: 'post-rock', count: 5, percentage: 32 }]
@@ -247,5 +261,44 @@ describe('GET /api/dashboard/activity', () => {
       expect.any(Boolean),
       20,
     )
+  })
+
+  it('treats legacy-token auth as non-admin even when user 1 is admin', async () => {
+    const token = 'legacy-dashboard-token'
+    const getRecentActivity = vi.fn(async () => [])
+    const app = await createMountedAppWithLegacyToken(token, {
+      getUserById: vi.fn(async () => ({
+        id: 1,
+        username: 'admin',
+        isAdmin: true,
+        preferences: null,
+        email: null,
+        oidcSubject: null,
+        authProvider: 'local',
+        listenbrainzUsername: null,
+        listenbrainzToken: null,
+        lastfmUsername: null,
+        lastfmApiKey: null,
+        plexUrl: null,
+        plexToken: null,
+        jellyfinUrl: null,
+        jellyfinApiKey: null,
+        jellyfinUserId: null,
+        discogsToken: null,
+        discogsUsername: null,
+        createdAt: new Date(),
+      })) as unknown as AppDependencies['getUserById'],
+      dashboardQueries: {
+        getTopGenresForUser: vi.fn(async () => []),
+        getRecentActivity,
+      },
+    })
+
+    const res = await app.request('/api/dashboard/activity', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(200)
+    expect(getRecentActivity).toHaveBeenCalledWith(1, false, 5)
   })
 })

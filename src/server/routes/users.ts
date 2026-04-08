@@ -1,6 +1,7 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
+import { resolveAdmin } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
 
 export function userRoutes(deps: AppDependencies) {
@@ -13,12 +14,25 @@ export function userRoutes(deps: AppDependencies) {
     return otherAdmins.length === 0
   }
 
+  async function requireAdmin(c: Context<HonoEnv>) {
+    const userId = c.get('userId')
+    if (!userId) return { ok: false as const, response: c.json({ error: 'Unauthorized' }, 401) }
+    const isAdmin = await resolveAdmin(
+      userId,
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
+    if (!isAdmin) {
+      return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
+    }
+    return { ok: true as const, userId }
+  }
+
   // GET /api/users -- list all users (admin only)
   router.get('/api/users', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
-    const caller = await deps.getUserById(userId)
-    if (!caller?.isAdmin) return c.json({ error: 'Admin access required' }, 403)
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
 
     const userList = await deps.listUsers()
     return c.json(userList)
@@ -26,10 +40,8 @@ export function userRoutes(deps: AppDependencies) {
 
   // POST /api/users -- create a new user (admin only)
   router.post('/api/users', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
-    const caller = await deps.getUserById(userId)
-    if (!caller?.isAdmin) return c.json({ error: 'Admin access required' }, 403)
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
 
     const body = (await c.req.json()) as Record<string, unknown>
     const username = typeof body.username === 'string' ? body.username.trim() : ''
@@ -57,10 +69,10 @@ export function userRoutes(deps: AppDependencies) {
   // Body: { isAdmin?: boolean }
   // Guards: can't remove own admin role, can't remove last admin
   router.patch('/api/users/:id', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
-    const caller = await deps.getUserById(userId)
-    if (!caller?.isAdmin) return c.json({ error: 'Admin access required' }, 403)
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
+    const caller = await deps.getUserById(auth.userId)
+    if (!caller) return c.json({ error: 'Admin access required' }, 403)
 
     const targetId = Number(c.req.param('id'))
     if (!Number.isFinite(targetId)) return c.json({ error: 'Invalid user id' }, 400)
@@ -90,10 +102,10 @@ export function userRoutes(deps: AppDependencies) {
   // DELETE /api/users/:id -- delete user (admin only)
   // Guards: can't delete self, can't delete last admin
   router.delete('/api/users/:id', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
-    const caller = await deps.getUserById(userId)
-    if (!caller?.isAdmin) return c.json({ error: 'Admin access required' }, 403)
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
+    const caller = await deps.getUserById(auth.userId)
+    if (!caller) return c.json({ error: 'Admin access required' }, 403)
 
     const targetId = Number(c.req.param('id'))
     if (!Number.isFinite(targetId)) return c.json({ error: 'Invalid user id' }, 400)
