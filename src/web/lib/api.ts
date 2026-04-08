@@ -393,6 +393,41 @@ export type LibraryOverrideInput = {
   correctMbid: string | null
   note?: string
 }
+export type LibraryAlbumCoverage = {
+  artistMbid: string
+  ownedCount: number
+  totalCount: number
+  owned: Array<{
+    albumMbid: string
+    title: string
+    releaseYear: number | null
+  }>
+  missing: Array<{
+    albumMbid: string
+    title: string
+    releaseYear: number | null
+  }>
+}
+export type LibraryUnreconciledAlbumRow = {
+  id: number
+  userId: number | null
+  source: string
+  sourceArtistId: string
+  sourceAlbumId: string
+  title: string
+  titleNormalized: string
+  albumMbid: string | null
+  artistMbid: string | null
+  primaryType: string | null
+  releaseYear: number | null
+  syncedAt: string
+}
+export type LibraryAlbumOverrideInput = {
+  source: string
+  sourceAlbumId: string
+  correctAlbumMbid: string | null
+  note?: string
+}
 export const getLibrarySources = () =>
   fetchApi<{ sources: LibrarySyncSourceRow[] }>('/library/sources')
 // Returns LibrarySourceSyncResult when source is given, LibrarySyncSummary when not.
@@ -404,8 +439,17 @@ export const triggerLibrarySync = (source?: string) =>
   })
 export const getLibraryUnreconciled = () =>
   fetchApi<{ items: LibraryUnreconciledRow[] }>('/library/unreconciled')
+export const getLibraryAlbumCoverage = (artistMbid: string) =>
+  fetchApi<LibraryAlbumCoverage>(`/library/album-coverage/${encodeURIComponent(artistMbid)}`)
+export const getLibraryUnreconciledAlbums = () =>
+  fetchApi<{ items: LibraryUnreconciledAlbumRow[] }>('/library/unreconciled-albums')
 export const saveLibraryOverride = (payload: LibraryOverrideInput) =>
   fetchApi<{ ok: true }>('/library/overrides', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+export const saveLibraryAlbumOverride = (payload: LibraryAlbumOverrideInput) =>
+  fetchApi<{ ok: true }>('/library/album-overrides', {
     method: 'POST',
     body: JSON.stringify(payload),
   })

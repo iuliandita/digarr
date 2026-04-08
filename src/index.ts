@@ -15,6 +15,7 @@ import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { GenreService } from './core/genre/service'
 import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
+import { createAlbumCoverageService } from './core/library/album-coverage'
 import { LibraryHealthService } from './core/library/health'
 import { startLibrarySyncScheduler } from './core/library/scheduler'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
@@ -371,6 +372,11 @@ const librarySyncOrchestrator: SyncOrchestrator = createSyncOrchestrator({
   buildPerUserSources: buildPerUserLibrarySources,
   buildGlobalSources: buildGlobalLibrarySources,
   staleHours: librarySyncIntervalHours,
+})
+
+const albumCoverage = createAlbumCoverageService({
+  store: librarySyncStore,
+  mbClient: createMusicBrainzClient(),
 })
 
 const runPipeline = async (userId?: number) => {
@@ -829,6 +835,7 @@ const app = createApp({
   skyhookWarmer,
   librarySync: librarySyncOrchestrator,
   librarySyncStore,
+  albumCoverage,
   subscriptionQueries: subscriptionQueriesImpl,
   runSubscription: (id) => executeSubscription(id),
   targetQueries: {

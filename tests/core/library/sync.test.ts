@@ -37,10 +37,15 @@ function makeStore(): LibrarySyncStore {
     getAllOverrides: vi.fn(async () => new Map()),
     upsertOverride: vi.fn(async () => {}),
     deleteOverride: vi.fn(async () => {}),
+    upsertAlbumOverride: vi.fn(async () => {}),
+    deleteAlbumOverride: vi.fn(async () => {}),
+    listAlbumOverrides: vi.fn(async () => []),
     getKnownMbidsForUser: vi.fn(async () => new Set<string>()),
     userHasAnySyncState: vi.fn(async () => false),
     listSyncStateForUser: vi.fn(async () => []),
     listUnreconciledForUser: vi.fn(async () => []),
+    listUnreconciledAlbumsForUser: vi.fn(async () => []),
+    listOwnedAlbumsForArtist: vi.fn(async () => []),
   }
 }
 

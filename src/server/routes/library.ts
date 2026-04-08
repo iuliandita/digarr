@@ -1,10 +1,11 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
 import type { HealthCheckId } from '@/core/library/types'
 import { errMsg } from '@/core/validation'
+import { resolveAdmin } from '@/server/middleware/admin-guard'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import type { HonoEnv } from '@/server/types'
 
@@ -23,10 +24,32 @@ type LibraryRouteDeps = {
   skyhookWarmer?: SkyHookWarmer | null
   librarySync: SyncOrchestrator
   librarySyncStore: LibrarySyncStore
+  albumCoverage: {
+    getCoverageForArtist: (userId: number, artistMbid: string) => Promise<unknown>
+  }
+  getUserById: (id: number) => Promise<{ isAdmin: boolean } | null>
 }
 
 export function libraryRoutes(deps: LibraryRouteDeps) {
   const app = new Hono<HonoEnv>()
+
+  function requireUser(c: Context<HonoEnv>) {
+    const userId = c.get('userId')
+    if (!userId) {
+      return { ok: false as const, response: c.json({ error: 'Auth required' }, 401) }
+    }
+    return { ok: true as const, userId }
+  }
+
+  async function requireAdmin(c: Context<HonoEnv>) {
+    const auth = requireUser(c)
+    if (!auth.ok) return auth
+    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, c.get('authSkipped'))
+    if (!isAdmin) {
+      return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
+    }
+    return auth
+  }
 
   // GET /api/library/health -- return cached results + scanning status
   app.get('/api/library/health', (c) => {
@@ -137,6 +160,24 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ items })
   })
 
+  app.get('/api/library/album-coverage/:artistMbid', async (c) => {
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    const artistMbid = c.req.param('artistMbid')
+    if (!UUID_RE.test(artistMbid)) {
+      return c.json({ error: 'artistMbid must be a valid UUID' }, 400)
+    }
+    const coverage = await deps.albumCoverage.getCoverageForArtist(auth.userId, artistMbid)
+    return c.json(coverage)
+  })
+
+  app.get('/api/library/unreconciled-albums', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
+    const items = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId)
+    return c.json({ items })
+  })
+
   // POST /api/library/overrides -- create/update an MBID override
   app.post('/api/library/overrides', async (c) => {
     const userId = c.get('userId')
@@ -159,6 +200,33 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
       source,
       sourceArtistId,
       mbid,
+      typeof note === 'string' ? note : undefined,
+    )
+    return c.json({ ok: true })
+  })
+
+  app.post('/api/library/album-overrides', async (c) => {
+    const auth = await requireAdmin(c)
+    if (!auth.ok) return auth.response
+    const raw = await c.req.json().catch(() => null)
+    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+    const { source, sourceAlbumId, correctAlbumMbid, note } = body
+    if (typeof source !== 'string' || !source) {
+      return c.json({ error: 'source is required' }, 400)
+    }
+    if (typeof sourceAlbumId !== 'string' || !sourceAlbumId) {
+      return c.json({ error: 'sourceAlbumId is required' }, 400)
+    }
+    const albumMbid =
+      correctAlbumMbid === '' || correctAlbumMbid == null ? null : (correctAlbumMbid as string)
+    if (albumMbid !== null && !UUID_RE.test(albumMbid)) {
+      return c.json({ error: 'correctAlbumMbid must be a valid UUID' }, 400)
+    }
+    await deps.librarySyncStore.upsertAlbumOverride(
+      auth.userId,
+      source,
+      sourceAlbumId,
+      albumMbid,
       typeof note === 'string' ? note : undefined,
     )
     return c.json({ ok: true })

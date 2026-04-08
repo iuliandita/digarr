@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
 import type { OidcService } from '@/core/auth/oidc'
 import type { GenreService } from '@/core/genre/service'
+import type { AlbumCoverage } from '@/core/library/album-coverage'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
@@ -127,6 +128,9 @@ export type AppDependencies = {
   // Library sync orchestrator + store
   librarySync: SyncOrchestrator
   librarySyncStore: LibrarySyncStore
+  albumCoverage?: {
+    getCoverageForArtist: (userId: number, artistMbid: string) => Promise<AlbumCoverage>
+  }
   // Subscription query functions
   subscriptionQueries: {
     createSubscription: (data: SubscriptionInsert) => Promise<SubscriptionRow>
@@ -360,6 +364,12 @@ export function createApp(deps: AppDependencies) {
       skyhookWarmer: deps.skyhookWarmer,
       librarySync: deps.librarySync,
       librarySyncStore: deps.librarySyncStore,
+      albumCoverage: deps.albumCoverage ?? {
+        getCoverageForArtist: async () => {
+          throw new Error('Album coverage service not configured')
+        },
+      },
+      getUserById: deps.getUserById,
     }),
   )
   if (deps.search) {

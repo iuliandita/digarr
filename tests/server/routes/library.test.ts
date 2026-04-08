@@ -103,6 +103,9 @@ function makeMockLibrarySyncStore() {
     userHasAnySyncState: vi.fn(async () => false),
     listSyncStateForUser: vi.fn(async () => []),
     listUnreconciledForUser: vi.fn(async () => []),
+    listUnreconciledAlbumsForUser: vi.fn(async () => []),
+    listOwnedAlbumsForArtist: vi.fn(async () => []),
+    upsertAlbumOverride: vi.fn(async () => {}),
   }
 }
 
@@ -212,6 +215,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     },
     librarySync: makeMockLibrarySync() as unknown as AppDependencies['librarySync'],
     librarySyncStore: makeMockLibrarySyncStore() as unknown as AppDependencies['librarySyncStore'],
+    albumCoverage: {
+      getCoverageForArtist: vi.fn(async () => ({
+        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        ownedCount: 0,
+        totalCount: 0,
+        owned: [],
+        missing: [],
+      })),
+    } as unknown as AppDependencies['albumCoverage'],
     ...overrides,
   }
 }
@@ -471,9 +483,20 @@ describe('GET /api/library/warm/status', () => {
 
 import { libraryRoutes } from '@/server/routes/library'
 
+type SyncAppOptions = {
+  authSkipped?: boolean
+  userId?: number
+  isAdmin?: boolean
+  getUserById?: AppDependencies['getUserById']
+  albumCoverageOverride?: {
+    getCoverageForArtist: (userId: number, artistMbid: string) => Promise<unknown>
+  }
+}
+
 function makeSyncApp(
   librarySyncOverride?: Record<string, unknown>,
   librarySyncStoreOverride?: Record<string, unknown>,
+  options: SyncAppOptions = {},
 ) {
   const librarySync = {
     ...makeMockLibrarySync(),
@@ -483,21 +506,40 @@ function makeSyncApp(
     ...makeMockLibrarySyncStore(),
     ...librarySyncStoreOverride,
   } as unknown as AppDependencies['librarySyncStore']
+  const albumCoverage = options.albumCoverageOverride ?? {
+    getCoverageForArtist: vi.fn(async (userId: number, artistMbid: string) => ({
+      artistMbid,
+      ownedCount: 0,
+      totalCount: 0,
+      owned: [],
+      missing: [],
+      userId,
+    })),
+  }
+  const getUserById =
+    options.getUserById ??
+    (vi.fn(async () => ({ isAdmin: options.isAdmin ?? true })) as unknown as AppDependencies['getUserById'])
+  const routeDeps = {
+    libraryHealth: makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth'],
+    skyhookWarmer: null,
+    librarySync,
+    librarySyncStore,
+    albumCoverage,
+    getUserById,
+  } as Parameters<typeof libraryRoutes>[0] & {
+    albumCoverage: typeof albumCoverage
+    getUserById: AppDependencies['getUserById']
+  }
   const app = new Hono<HonoEnv>()
   app.use('*', async (c, next) => {
-    c.set('userId', 42)
+    c.set('authSkipped', options.authSkipped ?? false)
+    if (options.userId !== undefined ? options.userId : 42) {
+      c.set('userId', options.userId ?? 42)
+    }
     return next()
   })
-  app.route(
-    '/',
-    libraryRoutes({
-      libraryHealth: makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth'],
-      skyhookWarmer: null,
-      librarySync,
-      librarySyncStore,
-    }),
-  )
-  return { app, librarySync, librarySyncStore }
+  app.route('/', libraryRoutes(routeDeps))
+  return { app, librarySync, librarySyncStore, albumCoverage, getUserById }
 }
 
 describe('GET /api/library/sources', () => {
@@ -661,6 +703,76 @@ describe('GET /api/library/unreconciled', () => {
     expect(body.items[0].source).toBe('plex')
     expect(
       (librarySyncStore.listUnreconciledForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
+    ).toBe(42)
+  })
+})
+
+describe('GET /api/library/album-coverage/:artistMbid', () => {
+  it('returns owned and missing studio albums for the current user', async () => {
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const coverage = {
+      artistMbid,
+      ownedCount: 1,
+      totalCount: 2,
+      owned: [
+        {
+          albumMbid: '11111111-1111-1111-1111-111111111111',
+          title: 'Dummy',
+          releaseYear: 1991,
+        },
+      ],
+      missing: [
+        {
+          albumMbid: '22222222-2222-2222-2222-222222222222',
+          title: 'Hex',
+          releaseYear: 1994,
+        },
+      ],
+    }
+    const { app, albumCoverage } = makeSyncApp(undefined, undefined, {
+      albumCoverageOverride: {
+        getCoverageForArtist: vi.fn(async () => coverage),
+      },
+    })
+
+    const res = await app.request(`/api/library/album-coverage/${artistMbid}`)
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual(coverage)
+    expect(albumCoverage.getCoverageForArtist).toHaveBeenCalledWith(42, artistMbid)
+  })
+})
+
+describe('GET /api/library/unreconciled-albums', () => {
+  it('returns unreconciled album rows for admins', async () => {
+    const mockItems = [
+      {
+        id: 1,
+        userId: 42,
+        source: 'plex',
+        sourceArtistId: 'artist-1',
+        sourceAlbumId: 'album-1',
+        title: 'Unknown Album',
+        titleNormalized: 'unknown album',
+        albumMbid: null,
+        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        primaryType: 'Album',
+        releaseYear: 1991,
+        syncedAt: new Date(),
+      },
+    ]
+    const { app, librarySyncStore } = makeSyncApp(undefined, {
+      listUnreconciledAlbumsForUser: vi.fn(async () => mockItems),
+    })
+
+    const res = await app.request('/api/library/unreconciled-albums')
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.items).toHaveLength(1)
+    expect(body.items[0].sourceAlbumId).toBe('album-1')
+    expect(
+      (librarySyncStore.listUnreconciledAlbumsForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
     ).toBe(42)
   })
 })
