@@ -274,4 +274,20 @@ describe('RecommendationCard', () => {
       await screen.findByRole('button', { name: 'You own 3/8 studio albums' }),
     ).toBeInTheDocument()
   })
+
+  it('clicking the album coverage badge does not fire the parent card onClick', async () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        onClick={onClick}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'You own 3/8 studio albums' }))
+
+    expect(onClick).not.toHaveBeenCalled()
+    expect(screen.getByText('Owned')).toBeInTheDocument()
+  })
 })

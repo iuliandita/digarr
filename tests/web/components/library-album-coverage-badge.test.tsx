@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/web/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/web/lib/api')>()
@@ -17,6 +17,7 @@ import { LibraryAlbumCoverageBadge } from '@/web/components/library-album-covera
 import { getLibraryAlbumCoverage } from '@/web/lib/api'
 
 const mockGetLibraryAlbumCoverage = vi.mocked(getLibraryAlbumCoverage)
+const originalIntersectionObserver = globalThis.IntersectionObserver
 
 function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({
@@ -38,6 +39,10 @@ describe('LibraryAlbumCoverageBadge', () => {
     })
   })
 
+  afterEach(() => {
+    globalThis.IntersectionObserver = originalIntersectionObserver
+  })
+
   it('renders compact coverage text when counts are available', async () => {
     renderWithQuery(<LibraryAlbumCoverageBadge artistMbid="artist-1" />)
 
@@ -55,5 +60,40 @@ describe('LibraryAlbumCoverageBadge', () => {
     expect(screen.getByText('Missing')).toBeInTheDocument()
     expect(screen.getByText('Owned A (2001)')).toBeInTheDocument()
     expect(screen.getByText('Missing B (2004)')).toBeInTheDocument()
+  })
+
+  it('waits to fetch until the badge is near the viewport when IntersectionObserver is available', async () => {
+    let observerCallback: IntersectionObserverCallback | null = null
+
+    class MockIntersectionObserver {
+      constructor(callback: IntersectionObserverCallback) {
+        observerCallback = callback
+      }
+
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+      takeRecords() {
+        return []
+      }
+      root = null
+      rootMargin = '0px'
+      thresholds = []
+    }
+
+    globalThis.IntersectionObserver = MockIntersectionObserver as typeof IntersectionObserver
+
+    renderWithQuery(<LibraryAlbumCoverageBadge artistMbid="artist-1" />)
+
+    expect(mockGetLibraryAlbumCoverage).not.toHaveBeenCalled()
+
+    observerCallback?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    )
+
+    await waitFor(() => {
+      expect(mockGetLibraryAlbumCoverage).toHaveBeenCalledWith('artist-1')
+    })
   })
 })

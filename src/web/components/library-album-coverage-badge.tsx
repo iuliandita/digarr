@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { getLibraryAlbumCoverage } from '../lib/api'
 
@@ -9,16 +9,69 @@ function formatAlbumLabel(title: string, releaseYear: number | null) {
 
 export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }) {
   const [open, setOpen] = useState(false)
+  const [hasInteracted, setHasInteracted] = useState(false)
+  const [isNearViewport, setIsNearViewport] = useState(
+    typeof IntersectionObserver === 'undefined',
+  )
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsNearViewport(true)
+      return
+    }
+
+    const node = ref.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsNearViewport(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '240px 0px' },
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  const enabled = isNearViewport || hasInteracted
   const { data } = useQuery({
     queryKey: ['library-album-coverage', artistMbid],
     queryFn: () => getLibraryAlbumCoverage(artistMbid),
     staleTime: 5 * 60 * 1000,
+    enabled,
   })
 
   useClickOutside(ref, () => setOpen(false), open)
 
-  if (!data || data.totalCount === 0) {
+  function requestCoverage() {
+    setHasInteracted(true)
+  }
+
+  if (!enabled || !data) {
+    return (
+      <div
+        ref={ref}
+        className="relative"
+        onMouseEnter={requestCoverage}
+        onFocus={requestCoverage}
+        onClick={(event) => {
+          requestCoverage()
+          event.stopPropagation()
+        }}
+        onKeyDown={(event) => {
+          requestCoverage()
+          event.stopPropagation()
+        }}
+      />
+    )
+  }
+
+  if (data.totalCount === 0) {
     return null
   }
 
@@ -26,13 +79,22 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
     <div
       ref={ref}
       className="relative"
-      onClick={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
+      onMouseEnter={requestCoverage}
+      onFocus={requestCoverage}
+      onClick={(event) => {
+        requestCoverage()
+        event.stopPropagation()
+      }}
+      onKeyDown={(event) => {
+        requestCoverage()
+        event.stopPropagation()
+      }}
     >
       <button
         type="button"
         className="text-xs text-muted hover:text-text transition-colors"
         onClick={(event) => {
+          requestCoverage()
           event.stopPropagation()
           setOpen((current) => !current)
         }}
