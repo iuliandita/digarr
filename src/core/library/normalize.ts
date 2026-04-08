@@ -27,3 +27,15 @@ export function normalizeArtistName(raw: string): string {
 
   return s
 }
+
+export function normalizeAlbumTitle(raw: string): string {
+  if (!raw.trim()) return ''
+
+  let s = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  s = s.toLowerCase()
+  s = s.replace(/\s*\([^)]*\b(?:deluxe|expanded|remaster(?:ed)?|edition)\b[^)]*\)\s*/gi, ' ')
+  s = s.replace(/\s*\[[^\]]*\b(?:deluxe|expanded|remaster(?:ed)?|edition)\b[^\]]*\]\s*/gi, ' ')
+  s = s.replace(/\s+/g, ' ').trim()
+
+  return s
+}
