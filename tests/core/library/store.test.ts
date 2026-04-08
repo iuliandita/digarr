@@ -24,9 +24,8 @@ let users: typeof import('@/db/schema').users
 
 if (SHOULD_RUN) {
   ;({ db } = await import('@/db'))
-  ;({ libraryAlbums, libraryArtists, libraryMatchOverrides, librarySyncState, users } = await import(
-    '@/db/schema'
-  ))
+  ;({ libraryAlbums, libraryArtists, libraryMatchOverrides, librarySyncState, users } =
+    await import('@/db/schema'))
 }
 
 let userId: number
@@ -196,7 +195,11 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
   it('replaceLibrarySnapshot rolls back artist and album writes on persistence failure', async () => {
     const store = createLibrarySyncStore(db)
     await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
-      reconciled({ sourceArtistId: 'rk-seed', name: 'Seed Artist', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }),
+      reconciled({
+        sourceArtistId: 'rk-seed',
+        name: 'Seed Artist',
+        mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+      }),
     ])
     await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
       reconciledAlbum({
