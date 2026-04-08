@@ -20,9 +20,11 @@ function album(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
 describe('reconcileAlbumsForArtist', () => {
   it('trusts a valid source MBID when it exists in the artist release groups', async () => {
     const mbClient = {
-      getReleaseGroups: vi.fn().mockResolvedValue([
-        { id: ALBUM_MBID, title: 'In Rainbows', type: 'Album', firstReleaseDate: '2007-10-10' },
-      ]),
+      getReleaseGroups: vi
+        .fn()
+        .mockResolvedValue([
+          { id: ALBUM_MBID, title: 'In Rainbows', type: 'Album', firstReleaseDate: '2007-10-10' },
+        ]),
     }
 
     const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ mbid: ALBUM_MBID })], {
@@ -40,9 +42,11 @@ describe('reconcileAlbumsForArtist', () => {
 
   it('matches by exact normalized title when there is a single candidate', async () => {
     const mbClient = {
-      getReleaseGroups: vi.fn().mockResolvedValue([
-        { id: ALBUM_MBID, title: 'In Rainbows', type: 'Album', firstReleaseDate: '2007-10-10' },
-      ]),
+      getReleaseGroups: vi
+        .fn()
+        .mockResolvedValue([
+          { id: ALBUM_MBID, title: 'In Rainbows', type: 'Album', firstReleaseDate: '2007-10-10' },
+        ]),
     }
 
     const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album()], { mbClient })

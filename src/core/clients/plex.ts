@@ -73,7 +73,11 @@ export type PlexClient = {
   testConnection: () => Promise<ServiceTestResult>
 }
 
-export function createPlexClient(url: string, token: string, options?: { baseUrl?: string }): PlexClient {
+export function createPlexClient(
+  url: string,
+  token: string,
+  options?: { baseUrl?: string },
+): PlexClient {
   const baseUrl = options?.baseUrl ?? url.replace(/\/+$/, '')
 
   const http = createHttpClient({

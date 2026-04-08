@@ -43,7 +43,9 @@ export function createLidarrLibrarySource(client: LidarrClient): LibrarySource {
         sourceArtistId: String(album.artistId),
         title: album.title,
         mbid: album.foreignAlbumId,
-        primaryType: LIDARR_PRIMARY_TYPE_MAP[album.albumType as keyof typeof LIDARR_PRIMARY_TYPE_MAP] ?? 'Other',
+        primaryType:
+          LIDARR_PRIMARY_TYPE_MAP[album.albumType as keyof typeof LIDARR_PRIMARY_TYPE_MAP] ??
+          'Other',
       }))
     },
 

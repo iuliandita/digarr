@@ -96,7 +96,12 @@ describe('plex client.getAlbumsForArtist()', () => {
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         Metadata: [
-          { ratingKey: 'alb-3', parentRatingKey: 'artist-1', title: 'Hail to the Thief', year: 2003 },
+          {
+            ratingKey: 'alb-3',
+            parentRatingKey: 'artist-1',
+            title: 'Hail to the Thief',
+            year: 2003,
+          },
           { ratingKey: 'alb-4', parentRatingKey: 'artist-1', title: 'In Rainbows', year: 2007 },
         ],
       },
@@ -104,7 +109,14 @@ describe('plex client.getAlbumsForArtist()', () => {
     // third page: final album
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
-        Metadata: [{ ratingKey: 'alb-5', parentRatingKey: 'artist-1', title: 'The King of Limbs', year: 2011 }],
+        Metadata: [
+          {
+            ratingKey: 'alb-5',
+            parentRatingKey: 'artist-1',
+            title: 'The King of Limbs',
+            year: 2011,
+          },
+        ],
       },
     })
 

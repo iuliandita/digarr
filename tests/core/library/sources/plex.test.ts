@@ -44,7 +44,13 @@ describe('plex LibrarySource', () => {
     const client = {
       getAllArtists: vi.fn(),
       getAlbumsForArtist: vi.fn().mockResolvedValue([
-        { ratingKey: 'alb-1', artistRatingKey: 'artist-1', title: 'Dummy', releaseYear: 1991, primaryType: 'Album' },
+        {
+          ratingKey: 'alb-1',
+          artistRatingKey: 'artist-1',
+          title: 'Dummy',
+          releaseYear: 1991,
+          primaryType: 'Album',
+        },
       ]),
       testConnection: vi.fn(),
     }

@@ -1,4 +1,4 @@
-import { parseYear, type createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { type createMusicBrainzClient, parseYear } from '@/core/clients/musicbrainz'
 import { normalizeAlbumTitle } from './normalize'
 import type { LibraryAlbum } from './sources/types'
 
@@ -70,7 +70,9 @@ export async function reconcileAlbumsForArtist(
       )
     }
 
-    const candidates = releaseGroups.filter((rg) => normalizeAlbumTitle(rg.title) === titleNormalized)
+    const candidates = releaseGroups.filter(
+      (rg) => normalizeAlbumTitle(rg.title) === titleNormalized,
+    )
 
     if (candidates.length === 1 && candidates[0]) {
       return makeRow(
