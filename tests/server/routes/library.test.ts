@@ -534,7 +534,9 @@ function makeSyncApp(
   }
   const getUserById =
     options.getUserById ??
-    (vi.fn(async () => ({ isAdmin: options.isAdmin ?? true })) as unknown as AppDependencies['getUserById'])
+    (vi.fn(async () => ({
+      isAdmin: options.isAdmin ?? true,
+    })) as unknown as AppDependencies['getUserById'])
   const routeDeps = {
     libraryHealth: makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth'],
     skyhookWarmer: null,
@@ -917,7 +919,8 @@ describe('GET /api/library/unreconciled-albums', () => {
     expect(body.items).toHaveLength(1)
     expect(body.items[0].sourceAlbumId).toBe('album-1')
     expect(
-      (librarySyncStore.listUnreconciledAlbumsForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
+      (librarySyncStore.listUnreconciledAlbumsForUser as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0],
     ).toBe(42)
   })
 })

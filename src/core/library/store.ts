@@ -573,8 +573,7 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
           title: string
           releaseYear: number | null
           primaryType: string | null
-        } =>
-          row.albumMbid !== null,
+        } => row.albumMbid !== null,
       )
     },
   }

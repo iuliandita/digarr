@@ -10,9 +10,7 @@ function formatAlbumLabel(title: string, releaseYear: number | null) {
 export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }) {
   const [open, setOpen] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
-  const [isNearViewport, setIsNearViewport] = useState(
-    typeof IntersectionObserver === 'undefined',
-  )
+  const [isNearViewport, setIsNearViewport] = useState(typeof IntersectionObserver === 'undefined')
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,22 +51,7 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
   }
 
   if (!enabled || !data) {
-    return (
-      <div
-        ref={ref}
-        className="relative"
-        onMouseEnter={requestCoverage}
-        onFocus={requestCoverage}
-        onClick={(event) => {
-          requestCoverage()
-          event.stopPropagation()
-        }}
-        onKeyDown={(event) => {
-          requestCoverage()
-          event.stopPropagation()
-        }}
-      />
-    )
+    return <div ref={ref} className="relative" />
   }
 
   if (data.totalCount === 0) {
@@ -76,20 +59,7 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
   }
 
   return (
-    <div
-      ref={ref}
-      className="relative"
-      onMouseEnter={requestCoverage}
-      onFocus={requestCoverage}
-      onClick={(event) => {
-        requestCoverage()
-        event.stopPropagation()
-      }}
-      onKeyDown={(event) => {
-        requestCoverage()
-        event.stopPropagation()
-      }}
-    >
+    <div ref={ref} className="relative">
       <button
         type="button"
         className="text-xs text-muted hover:text-text transition-colors"
@@ -110,7 +80,9 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
               <ul className="mt-1 space-y-1 text-xs text-muted">
                 {data.owned.length > 0 ? (
                   data.owned.map((album) => (
-                    <li key={album.albumMbid}>{formatAlbumLabel(album.title, album.releaseYear)}</li>
+                    <li key={album.albumMbid}>
+                      {formatAlbumLabel(album.title, album.releaseYear)}
+                    </li>
                   ))
                 ) : (
                   <li>None</li>

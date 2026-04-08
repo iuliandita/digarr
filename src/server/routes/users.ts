@@ -1,4 +1,4 @@
-import { Hono, type Context } from 'hono'
+import { type Context, Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
 import { resolveAdmin } from '@/server/middleware/admin-guard'

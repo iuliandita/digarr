@@ -1,4 +1,4 @@
-import { Hono, type Context } from 'hono'
+import { type Context, Hono } from 'hono'
 import type { AlbumCoverage } from '@/core/library/album-coverage'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
@@ -60,7 +60,12 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
     const auth = requireUser(c)
     if (!auth.ok) return auth
-    const isAdmin = await resolveAdmin(auth.userId, deps.getUserById, false, c.get('legacyTokenAuth'))
+    const isAdmin = await resolveAdmin(
+      auth.userId,
+      deps.getUserById,
+      false,
+      c.get('legacyTokenAuth'),
+    )
     if (!isAdmin) {
       return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
     }
@@ -223,7 +228,13 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     if (mbid !== null && !UUID_RE.test(mbid)) {
       return c.json({ error: 'correctMbid must be a valid UUID' }, 400)
     }
-    await deps.librarySyncStore.upsertOverride(auth.userId, source, sourceArtistId, mbid, typeof note === 'string' ? note : undefined)
+    await deps.librarySyncStore.upsertOverride(
+      auth.userId,
+      source,
+      sourceArtistId,
+      mbid,
+      typeof note === 'string' ? note : undefined,
+    )
     return c.json({ ok: true })
   })
 

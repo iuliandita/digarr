@@ -82,7 +82,8 @@ describe('LibraryAlbumCoverageBadge', () => {
       thresholds = []
     }
 
-    globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver
+    globalThis.IntersectionObserver =
+      MockIntersectionObserver as unknown as typeof IntersectionObserver
 
     renderWithQuery(<LibraryAlbumCoverageBadge artistMbid="artist-1" />)
 
