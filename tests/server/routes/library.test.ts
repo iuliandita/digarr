@@ -268,7 +268,20 @@ beforeEach(() => {
   )
 })
 
-afterEach(() => clearAllSessions())
+afterEach(async () => {
+  delete process.env.DIGARR_AUTH_TOKEN
+  await clearAllSessions()
+})
+
+async function createMountedAppWithLegacyToken(
+  token: string,
+  overrides: Partial<AppDependencies> = {},
+) {
+  vi.resetModules()
+  process.env.DIGARR_AUTH_TOKEN = token
+  const { createApp: createMountedApp } = await import('@/server')
+  return createMountedApp(makeDeps(overrides))
+}
 
 describe('GET /api/library/health', () => {
   it('returns cached results and scanning status', async () => {
@@ -815,6 +828,43 @@ describe('Mounted library admin gating', () => {
 
     expect(res.status).toBe(403)
     expect((libraryHealth.startScan as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0)
+  })
+})
+
+describe('Mounted library legacy-token gating', () => {
+  it('rejects legacy-token auth for per-user library sources', async () => {
+    const token = 'legacy-library-token'
+    const app = await createMountedAppWithLegacyToken(token)
+
+    const res = await app.request('/api/library/sources', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+  })
+
+  it('rejects legacy-token auth for album coverage', async () => {
+    const token = 'legacy-library-token'
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const app = await createMountedAppWithLegacyToken(token, {
+      albumCoverage: {
+        getCoverageForArtist: vi.fn(async () => ({
+          artistMbid,
+          ownedCount: 0,
+          totalCount: 0,
+          owned: [],
+          missing: [],
+        })),
+      },
+    })
+
+    const res = await app.request(`/api/library/album-coverage/${artistMbid}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
   })
 })
 

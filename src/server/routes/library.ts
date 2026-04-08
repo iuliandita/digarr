@@ -42,6 +42,18 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return { ok: true as const, userId }
   }
 
+  function requireSessionUser(c: Context<HonoEnv>) {
+    const auth = requireUser(c)
+    if (!auth.ok) return auth
+    if (c.get('legacyTokenAuth')) {
+      return {
+        ok: false as const,
+        response: c.json({ error: 'Session authentication required' }, 403),
+      }
+    }
+    return auth
+  }
+
   async function requireAdmin(c: Context<HonoEnv>) {
     if (c.get('authSkipped')) {
       return { ok: true as const, userId: c.get('userId') ?? 0 }
@@ -136,9 +148,9 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/sources -- per-source sync state for current user + global rows
   app.get('/api/library/sources', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Auth required' }, 401)
-    const sources = await deps.librarySyncStore.listSyncStateForUser(userId)
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const sources = await deps.librarySyncStore.listSyncStateForUser(auth.userId)
     return c.json({ sources })
   })
 
@@ -177,7 +189,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   })
 
   app.get('/api/library/album-coverage/:artistMbid', async (c) => {
-    const auth = requireUser(c)
+    const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
     const artistMbid = c.req.param('artistMbid')
     if (!UUID_RE.test(artistMbid)) {

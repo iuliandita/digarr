@@ -67,6 +67,7 @@ export function authGuard(hasUsers: () => Promise<boolean>) {
       // Assign userId=1 (first user) so downstream queries scope correctly
       // instead of matching NULL userId records
       c.set('userId', 1)
+      c.set('legacyTokenAuth', true)
       return next()
     }
 
