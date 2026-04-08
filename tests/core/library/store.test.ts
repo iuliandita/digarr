@@ -442,4 +442,81 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
 
     expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(0)
   })
+
+  it('listOwnedAlbumsForArtist returns full album shape for user and global rows only', async () => {
+    const store = createLibrarySyncStore(db)
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+
+    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'album-user',
+        sourceArtistId: 'artist-1',
+        title: 'Dummy',
+        artistMbid,
+        albumMbid: '11111111-1111-1111-1111-111111111111',
+        releaseYear: 1991,
+        primaryType: 'Album',
+      }),
+      reconciledAlbum({
+        sourceAlbumId: 'album-ep',
+        sourceArtistId: 'artist-1',
+        title: 'Bonus EP',
+        artistMbid,
+        albumMbid: '33333333-3333-3333-3333-333333333333',
+        releaseYear: 1992,
+        primaryType: 'EP',
+      }),
+      reconciledAlbum({
+        sourceAlbumId: 'album-null-mbid',
+        sourceArtistId: 'artist-1',
+        title: 'Unknown Album',
+        artistMbid,
+        albumMbid: null,
+        releaseYear: 1993,
+        primaryType: 'Album',
+      }),
+      reconciledAlbum({
+        sourceAlbumId: 'album-other-artist',
+        sourceArtistId: 'artist-2',
+        title: 'Other Artist Album',
+        artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+        albumMbid: '44444444-4444-4444-4444-444444444444',
+        releaseYear: 1995,
+        primaryType: 'Album',
+      }),
+    ])
+
+    await store.replaceLibraryAlbums(null, LIDARR_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'album-global',
+        sourceArtistId: 'artist-global',
+        title: 'Hex',
+        artistMbid,
+        albumMbid: '22222222-2222-2222-2222-222222222222',
+        releaseYear: 1994,
+        primaryType: 'Album',
+      }),
+    ])
+
+    const owned = await store.listOwnedAlbumsForArtist(userId, artistMbid)
+
+    expect(owned).toEqual([
+      {
+        source: PLEX_SOURCE,
+        sourceAlbumId: 'album-user',
+        albumMbid: '11111111-1111-1111-1111-111111111111',
+        title: 'Dummy',
+        releaseYear: 1991,
+        primaryType: 'Album',
+      },
+      {
+        source: LIDARR_SOURCE,
+        sourceAlbumId: 'album-global',
+        albumMbid: '22222222-2222-2222-2222-222222222222',
+        title: 'Hex',
+        releaseYear: 1994,
+        primaryType: 'Album',
+      },
+    ])
+  })
 })
