@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { LibrarySource } from '@/core/library/sources/types'
+import type { LibraryAlbum, LibrarySource } from '@/core/library/sources/types'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { createSyncOrchestrator } from '@/core/library/sync'
 
@@ -54,6 +54,23 @@ function source(id: string, mbidQuality: 'high' | 'low' = 'high'): LibrarySource
     userId: null,
     mbidQuality,
     listArtists: vi.fn(async () => []),
+    testConnection: async () => ({ success: true, message: 'ok' }),
+  }
+}
+
+function sourceWithAlbums(
+  id: string,
+  artists: Array<{ sourceArtistId: string; name: string; mbid?: string }>,
+  albumsByArtist: Record<string, LibraryAlbum[]>,
+): LibrarySource {
+  return {
+    id,
+    name: id,
+    capabilities: ['listArtists', 'listAlbums'],
+    userId: null,
+    mbidQuality: 'high',
+    listArtists: vi.fn(async () => artists),
+    listAlbums: vi.fn(async (sourceArtistId: string) => albumsByArtist[sourceArtistId] ?? []),
     testConnection: async () => ({ success: true, message: 'ok' }),
   }
 }
@@ -203,5 +220,99 @@ describe('createSyncOrchestrator', () => {
     })
     await sync.syncForUser(1)
     expect(recorder.fail).toHaveBeenCalled()
+  })
+
+  it('syncs albums for matched artists and stores albumsSynced in counts', async () => {
+    store.replaceLibraryAlbums = vi.fn(async () => ({ total: 1 }))
+    const a = sourceWithAlbums(
+      'lidarr',
+      [{ sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }],
+      {
+        '1': [{ sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' }],
+      },
+    )
+
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient: {
+        ...mbClient,
+        getReleaseGroups: vi.fn(async () => [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            title: 'OK Computer',
+            type: 'Album',
+            firstReleaseDate: '1997-06-16',
+          },
+        ]),
+      },
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    expect(store.replaceLibraryAlbums).toHaveBeenCalled()
+    expect(summary.results[0]).toMatchObject({
+      status: 'completed',
+      counts: expect.objectContaining({ albumsSynced: 1 }),
+    })
+  })
+
+  it('does not call replaceLibraryAlbums when the source has no listAlbums capability', async () => {
+    const a = source('plex')
+    a.listArtists = vi.fn(async () => [
+      { sourceArtistId: 'rk-1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' },
+    ])
+
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    await sync.syncForUser(1, { force: true })
+    expect(store.replaceLibraryAlbums).not.toHaveBeenCalled()
+  })
+
+  it('fails the source sync when album reconciliation throws', async () => {
+    const a = sourceWithAlbums(
+      'lidarr',
+      [{ sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }],
+      {
+        '1': [{ sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' }],
+      },
+    )
+    a.listAlbums = vi.fn(async () => {
+      throw new Error('album boom')
+    })
+
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient: {
+        ...mbClient,
+        getReleaseGroups: vi.fn(async () => [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            title: 'OK Computer',
+            type: 'Album',
+            firstReleaseDate: '1997-06-16',
+          },
+        ]),
+      },
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    expect(summary.results[0]?.status).toBe('failed')
+    expect(store.replaceLibraryAlbums).not.toHaveBeenCalled()
   })
 })

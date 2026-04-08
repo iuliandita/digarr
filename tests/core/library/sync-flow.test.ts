@@ -18,13 +18,14 @@ const SHOULD_RUN =
     process.env.DB_USER !== undefined &&
     process.env.DB_NAME !== undefined)
 let db: import('@/db').Database
+let libraryAlbums: typeof import('@/db/schema').libraryAlbums
 let libraryArtists: typeof import('@/db/schema').libraryArtists
 let librarySyncState: typeof import('@/db/schema').librarySyncState
 let users: typeof import('@/db/schema').users
 
 if (SHOULD_RUN) {
   ;({ db } = await import('@/db'))
-  ;({ libraryArtists, librarySyncState, users } = await import('@/db/schema'))
+  ;({ libraryAlbums, libraryArtists, librarySyncState, users } = await import('@/db/schema'))
 }
 
 const mbClient = {
@@ -73,6 +74,9 @@ beforeEach(async () => {
       or(eq(libraryArtists.source, LIDARR_SOURCE_ID), eq(libraryArtists.source, PLEX_SOURCE_ID)),
     )
   await db
+    .delete(libraryAlbums)
+    .where(or(eq(libraryAlbums.source, LIDARR_SOURCE_ID), eq(libraryAlbums.source, PLEX_SOURCE_ID)))
+  await db
     .delete(librarySyncState)
     .where(
       or(
@@ -96,6 +100,9 @@ afterEach(async () => {
     .where(
       or(eq(libraryArtists.source, LIDARR_SOURCE_ID), eq(libraryArtists.source, PLEX_SOURCE_ID)),
     )
+  await db
+    .delete(libraryAlbums)
+    .where(or(eq(libraryAlbums.source, LIDARR_SOURCE_ID), eq(libraryAlbums.source, PLEX_SOURCE_ID)))
   await db
     .delete(librarySyncState)
     .where(
@@ -175,5 +182,49 @@ describe.skipIf(!SHOULD_RUN)('library sync flow integration', () => {
     expect(summary.results[0].counts.cacheHits).toBe(1)
     expect(summary.results[0].counts.mbApiCalls).toBe(0)
     expect(mbClient.searchArtist).not.toHaveBeenCalled()
+  })
+
+  it('writes library_albums rows for matched artists during sync', async () => {
+    const store = createLibrarySyncStore(db)
+    const lidarr = {
+      id: LIDARR_SOURCE_ID,
+      name: 'lidarr',
+      capabilities: ['listArtists', 'listAlbums'],
+      userId: null,
+      mbidQuality: 'high' as const,
+      listArtists: vi.fn(async () => [
+        { sourceArtistId: '1', name: 'Radiohead', mbid: RADIOHEAD_MBID },
+      ]),
+      listAlbums: vi.fn(async () => [
+        { sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' },
+      ]),
+      testConnection: async () => ({ success: true, message: 'ok' }),
+    }
+
+    const orchestrator = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient: {
+        ...mbClient,
+        getReleaseGroups: vi.fn(async () => [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            title: 'OK Computer',
+            type: 'Album',
+            firstReleaseDate: '1997-06-16',
+          },
+        ]),
+      },
+      buildPerUserSources: async () => [],
+      buildGlobalSources: async () => [lidarr],
+      staleHours: 6,
+    })
+
+    await orchestrator.syncGlobal({ force: true })
+
+    const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE_ID))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.title).toBe('OK Computer')
+    expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
   })
 })
