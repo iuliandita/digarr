@@ -428,6 +428,28 @@ export const libraryMatchOverrides = pgTable(
   }),
 )
 
+export const libraryAlbumMatchOverrides = pgTable(
+  'library_album_match_overrides',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(),
+    sourceAlbumId: text('source_album_id').notNull(),
+    correctAlbumMbid: uuid('correct_album_mbid'),
+    // null means "treat this source album as intentionally unmatched"
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    naturalKey: uniqueIndex('library_album_match_overrides_natural_key_idx').on(
+      table.userId,
+      table.source,
+      table.sourceAlbumId,
+    ),
+  }),
+)
+
 export type LibrarySyncCounts = {
   total: number
   matchedMbid: number
