@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Digarr</Name>
-  <Repository>docker.io/iuliandita/digarr:latest</Repository>
+  <Repository>docker.io/iuliandita/digarr:0.18.0</Repository>
   <Registry>https://hub.docker.com/r/iuliandita/digarr</Registry>
   <Branch>
-    <Tag>latest</Tag>
-    <TagDescription>Latest stable release</TagDescription>
+    <Tag>0.18.0</Tag>
+    <TagDescription>v0.18.0 stable release</TagDescription>
   </Branch>
   <Network>bridge</Network>
   <Shell>sh</Shell>

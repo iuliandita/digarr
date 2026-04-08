@@ -274,6 +274,10 @@ Each source includes a `stability` field (`stable` or `experimental`). TIDAL and
 | DELETE | `/api/library/overrides/:source/:sourceArtistId` | Admin | Remove a saved manual override |
 | POST | `/api/library/reconcile` | Admin | Trigger a background reconcile pass after override changes |
 
+**GET /api/library/sources** response notes:
+- `lastSyncCounts.albumsSynced` is present for album-capable sources after a successful sync
+- Lidarr, Plex, and Jellyfin source rows now include artist sync counts plus the number of reconciled album rows written for that source snapshot
+
 ---
 
 ## Exports

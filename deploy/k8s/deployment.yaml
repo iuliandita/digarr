@@ -32,7 +32,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          image: ghcr.io/iuliandita/digarr:0.17.1
+          image: ghcr.io/iuliandita/digarr:0.18.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-07 | Current: v0.17.0
+> Updated: 2026-04-08 | Current: v0.18.0
 >
 > This is a living document. Priorities shift based on feedback and demand.
 > Nothing here is a guarantee -- it reflects current intent and direction.
@@ -42,7 +42,6 @@ Committed direction, roughly in priority order.
 
 ### Media Servers
 
-- **Plex** support -- library sync, playlist push, playback data
 - **Emby** support -- library sync, playlist push
 
 ### Integrations
@@ -107,6 +106,13 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### v0.17.0 -- v0.18.0
+
+- Album-level library sync for Lidarr, Plex, and Jellyfin
+- Per-source album sync counts in the admin Library Sources panel
+- Atomic artist+album snapshot writes for source syncs
+- Album reconciliation pipeline with MusicBrainz release-group matching
 
 ### v0.16.0 -- v0.17.0
 

@@ -58,7 +58,7 @@ Search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simu
 - **Auto-approve** -- automatically add high-scoring recs to your targets
 - **Subscriptions** -- scheduled discovery from Spotify Liked Songs, playlists/charts, Last.fm tags/charts, ListenBrainz feeds, genre searches, similar-artist seeds
 - **Genre deep dive** -- browse by genre with Recommended, Trending, and Deep Cuts tabs
-- **Library sync + reconciliation** -- background source sync, per-source status, unreconciled-artist review, and 6 automated health checks with one-click fixes
+- **Library sync + reconciliation** -- background artist and album sync, per-source status, album sync counts, unreconciled-artist review, and 6 automated health checks with one-click fixes
 - **Analytics** -- approval rates, genre trends, source effectiveness, score distribution, time-to-act
 - **Top tracks** -- Deezer 30-sec previews on recommendation cards with MusicBrainz fallback
 - **Decade filtering** -- filter recommendations by era (60s through 20s+) with toggle pills
