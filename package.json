@@ -56,10 +56,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
-    "@hono/node-server": "^1.19.11",
+    "@hono/node-server": "^1.19.13",
     "croner": "^10.0.1",
-    "drizzle-orm": "^0.45.1",
-    "hono": "^4.12.8",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.12",
     "openai": "^6.31.0",
     "openid-client": "^6.8.2",
     "p-queue": "^9.1.0",
