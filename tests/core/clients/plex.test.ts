@@ -77,3 +77,52 @@ describe('plex client.getAllArtists()', () => {
     expect(artists).toEqual([])
   })
 })
+
+describe('plex client.getAlbumsForArtist()', () => {
+  it('paginates through the album library', async () => {
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    // first page of 3 albums
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        totalSize: 3,
+        Metadata: [
+          { ratingKey: 'alb-1', parentRatingKey: 'artist-1', title: 'Kid A', year: 2000 },
+          { ratingKey: 'alb-2', parentRatingKey: 'artist-1', title: 'Amnesiac', year: 2001 },
+        ],
+      },
+    })
+    // second page: final album
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        Metadata: [{ ratingKey: 'alb-3', parentRatingKey: 'artist-1', title: 'In Rainbows', year: 2007 }],
+      },
+    })
+
+    const albums = await client.getAlbumsForArtist('artist-1')
+
+    expect(albums).toEqual([
+      {
+        ratingKey: 'alb-1',
+        artistRatingKey: 'artist-1',
+        title: 'Kid A',
+        releaseYear: 2000,
+        primaryType: 'Album',
+      },
+      {
+        ratingKey: 'alb-2',
+        artistRatingKey: 'artist-1',
+        title: 'Amnesiac',
+        releaseYear: 2001,
+        primaryType: 'Album',
+      },
+      {
+        ratingKey: 'alb-3',
+        artistRatingKey: 'artist-1',
+        title: 'In Rainbows',
+        releaseYear: 2007,
+        primaryType: 'Album',
+      },
+    ])
+  })
+})

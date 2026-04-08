@@ -74,3 +74,40 @@ describe('jellyfin client.getAllArtists()', () => {
     expect(artists).toEqual([])
   })
 })
+
+describe('jellyfin client.getAlbumsForArtist()', () => {
+  it('prefers MusicBrainzReleaseGroup over MusicBrainzAlbum', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'test-api-key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+
+    mockGet.mockResolvedValueOnce({
+      Items: [
+        {
+          Id: 'jf-alb-1',
+          Name: 'Kid A',
+          ProductionYear: 2000,
+          ProviderIds: {
+            MusicBrainzReleaseGroup: '11111111-1111-1111-1111-111111111111',
+            MusicBrainzAlbum: '22222222-2222-2222-2222-222222222222',
+          },
+        },
+      ],
+    })
+
+    const albums = await client.getAlbumsForArtist('jf-artist-1')
+
+    expect(albums).toEqual([
+      {
+        id: 'jf-alb-1',
+        artistId: 'jf-artist-1',
+        title: 'Kid A',
+        mbid: '11111111-1111-1111-1111-111111111111',
+        releaseYear: 2000,
+        primaryType: 'Album',
+      },
+    ])
+  })
+})

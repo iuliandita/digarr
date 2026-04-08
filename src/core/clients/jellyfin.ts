@@ -238,7 +238,7 @@ export function createJellyfinClient(
         Id: string
         Name: string
         ProductionYear?: number
-        ProviderIds?: { MusicBrainzAlbum?: string }
+        ProviderIds?: { MusicBrainzReleaseGroup?: string; MusicBrainzAlbum?: string }
       }>
     }>(`/Users/${userId}/Items?${params}`)
 
@@ -246,7 +246,10 @@ export function createJellyfinClient(
       id: item.Id,
       artistId,
       title: item.Name,
-      mbid: item.ProviderIds?.MusicBrainzAlbum?.trim() || undefined,
+      mbid:
+        item.ProviderIds?.MusicBrainzReleaseGroup?.trim() ||
+        item.ProviderIds?.MusicBrainzAlbum?.trim() ||
+        undefined,
       releaseYear: item.ProductionYear,
       primaryType: 'Album',
     }))
