@@ -98,15 +98,32 @@ export function LibrarySourcesPanel() {
                 </div>
 
                 {counts != null && (
-                  <div className="text-xs text-muted">
-                    {counts.total} artists
-                    {typeof counts.albumsSynced === 'number'
-                      ? ` -- ${counts.albumsSynced} albums`
-                      : ''}
-                    {' -- '}
-                    {counts.matchedMbid} MBID, {counts.matchedNameExact} exact,{' '}
-                    {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
-                    disambiguated, {unreconciled} unreconciled
+                  <div className="space-y-2">
+                    <div className="text-xs text-muted">
+                      {counts.total} artists
+                      {typeof counts.albumsSynced === 'number'
+                        ? ` -- ${counts.albumsSynced} albums`
+                        : ''}
+                      {' -- '}
+                      {counts.matchedMbid} MBID, {counts.matchedNameExact} exact,{' '}
+                      {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
+                      disambiguated, {unreconciled} unreconciled
+                    </div>
+
+                    {typeof counts.albumsSynced === 'number' && (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-muted">
+                          <span>Albums synced</span>
+                          <span className="font-medium text-text">{counts.albumsSynced}</span>
+                        </div>
+                        <div
+                          data-testid={`albums-bar-${row.source}`}
+                          className="h-1.5 overflow-hidden rounded-full bg-border/70"
+                        >
+                          <div className="h-full w-full rounded-full bg-accent" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -47,4 +47,18 @@ describe('LibrarySourcesPanel', () => {
     expect(await screen.findByText(/4 artists/i)).toBeInTheDocument()
     expect(screen.getByText(/12 albums/i)).toBeInTheDocument()
   })
+
+  it('renders a compact album progress bar when album counts exist', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LibrarySourcesPanel />
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText(/albums synced/i)).toBeInTheDocument()
+    expect(screen.getByText('12')).toBeInTheDocument()
+    expect(screen.getByTestId('albums-bar-plex')).toBeInTheDocument()
+  })
 })
