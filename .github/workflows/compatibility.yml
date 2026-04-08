@@ -30,7 +30,7 @@ jobs:
 
       - name: Start services
         working-directory: deploy/docker
-        run: podman-compose up -d
+        run: podman-compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
 
       - name: Wait for healthy app
         run: |
@@ -80,7 +80,7 @@ jobs:
 
       - name: Start services
         working-directory: deploy/docker
-        run: docker compose up -d
+        run: docker compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
 
       - name: Wait for healthy app
         run: |
