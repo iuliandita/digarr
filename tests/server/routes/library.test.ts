@@ -2,7 +2,8 @@
 
 import { EventEmitter } from 'node:events'
 import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { clearAllSessions, createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
@@ -266,6 +267,8 @@ beforeEach(() => {
     mockLidarrClient as ReturnType<typeof createLidarrClient>,
   )
 })
+
+afterEach(() => clearAllSessions())
 
 describe('GET /api/library/health', () => {
   it('returns cached results and scanning status', async () => {
@@ -740,6 +743,51 @@ describe('GET /api/library/album-coverage/:artistMbid', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual(coverage)
     expect(albumCoverage.getCoverageForArtist).toHaveBeenCalledWith(42, artistMbid)
+  })
+
+  it('allows non-admin authenticated users through the real app mount', async () => {
+    const token = 'library-session-token'
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const coverage = {
+      artistMbid,
+      ownedCount: 1,
+      totalCount: 2,
+      owned: [
+        {
+          albumMbid: '11111111-1111-1111-1111-111111111111',
+          title: 'Dummy',
+          releaseYear: 1991,
+        },
+      ],
+      missing: [
+        {
+          albumMbid: '22222222-2222-2222-2222-222222222222',
+          title: 'Hex',
+          releaseYear: 1994,
+        },
+      ],
+    }
+    await createSession(7, token)
+    const app = createApp(
+      makeDeps({
+        getUserCount: vi.fn(async () => 1),
+        getUserById: vi.fn(async () => ({
+          id: 7,
+          username: 'listener',
+          isAdmin: false,
+        })) as unknown as AppDependencies['getUserById'],
+        albumCoverage: {
+          getCoverageForArtist: vi.fn(async () => coverage),
+        },
+      }),
+    )
+
+    const res = await app.request(`/api/library/album-coverage/${artistMbid}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual(coverage)
   })
 })
 

@@ -300,7 +300,6 @@ export function createApp(deps: AppDependencies) {
   app.route('/', batchRoutes(deps))
   app.use('/api/admin/*', adminGuard(deps.getUserById))
   app.use('/api/analytics/*', adminGuard(deps.getUserById))
-  app.use('/api/library/*', adminGuard(deps.getUserById))
 
   app.route(
     '/',
