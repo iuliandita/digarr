@@ -17,6 +17,15 @@ export type JellyfinLibraryArtist = {
   genres: string[]
 }
 
+export type JellyfinLibraryAlbum = {
+  id: string
+  artistId: string
+  title: string
+  mbid?: string
+  releaseYear?: number
+  primaryType?: 'Album'
+}
+
 export type JellyfinRecentTrack = {
   artistName: string
   trackName: string
@@ -215,6 +224,34 @@ export function createJellyfinClient(
     return all
   }
 
+  async function getAlbumsForArtist(artistId: string): Promise<JellyfinLibraryAlbum[]> {
+    const userId = await getUserId()
+    const params = new URLSearchParams({
+      ParentId: artistId,
+      IncludeItemTypes: 'MusicAlbum',
+      Recursive: 'true',
+      Fields: 'ProviderIds,ProductionYear',
+    })
+
+    const res = await get<{
+      Items: Array<{
+        Id: string
+        Name: string
+        ProductionYear?: number
+        ProviderIds?: { MusicBrainzAlbum?: string }
+      }>
+    }>(`/Users/${userId}/Items?${params}`)
+
+    return (res.Items ?? []).map((item) => ({
+      id: item.Id,
+      artistId,
+      title: item.Name,
+      mbid: item.ProviderIds?.MusicBrainzAlbum?.trim() || undefined,
+      releaseYear: item.ProductionYear,
+      primaryType: 'Album',
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<JellyfinSystemInfo>('/System/Info')
@@ -236,6 +273,7 @@ export function createJellyfinClient(
   return {
     getTopArtists,
     getAllArtists,
+    getAlbumsForArtist,
     getRecentlyPlayed,
     getFavoriteArtists,
     testConnection,

@@ -1,5 +1,5 @@
 import type { createJellyfinClient } from '@/core/clients/jellyfin'
-import type { LibraryArtist, LibrarySource } from './types'
+import type { LibraryAlbum, LibraryArtist, LibrarySource } from './types'
 
 type JellyfinClient = ReturnType<typeof createJellyfinClient>
 
@@ -13,7 +13,7 @@ export function createJellyfinLibrarySource(client: JellyfinClient, userId: numb
   return {
     id: 'jellyfin',
     name: 'Jellyfin',
-    capabilities: ['listArtists'],
+    capabilities: ['listArtists', 'listAlbums'],
     userId,
     mbidQuality: 'high',
 
@@ -24,6 +24,18 @@ export function createJellyfinLibrarySource(client: JellyfinClient, userId: numb
         name: a.name,
         mbid: a.mbid,
         genres: a.genres,
+      }))
+    },
+
+    async listAlbums(sourceArtistId): Promise<LibraryAlbum[]> {
+      const albums = await client.getAlbumsForArtist(sourceArtistId)
+      return albums.map((album) => ({
+        sourceAlbumId: album.id,
+        sourceArtistId: album.artistId,
+        title: album.title,
+        mbid: album.mbid,
+        releaseYear: album.releaseYear,
+        primaryType: album.primaryType,
       }))
     },
 

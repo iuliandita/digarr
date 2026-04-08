@@ -1,5 +1,5 @@
 import type { createPlexClient } from '@/core/clients/plex'
-import type { LibraryArtist, LibrarySource } from './types'
+import type { LibraryAlbum, LibraryArtist, LibrarySource } from './types'
 
 type PlexClient = ReturnType<typeof createPlexClient>
 
@@ -15,7 +15,7 @@ export function createPlexLibrarySource(client: PlexClient, userId: number): Lib
   return {
     id: 'plex',
     name: 'Plex',
-    capabilities: ['listArtists'],
+    capabilities: ['listArtists', 'listAlbums'],
     userId,
     mbidQuality: 'low',
 
@@ -26,6 +26,18 @@ export function createPlexLibrarySource(client: PlexClient, userId: number): Lib
         name: a.name,
         mbid: undefined, // default Plex agent has no MBIDs
         genres: a.genres,
+      }))
+    },
+
+    async listAlbums(sourceArtistId): Promise<LibraryAlbum[]> {
+      const albums = await client.getAlbumsForArtist(sourceArtistId)
+      return albums.map((album) => ({
+        sourceAlbumId: album.ratingKey,
+        sourceArtistId: album.artistRatingKey,
+        title: album.title,
+        mbid: undefined,
+        releaseYear: album.releaseYear,
+        primaryType: album.primaryType,
       }))
     },
 

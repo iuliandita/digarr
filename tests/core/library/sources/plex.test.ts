@@ -38,4 +38,26 @@ describe('plex LibrarySource', () => {
     expect(result.success).toBe(true)
     expect(client.testConnection).toHaveBeenCalled()
   })
+
+  it('listAlbums maps Plex albums to LibraryAlbum rows', async () => {
+    const client = {
+      getAllArtists: vi.fn(),
+      getAlbumsForArtist: vi.fn().mockResolvedValue([
+        { ratingKey: 'alb-1', artistRatingKey: 'artist-1', title: 'Dummy', releaseYear: 1991, primaryType: 'Album' },
+      ]),
+      testConnection: vi.fn(),
+    }
+    const source = createPlexLibrarySource(client as never, 7)
+    const albums = await source.listAlbums?.('artist-1')
+    expect(albums).toEqual([
+      {
+        sourceAlbumId: 'alb-1',
+        sourceArtistId: 'artist-1',
+        title: 'Dummy',
+        mbid: undefined,
+        releaseYear: 1991,
+        primaryType: 'Album',
+      },
+    ])
+  })
 })

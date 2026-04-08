@@ -48,4 +48,33 @@ describe('jellyfin LibrarySource', () => {
     expect(result.success).toBe(true)
     expect(client.testConnection).toHaveBeenCalled()
   })
+
+  it('listAlbums passes through Jellyfin album MBIDs', async () => {
+    const client = {
+      getAllArtists: vi.fn(),
+      getAlbumsForArtist: vi.fn().mockResolvedValue([
+        {
+          id: 'jf-alb-1',
+          artistId: 'jf-artist-1',
+          title: 'Kid A',
+          mbid: '11111111-1111-1111-1111-111111111111',
+          releaseYear: 2000,
+          primaryType: 'Album',
+        },
+      ]),
+      testConnection: vi.fn(),
+    }
+    const source = createJellyfinLibrarySource(client as never, 9)
+    const albums = await source.listAlbums?.('jf-artist-1')
+    expect(albums).toEqual([
+      {
+        sourceAlbumId: 'jf-alb-1',
+        sourceArtistId: 'jf-artist-1',
+        title: 'Kid A',
+        mbid: '11111111-1111-1111-1111-111111111111',
+        releaseYear: 2000,
+        primaryType: 'Album',
+      },
+    ])
+  })
 })

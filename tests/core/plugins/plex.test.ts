@@ -17,6 +17,7 @@ describe('createPlexSource()', () => {
         { name: 'Bjork', viewCount: 300, ratingKey: '101' },
       ]),
       getAllArtists: vi.fn().mockResolvedValue([]),
+      getAlbumsForArtist: vi.fn().mockResolvedValue([]),
       getRecentlyPlayed: vi.fn().mockResolvedValue([
         { artistName: 'Portishead', trackName: 'Wandering Star', viewedAt: 1710000000000 },
         { artistName: 'Massive Attack', trackName: 'Teardrop', viewedAt: 1709990000000 },

@@ -56,7 +56,24 @@ export type PlexLibraryArtist = {
   genres: string[]
 }
 
-export function createPlexClient(url: string, token: string, options?: { baseUrl?: string }) {
+export type PlexLibraryAlbum = {
+  ratingKey: string
+  artistRatingKey: string
+  title: string
+  releaseYear?: number
+  primaryType?: 'Album'
+}
+
+export type PlexClient = {
+  getMusicSectionId: () => Promise<string>
+  getTopArtists: (limit?: number) => Promise<PlexTopArtist[]>
+  getAllArtists: (options?: { pageSize?: number }) => Promise<PlexLibraryArtist[]>
+  getAlbumsForArtist: (artistRatingKey: string) => Promise<PlexLibraryAlbum[]>
+  getRecentlyPlayed: (limit?: number) => Promise<PlexRecentTrack[]>
+  testConnection: () => Promise<ServiceTestResult>
+}
+
+export function createPlexClient(url: string, token: string, options?: { baseUrl?: string }): PlexClient {
   const baseUrl = options?.baseUrl ?? url.replace(/\/+$/, '')
 
   const http = createHttpClient({
@@ -148,6 +165,27 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
     return all
   }
 
+  async function getAlbumsForArtist(artistRatingKey: string): Promise<PlexLibraryAlbum[]> {
+    const res = await get<{
+      MediaContainer: {
+        Metadata?: Array<{
+          ratingKey: string
+          parentRatingKey: string
+          title: string
+          year?: number
+        }>
+      }
+    }>(`/library/metadata/${artistRatingKey}/children?type=9`)
+
+    return (res.MediaContainer.Metadata ?? []).map((item) => ({
+      ratingKey: item.ratingKey,
+      artistRatingKey: item.parentRatingKey,
+      title: item.title,
+      releaseYear: item.year,
+      primaryType: 'Album',
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const sectionId = await getMusicSectionId()
@@ -165,6 +203,7 @@ export function createPlexClient(url: string, token: string, options?: { baseUrl
     getMusicSectionId,
     getTopArtists,
     getAllArtists,
+    getAlbumsForArtist,
     getRecentlyPlayed,
     testConnection,
   }

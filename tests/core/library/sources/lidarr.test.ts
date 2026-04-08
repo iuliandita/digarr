@@ -78,4 +78,32 @@ describe('lidarr LibrarySource', () => {
     expect(result.success).toBe(true)
     expect(client.testConnection).toHaveBeenCalled()
   })
+
+  it('listAlbums maps Lidarr albums to LibraryAlbum rows', async () => {
+    const client = {
+      getArtists: vi.fn(),
+      getAlbums: vi.fn().mockResolvedValue([
+        {
+          id: 10,
+          title: 'OK Computer',
+          artistId: 1,
+          foreignAlbumId: '11111111-1111-1111-1111-111111111111',
+          monitored: true,
+          albumType: 'Album',
+        },
+      ]),
+      testConnection: vi.fn(),
+    }
+    const source = createLidarrLibrarySource(client as never)
+    const albums = await source.listAlbums?.('1')
+    expect(albums).toEqual([
+      {
+        sourceAlbumId: '10',
+        sourceArtistId: '1',
+        title: 'OK Computer',
+        mbid: '11111111-1111-1111-1111-111111111111',
+        primaryType: 'Album',
+      },
+    ])
+  })
 })
