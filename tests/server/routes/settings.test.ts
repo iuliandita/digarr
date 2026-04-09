@@ -5,6 +5,35 @@ import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
+// The real ListenBrainz and Last.fm clients hit public APIs when testConnection()
+// is called. Those network round-trips collide with vitest's 5s default timeout
+// once the http client's retry backoff kicks in, making these tests flaky in CI.
+// Stub both client factories so the settings test route tests stay hermetic.
+vi.mock('@/core/clients/listenbrainz', () => ({
+  createListenBrainzClient: vi.fn(() => ({
+    getTopArtists: vi.fn(async () => []),
+    getListenCount: vi.fn(async () => 0),
+    getListeningActivity: vi.fn(async () => []),
+    getSimilarArtists: vi.fn(async () => []),
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to ListenBrainz -- 0 listens for testuser',
+      details: { listenCount: 0 },
+    })),
+  })),
+}))
+
+vi.mock('@/core/clients/lastfm', () => ({
+  createLastFmClient: vi.fn(() => ({
+    getTopArtists: vi.fn(async () => []),
+    getRecentTracks: vi.fn(async () => []),
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Last.fm as testuser',
+    })),
+  })),
+}))
+
 const mockSettings = {
   id: 1,
   lidarrUrl: 'http://lidarr:8686',
