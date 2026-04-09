@@ -9,8 +9,8 @@ export type SettingsRow = typeof settings.$inferSelect
 type SettingsPartial = Partial<Omit<SettingsRow, 'id' | 'createdAt' | 'updatedAt'>>
 
 export type SetupConfig = {
-  lidarrUrl: string
-  lidarrApiKey: string
+  lidarrUrl?: string
+  lidarrApiKey?: string
   skipTlsVerify?: boolean
   listenbrainzUsername?: string
   listenbrainzToken?: string

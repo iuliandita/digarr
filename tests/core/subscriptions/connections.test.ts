@@ -49,18 +49,18 @@ function makeUserConnections(overrides: Partial<UserConnections> = {}): UserConn
 }
 
 describe('resolveSubscriptionSourceConnections', () => {
-  it('falls back to global settings when the user has no source credentials', () => {
+  it('uses only user-scoped credentials when the user has source credentials', () => {
     const resolved = resolveSubscriptionSourceConnections(makeSettings(), makeUserConnections())
 
     expect(resolved).toEqual({
-      lbUsername: 'global-lb-user',
-      lbToken: 'global-lb-token',
-      lfUsername: 'global-lastfm-user',
-      lfApiKey: 'global-lastfm-key',
+      lbUsername: null,
+      lbToken: null,
+      lfUsername: null,
+      lfApiKey: null,
     })
   })
 
-  it('prefers user credentials over global settings', () => {
+  it('ignores global settings and resolves only user credentials', () => {
     const resolved = resolveSubscriptionSourceConnections(
       makeSettings(),
       makeUserConnections({

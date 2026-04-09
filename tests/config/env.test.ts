@@ -135,46 +135,30 @@ describe('canAutoSetup', () => {
     vi.resetModules()
   })
 
-  it('returns true when all required vars are set (listenbrainz)', async () => {
+  it('returns true when AI vars are set', async () => {
     setEnv({
       LIDARR_URL: 'http://lidarr:8686',
       LIDARR_API_KEY: 'key',
       AI_PROVIDER: 'openai',
       AI_MODEL: 'gpt-4o-mini',
-      LISTENBRAINZ_USERNAME: 'user',
     })
     const { canAutoSetup } = await import('@/config/env')
     expect(canAutoSetup()).toBe(true)
   })
 
-  it('returns true when all required vars are set (lastfm)', async () => {
+  it('returns true when Lidarr is missing but AI is set', async () => {
+    setEnv({
+      AI_PROVIDER: 'openai',
+      AI_MODEL: 'gpt-4o-mini',
+    })
+    const { canAutoSetup } = await import('@/config/env')
+    expect(canAutoSetup()).toBe(true)
+  })
+
+  it('returns false when AI vars are missing', async () => {
     setEnv({
       LIDARR_URL: 'http://lidarr:8686',
       LIDARR_API_KEY: 'key',
-      AI_PROVIDER: 'openai',
-      AI_MODEL: 'gpt-4o-mini',
-      LASTFM_USERNAME: 'user',
-    })
-    const { canAutoSetup } = await import('@/config/env')
-    expect(canAutoSetup()).toBe(true)
-  })
-
-  it('returns true when Lidarr is missing but AI + listening source are set', async () => {
-    setEnv({
-      AI_PROVIDER: 'openai',
-      AI_MODEL: 'gpt-4o-mini',
-      LISTENBRAINZ_USERNAME: 'user',
-    })
-    const { canAutoSetup } = await import('@/config/env')
-    expect(canAutoSetup()).toBe(true)
-  })
-
-  it('returns false when no listening source is set', async () => {
-    setEnv({
-      LIDARR_URL: 'http://lidarr:8686',
-      LIDARR_API_KEY: 'key',
-      AI_PROVIDER: 'openai',
-      AI_MODEL: 'gpt-4o-mini',
     })
     const { canAutoSetup } = await import('@/config/env')
     expect(canAutoSetup()).toBe(false)

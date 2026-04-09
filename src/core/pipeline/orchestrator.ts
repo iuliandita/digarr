@@ -116,12 +116,12 @@ export class PipelineOrchestrator extends EventEmitter {
         ? createMusicinfoClient(prefs.metadataFallbackUrl)
         : null
 
-      // Per-user connections take precedence over global settings
+      // Listening connections are always user-scoped.
       const { userConnections } = deps
-      const lbUsername = userConnections?.listenbrainzUsername ?? settings.listenbrainzUsername
-      const lbToken = userConnections?.listenbrainzToken ?? settings.listenbrainzToken
-      const lfUsername = userConnections?.lastfmUsername ?? settings.lastfmUsername
-      const lfApiKey = userConnections?.lastfmApiKey ?? settings.lastfmApiKey
+      const lbUsername = userConnections?.listenbrainzUsername ?? null
+      const lbToken = userConnections?.listenbrainzToken ?? null
+      const lfUsername = userConnections?.lastfmUsername ?? null
+      const lfApiKey = userConnections?.lastfmApiKey ?? null
 
       const registry = new SourceRegistry()
       if (lbUsername && lbToken) {

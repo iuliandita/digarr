@@ -99,10 +99,6 @@ const ENV_OVERRIDE_KEYS = [
   'lidarrUrl',
   'lidarrApiKey',
   // skipTlsVerify is NOT NULL in the DB (defaults false), so null-merge never applies
-  'listenbrainzUsername',
-  'listenbrainzToken',
-  'lastfmUsername',
-  'lastfmApiKey',
   'aiProvider',
   'aiApiKey',
   'aiModel',
@@ -123,11 +119,9 @@ export function envSettingsOverrides(): Record<string, unknown> {
 
 /** True if env vars contain all required fields to auto-complete setup. */
 export function canAutoSetup(): boolean {
-  const { aiProvider, aiModel, listenbrainzUsername, lastfmUsername } = envConfig
+  const { aiProvider, aiModel } = envConfig
   // AI provider + model are always required
   if (!aiProvider || !aiModel) return false
-  // At least one listening source is required for the pipeline to produce results
-  if (!listenbrainzUsername && !lastfmUsername) return false
   // Lidarr is optional -- if not set, runs in discovery-only mode
   return true
 }

@@ -55,7 +55,7 @@ describe('SetupWizard', () => {
       })
     })
 
-    await screen.findByText('Listening Sources')
+    await screen.findByText('AI Provider')
     expect(
       screen.getByText(
         "Connected. We'll start syncing your library in the background. The first sync may take a while (see Library Health for progress).",
@@ -79,5 +79,18 @@ describe('SetupWizard', () => {
         "Connected. We'll start syncing your library in the background. The first sync may take a while (see Library Health for progress).",
       ),
     ).not.toBeInTheDocument()
+  })
+
+  it('discovery mode goes straight to AI setup', async () => {
+    render(<SetupWizard onComplete={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Just discover/i }))
+
+    await screen.findByText('AI Provider')
+    expect(
+      screen.getByText(
+        /You'll connect personal listening sources later in Settings after you log in\./i,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Listening Sources')).not.toBeInTheDocument()
   })
 })

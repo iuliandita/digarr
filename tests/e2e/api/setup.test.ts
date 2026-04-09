@@ -44,7 +44,6 @@ describe('E2E: setup wizard', () => {
       body: JSON.stringify({
         aiProvider: 'openai',
         aiModel: 'gpt-4o',
-        listenbrainzUsername: 'testuser',
       }),
     })
     expect(completeRes.status).toBe(200)
@@ -65,5 +64,32 @@ describe('E2E: setup wizard', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.fields).toBeDefined()
+  })
+
+  it('ignores legacy listening-source fields during setup completion', async () => {
+    const completeSetup = vi.fn(async () => ({ success: true }))
+    const { app } = createTestApp({
+      isSetupComplete: vi.fn(async () => false),
+      getUserCount: vi.fn(async () => 0),
+      completeSetup,
+    })
+
+    const completeRes = await app.request('/api/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aiProvider: 'openai',
+        aiModel: 'gpt-4o',
+        listenbrainzUsername: 'legacy-lb',
+        lastfmUsername: 'legacy-lastfm',
+      }),
+    })
+    expect(completeRes.status).toBe(200)
+    expect(completeSetup).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        listenbrainzUsername: expect.anything(),
+        lastfmUsername: expect.anything(),
+      }),
+    )
   })
 })

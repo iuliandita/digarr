@@ -62,7 +62,12 @@ export function pipelineRoutes(deps: AppDependencies) {
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
-      warmArtist: deps.skyhookWarmer ? (mbid: string) => deps.skyhookWarmer!.warm(mbid) : undefined,
+      warmArtist: deps.skyhookWarmer
+        ? (
+            (warmer) => (mbid: string) =>
+              warmer.warm(mbid)
+          )(deps.skyhookWarmer)
+        : undefined,
     }
 
     // Fire-and-forget
@@ -133,11 +138,8 @@ export function pipelineRoutes(deps: AppDependencies) {
       ? await getUserConnections(deps.db, quickDiscoverUserId)
       : null
 
-    // Override global listening source credentials with per-user values if present
-    const lastfmApiKey =
-      quickDiscoverUserConns?.lastfmApiKey ?? (settings.lastfmApiKey as string | null) ?? null
-    const lastfmUsername =
-      quickDiscoverUserConns?.lastfmUsername ?? (settings.lastfmUsername as string | null) ?? ''
+    const lastfmApiKey = quickDiscoverUserConns?.lastfmApiKey ?? null
+    const lastfmUsername = quickDiscoverUserConns?.lastfmUsername ?? ''
 
     // Fire-and-forget a focused pipeline run with just this artist as seed
     ;(async () => {

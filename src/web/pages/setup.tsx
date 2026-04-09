@@ -9,22 +9,16 @@ import { completeSetup, testService } from '../lib/api'
 
 type FormState = {
   lidarr: { url: string; apiKey: string; skipTlsVerify: boolean }
-  listenbrainz: { username: string; token: string }
-  lastfm: { username: string; apiKey: string }
   ai: { provider: string; model: string; apiKey: string; baseUrl: string }
 }
 
 type TestResults = {
   lidarr: boolean | null
-  listenbrainz: boolean | null
-  lastfm: boolean | null
   ai: boolean | null
 }
 
 type TestingState = {
   lidarr: boolean
-  listenbrainz: boolean
-  lastfm: boolean
   ai: boolean
 }
 
@@ -190,152 +184,6 @@ function StepLidarr({
   )
 }
 
-function StepSources({
-  form,
-  onFormChange,
-  testing,
-  results,
-  onTestListenbrainz,
-  onTestLastfm,
-  onContinue,
-}: {
-  form: FormState
-  onFormChange: (
-    key: 'listenbrainz' | 'lastfm',
-    v: FormState['listenbrainz'] | FormState['lastfm'],
-  ) => void
-  testing: TestingState
-  results: TestResults
-  onTestListenbrainz: () => void
-  onTestLastfm: () => void
-  onContinue: () => void
-}) {
-  const canContinue = results.listenbrainz === true || results.lastfm === true
-
-  function sourceStatus(key: 'listenbrainz' | 'lastfm') {
-    if (testing[key]) return 'Testing...'
-    if (results[key] === true) return 'Connected'
-    if (results[key] === false) return 'Failed'
-    return null
-  }
-
-  const lbStatus = sourceStatus('listenbrainz')
-  const lfStatus = sourceStatus('lastfm')
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-text">Listening Sources</h2>
-        <p className="text-sm text-muted mt-1">
-          At least one source is required to track your music history.
-        </p>
-      </div>
-
-      {/* ListenBrainz */}
-      <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-text">ListenBrainz</span>
-          <a
-            href="https://listenbrainz.org/settings/"
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs text-accent hover:underline"
-          >
-            Get your token
-          </a>
-          {lbStatus && (
-            <span
-              className={`text-xs ${results.listenbrainz === true ? 'text-approve' : testing.listenbrainz ? 'text-muted' : 'text-reject'}`}
-            >
-              {lbStatus}
-            </span>
-          )}
-        </div>
-        <Field label="Username" id="lb-username">
-          <Input
-            id="lb-username"
-            placeholder="your-username"
-            value={form.listenbrainz.username}
-            onChange={(e) =>
-              onFormChange('listenbrainz', { ...form.listenbrainz, username: e.target.value })
-            }
-          />
-        </Field>
-        <Field label="User Token" id="lb-token">
-          <Input
-            id="lb-token"
-            type="password"
-            placeholder="ListenBrainz user token"
-            value={form.listenbrainz.token}
-            onChange={(e) =>
-              onFormChange('listenbrainz', { ...form.listenbrainz, token: e.target.value })
-            }
-          />
-        </Field>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onTestListenbrainz}
-          disabled={!form.listenbrainz.username || !form.listenbrainz.token || testing.listenbrainz}
-        >
-          {testing.listenbrainz ? 'Testing...' : 'Test Connection'}
-        </Button>
-      </div>
-
-      {/* Last.fm */}
-      <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-text">Last.fm</span>
-          <a
-            href="https://www.last.fm/api/account/create"
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs text-accent hover:underline"
-          >
-            Create API account
-          </a>
-          {lfStatus && (
-            <span
-              className={`text-xs ${results.lastfm === true ? 'text-approve' : testing.lastfm ? 'text-muted' : 'text-reject'}`}
-            >
-              {lfStatus}
-            </span>
-          )}
-        </div>
-        <Field label="Username" id="lfm-username">
-          <Input
-            id="lfm-username"
-            placeholder="your-username"
-            value={form.lastfm.username}
-            onChange={(e) => onFormChange('lastfm', { ...form.lastfm, username: e.target.value })}
-          />
-        </Field>
-        <Field label="API Key" id="lfm-apikey">
-          <Input
-            id="lfm-apikey"
-            type="password"
-            placeholder="Last.fm API key"
-            value={form.lastfm.apiKey}
-            onChange={(e) => onFormChange('lastfm', { ...form.lastfm, apiKey: e.target.value })}
-          />
-        </Field>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onTestLastfm}
-          disabled={!form.lastfm.username || !form.lastfm.apiKey || testing.lastfm}
-        >
-          {testing.lastfm ? 'Testing...' : 'Test Connection'}
-        </Button>
-      </div>
-
-      <Button onClick={onContinue} disabled={!canContinue} className="w-full">
-        Continue
-      </Button>
-    </div>
-  )
-}
-
 function StepAi({
   form,
   onFormChange,
@@ -388,6 +236,9 @@ function StepAi({
       <div>
         <h2 className="text-xl font-semibold text-text">AI Provider</h2>
         <p className="text-sm text-muted mt-1">Used to generate music recommendations. Required.</p>
+        <p className="text-xs text-muted mt-2">
+          You&apos;ll connect personal listening sources later in Settings after you log in.
+        </p>
       </div>
       <Field label="Provider" id="ai-provider">
         <Select
@@ -482,28 +333,21 @@ function StepAi({
 
 function StepDone({
   form,
-  results,
   mode,
   onStart,
   starting,
 }: {
   form: FormState
-  results: TestResults
   mode: SetupMode
   onStart: () => void
   starting: boolean
 }) {
-  const sources: string[] = []
-  if (results.listenbrainz === true) sources.push('ListenBrainz')
-  if (results.lastfm === true) sources.push('Last.fm')
-
   const rows: { label: string; value: string }[] = []
   if (mode === 'lidarr') {
     rows.push({ label: 'Lidarr', value: form.lidarr.url })
   } else {
     rows.push({ label: 'Mode', value: 'Discovery only' })
   }
-  rows.push({ label: 'Listening Sources', value: sources.join(', ') || 'None' })
   rows.push({
     label: 'AI Provider',
     value: `${form.ai.provider}${form.ai.model ? ` / ${form.ai.model}` : ''}`,
@@ -513,7 +357,10 @@ function StepDone({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-text">Ready to go</h2>
-        <p className="text-sm text-muted mt-1">Here's what you've configured:</p>
+        <p className="text-sm text-muted mt-1">Here&apos;s what you&apos;ve configured:</p>
+        <p className="text-xs text-muted mt-2">
+          Personal listening sources are connected per user from Settings after setup.
+        </p>
       </div>
       <div className="rounded-lg border border-border bg-surface divide-y divide-border">
         {rows.map((row) => (
@@ -532,22 +379,16 @@ function StepDone({
 
 const DEFAULT_FORM: FormState = {
   lidarr: { url: '', apiKey: '', skipTlsVerify: false },
-  listenbrainz: { username: '', token: '' },
-  lastfm: { username: '', apiKey: '' },
   ai: { provider: 'anthropic', model: '', apiKey: '', baseUrl: '' },
 }
 
 const DEFAULT_RESULTS: TestResults = {
   lidarr: null,
-  listenbrainz: null,
-  lastfm: null,
   ai: null,
 }
 
 const DEFAULT_TESTING: TestingState = {
   lidarr: false,
-  listenbrainz: false,
-  lastfm: false,
   ai: false,
 }
 
@@ -559,13 +400,9 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const [testing, setTesting] = useState<TestingState>(DEFAULT_TESTING)
   const [starting, setStarting] = useState(false)
 
-  // Step mapping depends on mode:
-  // mode='lidarr':  1=Mode, 2=Lidarr, 3=Sources, 4=AI, 5=Done
-  // mode='discover': 1=Mode, 2=Sources, 3=AI, 4=Done
-  const totalSteps = mode === 'lidarr' ? 5 : 4
-  const sourcesStep = mode === 'lidarr' ? 3 : 2
-  const aiStep = mode === 'lidarr' ? 4 : 3
-  const doneStep = mode === 'lidarr' ? 5 : 4
+  const totalSteps = mode === 'lidarr' ? 4 : 3
+  const aiStep = mode === 'lidarr' ? 3 : 2
+  const doneStep = mode === 'lidarr' ? 4 : 3
 
   function setTestingKey(key: keyof TestingState, val: boolean) {
     setTesting((prev) => ({ ...prev, [key]: val }))
@@ -586,7 +423,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       if (res.success) {
         setResultKey('lidarr', true)
         toast.success('Lidarr connected successfully')
-        setStep(sourcesStep)
+        setStep(aiStep)
       } else {
         setResultKey('lidarr', false)
         toast.error(res.message || 'Lidarr connection failed')
@@ -596,50 +433,6 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       toast.error('Could not reach Lidarr')
     } finally {
       setTestingKey('lidarr', false)
-    }
-  }
-
-  async function testListenbrainz() {
-    setTestingKey('listenbrainz', true)
-    try {
-      const res = await testService('listenbrainz', {
-        username: form.listenbrainz.username,
-        token: form.listenbrainz.token,
-      })
-      if (res.success) {
-        setResultKey('listenbrainz', true)
-        toast.success('ListenBrainz connected')
-      } else {
-        setResultKey('listenbrainz', false)
-        toast.error(res.message || 'ListenBrainz connection failed')
-      }
-    } catch {
-      setResultKey('listenbrainz', false)
-      toast.error('Could not reach ListenBrainz')
-    } finally {
-      setTestingKey('listenbrainz', false)
-    }
-  }
-
-  async function testLastfm() {
-    setTestingKey('lastfm', true)
-    try {
-      const res = await testService('lastfm', {
-        username: form.lastfm.username,
-        apiKey: form.lastfm.apiKey,
-      })
-      if (res.success) {
-        setResultKey('lastfm', true)
-        toast.success('Last.fm connected')
-      } else {
-        setResultKey('lastfm', false)
-        toast.error(res.message || 'Last.fm connection failed')
-      }
-    } catch {
-      setResultKey('lastfm', false)
-      toast.error('Could not reach Last.fm')
-    } finally {
-      setTestingKey('lastfm', false)
     }
   }
 
@@ -686,14 +479,6 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       config.lidarrApiKey = form.lidarr.apiKey
       config.skipTlsVerify = form.lidarr.skipTlsVerify
     }
-    if (results.listenbrainz === true) {
-      config.listenbrainzUsername = form.listenbrainz.username
-      config.listenbrainzToken = form.listenbrainz.token
-    }
-    if (results.lastfm === true) {
-      config.lastfmUsername = form.lastfm.username
-      config.lastfmApiKey = form.lastfm.apiKey
-    }
     try {
       await completeSetup(config)
       onComplete()
@@ -714,7 +499,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
         <StepIndicator current={step} total={totalSteps} />
 
         <div className="rounded-lg border border-border bg-surface p-6">
-          {mode === 'lidarr' && results.lidarr === true && step >= sourcesStep && (
+          {mode === 'lidarr' && results.lidarr === true && step >= aiStep && (
             <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
               <p className="text-sm text-muted">
                 Connected. We&apos;ll start syncing your library in the background. The first sync
@@ -739,17 +524,6 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               onTest={testLidarr}
             />
           )}
-          {step === sourcesStep && (
-            <StepSources
-              form={form}
-              onFormChange={(key, v) => setForm((f) => ({ ...f, [key]: v }))}
-              testing={testing}
-              results={results}
-              onTestListenbrainz={testListenbrainz}
-              onTestLastfm={testLastfm}
-              onContinue={() => setStep(aiStep)}
-            />
-          )}
           {step === aiStep && (
             <StepAi
               form={form.ai}
@@ -761,7 +535,6 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
           {step === doneStep && (
             <StepDone
               form={form}
-              results={results}
               mode={mode === 'lidarr' ? 'lidarr' : 'discover'}
               onStart={handleStart}
               starting={starting}

@@ -92,54 +92,22 @@ async function buildSettingsResponse(
   if (userId) {
     const userConns = await getUserConnections(deps.db, userId)
     if (userConns) {
-      // For non-admins: always set connection fields from user data (even if null)
-      // This prevents leaking global/admin credentials
-      if (!isAdmin) {
-        response.listenbrainzUsername = userConns.listenbrainzUsername ?? ''
-        response.listenbrainzToken = userConns.listenbrainzToken
-        response._listenbrainzScope = 'user'
-        response.lastfmUsername = userConns.lastfmUsername ?? ''
-        response.lastfmApiKey = userConns.lastfmApiKey
-        response._lastfmScope = 'user'
-        response.plexUrl = userConns.plexUrl ?? ''
-        response.plexToken = userConns.plexToken
-        response._plexScope = 'user'
-        response.jellyfinUrl = userConns.jellyfinUrl ?? ''
-        response.jellyfinApiKey = userConns.jellyfinApiKey
-        response.jellyfinUserId = userConns.jellyfinUserId ?? ''
-        response._jellyfinScope = 'user'
-        response.discogsUsername = userConns.discogsUsername ?? ''
-        response.discogsToken = userConns.discogsToken
-        response._discogsScope = 'user'
-      } else {
-        // Admin: overlay user connections only when the user has set them
-        if (userConns.listenbrainzUsername !== null) {
-          response.listenbrainzUsername = userConns.listenbrainzUsername
-          response.listenbrainzToken = userConns.listenbrainzToken
-          response._listenbrainzScope = 'user'
-        }
-        if (userConns.lastfmUsername !== null) {
-          response.lastfmUsername = userConns.lastfmUsername
-          response.lastfmApiKey = userConns.lastfmApiKey
-          response._lastfmScope = 'user'
-        }
-        if (userConns.plexUrl !== null) {
-          response.plexUrl = userConns.plexUrl
-          response.plexToken = userConns.plexToken
-          response._plexScope = 'user'
-        }
-        if (userConns.jellyfinUrl !== null) {
-          response.jellyfinUrl = userConns.jellyfinUrl
-          response.jellyfinApiKey = userConns.jellyfinApiKey
-          response.jellyfinUserId = userConns.jellyfinUserId
-          response._jellyfinScope = 'user'
-        }
-        if (userConns.discogsUsername !== null) {
-          response.discogsUsername = userConns.discogsUsername
-          response.discogsToken = userConns.discogsToken
-          response._discogsScope = 'user'
-        }
-      }
+      response.listenbrainzUsername = userConns.listenbrainzUsername ?? ''
+      response.listenbrainzToken = userConns.listenbrainzToken
+      response._listenbrainzScope = 'user'
+      response.lastfmUsername = userConns.lastfmUsername ?? ''
+      response.lastfmApiKey = userConns.lastfmApiKey
+      response._lastfmScope = 'user'
+      response.plexUrl = userConns.plexUrl ?? ''
+      response.plexToken = userConns.plexToken
+      response._plexScope = 'user'
+      response.jellyfinUrl = userConns.jellyfinUrl ?? ''
+      response.jellyfinApiKey = userConns.jellyfinApiKey
+      response.jellyfinUserId = userConns.jellyfinUserId ?? ''
+      response._jellyfinScope = 'user'
+      response.discogsUsername = userConns.discogsUsername ?? ''
+      response.discogsToken = userConns.discogsToken
+      response._discogsScope = 'user'
     }
   }
 
@@ -217,11 +185,13 @@ export function settingsRoutes(deps: AppDependencies) {
     const globalFields: Record<string, unknown> = {}
 
     for (const [key, val] of Object.entries(sanitized)) {
-      if (userId && USER_CONNECTION_FIELDS.has(key)) {
-        userUpdate[key] = (val as string | null | undefined) ?? null
-      } else {
-        globalFields[key] = val
+      if (USER_CONNECTION_FIELDS.has(key)) {
+        if (userId) {
+          userUpdate[key] = (val as string | null | undefined) ?? null
+        }
+        continue
       }
+      globalFields[key] = val
     }
 
     if (!isAdmin && Object.keys(globalFields).length > 0) {
@@ -306,13 +276,8 @@ export function settingsRoutes(deps: AppDependencies) {
         return c.json(result)
       }
       case 'listenbrainz': {
-        const username =
-          body.username ||
-          userConns?.listenbrainzUsername ||
-          (stored?.listenbrainzUsername as string) ||
-          ''
-        const token =
-          body.token || userConns?.listenbrainzToken || (stored?.listenbrainzToken as string) || ''
+        const username = body.username || userConns?.listenbrainzUsername || ''
+        const token = body.token || userConns?.listenbrainzToken || ''
         if (!username) {
           return c.json({ success: false, message: 'Missing username' })
         }
@@ -325,10 +290,8 @@ export function settingsRoutes(deps: AppDependencies) {
         return c.json(result)
       }
       case 'lastfm': {
-        const username =
-          body.username || userConns?.lastfmUsername || (stored?.lastfmUsername as string) || ''
-        const apiKey =
-          body.apiKey || userConns?.lastfmApiKey || (stored?.lastfmApiKey as string) || ''
+        const username = body.username || userConns?.lastfmUsername || ''
+        const apiKey = body.apiKey || userConns?.lastfmApiKey || ''
         if (!username || !apiKey) {
           return c.json({
             success: false,

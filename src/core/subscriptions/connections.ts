@@ -10,10 +10,11 @@ export function resolveSubscriptionSourceConnections(
   lfUsername: string | null
   lfApiKey: string | null
 } {
+  void settings
   return {
-    lbUsername: userConnections?.listenbrainzUsername ?? settings?.listenbrainzUsername ?? null,
-    lbToken: userConnections?.listenbrainzToken ?? settings?.listenbrainzToken ?? null,
-    lfUsername: userConnections?.lastfmUsername ?? settings?.lastfmUsername ?? null,
-    lfApiKey: userConnections?.lastfmApiKey ?? settings?.lastfmApiKey ?? null,
+    lbUsername: userConnections?.listenbrainzUsername ?? null,
+    lbToken: userConnections?.listenbrainzToken ?? null,
+    lfUsername: userConnections?.lastfmUsername ?? null,
+    lfApiKey: userConnections?.lastfmApiKey ?? null,
   }
 }

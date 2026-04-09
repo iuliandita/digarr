@@ -391,7 +391,7 @@ describe('per-user listening source connections', () => {
     expect(body._lastfmScope).toBeUndefined()
   })
 
-  it('PATCH passes listenbrainz fields to updateSettings when no user session', async () => {
+  it('PATCH ignores user-scoped listening fields when no user session exists', async () => {
     const updateSettings = vi.fn(async () => {})
     const app = createApp(makeDeps({ updateSettings }))
 
@@ -404,10 +404,7 @@ describe('per-user listening source connections', () => {
       }),
     })
     expect(res.status).toBe(200)
-    // No user session -- listenbrainz fields go to global settings
-    expect(updateSettings).toHaveBeenCalledWith(
-      expect.objectContaining({ listenbrainzUsername: 'global-lb' }),
-    )
+    expect(updateSettings).not.toHaveBeenCalled()
   })
 
   it('PATCH excludes listenbrainz fields from global updateSettings when user is authenticated', async () => {

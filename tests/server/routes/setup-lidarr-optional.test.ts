@@ -64,7 +64,7 @@ describe('Lidarr-optional setup', () => {
     expect(res.status).toBe(400)
   })
 
-  it('still requires at least one listening source', async () => {
+  it('accepts setup without listening sources', async () => {
     const app = createTestApp()
     const res = await app.request('/api/setup/complete', {
       method: 'POST',
@@ -75,7 +75,7 @@ describe('Lidarr-optional setup', () => {
         aiApiKey: 'sk-test',
       }),
     })
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(200)
   })
 
   it('rejects partial Lidarr config (url without apiKey)', async () => {

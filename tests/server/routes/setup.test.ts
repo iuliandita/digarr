@@ -139,7 +139,6 @@ describe('POST /api/setup/complete', () => {
     lidarrApiKey: 'abc123',
     aiProvider: 'ollama',
     aiModel: 'llama3',
-    listenbrainzUsername: 'testuser',
   }
 
   it('accepts valid config and returns 200', async () => {
@@ -207,30 +206,11 @@ describe('POST /api/setup/complete', () => {
     expect(res.status).toBe(400)
   })
 
-  it('rejects when neither listenbrainzUsername nor lastfmUsername is provided', async () => {
+  it('accepts AI-only setup in discovery mode', async () => {
     const app = createApp(makeDeps())
     const body = {
-      lidarrUrl: 'http://lidarr:8686',
-      lidarrApiKey: 'abc123',
       aiProvider: 'ollama',
       aiModel: 'llama3',
-    }
-    const res = await app.request('/api/setup/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    expect(res.status).toBe(400)
-  })
-
-  it('accepts lastfmUsername as the music source', async () => {
-    const app = createApp(makeDeps())
-    const body = {
-      lidarrUrl: 'http://lidarr:8686',
-      lidarrApiKey: 'abc123',
-      aiProvider: 'ollama',
-      aiModel: 'llama3',
-      lastfmUsername: 'lfmuser',
     }
     const res = await app.request('/api/setup/complete', {
       method: 'POST',
@@ -238,5 +218,29 @@ describe('POST /api/setup/complete', () => {
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(200)
+  })
+
+  it('strips legacy listening-source fields before persisting setup', async () => {
+    const completeSetup = vi.fn(async () => ({ id: 1, setupComplete: true }))
+    const app = createApp(makeDeps({ completeSetup }))
+    const body = {
+      ...validBody,
+      listenbrainzUsername: 'legacy-lb',
+      listenbrainzToken: 'legacy-token',
+      lastfmUsername: 'legacy-lastfm',
+      lastfmApiKey: 'legacy-key',
+    }
+    const res = await app.request('/api/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    expect(res.status).toBe(200)
+    expect(completeSetup).toHaveBeenCalledWith({
+      lidarrUrl: 'http://lidarr:8686',
+      lidarrApiKey: 'abc123',
+      aiProvider: 'ollama',
+      aiModel: 'llama3',
+    })
   })
 })

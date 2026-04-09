@@ -159,8 +159,7 @@ function ListeningActivity({
       {!data || data.tracks.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
           <p className="text-sm text-muted">
-            Connect your Spotify, Last.fm, or ListenBrainz account so Digarr can learn what you
-            listen to.
+            Connect your Last.fm or ListenBrainz account so Digarr can learn what you listen to.
           </p>
           <Link to="/settings" className="text-xs text-accent hover:underline inline-block">
             Connect an account

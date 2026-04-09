@@ -24,6 +24,7 @@ import { createLidarrLibrarySource } from './core/library/sources/lidarr'
 import { createPlexLibrarySource } from './core/library/sources/plex'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
+import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
@@ -132,6 +133,7 @@ import {
   listUsers,
   updatePassword,
   updateUser,
+  updateUserConnections,
 } from './db/queries/users'
 import {
   artists,
@@ -1003,10 +1005,6 @@ const server = serve({ fetch: app.fetch, port })
         lidarrUrl: envConfig.lidarrUrl ?? '',
         lidarrApiKey: envConfig.lidarrApiKey ?? '',
         skipTlsVerify: envConfig.skipTlsVerify,
-        listenbrainzUsername: envConfig.listenbrainzUsername,
-        listenbrainzToken: envConfig.listenbrainzToken,
-        lastfmUsername: envConfig.lastfmUsername,
-        lastfmApiKey: envConfig.lastfmApiKey,
         aiProvider: envConfig.aiProvider,
         aiApiKey: envConfig.aiApiKey,
         aiModel: envConfig.aiModel,
@@ -1035,6 +1033,21 @@ const server = serve({ fetch: app.fetch, port })
         }
       }
     }
+
+    const settingsBeforeMigration = await getSettings(db)
+    await migrateLegacyListeningConnections({
+      settings: settingsBeforeMigration,
+      envLegacy: {
+        listenbrainzUsername: envConfig.listenbrainzUsername,
+        listenbrainzToken: envConfig.listenbrainzToken,
+        lastfmUsername: envConfig.lastfmUsername,
+        lastfmApiKey: envConfig.lastfmApiKey,
+      },
+      users: await listUsers(db),
+      getUserConnections: (userId) => getUserConnections(db, userId),
+      updateUserConnections: (userId, data) => updateUserConnections(db, userId, data),
+      updateSettings: (partial) => updateSettings(db, partial),
+    })
 
     // Backfill: create Lidarr target for existing installations
     const settings = await getSettings(db)
