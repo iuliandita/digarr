@@ -7,6 +7,7 @@ export const TARGET_TYPES = [
   'spotify-playlist',
   'navidrome-playlist',
   'jellyfin-playlist',
+  'emby-playlist',
   'plex-playlist',
   'export',
 ] as const

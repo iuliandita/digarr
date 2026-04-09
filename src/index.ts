@@ -64,6 +64,7 @@ import type {
   MusicBrainzClient as SubMBClient,
   SubscriptionConfig,
 } from './core/subscriptions/types'
+import { createEmbyPlaylistTarget } from './core/targets/emby-playlist'
 import { createJellyfinPlaylistTarget } from './core/targets/jellyfin-playlist'
 import { createLidarrTarget } from './core/targets/lidarr'
 import { createNavidromePlaylistTarget } from './core/targets/navidrome-playlist'
@@ -684,6 +685,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
         let target:
           | ReturnType<typeof createNavidromePlaylistTarget>
           | ReturnType<typeof createJellyfinPlaylistTarget>
+          | ReturnType<typeof createEmbyPlaylistTarget>
           | ReturnType<typeof createPlexPlaylistTarget>
           | null = null
 
@@ -695,6 +697,12 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
           })
         } else if (targetRow.type === 'jellyfin-playlist') {
           target = createJellyfinPlaylistTarget(targetRow.id, {
+            url: targetRow.config.url as string,
+            apiKey: targetRow.config.apiKey as string,
+            userId: targetRow.config.userId as string,
+          })
+        } else if (targetRow.type === 'emby-playlist') {
+          target = createEmbyPlaylistTarget(targetRow.id, {
             url: targetRow.config.url as string,
             apiKey: targetRow.config.apiKey as string,
             userId: targetRow.config.userId as string,
@@ -875,6 +883,15 @@ const app = createApp({
         { skipTlsVerify: (config.skipTlsVerify as boolean) ?? false },
       )
       return client.testConnection()
+    }
+
+    if (type === 'emby-playlist') {
+      const target = createEmbyPlaylistTarget(0, {
+        url: config.url as string,
+        apiKey: config.apiKey as string,
+        userId: config.userId as string,
+      })
+      return target.testConnection()
     }
 
     if (type === 'spotify-playlist') {
