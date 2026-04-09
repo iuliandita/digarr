@@ -1,68 +1,85 @@
 // @vitest-environment node
-import * as http from 'node:http'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createMusicinfoClient } from '@/core/clients/musicinfo'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-let server: http.Server
-let baseUrl: string
+const { lookupMock, fetchMock } = vi.hoisted(() => ({
+  lookupMock: vi.fn(async () => ({ address: '93.184.216.34', family: 4 })),
+  fetchMock: vi.fn(),
+}))
 
-beforeAll(async () => {
-  server = http.createServer((req, res) => {
-    const url = req.url ?? ''
-    if (url.includes('/api/v0.4/artist/mbid-found')) {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(
-        JSON.stringify({
-          images: [
-            { coverType: 'poster', remoteUrl: 'https://example.com/poster.jpg' },
-            { coverType: 'clearlogo', remoteUrl: 'https://example.com/logo.png' },
-            { coverType: 'fanart', remoteUrl: 'https://example.com/fanart.jpg' },
-          ],
-        }),
-      )
-      return
-    }
-    if (url.includes('/api/v0.4/artist/mbid-empty')) {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ images: [] }))
-      return
-    }
-    if (url.includes('/api/v0.4/artist/mbid-error')) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' })
-      res.end('Internal error')
-      return
-    }
-    res.writeHead(404)
-    res.end()
-  })
-  await new Promise<void>((resolve) => {
-    server.listen(0, () => resolve())
-  })
-  const addr = server.address() as { port: number }
-  baseUrl = `http://localhost:${addr.port}`
+vi.mock('node:dns/promises', () => ({
+  lookup: lookupMock,
+}))
+vi.stubGlobal('fetch', fetchMock)
+
+beforeEach(() => {
+  vi.resetModules()
 })
 
-afterAll(() => {
-  server.close()
+afterEach(() => {
+  fetchMock.mockReset()
+  lookupMock.mockReset()
+  lookupMock.mockResolvedValue({ address: '93.184.216.34', family: 4 })
 })
+
+function ok(body: unknown): Response {
+  return new Response(JSON.stringify(body), { status: 200 })
+}
 
 describe('createMusicinfoClient', () => {
   it('returns images from SkyHook-shaped response', async () => {
-    const client = createMusicinfoClient(baseUrl)
+    fetchMock.mockResolvedValueOnce(
+      ok({
+        images: [
+          { coverType: 'poster', remoteUrl: 'https://example.com/poster.jpg' },
+          { coverType: 'clearlogo', remoteUrl: 'https://example.com/logo.png' },
+          { coverType: 'fanart', remoteUrl: 'https://example.com/fanart.jpg' },
+        ],
+      }),
+    )
+    const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
+    const client = createMusicinfoClient('https://musicinfo.example')
     const result = await client.lookupArtistImages('mbid-found')
     expect(result.url).toBe('https://example.com/poster.jpg')
     expect(result.logoUrl).toBe('https://example.com/logo.png')
   })
+
   it('returns undefined for empty images', async () => {
-    const client = createMusicinfoClient(baseUrl)
+    fetchMock.mockResolvedValueOnce(ok({ images: [] }))
+    const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
+    const client = createMusicinfoClient('https://musicinfo.example')
     const result = await client.lookupArtistImages('mbid-empty')
     expect(result.url).toBeUndefined()
     expect(result.logoUrl).toBeUndefined()
   })
+
   it('returns undefined on server error', async () => {
-    const client = createMusicinfoClient(baseUrl)
+    fetchMock.mockResolvedValueOnce(new Response('Internal error', { status: 500 }))
+    const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
+    const client = createMusicinfoClient('https://musicinfo.example')
     const result = await client.lookupArtistImages('mbid-error')
     expect(result.url).toBeUndefined()
     expect(result.logoUrl).toBeUndefined()
+  })
+
+  it('blocks redirects when using a user-configurable fallback host', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 302, headers: { Location: '/' } }))
+
+    const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
+    const client = createMusicinfoClient('https://musicinfo.example')
+    const result = await client.lookupArtistImages('mbid-redirect')
+
+    expect(result.url).toBeUndefined()
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(init.redirect).toBe('manual')
+  })
+
+  it('rejects private fallback URLs before making a request', async () => {
+    const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
+    const client = createMusicinfoClient('http://127.0.0.1:8787')
+    const result = await client.lookupArtistImages('mbid-private')
+
+    expect(result.url).toBeUndefined()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

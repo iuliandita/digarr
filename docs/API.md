@@ -41,18 +41,19 @@ Admin-only endpoints return 403 for non-admin users.
 
 Setup validation rules:
 - `aiProvider` and `aiModel` are required
-- At least one listening source is required: `listenbrainzUsername` or `lastfmUsername`
 - Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
+- Emby is optional, but `embyUrl`, `embyApiKey`, and `embyUserId` must be provided together when used
 
 **POST /api/setup/complete** body:
 ```json
 {
   "aiProvider": "openai",
   "aiModel": "gpt-4o-mini",
-  "listenbrainzUsername": "user",
-  "lastfmUsername": "user",
   "lidarrUrl": "http://lidarr:8686",
   "lidarrApiKey": "abc123",
+  "embyUrl": "http://emby:8096",
+  "embyApiKey": "abc123",
+  "embyUserId": "user-1",
   "skipTlsVerify": false
 }
 ```
@@ -175,7 +176,7 @@ Setup validation rules:
 | DELETE | `/api/targets/:id` | Admin | Delete target |
 | POST | `/api/targets/:id/test` | Yes | Test target connection |
 
-**Target types**: `lidarr`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `plex-playlist`
+**Target types**: `lidarr`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`
 
 ---
 

@@ -46,6 +46,16 @@ export function createEmbyClient(
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<{ ServerName: string; Version: string }>('/System/Info')
+      if (userId) {
+        const params = new URLSearchParams({
+          IncludeItemTypes: 'Audio',
+          Recursive: 'true',
+          Limit: '1',
+        })
+        await get<{ Items: Array<Record<string, unknown>> }>(
+          `/Users/${userId}/Items?${params.toString()}`,
+        )
+      }
       return {
         success: true,
         message: `Connected to Emby "${info.ServerName}" v${info.Version}`,

@@ -272,6 +272,15 @@ export function createJellyfinClient(
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<JellyfinSystemInfo>('/System/Info')
+      if (userIdOrName) {
+        const userId = await getUserId()
+        const params = new URLSearchParams({
+          IncludeItemTypes: 'Audio',
+          Recursive: 'true',
+          Limit: '1',
+        })
+        await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
+      }
       const artists = await getTopArtists(5)
       return {
         success: true,

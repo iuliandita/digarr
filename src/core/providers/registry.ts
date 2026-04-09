@@ -44,8 +44,8 @@ export function createDefaultRegistry(): AiProviderRegistry {
     name: 'Anthropic',
     async create({ apiKey, model }) {
       const { AnthropicProvider } = await import('./anthropic')
-      // biome-ignore lint/style/noNonNullAssertion: caller must supply apiKey for anthropic
-      return new AnthropicProvider(apiKey!, model)
+      if (!apiKey) throw new Error('Anthropic requires an API key')
+      return new AnthropicProvider(apiKey, model)
     },
   })
 
@@ -54,8 +54,8 @@ export function createDefaultRegistry(): AiProviderRegistry {
     name: 'OpenAI',
     async create({ apiKey, model }) {
       const { OpenAIProvider } = await import('./openai')
-      // biome-ignore lint/style/noNonNullAssertion: caller must supply apiKey for openai
-      return new OpenAIProvider(apiKey!, model)
+      if (!apiKey) throw new Error('OpenAI requires an API key')
+      return new OpenAIProvider(apiKey, model)
     },
   })
 
@@ -64,8 +64,8 @@ export function createDefaultRegistry(): AiProviderRegistry {
     name: 'Ollama',
     async create({ model, baseUrl }) {
       const { OllamaProvider } = await import('./ollama')
-      // biome-ignore lint/style/noNonNullAssertion: caller must supply baseUrl for ollama
-      return new OllamaProvider(model, baseUrl!)
+      if (!baseUrl) throw new Error('Ollama requires a base URL')
+      return new OllamaProvider(model, baseUrl)
     },
   })
 

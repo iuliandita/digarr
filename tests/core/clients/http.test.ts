@@ -26,6 +26,11 @@ function sendText(res: http.ServerResponse, status: number, body: string): void 
   res.end(body)
 }
 
+function sendEmpty(res: http.ServerResponse, status: number): void {
+  res.writeHead(status)
+  res.end()
+}
+
 function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
     const chunks: Buffer[] = []
@@ -69,6 +74,25 @@ beforeAll(async () => {
     if (path === '/forbidden') {
       hit(path)
       sendText(res, 403, 'forbidden')
+      return
+    }
+
+    if (path === '/empty') {
+      hit(path)
+      sendEmpty(res, 204)
+      return
+    }
+
+    if (path === '/redirect') {
+      hit(path)
+      res.writeHead(302, { Location: '/redirect-target' })
+      res.end()
+      return
+    }
+
+    if (path === '/redirect-target') {
+      hit(path)
+      sendJson(res, 200, { redirected: true })
       return
     }
 
@@ -157,6 +181,28 @@ describe('createHttpClient', () => {
       await client.get('/forbidden').catch(() => null)
       const after = serverHits.get('/forbidden') ?? 0
       expect(after - before).toBe(1)
+    })
+  })
+
+  describe('empty responses', () => {
+    it('returns undefined for DELETE requests with no body', async () => {
+      const client = createHttpClient({ baseUrl })
+      await expect(client.delete('/empty')).resolves.toBeUndefined()
+    })
+  })
+
+  describe('redirect handling', () => {
+    it('blocks redirects by default instead of following them', async () => {
+      const beforeRedirect = serverHits.get('/redirect') ?? 0
+      const beforeTarget = serverHits.get('/redirect-target') ?? 0
+      const client = createHttpClient({ baseUrl })
+
+      await expect(client.get('/redirect')).rejects.toThrow(HttpError)
+
+      const afterRedirect = serverHits.get('/redirect') ?? 0
+      const afterTarget = serverHits.get('/redirect-target') ?? 0
+      expect(afterRedirect - beforeRedirect).toBe(1)
+      expect(afterTarget - beforeTarget).toBe(0)
     })
   })
 

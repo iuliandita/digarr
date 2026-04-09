@@ -680,6 +680,8 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
     })
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
+      const settings = await getSettings(db)
+      const globalSkipTlsVerify = settings?.skipTlsVerify ?? false
       const targetRows = await getTargetsByUser(db, playlist.userId)
       const enabledTargetRows = targetRows.filter(
         (row) => row.enabled && playlist.targetIds.includes(row.id),
@@ -710,12 +712,16 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
             url: targetRow.config.url as string,
             apiKey: targetRow.config.apiKey as string,
             userId: targetRow.config.userId as string,
+            skipTlsVerify:
+              (targetRow.config.skipTlsVerify as boolean | undefined) ?? globalSkipTlsVerify,
           })
         } else if (targetRow.type === 'emby-playlist') {
           target = createEmbyPlaylistTarget(targetRow.id, {
             url: targetRow.config.url as string,
             apiKey: targetRow.config.apiKey as string,
             userId: targetRow.config.userId as string,
+            skipTlsVerify:
+              (targetRow.config.skipTlsVerify as boolean | undefined) ?? globalSkipTlsVerify,
           })
         } else if (targetRow.type === 'plex-playlist') {
           target = createPlexPlaylistTarget(targetRow.id, {
@@ -900,6 +906,7 @@ const app = createApp({
         url: config.url as string,
         apiKey: config.apiKey as string,
         userId: config.userId as string,
+        skipTlsVerify: (config.skipTlsVerify as boolean) ?? false,
       })
       return target.testConnection()
     }

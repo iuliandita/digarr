@@ -217,3 +217,42 @@ describe('jellyfin client.getAlbumsForArtist()', () => {
     ])
   })
 })
+
+describe('jellyfin client.testConnection()', () => {
+  it('validates the configured user scope during connection tests', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'test-api-key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+
+    mockGet.mockResolvedValueOnce({ ServerName: 'Home Media', Version: '10.9.0' })
+    mockGet.mockResolvedValueOnce({ Items: [], TotalRecordCount: 0 })
+    mockGet.mockResolvedValueOnce({ Items: [], TotalRecordCount: 0 })
+
+    await expect(client.testConnection()).resolves.toMatchObject({
+      success: true,
+      message: 'Connected to Jellyfin "Home Media" v10.9.0 -- 0 top artist(s)',
+    })
+
+    expect(mockGet).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/Users/00000000-0000-0000-0000-000000000001/Items?'),
+    )
+  })
+
+  it('fails connection tests when the configured user id cannot access library items', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'test-api-key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+
+    mockGet.mockResolvedValueOnce({ ServerName: 'Home Media', Version: '10.9.0' })
+    mockGet.mockRejectedValueOnce(new Error('404 User not found'))
+
+    await expect(client.testConnection()).resolves.toMatchObject({
+      success: false,
+    })
+  })
+})

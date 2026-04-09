@@ -78,4 +78,58 @@ describe('createEmbyClient', () => {
       message: 'Connected to Emby "My Emby" v4.9.0.1',
     })
   })
+
+  it('validates user-scoped access during connection tests when a user id is configured', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ ServerName: 'My Emby', Version: '4.9.0.1' }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ Items: [] }),
+        }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.testConnection()).resolves.toMatchObject({
+      success: true,
+      message: 'Connected to Emby "My Emby" v4.9.0.1',
+    })
+
+    const fetchMock = vi.mocked(fetch)
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/Users/user-1/Items?'),
+      expect.anything(),
+    )
+  })
+
+  it('fails connection tests when the configured user id cannot access library items', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ ServerName: 'My Emby', Version: '4.9.0.1' }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          text: async () => 'User not found',
+        }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'missing-user')
+    await expect(client.testConnection()).resolves.toMatchObject({
+      success: false,
+    })
+  })
 })

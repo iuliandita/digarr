@@ -51,6 +51,19 @@ describe('createJellyfinPlaylistTarget()', () => {
       expect(opts.headers).toEqual(expect.objectContaining({ 'X-Emby-Token': 'jf-api-key' }))
     })
 
+    it('passes Bun TLS skip options when configured', async () => {
+      mockFetch.mockResolvedValueOnce(ok({ ServerName: 'Test', Version: '10.9.0' }))
+
+      const target = createJellyfinPlaylistTarget(7, {
+        ...CONFIG,
+        skipTlsVerify: true,
+      })
+      await target.testConnection()
+
+      const opts = mockFetch.mock.calls[0]?.[1] as RequestInit
+      expect(opts).toMatchObject({ tls: { rejectUnauthorized: false } })
+    })
+
     it('returns failure when server is unreachable', async () => {
       mockFetch.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
 

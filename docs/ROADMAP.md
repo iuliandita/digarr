@@ -2,12 +2,11 @@
 
 > Updated: 2026-04-09 | Current: v0.20.0
 >
-> This is a living document. Priorities shift based on feedback and demand.
-> Nothing here is a guarantee -- it reflects current intent and direction.
+> Priorities change with feedback. This is current intent, not a promise.
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release. Current focus is on expanding media server support and discovery integrations.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release. Current focus is on refining the shipped media-server support and expanding discovery integrations.
 
 ## v1 Goals
 
@@ -39,10 +38,6 @@ Committed direction, roughly in priority order.
 
 - Deezer favorites import
 - Deeper ListenBrainz integration (weekly jams, radio, fresh releases, similar users)
-
-### Media Servers
-
-- **Emby** support -- library sync, playlist push
 
 ### Integrations
 
@@ -106,6 +101,11 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### v0.20.0
+
+- Emby support for library sync and playlist push
+- Setup wizard Emby connection flow with auto-created playlist target
 
 ### v0.19.0 -- v0.19.2
 

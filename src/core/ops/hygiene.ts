@@ -16,8 +16,7 @@ export async function clearImageFailures(
     conditions.push(lt(artists.imageFailedAt, cutoff))
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic where
-  const result = await (db as any)
+  const result = await db
     .update(artists)
     .set({ imageFailedAt: null })
     .where(conditions.length === 1 ? conditions[0] : and(...conditions))
@@ -26,8 +25,7 @@ export async function clearImageFailures(
 }
 
 export async function purgeSessions(db: OpsDb): Promise<HygieneResult> {
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic where
-  const result = await (db as any).delete(sessions).where(lt(sessions.expiresAt, new Date()))
+  const result = await db.delete(sessions).where(lt(sessions.expiresAt, new Date()))
 
   return { tool: 'purge-sessions', purged: result.rowCount ?? 0 }
 }
@@ -36,8 +34,7 @@ export async function purgeSessions(db: OpsDb): Promise<HygieneResult> {
 
 export async function dedupeRepair(db: OpsDb): Promise<HygieneResult> {
   // Find duplicate (userId, artistId) groups
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  const dupeGroups = await (db as any)
+  const dupeGroups = await db
     .select({
       userId: recommendations.userId,
       artistId: recommendations.artistId,
@@ -51,8 +48,7 @@ export async function dedupeRepair(db: OpsDb): Promise<HygieneResult> {
 
   for (const group of dupeGroups) {
     // Get all recs in this group, ordered by score desc
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-    const recs = await (db as any)
+    const recs = await db
       .select({
         id: recommendations.id,
         score: recommendations.score,
@@ -75,8 +71,7 @@ export async function dedupeRepair(db: OpsDb): Promise<HygieneResult> {
     // Keep the highest-scored one, mark rest as duplicate
     const duplicateIds = recs.slice(1).map((r: { id: number }) => r.id)
 
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-    await (db as any)
+    await db
       .update(recommendations)
       .set({ status: 'duplicate' })
       .where(inArray(recommendations.id, duplicateIds))
@@ -99,10 +94,9 @@ function slugify(name: string): string {
 export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
   const start = Date.now()
 
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
   const [artistRows, metaRows] = await Promise.all([
-    (db as any).select({ tags: artists.tags, genres: artists.genres }).from(artists),
-    (db as any).select({ spotifyGenres: artistMetadata.spotifyGenres }).from(artistMetadata),
+    db.select({ tags: artists.tags, genres: artists.genres }).from(artists),
+    db.select({ spotifyGenres: artistMetadata.spotifyGenres }).from(artistMetadata),
   ])
 
   const genreCounts = new Map<string, number>()
@@ -123,12 +117,10 @@ export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
   }
 
   // Clear and rebuild
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  await (db as any).delete(genres).execute()
+  await db.delete(genres)
 
   for (const [name, count] of genreCounts) {
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-    await (db as any)
+    await db
       .insert(genres)
       .values({
         name,
@@ -181,8 +173,7 @@ export async function rescoreRecommendations(
   libraryGenres: string[],
   statusFilter: string[] = ['pending'],
 ): Promise<HygieneResult> {
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  const recs = await (db as any)
+  const recs = await db
     .select({
       recId: recommendations.id,
       sources: recommendations.sources,
@@ -199,8 +190,7 @@ export async function rescoreRecommendations(
     const allGenres = [...(rec.artistGenres ?? []), ...(rec.artistTags ?? [])]
     const newScore = rescoreOne(rec.sources ?? {}, allGenres, libraryGenres, weights)
 
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-    await (db as any)
+    await db
       .update(recommendations)
       .set({ score: newScore })
       .where(eq(recommendations.id, rec.recId))

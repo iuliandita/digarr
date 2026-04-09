@@ -6,13 +6,14 @@ export type EmbyPlaylistConfig = {
   url: string
   apiKey: string
   userId: string
+  skipTlsVerify?: boolean
 }
 
 async function embyFetch<T>(
   baseUrl: string,
   apiKey: string,
   path: string,
-  options?: { method?: string; body?: unknown },
+  options?: { method?: string; body?: unknown; skipTlsVerify?: boolean },
 ): Promise<T> {
   const res = await fetch(`${baseUrl.replace(/\/+$/, '')}${path}`, {
     method: options?.method ?? 'GET',
@@ -21,6 +22,7 @@ async function embyFetch<T>(
       'Content-Type': 'application/json',
     },
     body: options?.body ? JSON.stringify(options.body) : undefined,
+    ...(options?.skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
   })
   if (!res.ok) {
     throw new Error(`Emby API ${res.status}: ${await res.text()}`)
@@ -32,6 +34,22 @@ export function createEmbyPlaylistTarget(
   targetId: number,
   config: EmbyPlaylistConfig,
 ): DestinationTarget {
+  function findBestMatch(
+    items: Array<{ Id: string; Name: string; AlbumArtist?: string; Artists?: string[] }>,
+    artistName: string,
+    trackName: string,
+  ): string | null {
+    const exact = items.find((item) => {
+      const titleMatch = item.Name.toLowerCase() === trackName.toLowerCase()
+      const artistMatch =
+        item.AlbumArtist?.toLowerCase() === artistName.toLowerCase() ||
+        (item.Artists ?? []).some((artist) => artist.toLowerCase() === artistName.toLowerCase())
+      return titleMatch && artistMatch
+    })
+
+    return (exact ?? items[0])?.Id ?? null
+  }
+
   return {
     id: `emby-playlist-${targetId}`,
     name: 'Emby Playlist',
@@ -52,9 +70,11 @@ export function createEmbyPlaylistTarget(
           })
           const search = await embyFetch<{
             Items: Array<{ Id: string; Name: string; AlbumArtist?: string; Artists?: string[] }>
-          }>(config.url, config.apiKey, `/Users/${config.userId}/Items?${params.toString()}`)
-          const match = search.Items?.[0]
-          if (match?.Id) itemIds.push(match.Id)
+          }>(config.url, config.apiKey, `/Users/${config.userId}/Items?${params.toString()}`, {
+            skipTlsVerify: config.skipTlsVerify,
+          })
+          const matchId = findBestMatch(search.Items ?? [], item.artistName, item.trackName)
+          if (matchId) itemIds.push(matchId)
         }
 
         const playlist = await embyFetch<{ Id: string }>(config.url, config.apiKey, '/Playlists', {
@@ -65,6 +85,7 @@ export function createEmbyPlaylistTarget(
             MediaType: 'Audio',
             Ids: itemIds,
           },
+          skipTlsVerify: config.skipTlsVerify,
         })
 
         return {
@@ -91,6 +112,7 @@ export function createEmbyPlaylistTarget(
           config.url,
           config.apiKey,
           '/System/Info',
+          { skipTlsVerify: config.skipTlsVerify },
         )
         return {
           success: true,

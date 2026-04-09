@@ -119,6 +119,30 @@ describe('createDefaultRegistry', () => {
     expect(provider).toBeDefined()
   })
 
+  test('throws when anthropic is missing an API key', async () => {
+    const registry = createDefaultRegistry()
+    await expect(
+      registry.create('anthropic', {
+        apiKey: null,
+        model: 'claude-3-5-sonnet-20241022',
+      }),
+    ).rejects.toThrow('Anthropic requires an API key')
+  })
+
+  test('throws when openai is missing an API key', async () => {
+    const registry = createDefaultRegistry()
+    await expect(registry.create('openai', { apiKey: null, model: 'gpt-4o' })).rejects.toThrow(
+      'OpenAI requires an API key',
+    )
+  })
+
+  test('throws when ollama is missing a base URL', async () => {
+    const registry = createDefaultRegistry()
+    await expect(
+      registry.create('ollama', { apiKey: null, model: 'llama3', baseUrl: null }),
+    ).rejects.toThrow('Ollama requires a base URL')
+  })
+
   test('supports registering additional providers without modifying existing ones', () => {
     const registry = createDefaultRegistry()
     const mockCreate = vi.fn().mockReturnValue({})

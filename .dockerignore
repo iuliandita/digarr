@@ -15,6 +15,5 @@ AGENTS.md
 SECURITY-AUDIT.md
 .claude/
 .worktrees/
-.superpowers/
 *.md
 !README.md

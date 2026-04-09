@@ -101,6 +101,7 @@ export function setupRoutes(deps: AppDependencies) {
             url: body.embyUrl as string,
             apiKey: body.embyApiKey as string,
             userId: body.embyUserId as string,
+            skipTlsVerify: sanitized.skipTlsVerify ?? false,
           },
           userId,
         })

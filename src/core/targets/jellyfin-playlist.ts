@@ -6,13 +6,14 @@ export type JellyfinPlaylistConfig = {
   url: string
   apiKey: string
   userId: string
+  skipTlsVerify?: boolean
 }
 
 async function jellyfinFetch<T>(
   baseUrl: string,
   apiKey: string,
   path: string,
-  options?: { method?: string; body?: unknown },
+  options?: { method?: string; body?: unknown; skipTlsVerify?: boolean },
 ): Promise<T> {
   const url = `${baseUrl.replace(/\/+$/, '')}${path}`
   const controller = new AbortController()
@@ -27,6 +28,7 @@ async function jellyfinFetch<T>(
       },
       body: options?.body ? JSON.stringify(options.body) : undefined,
       signal: controller.signal,
+      ...(options?.skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
     })
   } finally {
     clearTimeout(timer)
@@ -108,6 +110,7 @@ export function createJellyfinPlaylistTarget(
               MediaType: 'Audio',
               Ids: itemIds,
             },
+            skipTlsVerify: config.skipTlsVerify,
           },
         )
 
@@ -140,6 +143,7 @@ export function createJellyfinPlaylistTarget(
           url,
           apiKey,
           '/System/Info',
+          { skipTlsVerify: config.skipTlsVerify },
         )
         return {
           success: true,

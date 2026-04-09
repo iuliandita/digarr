@@ -20,8 +20,6 @@ SECURITY-AUDIT.md
 .worktrees/
 .playwright-mcp/
 docs/local/
-docs/superpowers/
-.superpowers/
 .planning/
 UI-REVIEW.md
 mempalace.yaml

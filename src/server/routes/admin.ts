@@ -11,13 +11,15 @@ import {
 } from '@/core/ops/hygiene'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
-import { mergePreferences } from '@/db/schema'
+import { mergePreferences, type Preferences } from '@/db/schema'
 import type { HonoEnv } from '@/server/types'
 
 export interface AdminDeps {
   db: OpsDb
-  getUserById: (id: number) => Promise<{ isAdmin: boolean; preferences?: unknown } | null>
-  getSettings: () => Promise<{ preferences?: unknown } | null>
+  getUserById: (
+    id: number,
+  ) => Promise<{ isAdmin: boolean; preferences?: Partial<Preferences> | null } | null>
+  getSettings: () => Promise<{ preferences?: Partial<Preferences> | null } | null>
   generateReasoning?: (artistName: string, genres: string[]) => Promise<string>
 }
 
@@ -126,7 +128,7 @@ export function adminRoutes(deps: AdminDeps) {
     if (!userId) return c.json({ error: 'No user context' }, 400)
 
     const user = await deps.getUserById(userId)
-    const prefs = mergePreferences(user?.preferences as never)
+    const prefs = mergePreferences(user?.preferences)
     const statusParam = c.req.query('status') ?? 'pending'
     const statuses = statusParam.split(',').filter((s) => VALID_STATUSES.has(s))
     if (statuses.length === 0) {

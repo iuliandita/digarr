@@ -11,6 +11,7 @@ export function createMusicinfoClient(baseUrl = 'https://api.musicinfo.pro') {
     baseUrl,
     retries: 1,
     timeout: 8_000,
+    publicIpOnly: true,
   })
 
   return {

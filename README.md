@@ -12,7 +12,7 @@
 [![Tests](https://img.shields.io/badge/tests-1300%2B_passing-brightgreen)]()
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**AI-powered music discovery for your *arr stack.** Connect your listening sources (ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Discogs), pick an AI provider, and Digarr builds a taste profile, discovers new artists through a 7-stage pipeline, and scores them with a weighted formula that learns from your feedback. Approve what you like -- artists go straight to Lidarr, Spotify playlists, or your media server. Describe a mood in plain English and get instant results. Import artists from Spotify Liked Songs for a faster cold start. Set up subscriptions that discover new music on a schedule while you sleep. Generate weekly digest playlists automatically. Browse your library by genre with deep-cut discovery. All self-hosted, all yours.
+**AI-powered music discovery for your *arr stack.** Connect your listening sources (ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, Discogs), pick an AI provider, and Digarr builds a taste profile, discovers new artists through a 7-stage pipeline, and scores them with a weighted formula that learns from your feedback. Approve what you like and send artists or playlists to Lidarr, Spotify, Jellyfin, Emby, Plex, or Navidrome. Describe a mood in plain English and get instant results. Import artists from Spotify Liked Songs for a faster cold start. Set up subscriptions that discover new music on a schedule while you sleep. Generate weekly digest playlists automatically. Browse your library by genre with deep-cut discovery. All self-hosted, all yours.
 
 > **Beta software -- working toward v1.0.** Usable and actively developed, but expect rough edges. Things move fast during the beta -- there may be several releases per day with bug fixes, new features, and improvements. Check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. We'd love your help: set it up, break things, [report issues](https://github.com/iuliandita/digarr/issues), and share your feature ideas.
 >
@@ -25,26 +25,26 @@
 ---
 
 > [!NOTE]
-> **Built with AI.** Digarr is built with the help of agentic AI coding tools. A human drives the roadmap, designs the architecture, makes every feature decision, and reviews the output -- but the code and tests are largely AI-generated. All output is reviewed for security issues and generic AI slop before it ships. This is stated upfront because transparency matters. If that's a dealbreaker for you, no hard feelings.
+> **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
 
 ---
 
 ## What Makes Digarr Different
 
 ### 7-Stage AI Pipeline
-Not just "here are similar artists." Digarr collects your taste from up to 6 sources, asks an AI to reason about what you'd like and why, scores candidates with a configurable weighted formula, deduplicates across batches, and learns from your approve/reject feedback over time.
+Digarr collects your taste from up to 6 sources, asks an AI to reason about it, scores candidates with a configurable weighted formula, deduplicates across batches, and learns from your approve/reject feedback over time.
 
 ### Mood Discovery
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and get instant AI-powered results. No menus, no filters -- just plain English.
 
 ### Auto-Playlists
-Generate curated playlists from your approved recommendations and push them to Navidrome, Jellyfin, Plex, or export as M3U/XSPF. Four strategies: Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
+Generate curated playlists from your approved recommendations and push them to Navidrome, Jellyfin, Emby, Plex, Spotify, or export as M3U/XSPF. Four strategies: Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
 
 ### Your AI, Your Choice
 Anthropic, OpenAI, Google Gemini, Ollama (local, free), or any OpenAI-compatible endpoint. Every recommendation includes a written explanation of why the artist matches your taste.
 
 ### Lidarr Optional
-Works without Lidarr in pure discovery mode. When connected, approved artists get added with your preferred quality/metadata profiles. Also supports Spotify playlist, Navidrome, Jellyfin, and Plex as approval targets.
+Works without Lidarr in pure discovery mode. When connected, approved artists get added with your preferred quality/metadata profiles. Also supports Spotify playlist, Navidrome, Jellyfin, Emby, and Plex as approval targets.
 
 ### Cross-Platform Search
 Search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simultaneously. Results are deduplicated and merged. One-click Quick Discover on any result.
@@ -53,7 +53,7 @@ Search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simu
 
 ## Features
 
-- **6 data sources** -- ListenBrainz, Last.fm, Spotify (OAuth), Plex, Jellyfin, Discogs
+- **7 data sources** -- ListenBrainz, Last.fm, Spotify (OAuth), Plex, Jellyfin, Emby, Discogs
 - **Smart scoring** -- weighted composite: consensus, similarity, genre overlap, AI confidence, feedback learning, popularity
 - **Auto-approve** -- automatically add high-scoring recs to your targets
 - **Subscriptions** -- scheduled discovery from Spotify Liked Songs, playlists/charts, Last.fm tags/charts, ListenBrainz feeds, genre searches, similar-artist seeds
@@ -112,7 +112,7 @@ Runs on a cron schedule, manually, or via subscriptions for targeted discovery.
 | Service | Required | Purpose |
 |---------|----------|---------|
 | **Lidarr** | Optional | Music library management + auto-download |
-| **Listening source** | At least one | ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, or Discogs |
+| **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, or Discogs |
 | **AI Provider** | Yes | Anthropic, OpenAI, Gemini, Ollama, or any compatible endpoint |
 | **PostgreSQL** | Yes | Data storage (included in Docker Compose) |
 

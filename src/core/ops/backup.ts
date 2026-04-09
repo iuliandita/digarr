@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getTableColumns } from 'drizzle-orm'
+import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
 import {
   getKeyFingerprint,
   SENSITIVE_OAUTH,
@@ -26,6 +27,22 @@ import {
 } from '@/db/schema'
 import type { BackupFile, BackupOptions, OpsDb, RestoreOptions, RestoreResult } from './types'
 
+type BackupTable =
+  | typeof artistMetadata
+  | typeof artists
+  | typeof genres
+  | typeof jobRuns
+  | typeof oauthTokens
+  | typeof oidcTokens
+  | typeof playlists
+  | typeof playlistTracks
+  | typeof recommendationBatches
+  | typeof recommendations
+  | typeof settings
+  | typeof subscriptions
+  | typeof targets
+  | typeof users
+
 function getAppVersion(): string {
   try {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'))
@@ -35,9 +52,8 @@ function getAppVersion(): string {
   }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: drizzle table type is opaque
-async function selectAll(db: OpsDb, table: any): Promise<Record<string, unknown>[]> {
-  return db.select().from(table) as unknown as Record<string, unknown>[]
+async function selectAll(db: OpsDb, table: BackupTable): Promise<Record<string, unknown>[]> {
+  return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
 }
 
 export async function createBackup(db: OpsDb, options: BackupOptions = {}): Promise<BackupFile> {
@@ -114,30 +130,10 @@ const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
   targets: SENSITIVE_TARGET_CONFIG,
 }
 
-// Table restore order respects FK dependencies
-const RESTORE_ORDER: {
-  key: keyof BackupFile['data']
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle table type
-  table: any
-}[] = [
-  { key: 'settings', table: settings },
-  { key: 'users', table: users },
-  { key: 'artists', table: artists },
-  { key: 'genres', table: genres },
-  { key: 'artistMetadata', table: artistMetadata },
-  { key: 'oauthTokens', table: oauthTokens },
-  { key: 'oidcTokens', table: oidcTokens },
-  { key: 'targets', table: targets },
-  { key: 'subscriptions', table: subscriptions },
-  { key: 'playlists', table: playlists },
-  { key: 'recommendationBatches', table: recommendationBatches },
-  { key: 'jobRuns', table: jobRuns },
-  { key: 'recommendations', table: recommendations },
-  { key: 'playlistTracks', table: playlistTracks },
-]
-
-// biome-ignore lint/suspicious/noExplicitAny: drizzle table type is opaque
-function filterToSchemaColumns(table: any, row: Record<string, unknown>): Record<string, unknown> {
+function filterToSchemaColumns<TTable extends BackupTable>(
+  table: TTable,
+  row: Record<string, unknown>,
+): Partial<TTable['$inferInsert']> {
   const columns = getTableColumns(table)
   const filtered: Record<string, unknown> = {}
   for (const [key, col] of Object.entries(columns) as [string, { dataType: string }][]) {
@@ -150,8 +146,60 @@ function filterToSchemaColumns(table: any, row: Record<string, unknown>): Record
       filtered[key] = value
     }
   }
-  return filtered
+  return filtered as Partial<TTable['$inferInsert']>
 }
+
+function getDefaultConflictTarget<TTable extends BackupTable>(table: TTable): AnyPgColumn {
+  const columns = getTableColumns(table)
+  return columns.id as AnyPgColumn
+}
+
+type RestoreTx = Parameters<Parameters<OpsDb['transaction']>[0]>[0]
+
+type RestoreSpec<TTable extends BackupTable> = {
+  key: keyof BackupFile['data']
+  table: TTable
+  restore: (tx: RestoreTx, rows: Record<string, unknown>[]) => Promise<void>
+}
+
+function createRestoreSpec<TTable extends BackupTable>(
+  key: keyof BackupFile['data'],
+  table: TTable,
+  conflictTarget?: AnyPgColumn,
+): RestoreSpec<TTable> {
+  return {
+    key,
+    table,
+    async restore(tx, rows) {
+      const target = conflictTarget ?? getDefaultConflictTarget(table)
+      for (const row of rows) {
+        const safeRow = filterToSchemaColumns(table, row) as TTable['$inferInsert']
+        await tx.insert(table).values(safeRow as never).onConflictDoUpdate({
+          target,
+          set: safeRow as never,
+        })
+      }
+    },
+  }
+}
+
+// Table restore order respects FK dependencies
+const RESTORE_ORDER = [
+  createRestoreSpec('settings', settings, settings.id),
+  createRestoreSpec('users', users),
+  createRestoreSpec('artists', artists, artists.mbid),
+  createRestoreSpec('genres', genres, genres.slug),
+  createRestoreSpec('artistMetadata', artistMetadata, artistMetadata.nameNormalized),
+  createRestoreSpec('oauthTokens', oauthTokens),
+  createRestoreSpec('oidcTokens', oidcTokens),
+  createRestoreSpec('targets', targets),
+  createRestoreSpec('subscriptions', subscriptions),
+  createRestoreSpec('playlists', playlists),
+  createRestoreSpec('recommendationBatches', recommendationBatches),
+  createRestoreSpec('jobRuns', jobRuns),
+  createRestoreSpec('recommendations', recommendations),
+  createRestoreSpec('playlistTracks', playlistTracks),
+] as const
 
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
   const currentFp = getKeyFingerprint()
@@ -193,15 +241,6 @@ export async function restoreBackup(
     }
   }
 
-  // Use natural keys for upsert conflict targets where available.
-  // Serial IDs are unstable across database instances.
-  const CONFLICT_TARGETS: Partial<Record<keyof BackupFile['data'], unknown>> = {
-    settings: settings.id,
-    artists: artists.mbid,
-    genres: genres.slug,
-    artistMetadata: artistMetadata.nameNormalized,
-  }
-
   const tablesRestored: Record<string, number> = {}
   const warnings: string[] = []
 
@@ -213,22 +252,13 @@ export async function restoreBackup(
       backup.data.jobRuns = backupData.subscriptionRuns as Record<string, unknown>[]
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: drizzle transaction type
-    await (db as any).transaction(async (tx: OpsDb) => {
-      for (const { key, table } of RESTORE_ORDER) {
-        const rows = backup.data[key]
+    await db.transaction(async (tx) => {
+      for (const spec of RESTORE_ORDER) {
+        const rows = backup.data[spec.key]
         if (!rows || !Array.isArray(rows) || rows.length === 0) continue
 
-        const conflictTarget = CONFLICT_TARGETS[key] ?? table.id
-        for (const row of rows) {
-          const safeRow = filterToSchemaColumns(table, row)
-          // biome-ignore lint/suspicious/noExplicitAny: drizzle insert builder type is opaque
-          await (tx.insert(table).values(safeRow as never) as any).onConflictDoUpdate({
-            target: conflictTarget,
-            set: safeRow,
-          })
-        }
-        tablesRestored[key] = rows.length
+        await spec.restore(tx, rows)
+        tablesRestored[spec.key] = rows.length
       }
     })
   } catch (err) {
