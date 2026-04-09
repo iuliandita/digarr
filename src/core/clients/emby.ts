@@ -56,10 +56,14 @@ export function createEmbyClient(
   }
 
   async function getFavoriteArtists(limit = 50) {
+    // Match the Jellyfin client's query style. Both engines share the same
+    // Items endpoint and accept the top-level IsFavorite=true form.
     const params = new URLSearchParams({
+      SortBy: 'SortName',
+      SortOrder: 'Ascending',
       IncludeItemTypes: 'MusicArtist',
       Recursive: 'true',
-      Filters: 'IsFavorite',
+      IsFavorite: 'true',
       Fields: 'UserData',
       Limit: String(limit),
     })

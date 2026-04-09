@@ -84,8 +84,14 @@ export function setupRoutes(deps: AppDependencies) {
           embyApiKey: body.embyApiKey as string,
           embyUserId: body.embyUserId as string,
         })
-      } catch {
-        // Best-effort -- user can re-enter credentials in Settings
+      } catch (err) {
+        // Best-effort, but log loudly: a silent failure here leaves library
+        // sync, the discovery plugin, and the listening fallback all seeing
+        // NULL Emby credentials while the setup wizard reports success.
+        console.warn(
+          '[setup] updateUserConnections failed for emby; credentials not persisted:',
+          err,
+        )
       }
       try {
         await deps.targetQueries.createTarget({
@@ -98,8 +104,9 @@ export function setupRoutes(deps: AppDependencies) {
           },
           userId,
         })
-      } catch {
+      } catch (err) {
         // Best-effort -- surface failures later via the targets UI
+        console.warn('[setup] createTarget failed for emby-playlist:', err)
       }
     }
 
