@@ -174,10 +174,13 @@ function createRestoreSpec<TTable extends BackupTable>(
       const target = conflictTarget ?? getDefaultConflictTarget(table)
       for (const row of rows) {
         const safeRow = filterToSchemaColumns(table, row) as TTable['$inferInsert']
-        await tx.insert(table).values(safeRow as never).onConflictDoUpdate({
-          target,
-          set: safeRow as never,
-        })
+        await tx
+          .insert(table)
+          .values(safeRow as never)
+          .onConflictDoUpdate({
+            target,
+            set: safeRow as never,
+          })
       }
     },
   }
