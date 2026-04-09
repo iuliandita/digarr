@@ -496,6 +496,95 @@ describe('per-user listening source connections', () => {
     expect(dbWithUpdate.update).toHaveBeenCalled()
   })
 
+  it('GET /api/settings exposes user-scoped emby fields for non-admins', async () => {
+    await clearAllSessions()
+    const sessionToken = 'emby-session-token-7'
+    await createSession(7, sessionToken)
+
+    const selectChainEmby = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([
+        {
+          listenbrainzUsername: null,
+          listenbrainzToken: null,
+          lastfmUsername: null,
+          lastfmApiKey: null,
+          plexUrl: null,
+          plexToken: null,
+          jellyfinUrl: null,
+          jellyfinApiKey: null,
+          jellyfinUserId: null,
+          embyUrl: 'http://emby:8096',
+          embyApiKey: 'secret',
+          embyUserId: 'user-1',
+          discogsToken: null,
+          discogsUsername: null,
+        },
+      ]),
+    }
+    const dbWithEmby = {
+      execute: vi.fn(async () => []),
+      select: vi.fn(() => selectChainEmby),
+    } as unknown as AppDependencies['db']
+
+    const app = createApp(
+      makeDeps({
+        db: dbWithEmby,
+        getUserById: vi.fn(async () => ({
+          id: 7,
+          username: 'user7',
+          isAdmin: false,
+          preferences: null,
+          email: null,
+          oidcSubject: null,
+          authProvider: 'local',
+          listenbrainzUsername: null,
+          listenbrainzToken: null,
+          lastfmUsername: null,
+          lastfmApiKey: null,
+          plexUrl: null,
+          plexToken: null,
+          jellyfinUrl: null,
+          jellyfinApiKey: null,
+          jellyfinUserId: null,
+          embyUrl: 'http://emby:8096',
+          embyApiKey: 'secret',
+          embyUserId: 'user-1',
+          discogsToken: null,
+          discogsUsername: null,
+          createdAt: new Date(),
+        })),
+      }),
+    )
+    const res = await app.request('/api/settings', {
+      headers: { Authorization: `Bearer ${sessionToken}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.embyUrl).toBe('http://emby:8096')
+    expect(body.embyApiKey).toBe('***')
+    expect(body.embyUserId).toBe('user-1')
+    expect(body._embyScope).toBe('user')
+  })
+
+  it('POST /api/settings/test/emby validates the Emby connection', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/settings/test/emby', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://invalid-emby:9999',
+        apiKey: 'key',
+        userId: 'user-1',
+      }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(typeof body.success).toBe('boolean')
+    expect(typeof body.message).toBe('string')
+  })
+
   it('PATCH excludes lastfm fields from global updateSettings when user is authenticated', async () => {
     await clearAllSessions()
     const sessionToken = 'patch-session-token-lfm'

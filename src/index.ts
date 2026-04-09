@@ -6,6 +6,7 @@ import { hashPassword } from './core/auth'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
+import { createEmbyClient } from './core/clients/emby'
 import { createJellyfinClient } from './core/clients/jellyfin'
 import { createLidarrClient } from './core/clients/lidarr'
 import { createMusicBrainzClient } from './core/clients/musicbrainz'
@@ -19,6 +20,7 @@ import { createAlbumCoverageService } from './core/library/album-coverage'
 import { LibraryHealthService } from './core/library/health'
 import { startLibrarySyncScheduler } from './core/library/scheduler'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
+import { createEmbyLibrarySource } from './core/library/sources/emby'
 import { createJellyfinLibrarySource } from './core/library/sources/jellyfin'
 import { createLidarrLibrarySource } from './core/library/sources/lidarr'
 import { createPlexLibrarySource } from './core/library/sources/plex'
@@ -357,6 +359,14 @@ async function buildPerUserLibrarySources(userId: number) {
     sources.push(
       createJellyfinLibrarySource(
         createJellyfinClient(conns.jellyfinUrl, conns.jellyfinApiKey, conns.jellyfinUserId),
+        userId,
+      ),
+    )
+  }
+  if (conns.embyUrl && conns.embyApiKey && conns.embyUserId) {
+    sources.push(
+      createEmbyLibrarySource(
+        createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId),
         userId,
       ),
     )

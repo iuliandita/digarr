@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { createEmbyClient } from '@/core/clients/emby'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
@@ -68,6 +69,33 @@ export function listeningRoutes(deps: AppDependencies) {
         }
       } catch (err: unknown) {
         console.warn('[listening] ListenBrainz fetch failed:', err)
+      }
+    }
+
+    // Fall back to Emby recent plays if earlier sources produced nothing
+    if (
+      tracks.length === 0 &&
+      userConns?.embyUrl &&
+      userConns?.embyApiKey &&
+      userConns?.embyUserId
+    ) {
+      try {
+        const emby = createEmbyClient(
+          userConns.embyUrl,
+          userConns.embyApiKey,
+          userConns.embyUserId,
+          { skipTlsVerify: settings.skipTlsVerify ?? false },
+        )
+        const recent = await emby.getRecentlyPlayed(limit)
+        for (const item of recent) {
+          tracks.push({
+            artist: item.artistName,
+            track: item.trackName,
+            source: 'emby',
+          })
+        }
+      } catch (err: unknown) {
+        console.warn('[listening] Emby fetch failed:', err)
       }
     }
 

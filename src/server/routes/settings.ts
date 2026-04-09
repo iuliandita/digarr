@@ -28,6 +28,7 @@ const SECRET_FIELDS = [
   'oidcClientSecret',
   'plexToken',
   'jellyfinApiKey',
+  'embyApiKey',
   'discogsToken',
 ] as const
 
@@ -105,6 +106,10 @@ async function buildSettingsResponse(
       response.jellyfinApiKey = userConns.jellyfinApiKey
       response.jellyfinUserId = userConns.jellyfinUserId ?? ''
       response._jellyfinScope = 'user'
+      response.embyUrl = userConns.embyUrl ?? ''
+      response.embyApiKey = userConns.embyApiKey
+      response.embyUserId = userConns.embyUserId ?? ''
+      response._embyScope = 'user'
       response.discogsUsername = userConns.discogsUsername ?? ''
       response.discogsToken = userConns.discogsToken
       response._discogsScope = 'user'
@@ -157,6 +162,9 @@ export function settingsRoutes(deps: AppDependencies) {
     'jellyfinUrl',
     'jellyfinApiKey',
     'jellyfinUserId',
+    'embyUrl',
+    'embyApiKey',
+    'embyUserId',
     'discogsToken',
     'discogsUsername',
   ])
@@ -344,6 +352,18 @@ export function settingsRoutes(deps: AppDependencies) {
           result.message += ' (warning: no user ID set -- listening data will not work without it)'
         }
         return c.json(result)
+      }
+      case 'emby': {
+        const url = body.url || userConns?.embyUrl || ''
+        const apiKey = body.apiKey || userConns?.embyApiKey || ''
+        const embyUserId = body.userId || userConns?.embyUserId || ''
+        if (!url || !apiKey || !embyUserId) {
+          return c.json({ success: false, message: 'Missing URL, API key, or user ID' })
+        }
+        const { createEmbyClient } = await import('@/core/clients/emby')
+        const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
+        const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
+        return c.json(await client.testConnection())
       }
       case 'discogs': {
         const token = body.token || userConns?.discogsToken || ''
