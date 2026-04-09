@@ -118,6 +118,7 @@ export const SENSITIVE_USER_CONNECTIONS = [
   'lastfmApiKey',
   'plexToken',
   'jellyfinApiKey',
+  'embyApiKey',
   'discogsToken',
 ] as const
 export const SENSITIVE_TARGET_CONFIG = ['apiKey', 'password', 'token', 'secret'] as const

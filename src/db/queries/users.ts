@@ -101,6 +101,9 @@ export type UserConnections = {
   jellyfinUrl: string | null
   jellyfinApiKey: string | null
   jellyfinUserId: string | null
+  embyUrl: string | null
+  embyApiKey: string | null
+  embyUserId: string | null
   discogsToken: string | null
   discogsUsername: string | null
 }
@@ -120,6 +123,9 @@ export async function getUserConnections(
       jellyfinUrl: users.jellyfinUrl,
       jellyfinApiKey: users.jellyfinApiKey,
       jellyfinUserId: users.jellyfinUserId,
+      embyUrl: users.embyUrl,
+      embyApiKey: users.embyApiKey,
+      embyUserId: users.embyUserId,
       discogsToken: users.discogsToken,
       discogsUsername: users.discogsUsername,
     })
