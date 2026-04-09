@@ -27,11 +27,9 @@ export function setupRoutes(deps: AppDependencies) {
       return c.json({ error: 'Setup already complete' }, 409)
     }
 
-    const body = await c.req.json()
+    const body = (await c.req.json()) as Record<string, unknown>
     const sanitized = Object.fromEntries(
-      Object.entries(body as Record<string, unknown>).filter(([key]) =>
-        GLOBAL_SETUP_FIELDS.has(key),
-      ),
+      Object.entries(body).filter(([key]) => GLOBAL_SETUP_FIELDS.has(key)),
     )
 
     const missing: string[] = []
@@ -43,6 +41,10 @@ export function setupRoutes(deps: AppDependencies) {
     }
     if (!sanitized.lidarrUrl && sanitized.lidarrApiKey) {
       missing.push('lidarrUrl (required when lidarrApiKey is set)')
+    }
+    // Emby is optional -- only validate if partially provided
+    if (body.embyUrl && (!body.embyApiKey || !body.embyUserId)) {
+      missing.push('embyApiKey and embyUserId (required when embyUrl is set)')
     }
 
     if (missing.length > 0) {
@@ -67,6 +69,24 @@ export function setupRoutes(deps: AppDependencies) {
         })
       } catch {
         // Best-effort -- the boot-time backfill will handle it on next restart
+      }
+    }
+
+    // Auto-create Emby playlist target if Emby was configured during setup
+    if (body.embyUrl && body.embyApiKey && body.embyUserId && userId) {
+      try {
+        await deps.targetQueries.createTarget({
+          type: 'emby-playlist',
+          name: 'Emby',
+          config: {
+            url: body.embyUrl as string,
+            apiKey: body.embyApiKey as string,
+            userId: body.embyUserId as string,
+          },
+          userId,
+        })
+      } catch {
+        // Best-effort -- surface failures later via the targets UI
       }
     }
 

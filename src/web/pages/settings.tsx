@@ -74,6 +74,9 @@ type Settings = {
   jellyfinUrl?: string
   jellyfinApiKey?: string
   jellyfinUserId?: string
+  embyUrl?: string
+  embyApiKey?: string
+  embyUserId?: string
   discogsToken?: string
   discogsUsername?: string
   preferences?: Partial<Preferences>
@@ -224,6 +227,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
   )
   const [jellyfinUserId, setJellyfinUserId] = useState(settings.jellyfinUserId ?? '')
+  const [embyUrl, setEmbyUrl] = useState(settings.embyUrl ?? '')
+  const [embyApiKey, setEmbyApiKey] = useState(
+    settings.embyApiKey === '***' ? '' : (settings.embyApiKey ?? ''),
+  )
+  const [embyUserId, setEmbyUserId] = useState(settings.embyUserId ?? '')
   const [discogsUsername, setDiscogsUsername] = useState(settings.discogsUsername ?? '')
   const [discogsToken, setDiscogsToken] = useState(
     settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
@@ -259,6 +267,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     ai: Boolean(settings.aiProvider && settings.aiModel),
     plex: Boolean(settings.plexUrl && settings.plexToken),
     jellyfin: Boolean(settings.jellyfinUrl && settings.jellyfinApiKey && settings.jellyfinUserId),
+    emby: Boolean(settings.embyUrl && settings.embyApiKey && settings.embyUserId),
     discogs: Boolean(settings.discogsUsername && settings.discogsToken),
   }
 
@@ -400,6 +409,17 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     }),
   )
 
+  const testEmby = createTester('emby', 'Emby', () =>
+    testService('emby', { url: embyUrl, apiKey: embyApiKey, userId: embyUserId }),
+  )
+  const saveEmby = createSaver('emby', 'Emby', () =>
+    updateSettings({
+      embyUrl,
+      embyApiKey: embyApiKey || undefined,
+      embyUserId: embyUserId || undefined,
+    }),
+  )
+
   const testDiscogs = createTester('discogs', 'Discogs', () =>
     testService('discogs', { username: discogsUsername, token: discogsToken }),
   )
@@ -464,6 +484,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const isAiConfigured = !!(aiModel || settings.aiModel)
   const isPlexConfigured = !!(plexUrl || settings.plexUrl)
   const isJellyfinConfigured = !!(jellyfinUrl || settings.jellyfinUrl)
+  const isEmbyConfigured = !!(embyUrl || settings.embyUrl)
   const isDiscogsConfigured = !!(discogsUsername || settings.discogsUsername)
 
   return (
@@ -1066,6 +1087,66 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         </ServiceCard>
       </div>
 
+      {/* Emby */}
+      <div className={isEmbyConfigured ? '' : 'opacity-60'}>
+        <ServiceCard
+          name="Emby"
+          description="Media server with listening history and playlist export"
+          status={serviceStatus('emby')}
+          icon={
+            <span className="w-5 h-5 rounded bg-accent/20 text-accent text-micro font-bold flex items-center justify-center">
+              E
+            </span>
+          }
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Server URL" id="emby-url">
+              <Input
+                id="emby-url"
+                type="url"
+                placeholder="http://localhost:8096"
+                value={embyUrl}
+                onChange={(e) => setEmbyUrl(e.target.value)}
+              />
+            </Field>
+            <Field label="API Key" id="emby-apikey">
+              <Input
+                id="emby-apikey"
+                type="password"
+                placeholder={settings.embyApiKey === '***' ? '(saved)' : 'Emby API key'}
+                value={embyApiKey}
+                onChange={(e) => setEmbyApiKey(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label="User ID" id="emby-userid">
+            <Input
+              id="emby-userid"
+              placeholder="Emby user ID"
+              value={embyUserId}
+              onChange={(e) => setEmbyUserId(e.target.value)}
+            />
+            <p className="text-xs text-muted mt-1">
+              Found under Emby Dashboard -&gt; Users -&gt; (select user). The URL contains the user
+              ID.
+            </p>
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={testEmby}
+              disabled={tests.emby === 'testing'}
+            >
+              {tests.emby === 'testing' ? 'Testing...' : 'Test Connection'}
+            </Button>
+            <Button size="sm" onClick={saveEmby} disabled={saving.emby}>
+              {saving.emby ? 'Saving...' : isEmbyConfigured ? 'Save' : 'Configure'}
+            </Button>
+          </div>
+        </ServiceCard>
+      </div>
+
       {/* Discogs */}
       <div className={isDiscogsConfigured ? '' : 'opacity-60'}>
         <ServiceCard
@@ -1258,6 +1339,15 @@ const TARGET_TYPES = [
     fields: [
       { key: 'url', label: 'URL', placeholder: 'http://lidarr:8686' },
       { key: 'apiKey', label: 'API Key', placeholder: 'Enter API key', type: 'password' as const },
+    ],
+  },
+  {
+    value: 'emby-playlist',
+    label: 'Emby Playlist',
+    fields: [
+      { key: 'url', label: 'URL', placeholder: 'http://emby:8096' },
+      { key: 'apiKey', label: 'API Key', placeholder: 'Enter API key', type: 'password' as const },
+      { key: 'userId', label: 'User ID', placeholder: 'Enter Emby user ID' },
     ],
   },
 ]

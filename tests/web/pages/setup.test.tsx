@@ -93,4 +93,19 @@ describe('SetupWizard', () => {
     ).toBeInTheDocument()
     expect(screen.queryByText('Listening Sources')).not.toBeInTheDocument()
   })
+
+  it('shows Emby as a setup mode option', async () => {
+    render(<SetupWizard onComplete={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /Emby/i })).toBeInTheDocument()
+  })
+
+  it('emby mode reveals the Emby connection step', async () => {
+    render(<SetupWizard onComplete={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Emby/i }))
+
+    await screen.findByText('Connect Emby')
+    expect(screen.getByLabelText('Emby URL')).toBeInTheDocument()
+    expect(screen.getByLabelText('API Key')).toBeInTheDocument()
+    expect(screen.getByLabelText('User ID')).toBeInTheDocument()
+  })
 })

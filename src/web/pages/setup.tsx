@@ -1,4 +1,4 @@
-import { Compass } from 'lucide-react'
+import { Compass, MonitorPlay } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Field } from '../components/field'
@@ -9,20 +9,23 @@ import { completeSetup, testService } from '../lib/api'
 
 type FormState = {
   lidarr: { url: string; apiKey: string; skipTlsVerify: boolean }
+  emby: { url: string; apiKey: string; userId: string }
   ai: { provider: string; model: string; apiKey: string; baseUrl: string }
 }
 
 type TestResults = {
   lidarr: boolean | null
+  emby: boolean | null
   ai: boolean | null
 }
 
 type TestingState = {
   lidarr: boolean
+  emby: boolean
   ai: boolean
 }
 
-type SetupMode = 'lidarr' | 'discover'
+type SetupMode = 'lidarr' | 'emby' | 'discover'
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
@@ -108,6 +111,28 @@ function StepMode({
         </button>
         <button
           type="button"
+          onClick={() => onSelect('emby')}
+          className={[
+            'w-full text-left rounded-lg border p-4 transition-colors',
+            mode === 'emby'
+              ? 'border-accent bg-accent/10'
+              : 'border-border bg-surface hover:border-accent/50',
+          ].join(' ')}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+              <MonitorPlay size={18} className="text-accent" />
+            </div>
+            <div>
+              <span className="text-sm font-medium text-text">Emby</span>
+              <p className="text-xs text-muted mt-0.5">
+                Sync your Emby library, use listening history for taste, and push playlists back.
+              </p>
+            </div>
+          </div>
+        </button>
+        <button
+          type="button"
           onClick={() => onSelect('discover')}
           className={[
             'w-full text-left rounded-lg border p-4 transition-colors',
@@ -178,6 +203,65 @@ function StepLidarr({
         />
       </Field>
       <Button onClick={onTest} disabled={!form.url || !form.apiKey || testing} className="w-full">
+        {testing ? 'Testing...' : 'Test & Continue'}
+      </Button>
+    </div>
+  )
+}
+
+function StepEmby({
+  form,
+  onFormChange,
+  testing,
+  onTest,
+}: {
+  form: FormState['emby']
+  onFormChange: (v: FormState['emby']) => void
+  testing: boolean
+  onTest: () => void
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold text-text">Connect Emby</h2>
+        <p className="text-sm text-muted mt-1">
+          Emby powers library sync, taste signal, and playlist export.
+        </p>
+      </div>
+      <Field label="Emby URL" id="emby-url">
+        <Input
+          id="emby-url"
+          type="url"
+          placeholder="http://localhost:8096"
+          value={form.url}
+          onChange={(e) => onFormChange({ ...form, url: e.target.value })}
+        />
+      </Field>
+      <Field label="API Key" id="emby-apikey">
+        <Input
+          id="emby-apikey"
+          type="password"
+          placeholder="Your Emby API key"
+          value={form.apiKey}
+          onChange={(e) => onFormChange({ ...form, apiKey: e.target.value })}
+        />
+      </Field>
+      <Field label="User ID" id="emby-userid">
+        <Input
+          id="emby-userid"
+          placeholder="Emby user ID"
+          value={form.userId}
+          onChange={(e) => onFormChange({ ...form, userId: e.target.value })}
+        />
+        <p className="text-xs text-muted mt-1">
+          Found under Emby Dashboard -&gt; Users -&gt; (select user). The URL contains the user ID.
+        </p>
+      </Field>
+      <Button
+        onClick={onTest}
+        disabled={!form.url || !form.apiKey || !form.userId || testing}
+        className="w-full"
+      >
         {testing ? 'Testing...' : 'Test & Continue'}
       </Button>
     </div>
@@ -345,6 +429,8 @@ function StepDone({
   const rows: { label: string; value: string }[] = []
   if (mode === 'lidarr') {
     rows.push({ label: 'Lidarr', value: form.lidarr.url })
+  } else if (mode === 'emby') {
+    rows.push({ label: 'Emby', value: form.emby.url })
   } else {
     rows.push({ label: 'Mode', value: 'Discovery only' })
   }
@@ -379,16 +465,19 @@ function StepDone({
 
 const DEFAULT_FORM: FormState = {
   lidarr: { url: '', apiKey: '', skipTlsVerify: false },
+  emby: { url: '', apiKey: '', userId: '' },
   ai: { provider: 'anthropic', model: '', apiKey: '', baseUrl: '' },
 }
 
 const DEFAULT_RESULTS: TestResults = {
   lidarr: null,
+  emby: null,
   ai: null,
 }
 
 const DEFAULT_TESTING: TestingState = {
   lidarr: false,
+  emby: false,
   ai: false,
 }
 
@@ -400,9 +489,10 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const [testing, setTesting] = useState<TestingState>(DEFAULT_TESTING)
   const [starting, setStarting] = useState(false)
 
-  const totalSteps = mode === 'lidarr' ? 4 : 3
-  const aiStep = mode === 'lidarr' ? 3 : 2
-  const doneStep = mode === 'lidarr' ? 4 : 3
+  const hasServiceStep = mode === 'lidarr' || mode === 'emby'
+  const totalSteps = hasServiceStep ? 4 : 3
+  const aiStep = hasServiceStep ? 3 : 2
+  const doneStep = hasServiceStep ? 4 : 3
 
   function setTestingKey(key: keyof TestingState, val: boolean) {
     setTesting((prev) => ({ ...prev, [key]: val }))
@@ -433,6 +523,30 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       toast.error('Could not reach Lidarr')
     } finally {
       setTestingKey('lidarr', false)
+    }
+  }
+
+  async function testEmby() {
+    setTestingKey('emby', true)
+    try {
+      const res = await testService('emby', {
+        url: form.emby.url,
+        apiKey: form.emby.apiKey,
+        userId: form.emby.userId,
+      })
+      if (res.success) {
+        setResultKey('emby', true)
+        toast.success('Emby connected successfully')
+        setStep(aiStep)
+      } else {
+        setResultKey('emby', false)
+        toast.error(res.message || 'Emby connection failed')
+      }
+    } catch {
+      setResultKey('emby', false)
+      toast.error('Could not reach Emby')
+    } finally {
+      setTestingKey('emby', false)
     }
   }
 
@@ -479,6 +593,12 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       config.lidarrApiKey = form.lidarr.apiKey
       config.skipTlsVerify = form.lidarr.skipTlsVerify
     }
+    // Only include Emby config if mode is emby
+    if (mode === 'emby') {
+      config.embyUrl = form.emby.url
+      config.embyApiKey = form.emby.apiKey
+      config.embyUserId = form.emby.userId
+    }
     try {
       await completeSetup(config)
       onComplete()
@@ -524,6 +644,14 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               onTest={testLidarr}
             />
           )}
+          {step === 2 && mode === 'emby' && (
+            <StepEmby
+              form={form.emby}
+              onFormChange={(v) => setForm((f) => ({ ...f, emby: v }))}
+              testing={testing.emby}
+              onTest={testEmby}
+            />
+          )}
           {step === aiStep && (
             <StepAi
               form={form.ai}
@@ -535,7 +663,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
           {step === doneStep && (
             <StepDone
               form={form}
-              mode={mode === 'lidarr' ? 'lidarr' : 'discover'}
+              mode={mode ?? 'discover'}
               onStart={handleStart}
               starting={starting}
             />
