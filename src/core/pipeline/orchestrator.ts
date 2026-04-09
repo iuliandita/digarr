@@ -6,6 +6,7 @@ import { createMusicinfoClient } from '@/core/clients/musicinfo'
 import { decryptField } from '@/core/crypto'
 import { sendWebhook } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
+import { createEmbySource } from '@/core/plugins/emby'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
 import { createLastFmSource } from '@/core/plugins/lastfm'
 import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
@@ -149,6 +150,14 @@ export class PipelineOrchestrator extends EventEmitter {
       const jfUserId = userConnections?.jellyfinUserId
       if (jfUrl && jfApiKey && jfUserId) {
         registry.register(createJellyfinSource(jfUrl, jfApiKey, jfUserId, settings.skipTlsVerify))
+      }
+
+      // Emby
+      const embyUrl = userConnections?.embyUrl
+      const embyApiKey = userConnections?.embyApiKey
+      const embyUserId = userConnections?.embyUserId
+      if (embyUrl && embyApiKey && embyUserId) {
+        registry.register(createEmbySource(embyUrl, embyApiKey, embyUserId, settings.skipTlsVerify))
       }
 
       // Discogs

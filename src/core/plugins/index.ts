@@ -1,4 +1,5 @@
 export { createDiscogsSource } from './discogs'
+export { createEmbySource } from './emby'
 export { createJellyfinSource } from './jellyfin'
 export { createLastFmSource } from './lastfm'
 export { createListenBrainzSource } from './listenbrainz'
