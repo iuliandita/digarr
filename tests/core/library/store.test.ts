@@ -341,6 +341,24 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     expect(state2?.lastSyncCounts?.total).toBe(100)
   })
 
+  it('clearRunningSyncStates flips stale running rows to failed', async () => {
+    const store = createLibrarySyncStore(db)
+    // One stale 'running' row, one 'completed', one 'failed'
+    await store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' })
+    await store.upsertLibrarySyncState(null, 'lidarr', { lastSyncStatus: 'completed' })
+    await store.upsertLibrarySyncState(null, 'jellyfin', { lastSyncStatus: 'failed' })
+
+    const cleared = await store.clearRunningSyncStates()
+    expect(cleared).toBe(1)
+
+    expect((await store.getLibrarySyncState(userId, PLEX_SOURCE))?.lastSyncStatus).toBe('failed')
+    expect((await store.getLibrarySyncState(userId, PLEX_SOURCE))?.lastSyncError).toMatch(
+      /Interrupted/i,
+    )
+    expect((await store.getLibrarySyncState(null, 'lidarr'))?.lastSyncStatus).toBe('completed')
+    expect((await store.getLibrarySyncState(null, 'jellyfin'))?.lastSyncStatus).toBe('failed')
+  })
+
   it('override CRUD round-trips', async () => {
     const store = createLibrarySyncStore(db)
     await store.upsertOverride(

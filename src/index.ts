@@ -238,6 +238,14 @@ const storeDb: StoreDb = {
 jobRecorder = createJobRecorder(db)
 // Mark stuck jobs at startup
 jobRecorder.markStuck().catch((err) => console.error('[startup] Stuck detection failed:', err))
+// Reset any library_sync_state rows left in 'running' from a previous crash/restart.
+// The orchestrator never finishes those, so the UI would show a permanent "running" badge.
+librarySyncStore
+  .clearRunningSyncStates()
+  .then((n) => {
+    if (n > 0) console.warn(`[startup] Cleared ${n} stale 'running' library sync state(s)`)
+  })
+  .catch((err) => console.error('[startup] Library sync state sweep failed:', err))
 
 const orchestrator = new PipelineOrchestrator()
 const scheduler = new SubscriptionScheduler()

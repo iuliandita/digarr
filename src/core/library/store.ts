@@ -63,6 +63,10 @@ export interface LibrarySyncStore {
     patch: LibrarySyncStorePatch,
   ): Promise<void>
 
+  /** Marks any sync rows left in 'running' state as 'failed'. Call on boot so
+   *  syncs interrupted by a crash or pod restart don't stay stuck forever. */
+  clearRunningSyncStates(): Promise<number>
+
   getOverride(
     userId: number,
     source: string,
@@ -357,6 +361,18 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
           lastSyncCounts: patch.lastSyncCounts ?? null,
         })
       }
+    },
+
+    async clearRunningSyncStates() {
+      const rows = await database
+        .update(librarySyncState)
+        .set({
+          lastSyncStatus: 'failed',
+          lastSyncError: 'Interrupted by server restart',
+        })
+        .where(eq(librarySyncState.lastSyncStatus, 'running'))
+        .returning({ source: librarySyncState.source })
+      return rows.length
     },
 
     getOverride,

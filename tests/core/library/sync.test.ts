@@ -33,6 +33,7 @@ function makeStore(): LibrarySyncStore {
     findReconciledByNormalizedName: vi.fn(async () => []),
     getLibrarySyncState: vi.fn(async () => null),
     upsertLibrarySyncState: vi.fn(async () => {}),
+    clearRunningSyncStates: vi.fn(async () => 0),
     getOverride: vi.fn(async () => null),
     getAllOverrides: vi.fn(async () => new Map()),
     upsertOverride: vi.fn(async () => {}),
