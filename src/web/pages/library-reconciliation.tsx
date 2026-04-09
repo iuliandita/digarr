@@ -1,10 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { LibraryUnreconciledAlbumRowComponent } from '../components/library-unreconciled-album-row'
 import { LibraryUnreconciledRowComponent } from '../components/library-unreconciled-row'
 import { getLibraryUnreconciled, getLibraryUnreconciledAlbums } from '../lib/api'
 
+const ALBUMS_PER_PAGE = 20
+
 export function LibraryReconciliationPage() {
   const queryClient = useQueryClient()
+  const [albumPage, setAlbumPage] = useState(1)
   const { data, error, isError, isLoading } = useQuery({
     queryKey: ['library', 'unreconciled'],
     queryFn: getLibraryUnreconciled,
@@ -21,6 +25,15 @@ export function LibraryReconciliationPage() {
 
   const items = data?.items ?? []
   const albumItems = albumData?.items ?? []
+  const albumTotal = albumItems.length
+  const albumPageCount = Math.max(1, Math.ceil(albumTotal / ALBUMS_PER_PAGE))
+
+  useEffect(() => {
+    if (albumPage > albumPageCount) setAlbumPage(albumPageCount)
+  }, [albumPage, albumPageCount])
+
+  const albumPageStart = (albumPage - 1) * ALBUMS_PER_PAGE
+  const albumPageItems = albumItems.slice(albumPageStart, albumPageStart + ALBUMS_PER_PAGE)
   const grouped = new Map<string, typeof items>()
 
   for (const row of items) {
@@ -91,7 +104,7 @@ export function LibraryReconciliationPage() {
           <p className="text-sm text-muted">
             {isAlbumLoading
               ? 'Loading unreconciled albums...'
-              : `${albumItems.length} albums could not be automatically matched to MusicBrainz.`}
+              : `${albumTotal} albums could not be automatically matched to MusicBrainz.`}
           </p>
         </div>
 
@@ -116,15 +129,47 @@ export function LibraryReconciliationPage() {
           </div>
         )}
 
-        {!isAlbumError && albumItems.length > 0 && (
-          <div className="space-y-2">
-            {albumItems.map((row) => (
-              <LibraryUnreconciledAlbumRowComponent
-                key={row.id}
-                row={row}
-                onResolved={handleResolved}
-              />
-            ))}
+        {!isAlbumError && albumTotal > 0 && (
+          <div className="space-y-3">
+            <div className="space-y-2">
+              {albumPageItems.map((row) => (
+                <LibraryUnreconciledAlbumRowComponent
+                  key={row.id}
+                  row={row}
+                  onResolved={handleResolved}
+                />
+              ))}
+            </div>
+
+            {albumPageCount > 1 && (
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <div className="text-xs text-muted">
+                  Showing {albumPageStart + 1}-
+                  {Math.min(albumPageStart + ALBUMS_PER_PAGE, albumTotal)} of {albumTotal}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAlbumPage((p) => Math.max(1, p - 1))}
+                    disabled={albumPage === 1}
+                    className="px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-xs text-muted tabular-nums">
+                    Page {albumPage} / {albumPageCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAlbumPage((p) => Math.min(albumPageCount, p + 1))}
+                    disabled={albumPage === albumPageCount}
+                    className="px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
