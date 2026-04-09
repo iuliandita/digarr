@@ -134,6 +134,9 @@ describe('GET /api/listening/recent', () => {
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      embyUrl: null,
+      embyApiKey: null,
+      embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
     })
@@ -162,6 +165,9 @@ describe('GET /api/listening/recent', () => {
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      embyUrl: null,
+      embyApiKey: null,
+      embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
     })
@@ -186,6 +192,9 @@ describe('GET /api/listening/recent', () => {
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      embyUrl: null,
+      embyApiKey: null,
+      embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
     })
