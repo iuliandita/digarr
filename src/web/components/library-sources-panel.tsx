@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { getLibrarySources, triggerLibrarySync } from '../lib/api'
 
@@ -20,6 +21,9 @@ function statusColor(status: string | null): string {
 
 export function LibrarySourcesPanel() {
   const queryClient = useQueryClient()
+  // Tracks which button fired the current sync so only its spinner animates.
+  // `undefined` means no in-flight sync; `null` means "Sync all"; a string means a source id.
+  const [pendingTarget, setPendingTarget] = useState<string | null | undefined>(undefined)
 
   const sourcesQuery = useQuery({
     queryKey: ['library', 'sources'],
@@ -37,7 +41,14 @@ export function LibrarySourcesPanel() {
     onError: (err: Error) => {
       toast.error(`Sync failed: ${err.message}`)
     },
+    onSettled: () => {
+      setPendingTarget(undefined)
+    },
   })
+
+  const isSyncing = syncMutation.isPending
+  const allPending = isSyncing && pendingTarget === null
+  const sourcePending = (sourceId: string) => isSyncing && pendingTarget === sourceId
 
   const sources = sourcesQuery.data?.sources ?? []
 
@@ -47,11 +58,14 @@ export function LibrarySourcesPanel() {
         <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Library Sources</h2>
         <button
           type="button"
-          onClick={() => syncMutation.mutate(undefined)}
-          disabled={syncMutation.isPending}
+          onClick={() => {
+            setPendingTarget(null)
+            syncMutation.mutate(undefined)
+          }}
+          disabled={isSyncing}
           className="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
-          <RefreshCw size={14} className={syncMutation.isPending ? 'animate-spin' : undefined} />
+          <RefreshCw size={14} className={allPending ? 'animate-spin' : undefined} />
           Sync all
         </button>
       </div>
@@ -88,11 +102,17 @@ export function LibrarySourcesPanel() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => syncMutation.mutate(row.source)}
-                    disabled={syncMutation.isPending}
+                    onClick={() => {
+                      setPendingTarget(row.source)
+                      syncMutation.mutate(row.source)
+                    }}
+                    disabled={isSyncing}
                     className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
                   >
-                    <RefreshCw size={12} />
+                    <RefreshCw
+                      size={12}
+                      className={sourcePending(row.source) ? 'animate-spin' : undefined}
+                    />
                     Sync now
                   </button>
                 </div>
