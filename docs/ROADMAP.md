@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-09 | Current: v0.19.0
+> Updated: 2026-04-09 | Current: v0.19.2
 >
 > This is a living document. Priorities shift based on feedback and demand.
 > Nothing here is a guarantee -- it reflects current intent and direction.
@@ -106,6 +106,11 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### v0.19.0 -- v0.19.2
+
+- Per-user listening source connections (ListenBrainz, Last.fm) instead of shared globals
+- Hermetic settings route tests that no longer depend on public external APIs
 
 ### v0.18.0 -- v0.19.0
 

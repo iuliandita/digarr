@@ -2,6 +2,16 @@
 
 All notable user-facing changes are documented here.
 
+## v0.19.2 - 2026-04-09
+
+### Changed
+
+- Listening sources (ListenBrainz, Last.fm) are now scoped to individual users instead of shared global settings
+
+### Fixed
+
+- Settings route tests no longer hit public ListenBrainz and Last.fm APIs, fixing a flaky 5s timeout that blocked the v0.19.1 release build
+
 ## v0.19.0 - 2026-04-09
 
 ### Added

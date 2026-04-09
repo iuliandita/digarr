@@ -43,7 +43,7 @@ body:
       placeholder: |
         - OS: Ubuntu 24.04
         - Browser: Firefox 126
-        - Digarr: 0.19.0
+        - Digarr: 0.19.2
         - Deploy: Docker Compose
     validations:
       required: false
