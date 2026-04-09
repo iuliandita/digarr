@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-09 | Current: v0.20.0
+> Updated: 2026-04-09 | Current: v0.20.1
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -101,6 +101,12 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### v0.20.1
+
+- Hardened outbound metadata fallback requests against redirects and private-host SSRF paths
+- Fixed Emby and Jellyfin connection tests to validate configured user access
+- Carried TLS skip settings through playlist export paths and tightened docs around shipped support
 
 ### v0.20.0
 

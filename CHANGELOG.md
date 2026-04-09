@@ -2,6 +2,19 @@
 
 All notable user-facing changes are documented here.
 
+## v0.20.1 - 2026-04-09
+
+### Fixed
+
+- Emby and Jellyfin connection tests now validate the configured user library scope instead of only checking server info
+- Playlist export to Emby and Jellyfin now respects TLS-skip settings, and Emby track matching prefers exact title and artist hits
+- Metadata fallback HTTP requests now block redirects, reject private hosts at request time, and keep no-content delete responses typed honestly
+
+### Changed
+
+- Provider and admin config typing is stricter at shared boundaries
+- API, README, roadmap, and issue template docs are aligned with shipped Emby support and local tooling rules
+
 ## v0.20.0 - 2026-04-09
 
 ### Added

@@ -2,5 +2,5 @@ apiVersion: v2
 name: digarr
 description: Music discovery app -- finds new artists based on your listening history
 type: application
-version: 0.20.0
-appVersion: "0.20.0"
+version: 0.20.1
+appVersion: "0.20.1"
