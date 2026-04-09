@@ -357,13 +357,17 @@ export function settingsRoutes(deps: AppDependencies) {
         const url = body.url || userConns?.embyUrl || ''
         const apiKey = body.apiKey || userConns?.embyApiKey || ''
         const embyUserId = body.userId || userConns?.embyUserId || ''
-        if (!url || !apiKey || !embyUserId) {
-          return c.json({ success: false, message: 'Missing URL, API key, or user ID' })
+        if (!url || !apiKey) {
+          return c.json({ success: false, message: `Missing ${!url ? 'URL' : 'API key'}` })
         }
         const { createEmbyClient } = await import('@/core/clients/emby')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
         const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
-        return c.json(await client.testConnection())
+        const result = await client.testConnection()
+        if (result.success && !embyUserId) {
+          result.message += ' (warning: no user ID set -- listening data will not work without it)'
+        }
+        return c.json(result)
       }
       case 'discogs': {
         const token = body.token || userConns?.discogsToken || ''

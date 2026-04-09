@@ -55,9 +55,28 @@ export function createEmbyClient(
     }
   }
 
+  async function getFavoriteArtists(limit = 50) {
+    const params = new URLSearchParams({
+      IncludeItemTypes: 'MusicArtist',
+      Recursive: 'true',
+      Filters: 'IsFavorite',
+      Fields: 'UserData',
+      Limit: String(limit),
+    })
+    const res = await get<{ Items: Array<Record<string, unknown>> }>(
+      `/Users/${userId}/Items?${params.toString()}`,
+    )
+    return (res.Items ?? []).map((item) => ({
+      id: item.Id as string,
+      name: item.Name as string,
+      playCount: (item.UserData as { PlayCount?: number } | undefined)?.PlayCount ?? 0,
+      isFavorite: true,
+    }))
+  }
+
   return {
     getTopArtists,
-    getFavoriteArtists: async (limit = 50) => getTopArtists(limit),
+    getFavoriteArtists,
     getRecentlyPlayed: async (limit = 50) => {
       const params = new URLSearchParams({
         SortBy: 'DatePlayed',

@@ -72,7 +72,7 @@ export function LibrarySourcesPanel() {
 
       {sources.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-muted text-sm">
-          No library sources configured. Add Lidarr, Plex, or Jellyfin in Settings.
+          No library sources configured. Add Lidarr, Plex, Jellyfin, or Emby in Settings.
         </div>
       ) : (
         <div className="space-y-3">

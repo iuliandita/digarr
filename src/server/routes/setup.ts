@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { SetupConfig } from '@/db/queries/settings'
+import { updateUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
 
@@ -72,8 +73,20 @@ export function setupRoutes(deps: AppDependencies) {
       }
     }
 
-    // Auto-create Emby playlist target if Emby was configured during setup
+    // Persist Emby credentials on the users row and auto-create the playlist
+    // target if Emby was configured during setup. Both are needed: the target
+    // drives playlist push, while the users.emby_* columns drive library sync,
+    // the discovery plugin, and the listening-history fallback.
     if (body.embyUrl && body.embyApiKey && body.embyUserId && userId) {
+      try {
+        await updateUserConnections(deps.db, userId, {
+          embyUrl: body.embyUrl as string,
+          embyApiKey: body.embyApiKey as string,
+          embyUserId: body.embyUserId as string,
+        })
+      } catch {
+        // Best-effort -- user can re-enter credentials in Settings
+      }
       try {
         await deps.targetQueries.createTarget({
           type: 'emby-playlist',

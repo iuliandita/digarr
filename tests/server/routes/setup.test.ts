@@ -15,6 +15,17 @@ vi.mock('@/core/sessions', async () => {
   }
 })
 
+const { updateUserConnectionsMock } = vi.hoisted(() => ({
+  updateUserConnectionsMock: vi.fn(async () => {}),
+}))
+vi.mock('@/db/queries/users', async () => {
+  const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
+  return {
+    ...actual,
+    updateUserConnections: updateUserConnectionsMock,
+  }
+})
+
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
   return Object.assign(emitter, {
@@ -272,6 +283,7 @@ describe('POST /api/setup/complete', () => {
   })
 
   it('accepts emby fields and creates an emby-playlist target during setup completion', async () => {
+    updateUserConnectionsMock.mockClear()
     const createTarget = vi.fn().mockResolvedValue({ id: 7 })
     const deps = makeDeps({
       getUserCount: vi.fn(async () => 1),
@@ -312,5 +324,12 @@ describe('POST /api/setup/complete', () => {
         userId: 42,
       }),
     )
+    // Emby credentials must also land on the users row so library sync, the
+    // discovery plugin, and the listening fallback can read them post-setup.
+    expect(updateUserConnectionsMock).toHaveBeenCalledWith(expect.anything(), 42, {
+      embyUrl: 'http://emby:8096',
+      embyApiKey: 'key',
+      embyUserId: 'user-1',
+    })
   })
 })
