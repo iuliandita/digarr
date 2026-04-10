@@ -1,3 +1,5 @@
+import type { DiscoveryModeRequest } from './request'
+
 export type DiscoveryFieldType = 'text' | 'number' | 'select' | 'multiselect' | 'toggle'
 
 export type DiscoveryConfigField = {
@@ -36,5 +38,5 @@ export type DiscoveryModeDefinition = {
   availability: DiscoveryAvailabilityKind
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
-  executor: (input: unknown) => Promise<DiscoveryExecutionResult>
+  executor: (request: DiscoveryModeRequest) => Promise<DiscoveryExecutionResult>
 }
