@@ -14,6 +14,23 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+export type DiscoveryModeProvenance = {
+  modeId: string
+  settingsMode: 'easy' | 'advanced'
+  providerPath: string[]
+}
+
+export type RecommendationBatchSourceConfig = Record<string, unknown> & {
+  trigger?: 'manual' | 'scheduled'
+  discoveryMode?: DiscoveryModeProvenance
+}
+
+export type JobMetadata = Record<string, unknown> & {
+  trigger?: 'manual' | 'scheduled' | 'subscription'
+  seedArtist?: string
+  discoveryMode?: DiscoveryModeProvenance
+}
+
 export const settings = pgTable('settings', {
   id: serial('id').primaryKey(),
   lidarrUrl: text('lidarr_url'),
@@ -137,7 +154,7 @@ export const artists = pgTable('artists', {
 export const recommendationBatches = pgTable('recommendation_batches', {
   id: serial('id').primaryKey(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  sourceConfig: jsonb('source_config'),
+  sourceConfig: jsonb('source_config').$type<RecommendationBatchSourceConfig | null>(),
   stats: jsonb('stats'),
   status: text('status').notNull().default('running'),
   subscriptionId: integer('subscription_id').references(() => subscriptions.id),
@@ -192,7 +209,7 @@ export const jobRuns = pgTable('job_runs', {
   completedAt: timestamp('completed_at', { withTimezone: true }),
   durationMs: integer('duration_ms'),
   error: text('error'),
-  metadata: jsonb('metadata').notNull().default({}),
+  metadata: jsonb('metadata').$type<JobMetadata>().notNull().default({}),
   sourceResults: jsonb('source_results'),
   subscriptionId: integer('subscription_id').references(() => subscriptions.id, {
     onDelete: 'set null',

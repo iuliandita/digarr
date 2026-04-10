@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
 import type { OidcService } from '@/core/auth/oidc'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { GenreService } from '@/core/genre/service'
 import type { AlbumCoverage } from '@/core/library/album-coverage'
 import type { LibraryHealthService } from '@/core/library/health'
@@ -172,6 +173,7 @@ export type AppDependencies = {
   }
   discoveryModeRegistry?: DiscoveryModeRegistry
   getDiscoveryConnectionSnapshot?: (userId: number) => Promise<DiscoveryConnectionSnapshot>
+  runDiscoveryMode?: (request: DiscoveryModeRequest) => Promise<{ batchId: number }>
   // Job recording & queries
   jobRecorder: import('@/core/jobs/types').JobRecorder
   jobQueries: {

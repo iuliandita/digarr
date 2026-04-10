@@ -64,7 +64,13 @@ export interface DiscoverSources {
 }
 
 export type DiscoverOptions = {
-  explicitCandidates?: DiscoveryCandidate[]
+  explicitCandidates?: Array<DiscoveredArtist | DiscoveryCandidate>
+}
+
+function isDiscoveryCandidate(
+  candidate: DiscoveredArtist | DiscoveryCandidate,
+): candidate is DiscoveryCandidate {
+  return 'candidateType' in candidate
 }
 
 function dedupeDiscoveredArtists(candidates: DiscoveredArtist[]): DiscoveredArtist[] {
@@ -89,7 +95,12 @@ export async function discover(
   options: DiscoverOptions = {},
 ): Promise<DiscoveredArtist[]> {
   if (options.explicitCandidates && options.explicitCandidates.length > 0) {
-    return dedupeDiscoveredArtists(discoveryCandidatesToDiscoveredArtists(options.explicitCandidates))
+    const explicitArtists = options.explicitCandidates.some(isDiscoveryCandidate)
+      ? discoveryCandidatesToDiscoveredArtists(
+          options.explicitCandidates.filter(isDiscoveryCandidate),
+        )
+      : (options.explicitCandidates as DiscoveredArtist[])
+    return dedupeDiscoveredArtists(explicitArtists)
   }
 
   const topArtists = profile.topArtists.slice(0, topArtistsLimit)

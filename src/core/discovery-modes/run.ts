@@ -1,0 +1,91 @@
+import { discoveryCandidatesToDiscoveredArtists } from '@/core/discovery-modes/candidates'
+import { executeDiscoveryMode } from '@/core/discovery-modes/executor'
+import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import type { JobRecorder } from '@/core/jobs/types'
+import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchestrator'
+import { errMsg } from '@/core/validation'
+
+type RunDiscoveryModeParams = {
+  request: DiscoveryModeRequest
+  registry: DiscoveryModeRegistry
+  orchestrator: Pick<PipelineOrchestrator, 'run'>
+  pipelineDeps?: Omit<
+    PipelineDeps,
+    'explicitCandidates' | 'explicitDiscoveryMode' | 'jobRecorder' | 'trigger' | 'userId'
+  >
+  jobRecorder?: JobRecorder
+}
+
+function extractProviderPath(providerContext: Record<string, unknown>): string[] {
+  const providerPath = providerContext.providerPath
+  if (!Array.isArray(providerPath)) {
+    return []
+  }
+
+  return providerPath.filter((segment): segment is string => typeof segment === 'string')
+}
+
+export async function runDiscoveryMode({
+  request,
+  registry,
+  orchestrator,
+  pipelineDeps,
+  jobRecorder,
+}: RunDiscoveryModeParams): Promise<{ batchId: number }> {
+  const execution = await executeDiscoveryMode(request, registry)
+  const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates)
+  const providerPath = extractProviderPath(request.providerContext)
+
+  let jobId: number | null = null
+  if (jobRecorder) {
+    jobId = await jobRecorder.start({
+      type: 'quick_discover',
+      userId: request.userId,
+      metadata: {
+        trigger: request.triggerType,
+        discoveryMode: {
+          modeId: request.modeId,
+          settingsMode: request.settingsMode,
+          providerPath,
+        },
+      },
+    })
+  }
+
+  try {
+    const result = await orchestrator.run({
+      ...pipelineDeps,
+      userId: request.userId,
+      trigger: request.triggerType === 'subscription' ? 'scheduled' : 'manual',
+      explicitDiscoveryMode: {
+        modeId: request.modeId,
+        settingsMode: request.settingsMode,
+        providerPath,
+      },
+      explicitCandidates,
+    } as PipelineDeps)
+
+    if (jobId != null && jobRecorder) {
+      await jobRecorder.complete(jobId, {
+        metadata: {
+          trigger: request.triggerType,
+          artistsDiscovered: explicitCandidates.length,
+          discoveryMode: {
+            modeId: request.modeId,
+            settingsMode: request.settingsMode,
+            providerPath,
+          },
+        },
+        batchId: result.batchId,
+      })
+    }
+
+    return result
+  } catch (error: unknown) {
+    if (jobId != null && jobRecorder) {
+      await jobRecorder.fail(jobId, errMsg(error)).catch(() => {})
+    }
+    throw error
+  }
+}

@@ -14,6 +14,7 @@ import { createPlexClient } from './core/clients/plex'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { DiscoveryModeRegistry } from './core/discovery-modes/registry'
+import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
 import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
@@ -148,6 +149,7 @@ import {
   recommendations,
 } from './db/schema'
 import { createApp } from './server'
+import { resolveUserPreferences } from './server/helpers/preferences'
 
 // Job recording -- initialized after DB setup, before createApp()
 let jobRecorder: import('./core/jobs/types').JobRecorder
@@ -419,6 +421,105 @@ const runPipeline = async (userId?: number) => {
     librarySync: librarySyncOrchestrator,
     userId: resolvedUserId,
   })
+}
+
+const executeDiscoveryModeRun = async (
+  request: import('./core/discovery-modes/request').DiscoveryModeRequest,
+) => {
+  const settings = await getSettings(db)
+  if (!settings) {
+    throw new Error('Settings not found')
+  }
+
+  const [userConnections, userPreferences] = await Promise.all([
+    getUserConnections(db, request.userId),
+    resolveUserPreferences(db, settings.preferences, request.userId),
+  ])
+
+  let spotifyAccessToken: string | null = null
+  try {
+    spotifyAccessToken = await resolveSpotifyToken(db, request.userId)
+  } catch {
+    // Best-effort: discovery mode runs should still work without Spotify.
+  }
+
+  const autoApproveDeps = {
+    getRecommendationsByBatch: async (batchId: number) => {
+      const result = await listRecommendations(db, { batchId, limit: 1000 })
+      return result.items.map((recommendation) => ({
+        id: recommendation.id,
+        score: recommendation.score,
+        status: recommendation.status,
+        artist: {
+          mbid: recommendation.artist.mbid,
+          name: recommendation.artist.name,
+        },
+      }))
+    },
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(request.userId),
+    updateRecommendationStatus: (
+      id: number,
+      status: string,
+      extra?: Parameters<typeof updateRecommendationStatus>[3],
+    ) => updateRecommendationStatus(db, id, status, extra),
+    warmArtist: skyhookWarmer
+      ? ((warmer) => (mbid: string) => warmer.warm(mbid))(skyhookWarmer)
+      : undefined,
+  }
+
+  return runDiscoveryMode({
+    request,
+    registry: discoveryModeRegistry,
+    orchestrator,
+    pipelineDeps: {
+      db: storeDb,
+      settings: {
+        ...settings,
+        preferences: mergePreferences(userPreferences),
+        spotifyAccessToken,
+      },
+      providerRegistry,
+      userConnections,
+      autoApproveDeps,
+      librarySync: librarySyncOrchestrator,
+    },
+    jobRecorder,
+  })
+}
+
+async function getEnabledTargetsForResolvedUser(
+  userId: number,
+): Promise<import('./core/targets/types').DestinationTarget[]> {
+  const rows = await getTargetsByUser(db, userId)
+  const settings = await getSettings(db)
+  const prefs = (settings?.preferences ?? {}) as Record<string, unknown>
+
+  const targets: import('./core/targets/types').DestinationTarget[] = []
+  for (const row of rows) {
+    if (!row.enabled) continue
+    if (row.type === 'lidarr') {
+      targets.push(
+        createLidarrTarget(row.id, {
+          url: row.config.url as string,
+          apiKey: row.config.apiKey as string,
+          skipTlsVerify: (row.config.skipTlsVerify as boolean) ?? false,
+          qualityProfileId: Number(prefs.qualityProfileId ?? 1),
+          metadataProfileId: Number(prefs.metadataProfileId ?? 1),
+          rootFolderId: Number(prefs.rootFolderId ?? 1),
+        }),
+      )
+    }
+
+    if (row.type === 'spotify-playlist') {
+      targets.push(
+        createSpotifyPlaylistTarget(row.id, {
+          getAccessToken: () => resolveSpotifyToken(db, userId),
+        }),
+      )
+    }
+  }
+
+  return targets
 }
 
 // Shared subscription query facade (used both by routes and scheduler)
@@ -930,6 +1031,7 @@ const app = createApp({
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),
   },
   discoveryModeRegistry,
+  runDiscoveryMode: executeDiscoveryModeRun,
   getDiscoveryConnectionSnapshot: async (userId) => {
     const [userConnections, spotifyToken, hasLibrarySync] = await Promise.all([
       getUserConnections(db, userId),
@@ -956,37 +1058,7 @@ const app = createApp({
     getJobHealth: (nextRun) => jobQueries.getJobHealth(db, nextRun),
     getJobsForSubscription: (subId, limit) => jobQueries.getJobsForSubscription(db, subId, limit),
   },
-  getEnabledTargetsForUser: async (userId) => {
-    const rows = await getTargetsByUser(db, userId)
-    const settings = await getSettings(db)
-    const prefs = (settings?.preferences ?? {}) as Record<string, unknown>
-
-    const targets: import('./core/targets/types').DestinationTarget[] = []
-    for (const row of rows) {
-      if (!row.enabled) continue
-      if (row.type === 'lidarr') {
-        targets.push(
-          createLidarrTarget(row.id, {
-            url: row.config.url as string,
-            apiKey: row.config.apiKey as string,
-            skipTlsVerify: (row.config.skipTlsVerify as boolean) ?? false,
-            qualityProfileId: Number(prefs.qualityProfileId ?? 1),
-            metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-            rootFolderId: Number(prefs.rootFolderId ?? 1),
-          }),
-        )
-      }
-
-      if (row.type === 'spotify-playlist') {
-        targets.push(
-          createSpotifyPlaylistTarget(row.id, {
-            getAccessToken: () => resolveSpotifyToken(db, userId),
-          }),
-        )
-      }
-    }
-    return targets
-  },
+  getEnabledTargetsForUser: (userId) => getEnabledTargetsForResolvedUser(userId),
   playlistDeps: {
     db,
     playlistScheduler,

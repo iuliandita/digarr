@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
 import { filter } from '@/core/pipeline/filter'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
@@ -87,6 +88,29 @@ export function pipelineRoutes(deps: AppDependencies) {
       })
 
     return c.json({ message: 'Pipeline started' }, 202)
+  })
+
+  router.post('/api/discovery-modes/run', async (c) => {
+    if (deps.orchestrator.isRunning) {
+      return c.json({ error: 'A scan is already running' }, 409)
+    }
+
+    const userId = c.get('userId')
+    if (!userId) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+    if (!deps.discoveryModeRegistry || !deps.runDiscoveryMode) {
+      return c.json({ error: 'Discovery mode execution is not configured' }, 500)
+    }
+
+    try {
+      const body = await c.req.json()
+      const request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+      const result = await deps.runDiscoveryMode(request)
+      return c.json(result, 202)
+    } catch (err: unknown) {
+      return c.json({ error: errMsg(err) }, 400)
+    }
   })
 
   router.get('/api/pipeline/status', async (c) => {

@@ -1,3 +1,5 @@
+import type { JobMetadata } from '@/db/schema'
+
 export type JobType =
   | 'pipeline'
   | 'quick_discover'
@@ -25,7 +27,7 @@ export type JobRunRow = {
   completedAt: Date | null
   durationMs: number | null
   error: string | null
-  metadata: Record<string, unknown>
+  metadata: JobMetadata
   sourceResults: Record<string, SourceResult> | null
   subscriptionId: number | null
   batchId: number | null
@@ -35,11 +37,11 @@ export type StartJobParams = {
   type: JobType
   userId?: number
   subscriptionId?: number
-  metadata?: Record<string, unknown>
+  metadata?: JobMetadata
 }
 
 export type CompleteJobParams = {
-  metadata?: Record<string, unknown>
+  metadata?: JobMetadata
   sourceResults?: Record<string, SourceResult>
   batchId?: number
 }

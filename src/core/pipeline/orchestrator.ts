@@ -14,6 +14,7 @@ import { createPlexSource } from '@/core/plugins/plex'
 import { SourceRegistry } from '@/core/plugins/registry'
 import { createSpotifySource } from '@/core/plugins/spotify'
 import type { AiProviderRegistry } from '@/core/providers/registry'
+import type { DiscoveredArtist } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
@@ -52,6 +53,12 @@ export interface PipelineDeps {
   autoApproveDeps?: AutoApproveDeps | null
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   trigger?: 'scheduled' | 'manual'
+  explicitCandidates?: DiscoveredArtist[]
+  explicitDiscoveryMode?: {
+    modeId: string
+    settingsMode: 'easy' | 'advanced'
+    providerPath: string[]
+  }
   librarySync: {
     syncForUser: (
       userId: number,
@@ -176,7 +183,7 @@ export class PipelineOrchestrator extends EventEmitter {
             })
           : null
 
-      if (registry.all().length === 0 && !lidarrClient && !aiProvider) {
+      if (!deps.explicitCandidates?.length && registry.all().length === 0 && !lidarrClient && !aiProvider) {
         throw new Error('At least one listening source or AI provider must be configured')
       }
 
@@ -254,6 +261,9 @@ export class PipelineOrchestrator extends EventEmitter {
         prefs.topArtistsLimit,
         librarySeeds,
         prefs.librarySeedRatio ?? 0.3,
+        {
+          explicitCandidates: deps.explicitCandidates,
+        },
       )
       this.emit('progress', {
         stage: 'discover',

@@ -161,6 +161,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       hasDiscogs: false,
       hasLibrarySync: false,
     })),
+    runDiscoveryMode: vi.fn(async () => ({ batchId: 1 })),
     jobRecorder: {
       start: vi.fn(async () => 1),
       complete: vi.fn().mockResolvedValue(undefined),
