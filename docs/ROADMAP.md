@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-09 | Current: v0.20.1
+> Updated: 2026-04-10 | Current: v0.20.2
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -101,6 +101,12 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### v0.20.2
+
+- Tightened API contract validation for search, jobs, and query-token auth paths
+- Split mocked API route tests from browser E2E coverage and isolated Playwright runs on a dedicated database
+- Added DB pool controls, hot-path indexes, and replay-safe guards for older migrations
 
 ### v0.20.1
 

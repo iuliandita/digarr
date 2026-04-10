@@ -2,6 +2,20 @@
 
 All notable user-facing changes are documented here.
 
+## v0.20.2 - 2026-04-10
+
+### Fixed
+
+- Search and job API query validation now match the documented contract, including limits, offsets, and allowed job types
+- Query-token auth is now limited to the documented SSE and preview-audio endpoints
+- Playlist ordering now follows stored track positions consistently
+
+### Changed
+
+- CI now separates mocked API route contract tests from browser E2E coverage, and the browser suite runs against an isolated Playwright database
+- PostgreSQL pool sizing and SSL behavior can now be configured explicitly through environment variables
+- Hot recommendation, playlist, subscription, target, and session query paths now have supporting indexes, and older migrations are safer to re-run
+
 ## v0.20.1 - 2026-04-09
 
 ### Fixed
@@ -86,7 +100,7 @@ All notable user-facing changes are documented here.
 ### Added
 
 - Admin job history and health endpoints for pipeline, subscription, target, and playlist work
-- API smoke tests, Playwright browser tests, and CI gates for critical workflows
+- API route tests, Playwright browser tests, and CI gates for critical workflows
 - Application-level backup and restore with encrypted field handling
 
 ### Changed
