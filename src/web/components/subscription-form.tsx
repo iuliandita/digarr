@@ -219,14 +219,7 @@ export function SubscriptionForm({
       if (current && discoveryModes.some((discoveryMode) => discoveryMode.id === current)) {
         return current
       }
-      if (
-        initialDiscoveryModeConfig?.modeId &&
-        discoveryModes.some(
-          (discoveryMode) => discoveryMode.id === initialDiscoveryModeConfig.modeId,
-        )
-      ) {
-        return initialDiscoveryModeConfig.modeId
-      }
+      if (initialDiscoveryModeConfig?.modeId) return initialDiscoveryModeConfig.modeId
       return firstDiscoveryModeId
     })
   }, [discoveryModes, initialDiscoveryModeConfig?.modeId, sourceType])

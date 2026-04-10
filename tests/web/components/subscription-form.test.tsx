@@ -179,4 +179,81 @@ describe('SubscriptionForm discovery mode support', () => {
       )
     })
   })
+
+  it('keeps a missing saved discovery mode unchanged when editing', async () => {
+    const onSubmit = vi.fn(async () => undefined)
+
+    const initial = {
+      name: 'Radar Weekly',
+      sourceType: 'discovery-mode',
+      sourceProvider: 'release-radar',
+      sourceConfig: {
+        modeId: 'release-radar',
+        settingsMode: 'advanced',
+        settings: { seedArtists: ['Broadcast'], depth: 2 },
+      },
+      cron: '0 8 * * 0',
+      enabled: true,
+      maxArtistsPerRun: 20,
+      action: 'add_to_recommendations',
+      scoreThreshold: null,
+      scoringWeightPreset: 'genre',
+    }
+
+    const { rerender } = render(
+      <SubscriptionForm
+        mode="edit"
+        configuredSources={[]}
+        onCancel={() => {}}
+        onSubmit={onSubmit}
+        initial={initial}
+        discoveryModes={[]}
+      />,
+    )
+
+    rerender(
+      <SubscriptionForm
+        mode="edit"
+        configuredSources={[]}
+        onCancel={() => {}}
+        onSubmit={onSubmit}
+        initial={initial}
+        discoveryModes={[
+          {
+            id: 'new-mode',
+            label: 'New Mode',
+            description: 'Replacement discovery mode.',
+            availability: {
+              enabled: true,
+              fallbackUsed: false,
+              providerPath: ['musicbrainz'],
+              reason: undefined,
+            },
+            easyFields: [],
+            advancedFields: [],
+          },
+        ]}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText(/select a discovery mode to configure it/i)).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceType: 'discovery-mode',
+          sourceProvider: 'release-radar',
+          sourceConfig: {
+            modeId: 'release-radar',
+            settingsMode: 'advanced',
+            settings: { seedArtists: ['Broadcast'], depth: 2 },
+          },
+        }),
+      )
+    })
+  })
 })
