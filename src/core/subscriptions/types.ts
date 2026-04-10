@@ -2,6 +2,12 @@ import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import type { StoreDb } from '@/core/pipeline/store'
 import type { DiscoveredArtist } from '@/core/types'
 
+export type DiscoveryModeSubscriptionConfig = {
+  modeId: string
+  settingsMode: 'easy' | 'advanced'
+  settings: Record<string, unknown>
+}
+
 /** What an adapter returns from fetch(). */
 export type AdapterResult = {
   artists: DiscoveredArtist[]
@@ -35,7 +41,7 @@ export type SubscriptionConfig = {
   id: number
   userId: number | null
   sourceType: string
-  sourceConfig: Record<string, unknown>
+  sourceConfig: Record<string, unknown> | DiscoveryModeSubscriptionConfig
   maxArtistsPerRun: number | null
   scoreThreshold: number | null
   scoringWeightPreset: string | null

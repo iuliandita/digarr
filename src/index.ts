@@ -62,8 +62,8 @@ import { createSpotifyChartsAdapter } from './core/subscriptions/adapters/spotif
 import { createSpotifyLikedSongsAdapter } from './core/subscriptions/adapters/spotify-liked-songs'
 import { createSpotifyPlaylistAdapter } from './core/subscriptions/adapters/spotify-playlist'
 import { resolveSubscriptionSourceConnections } from './core/subscriptions/connections'
-import { AdapterRegistry } from './core/subscriptions/registry'
-import { runSubscription } from './core/subscriptions/runner'
+import { AdapterRegistry, DISCOVERY_MODE_SUBSCRIPTION_TYPE } from './core/subscriptions/registry'
+import { normalizeDiscoveryModeSubscription, runSubscription } from './core/subscriptions/runner'
 import type {
   MusicBrainzClient as SubMBClient,
   SubscriptionConfig,
@@ -634,6 +634,38 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     }
 
     setCachedAdapterRegistry(userId ?? null, adapterRegistry)
+  }
+
+  if (sub.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
+    try {
+      await executeDiscoveryModeRun(
+        normalizeDiscoveryModeSubscription(
+          {
+            sourceType: sub.sourceType,
+            sourceConfig: sub.sourceConfig,
+            userId: sub.userId,
+          },
+          sub.userId ?? undefined,
+        ),
+      )
+      await updateSubscription(db, sub.id, {
+        lastRunAt: new Date(),
+        lastError: null,
+      })
+    } catch (error: unknown) {
+      const errorMessage = errMsg(error)
+      await updateSubscription(db, sub.id, {
+        lastRunAt: new Date(),
+        lastError: errorMessage,
+      }).catch((updateError: unknown) => {
+        console.error(
+          `[subscription-runner] Failed to update discovery mode subscription ${sub.id}:`,
+          updateError,
+        )
+      })
+      throw error
+    }
+    return
   }
 
   const adapter = adapterRegistry.get(sub.sourceType)

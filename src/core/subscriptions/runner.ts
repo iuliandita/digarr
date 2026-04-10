@@ -1,15 +1,60 @@
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { filter } from '@/core/pipeline/filter'
 import { resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
 import { resolveWeights } from '@/core/pipeline/weight-presets'
+import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import type {
+  DiscoveryModeSubscriptionConfig,
   RunResult,
   SubscriptionAdapter,
   SubscriptionConfig,
   SubscriptionRunDeps,
 } from '@/core/subscriptions/types'
 import { errMsg } from '@/core/validation'
+
+export type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
+
+function isDiscoveryModeSubscriptionConfig(
+  value: Record<string, unknown> | DiscoveryModeSubscriptionConfig,
+): value is DiscoveryModeSubscriptionConfig {
+  return (
+    typeof value.modeId === 'string' &&
+    (value.settingsMode === 'easy' || value.settingsMode === 'advanced') &&
+    value.settings !== null &&
+    typeof value.settings === 'object' &&
+    !Array.isArray(value.settings)
+  )
+}
+
+export function normalizeDiscoveryModeSubscription(
+  subscription: Pick<SubscriptionConfig, 'sourceType' | 'sourceConfig' | 'userId'>,
+  fallbackUserId?: number,
+): DiscoveryModeRequest {
+  if (subscription.sourceType !== DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
+    throw new Error(`Unsupported subscription source type '${subscription.sourceType}'`)
+  }
+  if (!isDiscoveryModeSubscriptionConfig(subscription.sourceConfig)) {
+    throw new Error('Invalid discovery mode subscription config')
+  }
+
+  const userId = subscription.userId ?? fallbackUserId
+  if (typeof userId !== 'number') {
+    throw new Error('Discovery mode subscriptions require a userId')
+  }
+
+  return {
+    modeId: subscription.sourceConfig.modeId,
+    triggerType: 'subscription',
+    settingsMode: subscription.sourceConfig.settingsMode,
+    userId,
+    rawUserSettings: subscription.sourceConfig.settings,
+    normalizedSettings: subscription.sourceConfig.settings,
+    providerContext: {},
+    fallbackPolicy: 'allow-fallback',
+  }
+}
 
 export async function runSubscription(
   subscription: SubscriptionConfig,

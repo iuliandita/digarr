@@ -1,3 +1,4 @@
+import type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
 import { eq } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { subscriptions } from '@/db/schema'
@@ -10,7 +11,7 @@ export type SubscriptionInsert = {
   enabled?: boolean
   sourceType: string
   sourceProvider: string
-  sourceConfig: Record<string, unknown>
+  sourceConfig: Record<string, unknown> | DiscoveryModeSubscriptionConfig
   maxArtistsPerRun?: number
   listenerRange?: { min?: number; max?: number } | null
   cron: string

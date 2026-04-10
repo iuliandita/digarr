@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
@@ -154,6 +155,11 @@ export function subscriptionRoutes(deps: AppDependencies) {
             },
           ],
           requiredService: 'listenbrainz',
+        },
+        {
+          type: DISCOVERY_MODE_SUBSCRIPTION_TYPE,
+          label: 'Discovery Mode',
+          configFields: [],
         },
         {
           type: 'csv-import',

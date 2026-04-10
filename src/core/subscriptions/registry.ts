@@ -1,5 +1,7 @@
 import type { SubscriptionAdapter } from './types'
 
+export const DISCOVERY_MODE_SUBSCRIPTION_TYPE = 'discovery-mode'
+
 export class AdapterRegistry {
   private readonly adapters = new Map<string, SubscriptionAdapter>()
 
