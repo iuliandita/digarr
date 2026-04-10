@@ -23,6 +23,9 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/oidc/callback',
 ])
 
+// Only SSE/audio flows are allowed to use query-param auth tokens.
+const QUERY_TOKEN_PATHS = new Set(['/api/pipeline/events', '/api/preview/audio'])
+
 export function authGuard(hasUsers: () => Promise<boolean>) {
   return createMiddleware<HonoEnv>(async (c, next) => {
     // Skip auth for non-API paths (static assets, SPA routes), public API paths, and OAuth callbacks
@@ -46,7 +49,7 @@ export function authGuard(hasUsers: () => Promise<boolean>) {
       provided = header.slice(7)
     } else {
       const qp = c.req.query('token')
-      if (qp) provided = qp
+      if (qp && QUERY_TOKEN_PATHS.has(c.req.path)) provided = qp
     }
 
     // Try session token first

@@ -32,7 +32,7 @@
 ## What Makes Digarr Different
 
 ### 7-Stage AI Pipeline
-Digarr collects your taste from up to 6 sources, asks an AI to reason about it, scores candidates with a configurable weighted formula, deduplicates across batches, and learns from your approve/reject feedback over time.
+Digarr collects your taste from up to 7 sources, asks an AI to reason about it, scores candidates with a configurable weighted formula, deduplicates across batches, and learns from your approve/reject feedback over time.
 
 ### Mood Discovery
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and get instant AI-powered results. No menus, no filters -- just plain English.
@@ -85,7 +85,7 @@ docker compose up -d
 
 Open `http://localhost:3000` and complete the setup wizard. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
 
-For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, `AI_MODEL`, and at least one listening source (`LISTENBRAINZ_USERNAME` or `LASTFM_USERNAME`). Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode.
+For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode.
 
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -120,7 +120,7 @@ Runs on a cron schedule, manually, or via subscriptions for targeted discovery.
 
 ## Configuration
 
-All configuration is done through the web UI after initial setup -- connections, scoring weights, cron schedule, and preferences are all set there. If you connect Spotify, Settings > Connections now includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials, AI provider/model, and at least one listening source; the UI setup wizard enforces the same minimums. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
+All configuration is done through the web UI after initial setup -- connections, scoring weights, cron schedule, and preferences are all set there. If you connect Spotify, Settings > Connections now includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials plus an AI provider/model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 ---
 

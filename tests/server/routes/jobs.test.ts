@@ -81,6 +81,38 @@ describe('GET /api/jobs', () => {
     expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(expect.objectContaining({ limit: 100 }))
   })
 
+  it('clamps limit to 1 and offset to 0 for negative values', async () => {
+    const deps = makeMockDeps()
+    const app = createApp(deps)
+    await app.request('/api/jobs?limit=-10&offset=-5')
+    expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 1, offset: 0 }),
+    )
+  })
+
+  it('accepts library_sync as a valid job type filter', async () => {
+    const deps = makeMockDeps()
+    const app = createApp(deps)
+    await app.request('/api/jobs?type=library_sync')
+    expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'library_sync' }),
+    )
+  })
+
+  it('returns 400 for an invalid type filter', async () => {
+    const deps = makeMockDeps()
+    const app = createApp(deps)
+    const res = await app.request('/api/jobs?type=bogus')
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for an invalid status filter', async () => {
+    const deps = makeMockDeps()
+    const app = createApp(deps)
+    const res = await app.request('/api/jobs?status=bogus')
+    expect(res.status).toBe(400)
+  })
+
   it('returns 403 for non-admin', async () => {
     const deps = makeMockDeps({
       getUserById: vi.fn().mockResolvedValue({ id: 2, isAdmin: false }),

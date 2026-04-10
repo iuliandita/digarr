@@ -25,7 +25,8 @@ export function searchRoutes(deps: SearchDeps) {
     if (!query || query.trim() === '') {
       return c.json({ error: 'q parameter is required' }, 400)
     }
-    const limit = Math.min(Number(c.req.query('limit') ?? 20), 50)
+    const rawLimit = Number(c.req.query('limit') ?? 20)
+    const limit = Math.max(1, Math.min(Number.isFinite(rawLimit) ? rawLimit : 20, 50))
     const sourcesParam = c.req.query('sources')?.split(',').filter(Boolean)
     const userId = c.get('userId')
 

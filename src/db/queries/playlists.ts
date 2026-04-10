@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, or } from 'drizzle-orm'
+import { and, asc, eq, isNull, lt, or } from 'drizzle-orm'
 import type { Database } from '@/db'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
 import { playlists, playlistTracks } from '@/db/schema'
@@ -72,6 +72,7 @@ export async function getPlaylistWithTracks(
     .select()
     .from(playlistTracks)
     .where(eq(playlistTracks.playlistId, playlistId))
+    .orderBy(asc(playlistTracks.position))
 
   return {
     playlist,

@@ -9,6 +9,7 @@
     "build": "vite build && bun build src/index.ts --outdir dist/server --target bun",
     "start": "bun dist/server/index.js",
     "test": "vitest run",
+    "test:api-routes": "vitest run tests/api-routes/",
     "test:watch": "vitest",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

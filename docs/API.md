@@ -1,6 +1,6 @@
 # API Reference
 
-All endpoints require authentication via `Authorization: Bearer <token>` header unless marked as public. Some endpoints also accept `?token=<token>` query param (for SSE and `<audio>` elements that can't send headers).
+All endpoints require authentication via `Authorization: Bearer <token>` header unless marked as public. Only `/api/pipeline/events` and `/api/preview/audio` also accept `?token=<token>` for SSE and `<audio>` clients that cannot send headers.
 
 Admin-only endpoints return 403 for non-admin users.
 
@@ -405,10 +405,11 @@ Query params: `range` (week/month/year), `limit` (1-50).
 | GET | `/api/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, sources) |
 
 **GET /api/jobs** query params:
-- `type` -- `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`
+- `type` -- `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`
 - `status` -- `running`, `completed`, `failed`, `stuck`
 - `limit` -- 1-100 (default 50)
-- `offset` -- pagination offset
+- `offset` -- pagination offset (minimum 0)
+- Invalid `type` or `status` values return `400`
 
 ---
 
@@ -421,7 +422,7 @@ Query params: `range` (week/month/year), `limit` (1-50).
 | POST | `/api/settings/test/:service` | Yes | Test service connection |
 | POST | `/api/settings/test-webhook` | Admin | Send test webhook |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `discogs`, `spotify`, `oidc`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `discogs`, `spotify`, `oidc`
 
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`

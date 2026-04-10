@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { createTestApp } from '../../helpers/test-app'
+import { createTestApp } from '../helpers/test-app'
 
-describe('E2E: setup wizard', () => {
+describe('API routes: setup', () => {
   it('returns setup status correctly', async () => {
     const { app } = createTestApp({
       isSetupComplete: vi.fn(async () => false),

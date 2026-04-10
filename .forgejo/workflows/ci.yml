@@ -35,7 +35,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
 
-  smoke-test:
+  api-route-test:
     runs-on: docker
     container:
       image: oven/bun:1.3.11
@@ -59,8 +59,8 @@ jobs:
         with:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
-      - name: Run API smoke tests
-        run: bun run test -- tests/e2e/api/
+      - name: Run API route contract tests
+        run: bun run test:api-routes
         env:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
 
@@ -68,7 +68,7 @@ jobs:
     runs-on: docker
     container:
       image: oven/bun:1.3.11
-    needs: smoke-test
+    needs: api-route-test
     services:
       postgres:
         image: postgres:16
@@ -90,7 +90,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Install Playwright
         run: bunx playwright install --with-deps chromium
-      - name: Run browser smoke tests
+      - name: Run browser E2E tests
         run: bun run test:e2e
         env:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test

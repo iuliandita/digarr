@@ -52,10 +52,42 @@ CREATE TABLE IF NOT EXISTS "library_sync_state" (
 );
 --> statement-breakpoint
 ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "library_sync_interval_hours" integer DEFAULT 6 NOT NULL;--> statement-breakpoint
-ALTER TABLE "library_albums" ADD CONSTRAINT "library_albums_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "library_artists" ADD CONSTRAINT "library_artists_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "library_match_overrides" ADD CONSTRAINT "library_match_overrides_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "library_sync_state" ADD CONSTRAINT "library_sync_state_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'library_albums_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "library_albums" ADD CONSTRAINT "library_albums_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'library_artists_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "library_artists" ADD CONSTRAINT "library_artists_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'library_match_overrides_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "library_match_overrides" ADD CONSTRAINT "library_match_overrides_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'library_sync_state_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "library_sync_state" ADD CONSTRAINT "library_sync_state_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "library_albums_natural_key_idx" ON "library_albums" USING btree ("user_id","source","source_album_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "library_albums_artist_idx" ON "library_albums" USING btree ("user_id","artist_mbid");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "library_artists_natural_key_idx" ON "library_artists" USING btree ("user_id","source","source_artist_id");--> statement-breakpoint

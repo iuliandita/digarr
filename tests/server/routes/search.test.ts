@@ -103,6 +103,24 @@ describe('GET /api/search', () => {
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 50 }))
   })
 
+  it('clamps limit to 1 when zero is provided', async () => {
+    const searchFn = vi.fn().mockResolvedValue([])
+    const app = new Hono()
+    app.route('/', searchRoutes(makeDeps({ search: searchFn })))
+
+    await app.request('/api/search?q=test&limit=0')
+    expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 1 }))
+  })
+
+  it('clamps limit to 1 when a negative value is provided', async () => {
+    const searchFn = vi.fn().mockResolvedValue([])
+    const app = new Hono()
+    app.route('/', searchRoutes(makeDeps({ search: searchFn })))
+
+    await app.request('/api/search?q=test&limit=-5')
+    expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 1 }))
+  })
+
   it('defaults limit to 20 when not provided', async () => {
     const searchFn = vi.fn().mockResolvedValue([])
     const app = new Hono()

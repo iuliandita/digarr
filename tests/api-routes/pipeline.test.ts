@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { createTestApp } from '../../helpers/test-app'
+import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({
   getSession: vi.fn().mockResolvedValue({
@@ -38,7 +38,7 @@ vi.mock('@/server/helpers/preferences', async (importOriginal) => {
   }
 })
 
-describe('E2E: pipeline scan', () => {
+describe('API routes: pipeline', () => {
   it('triggers scan and returns 202', async () => {
     const { app } = createTestApp()
 

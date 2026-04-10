@@ -120,11 +120,18 @@ describe('getPlaylistWithTracks', () => {
       },
     ]
 
-    const selectChain = {
+    const playlistChain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValueOnce([playlistRow]).mockResolvedValueOnce(trackRows),
+      where: vi.fn().mockResolvedValue([playlistRow]),
     }
-    const db = { select: vi.fn().mockReturnValue(selectChain) } as unknown as Database
+    const trackChain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue(trackRows),
+    }
+    const db = {
+      select: vi.fn().mockReturnValueOnce(playlistChain).mockReturnValueOnce(trackChain),
+    } as unknown as Database
 
     const result = await getPlaylistWithTracks(db, 3)
 
@@ -132,6 +139,7 @@ describe('getPlaylistWithTracks', () => {
     expect(result?.playlist.id).toBe(3)
     expect(result?.tracks).toHaveLength(1)
     expect(result?.tracks[0]?.artistName).toBe('Radiohead')
+    expect(trackChain.orderBy).toHaveBeenCalledOnce()
   })
 
   it('returns null when playlist not found', async () => {

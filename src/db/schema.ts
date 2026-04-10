@@ -74,27 +74,37 @@ export const genres = pgTable('genres', {
   cachedAt: timestamp('cached_at', { withTimezone: true }),
 })
 
-export const subscriptions = pgTable('subscriptions', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  userId: integer('user_id').references(() => users.id),
-  enabled: boolean('enabled').notNull().default(true),
-  sourceType: text('source_type').notNull(),
-  sourceProvider: text('source_provider').notNull(),
-  sourceConfig: jsonb('source_config').notNull().$type<Record<string, unknown>>(),
-  maxArtistsPerRun: integer('max_artists_per_run').notNull().default(20),
-  listenerRange: jsonb('listener_range').$type<{ min?: number; max?: number } | null>(),
-  cron: text('cron').notNull(),
-  action: text('action').notNull().default('add_to_recommendations'),
-  scoreThreshold: real('score_threshold'),
-  scoringWeightPreset: text('scoring_weight_preset').default('default'),
-  scoringWeightOverrides: jsonb('scoring_weight_overrides').$type<Record<string, number> | null>(),
-  lastRunAt: timestamp('last_run_at', { withTimezone: true }),
-  lastResultCount: integer('last_result_count'),
-  lastError: text('last_error'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+export const subscriptions = pgTable(
+  'subscriptions',
+  {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    userId: integer('user_id').references(() => users.id),
+    enabled: boolean('enabled').notNull().default(true),
+    sourceType: text('source_type').notNull(),
+    sourceProvider: text('source_provider').notNull(),
+    sourceConfig: jsonb('source_config').notNull().$type<Record<string, unknown>>(),
+    maxArtistsPerRun: integer('max_artists_per_run').notNull().default(20),
+    listenerRange: jsonb('listener_range').$type<{ min?: number; max?: number } | null>(),
+    cron: text('cron').notNull(),
+    action: text('action').notNull().default('add_to_recommendations'),
+    scoreThreshold: real('score_threshold'),
+    scoringWeightPreset: text('scoring_weight_preset').default('default'),
+    scoringWeightOverrides: jsonb('scoring_weight_overrides').$type<Record<
+      string,
+      number
+    > | null>(),
+    lastRunAt: timestamp('last_run_at', { withTimezone: true }),
+    lastResultCount: integer('last_result_count'),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('subscriptions_user_id_idx').on(table.userId),
+    enabledIdx: index('subscriptions_enabled_idx').on(table.enabled),
+  }),
+)
 
 export type TopTrack = {
   name: string
@@ -133,27 +143,45 @@ export const recommendationBatches = pgTable('recommendation_batches', {
   subscriptionId: integer('subscription_id').references(() => subscriptions.id),
 })
 
-export const recommendations = pgTable('recommendations', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
-  artistId: integer('artist_id')
-    .references(() => artists.id)
-    .notNull(),
-  batchId: integer('batch_id')
-    .references(() => recommendationBatches.id)
-    .notNull(),
-  score: real('score').notNull(),
-  sources: jsonb('sources').$type<Record<string, number>>(),
-  aiReasoning: text('ai_reasoning'),
-  status: text('status').notNull().default('pending'),
-  lidarrArtistId: integer('lidarr_artist_id'),
-  lidarrError: text('lidarr_error'),
-  recommendedReleaseGroupId: text('recommended_release_group_id'),
-  recommendedReleaseGroupTitle: text('recommended_release_group_title'),
-  targetActions: jsonb('target_actions').$type<Record<string, unknown>>(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  actedOnAt: timestamp('acted_on_at', { withTimezone: true }),
-})
+export const recommendations = pgTable(
+  'recommendations',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id),
+    artistId: integer('artist_id')
+      .references(() => artists.id)
+      .notNull(),
+    batchId: integer('batch_id')
+      .references(() => recommendationBatches.id)
+      .notNull(),
+    score: real('score').notNull(),
+    sources: jsonb('sources').$type<Record<string, number>>(),
+    aiReasoning: text('ai_reasoning'),
+    status: text('status').notNull().default('pending'),
+    lidarrArtistId: integer('lidarr_artist_id'),
+    lidarrError: text('lidarr_error'),
+    recommendedReleaseGroupId: text('recommended_release_group_id'),
+    recommendedReleaseGroupTitle: text('recommended_release_group_title'),
+    targetActions: jsonb('target_actions').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    actedOnAt: timestamp('acted_on_at', { withTimezone: true }),
+  },
+  (table) => ({
+    batchIdx: index('recommendations_batch_idx').on(table.batchId),
+    artistIdx: index('recommendations_artist_idx').on(table.artistId),
+    userStatusScoreIdx: index('recommendations_user_status_score_idx').on(
+      table.userId,
+      table.status,
+      table.score,
+    ),
+    userCreatedIdx: index('recommendations_user_created_idx').on(table.userId, table.createdAt),
+    userActedOnIdx: index('recommendations_user_acted_on_idx').on(table.userId, table.actedOnAt),
+    statusActedOnIdx: index('recommendations_status_acted_on_idx').on(
+      table.status,
+      table.actedOnAt,
+    ),
+  }),
+)
 
 export const jobRuns = pgTable('job_runs', {
   id: serial('id').primaryKey(),
@@ -172,25 +200,39 @@ export const jobRuns = pgTable('job_runs', {
   batchId: integer('batch_id').references(() => recommendationBatches.id, { onDelete: 'set null' }),
 })
 
-export const targets = pgTable('targets', {
-  id: serial('id').primaryKey(),
-  type: text('type').notNull(),
-  name: text('name').notNull(),
-  config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
-  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  enabled: boolean('enabled').default(true).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+export const targets = pgTable(
+  'targets',
+  {
+    id: serial('id').primaryKey(),
+    type: text('type').notNull(),
+    name: text('name').notNull(),
+    config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    enabled: boolean('enabled').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index('targets_user_id_idx').on(table.userId),
+    typeIdx: index('targets_type_idx').on(table.type),
+  }),
+)
 
-export const sessions = pgTable('sessions', {
-  token: text('token').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-})
+export const sessions = pgTable(
+  'sessions',
+  {
+    token: text('token').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => ({
+    userExpiresIdx: index('sessions_user_expires_idx').on(table.userId, table.expiresAt),
+    expiresIdx: index('sessions_expires_idx').on(table.expiresAt),
+  }),
+)
 
 export const artistMetadata = pgTable('artist_metadata', {
   id: serial('id').primaryKey(),
@@ -237,33 +279,52 @@ export const oauthTokens = pgTable(
   (t) => [unique('oauth_tokens_user_provider').on(t.userId, t.provider)],
 )
 
-export const playlists = pgTable('playlists', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  strategy: text('strategy').notNull(),
-  targetIds: jsonb('target_ids').$type<number[]>().default([]).notNull(),
-  schedule: text('schedule'),
-  config: jsonb('config').$type<PlaylistConfig>(),
-  lastGeneratedAt: timestamp('last_generated_at', { withTimezone: true }),
-  trackCount: integer('track_count').default(0),
-  enabled: boolean('enabled').default(true).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+export const playlists = pgTable(
+  'playlists',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    strategy: text('strategy').notNull(),
+    targetIds: jsonb('target_ids').$type<number[]>().default([]).notNull(),
+    schedule: text('schedule'),
+    config: jsonb('config').$type<PlaylistConfig>(),
+    lastGeneratedAt: timestamp('last_generated_at', { withTimezone: true }),
+    trackCount: integer('track_count').default(0),
+    enabled: boolean('enabled').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index('playlists_user_id_idx').on(table.userId),
+    enabledLastGeneratedIdx: index('playlists_enabled_last_generated_idx').on(
+      table.enabled,
+      table.lastGeneratedAt,
+    ),
+  }),
+)
 
-export const playlistTracks = pgTable('playlist_tracks', {
-  id: serial('id').primaryKey(),
-  playlistId: integer('playlist_id')
-    .references(() => playlists.id, { onDelete: 'cascade' })
-    .notNull(),
-  artistName: text('artist_name').notNull(),
-  trackName: text('track_name'),
-  mbid: text('mbid'),
-  spotifyUri: text('spotify_uri'),
-  deezerId: text('deezer_id'),
-  localPath: text('local_path'),
-  position: integer('position').notNull(),
-})
+export const playlistTracks = pgTable(
+  'playlist_tracks',
+  {
+    id: serial('id').primaryKey(),
+    playlistId: integer('playlist_id')
+      .references(() => playlists.id, { onDelete: 'cascade' })
+      .notNull(),
+    artistName: text('artist_name').notNull(),
+    trackName: text('track_name'),
+    mbid: text('mbid'),
+    spotifyUri: text('spotify_uri'),
+    deezerId: text('deezer_id'),
+    localPath: text('local_path'),
+    position: integer('position').notNull(),
+  },
+  (table) => ({
+    playlistPositionIdx: index('playlist_tracks_playlist_position_idx').on(
+      table.playlistId,
+      table.position,
+    ),
+  }),
+)
 
 export type PlaylistConfig = {
   size: number // default 25

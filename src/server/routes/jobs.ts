@@ -53,11 +53,19 @@ export function jobRoutes(deps: JobRouteDeps) {
   // Paginated job list
   router.get('/api/jobs', async (c) => {
     const typeParam = c.req.query('type')
-    const type = typeParam && VALID_TYPES.has(typeParam) ? (typeParam as JobType) : undefined
+    if (typeParam && !VALID_TYPES.has(typeParam)) {
+      return c.json({ error: `Invalid type. Use: ${Array.from(VALID_TYPES).join(', ')}` }, 400)
+    }
+    const type = typeParam as JobType | undefined
     const statusParam = c.req.query('status')
-    const status = statusParam && VALID_STATUSES.has(statusParam) ? statusParam : undefined
-    const limit = Math.min(Number(c.req.query('limit')) || 50, 100)
-    const offset = Number(c.req.query('offset')) || 0
+    if (statusParam && !VALID_STATUSES.has(statusParam)) {
+      return c.json({ error: `Invalid status. Use: ${Array.from(VALID_STATUSES).join(', ')}` }, 400)
+    }
+    const status = statusParam
+    const rawLimit = Number(c.req.query('limit'))
+    const rawOffset = Number(c.req.query('offset'))
+    const limit = Math.max(1, Math.min(Number.isFinite(rawLimit) ? rawLimit : 50, 100))
+    const offset = Math.max(0, Number.isFinite(rawOffset) ? rawOffset : 0)
     const result = await deps.jobQueries.listJobs({ type, status, limit, offset })
     return c.json(result)
   })

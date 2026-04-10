@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { makeRecommendation } from '../../helpers/factories'
-import { createTestApp } from '../../helpers/test-app'
+import { makeRecommendation } from '../helpers/factories'
+import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({
   getSession: vi.fn().mockResolvedValue({
@@ -11,7 +11,7 @@ vi.mock('@/core/sessions', () => ({
   }),
 }))
 
-describe('E2E: recommendations list', () => {
+describe('API routes: recommendations list', () => {
   it('returns paginated recommendations', async () => {
     const rec = makeRecommendation({ status: 'pending' })
     const { app } = createTestApp({
@@ -28,7 +28,7 @@ describe('E2E: recommendations list', () => {
   })
 })
 
-describe('E2E: approve/reject', () => {
+describe('API routes: approve/reject', () => {
   it('rejects a recommendation', async () => {
     const rec = makeRecommendation({ id: 2, status: 'pending' })
     const { app, deps } = createTestApp({

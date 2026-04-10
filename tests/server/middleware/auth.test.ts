@@ -194,15 +194,21 @@ describe('auth middleware', () => {
       expect(res.status).not.toBe(401)
     })
 
-    it('allows requests with correct token as query param', async () => {
+    it('allows SSE requests with correct token as query param', async () => {
       const app = await createAppWithAuth(TOKEN)
-      const res = await app.request(`/api/settings?token=${TOKEN}`)
+      const res = await app.request(`/api/pipeline/events?token=${TOKEN}`)
       expect(res.status).not.toBe(401)
     })
 
-    it('returns 401 for wrong token as query param', async () => {
+    it('returns 401 for token query params on regular API routes', async () => {
       const app = await createAppWithAuth(TOKEN)
-      const res = await app.request('/api/settings?token=wrong')
+      const res = await app.request(`/api/settings?token=${TOKEN}`)
+      expect(res.status).toBe(401)
+    })
+
+    it('returns 401 for wrong token as query param on SSE routes', async () => {
+      const app = await createAppWithAuth(TOKEN)
+      const res = await app.request('/api/pipeline/events?token=wrong')
       expect(res.status).toBe(401)
     })
 

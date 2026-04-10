@@ -134,6 +134,13 @@
       "when": 1775733147339,
       "tag": "0018_simple_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1775785301370,
+      "tag": "0019_tired_rocket_racer",
+      "breakpoints": true
     }
   ]
 }

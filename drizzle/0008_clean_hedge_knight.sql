@@ -1,4 +1,4 @@
-CREATE TABLE "artist_metadata" (
+CREATE TABLE IF NOT EXISTS "artist_metadata" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"name_normalized" text NOT NULL,

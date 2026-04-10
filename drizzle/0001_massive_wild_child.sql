@@ -1,1 +1,1 @@
-ALTER TABLE "settings" ADD COLUMN "skip_tls_verify" boolean DEFAULT false NOT NULL;
+ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "skip_tls_verify" boolean DEFAULT false NOT NULL;

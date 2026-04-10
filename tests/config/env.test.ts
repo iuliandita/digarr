@@ -21,6 +21,9 @@ const ENV_KEYS = [
   'DB_USER',
   'DB_PASS',
   'DB_NAME',
+  'DB_POOL_MAX',
+  'DB_CONNECT_TIMEOUT_MS',
+  'DB_SSL_MODE',
   'PORT',
   'ALLOWED_ORIGIN',
   'LIDARR_URL',
@@ -85,6 +88,28 @@ describe('buildDatabaseUrl', () => {
     })
     const { buildDatabaseUrl } = await import('@/config/env')
     expect(buildDatabaseUrl()).toBe('postgresql://preferred:pw@host:5432/db')
+  })
+
+  it('parses optional pool and SSL settings', async () => {
+    setEnv({
+      DATABASE_URL: 'postgresql://a:b@host:5432/mydb',
+      DB_POOL_MAX: '12',
+      DB_CONNECT_TIMEOUT_MS: '15000',
+      DB_SSL_MODE: 'no-verify',
+    })
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.dbPoolMax).toBe(12)
+    expect(envConfig.dbConnectTimeoutMs).toBe(15000)
+    expect(envConfig.dbSslMode).toBe('no-verify')
+  })
+
+  it('ignores invalid SSL modes', async () => {
+    setEnv({
+      DATABASE_URL: 'postgresql://a:b@host:5432/mydb',
+      DB_SSL_MODE: 'bogus',
+    })
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.dbSslMode).toBeUndefined()
   })
 })
 

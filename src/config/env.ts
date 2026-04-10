@@ -16,6 +16,17 @@ function envInt(key: string): number | undefined {
   return Number.isNaN(n) ? undefined : n
 }
 
+function envOneOf<const T extends readonly string[]>(
+  key: string,
+  allowed: T,
+): T[number] | undefined {
+  const val = process.env[key]
+  if (!val) return undefined
+  return allowed.includes(val) ? val : undefined
+}
+
+const DB_SSL_MODES = ['disable', 'require', 'no-verify'] as const
+
 export const envConfig = {
   // Database
   databaseUrl: env('DATABASE_URL'),
@@ -24,6 +35,9 @@ export const envConfig = {
   dbUser: env('DB_USER'),
   dbPass: env('DB_PASS'),
   dbName: env('DB_NAME'),
+  dbPoolMax: envInt('DB_POOL_MAX'),
+  dbConnectTimeoutMs: envInt('DB_CONNECT_TIMEOUT_MS'),
+  dbSslMode: envOneOf('DB_SSL_MODE', DB_SSL_MODES),
 
   // Server
   port: envInt('PORT') ?? 3000,

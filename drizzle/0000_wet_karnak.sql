@@ -1,4 +1,4 @@
-CREATE TABLE "artists" (
+CREATE TABLE IF NOT EXISTS "artists" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"mbid" uuid NOT NULL,
 	"name" text NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE "artists" (
 	CONSTRAINT "artists_mbid_unique" UNIQUE("mbid")
 );
 --> statement-breakpoint
-CREATE TABLE "recommendation_batches" (
+CREATE TABLE IF NOT EXISTS "recommendation_batches" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"source_config" jsonb,
@@ -19,7 +19,7 @@ CREATE TABLE "recommendation_batches" (
 	"status" text DEFAULT 'running' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "recommendations" (
+CREATE TABLE IF NOT EXISTS "recommendations" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"artist_id" integer NOT NULL,
 	"batch_id" integer NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE "recommendations" (
 	"acted_on_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "settings" (
+CREATE TABLE IF NOT EXISTS "settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"lidarr_url" text,
 	"lidarr_api_key" text,
@@ -51,5 +51,20 @@ CREATE TABLE "settings" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "recommendations" ADD CONSTRAINT "recommendations_artist_id_artists_id_fk" FOREIGN KEY ("artist_id") REFERENCES "public"."artists"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "recommendations" ADD CONSTRAINT "recommendations_batch_id_recommendation_batches_id_fk" FOREIGN KEY ("batch_id") REFERENCES "public"."recommendation_batches"("id") ON DELETE no action ON UPDATE no action;
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'recommendations_artist_id_artists_id_fk'
+	) THEN
+		ALTER TABLE "recommendations" ADD CONSTRAINT "recommendations_artist_id_artists_id_fk" FOREIGN KEY ("artist_id") REFERENCES "public"."artists"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'recommendations_batch_id_recommendation_batches_id_fk'
+	) THEN
+		ALTER TABLE "recommendations" ADD CONSTRAINT "recommendations_batch_id_recommendation_batches_id_fk" FOREIGN KEY ("batch_id") REFERENCES "public"."recommendation_batches"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;

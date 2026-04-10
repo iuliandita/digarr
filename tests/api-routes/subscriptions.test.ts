@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { makeSubscription } from '../../helpers/factories'
-import { createTestApp } from '../../helpers/test-app'
+import { makeSubscription } from '../helpers/factories'
+import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({
   getSession: vi.fn().mockResolvedValue({
@@ -11,7 +11,7 @@ vi.mock('@/core/sessions', () => ({
   }),
 }))
 
-describe('E2E: subscription CRUD', () => {
+describe('API routes: subscription CRUD', () => {
   it('creates a subscription', async () => {
     const createSubscription = vi.fn(async (data: Record<string, unknown>) => ({
       id: 1,
@@ -90,7 +90,7 @@ describe('E2E: subscription CRUD', () => {
   })
 })
 
-describe('E2E: subscription run', () => {
+describe('API routes: subscription run', () => {
   it('triggers subscription run', async () => {
     const sub = makeSubscription({ id: 1, userId: 1 })
     const runSubscription = vi.fn(async () => {})

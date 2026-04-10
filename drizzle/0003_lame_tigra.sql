@@ -1,4 +1,4 @@
-CREATE TABLE "genres" (
+CREATE TABLE IF NOT EXISTS "genres" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"slug" text NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "genres" (
 	CONSTRAINT "genres_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "subscription_runs" (
+CREATE TABLE IF NOT EXISTS "subscription_runs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"subscription_id" integer NOT NULL,
 	"started_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE "subscription_runs" (
 	"batch_id" integer
 );
 --> statement-breakpoint
-CREATE TABLE "subscriptions" (
+CREATE TABLE IF NOT EXISTS "subscriptions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"user_id" integer,
@@ -42,9 +42,48 @@ CREATE TABLE "subscriptions" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "recommendation_batches" ADD COLUMN "subscription_id" integer;--> statement-breakpoint
-ALTER TABLE "genres" ADD CONSTRAINT "genres_parent_genre_id_genres_id_fk" FOREIGN KEY ("parent_genre_id") REFERENCES "public"."genres"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "subscription_runs" ADD CONSTRAINT "subscription_runs_subscription_id_subscriptions_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."subscriptions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "subscription_runs" ADD CONSTRAINT "subscription_runs_batch_id_recommendation_batches_id_fk" FOREIGN KEY ("batch_id") REFERENCES "public"."recommendation_batches"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "recommendation_batches" ADD CONSTRAINT "recommendation_batches_subscription_id_subscriptions_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."subscriptions"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "recommendation_batches" ADD COLUMN IF NOT EXISTS "subscription_id" integer;--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'genres_parent_genre_id_genres_id_fk'
+	) THEN
+		ALTER TABLE "genres" ADD CONSTRAINT "genres_parent_genre_id_genres_id_fk" FOREIGN KEY ("parent_genre_id") REFERENCES "public"."genres"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'subscription_runs_subscription_id_subscriptions_id_fk'
+	) THEN
+		ALTER TABLE "subscription_runs" ADD CONSTRAINT "subscription_runs_subscription_id_subscriptions_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."subscriptions"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'subscription_runs_batch_id_recommendation_batches_id_fk'
+	) THEN
+		ALTER TABLE "subscription_runs" ADD CONSTRAINT "subscription_runs_batch_id_recommendation_batches_id_fk" FOREIGN KEY ("batch_id") REFERENCES "public"."recommendation_batches"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'subscriptions_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
+--> statement-breakpoint
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'recommendation_batches_subscription_id_subscriptions_id_fk'
+	) THEN
+		ALTER TABLE "recommendation_batches" ADD CONSTRAINT "recommendation_batches_subscription_id_subscriptions_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."subscriptions"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;
