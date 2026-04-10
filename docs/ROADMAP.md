@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-04-10 | Current: v0.20.2
+> Updated: 2026-04-11 | Current: v0.20.2
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, and Emby. Current focus is discovery expansion, download-target breadth, and polish on the shipped media-server path.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, and Emby. Discovery mode expansion is now shipped too, including manual and subscription flows for ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web. Current focus is download-target breadth and polish on the shipped media-server path.
 
 ## v1 Goals
 
@@ -28,7 +28,7 @@ Admin job tracking surface with health endpoint, run history, stuck-task detecti
 
 ### Critical Workflows Have Release Protection -- Pass
 
-End-to-end browser test suite (Playwright) covering setup, login, scan, approve/reject, subscriptions, and playlists. CI gates on critical workflow failures.
+End-to-end browser test suite (Playwright) covering setup, login, scan, approve/reject, discovery modes, subscriptions, and playlists. CI gates on critical workflow failures.
 
 ## Planned
 
@@ -55,12 +55,10 @@ Ideas we're considering. Feedback welcome -- open an issue or discussion if any 
 
 ### Discovery
 
-- Release radar / genre-scoped new releases
-- Label-based discovery
-- Artist relationship discovery
 - Genre extraction from listening data (for non-library installs)
 - Deeper listening-source data (Spotify saved albums, TIDAL favorites, Deezer flow)
-- music-map.com as a similar-artist source
+- Contextual discovery-mode presets
+- Additional graph-based discovery modes
 
 ### Integrations
 
@@ -101,6 +99,12 @@ Low confidence. Would build only with real demand.
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
 ## Recently Shipped
+
+### Unreleased
+
+- Discovery modes on the Discover page: ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web
+- Save discovery mode forms as subscriptions for recurring runs
+- Browser coverage for manual discovery-mode runs and discovery-mode subscription creation
 
 ### v0.20.2
 

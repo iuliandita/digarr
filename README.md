@@ -12,7 +12,7 @@
 [![Tests](https://img.shields.io/badge/tests-1300%2B_passing-brightgreen)]()
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr turns that into a taste profile, a recommendation pipeline, and a queue you can actually work through. You can approve artists into Lidarr or playlist targets, run mood searches in plain English, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, and browse your library by genre. It is self-hosted, so the data stays with you.
+**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr turns that into a taste profile, a recommendation pipeline, and a queue you can actually work through. You can approve artists into Lidarr or playlist targets, run mood searches in plain English, launch targeted discovery modes, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, and browse your library by genre. It is self-hosted, so the data stays with you.
 
 > [!WARNING]
 > **Beta software, working toward v1.0.** You can use it today, but expect rough edges. Releases can land quickly, sometimes several in a day, so check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. If you run into something broken, [open an issue](https://github.com/iuliandita/digarr/issues) or send over a feature idea.
@@ -38,6 +38,9 @@ Digarr takes signals from up to 7 sources, runs them through an AI-assisted pipe
 ### Mood Discovery
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
 
+### Discovery Modes
+Run focused discovery flows for ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web from the Discover page, then save the same configuration as a subscription when you want it on a schedule.
+
 ### Auto-Playlists
 Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
 
@@ -57,7 +60,8 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **7 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Plex, Jellyfin, Emby, and Discogs
 - **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
 - **Auto-approve:** send high-scoring recommendations to your targets automatically
-- **Subscriptions:** scheduled discovery from Spotify Liked Songs, playlists and charts, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
+- **Discovery modes:** manual and subscription flows for ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web
+- **Subscriptions:** scheduled discovery from discovery modes, Spotify Liked Songs, playlists and charts, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
 - **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
 - **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 6 automated health checks with one-click fixes
 - **Analytics:** approval rates, genre trends, source effectiveness, score distribution, and time-to-act
@@ -104,7 +108,7 @@ Digarr runs a 7-stage recommendation pipeline:
 6. **Filter:** removes library duplicates, rejected artists with cooldowns, and low-score results
 7. **Store:** saves the batch and its recommendations
 
-You can run the pipeline on a schedule, by hand, or through subscriptions for targeted discovery.
+You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or through the manual discovery-mode cards on the Discover page.
 
 ---
 
