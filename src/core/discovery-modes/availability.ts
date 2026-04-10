@@ -48,12 +48,20 @@ export function evaluateDiscoveryModeAvailability(
     }
   }
 
+  const hasAnyEligibleSource =
+    snapshot.hasListenBrainz || snapshot.hasSpotify || snapshot.hasLastfm || snapshot.hasDiscogs
+
+  if (!hasAnyEligibleSource) {
+    return {
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+      reason: 'Connect a listening or collection source first.',
+    }
+  }
+
   return {
-    enabled:
-      snapshot.hasListenBrainz ||
-      snapshot.hasSpotify ||
-      snapshot.hasLastfm ||
-      snapshot.hasDiscogs,
+    enabled: true,
     fallbackUsed: !snapshot.hasDiscogs,
     providerPath: snapshot.hasDiscogs ? ['discogs'] : ['musicbrainz'],
     reason: snapshot.hasDiscogs

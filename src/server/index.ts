@@ -170,8 +170,8 @@ export type AppDependencies = {
       limit?: number,
     ) => Promise<ActivityEntry[]>
   }
-  discoveryModeRegistry: DiscoveryModeRegistry
-  getDiscoveryConnectionSnapshot: (userId: number) => Promise<DiscoveryConnectionSnapshot>
+  discoveryModeRegistry?: DiscoveryModeRegistry
+  getDiscoveryConnectionSnapshot?: (userId: number) => Promise<DiscoveryConnectionSnapshot>
   // Job recording & queries
   jobRecorder: import('@/core/jobs/types').JobRecorder
   jobQueries: {

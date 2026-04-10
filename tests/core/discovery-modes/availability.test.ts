@@ -27,4 +27,21 @@ describe('evaluateDiscoveryModeAvailability', () => {
     expect(result.enabled).toBe(true)
     expect(result.fallbackUsed).toBe(true)
   })
+
+  it('disables fallback discovery when no eligible connections are available', () => {
+    const result = evaluateDiscoveryModeAvailability('labels', {
+      hasListenBrainz: false,
+      hasSpotify: false,
+      hasLastfm: false,
+      hasDiscogs: false,
+      hasLibrarySync: false,
+    })
+
+    expect(result).toMatchObject({
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+    })
+    expect(result.reason).toMatch(/connect/i)
+  })
 })

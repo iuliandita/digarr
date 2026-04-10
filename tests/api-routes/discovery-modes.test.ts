@@ -35,6 +35,16 @@ function fakeDiscoveryRegistry() {
 }
 
 describe('API routes: discovery modes', () => {
+  it('returns 401 when unauthenticated', async () => {
+    const { app } = createTestApp({
+      discoveryModeRegistry: fakeDiscoveryRegistry(),
+    })
+
+    const res = await app.request('/api/discovery-modes')
+
+    expect(res.status).toBe(401)
+  })
+
   it('lists discovery modes with availability metadata', async () => {
     const { app } = createTestApp({
       discoveryModeRegistry: fakeDiscoveryRegistry(),

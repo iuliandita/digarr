@@ -941,7 +941,9 @@ const app = createApp({
       hasListenBrainz: Boolean(
         userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
       ),
-      hasSpotify: Boolean(spotifyToken),
+      hasSpotify: Boolean(
+        spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
+      ),
       hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
       hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
       hasLibrarySync,
