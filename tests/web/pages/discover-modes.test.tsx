@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PreviewContext } from '@/web/lib/preview-context'
@@ -45,10 +45,11 @@ vi.mock('@/web/lib/api', () => ({
   runDiscoveryMode: vi.fn(),
 }))
 
-import { getDiscoveryModes } from '@/web/lib/api'
+import { getDiscoveryModes, runDiscoveryMode } from '@/web/lib/api'
 import { DiscoverPage } from '@/web/pages/discover'
 
 const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
+const mockRunDiscoveryMode = vi.mocked(runDiscoveryMode)
 
 describe('DiscoverPage discovery modes', () => {
   beforeEach(() => {
@@ -63,9 +64,42 @@ describe('DiscoverPage discovery modes', () => {
     )
   })
 
-  it('renders discovery mode cards and disables strict ListenBrainz mode when unavailable', async () => {
+  it('switches between easy and advanced fields and submits the exact discovery mode payload', async () => {
     mockGetDiscoveryModes.mockResolvedValue({
       modes: [
+        {
+          id: 'labels',
+          label: 'Labels',
+          description: 'Discover artists connected through label catalogs',
+          availability: {
+            enabled: true,
+            fallbackUsed: true,
+            providerPath: ['musicbrainz'],
+            reason: 'Preferred provider unavailable; fallback will be used.',
+          },
+          easyFields: [
+            {
+              key: 'seedArtists',
+              label: 'Seed artists',
+              type: 'multiselect',
+              required: true,
+            },
+          ],
+          advancedFields: [
+            {
+              key: 'seedArtists',
+              label: 'Seed artists',
+              type: 'multiselect',
+              required: true,
+            },
+            {
+              key: 'limit',
+              label: 'Limit',
+              type: 'number',
+              required: true,
+            },
+          ],
+        },
         {
           id: 'listenbrainz',
           label: 'ListenBrainz',
@@ -81,10 +115,65 @@ describe('DiscoverPage discovery modes', () => {
         },
       ],
     })
+    mockRunDiscoveryMode.mockResolvedValue({ batchId: 42 })
 
     renderWithQuery(<DiscoverPage />)
 
+    const labelsCardHeading = await screen.findByText('Labels')
+    const labelsCard = labelsCardHeading.closest('article')
+    expect(labelsCard).not.toBeNull()
+    // biome-ignore lint/style/noNonNullAssertion: checked above
+    const labelsCardQueries = within(labelsCard!)
+
+    expect(labelsCardQueries.getByText(/preferred provider unavailable/i)).toBeInTheDocument()
+    expect(labelsCardQueries.getByRole('button', { name: 'Easy' })).toBeInTheDocument()
+    expect(labelsCardQueries.getByRole('button', { name: 'Advanced' })).toBeInTheDocument()
+    expect(labelsCardQueries.getByText('Seed artists')).toBeInTheDocument()
+    expect(labelsCardQueries.queryByText('Limit')).not.toBeInTheDocument()
+
+    fireEvent.click(labelsCardQueries.getByRole('button', { name: 'Advanced' }))
+
+    expect(labelsCardQueries.getByText('Limit')).toBeInTheDocument()
+
+    const textboxes = labelsCardQueries.getAllByRole('textbox')
+    const seedArtistsInput = textboxes[0]
+    expect(seedArtistsInput).toBeDefined()
+    // biome-ignore lint/style/noNonNullAssertion: asserted above
+    fireEvent.change(seedArtistsInput!, { target: { value: 'Broadcast, Stereolab' } })
+    fireEvent.change(labelsCardQueries.getByRole('spinbutton'), { target: { value: '25' } })
+    fireEvent.click(labelsCardQueries.getByRole('button', { name: 'Run discovery' }))
+
+    await waitFor(() => {
+      expect(mockRunDiscoveryMode).toHaveBeenCalledWith({
+        modeId: 'labels',
+        settingsMode: 'advanced',
+        rawUserSettings: {
+          seedArtists: ['Broadcast', 'Stereolab'],
+          limit: 25,
+        },
+        normalizedSettings: {
+          seedArtists: ['Broadcast', 'Stereolab'],
+          limit: 25,
+        },
+        providerContext: {
+          providerPath: ['musicbrainz'],
+        },
+        fallbackPolicy: 'allow-fallback',
+      })
+    })
+
     expect(await screen.findByText('ListenBrainz')).toBeInTheDocument()
     expect(screen.getByText(/connect listenbrainz/i)).toBeInTheDocument()
+
+    const listenBrainzHeading = screen.getByText('ListenBrainz')
+    const listenBrainzCard = listenBrainzHeading.closest('article')
+    expect(listenBrainzCard).not.toBeNull()
+    // biome-ignore lint/style/noNonNullAssertion: checked above
+    const listenBrainzQueries = within(listenBrainzCard!)
+    const disabledSubmit = listenBrainzQueries.getByRole('button', { name: 'Run discovery' })
+
+    expect(disabledSubmit).toBeDisabled()
+    fireEvent.click(disabledSubmit)
+    expect(mockRunDiscoveryMode).toHaveBeenCalledTimes(1)
   })
 })
