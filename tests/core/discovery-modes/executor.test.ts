@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
+import { discoveryCandidatesToDiscoveredArtists } from '@/core/discovery-modes/candidates'
 import { executeDiscoveryMode } from '@/core/discovery-modes/executor'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 
 describe('executeDiscoveryMode', () => {
   it('defaults omitted provenanceMode from the request mode id', async () => {
@@ -95,5 +97,18 @@ describe('executeDiscoveryMode', () => {
     await expect(executeDiscoveryMode(request, registry as never)).rejects.toThrow(
       "Unknown discovery mode 'missing-mode'",
     )
+  })
+
+  it('skips malformed release candidates without an artistName', () => {
+    const results = discoveryCandidatesToDiscoveredArtists([
+      {
+        candidateType: 'release',
+        name: 'Loveless',
+        provenanceProvider: 'discogs',
+        fallbackUsed: false,
+      } as DiscoveryCandidate,
+    ])
+
+    expect(results).toEqual([])
   })
 })

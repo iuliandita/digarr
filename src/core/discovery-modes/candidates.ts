@@ -14,13 +14,32 @@ export function normalizeDiscoveryCandidates(
 export function discoveryCandidatesToDiscoveredArtists(
   candidates: DiscoveryCandidate[],
 ): DiscoveredArtist[] {
-  return candidates.map((candidate) => ({
-    name: candidate.candidateType === 'release' ? (candidate.artistName ?? candidate.name) : candidate.name,
-    mbid: candidate.mbid,
-    similarityScore: candidate.confidenceHint ?? 0.7,
-    aiReasoning: candidate.explanationHint,
-    suggestedAlbum: candidate.candidateType === 'release' ? candidate.name : undefined,
-    source: candidate.provenanceMode,
-    sourceUrl: candidate.sourceUrl,
-  }))
+  return candidates.reduce<DiscoveredArtist[]>((results, candidate) => {
+    if (candidate.candidateType === 'release') {
+      if (!candidate.artistName?.trim()) {
+        return results
+      }
+
+      results.push({
+        name: candidate.artistName,
+        mbid: candidate.mbid,
+        similarityScore: candidate.confidenceHint ?? 0.7,
+        aiReasoning: candidate.explanationHint,
+        suggestedAlbum: candidate.name,
+        source: candidate.provenanceMode,
+        sourceUrl: candidate.sourceUrl,
+      })
+      return results
+    }
+
+    results.push({
+      name: candidate.name,
+      mbid: candidate.mbid,
+      similarityScore: candidate.confidenceHint ?? 0.7,
+      aiReasoning: candidate.explanationHint,
+      source: candidate.provenanceMode,
+      sourceUrl: candidate.sourceUrl,
+    })
+    return results
+  }, [])
 }

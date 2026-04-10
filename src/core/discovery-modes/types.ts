@@ -13,10 +13,8 @@ export type DiscoveryConfigField = {
 
 export type DiscoveryAvailabilityKind = 'strict' | 'fallback'
 
-export type RawDiscoveryCandidate = {
-  candidateType: 'artist' | 'release'
+type RawDiscoveryCandidateBase = {
   name: string
-  artistName?: string
   mbid?: string
   sourceUrl?: string
   provenanceMode?: string
@@ -26,6 +24,16 @@ export type RawDiscoveryCandidate = {
   fallbackUsed: boolean
   freshnessDate?: string
 }
+
+export type RawDiscoveryCandidate =
+  | (RawDiscoveryCandidateBase & {
+      candidateType: 'artist'
+      artistName?: never
+    })
+  | (RawDiscoveryCandidateBase & {
+      candidateType: 'release'
+      artistName: string
+    })
 
 export type DiscoveryCandidate = RawDiscoveryCandidate & {
   provenanceMode: string
