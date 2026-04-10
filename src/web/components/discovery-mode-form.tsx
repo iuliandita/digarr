@@ -53,8 +53,10 @@ function buildSubmission(
   mode: DiscoveryModeResponse,
   settingsMode: DiscoverySettingsMode,
   values: Record<string, boolean | string>,
+  initialSettings: Record<string, unknown> | undefined,
 ) {
   const fields = getFields(mode, settingsMode)
+  const fieldKeys = new Set([...mode.easyFields, ...mode.advancedFields].map((field) => field.key))
   const normalizedSettings = Object.fromEntries(
     fields
       .map((field) => [
@@ -63,6 +65,9 @@ function buildSubmission(
       ])
       .filter((entry) => entry[1] !== undefined),
   ) as Record<string, unknown>
+  const preservedSettings = Object.fromEntries(
+    Object.entries(initialSettings ?? {}).filter(([key]) => !fieldKeys.has(key)),
+  )
 
   for (const field of fields) {
     if (!field.required) continue
@@ -79,7 +84,7 @@ function buildSubmission(
     payload: {
       modeId: mode.id,
       settingsMode,
-      settings: normalizedSettings,
+      settings: { ...preservedSettings, ...normalizedSettings },
     } satisfies DiscoveryModeSubscriptionConfig,
   }
 }
@@ -194,11 +199,12 @@ export function DiscoveryModeForm({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const onChangeRef = useRef(onChange)
+  const lastSubscriptionPayloadRef = useRef<string | null>(null)
 
   const fields = useMemo(() => getFields(mode, settingsMode), [mode, settingsMode])
   const submission = useMemo(
-    () => buildSubmission(mode, settingsMode, values),
-    [mode, settingsMode, values],
+    () => buildSubmission(mode, settingsMode, values, initialSettings),
+    [mode, settingsMode, values, initialSettings],
   )
 
   useEffect(() => {
@@ -219,6 +225,9 @@ export function DiscoveryModeForm({
 
   useLayoutEffect(() => {
     if (intent !== 'subscription') return
+    const payloadSignature = JSON.stringify(submission.payload)
+    if (lastSubscriptionPayloadRef.current === payloadSignature) return
+    lastSubscriptionPayloadRef.current = payloadSignature
     onChangeRef.current?.(submission.payload)
   }, [intent, submission.payload])
 
