@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
-import { errMsg } from '@/core/validation'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { DiscoveryConfigField } from '@/core/discovery-modes/types'
+import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
 
 type DiscoverySettingsMode = 'easy' | 'advanced'
+type DiscoveryModeIntent = 'run' | 'subscription'
+
+type DiscoveryModeSubscriptionConfig = {
+  modeId: string
+  settingsMode: DiscoverySettingsMode
+  settings: Record<string, unknown>
+}
 
 function getDefaultValue(field: DiscoveryConfigField): boolean | string {
   if (field.type === 'toggle') return false
@@ -30,19 +37,126 @@ function normalizeValue(field: DiscoveryConfigField, value: boolean | string): u
   return String(value).trim()
 }
 
+function buildSubmission(
+  mode: DiscoveryModeResponse,
+  settingsMode: DiscoverySettingsMode,
+  values: Record<string, boolean | string>,
+) {
+  const fields = getFields(mode, settingsMode)
+  const normalizedSettings = Object.fromEntries(
+    fields
+      .map((field) => [
+        field.key,
+        normalizeValue(field, values[field.key] ?? getDefaultValue(field)),
+      ])
+      .filter((entry) => entry[1] !== undefined),
+  ) as Record<string, unknown>
+
+  for (const field of fields) {
+    if (!field.required) continue
+    const value = normalizedSettings[field.key]
+    if (Array.isArray(value) && value.length > 0) continue
+    if (value === true) continue
+    if (typeof value === 'number' && !Number.isNaN(value)) continue
+    if (typeof value === 'string' && value.length > 0) continue
+    return { error: `${field.label} is required`, payload: null }
+  }
+
+  return {
+    error: null,
+    payload: {
+      modeId: mode.id,
+      settingsMode,
+      settings: normalizedSettings,
+    } satisfies DiscoveryModeSubscriptionConfig,
+  }
+}
+
+function DiscoveryModeFields({
+  fields,
+  values,
+  setValues,
+}: {
+  fields: DiscoveryConfigField[]
+  values: Record<string, boolean | string>
+  setValues: React.Dispatch<React.SetStateAction<Record<string, boolean | string>>>
+}) {
+  return (
+    <div className="space-y-3">
+      {fields.map((field) => {
+        const value = values[field.key] ?? getDefaultValue(field)
+
+        return (
+          <div key={field.key} className="block space-y-1">
+            <span className="block text-sm font-medium text-text">{field.label}</span>
+            {field.helpText && <span className="block text-xs text-muted">{field.helpText}</span>}
+            {field.type === 'select' ? (
+              <select
+                value={String(value)}
+                onChange={(event) =>
+                  setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
+                }
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              >
+                {(field.options ?? []).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            ) : field.type === 'toggle' ? (
+              <input
+                type="checkbox"
+                checked={value === true}
+                onChange={(event) =>
+                  setValues((prev) => ({ ...prev, [field.key]: event.target.checked }))
+                }
+                className="h-4 w-4 rounded border-border"
+              />
+            ) : (
+              <input
+                type={field.type === 'number' ? 'number' : 'text'}
+                value={String(value)}
+                onChange={(event) =>
+                  setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
+                }
+                placeholder={field.type === 'multiselect' ? 'Enter comma-separated values' : ''}
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function DiscoveryModeForm({
   mode,
   onRun,
+  onChange,
+  intent = 'run',
 }: {
   mode: DiscoveryModeResponse
   onRun: (body: Record<string, unknown>) => Promise<void>
+  onChange?: (body: Record<string, unknown> | null) => void
+  intent?: DiscoveryModeIntent
 }) {
   const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>('easy')
   const [values, setValues] = useState<Record<string, boolean | string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const onChangeRef = useRef(onChange)
 
   const fields = useMemo(() => getFields(mode, settingsMode), [mode, settingsMode])
+  const submission = useMemo(
+    () => buildSubmission(mode, settingsMode, values),
+    [mode, settingsMode, values],
+  )
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
 
   useEffect(() => {
     setValues((prev) => {
@@ -56,26 +170,16 @@ export function DiscoveryModeForm({
     })
   }, [mode])
 
+  useLayoutEffect(() => {
+    if (intent !== 'subscription') return
+    onChangeRef.current?.(submission.payload)
+  }, [intent, submission.payload])
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const normalizedSettings = Object.fromEntries(
-      fields
-        .map((field) => [field.key, normalizeValue(field, values[field.key] ?? getDefaultValue(field))])
-        .filter((entry) => {
-          const value = entry[1]
-          return value !== undefined
-        }),
-    )
-
-    for (const field of fields) {
-      if (!field.required) continue
-      const value = normalizedSettings[field.key]
-      if (Array.isArray(value) && value.length > 0) continue
-      if (value === true) continue
-      if (typeof value === 'number' && !Number.isNaN(value)) continue
-      if (typeof value === 'string' && value.length > 0) continue
-      setError(`${field.label} is required`)
+    if (!submission.payload) {
+      setError(submission.error)
       return
     }
 
@@ -84,9 +188,9 @@ export function DiscoveryModeForm({
     try {
       await onRun({
         modeId: mode.id,
-        settingsMode,
-        rawUserSettings: normalizedSettings,
-        normalizedSettings,
+        settingsMode: submission.payload.settingsMode,
+        rawUserSettings: submission.payload.settings,
+        normalizedSettings: submission.payload.settings,
         providerContext: { providerPath: mode.availability.providerPath },
         fallbackPolicy: mode.availability.fallbackUsed ? 'allow-fallback' : 'strict',
       })
@@ -97,8 +201,8 @@ export function DiscoveryModeForm({
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+  const content = (
+    <>
       <div className="flex items-center gap-2">
         {(['easy', 'advanced'] as const).map((option) => (
           <button
@@ -122,60 +226,27 @@ export function DiscoveryModeForm({
         </div>
       )}
 
-      <div className="space-y-3">
-        {fields.map((field) => {
-          const value = values[field.key] ?? getDefaultValue(field)
+      <DiscoveryModeFields fields={fields} values={values} setValues={setValues} />
 
-          return (
-            <label key={field.key} className="block space-y-1">
-              <span className="block text-sm font-medium text-text">{field.label}</span>
-              {field.helpText && <span className="block text-xs text-muted">{field.helpText}</span>}
-              {field.type === 'select' ? (
-                <select
-                  value={String(value)}
-                  onChange={(event) =>
-                    setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
-                  }
-                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
-                >
-                  {(field.options ?? []).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              ) : field.type === 'toggle' ? (
-                <input
-                  type="checkbox"
-                  checked={value === true}
-                  onChange={(event) =>
-                    setValues((prev) => ({ ...prev, [field.key]: event.target.checked }))
-                  }
-                  className="h-4 w-4 rounded border-border"
-                />
-              ) : (
-                <input
-                  type={field.type === 'number' ? 'number' : 'text'}
-                  value={String(value)}
-                  onChange={(event) =>
-                    setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
-                  }
-                  placeholder={field.type === 'multiselect' ? 'Enter comma-separated values' : ''}
-                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
-                />
-              )}
-            </label>
-          )
-        })}
-      </div>
+      {intent === 'run' && (
+        <button
+          type="submit"
+          disabled={!mode.availability.enabled || submitting}
+          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {submitting ? 'Starting...' : 'Run discovery'}
+        </button>
+      )}
+    </>
+  )
 
-      <button
-        type="submit"
-        disabled={!mode.availability.enabled || submitting}
-        className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {submitting ? 'Starting...' : 'Run discovery'}
-      </button>
+  if (intent === 'subscription') {
+    return <div className="space-y-4">{content}</div>
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {content}
     </form>
   )
 }

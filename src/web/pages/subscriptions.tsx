@@ -22,6 +22,7 @@ import {
   bulkToggleSubscriptions,
   createSubscriptionApi,
   deleteSubscriptionApi,
+  getDiscoveryModes,
   getOAuthStatus,
   getSchedulerInfo,
   getSettings,
@@ -165,6 +166,7 @@ function SubscriptionCard({
     if (sub.sourceType === 'listenbrainz') return (cfg.feedType as string) ?? null
     if (sub.sourceType === 'spotify-liked-songs') return 'Liked Songs'
     if (sub.sourceType === 'spotify-playlist') return (cfg.playlistName as string) ?? null
+    if (sub.sourceType === 'discovery-mode') return (cfg.modeId as string) ?? null
     return null
   })()
 
@@ -345,6 +347,11 @@ export default function SubscriptionsPage() {
     queryKey: ['scheduler-info'],
     queryFn: getSchedulerInfo,
     refetchInterval: 60_000,
+  })
+
+  const { data: discoveryModes } = useQuery({
+    queryKey: ['discovery-modes'],
+    queryFn: getDiscoveryModes,
   })
 
   // Invalidation helper
@@ -574,6 +581,7 @@ export default function SubscriptionsPage() {
         <SubscriptionForm
           mode={showForm.mode}
           configuredSources={configuredSources}
+          discoveryModes={discoveryModes?.modes ?? []}
           initial={
             showForm.mode === 'edit'
               ? {
