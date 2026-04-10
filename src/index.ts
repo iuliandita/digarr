@@ -13,6 +13,7 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
+import { DiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { GenreService } from './core/genre/service'
 import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
@@ -819,6 +820,7 @@ function buildStaticSearchSources(): SearchSource[] {
 }
 
 const staticSearchSources = buildStaticSearchSources()
+const discoveryModeRegistry = new DiscoveryModeRegistry()
 
 const app = createApp({
   db,
@@ -926,6 +928,24 @@ const app = createApp({
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),
+  },
+  discoveryModeRegistry,
+  getDiscoveryConnectionSnapshot: async (userId) => {
+    const [userConnections, spotifyToken, hasLibrarySync] = await Promise.all([
+      getUserConnections(db, userId),
+      getOAuthToken(db, userId, 'spotify'),
+      librarySyncStore.userHasAnySyncState(userId),
+    ])
+
+    return {
+      hasListenBrainz: Boolean(
+        userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
+      ),
+      hasSpotify: Boolean(spotifyToken),
+      hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
+      hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+      hasLibrarySync,
+    }
   },
   jobRecorder,
   jobQueries: {

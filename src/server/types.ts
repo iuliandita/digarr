@@ -1,3 +1,8 @@
+import type {
+  DiscoveryAvailabilityResult,
+  DiscoveryConnectionSnapshot,
+} from '@/core/discovery-modes/availability'
+
 export type HonoEnv = {
   Variables: {
     userId?: number
@@ -8,3 +13,5 @@ export type HonoEnv = {
     authSkipped?: boolean
   }
 }
+
+export type { DiscoveryAvailabilityResult, DiscoveryConnectionSnapshot }
