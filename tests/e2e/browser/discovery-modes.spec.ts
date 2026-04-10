@@ -125,7 +125,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     await route.fulfill({
       status: 202,
       contentType: 'application/json',
-      body: JSON.stringify({ batchId: 42, artistsFound: 0 }),
+      body: JSON.stringify({ message: 'Discovery run started' }),
     })
   })
 
@@ -144,7 +144,8 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     .locator('xpath=ancestor::article[1]')
   await releaseRadarCard.getByLabel('Release window').fill('14')
   await releaseRadarCard.getByRole('button', { name: 'Run discovery' }).click()
-  await expect(page.getByText(/discovery run queued as batch/i)).toBeVisible()
+  await expect(page.getByText(/discovery run started/i)).toBeVisible()
+  await expect(page.getByText(/check dashboard for progress/i)).toBeVisible()
   expect(runRequestBody).toEqual({
     modeId: 'release-radar',
     settingsMode: 'easy',

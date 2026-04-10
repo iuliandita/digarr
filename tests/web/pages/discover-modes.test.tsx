@@ -6,6 +6,13 @@ import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PreviewContext } from '@/web/lib/preview-context'
 
+const toast = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  promise: vi.fn(),
+}))
+
 const noopPreview = {
   play: vi.fn(),
   stop: vi.fn(),
@@ -45,23 +52,28 @@ vi.mock('@/web/lib/api', () => ({
   runDiscoveryMode: vi.fn(),
 }))
 
+vi.mock('sonner', () => ({
+  toast,
+}))
+
 import { getDiscoveryModes, runDiscoveryMode } from '@/web/lib/api'
 import { DiscoverPage } from '@/web/pages/discover'
 
-const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
-const mockRunDiscoveryMode = vi.mocked(runDiscoveryMode)
+const mockGetDiscoveryModes = getDiscoveryModes as typeof getDiscoveryModes & {
+  mockResolvedValue: (value: Awaited<ReturnType<typeof getDiscoveryModes>>) => void
+}
+const mockRunDiscoveryMode = runDiscoveryMode as typeof runDiscoveryMode & {
+  mockResolvedValue: (value: Awaited<ReturnType<typeof runDiscoveryMode>>) => void
+}
 
 describe('DiscoverPage discovery modes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    )
+    globalThis.ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as typeof ResizeObserver
   })
 
   it('switches between easy and advanced fields and submits the exact discovery mode payload', async () => {
@@ -115,7 +127,7 @@ describe('DiscoverPage discovery modes', () => {
         },
       ],
     })
-    mockRunDiscoveryMode.mockResolvedValue({ batchId: 42 })
+    mockRunDiscoveryMode.mockResolvedValue({ message: 'Discovery run started' })
 
     renderWithQuery(<DiscoverPage />)
 
@@ -161,6 +173,8 @@ describe('DiscoverPage discovery modes', () => {
         fallbackPolicy: 'allow-fallback',
       })
     })
+
+    expect(toast.success).toHaveBeenCalledWith('Discovery run started -- check Dashboard for progress')
 
     expect(await screen.findByText('ListenBrainz')).toBeInTheDocument()
     expect(screen.getByText(/connect listenbrainz/i)).toBeInTheDocument()

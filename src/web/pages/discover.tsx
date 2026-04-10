@@ -784,8 +784,8 @@ export function DiscoverPage() {
 
   const handleRunDiscoveryMode = useCallback(
     async (body: Record<string, unknown>) => {
-      const result = await runDiscoveryMode(body)
-      toast.success(`Discovery run queued as batch ${result.batchId}`)
+      await runDiscoveryMode(body)
+      toast.success('Discovery run started -- check Dashboard for progress')
       refetch()
     },
     [refetch],

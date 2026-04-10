@@ -111,12 +111,14 @@ export function pipelineRoutes(deps: AppDependencies) {
         body,
         deps.discoveryModeRegistry,
       )
-      try {
-        const result = await deps.runDiscoveryMode(request)
-        return c.json(result, 202)
-      } catch (err: unknown) {
-        return c.json({ error: errMsg(err) }, 500)
-      }
+
+      deps
+        .runDiscoveryMode(request)
+        .catch((err: unknown) => {
+          console.error('Discovery mode run failed:', err)
+        })
+
+      return c.json({ message: 'Discovery run started' }, 202)
     } catch (err: unknown) {
       return c.json({ error: errMsg(err) }, 400)
     }

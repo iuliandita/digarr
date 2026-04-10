@@ -225,7 +225,7 @@ export const getDiscoveryModes = () =>
   fetchApi<{ modes: DiscoveryModeResponse[] }>('/discovery-modes')
 
 export const runDiscoveryMode = (body: Record<string, unknown>) =>
-  fetchApi<{ batchId: number }>('/discovery-modes/run', {
+  fetchApi<{ message: string }>('/discovery-modes/run', {
     method: 'POST',
     body: JSON.stringify(body),
   })

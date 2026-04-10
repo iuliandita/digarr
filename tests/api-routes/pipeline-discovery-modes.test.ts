@@ -24,8 +24,14 @@ describe('API routes: discovery mode pipeline runs', () => {
     expect(res.status).toBe(401)
   })
 
-  it('normalizes the request and starts a discovery mode run', async () => {
-    const runDiscoveryMode = vi.fn(async () => ({ batchId: 123 }))
+  it('normalizes the request and starts a background discovery mode run', async () => {
+    let resolveRun: (() => void) | undefined
+    const runDiscoveryMode = vi.fn(
+      () =>
+        new Promise<{ batchId: number }>((resolve) => {
+          resolveRun = () => resolve({ batchId: 123 })
+        }),
+    )
     const discoveryModeRegistry = new DiscoveryModeRegistry()
     discoveryModeRegistry.register({
       id: 'labels',
@@ -59,7 +65,7 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
 
     expect(res.status).toBe(202)
-    expect(await res.json()).toEqual({ batchId: 123 })
+    expect(await res.json()).toEqual({ message: 'Discovery run started' })
     expect(runDiscoveryMode).toHaveBeenCalledWith(
       expect.objectContaining({
         modeId: 'labels',
@@ -67,6 +73,8 @@ describe('API routes: discovery mode pipeline runs', () => {
         triggerType: 'manual',
       }),
     )
+
+    resolveRun?.()
   })
 
   it('returns 400 for request validation failures', async () => {
@@ -89,7 +97,8 @@ describe('API routes: discovery mode pipeline runs', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 500 when discovery mode execution fails', async () => {
+  it('returns 202 immediately and logs background failures', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     const runDiscoveryMode = vi.fn(async () => {
       throw new Error('execution failed')
     })
@@ -125,6 +134,13 @@ describe('API routes: discovery mode pipeline runs', () => {
       }),
     })
 
-    expect(res.status).toBe(500)
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ message: 'Discovery run started' })
+    await Promise.resolve()
+    expect(consoleError).toHaveBeenCalledWith(
+      'Discovery mode run failed:',
+      expect.objectContaining({ message: 'execution failed' }),
+    )
+    consoleError.mockRestore()
   })
 })
