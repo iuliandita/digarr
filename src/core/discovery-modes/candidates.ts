@@ -22,7 +22,7 @@ export function discoveryCandidatesToDiscoveredArtists(
 
       results.push({
         name: candidate.artistName,
-        mbid: candidate.mbid,
+        mbid: candidate.artistMbid,
         similarityScore: candidate.confidenceHint ?? 0.7,
         aiReasoning: candidate.explanationHint,
         suggestedAlbum: candidate.name,

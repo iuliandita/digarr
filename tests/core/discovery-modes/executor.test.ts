@@ -104,11 +104,39 @@ describe('executeDiscoveryMode', () => {
       {
         candidateType: 'release',
         name: 'Loveless',
+        artistMbid: 'artist-mbid-1',
         provenanceProvider: 'discogs',
         fallbackUsed: false,
       } as DiscoveryCandidate,
     ])
 
     expect(results).toEqual([])
+  })
+
+  it('maps release candidates using the artist MBID and preserves the release title', () => {
+    const results = discoveryCandidatesToDiscoveredArtists([
+      {
+        candidateType: 'release',
+        name: 'Dummy Release Title',
+        artistName: 'Slowdive',
+        artistMbid: 'artist-mbid-2',
+        releaseMbid: 'release-mbid-2',
+        releaseGroupMbid: 'release-group-mbid-2',
+        provenanceMode: 'labels',
+        provenanceProvider: 'discogs',
+        confidenceHint: 0.93,
+        fallbackUsed: false,
+      } as DiscoveryCandidate,
+    ])
+
+    expect(results).toHaveLength(1)
+    expect(results[0]).toMatchObject({
+      name: 'Slowdive',
+      mbid: 'artist-mbid-2',
+      similarityScore: 0.93,
+      suggestedAlbum: 'Dummy Release Title',
+      source: 'labels',
+    })
+    expect(results[0]).not.toHaveProperty('releaseMbid')
   })
 })

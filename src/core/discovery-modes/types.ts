@@ -33,6 +33,9 @@ export type RawDiscoveryCandidate =
   | (RawDiscoveryCandidateBase & {
       candidateType: 'release'
       artistName: string
+      artistMbid: string
+      releaseMbid?: string
+      releaseGroupMbid?: string
     })
 
 export type DiscoveryCandidate = RawDiscoveryCandidate & {
