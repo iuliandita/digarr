@@ -48,6 +48,7 @@ export interface PipelineDeps {
   db: StoreDb
   settings: PipelineSettings
   userId: number
+  subscriptionId?: number
   providerRegistry?: AiProviderRegistry
   userConnections?: UserConnections | null
   autoApproveDeps?: AutoApproveDeps | null
@@ -377,7 +378,10 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'store',
         message: `Saving ${filtered.length} recommendations...`,
       })
-      const batchId = await store(filtered, db, { userId: deps.userId })
+      const batchId = await store(filtered, db, {
+        userId: deps.userId,
+        subscriptionId: deps.subscriptionId,
+      })
 
       // Auto-approve if enabled
       if (prefs.autoApproveEnabled && deps.autoApproveDeps) {

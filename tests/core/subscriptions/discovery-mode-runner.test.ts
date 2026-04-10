@@ -205,4 +205,32 @@ describe('runSubscription discovery-mode', () => {
       }),
     )
   })
+
+  it('canonicalizes modeId during runtime normalization before executing discovery-mode runs', async () => {
+    const deps = makeDeps()
+    const adapter = {
+      type: 'discovery-mode',
+      label: 'Discovery Mode',
+      configFields: [],
+      fetch: vi.fn().mockResolvedValue({ artists: [] }),
+    }
+
+    await runSubscription(
+      makeSubscription({
+        modeId: ' labels ',
+        settingsMode: 'advanced',
+        settings: { seedArtists: ['Broadcast'] },
+      }),
+      adapter,
+      deps,
+    )
+
+    expect(deps.discoveryModeRunner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: expect.objectContaining({
+          modeId: 'labels',
+        }),
+      }),
+    )
+  })
 })

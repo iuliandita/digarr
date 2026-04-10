@@ -10,6 +10,7 @@ type RunDiscoveryModeParams = {
   request: DiscoveryModeRequest
   registry: DiscoveryModeRegistry
   orchestrator: Pick<PipelineOrchestrator, 'run'>
+  subscriptionId?: number
   maxArtistsPerRun?: number
   pipelineDeps: Omit<
     PipelineDeps,
@@ -31,6 +32,7 @@ export async function runDiscoveryMode({
   request,
   registry,
   orchestrator,
+  subscriptionId,
   maxArtistsPerRun,
   pipelineDeps,
   jobRecorder,
@@ -67,6 +69,7 @@ export async function runDiscoveryMode({
     const result = await orchestrator.run({
       ...pipelineDeps,
       userId: request.userId,
+      subscriptionId,
       trigger: request.triggerType === 'subscription' ? 'scheduled' : 'manual',
       explicitDiscoveryMode: {
         modeId: request.modeId,

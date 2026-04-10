@@ -72,6 +72,56 @@ describe('API routes: discovery mode subscriptions', () => {
     )
   })
 
+  it('canonicalizes discovery mode modeId whitespace before create persistence', async () => {
+    const createSubscription = vi.fn(async (data: Record<string, unknown>) => ({
+      id: 1,
+      ...data,
+      enabled: true,
+      maxArtistsPerRun: null,
+      lastRunAt: null,
+      lastResultCount: null,
+      lastError: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })) as never
+
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription,
+        getSubscription: vi.fn(async () => null),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription: vi.fn(),
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: 'Whitespace Labels',
+        sourceType: 'discovery-mode',
+        sourceProvider: 'labels',
+        sourceConfig: {
+          modeId: ' labels ',
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'] },
+        },
+        cron: '0 8 * * 1',
+      }),
+    })
+
+    expect(res.status).toBe(201)
+    expect(createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceConfig: expect.objectContaining({
+          modeId: 'labels',
+        }),
+      }),
+    )
+  })
+
   it('rejects malformed discovery mode subscriptions that omit mode-specific config', async () => {
     const createSubscription = vi.fn()
     const { app } = createTestApp({
@@ -194,6 +244,66 @@ describe('API routes: discovery mode subscriptions', () => {
       error: 'discovery-mode sourceConfig.settings is required',
     })
     expect(updateSubscription).not.toHaveBeenCalled()
+  })
+
+  it('canonicalizes discovery mode modeId whitespace on patch before persistence', async () => {
+    const updateSubscription = vi.fn()
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription: vi.fn(),
+        getSubscription: vi.fn(async () => ({
+          id: 1,
+          userId: 1,
+          name: 'Weekly Label Hunt',
+          enabled: true,
+          sourceType: 'discovery-mode',
+          sourceProvider: 'labels',
+          sourceConfig: {
+            modeId: 'labels',
+            settingsMode: 'advanced',
+            settings: { seedArtists: ['Broadcast'] },
+          },
+          maxArtistsPerRun: 20,
+          listenerRange: null,
+          cron: '0 8 * * 1',
+          action: 'add_to_recommendations',
+          scoreThreshold: null,
+          scoringWeightPreset: null,
+          scoringWeightOverrides: null,
+          lastRunAt: null,
+          lastResultCount: null,
+          lastError: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }) as never),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription,
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions/1', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        sourceConfig: {
+          modeId: ' labels ',
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'] },
+        },
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(updateSubscription).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        sourceConfig: expect.objectContaining({
+          modeId: 'labels',
+        }),
+      }),
+    )
   })
 
   it('lists discovery mode as an available adapter type', async () => {

@@ -35,29 +35,47 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>
 }
 
+function normalizeDiscoveryModeSourceConfig(
+  sourceConfig: unknown,
+): Record<string, unknown> | null {
+  const config = asRecord(sourceConfig)
+  if (!config) {
+    return null
+  }
+
+  const modeId = typeof config.modeId === 'string' ? config.modeId.trim() : config.modeId
+  return {
+    ...config,
+    modeId,
+  }
+}
+
 function validateDiscoveryModeSourceConfig(
   sourceConfig: unknown,
   registry?: DiscoveryModeRegistry,
-): string | null {
-  const config = asRecord(sourceConfig)
+): { error: string | null; normalizedConfig: Record<string, unknown> | null } {
+  const config = normalizeDiscoveryModeSourceConfig(sourceConfig)
   if (!config) {
-    return 'sourceConfig is required'
+    return { error: 'sourceConfig is required', normalizedConfig: null }
   }
-  const modeId = typeof config.modeId === 'string' ? config.modeId.trim() : ''
+  const modeId = typeof config.modeId === 'string' ? config.modeId : ''
   if (!modeId) {
-    return 'discovery-mode sourceConfig.modeId is required'
+    return { error: 'discovery-mode sourceConfig.modeId is required', normalizedConfig: null }
   }
   if (config.settingsMode !== 'easy' && config.settingsMode !== 'advanced') {
-    return 'discovery-mode sourceConfig.settingsMode must be easy or advanced'
+    return {
+      error: 'discovery-mode sourceConfig.settingsMode must be easy or advanced',
+      normalizedConfig: null,
+    }
   }
   const settings = asRecord(config.settings)
   if (!settings) {
-    return 'discovery-mode sourceConfig.settings is required'
+    return { error: 'discovery-mode sourceConfig.settings is required', normalizedConfig: null }
   }
   if (!registry?.get(modeId)) {
-    return `Unknown discovery mode '${modeId}'`
+    return { error: `Unknown discovery mode '${modeId}'`, normalizedConfig: null }
   }
-  return null
+  return { error: null, normalizedConfig: config }
 }
 
 export function subscriptionRoutes(deps: AppDependencies) {
@@ -233,14 +251,16 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (!sourceConfig || typeof sourceConfig !== 'object' || Array.isArray(sourceConfig)) {
       return c.json({ error: 'sourceConfig is required' }, 400)
     }
+    let normalizedSourceConfig = sourceConfig as Record<string, unknown>
     if (sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
-      const validationError = validateDiscoveryModeSourceConfig(
+      const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
         sourceConfig,
         deps.discoveryModeRegistry,
       )
-      if (validationError) {
-        return c.json({ error: validationError }, 400)
+      if (error) {
+        return c.json({ error }, 400)
       }
+      normalizedSourceConfig = normalizedConfig as Record<string, unknown>
     }
     if (!cron || typeof cron !== 'string') {
       return c.json({ error: 'cron is required' }, 400)
@@ -256,7 +276,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       userId,
       sourceType,
       sourceProvider,
-      sourceConfig: sourceConfig as Record<string, unknown>,
+      sourceConfig: normalizedSourceConfig,
       cron,
       enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
       maxArtistsPerRun:
@@ -505,13 +525,14 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     if (existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE && Object.hasOwn(update, 'sourceConfig')) {
-      const validationError = validateDiscoveryModeSourceConfig(
+      const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
         update.sourceConfig,
         deps.discoveryModeRegistry,
       )
-      if (validationError) {
-        return c.json({ error: validationError }, 400)
+      if (error) {
+        return c.json({ error }, 400)
       }
+      update.sourceConfig = normalizedConfig as Record<string, unknown>
     }
 
     await deps.subscriptionQueries.updateSubscription(id, update)

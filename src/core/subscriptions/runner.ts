@@ -30,6 +30,15 @@ function isDiscoveryModeSubscriptionConfig(
   )
 }
 
+function canonicalizeDiscoveryModeSubscriptionConfig(
+  config: DiscoveryModeSubscriptionConfig,
+): DiscoveryModeSubscriptionConfig {
+  return {
+    ...config,
+    modeId: config.modeId.trim(),
+  }
+}
+
 export function normalizeDiscoveryModeSubscription(
   subscription: Pick<SubscriptionConfig, 'sourceType' | 'sourceConfig' | 'userId'>,
   fallbackUserId?: number,
@@ -40,6 +49,7 @@ export function normalizeDiscoveryModeSubscription(
   if (!isDiscoveryModeSubscriptionConfig(subscription.sourceConfig)) {
     throw new Error('Invalid discovery mode subscription config')
   }
+  const config = canonicalizeDiscoveryModeSubscriptionConfig(subscription.sourceConfig)
 
   const userId = subscription.userId ?? fallbackUserId
   if (typeof userId !== 'number') {
@@ -47,12 +57,12 @@ export function normalizeDiscoveryModeSubscription(
   }
 
   return {
-    modeId: subscription.sourceConfig.modeId,
+    modeId: config.modeId,
     triggerType: 'subscription',
-    settingsMode: subscription.sourceConfig.settingsMode,
+    settingsMode: config.settingsMode,
     userId,
-    rawUserSettings: subscription.sourceConfig.settings,
-    normalizedSettings: subscription.sourceConfig.settings,
+    rawUserSettings: config.settings,
+    normalizedSettings: config.settings,
     providerContext: {},
     fallbackPolicy: 'allow-fallback',
   }
@@ -109,6 +119,7 @@ export async function runSubscription(
         request: discoveryRequest,
         registry: deps.discoveryModeRegistry,
         orchestrator: deps.pipelineOrchestrator,
+        subscriptionId: subscription.id,
         maxArtistsPerRun: subscription.maxArtistsPerRun ?? undefined,
         pipelineDeps,
       })

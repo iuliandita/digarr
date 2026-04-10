@@ -337,6 +337,31 @@ describe('PipelineOrchestrator', () => {
     expect(result).toEqual({ batchId: 42 })
   })
 
+  it('passes subscriptionId to store for discovery-mode subscription runs', async () => {
+    const db = makeDb()
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      subscriptionId: 77,
+      explicitDiscoveryMode: {
+        modeId: 'labels',
+        settingsMode: 'advanced',
+        providerPath: ['discogs', 'labels'],
+      },
+      explicitCandidates: discovered,
+    })
+
+    expect(mockStore).toHaveBeenCalledWith(
+      expect.anything(),
+      db,
+      expect.objectContaining({ userId: 1, subscriptionId: 77 }),
+    )
+  })
+
   it('emits error event and rethrows on stage failure', async () => {
     const db = makeDb()
     const boom = new Error('analyze exploded')
