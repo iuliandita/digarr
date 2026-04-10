@@ -52,6 +52,13 @@ afterAll(() => {
 })
 
 describe('createLastfmChartsAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
     expect(adapter.type).toBe('lastfm-charts')
@@ -78,7 +85,8 @@ describe('createLastfmChartsAdapter', () => {
   it('sets correct source tag', async () => {
     const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
     const result = await adapter.fetch({})
-    expect(result.artists[0]!.source).toBe('lastfm-charts')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first chart artist')
+    expect(firstArtist.source).toBe('lastfm-charts')
   })
 
   it('normalizes listener count to similarityScore', async () => {
@@ -86,21 +94,39 @@ describe('createLastfmChartsAdapter', () => {
     const result = await adapter.fetch({})
 
     // 5_000_000 / 1_000_000 = 5.0 capped at 1.0
-    expect(result.artists.find((a) => a.name === 'Top Artist A')!.similarityScore).toBe(1.0)
+    const artistA = requireArtist(
+      result.artists.find((a) => a.name === 'Top Artist A'),
+      'Expected Top Artist A',
+    )
+    expect(artistA.similarityScore).toBe(1.0)
     // 800_000 / 1_000_000 = 0.8
-    expect(result.artists.find((a) => a.name === 'Top Artist B')!.similarityScore).toBeCloseTo(0.8)
+    const artistB = requireArtist(
+      result.artists.find((a) => a.name === 'Top Artist B'),
+      'Expected Top Artist B',
+    )
+    expect(artistB.similarityScore).toBeCloseTo(0.8)
     // 0 listeners -> 0.5 default
-    expect(result.artists.find((a) => a.name === 'Top Artist C')!.similarityScore).toBe(0.5)
+    const artistC = requireArtist(
+      result.artists.find((a) => a.name === 'Top Artist C'),
+      'Expected Top Artist C',
+    )
+    expect(artistC.similarityScore).toBe(0.5)
   })
 
   it('sets mbid when present', async () => {
     const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
     const result = await adapter.fetch({})
 
-    const artistA = result.artists.find((a) => a.name === 'Top Artist A')!
+    const artistA = requireArtist(
+      result.artists.find((a) => a.name === 'Top Artist A'),
+      'Expected Top Artist A',
+    )
     expect(artistA.mbid).toBe('mbid-a')
 
-    const artistC = result.artists.find((a) => a.name === 'Top Artist C')!
+    const artistC = requireArtist(
+      result.artists.find((a) => a.name === 'Top Artist C'),
+      'Expected Top Artist C',
+    )
     expect(artistC.mbid).toBeUndefined()
   })
 

@@ -112,8 +112,8 @@ import {
   createSubscription,
   deleteSubscription,
   getEnabledSubscriptions,
-  getSubscriptionBatchStats,
   getSubscription,
+  getSubscriptionBatchStats,
   getSubscriptionsByUser,
   updateSubscription,
 } from './db/queries/subscriptions'
@@ -462,7 +462,10 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       extra?: Parameters<typeof updateRecommendationStatus>[3],
     ) => updateRecommendationStatus(db, id, status, extra),
     warmArtist: skyhookWarmer
-      ? ((warmer) => (mbid: string) => warmer.warm(mbid))(skyhookWarmer)
+      ? (
+          (warmer) => (mbid: string) =>
+            warmer.warm(mbid)
+        )(skyhookWarmer)
       : undefined,
   }
 
@@ -700,33 +703,39 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     }
   }
 
-  await runSubscription(subscriptionConfig, (adapter ?? {
-    type: DISCOVERY_MODE_SUBSCRIPTION_TYPE,
-    label: 'Discovery Mode',
-    configFields: [],
-    fetch: async () => ({ artists: [] }),
-  }) as import('./core/subscriptions/types').SubscriptionAdapter, {
-    db: storeDb,
-    queries: {
-      updateSubscription: (id, data) => updateSubscription(db, id, data),
-      getBatchStats: (batchId) => getSubscriptionBatchStats(db, batchId),
+  await runSubscription(
+    subscriptionConfig,
+    (adapter ?? {
+      type: DISCOVERY_MODE_SUBSCRIPTION_TYPE,
+      label: 'Discovery Mode',
+      configFields: [],
+      fetch: async () => ({ artists: [] }),
+    }) as import('./core/subscriptions/types').SubscriptionAdapter,
+    {
+      db: storeDb,
+      queries: {
+        updateSubscription: (id, data) => updateSubscription(db, id, data),
+        getBatchStats: (batchId) => getSubscriptionBatchStats(db, batchId),
+      },
+      jobRecorder,
+      mbClient: createMusicBrainzClient() as SubMBClient,
+      lidarr: lidarrClient ?? undefined,
+      userId: sub.userId ?? undefined,
+      libraryMbids,
+      libraryGenres,
+      rejectedMbids,
+      feedbackHistory,
+      cooldownDays: prefs.rejectionCooldownDays,
+      defaultScoreThreshold: prefs.scoreThreshold,
+      topArtistNames,
+      discoveryModeRegistry,
+      pipelineOrchestrator: orchestrator,
+      discoveryModePipelineDeps:
+        sub.userId != null
+          ? (await buildDiscoveryModePipelineDeps(sub.userId)).pipelineDeps
+          : undefined,
     },
-    jobRecorder,
-    mbClient: createMusicBrainzClient() as SubMBClient,
-    lidarr: lidarrClient ?? undefined,
-    userId: sub.userId ?? undefined,
-    libraryMbids,
-    libraryGenres,
-    rejectedMbids,
-    feedbackHistory,
-    cooldownDays: prefs.rejectionCooldownDays,
-    defaultScoreThreshold: prefs.scoreThreshold,
-    topArtistNames,
-    discoveryModeRegistry,
-    pipelineOrchestrator: orchestrator,
-    discoveryModePipelineDeps:
-      sub.userId != null ? (await buildDiscoveryModePipelineDeps(sub.userId)).pipelineDeps : undefined,
-  })
+  )
 }
 
 async function buildPlaylistResolverDeps(userId: number | null) {

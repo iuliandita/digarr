@@ -1,6 +1,5 @@
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { runDiscoveryMode } from '@/core/discovery-modes/run'
-import { mergePreferences } from '@/db/schema'
 import { filter } from '@/core/pipeline/filter'
 import { resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
@@ -15,6 +14,7 @@ import type {
   SubscriptionRunDeps,
 } from '@/core/subscriptions/types'
 import { errMsg } from '@/core/validation'
+import { mergePreferences } from '@/db/schema'
 
 export type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
 
@@ -106,7 +106,11 @@ export async function runSubscription(
   try {
     if (subscription.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
       const discoveryModeRunner = deps.discoveryModeRunner ?? runDiscoveryMode
-      if (!deps.discoveryModeRegistry || !deps.pipelineOrchestrator || !deps.discoveryModePipelineDeps) {
+      if (
+        !deps.discoveryModeRegistry ||
+        !deps.pipelineOrchestrator ||
+        !deps.discoveryModePipelineDeps
+      ) {
         throw new Error('Discovery mode subscriptions require discovery mode dependencies')
       }
 

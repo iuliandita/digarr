@@ -72,6 +72,13 @@ describe('sendWebhook', () => {
   let fetchMock: ReturnType<typeof vi.fn>
   let consoleSpy: ReturnType<typeof vi.spyOn>
 
+  function requireCall<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   beforeEach(() => {
     fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -90,7 +97,8 @@ describe('sendWebhook', () => {
     await sendWebhook('https://hooks.example.com/webhook', payload)
 
     expect(fetchMock).toHaveBeenCalledOnce()
-    const [url, init] = fetchMock.mock.calls[0]!
+    const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')
+    const [url, init] = call
     expect(url).toBe('https://hooks.example.com/webhook')
     expect(init.method).toBe('POST')
     expect(init.headers['Content-Type']).toBe('application/json')
@@ -160,7 +168,8 @@ describe('sendWebhook', () => {
 
     // Verify signal was passed
     expect(fetchMock).toHaveBeenCalledOnce()
-    const [, init] = fetchMock.mock.calls[0]!
+    const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')
+    const [, init] = call
     expect(init.signal).toBeInstanceOf(AbortSignal)
 
     // Manually abort to let the promise resolve

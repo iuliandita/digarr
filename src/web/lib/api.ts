@@ -1,6 +1,6 @@
-import type { GenreInfo } from '../../core/genre/types'
 import type { DiscoveryAvailabilityResult } from '../../core/discovery-modes/availability'
 import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
+import type { GenreInfo } from '../../core/genre/types'
 
 export type LibraryArtist = {
   id: number

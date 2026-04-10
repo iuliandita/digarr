@@ -1,6 +1,6 @@
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
-import type { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import type { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import type { StoreDb } from '@/core/pipeline/store'
 import type { DiscoveredArtist } from '@/core/types'

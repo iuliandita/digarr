@@ -6,7 +6,9 @@ export function createArtistRelationshipsMode(): DiscoveryModeDefinition {
     label: 'Artist Relationships',
     description: 'Discover collaborators, aliases, and adjacent artist graph edges',
     availability: 'strict',
-    easyFields: [{ key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true }],
+    easyFields: [
+      { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
+    ],
     advancedFields: [
       { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
       {

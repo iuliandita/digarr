@@ -24,7 +24,9 @@ export class DiscoveryModeRegistry {
   }
 }
 
-export function registerDefaultDiscoveryModes(registry: DiscoveryModeRegistry): DiscoveryModeRegistry {
+export function registerDefaultDiscoveryModes(
+  registry: DiscoveryModeRegistry,
+): DiscoveryModeRegistry {
   registry.register(createListenBrainzMode())
   registry.register(createReleaseRadarMode())
   registry.register(createArtistRelationshipsMode())

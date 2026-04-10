@@ -35,9 +35,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>
 }
 
-function normalizeDiscoveryModeSourceConfig(
-  sourceConfig: unknown,
-): Record<string, unknown> | null {
+function normalizeDiscoveryModeSourceConfig(sourceConfig: unknown): Record<string, unknown> | null {
   const config = asRecord(sourceConfig)
   if (!config) {
     return null
@@ -524,7 +522,10 @@ export function subscriptionRoutes(deps: AppDependencies) {
       }
     }
 
-    if (existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE && Object.hasOwn(update, 'sourceConfig')) {
+    if (
+      existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE &&
+      Object.hasOwn(update, 'sourceConfig')
+    ) {
       const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
         update.sourceConfig,
         deps.discoveryModeRegistry,

@@ -26,6 +26,13 @@ function makeIncapableSource(id: string): DiscoverySource {
 }
 
 describe('createSimilarAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createSimilarAdapter([])
     expect(adapter.type).toBe('similar')
@@ -51,10 +58,11 @@ describe('createSimilarAdapter', () => {
     })
 
     expect(result.artists).toHaveLength(1)
-    expect(result.artists[0]!.name).toBe('Artist B')
-    expect(result.artists[0]!.mbid).toBe('mbid-b')
-    expect(result.artists[0]!.similarityScore).toBe(0.8)
-    expect(result.artists[0]!.source).toBe('similar-subscription:lastfm')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first similar artist')
+    expect(firstArtist.name).toBe('Artist B')
+    expect(firstArtist.mbid).toBe('mbid-b')
+    expect(firstArtist.similarityScore).toBe(0.8)
+    expect(firstArtist.source).toBe('similar-subscription:lastfm')
   })
 
   it('passes seed name and mbid to getSimilarArtists', async () => {
@@ -107,7 +115,8 @@ describe('createSimilarAdapter', () => {
 
     expect(result.artists).toHaveLength(1)
     // First occurrence wins
-    expect(result.artists[0]!.name).toBe('Artist C')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first similar artist')
+    expect(firstArtist.name).toBe('Artist C')
   })
 
   it('returns empty when no seed artists provided', async () => {
@@ -159,7 +168,8 @@ describe('createSimilarAdapter', () => {
     })
 
     expect(result.artists).toHaveLength(1)
-    expect(result.artists[0]!.name).toBe('Artist B')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first similar artist')
+    expect(firstArtist.name).toBe('Artist B')
     expect(listenbrainz.getSimilarArtists).not.toHaveBeenCalled()
   })
 

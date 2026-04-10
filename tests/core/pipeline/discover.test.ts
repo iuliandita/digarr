@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import { discover } from '@/core/pipeline/discover'
 import type { DiscoverySource } from '@/core/plugins/types'
-import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import type { TasteProfile } from '@/core/types'
 
 const profile: TasteProfile = {

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
 import { filter } from '@/core/pipeline/filter'
@@ -103,19 +104,21 @@ export function pipelineRoutes(deps: AppDependencies) {
       return c.json({ error: 'Discovery mode execution is not configured' }, 500)
     }
 
-    let request
     try {
       const body = await c.req.json()
-      request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+      const request: DiscoveryModeRequest = normalizeDiscoveryModeRequest(
+        userId,
+        body,
+        deps.discoveryModeRegistry,
+      )
+      try {
+        const result = await deps.runDiscoveryMode(request)
+        return c.json(result, 202)
+      } catch (err: unknown) {
+        return c.json({ error: errMsg(err) }, 500)
+      }
     } catch (err: unknown) {
       return c.json({ error: errMsg(err) }, 400)
-    }
-
-    try {
-      const result = await deps.runDiscoveryMode(request)
-      return c.json(result, 202)
-    } catch (err: unknown) {
-      return c.json({ error: errMsg(err) }, 500)
     }
   })
 

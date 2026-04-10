@@ -20,6 +20,13 @@ function makeSource(
 }
 
 describe('createGenreAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createGenreAdapter([])
     expect(adapter.type).toBe('genre')
@@ -44,11 +51,12 @@ describe('createGenreAdapter', () => {
     const result = await adapter.fetch({ genre: 'metal' })
 
     expect(result.artists).toHaveLength(2)
-    expect(result.artists[0]!.name).toBe('Artist A')
-    expect(result.artists[0]!.mbid).toBe('mbid-a')
-    expect(result.artists[0]!.source).toBe('genre-subscription:lastfm')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first genre artist')
+    expect(firstArtist.name).toBe('Artist A')
+    expect(firstArtist.mbid).toBe('mbid-a')
+    expect(firstArtist.source).toBe('genre-subscription:lastfm')
     // 500_000 / 1_000_000 = 0.5
-    expect(result.artists[0]!.similarityScore).toBeCloseTo(0.5)
+    expect(firstArtist.similarityScore).toBeCloseTo(0.5)
   })
 
   it('uses 0.5 default similarityScore when listeners is 0', async () => {
@@ -58,7 +66,8 @@ describe('createGenreAdapter', () => {
 
     const result = await adapter.fetch({ genre: 'folk' })
 
-    expect(result.artists[0]!.similarityScore).toBe(0.5)
+    const firstArtist = requireArtist(result.artists[0], 'Expected first genre artist')
+    expect(firstArtist.similarityScore).toBe(0.5)
   })
 
   it('caps similarityScore at 1.0 for very high listener counts', async () => {
@@ -70,7 +79,8 @@ describe('createGenreAdapter', () => {
 
     const result = await adapter.fetch({ genre: 'pop' })
 
-    expect(result.artists[0]!.similarityScore).toBe(1.0)
+    const firstArtist = requireArtist(result.artists[0], 'Expected first genre artist')
+    expect(firstArtist.similarityScore).toBe(1.0)
   })
 
   it('skips sources without genreArtists capability', async () => {
@@ -83,7 +93,8 @@ describe('createGenreAdapter', () => {
     const result = await adapter.fetch({ genre: 'jazz' })
 
     expect(result.artists).toHaveLength(1)
-    expect(result.artists[0]!.name).toBe('Artist A')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first genre artist')
+    expect(firstArtist.name).toBe('Artist A')
   })
 
   it('returns empty when no capable sources exist', async () => {
@@ -107,7 +118,8 @@ describe('createGenreAdapter', () => {
     const result = await adapter.fetch({ genre: 'rock', providers: ['musicbrainz'] })
 
     expect(result.artists).toHaveLength(1)
-    expect(result.artists[0]!.name).toBe('Artist B')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first genre artist')
+    expect(firstArtist.name).toBe('Artist B')
   })
 
   it('merges results from multiple capable sources', async () => {

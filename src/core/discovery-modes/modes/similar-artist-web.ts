@@ -6,7 +6,9 @@ export function createSimilarArtistWebMode(): DiscoveryModeDefinition {
     label: 'Similar Artist Web',
     description: 'Discover artists from web-based similar artist graph lookups',
     availability: 'fallback',
-    easyFields: [{ key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true }],
+    easyFields: [
+      { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
+    ],
     advancedFields: [
       { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
       { key: 'limit', label: 'Limit', type: 'number', required: true },

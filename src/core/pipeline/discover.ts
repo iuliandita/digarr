@@ -98,9 +98,7 @@ export async function discover(
   if (options.explicitRun) {
     const explicitCandidates = options.explicitCandidates ?? []
     const explicitArtists = explicitCandidates.some(isDiscoveryCandidate)
-      ? discoveryCandidatesToDiscoveredArtists(
-          explicitCandidates.filter(isDiscoveryCandidate),
-        )
+      ? discoveryCandidatesToDiscoveredArtists(explicitCandidates.filter(isDiscoveryCandidate))
       : (explicitCandidates as DiscoveredArtist[])
     return dedupeDiscoveredArtists(explicitArtists)
   }
@@ -118,9 +116,13 @@ export async function discover(
     const shuffled = [...libraryArtists]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      const tmp = shuffled[i]!
-      shuffled[i] = shuffled[j]!
-      shuffled[j] = tmp
+      const current = shuffled[i]
+      const swap = shuffled[j]
+      if (!current || !swap) {
+        throw new Error('Unexpected missing library artist during shuffle')
+      }
+      shuffled[i] = swap
+      shuffled[j] = current
     }
     // Exclude artists already in topArtists
     const topMbids = new Set(topArtists.map((a) => a.mbid).filter(Boolean))

@@ -47,7 +47,9 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           providerPath: ['lastfm'],
           reason: 'Using fallback providers for release discovery.',
         },
-        easyFields: [{ key: 'windowDays', label: 'Release window', type: 'number', required: true }],
+        easyFields: [
+          { key: 'windowDays', label: 'Release window', type: 'number', required: true },
+        ],
         advancedFields: [
           { key: 'windowDays', label: 'Release window', type: 'number', required: true },
           { key: 'includeReissues', label: 'Include reissues', type: 'toggle' },
@@ -63,7 +65,9 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           providerPath: ['musicbrainz'],
           reason: 'Preferred provider unavailable; fallback will be used.',
         },
-        easyFields: [{ key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true }],
+        easyFields: [
+          { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
+        ],
         advancedFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
           { key: 'depth', label: 'Depth', type: 'number', required: false },
@@ -79,7 +83,9 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           providerPath: ['musicbrainz'],
           reason: 'Preferred provider unavailable; fallback will be used.',
         },
-        easyFields: [{ key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true }],
+        easyFields: [
+          { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
+        ],
         advancedFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
           { key: 'depth', label: 'Depth', type: 'number', required: false },
@@ -95,7 +101,9 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           providerPath: ['musicbrainz'],
           reason: 'Preferred provider unavailable; fallback will be used.',
         },
-        easyFields: [{ key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true }],
+        easyFields: [
+          { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
+        ],
         advancedFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
           { key: 'limit', label: 'Limit', type: 'number', required: true },

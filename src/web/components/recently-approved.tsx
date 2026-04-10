@@ -26,7 +26,12 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
   const needsFallback = !imageUrl || imgError
   const { data: albumData, isLoading: albumLoading } = useQuery({
     queryKey: ['tile-albums', mbid],
-    queryFn: () => getAlbums(mbid!),
+    queryFn: () => {
+      if (!mbid) {
+        throw new Error('Expected mbid for album fallback')
+      }
+      return getAlbums(mbid)
+    },
     enabled: needsFallback && !!mbid,
     staleTime: 5 * 60_000,
   })

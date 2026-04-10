@@ -1,5 +1,5 @@
-import type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
 import { eq } from 'drizzle-orm'
+import type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
 import type { Database } from '@/db'
 import { subscriptions } from '@/db/schema'
 import { getBatch } from './batches'

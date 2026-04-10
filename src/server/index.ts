@@ -69,8 +69,7 @@ import { setupRoutes } from './routes/setup'
 import { subscriptionRoutes } from './routes/subscriptions'
 import { targetRoutes } from './routes/targets'
 import { userRoutes } from './routes/users'
-import type { HonoEnv } from './types'
-import type { DiscoveryConnectionSnapshot } from './types'
+import type { DiscoveryConnectionSnapshot, HonoEnv } from './types'
 
 export type AppDependencies = {
   db: import('@/db').Database

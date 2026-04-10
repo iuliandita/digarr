@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import {
+  createDefaultDiscoveryModeRegistry,
+  DiscoveryModeRegistry,
+} from '@/core/discovery-modes/registry'
 import type { DiscoveryModeDefinition } from '@/core/discovery-modes/types'
-import { DiscoveryModeRegistry, createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({

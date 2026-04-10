@@ -184,7 +184,12 @@ export class PipelineOrchestrator extends EventEmitter {
             })
           : null
 
-      if (!deps.explicitDiscoveryMode && registry.all().length === 0 && !lidarrClient && !aiProvider) {
+      if (
+        !deps.explicitDiscoveryMode &&
+        registry.all().length === 0 &&
+        !lidarrClient &&
+        !aiProvider
+      ) {
         throw new Error('At least one listening source or AI provider must be configured')
       }
 

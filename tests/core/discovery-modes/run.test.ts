@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
 
 function makeRequest(): DiscoveryModeRequest {

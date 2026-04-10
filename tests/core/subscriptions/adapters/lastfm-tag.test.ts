@@ -18,7 +18,7 @@ const fixtureResponse = {
   },
 }
 
-function makeAdapter(overrideBase?: string) {
+function makeAdapter() {
   return createLastfmTagAdapter({
     apiKey: 'testkey',
     // Patch fetch URL via global -- we'll use a custom approach instead
@@ -61,6 +61,13 @@ afterAll(() => {
 })
 
 describe('createLastfmTagAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = makeAdapter()
     expect(adapter.type).toBe('lastfm-tag')
@@ -88,7 +95,8 @@ describe('createLastfmTagAdapter', () => {
   it('sets correct source tag', async () => {
     const adapter = makeAdapter()
     const result = await adapter.fetch({ tag: 'metal' })
-    expect(result.artists[0]!.source).toBe('lastfm-tag:metal')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first tag artist')
+    expect(firstArtist.source).toBe('lastfm-tag:metal')
   })
 
   it('normalizes listener count to similarityScore', async () => {
@@ -96,23 +104,39 @@ describe('createLastfmTagAdapter', () => {
     const result = await adapter.fetch({ tag: 'metal' })
 
     // 2_000_000 / 1_000_000 = 2.0 capped at 1.0
-    expect(result.artists.find((a) => a.name === 'Metal Artist A')!.similarityScore).toBe(1.0)
-    // 500_000 / 1_000_000 = 0.5
-    expect(result.artists.find((a) => a.name === 'Metal Artist B')!.similarityScore).toBeCloseTo(
-      0.5,
+    const artistA = requireArtist(
+      result.artists.find((a) => a.name === 'Metal Artist A'),
+      'Expected Metal Artist A',
     )
+    expect(artistA.similarityScore).toBe(1.0)
+    // 500_000 / 1_000_000 = 0.5
+    const artistB = requireArtist(
+      result.artists.find((a) => a.name === 'Metal Artist B'),
+      'Expected Metal Artist B',
+    )
+    expect(artistB.similarityScore).toBeCloseTo(0.5)
     // 0 listeners -> 0.5 default
-    expect(result.artists.find((a) => a.name === 'Metal Artist C')!.similarityScore).toBe(0.5)
+    const artistC = requireArtist(
+      result.artists.find((a) => a.name === 'Metal Artist C'),
+      'Expected Metal Artist C',
+    )
+    expect(artistC.similarityScore).toBe(0.5)
   })
 
   it('sets mbid when present', async () => {
     const adapter = makeAdapter()
     const result = await adapter.fetch({ tag: 'metal' })
 
-    const artistA = result.artists.find((a) => a.name === 'Metal Artist A')!
+    const artistA = requireArtist(
+      result.artists.find((a) => a.name === 'Metal Artist A'),
+      'Expected Metal Artist A',
+    )
     expect(artistA.mbid).toBe('mbid-a')
 
-    const artistB = result.artists.find((a) => a.name === 'Metal Artist B')!
+    const artistB = requireArtist(
+      result.artists.find((a) => a.name === 'Metal Artist B'),
+      'Expected Metal Artist B',
+    )
     expect(artistB.mbid).toBeUndefined()
   })
 

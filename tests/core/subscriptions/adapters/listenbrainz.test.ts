@@ -88,6 +88,13 @@ afterAll(() => {
 })
 
 describe('createListenBrainzAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
     expect(adapter.type).toBe('listenbrainz')
@@ -96,8 +103,11 @@ describe('createListenBrainzAdapter', () => {
 
   it('has feedType configField as select', () => {
     const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-    const feedTypeField = adapter.configFields.find((f) => f.key === 'feedType')!
+    const feedTypeField = adapter.configFields.find((f) => f.key === 'feedType')
     expect(feedTypeField).toBeTruthy()
+    if (!feedTypeField) {
+      throw new Error('Expected feedType config field')
+    }
     expect(feedTypeField.type).toBe('select')
     const values = feedTypeField.options?.map((o) => o.value) ?? []
     expect(values).toContain('fresh-releases')
@@ -120,7 +130,8 @@ describe('createListenBrainzAdapter', () => {
     it('sets correct source tag', async () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'fresh-releases' })
-      expect(result.artists[0]!.source).toBe('listenbrainz:fresh-releases')
+      const firstArtist = requireArtist(result.artists[0], 'Expected first fresh-release artist')
+      expect(firstArtist.source).toBe('listenbrainz:fresh-releases')
     })
 
     it('sets similarityScore 0.6', async () => {
@@ -148,7 +159,8 @@ describe('createListenBrainzAdapter', () => {
     it('sets correct source tag', async () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'weekly-jams' })
-      expect(result.artists[0]!.source).toBe('listenbrainz:weekly-jams')
+      const firstArtist = requireArtist(result.artists[0], 'Expected first weekly-jams artist')
+      expect(firstArtist.source).toBe('listenbrainz:weekly-jams')
     })
 
     it('ignores non-Weekly-Jams playlists', async () => {

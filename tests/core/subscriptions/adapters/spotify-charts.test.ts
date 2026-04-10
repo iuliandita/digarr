@@ -46,6 +46,13 @@ afterAll(() => {
 })
 
 describe('createSpotifyChartsAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
     expect(adapter.type).toBe('spotify-charts')
@@ -61,7 +68,10 @@ describe('createSpotifyChartsAdapter', () => {
 
   it('configField for region is a select with options', () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
-    const regionField = adapter.configFields.find((f) => f.key === 'region')!
+    const regionField = adapter.configFields.find((f) => f.key === 'region')
+    if (!regionField) {
+      throw new Error('Expected region config field')
+    }
     expect(regionField.type).toBe('select')
     expect(regionField.options?.length).toBeGreaterThan(0)
   })
@@ -78,14 +88,16 @@ describe('createSpotifyChartsAdapter', () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ region: 'us', chartType: 'top50' })
 
-    expect(result.artists[0]!.source).toBe('spotify-charts:us/top50')
+    const firstArtist = requireArtist(result.artists[0], 'Expected first chart artist')
+    expect(firstArtist.source).toBe('spotify-charts:us/top50')
   })
 
   it('sets sourceUrl to the playlist URL', async () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ region: 'global', chartType: 'top50' })
 
-    expect(result.artists[0]!.sourceUrl).toMatch(/open\.spotify\.com\/playlist\//)
+    const firstArtist = requireArtist(result.artists[0], 'Expected first chart artist')
+    expect(firstArtist.sourceUrl).toMatch(/open\.spotify\.com\/playlist\//)
   })
 
   it('sets similarityScore 0.7 for all artists', async () => {

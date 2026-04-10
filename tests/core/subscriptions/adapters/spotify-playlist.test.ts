@@ -47,6 +47,13 @@ afterAll(() => {
 })
 
 describe('createSpotifyPlaylistAdapter', () => {
+  function requireArtist<T>(value: T | undefined, message: string): T {
+    if (value === undefined) {
+      throw new Error(message)
+    }
+    return value
+  }
+
   it('has correct type and label', () => {
     const adapter = createSpotifyPlaylistAdapter({ getToken: async () => 'tok', baseUrl })
     expect(adapter.type).toBe('spotify-playlist')
@@ -75,8 +82,9 @@ describe('createSpotifyPlaylistAdapter', () => {
     const adapter = createSpotifyPlaylistAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ playlistId: PLAYLIST_ID })
 
-    expect(result.artists[0]!.source).toBe(`spotify-playlist:${PLAYLIST_ID}`)
-    expect(result.artists[0]!.sourceUrl).toBe(`https://open.spotify.com/playlist/${PLAYLIST_ID}`)
+    const firstArtist = requireArtist(result.artists[0], 'Expected first playlist artist')
+    expect(firstArtist.source).toBe(`spotify-playlist:${PLAYLIST_ID}`)
+    expect(firstArtist.sourceUrl).toBe(`https://open.spotify.com/playlist/${PLAYLIST_ID}`)
   })
 
   it('sets similarityScore 0.7 for all artists', async () => {
@@ -100,7 +108,8 @@ describe('createSpotifyPlaylistAdapter', () => {
       playlistId: `https://open.spotify.com/playlist/${PLAYLIST_ID}?si=abc`,
     })
     expect(result.artists.length).toBeGreaterThan(0)
-    expect(result.artists[0]!.source).toBe(`spotify-playlist:${PLAYLIST_ID}`)
+    const firstArtist = requireArtist(result.artists[0], 'Expected first playlist artist')
+    expect(firstArtist.source).toBe(`spotify-playlist:${PLAYLIST_ID}`)
   })
 
   it('extracts playlist ID from spotify URI', async () => {
@@ -110,7 +119,7 @@ describe('createSpotifyPlaylistAdapter', () => {
   })
 
   it('handles empty tracks gracefully', async () => {
-    const emptyServer = http.createServer((req, res) => {
+    const emptyServer = http.createServer((_req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ tracks: { items: [] } }))
     })

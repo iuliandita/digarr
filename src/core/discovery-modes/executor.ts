@@ -1,6 +1,6 @@
+import { normalizeDiscoveryCandidates } from './candidates'
 import type { DiscoveryModeRegistry } from './registry'
 import type { DiscoveryModeRequest } from './request'
-import { normalizeDiscoveryCandidates } from './candidates'
 import type { DiscoveryExecutionResult } from './types'
 
 export async function executeDiscoveryMode(
