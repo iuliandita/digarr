@@ -61,13 +61,35 @@ export interface DiscoverSources {
   ai?: AiSource | null
 }
 
+export type DiscoverOptions = {
+  explicitCandidates?: DiscoveredArtist[]
+}
+
+function dedupeDiscoveredArtists(candidates: DiscoveredArtist[]): DiscoveredArtist[] {
+  const seen = new Set<string>()
+
+  return candidates.filter((candidate) => {
+    const key = candidate.mbid?.trim().toLowerCase() || normalizeName(candidate.name)
+    if (seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
+}
+
 export async function discover(
   profile: TasteProfile,
   sources: DiscoverSources,
   topArtistsLimit: number,
   libraryArtists?: Array<{ mbid: string; name: string }>,
   librarySeedRatio = 0.3,
+  options: DiscoverOptions = {},
 ): Promise<DiscoveredArtist[]> {
+  if (options.explicitCandidates && options.explicitCandidates.length > 0) {
+    return dedupeDiscoveredArtists(options.explicitCandidates)
+  }
+
   const topArtists = profile.topArtists.slice(0, topArtistsLimit)
   const results: DiscoveredArtist[] = []
 

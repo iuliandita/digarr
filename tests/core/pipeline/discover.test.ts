@@ -264,4 +264,19 @@ describe('discover()', () => {
     // "Air" is only 3 chars -- below the 4-char threshold, so no false positive
     expect(results.map((r) => r.name)).toContain('Airborne Toxic Event')
   })
+
+  it('returns deduped explicit candidates before querying sources', async () => {
+    const lb = makeLb()
+    const explicitCandidates = [
+      { name: 'Stereolab', mbid: 'mbid-st', similarityScore: 0.9, source: 'labels' },
+      { name: 'Stereolab', mbid: 'mbid-st', similarityScore: 0.7, source: 'labels' },
+    ]
+
+    const results = await discover(profile, { listeningSources: [lb] }, 10, undefined, 0.3, {
+      explicitCandidates,
+    })
+
+    expect(results).toEqual([explicitCandidates[0]])
+    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
+  })
 })
