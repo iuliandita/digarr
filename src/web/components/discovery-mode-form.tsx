@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { DiscoveryConfigField } from '@/core/discovery-modes/types'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
@@ -93,18 +93,30 @@ function DiscoveryModeFields({
   values: Record<string, boolean | string>
   setValues: React.Dispatch<React.SetStateAction<Record<string, boolean | string>>>
 }) {
+  const baseId = useId()
+
   return (
     <div className="space-y-3">
       {fields.map((field) => {
         const value = values[field.key] ?? getDefaultValue(field)
+        const inputId = `${baseId}-${field.key}`
+        const helpId = field.helpText ? `${inputId}-help` : undefined
 
         return (
           <div key={field.key} className="block space-y-1">
-            <span className="block text-sm font-medium text-text">{field.label}</span>
-            {field.helpText && <span className="block text-xs text-muted">{field.helpText}</span>}
+            <label htmlFor={inputId} className="block text-sm font-medium text-text">
+              {field.label}
+            </label>
+            {field.helpText && (
+              <span id={helpId} className="block text-xs text-muted">
+                {field.helpText}
+              </span>
+            )}
             {field.type === 'select' ? (
               <select
+                id={inputId}
                 value={String(value)}
+                aria-describedby={helpId}
                 onChange={(event) =>
                   setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
                 }
@@ -118,8 +130,10 @@ function DiscoveryModeFields({
               </select>
             ) : field.type === 'toggle' ? (
               <input
+                id={inputId}
                 type="checkbox"
                 checked={value === true}
+                aria-describedby={helpId}
                 onChange={(event) =>
                   setValues((prev) => ({ ...prev, [field.key]: event.target.checked }))
                 }
@@ -127,8 +141,10 @@ function DiscoveryModeFields({
               />
             ) : (
               <input
+                id={inputId}
                 type={field.type === 'number' ? 'number' : 'text'}
                 value={String(value)}
+                aria-describedby={helpId}
                 onChange={(event) =>
                   setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
                 }

@@ -6,6 +6,42 @@ import { SubscriptionForm } from '@/web/components/subscription-form'
 import type { DiscoveryModeResponse } from '@/web/lib/api'
 
 describe('SubscriptionForm discovery mode support', () => {
+  const discoveryModes: DiscoveryModeResponse[] = [
+    {
+      id: 'release-radar',
+      label: 'Release Radar',
+      description: 'Find fresh releases through the release radar mode.',
+      availability: {
+        enabled: true,
+        fallbackUsed: false,
+        providerPath: ['musicbrainz'],
+        reason: undefined,
+      },
+      easyFields: [
+        {
+          key: 'seedArtists',
+          label: 'Seed artists',
+          type: 'multiselect',
+          required: false,
+        },
+      ],
+      advancedFields: [
+        {
+          key: 'seedArtists',
+          label: 'Seed artists',
+          type: 'multiselect',
+          required: false,
+        },
+        {
+          key: 'depth',
+          label: 'Depth',
+          type: 'number',
+          required: false,
+        },
+      ],
+    },
+  ]
+
   it('submits a discovery-mode subscription with mode settings', async () => {
     const onSubmit = vi.fn(async () => undefined)
 
@@ -15,41 +51,7 @@ describe('SubscriptionForm discovery mode support', () => {
         configuredSources={[]}
         onCancel={() => {}}
         onSubmit={onSubmit}
-        discoveryModes={[
-          {
-            id: 'release-radar',
-            label: 'Release Radar',
-            description: 'Find fresh releases through the release radar mode.',
-            availability: {
-              enabled: true,
-              fallbackUsed: false,
-              providerPath: ['musicbrainz'],
-              reason: undefined,
-            },
-            easyFields: [
-              {
-                key: 'seedArtists',
-                label: 'Seed artists',
-                type: 'multiselect',
-                required: false,
-              },
-            ],
-            advancedFields: [
-              {
-                key: 'seedArtists',
-                label: 'Seed artists',
-                type: 'multiselect',
-                required: false,
-              },
-              {
-                key: 'depth',
-                label: 'Depth',
-                type: 'number',
-                required: false,
-              },
-            ],
-          },
-        ]}
+        discoveryModes={discoveryModes}
       />,
     )
 
@@ -61,11 +63,7 @@ describe('SubscriptionForm discovery mode support', () => {
       target: { value: 'release-radar' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
-    const depthInput = screen.getAllByRole('spinbutton')[0]
-    if (!depthInput) {
-      throw new Error('Missing depth input')
-    }
-    fireEvent.change(depthInput, { target: { value: '2' } })
+    fireEvent.change(screen.getByLabelText('Depth'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create' }))
 
     await waitFor(() => {
@@ -86,43 +84,58 @@ describe('SubscriptionForm discovery mode support', () => {
     })
   })
 
+  it('hydrates discovery-mode state when modes load after switching source type', async () => {
+    const onSubmit = vi.fn(async () => undefined)
+    const { rerender } = render(
+      <SubscriptionForm
+        mode="create"
+        configuredSources={[]}
+        onCancel={() => {}}
+        onSubmit={onSubmit}
+        discoveryModes={[]}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Radar Weekly' } })
+    fireEvent.change(screen.getByLabelText('Source Type'), {
+      target: { value: 'discovery-mode' },
+    })
+
+    rerender(
+      <SubscriptionForm
+        mode="create"
+        configuredSources={[]}
+        onCancel={() => {}}
+        onSubmit={onSubmit}
+        discoveryModes={discoveryModes}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Discovery Mode')).toHaveValue('release-radar')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceType: 'discovery-mode',
+          sourceProvider: 'release-radar',
+          sourceConfig: expect.objectContaining({
+            modeId: 'release-radar',
+            settingsMode: 'easy',
+            settings: {
+              seedArtists: [],
+            },
+          }),
+        }),
+      )
+    })
+  })
+
   it('preserves an existing advanced discovery-mode subscription when editing', async () => {
     const onSubmit = vi.fn(async () => undefined)
-    const discoveryModes: DiscoveryModeResponse[] = [
-      {
-        id: 'release-radar',
-        label: 'Release Radar',
-        description: 'Find fresh releases through the release radar mode.',
-        availability: {
-          enabled: true,
-          fallbackUsed: false,
-          providerPath: ['musicbrainz'],
-          reason: undefined,
-        },
-        easyFields: [
-          {
-            key: 'seedArtists',
-            label: 'Seed artists',
-            type: 'multiselect',
-            required: false,
-          },
-        ],
-        advancedFields: [
-          {
-            key: 'seedArtists',
-            label: 'Seed artists',
-            type: 'multiselect',
-            required: false,
-          },
-          {
-            key: 'depth',
-            label: 'Depth',
-            type: 'number',
-            required: false,
-          },
-        ],
-      },
-    ]
 
     render(
       <SubscriptionForm

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
 import { CronPicker } from './cron-picker'
@@ -209,6 +209,27 @@ export function SubscriptionForm({
       return kept.length > 0 ? kept : relevant
     })
   }
+
+  useEffect(() => {
+    if (sourceType !== 'discovery-mode') return
+    const firstDiscoveryModeId = discoveryModes[0]?.id
+    if (!firstDiscoveryModeId) return
+
+    setDiscoveryModeId((current) => {
+      if (current && discoveryModes.some((discoveryMode) => discoveryMode.id === current)) {
+        return current
+      }
+      if (
+        initialDiscoveryModeConfig?.modeId &&
+        discoveryModes.some(
+          (discoveryMode) => discoveryMode.id === initialDiscoveryModeConfig.modeId,
+        )
+      ) {
+        return initialDiscoveryModeConfig.modeId
+      }
+      return firstDiscoveryModeId
+    })
+  }, [discoveryModes, initialDiscoveryModeConfig?.modeId, sourceType])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
