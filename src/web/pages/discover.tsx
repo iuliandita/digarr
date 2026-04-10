@@ -7,6 +7,7 @@ import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
 import { ConfirmDialog } from '../components/confirm-dialog'
+import { DiscoveryModeCard } from '../components/discovery-mode-card'
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
@@ -22,11 +23,13 @@ import {
   bulkAction,
   exportRecommendations,
   getFeedbackSummary,
+  getDiscoveryModes,
   getRecommendations,
   getUserPreferences,
   getWarmStatuses,
   listTargets,
   rescanArtists,
+  runDiscoveryMode,
   triggerPipeline,
   updateRecommendation,
 } from '../lib/api'
@@ -359,6 +362,11 @@ export function DiscoverPage() {
   const { data: prefsData } = useQuery({
     queryKey: ['user-preferences'],
     queryFn: getUserPreferences,
+    staleTime: 60_000,
+  })
+  const { data: discoveryModes } = useQuery({
+    queryKey: ['discovery-modes'],
+    queryFn: getDiscoveryModes,
     staleTime: 60_000,
   })
   const prefs = prefsData ?? {}
@@ -774,6 +782,15 @@ export function DiscoverPage() {
     (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
   ).length
 
+  const handleRunDiscoveryMode = useCallback(
+    async (body: Record<string, unknown>) => {
+      const result = await runDiscoveryMode(body)
+      toast.success(`Discovery run queued as batch ${result.batchId}`)
+      refetch()
+    },
+    [refetch],
+  )
+
   return (
     <div
       className={`space-y-6 max-w-6xl mx-auto${bulkMode ? ' pb-24' : ' pb-6'} md:pb-6`}
@@ -987,6 +1004,23 @@ export function DiscoverPage() {
           Tip: describe what you are in the mood for in plain English -- like "rainy day jazz" or
           "upbeat 90s pop"
         </Hint>
+
+        {discoveryModes && discoveryModes.modes.length > 0 && (
+          <section className="mb-6 space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold text-text">Discovery Modes</h2>
+              <p className="text-sm text-muted">
+                Start a targeted discovery run with either a simple preset or the full advanced
+                form.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {discoveryModes.modes.map((mode) => (
+                <DiscoveryModeCard key={mode.id} mode={mode} onRun={handleRunDiscoveryMode} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <FeedbackInsights />
 

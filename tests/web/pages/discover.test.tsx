@@ -42,6 +42,8 @@ vi.mock('@/web/lib/api', () => ({
   listTargets: vi.fn().mockResolvedValue([]),
   exportRecommendations: vi.fn(),
   getUserPreferences: vi.fn().mockResolvedValue({}),
+  getDiscoveryModes: vi.fn().mockResolvedValue({ modes: [] }),
+  runDiscoveryMode: vi.fn(),
   getLidarrProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Any' }]),
   getLidarrMetadataProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Standard' }]),
   getLidarrRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music', freeSpace: 0 }]),
