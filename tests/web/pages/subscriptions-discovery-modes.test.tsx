@@ -4,8 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DiscoveryModeResponse } from '@/web/lib/api'
 
-const discoveryModeProps: Array<Record<string, unknown>> = []
+type SubscriptionFormMockProps = {
+  discoveryModes?: DiscoveryModeResponse[]
+  [key: string]: unknown
+}
+
+const discoveryModeProps: SubscriptionFormMockProps[] = []
 
 vi.mock('react-router-dom', () => ({
   useSearchParams: () => [new URLSearchParams(), vi.fn()],
@@ -31,7 +37,7 @@ vi.mock('@/web/components/subscription-form', async () => {
   )
   return {
     ...actual,
-    SubscriptionForm: (props: Record<string, unknown>) => {
+    SubscriptionForm: (props: SubscriptionFormMockProps) => {
       discoveryModeProps.push(props)
       return (
         <div

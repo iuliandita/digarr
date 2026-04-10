@@ -97,6 +97,50 @@ function normalizeDiscoveryModeConfig(
   }
 }
 
+function DiscoveryModeFormWrapper({
+  discoveryModes,
+  discoveryModeId,
+  discoveryModeConfig,
+  setDiscoveryModeConfig,
+}: {
+  discoveryModes: DiscoveryModeResponse[]
+  discoveryModeId: string
+  discoveryModeConfig: DiscoveryModeSubscriptionConfig | null
+  setDiscoveryModeConfig: (config: DiscoveryModeSubscriptionConfig | null) => void
+}) {
+  const selectedDiscoveryMode = discoveryModes.find(
+    (discoveryMode) => discoveryMode.id === discoveryModeId,
+  )
+  if (!selectedDiscoveryMode) {
+    return <p className="text-xs text-muted">Select a discovery mode to configure it.</p>
+  }
+
+  return (
+    <DiscoveryModeForm
+      key={discoveryModeId}
+      mode={selectedDiscoveryMode}
+      onRun={async () => {}}
+      intent="subscription"
+      initialSettingsMode={discoveryModeConfig?.settingsMode}
+      initialSettings={discoveryModeConfig?.settings}
+      onChange={(config) =>
+        setDiscoveryModeConfig(
+          config
+            ? {
+                modeId: String((config as Record<string, unknown>).modeId),
+                settingsMode:
+                  (config as Record<string, unknown>).settingsMode === 'advanced'
+                    ? 'advanced'
+                    : 'easy',
+                settings: (config as Record<string, unknown>).settings as Record<string, unknown>,
+              }
+            : null,
+        )
+      }
+    />
+  )
+}
+
 export function SubscriptionForm({
   initial,
   onSubmit,
@@ -149,6 +193,7 @@ export function SubscriptionForm({
     if (nextType === 'discovery-mode') {
       if (!discoveryModeId && discoveryModes[0]) {
         setDiscoveryModeId(discoveryModes[0].id)
+        setDiscoveryModeConfig(initialDiscoveryModeConfig)
       }
       return
     }
@@ -393,31 +438,12 @@ export function SubscriptionForm({
                     </select>
                   </div>
                   {discoveryModes.find((discoveryMode) => discoveryMode.id === discoveryModeId) ? (
-                    <DiscoveryModeForm
+                    <DiscoveryModeFormWrapper
                       key={discoveryModeId}
-                      mode={
-                        discoveryModes.find(
-                          (discoveryMode) => discoveryMode.id === discoveryModeId,
-                        ) ?? discoveryModes[0]
-                      }
-                      intent="subscription"
-                      onChange={(config) =>
-                        setDiscoveryModeConfig(
-                          config
-                            ? {
-                                modeId: String((config as Record<string, unknown>).modeId),
-                                settingsMode:
-                                  (config as Record<string, unknown>).settingsMode === 'advanced'
-                                    ? 'advanced'
-                                    : 'easy',
-                                settings: (config as Record<string, unknown>).settings as Record<
-                                  string,
-                                  unknown
-                                >,
-                              }
-                            : null,
-                        )
-                      }
+                      discoveryModes={discoveryModes}
+                      discoveryModeId={discoveryModeId}
+                      discoveryModeConfig={discoveryModeConfig}
+                      setDiscoveryModeConfig={setDiscoveryModeConfig}
                     />
                   ) : (
                     <p className="text-xs text-muted">Select a discovery mode to configure it.</p>

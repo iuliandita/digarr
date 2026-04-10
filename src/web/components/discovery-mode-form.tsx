@@ -12,6 +12,18 @@ type DiscoveryModeSubscriptionConfig = {
   settings: Record<string, unknown>
 }
 
+type DiscoveryModeFieldValue = boolean | string
+
+function serializeValue(field: DiscoveryConfigField, value: unknown): DiscoveryModeFieldValue {
+  if (field.type === 'toggle') return value === true
+  if (field.type === 'number') return String(value ?? '')
+  if (field.type === 'multiselect') {
+    if (Array.isArray(value)) return value.map((item) => String(item)).join(', ')
+    return String(value ?? '')
+  }
+  return String(value ?? '')
+}
+
 function getDefaultValue(field: DiscoveryConfigField): boolean | string {
   if (field.type === 'toggle') return false
   if (field.type === 'select') return field.options?.[0]?.value ?? ''
@@ -136,14 +148,33 @@ export function DiscoveryModeForm({
   onRun,
   onChange,
   intent = 'run',
+  initialSettingsMode,
+  initialSettings,
 }: {
   mode: DiscoveryModeResponse
   onRun: (body: Record<string, unknown>) => Promise<void>
   onChange?: (body: Record<string, unknown> | null) => void
   intent?: DiscoveryModeIntent
+  initialSettingsMode?: DiscoverySettingsMode
+  initialSettings?: Record<string, unknown>
 }) {
-  const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>('easy')
-  const [values, setValues] = useState<Record<string, boolean | string>>({})
+  const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>(
+    initialSettingsMode ?? 'easy',
+  )
+  const [values, setValues] = useState<Record<string, DiscoveryModeFieldValue>>(() => {
+    const next: Record<string, DiscoveryModeFieldValue> = {}
+    for (const field of [...mode.easyFields, ...mode.advancedFields]) {
+      next[field.key] = getDefaultValue(field)
+    }
+    if (initialSettings) {
+      for (const field of [...mode.easyFields, ...mode.advancedFields]) {
+        if (field.key in initialSettings) {
+          next[field.key] = serializeValue(field, initialSettings[field.key])
+        }
+      }
+    }
+    return next
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const onChangeRef = useRef(onChange)
