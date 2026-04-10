@@ -1,4 +1,5 @@
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import { filter } from '@/core/pipeline/filter'
 import { resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
@@ -71,6 +72,43 @@ export async function runSubscription(
   })
 
   try {
+    if (subscription.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
+      const discoveryModeRunner = deps.discoveryModeRunner ?? runDiscoveryMode
+      if (!deps.discoveryModeRegistry || !deps.pipelineOrchestrator || !deps.discoveryModePipelineDeps) {
+        throw new Error('Discovery mode subscriptions require discovery mode dependencies')
+      }
+
+      const discoveryRequest = normalizeDiscoveryModeSubscription(subscription, deps.userId)
+      const discoveryResult = await discoveryModeRunner({
+        request: discoveryRequest,
+        registry: deps.discoveryModeRegistry,
+        orchestrator: deps.pipelineOrchestrator,
+        pipelineDeps: deps.discoveryModePipelineDeps,
+      })
+      const batchStats = discoveryResult.batchId
+        ? await queries.getBatchStats?.(discoveryResult.batchId)
+        : null
+      const artistsNew = batchStats?.added ?? 0
+      const artistsFound = discoveryResult.artistsFound ?? artistsNew
+
+      await jobRecorder.complete(jobId, {
+        metadata: { adapterType: subscription.sourceType, artistsFound, artistsNew },
+        batchId: discoveryResult.batchId,
+      })
+      await queries.updateSubscription(subscription.id, {
+        lastRunAt: new Date(),
+        lastResultCount: artistsNew,
+        lastError: null,
+      })
+
+      return {
+        runId: jobId,
+        batchId: discoveryResult.batchId,
+        artistsFound,
+        artistsNew,
+      }
+    }
+
     const { artists } = await adapter.fetch(subscription.sourceConfig, {
       limit: subscription.maxArtistsPerRun ?? undefined,
     })

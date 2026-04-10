@@ -2,6 +2,7 @@ import type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types
 import { eq } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { subscriptions } from '@/db/schema'
+import { getBatch } from './batches'
 
 type SubscriptionRow = typeof subscriptions.$inferSelect
 
@@ -67,4 +68,17 @@ export async function updateSubscription(
 
 export async function deleteSubscription(db: Database, id: number): Promise<void> {
   await db.delete(subscriptions).where(eq(subscriptions.id, id))
+}
+
+export async function getSubscriptionBatchStats(
+  db: Database,
+  batchId: number,
+): Promise<{ added: number } | null> {
+  const batch = await getBatch(db, batchId)
+  if (!batch || !batch.stats || typeof batch.stats !== 'object') {
+    return null
+  }
+
+  const added = (batch.stats as Record<string, unknown>).added
+  return { added: typeof added === 'number' ? added : 0 }
 }

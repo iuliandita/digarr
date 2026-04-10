@@ -32,7 +32,7 @@ export async function runDiscoveryMode({
   orchestrator,
   pipelineDeps,
   jobRecorder,
-}: RunDiscoveryModeParams): Promise<{ batchId: number }> {
+}: RunDiscoveryModeParams): Promise<{ batchId: number; artistsFound: number }> {
   const providerPath = extractProviderPath(request.providerContext)
 
   let jobId: number | null = null
@@ -86,7 +86,7 @@ export async function runDiscoveryMode({
       })
     }
 
-    return result
+    return { batchId: result.batchId, artistsFound: explicitCandidates.length }
   } catch (error: unknown) {
     if (jobId != null && jobRecorder) {
       await jobRecorder.fail(jobId, errMsg(error)).catch(() => {})

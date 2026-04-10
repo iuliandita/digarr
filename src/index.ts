@@ -63,7 +63,7 @@ import { createSpotifyLikedSongsAdapter } from './core/subscriptions/adapters/sp
 import { createSpotifyPlaylistAdapter } from './core/subscriptions/adapters/spotify-playlist'
 import { resolveSubscriptionSourceConnections } from './core/subscriptions/connections'
 import { AdapterRegistry, DISCOVERY_MODE_SUBSCRIPTION_TYPE } from './core/subscriptions/registry'
-import { normalizeDiscoveryModeSubscription, runSubscription } from './core/subscriptions/runner'
+import { runSubscription } from './core/subscriptions/runner'
 import type {
   MusicBrainzClient as SubMBClient,
   SubscriptionConfig,
@@ -112,6 +112,7 @@ import {
   createSubscription,
   deleteSubscription,
   getEnabledSubscriptions,
+  getSubscriptionBatchStats,
   getSubscription,
   getSubscriptionsByUser,
   updateSubscription,
@@ -423,22 +424,20 @@ const runPipeline = async (userId?: number) => {
   })
 }
 
-const executeDiscoveryModeRun = async (
-  request: import('./core/discovery-modes/request').DiscoveryModeRequest,
-) => {
+async function buildDiscoveryModePipelineDeps(userId: number) {
   const settings = await getSettings(db)
   if (!settings) {
     throw new Error('Settings not found')
   }
 
   const [userConnections, userPreferences] = await Promise.all([
-    getUserConnections(db, request.userId),
-    resolveUserPreferences(db, settings.preferences, request.userId),
+    getUserConnections(db, userId),
+    resolveUserPreferences(db, settings.preferences, userId),
   ])
 
   let spotifyAccessToken: string | null = null
   try {
-    spotifyAccessToken = await resolveSpotifyToken(db, request.userId)
+    spotifyAccessToken = await resolveSpotifyToken(db, userId)
   } catch {
     // Best-effort: discovery mode runs should still work without Spotify.
   }
@@ -456,7 +455,7 @@ const executeDiscoveryModeRun = async (
         },
       }))
     },
-    getEnabledTargets: () => getEnabledTargetsForResolvedUser(request.userId),
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
     updateRecommendationStatus: (
       id: number,
       status: string,
@@ -467,10 +466,8 @@ const executeDiscoveryModeRun = async (
       : undefined,
   }
 
-  return runDiscoveryMode({
-    request,
-    registry: discoveryModeRegistry,
-    orchestrator,
+  return {
+    settings,
     pipelineDeps: {
       db: storeDb,
       settings: {
@@ -483,6 +480,19 @@ const executeDiscoveryModeRun = async (
       autoApproveDeps,
       librarySync: librarySyncOrchestrator,
     },
+  }
+}
+
+const executeDiscoveryModeRun = async (
+  request: import('./core/discovery-modes/request').DiscoveryModeRequest,
+) => {
+  const { pipelineDeps } = await buildDiscoveryModePipelineDeps(request.userId)
+
+  return runDiscoveryMode({
+    request,
+    registry: discoveryModeRegistry,
+    orchestrator,
+    pipelineDeps,
     jobRecorder,
   })
 }
@@ -636,40 +646,8 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     setCachedAdapterRegistry(userId ?? null, adapterRegistry)
   }
 
-  if (sub.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
-    try {
-      await executeDiscoveryModeRun(
-        normalizeDiscoveryModeSubscription(
-          {
-            sourceType: sub.sourceType,
-            sourceConfig: sub.sourceConfig,
-            userId: sub.userId,
-          },
-          sub.userId ?? undefined,
-        ),
-      )
-      await updateSubscription(db, sub.id, {
-        lastRunAt: new Date(),
-        lastError: null,
-      })
-    } catch (error: unknown) {
-      const errorMessage = errMsg(error)
-      await updateSubscription(db, sub.id, {
-        lastRunAt: new Date(),
-        lastError: errorMessage,
-      }).catch((updateError: unknown) => {
-        console.error(
-          `[subscription-runner] Failed to update discovery mode subscription ${sub.id}:`,
-          updateError,
-        )
-      })
-      throw error
-    }
-    return
-  }
-
   const adapter = adapterRegistry.get(sub.sourceType)
-  if (!adapter) {
+  if (!adapter && sub.sourceType !== DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
     console.warn(
       `[subscription-runner] Unknown type '${sub.sourceType}' for subscription ${subscriptionId} -- skipping`,
     )
@@ -722,10 +700,16 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     }
   }
 
-  await runSubscription(subscriptionConfig, adapter, {
+  await runSubscription(subscriptionConfig, (adapter ?? {
+    type: DISCOVERY_MODE_SUBSCRIPTION_TYPE,
+    label: 'Discovery Mode',
+    configFields: [],
+    fetch: async () => ({ artists: [] }),
+  }) as import('./core/subscriptions/types').SubscriptionAdapter, {
     db: storeDb,
     queries: {
       updateSubscription: (id, data) => updateSubscription(db, id, data),
+      getBatchStats: (batchId) => getSubscriptionBatchStats(db, batchId),
     },
     jobRecorder,
     mbClient: createMusicBrainzClient() as SubMBClient,
@@ -738,6 +722,10 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     cooldownDays: prefs.rejectionCooldownDays,
     defaultScoreThreshold: prefs.scoreThreshold,
     topArtistNames,
+    discoveryModeRegistry,
+    pipelineOrchestrator: orchestrator,
+    discoveryModePipelineDeps:
+      sub.userId != null ? (await buildDiscoveryModePipelineDeps(sub.userId)).pipelineDeps : undefined,
   })
 }
 

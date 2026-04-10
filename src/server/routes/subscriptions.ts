@@ -27,6 +27,31 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   'scoringWeightOverrides',
 ])
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+  return value as Record<string, unknown>
+}
+
+function validateDiscoveryModeSourceConfig(sourceConfig: unknown): string | null {
+  const config = asRecord(sourceConfig)
+  if (!config) {
+    return 'sourceConfig is required'
+  }
+  if (typeof config.modeId !== 'string' || config.modeId.trim() === '') {
+    return 'discovery-mode sourceConfig.modeId is required'
+  }
+  if (config.settingsMode !== 'easy' && config.settingsMode !== 'advanced') {
+    return 'discovery-mode sourceConfig.settingsMode must be easy or advanced'
+  }
+  const settings = asRecord(config.settings)
+  if (!settings) {
+    return 'discovery-mode sourceConfig.settings is required'
+  }
+  return null
+}
+
 export function subscriptionRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
@@ -199,6 +224,12 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
     if (!sourceConfig || typeof sourceConfig !== 'object' || Array.isArray(sourceConfig)) {
       return c.json({ error: 'sourceConfig is required' }, 400)
+    }
+    if (sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
+      const validationError = validateDiscoveryModeSourceConfig(sourceConfig)
+      if (validationError) {
+        return c.json({ error: validationError }, 400)
+      }
     }
     if (!cron || typeof cron !== 'string') {
       return c.json({ error: 'cron is required' }, 400)

@@ -160,7 +160,7 @@ describe('runDiscoveryMode', () => {
       jobRecorder: jobRecorder as never,
     })
 
-    expect(run).toEqual({ batchId: 99 })
+    expect(run).toEqual({ batchId: 99, artistsFound: 1 })
     expect(orchestrator.run).toHaveBeenCalledOnce()
     expect(jobRecorder.complete).not.toHaveBeenCalled()
     expect(jobRecorder.fail).not.toHaveBeenCalled()

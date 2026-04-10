@@ -1,4 +1,7 @@
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
+import type { runDiscoveryMode } from '@/core/discovery-modes/run'
+import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import type { StoreDb } from '@/core/pipeline/store'
 import type { DiscoveredArtist } from '@/core/types'
 
@@ -95,11 +98,19 @@ export type SubscriptionRunDeps = {
   defaultScoreThreshold: number
   /** Lowercase names of the user's top listened artists -- excluded from results. */
   topArtistNames?: Set<string>
+  discoveryModeRunner?: typeof runDiscoveryMode
+  discoveryModeRegistry?: DiscoveryModeRegistry
+  pipelineOrchestrator?: Pick<PipelineOrchestrator, 'run'>
+  discoveryModePipelineDeps?: Omit<
+    PipelineDeps,
+    'explicitCandidates' | 'explicitDiscoveryMode' | 'jobRecorder' | 'trigger' | 'userId'
+  >
 }
 
 /** DB query interface for the subscription runner. */
 export interface SubscriptionQueries {
   updateSubscription(id: number, data: SubscriptionUpdate): Promise<void>
+  getBatchStats?(batchId: number): Promise<{ added: number } | null>
 }
 
 /** Return type from a completed runSubscription call. */

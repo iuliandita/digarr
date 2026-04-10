@@ -72,6 +72,39 @@ describe('API routes: discovery mode subscriptions', () => {
     )
   })
 
+  it('rejects malformed discovery mode subscriptions that omit mode-specific config', async () => {
+    const createSubscription = vi.fn()
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription,
+        getSubscription: vi.fn(async () => null),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription: vi.fn(),
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: 'Broken Label Hunt',
+        sourceType: 'discovery-mode',
+        sourceProvider: 'labels',
+        sourceConfig: {
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'] },
+        },
+        cron: '0 8 * * 1',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'discovery-mode sourceConfig.modeId is required' })
+    expect(createSubscription).not.toHaveBeenCalled()
+  })
+
   it('lists discovery mode as an available adapter type', async () => {
     const { app } = createTestApp()
 
