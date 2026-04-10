@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
@@ -34,12 +35,16 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>
 }
 
-function validateDiscoveryModeSourceConfig(sourceConfig: unknown): string | null {
+function validateDiscoveryModeSourceConfig(
+  sourceConfig: unknown,
+  registry?: DiscoveryModeRegistry,
+): string | null {
   const config = asRecord(sourceConfig)
   if (!config) {
     return 'sourceConfig is required'
   }
-  if (typeof config.modeId !== 'string' || config.modeId.trim() === '') {
+  const modeId = typeof config.modeId === 'string' ? config.modeId.trim() : ''
+  if (!modeId) {
     return 'discovery-mode sourceConfig.modeId is required'
   }
   if (config.settingsMode !== 'easy' && config.settingsMode !== 'advanced') {
@@ -48,6 +53,9 @@ function validateDiscoveryModeSourceConfig(sourceConfig: unknown): string | null
   const settings = asRecord(config.settings)
   if (!settings) {
     return 'discovery-mode sourceConfig.settings is required'
+  }
+  if (!registry?.get(modeId)) {
+    return `Unknown discovery mode '${modeId}'`
   }
   return null
 }
@@ -226,7 +234,10 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'sourceConfig is required' }, 400)
     }
     if (sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
-      const validationError = validateDiscoveryModeSourceConfig(sourceConfig)
+      const validationError = validateDiscoveryModeSourceConfig(
+        sourceConfig,
+        deps.discoveryModeRegistry,
+      )
       if (validationError) {
         return c.json({ error: validationError }, 400)
       }
@@ -490,6 +501,16 @@ export function subscriptionRoutes(deps: AppDependencies) {
         new Cron(update.cron as string, { maxRuns: 0 })
       } catch {
         return c.json({ error: 'Invalid cron expression' }, 400)
+      }
+    }
+
+    if (existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE && Object.hasOwn(update, 'sourceConfig')) {
+      const validationError = validateDiscoveryModeSourceConfig(
+        update.sourceConfig,
+        deps.discoveryModeRegistry,
+      )
+      if (validationError) {
+        return c.json({ error: validationError }, 400)
       }
     }
 

@@ -59,7 +59,21 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
     discoveryModeRunner: vi.fn().mockResolvedValue({ batchId: 123, artistsFound: 5 }),
     discoveryModeRegistry: {} as never,
     pipelineOrchestrator: {} as never,
-    discoveryModePipelineDeps: {} as never,
+    discoveryModePipelineDeps: {
+      settings: {
+        preferences: {
+          scoreThreshold: 0.5,
+          scoringWeights: {
+            consensus: 0.3,
+            similarity: 0.25,
+            genreOverlap: 0.2,
+            aiConfidence: 0.15,
+            feedbackBoost: 0.1,
+            popularity: 0,
+          },
+        },
+      },
+    } as never,
     ...overrides,
   }
 }
@@ -94,21 +108,22 @@ describe('runSubscription discovery-mode', () => {
         subscriptionId: 1,
       }),
     )
-    expect(deps.discoveryModeRunner).toHaveBeenCalledWith({
-      request: {
-        modeId: 'labels',
-        triggerType: 'subscription',
-        settingsMode: 'advanced',
-        userId: 7,
-        rawUserSettings: { seedArtists: ['Broadcast'], depth: 2 },
-        normalizedSettings: { seedArtists: ['Broadcast'], depth: 2 },
-        providerContext: {},
-        fallbackPolicy: 'allow-fallback',
-      },
-      registry: deps.discoveryModeRegistry,
-      orchestrator: deps.pipelineOrchestrator,
-      pipelineDeps: deps.discoveryModePipelineDeps,
-    })
+    expect(deps.discoveryModeRunner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: {
+          modeId: 'labels',
+          triggerType: 'subscription',
+          settingsMode: 'advanced',
+          userId: 7,
+          rawUserSettings: { seedArtists: ['Broadcast'], depth: 2 },
+          normalizedSettings: { seedArtists: ['Broadcast'], depth: 2 },
+          providerContext: {},
+          fallbackPolicy: 'allow-fallback',
+        },
+        registry: deps.discoveryModeRegistry,
+        orchestrator: deps.pipelineOrchestrator,
+      }),
+    )
     expect(adapter.fetch).not.toHaveBeenCalled()
     expect(deps.jobRecorder.complete).toHaveBeenCalledWith(
       10,
@@ -129,5 +144,65 @@ describe('runSubscription discovery-mode', () => {
       }),
     )
     expect(result).toEqual({ runId: 10, batchId: 123, artistsFound: 5, artistsNew: 3 })
+  })
+
+  it('applies subscription scoring controls and maxArtistsPerRun to discovery-mode runs', async () => {
+    const deps = makeDeps({
+      discoveryModePipelineDeps: {
+        settings: {
+          preferences: {
+            scoreThreshold: 0.5,
+            scoringWeights: {
+              consensus: 0.3,
+              similarity: 0.25,
+              genreOverlap: 0.2,
+              aiConfidence: 0.15,
+              feedbackBoost: 0.1,
+              popularity: 0,
+            },
+          },
+        },
+      } as never,
+    })
+    const adapter = {
+      type: 'discovery-mode',
+      label: 'Discovery Mode',
+      configFields: [],
+      fetch: vi.fn().mockResolvedValue({ artists: [] }),
+    }
+
+    await runSubscription(
+      makeSubscription(
+        {
+          modeId: 'labels',
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'], depth: 2 },
+        },
+        {
+          maxArtistsPerRun: 12,
+          scoreThreshold: 0.82,
+          scoringWeightPreset: 'balanced',
+          scoringWeightOverrides: { popularity: 0.4 },
+        },
+      ),
+      adapter,
+      deps,
+    )
+
+    expect(deps.discoveryModeRunner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        maxArtistsPerRun: 12,
+        pipelineDeps: expect.objectContaining({
+          settings: expect.objectContaining({
+            preferences: expect.objectContaining({
+              scoreThreshold: 0.82,
+              scoringWeights: expect.objectContaining({
+                popularity: 0.4,
+              }),
+            }),
+          }),
+        }),
+      }),
+    )
   })
 })

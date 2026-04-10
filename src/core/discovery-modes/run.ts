@@ -10,6 +10,7 @@ type RunDiscoveryModeParams = {
   request: DiscoveryModeRequest
   registry: DiscoveryModeRegistry
   orchestrator: Pick<PipelineOrchestrator, 'run'>
+  maxArtistsPerRun?: number
   pipelineDeps: Omit<
     PipelineDeps,
     'explicitCandidates' | 'explicitDiscoveryMode' | 'jobRecorder' | 'trigger' | 'userId'
@@ -30,6 +31,7 @@ export async function runDiscoveryMode({
   request,
   registry,
   orchestrator,
+  maxArtistsPerRun,
   pipelineDeps,
   jobRecorder,
 }: RunDiscoveryModeParams): Promise<{ batchId: number; artistsFound: number }> {
@@ -57,7 +59,10 @@ export async function runDiscoveryMode({
 
   try {
     const execution = await executeDiscoveryMode(request, registry)
-    const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates)
+    const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates).slice(
+      0,
+      maxArtistsPerRun ?? Number.POSITIVE_INFINITY,
+    )
 
     const result = await orchestrator.run({
       ...pipelineDeps,

@@ -105,6 +105,97 @@ describe('API routes: discovery mode subscriptions', () => {
     expect(createSubscription).not.toHaveBeenCalled()
   })
 
+  it('rejects discovery mode subscriptions with an unknown modeId', async () => {
+    const createSubscription = vi.fn()
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription,
+        getSubscription: vi.fn(async () => null),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription: vi.fn(),
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: 'Unknown Mode Hunt',
+        sourceType: 'discovery-mode',
+        sourceProvider: 'labels',
+        sourceConfig: {
+          modeId: 'not-a-real-mode',
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'] },
+        },
+        cron: '0 8 * * 1',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({
+      error: "Unknown discovery mode 'not-a-real-mode'",
+    })
+    expect(createSubscription).not.toHaveBeenCalled()
+  })
+
+  it('revalidates discovery mode sourceConfig on patch', async () => {
+    const updateSubscription = vi.fn()
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription: vi.fn(),
+        getSubscription: vi.fn(async () => ({
+          id: 1,
+          userId: 1,
+          name: 'Weekly Label Hunt',
+          enabled: true,
+          sourceType: 'discovery-mode',
+          sourceProvider: 'labels',
+          sourceConfig: {
+            modeId: 'labels',
+            settingsMode: 'advanced',
+            settings: { seedArtists: ['Broadcast'] },
+          },
+          maxArtistsPerRun: 20,
+          listenerRange: null,
+          cron: '0 8 * * 1',
+          action: 'add_to_recommendations',
+          scoreThreshold: null,
+          scoringWeightPreset: null,
+          scoringWeightOverrides: null,
+          lastRunAt: null,
+          lastResultCount: null,
+          lastError: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }) as never),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription,
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions/1', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        sourceConfig: {
+          modeId: 'labels',
+          settingsMode: 'advanced',
+        },
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({
+      error: 'discovery-mode sourceConfig.settings is required',
+    })
+    expect(updateSubscription).not.toHaveBeenCalled()
+  })
+
   it('lists discovery mode as an available adapter type', async () => {
     const { app } = createTestApp()
 

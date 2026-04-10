@@ -1,5 +1,6 @@
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { runDiscoveryMode } from '@/core/discovery-modes/run'
+import { mergePreferences } from '@/db/schema'
 import { filter } from '@/core/pipeline/filter'
 import { resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
@@ -57,6 +58,27 @@ export function normalizeDiscoveryModeSubscription(
   }
 }
 
+function buildDiscoveryModePipelineDeps(
+  subscription: SubscriptionConfig,
+  base: NonNullable<SubscriptionRunDeps['discoveryModePipelineDeps']>,
+): NonNullable<SubscriptionRunDeps['discoveryModePipelineDeps']> {
+  const preferences = mergePreferences(base.settings.preferences)
+  return {
+    ...base,
+    settings: {
+      ...base.settings,
+      preferences: {
+        ...preferences,
+        scoreThreshold: subscription.scoreThreshold ?? preferences.scoreThreshold,
+        scoringWeights: resolveWeights(
+          subscription.scoringWeightPreset ?? 'default',
+          subscription.scoringWeightOverrides,
+        ),
+      },
+    },
+  }
+}
+
 export async function runSubscription(
   subscription: SubscriptionConfig,
   adapter: SubscriptionAdapter,
@@ -79,11 +101,16 @@ export async function runSubscription(
       }
 
       const discoveryRequest = normalizeDiscoveryModeSubscription(subscription, deps.userId)
+      const pipelineDeps = buildDiscoveryModePipelineDeps(
+        subscription,
+        deps.discoveryModePipelineDeps,
+      )
       const discoveryResult = await discoveryModeRunner({
         request: discoveryRequest,
         registry: deps.discoveryModeRegistry,
         orchestrator: deps.pipelineOrchestrator,
-        pipelineDeps: deps.discoveryModePipelineDeps,
+        maxArtistsPerRun: subscription.maxArtistsPerRun ?? undefined,
+        pipelineDeps,
       })
       const batchStats = discoveryResult.batchId
         ? await queries.getBatchStats?.(discoveryResult.batchId)
