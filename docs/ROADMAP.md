@@ -6,7 +6,7 @@
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, and Emby. Discovery mode expansion is now shipped too, including manual and subscription flows for ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web. Current focus is download-target breadth and polish on the shipped media-server path.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, and Emby. Discovery mode expansion is partially shipped: manual and subscription flows are in place, and the currently runnable modes are ListenBrainz, Release Radar, and Similar Artist Web. Labels and Artist Relationships remain planned and are marked unavailable in the UI until they have real integrations. Current focus is download-target breadth and polish on the shipped media-server path.
 
 ## v1 Goals
 
@@ -38,6 +38,8 @@ Committed direction, roughly in priority order.
 
 - Deezer favorites import
 - Deeper ListenBrainz integration (weekly jams, radio, fresh releases, similar users)
+- Label-catalog discovery mode implementation
+- Artist-relationship discovery mode implementation
 
 ### Integrations
 
@@ -102,7 +104,8 @@ Low confidence. Would build only with real demand.
 
 ### Unreleased
 
-- Discovery modes on the Discover page: ListenBrainz, Release Radar, Labels, Artist Relationships, and Similar Artist Web
+- Discovery modes on the Discover page, with runnable executors for ListenBrainz, Release Radar, and Similar Artist Web
+- Labels and Artist Relationships now marked unavailable until they have real implementations
 - Save discovery mode forms as subscriptions for recurring runs
 - Browser coverage for manual discovery-mode runs and discovery-mode subscription creation
 

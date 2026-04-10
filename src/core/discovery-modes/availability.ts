@@ -17,6 +17,15 @@ export function evaluateDiscoveryModeAvailability(
   modeId: string,
   snapshot: DiscoveryConnectionSnapshot,
 ): DiscoveryAvailabilityResult {
+  if (modeId === 'artist-relationships' || modeId === 'labels') {
+    return {
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+      reason: 'This mode is not shipped yet.',
+    }
+  }
+
   if (modeId === 'listenbrainz') {
     return snapshot.hasListenBrainz
       ? { enabled: true, fallbackUsed: false, providerPath: ['listenbrainz'] }
@@ -48,24 +57,32 @@ export function evaluateDiscoveryModeAvailability(
     }
   }
 
-  const hasAnyEligibleSource =
-    snapshot.hasListenBrainz || snapshot.hasSpotify || snapshot.hasLastfm || snapshot.hasDiscogs
+  if (modeId === 'similar-artist-web') {
+    const providerPath = [
+      ...(snapshot.hasListenBrainz ? ['listenbrainz'] : []),
+      ...(snapshot.hasLastfm ? ['lastfm'] : []),
+    ]
 
-  if (!hasAnyEligibleSource) {
+    if (providerPath.length === 0) {
+      return {
+        enabled: false,
+        fallbackUsed: false,
+        providerPath: [],
+        reason: 'Connect ListenBrainz or Last.fm to use this mode.',
+      }
+    }
+
     return {
-      enabled: false,
+      enabled: true,
       fallbackUsed: false,
-      providerPath: [],
-      reason: 'Connect a listening or collection source first.',
+      providerPath,
     }
   }
 
   return {
-    enabled: true,
-    fallbackUsed: !snapshot.hasDiscogs,
-    providerPath: snapshot.hasDiscogs ? ['discogs'] : ['musicbrainz'],
-    reason: snapshot.hasDiscogs
-      ? undefined
-      : 'Preferred provider unavailable; fallback will be used.',
+    enabled: false,
+    fallbackUsed: false,
+    providerPath: [],
+    reason: 'This mode is not shipped yet.',
   }
 }
