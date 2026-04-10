@@ -13,7 +13,7 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
-import { DiscoveryModeRegistry } from './core/discovery-modes/registry'
+import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
 import { createJobRecorder } from './core/jobs/recorder'
@@ -921,7 +921,7 @@ function buildStaticSearchSources(): SearchSource[] {
 }
 
 const staticSearchSources = buildStaticSearchSources()
-const discoveryModeRegistry = new DiscoveryModeRegistry()
+const discoveryModeRegistry = createDefaultDiscoveryModeRegistry()
 
 const app = createApp({
   db,

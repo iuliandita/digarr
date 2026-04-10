@@ -165,4 +165,43 @@ describe('runDiscoveryMode', () => {
     expect(jobRecorder.complete).not.toHaveBeenCalled()
     expect(jobRecorder.fail).not.toHaveBeenCalled()
   })
+
+  it('records a failed quick-discover job when mode execution throws', async () => {
+    const request = makeRequest()
+    const pipelineDeps = makePipelineDeps()
+    const jobRecorder = {
+      start: vi.fn(async () => 22),
+      complete: vi.fn(async () => undefined),
+      fail: vi.fn(async () => undefined),
+      markStuck: vi.fn(async () => 0),
+    }
+    const orchestrator = {
+      run: vi.fn(async () => ({ batchId: 1 })),
+    }
+    const registry = {
+      get: vi.fn().mockReturnValue({
+        id: 'labels',
+        executor: vi.fn(async () => {
+          throw new Error('executor blew up')
+        }),
+      }),
+    }
+
+    await expect(
+      runDiscoveryMode({
+        request,
+        pipelineDeps,
+        orchestrator: orchestrator as never,
+        registry: registry as never,
+        jobRecorder: jobRecorder as never,
+      }),
+    ).rejects.toThrow('executor blew up')
+
+    expect(jobRecorder.start).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'quick_discover' }),
+    )
+    expect(jobRecorder.fail).toHaveBeenCalledWith(22, 'executor blew up')
+    expect(orchestrator.run).not.toHaveBeenCalled()
+    expect(jobRecorder.complete).not.toHaveBeenCalled()
+  })
 })

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { evaluateDiscoveryModeAvailability } from '@/core/discovery-modes/availability'
-import { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import { createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
 
@@ -14,7 +14,7 @@ const EMPTY_DISCOVERY_SNAPSHOT = {
 
 export function discoveryModeRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
-  const discoveryModeRegistry = deps.discoveryModeRegistry ?? new DiscoveryModeRegistry()
+  const discoveryModeRegistry = deps.discoveryModeRegistry ?? createDefaultDiscoveryModeRegistry()
   const getDiscoveryConnectionSnapshot =
     deps.getDiscoveryConnectionSnapshot ?? (async () => EMPTY_DISCOVERY_SNAPSHOT)
 

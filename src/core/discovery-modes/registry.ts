@@ -1,3 +1,8 @@
+import { createArtistRelationshipsMode } from './modes/artist-relationships'
+import { createLabelsMode } from './modes/labels'
+import { createListenBrainzMode } from './modes/listenbrainz'
+import { createReleaseRadarMode } from './modes/release-radar'
+import { createSimilarArtistWebMode } from './modes/similar-artist-web'
 import type { DiscoveryModeDefinition } from './types'
 
 export class DiscoveryModeRegistry {
@@ -17,4 +22,17 @@ export class DiscoveryModeRegistry {
   list(): DiscoveryModeDefinition[] {
     return [...this.modes.values()]
   }
+}
+
+export function registerDefaultDiscoveryModes(registry: DiscoveryModeRegistry): DiscoveryModeRegistry {
+  registry.register(createListenBrainzMode())
+  registry.register(createReleaseRadarMode())
+  registry.register(createArtistRelationshipsMode())
+  registry.register(createSimilarArtistWebMode())
+  registry.register(createLabelsMode())
+  return registry
+}
+
+export function createDefaultDiscoveryModeRegistry(): DiscoveryModeRegistry {
+  return registerDefaultDiscoveryModes(new DiscoveryModeRegistry())
 }

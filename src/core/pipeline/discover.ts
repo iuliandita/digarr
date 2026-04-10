@@ -65,6 +65,7 @@ export interface DiscoverSources {
 
 export type DiscoverOptions = {
   explicitCandidates?: Array<DiscoveredArtist | DiscoveryCandidate>
+  explicitRun?: boolean
 }
 
 function isDiscoveryCandidate(
@@ -94,12 +95,13 @@ export async function discover(
   librarySeedRatio = 0.3,
   options: DiscoverOptions = {},
 ): Promise<DiscoveredArtist[]> {
-  if (options.explicitCandidates && options.explicitCandidates.length > 0) {
-    const explicitArtists = options.explicitCandidates.some(isDiscoveryCandidate)
+  if (options.explicitRun) {
+    const explicitCandidates = options.explicitCandidates ?? []
+    const explicitArtists = explicitCandidates.some(isDiscoveryCandidate)
       ? discoveryCandidatesToDiscoveredArtists(
-          options.explicitCandidates.filter(isDiscoveryCandidate),
+          explicitCandidates.filter(isDiscoveryCandidate),
         )
-      : (options.explicitCandidates as DiscoveredArtist[])
+      : (explicitCandidates as DiscoveredArtist[])
     return dedupeDiscoveredArtists(explicitArtists)
   }
 

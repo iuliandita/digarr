@@ -291,6 +291,7 @@ describe('discover()', () => {
 
     const results = await discover(profile, { listeningSources: [lb] }, 10, undefined, 0.3, {
       explicitCandidates,
+      explicitRun: true,
     })
 
     expect(results).toEqual([
@@ -302,5 +303,28 @@ describe('discover()', () => {
       },
     ])
     expect(lb.getSimilarArtists).not.toHaveBeenCalled()
+  })
+
+  it('returns an empty result for explicit discovery runs with zero candidates', async () => {
+    const lb = makeLb()
+    const ai = {
+      getRecommendations: vi.fn().mockResolvedValue([
+        {
+          artistName: 'Should Not Be Used',
+          reasoning: 'legacy path',
+          confidence: 0.7,
+          genres: [],
+        },
+      ]),
+    }
+
+    const results = await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0.3, {
+      explicitCandidates: [],
+      explicitRun: true,
+    })
+
+    expect(results).toEqual([])
+    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
+    expect(ai.getRecommendations).not.toHaveBeenCalled()
   })
 })

@@ -103,13 +103,19 @@ export function pipelineRoutes(deps: AppDependencies) {
       return c.json({ error: 'Discovery mode execution is not configured' }, 500)
     }
 
+    let request
     try {
       const body = await c.req.json()
-      const request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+      request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+    } catch (err: unknown) {
+      return c.json({ error: errMsg(err) }, 400)
+    }
+
+    try {
       const result = await deps.runDiscoveryMode(request)
       return c.json(result, 202)
     } catch (err: unknown) {
-      return c.json({ error: errMsg(err) }, 400)
+      return c.json({ error: errMsg(err) }, 500)
     }
   })
 

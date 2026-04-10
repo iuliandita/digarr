@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import type { DiscoveryModeDefinition } from '@/core/discovery-modes/types'
-import { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import { DiscoveryModeRegistry, createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({
@@ -64,5 +64,20 @@ describe('API routes: discovery modes', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.modes[0].availability).toMatchObject({ enabled: false })
+  })
+
+  it('uses the shipped discovery mode registry by default', async () => {
+    const { app } = createTestApp({
+      discoveryModeRegistry: createDefaultDiscoveryModeRegistry(),
+    })
+
+    const res = await app.request('/api/discovery-modes', {
+      headers: { Authorization: 'Bearer test-token' },
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.modes.length).toBeGreaterThan(0)
+    expect(body.modes.some((mode: { id: string }) => mode.id === 'labels')).toBe(true)
   })
 })

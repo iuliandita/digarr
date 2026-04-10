@@ -33,8 +33,6 @@ export async function runDiscoveryMode({
   pipelineDeps,
   jobRecorder,
 }: RunDiscoveryModeParams): Promise<{ batchId: number }> {
-  const execution = await executeDiscoveryMode(request, registry)
-  const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates)
   const providerPath = extractProviderPath(request.providerContext)
 
   let jobId: number | null = null
@@ -58,6 +56,9 @@ export async function runDiscoveryMode({
   }
 
   try {
+    const execution = await executeDiscoveryMode(request, registry)
+    const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates)
+
     const result = await orchestrator.run({
       ...pipelineDeps,
       userId: request.userId,
