@@ -12,11 +12,11 @@
 [![Tests](https://img.shields.io/badge/tests-1300%2B_passing-brightgreen)]()
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**AI-powered music discovery for your *arr stack.** Connect your listening sources (ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, Discogs), pick an AI provider, and Digarr builds a taste profile, discovers new artists through a 7-stage pipeline, and scores them with a weighted formula that learns from your feedback. Approve what you like and send artists or playlists to Lidarr, Spotify, Jellyfin, Emby, Plex, or Navidrome. Describe a mood in plain English and get instant results. Import artists from Spotify Liked Songs for a faster cold start. Set up subscriptions that discover new music on a schedule while you sleep. Generate weekly digest playlists automatically. Browse your library by genre with deep-cut discovery. All self-hosted, all yours.
+**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr turns that into a taste profile, a recommendation pipeline, and a queue you can actually work through. You can approve artists into Lidarr or playlist targets, run mood searches in plain English, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, and browse your library by genre. It is self-hosted, so the data stays with you.
 
-> **Beta software -- working toward v1.0.** Usable and actively developed, but expect rough edges. Things move fast during the beta -- there may be several releases per day with bug fixes, new features, and improvements. Check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. We'd love your help: set it up, break things, [report issues](https://github.com/iuliandita/digarr/issues), and share your feature ideas.
+> **Beta software, working toward v1.0.** You can use it today, but expect rough edges. Releases can land quickly, sometimes several in a day, so check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. If you run into something broken, [open an issue](https://github.com/iuliandita/digarr/issues) or send over a feature idea.
 >
-> Free and open source, forever. No tracking, no telemetry, no data collection -- your music taste stays on your server.
+> Free and open source, forever. No tracking, no telemetry, no data collection. Your music taste stays on your server.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
@@ -32,43 +32,43 @@
 ## What Makes Digarr Different
 
 ### 7-Stage AI Pipeline
-Digarr collects your taste from up to 7 sources, asks an AI to reason about it, scores candidates with a configurable weighted formula, deduplicates across batches, and learns from your approve/reject feedback over time.
+Digarr takes signals from up to 7 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
 
 ### Mood Discovery
-Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and get instant AI-powered results. No menus, no filters -- just plain English.
+Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
 
 ### Auto-Playlists
-Generate curated playlists from your approved recommendations and push them to Navidrome, Jellyfin, Emby, Plex, Spotify, or export as M3U/XSPF. Four strategies: Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
+Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
 
 ### Your AI, Your Choice
-Anthropic, OpenAI, Google Gemini, Ollama (local, free), or any OpenAI-compatible endpoint. Every recommendation includes a written explanation of why the artist matches your taste.
+Use Anthropic, OpenAI, Google Gemini, Ollama, or any OpenAI-compatible endpoint. Recommendation cards include a short explanation of why an artist made the cut.
 
 ### Lidarr Optional
-Works without Lidarr in pure discovery mode. When connected, approved artists get added with your preferred quality/metadata profiles. Also supports Spotify playlist, Navidrome, Jellyfin, Emby, and Plex as approval targets.
+Digarr also works in pure discovery mode. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. If you do not, you can still approve to Spotify playlists, Navidrome, Jellyfin, Emby, and Plex.
 
 ### Cross-Platform Search
-Search for artists across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp simultaneously. Results are deduplicated and merged. One-click Quick Discover on any result.
+Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match.
 
 ---
 
 ## Features
 
-- **7 data sources** -- ListenBrainz, Last.fm, Spotify (OAuth), Plex, Jellyfin, Emby, Discogs
-- **Smart scoring** -- weighted composite: consensus, similarity, genre overlap, AI confidence, feedback learning, popularity
-- **Auto-approve** -- automatically add high-scoring recs to your targets
-- **Subscriptions** -- scheduled discovery from Spotify Liked Songs, playlists/charts, Last.fm tags/charts, ListenBrainz feeds, genre searches, similar-artist seeds
-- **Genre deep dive** -- browse by genre with Recommended, Trending, and Deep Cuts tabs
-- **Library sync + reconciliation** -- background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 6 automated health checks with one-click fixes
-- **Analytics** -- approval rates, genre trends, source effectiveness, score distribution, time-to-act
-- **Top tracks** -- Deezer 30-sec previews on recommendation cards with MusicBrainz fallback
-- **Decade filtering** -- filter recommendations by era (60s through 20s+) with toggle pills
-- **Music previews** -- Spotify embeds, Deezer clips, YouTube on recommendation cards
-- **OIDC/SSO + multi-user** -- per-user queues, sources, scoring weights, and target configs
+- **7 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Plex, Jellyfin, Emby, and Discogs
+- **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
+- **Auto-approve:** send high-scoring recommendations to your targets automatically
+- **Subscriptions:** scheduled discovery from Spotify Liked Songs, playlists and charts, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
+- **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
+- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 6 automated health checks with one-click fixes
+- **Analytics:** approval rates, genre trends, source effectiveness, score distribution, and time-to-act
+- **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
+- **Decade filtering:** filter recommendations by era, from the 60s through the 20s+
+- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards
+- **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications** -- Discord, Slack, ntfy, Gotify, or any HTTP endpoint
-- **15 color themes** -- editor classics + streaming-service-inspired *arr themes, dark and light
-- **Export** -- JSON, CSV, M3U, XSPF
-- **Self-hosted** -- single container, runs alongside your existing *arr stack
+- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint
+- **15 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
+- **Export:** JSON, CSV, M3U, and XSPF
+- **Self-hosted:** a single container that runs alongside your existing *arr stack
 
 ---
 
@@ -79,7 +79,7 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 cp .env.example .env
-# Edit .env -- set DB_PASS at minimum
+# Edit .env and set DB_PASS at minimum
 docker compose up -d
 ```
 
@@ -95,15 +95,15 @@ For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Digarr runs a 7-stage recommendation pipeline:
 
-1. **Collect** -- fetches your Lidarr library (or skips in discovery mode)
-2. **Analyze** -- builds a taste profile from all connected sources
-3. **Discover** -- queries Last.fm similar, Discogs genres, AI recommendations, and library seeds
-4. **Resolve** -- validates against MusicBrainz, fetches metadata/images, genre-aware disambiguation
-5. **Score** -- weighted composite formula with configurable weights
-6. **Filter** -- removes library duplicates, rejected artists (with cooldown), low scores
-7. **Store** -- persists batch and recommendations
+1. **Collect:** fetches your Lidarr library, or skips it in discovery mode
+2. **Analyze:** builds a taste profile from all connected sources
+3. **Discover:** queries Last.fm similar artists, Discogs genres, AI recommendations, and library seeds
+4. **Resolve:** validates against MusicBrainz, fetches metadata and images, and handles genre-aware disambiguation
+5. **Score:** applies the weighted scoring formula
+6. **Filter:** removes library duplicates, rejected artists with cooldowns, and low-score results
+7. **Store:** saves the batch and its recommendations
 
-Runs on a cron schedule, manually, or via subscriptions for targeted discovery.
+You can run the pipeline on a schedule, by hand, or through subscriptions for targeted discovery.
 
 ---
 
@@ -120,7 +120,7 @@ Runs on a cron schedule, manually, or via subscriptions for targeted discovery.
 
 ## Configuration
 
-All configuration is done through the web UI after initial setup -- connections, scoring weights, cron schedule, and preferences are all set there. If you connect Spotify, Settings > Connections now includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials plus an AI provider/model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
+Most day-to-day configuration lives in the web UI after initial setup. That includes connections, scoring weights, schedules, and preferences. If you connect Spotify, Settings > Connections includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 ---
 
@@ -128,11 +128,11 @@ All configuration is done through the web UI after initial setup -- connections,
 
 Digarr provides application-level backup and restore through the admin UI (Settings > Administration) or API.
 
-**Manual backup:** `POST /api/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist/genre caches (larger file, but avoids re-fetching from MusicBrainz).
+**Manual backup:** `POST /api/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist and genre caches. The file is larger, but restores do not need to fetch that data from MusicBrainz again.
 
-**Restore:** `POST /api/admin/restore` accepts a backup JSON file. Runs in a single transaction (atomic rollback on failure). Uses upsert with natural keys for cross-instance compatibility. If the encryption key differs from the backup, affected credential fields are listed for manual re-entry.
+**Restore:** `POST /api/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It uses natural-key upserts for cross-instance compatibility. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
 
-**Auto-backup before migrations:** When the app detects pending database migrations on startup, it automatically saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). Keeps the last 5 auto-backups. Disable with `DIGARR_AUTO_BACKUP=false`.
+**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 5 auto-backups. Disable this with `DIGARR_AUTO_BACKUP=false`.
 
 **Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
 
@@ -140,12 +140,12 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 Admin tools available under Settings > Administration > Data Hygiene:
 
-- **Clear Image Failures** -- reset failed image cache for retry
-- **Rebuild Genre Cache** -- regenerate from artist tags
-- **Re-score Recommendations** -- recalculate with current weights
-- **Dedupe Repair** -- merge duplicate recommendations
-- **AI Reasoning Audit** -- detect and fix AI hallucinations
-- **Purge Sessions** -- clean expired login sessions
+- **Clear Image Failures:** reset failed image cache entries so Digarr can retry them
+- **Rebuild Genre Cache:** regenerate cached genres from artist tags
+- **Re-score Recommendations:** recalculate scores with the current weights
+- **Dedupe Repair:** merge duplicate recommendations
+- **AI Reasoning Audit:** detect and fix AI hallucinations
+- **Purge Sessions:** clean out expired login sessions
 
 ---
 
@@ -164,7 +164,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 
 ## Friends
 
-Other self-hosted music discovery projects worth checking out -- each takes a different approach:
+Other self-hosted music discovery projects worth checking out. Each one takes a different approach:
 
 | Project | Approach |
 |---------|----------|
@@ -175,7 +175,7 @@ Other self-hosted music discovery projects worth checking out -- each takes a di
 | [Brainarr](https://github.com/RicherTunes/Brainarr) | Native Lidarr plugin. Privacy-first with local AI. |
 | [Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr) | Last.fm discovery with optional AI assistant. Real-time UI. |
 | [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
-| [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets -- used by Digarr for genre enrichment. |
+| [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |
 
 ---
 
@@ -187,7 +187,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT -- see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 ---
 
