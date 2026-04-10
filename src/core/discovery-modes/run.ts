@@ -10,7 +10,7 @@ type RunDiscoveryModeParams = {
   request: DiscoveryModeRequest
   registry: DiscoveryModeRegistry
   orchestrator: Pick<PipelineOrchestrator, 'run'>
-  pipelineDeps?: Omit<
+  pipelineDeps: Omit<
     PipelineDeps,
     'explicitCandidates' | 'explicitDiscoveryMode' | 'jobRecorder' | 'trigger' | 'userId'
   >
@@ -39,18 +39,22 @@ export async function runDiscoveryMode({
 
   let jobId: number | null = null
   if (jobRecorder) {
-    jobId = await jobRecorder.start({
-      type: 'quick_discover',
-      userId: request.userId,
-      metadata: {
-        trigger: request.triggerType,
-        discoveryMode: {
-          modeId: request.modeId,
-          settingsMode: request.settingsMode,
-          providerPath,
+    try {
+      jobId = await jobRecorder.start({
+        type: 'quick_discover',
+        userId: request.userId,
+        metadata: {
+          trigger: request.triggerType,
+          discoveryMode: {
+            modeId: request.modeId,
+            settingsMode: request.settingsMode,
+            providerPath,
+          },
         },
-      },
-    })
+      })
+    } catch (error: unknown) {
+      console.error('[discovery-mode] Failed to record job start:', error)
+    }
   }
 
   try {
@@ -64,7 +68,7 @@ export async function runDiscoveryMode({
         providerPath,
       },
       explicitCandidates,
-    } as PipelineDeps)
+    })
 
     if (jobId != null && jobRecorder) {
       await jobRecorder.complete(jobId, {
