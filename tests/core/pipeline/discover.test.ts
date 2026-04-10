@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { discover } from '@/core/pipeline/discover'
 import type { DiscoverySource } from '@/core/plugins/types'
+import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import type { TasteProfile } from '@/core/types'
 
 const profile: TasteProfile = {
@@ -265,18 +266,41 @@ describe('discover()', () => {
     expect(results.map((r) => r.name)).toContain('Airborne Toxic Event')
   })
 
-  it('returns deduped explicit candidates before querying sources', async () => {
+  it('returns mapped and deduped discovery-mode candidates before querying sources', async () => {
     const lb = makeLb()
-    const explicitCandidates = [
-      { name: 'Stereolab', mbid: 'mbid-st', similarityScore: 0.9, source: 'labels' },
-      { name: 'Stereolab', mbid: 'mbid-st', similarityScore: 0.7, source: 'labels' },
+    const explicitCandidates: DiscoveryCandidate[] = [
+      {
+        candidateType: 'artist',
+        name: 'Stereolab',
+        mbid: 'mbid-st',
+        provenanceMode: 'labels',
+        provenanceProvider: 'discogs',
+        confidenceHint: 0.9,
+        fallbackUsed: false,
+      },
+      {
+        candidateType: 'artist',
+        name: 'Stereolab',
+        mbid: 'mbid-st',
+        provenanceMode: 'labels',
+        provenanceProvider: 'discogs',
+        confidenceHint: 0.7,
+        fallbackUsed: false,
+      },
     ]
 
     const results = await discover(profile, { listeningSources: [lb] }, 10, undefined, 0.3, {
       explicitCandidates,
     })
 
-    expect(results).toEqual([explicitCandidates[0]])
+    expect(results).toEqual([
+      {
+        name: 'Stereolab',
+        mbid: 'mbid-st',
+        similarityScore: 0.9,
+        source: 'labels',
+      },
+    ])
     expect(lb.getSimilarArtists).not.toHaveBeenCalled()
   })
 })

@@ -13,18 +13,26 @@ export type DiscoveryConfigField = {
 
 export type DiscoveryAvailabilityKind = 'strict' | 'fallback'
 
-export type DiscoveryCandidate = {
+export type RawDiscoveryCandidate = {
   candidateType: 'artist' | 'release'
   name: string
   artistName?: string
   mbid?: string
   sourceUrl?: string
-  provenanceMode: string
+  provenanceMode?: string
   provenanceProvider: string
   confidenceHint?: number
   explanationHint?: string
   fallbackUsed: boolean
   freshnessDate?: string
+}
+
+export type DiscoveryCandidate = RawDiscoveryCandidate & {
+  provenanceMode: string
+}
+
+export type RawDiscoveryExecutionResult = {
+  candidates: RawDiscoveryCandidate[]
 }
 
 export type DiscoveryExecutionResult = {
@@ -38,5 +46,5 @@ export type DiscoveryModeDefinition = {
   availability: DiscoveryAvailabilityKind
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
-  executor: (request: DiscoveryModeRequest) => Promise<DiscoveryExecutionResult>
+  executor: (request: DiscoveryModeRequest) => Promise<RawDiscoveryExecutionResult>
 }

@@ -1,3 +1,5 @@
+import { discoveryCandidatesToDiscoveredArtists } from '@/core/discovery-modes/candidates'
+import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import type { DiscoverySource } from '@/core/plugins/types'
 import type { AiRecommendation, DiscoveredArtist, TasteProfile } from '@/core/types'
 
@@ -62,7 +64,7 @@ export interface DiscoverSources {
 }
 
 export type DiscoverOptions = {
-  explicitCandidates?: DiscoveredArtist[]
+  explicitCandidates?: DiscoveryCandidate[]
 }
 
 function dedupeDiscoveredArtists(candidates: DiscoveredArtist[]): DiscoveredArtist[] {
@@ -87,7 +89,7 @@ export async function discover(
   options: DiscoverOptions = {},
 ): Promise<DiscoveredArtist[]> {
   if (options.explicitCandidates && options.explicitCandidates.length > 0) {
-    return dedupeDiscoveredArtists(options.explicitCandidates)
+    return dedupeDiscoveredArtists(discoveryCandidatesToDiscoveredArtists(options.explicitCandidates))
   }
 
   const topArtists = profile.topArtists.slice(0, topArtistsLimit)

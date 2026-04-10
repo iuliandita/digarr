@@ -3,6 +3,43 @@ import { executeDiscoveryMode } from '@/core/discovery-modes/executor'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 
 describe('executeDiscoveryMode', () => {
+  it('defaults omitted provenanceMode from the request mode id', async () => {
+    const request: DiscoveryModeRequest = {
+      modeId: 'labels',
+      triggerType: 'manual',
+      settingsMode: 'easy',
+      userId: 7,
+      rawUserSettings: { seedArtists: ['Broadcast'] },
+      normalizedSettings: { seedArtists: ['Broadcast'] },
+      providerContext: {},
+      fallbackPolicy: 'allow-fallback',
+    }
+
+    const registry = {
+      get: vi.fn().mockReturnValue({
+        id: 'labels',
+        executor: vi.fn().mockResolvedValue({
+          candidates: [
+            {
+              candidateType: 'artist',
+              name: 'Stereolab',
+              provenanceProvider: 'discogs',
+              fallbackUsed: false,
+            },
+          ],
+        }),
+      }),
+    }
+
+    const result = await executeDiscoveryMode(request, registry as never)
+
+    expect(result.candidates[0]).toMatchObject({
+      name: 'Stereolab',
+      provenanceMode: 'labels',
+      provenanceProvider: 'discogs',
+    })
+  })
+
   it('normalizes executor output into candidate envelopes with provenance', async () => {
     const request: DiscoveryModeRequest = {
       modeId: 'labels',
@@ -37,5 +74,26 @@ describe('executeDiscoveryMode', () => {
       provenanceMode: 'labels',
       provenanceProvider: 'discogs',
     })
+  })
+
+  it('throws when the requested mode id is not registered', async () => {
+    const request: DiscoveryModeRequest = {
+      modeId: 'missing-mode',
+      triggerType: 'manual',
+      settingsMode: 'easy',
+      userId: 7,
+      rawUserSettings: {},
+      normalizedSettings: {},
+      providerContext: {},
+      fallbackPolicy: 'allow-fallback',
+    }
+
+    const registry = {
+      get: vi.fn().mockReturnValue(undefined),
+    }
+
+    await expect(executeDiscoveryMode(request, registry as never)).rejects.toThrow(
+      "Unknown discovery mode 'missing-mode'",
+    )
   })
 })
