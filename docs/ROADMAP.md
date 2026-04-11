@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-11 | Current: v0.20.2
+> Updated: 2026-04-11 | Current: v0.20.3
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -37,7 +37,7 @@ Committed direction, roughly in priority order.
 ### Discovery
 
 - Deezer favorites import
-- Deeper ListenBrainz integration (weekly jams, radio, fresh releases, similar users)
+- Deeper ListenBrainz integration (radio, fresh releases, stronger similar-users coverage)
 - Label-catalog discovery mode implementation
 - Artist-relationship discovery mode implementation
 
@@ -107,6 +107,7 @@ Low confidence. Would build only with real demand.
 - Discovery modes on the Discover page, with runnable executors for ListenBrainz, Release Radar, and Similar Artist Web
 - Labels and Artist Relationships now marked unavailable until they have real implementations
 - Save discovery mode forms as subscriptions for recurring runs
+- Discovery-mode runs and subscriptions now enforce availability server-side and keep the selected provider/fallback execution path
 - Browser coverage for manual discovery-mode runs and discovery-mode subscription creation
 
 ### v0.20.2

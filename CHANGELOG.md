@@ -2,6 +2,25 @@
 
 All notable user-facing changes are documented here.
 
+## v0.20.3 - 2026-04-11
+
+### Added
+
+- Discovery modes on the Discover page, with runnable ListenBrainz, Release Radar, and Similar Artist Web flows
+- Discovery-mode subscriptions that reuse the existing subscription runner, scheduler, job history, and browser coverage
+
+### Fixed
+
+- Manual discovery-mode runs now return immediately with a 202 response instead of blocking on the full run
+- Discovery-mode routes now reject unavailable modes explicitly instead of allowing silent no-op runs
+- Discovery-mode subscriptions now persist the selected provider/fallback execution context so scheduled runs match the manual form
+
+### Changed
+
+- Labels and Artist Relationships remain visible in the discovery-mode catalog, but are explicitly marked unavailable until they have real executors
+- Release Radar no longer exposes the unused `includeReissues` toggle
+- README, API docs, and roadmap docs are aligned with the shipped discovery-mode surface
+
 ## v0.20.2 - 2026-04-10
 
 ### Fixed

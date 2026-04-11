@@ -77,6 +77,37 @@ Setup validation rules:
 
 ---
 
+## Discovery Modes
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/discovery-modes` | Yes | List discovery modes with current availability, fallback, and field metadata |
+| POST | `/api/discovery-modes/run` | Yes | Start a manual discovery-mode run. Returns 202 with no batch ID. |
+
+**GET /api/discovery-modes** notes:
+- Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
+- Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
+- Unavailable modes should be treated as read-only UI metadata, not runnable jobs
+
+**POST /api/discovery-modes/run** body:
+```json
+{
+  "modeId": "release-radar",
+  "settingsMode": "easy",
+  "rawUserSettings": { "windowDays": 14 },
+  "normalizedSettings": { "windowDays": 14 },
+  "providerContext": { "providerPath": ["lastfm"] },
+  "fallbackPolicy": "allow-fallback"
+}
+```
+
+**POST /api/discovery-modes/run** behavior:
+- Returns `202 { "message": "Discovery run started" }` after validation; the actual run continues in the background
+- The server re-evaluates availability and execution context from the current user connections before starting the run
+- Returns `400` with the availability reason when a mode is currently unavailable
+
+---
+
 ## Recommendations
 
 | Method | Path | Auth | Description |
@@ -150,7 +181,7 @@ Setup validation rules:
 | GET | `/api/subscriptions/scheduler` | Yes | Scheduler job status |
 | POST | `/api/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
 
-**Adapter types**: `genre`, `similar`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
+**Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
 
 **POST /api/subscriptions** body:
 ```json
@@ -163,6 +194,28 @@ Setup validation rules:
   "maxArtistsPerRun": 20
 }
 ```
+
+**Discovery-mode subscription body example:**
+```json
+{
+  "name": "Release Radar Weekly",
+  "sourceType": "discovery-mode",
+  "sourceProvider": "release-radar",
+  "sourceConfig": {
+    "modeId": "release-radar",
+    "settingsMode": "easy",
+    "settings": { "windowDays": 14 },
+    "providerContext": { "providerPath": ["lastfm"] },
+    "fallbackPolicy": "allow-fallback"
+  },
+  "cron": "0 8 * * 1",
+  "maxArtistsPerRun": 20
+}
+```
+
+Discovery-mode subscription notes:
+- Creation and updates re-check current availability and reject unavailable modes with `400`
+- The saved `providerContext` and `fallbackPolicy` mirror the execution path chosen for the manual form, so scheduled runs stay aligned with what the user configured
 
 ---
 
