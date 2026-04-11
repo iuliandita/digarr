@@ -1,14 +1,19 @@
-import { resolveSpotifyToken } from '@/core/spotify-auth'
-import { db } from '@/db'
-import { getUserConnections } from '@/db/queries/users'
 import type { DiscoveryModeRequest } from '../request'
 
 export async function getDiscoveryModeConnections(userId: number) {
+  const [{ db }, { getUserConnections }] = await Promise.all([
+    import('@/db'),
+    import('@/db/queries/users'),
+  ])
   return getUserConnections(db, userId)
 }
 
 export async function getDiscoveryModeSpotifyToken(userId: number): Promise<string | null> {
   try {
+    const [{ db }, { resolveSpotifyToken }] = await Promise.all([
+      import('@/db'),
+      import('@/core/spotify-auth'),
+    ])
     return await resolveSpotifyToken(db, userId)
   } catch {
     return null
