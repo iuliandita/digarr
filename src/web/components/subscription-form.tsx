@@ -30,6 +30,8 @@ type DiscoveryModeSubscriptionConfig = {
   modeId: string
   settingsMode: 'easy' | 'advanced'
   settings: Record<string, unknown>
+  providerContext?: Record<string, unknown>
+  fallbackPolicy?: 'strict' | 'allow-fallback'
 }
 
 const EDITABLE_SOURCE_TYPES = ['genre', 'similar', 'discovery-mode'] as const
@@ -94,6 +96,16 @@ function normalizeDiscoveryModeConfig(
       !Array.isArray(sourceConfig.settings)
         ? (sourceConfig.settings as Record<string, unknown>)
         : {},
+    providerContext:
+      sourceConfig?.providerContext &&
+      typeof sourceConfig.providerContext === 'object' &&
+      !Array.isArray(sourceConfig.providerContext)
+        ? (sourceConfig.providerContext as Record<string, unknown>)
+        : undefined,
+    fallbackPolicy:
+      sourceConfig?.fallbackPolicy === 'strict' || sourceConfig?.fallbackPolicy === 'allow-fallback'
+        ? sourceConfig.fallbackPolicy
+        : undefined,
   }
 }
 
@@ -133,6 +145,13 @@ function DiscoveryModeFormWrapper({
                     ? 'advanced'
                     : 'easy',
                 settings: (config as Record<string, unknown>).settings as Record<string, unknown>,
+                providerContext: (config as Record<string, unknown>).providerContext as
+                  | Record<string, unknown>
+                  | undefined,
+                fallbackPolicy:
+                  (config as Record<string, unknown>).fallbackPolicy === 'strict'
+                    ? 'strict'
+                    : 'allow-fallback',
               }
             : null,
         )

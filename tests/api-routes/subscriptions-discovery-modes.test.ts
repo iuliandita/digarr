@@ -17,6 +17,16 @@ function authHeaders() {
   }
 }
 
+function releaseRadarSnapshot() {
+  return {
+    hasListenBrainz: false,
+    hasSpotify: false,
+    hasLastfm: true,
+    hasDiscogs: false,
+    hasLibrarySync: false,
+  }
+}
+
 describe('API routes: discovery mode subscriptions', () => {
   it('creates a discovery mode subscription with saved easy or advanced state', async () => {
     const createSubscription = vi.fn(async (data: Record<string, unknown>) => ({
@@ -32,6 +42,7 @@ describe('API routes: discovery mode subscriptions', () => {
     })) as never
 
     const { app } = createTestApp({
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue(releaseRadarSnapshot()),
       subscriptionQueries: {
         createSubscription,
         getSubscription: vi.fn(async () => null),
@@ -48,9 +59,9 @@ describe('API routes: discovery mode subscriptions', () => {
       body: JSON.stringify({
         name: 'Weekly Label Hunt',
         sourceType: 'discovery-mode',
-        sourceProvider: 'labels',
+        sourceProvider: 'release-radar',
         sourceConfig: {
-          modeId: 'labels',
+          modeId: 'release-radar',
           settingsMode: 'advanced',
           settings: { seedArtists: ['Broadcast'], depth: 2 },
         },
@@ -62,11 +73,13 @@ describe('API routes: discovery mode subscriptions', () => {
     expect(createSubscription).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceType: 'discovery-mode',
-        sourceProvider: 'labels',
+        sourceProvider: 'release-radar',
         sourceConfig: {
-          modeId: 'labels',
+          modeId: 'release-radar',
           settingsMode: 'advanced',
           settings: { seedArtists: ['Broadcast'], depth: 2 },
+          providerContext: { providerPath: ['lastfm'] },
+          fallbackPolicy: 'allow-fallback',
         },
       }),
     )
@@ -86,6 +99,7 @@ describe('API routes: discovery mode subscriptions', () => {
     })) as never
 
     const { app } = createTestApp({
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue(releaseRadarSnapshot()),
       subscriptionQueries: {
         createSubscription,
         getSubscription: vi.fn(async () => null),
@@ -102,9 +116,9 @@ describe('API routes: discovery mode subscriptions', () => {
       body: JSON.stringify({
         name: 'Whitespace Labels',
         sourceType: 'discovery-mode',
-        sourceProvider: 'labels',
+        sourceProvider: 'release-radar',
         sourceConfig: {
-          modeId: ' labels ',
+          modeId: ' release-radar ',
           settingsMode: 'advanced',
           settings: { seedArtists: ['Broadcast'] },
         },
@@ -116,10 +130,46 @@ describe('API routes: discovery mode subscriptions', () => {
     expect(createSubscription).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceConfig: expect.objectContaining({
-          modeId: 'labels',
+          modeId: 'release-radar',
+          providerContext: { providerPath: ['lastfm'] },
+          fallbackPolicy: 'allow-fallback',
         }),
       }),
     )
+  })
+
+  it('rejects unshipped discovery mode subscriptions even when the mode exists in the registry', async () => {
+    const createSubscription = vi.fn()
+    const { app } = createTestApp({
+      subscriptionQueries: {
+        createSubscription,
+        getSubscription: vi.fn(async () => null),
+        getSubscriptionsByUser: vi.fn(async () => []),
+        getEnabledSubscriptions: vi.fn(async () => []),
+        updateSubscription: vi.fn(),
+        deleteSubscription: vi.fn(),
+      },
+    })
+
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        name: 'Label Hunt',
+        sourceType: 'discovery-mode',
+        sourceProvider: 'labels',
+        sourceConfig: {
+          modeId: 'labels',
+          settingsMode: 'advanced',
+          settings: { seedArtists: ['Broadcast'] },
+        },
+        cron: '0 8 * * 1',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'This mode is not shipped yet.' })
+    expect(createSubscription).not.toHaveBeenCalled()
   })
 
   it('rejects malformed discovery mode subscriptions that omit mode-specific config', async () => {
@@ -194,6 +244,7 @@ describe('API routes: discovery mode subscriptions', () => {
   it('revalidates discovery mode sourceConfig on patch', async () => {
     const updateSubscription = vi.fn()
     const { app } = createTestApp({
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue(releaseRadarSnapshot()),
       subscriptionQueries: {
         createSubscription: vi.fn(),
         getSubscription: vi.fn(
@@ -204,11 +255,13 @@ describe('API routes: discovery mode subscriptions', () => {
               name: 'Weekly Label Hunt',
               enabled: true,
               sourceType: 'discovery-mode',
-              sourceProvider: 'labels',
+              sourceProvider: 'release-radar',
               sourceConfig: {
-                modeId: 'labels',
+                modeId: 'release-radar',
                 settingsMode: 'advanced',
                 settings: { seedArtists: ['Broadcast'] },
+                providerContext: { providerPath: ['lastfm'] },
+                fallbackPolicy: 'allow-fallback',
               },
               maxArtistsPerRun: 20,
               listenerRange: null,
@@ -236,7 +289,7 @@ describe('API routes: discovery mode subscriptions', () => {
       headers: authHeaders(),
       body: JSON.stringify({
         sourceConfig: {
-          modeId: 'labels',
+          modeId: 'release-radar',
           settingsMode: 'advanced',
         },
       }),
@@ -252,6 +305,7 @@ describe('API routes: discovery mode subscriptions', () => {
   it('canonicalizes discovery mode modeId whitespace on patch before persistence', async () => {
     const updateSubscription = vi.fn()
     const { app } = createTestApp({
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue(releaseRadarSnapshot()),
       subscriptionQueries: {
         createSubscription: vi.fn(),
         getSubscription: vi.fn(
@@ -262,11 +316,13 @@ describe('API routes: discovery mode subscriptions', () => {
               name: 'Weekly Label Hunt',
               enabled: true,
               sourceType: 'discovery-mode',
-              sourceProvider: 'labels',
+              sourceProvider: 'release-radar',
               sourceConfig: {
-                modeId: 'labels',
+                modeId: 'release-radar',
                 settingsMode: 'advanced',
                 settings: { seedArtists: ['Broadcast'] },
+                providerContext: { providerPath: ['lastfm'] },
+                fallbackPolicy: 'allow-fallback',
               },
               maxArtistsPerRun: 20,
               listenerRange: null,
@@ -294,7 +350,7 @@ describe('API routes: discovery mode subscriptions', () => {
       headers: authHeaders(),
       body: JSON.stringify({
         sourceConfig: {
-          modeId: ' labels ',
+          modeId: ' release-radar ',
           settingsMode: 'advanced',
           settings: { seedArtists: ['Broadcast'] },
         },
@@ -306,7 +362,9 @@ describe('API routes: discovery mode subscriptions', () => {
       1,
       expect.objectContaining({
         sourceConfig: expect.objectContaining({
-          modeId: 'labels',
+          modeId: 'release-radar',
+          providerContext: { providerPath: ['lastfm'] },
+          fallbackPolicy: 'allow-fallback',
         }),
       }),
     )

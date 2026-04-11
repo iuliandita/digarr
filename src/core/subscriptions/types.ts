@@ -1,4 +1,5 @@
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
+import type { DiscoveryConnectionSnapshot } from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchestrator'
@@ -9,6 +10,8 @@ export type DiscoveryModeSubscriptionConfig = {
   modeId: string
   settingsMode: 'easy' | 'advanced'
   settings: Record<string, unknown>
+  providerContext?: Record<string, unknown>
+  fallbackPolicy?: 'strict' | 'allow-fallback'
 }
 
 /** What an adapter returns from fetch(). */
@@ -100,6 +103,7 @@ export type SubscriptionRunDeps = {
   topArtistNames?: Set<string>
   discoveryModeRunner?: typeof runDiscoveryMode
   discoveryModeRegistry?: DiscoveryModeRegistry
+  getDiscoveryConnectionSnapshot?: (userId: number) => Promise<DiscoveryConnectionSnapshot>
   pipelineOrchestrator?: Pick<PipelineOrchestrator, 'run'>
   discoveryModePipelineDeps?: Omit<
     PipelineDeps,

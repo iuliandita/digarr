@@ -1,5 +1,9 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import {
+  buildDiscoveryModeExecutionContext,
+  evaluateDiscoveryModeAvailability,
+} from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
@@ -33,6 +37,14 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return null
   }
   return value as Record<string, unknown>
+}
+
+const EMPTY_DISCOVERY_SNAPSHOT = {
+  hasListenBrainz: false,
+  hasSpotify: false,
+  hasLastfm: false,
+  hasDiscogs: false,
+  hasLibrarySync: false,
 }
 
 function normalizeDiscoveryModeSourceConfig(sourceConfig: unknown): Record<string, unknown> | null {
@@ -74,6 +86,36 @@ function validateDiscoveryModeSourceConfig(
     return { error: `Unknown discovery mode '${modeId}'`, normalizedConfig: null }
   }
   return { error: null, normalizedConfig: config }
+}
+
+async function resolveDiscoveryModeSourceConfig(
+  sourceConfig: unknown,
+  userId: number,
+  deps: AppDependencies,
+): Promise<{ error: string | null; normalizedConfig: Record<string, unknown> | null }> {
+  const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
+    sourceConfig,
+    deps.discoveryModeRegistry,
+  )
+  if (error || !normalizedConfig) {
+    return { error, normalizedConfig }
+  }
+
+  const modeId = String(normalizedConfig.modeId)
+  const snapshot = await (deps.getDiscoveryConnectionSnapshot?.(userId) ??
+    Promise.resolve(EMPTY_DISCOVERY_SNAPSHOT))
+  const availability = evaluateDiscoveryModeAvailability(modeId, snapshot)
+  if (!availability.enabled) {
+    return { error: availability.reason ?? 'This mode is unavailable.', normalizedConfig: null }
+  }
+
+  return {
+    error: null,
+    normalizedConfig: {
+      ...normalizedConfig,
+      ...buildDiscoveryModeExecutionContext(availability),
+    },
+  }
 }
 
 export function subscriptionRoutes(deps: AppDependencies) {
@@ -251,9 +293,10 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
     let normalizedSourceConfig = sourceConfig as Record<string, unknown>
     if (sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
-      const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
+      const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
         sourceConfig,
-        deps.discoveryModeRegistry,
+        userId,
+        deps,
       )
       if (error) {
         return c.json({ error }, 400)
@@ -526,9 +569,10 @@ export function subscriptionRoutes(deps: AppDependencies) {
       existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE &&
       Object.hasOwn(update, 'sourceConfig')
     ) {
-      const { error, normalizedConfig } = validateDiscoveryModeSourceConfig(
+      const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
         update.sourceConfig,
-        deps.discoveryModeRegistry,
+        userId,
+        deps,
       )
       if (error) {
         return c.json({ error }, 400)

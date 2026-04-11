@@ -91,8 +91,8 @@ describe('createReleaseRadarMode', () => {
       triggerType: 'manual',
       settingsMode: 'advanced',
       userId: 7,
-      rawUserSettings: { windowDays: 30, includeReissues: false },
-      normalizedSettings: { windowDays: 30, includeReissues: false },
+      rawUserSettings: { windowDays: 30 },
+      normalizedSettings: { windowDays: 30 },
       providerContext: { providerPath: ['lastfm'] },
       fallbackPolicy: 'allow-fallback',
     }

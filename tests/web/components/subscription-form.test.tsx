@@ -78,6 +78,8 @@ describe('SubscriptionForm discovery mode support', () => {
               seedArtists: [],
               depth: 2,
             }),
+            providerContext: { providerPath: ['musicbrainz'] },
+            fallbackPolicy: 'strict',
           }),
         }),
       )
@@ -128,6 +130,8 @@ describe('SubscriptionForm discovery mode support', () => {
             settings: {
               seedArtists: [],
             },
+            providerContext: { providerPath: ['musicbrainz'] },
+            fallbackPolicy: 'strict',
           }),
         }),
       )
@@ -174,6 +178,8 @@ describe('SubscriptionForm discovery mode support', () => {
             modeId: 'release-radar',
             settingsMode: 'advanced',
             settings: { seedArtists: ['Broadcast'], depth: 2 },
+            providerContext: { providerPath: ['musicbrainz'] },
+            fallbackPolicy: 'strict',
           },
         }),
       )
@@ -339,6 +345,8 @@ describe('SubscriptionForm discovery mode support', () => {
               depth: 2,
               legacyToggle: true,
             },
+            providerContext: { providerPath: ['musicbrainz'] },
+            fallbackPolicy: 'strict',
           },
         }),
       )

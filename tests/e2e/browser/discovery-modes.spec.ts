@@ -52,7 +52,6 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
         ],
         advancedFields: [
           { key: 'windowDays', label: 'Release window', type: 'number', required: true },
-          { key: 'includeReissues', label: 'Include reissues', type: 'toggle' },
         ],
       },
       {
@@ -60,10 +59,10 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
         label: 'Artist Relationships',
         description: 'Discover collaborators, aliases, and adjacent artist graph edges',
         availability: {
-          enabled: true,
-          fallbackUsed: true,
-          providerPath: ['musicbrainz'],
-          reason: 'Preferred provider unavailable; fallback will be used.',
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'This mode is not shipped yet.',
         },
         easyFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
@@ -96,10 +95,10 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
         label: 'Labels',
         description: 'Discover artists connected through label catalogs',
         availability: {
-          enabled: true,
-          fallbackUsed: true,
-          providerPath: ['musicbrainz'],
-          reason: 'Preferred provider unavailable; fallback will be used.',
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'This mode is not shipped yet.',
         },
         easyFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
@@ -112,6 +111,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     ],
   }
   let runRequestBody: Record<string, unknown> | null = null
+  let createdSubscription: Record<string, unknown> | null = null
 
   await page.route('**/api/discovery-modes', async (route) => {
     await route.fulfill({
@@ -126,6 +126,35 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
       status: 202,
       contentType: 'application/json',
       body: JSON.stringify({ message: 'Discovery run started' }),
+    })
+  })
+  await page.route('**/api/subscriptions', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() as Record<string, unknown>
+      createdSubscription = {
+        id: 99,
+        userId: 1,
+        ...body,
+        enabled: true,
+        lastRunAt: null,
+        lastResultCount: null,
+        lastError: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify(createdSubscription),
+      })
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(createdSubscription ? [createdSubscription] : []),
     })
   })
 

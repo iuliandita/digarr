@@ -729,6 +729,25 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       defaultScoreThreshold: prefs.scoreThreshold,
       topArtistNames,
       discoveryModeRegistry,
+      getDiscoveryConnectionSnapshot: async (userId) => {
+        const [userConnections, spotifyToken, hasLibrarySync] = await Promise.all([
+          getUserConnections(db, userId),
+          getOAuthToken(db, userId, 'spotify'),
+          librarySyncStore.userHasAnySyncState(userId),
+        ])
+
+        return {
+          hasListenBrainz: Boolean(
+            userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
+          ),
+          hasSpotify: Boolean(
+            spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
+          ),
+          hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
+          hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+          hasLibrarySync,
+        }
+      },
       pipelineOrchestrator: orchestrator,
       discoveryModePipelineDeps:
         sub.userId != null

@@ -73,7 +73,6 @@ export function createReleaseRadarMode(): DiscoveryModeDefinition {
     easyFields: [{ key: 'windowDays', label: 'Release window', type: 'number', required: true }],
     advancedFields: [
       { key: 'windowDays', label: 'Release window', type: 'number', required: true },
-      { key: 'includeReissues', label: 'Include reissues', type: 'toggle' },
     ],
     executor: async (request) => {
       const availableSources = await getReleaseRadarSources(request.userId)

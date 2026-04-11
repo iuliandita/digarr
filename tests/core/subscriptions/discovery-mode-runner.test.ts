@@ -94,9 +94,11 @@ describe('runSubscription discovery-mode', () => {
 
     const result = await runSubscription(
       makeSubscription({
-        modeId: 'labels',
+        modeId: 'release-radar',
         settingsMode: 'advanced',
         settings: { seedArtists: ['Broadcast'], depth: 2 },
+        providerContext: { providerPath: ['lastfm'] },
+        fallbackPolicy: 'allow-fallback',
       }),
       adapter,
       deps,
@@ -111,13 +113,13 @@ describe('runSubscription discovery-mode', () => {
     expect(deps.discoveryModeRunner).toHaveBeenCalledWith(
       expect.objectContaining({
         request: {
-          modeId: 'labels',
+          modeId: 'release-radar',
           triggerType: 'subscription',
           settingsMode: 'advanced',
           userId: 7,
           rawUserSettings: { seedArtists: ['Broadcast'], depth: 2 },
           normalizedSettings: { seedArtists: ['Broadcast'], depth: 2 },
-          providerContext: {},
+          providerContext: { providerPath: ['lastfm'] },
           fallbackPolicy: 'allow-fallback',
         },
         registry: deps.discoveryModeRegistry,
@@ -174,9 +176,11 @@ describe('runSubscription discovery-mode', () => {
     await runSubscription(
       makeSubscription(
         {
-          modeId: 'labels',
+          modeId: 'release-radar',
           settingsMode: 'advanced',
           settings: { seedArtists: ['Broadcast'], depth: 2 },
+          providerContext: { providerPath: ['lastfm'] },
+          fallbackPolicy: 'allow-fallback',
         },
         {
           maxArtistsPerRun: 12,
@@ -217,9 +221,11 @@ describe('runSubscription discovery-mode', () => {
 
     await runSubscription(
       makeSubscription({
-        modeId: ' labels ',
+        modeId: ' release-radar ',
         settingsMode: 'advanced',
         settings: { seedArtists: ['Broadcast'] },
+        providerContext: { providerPath: ['lastfm'] },
+        fallbackPolicy: 'allow-fallback',
       }),
       adapter,
       deps,
@@ -228,7 +234,9 @@ describe('runSubscription discovery-mode', () => {
     expect(deps.discoveryModeRunner).toHaveBeenCalledWith(
       expect.objectContaining({
         request: expect.objectContaining({
-          modeId: 'labels',
+          modeId: 'release-radar',
+          providerContext: { providerPath: ['lastfm'] },
+          fallbackPolicy: 'allow-fallback',
         }),
       }),
     )

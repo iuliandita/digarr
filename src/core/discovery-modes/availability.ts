@@ -13,6 +13,24 @@ export type DiscoveryAvailabilityResult = {
   reason?: string
 }
 
+export type DiscoveryModeExecutionContext = {
+  providerContext: {
+    providerPath: string[]
+  }
+  fallbackPolicy: 'strict' | 'allow-fallback'
+}
+
+export function buildDiscoveryModeExecutionContext(
+  availability: DiscoveryAvailabilityResult,
+): DiscoveryModeExecutionContext {
+  return {
+    providerContext: {
+      providerPath: availability.providerPath,
+    },
+    fallbackPolicy: availability.fallbackUsed ? 'allow-fallback' : 'strict',
+  }
+}
+
 export function evaluateDiscoveryModeAvailability(
   modeId: string,
   snapshot: DiscoveryConnectionSnapshot,

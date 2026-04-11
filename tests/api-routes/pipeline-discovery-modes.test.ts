@@ -34,9 +34,9 @@ describe('API routes: discovery mode pipeline runs', () => {
     )
     const discoveryModeRegistry = new DiscoveryModeRegistry()
     discoveryModeRegistry.register({
-      id: 'labels',
-      label: 'Labels',
-      description: 'Label-based discovery',
+      id: 'release-radar',
+      label: 'Release Radar',
+      description: 'Release-based discovery',
       availability: 'strict',
       easyFields: [],
       advancedFields: [],
@@ -45,6 +45,13 @@ describe('API routes: discovery mode pipeline runs', () => {
 
     const { app } = createTestApp({
       discoveryModeRegistry,
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue({
+        hasListenBrainz: false,
+        hasSpotify: false,
+        hasLastfm: true,
+        hasDiscogs: false,
+        hasLibrarySync: false,
+      }),
       runDiscoveryMode,
     } as never)
 
@@ -55,12 +62,12 @@ describe('API routes: discovery mode pipeline runs', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        modeId: 'labels',
+        modeId: 'release-radar',
         settingsMode: 'easy',
         rawUserSettings: { seedArtists: ['Broadcast'] },
         normalizedSettings: { seedArtists: ['Broadcast'] },
-        providerContext: { providerPath: ['discogs', 'labels'] },
-        fallbackPolicy: 'allow-fallback',
+        providerContext: { providerPath: ['spotify'] },
+        fallbackPolicy: 'strict',
       }),
     })
 
@@ -68,13 +75,34 @@ describe('API routes: discovery mode pipeline runs', () => {
     expect(await res.json()).toEqual({ message: 'Discovery run started' })
     expect(runDiscoveryMode).toHaveBeenCalledWith(
       expect.objectContaining({
-        modeId: 'labels',
+        modeId: 'release-radar',
         userId: 1,
         triggerType: 'manual',
+        providerContext: { providerPath: ['lastfm'] },
+        fallbackPolicy: 'allow-fallback',
       }),
     )
 
     resolveRun?.()
+  })
+
+  it('rejects discovery modes that are currently unavailable', async () => {
+    const { app } = createTestApp()
+
+    const res = await app.request('/api/discovery-modes/run', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer test-token',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        modeId: 'labels',
+        settingsMode: 'easy',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'This mode is not shipped yet.' })
   })
 
   it('returns 400 for request validation failures', async () => {
@@ -104,9 +132,9 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
     const discoveryModeRegistry = new DiscoveryModeRegistry()
     discoveryModeRegistry.register({
-      id: 'labels',
-      label: 'Labels',
-      description: 'Label-based discovery',
+      id: 'release-radar',
+      label: 'Release Radar',
+      description: 'Release-based discovery',
       availability: 'strict',
       easyFields: [],
       advancedFields: [],
@@ -115,6 +143,13 @@ describe('API routes: discovery mode pipeline runs', () => {
 
     const { app } = createTestApp({
       discoveryModeRegistry,
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue({
+        hasListenBrainz: false,
+        hasSpotify: false,
+        hasLastfm: true,
+        hasDiscogs: false,
+        hasLibrarySync: false,
+      }),
       runDiscoveryMode,
     } as never)
 
@@ -125,12 +160,12 @@ describe('API routes: discovery mode pipeline runs', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        modeId: 'labels',
+        modeId: 'release-radar',
         settingsMode: 'easy',
         rawUserSettings: { seedArtists: ['Broadcast'] },
         normalizedSettings: { seedArtists: ['Broadcast'] },
-        providerContext: { providerPath: ['discogs', 'labels'] },
-        fallbackPolicy: 'allow-fallback',
+        providerContext: { providerPath: ['spotify'] },
+        fallbackPolicy: 'strict',
       }),
     })
 

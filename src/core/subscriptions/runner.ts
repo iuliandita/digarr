@@ -1,3 +1,7 @@
+import {
+  buildDiscoveryModeExecutionContext,
+  evaluateDiscoveryModeAvailability,
+} from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import { filter } from '@/core/pipeline/filter'
@@ -36,11 +40,58 @@ function canonicalizeDiscoveryModeSubscriptionConfig(
   return {
     ...config,
     modeId: config.modeId.trim(),
+    providerContext:
+      config.providerContext && typeof config.providerContext === 'object'
+        ? config.providerContext
+        : {},
+    fallbackPolicy: config.fallbackPolicy === 'strict' ? 'strict' : 'allow-fallback',
   }
+}
+
+function hasStoredDiscoveryModeExecutionContext(config: DiscoveryModeSubscriptionConfig): boolean {
+  const providerPath = config.providerContext?.providerPath
+  return Array.isArray(providerPath) && providerPath.some((value) => typeof value === 'string')
+}
+
+async function resolveDiscoveryModeSubscriptionExecutionContext(
+  config: DiscoveryModeSubscriptionConfig,
+  userId: number,
+  deps: SubscriptionRunDeps,
+): Promise<{
+  providerContext: Record<string, unknown>
+  fallbackPolicy: 'strict' | 'allow-fallback'
+}> {
+  if (hasStoredDiscoveryModeExecutionContext(config)) {
+    return {
+      providerContext: config.providerContext ?? {},
+      fallbackPolicy: config.fallbackPolicy === 'strict' ? 'strict' : 'allow-fallback',
+    }
+  }
+
+  if (!deps.getDiscoveryConnectionSnapshot) {
+    return {
+      providerContext: config.providerContext ?? {},
+      fallbackPolicy: config.fallbackPolicy === 'strict' ? 'strict' : 'allow-fallback',
+    }
+  }
+
+  const availability = evaluateDiscoveryModeAvailability(
+    config.modeId,
+    await deps.getDiscoveryConnectionSnapshot(userId),
+  )
+  if (!availability.enabled) {
+    throw new Error(availability.reason ?? `Discovery mode '${config.modeId}' is unavailable`)
+  }
+
+  return buildDiscoveryModeExecutionContext(availability)
 }
 
 export function normalizeDiscoveryModeSubscription(
   subscription: Pick<SubscriptionConfig, 'sourceType' | 'sourceConfig' | 'userId'>,
+  executionContext: {
+    providerContext: Record<string, unknown>
+    fallbackPolicy: 'strict' | 'allow-fallback'
+  },
   fallbackUserId?: number,
 ): DiscoveryModeRequest {
   if (subscription.sourceType !== DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
@@ -63,8 +114,8 @@ export function normalizeDiscoveryModeSubscription(
     userId,
     rawUserSettings: config.settings,
     normalizedSettings: config.settings,
-    providerContext: {},
-    fallbackPolicy: 'allow-fallback',
+    providerContext: executionContext.providerContext,
+    fallbackPolicy: executionContext.fallbackPolicy,
   }
 }
 
@@ -114,7 +165,27 @@ export async function runSubscription(
         throw new Error('Discovery mode subscriptions require discovery mode dependencies')
       }
 
-      const discoveryRequest = normalizeDiscoveryModeSubscription(subscription, deps.userId)
+      const config = canonicalizeDiscoveryModeSubscriptionConfig(
+        subscription.sourceConfig as DiscoveryModeSubscriptionConfig,
+      )
+      const discoveryUserId = subscription.userId ?? deps.userId
+      if (typeof discoveryUserId !== 'number') {
+        throw new Error('Discovery mode subscriptions require a userId')
+      }
+      const executionContext = await resolveDiscoveryModeSubscriptionExecutionContext(
+        config,
+        discoveryUserId,
+        deps,
+      )
+      const discoveryRequest = normalizeDiscoveryModeSubscription(
+        {
+          ...subscription,
+          sourceConfig: config,
+          userId: discoveryUserId,
+        },
+        executionContext,
+        deps.userId,
+      )
       const pipelineDeps = buildDiscoveryModePipelineDeps(
         subscription,
         deps.discoveryModePipelineDeps,

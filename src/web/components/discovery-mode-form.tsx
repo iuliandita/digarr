@@ -10,6 +10,10 @@ type DiscoveryModeSubscriptionConfig = {
   modeId: string
   settingsMode: DiscoverySettingsMode
   settings: Record<string, unknown>
+  providerContext: {
+    providerPath: string[]
+  }
+  fallbackPolicy: 'strict' | 'allow-fallback'
 }
 
 type DiscoveryModeFieldValue = boolean | string
@@ -85,6 +89,8 @@ function buildSubmission(
       modeId: mode.id,
       settingsMode,
       settings: { ...preservedSettings, ...normalizedSettings },
+      providerContext: { providerPath: mode.availability.providerPath },
+      fallbackPolicy: mode.availability.fallbackUsed ? 'allow-fallback' : 'strict',
     } satisfies DiscoveryModeSubscriptionConfig,
   }
 }
@@ -247,8 +253,8 @@ export function DiscoveryModeForm({
         settingsMode: submission.payload.settingsMode,
         rawUserSettings: submission.payload.settings,
         normalizedSettings: submission.payload.settings,
-        providerContext: { providerPath: mode.availability.providerPath },
-        fallbackPolicy: mode.availability.fallbackUsed ? 'allow-fallback' : 'strict',
+        providerContext: submission.payload.providerContext,
+        fallbackPolicy: submission.payload.fallbackPolicy,
       })
     } catch (submitError) {
       setError(errMsg(submitError))

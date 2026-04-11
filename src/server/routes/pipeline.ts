@@ -2,6 +2,10 @@ import { Hono } from 'hono'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import {
+  buildDiscoveryModeExecutionContext,
+  evaluateDiscoveryModeAvailability,
+} from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
@@ -19,6 +23,14 @@ import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { createPipelineSSEStream } from '@/server/sse'
 import type { HonoEnv } from '@/server/types'
+
+const EMPTY_DISCOVERY_SNAPSHOT = {
+  hasListenBrainz: false,
+  hasSpotify: false,
+  hasLastfm: false,
+  hasDiscogs: false,
+  hasLibrarySync: false,
+}
 
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -106,13 +118,21 @@ export function pipelineRoutes(deps: AppDependencies) {
 
     try {
       const body = await c.req.json()
-      const request: DiscoveryModeRequest = normalizeDiscoveryModeRequest(
-        userId,
-        body,
-        deps.discoveryModeRegistry,
-      )
+      const request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+      const snapshot = await (deps.getDiscoveryConnectionSnapshot?.(userId) ??
+        Promise.resolve(EMPTY_DISCOVERY_SNAPSHOT))
+      const availability = evaluateDiscoveryModeAvailability(request.modeId, snapshot)
+      if (!availability.enabled) {
+        return c.json({ error: availability.reason ?? 'This mode is unavailable.' }, 400)
+      }
+      const executionContext = buildDiscoveryModeExecutionContext(availability)
+      const executableRequest: DiscoveryModeRequest = {
+        ...request,
+        providerContext: executionContext.providerContext,
+        fallbackPolicy: executionContext.fallbackPolicy,
+      }
 
-      deps.runDiscoveryMode(request).catch((err: unknown) => {
+      deps.runDiscoveryMode(executableRequest).catch((err: unknown) => {
         console.error('Discovery mode run failed:', err)
       })
 
