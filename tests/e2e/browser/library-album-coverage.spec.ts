@@ -83,6 +83,8 @@ test.describe('library album coverage', () => {
       .locator('[role="button"]')
       .filter({ hasText: 'Radiohead' })
       .first()
+    await expect(recommendationCard).toBeVisible()
+    await recommendationCard.scrollIntoViewIfNeeded()
     const coverageButton = recommendationCard.getByRole('button', {
       name: /you own .*studio albums/i,
     })
