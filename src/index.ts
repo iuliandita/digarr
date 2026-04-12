@@ -13,6 +13,7 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
+import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
@@ -53,6 +54,7 @@ import { createSpotifySearchSource } from './core/search/sources/spotify'
 import { setSessionStore } from './core/sessions'
 import { resolveSpotifyToken } from './core/spotify-auth'
 import { createCsvImportAdapter } from './core/subscriptions/adapters/csv-import'
+import { createDeezerAdapter } from './core/subscriptions/adapters/deezer'
 import { createGenreAdapter } from './core/subscriptions/adapters/genre'
 import { createLastfmChartsAdapter } from './core/subscriptions/adapters/lastfm-charts'
 import { createLastfmTagAdapter } from './core/subscriptions/adapters/lastfm-tag'
@@ -644,6 +646,15 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
         adapterRegistry.register(createSpotifyLikedSongsAdapter({ getToken }))
         adapterRegistry.register(createSpotifyPlaylistAdapter({ getToken }))
         adapterRegistry.register(createSpotifyChartsAdapter({ getToken }))
+      }
+    }
+
+    // Deezer adapter -- only if the user has a stored OAuth token
+    if (userId !== null && userId !== undefined) {
+      const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
+      if (deezerOAuthRow && !deezerOAuthRow.accessToken.startsWith('pending:')) {
+        const getToken = () => resolveDeezerToken(db, userId)
+        adapterRegistry.register(createDeezerAdapter({ getToken }))
       }
     }
 
