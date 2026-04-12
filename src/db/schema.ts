@@ -563,3 +563,10 @@ export const librarySyncState = pgTable(
     naturalKey: uniqueIndex('library_sync_state_natural_key_idx').on(table.userId, table.source),
   }),
 )
+
+export const recordingArtistCache = pgTable('recording_artist_cache', {
+  recordingMbid: uuid('recording_mbid').primaryKey(),
+  artistMbid: uuid('artist_mbid').notNull(),
+  artistName: text('artist_name').notNull(),
+  cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow().notNull(),
+})

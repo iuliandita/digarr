@@ -148,6 +148,13 @@
       "when": 1775905644292,
       "tag": "0020_multilingual_locale",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1775993860990,
+      "tag": "0021_lumpy_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }
