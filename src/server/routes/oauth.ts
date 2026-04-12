@@ -224,6 +224,8 @@ export function oauthRoutes(deps: AppDependencies) {
           output: 'json',
         })
 
+        // Deezer's token endpoint only accepts GET with query params (including secret).
+        // This is their documented OAuth flow, not a mistake.
         const deezerController = new AbortController()
         const deezerTimer = setTimeout(() => deezerController.abort(), 10_000)
         let deezerTokenRes: Response

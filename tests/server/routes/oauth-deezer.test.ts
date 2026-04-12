@@ -190,6 +190,16 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     expect(res.headers.get('Location')).toContain('oauth_error=no_pending_auth')
   })
 
+  it('redirects with state_mismatch when state does not match pending token', async () => {
+    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken('real-state') as never)
+    const app = createApp(makeDeps())
+    const res = await app.request(
+      '/api/auth/oauth/deezer/callback?code=auth-code&state=wrong-state',
+    )
+    expect(res.status).toBe(302)
+    expect(res.headers.get('Location')).toContain('oauth_error=state_mismatch')
+  })
+
   it('redirects with oauth_success=deezer on successful JSON token exchange', async () => {
     const state = 'test-state-uuid'
     vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
