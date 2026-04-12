@@ -19,10 +19,12 @@ type MockChain = {
 
 function makeDb(opts: {
   insertedRow?: Record<string, unknown>
+  insertedRows?: Array<Record<string, unknown>>
   selectedRows?: Array<Record<string, unknown>>
   updatedRows?: Array<Record<string, unknown>>
 } = {}) {
   const insertedRow = opts.insertedRow ?? { id: 1 }
+  const insertedRows = opts.insertedRows ?? [insertedRow]
   const selectedRows = opts.selectedRows ?? []
   const updatedRows = opts.updatedRows ?? [{ id: 1 }]
 
@@ -32,7 +34,7 @@ function makeDb(opts: {
 
   const updateWhere = vi.fn().mockReturnValue(undefined)
   const updateSet = vi.fn().mockReturnValue({ where: updateWhere })
-  const insertReturning = vi.fn().mockResolvedValue([insertedRow])
+  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
   const insertValues = vi.fn().mockReturnValue({ returning: insertReturning })
 
   const chain: MockChain = {
@@ -97,6 +99,22 @@ describe('slskd job queries', () => {
     expect(db._mocks.insertReturning).toHaveBeenCalledOnce()
   })
 
+  it('createSlskdJob throws when no row is returned', async () => {
+    const db = makeDb({ insertedRows: [] })
+
+    await expect(
+      createSlskdJob(db as unknown as Database, {
+        userId: 1,
+        targetId: 2,
+        sourceType: 'recommendation',
+        workKey: 'artist:mbid-1',
+        artistMbid: '11111111-1111-1111-1111-111111111111',
+        artistName: 'Example Artist',
+        releaseTitle: 'Example Release',
+      }),
+    ).rejects.toThrow('createSlskdJob: no row returned')
+  })
+
   it('findActiveSlskdJobByWorkKey returns the newest active row', async () => {
     const row = { id: 9, workKey: 'artist:mbid-1', state: 'queued' }
     const db = makeDb({ selectedRows: [row] })
@@ -135,13 +153,15 @@ describe('slskd job queries', () => {
     })
 
     expect(db._mocks.update).toHaveBeenCalledOnce()
-    expect(db._mocks.updateSet).toHaveBeenCalledWith(
+    const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
+    expect(setArg).toEqual(
       expect.objectContaining({
         state: 'queued',
         slskdSearchId: 'search-1',
         attempts: 2,
       }),
     )
+    expect(setArg.updatedAt).toBeInstanceOf(Date)
     expect(db._mocks.updateWhere).toHaveBeenCalledOnce()
   })
 })
