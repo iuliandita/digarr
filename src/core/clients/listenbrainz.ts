@@ -66,6 +66,20 @@ type LbRadioRecording = {
 
 type LbRadioResponse = Record<string, LbRadioRecording[]>
 
+type LbSimilarUser = {
+  user_name: string
+  similarity: number
+}
+
+type LbSimilarUsersResponse = {
+  payload: LbSimilarUser[]
+}
+
+export type SimilarUser = {
+  username: string
+  similarity: number
+}
+
 function extractRadioArtists(res: LbRadioResponse, excludeMbid?: string): RadioArtist[] {
   const seen = new Set<string>()
   const artists: RadioArtist[] = []
@@ -180,6 +194,29 @@ export function createListenBrainzClient(username: string, token: string) {
     return extractRadioArtists(res)
   }
 
+  async function getSimilarUsers(): Promise<SimilarUser[]> {
+    const res = await http.get<LbSimilarUsersResponse>(`/1/user/${username}/similar-users`)
+    return (res.payload ?? []).map((u) => ({
+      username: u.user_name,
+      similarity: u.similarity,
+    }))
+  }
+
+  async function getTopArtistsForUser(
+    targetUsername: string,
+    range: ListenBrainzRange,
+  ): Promise<TopArtist[]> {
+    const res = await http.get<LbTopArtistsResponse>(
+      `/1/stats/user/${targetUsername}/artists?range=${range}`,
+    )
+    return res.payload.artists.map((a) => ({
+      name: a.artist_name,
+      mbid: a.artist_mbid || undefined,
+      playCount: a.listen_count,
+      source: 'listenbrainz' as const,
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const count = await getListenCount()
@@ -201,6 +238,8 @@ export function createListenBrainzClient(username: string, token: string) {
     getArtistRadio,
     getTagRadio,
     getUserRadio,
+    getSimilarUsers,
+    getTopArtistsForUser,
     testConnection,
   }
 }

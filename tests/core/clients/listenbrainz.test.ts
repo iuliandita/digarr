@@ -397,6 +397,53 @@ describe('createListenBrainzClient', () => {
     })
   })
 
+  describe('getSimilarUsers()', () => {
+    it('returns similar users ranked by similarity', async () => {
+      mockGet.mockResolvedValueOnce({
+        payload: [
+          { user_name: 'alice', similarity: 0.85 },
+          { user_name: 'bob', similarity: 0.72 },
+        ],
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getSimilarUsers()
+
+      expect(result).toEqual([
+        { username: 'alice', similarity: 0.85 },
+        { username: 'bob', similarity: 0.72 },
+      ])
+      expect(mockGet).toHaveBeenCalledWith(`/1/user/${TEST_USERNAME}/similar-users`)
+    })
+
+    it('returns empty array when no similar users found', async () => {
+      mockGet.mockResolvedValueOnce({ payload: [] })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getSimilarUsers()
+
+      expect(result).toEqual([])
+    })
+  })
+
+  describe('getTopArtistsForUser(targetUsername, range)', () => {
+    it('fetches top artists for an arbitrary user', async () => {
+      mockGet.mockResolvedValueOnce({
+        payload: {
+          artists: [{ artist_name: 'Radiohead', artist_mbid: 'mbid-1', listen_count: 500 }],
+        },
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getTopArtistsForUser('otheruser', 'month')
+
+      expect(result).toEqual([
+        { name: 'Radiohead', mbid: 'mbid-1', playCount: 500, source: 'listenbrainz' },
+      ])
+      expect(mockGet).toHaveBeenCalledWith('/1/stats/user/otheruser/artists?range=month')
+    })
+  })
+
   describe('testConnection()', () => {
     it('returns success:true when getListenCount() resolves', async () => {
       mockGet.mockResolvedValueOnce({ payload: { count: 999 } })
