@@ -56,7 +56,7 @@ async function executeSimilarUsers(userId: number, limit: number) {
       candidates.push({
         candidateType: 'artist',
         name: artist.name,
-        provenanceProvider: 'listenbrainz:similar-users',
+        provenanceProvider: 'listenbrainz:similar-users-quick',
         confidenceHint: artist.score,
         fallbackUsed: false,
       })
@@ -93,7 +93,7 @@ export function createListenBrainzMode(): DiscoveryModeDefinition {
         required: true,
         options: [
           { value: 'weekly-jams', label: 'Weekly Jams' },
-          { value: 'similar-users', label: 'Similar Users' },
+          { value: 'similar-users-quick', label: 'Similar Users (Quick)' },
         ],
       },
       { key: 'limit', label: 'Limit', type: 'number', required: true },
@@ -107,10 +107,12 @@ export function createListenBrainzMode(): DiscoveryModeDefinition {
       }
 
       const feedType =
-        request.normalizedSettings.feedType === 'similar-users' ? 'similar-users' : 'weekly-jams'
+        request.normalizedSettings.feedType === 'similar-users-quick'
+          ? 'similar-users-quick'
+          : 'weekly-jams'
       const limit = getNormalizedLimit(request, 25)
 
-      if (feedType === 'similar-users') {
+      if (feedType === 'similar-users-quick') {
         return executeSimilarUsers(request.userId, limit)
       }
 
@@ -271,5 +273,53 @@ export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
     },
   }
 
-  return [artistRadio, tagRadio, userRadio]
+  const similarUsersDeep: DiscoveryModeDefinition = {
+    id: 'similar-users-deep',
+    label: 'Similar Users (Deep)',
+    description: 'Discover from top artists of ListenBrainz users with similar taste',
+    availability: 'strict',
+    easyFields: [],
+    advancedFields: [
+      {
+        key: 'maxUsers',
+        label: 'Users to sample',
+        type: 'number',
+        helpText: 'How many similar users to pull top artists from (1-10)',
+      },
+      { key: 'limit', label: 'Limit', type: 'number' },
+    ],
+    executor: async (request) => {
+      const { client } = await getConnectedClient(request.userId)
+      const maxUsers = Math.min(Math.max(1, Number(request.normalizedSettings.maxUsers) || 3), 10)
+      const limit = getNormalizedLimit(request, 25)
+
+      const similarUsers = await client.getSimilarUsers()
+      const topUsers = similarUsers.slice(0, maxUsers)
+
+      const seen = new Set<string>()
+      const candidates: RawDiscoveryExecutionResult['candidates'] = []
+
+      for (const simUser of topUsers) {
+        const topArtists = await client.getTopArtistsForUser(simUser.username, 'month')
+        for (const artist of topArtists) {
+          const normalized = normalizeDiscoveryName(artist.name)
+          if (!normalized || seen.has(normalized)) continue
+          seen.add(normalized)
+          candidates.push({
+            candidateType: 'artist',
+            name: artist.name,
+            mbid: artist.mbid,
+            provenanceProvider: 'listenbrainz:similar-users-deep',
+            confidenceHint: simUser.similarity * 0.8,
+            fallbackUsed: false,
+          })
+          if (candidates.length >= limit) return { candidates }
+        }
+      }
+
+      return { candidates }
+    },
+  }
+
+  return [artistRadio, tagRadio, userRadio, similarUsersDeep]
 }

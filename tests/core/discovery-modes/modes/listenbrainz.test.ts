@@ -105,8 +105,8 @@ describe('createListenBrainzMode', () => {
       triggerType: 'manual',
       settingsMode: 'advanced',
       userId: 7,
-      rawUserSettings: { feedType: 'similar-users', limit: 2 },
-      normalizedSettings: { feedType: 'similar-users', limit: 2 },
+      rawUserSettings: { feedType: 'similar-users-quick', limit: 2 },
+      normalizedSettings: { feedType: 'similar-users-quick', limit: 2 },
       providerContext: { providerPath: ['listenbrainz'] },
       fallbackPolicy: 'strict',
     }
@@ -118,13 +118,13 @@ describe('createListenBrainzMode', () => {
       expect.objectContaining({
         candidateType: 'artist',
         name: 'Casino Versus Japan',
-        provenanceProvider: 'listenbrainz:similar-users',
+        provenanceProvider: 'listenbrainz:similar-users-quick',
         fallbackUsed: false,
       }),
       expect.objectContaining({
         candidateType: 'artist',
         name: 'Plaid',
-        provenanceProvider: 'listenbrainz:similar-users',
+        provenanceProvider: 'listenbrainz:similar-users-quick',
         fallbackUsed: false,
       }),
     ])

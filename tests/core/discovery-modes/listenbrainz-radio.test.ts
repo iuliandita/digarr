@@ -137,3 +137,62 @@ describe('lb-user-radio mode', () => {
     expect(mockClient.getUserRadio).toHaveBeenCalledWith('friend', 'easy')
   })
 })
+
+describe('similar-users-deep mode', () => {
+  it('fetches similar users then their top artists', async () => {
+    mockClient.getSimilarUsers.mockResolvedValueOnce([
+      { username: 'alice', similarity: 0.9 },
+      { username: 'bob', similarity: 0.7 },
+    ])
+    mockClient.getTopArtistsForUser
+      .mockResolvedValueOnce([
+        { name: 'Alice Pick', mbid: 'mbid-a1', playCount: 100, source: 'listenbrainz' },
+        { name: 'Shared Pick', mbid: 'mbid-s1', playCount: 80, source: 'listenbrainz' },
+      ])
+      .mockResolvedValueOnce([
+        { name: 'Bob Pick', mbid: 'mbid-b1', playCount: 90, source: 'listenbrainz' },
+        { name: 'Shared Pick', mbid: 'mbid-s1', playCount: 70, source: 'listenbrainz' },
+      ])
+
+    const modes = createListenBrainzRadioModes()
+    const deep = modes.find((m) => m.id === 'similar-users-deep')!
+
+    const result = await deep.executor({
+      userId: 1,
+      normalizedSettings: { maxUsers: 2 },
+      settingsMode: 'advanced',
+    } as any)
+
+    expect(mockClient.getSimilarUsers).toHaveBeenCalled()
+    expect(mockClient.getTopArtistsForUser).toHaveBeenCalledTimes(2)
+    expect(mockClient.getTopArtistsForUser).toHaveBeenCalledWith('alice', 'month')
+    expect(mockClient.getTopArtistsForUser).toHaveBeenCalledWith('bob', 'month')
+
+    const names = result.candidates.map((c) => c.name)
+    expect(names).toContain('Alice Pick')
+    expect(names).toContain('Bob Pick')
+    expect(names).toContain('Shared Pick')
+    // Shared Pick should appear only once (deduplicated)
+    expect(names.filter((n) => n === 'Shared Pick')).toHaveLength(1)
+  })
+
+  it('caps at maxUsers parameter', async () => {
+    mockClient.getSimilarUsers.mockResolvedValueOnce([
+      { username: 'alice', similarity: 0.9 },
+      { username: 'bob', similarity: 0.7 },
+      { username: 'carol', similarity: 0.5 },
+    ])
+    mockClient.getTopArtistsForUser.mockResolvedValue([])
+
+    const modes = createListenBrainzRadioModes()
+    const deep = modes.find((m) => m.id === 'similar-users-deep')!
+
+    await deep.executor({
+      userId: 1,
+      normalizedSettings: { maxUsers: 2 },
+      settingsMode: 'advanced',
+    } as any)
+
+    expect(mockClient.getTopArtistsForUser).toHaveBeenCalledTimes(2)
+  })
+})
