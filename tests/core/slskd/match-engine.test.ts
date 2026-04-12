@@ -1,0 +1,52 @@
+// @vitest-environment node
+import { describe, expect, it } from 'vitest'
+import type { SlskdSearchResult } from '@/core/clients/slskd'
+import { scoreSlskdCandidate, selectBestSlskdCandidate } from '@/core/slskd/match-engine'
+
+const release = {
+  artistName: 'Radiohead',
+  title: 'OK Computer',
+  releaseType: 'album' as const,
+  qualityPreference: 'flac_preferred' as const,
+}
+
+describe('scoreSlskdCandidate()', () => {
+  it('gives high confidence to an exact album match in preferred quality', () => {
+    const candidate: SlskdSearchResult = {
+      id: 'result-1',
+      filename: 'Radiohead - OK Computer.flac',
+      username: 'listener',
+      size: 123,
+      extension: 'flac',
+    }
+
+    const scored = scoreSlskdCandidate(release, candidate)
+
+    expect(scored.confidence).toBeGreaterThan(0.9)
+  })
+})
+
+describe('selectBestSlskdCandidate()', () => {
+  it('returns needs_review for ambiguous weak matches', () => {
+    const candidates: SlskdSearchResult[] = [
+      {
+        id: 'result-1',
+        filename: 'Radiohead - The Best Of.mp3',
+        username: 'listener1',
+        size: 123,
+        extension: 'mp3',
+      },
+      {
+        id: 'result-2',
+        filename: 'Radiohead - A Collection.mp3',
+        username: 'listener2',
+        size: 123,
+        extension: 'mp3',
+      },
+    ]
+
+    const selected = selectBestSlskdCandidate(release, candidates)
+
+    expect(selected.status).toBe('needs_review')
+  })
+})
