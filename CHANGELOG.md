@@ -2,6 +2,14 @@
 
 All notable user-facing changes are documented here.
 
+## Unreleased
+
+### Added
+
+- **Tag Radio discovery mode** (`lb-tag-radio`): discover artists by genre/style tags via ListenBrainz radio. Supports multiple tags with per-tag weights, raw LB syntax, and popularity filtering.
+- **Tag Radio subscription feed**: recurring tag-based artist discovery via the ListenBrainz adapter.
+- **Recording-artist cache**: persistent cache for MusicBrainz recording-to-artist lookups, improving performance on repeat tag radio runs.
+
 ## v0.23.0 - 2026-04-12
 
 ### Added
