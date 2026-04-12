@@ -4,6 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { I18nProvider } from '@/web/lib/i18n'
+
+vi.mock('@/web/lib/locale-storage', () => ({
+  detectBrowserLocale: vi.fn(() => 'en'),
+  getStoredLocale: vi.fn(() => 'en'),
+  setStoredLocale: vi.fn(),
+}))
 
 vi.mock('@/web/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/web/lib/api')>()
@@ -24,7 +31,11 @@ function renderWithQuery(ui: ReactElement) {
     defaultOptions: { queries: { retry: false } },
   })
 
-  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>)
+  return render(
+    <I18nProvider>
+      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+    </I18nProvider>,
+  )
 }
 
 describe('LibraryAlbumCoverageBadge', () => {

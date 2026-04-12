@@ -157,7 +157,9 @@ export function SearchPage() {
 
       {disabledSources.length > 0 && (
         <p className="text-xs text-muted">
-          {disabledSources.map((source) => `${source.label}: ${source.reason}`).join(' ')}
+          {disabledSources
+            .map((source) => `${source.label}: ${t(source.reason as Parameters<typeof t>[0])}`)
+            .join(' ')}
         </p>
       )}
 

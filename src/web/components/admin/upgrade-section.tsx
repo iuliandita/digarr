@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getPendingMigrations } from '@/web/lib/api'
+import { useI18n } from '@/web/lib/i18n'
 
 export function UpgradeSection() {
+  const { t } = useI18n()
   const [expanded, setExpanded] = useState(false)
 
   const { data } = useQuery({
@@ -15,15 +17,15 @@ export function UpgradeSection() {
   return (
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted">Current version</span>
+        <span className="text-sm text-muted">{t('admin.currentVersion')}</span>
         <span className="text-sm font-mono text-text">{data.currentVersion ?? 'none'}</span>
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted">Pending migrations</span>
+        <span className="text-sm text-muted">{t('admin.pendingMigrations')}</span>
         <span className="text-sm text-text">
           {data.pendingCount === 0 ? (
-            <span className="text-green-500">Up to date</span>
+            <span className="text-green-500">{t('admin.upToDate')}</span>
           ) : (
             <button
               type="button"
@@ -46,7 +48,7 @@ export function UpgradeSection() {
 
       {data.lastAutoBackup && (
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted">Last auto-backup</span>
+          <span className="text-sm text-muted">{t('admin.lastAutoBackup')}</span>
           <span className="text-xs text-muted">
             {new Date(data.lastAutoBackup.createdAt).toLocaleString()}
           </span>

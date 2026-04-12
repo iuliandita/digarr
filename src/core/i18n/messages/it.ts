@@ -947,4 +947,114 @@ export const it = {
   'settings.deezerSelectPlaylists': 'Seleziona le playlist da cui importare gli artisti',
   'settings.importFavorites': 'Importa preferiti',
   'settings.importFollowed': 'Importa seguiti',
+  'settings.title': 'Impostazioni',
+
+  // Service status labels
+  'service.connected': 'Connesso',
+  'service.notConfigured': 'Non configurato',
+  'service.error': 'Errore',
+  'service.testing': 'Verifica...',
+
+  // Search page - disabled source reasons
+  'search.spotifyNotConnected': 'Collega Spotify nelle Impostazioni per abilitare la ricerca.',
+  'search.tidalNotConfigured': 'La ricerca TIDAL non e ancora configurata.',
+
+  // Mood discover bar
+  'discover.moodPlaceholder': 'jazz per giornate piovose, pop anni 90, dark ambient...',
+  'discover.discoverButton': 'Scopri',
+  'discover.discovering': 'Scoperta in corso...',
+  'discover.moodResults': 'Risultati mood',
+  'discover.moodFailed': 'Scoperta mood fallita',
+  'discover.inLibrary': 'In libreria',
+  'discover.pendingReview': 'In revisione',
+  'discover.addedToQueue': 'Aggiunto',
+  'discover.addDiscover': '+ Scopri',
+
+  // Genre card
+  'genres.artistCountSingular': '{0} artista',
+  'genres.artistCountPlural': '{0} artisti',
+
+  // Job history - stats and type labels
+  'jobHistory.tracks': 'tracce',
+  'jobHistory.discovered': 'scoperti',
+  'jobHistory.stored': 'salvati',
+  'jobHistory.new': 'nuovi',
+  'jobHistory.pipelineScan': 'Scansione pipeline',
+  'jobHistory.quickDiscoverType': 'Scoperta rapida',
+  'jobHistory.subscriptionType': 'Abbonamento',
+  'jobHistory.targetType': 'Destinazione',
+  'jobHistory.playlistType': 'Playlist',
+  'jobHistory.scheduledScan': 'Scansione programmata',
+  'jobHistory.manualScan': 'Scansione manuale',
+  'jobHistory.subscriptionRun': 'Esecuzione abbonamento',
+  'jobHistory.targetOperation': 'Operazione destinazione',
+  'jobHistory.playlistGeneration': 'Generazione playlist',
+  'jobHistory.stuckLabel': 'bloccato',
+  'jobHistory.errorLabel': 'Errore:',
+  'jobHistory.sourceResultsLabel': 'Risultati sorgente:',
+  'jobHistory.metadataLabel': 'Metadati:',
+  'jobHistory.artists': 'artisti',
+
+  // Library album coverage
+  'recommendation.ownStudioAlbums': 'Possiedi {0}/{1} album in studio',
+  'recommendation.owned': 'Posseduti',
+  'recommendation.missingAlbums': 'Mancanti',
+
+  // Administration
+  'admin.backupRestore': 'Backup e ripristino',
+  'admin.dataHygiene': 'Igiene dati',
+  'admin.upgradeInfo': 'Info aggiornamento',
+  'admin.downloadBackup': 'Scarica backup',
+  'admin.exporting': 'Esportazione...',
+  'admin.includeCaches': 'Includi cache',
+  'admin.restoreFromBackup': 'Ripristina da backup',
+  'admin.lastAutoBackup': 'Ultimo backup automatico:',
+  'admin.backupDownloaded': 'Backup scaricato',
+  'admin.backupFailed': 'Creazione backup fallita',
+  'admin.restoreFailed': 'Ripristino backup fallito',
+  'admin.encryptionMismatch': 'Chiave di crittografia diversa',
+  'admin.restoreAnyway': 'Ripristina comunque',
+  'admin.restoring': 'Ripristino...',
+  'admin.run': 'Esegui',
+  'admin.running': 'In esecuzione...',
+  'admin.clearImageFailures': 'Pulisci errori immagini',
+  'admin.clearImageFailuresDesc':
+    'Reimposta la cache delle immagini fallite per ritentare alla prossima scansione.',
+  'admin.rebuildGenreCache': 'Ricostruisci cache generi',
+  'admin.rebuildGenreCacheDesc': 'Rigenera i generi dai tag e metadati degli artisti.',
+  'admin.rescoreRecommendations': 'Ricalcola punteggi',
+  'admin.rescoreRecommendationsDesc':
+    'Ricalcola i punteggi delle raccomandazioni in sospeso con i pesi attuali.',
+  'admin.dedupeRepair': 'Riparazione duplicati',
+  'admin.dedupeRepairDesc': 'Trova e rimuovi raccomandazioni duplicate per lo stesso artista.',
+  'admin.aiReasoningAudit': 'Audit ragionamento IA',
+  'admin.aiReasoningAuditDesc': 'Rileva incongruenze artista/descrizione da allucinazioni IA.',
+  'admin.purgeExpiredSessions': 'Elimina sessioni scadute',
+  'admin.purgeExpiredSessionsDesc': 'Elimina le sessioni di accesso scadute.',
+  'admin.currentVersion': 'Versione attuale',
+  'admin.pendingMigrations': 'Migrazioni in sospeso',
+  'admin.upToDate': 'Aggiornato',
+  'admin.pendingCount': '{0} in sospeso',
+
+  // Integration capabilities - cell values
+  'integration.radioArtistTagUser': 'Radio (Artista, Tag, Utente), Utenti simili',
+  'integration.lbSubscriptions':
+    'Jams settimanali, Nuove uscite, Radio artista, Radio tag, Utenti simili',
+  'integration.spotifySubscriptions': 'Brani preferiti, Classifiche, Playlist',
+  'integration.deezerSubscriptions': 'Preferiti, Seguiti, Flow',
+  'integration.deezerImport': 'Preferiti, Seguiti, Playlist',
+  'integration.lastfmSubscriptions': 'Classifiche, Radio tag',
+  'integration.artistsAlbums': 'Artisti, Album',
+  'integration.yes': 'Si',
+  'integration.moodDiscover': 'Scoperta mood',
+  'integration.playlist': 'Playlist',
+  'integration.aiProvider': 'Fornitore IA',
+
+  // Source effectiveness display names
+  'analytics.source.similarity': 'Similarita',
+  'analytics.source.aiConfidence': 'Confidenza IA',
+  'analytics.source.feedbackBoost': 'Boost feedback',
+  'analytics.source.consensus': 'Consenso',
+  'analytics.source.genreOverlap': 'Sovrapposizione generi',
+  'analytics.source.popularity': 'Popolarita',
 } satisfies MessageCatalog

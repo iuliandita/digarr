@@ -952,4 +952,113 @@ export const en = {
   'settings.monthly': 'Monthly',
   'settings.embyUserIdHelp':
     'Found under Emby Dashboard -> Users -> (select user). The URL contains the user ID.',
+  'settings.title': 'Settings',
+
+  // Service status labels
+  'service.connected': 'Connected',
+  'service.notConfigured': 'Not configured',
+  'service.error': 'Error',
+  'service.testing': 'Testing...',
+
+  // Search page - disabled source reasons
+  'search.spotifyNotConnected': 'Connect Spotify in Settings to enable search.',
+  'search.tidalNotConfigured': 'TIDAL search is not configured yet.',
+
+  // Mood discover bar
+  'discover.moodPlaceholder': 'rainy day jazz, upbeat 90s pop, dark ambient...',
+  'discover.discoverButton': 'Discover',
+  'discover.discovering': 'Discovering...',
+  'discover.moodResults': 'Mood results',
+  'discover.moodFailed': 'Mood discovery failed',
+  'discover.inLibrary': 'In library',
+  'discover.pendingReview': 'Pending review',
+  'discover.addedToQueue': 'Added',
+  'discover.addDiscover': '+ Discover',
+
+  // Genre card
+  'genres.artistCountSingular': '{0} artist',
+  'genres.artistCountPlural': '{0} artists',
+
+  // Job history - stats and type labels
+  'jobHistory.tracks': 'tracks',
+  'jobHistory.discovered': 'discovered',
+  'jobHistory.stored': 'stored',
+  'jobHistory.new': 'new',
+  'jobHistory.pipelineScan': 'Pipeline scan',
+  'jobHistory.quickDiscoverType': 'Quick discover',
+  'jobHistory.subscriptionType': 'Subscription',
+  'jobHistory.targetType': 'Target',
+  'jobHistory.playlistType': 'Playlist',
+  'jobHistory.scheduledScan': 'Scheduled scan',
+  'jobHistory.manualScan': 'Manual scan',
+  'jobHistory.subscriptionRun': 'Subscription run',
+  'jobHistory.targetOperation': 'Target operation',
+  'jobHistory.playlistGeneration': 'Playlist generation',
+  'jobHistory.stuckLabel': 'stuck',
+  'jobHistory.errorLabel': 'Error:',
+  'jobHistory.sourceResultsLabel': 'Source Results:',
+  'jobHistory.metadataLabel': 'Metadata:',
+  'jobHistory.artists': 'artists',
+
+  // Library album coverage
+  'recommendation.ownStudioAlbums': 'You own {0}/{1} studio albums',
+  'recommendation.owned': 'Owned',
+  'recommendation.missingAlbums': 'Missing',
+
+  // Administration
+  'admin.backupRestore': 'Backup & Restore',
+  'admin.dataHygiene': 'Data Hygiene',
+  'admin.upgradeInfo': 'Upgrade Info',
+  'admin.downloadBackup': 'Download Backup',
+  'admin.exporting': 'Exporting...',
+  'admin.includeCaches': 'Include caches',
+  'admin.restoreFromBackup': 'Restore from Backup',
+  'admin.lastAutoBackup': 'Last auto-backup:',
+  'admin.backupDownloaded': 'Backup downloaded',
+  'admin.backupFailed': 'Failed to create backup',
+  'admin.restoreFailed': 'Failed to restore backup',
+  'admin.encryptionMismatch': 'Encryption key mismatch',
+  'admin.restoreAnyway': 'Restore Anyway',
+  'admin.restoring': 'Restoring...',
+  'admin.run': 'Run',
+  'admin.running': 'Running...',
+  'admin.clearImageFailures': 'Clear Image Failures',
+  'admin.clearImageFailuresDesc': 'Reset failed image cache so the next scan retries.',
+  'admin.rebuildGenreCache': 'Rebuild Genre Cache',
+  'admin.rebuildGenreCacheDesc': 'Regenerate genres from artist tags and metadata.',
+  'admin.rescoreRecommendations': 'Re-score Recommendations',
+  'admin.rescoreRecommendationsDesc':
+    'Recalculate scores for pending recommendations with current weights.',
+  'admin.dedupeRepair': 'Dedupe Repair',
+  'admin.dedupeRepairDesc': 'Find and remove duplicate recommendations for the same artist.',
+  'admin.aiReasoningAudit': 'AI Reasoning Audit',
+  'admin.aiReasoningAuditDesc': 'Detect artist/description mismatches from AI hallucinations.',
+  'admin.purgeExpiredSessions': 'Purge Expired Sessions',
+  'admin.purgeExpiredSessionsDesc': 'Delete expired login sessions.',
+  'admin.currentVersion': 'Current version',
+  'admin.pendingMigrations': 'Pending migrations',
+  'admin.upToDate': 'Up to date',
+  'admin.pendingCount': '{0} pending',
+
+  // Integration capabilities - cell values
+  'integration.radioArtistTagUser': 'Radio (Artist, Tag, User), Similar Users',
+  'integration.lbSubscriptions':
+    'Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users',
+  'integration.spotifySubscriptions': 'Liked Songs, Charts, Playlist',
+  'integration.deezerSubscriptions': 'Favorites, Followed, Flow',
+  'integration.deezerImport': 'Favorites, Followed, Playlists',
+  'integration.lastfmSubscriptions': 'Charts, Tag Radio',
+  'integration.artistsAlbums': 'Artists, Albums',
+  'integration.yes': 'Yes',
+  'integration.moodDiscover': 'Mood Discover',
+  'integration.playlist': 'Playlist',
+  'integration.aiProvider': 'AI Provider',
+
+  // Source effectiveness display names
+  'analytics.source.similarity': 'Similarity',
+  'analytics.source.aiConfidence': 'AI Confidence',
+  'analytics.source.feedbackBoost': 'Feedback Boost',
+  'analytics.source.consensus': 'Consensus',
+  'analytics.source.genreOverlap': 'Genre Overlap',
+  'analytics.source.popularity': 'Popularity',
 } as const

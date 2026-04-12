@@ -16,7 +16,7 @@ describe('search source catalog', () => {
         label: 'Spotify',
         available: false,
         stability: 'stable',
-        reason: 'Connect Spotify in Settings to enable search.',
+        reason: 'search.spotifyNotConnected',
       },
       { id: 'deezer', label: 'Deezer', available: true, stability: 'stable' },
       { id: 'musicbrainz', label: 'MusicBrainz', available: true, stability: 'stable' },
@@ -25,7 +25,7 @@ describe('search source catalog', () => {
         label: 'TIDAL',
         available: false,
         stability: 'experimental',
-        reason: 'TIDAL search is not configured yet.',
+        reason: 'search.tidalNotConfigured',
       },
       { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' },
     ])

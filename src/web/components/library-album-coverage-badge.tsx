@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { getLibraryAlbumCoverage } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 function formatAlbumLabel(title: string, releaseYear: number | null) {
   return releaseYear ? `${title} (${releaseYear})` : title
 }
 
 export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [isNearViewport, setIsNearViewport] = useState(typeof IntersectionObserver === 'undefined')
@@ -69,14 +71,16 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
           setOpen((current) => !current)
         }}
       >
-        You own {data.ownedCount}/{data.totalCount} studio albums
+        {t('recommendation.ownStudioAlbums')
+          .replace('{0}', String(data.ownedCount))
+          .replace('{1}', String(data.totalCount))}
       </button>
 
       {open && (
         <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-lg border border-border bg-surface p-3 shadow-lg">
           <div className="space-y-3">
             <section>
-              <p className="text-xs font-medium text-text">Owned</p>
+              <p className="text-xs font-medium text-text">{t('recommendation.owned')}</p>
               <ul className="mt-1 space-y-1 text-xs text-muted">
                 {data.owned.length > 0 ? (
                   data.owned.map((album) => (
@@ -85,13 +89,13 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
                     </li>
                   ))
                 ) : (
-                  <li>None</li>
+                  <li>{t('common.none')}</li>
                 )}
               </ul>
             </section>
 
             <section>
-              <p className="text-xs font-medium text-text">Missing</p>
+              <p className="text-xs font-medium text-text">{t('recommendation.missingAlbums')}</p>
               <ul className="mt-1 space-y-1 text-xs text-muted">
                 {data.missing.length > 0 ? (
                   data.missing.map((album) => (
@@ -100,7 +104,7 @@ export function LibraryAlbumCoverageBadge({ artistMbid }: { artistMbid: string }
                     </li>
                   ))
                 ) : (
-                  <li>None</li>
+                  <li>{t('common.none')}</li>
                 )}
               </ul>
             </section>

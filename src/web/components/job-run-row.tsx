@@ -1,45 +1,53 @@
 import { useState } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import type { JobRun } from '../lib/api'
 import { formatDuration, formatRelativeTime } from '../lib/format-time'
+import { useI18n } from '../lib/i18n'
 
-const TYPE_LABELS: Record<string, string> = {
-  pipeline: 'Pipeline scan',
-  quick_discover: 'Quick discover',
-  subscription: 'Subscription',
-  target: 'Target',
-  playlist: 'Playlist',
+const TYPE_LABEL_KEYS: Record<string, MessageKey> = {
+  pipeline: 'jobHistory.pipelineScan',
+  quick_discover: 'jobHistory.quickDiscoverType',
+  subscription: 'jobHistory.subscriptionType',
+  target: 'jobHistory.targetType',
+  playlist: 'jobHistory.playlistType',
 }
 
-function jobDescription(job: JobRun): string {
+function jobDescription(job: JobRun, t: (key: MessageKey) => string): string {
   const meta = job.metadata ?? {}
   switch (job.type) {
     case 'pipeline':
-      return meta.trigger === 'scheduled' ? 'Scheduled scan' : 'Manual scan'
+      return meta.trigger === 'scheduled'
+        ? t('jobHistory.scheduledScan')
+        : t('jobHistory.manualScan')
     case 'quick_discover':
-      return meta.seedArtist ? `Seed: ${meta.seedArtist}` : 'Quick discover'
+      return meta.seedArtist ? `Seed: ${meta.seedArtist}` : t('jobHistory.quickDiscoverType')
     case 'subscription':
-      return String(meta.adapterType ?? 'Subscription run')
+      return String(meta.adapterType ?? t('jobHistory.subscriptionRun'))
     case 'target':
-      return meta.artistName ? `${meta.action ?? 'add'} "${meta.artistName}"` : 'Target operation'
+      return meta.artistName
+        ? `${meta.action ?? 'add'} "${meta.artistName}"`
+        : t('jobHistory.targetOperation')
     case 'playlist':
-      return String(meta.playlistName ?? 'Playlist generation')
+      return String(meta.playlistName ?? t('jobHistory.playlistGeneration'))
     default:
       return job.type
   }
 }
 
-function jobStats(job: JobRun): string {
+function jobStats(job: JobRun, t: (key: MessageKey) => string): string {
   const meta = job.metadata ?? {}
   const parts: string[] = []
-  if (meta.artistsDiscovered != null) parts.push(`${meta.artistsDiscovered} discovered`)
-  if (meta.artistsStored != null) parts.push(`${meta.artistsStored} stored`)
-  if (meta.artistsFound != null) parts.push(`${meta.artistsFound} found`)
-  if (meta.artistsNew != null) parts.push(`${meta.artistsNew} new`)
-  if (meta.trackCount != null) parts.push(`${meta.trackCount} tracks`)
+  if (meta.artistsDiscovered != null)
+    parts.push(`${meta.artistsDiscovered} ${t('jobHistory.discovered')}`)
+  if (meta.artistsStored != null) parts.push(`${meta.artistsStored} ${t('jobHistory.stored')}`)
+  if (meta.artistsFound != null) parts.push(`${meta.artistsFound} ${t('common.found')}`)
+  if (meta.artistsNew != null) parts.push(`${meta.artistsNew} ${t('jobHistory.new')}`)
+  if (meta.trackCount != null) parts.push(`${meta.trackCount} ${t('jobHistory.tracks')}`)
   return parts.join(' / ')
 }
 
 export function JobRunRow({ job }: { job: JobRun }) {
+  const { t } = useI18n()
   const [expanded, setExpanded] = useState(false)
 
   const statusColor =
@@ -51,7 +59,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
           ? 'text-amber-500'
           : 'text-blue-500'
 
-  const statsText = jobStats(job)
+  const statsText = jobStats(job, t)
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: nested interactive elements require div wrapper
@@ -75,11 +83,13 @@ export function JobRunRow({ job }: { job: JobRun }) {
                   ? '?'
                   : '~'}
           </span>
-          <span className="text-sm font-medium text-text">{TYPE_LABELS[job.type] ?? job.type}</span>
-          <span className="text-sm text-muted">{jobDescription(job)}</span>
+          <span className="text-sm font-medium text-text">
+            {TYPE_LABEL_KEYS[job.type] ? t(TYPE_LABEL_KEYS[job.type]!) : job.type}
+          </span>
+          <span className="text-sm text-muted">{jobDescription(job, t)}</span>
           {job.status === 'stuck' && (
             <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
-              stuck
+              {t('jobHistory.stuckLabel')}
             </span>
           )}
         </div>
@@ -114,12 +124,12 @@ export function JobRunRow({ job }: { job: JobRun }) {
         <div className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
           {job.error && (
             <div className="rounded bg-red-500/10 p-2 text-red-500">
-              <strong>Error:</strong> {job.error}
+              <strong>{t('jobHistory.errorLabel')}</strong> {job.error}
             </div>
           )}
           {job.sourceResults && (
             <div>
-              <strong className="text-muted">Source Results:</strong>
+              <strong className="text-muted">{t('jobHistory.sourceResultsLabel')}</strong>
               <div className="mt-1 space-y-1">
                 {Object.entries(job.sourceResults).map(([source, result]) => (
                   <div key={source} className="flex justify-between">
@@ -134,7 +144,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
                       }
                     >
                       {result.status}
-                      {result.artists != null && ` (${result.artists} artists)`}
+                      {result.artists != null && ` (${result.artists} ${t('jobHistory.artists')})`}
                       {result.ms != null && ` ${result.ms}ms`}
                       {result.error && ` - ${result.error}`}
                       {result.reason && ` - ${result.reason}`}
@@ -146,7 +156,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
           )}
           {Object.keys(job.metadata).length > 0 && (
             <div>
-              <strong className="text-muted">Metadata:</strong>
+              <strong className="text-muted">{t('jobHistory.metadataLabel')}</strong>
               <pre className="mt-1 overflow-auto rounded bg-surface-alt p-2 text-xs">
                 {JSON.stringify(job.metadata, null, 2)}
               </pre>

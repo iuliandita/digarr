@@ -2443,6 +2443,7 @@ function SettingsSkeleton() {
 }
 
 export function SettingsPage() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') as Tab | null
@@ -2465,7 +2466,7 @@ export function SettingsPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-text mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
         <SettingsSkeleton />
       </div>
     )
@@ -2484,7 +2485,7 @@ export function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-text mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
       <TabBar active={tab} onChange={setTab} isAdmin={isAdmin} />
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}

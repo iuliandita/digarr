@@ -1,4 +1,5 @@
 import type * as React from 'react'
+import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 
@@ -14,11 +15,13 @@ export type ServiceCardProps = {
 }
 
 function StatusIndicator({ status }: { status: ServiceStatus }) {
+  const { t } = useI18n()
+
   if (status === 'testing') {
     return (
       <span className="flex items-center gap-1.5 text-xs text-muted">
         <span className="inline-block h-2 w-2 rounded-full bg-muted animate-pulse" />
-        Testing...
+        {t('service.testing')}
       </span>
     )
   }
@@ -29,10 +32,13 @@ function StatusIndicator({ status }: { status: ServiceStatus }) {
     error: 'bg-reject',
   }
 
-  const label: Record<Exclude<ServiceStatus, 'testing'>, string> = {
-    connected: 'Connected',
-    not_configured: 'Not configured',
-    error: 'Error',
+  const labelKey: Record<
+    Exclude<ServiceStatus, 'testing'>,
+    'service.connected' | 'service.notConfigured' | 'service.error'
+  > = {
+    connected: 'service.connected',
+    not_configured: 'service.notConfigured',
+    error: 'service.error',
   }
 
   const textColor: Record<Exclude<ServiceStatus, 'testing'>, string> = {
@@ -44,7 +50,7 @@ function StatusIndicator({ status }: { status: ServiceStatus }) {
   return (
     <span className={`flex items-center gap-1.5 text-xs ${textColor[status]}`}>
       <span className={`inline-block h-2 w-2 rounded-full ${dot[status]}`} />
-      {label[status]}
+      {t(labelKey[status])}
     </span>
   )
 }

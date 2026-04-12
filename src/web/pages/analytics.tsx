@@ -257,24 +257,36 @@ function SourceScores({
     )
   }
 
+  const SOURCE_LABELS: Record<string, Parameters<typeof t>[0]> = {
+    similarity: 'analytics.source.similarity',
+    aiConfidence: 'analytics.source.aiConfidence',
+    feedbackBoost: 'analytics.source.feedbackBoost',
+    consensus: 'analytics.source.consensus',
+    genreOverlap: 'analytics.source.genreOverlap',
+    popularity: 'analytics.source.popularity',
+  }
+
   return (
     <div className="bg-surface border border-border rounded-lg p-4 space-y-2.5">
-      {sources.map((s) => (
-        <div key={s.source} className="flex items-center gap-3">
-          <span className="w-28 text-sm text-text truncate shrink-0" title={s.source}>
-            {s.source}
-          </span>
-          <div className="flex-1 h-4 bg-bg rounded overflow-hidden">
-            <div
-              className="h-full bg-accent rounded transition-all"
-              style={{ width: `${Math.round(s.approvalRate * 100)}%` }}
-            />
+      {sources.map((s) => {
+        const label = SOURCE_LABELS[s.source] ? t(SOURCE_LABELS[s.source]!) : s.source
+        return (
+          <div key={s.source} className="flex items-center gap-3">
+            <span className="w-28 text-sm text-text truncate shrink-0" title={label}>
+              {label}
+            </span>
+            <div className="flex-1 h-4 bg-bg rounded overflow-hidden">
+              <div
+                className="h-full bg-accent rounded transition-all"
+                style={{ width: `${Math.round(s.approvalRate * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted w-28 text-right shrink-0">
+              {pct(s.approvalRate)} / {t('analytics.avg')} {Math.round(s.avgScore * 100)}
+            </span>
           </div>
-          <span className="text-xs text-muted w-28 text-right shrink-0">
-            {pct(s.approvalRate)} / {t('analytics.avg')} {Math.round(s.avgScore * 100)}
-          </span>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

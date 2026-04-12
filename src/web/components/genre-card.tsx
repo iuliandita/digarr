@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useI18n } from '../lib/i18n'
 import { hueFromName } from '../lib/utils'
 
 export type GenreCardProps = {
@@ -10,6 +11,7 @@ export type GenreCardProps = {
 
 export function GenreCard({ name, slug, artistCount, exampleArtists }: GenreCardProps) {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const hue = hueFromName(name)
 
   return (
@@ -26,7 +28,9 @@ export function GenreCard({ name, slug, artistCount, exampleArtists }: GenreCard
         {name}
       </p>
       <p className="text-xs text-muted mt-1">
-        {artistCount} artist{artistCount !== 1 ? 's' : ''}
+        {artistCount === 1
+          ? t('genres.artistCountSingular').replace('{0}', '1')
+          : t('genres.artistCountPlural').replace('{0}', String(artistCount))}
       </p>
       {exampleArtists && exampleArtists.length > 0 && (
         <p className="text-micro-lg text-muted/70 mt-1.5 truncate">{exampleArtists.join(', ')}</p>

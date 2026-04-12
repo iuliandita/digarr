@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { moodDiscover, quickDiscover } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 export function MoodPromptBar({
   existingArtistNames,
@@ -9,6 +10,7 @@ export function MoodPromptBar({
   existingArtistNames: Set<string>
   onQueued: () => void
 }) {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Array<{
     artistName: string
@@ -28,7 +30,7 @@ export function MoodPromptBar({
       const res = await moodDiscover(query.trim())
       setResults(res.results)
     } catch {
-      toast.error('Mood discovery failed')
+      toast.error(t('discover.moodFailed'))
     } finally {
       setLoading(false)
     }
@@ -59,7 +61,7 @@ export function MoodPromptBar({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="rainy day jazz, upbeat 90s pop, dark ambient..."
+          placeholder={t('discover.moodPlaceholder')}
           maxLength={500}
           className="flex-1 bg-surface border border-border rounded px-3 py-1.5 text-sm text-text placeholder:text-muted/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-1px]"
         />
@@ -68,19 +70,21 @@ export function MoodPromptBar({
           disabled={loading || !query.trim()}
           className="px-3 py-1.5 bg-accent text-accent-fg rounded text-sm font-medium hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
         >
-          {loading ? 'Discovering...' : 'Discover'}
+          {loading ? t('discover.discovering') : t('discover.discoverButton')}
         </button>
       </form>
       {results && (
         <div className="mt-3">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-text">Mood results ({results.length})</h3>
+            <h3 className="text-sm font-medium text-text">
+              {t('discover.moodResults')} ({results.length})
+            </h3>
             <button
               type="button"
               onClick={() => setResults(null)}
               className="text-xs text-muted hover:text-text"
             >
-              Clear
+              {t('common.clear')}
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -104,15 +108,15 @@ export function MoodPromptBar({
                   <div className="shrink-0">
                     {r.inLibrary ? (
                       <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
-                        In library
+                        {t('discover.inLibrary')}
                       </span>
                     ) : existingArtistNames.has(r.artistName.toLowerCase()) ? (
                       <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
-                        Pending review
+                        {t('discover.pendingReview')}
                       </span>
                     ) : queued.has(r.artistName) ? (
                       <span className="text-micro text-approve px-2 py-1 bg-approve/10 border border-approve/20 rounded">
-                        Added
+                        {t('discover.addedToQueue')}
                       </span>
                     ) : (
                       <button
@@ -120,7 +124,7 @@ export function MoodPromptBar({
                         onClick={() => handleAddToQueue(r.artistName)}
                         className="text-micro px-2 py-1 bg-accent/10 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
                       >
-                        + Discover
+                        {t('discover.addDiscover')}
                       </button>
                     )}
                   </div>
