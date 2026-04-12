@@ -22,6 +22,18 @@ describe('resolveReleasePolicy()', () => {
     })
   })
 
+  it('falls through when target release types are empty', () => {
+    expect(
+      resolveReleasePolicy({
+        targetConfig: { releaseTypes: [] },
+        lidarrDefaults: { metadataProfileId: 42 },
+      }),
+    ).toEqual({
+      releaseTypes: ['album'],
+      source: 'lidarr',
+    })
+  })
+
   it('uses Lidarr defaults when target config is absent', () => {
     expect(resolveReleasePolicy({ lidarrDefaults: { metadataProfileId: 42 } })).toEqual({
       releaseTypes: ['album'],

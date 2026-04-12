@@ -10,7 +10,7 @@ export type ReleasePolicyInput = {
 }
 
 export function resolveReleasePolicy(input: ReleasePolicyInput): ResolvedReleasePolicy {
-  if (input.targetConfig?.releaseTypes !== undefined) {
+  if (input.targetConfig?.releaseTypes?.length) {
     return { releaseTypes: input.targetConfig.releaseTypes, source: 'target' }
   }
 

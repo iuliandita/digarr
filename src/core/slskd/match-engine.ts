@@ -32,8 +32,18 @@ function splitCandidateFilename(filename: string): { artist: string; title: stri
   return { artist: stem, title: stem }
 }
 
+const AUDIO_EXTENSIONS = new Set(['flac', 'mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'opus', 'alac', 'wma'])
+
+function getFilenameExtension(filename: string): string | undefined {
+  return filename.split('.').pop()?.toLowerCase()
+}
+
 function qualityMatches(preference: QualityPreference | undefined, candidate: Pick<SlskdSearchResult, 'filename'>): boolean {
-  const extension = candidate.filename.split('.').pop()?.toLowerCase()
+  const extension = getFilenameExtension(candidate.filename)
+
+  if (extension === undefined || !AUDIO_EXTENSIONS.has(extension)) {
+    return false
+  }
 
   switch (preference) {
     case 'lossless_only':
@@ -51,6 +61,7 @@ export function scoreSlskdCandidate(
   candidate: Pick<SlskdSearchResult, 'filename'>,
 ) {
   const { artist, title } = splitCandidateFilename(candidate.filename)
+  const extension = getFilenameExtension(candidate.filename)
   const normalizedArtist = normalizeText(normalizeArtistName(release.artistName))
   const normalizedTitle = normalizeText(normalizeAlbumTitle(release.releaseTitle))
   const normalizedCandidateArtist = normalizeText(normalizeArtistName(artist))
@@ -59,6 +70,19 @@ export function scoreSlskdCandidate(
   const artistMatch = normalizedArtist === normalizedCandidateArtist && normalizedArtist !== ''
   const titleMatch = normalizedTitle === normalizedCandidateTitle && normalizedTitle !== ''
   const qualityMatch = qualityMatches(undefined, candidate)
+
+  if (extension === undefined || !AUDIO_EXTENSIONS.has(extension)) {
+    return {
+      confidence: 0,
+      artistMatch,
+      titleMatch,
+      qualityMatch,
+      normalizedArtist,
+      normalizedTitle,
+      normalizedCandidateArtist,
+      normalizedCandidateTitle,
+    }
+  }
 
   let confidence = 0
   if (artistMatch) confidence += 0.49

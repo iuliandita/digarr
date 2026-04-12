@@ -44,4 +44,19 @@ describe('selectBestSlskdCandidate()', () => {
 
     expect(selected.decision).toBe('needs_review')
   })
+
+  it('returns needs_review for non-audio artifacts even when artist and title match', () => {
+    const candidates: SlskdSearchResult[] = [
+      {
+        id: 'result-3',
+        filename: 'Radiohead - OK Computer.cue',
+        username: 'listener3',
+        size: 123,
+      },
+    ]
+
+    const selected = selectBestSlskdCandidate(release, candidates)
+
+    expect(selected.decision).toBe('needs_review')
+  })
 })
