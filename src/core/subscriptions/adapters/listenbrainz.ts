@@ -1,5 +1,7 @@
-import type { RadioMode } from '@/core/clients/listenbrainz'
+import type { RadioMode, TagRadioInput } from '@/core/clients/listenbrainz'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
 import { deduplicateByName } from '@/core/subscriptions/dedup'
 import type {
   AdapterConfigField,
@@ -19,6 +21,7 @@ const CONFIG_FIELDS: AdapterConfigField[] = [
       { value: 'artist-radio', label: 'Artist Radio' },
 
       { value: 'similar-users', label: 'Similar Users' },
+      { value: 'tag-radio', label: 'Tag Radio' },
     ],
     helpText: 'Which ListenBrainz feed to pull artists from.',
   },
@@ -84,6 +87,10 @@ export function createListenBrainzAdapter(deps: {
 
       if (feedType === 'similar-users') {
         return fetchSimilarUsers(deps, config)
+      }
+
+      if (feedType === 'tag-radio') {
+        return fetchTagRadio(deps, config)
       }
 
       return { artists: [] }
@@ -168,6 +175,49 @@ async function fetchSimilarUsers(
   }
 
   return { artists }
+}
+
+async function fetchTagRadio(
+  deps: { username: string; token: string },
+  config: Record<string, unknown>,
+): Promise<AdapterResult> {
+  const client = createListenBrainzClient(deps.username, deps.token)
+
+  const rawExpr = String(config.rawTagExpression ?? '').trim()
+  let tags: TagRadioInput[]
+  if (rawExpr) {
+    const pattern = /\(([^)]+)\):(\d+)/g
+    const results: TagRadioInput[] = []
+    for (const matchResult of rawExpr.matchAll(pattern)) {
+      results.push({ tag: String(matchResult[1]), weight: Number(matchResult[2]) })
+    }
+    tags = results.length > 0 ? results : [{ tag: rawExpr, weight: 1 }]
+  } else {
+    const tagsRaw = config.tags
+    type TagEntry = { tag?: unknown; weight?: unknown }
+    tags = Array.isArray(tagsRaw)
+      ? (tagsRaw as TagEntry[])
+          .filter((t) => String(t.tag ?? '').trim())
+          .map((t) => ({ tag: String(t.tag).trim(), weight: Number(t.weight) || 1 }))
+      : []
+  }
+
+  if (tags.length === 0) return { artists: [] }
+
+  const count = Number(config.count) || 25
+  const recordings = await client.getTagRadio(tags, { count })
+
+  const { db } = await import('@/db')
+  const mbClient = createMusicBrainzClient()
+  const resolved = await resolveTagRadioRecordings(recordings, mbClient, db)
+
+  return {
+    artists: resolved.map((a) => ({
+      name: a.artistName,
+      similarityScore: a.score,
+      source: 'listenbrainz:tag-radio',
+    })),
+  }
 }
 
 async function fetchWeeklyJams(username: string, token: string): Promise<AdapterResult> {
