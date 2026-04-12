@@ -1,75 +1,60 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest'
-import {
-  createSlskdJob,
-  findActiveSlskdJobByWorkKey,
-  listPendingSlskdJobs,
-  updateSlskdJobState,
-} from '@/db/queries/slskd-jobs'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { SLSKD_ACTIVE_JOB_STATES } from '@/db/schema'
 import type { Database } from '@/db'
 
-type MockChain = {
-  returning: ReturnType<typeof vi.fn>
-  values: ReturnType<typeof vi.fn>
-  where: ReturnType<typeof vi.fn>
-  orderBy: ReturnType<typeof vi.fn>
-  limit: ReturnType<typeof vi.fn>
-  set: ReturnType<typeof vi.fn>
-}
+const { mockedEq, mockedInArray, mockedAnd, mockedDesc } = vi.hoisted(() => ({
+  mockedEq: vi.fn((left: unknown, right: unknown) => ({ op: 'eq', left, right })),
+  mockedInArray: vi.fn((left: unknown, right: unknown) => ({ op: 'inArray', left, right })),
+  mockedAnd: vi.fn((...clauses: unknown[]) => ({ op: 'and', clauses })),
+  mockedDesc: vi.fn((value: unknown) => ({ op: 'desc', value })),
+}))
+
+vi.mock('drizzle-orm', () => ({
+  and: mockedAnd,
+  desc: mockedDesc,
+  eq: mockedEq,
+  inArray: mockedInArray,
+}))
+
+const { createSlskdJob, findActiveSlskdJobByWorkKey, listPendingSlskdJobs, updateSlskdJobState } =
+  await import('@/db/queries/slskd-jobs')
 
 function makeDb(opts: {
-  insertedRow?: Record<string, unknown>
   insertedRows?: Array<Record<string, unknown>>
   selectedRows?: Array<Record<string, unknown>>
   updatedRows?: Array<Record<string, unknown>>
 } = {}) {
-  const insertedRow = opts.insertedRow ?? { id: 1 }
-  const insertedRows = opts.insertedRows ?? [insertedRow]
+  const insertedRows = opts.insertedRows ?? [{ id: 1 }]
   const selectedRows = opts.selectedRows ?? []
   const updatedRows = opts.updatedRows ?? [{ id: 1 }]
+
+  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
+  const insertDoNothing = vi.fn().mockReturnValue({ returning: insertReturning })
+  const insertValues = vi.fn().mockReturnValue({ onConflictDoNothing: insertDoNothing })
 
   const selectLimit = vi.fn().mockResolvedValue(selectedRows)
   const selectOrderBy = vi.fn().mockReturnValue({ limit: selectLimit })
   const selectWhere = vi.fn().mockReturnValue({ orderBy: selectOrderBy, limit: selectLimit })
-
-  const updateWhere = vi.fn().mockReturnValue(undefined)
-  const updateSet = vi.fn().mockReturnValue({ where: updateWhere })
-  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
-  const insertValues = vi.fn().mockReturnValue({ returning: insertReturning })
-
-  const chain: MockChain = {
-    returning: insertReturning as ReturnType<typeof vi.fn>,
-    values: insertValues as ReturnType<typeof vi.fn>,
-    where: selectWhere as ReturnType<typeof vi.fn>,
-    orderBy: selectOrderBy as ReturnType<typeof vi.fn>,
-    limit: selectLimit as ReturnType<typeof vi.fn>,
-    set: updateSet as ReturnType<typeof vi.fn>,
-  }
+  const selectFrom = vi.fn().mockReturnValue({
+    where: selectWhere,
+    orderBy: selectOrderBy,
+    limit: selectLimit,
+  })
 
   const updateReturning = vi.fn().mockResolvedValue(updatedRows)
-  updateSet.mockReturnValue({ where: updateWhere })
-
-  const insert = vi.fn().mockReturnValue({ values: insertValues })
-  const select = vi.fn().mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      where: selectWhere,
-      orderBy: selectOrderBy,
-      limit: selectLimit,
-    }),
-  })
-  const update = vi.fn().mockReturnValue({ set: updateSet })
+  const updateWhere = vi.fn().mockReturnValue({ returning: updateReturning })
+  const updateSet = vi.fn().mockReturnValue({ where: updateWhere })
 
   return {
-    insert,
-    select,
-    update,
+    insert: vi.fn().mockReturnValue({ values: insertValues }),
+    select: vi.fn().mockReturnValue({ from: selectFrom }),
+    update: vi.fn().mockReturnValue({ set: updateSet }),
     _mocks: {
-      insert,
-      select,
-      update,
-      chain,
       insertValues,
+      insertDoNothing,
       insertReturning,
+      selectFrom,
       selectWhere,
       selectOrderBy,
       selectLimit,
@@ -80,9 +65,18 @@ function makeDb(opts: {
   }
 }
 
+beforeEach(() => {
+  mockedEq.mockClear()
+  mockedInArray.mockClear()
+  mockedAnd.mockClear()
+  mockedDesc.mockClear()
+})
+
 describe('slskd job queries', () => {
   it('createSlskdJob inserts a row and returns it', async () => {
-    const db = makeDb({ insertedRow: { id: 7, state: 'pending' } })
+    const row = { id: 7, state: 'pending' }
+    const db = makeDb({ insertedRows: [row] })
+
     const result = await createSlskdJob(db as unknown as Database, {
       userId: 1,
       targetId: 2,
@@ -93,18 +87,36 @@ describe('slskd job queries', () => {
       releaseTitle: 'Example Release',
     })
 
-    expect(result).toEqual({ id: 7, state: 'pending' })
-    expect(db._mocks.insert).toHaveBeenCalledOnce()
+    expect(result).toEqual(row)
     expect(db._mocks.insertValues).toHaveBeenCalledOnce()
+    expect(db._mocks.insertDoNothing).toHaveBeenCalledOnce()
     expect(db._mocks.insertReturning).toHaveBeenCalledOnce()
   })
 
+  it('createSlskdJob returns the active row when the insert is skipped by conflict', async () => {
+    const row = { id: 9, workKey: 'artist:mbid-1', state: 'pending' }
+    const db = makeDb({ insertedRows: [], selectedRows: [row] })
+
+    const result = await createSlskdJob(db as unknown as Database, {
+      targetId: 2,
+      sourceType: 'recommendation',
+      workKey: 'artist:mbid-1',
+      artistMbid: '11111111-1111-1111-1111-111111111111',
+      artistName: 'Example Artist',
+      releaseTitle: 'Example Release',
+    })
+
+    expect(result).toEqual(row)
+    expect(db._mocks.insertDoNothing).toHaveBeenCalledOnce()
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'artist:mbid-1')
+    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
+  })
+
   it('createSlskdJob throws when no row is returned', async () => {
-    const db = makeDb({ insertedRows: [] })
+    const db = makeDb({ insertedRows: [], selectedRows: [] })
 
     await expect(
       createSlskdJob(db as unknown as Database, {
-        userId: 1,
         targetId: 2,
         sourceType: 'recommendation',
         workKey: 'artist:mbid-1',
@@ -115,20 +127,23 @@ describe('slskd job queries', () => {
     ).rejects.toThrow('createSlskdJob: no row returned')
   })
 
-  it('findActiveSlskdJobByWorkKey returns the newest active row', async () => {
+  it('findActiveSlskdJobByWorkKey filters on workKey and active states', async () => {
     const row = { id: 9, workKey: 'artist:mbid-1', state: 'queued' }
     const db = makeDb({ selectedRows: [row] })
 
     const result = await findActiveSlskdJobByWorkKey(db as unknown as Database, 'artist:mbid-1')
 
     expect(result).toEqual(row)
-    expect(db._mocks.select).toHaveBeenCalledOnce()
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'artist:mbid-1')
+    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
+    expect(mockedAnd).toHaveBeenCalledWith(expect.anything(), expect.anything())
+    expect(mockedDesc).toHaveBeenNthCalledWith(1, expect.anything())
+    expect(mockedDesc).toHaveBeenNthCalledWith(2, expect.anything())
     expect(db._mocks.selectWhere).toHaveBeenCalledOnce()
-    expect(db._mocks.selectOrderBy).toHaveBeenCalledOnce()
     expect(db._mocks.selectLimit).toHaveBeenCalledWith(1)
   })
 
-  it('listPendingSlskdJobs returns active rows newest first', async () => {
+  it('listPendingSlskdJobs filters to active states and orders newest first', async () => {
     const rows = [
       { id: 11, state: 'downloading' },
       { id: 10, state: 'pending' },
@@ -138,30 +153,44 @@ describe('slskd job queries', () => {
     const result = await listPendingSlskdJobs(db as unknown as Database, 25)
 
     expect(result).toEqual(rows)
-    expect(db._mocks.select).toHaveBeenCalledOnce()
+    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
+    expect(mockedDesc).toHaveBeenNthCalledWith(1, expect.anything())
+    expect(mockedDesc).toHaveBeenNthCalledWith(2, expect.anything())
     expect(db._mocks.selectWhere).toHaveBeenCalledOnce()
-    expect(db._mocks.selectOrderBy).toHaveBeenCalledOnce()
     expect(db._mocks.selectLimit).toHaveBeenCalledWith(25)
   })
 
-  it('updateSlskdJobState updates state and extra fields', async () => {
-    const db = makeDb()
+  it('updateSlskdJobState returns the updated row and sets completedAt for terminal states', async () => {
+    const row = { id: 5, state: 'completed' }
+    const db = makeDb({ updatedRows: [row] })
 
-    await updateSlskdJobState(db as unknown as Database, 5, 'queued', {
+    const result = await updateSlskdJobState(db as unknown as Database, 5, 'completed', {
       slskdSearchId: 'search-1',
       attempts: 2,
     })
 
-    expect(db._mocks.update).toHaveBeenCalledOnce()
+    expect(result).toEqual(row)
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 5)
     const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
     expect(setArg).toEqual(
       expect.objectContaining({
-        state: 'queued',
+        state: 'completed',
         slskdSearchId: 'search-1',
         attempts: 2,
       }),
     )
-    expect(setArg.updatedAt).toBeInstanceOf(Date)
+    expect(setArg.completedAt).toBeInstanceOf(Date)
     expect(db._mocks.updateWhere).toHaveBeenCalledOnce()
+    expect(db._mocks.updateReturning).toHaveBeenCalledOnce()
+  })
+
+  it('updateSlskdJobState throws when no row matches the id', async () => {
+    const db = makeDb({ updatedRows: [] })
+
+    await expect(
+      updateSlskdJobState(db as unknown as Database, 999, 'queued', {
+        slskdQueueId: 'queue-1',
+      }),
+    ).rejects.toThrow('updateSlskdJobState: no row returned for id 999')
   })
 })

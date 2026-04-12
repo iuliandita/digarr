@@ -54,6 +54,6 @@ DO $$ BEGIN
  END IF;
 END $$;
 --> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "slskd_jobs_work_key_idx" ON "slskd_jobs" USING btree ("work_key");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "slskd_jobs_active_work_key_idx" ON "slskd_jobs" USING btree ("work_key") WHERE "state" in ('pending', 'searching', 'queued', 'downloading', 'import_pending');--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "slskd_jobs_state_idx" ON "slskd_jobs" USING btree ("state");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "slskd_jobs_user_state_idx" ON "slskd_jobs" USING btree ("user_id","state");

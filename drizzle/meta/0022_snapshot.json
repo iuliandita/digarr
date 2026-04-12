@@ -2478,8 +2478,8 @@
         }
       },
       "indexes": {
-        "slskd_jobs_work_key_idx": {
-          "name": "slskd_jobs_work_key_idx",
+        "slskd_jobs_active_work_key_idx": {
+          "name": "slskd_jobs_active_work_key_idx",
           "columns": [
             {
               "expression": "work_key",
@@ -2488,9 +2488,10 @@
               "nulls": "last"
             }
           ],
-          "isUnique": false,
+          "isUnique": true,
           "concurrently": false,
           "method": "btree",
+          "where": "\"slskd_jobs\".\"state\" in ('pending', 'searching', 'queued', 'downloading', 'import_pending')",
           "with": {}
         },
         "slskd_jobs_state_idx": {

@@ -1,17 +1,9 @@
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import type { Database } from '@/db'
-import { slskdJobs } from '@/db/schema'
-
-const ACTIVE_SLSKD_JOB_STATES = [
-  'pending',
-  'searching',
-  'queued',
-  'downloading',
-  'import_pending',
-] as const
+import { SLSKD_ACTIVE_JOB_STATES, slskdJobs } from '@/db/schema'
 
 export type SlskdJobState =
-  | (typeof ACTIVE_SLSKD_JOB_STATES)[number]
+  | (typeof SLSKD_ACTIVE_JOB_STATES)[number]
   | 'completed'
   | 'failed'
   | 'cancelled'
@@ -66,7 +58,7 @@ export type SlskdJobUpdate = Partial<
 export type SlskdJobRow = typeof slskdJobs.$inferSelect
 
 function activeSlskdJobWhere(workKey: string) {
-  return and(eq(slskdJobs.workKey, workKey), inArray(slskdJobs.state, ACTIVE_SLSKD_JOB_STATES))
+  return and(eq(slskdJobs.workKey, workKey), inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
 }
 
 export async function createSlskdJob(
@@ -97,13 +89,19 @@ export async function createSlskdJob(
       attempts: data.attempts ?? 0,
       completedAt: data.completedAt ?? null,
     })
+    .onConflictDoNothing()
     .returning()
 
-  if (!row) {
+  if (row) {
+    return row as SlskdJobRow
+  }
+
+  const existing = await findActiveSlskdJobByWorkKey(db, data.workKey)
+  if (!existing) {
     throw new Error('createSlskdJob: no row returned')
   }
 
-  return row as SlskdJobRow
+  return existing
 }
 
 export async function findActiveSlskdJobByWorkKey(
@@ -127,7 +125,7 @@ export async function listPendingSlskdJobs(
   const rows = await db
     .select()
     .from(slskdJobs)
-    .where(inArray(slskdJobs.state, ACTIVE_SLSKD_JOB_STATES))
+    .where(inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
     .orderBy(desc(slskdJobs.createdAt), desc(slskdJobs.id))
     .limit(limit)
 
@@ -139,13 +137,26 @@ export async function updateSlskdJobState(
   id: number,
   state: SlskdJobState,
   extra: SlskdJobUpdate = {},
-): Promise<void> {
-  await db
+): Promise<SlskdJobRow> {
+  const completedAt =
+    state === 'completed' || state === 'failed' || state === 'cancelled'
+      ? extra.completedAt ?? new Date()
+      : extra.completedAt
+
+  const [row] = await db
     .update(slskdJobs)
     .set({
       ...extra,
       state,
+      ...(completedAt !== undefined ? { completedAt } : {}),
       updatedAt: new Date(),
     })
     .where(eq(slskdJobs.id, id))
+    .returning()
+
+  if (!row) {
+    throw new Error(`updateSlskdJobState: no row returned for id ${id}`)
+  }
+
+  return row as SlskdJobRow
 }

@@ -13,6 +13,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export type DiscoveryModeProvenance = {
   modeId: string
@@ -236,6 +237,14 @@ export const targets = pgTable(
   }),
 )
 
+export const SLSKD_ACTIVE_JOB_STATES = [
+  'pending',
+  'searching',
+  'queued',
+  'downloading',
+  'import_pending',
+] as const
+
 export const slskdJobs = pgTable(
   'slskd_jobs',
   {
@@ -268,7 +277,9 @@ export const slskdJobs = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    workKeyIdx: index('slskd_jobs_work_key_idx').on(table.workKey),
+    activeWorkKeyIdx: uniqueIndex('slskd_jobs_active_work_key_idx')
+      .on(table.workKey)
+      .where(sql`${table.state} in ('pending', 'searching', 'queued', 'downloading', 'import_pending')`),
     stateIdx: index('slskd_jobs_state_idx').on(table.state),
     userStateIdx: index('slskd_jobs_user_state_idx').on(table.userId, table.state),
   }),
