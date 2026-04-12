@@ -5,9 +5,7 @@ import { scoreSlskdCandidate, selectBestSlskdCandidate } from '@/core/slskd/matc
 
 const release = {
   artistName: 'Radiohead',
-  title: 'OK Computer',
-  releaseType: 'album' as const,
-  qualityPreference: 'flac_preferred' as const,
+  releaseTitle: 'OK Computer',
 }
 
 describe('scoreSlskdCandidate()', () => {
@@ -17,7 +15,6 @@ describe('scoreSlskdCandidate()', () => {
       filename: 'Radiohead - OK Computer.flac',
       username: 'listener',
       size: 123,
-      extension: 'flac',
     }
 
     const scored = scoreSlskdCandidate(release, candidate)
@@ -34,19 +31,17 @@ describe('selectBestSlskdCandidate()', () => {
         filename: 'Radiohead - The Best Of.mp3',
         username: 'listener1',
         size: 123,
-        extension: 'mp3',
       },
       {
         id: 'result-2',
         filename: 'Radiohead - A Collection.mp3',
         username: 'listener2',
         size: 123,
-        extension: 'mp3',
       },
     ]
 
     const selected = selectBestSlskdCandidate(release, candidates)
 
-    expect(selected.status).toBe('needs_review')
+    expect(selected.decision).toBe('needs_review')
   })
 })

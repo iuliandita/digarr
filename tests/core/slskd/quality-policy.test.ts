@@ -4,18 +4,28 @@ import { resolveQualityPolicy } from '@/core/slskd/quality-policy'
 
 describe('resolveQualityPolicy()', () => {
   it('defaults to flac preferred', () => {
-    expect(resolveQualityPolicy({}).preference).toBe('flac_preferred')
+    expect(resolveQualityPolicy({})).toEqual({
+      preference: 'flac_preferred',
+      source: 'default',
+    })
   })
 
   it('uses the explicit override when provided', () => {
     expect(
       resolveQualityPolicy({
-        preference: 'mp3_preferred',
-        lidarrPreference: 'flac_preferred',
+        targetConfig: { qualityPreference: 'any_audio' },
+        lidarrDefaults: { qualityProfileId: 1 },
       }),
     ).toEqual({
-      preference: 'mp3_preferred',
+      preference: 'any_audio',
       source: 'target',
+    })
+  })
+
+  it('uses Lidarr quality defaults when target config is absent', () => {
+    expect(resolveQualityPolicy({ lidarrDefaults: { qualityProfileId: 2 } })).toEqual({
+      preference: 'flac_preferred',
+      source: 'lidarr',
     })
   })
 })

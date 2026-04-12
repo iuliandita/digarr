@@ -1,19 +1,22 @@
 import type { ReleaseType, ResolvedReleasePolicy } from './types'
 
 export type ReleasePolicyInput = {
-  releaseTypes?: ReleaseType[]
-  lidarrReleaseTypes?: ReleaseType[]
+  targetConfig?: {
+    releaseTypes?: ReleaseType[]
+  }
+  lidarrDefaults?: {
+    metadataProfileId?: number | null
+  }
 }
 
 export function resolveReleasePolicy(input: ReleasePolicyInput): ResolvedReleasePolicy {
-  if (input.releaseTypes !== undefined && input.releaseTypes.length > 0) {
-    return { releaseTypes: input.releaseTypes, source: 'target' }
+  if (input.targetConfig?.releaseTypes !== undefined) {
+    return { releaseTypes: input.targetConfig.releaseTypes, source: 'target' }
   }
 
-  if (input.lidarrReleaseTypes !== undefined && input.lidarrReleaseTypes.length > 0) {
-    return { releaseTypes: input.lidarrReleaseTypes, source: 'lidarr' }
+  if (input.lidarrDefaults?.metadataProfileId != null) {
+    return { releaseTypes: ['album'], source: 'lidarr' }
   }
 
   return { releaseTypes: ['album'], source: 'default' }
 }
-

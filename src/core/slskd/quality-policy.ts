@@ -1,19 +1,22 @@
 import type { QualityPreference, ResolvedQualityPolicy } from './types'
 
 export type QualityPolicyInput = {
-  preference?: QualityPreference
-  lidarrPreference?: QualityPreference
+  targetConfig?: {
+    qualityPreference?: QualityPreference
+  }
+  lidarrDefaults?: {
+    qualityProfileId?: number | null
+  }
 }
 
 export function resolveQualityPolicy(input: QualityPolicyInput): ResolvedQualityPolicy {
-  if (input.preference !== undefined) {
-    return { preference: input.preference, source: 'target' }
+  if (input.targetConfig?.qualityPreference !== undefined) {
+    return { preference: input.targetConfig.qualityPreference, source: 'target' }
   }
 
-  if (input.lidarrPreference !== undefined) {
-    return { preference: input.lidarrPreference, source: 'lidarr' }
+  if (input.lidarrDefaults?.qualityProfileId != null) {
+    return { preference: 'flac_preferred', source: 'lidarr' }
   }
 
   return { preference: 'flac_preferred', source: 'default' }
 }
-

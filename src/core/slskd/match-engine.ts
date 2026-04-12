@@ -1,6 +1,6 @@
 import type { SlskdSearchResult } from '@/core/clients/slskd'
 import { normalizeAlbumTitle, normalizeArtistName } from '@/core/library/normalize'
-import type { SlskdMatchDecision, SlskdMatchRelease, SlskdMatchScore } from './types'
+import type { QualityPreference } from './types'
 
 function normalizeText(raw: string): string {
   if (!raw.trim()) return ''
@@ -32,38 +32,40 @@ function splitCandidateFilename(filename: string): { artist: string; title: stri
   return { artist: stem, title: stem }
 }
 
-function qualityMatches(release: SlskdMatchRelease, candidate: SlskdSearchResult): boolean {
-  const preference = release.qualityPreference ?? 'flac_preferred'
-  const extension = candidate.extension?.toLowerCase() ?? candidate.filename.split('.').pop()?.toLowerCase()
+function qualityMatches(preference: QualityPreference | undefined, candidate: Pick<SlskdSearchResult, 'filename'>): boolean {
+  const extension = candidate.filename.split('.').pop()?.toLowerCase()
 
-  if (preference === 'flac_preferred') {
-    return extension === 'flac'
+  switch (preference) {
+    case 'lossless_only':
+    case 'flac_preferred':
+      return extension === 'flac'
+    case 'lossy_fallback':
+    case 'any_audio':
+    default:
+      return extension !== undefined
   }
-
-  return extension === 'mp3' || extension === 'm4a' || extension === 'aac'
 }
 
 export function scoreSlskdCandidate(
-  release: SlskdMatchRelease,
-  candidate: SlskdSearchResult,
-): SlskdMatchScore {
+  release: { artistName: string; releaseTitle: string },
+  candidate: Pick<SlskdSearchResult, 'filename'>,
+) {
   const { artist, title } = splitCandidateFilename(candidate.filename)
   const normalizedArtist = normalizeText(normalizeArtistName(release.artistName))
-  const normalizedTitle = normalizeText(normalizeAlbumTitle(release.title))
+  const normalizedTitle = normalizeText(normalizeAlbumTitle(release.releaseTitle))
   const normalizedCandidateArtist = normalizeText(normalizeArtistName(artist))
   const normalizedCandidateTitle = normalizeText(normalizeAlbumTitle(title))
 
   const artistMatch = normalizedArtist === normalizedCandidateArtist && normalizedArtist !== ''
   const titleMatch = normalizedTitle === normalizedCandidateTitle && normalizedTitle !== ''
-  const qualityMatch = qualityMatches(release, candidate)
+  const qualityMatch = qualityMatches(undefined, candidate)
 
   let confidence = 0
-  if (artistMatch) confidence += 0.48
-  if (titleMatch) confidence += 0.47
-  if (qualityMatch) confidence += 0.08
+  if (artistMatch) confidence += 0.49
+  if (titleMatch) confidence += 0.46
+  if (qualityMatch) confidence += 0.04
 
   if (artistMatch && titleMatch) confidence += 0.02
-  if (candidate.bitrate !== undefined && candidate.bitrate >= 900) confidence += 0.02
 
   confidence = Math.max(0, Math.min(1, confidence))
 
@@ -80,11 +82,11 @@ export function scoreSlskdCandidate(
 }
 
 export function selectBestSlskdCandidate(
-  release: SlskdMatchRelease,
+  release: { artistName: string; releaseTitle: string },
   candidates: SlskdSearchResult[],
-): SlskdMatchDecision {
+): { decision: 'needs_review' | 'auto_queue'; candidate?: SlskdSearchResult; confidence: number } {
   if (candidates.length === 0) {
-    return { status: 'needs_review', confidence: 0, reason: 'low_confidence' }
+    return { decision: 'needs_review', confidence: 0 }
   }
 
   const scored = candidates
@@ -95,25 +97,24 @@ export function selectBestSlskdCandidate(
   const second = scored[1]
 
   if (!best) {
-    return { status: 'needs_review', confidence: 0, reason: 'low_confidence' }
+    return { decision: 'needs_review', confidence: 0 }
   }
 
   const gap = best.score.confidence - (second?.score.confidence ?? 0)
-  const confidentEnough = best.score.confidence >= 0.9
-  const clearWinner = gap >= 0.12
+  const confidentEnough = best.score.confidence > 0.9
+  const clearWinner = gap >= 0.1
 
   if (!confidentEnough) {
-    return { status: 'needs_review', confidence: best.score.confidence, reason: 'low_confidence' }
+    return { decision: 'needs_review', confidence: best.score.confidence }
   }
 
   if (!clearWinner) {
-    return { status: 'needs_review', confidence: best.score.confidence, reason: 'ambiguous' }
+    return { decision: 'needs_review', confidence: best.score.confidence }
   }
 
   return {
-    status: 'auto_queue',
+    decision: 'auto_queue',
     candidate: best.candidate,
     confidence: best.score.confidence,
   }
 }
-
