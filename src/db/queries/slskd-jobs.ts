@@ -65,43 +65,45 @@ export async function createSlskdJob(
   db: Database,
   data: CreateSlskdJobInput,
 ): Promise<SlskdJobRow> {
-  const [row] = await db
-    .insert(slskdJobs)
-    .values({
-      userId: data.userId ?? null,
-      targetId: data.targetId,
-      recommendationId: data.recommendationId ?? null,
-      sourceType: data.sourceType,
-      workKey: data.workKey,
-      artistMbid: data.artistMbid,
-      artistName: data.artistName,
-      releaseGroupMbid: data.releaseGroupMbid ?? null,
-      releaseTitle: data.releaseTitle,
-      lidarrArtistId: data.lidarrArtistId ?? null,
-      lidarrAlbumId: data.lidarrAlbumId ?? null,
-      state: data.state ?? 'pending',
-      confidence: data.confidence ?? null,
-      slskdSearchId: data.slskdSearchId ?? null,
-      slskdQueueId: data.slskdQueueId ?? null,
-      slskdDownloadId: data.slskdDownloadId ?? null,
-      selectedResult: data.selectedResult ?? null,
-      lastError: data.lastError ?? null,
-      attempts: data.attempts ?? 0,
-      completedAt: data.completedAt ?? null,
-    })
-    .onConflictDoNothing()
-    .returning()
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const [row] = await db
+      .insert(slskdJobs)
+      .values({
+        userId: data.userId ?? null,
+        targetId: data.targetId,
+        recommendationId: data.recommendationId ?? null,
+        sourceType: data.sourceType,
+        workKey: data.workKey,
+        artistMbid: data.artistMbid,
+        artistName: data.artistName,
+        releaseGroupMbid: data.releaseGroupMbid ?? null,
+        releaseTitle: data.releaseTitle,
+        lidarrArtistId: data.lidarrArtistId ?? null,
+        lidarrAlbumId: data.lidarrAlbumId ?? null,
+        state: data.state ?? 'pending',
+        confidence: data.confidence ?? null,
+        slskdSearchId: data.slskdSearchId ?? null,
+        slskdQueueId: data.slskdQueueId ?? null,
+        slskdDownloadId: data.slskdDownloadId ?? null,
+        selectedResult: data.selectedResult ?? null,
+        lastError: data.lastError ?? null,
+        attempts: data.attempts ?? 0,
+        completedAt: data.completedAt ?? null,
+      })
+      .onConflictDoNothing()
+      .returning()
 
-  if (row) {
-    return row as SlskdJobRow
+    if (row) {
+      return row as SlskdJobRow
+    }
+
+    const existing = await findActiveSlskdJobByWorkKey(db, data.workKey)
+    if (existing) {
+      return existing
+    }
   }
 
-  const existing = await findActiveSlskdJobByWorkKey(db, data.workKey)
-  if (!existing) {
-    throw new Error('createSlskdJob: no row returned')
-  }
-
-  return existing
+  throw new Error('createSlskdJob: no row returned')
 }
 
 export async function findActiveSlskdJobByWorkKey(
