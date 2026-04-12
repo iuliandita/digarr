@@ -186,6 +186,7 @@ export const pl = {
   'setup.userId': 'Identyfikator użytkownika',
   'setup.verifyProviderLater':
     'Możesz zweryfikować dostawcę w Ustawieniach po konfiguracji. Kontynuuj po uzupełnieniu danych dostawcy.',
+  'common.importing': 'Importing...',
   'common.language': 'Język',
   'common.loading': 'Ładowanie...',
   'common.loadingEllipsis': '...',
@@ -460,6 +461,10 @@ export const pl = {
   'subscriptions.addFromPresets': 'Dodaj z gotowych ustawień',
   'subscriptions.deleteSubscription': 'Usuń subskrypcję',
   'subscriptions.deleteSubscriptionPrompt': 'Usuń',
+  'subscription.feed.deezerFavorites': 'Deezer Favorites',
+  'subscription.feed.deezerFlow': 'Deezer Flow Recommendations',
+  'subscription.feed.deezerFollowed': 'Deezer Followed Artists',
+  'subscription.feed.deezerPlaylists': 'Deezer Playlists',
   'analytics.statusCompleted': 'Ukończono',
   'analytics.noBatchesYet':
     'Nie ma jeszcze partii. Uruchom skanowanie, aby wygenerować rekomendacje.',
@@ -588,4 +593,19 @@ export const pl = {
   'setup.modelSuggestionGeminiFlashPreview': 'Gemini 3 Flash (szybki, podgląd)',
   'setup.modelSuggestionGeminiFlash': 'Gemini 2.5 Flash (stabilny)',
   'setup.modelSuggestionGeminiPro': 'Gemini 2.5 Pro (najbardziej zaawansowany)',
+  'settings.capDiscovery': 'Discovery',
+  'settings.capImport': 'Import',
+  'settings.capLibrarySync': 'Library Sync',
+  'settings.capPlaylistExport': 'Playlist Export',
+  'settings.capService': 'Service',
+  'settings.capSubscriptions': 'Subscriptions',
+  'settings.connectDeezer': 'Connect with Deezer',
+  'settings.deezer': 'Deezer',
+  'settings.deezerConnectHelp':
+    'Connect your Deezer account to import favorites, followed artists, and playlist data.',
+  'settings.deezerImportPlaylists': 'Import from Playlists',
+  'settings.deezerSelectPlaylists': 'Select playlists to import artists from',
+  'settings.importFavorites': 'Import Favorites',
+  'settings.importFollowed': 'Import Followed',
+  'settings.integrationCapabilities': 'Integration Capabilities',
 } satisfies MessageCatalog

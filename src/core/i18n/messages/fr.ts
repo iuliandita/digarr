@@ -186,6 +186,7 @@ export const fr = {
   'setup.userId': 'Identifiant utilisateur',
   'setup.verifyProviderLater':
     'Vous pourrez verifier le fournisseur dans les parametres apres la configuration. Continuez une fois les details renseignes.',
+  'common.importing': 'Importing...',
   'common.language': 'Langue',
   'common.loading': 'Chargement...',
   'common.loadingEllipsis': '...',
@@ -456,6 +457,10 @@ export const fr = {
   'subscriptions.addFromPresets': 'Ajouter depuis les presets',
   'subscriptions.deleteSubscription': "Supprimer l'abonnement",
   'subscriptions.deleteSubscriptionPrompt': 'Supprimer',
+  'subscription.feed.deezerFavorites': 'Deezer Favorites',
+  'subscription.feed.deezerFlow': 'Deezer Flow Recommendations',
+  'subscription.feed.deezerFollowed': 'Deezer Followed Artists',
+  'subscription.feed.deezerPlaylists': 'Deezer Playlists',
   'analytics.statusCompleted': 'Termine',
   'analytics.noBatchesYet':
     "Aucun lot pour l'instant. Exécutez une analyse pour générer des recommandations.",
@@ -583,4 +588,19 @@ export const fr = {
   'setup.modelSuggestionGeminiFlashPreview': 'Gemini 3 Flash (rapide, aperçu)',
   'setup.modelSuggestionGeminiFlash': 'Gemini 2.5 Flash (stable)',
   'setup.modelSuggestionGeminiPro': 'Gemini 2.5 Pro (le plus capable)',
+  'settings.capDiscovery': 'Discovery',
+  'settings.capImport': 'Import',
+  'settings.capLibrarySync': 'Library Sync',
+  'settings.capPlaylistExport': 'Playlist Export',
+  'settings.capService': 'Service',
+  'settings.capSubscriptions': 'Subscriptions',
+  'settings.connectDeezer': 'Connect with Deezer',
+  'settings.deezer': 'Deezer',
+  'settings.deezerConnectHelp':
+    'Connect your Deezer account to import favorites, followed artists, and playlist data.',
+  'settings.deezerImportPlaylists': 'Import from Playlists',
+  'settings.deezerSelectPlaylists': 'Select playlists to import artists from',
+  'settings.importFavorites': 'Import Favorites',
+  'settings.importFollowed': 'Import Followed',
+  'settings.integrationCapabilities': 'Integration Capabilities',
 } satisfies MessageCatalog
