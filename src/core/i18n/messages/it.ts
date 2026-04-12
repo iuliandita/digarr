@@ -259,6 +259,12 @@ export const it = {
   'discover.discoveryModes': 'Modalità di scoperta',
   'discover.discoveryModesDescription':
     'Avvia una corsa di scoperta mirata con una semplice preimpostazione o con il modulo avanzato completo.',
+  'discover.monitoringOptions': 'Opzioni di monitoraggio',
+  'discover.monitorAllDescription': 'Monitora e cerca tutti gli album',
+  'discover.monitorNewDescription': 'Monitora solo le nuove uscite da ora in poi',
+  'discover.monitorSelected': 'Album selezionati',
+  'discover.monitorSelectedDescription': 'Scegli quali album monitorare',
+  'discover.monitorNoneDescription': 'Aggiungi senza monitoraggio (solo tracciamento)',
   'discover.discoveryRunStarted':
     "L'esecuzione del rilevamento è iniziata: controlla lo stato di avanzamento nella Dashboard",
   'discover.expand': 'Espandi',
@@ -634,6 +640,9 @@ export const it = {
   'discoveryMode.addTag': '+ Aggiungi tag',
   'discoveryMode.removeTag': 'Rimuovi tag',
   'discoveryMode.commaSeparatedValues': 'Inserisci valori separati da virgola',
+  'discoveryMode.fieldRequired': '{0} è obbligatorio',
+  'discoveryMode.tagExamplePlaceholder': 'es. trip hop',
+  'discoveryMode.tagWeight': 'Peso',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description': 'Scopri tramite dati del grafo e feed di ListenBrainz',
   'discoveryMode.artist-radio.label': 'Radio artista',
@@ -660,6 +669,12 @@ export const it = {
   'discoveryMode.labels.label': 'Etichette discografiche',
   'discoveryMode.labels.description': 'Scopri artisti collegati tramite cataloghi di etichette',
   'discoveryMode.notShippedYet': 'Questa modalità non è ancora disponibile.',
+  'discoveryMode.reason.connectListenBrainz': 'Collega ListenBrainz per usare questa modalità.',
+  'discoveryMode.reason.connectListeningSource': "Collega prima una sorgente d'ascolto.",
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Collega ListenBrainz o Last.fm per usare questa modalità.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Uso di provider di fallback per la scoperta delle uscite.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artista',
   'discoveryMode.field.adventurousness': 'Avventura',

@@ -47,7 +47,7 @@ function jobStats(job: JobRun, t: (key: MessageKey) => string): string {
 }
 
 export function JobRunRow({ job }: { job: JobRun }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const [expanded, setExpanded] = useState(false)
   const typeLabelKey = TYPE_LABEL_KEYS[job.type]
   const metadata = job.metadata ?? {}
@@ -97,7 +97,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
         </div>
         <div className="flex items-center gap-4 text-xs text-muted">
           <span>{formatDuration(job.durationMs)}</span>
-          <span>{formatRelativeTime(job.startedAt)}</span>
+          <span>{formatRelativeTime(locale, job.startedAt)}</span>
         </div>
       </div>
 

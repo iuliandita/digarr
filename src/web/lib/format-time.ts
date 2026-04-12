@@ -8,15 +8,13 @@ export function formatDuration(ms: number | null): string {
   return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`
 }
 
-export function formatRelativeTime(iso: string | null): string {
-  if (!iso) return '-'
-  const diff = Date.now() - new Date(iso).getTime()
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+export function formatRelativeTime(locale: string, iso: string | null, fallback = '-'): string {
+  if (!iso) return fallback
+  const diffMinutes = Math.round((new Date(iso).getTime() - Date.now()) / 60_000)
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (Math.abs(diffMinutes) < 1) return formatter.format(0, 'second')
+  if (Math.abs(diffMinutes) < 60) return formatter.format(diffMinutes, 'minute')
+  const diffHours = Math.round(diffMinutes / 60)
+  if (Math.abs(diffHours) < 24) return formatter.format(diffHours, 'hour')
+  return formatter.format(Math.round(diffHours / 24), 'day')
 }

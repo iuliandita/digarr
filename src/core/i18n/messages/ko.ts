@@ -255,6 +255,12 @@ export const ko = {
   'discover.discoveryModes': '발견 모드',
   'discover.discoveryModesDescription':
     '간단한 사전 설정 또는 전체 고급 양식을 사용하여 타겟 검색 실행을 시작하세요.',
+  'discover.monitoringOptions': '모니터링 옵션',
+  'discover.monitorAllDescription': '모든 앨범을 모니터링하고 검색',
+  'discover.monitorNewDescription': '앞으로 나올 새 발매만 모니터링',
+  'discover.monitorSelected': '선택한 앨범',
+  'discover.monitorSelectedDescription': '모니터링할 앨범 선택',
+  'discover.monitorNoneDescription': '모니터링 없이 추가(추적만)',
   'discover.discoveryRunStarted':
     '검색 실행이 시작되었습니다. 대시보드에서 진행 상황을 확인하세요.',
   'discover.expand': '펼치기',
@@ -618,6 +624,9 @@ export const ko = {
   'discoveryMode.addTag': '+ 태그 추가',
   'discoveryMode.removeTag': '태그 제거',
   'discoveryMode.commaSeparatedValues': '쉼표로 구분하여 입력',
+  'discoveryMode.fieldRequired': '{0} 항목은 필수입니다',
+  'discoveryMode.tagExamplePlaceholder': '예: trip hop',
+  'discoveryMode.tagWeight': '가중치',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'ListenBrainz 그래프 데이터와 피드에서 아티스트를 발견합니다',
@@ -645,6 +654,11 @@ export const ko = {
   'discoveryMode.labels.label': '레이블',
   'discoveryMode.labels.description': '레이블 카탈로그를 통해 아티스트를 발견합니다',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
+  'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
+  'discoveryMode.reason.connectListeningSource': '먼저 청취 소스를 연결하세요.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    '이 모드를 사용하려면 ListenBrainz 또는 Last.fm을 연결하세요.',
+  'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
   'discoveryMode.field.feed': '피드',
   'discoveryMode.field.artist': '아티스트',
   'discoveryMode.field.adventurousness': '모험성',

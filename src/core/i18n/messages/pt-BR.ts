@@ -259,6 +259,12 @@ export const ptBR = {
   'discover.discoveryModes': 'Modos de descoberta',
   'discover.discoveryModesDescription':
     'Inicie uma execução de descoberta direcionada com uma predefinição simples ou com o formulário avançado completo.',
+  'discover.monitoringOptions': 'Opções de monitoramento',
+  'discover.monitorAllDescription': 'Monitorar e buscar todos os álbuns',
+  'discover.monitorNewDescription': 'Monitorar apenas novos lançamentos daqui para frente',
+  'discover.monitorSelected': 'Álbuns selecionados',
+  'discover.monitorSelectedDescription': 'Escolha quais álbuns monitorar',
+  'discover.monitorNoneDescription': 'Adicionar sem monitoramento (apenas rastreamento)',
   'discover.discoveryRunStarted':
     'Execução de descoberta iniciada – verifique o progresso no Painel',
   'discover.expand': 'Expandir',
@@ -637,6 +643,9 @@ export const ptBR = {
   'discoveryMode.addTag': '+ Adicionar tag',
   'discoveryMode.removeTag': 'Remover tag',
   'discoveryMode.commaSeparatedValues': 'Insira valores separados por vírgula',
+  'discoveryMode.fieldRequired': '{0} é obrigatório',
+  'discoveryMode.tagExamplePlaceholder': 'ex. trip hop',
+  'discoveryMode.tagWeight': 'Peso',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'Descubra a partir dos dados do grafo e feeds do ListenBrainz',
@@ -664,6 +673,12 @@ export const ptBR = {
   'discoveryMode.labels.label': 'Gravadoras',
   'discoveryMode.labels.description': 'Descubra artistas conectados por catálogos de gravadoras',
   'discoveryMode.notShippedYet': 'Este modo ainda não está disponível.',
+  'discoveryMode.reason.connectListenBrainz': 'Conecte o ListenBrainz para usar este modo.',
+  'discoveryMode.reason.connectListeningSource': 'Conecte primeiro uma fonte de escuta.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Conecte o ListenBrainz ou o Last.fm para usar este modo.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Usando provedores de fallback para descobrir lançamentos.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artista',
   'discoveryMode.field.adventurousness': 'Aventura',

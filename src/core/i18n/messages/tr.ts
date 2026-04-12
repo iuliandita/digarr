@@ -258,6 +258,12 @@ export const tr = {
   'discover.discoveryModes': 'Keşif Modları',
   'discover.discoveryModesDescription':
     'Basit bir ön ayar veya tam gelişmiş formla hedefli bir keşif çalıştırması başlatın.',
+  'discover.monitoringOptions': 'İzleme seçenekleri',
+  'discover.monitorAllDescription': 'Tüm albümleri izle ve ara',
+  'discover.monitorNewDescription': 'Bundan sonra yalnızca yeni yayınları izle',
+  'discover.monitorSelected': 'Seçili albümler',
+  'discover.monitorSelectedDescription': 'Hangi albümlerin izleneceğini seç',
+  'discover.monitorNoneDescription': 'İzleme olmadan ekle (yalnızca takip)',
   'discover.discoveryRunStarted':
     'Keşif çalıştırması başladı; ilerleme için Kontrol Panelini kontrol edin',
   'discover.expand': 'Genişlet',
@@ -636,6 +642,9 @@ export const tr = {
   'discoveryMode.addTag': '+ Etiket ekle',
   'discoveryMode.removeTag': 'Etiketi kaldir',
   'discoveryMode.commaSeparatedValues': 'Virgülle ayrilmis degerler girin',
+  'discoveryMode.fieldRequired': '{0} gerekli',
+  'discoveryMode.tagExamplePlaceholder': 'ör. trip hop',
+  'discoveryMode.tagWeight': 'Ağırlık',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'ListenBrainz grafik verileri ve feedleri uzerinden kesfet',
@@ -663,6 +672,11 @@ export const tr = {
   'discoveryMode.labels.label': 'Etiketler',
   'discoveryMode.labels.description': 'Plak sirketi kataloglari uzerinden sanatci kesfet',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
+  'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak icin ListenBrainz baglayin.',
+  'discoveryMode.reason.connectListeningSource': 'Once bir dinleme kaynagi baglayin.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Bu modu kullanmak icin ListenBrainz veya Last.fm baglayin.',
+  'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi icin yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Sanatci',
   'discoveryMode.field.adventurousness': 'Maceraperestlik',

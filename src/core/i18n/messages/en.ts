@@ -258,6 +258,12 @@ export const en = {
   'discover.discoveryModes': 'Discovery Modes',
   'discover.discoveryModesDescription':
     'Start a targeted discovery run with either a simple preset or the full advanced form.',
+  'discover.monitoringOptions': 'Monitoring options',
+  'discover.monitorAllDescription': 'Monitor and search for all albums',
+  'discover.monitorNewDescription': 'Only monitor new releases going forward',
+  'discover.monitorSelected': 'Selected albums',
+  'discover.monitorSelectedDescription': 'Choose which albums to monitor',
+  'discover.monitorNoneDescription': 'Add unmonitored (tracking only)',
   'discover.discoveryRunStarted': 'Discovery run started - check Dashboard for progress',
   'discover.expand': 'Expand',
   'discover.exportFailed': 'Export failed',
@@ -639,6 +645,9 @@ export const en = {
   'discoveryMode.addTag': '+ Add tag',
   'discoveryMode.removeTag': 'Remove tag',
   'discoveryMode.commaSeparatedValues': 'Enter comma-separated values',
+  'discoveryMode.fieldRequired': '{0} is required',
+  'discoveryMode.tagExamplePlaceholder': 'e.g. trip hop',
+  'discoveryMode.tagWeight': 'Weight',
 
   // Discovery Mode - backend labels (keyed by mode ID)
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
@@ -667,6 +676,11 @@ export const en = {
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Discover artists connected through label catalogs',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
+  'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
+  'discoveryMode.reason.connectListeningSource': 'Connect a listening source first.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Connect ListenBrainz or Last.fm to use this mode.',
+  'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artist',
   'discoveryMode.field.adventurousness': 'Adventurousness',

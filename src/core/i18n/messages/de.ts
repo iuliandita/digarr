@@ -259,6 +259,12 @@ export const de = {
   'discover.discoveryModes': 'Entdeckungsmodi',
   'discover.discoveryModesDescription':
     'Starten Sie einen gezielten Erkennungslauf entweder mit einer einfachen Voreinstellung oder dem vollständigen erweiterten Formular.',
+  'discover.monitoringOptions': 'Überwachungsoptionen',
+  'discover.monitorAllDescription': 'Alle Alben überwachen und durchsuchen',
+  'discover.monitorNewDescription': 'Nur zukünftige Neuerscheinungen überwachen',
+  'discover.monitorSelected': 'Ausgewählte Alben',
+  'discover.monitorSelectedDescription': 'Wähle, welche Alben überwacht werden sollen',
+  'discover.monitorNoneDescription': 'Ohne Überwachung hinzufügen (nur verfolgen)',
   'discover.discoveryRunStarted':
     'Erkennungslauf gestartet – überprüfen Sie den Fortschritt im Dashboard',
   'discover.expand': 'Erweitern',
@@ -648,6 +654,9 @@ export const de = {
   'discoveryMode.addTag': '+ Tag hinzufügen',
   'discoveryMode.removeTag': 'Tag entfernen',
   'discoveryMode.commaSeparatedValues': 'Kommagetrennte Werte eingeben',
+  'discoveryMode.fieldRequired': '{0} ist erforderlich',
+  'discoveryMode.tagExamplePlaceholder': 'z. B. trip hop',
+  'discoveryMode.tagWeight': 'Gewichtung',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description': 'Entdecke über ListenBrainz-Graphdaten und Feeds',
   'discoveryMode.artist-radio.label': 'Künstler-Radio',
@@ -673,6 +682,13 @@ export const de = {
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Entdecke Künstler über Label-Kataloge',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
+  'discoveryMode.reason.connectListenBrainz':
+    'Verbinde ListenBrainz, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.connectListeningSource': 'Verbinde zuerst eine Hörquelle.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Künstler',
   'discoveryMode.field.adventurousness': 'Abenteuerlust',

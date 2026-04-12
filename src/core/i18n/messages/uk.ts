@@ -259,6 +259,12 @@ export const uk = {
   'discover.discoveryModes': 'Режими пошуку',
   'discover.discoveryModesDescription':
     'Розпочніть цільове відкриття за допомогою простого попереднього налаштування або повної розширеної форми.',
+  'discover.monitoringOptions': 'Параметри моніторингу',
+  'discover.monitorAllDescription': 'Відстежувати й шукати всі альбоми',
+  'discover.monitorNewDescription': 'Відстежувати лише майбутні релізи',
+  'discover.monitorSelected': 'Вибрані альбоми',
+  'discover.monitorSelectedDescription': 'Виберіть, які альбоми відстежувати',
+  'discover.monitorNoneDescription': 'Додати без моніторингу (лише відстеження)',
   'discover.discoveryRunStarted':
     'Запуск виявлення розпочато — перевірте прогрес на інформаційній панелі',
   'discover.expand': 'Розгорнути',
@@ -642,6 +648,9 @@ export const uk = {
   'discoveryMode.addTag': '+ Додати тег',
   'discoveryMode.removeTag': 'Видалити тег',
   'discoveryMode.commaSeparatedValues': 'Введіть значення через кому',
+  'discoveryMode.fieldRequired': 'Поле {0} є обов’язковим',
+  'discoveryMode.tagExamplePlaceholder': 'напр. trip hop',
+  'discoveryMode.tagWeight': 'Вага',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description': 'Відкривайте на основі даних і стрічок ListenBrainz',
   'discoveryMode.artist-radio.label': 'Радіо виконавця',
@@ -668,6 +677,13 @@ export const uk = {
   'discoveryMode.labels.label': 'Лейбли',
   'discoveryMode.labels.description': 'Знаходьте виконавців через каталоги лейблів',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
+  'discoveryMode.reason.connectListenBrainz':
+    'Підключіть ListenBrainz, щоб користуватися цим режимом.',
+  'discoveryMode.reason.connectListeningSource': 'Спочатку підключіть джерело прослуховування.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Підключіть ListenBrainz або Last.fm, щоб користуватися цим режимом.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Для пошуку релізів використовуються резервні постачальники.',
   'discoveryMode.field.feed': 'Стрічка',
   'discoveryMode.field.artist': 'Виконавець',
   'discoveryMode.field.adventurousness': 'Авантюризм',

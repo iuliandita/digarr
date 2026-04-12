@@ -1,5 +1,9 @@
-import type { MessageKey } from '@/core/i18n/messages/types'
 import type { DiscoveryModeResponse } from '../lib/api'
+import {
+  translateDiscoveryModeDescription,
+  translateDiscoveryModeLabel,
+  translateDiscoveryReason,
+} from '../lib/discovery-i18n'
 import { useI18n } from '../lib/i18n'
 import { DiscoveryModeForm } from './discovery-mode-form'
 import { DiscoveryModeInfoBox } from './discovery-mode-info-box'
@@ -12,12 +16,9 @@ export function DiscoveryModeCard({
   onRun: (body: Record<string, unknown>) => Promise<void>
 }) {
   const { t } = useI18n()
-
-  // Try i18n key for mode label/description, fall back to API string
-  const labelKey = `discoveryMode.${mode.id}.label` as MessageKey
-  const descKey = `discoveryMode.${mode.id}.description` as MessageKey
-  const modeLabel = t(labelKey) !== labelKey ? t(labelKey) : mode.label
-  const modeDescription = t(descKey) !== descKey ? t(descKey) : mode.description
+  const modeLabel = translateDiscoveryModeLabel(t, mode)
+  const modeDescription = translateDiscoveryModeDescription(t, mode)
+  const availabilityReason = translateDiscoveryReason(t, mode.availability.reason)
 
   return (
     <article className="space-y-4 rounded-xl border border-border bg-bg p-5 shadow-sm">
@@ -39,17 +40,15 @@ export function DiscoveryModeCard({
         <p className="text-sm text-muted">{modeDescription}</p>
       </div>
 
-      {!mode.availability.enabled && mode.availability.reason && (
+      {!mode.availability.enabled && availabilityReason && (
         <DiscoveryModeInfoBox storageKey={`digarr:discovery-mode:${mode.id}:availability`}>
-          {mode.availability.reason === 'This mode is not shipped yet.'
-            ? t('discoveryMode.notShippedYet')
-            : mode.availability.reason}
+          {availabilityReason}
         </DiscoveryModeInfoBox>
       )}
 
-      {mode.availability.enabled && mode.availability.fallbackUsed && mode.availability.reason && (
+      {mode.availability.enabled && mode.availability.fallbackUsed && availabilityReason && (
         <DiscoveryModeInfoBox storageKey={`digarr:discovery-mode:${mode.id}:fallback`}>
-          {mode.availability.reason}
+          {availabilityReason}
         </DiscoveryModeInfoBox>
       )}
 

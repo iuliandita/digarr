@@ -259,6 +259,12 @@ export const fr = {
   'discover.discoveryModes': 'Modes de découverte',
   'discover.discoveryModesDescription':
     'Lancez une découverte ciblée avec un préréglage simple ou le formulaire avancé complet.',
+  'discover.monitoringOptions': 'Options de suivi',
+  'discover.monitorAllDescription': 'Surveiller et rechercher tous les albums',
+  'discover.monitorNewDescription': 'Surveiller uniquement les nouvelles sorties à venir',
+  'discover.monitorSelected': 'Albums sélectionnés',
+  'discover.monitorSelectedDescription': 'Choisir les albums à surveiller',
+  'discover.monitorNoneDescription': 'Ajouter sans surveillance (suivi uniquement)',
   'discover.discoveryRunStarted':
     "L'exécution de la découverte a démarré – vérifiez la progression dans le tableau de bord",
   'discover.expand': 'Développer',
@@ -628,6 +634,9 @@ export const fr = {
   'discoveryMode.addTag': '+ Ajouter un tag',
   'discoveryMode.removeTag': 'Supprimer le tag',
   'discoveryMode.commaSeparatedValues': 'Entrez des valeurs séparées par des virgules',
+  'discoveryMode.fieldRequired': '{0} est obligatoire',
+  'discoveryMode.tagExamplePlaceholder': 'ex. trip hop',
+  'discoveryMode.tagWeight': 'Poids',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'Découvrez à partir des données de graphe et des flux ListenBrainz',
@@ -656,6 +665,12 @@ export const fr = {
   'discoveryMode.labels.description':
     'Découvrez des artistes connectés via les catalogues de labels',
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
+  'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
+  'discoveryMode.reason.connectListeningSource': 'Connectez d’abord une source d’écoute.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Connectez ListenBrainz ou Last.fm pour utiliser ce mode.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Utilisation de fournisseurs de secours pour la découverte des sorties.',
   'discoveryMode.field.feed': 'Flux',
   'discoveryMode.field.artist': 'Artiste',
   'discoveryMode.field.adventurousness': 'Aventure',

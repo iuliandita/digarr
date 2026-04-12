@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 
 export type MonitorOption = 'all' | 'new' | 'selected' | 'none'
@@ -9,15 +10,31 @@ type Props = {
   loading?: boolean
 }
 
-const OPTIONS: Array<{ value: MonitorOption; label: string; description: string }> = [
-  { value: 'all', label: 'All albums', description: 'Monitor and search for all albums' },
-  { value: 'new', label: 'Future only', description: 'Only monitor new releases going forward' },
-  { value: 'selected', label: 'Selected albums', description: 'Choose which albums to monitor' },
-  { value: 'none', label: 'None', description: 'Add unmonitored (just tracking)' },
-]
-
 export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading }: Props) {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const options: Array<{ value: MonitorOption; label: string; description: string }> = [
+    {
+      value: 'all',
+      label: t('settings.monitorAll'),
+      description: t('discover.monitorAllDescription'),
+    },
+    {
+      value: 'new',
+      label: t('settings.monitorNew'),
+      description: t('discover.monitorNewDescription'),
+    },
+    {
+      value: 'selected',
+      label: t('discover.monitorSelected'),
+      description: t('discover.monitorSelectedDescription'),
+    },
+    {
+      value: 'none',
+      label: t('common.none'),
+      description: t('discover.monitorNoneDescription'),
+    },
+  ]
 
   function handleOptionClick(option: MonitorOption) {
     setOpen(false)
@@ -41,7 +58,7 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading }: Pro
           onApprove('all')
         }}
       >
-        Approve
+        {t('recommendation.approve')}
       </Button>
       {/* Dropdown toggle */}
       <button
@@ -52,7 +69,7 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading }: Pro
           setOpen((prev) => !prev)
         }}
         className="inline-flex items-center justify-center px-1.5 py-1.5 rounded-r-md text-xs border border-approve/40 text-approve hover:bg-approve/10 transition-colors disabled:pointer-events-none disabled:opacity-50"
-        aria-label="Monitoring options"
+        aria-label={t('discover.monitoringOptions')}
         aria-expanded={open}
         aria-haspopup="true"
       >
@@ -84,7 +101,7 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading }: Pro
             aria-hidden="true"
           />
           <div className="absolute right-0 top-full mt-1 z-50 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]">
-            {OPTIONS.map((opt) => (
+            {options.map((opt) => (
               <button
                 key={opt.value}
                 type="button"

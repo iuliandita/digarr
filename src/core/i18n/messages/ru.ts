@@ -259,6 +259,12 @@ export const ru = {
   'discover.discoveryModes': 'Режимы поиска',
   'discover.discoveryModesDescription':
     'Запустите целевое обнаружение с помощью простой предустановки или полной расширенной формы.',
+  'discover.monitoringOptions': 'Параметры мониторинга',
+  'discover.monitorAllDescription': 'Отслеживать и искать все альбомы',
+  'discover.monitorNewDescription': 'Отслеживать только будущие релизы',
+  'discover.monitorSelected': 'Выбранные альбомы',
+  'discover.monitorSelectedDescription': 'Выберите, какие альбомы отслеживать',
+  'discover.monitorNoneDescription': 'Добавить без мониторинга (только отслеживание)',
   'discover.discoveryRunStarted':
     'Начался исследовательский запуск – следите за ходом работы на информационной панели.',
   'discover.expand': 'Развернуть',
@@ -647,6 +653,9 @@ export const ru = {
   'discoveryMode.addTag': '+ Добавить тег',
   'discoveryMode.removeTag': 'Удалить тег',
   'discoveryMode.commaSeparatedValues': 'Введите значения через запятую',
+  'discoveryMode.fieldRequired': 'Поле {0} обязательно',
+  'discoveryMode.tagExamplePlaceholder': 'напр. trip hop',
+  'discoveryMode.tagWeight': 'Вес',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description': 'Открывайте на основе данных и лент ListenBrainz',
   'discoveryMode.artist-radio.label': 'Радио исполнителя',
@@ -673,6 +682,13 @@ export const ru = {
   'discoveryMode.labels.label': 'Лейблы',
   'discoveryMode.labels.description': 'Находите исполнителей через каталоги лейблов',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
+  'discoveryMode.reason.connectListenBrainz':
+    'Подключите ListenBrainz, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectListeningSource': 'Сначала подключите источник прослушивания.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Для поиска релизов используются резервные провайдеры.',
   'discoveryMode.field.feed': 'Лента',
   'discoveryMode.field.artist': 'Исполнитель',
   'discoveryMode.field.adventurousness': 'Авантюризм',

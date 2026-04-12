@@ -11,7 +11,7 @@ function StatusDot({ status }: { status: string }) {
 }
 
 export function SystemHealthCard() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const { data, isLoading } = useQuery({
     queryKey: ['job-health'],
     queryFn: getJobHealth,
@@ -53,7 +53,7 @@ export function SystemHealthCard() {
             <StatusDot status={data.pipeline.status} /> {t('systemHealth.pipeline')}
           </span>
           <span className="text-muted">
-            {t('systemHealth.lastRun')} {formatRelativeTime(data.pipeline.lastRun)}
+            {t('systemHealth.lastRun')} {formatRelativeTime(locale, data.pipeline.lastRun)}
             {data.pipeline.nextRun && (
               <>
                 {' '}
@@ -75,7 +75,7 @@ export function SystemHealthCard() {
             <StatusDot status={data.playlists.status} /> {t('systemHealth.playlists')}
           </span>
           <span className="text-muted">
-            {t('systemHealth.lastRun')} {formatRelativeTime(data.playlists.lastRun)}
+            {t('systemHealth.lastRun')} {formatRelativeTime(locale, data.playlists.lastRun)}
           </span>
         </div>
         {sourceEntries.length > 0 && (

@@ -259,6 +259,12 @@ export const ro = {
   'discover.discoveryModes': 'Moduri de descoperire',
   'discover.discoveryModesDescription':
     'Începeți o execuție de descoperire țintită fie cu o simplă presetare, fie cu formularul complet avansat.',
+  'discover.monitoringOptions': 'Opțiuni de monitorizare',
+  'discover.monitorAllDescription': 'Monitorizează și caută toate albumele',
+  'discover.monitorNewDescription': 'Monitorizează doar lansările noi de acum înainte',
+  'discover.monitorSelected': 'Albume selectate',
+  'discover.monitorSelectedDescription': 'Alege ce albume să monitorizezi',
+  'discover.monitorNoneDescription': 'Adaugă fără monitorizare (doar urmărire)',
   'discover.discoveryRunStarted':
     'Executarea descoperirii a început - verificați Tabloul de bord pentru progres',
   'discover.expand': 'Extindeți',
@@ -635,6 +641,9 @@ export const ro = {
   'discoveryMode.addTag': '+ Adăugați etichetă',
   'discoveryMode.removeTag': 'Eliminați eticheta',
   'discoveryMode.commaSeparatedValues': 'Introduceți valori separate prin virgulă',
+  'discoveryMode.fieldRequired': '{0} este obligatoriu',
+  'discoveryMode.tagExamplePlaceholder': 'ex. trip hop',
+  'discoveryMode.tagWeight': 'Pondere',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'Descoperiți din datele grafului și fluxurile ListenBrainz',
@@ -663,6 +672,12 @@ export const ro = {
   'discoveryMode.labels.description':
     'Descoperiți artiști conectați prin cataloagele caselor de discuri',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
+  'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
+  'discoveryMode.reason.connectListeningSource': 'Conectați mai întâi o sursă de ascultare.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Conectați ListenBrainz sau Last.fm pentru a folosi acest mod.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
   'discoveryMode.field.feed': 'Flux',
   'discoveryMode.field.artist': 'Artist',
   'discoveryMode.field.adventurousness': 'Aventurism',

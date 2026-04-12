@@ -3,6 +3,12 @@ import type { DiscoveryConfigField } from '@/core/discovery-modes/types'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
+import {
+  buildDiscoveryFieldRequiredMessage,
+  translateDiscoveryFieldHelp,
+  translateDiscoveryFieldLabel,
+  translateDiscoveryOption,
+} from '../lib/discovery-i18n'
 import { useI18n } from '../lib/i18n'
 
 type DiscoverySettingsMode = 'easy' | 'advanced'
@@ -76,6 +82,7 @@ function buildSubmission(
   settingsMode: DiscoverySettingsMode,
   values: Record<string, boolean | string>,
   initialSettings: Record<string, unknown> | undefined,
+  tFn: (key: MessageKey) => string,
 ) {
   const fields = getFields(mode, settingsMode)
   const fieldKeys = new Set([...mode.easyFields, ...mode.advancedFields].map((field) => field.key))
@@ -98,7 +105,7 @@ function buildSubmission(
     if (value === true) continue
     if (typeof value === 'number' && !Number.isNaN(value)) continue
     if (typeof value === 'string' && value.length > 0) continue
-    return { error: `${field.label} is required`, payload: null }
+    return { error: buildDiscoveryFieldRequiredMessage(tFn, field), payload: null }
   }
 
   return {
@@ -176,7 +183,7 @@ function TagBuilderField({
           <input
             type="text"
             value={row.tag}
-            placeholder="e.g. trip hop"
+            placeholder={tFn('discoveryMode.tagExamplePlaceholder')}
             onChange={(e) => updateRow(row.id, { tag: e.target.value })}
             className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
           />
@@ -192,7 +199,7 @@ function TagBuilderField({
                 })
               }
               className="w-16 rounded-md border border-border bg-surface px-2 py-2 text-sm text-text focus:border-accent focus:outline-none"
-              title="Weight"
+              title={tFn('discoveryMode.tagWeight')}
             />
           )}
           {rows.length > 1 && (
@@ -229,39 +236,18 @@ function DiscoveryModeFields({
 }) {
   const baseId = useId()
 
-  function translateFieldLabel(field: DiscoveryConfigField): string {
-    const key = `discoveryMode.field.${field.key}` as MessageKey
-    const translated = tFn(key)
-    return translated !== key ? translated : field.label
-  }
-
-  function translateFieldHelp(field: DiscoveryConfigField): string | undefined {
-    if (!field.helpText) return undefined
-    const key =
-      `discoveryMode.field.help${field.key.charAt(0).toUpperCase()}${field.key.slice(1)}` as MessageKey
-    const translated = tFn(key)
-    return translated !== key ? translated : field.helpText
-  }
-
-  function translateOption(option: { value: string; label: string }): string {
-    const key =
-      `discoveryMode.option.${option.value.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())}` as MessageKey
-    const translated = tFn(key)
-    return translated !== key ? translated : option.label
-  }
-
   return (
     <div className="space-y-3">
       {fields.map((field) => {
         const value = values[field.key] ?? getDefaultValue(field)
         const inputId = `${baseId}-${field.key}`
-        const helpText = translateFieldHelp(field)
+        const helpText = translateDiscoveryFieldHelp(tFn, field)
         const helpId = helpText ? `${inputId}-help` : undefined
 
         return (
           <div key={field.key} className="block space-y-1">
             <label htmlFor={inputId} className="block text-sm font-medium text-text">
-              {translateFieldLabel(field)}
+              {translateDiscoveryFieldLabel(tFn, field)}
             </label>
             {helpText && (
               <span id={helpId} className="block text-xs text-muted">
@@ -280,7 +266,7 @@ function DiscoveryModeFields({
               >
                 {(field.options ?? []).map((option) => (
                   <option key={option.value} value={option.value}>
-                    {translateOption(option)}
+                    {translateDiscoveryOption(tFn, option)}
                   </option>
                 ))}
               </select>
@@ -340,6 +326,7 @@ export function DiscoveryModeForm({
   initialSettingsMode?: DiscoverySettingsMode
   initialSettings?: Record<string, unknown>
 }) {
+  const { t } = useI18n()
   const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>(
     initialSettingsMode ?? 'easy',
   )
@@ -364,8 +351,8 @@ export function DiscoveryModeForm({
 
   const fields = useMemo(() => getFields(mode, settingsMode), [mode, settingsMode])
   const submission = useMemo(
-    () => buildSubmission(mode, settingsMode, values, initialSettings),
-    [mode, settingsMode, values, initialSettings],
+    () => buildSubmission(mode, settingsMode, values, initialSettings, t),
+    [mode, settingsMode, values, initialSettings, t],
   )
 
   useEffect(() => {
@@ -417,8 +404,6 @@ export function DiscoveryModeForm({
       setSubmitting(false)
     }
   }
-
-  const { t } = useI18n()
 
   const content = (
     <>

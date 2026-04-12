@@ -258,6 +258,12 @@ export const ja = {
   'discover.discoveryModes': '発見モード',
   'discover.discoveryModesDescription':
     'シンプルなプリセットまたは完全な詳細フォームを使用して、ターゲットを絞った検出の実行を開始します。',
+  'discover.monitoringOptions': 'モニタリングオプション',
+  'discover.monitorAllDescription': 'すべてのアルバムを監視して検索',
+  'discover.monitorNewDescription': '今後の新作のみを監視',
+  'discover.monitorSelected': '選択したアルバム',
+  'discover.monitorSelectedDescription': '監視するアルバムを選択',
+  'discover.monitorNoneDescription': '監視せずに追加（追跡のみ）',
   'discover.discoveryRunStarted':
     '検出の実行が開始されました - ダッシュボードで進行状況を確認してください',
   'discover.expand': '展開する',
@@ -623,6 +629,9 @@ export const ja = {
   'discoveryMode.addTag': '+ タグを追加',
   'discoveryMode.removeTag': 'タグを削除',
   'discoveryMode.commaSeparatedValues': 'カンマ区切りで入力',
+  'discoveryMode.fieldRequired': '{0} は必須です',
+  'discoveryMode.tagExamplePlaceholder': '例: trip hop',
+  'discoveryMode.tagWeight': '重み',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'ListenBrainz のグラフデータとフィードからアーティストを発見します',
@@ -650,6 +659,13 @@ export const ja = {
   'discoveryMode.labels.label': 'レーベル',
   'discoveryMode.labels.description': 'レーベルのカタログを通じてアーティストを発見します',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
+  'discoveryMode.reason.connectListenBrainz':
+    'このモードを使うには ListenBrainz を接続してください。',
+  'discoveryMode.reason.connectListeningSource': '先に再生ソースを接続してください。',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'このモードを使うには ListenBrainz または Last.fm を接続してください。',
+  'discoveryMode.reason.releaseRadarFallback':
+    'リリース探索にはフォールバックプロバイダーが使われます。',
   'discoveryMode.field.feed': 'フィード',
   'discoveryMode.field.artist': 'アーティスト',
   'discoveryMode.field.adventurousness': '冒険度',

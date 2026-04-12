@@ -259,6 +259,12 @@ export const es = {
   'discover.discoveryModes': 'Modos de descubrimiento',
   'discover.discoveryModesDescription':
     'Inicie una ejecución de descubrimiento dirigida ya sea con un ajuste preestablecido simple o con el formulario avanzado completo.',
+  'discover.monitoringOptions': 'Opciones de seguimiento',
+  'discover.monitorAllDescription': 'Supervisa y busca todos los álbumes',
+  'discover.monitorNewDescription': 'Solo supervisa los nuevos lanzamientos a partir de ahora',
+  'discover.monitorSelected': 'Álbumes seleccionados',
+  'discover.monitorSelectedDescription': 'Elige qué álbumes supervisar',
+  'discover.monitorNoneDescription': 'Añadir sin supervisión (solo seguimiento)',
   'discover.discoveryRunStarted':
     'Se inició la ejecución de descubrimiento: verifique el progreso en el Panel de control',
   'discover.expand': 'Expandir',
@@ -632,6 +638,9 @@ export const es = {
   'discoveryMode.addTag': '+ Añadir etiqueta',
   'discoveryMode.removeTag': 'Eliminar etiqueta',
   'discoveryMode.commaSeparatedValues': 'Introduce valores separados por comas',
+  'discoveryMode.fieldRequired': 'Se requiere {0}',
+  'discoveryMode.tagExamplePlaceholder': 'p. ej. trip hop',
+  'discoveryMode.tagWeight': 'Peso',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
     'Descubre a partir de datos del grafo y feeds de ListenBrainz',
@@ -660,6 +669,12 @@ export const es = {
   'discoveryMode.labels.description':
     'Descubre artistas conectados a través de catálogos de sellos',
   'discoveryMode.notShippedYet': 'Este modo aún no está disponible.',
+  'discoveryMode.reason.connectListenBrainz': 'Conecta ListenBrainz para usar este modo.',
+  'discoveryMode.reason.connectListeningSource': 'Conecta primero una fuente de escucha.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Conecta ListenBrainz o Last.fm para usar este modo.',
+  'discoveryMode.reason.releaseRadarFallback':
+    'Usando proveedores de respaldo para descubrir lanzamientos.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artista',
   'discoveryMode.field.adventurousness': 'Aventura',
