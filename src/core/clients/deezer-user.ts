@@ -49,6 +49,8 @@ export function createDeezerUserClient(accessToken: string) {
     return (res.data ?? []).map((a) => ({ id: a.id, name: a.name, fans: a.nb_fan }))
   }
 
+  // Deezer treats favorites and followed as the same concept - both hit /user/me/artists.
+  // Kept as a separate method for adapter flexibility (different scores/labels).
   async function getFollowedArtists(limit = 100): Promise<DeezerUserArtist[]> {
     const res = await http.get<DeezerArtistResponse>(
       `/user/me/artists?${authParam()}&limit=${limit}`,
