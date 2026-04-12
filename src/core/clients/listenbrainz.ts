@@ -27,6 +27,15 @@ export type RadioArtist = {
   score: number
 }
 
+export type PopularityRange = 'low' | 'medium' | 'high' | 'all'
+
+const POP_RANGES: Record<PopularityRange, [number, number]> = {
+  low: [0, 40],
+  medium: [30, 70],
+  high: [60, 100],
+  all: [0, 100],
+}
+
 // Raw LB response shapes
 type LbTopArtistsResponse = {
   payload: {
@@ -144,6 +153,33 @@ export function createListenBrainzClient(username: string, token: string) {
     return extractRadioArtists(res, mbid)
   }
 
+  async function getTagRadio(
+    tag: string,
+    popularity: PopularityRange = 'all',
+    mode: RadioMode = 'medium',
+  ): Promise<RadioArtist[]> {
+    const [popBegin, popEnd] = POP_RANGES[popularity]
+    const params = new URLSearchParams({
+      tag,
+      pop_begin: String(popBegin),
+      pop_end: String(popEnd),
+      mode,
+    })
+    const res = await http.get<LbRadioResponse>(`/1/lb-radio/tags?${params.toString()}`)
+    return extractRadioArtists(res)
+  }
+
+  async function getUserRadio(
+    targetUsername: string,
+    mode: RadioMode = 'medium',
+  ): Promise<RadioArtist[]> {
+    const params = new URLSearchParams({ mode })
+    const res = await http.get<LbRadioResponse>(
+      `/1/lb-radio/user/${encodeURIComponent(targetUsername)}?${params.toString()}`,
+    )
+    return extractRadioArtists(res)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const count = await getListenCount()
@@ -163,6 +199,8 @@ export function createListenBrainzClient(username: string, token: string) {
     getListeningActivity,
     getSimilarArtists,
     getArtistRadio,
+    getTagRadio,
+    getUserRadio,
     testConnection,
   }
 }
