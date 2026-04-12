@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { SLSKD_ACTIVE_JOB_STATES } from '@/db/schema'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
+import { SLSKD_ACTIVE_JOB_STATES } from '@/db/schema'
 
 const { mockedEq, mockedInArray, mockedAnd, mockedDesc } = vi.hoisted(() => ({
   mockedEq: vi.fn((left: unknown, right: unknown) => ({ op: 'eq', left, right })),
@@ -20,13 +20,15 @@ vi.mock('drizzle-orm', () => ({
 const { createSlskdJob, findActiveSlskdJobByWorkKey, listPendingSlskdJobs, updateSlskdJobState } =
   await import('@/db/queries/slskd-jobs')
 
-function makeDb(opts: {
-  insertedRows?: Array<Record<string, unknown>>
-  insertedRowsSequence?: Array<Array<Record<string, unknown>>>
-  selectedRows?: Array<Record<string, unknown>>
-  selectedRowsSequence?: Array<Array<Record<string, unknown>>>
-  updatedRows?: Array<Record<string, unknown>>
-} = {}) {
+function makeDb(
+  opts: {
+    insertedRows?: Array<Record<string, unknown>>
+    insertedRowsSequence?: Array<Array<Record<string, unknown>>>
+    selectedRows?: Array<Record<string, unknown>>
+    selectedRowsSequence?: Array<Array<Record<string, unknown>>>
+    updatedRows?: Array<Record<string, unknown>>
+  } = {},
+) {
   const insertedRowsSequence = opts.insertedRowsSequence ?? [opts.insertedRows ?? [{ id: 1 }]]
   const selectedRowsSequence = opts.selectedRowsSequence ?? [opts.selectedRows ?? []]
   const updatedRows = opts.updatedRows ?? [{ id: 1 }]

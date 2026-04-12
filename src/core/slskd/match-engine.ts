@@ -32,13 +32,27 @@ function splitCandidateFilename(filename: string): { artist: string; title: stri
   return { artist: stem, title: stem }
 }
 
-const AUDIO_EXTENSIONS = new Set(['flac', 'mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'opus', 'alac', 'wma'])
+const AUDIO_EXTENSIONS = new Set([
+  'flac',
+  'mp3',
+  'm4a',
+  'aac',
+  'wav',
+  'ogg',
+  'oga',
+  'opus',
+  'alac',
+  'wma',
+])
 
 function getFilenameExtension(filename: string): string | undefined {
   return filename.split('.').pop()?.toLowerCase()
 }
 
-function qualityMatches(preference: QualityPreference | undefined, candidate: Pick<SlskdSearchResult, 'filename'>): boolean {
+function qualityMatches(
+  preference: QualityPreference | undefined,
+  candidate: Pick<SlskdSearchResult, 'filename'>,
+): boolean {
   const extension = getFilenameExtension(candidate.filename)
 
   if (extension === undefined || !AUDIO_EXTENSIONS.has(extension)) {
@@ -49,8 +63,6 @@ function qualityMatches(preference: QualityPreference | undefined, candidate: Pi
     case 'lossless_only':
     case 'flac_preferred':
       return extension === 'flac'
-    case 'lossy_fallback':
-    case 'any_audio':
     default:
       return extension !== undefined
   }

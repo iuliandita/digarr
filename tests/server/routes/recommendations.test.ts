@@ -190,6 +190,7 @@ const mockLidarrClient = {
   getArtists: vi.fn(async () => []),
   lookupArtist: vi.fn(async () => []),
   getAlbums: vi.fn(async () => []),
+  getWantedMissing: vi.fn(async () => []),
   updateArtist: vi.fn(async () => ({
     id: 0,
     artistName: '',
@@ -443,6 +444,199 @@ describe('PATCH /api/recommendations/:id', () => {
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({ error: 'Unknown targetId: missing-target' })
+  })
+
+  it('supports combined lidarr + slskd approval ordering', async () => {
+    const updateRecommendationStatus = vi.fn(async () => {})
+    const mockLidarrTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'lidarr',
+        targetId: 1,
+        externalId: 77,
+      }),
+      testConnection: vi.fn(),
+    }
+    const mockSlskdTarget = {
+      id: 'slskd-7',
+      name: 'slskd',
+      type: 'slskd',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'slskd',
+        targetId: 7,
+      }),
+      testConnection: vi.fn(),
+    }
+
+    const app = createApp(
+      makeDeps({
+        updateRecommendationStatus,
+        getEnabledTargetsForUser: vi
+          .fn()
+          .mockResolvedValue([mockLidarrTarget, mockSlskdTarget] as never),
+      }),
+    )
+
+    const res = await app.request('/api/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({
+        status: 'approved',
+        approvalMode: 'combined_lidarr_slskd',
+        targetId: 'slskd-7',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockLidarrTarget.addArtist).toHaveBeenCalledBefore(mockSlskdTarget.addArtist as never)
+    expect(mockSlskdTarget.addArtist).toHaveBeenCalledWith(
+      { mbid: 'mbid-abc-123', name: 'Test Artist' },
+      expect.objectContaining({
+        userId: 1,
+        recommendationId: 1,
+        lidarrArtistId: 77,
+      }),
+    )
+    expect(updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.objectContaining({
+        targetActions: expect.objectContaining({
+          'lidarr-1': expect.any(Object),
+          'slskd-7': expect.any(Object),
+        }),
+      }),
+    )
+  })
+
+  it('uses the requested Lidarr target for combined approval when multiple Lidarr targets exist', async () => {
+    const firstLidarrTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr One',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'lidarr',
+        targetId: 1,
+        externalId: 11,
+      }),
+      testConnection: vi.fn(),
+    }
+    const secondLidarrTarget = {
+      id: 'lidarr-2',
+      name: 'Lidarr Two',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'lidarr',
+        targetId: 2,
+        externalId: 22,
+      }),
+      testConnection: vi.fn(),
+    }
+    const mockSlskdTarget = {
+      id: 'slskd-7',
+      name: 'slskd',
+      type: 'slskd',
+      capabilities: ['addArtist'],
+      linkedLidarrTargetId: 'lidarr-2',
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'slskd',
+        targetId: 7,
+      }),
+      testConnection: vi.fn(),
+    }
+
+    const app = createApp(
+      makeDeps({
+        getEnabledTargetsForUser: vi
+          .fn()
+          .mockResolvedValue([firstLidarrTarget, secondLidarrTarget, mockSlskdTarget] as never),
+      }),
+    )
+
+    const res = await app.request('/api/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({
+        status: 'approved',
+        approvalMode: 'combined_lidarr_slskd',
+        targetId: 'slskd-7',
+        lidarrTargetId: 'lidarr-2',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(firstLidarrTarget.addArtist).not.toHaveBeenCalled()
+    expect(secondLidarrTarget.addArtist).toHaveBeenCalledBefore(mockSlskdTarget.addArtist as never)
+    expect(mockSlskdTarget.addArtist).toHaveBeenCalledWith(
+      { mbid: 'mbid-abc-123', name: 'Test Artist' },
+      expect.objectContaining({
+        lidarrArtistId: 22,
+      }),
+    )
+  })
+
+  it('rejects combined approval when more than one Lidarr target is enabled', async () => {
+    const firstLidarrTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr One',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn(),
+      testConnection: vi.fn(),
+    }
+    const secondLidarrTarget = {
+      id: 'lidarr-2',
+      name: 'Lidarr Two',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn(),
+      testConnection: vi.fn(),
+    }
+    const mockSlskdTarget = {
+      id: 'slskd-7',
+      name: 'slskd',
+      type: 'slskd',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn(),
+      testConnection: vi.fn(),
+    }
+
+    const app = createApp(
+      makeDeps({
+        getEnabledTargetsForUser: vi
+          .fn()
+          .mockResolvedValue([firstLidarrTarget, secondLidarrTarget, mockSlskdTarget] as never),
+      }),
+    )
+
+    const res = await app.request('/api/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({
+        status: 'approved',
+        approvalMode: 'combined_lidarr_slskd',
+        targetId: 'slskd-7',
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Combined approval requires exactly one enabled Lidarr target',
+    })
+    expect(firstLidarrTarget.addArtist).not.toHaveBeenCalled()
+    expect(secondLidarrTarget.addArtist).not.toHaveBeenCalled()
+    expect(mockSlskdTarget.addArtist).not.toHaveBeenCalled()
   })
 })
 

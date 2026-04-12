@@ -254,6 +254,66 @@ describe('RecommendationCard', () => {
     expect(screen.getByText('Artist not found in MB')).toBeInTheDocument()
   })
 
+  it('shows failed target action errors when Lidarr succeeded but another target failed', () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec({
+          status: 'added_to_lidarr',
+          targetActions: {
+            'lidarr-1': { status: 'added' },
+            'slskd-7': { status: 'failed', error: 'slskd queue failed' },
+          },
+        })}
+        onApprove={onApprove}
+        onReject={onReject}
+      />,
+    )
+
+    expect(screen.getByText('Added to Lidarr')).toBeInTheDocument()
+    expect(screen.getByText('slskd queue failed')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['queued', 'Queued in slskd'],
+    ['downloading', 'Downloading in slskd'],
+    ['import_pending', 'Waiting for Lidarr import'],
+    ['needs_review', 'Needs review'],
+  ])('renders the slskd %s state from target actions', (actionStatus, expectedLabel) => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec({
+          status: 'approved',
+          targetActions: {
+            'slskd-7': { status: actionStatus },
+          },
+        })}
+        onApprove={onApprove}
+        onReject={onReject}
+      />,
+    )
+
+    expect(screen.getByText(expectedLabel)).toBeInTheDocument()
+  })
+
+  it('renders the slskd queue state alongside Lidarr success', () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec({
+          status: 'added_to_lidarr',
+          targetActions: {
+            'lidarr-1': { status: 'added' },
+            'slskd-7': { status: 'queued' },
+          },
+        })}
+        onApprove={onApprove}
+        onReject={onReject}
+      />,
+    )
+
+    expect(screen.getByText('Added to Lidarr')).toBeInTheDocument()
+    expect(screen.getByText('Queued in slskd')).toBeInTheDocument()
+  })
+
   it('hides playlist-only targets from the approve dropdown', () => {
     withPreview(
       <RecommendationCard
@@ -268,10 +328,48 @@ describe('RecommendationCard', () => {
       />,
     )
 
+    expect(screen.queryByRole('button', { name: '' })).not.toBeInTheDocument()
+    expect(screen.getByText('Approve')).toBeInTheDocument()
+    expect(screen.queryByText('Add to Spotify playlist')).not.toBeInTheDocument()
+  })
+
+  it('shows slskd as an approvable target in the dropdown', () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        targets={[
+          { id: 1, type: 'lidarr', name: 'Main Lidarr' },
+          { id: 7, type: 'slskd', name: 'slskd' },
+        ]}
+        onApproveToTarget={vi.fn()}
+      />,
+    )
+
     fireEvent.click(screen.getByRole('button', { name: '' }))
 
     expect(screen.getByText('Add to Main Lidarr')).toBeInTheDocument()
-    expect(screen.queryByText('Add to Spotify playlist')).not.toBeInTheDocument()
+    expect(screen.getByText('Add to slskd')).toBeInTheDocument()
+  })
+
+  it('routes the primary approve button to slskd when it is the only target', () => {
+    const onApproveToTarget = vi.fn()
+
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        targets={[{ id: 7, type: 'slskd', name: 'slskd' }]}
+        onApproveToTarget={onApproveToTarget}
+      />,
+    )
+
+    fireEvent.click(screen.getByText('Approve'))
+
+    expect(onApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7')
+    expect(onApprove).not.toHaveBeenCalled()
   })
 
   it('renders album coverage when the artist has library data', async () => {

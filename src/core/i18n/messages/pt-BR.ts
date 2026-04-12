@@ -124,6 +124,10 @@ export const ptBR = {
   'recommendation.playPreview': 'Antevisão da reprodução',
   'recommendation.stopPreview': 'Parar visualização',
   'recommendation.audioUnavailable': 'Pré-visualização de áudio não disponível',
+  'recommendation.slskdQueued': 'Na fila do slskd',
+  'recommendation.slskdDownloading': 'Baixando no slskd',
+  'recommendation.slskdImportPending': 'Aguardando importação do Lidarr',
+  'recommendation.slskdNeedsReview': 'Precisa de revisão',
   'todaysPick.noPending': 'Nenhuma recomendação pendente',
   'todaysPick.reject': 'Rejeitar',
   'todaysPick.skip': 'Pular',
@@ -833,6 +837,18 @@ export const ptBR = {
   'settings.adding': 'Adicionando...',
   'settings.type': 'Tipo',
   'settings.name': 'Nome',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Playlist do Emby',
+  'settings.slskdModeHelp':
+    'O slskd pode enfileirar lançamentos, mas a automação completa exige um destino Lidarr vinculado.',
+  'settings.slskdReleasePolicy':
+    'Política de lançamentos: o slskd autônomo enfileira lançamentos diretamente.',
+  'settings.slskdQualityPolicy':
+    'Política de qualidade: o Lidarr vinculado cuida da qualidade e das importações.',
+  'settings.approvalActionSlskd': 'Ação de aprovação: enfileirar só no slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Ação de aprovação: enfileirar no slskd e importar pelo Lidarr.',
   'settings.recommendationsTip':
     'Os pesos de pontuação controlam como as recomendações são classificadas. Ajuste-os para enfatizar sobreposição de gênero, confiança da IA ou similaridade.',
   'settings.scoreThreshold': 'Limite de pontuação',

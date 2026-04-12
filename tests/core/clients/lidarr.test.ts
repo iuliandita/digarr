@@ -281,6 +281,42 @@ describe('createLidarrClient', () => {
     })
   })
 
+  describe('getWantedMissing()', () => {
+    it('GETs /api/v1/wanted/missing and returns the trimmed wanted payload', async () => {
+      mockGet.mockResolvedValueOnce([
+        {
+          id: 44,
+          title: 'Geogaddi',
+          artistId: 7,
+          foreignAlbumId: 'album-mbid-44',
+          artist: {
+            id: 7,
+            artistName: 'Boards of Canada',
+            foreignArtistId: '11111111-1111-1111-1111-111111111111',
+          },
+        },
+      ])
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.getWantedMissing()
+
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/wanted/missing')
+      expect(result).toEqual([
+        {
+          id: 44,
+          title: 'Geogaddi',
+          artistId: 7,
+          foreignAlbumId: 'album-mbid-44',
+          artist: {
+            id: 7,
+            artistName: 'Boards of Canada',
+            foreignArtistId: '11111111-1111-1111-1111-111111111111',
+          },
+        },
+      ])
+    })
+  })
+
   describe('updateArtist()', () => {
     it('PUTs to /api/v1/artist/:id with the provided data', async () => {
       const updated = { ...mockArtists[0], monitored: false }

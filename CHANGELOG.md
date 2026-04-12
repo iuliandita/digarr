@@ -2,6 +2,18 @@
 
 All notable user-facing changes are documented here.
 
+## Unreleased
+
+### Added
+
+- Settings > Targets now supports creating `slskd` download targets, including an optional linked Lidarr target for combined approvals
+- Linked `slskd` targets now run a background wanted-release worker with import-verified completion, plus admin sync and active-job endpoints
+
+### Fixed
+
+- Combined `slskd` approvals can now target an explicit Lidarr destination instead of guessing when multiple Lidarr targets exist
+- Recommendation cards now surface partial target failures when Lidarr succeeds but the follow-up `slskd` step fails
+
 ## v0.24.4 - 2026-04-12
 
 ### Fixed

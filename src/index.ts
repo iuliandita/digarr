@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server'
+import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { canAutoSetup, envConfig } from './config/env'
@@ -11,6 +12,7 @@ import { createJellyfinClient } from './core/clients/jellyfin'
 import { createLidarrClient } from './core/clients/lidarr'
 import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
+import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
@@ -52,6 +54,8 @@ import { createDeezerSearchSource } from './core/search/sources/deezer'
 import { createMusicBrainzSearchSource } from './core/search/sources/musicbrainz'
 import { createSpotifySearchSource } from './core/search/sources/spotify'
 import { setSessionStore } from './core/sessions'
+import { createSlskdOrchestrator } from './core/slskd/orchestrator'
+import { createSlskdRunner } from './core/slskd/runner'
 import { resolveSpotifyToken } from './core/spotify-auth'
 import { createCsvImportAdapter } from './core/subscriptions/adapters/csv-import'
 import { createDeezerAdapter } from './core/subscriptions/adapters/deezer'
@@ -75,6 +79,7 @@ import { createJellyfinPlaylistTarget } from './core/targets/jellyfin-playlist'
 import { createLidarrTarget } from './core/targets/lidarr'
 import { createNavidromePlaylistTarget } from './core/targets/navidrome-playlist'
 import { createPlexPlaylistTarget } from './core/targets/plex-playlist'
+import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
 import { db, pool } from './db'
@@ -110,6 +115,13 @@ import {
 import { sessionQueries } from './db/queries/sessions'
 import type { SetupConfig } from './db/queries/settings'
 import { completeSetup, getSettings, isSetupComplete, updateSettings } from './db/queries/settings'
+import {
+  createSlskdJob,
+  findActiveSlskdJobByWorkKey,
+  listPendingSlskdJobs,
+  listSlskdJobsForRecommendationTarget,
+  updateSlskdJobState,
+} from './db/queries/slskd-jobs'
 import {
   createSubscription,
   deleteSubscription,
@@ -260,6 +272,82 @@ librarySyncStore
 const orchestrator = new PipelineOrchestrator()
 const scheduler = new SubscriptionScheduler()
 const playlistScheduler = new PlaylistScheduler()
+
+async function updateSlskdRecommendationAction(
+  recommendationId: number,
+  targetId: number,
+  status: string,
+  error?: string,
+) {
+  const recommendation = await getRecommendation(db, recommendationId)
+  if (!recommendation) {
+    return
+  }
+
+  const jobs = await listSlskdJobsForRecommendationTarget(db, recommendationId, targetId)
+  const activeStates = new Set(['pending', 'searching', 'queued', 'downloading', 'import_pending'])
+  const activeJobs = jobs.filter((job) => activeStates.has(job.state))
+  const completedJobs = jobs.filter((job) => job.state === 'completed')
+  const failedJobs = jobs.filter((job) => job.state === 'failed')
+  const needsReview = failedJobs.some((job) => job.lastError === 'slskd search needs manual review')
+
+  let nextActionStatus = status
+  let nextActionError = error
+
+  if (activeJobs.some((job) => job.state === 'import_pending')) {
+    nextActionStatus = 'import_pending'
+    nextActionError = undefined
+  } else if (activeJobs.some((job) => job.state === 'downloading')) {
+    nextActionStatus = 'downloading'
+    nextActionError = undefined
+  } else if (activeJobs.length > 0) {
+    nextActionStatus = 'queued'
+    nextActionError = undefined
+  } else if (completedJobs.length > 0) {
+    nextActionStatus = 'added'
+    nextActionError = undefined
+  } else if (needsReview) {
+    nextActionStatus = 'needs_review'
+    nextActionError = undefined
+  } else if (failedJobs.length > 0) {
+    nextActionStatus = 'failed'
+    nextActionError =
+      nextActionError ??
+      failedJobs.find((job) => job.lastError && job.lastError.length > 0)?.lastError ??
+      undefined
+  }
+
+  const targetActions = {
+    ...(((recommendation.targetActions as Record<string, unknown> | null) ?? {}) as Record<
+      string,
+      unknown
+    >),
+    [`slskd-${targetId}`]: nextActionError
+      ? { status: nextActionStatus, error: nextActionError }
+      : { status: nextActionStatus },
+  }
+
+  const nextStatus =
+    nextActionStatus === 'failed' && recommendation.status !== 'added_to_lidarr'
+      ? 'add_failed'
+      : recommendation.status
+
+  await updateRecommendationStatus(db, recommendationId, nextStatus, {
+    targetActions,
+  })
+}
+
+const slskdOrchestrator = createSlskdOrchestrator({
+  listTargets: () => getAllTargets(db),
+  createSlskdClient: (url, apiKey, skipTlsVerify) => createSlskdClient(url, apiKey, skipTlsVerify),
+  createLidarrClient: (url, apiKey, skipTlsVerify) =>
+    createLidarrClient(url, apiKey, skipTlsVerify),
+  findActiveJobByWorkKey: (workKey) => findActiveSlskdJobByWorkKey(db, workKey),
+  createJob: (input) => createSlskdJob(db, input),
+  listPendingJobs: (limit) => listPendingSlskdJobs(db, limit),
+  updateJobState: (id, state, extra) => updateSlskdJobState(db, id, state, extra),
+  updateRecommendationAction: updateSlskdRecommendationAction,
+})
 const providerRegistry = createDefaultRegistry()
 
 // Map DB genre rows (artistCount: number | null) to GenreInfo (artistCount: number)
@@ -522,6 +610,38 @@ async function getEnabledTargetsForResolvedUser(
           qualityProfileId: Number(prefs.qualityProfileId ?? 1),
           metadataProfileId: Number(prefs.metadataProfileId ?? 1),
           rootFolderId: Number(prefs.rootFolderId ?? 1),
+        }),
+      )
+    }
+
+    if (row.type === 'slskd') {
+      const client = createSlskdClient(
+        row.config.url as string,
+        row.config.apiKey as string,
+        (row.config.skipTlsVerify as boolean) ?? false,
+      )
+      const musicBrainz = createMusicBrainzClient()
+      const runner = createSlskdRunner({
+        resolveReleaseGroups: async (artistMbid) => {
+          const releaseGroups = await musicBrainz.getReleaseGroups(artistMbid)
+          return releaseGroups.map((releaseGroup) => ({
+            releaseGroupMbid: releaseGroup.id,
+            releaseTitle: releaseGroup.title,
+          }))
+        },
+        findActiveJob: (workKey) => findActiveSlskdJobByWorkKey(db, workKey),
+        createJob: (input) => createSlskdJob(db, input),
+      })
+
+      targets.push(
+        createSlskdTarget(row.id, {
+          name: row.name,
+          linkedLidarrTargetId:
+            row.config.lidarrTargetId != null
+              ? `lidarr-${Number(row.config.lidarrTargetId)}`
+              : undefined,
+          testConnection: () => client.testConnection(),
+          queueArtist: (input) => runner.queueArtist(input),
         }),
       )
     }
@@ -1034,6 +1154,7 @@ const app = createApp({
   skyhookWarmer,
   librarySync: librarySyncOrchestrator,
   librarySyncStore,
+  slskdOrchestrator,
   albumCoverage,
   subscriptionQueries: subscriptionQueriesImpl,
   runSubscription: (id) => executeSubscription(id),
@@ -1083,6 +1204,15 @@ const app = createApp({
         message:
           'Spotify targets require OAuth connection. Use Settings > Connections to connect Spotify first.',
       }
+    }
+
+    if (type === 'slskd') {
+      const client = createSlskdClient(
+        config.url as string,
+        config.apiKey as string,
+        (config.skipTlsVerify as boolean) ?? false,
+      )
+      return client.testConnection()
     }
 
     return { success: false, message: `Unknown target type: ${type}` }
@@ -1296,6 +1426,14 @@ const server = serve({ fetch: app.fetch, port })
     void librarySyncOrchestrator
       .syncGlobal()
       .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
+    void slskdOrchestrator.warmup()
+    new Cron('*/10 * * * *', async () => {
+      try {
+        await slskdOrchestrator.triggerSync()
+      } catch (err) {
+        console.error('[slskd-scheduler] tick failed:', err)
+      }
+    })
 
     // Start stuck job detector
     startStuckDetector(jobRecorder)

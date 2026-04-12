@@ -120,16 +120,27 @@ export async function findActiveSlskdJobByWorkKey(
   return (row as SlskdJobRow) ?? null
 }
 
-export async function listPendingSlskdJobs(
-  db: Database,
-  limit = 50,
-): Promise<SlskdJobRow[]> {
+export async function listPendingSlskdJobs(db: Database, limit = 50): Promise<SlskdJobRow[]> {
   const rows = await db
     .select()
     .from(slskdJobs)
     .where(inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
     .orderBy(desc(slskdJobs.createdAt), desc(slskdJobs.id))
     .limit(limit)
+
+  return rows as SlskdJobRow[]
+}
+
+export async function listSlskdJobsForRecommendationTarget(
+  db: Database,
+  recommendationId: number,
+  targetId: number,
+): Promise<SlskdJobRow[]> {
+  const rows = await db
+    .select()
+    .from(slskdJobs)
+    .where(and(eq(slskdJobs.recommendationId, recommendationId), eq(slskdJobs.targetId, targetId)))
+    .orderBy(desc(slskdJobs.createdAt), desc(slskdJobs.id))
 
   return rows as SlskdJobRow[]
 }
@@ -142,7 +153,7 @@ export async function updateSlskdJobState(
 ): Promise<SlskdJobRow> {
   const completedAt =
     state === 'completed' || state === 'failed' || state === 'cancelled'
-      ? extra.completedAt ?? new Date()
+      ? (extra.completedAt ?? new Date())
       : extra.completedAt
 
   const [row] = await db

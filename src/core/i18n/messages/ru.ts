@@ -124,6 +124,10 @@ export const ru = {
   'recommendation.playPreview': 'Предварительный просмотр воспроизведения',
   'recommendation.stopPreview': 'Остановить предварительный просмотр',
   'recommendation.audioUnavailable': 'Предварительный просмотр аудио недоступен.',
+  'recommendation.slskdQueued': 'В очереди в slskd',
+  'recommendation.slskdDownloading': 'Загружается в slskd',
+  'recommendation.slskdImportPending': 'Ожидает импорта в Lidarr',
+  'recommendation.slskdNeedsReview': 'Требует проверки',
   'todaysPick.noPending': 'Нет ожидающих рекомендаций',
   'todaysPick.reject': 'Отклонить',
   'todaysPick.skip': 'Пропустить',
@@ -844,6 +848,18 @@ export const ru = {
   'settings.adding': 'Добавление...',
   'settings.type': 'Тип',
   'settings.name': 'Название',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Плейлист Emby',
+  'settings.slskdModeHelp':
+    'slskd может ставить релизы в очередь, но для полной автоматизации нужна связанная цель Lidarr.',
+  'settings.slskdReleasePolicy':
+    'Политика релизов: автономный slskd ставит релизы в очередь напрямую.',
+  'settings.slskdQualityPolicy':
+    'Политика качества: связанный Lidarr управляет качеством и импортом.',
+  'settings.approvalActionSlskd': 'Действие одобрения: ставить в очередь только в slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Действие одобрения: ставить в очередь в slskd и импортировать через Lidarr.',
   'settings.recommendationsTip':
     'Веса оценивания определяют рейтинг рекомендаций. Настройте их для акцента на совпадении жанров, уверенности AI или схожести.',
   'settings.scoreThreshold': 'Порог оценки',

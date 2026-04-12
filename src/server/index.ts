@@ -67,6 +67,7 @@ import type { SearchDeps } from './routes/search'
 import { searchRoutes } from './routes/search'
 import { settingsRoutes } from './routes/settings'
 import { setupRoutes } from './routes/setup'
+import { slskdRoutes } from './routes/slskd'
 import { subscriptionRoutes } from './routes/subscriptions'
 import { targetRoutes } from './routes/targets'
 import { userRoutes } from './routes/users'
@@ -133,6 +134,20 @@ export type AppDependencies = {
   // Library sync orchestrator + store
   librarySync: SyncOrchestrator
   librarySyncStore: LibrarySyncStore
+  slskdOrchestrator?: {
+    readonly isSyncing: boolean
+    triggerSync: () => Promise<void>
+    warmup: () => Promise<void>
+    getActiveJobs: (limit?: number) => Promise<
+      Array<{
+        id: number
+        targetId: number
+        recommendationId: number | null
+        state: string
+        releaseTitle: string
+      }>
+    >
+  }
   albumCoverage?: {
     getCoverageForArtist: (userId: number, artistMbid: string) => Promise<AlbumCoverage>
   }
@@ -344,6 +359,15 @@ export function createApp(deps: AppDependencies) {
   app.route('/', subscriptionRoutes(deps))
   app.route('/', userRoutes(deps))
   app.route('/', targetRoutes(deps))
+  if (deps.slskdOrchestrator) {
+    app.route(
+      '/',
+      slskdRoutes({
+        getUserById: deps.getUserById,
+        slskdOrchestrator: deps.slskdOrchestrator,
+      }),
+    )
+  }
   app.route('/', dashboardRoutes(deps))
   app.route(
     '/',

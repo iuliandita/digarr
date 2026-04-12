@@ -56,6 +56,7 @@ export function TodaysPick({
   const actionableTargets = (targets ?? []).filter((target) =>
     canApproveArtistToTarget(target.type),
   )
+  const standaloneApproveTarget = actionableTargets.length === 1 ? actionableTargets[0] : undefined
 
   useClickOutside(dropdownRef, () => setDropdownOpen(false), dropdownOpen)
 
@@ -277,7 +278,17 @@ export function TodaysPick({
         ) : (
           <button
             type="button"
-            onClick={() => onApprove(rec.id)}
+            onClick={() => {
+              if (standaloneApproveTarget?.type === 'slskd') {
+                onApproveToTarget?.(
+                  rec.id,
+                  `${standaloneApproveTarget.type}-${standaloneApproveTarget.id}`,
+                )
+                return
+              }
+
+              onApprove(rec.id)
+            }}
             className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
           >
             {t('todaysPick.approve')}

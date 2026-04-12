@@ -57,3 +57,5 @@ No committed screenshot yet. This admin panel shipped in `v0.17.0` and expanded 
 ## Settings
 
 ![Settings](screenshots/settings.png)
+
+The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.

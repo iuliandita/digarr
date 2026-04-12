@@ -542,6 +542,8 @@ export async function approveToTarget(
   recId: number,
   targetId: string,
   options?: {
+    approvalMode?: 'single_target' | 'combined_lidarr_slskd'
+    lidarrTargetId?: string
     monitorOption?: string
     selectedAlbumIds?: string[]
     qualityProfileId?: number
@@ -555,6 +557,7 @@ export async function approveToTarget(
       status: 'approved',
       targetId,
       ...options,
+      approvalMode: options?.approvalMode ?? 'single_target',
     }),
   })
 }

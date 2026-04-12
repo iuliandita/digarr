@@ -124,6 +124,10 @@ export const ro = {
   'recommendation.playPreview': 'Redați previzualizarea',
   'recommendation.stopPreview': 'Opriți previzualizarea',
   'recommendation.audioUnavailable': 'Previzualizarea audio nu este disponibilă',
+  'recommendation.slskdQueued': 'La coadă în slskd',
+  'recommendation.slskdDownloading': 'Se descarcă în slskd',
+  'recommendation.slskdImportPending': 'Așteaptă importul din Lidarr',
+  'recommendation.slskdNeedsReview': 'Necesită revizuire',
   'todaysPick.noPending': 'Nicio recomandare în așteptare',
   'todaysPick.reject': 'Respingeți',
   'todaysPick.skip': 'Omiteți',
@@ -833,6 +837,18 @@ export const ro = {
   'settings.adding': 'Se adaugă...',
   'settings.type': 'Tip',
   'settings.name': 'Nume',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Playlist Emby',
+  'settings.slskdModeHelp':
+    'slskd poate pune lansările la coadă, dar automatizarea completă necesită o destinație Lidarr conectată.',
+  'settings.slskdReleasePolicy':
+    'Politica lansărilor: slskd standalone pune lansările direct la coadă.',
+  'settings.slskdQualityPolicy':
+    'Politica calității: Lidarr conectat se ocupă de calitate și importuri.',
+  'settings.approvalActionSlskd': 'Acțiune de aprobare: pune la coadă doar în slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Acțiune de aprobare: pune la coadă în slskd și importă prin Lidarr.',
   'settings.recommendationsTip':
     'Ponderile de punctaj controlează clasificarea recomandărilor. Ajustați-le pentru a pune accent pe suprapunerea genurilor, încrederea IA sau similaritate.',
   'settings.scoreThreshold': 'Prag de punctaj',

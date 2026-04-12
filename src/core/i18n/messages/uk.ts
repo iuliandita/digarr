@@ -124,6 +124,10 @@ export const uk = {
   'recommendation.playPreview': 'Відтворити попередній перегляд',
   'recommendation.stopPreview': 'Зупинити попередній перегляд',
   'recommendation.audioUnavailable': 'Попередній перегляд аудіо недоступний',
+  'recommendation.slskdQueued': 'У черзі в slskd',
+  'recommendation.slskdDownloading': 'Завантажується в slskd',
+  'recommendation.slskdImportPending': 'Очікує імпорту в Lidarr',
+  'recommendation.slskdNeedsReview': 'Потребує перевірки',
   'todaysPick.noPending': 'Немає очікуючих рекомендацій',
   'todaysPick.reject': 'Відхилити',
   'todaysPick.skip': 'Пропустити',
@@ -839,6 +843,17 @@ export const uk = {
   'settings.adding': 'Додавання...',
   'settings.type': 'Тип',
   'settings.name': 'Назва',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Плейлист Emby',
+  'settings.slskdModeHelp':
+    'slskd може ставити релізи в чергу, але для повної автоматизації потрібна пов’язана ціль Lidarr.',
+  'settings.slskdReleasePolicy':
+    'Політика релізів: самостійний slskd ставить релізи в чергу безпосередньо.',
+  'settings.slskdQualityPolicy': 'Політика якості: пов’язаний Lidarr керує якістю та імпортом.',
+  'settings.approvalActionSlskd': 'Дія затвердження: ставити в чергу лише в slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Дія затвердження: ставити в чергу в slskd і імпортувати через Lidarr.',
   'settings.recommendationsTip':
     'Ваги оцінювання визначають рейтинг рекомендацій. Налаштуйте їх для акценту на збігу жанрів, впевненості AI або схожості.',
   'settings.scoreThreshold': 'Поріг оцінки',

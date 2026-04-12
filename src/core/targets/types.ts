@@ -55,6 +55,7 @@ export interface DestinationTarget {
   name: string
   type: TargetType
   capabilities: TargetCapability[]
+  linkedLidarrTargetId?: string
 
   addArtist?(
     artist: { mbid: string; name: string },

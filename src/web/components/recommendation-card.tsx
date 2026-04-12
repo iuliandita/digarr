@@ -22,6 +22,7 @@ export type Recommendation = {
   aiReasoning: string | null
   sources: Record<string, number> | null
   lidarrError: string | null
+  targetActions?: Record<string, { status?: string; error?: string } | null> | null
   recommendedReleaseGroupId: string | null
   recommendedReleaseGroupTitle: string | null
   artist: {
@@ -73,6 +74,13 @@ const SUBSCRIPTION_COLORS: Record<string, string> = {
   listenbrainz: 'bg-orange-500/20 text-orange-400',
 }
 
+const SLSKD_STATUS_LABELS: Partial<Record<string, MessageKey>> = {
+  queued: 'recommendation.slskdQueued',
+  downloading: 'recommendation.slskdDownloading',
+  import_pending: 'recommendation.slskdImportPending',
+  needs_review: 'recommendation.slskdNeedsReview',
+}
+
 function getSourceBadgeClass(sourceKey: string): string {
   const prefix = sourceKey.split(':')[0] ?? sourceKey
   return SUBSCRIPTION_COLORS[prefix] ?? 'bg-zinc-500/20 text-zinc-400'
@@ -103,30 +111,54 @@ function formatSourceLabel(sourceKey: string, t: (key: MessageKey) => string): s
 function StatusBadge({
   status,
   lidarrError,
+  targetActions,
   onRetry,
   id,
 }: {
   status: string
   lidarrError: string | null
+  targetActions?: Record<string, { status?: string; error?: string } | null> | null
   onRetry?: (id: number) => void
   id: number
 }) {
   const { t } = useI18n()
+  const failedTargetError = Object.values(targetActions ?? {}).find(
+    (action) =>
+      action?.status === 'failed' && typeof action.error === 'string' && action.error.length > 0,
+  )?.error
+  const slskdStatus = Object.entries(targetActions ?? {}).find(([targetId, action]) => {
+    return targetId.startsWith('slskd-') && typeof action?.status === 'string'
+  })?.[1]?.status
+  const slskdStatusLabel = slskdStatus ? SLSKD_STATUS_LABELS[slskdStatus] : undefined
+
   if (status === 'added_to_lidarr') {
     return (
-      <span className="text-xs text-approve font-medium">{t('recommendation.addedToLidarr')}</span>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-approve font-medium">
+          {t('recommendation.addedToLidarr')}
+        </span>
+        {slskdStatusLabel && (
+          <span className="text-xs text-accent font-medium">{t(slskdStatusLabel)}</span>
+        )}
+        {failedTargetError && (
+          <span className="text-xs text-muted truncate max-w-[200px]" title={failedTargetError}>
+            {failedTargetError}
+          </span>
+        )}
+      </div>
     )
   }
   if (status === 'rejected') {
     return <span className="text-xs text-reject font-medium">{t('recommendation.rejected')}</span>
   }
   if (status === 'add_failed') {
+    const errorMessage = lidarrError ?? failedTargetError
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-reject font-medium">{t('recommendation.addFailed')}</span>
-        {lidarrError && (
-          <span className="text-xs text-muted truncate max-w-[200px]" title={lidarrError}>
-            {lidarrError}
+        {errorMessage && (
+          <span className="text-xs text-muted truncate max-w-[200px]" title={errorMessage}>
+            {errorMessage}
           </span>
         )}
         {onRetry && (
@@ -140,6 +172,9 @@ function StatusBadge({
         )}
       </div>
     )
+  }
+  if (slskdStatusLabel) {
+    return <span className="text-xs text-accent font-medium">{t(slskdStatusLabel)}</span>
   }
   return null
 }
@@ -270,6 +305,11 @@ function ActionButtons({
 }) {
   const { t } = useI18n()
   if (bulkMode) return null
+  const actionableTargets = (targets ?? []).filter((target) =>
+    canApproveArtistToTarget(target.type),
+  )
+  const standaloneApproveTarget = actionableTargets.length === 1 ? actionableTargets[0] : undefined
+  const isStandaloneSlskdTarget = standaloneApproveTarget?.type === 'slskd'
 
   function stop(e: React.MouseEvent | React.KeyboardEvent) {
     e.stopPropagation()
@@ -290,13 +330,28 @@ function ActionButtons({
           {t('recommendation.reject')}
         </Button>
         {approveNode ??
-          (targets && targets.length > 1 ? (
+          (actionableTargets.length > 1 ? (
             <ApproveDropdown
               recId={rec.id}
-              targets={targets}
+              targets={actionableTargets}
               onApprove={onApprove}
               onApproveToTarget={onApproveToTarget}
             />
+          ) : isStandaloneSlskdTarget && standaloneApproveTarget ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-approve border-approve/40 hover:bg-approve/10 hover:text-approve"
+              onClick={(e) => {
+                stop(e)
+                onApproveToTarget?.(
+                  rec.id,
+                  `${standaloneApproveTarget.type}-${standaloneApproveTarget.id}`,
+                )
+              }}
+            >
+              {t('recommendation.approve')}
+            </Button>
           ) : (
             <Button
               size="sm"
@@ -706,6 +761,7 @@ export function RecommendationCard({
             <StatusBadge
               status={rec.status}
               lidarrError={rec.lidarrError}
+              targetActions={rec.targetActions}
               onRetry={onRetry}
               id={rec.id}
             />
@@ -858,6 +914,7 @@ export function RecommendationCard({
               <StatusBadge
                 status={rec.status}
                 lidarrError={rec.lidarrError}
+                targetActions={rec.targetActions}
                 onRetry={onRetry}
                 id={rec.id}
               />

@@ -15,6 +15,20 @@ type ApproveResult = {
   lidarrError?: string
 }
 
+type ApprovalMode = 'single_target' | 'combined_lidarr_slskd'
+type TargetActionStatus = 'added' | 'queued' | 'failed'
+
+type TargetExecutionResult = {
+  action?: {
+    status: TargetActionStatus
+    externalId?: number | string
+    error?: string
+  }
+  success: boolean
+  lidarrArtistId?: number | string
+  lidarrError?: string
+}
+
 function parseOptionalInteger(value: string | undefined, field: string): number | undefined {
   if (value === undefined) return undefined
   const parsed = Number(value)
@@ -24,6 +38,63 @@ function parseOptionalInteger(value: string | undefined, field: string): number 
   return parsed
 }
 
+async function addArtistToTarget(
+  artist: { mbid: string; name: string },
+  target: TargetWithCapabilities,
+  addOptions: Record<string, unknown>,
+  jobRecorder?: import('@/core/jobs/types').JobRecorder,
+  userId?: number,
+): Promise<TargetExecutionResult> {
+  const targetJobId = jobRecorder
+    ? await jobRecorder.start({
+        type: 'target',
+        userId,
+        metadata: {
+          targetType: target.type,
+          artistName: artist.name,
+          mbid: artist.mbid,
+          action: 'add',
+        },
+      })
+    : null
+
+  const result = await target.addArtist?.(artist, addOptions)
+
+  if (!result) {
+    if (targetJobId != null && jobRecorder) {
+      await jobRecorder.complete(targetJobId, {
+        metadata: { targetType: target.type, artistName: artist.name, skipped: true },
+      })
+    }
+    return { success: false }
+  }
+
+  if (targetJobId != null && jobRecorder) {
+    if (result.success) {
+      await jobRecorder.complete(targetJobId, {
+        metadata: {
+          targetType: target.type,
+          artistName: artist.name,
+          externalId: result.externalId,
+        },
+      })
+    } else {
+      await jobRecorder.fail(targetJobId, result.error ?? 'Target returned failure').catch(() => {})
+    }
+  }
+
+  return {
+    action: {
+      status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
+      externalId: result.externalId,
+      error: result.error,
+    },
+    success: result.success,
+    lidarrArtistId: target.type === 'lidarr' && result.success ? result.externalId : undefined,
+    lidarrError: target.type === 'lidarr' ? result.error : undefined,
+  }
+}
+
 /** Shared approve-to-target logic used by both single and bulk approve. */
 async function approveToTargets(
   artist: { mbid: string; name: string },
@@ -31,6 +102,7 @@ async function approveToTargets(
   addOptions: Record<string, unknown>,
   jobRecorder?: import('@/core/jobs/types').JobRecorder,
   userId?: number,
+  recommendationId?: number,
 ): Promise<ApproveResult> {
   const actionableTargets = targets.filter((target) => target.capabilities?.includes('addArtist'))
 
@@ -44,60 +116,83 @@ async function approveToTargets(
   let lidarrError: string | undefined
 
   for (const target of actionableTargets) {
-    const targetJobId = jobRecorder
-      ? await jobRecorder.start({
-          type: 'target',
-          userId,
-          metadata: {
-            targetType: target.type,
-            artistName: artist.name,
-            mbid: artist.mbid,
-            action: 'add',
-          },
-        })
-      : null
+    const execution = await addArtistToTarget(
+      artist,
+      target,
+      {
+        ...addOptions,
+        userId,
+        recommendationId,
+      },
+      jobRecorder,
+      userId,
+    )
 
-    const result = await target.addArtist?.(artist, addOptions)
-
-    if (!result) {
-      if (targetJobId != null && jobRecorder) {
-        await jobRecorder.complete(targetJobId, {
-          metadata: { targetType: target.type, artistName: artist.name, skipped: true },
-        })
-      }
+    if (!execution.action) {
       continue
     }
 
-    targetActions[target.id] = {
-      status: result.success ? 'added' : 'failed',
-      externalId: result.externalId,
-      error: result.error,
-    }
-    if (result.success) anySuccess = true
-    if (target.type === 'lidarr') {
-      if (result.success && result.externalId) lidarrArtistId = result.externalId
-      if (result.error) lidarrError = result.error
-    }
+    targetActions[target.id] = execution.action
+    if (execution.success) anySuccess = true
+    if (execution.lidarrArtistId) lidarrArtistId = execution.lidarrArtistId
+    if (execution.lidarrError) lidarrError = execution.lidarrError
+  }
 
-    if (targetJobId != null && jobRecorder) {
-      if (result.success) {
-        await jobRecorder.complete(targetJobId, {
-          metadata: {
-            targetType: target.type,
-            artistName: artist.name,
-            externalId: result.externalId,
-          },
-        })
-      } else {
-        await jobRecorder
-          .fail(targetJobId, result.error ?? 'Target returned failure')
-          .catch(() => {})
-      }
+  const status = lidarrArtistId ? 'added_to_lidarr' : anySuccess ? 'approved' : 'add_failed'
+  return { status, targetActions, lidarrArtistId, lidarrError }
+}
+
+async function approveWithCombinedLidarrSlskd(
+  artist: { mbid: string; name: string },
+  lidarrTarget: TargetWithCapabilities,
+  slskdTarget: TargetWithCapabilities,
+  addOptions: Record<string, unknown>,
+  recommendationId: number,
+  jobRecorder?: import('@/core/jobs/types').JobRecorder,
+  userId?: number,
+): Promise<ApproveResult> {
+  const targetActions: Record<string, unknown> = {}
+  let lidarrArtistId: number | string | undefined
+  let lidarrError: string | undefined
+
+  const lidarrExecution = await addArtistToTarget(
+    artist,
+    lidarrTarget,
+    {
+      ...addOptions,
+      userId,
+      recommendationId,
+    },
+    jobRecorder,
+    userId,
+  )
+
+  if (lidarrExecution.action) {
+    targetActions[lidarrTarget.id] = lidarrExecution.action
+  }
+  if (lidarrExecution.lidarrArtistId) lidarrArtistId = lidarrExecution.lidarrArtistId
+  if (lidarrExecution.lidarrError) lidarrError = lidarrExecution.lidarrError
+
+  if (lidarrExecution.success && lidarrArtistId != null) {
+    const slskdExecution = await addArtistToTarget(
+      artist,
+      slskdTarget,
+      {
+        ...addOptions,
+        userId,
+        recommendationId,
+        lidarrArtistId: Number(lidarrArtistId),
+      },
+      jobRecorder,
+      userId,
+    )
+
+    if (slskdExecution.action) {
+      targetActions[slskdTarget.id] = slskdExecution.action
     }
   }
 
-  const hasLidarr = actionableTargets.some((t) => t.type === 'lidarr')
-  const status = anySuccess ? (hasLidarr ? 'added_to_lidarr' : 'approved') : 'add_failed'
+  const status = lidarrArtistId ? 'added_to_lidarr' : 'add_failed'
   return { status, targetActions, lidarrArtistId, lidarrError }
 }
 
@@ -193,6 +288,8 @@ export function recommendationRoutes(deps: AppDependencies) {
     const body = await c.req.json()
     const {
       status,
+      approvalMode: rawApprovalMode,
+      lidarrTargetId,
       monitorOption,
       selectedAlbumIds,
       targetId,
@@ -201,6 +298,8 @@ export function recommendationRoutes(deps: AppDependencies) {
       rootFolderId: rfOverride,
     } = body as {
       status: string
+      approvalMode?: ApprovalMode
+      lidarrTargetId?: string
       monitorOption?: 'all' | 'new' | 'none' | 'selected'
       selectedAlbumIds?: string[]
       targetId?: string
@@ -210,6 +309,11 @@ export function recommendationRoutes(deps: AppDependencies) {
     }
 
     if (!status) return c.json({ error: 'status is required' }, 400)
+
+    const approvalMode = rawApprovalMode ?? 'single_target'
+    if (approvalMode !== 'single_target' && approvalMode !== 'combined_lidarr_slskd') {
+      return c.json({ error: `Invalid approvalMode: ${approvalMode}` }, 400)
+    }
 
     // Validate status early -- before any DB work
     if (status !== 'approved' && status !== 'rejected' && status !== 'pending') {
@@ -224,18 +328,52 @@ export function recommendationRoutes(deps: AppDependencies) {
 
       const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
       const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
-      if (targetId && effectiveTargets.length === 0) {
-        return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
-      }
-      if (targetId && !effectiveTargets.some((t) => t.capabilities?.includes('addArtist'))) {
-        return c.json({ error: `Target does not support artist approval: ${targetId}` }, 400)
+      const lidarrTargets = targets.filter(
+        (target) => target.type === 'lidarr' && target.capabilities?.includes('addArtist'),
+      )
+      const slskdTarget = effectiveTargets.find(
+        (target) => target.type === 'slskd' && target.capabilities?.includes('addArtist'),
+      )
+      const selectedLidarrTargetId =
+        lidarrTargetId ??
+        (slskdTarget?.type === 'slskd' ? slskdTarget.linkedLidarrTargetId : undefined)
+      const lidarrTarget = selectedLidarrTargetId
+        ? lidarrTargets.find((target) => target.id === selectedLidarrTargetId)
+        : lidarrTargets[0]
+
+      if (approvalMode === 'combined_lidarr_slskd') {
+        if (!targetId) {
+          return c.json({ error: 'targetId is required for combined approval' }, 400)
+        }
+        if (!slskdTarget) {
+          return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
+        }
+        if (selectedLidarrTargetId) {
+          if (!lidarrTarget) {
+            return c.json({ error: `Unknown lidarrTargetId: ${selectedLidarrTargetId}` }, 400)
+          }
+        } else if (lidarrTargets.length !== 1) {
+          return c.json(
+            { error: 'Combined approval requires exactly one enabled Lidarr target' },
+            400,
+          )
+        }
+      } else {
+        if (targetId && effectiveTargets.length === 0) {
+          return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
+        }
+        if (targetId && !effectiveTargets.some((t) => t.capabilities?.includes('addArtist'))) {
+          return c.json({ error: `Target does not support artist approval: ${targetId}` }, 400)
+        }
       }
 
       // Pre-warm SkyHook if any Lidarr target exists
       if (
         deps.skyhookWarmer &&
         rec.artist?.mbid &&
-        effectiveTargets.some((t) => t.type === 'lidarr')
+        (approvalMode === 'combined_lidarr_slskd'
+          ? Boolean(lidarrTarget)
+          : effectiveTargets.some((t) => t.type === 'lidarr'))
       ) {
         try {
           await deps.skyhookWarmer.warm(rec.artist.mbid)
@@ -252,13 +390,25 @@ export function recommendationRoutes(deps: AppDependencies) {
         rootFolderId: rfOverride,
       })
 
-      const result = await approveToTargets(
-        { mbid: rec.artist.mbid, name: rec.artist.name },
-        effectiveTargets,
-        addOptions,
-        deps.jobRecorder,
-        userId,
-      )
+      const result =
+        approvalMode === 'combined_lidarr_slskd' && lidarrTarget && slskdTarget
+          ? await approveWithCombinedLidarrSlskd(
+              { mbid: rec.artist.mbid, name: rec.artist.name },
+              lidarrTarget,
+              slskdTarget,
+              addOptions,
+              id,
+              deps.jobRecorder,
+              userId,
+            )
+          : await approveToTargets(
+              { mbid: rec.artist.mbid, name: rec.artist.name },
+              effectiveTargets,
+              addOptions,
+              deps.jobRecorder,
+              userId,
+              id,
+            )
 
       const extra: Record<string, unknown> = { targetActions: result.targetActions }
       if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
@@ -351,6 +501,7 @@ export function recommendationRoutes(deps: AppDependencies) {
         addOptions,
         deps.jobRecorder,
         userId,
+        id,
       )
 
       const extra: Record<string, unknown> = { targetActions: result.targetActions }

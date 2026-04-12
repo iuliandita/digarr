@@ -122,6 +122,10 @@ export const en = {
   'recommendation.playPreview': 'Play preview',
   'recommendation.stopPreview': 'Stop preview',
   'recommendation.audioUnavailable': 'Audio preview not available',
+  'recommendation.slskdQueued': 'Queued in slskd',
+  'recommendation.slskdDownloading': 'Downloading in slskd',
+  'recommendation.slskdImportPending': 'Waiting for Lidarr import',
+  'recommendation.slskdNeedsReview': 'Needs review',
   'todaysPick.noPending': 'No pending recommendations',
   'todaysPick.reject': 'Reject',
   'todaysPick.skip': 'Skip',
@@ -844,6 +848,16 @@ export const en = {
   'settings.adding': 'Adding...',
   'settings.type': 'Type',
   'settings.name': 'Name',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Emby Playlist',
+  'settings.slskdModeHelp':
+    'slskd can queue releases, but full automation requires a linked Lidarr target.',
+  'settings.slskdReleasePolicy': 'Release policy: standalone slskd queues releases directly.',
+  'settings.slskdQualityPolicy': 'Quality policy: linked Lidarr handles quality and imports.',
+  'settings.approvalActionSlskd': 'Approval action: queue in slskd only.',
+  'settings.approvalActionLidarrSlskd':
+    'Approval action: queue in slskd and import through Lidarr.',
   'settings.recommendationsTip':
     'Scoring weights control how recommendations are ranked. Tweak these to emphasize genre overlap, AI confidence, or similarity.',
   'settings.scoreThreshold': 'Score Threshold',

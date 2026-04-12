@@ -13,7 +13,7 @@ import { MonitoringOptions, type MonitorOption } from '../components/monitoring-
 import { MoodPromptBar } from '../components/mood-prompt-bar'
 import { type Recommendation, RecommendationCard } from '../components/recommendation-card'
 import { SwipeCard } from '../components/swipe-card'
-import { canApproveArtistToTarget } from '../components/target-utils'
+import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
 import { Skeleton } from '../components/ui/skeleton'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
@@ -433,9 +433,14 @@ export function DiscoverPage() {
   })
 
   const targets = targetsData ?? []
-  const approveTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
+  const approveTargets = targets.filter(
+    (target) => target.enabled && target.owned && canApproveArtistToTarget(target.type),
+  )
   const hasMultipleTargets = approveTargets.length > 1
-  const hasLidarrTarget = targets.some((t) => t.type === 'lidarr')
+  const hasLidarrTarget = approveTargets.some((target) => target.type === 'lidarr')
+  const hasStandaloneSlskdTarget =
+    approveTargets.length === 1 && approveTargets[0]?.type === 'slskd'
+  const standaloneSlskdTarget = hasStandaloneSlskdTarget ? approveTargets[0] : undefined
 
   const existingArtistNames = useMemo(
     () => new Set(items.map((r) => r.artist.name.toLowerCase())),
@@ -455,7 +460,10 @@ export function DiscoverPage() {
 
       setActingIds((prev) => new Set([...prev, recId]))
       try {
-        await approveToTarget(recId, targetId)
+        const targetOptions = resolveApprovalTargetOptions(targets, targetId)
+        await approveToTarget(recId, targetId, {
+          ...targetOptions,
+        })
         refetch()
         toast.success(t('dashboard.sentToTarget'))
       } catch {
@@ -562,7 +570,13 @@ export function DiscoverPage() {
       setActingIds((prev) => new Set([...prev, id]))
       const newStatus = filter === 'rejected' ? 'pending' : 'approved'
       try {
-        await updateRecommendation(id, { status: newStatus })
+        if (newStatus === 'approved' && standaloneSlskdTarget) {
+          const targetId = `${standaloneSlskdTarget.type}-${standaloneSlskdTarget.id}`
+          const targetOptions = resolveApprovalTargetOptions(targets, targetId)
+          await approveToTarget(id, targetId, targetOptions)
+        } else {
+          await updateRecommendation(id, { status: newStatus })
+        }
         if (filter !== 'rejected') {
           showUndo({ id, prevStatus })
         } else {
@@ -581,7 +595,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [filter, refetch, showUndo, t],
+    [filter, refetch, showUndo, standaloneSlskdTarget, t, targets],
   )
 
   const handleReject = useCallback(
@@ -1083,10 +1097,15 @@ export function DiscoverPage() {
                             | 'unknown'
                             | undefined
                         }
-                        targets={hasMultipleTargets ? approveTargets : undefined}
-                        onApproveToTarget={hasMultipleTargets ? handleApproveToTarget : undefined}
+                        targets={approveTargets.length > 0 ? approveTargets : undefined}
+                        onApproveToTarget={
+                          approveTargets.length > 0 ? handleApproveToTarget : undefined
+                        }
                         approveNode={
-                          !isActing && !bulkMode && !hasMultipleTargets ? (
+                          !isActing &&
+                          !bulkMode &&
+                          !hasMultipleTargets &&
+                          !hasStandaloneSlskdTarget ? (
                             <MonitoringOptions
                               loading={isActing}
                               onApprove={(option) =>
@@ -1139,10 +1158,15 @@ export function DiscoverPage() {
                       warmStatus={
                         warmStatuses[rec.artist.mbid] as 'warm' | 'warming' | 'unknown' | undefined
                       }
-                      targets={hasMultipleTargets ? approveTargets : undefined}
-                      onApproveToTarget={hasMultipleTargets ? handleApproveToTarget : undefined}
+                      targets={approveTargets.length > 0 ? approveTargets : undefined}
+                      onApproveToTarget={
+                        approveTargets.length > 0 ? handleApproveToTarget : undefined
+                      }
                       approveNode={
-                        !isActing && !bulkMode && !hasMultipleTargets ? (
+                        !isActing &&
+                        !bulkMode &&
+                        !hasMultipleTargets &&
+                        !hasStandaloneSlskdTarget ? (
                           <MonitoringOptions
                             loading={isActing}
                             onApprove={(option) =>
@@ -1308,7 +1332,11 @@ export function DiscoverPage() {
             setActingIds((prev) => new Set([...prev, recId]))
             try {
               if (targetId) {
-                await approveToTarget(recId, targetId, overrides)
+                const targetOptions = resolveApprovalTargetOptions(targets, targetId)
+                await approveToTarget(recId, targetId, {
+                  ...overrides,
+                  ...targetOptions,
+                })
               } else {
                 await approveRecommendation(recId, overrides)
               }

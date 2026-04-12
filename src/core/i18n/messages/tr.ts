@@ -124,6 +124,10 @@ export const tr = {
   'recommendation.playPreview': 'Önizlemeyi oynat',
   'recommendation.stopPreview': 'Önizlemeyi durdur',
   'recommendation.audioUnavailable': 'Ses önizlemesi kullanılamıyor',
+  'recommendation.slskdQueued': 'slskd’de kuyrukta',
+  'recommendation.slskdDownloading': 'slskd’de indiriliyor',
+  'recommendation.slskdImportPending': 'Lidarr içe aktarması bekleniyor',
+  'recommendation.slskdNeedsReview': 'İnceleme gerekli',
   'todaysPick.noPending': 'Bekleyen öneri yok',
   'todaysPick.reject': 'Reddet',
   'todaysPick.skip': 'Geç',
@@ -832,6 +836,18 @@ export const tr = {
   'settings.adding': 'Ekleniyor...',
   'settings.type': 'Tur',
   'settings.name': 'Ad',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Emby oynatma listesi',
+  'settings.slskdModeHelp':
+    'slskd sürümleri kuyruğa alabilir, ancak tam otomasyon için bağlı bir Lidarr hedefi gerekir.',
+  'settings.slskdReleasePolicy':
+    'Yayın politikası: bağımsız slskd sürümleri doğrudan kuyruğa alır.',
+  'settings.slskdQualityPolicy':
+    'Kalite politikası: bağlı Lidarr kaliteyi ve içe aktarmaları yönetir.',
+  'settings.approvalActionSlskd': 'Onay eylemi: yalnızca slskd’de kuyruğa al.',
+  'settings.approvalActionLidarrSlskd':
+    'Onay eylemi: slskd’de kuyruğa al ve Lidarr üzerinden içe aktar.',
   'settings.recommendationsTip':
     'Puanlama agirliklari onerilerin nasil siralandığını kontrol eder. Tur ortusunu, AI guvenini veya benzerligi vurgulamak icin ayarlayin.',
   'settings.scoreThreshold': 'Puan Esiği',

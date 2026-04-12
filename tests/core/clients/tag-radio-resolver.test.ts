@@ -12,10 +12,13 @@ vi.mock('@/db/queries/recording-artist-cache', () => ({
 
 import type { TagRadioRecording } from '@/core/clients/listenbrainz'
 import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
+import type { Database } from '@/db'
 
 const mockLookupRecording = vi.fn()
-const mockMbClient = { lookupRecording: mockLookupRecording } as any
-const mockDb = {} as any
+const mockMbClient = {
+  lookupRecording: mockLookupRecording,
+}
+const mockDb = {} as Database
 
 beforeEach(() => {
   vi.clearAllMocks()

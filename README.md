@@ -51,7 +51,15 @@ Use Anthropic, OpenAI, Google Gemini, Ollama, or any OpenAI-compatible endpoint.
 Digarr now ships localized catalogs for 15 languages, a visible language switcher before and after login, persisted per-user locale preferences, and locale-aware AI reasoning for mood discovery, quick discover, and full scans.
 
 ### Flexible Setup
-The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and approve to Spotify playlists, Navidrome, Jellyfin, Emby, and Plex later.
+The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and add targets later from Settings, including playlist exports. `slskd` targets are configured later in Settings > Targets and support standalone queueing or linked Lidarr handoff.
+
+### slskd Integration
+`slskd` targets support two approval modes:
+
+- **Standalone approval** queues the matched release directly in `slskd`.
+- **Combined Lidarr + slskd approval** adds the artist to Lidarr first, then queues the selected release in `slskd` when the target is linked to a Lidarr destination.
+
+In addition to approval-driven queueing, Digarr now runs a background `slskd` worker for linked Lidarr targets. It polls Lidarr wanted releases, creates deduped `slskd` jobs per target, advances them through search and transfer states, and only marks Lidarr-backed jobs complete after import verification. Admins can trigger a manual sync and inspect active `slskd` jobs from the API.
 
 ### Cross-Platform Search
 Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match.
@@ -146,7 +154,7 @@ You can run the pipeline on a schedule, by hand, through subscriptions for targe
 
 ## Configuration
 
-Most day-to-day configuration lives in the web UI after initial setup. That includes connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
+Most day-to-day configuration lives in the web UI after initial setup. That includes connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a specific Lidarr target there so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 ---
 

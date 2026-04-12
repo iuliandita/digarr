@@ -124,6 +124,10 @@ export const fr = {
   'recommendation.playPreview': "Lire l'aperçu",
   'recommendation.stopPreview': "Arrêter l'aperçu",
   'recommendation.audioUnavailable': 'Aperçu audio non disponible',
+  'recommendation.slskdQueued': 'En file dans slskd',
+  'recommendation.slskdDownloading': 'Téléchargement dans slskd',
+  'recommendation.slskdImportPending': "En attente de l'import Lidarr",
+  'recommendation.slskdNeedsReview': 'À revoir',
   'todaysPick.noPending': 'Aucune recommandation en attente',
   'todaysPick.reject': 'Rejeter',
   'todaysPick.skip': 'Passer',
@@ -826,6 +830,18 @@ export const fr = {
   'settings.adding': 'Ajout...',
   'settings.type': 'Type',
   'settings.name': 'Nom',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Playlist Emby',
+  'settings.slskdModeHelp':
+    'slskd peut mettre des sorties en file d’attente, mais l’automatisation complète nécessite une cible Lidarr liée.',
+  'settings.slskdReleasePolicy':
+    'Politique de sorties : slskd autonome met les sorties en file d’attente directement.',
+  'settings.slskdQualityPolicy':
+    'Politique de qualité : Lidarr lié gère la qualité et les imports.',
+  'settings.approvalActionSlskd': 'Action d’approbation : mettre en file dans slskd uniquement.',
+  'settings.approvalActionLidarrSlskd':
+    'Action d’approbation : mettre en file dans slskd et importer via Lidarr.',
   'settings.recommendationsTip':
     "Les poids de notation contrôlent le classement des recommandations. Ajustez-les pour mettre en valeur la correspondance de genres, la confiance de l'IA ou la similarité.",
   'settings.scoreThreshold': 'Seuil de score',

@@ -9,7 +9,7 @@ import type { MonitorOption } from '../components/monitoring-options'
 import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
 import { SystemHealthCard } from '../components/system-health-card'
-import { canApproveArtistToTarget } from '../components/target-utils'
+import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
 import { Skeleton } from '../components/ui/skeleton'
 import {
@@ -370,7 +370,9 @@ export function Dashboard() {
   })
 
   const targets = targetsData ?? []
-  const approveTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
+  const approveTargets = targets.filter(
+    (target) => target.enabled && target.owned && canApproveArtistToTarget(target.type),
+  )
 
   // User preferences (for ApproveDialog defaults)
   const { data: prefsData } = useQuery({
@@ -459,7 +461,10 @@ export function Dashboard() {
 
     setActedIds((prev) => new Set([...prev, recId]))
     try {
-      await approveToTarget(recId, targetId)
+      const targetOptions = resolveApprovalTargetOptions(targets, targetId)
+      await approveToTarget(recId, targetId, {
+        ...targetOptions,
+      })
       toast.success(t('dashboard.sentToTarget'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
@@ -579,7 +584,11 @@ export function Dashboard() {
             setActedIds((prev) => new Set([...prev, recId]))
             try {
               if (targetId) {
-                await approveToTarget(recId, targetId, overrides)
+                const targetOptions = resolveApprovalTargetOptions(targets, targetId)
+                await approveToTarget(recId, targetId, {
+                  ...overrides,
+                  ...targetOptions,
+                })
               } else {
                 await approveRecommendation(recId, overrides)
               }

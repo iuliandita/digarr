@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -81,6 +81,7 @@ vi.mock('@/web/lib/hooks', async (importOriginal) => {
 
 import { PlaylistCard } from '@/web/components/playlist-card'
 import {
+  approveToTarget,
   getDashboardActivity,
   getDashboardTaste,
   getPipelineStatus,
@@ -88,9 +89,11 @@ import {
   getRecommendations,
   getSchedulerInfo,
   getSubscriptions,
+  listTargets,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
 
+const mockApproveToTarget = vi.mocked(approveToTarget)
 const mockGetRecommendations = vi.mocked(getRecommendations)
 const mockGetRecentListens = vi.mocked(getRecentListens)
 const mockGetSubscriptions = vi.mocked(getSubscriptions)
@@ -98,6 +101,7 @@ const mockGetSchedulerInfo = vi.mocked(getSchedulerInfo)
 const mockGetDashboardTaste = vi.mocked(getDashboardTaste)
 const mockGetDashboardActivity = vi.mocked(getDashboardActivity)
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
+const mockListTargets = vi.mocked(listTargets)
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -186,6 +190,7 @@ function setupMocks() {
   ])
 
   mockGetPipelineStatus.mockResolvedValue({ running: false })
+  mockListTargets.mockResolvedValue([])
 }
 
 // ---------------------------------------------------------------------------
@@ -373,6 +378,105 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Alcest')).toBeInTheDocument()
+    })
+  })
+
+  it('requests combined approval mode when sending todays pick to slskd with Lidarr present', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: true, owned: true },
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+    ])
+
+    renderWithQuery(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve to specific target' }))
+    fireEvent.click(screen.getByText('Add to slskd'))
+
+    await waitFor(() => {
+      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
+        approvalMode: 'combined_lidarr_slskd',
+        lidarrTargetId: 'lidarr-1',
+      })
+    })
+  })
+
+  it('sends the linked Lidarr target when slskd is paired to one of multiple Lidarr targets', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: true, owned: true },
+      { id: 2, type: 'lidarr', name: 'Alt Lidarr', config: {}, enabled: true, owned: true },
+      {
+        id: 7,
+        type: 'slskd',
+        name: 'slskd',
+        config: { lidarrTargetId: 2 },
+        enabled: true,
+        owned: true,
+      },
+    ])
+
+    renderWithQuery(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve to specific target' }))
+    fireEvent.click(screen.getByText('Add to slskd'))
+
+    await waitFor(() => {
+      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
+        approvalMode: 'combined_lidarr_slskd',
+        lidarrTargetId: 'lidarr-2',
+      })
+    })
+  })
+
+  it('sends todays pick directly to a standalone slskd target', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+    ])
+
+    renderWithQuery(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+
+    await waitFor(() => {
+      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
+        approvalMode: 'single_target',
+      })
+    })
+  })
+
+  it('ignores disabled Lidarr targets when choosing slskd approval mode', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: false, owned: true },
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+    ])
+
+    renderWithQuery(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+
+    await waitFor(() => {
+      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
+        approvalMode: 'single_target',
+      })
     })
   })
 })

@@ -124,6 +124,10 @@ export const de = {
   'recommendation.playPreview': 'Vorschau abspielen',
   'recommendation.stopPreview': 'Vorschau stoppen',
   'recommendation.audioUnavailable': 'Audiovorschau nicht verfügbar',
+  'recommendation.slskdQueued': 'In slskd eingereiht',
+  'recommendation.slskdDownloading': 'Wird in slskd geladen',
+  'recommendation.slskdImportPending': 'Wartet auf Lidarr-Import',
+  'recommendation.slskdNeedsReview': 'Muss überprüft werden',
   'todaysPick.noPending': 'Keine offenen Empfehlungen',
   'todaysPick.reject': 'Ablehnen',
   'todaysPick.skip': 'Überspringen',
@@ -845,6 +849,18 @@ export const de = {
   'settings.adding': 'Wird hinzugefügt...',
   'settings.type': 'Typ',
   'settings.name': 'Name',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Emby Playlist',
+  'settings.slskdModeHelp':
+    'slskd kann Releases in die Warteschlange stellen, aber volle Automatisierung braucht ein verknüpftes Lidarr-Ziel.',
+  'settings.slskdReleasePolicy':
+    'Release-Richtlinie: Eigenständiges slskd stellt Releases direkt in die Warteschlange.',
+  'settings.slskdQualityPolicy':
+    'Qualitätsrichtlinie: Verknüpftes Lidarr übernimmt Qualität und Importe.',
+  'settings.approvalActionSlskd': 'Freigabeaktion: nur in slskd in die Warteschlange stellen.',
+  'settings.approvalActionLidarrSlskd':
+    'Freigabeaktion: in slskd in die Warteschlange stellen und über Lidarr importieren.',
   'settings.recommendationsTip':
     'Bewertungsgewichte steuern das Ranking der Empfehlungen. Passe sie an, um Genre-Überschneidung, KI-Konfidenz oder Ähnlichkeit zu betonen.',
   'settings.scoreThreshold': 'Bewertungsschwelle',

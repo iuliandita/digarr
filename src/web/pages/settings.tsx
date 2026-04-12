@@ -1496,25 +1496,98 @@ function LidarrPreferencesSection() {
   )
 }
 
-const TARGET_TYPES = [
-  {
-    value: 'lidarr',
-    label: 'Lidarr',
-    fields: [
-      { key: 'url', label: 'URL', placeholder: 'http://lidarr:8686' },
-      { key: 'apiKey', label: 'API Key', placeholder: 'Enter API key', type: 'password' as const },
-    ],
-  },
-  {
-    value: 'emby-playlist',
-    label: 'Emby Playlist',
-    fields: [
-      { key: 'url', label: 'URL', placeholder: 'http://emby:8096' },
-      { key: 'apiKey', label: 'API Key', placeholder: 'Enter API key', type: 'password' as const },
-      { key: 'userId', label: 'User ID', placeholder: 'Enter Emby user ID' },
-    ],
-  },
-]
+type AddTargetField =
+  | {
+      kind?: 'input'
+      key: string
+      label: string
+      placeholder: string
+      type?: 'password' | 'url' | 'text'
+    }
+  | {
+      kind: 'select'
+      key: string
+      label: string
+      options: Array<{ value: string; label: string }>
+    }
+
+type AddTargetType = {
+  value: string
+  label: string
+  fields: AddTargetField[]
+}
+
+function getTargetTypes(
+  t: ReturnType<typeof useI18n>['t'],
+  lidarrTargets: Array<{ id: number; name: string }>,
+): AddTargetType[] {
+  const lidarrTargetLabel = `${t('settings.targetTypeLidarr')} ${t('jobHistory.targetType')}`
+
+  return [
+    {
+      value: 'lidarr',
+      label: t('settings.targetTypeLidarr'),
+      fields: [
+        {
+          key: 'url',
+          label: t('settings.fieldUrl'),
+          placeholder: 'http://lidarr:8686',
+          type: 'url',
+        },
+        {
+          key: 'apiKey',
+          label: t('settings.fieldApiKey'),
+          placeholder: t('settings.fieldApiKeyOptional'),
+          type: 'password',
+        },
+      ],
+    },
+    {
+      value: 'slskd',
+      label: t('settings.targetTypeSlskd'),
+      fields: [
+        {
+          key: 'url',
+          label: t('settings.fieldUrl'),
+          placeholder: 'http://slskd:5030',
+          type: 'url',
+        },
+        {
+          key: 'apiKey',
+          label: t('settings.fieldApiKey'),
+          placeholder: t('settings.fieldApiKeyOptional'),
+          type: 'password',
+        },
+        {
+          kind: 'select',
+          key: 'lidarrTargetId',
+          label: lidarrTargetLabel,
+          options: [
+            { value: '', label: t('common.none') },
+            ...lidarrTargets.map((target) => ({
+              value: String(target.id),
+              label: target.name,
+            })),
+          ],
+        },
+      ],
+    },
+    {
+      value: 'emby-playlist',
+      label: t('settings.targetTypeEmbyPlaylist'),
+      fields: [
+        { key: 'url', label: t('settings.fieldUrl'), placeholder: 'http://emby:8096', type: 'url' },
+        {
+          key: 'apiKey',
+          label: t('settings.fieldApiKey'),
+          placeholder: 'Enter API key',
+          type: 'password',
+        },
+        { key: 'userId', label: t('settings.fieldUserId'), placeholder: 'Enter Emby user ID' },
+      ],
+    },
+  ]
+}
 
 function TargetTypeIcon({ type }: { type: string }) {
   const iconMap: Record<string, string> = {
@@ -1531,14 +1604,47 @@ function TargetTypeIcon({ type }: { type: string }) {
   )
 }
 
-function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function normalizeTargetConfig(
+  type: string,
+  config: Record<string, string>,
+): Record<string, unknown> {
+  const normalizedEntries = Object.entries(config).filter(([, value]) => value !== '')
+  const normalizedConfig = Object.fromEntries(normalizedEntries) as Record<string, unknown>
+
+  if (type === 'slskd' && typeof normalizedConfig.lidarrTargetId === 'string') {
+    const lidarrTargetId = Number.parseInt(normalizedConfig.lidarrTargetId, 10)
+    if (Number.isFinite(lidarrTargetId)) {
+      normalizedConfig.lidarrTargetId = lidarrTargetId
+    } else {
+      delete normalizedConfig.lidarrTargetId
+    }
+  }
+
+  return normalizedConfig
+}
+
+function AddTargetDialog({
+  onClose,
+  onCreated,
+  targets,
+}: {
+  onClose: () => void
+  onCreated: () => void
+  targets: Array<{ id: number; type: string; name: string; enabled: boolean }>
+}) {
   const { t } = useI18n()
+  const targetTypes = getTargetTypes(
+    t,
+    targets
+      .filter((target) => target.type === 'lidarr' && target.enabled)
+      .map((target) => ({ id: target.id, name: target.name })),
+  )
   const [type, setType] = useState('')
   const [name, setName] = useState('')
   const [config, setConfig] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  const selectedType = TARGET_TYPES.find((tt) => tt.value === type)
+  const selectedType = targetTypes.find((tt) => tt.value === type)
 
   async function handleSave() {
     if (!type || !selectedType) return
@@ -1547,7 +1653,7 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
       await createTargetApi({
         type,
         name: name || selectedType.label,
-        config,
+        config: normalizeTargetConfig(type, config),
       })
       toast.success(t('settings.targetAdded'))
       onCreated()
@@ -1575,7 +1681,7 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
             className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
           >
             <option value="">{t('settings.selectTargetType')}</option>
-            {TARGET_TYPES.map((tt) => (
+            {targetTypes.map((tt) => (
               <option key={tt.value} value={tt.value}>
                 {tt.label}
               </option>
@@ -1600,18 +1706,54 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
 
           {selectedType.fields.map((field) => (
             <div key={field.key}>
-              <label className="block text-xs text-muted mb-1">
-                {field.label}
-                <input
-                  type={'type' in field ? field.type : 'text'}
-                  value={config[field.key] ?? ''}
-                  onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
-                  placeholder={field.placeholder}
-                  className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
-                />
-              </label>
+              {(() => {
+                const fieldId = `add-target-${type}-${field.key}`
+                return (
+                  <label htmlFor={fieldId} className="block text-xs text-muted mb-1">
+                    {field.label}
+                    {field.kind === 'select' ? (
+                      <select
+                        id={fieldId}
+                        value={config[field.key] ?? ''}
+                        onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
+                        className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+                      >
+                        {field.options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id={fieldId}
+                        type={field.type ?? 'text'}
+                        value={config[field.key] ?? ''}
+                        onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
+                        placeholder={field.placeholder}
+                        className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+                      />
+                    )}
+                  </label>
+                )
+              })()}
             </div>
           ))}
+
+          {selectedType.value === 'slskd' && (
+            <div className="rounded-md border border-border bg-bg/60 p-3 space-y-2">
+              <p className="text-xs text-muted">{t('settings.slskdModeHelp')}</p>
+              <ul className="space-y-1 text-xs text-muted list-disc pl-4">
+                <li>{t('settings.slskdReleasePolicy')}</li>
+                <li>{t('settings.slskdQualityPolicy')}</li>
+              </ul>
+              <p className="text-xs text-muted">
+                {config.lidarrTargetId
+                  ? t('settings.approvalActionLidarrSlskd')
+                  : t('settings.approvalActionSlskd')}
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onClose}>
@@ -1679,7 +1821,13 @@ function TargetsTab() {
         )}
       </div>
 
-      {addOpen && <AddTargetDialog onClose={() => setAddOpen(false)} onCreated={() => refetch()} />}
+      {addOpen && (
+        <AddTargetDialog
+          onClose={() => setAddOpen(false)}
+          onCreated={() => refetch()}
+          targets={targets ?? []}
+        />
+      )}
 
       {!addOpen && targets?.length === 0 && (
         <p className="text-sm text-muted">{t('settings.noTargets')}</p>

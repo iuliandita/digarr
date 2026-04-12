@@ -124,6 +124,10 @@ export const it = {
   'recommendation.playPreview': "Riproduci l'anteprima",
   'recommendation.stopPreview': "Interrompi l'anteprima",
   'recommendation.audioUnavailable': 'Anteprima audio non disponibile',
+  'recommendation.slskdQueued': 'In coda in slskd',
+  'recommendation.slskdDownloading': 'Scaricamento in slskd',
+  'recommendation.slskdImportPending': 'In attesa dell’import Lidarr',
+  'recommendation.slskdNeedsReview': 'Da rivedere',
   'todaysPick.noPending': 'Nessuna raccomandazione in sospeso',
   'todaysPick.reject': 'Rifiuta',
   'todaysPick.skip': 'Salta',
@@ -831,6 +835,18 @@ export const it = {
   'settings.adding': 'Aggiunta...',
   'settings.type': 'Tipo',
   'settings.name': 'Nome',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Playlist Emby',
+  'settings.slskdModeHelp':
+    'slskd può mettere in coda le release, ma l’automazione completa richiede un target Lidarr collegato.',
+  'settings.slskdReleasePolicy':
+    'Politica release: slskd autonomo mette le release in coda direttamente.',
+  'settings.slskdQualityPolicy':
+    'Politica qualità: il Lidarr collegato gestisce qualità e importazioni.',
+  'settings.approvalActionSlskd': 'Azione di approvazione: metti in coda solo in slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Azione di approvazione: metti in coda in slskd e importa tramite Lidarr.',
   'settings.recommendationsTip':
     "I pesi di punteggio controllano come vengono classificate le raccomandazioni. Regolali per enfatizzare la corrispondenza di genere, la fiducia dell'IA o la similarità.",
   'settings.scoreThreshold': 'Soglia punteggio',

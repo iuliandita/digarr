@@ -124,6 +124,10 @@ export const nl = {
   'recommendation.playPreview': 'Voorbeeld afspelen',
   'recommendation.stopPreview': 'Voorbeeld stoppen',
   'recommendation.audioUnavailable': 'Audiovoorbeeld niet beschikbaar',
+  'recommendation.slskdQueued': 'In de wachtrij in slskd',
+  'recommendation.slskdDownloading': 'Aan het downloaden in slskd',
+  'recommendation.slskdImportPending': 'Wacht op Lidarr-import',
+  'recommendation.slskdNeedsReview': 'Ter beoordeling',
   'todaysPick.noPending': 'Geen openstaande aanbevelingen',
   'todaysPick.reject': 'Afwijzen',
   'todaysPick.skip': 'Overslaan',
@@ -835,6 +839,17 @@ export const nl = {
   'settings.adding': 'Bezig met toevoegen...',
   'settings.type': 'Type',
   'settings.name': 'Naam',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Emby-afspeellijst',
+  'settings.slskdModeHelp':
+    'slskd kan releases in de wachtrij zetten, maar volledige automatisering vereist een gekoppeld Lidarr-doel.',
+  'settings.slskdReleasePolicy':
+    'Releasebeleid: zelfstandig slskd zet releases direct in de wachtrij.',
+  'settings.slskdQualityPolicy': 'Kwaliteitsbeleid: gekoppeld Lidarr regelt kwaliteit en imports.',
+  'settings.approvalActionSlskd': 'Goedkeuringsactie: alleen in slskd in de wachtrij zetten.',
+  'settings.approvalActionLidarrSlskd':
+    'Goedkeuringsactie: in slskd in de wachtrij zetten en via Lidarr importeren.',
   'settings.recommendationsTip':
     'Beoordelingsgewichten bepalen hoe aanbevelingen worden gerangschikt. Pas ze aan om genre-overlap, AI-zekerheid of gelijkenis te benadrukken.',
   'settings.scoreThreshold': 'Scoredrempel',

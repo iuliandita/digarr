@@ -43,6 +43,20 @@ export type LidarrAlbum = {
   }
 }
 
+export type LidarrWantedMissing = {
+  id: number
+  title: string
+  artistId?: number
+  foreignAlbumId?: string
+  artist?: {
+    id?: number
+    artistName?: string
+    foreignArtistId?: string
+  }
+  artistName?: string
+  foreignArtistId?: string
+}
+
 export type LidarrCommand = {
   id: number
   name: string
@@ -152,6 +166,30 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     }))
   }
 
+  async function getWantedMissing(): Promise<LidarrWantedMissing[]> {
+    const raw = await http.get<Record<string, unknown>[]>('/api/v1/wanted/missing')
+    return raw.map((album) => ({
+      id: album.id as number,
+      title: album.title as string,
+      artistId: album.artistId as number | undefined,
+      foreignAlbumId: album.foreignAlbumId as string | undefined,
+      artist:
+        album.artist && typeof album.artist === 'object'
+          ? {
+              id: (album.artist as Record<string, unknown>).id as number | undefined,
+              artistName: (album.artist as Record<string, unknown>).artistName as
+                | string
+                | undefined,
+              foreignArtistId: (album.artist as Record<string, unknown>).foreignArtistId as
+                | string
+                | undefined,
+            }
+          : undefined,
+      artistName: album.artistName as string | undefined,
+      foreignArtistId: album.foreignArtistId as string | undefined,
+    }))
+  }
+
   function updateArtist(id: number, data: Partial<LidarrArtist>): Promise<LidarrArtist> {
     return http.put<LidarrArtist>(`/api/v1/artist/${id}`, data)
   }
@@ -182,6 +220,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     lookupArtist,
     addArtist,
     getAlbums,
+    getWantedMissing,
     updateArtist,
     updateAlbum,
     triggerCommand,

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
   boolean,
@@ -13,7 +14,6 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
 
 export type DiscoveryModeProvenance = {
   modeId: string
@@ -279,7 +279,9 @@ export const slskdJobs = pgTable(
   (table) => ({
     activeWorkKeyIdx: uniqueIndex('slskd_jobs_active_work_key_idx')
       .on(table.workKey)
-      .where(sql`${table.state} in ('pending', 'searching', 'queued', 'downloading', 'import_pending')`),
+      .where(
+        sql`${table.state} in ('pending', 'searching', 'queued', 'downloading', 'import_pending')`,
+      ),
     stateIdx: index('slskd_jobs_state_idx').on(table.state),
     userStateIdx: index('slskd_jobs_user_state_idx').on(table.userId, table.state),
   }),

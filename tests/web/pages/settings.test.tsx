@@ -71,6 +71,7 @@ vi.mock('@/web/lib/api', () => ({
   loginUser: vi.fn(),
   registerUser: vi.fn(),
   setStoredToken: vi.fn(),
+  createTargetApi: vi.fn().mockResolvedValue({ id: 99 }),
   updatePreferredLocale: vi.fn().mockResolvedValue({ success: true, preferredLocale: 'en' }),
   AUTH_EXPIRED_EVENT: 'digarr:auth-expired',
   getUserPreferences: vi.fn().mockResolvedValue({
@@ -160,6 +161,7 @@ vi.mock('@/web/lib/hooks', async (importOriginal) => {
 })
 
 import {
+  createTargetApi,
   getAuthStatus,
   getCurrentUser,
   getLidarrMetadataProfiles,
@@ -170,6 +172,7 @@ import {
   getSettings,
   getStoredToken,
   importSpotifyLikedSongs,
+  listTargets,
   testService,
   updatePreferredLocale,
   updateSettings,
@@ -191,6 +194,8 @@ const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
 const mockGetStoredToken = getStoredToken as ReturnType<typeof vi.fn>
 const mockGetStoredLocale = getStoredLocale as ReturnType<typeof vi.fn>
 const mockUpdatePreferredLocale = updatePreferredLocale as ReturnType<typeof vi.fn>
+const mockCreateTargetApi = createTargetApi as ReturnType<typeof vi.fn>
+const mockListTargets = listTargets as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -479,5 +484,106 @@ describe('SettingsPage', () => {
       isAdmin: true,
       preferredLocale: 'en',
     })
+  })
+
+  it('creates an slskd target with an optional linked Lidarr target', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 11,
+        type: 'lidarr',
+        name: 'Primary Lidarr',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://lidarr:8686' },
+      },
+      {
+        id: 12,
+        type: 'lidarr',
+        name: 'Disabled Lidarr',
+        enabled: false,
+        owned: true,
+        config: { url: 'http://lidarr-disabled:8686' },
+      },
+    ])
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(await screen.findByText('Add Target'))
+
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Soulseek' } })
+    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://slskd:5030' } })
+    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'slskd-key' } })
+    fireEvent.change(screen.getByLabelText('Lidarr Target'), { target: { value: '11' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+
+    await waitFor(() => {
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'slskd',
+        name: 'Soulseek',
+        config: {
+          url: 'http://slskd:5030',
+          apiKey: 'slskd-key',
+          lidarrTargetId: 11,
+        },
+      })
+    })
+  })
+
+  it('shows slskd limitation help when adding a slskd target', async () => {
+    setupMocks()
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(await screen.findByText('Add Target'))
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
+
+    expect(
+      screen.getByText(
+        'slskd can queue releases, but full automation requires a linked Lidarr target.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Release policy: standalone slskd queues releases directly.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Quality policy: linked Lidarr handles quality and imports.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Approval action: queue in slskd only.')).toBeInTheDocument()
+  })
+
+  it('uses the locale-specific slskd api key placeholder', async () => {
+    mockGetStoredLocale.mockReturnValue('fr')
+    mockGetCurrentUser.mockResolvedValue({
+      id: 1,
+      username: 'admin',
+      isAdmin: true,
+      preferredLocale: 'fr',
+    })
+    setupMocks()
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connexions')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Destinations'))
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter une destination' }))
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
+
+    expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
   })
 })

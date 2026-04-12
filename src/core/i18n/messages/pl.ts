@@ -124,6 +124,10 @@ export const pl = {
   'recommendation.playPreview': 'Odtwórz podgląd',
   'recommendation.stopPreview': 'Zatrzymaj podgląd',
   'recommendation.audioUnavailable': 'Podgląd dźwięku jest niedostępny',
+  'recommendation.slskdQueued': 'W kolejce w slskd',
+  'recommendation.slskdDownloading': 'Pobieranie w slskd',
+  'recommendation.slskdImportPending': 'Czeka na import do Lidarr',
+  'recommendation.slskdNeedsReview': 'Wymaga sprawdzenia',
   'todaysPick.noPending': 'Brak oczekujących rekomendacji',
   'todaysPick.reject': 'Odrzuć',
   'todaysPick.skip': 'Pomiń',
@@ -833,6 +837,17 @@ export const pl = {
   'settings.adding': 'Dodawanie...',
   'settings.type': 'Typ',
   'settings.name': 'Nazwa',
+  'settings.targetTypeLidarr': 'Lidarr',
+  'settings.targetTypeSlskd': 'slskd',
+  'settings.targetTypeEmbyPlaylist': 'Playlista Emby',
+  'settings.slskdModeHelp':
+    'slskd może kolejkować wydania, ale pełna automatyzacja wymaga połączonego celu Lidarr.',
+  'settings.slskdReleasePolicy':
+    'Zasada wydań: samodzielny slskd kolejkowuje wydania bezpośrednio.',
+  'settings.slskdQualityPolicy': 'Zasada jakości: połączony Lidarr obsługuje jakość i importy.',
+  'settings.approvalActionSlskd': 'Akcja zatwierdzania: kolejkowanie tylko w slskd.',
+  'settings.approvalActionLidarrSlskd':
+    'Akcja zatwierdzania: kolejkowanie w slskd i import przez Lidarr.',
   'settings.recommendationsTip':
     'Wagi oceniania kontroluja kolejnosc rekomendacji. Dostosuj je, aby podkreslic powiazania gatunkowe, pewnosc AI lub podobienstwo.',
   'settings.scoreThreshold': 'Prog oceny',

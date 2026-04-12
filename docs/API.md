@@ -151,13 +151,20 @@ Locale notes:
 ```json
 {
   "status": "approved",
+  "approvalMode": "combined_lidarr_slskd",
   "monitorOption": "all",
-  "targetId": "lidarr-1",
+  "lidarrTargetId": "lidarr-1",
+  "targetId": "slskd-7",
   "qualityProfileId": 1,
   "metadataProfileId": 1,
   "rootFolderId": 1
 }
 ```
+
+Approval notes:
+- `approvalMode` defaults to `single_target`
+- use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
+- `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
 
 ---
 
@@ -254,7 +261,36 @@ Discovery-mode subscription notes:
 | DELETE | `/api/targets/:id` | Admin | Delete target |
 | POST | `/api/targets/:id/test` | Yes | Test target connection |
 
-**Target types**: `lidarr`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`
+**Target types**: `lidarr`, `slskd`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`, `export`
+
+## slskd
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/slskd/jobs` | Admin | Inspect active `slskd` orchestration jobs and current sync state. |
+| POST | `/api/slskd/sync` | Admin | Trigger a manual `slskd` orchestration sync. Returns 202 immediately. |
+
+**POST /api/slskd/sync** notes:
+- No request body
+- The route acknowledges immediately and lets the sync continue in the background
+- The sync worker polls linked Lidarr wanted releases, creates deduped `slskd` jobs, advances active jobs through search and transfer states, and verifies Lidarr imports before marking linked jobs complete
+
+**GET /api/slskd/jobs** response shape:
+
+```json
+{
+  "syncing": true,
+  "jobs": [
+    {
+      "id": 101,
+      "targetId": 7,
+      "recommendationId": 40,
+      "state": "downloading",
+      "releaseTitle": "Geogaddi"
+    }
+  ]
+}
+```
 
 ---
 
