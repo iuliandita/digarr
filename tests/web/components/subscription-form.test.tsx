@@ -1,11 +1,27 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SubscriptionForm } from '@/web/components/subscription-form'
 import type { DiscoveryModeResponse } from '@/web/lib/api'
+import { I18nProvider } from '@/web/lib/i18n'
 
 describe('SubscriptionForm discovery mode support', () => {
+  beforeEach(() => {
+    const storage = new Map<string, string>()
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: vi.fn((key: string) => storage.get(key) ?? null),
+        setItem: vi.fn((key: string, value: string) => {
+          storage.set(key, value)
+        }),
+        removeItem: vi.fn((key: string) => {
+          storage.delete(key)
+        }),
+      },
+    })
+  })
   const discoveryModes: DiscoveryModeResponse[] = [
     {
       id: 'release-radar',
@@ -46,13 +62,15 @@ describe('SubscriptionForm discovery mode support', () => {
     const onSubmit = vi.fn(async () => undefined)
 
     render(
-      <SubscriptionForm
-        mode="create"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        discoveryModes={discoveryModes}
-      />,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="create"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          discoveryModes={discoveryModes}
+        />
+      </I18nProvider>,
     )
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Radar Weekly' } })
@@ -89,13 +107,15 @@ describe('SubscriptionForm discovery mode support', () => {
   it('hydrates discovery-mode state when modes load after switching source type', async () => {
     const onSubmit = vi.fn(async () => undefined)
     const { rerender } = render(
-      <SubscriptionForm
-        mode="create"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        discoveryModes={[]}
-      />,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="create"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          discoveryModes={[]}
+        />
+      </I18nProvider>,
     )
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Radar Weekly' } })
@@ -104,13 +124,15 @@ describe('SubscriptionForm discovery mode support', () => {
     })
 
     rerender(
-      <SubscriptionForm
-        mode="create"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        discoveryModes={discoveryModes}
-      />,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="create"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          discoveryModes={discoveryModes}
+        />
+      </I18nProvider>,
     )
 
     await waitFor(() => {
@@ -142,29 +164,31 @@ describe('SubscriptionForm discovery mode support', () => {
     const onSubmit = vi.fn(async () => undefined)
 
     render(
-      <SubscriptionForm
-        mode="edit"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        initial={{
-          name: 'Radar Weekly',
-          sourceType: 'discovery-mode',
-          sourceProvider: 'release-radar',
-          sourceConfig: {
-            modeId: 'release-radar',
-            settingsMode: 'advanced',
-            settings: { seedArtists: ['Broadcast'], depth: 2 },
-          },
-          cron: '0 8 * * 0',
-          enabled: true,
-          maxArtistsPerRun: 20,
-          action: 'add_to_recommendations',
-          scoreThreshold: null,
-          scoringWeightPreset: 'genre',
-        }}
-        discoveryModes={discoveryModes}
-      />,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="edit"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          initial={{
+            name: 'Radar Weekly',
+            sourceType: 'discovery-mode',
+            sourceProvider: 'release-radar',
+            sourceConfig: {
+              modeId: 'release-radar',
+              settingsMode: 'advanced',
+              settings: { seedArtists: ['Broadcast'], depth: 2 },
+            },
+            cron: '0 8 * * 0',
+            enabled: true,
+            maxArtistsPerRun: 20,
+            action: 'add_to_recommendations',
+            scoreThreshold: null,
+            scoringWeightPreset: 'genre',
+          }}
+          discoveryModes={discoveryModes}
+        />
+      </I18nProvider>,
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -207,39 +231,43 @@ describe('SubscriptionForm discovery mode support', () => {
     }
 
     const { rerender } = render(
-      <SubscriptionForm
-        mode="edit"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        initial={initial}
-        discoveryModes={[]}
-      />,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="edit"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          initial={initial}
+          discoveryModes={[]}
+        />
+      </I18nProvider>,
     )
 
     rerender(
-      <SubscriptionForm
-        mode="edit"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        initial={initial}
-        discoveryModes={[
-          {
-            id: 'new-mode',
-            label: 'New Mode',
-            description: 'Replacement discovery mode.',
-            availability: {
-              enabled: true,
-              fallbackUsed: false,
-              providerPath: ['musicbrainz'],
-              reason: undefined,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="edit"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          initial={initial}
+          discoveryModes={[
+            {
+              id: 'new-mode',
+              label: 'New Mode',
+              description: 'Replacement discovery mode.',
+              availability: {
+                enabled: true,
+                fallbackUsed: false,
+                providerPath: ['musicbrainz'],
+                reason: undefined,
+              },
+              easyFields: [],
+              advancedFields: [],
             },
-            easyFields: [],
-            advancedFields: [],
-          },
-        ]}
-      />,
+          ]}
+        />
+      </I18nProvider>,
     )
 
     await waitFor(() => {
@@ -267,67 +295,69 @@ describe('SubscriptionForm discovery mode support', () => {
     const onSubmit = vi.fn(async () => undefined)
 
     render(
-      <SubscriptionForm
-        mode="edit"
-        configuredSources={[]}
-        onCancel={() => {}}
-        onSubmit={onSubmit}
-        initial={{
-          name: 'Radar Weekly',
-          sourceType: 'discovery-mode',
-          sourceProvider: 'release-radar',
-          sourceConfig: {
-            modeId: 'release-radar',
-            settingsMode: 'advanced',
-            settings: {
-              seedArtists: ['Broadcast'],
-              depth: 2,
-              legacyToggle: true,
+      <I18nProvider>
+        <SubscriptionForm
+          mode="edit"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={onSubmit}
+          initial={{
+            name: 'Radar Weekly',
+            sourceType: 'discovery-mode',
+            sourceProvider: 'release-radar',
+            sourceConfig: {
+              modeId: 'release-radar',
+              settingsMode: 'advanced',
+              settings: {
+                seedArtists: ['Broadcast'],
+                depth: 2,
+                legacyToggle: true,
+              },
             },
-          },
-          cron: '0 8 * * 0',
-          enabled: true,
-          maxArtistsPerRun: 20,
-          action: 'add_to_recommendations',
-          scoreThreshold: null,
-          scoringWeightPreset: 'genre',
-        }}
-        discoveryModes={[
-          {
-            id: 'release-radar',
-            label: 'Release Radar',
-            description: 'Find fresh releases through the release radar mode.',
-            availability: {
-              enabled: true,
-              fallbackUsed: false,
-              providerPath: ['musicbrainz'],
-              reason: undefined,
+            cron: '0 8 * * 0',
+            enabled: true,
+            maxArtistsPerRun: 20,
+            action: 'add_to_recommendations',
+            scoreThreshold: null,
+            scoringWeightPreset: 'genre',
+          }}
+          discoveryModes={[
+            {
+              id: 'release-radar',
+              label: 'Release Radar',
+              description: 'Find fresh releases through the release radar mode.',
+              availability: {
+                enabled: true,
+                fallbackUsed: false,
+                providerPath: ['musicbrainz'],
+                reason: undefined,
+              },
+              easyFields: [
+                {
+                  key: 'seedArtists',
+                  label: 'Seed artists',
+                  type: 'multiselect',
+                  required: false,
+                },
+              ],
+              advancedFields: [
+                {
+                  key: 'seedArtists',
+                  label: 'Seed artists',
+                  type: 'multiselect',
+                  required: false,
+                },
+                {
+                  key: 'depth',
+                  label: 'Depth',
+                  type: 'number',
+                  required: false,
+                },
+              ],
             },
-            easyFields: [
-              {
-                key: 'seedArtists',
-                label: 'Seed artists',
-                type: 'multiselect',
-                required: false,
-              },
-            ],
-            advancedFields: [
-              {
-                key: 'seedArtists',
-                label: 'Seed artists',
-                type: 'multiselect',
-                required: false,
-              },
-              {
-                key: 'depth',
-                label: 'Depth',
-                type: 'number',
-                required: false,
-              },
-            ],
-          },
-        ]}
-      />,
+          ]}
+        />
+      </I18nProvider>,
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))

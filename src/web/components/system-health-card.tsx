@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getJobHealth } from '../lib/api'
 import { formatRelativeTime } from '../lib/format-time'
+import { useI18n } from '../lib/i18n'
 
 function StatusDot({ status }: { status: string }) {
   const color =
@@ -9,22 +10,23 @@ function StatusDot({ status }: { status: string }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
 }
 
-function formatUntil(iso: string | null): string {
-  if (!iso) return '--'
-  const diff = new Date(iso).getTime() - Date.now()
-  if (diff < 0) return 'overdue'
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `in ${mins}m`
-  return `in ${Math.floor(mins / 60)}h`
-}
-
 export function SystemHealthCard() {
+  const { t } = useI18n()
   const { data, isLoading } = useQuery({
     queryKey: ['job-health'],
     queryFn: getJobHealth,
     staleTime: 60_000,
     refetchInterval: 60_000,
   })
+
+  function formatUntil(iso: string | null): string {
+    if (!iso) return '--'
+    const diff = new Date(iso).getTime() - Date.now()
+    if (diff < 0) return t('systemHealth.overdue')
+    const mins = Math.floor(diff / 60000)
+    if (mins < 60) return t('systemHealth.inMinutes').replace('{0}', String(mins))
+    return t('systemHealth.inHours').replace('{0}', String(Math.floor(mins / 60)))
+  }
 
   if (isLoading || !data) {
     return (
@@ -40,40 +42,47 @@ export function SystemHealthCard() {
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-text">System Health</h3>
+        <h3 className="text-sm font-medium text-text">{t('systemHealth.title')}</h3>
         <Link to="/settings/jobs" className="text-xs text-accent hover:underline">
-          View history
+          {t('systemHealth.viewHistory')}
         </Link>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <StatusDot status={data.pipeline.status} /> Pipeline
+            <StatusDot status={data.pipeline.status} /> {t('systemHealth.pipeline')}
           </span>
           <span className="text-muted">
-            last: {formatRelativeTime(data.pipeline.lastRun)}
-            {data.pipeline.nextRun && <> &middot; next: {formatUntil(data.pipeline.nextRun)}</>}
+            {t('systemHealth.lastRun')} {formatRelativeTime(data.pipeline.lastRun)}
+            {data.pipeline.nextRun && (
+              <>
+                {' '}
+                &middot; {t('systemHealth.nextRun')} {formatUntil(data.pipeline.nextRun)}
+              </>
+            )}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <StatusDot status={data.subscriptions.status} /> Subscriptions
+            <StatusDot status={data.subscriptions.status} /> {t('systemHealth.subscriptions')}
           </span>
           <span className="text-muted">
-            {data.subscriptions.healthy}/{data.subscriptions.total} healthy
+            {data.subscriptions.healthy}/{data.subscriptions.total} {t('systemHealth.healthy')}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <StatusDot status={data.playlists.status} /> Playlists
+            <StatusDot status={data.playlists.status} /> {t('systemHealth.playlists')}
           </span>
-          <span className="text-muted">last: {formatRelativeTime(data.playlists.lastRun)}</span>
+          <span className="text-muted">
+            {t('systemHealth.lastRun')} {formatRelativeTime(data.playlists.lastRun)}
+          </span>
         </div>
         {sourceEntries.length > 0 && (
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <StatusDot status={healthySources === sourceEntries.length ? 'ok' : 'degraded'} />{' '}
-              Sources
+              {t('systemHealth.sources')}
             </span>
             <span className="text-muted">
               {healthySources}/{sourceEntries.length}
@@ -85,7 +94,7 @@ export function SystemHealthCard() {
                     .filter(([, s]) => s !== 'ok')
                     .map(([name]) => name)
                     .join(', ')}{' '}
-                  degraded
+                  {t('systemHealth.degraded')}
                 </>
               )}
             </span>

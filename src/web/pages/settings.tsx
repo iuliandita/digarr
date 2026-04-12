@@ -110,35 +110,36 @@ function TabBar({
   onChange: (t: Tab) => void
   isAdmin: boolean
 }) {
+  const { t } = useI18n()
   const allTabs: { id: Tab; label: string; adminOnly?: boolean }[] = [
-    { id: 'connections', label: 'Connections' },
-    { id: 'targets', label: 'Targets' },
-    { id: 'recommendations', label: 'Recommendations' },
-    { id: 'schedule', label: 'Schedule', adminOnly: true },
-    { id: 'account', label: 'Account' },
-    { id: 'auth', label: 'Authentication', adminOnly: true },
-    { id: 'users', label: 'Users', adminOnly: true },
-    { id: 'administration', label: 'Administration', adminOnly: true },
+    { id: 'connections', label: t('settings.tabs.connections') },
+    { id: 'targets', label: t('settings.tabs.targets') },
+    { id: 'recommendations', label: t('settings.tabs.recommendations') },
+    { id: 'schedule', label: t('settings.tabs.schedule'), adminOnly: true },
+    { id: 'account', label: t('settings.tabs.account') },
+    { id: 'auth', label: t('settings.tabs.authentication'), adminOnly: true },
+    { id: 'users', label: t('settings.tabs.users'), adminOnly: true },
+    { id: 'administration', label: t('settings.tabs.administration'), adminOnly: true },
   ]
-  const tabs = allTabs.filter((t) => !t.adminOnly || isAdmin)
+  const tabs = allTabs.filter((tab) => !tab.adminOnly || isAdmin)
   return (
     <div
       className="flex gap-1 border-b border-border mb-6 overflow-x-auto -mx-6 px-6"
       style={{ scrollbarWidth: 'none' }}
     >
-      {tabs.map((t) => (
+      {tabs.map((tab) => (
         <button
-          key={t.id}
+          key={tab.id}
           type="button"
-          onClick={() => onChange(t.id)}
+          onClick={() => onChange(tab.id)}
           className={[
             'px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
-            active === t.id
+            active === tab.id
               ? 'border-accent text-text'
               : 'border-transparent text-muted hover:text-text',
           ].join(' ')}
         >
-          {t.label}
+          {tab.label}
         </button>
       ))}
       {isAdmin && (
@@ -146,7 +147,7 @@ function TabBar({
           to="/settings/jobs"
           className="px-3 sm:px-4 py-2 text-sm font-medium border-b-2 border-transparent -mb-px transition-colors whitespace-nowrap shrink-0 text-muted hover:text-text"
         >
-          Job History
+          {t('settings.tabs.jobHistory')}
         </Link>
       )}
     </div>
@@ -459,7 +460,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     try {
       await disconnectOAuth('spotify')
       queryClient.invalidateQueries({ queryKey: ['spotify-oauth-status'] })
-      toast.success('Spotify disconnected')
+      toast.success(t('settings.spotifyDisconnected'))
     } catch {
       toast.error('Failed to disconnect Spotify')
     }
@@ -469,7 +470,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     setImportingSpotifyLikes(true)
     try {
       const res = await importSpotifyLikedSongs()
-      toast.success(res.created ? 'Spotify Liked Songs import started' : 'Import started again')
+      toast.success(
+        res.created ? t('settings.spotifyLikedSongsStarted') : t('settings.importStartedAgain'),
+      )
     } catch {
       toast.error('Failed to start Spotify Liked Songs import')
     } finally {
@@ -483,7 +486,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     try {
       const res = await importSpotifyPlaylist(playlistIdInput.trim())
       toast.success(
-        res.created ? 'Playlist import started' : 'Import started again for this playlist',
+        res.created
+          ? t('settings.playlistImportStarted')
+          : t('settings.playlistImportStartedAgain'),
       )
       setPlaylistIdInput('')
     } catch {
@@ -505,10 +510,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Global Settings</h3>
-        {!isAdmin && (
-          <p className="text-xs text-muted mt-1">Only admins can modify global settings.</p>
-        )}
+        <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.globalSettings')}
+        </h3>
+        {!isAdmin && <p className="text-xs text-muted mt-1">{t('settings.adminOnly')}</p>}
       </div>
 
       {!isAdmin ? (
@@ -540,14 +545,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               name="Lidarr"
               description={
                 <span>
-                  Music library manager -- required for adding artists.{' '}
+                  {t('settings.lidarrDescription')}{' '}
                   <a
                     href="https://wiki.servarr.com/lidarr/settings#security"
                     target="_blank"
                     rel="noreferrer"
                     className="text-accent hover:underline"
                   >
-                    Get API key
+                    {t('settings.getApiKey')}
                   </a>
                 </span>
               }
@@ -555,7 +560,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               icon={<LidarrIcon />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="URL" id="lidarr-url">
+                <Field label={t('settings.fieldUrl')} id="lidarr-url">
                   <Input
                     id="lidarr-url"
                     type="url"
@@ -564,19 +569,21 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     onChange={(e) => setLidarrUrl(e.target.value)}
                   />
                 </Field>
-                <Field label="API Key" id="lidarr-apikey">
+                <Field label={t('settings.fieldApiKey')} id="lidarr-apikey">
                   <Input
                     id="lidarr-apikey"
                     type="password"
                     placeholder={
-                      settings.lidarrApiKey === '***' ? '(saved)' : 'Your Lidarr API key'
+                      settings.lidarrApiKey === '***'
+                        ? `(${t('settings.saved')})`
+                        : 'Your Lidarr API key'
                     }
                     value={lidarrApiKey}
                     onChange={(e) => setLidarrApiKey(e.target.value)}
                   />
                 </Field>
               </div>
-              <Field label="Public URL (optional)" id="lidarr-public-url">
+              <Field label={t('settings.fieldPublicUrl')} id="lidarr-public-url">
                 <Input
                   id="lidarr-public-url"
                   type="url"
@@ -584,10 +591,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   value={lidarrPublicUrl}
                   onChange={(e) => setLidarrPublicUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted mt-1">
-                  Browser-accessible URL for linking to Lidarr artist pages. Leave empty if the API
-                  URL is already reachable from your browser.
-                </p>
+                <p className="text-xs text-muted mt-1">{t('settings.lidarrPublicUrlHelp')}</p>
               </Field>
               <div className="flex justify-end gap-2 pt-1">
                 <Button
@@ -596,10 +600,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   onClick={testLidarr}
                   disabled={tests.lidarr === 'testing'}
                 >
-                  {tests.lidarr === 'testing' ? 'Testing...' : 'Test Connection'}
+                  {tests.lidarr === 'testing'
+                    ? t('settings.testing')
+                    : t('settings.testConnection')}
                 </Button>
                 <Button size="sm" onClick={saveLidarr} disabled={saving.lidarr}>
-                  {saving.lidarr ? 'Saving...' : isLidarrConfigured ? 'Save' : 'Configure'}
+                  {saving.lidarr
+                    ? t('settings.saving')
+                    : isLidarrConfigured
+                      ? t('settings.save')
+                      : t('settings.configure')}
                 </Button>
               </div>
             </ServiceCard>
@@ -607,15 +617,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 
           {/* AI Provider */}
           <Hint id="settings-ai-tip" type="inline">
-            Choose an AI provider to power recommendations. Ollama runs locally for free. Cloud
-            providers (Claude, GPT, Gemini) need API keys.
+            {t('settings.aiTip')}
           </Hint>
           <div className={isAiConfigured ? '' : 'opacity-60'}>
             <ServiceCard
               name="AI Provider"
               description={
                 <span>
-                  Generates music recommendations.{' '}
+                  {t('settings.aiDescription')}{' '}
                   {aiProvider === 'anthropic' && (
                     <a
                       href="https://console.anthropic.com/settings/keys"
@@ -623,7 +632,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       rel="noreferrer"
                       className="text-accent hover:underline"
                     >
-                      Get API key
+                      {t('settings.getApiKey')}
                     </a>
                   )}
                   {aiProvider === 'openai' && (
@@ -633,7 +642,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       rel="noreferrer"
                       className="text-accent hover:underline"
                     >
-                      Get API key
+                      {t('settings.getApiKey')}
                     </a>
                   )}
                   {aiProvider === 'gemini' && (
@@ -643,7 +652,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       rel="noreferrer"
                       className="text-accent hover:underline"
                     >
-                      Get API key
+                      {t('settings.getApiKey')}
                     </a>
                   )}
                   {aiProvider === 'ollama' && (
@@ -653,7 +662,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       rel="noreferrer"
                       className="text-accent hover:underline"
                     >
-                      Browse models
+                      {t('settings.browseModels')}
                     </a>
                   )}
                 </span>
@@ -662,7 +671,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               icon={<AiProviderIcon provider={aiProvider} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Provider" id="ai-provider">
+                <Field label={t('settings.fieldProvider')} id="ai-provider">
                   <Select
                     id="ai-provider"
                     value={aiProvider}
@@ -675,7 +684,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     <option value="openai-compatible">OpenAI-Compatible</option>
                   </Select>
                 </Field>
-                <Field label="Model" id="ai-model">
+                <Field label={t('settings.fieldModel')} id="ai-model">
                   <Input
                     id="ai-model"
                     placeholder={
@@ -696,20 +705,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               </div>
               {aiProvider !== 'ollama' && (
                 <Field
-                  label={aiProvider === 'openai-compatible' ? 'API Key (optional)' : 'API Key'}
+                  label={
+                    aiProvider === 'openai-compatible'
+                      ? t('settings.fieldApiKeyOptional')
+                      : t('settings.fieldApiKey')
+                  }
                   id="ai-apikey"
                 >
                   <Input
                     id="ai-apikey"
                     type="password"
-                    placeholder={settings.aiApiKey === '***' ? '(saved)' : 'API key'}
+                    placeholder={
+                      settings.aiApiKey === '***' ? `(${t('settings.saved')})` : 'API key'
+                    }
                     value={aiApiKey}
                     onChange={(e) => setAiApiKey(e.target.value)}
                   />
                 </Field>
               )}
               {(aiProvider === 'ollama' || aiProvider === 'openai-compatible') && (
-                <Field label="Base URL" id="ai-baseurl">
+                <Field label={t('settings.fieldBaseUrl')} id="ai-baseurl">
                   <Input
                     id="ai-baseurl"
                     type="url"
@@ -724,10 +739,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 </Field>
               )}
               {aiProvider === 'openai-compatible' && (
-                <p className="text-xs text-muted">
-                  Works with Groq, OpenRouter, LiteLLM, LocalAI, and any OpenAI-compatible endpoint.
-                  API key is optional for local services.
-                </p>
+                <p className="text-xs text-muted">{t('settings.aiOpenAiCompatibleHelp')}</p>
               )}
               <div className="flex justify-end gap-2 pt-1">
                 <Button
@@ -736,10 +748,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   onClick={testAi}
                   disabled={tests.ai === 'testing'}
                 >
-                  {tests.ai === 'testing' ? 'Testing...' : 'Test Connection'}
+                  {tests.ai === 'testing' ? t('settings.testing') : t('settings.testConnection')}
                 </Button>
                 <Button size="sm" onClick={saveAi} disabled={saving.ai}>
-                  {saving.ai ? 'Saving...' : isAiConfigured ? 'Save' : 'Configure'}
+                  {saving.ai
+                    ? t('settings.saving')
+                    : isAiConfigured
+                      ? t('settings.save')
+                      : t('settings.configure')}
                 </Button>
               </div>
             </ServiceCard>
@@ -748,11 +764,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           {/* Webhook */}
           <ServiceCard
             name="Webhook"
-            description="Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)"
+            description={t('settings.webhookDescription')}
             status={webhookUrl ? 'connected' : 'not_configured'}
             icon={<WebhookIcon />}
           >
-            <Field label="Webhook URL" id="webhook-url">
+            <Field label={t('settings.fieldWebhookUrl')} id="webhook-url">
               <Input
                 id="webhook-url"
                 type="url"
@@ -768,10 +784,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onClick={handleTestWebhook}
                 disabled={testingWebhook || !webhookUrl}
               >
-                {testingWebhook ? 'Sending...' : 'Test Webhook'}
+                {testingWebhook ? t('settings.sending') : t('settings.testWebhook')}
               </Button>
               <Button size="sm" onClick={handleSaveWebhook} disabled={savingWebhook}>
-                {savingWebhook ? 'Saving...' : webhookUrl ? 'Save' : 'Configure'}
+                {savingWebhook
+                  ? t('settings.saving')
+                  : webhookUrl
+                    ? t('settings.save')
+                    : t('settings.configure')}
               </Button>
             </div>
           </ServiceCard>
@@ -780,16 +800,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 
       <div className="pt-2">
         <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-          Your Connections
+          {t('settings.yourConnections')}
         </h3>
-        <p className="text-xs text-muted mt-1">
-          Personal listening sources linked to your account.
-        </p>
+        <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
       </div>
 
       <Hint id="settings-connections-tip" type="inline">
-        Connect your listening sources first -- ListenBrainz, Last.fm, Spotify, or Plex. The
-        pipeline uses your listening history to find similar artists.
+        {t('settings.connectionsTip')}
       </Hint>
 
       {/* ListenBrainz */}
@@ -798,17 +815,17 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name="ListenBrainz"
           description={
             <span>
-              Open-source listening history tracking.{' '}
+              {t('settings.listenbrainzDescription')}{' '}
               <a
                 href="https://listenbrainz.org/settings/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-accent hover:underline"
               >
-                Get token
+                {t('settings.getToken')}
               </a>
               {settings._listenbrainzScope === 'user' && (
-                <span className="text-xs text-accent ml-2">your account</span>
+                <span className="text-xs text-accent ml-2">{t('settings.yourAccount')}</span>
               )}
             </span>
           }
@@ -816,7 +833,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           icon={<ListenBrainzIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Username" id="lb-username">
+            <Field label={t('settings.fieldUsername')} id="lb-username">
               <Input
                 id="lb-username"
                 placeholder="your-username"
@@ -824,12 +841,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setLbUsername(e.target.value)}
               />
             </Field>
-            <Field label="User Token" id="lb-token">
+            <Field label={t('settings.fieldUserToken')} id="lb-token">
               <Input
                 id="lb-token"
                 type="password"
                 placeholder={
-                  settings.listenbrainzToken === '***' ? '(saved)' : 'ListenBrainz token'
+                  settings.listenbrainzToken === '***'
+                    ? `(${t('settings.saved')})`
+                    : 'ListenBrainz token'
                 }
                 value={lbToken}
                 onChange={(e) => setLbToken(e.target.value)}
@@ -843,10 +862,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testListenbrainz}
               disabled={tests.listenbrainz === 'testing'}
             >
-              {tests.listenbrainz === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.listenbrainz === 'testing'
+                ? t('settings.testing')
+                : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={saveListenbrainz} disabled={saving.listenbrainz}>
-              {saving.listenbrainz ? 'Saving...' : isLbConfigured ? 'Save' : 'Configure'}
+              {saving.listenbrainz
+                ? t('settings.saving')
+                : isLbConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -858,17 +883,17 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name="Last.fm"
           description={
             <span>
-              Music scrobbling and listening history.{' '}
+              {t('settings.lastfmDescription')}{' '}
               <a
                 href="https://www.last.fm/api/account/create"
                 target="_blank"
                 rel="noreferrer"
                 className="text-accent hover:underline"
               >
-                Get API key
+                {t('settings.getApiKey')}
               </a>
               {settings._lastfmScope === 'user' && (
-                <span className="text-xs text-accent ml-2">your account</span>
+                <span className="text-xs text-accent ml-2">{t('settings.yourAccount')}</span>
               )}
             </span>
           }
@@ -876,7 +901,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           icon={<LastfmIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Username" id="lfm-username">
+            <Field label={t('settings.fieldUsername')} id="lfm-username">
               <Input
                 id="lfm-username"
                 placeholder="your-username"
@@ -884,11 +909,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setLfUsername(e.target.value)}
               />
             </Field>
-            <Field label="API Key" id="lfm-apikey">
+            <Field label={t('settings.fieldApiKey')} id="lfm-apikey">
               <Input
                 id="lfm-apikey"
                 type="password"
-                placeholder={settings.lastfmApiKey === '***' ? '(saved)' : 'Last.fm API key'}
+                placeholder={
+                  settings.lastfmApiKey === '***' ? `(${t('settings.saved')})` : 'Last.fm API key'
+                }
                 value={lfApiKey}
                 onChange={(e) => setLfApiKey(e.target.value)}
               />
@@ -901,10 +928,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testLastfm}
               disabled={tests.lastfm === 'testing'}
             >
-              {tests.lastfm === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.lastfm === 'testing' ? t('settings.testing') : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={saveLastfm} disabled={saving.lastfm}>
-              {saving.lastfm ? 'Saving...' : isLfConfigured ? 'Save' : 'Configure'}
+              {saving.lastfm
+                ? t('settings.saving')
+                : isLfConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -916,14 +947,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name="Spotify"
           description={
             <span>
-              Listening history from Spotify.{' '}
+              {t('settings.spotifyDescription')}{' '}
               <a
                 href="https://developer.spotify.com/dashboard"
                 target="_blank"
                 rel="noreferrer"
                 className="text-accent hover:underline"
               >
-                Create a Spotify Developer App
+                {t('settings.createSpotifyApp')}
               </a>
             </span>
           }
@@ -932,19 +963,17 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         >
           {spotifyConnected ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted">
-                Import artists from your Spotify account to seed your recommendations.
-              </p>
+              <p className="text-sm text-muted">{t('settings.spotifyImportDescription')}</p>
               <div className="flex justify-end gap-2 pt-1">
                 <Button
                   size="sm"
                   onClick={startSpotifyLikedSongsImport}
                   disabled={importingSpotifyLikes}
                 >
-                  {importingSpotifyLikes ? 'Importing...' : 'Import Liked Songs'}
+                  {importingSpotifyLikes ? t('common.importing') : t('settings.importLikedSongs')}
                 </Button>
                 <Button size="sm" variant="outline" onClick={disconnectSpotify}>
-                  Disconnect
+                  {t('settings.disconnect')}
                 </Button>
               </div>
               <div className="flex gap-1.5 pt-1">
@@ -964,14 +993,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   onClick={startSpotifyPlaylistImport}
                   disabled={!playlistIdInput.trim() || importingPlaylist}
                 >
-                  {importingPlaylist ? 'Importing...' : 'Import Playlist'}
+                  {importingPlaylist ? t('common.importing') : t('settings.importPlaylist')}
                 </Button>
               </div>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Client ID" id="spotify-client-id">
+                <Field label={t('settings.fieldClientId')} id="spotify-client-id">
                   <Input
                     id="spotify-client-id"
                     placeholder="Your Spotify app client ID"
@@ -979,7 +1008,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     onChange={(e) => setSpotifyClientId(e.target.value)}
                   />
                 </Field>
-                <Field label="Client Secret" id="spotify-client-secret">
+                <Field label={t('settings.fieldClientSecret')} id="spotify-client-secret">
                   <Input
                     id="spotify-client-secret"
                     type="password"
@@ -995,7 +1024,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   onClick={initiateSpotifyOAuth}
                   disabled={!spotifyClientId || !spotifyClientSecret}
                 >
-                  Connect with Spotify
+                  {t('settings.connectWithSpotify')}
                 </Button>
               </div>
             </>
@@ -1007,14 +1036,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <div className={deezerConnected ? '' : 'opacity-60'}>
         <ServiceCard
           name={t('settings.deezer')}
-          description="Favorites, followed artists, and playlists from Deezer."
+          description={t('settings.deezerDescription')}
           status={deezerConnected ? 'connected' : 'not_configured'}
         >
           {deezerConnected ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted">
-                Import artists from your Deezer account to seed your recommendations.
-              </p>
+              <p className="text-sm text-muted">{t('settings.deezerImportDescription')}</p>
               <div className="flex justify-end gap-2 pt-1">
                 <Button
                   size="sm"
@@ -1023,7 +1050,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     try {
                       const res = await importDeezerFavorites()
                       toast.success(
-                        res.created ? 'Deezer Favorites import started' : 'Import started again',
+                        res.created
+                          ? t('settings.deezerFavoritesStarted')
+                          : t('settings.importStartedAgain'),
                       )
                     } catch {
                       toast.error('Failed to start Deezer Favorites import')
@@ -1044,8 +1073,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       const res = await importDeezerFollowed()
                       toast.success(
                         res.created
-                          ? 'Deezer Followed Artists import started'
-                          : 'Import started again',
+                          ? t('settings.deezerFollowedStarted')
+                          : t('settings.importStartedAgain'),
                       )
                     } catch {
                       toast.error('Failed to start Deezer Followed import')
@@ -1066,13 +1095,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     try {
                       await disconnectOAuth('deezer')
                       queryClient.invalidateQueries({ queryKey: ['deezer-oauth-status'] })
-                      toast.success('Deezer disconnected')
+                      toast.success(t('settings.deezerDisconnected'))
                     } catch {
                       toast.error('Failed to disconnect Deezer')
                     }
                   }}
                 >
-                  Disconnect
+                  {t('settings.disconnect')}
                 </Button>
               </div>
             </div>
@@ -1107,12 +1136,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <div className={isPlexConfigured ? '' : 'opacity-60'}>
         <ServiceCard
           name="Plex"
-          description="Media server with listening history"
+          description={t('settings.plexDescription')}
           status={serviceStatus('plex')}
           icon={<PlexIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Server URL" id="plex-url">
+            <Field label={t('settings.fieldServerUrl')} id="plex-url">
               <Input
                 id="plex-url"
                 type="url"
@@ -1125,7 +1154,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               <Input
                 id="plex-token"
                 type="password"
-                placeholder={settings.plexToken === '***' ? '(saved)' : 'Your Plex token'}
+                placeholder={
+                  settings.plexToken === '***' ? `(${t('settings.saved')})` : 'Your Plex token'
+                }
                 value={plexToken}
                 onChange={(e) => setPlexToken(e.target.value)}
               />
@@ -1138,10 +1169,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testPlex}
               disabled={tests.plex === 'testing'}
             >
-              {tests.plex === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={savePlex} disabled={saving.plex}>
-              {saving.plex ? 'Saving...' : isPlexConfigured ? 'Save' : 'Configure'}
+              {saving.plex
+                ? t('settings.saving')
+                : isPlexConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -1151,12 +1186,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <div className={isJellyfinConfigured ? '' : 'opacity-60'}>
         <ServiceCard
           name="Jellyfin"
-          description="Open-source media server with listening history"
+          description={t('settings.jellyfinDescription')}
           status={serviceStatus('jellyfin')}
           icon={<JellyfinIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Server URL" id="jellyfin-url">
+            <Field label={t('settings.fieldServerUrl')} id="jellyfin-url">
               <Input
                 id="jellyfin-url"
                 type="url"
@@ -1165,27 +1200,28 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setJellyfinUrl(e.target.value)}
               />
             </Field>
-            <Field label="API Key" id="jellyfin-apikey">
+            <Field label={t('settings.fieldApiKey')} id="jellyfin-apikey">
               <Input
                 id="jellyfin-apikey"
                 type="password"
-                placeholder={settings.jellyfinApiKey === '***' ? '(saved)' : 'Jellyfin API key'}
+                placeholder={
+                  settings.jellyfinApiKey === '***'
+                    ? `(${t('settings.saved')})`
+                    : 'Jellyfin API key'
+                }
                 value={jellyfinApiKey}
                 onChange={(e) => setJellyfinApiKey(e.target.value)}
               />
             </Field>
           </div>
-          <Field label="Username or User ID" id="jellyfin-userid">
+          <Field label={t('settings.fieldUsernameOrUserId')} id="jellyfin-userid">
             <Input
               id="jellyfin-userid"
               placeholder="e.g. admin"
               value={jellyfinUserId}
               onChange={(e) => setJellyfinUserId(e.target.value)}
             />
-            <p className="text-xs text-muted mt-1">
-              Your Jellyfin username (recommended) or UUID. The username is resolved automatically
-              via the Jellyfin API.
-            </p>
+            <p className="text-xs text-muted mt-1">{t('settings.jellyfinUserIdHelp')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
             <Button
@@ -1194,10 +1230,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testJellyfin}
               disabled={tests.jellyfin === 'testing'}
             >
-              {tests.jellyfin === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.jellyfin === 'testing' ? t('settings.testing') : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={saveJellyfin} disabled={saving.jellyfin}>
-              {saving.jellyfin ? 'Saving...' : isJellyfinConfigured ? 'Save' : 'Configure'}
+              {saving.jellyfin
+                ? t('settings.saving')
+                : isJellyfinConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -1207,7 +1247,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <div className={isEmbyConfigured ? '' : 'opacity-60'}>
         <ServiceCard
           name="Emby"
-          description="Media server with listening history and playlist export"
+          description={t('settings.embyDescription')}
           status={serviceStatus('emby')}
           icon={
             <span className="w-5 h-5 rounded bg-accent/20 text-accent text-micro font-bold flex items-center justify-center">
@@ -1216,7 +1256,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           }
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Server URL" id="emby-url">
+            <Field label={t('settings.fieldServerUrl')} id="emby-url">
               <Input
                 id="emby-url"
                 type="url"
@@ -1225,27 +1265,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setEmbyUrl(e.target.value)}
               />
             </Field>
-            <Field label="API Key" id="emby-apikey">
+            <Field label={t('settings.fieldApiKey')} id="emby-apikey">
               <Input
                 id="emby-apikey"
                 type="password"
-                placeholder={settings.embyApiKey === '***' ? '(saved)' : 'Emby API key'}
+                placeholder={
+                  settings.embyApiKey === '***' ? `(${t('settings.saved')})` : 'Emby API key'
+                }
                 value={embyApiKey}
                 onChange={(e) => setEmbyApiKey(e.target.value)}
               />
             </Field>
           </div>
-          <Field label="User ID" id="emby-userid">
+          <Field label={t('settings.fieldUserId')} id="emby-userid">
             <Input
               id="emby-userid"
               placeholder="Emby user ID"
               value={embyUserId}
               onChange={(e) => setEmbyUserId(e.target.value)}
             />
-            <p className="text-xs text-muted mt-1">
-              Found under Emby Dashboard -&gt; Users -&gt; (select user). The URL contains the user
-              ID.
-            </p>
+            <p className="text-xs text-muted mt-1">{t('settings.embyUserIdHelp')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
             <Button
@@ -1254,10 +1293,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testEmby}
               disabled={tests.emby === 'testing'}
             >
-              {tests.emby === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.emby === 'testing' ? t('settings.testing') : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={saveEmby} disabled={saving.emby}>
-              {saving.emby ? 'Saving...' : isEmbyConfigured ? 'Save' : 'Configure'}
+              {saving.emby
+                ? t('settings.saving')
+                : isEmbyConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -1269,14 +1312,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name="Discogs"
           description={
             <span>
-              Collection and wantlist from Discogs.{' '}
+              {t('settings.discogsDescription')}{' '}
               <a
                 href="https://www.discogs.com/settings/developers"
                 target="_blank"
                 rel="noreferrer"
                 className="text-accent hover:underline"
               >
-                Get personal access token
+                {t('settings.getPersonalAccessToken')}
               </a>
             </span>
           }
@@ -1284,7 +1327,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           icon={<DiscogsIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Username" id="discogs-username">
+            <Field label={t('settings.fieldUsername')} id="discogs-username">
               <Input
                 id="discogs-username"
                 placeholder="your-discogs-username"
@@ -1292,11 +1335,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setDiscogsUsername(e.target.value)}
               />
             </Field>
-            <Field label="Personal Access Token" id="discogs-token">
+            <Field label={t('settings.fieldPersonalAccessToken')} id="discogs-token">
               <Input
                 id="discogs-token"
                 type="password"
-                placeholder={settings.discogsToken === '***' ? '(saved)' : 'Discogs token'}
+                placeholder={
+                  settings.discogsToken === '***' ? `(${t('settings.saved')})` : 'Discogs token'
+                }
                 value={discogsToken}
                 onChange={(e) => setDiscogsToken(e.target.value)}
               />
@@ -1309,10 +1354,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onClick={testDiscogs}
               disabled={tests.discogs === 'testing'}
             >
-              {tests.discogs === 'testing' ? 'Testing...' : 'Test Connection'}
+              {tests.discogs === 'testing' ? t('settings.testing') : t('settings.testConnection')}
             </Button>
             <Button size="sm" onClick={saveDiscogs} disabled={saving.discogs}>
-              {saving.discogs ? 'Saving...' : isDiscogsConfigured ? 'Save' : 'Configure'}
+              {saving.discogs
+                ? t('settings.saving')
+                : isDiscogsConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
             </Button>
           </div>
         </ServiceCard>
@@ -1325,6 +1374,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 }
 
 function LidarrPreferencesSection() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data: userPrefs } = useQuery({
     queryKey: ['user-preferences'],
@@ -1366,9 +1416,9 @@ function LidarrPreferencesSection() {
         rootFolderId: parseInt(rootFolderId, 10) || 1,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
-      toast.success('Lidarr preferences saved')
+      toast.success(t('settings.lidarrPreferencesSaved'))
     } catch {
-      toast.error('Failed to save Lidarr preferences')
+      toast.error(t('settings.lidarrPreferencesFailed'))
     } finally {
       setSaving(false)
     }
@@ -1378,15 +1428,13 @@ function LidarrPreferencesSection() {
     <div>
       <div className="pt-2 mb-4">
         <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-          Your Lidarr Preferences
+          {t('settings.lidarrPreferences')}
         </h3>
-        <p className="text-xs text-muted mt-1">
-          Defaults used when you approve recommendations into Lidarr. Each user can set their own.
-        </p>
+        <p className="text-xs text-muted mt-1">{t('settings.lidarrPreferencesDescription')}</p>
       </div>
       <div className="rounded-lg border border-border bg-surface p-4 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Field label="Quality Profile" id="user-quality-profile">
+          <Field label={t('settings.qualityProfile')} id="user-quality-profile">
             <Select
               id="user-quality-profile"
               value={qualityProfileId}
@@ -1399,11 +1447,11 @@ function LidarrPreferencesSection() {
                   </option>
                 ))
               ) : (
-                <option value={qualityProfileId}>Loading...</option>
+                <option value={qualityProfileId}>{t('common.loading')}</option>
               )}
             </Select>
           </Field>
-          <Field label="Metadata Profile" id="user-metadata-profile">
+          <Field label={t('settings.metadataProfile')} id="user-metadata-profile">
             <Select
               id="user-metadata-profile"
               value={metadataProfileId}
@@ -1416,11 +1464,11 @@ function LidarrPreferencesSection() {
                   </option>
                 ))
               ) : (
-                <option value={metadataProfileId}>Loading...</option>
+                <option value={metadataProfileId}>{t('common.loading')}</option>
               )}
             </Select>
           </Field>
-          <Field label="Root Folder" id="user-root-folder">
+          <Field label={t('settings.rootFolder')} id="user-root-folder">
             <Select
               id="user-root-folder"
               value={rootFolderId}
@@ -1433,14 +1481,14 @@ function LidarrPreferencesSection() {
                   </option>
                 ))
               ) : (
-                <option value={rootFolderId}>Loading...</option>
+                <option value={rootFolderId}>{t('common.loading')}</option>
               )}
             </Select>
           </Field>
         </div>
         <div className="flex justify-end pt-1">
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('settings.saving') : t('settings.save')}
           </Button>
         </div>
       </div>
@@ -1484,12 +1532,13 @@ function TargetTypeIcon({ type }: { type: string }) {
 }
 
 function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { t } = useI18n()
   const [type, setType] = useState('')
   const [name, setName] = useState('')
   const [config, setConfig] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
 
-  const selectedType = TARGET_TYPES.find((t) => t.value === type)
+  const selectedType = TARGET_TYPES.find((tt) => tt.value === type)
 
   async function handleSave() {
     if (!type || !selectedType) return
@@ -1500,11 +1549,11 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
         name: name || selectedType.label,
         config,
       })
-      toast.success('Target added')
+      toast.success(t('settings.targetAdded'))
       onCreated()
       onClose()
     } catch {
-      toast.error('Failed to add target')
+      toast.error(t('settings.targetAddFailed'))
     } finally {
       setSaving(false)
     }
@@ -1512,11 +1561,11 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
 
   return (
     <div className="rounded-lg border border-border bg-surface p-4 space-y-4">
-      <h4 className="text-sm font-medium text-text">Add Target</h4>
+      <h4 className="text-sm font-medium text-text">{t('settings.addTarget')}</h4>
 
       <div>
         <label className="block text-xs text-muted mb-1">
-          Type
+          {t('settings.type')}
           <select
             value={type}
             onChange={(e) => {
@@ -1525,10 +1574,10 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
             }}
             className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
           >
-            <option value="">Select a target type...</option>
-            {TARGET_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            <option value="">{t('settings.selectTargetType')}</option>
+            {TARGET_TYPES.map((tt) => (
+              <option key={tt.value} value={tt.value}>
+                {tt.label}
               </option>
             ))}
           </select>
@@ -1539,7 +1588,7 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
         <>
           <div>
             <label className="block text-xs text-muted mb-1">
-              Name
+              {t('settings.name')}
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -1566,10 +1615,10 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving || !type}>
-              {saving ? 'Adding...' : 'Add Target'}
+              {saving ? t('settings.adding') : t('settings.addTarget')}
             </Button>
           </div>
         </>
@@ -1579,6 +1628,7 @@ function AddTargetDialog({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 function TargetsTab() {
+  const { t } = useI18n()
   const { data: targets, refetch } = useQuery({
     queryKey: ['targets'],
     queryFn: listTargets,
@@ -1593,12 +1643,12 @@ function TargetsTab() {
     try {
       const result = await testTargetApi(id)
       if (result.success) {
-        toast.success('Target connection successful')
+        toast.success(t('settings.targetTestSuccess'))
       } else {
-        toast.error(result.message || 'Connection failed')
+        toast.error(result.message || t('settings.targetTestFailed'))
       }
     } catch {
-      toast.error('Failed to test connection')
+      toast.error(t('settings.targetTestFailed'))
     } finally {
       setTesting(null)
     }
@@ -1607,25 +1657,24 @@ function TargetsTab() {
   async function handleDelete(id: number) {
     try {
       await deleteTargetApi(id)
-      toast.success('Target removed')
+      toast.success(t('settings.targetRemoved'))
       refetch()
     } catch {
-      toast.error('Failed to remove target')
+      toast.error(t('settings.targetRemoveFailed'))
     }
   }
 
   return (
     <div className="space-y-4">
       <Hint id="settings-targets-tip" type="inline">
-        Targets define where approved recommendations go -- Lidarr for downloads, Spotify for
-        playlists, or media servers for direct playback.
+        {t('settings.targetsTip')}
       </Hint>
 
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-text">Targets</h3>
+        <h3 className="text-sm font-medium text-text">{t('settings.tabs.targets')}</h3>
         {isAdmin && (
           <Button variant="outline" size="sm" onClick={() => setAddOpen(!addOpen)}>
-            {addOpen ? 'Cancel' : 'Add Target'}
+            {addOpen ? t('common.cancel') : t('settings.addTarget')}
           </Button>
         )}
       </div>
@@ -1633,23 +1682,21 @@ function TargetsTab() {
       {addOpen && <AddTargetDialog onClose={() => setAddOpen(false)} onCreated={() => refetch()} />}
 
       {!addOpen && targets?.length === 0 && (
-        <p className="text-sm text-muted">
-          No targets configured. Approved recommendations will be saved as a curated list.
-        </p>
+        <p className="text-sm text-muted">{t('settings.noTargets')}</p>
       )}
 
-      {targets?.map((t) => {
-        const owned = t.owned
+      {targets?.map((target) => {
+        const owned = target.owned
         return (
-          <div key={t.id} className="rounded-lg border border-border bg-surface p-4">
+          <div key={target.id} className="rounded-lg border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <TargetTypeIcon type={t.type} />
-                <span className="text-sm font-medium text-text">{t.name}</span>
-                <span className="text-xs text-muted capitalize">({t.type})</span>
+                <TargetTypeIcon type={target.type} />
+                <span className="text-sm font-medium text-text">{target.name}</span>
+                <span className="text-xs text-muted capitalize">({target.type})</span>
                 {!owned && (
                   <span className="text-xs px-1.5 py-0.5 rounded bg-bg text-muted border border-border">
-                    shared
+                    {t('settings.shared')}
                   </span>
                 )}
               </div>
@@ -1658,24 +1705,24 @@ function TargetsTab() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleTest(t.id)}
-                    disabled={testing === t.id}
+                    onClick={() => handleTest(target.id)}
+                    disabled={testing === target.id}
                   >
-                    {testing === t.id ? 'Testing...' : 'Test'}
+                    {testing === target.id ? t('settings.testing') : t('settings.test')}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(t.id)}
+                    onClick={() => handleDelete(target.id)}
                     className="text-reject"
                   >
-                    Remove
+                    {t('settings.remove')}
                   </Button>
                 </div>
               )}
             </div>
-            {typeof t.config.url === 'string' && (
-              <p className="text-xs text-muted mt-1">{t.config.url}</p>
+            {typeof target.config.url === 'string' && (
+              <p className="text-xs text-muted mt-1">{target.config.url}</p>
             )}
           </div>
         )
@@ -1685,6 +1732,7 @@ function TargetsTab() {
 }
 
 function RecommendationsTab() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data: prefs, isLoading: prefsLoading } = useQuery({
     queryKey: ['user-preferences'],
@@ -1692,7 +1740,7 @@ function RecommendationsTab() {
   })
 
   if (prefsLoading || !prefs) {
-    return <div className="text-sm text-muted">Loading preferences...</div>
+    return <div className="text-sm text-muted">{t('settings.loadingPreferences')}</div>
   }
 
   return <RecommendationsTabInner prefs={prefs} queryClient={queryClient} />
@@ -1705,6 +1753,7 @@ function RecommendationsTabInner({
   prefs: Record<string, unknown>
   queryClient: ReturnType<typeof useQueryClient>
 }) {
+  const { t } = useI18n()
   const weights =
     (prefs.scoringWeights as Preferences['scoringWeights']) ?? DEFAULT_PREFERENCES.scoringWeights
 
@@ -1767,9 +1816,9 @@ function RecommendationsTabInner({
         metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
-      toast.success('Recommendation settings saved')
+      toast.success(t('settings.recommendationsSaved'))
     } catch {
-      toast.error('Failed to save settings')
+      toast.error(t('settings.recommendationsFailed'))
     } finally {
       setSaving(false)
     }
@@ -1778,15 +1827,16 @@ function RecommendationsTabInner({
   return (
     <div className="space-y-4 max-w-lg">
       <Hint id="settings-recommendations-tip" type="inline">
-        Scoring weights control how recommendations are ranked. Tweak these to emphasize genre
-        overlap, AI confidence, or similarity.
+        {t('settings.recommendationsTip')}
       </Hint>
 
       {/* Essential -- always visible */}
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Score Threshold</h2>
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.scoreThreshold')}
+        </h2>
         <SliderField
-          label="Minimum score to show recommendation"
+          label={t('settings.minScoreToShow')}
           id="score-threshold"
           value={scoreThreshold}
           min={0}
@@ -1797,18 +1847,18 @@ function RecommendationsTabInner({
       </section>
 
       {/* Tuning -- collapsed by default */}
-      <CollapsibleSection title="Scoring Weights">
+      <CollapsibleSection title={t('settings.scoringWeights')}>
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3">
             <span
               className={`text-xs tabular-nums ${weightsOk ? 'text-muted' : 'text-yellow-400'}`}
             >
-              total: {weightSum.toFixed(2)}
-              {weightsOk ? '' : ' (should sum to 1.0)'}
+              {t('settings.totalWeight')} {weightSum.toFixed(2)}
+              {weightsOk ? '' : ` ${t('settings.shouldSumToOne')}`}
             </span>
           </div>
           <SliderField
-            label="Consensus"
+            label={t('settings.consensus')}
             id="w-consensus"
             value={consensus}
             min={0}
@@ -1817,7 +1867,7 @@ function RecommendationsTabInner({
             onChange={setConsensus}
           />
           <SliderField
-            label="Similarity"
+            label={t('settings.similarity')}
             id="w-similarity"
             value={similarity}
             min={0}
@@ -1826,7 +1876,7 @@ function RecommendationsTabInner({
             onChange={setSimilarity}
           />
           <SliderField
-            label="Genre Overlap"
+            label={t('settings.genreOverlap')}
             id="w-genre"
             value={genreOverlap}
             min={0}
@@ -1835,7 +1885,7 @@ function RecommendationsTabInner({
             onChange={setGenreOverlap}
           />
           <SliderField
-            label="AI Confidence"
+            label={t('settings.aiConfidence')}
             id="w-ai"
             value={aiConfidence}
             min={0}
@@ -1844,7 +1894,7 @@ function RecommendationsTabInner({
             onChange={setAiConfidence}
           />
           <SliderField
-            label="Feedback Boost"
+            label={t('settings.feedbackBoost')}
             id="w-feedback"
             value={feedbackBoost}
             min={0}
@@ -1853,7 +1903,7 @@ function RecommendationsTabInner({
             onChange={setFeedbackBoost}
           />
           <SliderField
-            label="Popularity"
+            label={t('settings.popularity')}
             id="w-popularity"
             value={popularity}
             min={0}
@@ -1861,18 +1911,13 @@ function RecommendationsTabInner({
             step={0.05}
             onChange={setPopularity}
           />
-          <p className="text-xs text-muted">
-            0 = ignore popularity, higher = prefer popular artists. Requires artist metadata import.
-          </p>
+          <p className="text-xs text-muted">{t('settings.popularityHelp')}</p>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Auto-Approve">
+      <CollapsibleSection title={t('settings.autoApprove')}>
         <div className="space-y-4 pt-2">
-          <p className="text-xs text-muted">
-            Automatically add high-scoring recommendations to your targets after each scan. Only
-            runs when targets are configured.
-          </p>
+          <p className="text-xs text-muted">{t('settings.autoApproveDescription')}</p>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -1880,12 +1925,12 @@ function RecommendationsTabInner({
               onChange={(e) => setAutoApproveEnabled(e.target.checked)}
               className="rounded border-border"
             />
-            <span className="text-sm text-text">Enable auto-approve</span>
+            <span className="text-sm text-text">{t('settings.enableAutoApprove')}</span>
           </label>
           {autoApproveEnabled && (
             <div className="space-y-3 pl-6">
               <SliderField
-                label="Minimum score"
+                label={t('settings.minimumScore')}
                 id="auto-approve-threshold"
                 value={autoApproveThreshold}
                 min={0.5}
@@ -1896,7 +1941,7 @@ function RecommendationsTabInner({
               />
               <div className="space-y-1.5">
                 <label htmlFor="auto-approve-monitor" className="text-sm text-muted">
-                  Monitor mode
+                  {t('settings.monitorMode')}
                 </label>
                 <select
                   id="auto-approve-monitor"
@@ -1904,9 +1949,9 @@ function RecommendationsTabInner({
                   onChange={(e) => setAutoApproveMonitorOption(e.target.value)}
                   className="mt-1 w-full bg-bg border border-border rounded text-sm text-text px-2 py-1.5"
                 >
-                  <option value="all">All albums</option>
-                  <option value="new">Future releases only</option>
-                  <option value="none">None (tracking only)</option>
+                  <option value="all">{t('settings.monitorAll')}</option>
+                  <option value="new">{t('settings.monitorNew')}</option>
+                  <option value="none">{t('settings.monitorNone')}</option>
                 </select>
               </div>
             </div>
@@ -1915,11 +1960,13 @@ function RecommendationsTabInner({
       </CollapsibleSection>
 
       {/* Advanced -- collapsed by default */}
-      <CollapsibleSection title="Advanced">
+      <CollapsibleSection title={t('settings.advancedSettings')}>
         <div className="space-y-6 pt-2">
           <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">Limits</h3>
-            <Field label="Rejection cooldown (days)" id="rejection-cooldown">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              {t('settings.limits')}
+            </h3>
+            <Field label={t('settings.rejectionCooldown')} id="rejection-cooldown">
               <Input
                 id="rejection-cooldown"
                 type="number"
@@ -1929,7 +1976,7 @@ function RecommendationsTabInner({
                 className="max-w-[120px]"
               />
             </Field>
-            <Field label="Top artists limit" id="top-artists-limit">
+            <Field label={t('settings.topArtistsLimit')} id="top-artists-limit">
               <Input
                 id="top-artists-limit"
                 type="number"
@@ -1943,15 +1990,11 @@ function RecommendationsTabInner({
 
           <section className="space-y-4">
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              Library Discovery
+              {t('settings.libraryDiscovery')}
             </h3>
-            <p className="text-xs text-muted">
-              How much of the discovery should be seeded from your existing Lidarr library vs
-              listening history. Higher values find artists similar to what you already own. Lower
-              values rely more on ListenBrainz/Last.fm listening data.
-            </p>
+            <p className="text-xs text-muted">{t('settings.libraryDiscoveryHelp')}</p>
             <SliderField
-              label="Library seed ratio"
+              label={t('settings.librarySeedRatio')}
               id="library-seed-ratio"
               value={librarySeedRatio}
               min={0}
@@ -1963,13 +2006,10 @@ function RecommendationsTabInner({
 
           <section className="space-y-4">
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              Image Sources
+              {t('settings.imageSources')}
             </h3>
-            <p className="text-xs text-muted">
-              Artist images come from Lidarr/SkyHook by default. A fanart.tv API key enables a
-              fallback when SkyHook is down.
-            </p>
-            <Field label="Fanart.tv API key (optional)" id="fanart-api-key">
+            <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
+            <Field label={t('settings.fieldFanartApiKey')} id="fanart-api-key">
               <Input
                 id="fanart-api-key"
                 type="password"
@@ -1978,7 +2018,7 @@ function RecommendationsTabInner({
                 placeholder="Personal API key from fanart.tv"
               />
             </Field>
-            <Field label="Metadata fallback URL (optional)" id="metadata-fallback-url">
+            <Field label={t('settings.fieldMetadataFallbackUrl')} id="metadata-fallback-url">
               <Input
                 id="metadata-fallback-url"
                 value={metadataFallbackUrl}
@@ -1986,16 +2026,13 @@ function RecommendationsTabInner({
                 placeholder="https://api.musicinfo.pro"
               />
             </Field>
-            <p className="text-micro text-muted">
-              Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your
-              own hearring-aid instance URL if self-hosting.
-            </p>
+            <p className="text-micro text-muted">{t('settings.metadataFallbackHelp')}</p>
           </section>
         </div>
       </CollapsibleSection>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Saving...' : 'Save'}
+        {saving ? t('settings.saving') : t('settings.save')}
       </Button>
     </div>
   )
@@ -2011,17 +2048,25 @@ const PRESETS: CronPreset[] = [
 ]
 
 function ScheduleTab({ settings }: { settings: Settings }) {
+  const { t } = useI18n()
   const prefs = settings.preferences ?? {}
   const [cron, setCron] = useState(prefs.scheduleCron ?? '0 0 * * *')
   const [saving, setSaving] = useState(false)
+
+  const presetLabels: Record<string, string> = {
+    Daily: t('settings.daily'),
+    Weekly: t('settings.weekly'),
+    Biweekly: t('settings.biweekly'),
+    Monthly: t('settings.monthly'),
+  }
 
   async function handleSave() {
     setSaving(true)
     try {
       await updateSettings({ preferences: { ...prefs, scheduleCron: cron } })
-      toast.success('Schedule saved')
+      toast.success(t('settings.scheduleSaved'))
     } catch {
-      toast.error('Failed to save schedule')
+      toast.error(t('settings.scheduleFailed'))
     } finally {
       setSaving(false)
     }
@@ -2030,12 +2075,13 @@ function ScheduleTab({ settings }: { settings: Settings }) {
   return (
     <div className="space-y-6 max-w-lg">
       <Hint id="settings-schedule-tip" type="inline">
-        Set a cron schedule to run the discovery pipeline automatically. Weekly on Monday is a
-        popular choice.
+        {t('settings.scheduleTip')}
       </Hint>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Presets</h2>
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.presets')}
+        </h2>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((p) => (
             <Button
@@ -2044,15 +2090,17 @@ function ScheduleTab({ settings }: { settings: Settings }) {
               size="sm"
               onClick={() => setCron(p.value)}
             >
-              {p.label}
+              {presetLabels[p.label] ?? p.label}
             </Button>
           ))}
         </div>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Custom Cron</h2>
-        <Field label="Cron expression" id="cron-expr">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.customCron')}
+        </h2>
+        <Field label={t('settings.cronExpression')} id="cron-expr">
           <Input
             id="cron-expr"
             placeholder="0 0 * * *"
@@ -2064,14 +2112,14 @@ function ScheduleTab({ settings }: { settings: Settings }) {
       </section>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Saving...' : 'Save'}
+        {saving ? t('settings.saving') : t('settings.save')}
       </Button>
     </div>
   )
 }
 
 function AccountTab() {
-  const { locale, setLocale } = useI18n()
+  const { t, locale, setLocale } = useI18n()
   const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -2092,11 +2140,11 @@ function AccountTab() {
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match')
+      toast.error(t('settings.passwordsDoNotMatch'))
       return
     }
     if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters')
+      toast.error(t('settings.passwordTooShort'))
       return
     }
     setSaving(true)
@@ -2104,14 +2152,14 @@ function AccountTab() {
       const res = await changePassword(currentPassword, newPassword)
       // Server invalidated old sessions and issued a new token
       if (res.token) setStoredToken(res.token)
-      toast.success('Password changed')
+      toast.success(t('settings.passwordChanged'))
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: unknown) {
       const msg = errMsg(err)
       toast.error(
-        msg.includes('401') || msg.includes('403') ? 'Current password is incorrect' : msg,
+        msg.includes('401') || msg.includes('403') ? t('settings.currentPasswordIncorrect') : msg,
       )
     } finally {
       setSaving(false)
@@ -2125,26 +2173,31 @@ function AccountTab() {
   return (
     <div className="space-y-6 max-w-lg">
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Profile</h2>
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.profile')}
+        </h2>
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted">
-            Signed in as <span className="text-text font-medium">{user?.username ?? '...'}</span>
+            {t('settings.signedInAs')}{' '}
+            <span className="text-text font-medium">{user?.username ?? '...'}</span>
             {user?.isAdmin && (
               <span className="ml-2 text-xs bg-accent/20 text-accent px-1.5 py-0.5 rounded">
-                admin
+                {t('userManagement.adminBadge')}
               </span>
             )}
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout}>
-            Log out
+            {t('settings.logOut')}
           </Button>
         </div>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Change Password</h2>
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.changePassword')}
+        </h2>
         <form onSubmit={handleChangePassword} className="space-y-3">
-          <Field label="Current password" id="current-pw">
+          <Field label={t('settings.currentPassword')} id="current-pw">
             <Input
               id="current-pw"
               type="password"
@@ -2153,17 +2206,17 @@ function AccountTab() {
               autoComplete="current-password"
             />
           </Field>
-          <Field label="New password" id="new-pw">
+          <Field label={t('settings.newPassword')} id="new-pw">
             <Input
               id="new-pw"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoComplete="new-password"
-              placeholder="Min 8 characters"
+              placeholder={t('settings.minCharsPassword')}
             />
           </Field>
-          <Field label="Confirm new password" id="confirm-pw">
+          <Field label={t('settings.confirmNewPassword')} id="confirm-pw">
             <Input
               id="confirm-pw"
               type="password"
@@ -2173,32 +2226,32 @@ function AccountTab() {
             />
           </Field>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Changing...' : 'Change Password'}
+            {saving ? t('settings.changing') : t('settings.changePassword')}
           </Button>
         </form>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Language</h2>
-        <Field label="Language" id="preferred-locale">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.language')}
+        </h2>
+        <Field label={t('common.language')} id="preferred-locale">
           <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
         </Field>
       </section>
 
       {(canInstall || showIosHint) && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">App</h2>
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+            {t('settings.app')}
+          </h2>
           <div className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg">
             <div>
-              <p className="text-sm font-medium text-text">Install Digarr</p>
+              <p className="text-sm font-medium text-text">{t('settings.installDigarr')}</p>
               {showIosHint ? (
-                <p className="text-xs text-muted mt-0.5">
-                  Tap the share button, then "Add to Home Screen"
-                </p>
+                <p className="text-xs text-muted mt-0.5">{t('settings.installIosHint')}</p>
               ) : (
-                <p className="text-xs text-muted mt-0.5">
-                  Add to your home screen for quick access
-                </p>
+                <p className="text-xs text-muted mt-0.5">{t('settings.installHint')}</p>
               )}
             </div>
             <div className="flex gap-2">
@@ -2207,7 +2260,7 @@ function AccountTab() {
                 onClick={dismiss}
                 className="text-xs text-muted hover:text-text transition-colors"
               >
-                Dismiss
+                {t('discoveryMode.dismiss')}
               </button>
               {canInstall && (
                 <button
@@ -2215,7 +2268,7 @@ function AccountTab() {
                   onClick={promptInstall}
                   className="px-3 py-1.5 text-xs font-medium bg-accent text-accent-fg rounded hover:bg-accent/90 transition-colors"
                 >
-                  Install
+                  {t('settings.install')}
                 </button>
               )}
             </div>
@@ -2227,6 +2280,7 @@ function AccountTab() {
 }
 
 function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
+  const { t } = useI18n()
   const [oidcIssuerUrl, setOidcIssuerUrl] = useState(settings.oidcIssuerUrl ?? '')
   const [oidcClientId, setOidcClientId] = useState(settings.oidcClientId ?? '')
   const [oidcClientSecret, setOidcClientSecret] = useState(
@@ -2254,10 +2308,10 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
         updates.oidcClientSecret = oidcClientSecret || undefined
       }
       await updateSettings(updates)
-      toast.success('Authentication settings saved')
+      toast.success(t('settings.authSaved'))
       onSaved()
     } catch {
-      toast.error('Failed to save authentication settings')
+      toast.error(t('settings.authFailed'))
     } finally {
       setSaving(false)
     }
@@ -2271,10 +2325,10 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
         clientId: oidcClientId,
         clientSecret: oidcClientSecret || undefined,
       })
-      if (res.success) toast.success('OIDC discovery successful')
-      else toast.error(res.message || 'OIDC connection failed')
+      if (res.success) toast.success(t('settings.oidcTestSuccess'))
+      else toast.error(res.message || t('settings.oidcTestFailed'))
     } catch {
-      toast.error('Could not reach OIDC issuer')
+      toast.error(t('settings.oidcTestFailed'))
     } finally {
       setTestingOidc(false)
     }
@@ -2283,19 +2337,17 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
   return (
     <div className="space-y-6 max-w-lg">
       <Hint id="settings-auth-tip" type="inline">
-        Configure OIDC/SSO to let users sign in with Authentik, Authelia, or any OpenID Connect
-        provider.
+        {t('settings.authTip')}
       </Hint>
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">OIDC / SSO</h2>
-          <p className="text-xs text-muted mt-1">
-            Configure OpenID Connect for single sign-on. After saving, users will see a "Sign in
-            with SSO" button on the login page.
-          </p>
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+            {t('settings.oidcSso')}
+          </h2>
+          <p className="text-xs text-muted mt-1">{t('settings.oidcDescription')}</p>
         </div>
-        <Field label="Issuer URL" id="oidc-issuer-url">
+        <Field label={t('settings.fieldIssuerUrl')} id="oidc-issuer-url">
           <Input
             id="oidc-issuer-url"
             type="url"
@@ -2304,7 +2356,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             onChange={(e) => setOidcIssuerUrl(e.target.value)}
           />
         </Field>
-        <Field label="Client ID" id="oidc-client-id">
+        <Field label={t('settings.fieldClientId')} id="oidc-client-id">
           <Input
             id="oidc-client-id"
             placeholder="your-client-id"
@@ -2312,11 +2364,15 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             onChange={(e) => setOidcClientId(e.target.value)}
           />
         </Field>
-        <Field label="Client Secret" id="oidc-client-secret">
+        <Field label={t('settings.fieldClientSecret')} id="oidc-client-secret">
           <Input
             id="oidc-client-secret"
             type="password"
-            placeholder={settings.oidcClientSecret === '***' ? '(saved)' : 'your-client-secret'}
+            placeholder={
+              settings.oidcClientSecret === '***'
+                ? `(${t('settings.saved')})`
+                : 'your-client-secret'
+            }
             value={oidcClientSecret}
             onChange={(e) => {
               setOidcClientSecret(e.target.value)
@@ -2324,7 +2380,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             }}
           />
         </Field>
-        <Field label="Scopes" id="oidc-scopes">
+        <Field label={t('settings.fieldScopes')} id="oidc-scopes">
           <Input
             id="oidc-scopes"
             placeholder="openid profile email"
@@ -2339,10 +2395,10 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             onClick={handleTestOidc}
             disabled={testingOidc || !oidcIssuerUrl || !oidcClientId}
           >
-            {testingOidc ? 'Testing...' : 'Test Connection'}
+            {testingOidc ? t('settings.testing') : t('settings.testConnection')}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('settings.saving') : t('settings.save')}
           </Button>
         </div>
       </section>
@@ -2350,11 +2406,10 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
       <section className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            Reverse Proxy Auth
+            {t('settings.reverseProxyAuth')}
           </h2>
           <p className="text-xs text-muted mt-1">
-            When enabled, Digarr trusts an HTTP header from a configured reverse proxy and
-            auto-provisions users from it. Controlled via environment variables (
+            {t('settings.reverseProxyDescription')} Controlled via environment variables (
             <code className="font-mono text-xs">PROXY_AUTH_ENABLED</code>,{' '}
             <code className="font-mono text-xs">PROXY_AUTH_HEADER</code>,{' '}
             <code className="font-mono text-xs">PROXY_TRUSTED_IPS</code>).
@@ -2362,16 +2417,9 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
         </div>
         <div className="rounded-lg border border-border bg-surface p-3 text-sm">
           {authStatus?.proxyAuthEnabled ? (
-            <span className="text-text">
-              Proxy authentication is <strong>enabled</strong>. Users are auto-provisioned from the
-              configured header.
-            </span>
+            <span className="text-text">{t('settings.proxyEnabled')}</span>
           ) : (
-            <span className="text-muted">
-              Proxy authentication is <strong>disabled</strong>. Set{' '}
-              <code className="font-mono text-xs">PROXY_AUTH_ENABLED=true</code> in your environment
-              to enable it.
-            </span>
+            <span className="text-muted">{t('settings.proxyDisabled')}</span>
           )}
         </div>
       </section>

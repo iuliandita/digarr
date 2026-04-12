@@ -2,8 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LibrarySourcesPanel } from '@/web/components/library-sources-panel'
+import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/api', () => ({
   getLibrarySources: vi.fn(async () => ({
@@ -35,13 +36,31 @@ vi.mock('@/web/lib/api', () => ({
 }))
 
 describe('LibrarySourcesPanel', () => {
+  beforeEach(() => {
+    const storage = new Map<string, string>()
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: vi.fn((key: string) => storage.get(key) ?? null),
+        setItem: vi.fn((key: string, value: string) => {
+          storage.set(key, value)
+        }),
+        removeItem: vi.fn((key: string) => {
+          storage.delete(key)
+        }),
+      },
+    })
+  })
+
   it('renders the album count when albumsSynced is present', async () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <LibrarySourcesPanel />
-      </QueryClientProvider>,
+      <I18nProvider>
+        <QueryClientProvider client={queryClient}>
+          <LibrarySourcesPanel />
+        </QueryClientProvider>
+      </I18nProvider>,
     )
 
     expect(await screen.findByText(/4 artists/i)).toBeInTheDocument()
@@ -52,9 +71,11 @@ describe('LibrarySourcesPanel', () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <LibrarySourcesPanel />
-      </QueryClientProvider>,
+      <I18nProvider>
+        <QueryClientProvider client={queryClient}>
+          <LibrarySourcesPanel />
+        </QueryClientProvider>
+      </I18nProvider>,
     )
 
     expect(await screen.findByText(/albums synced/i)).toBeInTheDocument()

@@ -1,7 +1,9 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { DiscoveryConfigField } from '@/core/discovery-modes/types'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 type DiscoverySettingsMode = 'easy' | 'advanced'
 type DiscoveryModeIntent = 'run' | 'subscription'
@@ -116,11 +118,13 @@ function TagBuilderField({
   onChange,
   inputId,
   helpId,
+  tFn,
 }: {
   value: string
   onChange: (val: string) => void
   inputId: string
   helpId?: string
+  tFn: (key: MessageKey) => string
 }) {
   type TagRow = { id: number; tag: string; weight: number }
 
@@ -196,7 +200,7 @@ function TagBuilderField({
               type="button"
               onClick={() => removeRow(row.id)}
               className="rounded-md px-2 py-2 text-sm text-muted hover:text-reject"
-              title="Remove tag"
+              title={tFn('discoveryMode.removeTag')}
             >
               x
             </button>
@@ -205,7 +209,7 @@ function TagBuilderField({
       ))}
       {rows.length < 10 && (
         <button type="button" onClick={addRow} className="text-sm text-accent hover:underline">
-          + Add tag
+          {tFn('discoveryMode.addTag')}
         </button>
       )}
     </div>
@@ -216,28 +220,52 @@ function DiscoveryModeFields({
   fields,
   values,
   setValues,
+  tFn,
 }: {
   fields: DiscoveryConfigField[]
   values: Record<string, boolean | string>
   setValues: React.Dispatch<React.SetStateAction<Record<string, boolean | string>>>
+  tFn: (key: MessageKey) => string
 }) {
   const baseId = useId()
+
+  function translateFieldLabel(field: DiscoveryConfigField): string {
+    const key = `discoveryMode.field.${field.key}` as MessageKey
+    const translated = tFn(key)
+    return translated !== key ? translated : field.label
+  }
+
+  function translateFieldHelp(field: DiscoveryConfigField): string | undefined {
+    if (!field.helpText) return undefined
+    const key =
+      `discoveryMode.field.help${field.key.charAt(0).toUpperCase()}${field.key.slice(1)}` as MessageKey
+    const translated = tFn(key)
+    return translated !== key ? translated : field.helpText
+  }
+
+  function translateOption(option: { value: string; label: string }): string {
+    const key =
+      `discoveryMode.option.${option.value.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())}` as MessageKey
+    const translated = tFn(key)
+    return translated !== key ? translated : option.label
+  }
 
   return (
     <div className="space-y-3">
       {fields.map((field) => {
         const value = values[field.key] ?? getDefaultValue(field)
         const inputId = `${baseId}-${field.key}`
-        const helpId = field.helpText ? `${inputId}-help` : undefined
+        const helpText = translateFieldHelp(field)
+        const helpId = helpText ? `${inputId}-help` : undefined
 
         return (
           <div key={field.key} className="block space-y-1">
             <label htmlFor={inputId} className="block text-sm font-medium text-text">
-              {field.label}
+              {translateFieldLabel(field)}
             </label>
-            {field.helpText && (
+            {helpText && (
               <span id={helpId} className="block text-xs text-muted">
-                {field.helpText}
+                {helpText}
               </span>
             )}
             {field.type === 'select' ? (
@@ -252,7 +280,7 @@ function DiscoveryModeFields({
               >
                 {(field.options ?? []).map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {translateOption(option)}
                   </option>
                 ))}
               </select>
@@ -273,6 +301,7 @@ function DiscoveryModeFields({
                 onChange={(val) => setValues((prev) => ({ ...prev, [field.key]: val }))}
                 inputId={inputId}
                 helpId={helpId}
+                tFn={tFn}
               />
             ) : (
               <input
@@ -283,7 +312,9 @@ function DiscoveryModeFields({
                 onChange={(event) =>
                   setValues((prev) => ({ ...prev, [field.key]: event.target.value }))
                 }
-                placeholder={field.type === 'multiselect' ? 'Enter comma-separated values' : ''}
+                placeholder={
+                  field.type === 'multiselect' ? tFn('discoveryMode.commaSeparatedValues') : ''
+                }
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
               />
             )}
@@ -387,6 +418,8 @@ export function DiscoveryModeForm({
     }
   }
 
+  const { t } = useI18n()
+
   const content = (
     <>
       <div className="flex items-center gap-2">
@@ -401,7 +434,7 @@ export function DiscoveryModeForm({
                 : 'border-border bg-surface text-muted hover:text-text'
             }`}
           >
-            {option === 'easy' ? 'Easy' : 'Advanced'}
+            {option === 'easy' ? t('discoveryMode.easy') : t('discoveryMode.advanced')}
           </button>
         ))}
       </div>
@@ -412,7 +445,7 @@ export function DiscoveryModeForm({
         </div>
       )}
 
-      <DiscoveryModeFields fields={fields} values={values} setValues={setValues} />
+      <DiscoveryModeFields fields={fields} values={values} setValues={setValues} tFn={t} />
 
       {intent === 'run' && (
         <button
@@ -420,7 +453,7 @@ export function DiscoveryModeForm({
           disabled={!mode.availability.enabled || submitting}
           className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? 'Starting...' : 'Run discovery'}
+          {submitting ? t('discoveryMode.starting') : t('discoveryMode.runDiscovery')}
         </button>
       )}
     </>

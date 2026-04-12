@@ -3,14 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { getLibrarySources, triggerLibrarySync } from '../lib/api'
-
-function timeAgo(iso: string | null): string {
-  if (!iso) return 'never'
-  const ms = Date.now() - new Date(iso).getTime()
-  if (ms < 60_000) return 'just now'
-  if (ms < 3600_000) return `${Math.floor(ms / 60_000)} min ago`
-  return `${Math.floor(ms / 3600_000)} h ago`
-}
+import { useI18n } from '../lib/i18n'
 
 function statusColor(status: string | null): string {
   if (status === 'completed') return 'text-green-500'
@@ -20,10 +13,20 @@ function statusColor(status: string | null): string {
 }
 
 export function LibrarySourcesPanel() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   // Tracks which button fired the current sync so only its spinner animates.
   // `undefined` means no in-flight sync; `null` means "Sync all"; a string means a source id.
   const [pendingTarget, setPendingTarget] = useState<string | null | undefined>(undefined)
+
+  function timeAgo(iso: string | null): string {
+    if (!iso) return t('librarySources.neverSynced')
+    const ms = Date.now() - new Date(iso).getTime()
+    if (ms < 60_000) return t('librarySources.justNow')
+    if (ms < 3600_000)
+      return t('librarySources.minAgo').replace('{0}', String(Math.floor(ms / 60_000)))
+    return t('librarySources.hoursAgo').replace('{0}', String(Math.floor(ms / 3600_000)))
+  }
 
   const sourcesQuery = useQuery({
     queryKey: ['library', 'sources'],
@@ -35,11 +38,11 @@ export function LibrarySourcesPanel() {
   const syncMutation = useMutation({
     mutationFn: triggerLibrarySync,
     onSuccess: () => {
-      toast.success('Sync started')
+      toast.success(t('librarySources.syncStarted'))
       queryClient.invalidateQueries({ queryKey: ['library', 'sources'] })
     },
     onError: (err: Error) => {
-      toast.error(`Sync failed: ${err.message}`)
+      toast.error(`${t('librarySources.syncFailed')} ${err.message}`)
     },
     onSettled: () => {
       setPendingTarget(undefined)
@@ -55,7 +58,9 @@ export function LibrarySourcesPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">Library Sources</h2>
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('librarySources.title')}
+        </h2>
         <button
           type="button"
           onClick={() => {
@@ -66,13 +71,13 @@ export function LibrarySourcesPanel() {
           className="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           <RefreshCw size={14} className={allPending ? 'animate-spin' : undefined} />
-          Sync all
+          {t('librarySources.syncAll')}
         </button>
       </div>
 
       {sources.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-muted text-sm">
-          No library sources configured. Add Lidarr, Plex, Jellyfin, or Emby in Settings.
+          {t('librarySources.noSources')}
         </div>
       ) : (
         <div className="space-y-3">
@@ -93,11 +98,11 @@ export function LibrarySourcesPanel() {
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-text">{row.source}</span>
                       <span className={`text-xs ${statusColor(row.lastSyncStatus)}`}>
-                        {row.lastSyncStatus ?? 'never synced'}
+                        {row.lastSyncStatus ?? t('librarySources.neverSynced')}
                       </span>
                     </div>
                     <div className="text-xs text-muted">
-                      Last synced: {timeAgo(row.lastSyncCompletedAt)}
+                      {t('librarySources.lastSynced')} {timeAgo(row.lastSyncCompletedAt)}
                     </div>
                   </div>
                   <button
@@ -113,7 +118,7 @@ export function LibrarySourcesPanel() {
                       size={12}
                       className={sourcePending(row.source) ? 'animate-spin' : undefined}
                     />
-                    Sync now
+                    {t('librarySources.syncNow')}
                   </button>
                 </div>
 
@@ -133,7 +138,7 @@ export function LibrarySourcesPanel() {
                     {typeof counts.albumsSynced === 'number' && (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-muted">
-                          <span>Albums synced</span>
+                          <span>{t('librarySources.albumsSynced')}</span>
                           <span className="font-medium text-text">{counts.albumsSynced}</span>
                         </div>
                         <div

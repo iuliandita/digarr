@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useI18n } from '../lib/i18n'
 
 export function DiscoveryModeInfoBox({
   storageKey,
@@ -7,6 +8,7 @@ export function DiscoveryModeInfoBox({
   storageKey: string
   children: React.ReactNode
 }) {
+  const { t } = useI18n()
   const [dismissed, setDismissed] = useState(() => {
     try {
       return localStorage.getItem(storageKey) === '1'
@@ -35,7 +37,7 @@ export function DiscoveryModeInfoBox({
           }}
           className="text-xs font-medium text-accent hover:underline"
         >
-          Dismiss
+          {t('discoveryMode.dismiss')}
         </button>
       </div>
     </div>

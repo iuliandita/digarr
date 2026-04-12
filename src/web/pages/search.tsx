@@ -3,6 +3,7 @@ import { SearchIcon } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { SearchResultCard } from '../components/search-result-card'
 import { getSearchSources, searchArtists } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
 
 // Source filter config
@@ -90,11 +91,13 @@ export function SearchPage() {
   const showResults = deferredQuery.length >= 2
   const isPending = query !== deferredQuery || isLoading
 
+  const { t } = useI18n()
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-text mb-1">Search</h1>
-        <p className="text-sm text-muted">Find artists across music platforms</p>
+        <h1 className="text-xl font-bold text-text mb-1">{t('search.title')}</h1>
+        <p className="text-sm text-muted">{t('search.subtitle')}</p>
       </div>
 
       {/* Search input */}
@@ -105,7 +108,7 @@ export function SearchPage() {
         />
         <input
           type="search"
-          placeholder="Search artists..."
+          placeholder={t('search.placeholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full pl-9 pr-4 py-2.5 bg-surface border border-border rounded-lg text-text placeholder:text-muted text-sm focus:outline-none focus:border-accent transition-colors"
@@ -135,7 +138,7 @@ export function SearchPage() {
               {s.label}
               {s.stability === 'experimental' && (
                 <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
-                  Experimental
+                  {t('search.experimental')}
                 </span>
               )}
             </button>
@@ -147,7 +150,7 @@ export function SearchPage() {
             onClick={() => setActiveSources([])}
             className="text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-text transition-colors"
           >
-            Clear filters
+            {t('search.clearFilters')}
           </button>
         )}
       </div>
@@ -160,7 +163,7 @@ export function SearchPage() {
 
       {/* Results area */}
       {!showResults && (
-        <p className="text-sm text-muted text-center pt-8">Type at least 2 characters to search</p>
+        <p className="text-sm text-muted text-center pt-8">{t('search.minChars')}</p>
       )}
 
       {showResults && isPending && (
@@ -175,12 +178,12 @@ export function SearchPage() {
       )}
 
       {showResults && !isPending && isError && (
-        <p className="text-sm text-reject text-center pt-8">Search failed -- try again</p>
+        <p className="text-sm text-reject text-center pt-8">{t('search.failed')}</p>
       )}
 
       {showResults && !isPending && !isError && results.length === 0 && (
         <p className="text-sm text-muted text-center pt-8">
-          No artists found for &ldquo;{deferredQuery}&rdquo;
+          {t('search.noResultsFor')} &ldquo;{deferredQuery}&rdquo;
         </p>
       )}
 

@@ -1,4 +1,5 @@
 import type { LibraryStats } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1_099_511_627_776) return `${(bytes / 1_099_511_627_776).toFixed(1)} TB`
@@ -17,6 +18,7 @@ type Props = {
 const TOP_GENRES = 15
 
 export function LibraryStatsDisplay({ stats }: Props) {
+  const { t } = useI18n()
   const topGenres = stats.genreDistribution.slice(0, TOP_GENRES)
   const maxCount = topGenres[0]?.count ?? 1
 
@@ -24,18 +26,20 @@ export function LibraryStatsDisplay({ stats }: Props) {
 
   type StatCard = { label: string; value: number | string; subValue?: string }
   const statCards: StatCard[] = [
-    { label: 'Artists', value: stats.totalArtists },
+    { label: t('libraryStats.artists'), value: stats.totalArtists },
     {
-      label: 'Monitored',
+      label: t('libraryStats.monitored'),
       value: stats.monitoredArtists,
       subValue:
         stats.totalArtists > 0
           ? `${Math.round((stats.monitoredArtists / stats.totalArtists) * 100)}%`
           : '--',
     },
-    ...(stats.totalAlbums > 0 ? [{ label: 'Albums', value: stats.totalAlbums }] : []),
+    ...(stats.totalAlbums > 0
+      ? [{ label: t('libraryStats.albums'), value: stats.totalAlbums }]
+      : []),
     {
-      label: 'Free Space',
+      label: t('libraryStats.freeSpace'),
       value: totalFreeSpace > 0 ? formatBytes(totalFreeSpace) : '--',
     },
   ]
@@ -62,7 +66,7 @@ export function LibraryStatsDisplay({ stats }: Props) {
       {topGenres.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-            Genre Distribution
+            {t('libraryStats.genreDistribution')}
           </h3>
           <div className="bg-surface border border-border rounded-lg p-4 space-y-2.5">
             {topGenres.map((g) => (
@@ -86,13 +90,17 @@ export function LibraryStatsDisplay({ stats }: Props) {
       {/* Root folders */}
       {stats.rootFolders.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-text uppercase tracking-wide">Root Folders</h3>
+          <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
+            {t('libraryStats.rootFolders')}
+          </h3>
           <div className="bg-surface border border-border rounded-lg divide-y divide-border">
             {stats.rootFolders.map((folder) => (
               <div key={folder.path} className="flex items-center justify-between gap-4 px-4 py-3">
                 <span className="text-sm text-text font-mono truncate">{folder.path}</span>
                 <span className="text-xs text-muted shrink-0">
-                  {folder.freeSpace > 0 ? `${formatBytes(folder.freeSpace)} free` : 'unknown'}
+                  {folder.freeSpace > 0
+                    ? `${formatBytes(folder.freeSpace)} ${t('libraryStats.free')}`
+                    : t('libraryStats.unknown')}
                 </span>
               </div>
             ))}

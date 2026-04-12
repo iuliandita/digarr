@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { importCsvFile, importSpotifyLikedSongs, importSpotifyPlaylist } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 type ImportArtistsProps = {
   spotifyConnected: boolean
@@ -15,6 +16,7 @@ export function ImportArtists({
   defaultExpanded = false,
   onImportStarted,
 }: ImportArtistsProps) {
+  const { t } = useI18n()
   const [expanded, setExpanded] = useState(defaultExpanded)
   const [playlistUrl, setPlaylistUrl] = useState('')
   const [importing, setImporting] = useState<string | null>(null)
@@ -24,12 +26,10 @@ export function ImportArtists({
     setImporting('liked-songs')
     try {
       await importSpotifyLikedSongs()
-      toast.success(
-        'Importing your liked songs -- new artists will appear on the Discover page shortly',
-      )
+      toast.success(t('importArtists.importingLikedSongs'))
       onImportStarted?.()
     } catch {
-      toast.error('Failed to start import')
+      toast.error(t('importArtists.failedImport'))
     } finally {
       setImporting(null)
     }
@@ -40,11 +40,11 @@ export function ImportArtists({
     setImporting('playlist')
     try {
       await importSpotifyPlaylist(playlistUrl.trim())
-      toast.success('Importing playlist artists -- they will appear on the Discover page shortly')
+      toast.success(t('importArtists.importingPlaylist'))
       setPlaylistUrl('')
       onImportStarted?.()
     } catch {
-      toast.error('Failed to start playlist import')
+      toast.error(t('importArtists.failedPlaylist'))
     } finally {
       setImporting(null)
     }
@@ -56,12 +56,13 @@ export function ImportArtists({
     setImporting('csv')
     try {
       const res = await importCsvFile(file)
-      toast.success(
-        `Importing ${res.artistCount} artists${res.truncated ? ' (limited to 500)' : ''} -- they will appear on the Discover page shortly`,
-      )
+      const msg = res.truncated
+        ? t('importArtists.importingCsvTruncated').replace('{0}', String(res.artistCount))
+        : t('importArtists.importingCsv').replace('{0}', String(res.artistCount))
+      toast.success(msg)
       onImportStarted?.()
     } catch {
-      toast.error('Failed to import CSV file')
+      toast.error(t('importArtists.failedCsv'))
     } finally {
       setImporting(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -77,7 +78,7 @@ export function ImportArtists({
       >
         <span className="flex items-center gap-2">
           <Upload size={14} />
-          Import Artists
+          {t('importArtists.title')}
         </span>
         {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
       </button>
@@ -88,9 +89,9 @@ export function ImportArtists({
           <div className="border border-border rounded-md p-3 space-y-2">
             <div className="flex items-center gap-2">
               <Music size={14} className="text-[#1DB954] shrink-0" />
-              <p className="text-sm font-medium text-text">Liked Songs</p>
+              <p className="text-sm font-medium text-text">{t('importArtists.likedSongs')}</p>
             </div>
-            <p className="text-xs text-muted">Import artists you've liked on Spotify</p>
+            <p className="text-xs text-muted">{t('importArtists.likedSongsDescription')}</p>
             {spotifyConnected ? (
               <button
                 type="button"
@@ -98,15 +99,15 @@ export function ImportArtists({
                 disabled={importing !== null}
                 className="w-full px-3 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity"
               >
-                {importing === 'liked-songs' ? 'Importing...' : 'Import'}
+                {importing === 'liked-songs' ? t('common.importing') : t('importArtists.import')}
               </button>
             ) : (
               <p className="text-xs text-muted italic">
-                Connect Spotify in{' '}
+                {t('importArtists.connectSpotifyFirst').split('{0}')[0]}
                 <Link to="/settings" className="text-accent hover:underline">
-                  Settings
-                </Link>{' '}
-                first
+                  {t('nav.settings')}
+                </Link>
+                {t('importArtists.connectSpotifyFirst').split('{0}')[1]}
               </p>
             )}
           </div>
@@ -115,16 +116,16 @@ export function ImportArtists({
           <div className="border border-border rounded-md p-3 space-y-2">
             <div className="flex items-center gap-2">
               <Music size={14} className="text-[#1DB954] shrink-0" />
-              <p className="text-sm font-medium text-text">Spotify Playlist</p>
+              <p className="text-sm font-medium text-text">{t('importArtists.spotifyPlaylist')}</p>
             </div>
-            <p className="text-xs text-muted">Import artists from any Spotify playlist</p>
+            <p className="text-xs text-muted">{t('importArtists.spotifyPlaylistDescription')}</p>
             {spotifyConnected ? (
               <div className="flex gap-1.5">
                 <input
                   type="text"
                   value={playlistUrl}
                   onChange={(e) => setPlaylistUrl(e.target.value)}
-                  placeholder="Playlist URL or ID"
+                  placeholder={t('importArtists.playlistPlaceholder')}
                   className="flex-1 min-w-0 px-2 py-1.5 text-xs bg-bg border border-border rounded-md text-text placeholder:text-muted/60 focus:outline-none focus:border-accent"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handlePlaylist()
@@ -136,16 +137,16 @@ export function ImportArtists({
                   disabled={!playlistUrl.trim() || importing !== null}
                   className="px-2.5 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
                 >
-                  {importing === 'playlist' ? '...' : 'Go'}
+                  {importing === 'playlist' ? '...' : t('importArtists.go')}
                 </button>
               </div>
             ) : (
               <p className="text-xs text-muted italic">
-                Connect Spotify in{' '}
+                {t('importArtists.connectSpotifyFirst').split('{0}')[0]}
                 <Link to="/settings" className="text-accent hover:underline">
-                  Settings
-                </Link>{' '}
-                first
+                  {t('nav.settings')}
+                </Link>
+                {t('importArtists.connectSpotifyFirst').split('{0}')[1]}
               </p>
             )}
           </div>
@@ -154,9 +155,9 @@ export function ImportArtists({
           <div className="border border-border rounded-md p-3 space-y-2">
             <div className="flex items-center gap-2">
               <FileUp size={14} className="text-muted shrink-0" />
-              <p className="text-sm font-medium text-text">CSV File</p>
+              <p className="text-sm font-medium text-text">{t('importArtists.csvFile')}</p>
             </div>
-            <p className="text-xs text-muted">Upload a list of artist names from a CSV file</p>
+            <p className="text-xs text-muted">{t('importArtists.csvDescription')}</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -170,7 +171,7 @@ export function ImportArtists({
               disabled={importing !== null}
               className="w-full px-3 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
-              {importing === 'csv' ? 'Uploading...' : 'Choose File'}
+              {importing === 'csv' ? t('importArtists.uploading') : t('importArtists.chooseFile')}
             </button>
           </div>
         </div>
