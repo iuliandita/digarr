@@ -759,6 +759,32 @@ export const importSpotifyPlaylist = (playlistId: string) =>
     },
   )
 
+export const importDeezerFavorites = () =>
+  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
+    '/subscriptions/import/deezer-favorites',
+    { method: 'POST' },
+  )
+
+export const importDeezerFollowed = () =>
+  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
+    '/subscriptions/import/deezer-followed',
+    { method: 'POST' },
+  )
+
+export const getDeezerPlaylists = () =>
+  fetchApi<{
+    playlists: Array<{ id: number; title: string; trackCount: number; imageUrl?: string }>
+  }>('/subscriptions/import/deezer-playlists')
+
+export const importDeezerPlaylists = (playlistIds: number[]) =>
+  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
+    '/subscriptions/import/deezer-playlists',
+    {
+      method: 'POST',
+      body: JSON.stringify({ playlistIds }),
+    },
+  )
+
 export const importCsvFile = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)

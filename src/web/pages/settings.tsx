@@ -42,6 +42,8 @@ import {
   getOAuthStatus,
   getSettings,
   getUserPreferences,
+  importDeezerFavorites,
+  importDeezerFollowed,
   importSpotifyLikedSongs,
   importSpotifyPlaylist,
   initiateOAuth,
@@ -196,6 +198,7 @@ function SliderField({
 type ServiceTestState = 'idle' | 'testing' | 'ok' | 'error'
 
 function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
+  const { t } = useI18n()
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const isAdmin = currentUser?.isAdmin ?? false
   const prefs = settings.preferences ?? {}
@@ -244,6 +247,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [importingSpotifyLikes, setImportingSpotifyLikes] = useState(false)
   const [importingPlaylist, setImportingPlaylist] = useState(false)
   const [playlistIdInput, setPlaylistIdInput] = useState('')
+  const [importingDeezerFavs, setImportingDeezerFavs] = useState(false)
+  const [importingDeezerFollowed, setImportingDeezerFollowed] = useState(false)
 
   const [tests, setTests] = useState<Record<string, ServiceTestState>>({})
   const [saving, setSaving] = useState<Record<string, boolean>>({})
@@ -255,6 +260,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     queryFn: () => getOAuthStatus('spotify'),
   })
   const spotifyConnected = spotifyStatus?.connected ?? false
+
+  const { data: deezerStatus } = useQuery({
+    queryKey: ['deezer-oauth-status'],
+    queryFn: () => getOAuthStatus('deezer'),
+  })
+  const deezerConnected = deezerStatus?.connected ?? false
 
   function setTest(key: string, val: ServiceTestState) {
     setTests((prev) => ({ ...prev, [key]: val }))
@@ -983,6 +994,106 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   disabled={!spotifyClientId || !spotifyClientSecret}
                 >
                   Connect with Spotify
+                </Button>
+              </div>
+            </>
+          )}
+        </ServiceCard>
+      </div>
+
+      {/* Deezer */}
+      <div className={deezerConnected ? '' : 'opacity-60'}>
+        <ServiceCard
+          name={t('settings.deezer')}
+          description="Favorites, followed artists, and playlists from Deezer."
+          status={deezerConnected ? 'connected' : 'not_configured'}
+        >
+          {deezerConnected ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted">
+                Import artists from your Deezer account to seed your recommendations.
+              </p>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setImportingDeezerFavs(true)
+                    try {
+                      const res = await importDeezerFavorites()
+                      toast.success(
+                        res.created ? 'Deezer Favorites import started' : 'Import started again',
+                      )
+                    } catch {
+                      toast.error('Failed to start Deezer Favorites import')
+                    } finally {
+                      setImportingDeezerFavs(false)
+                    }
+                  }}
+                  disabled={importingDeezerFavs}
+                >
+                  {importingDeezerFavs ? t('common.importing') : t('settings.importFavorites')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    setImportingDeezerFollowed(true)
+                    try {
+                      const res = await importDeezerFollowed()
+                      toast.success(
+                        res.created
+                          ? 'Deezer Followed Artists import started'
+                          : 'Import started again',
+                      )
+                    } catch {
+                      toast.error('Failed to start Deezer Followed import')
+                    } finally {
+                      setImportingDeezerFollowed(false)
+                    }
+                  }}
+                  disabled={importingDeezerFollowed}
+                >
+                  {importingDeezerFollowed ? t('common.importing') : t('settings.importFollowed')}
+                </Button>
+              </div>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await disconnectOAuth('deezer')
+                      queryClient.invalidateQueries({ queryKey: ['deezer-oauth-status'] })
+                      toast.success('Deezer disconnected')
+                    } catch {
+                      toast.error('Failed to disconnect Deezer')
+                    }
+                  }}
+                >
+                  Disconnect
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted">{t('settings.deezerConnectHelp')}</p>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const res = await initiateOAuth('deezer', {
+                        clientId: '',
+                        clientSecret: '',
+                        redirectUri: `${window.location.origin}/api/auth/oauth/deezer/callback`,
+                      })
+                      window.location.href = res.authUrl
+                    } catch {
+                      toast.error('Failed to start Deezer authorization')
+                    }
+                  }}
+                >
+                  {t('settings.connectDeezer')}
                 </Button>
               </div>
             </>
