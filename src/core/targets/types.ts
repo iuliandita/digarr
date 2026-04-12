@@ -4,6 +4,7 @@ export type TargetCapability = 'addArtist' | 'addAlbum' | 'createPlaylist'
 
 export const TARGET_TYPES = [
   'lidarr',
+  'slskd',
   'spotify-playlist',
   'navidrome-playlist',
   'jellyfin-playlist',
@@ -19,6 +20,9 @@ export type TargetAddOptions = {
   qualityProfileId?: number
   metadataProfileId?: number
   rootFolderId?: number
+  userId?: number
+  recommendationId?: number
+  lidarrArtistId?: number
 }
 
 export type TargetResult = {
