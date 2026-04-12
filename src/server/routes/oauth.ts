@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { envConfig } from '@/config/env'
 import {
   deleteOAuthToken,
   findPendingOAuthByState,
@@ -13,6 +14,10 @@ const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
 const SPOTIFY_SCOPES =
   'user-top-read user-read-recently-played playlist-modify-private playlist-modify-public'
 
+const DEEZER_AUTH_URL = 'https://connect.deezer.com/oauth/auth.php'
+const DEEZER_TOKEN_URL = 'https://connect.deezer.com/oauth/access_token.php'
+const DEEZER_SCOPES = 'basic_access,email,listening_history,manage_library'
+
 export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
@@ -22,19 +27,18 @@ export function oauthRoutes(deps: AppDependencies) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
 
-    const body = await c.req.json()
+    const body = await c.req.json().catch(() => ({}))
     const { clientId, clientSecret, redirectUri } = body as {
-      clientId: string
-      clientSecret: string
-      redirectUri: string
-    }
-
-    if (!clientId || !clientSecret || !redirectUri) {
-      return c.json({ error: 'clientId, clientSecret, and redirectUri are required' }, 400)
+      clientId?: string
+      clientSecret?: string
+      redirectUri?: string
     }
 
     switch (provider) {
       case 'spotify': {
+        if (!clientId || !clientSecret || !redirectUri) {
+          return c.json({ error: 'clientId, clientSecret, and redirectUri are required' }, 400)
+        }
         // Use opaque state token -- userId is stored server-side, not in the URL
         const state = crypto.randomUUID()
         // Store client credentials temporarily so the callback can use them
@@ -59,6 +63,36 @@ export function oauthRoutes(deps: AppDependencies) {
 
         return c.json({ authUrl: `${SPOTIFY_AUTH_URL}?${params}` })
       }
+      case 'deezer': {
+        if (!envConfig.deezerAppId || !envConfig.deezerAppSecret) {
+          return c.json({ error: 'Deezer app credentials are not configured on the server' }, 400)
+        }
+
+        const state = crypto.randomUUID()
+        const proto = c.req.header('x-forwarded-proto') ?? 'http'
+        const host = c.req.header('host') ?? 'localhost'
+        const deezerRedirectUri = `${proto}://${host}/api/auth/oauth/deezer/callback`
+
+        await upsertOAuthToken(deps.db, {
+          userId,
+          provider: 'deezer',
+          accessToken: `pending:${userId}:${state}`,
+          refreshToken: null,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          scopes: DEEZER_SCOPES,
+          clientId: null,
+          clientSecret: null,
+        })
+
+        const params = new URLSearchParams({
+          app_id: envConfig.deezerAppId,
+          redirect_uri: deezerRedirectUri,
+          perms: DEEZER_SCOPES,
+          state,
+        })
+
+        return c.json({ authUrl: `${DEEZER_AUTH_URL}?${params}` })
+      }
       default:
         return c.json({ error: `Unknown OAuth provider: ${provider}` }, 400)
     }
@@ -79,17 +113,15 @@ export function oauthRoutes(deps: AppDependencies) {
       return c.redirect('/settings?oauth_error=missing_code_or_state')
     }
 
-    // Resolve userId from server-side pending token, not from the URL state param.
-    // The pending token stores `pending:{userId}:{opaqueState}` and state is just the opaque part.
-    const pendingToken = await findPendingOAuthByState(deps.db, 'spotify', state)
-    if (!pendingToken || !pendingToken.accessToken.startsWith('pending:')) {
-      return c.redirect('/settings?oauth_error=no_pending_auth')
-    }
-    const userId = pendingToken.userId
-
     switch (provider) {
       case 'spotify': {
-        const pending = pendingToken
+        // Resolve userId from server-side pending token, not from the URL state param.
+        // The pending token stores `pending:{userId}:{opaqueState}` and state is just the opaque part.
+        const pending = await findPendingOAuthByState(deps.db, 'spotify', state)
+        if (!pending || !pending.accessToken.startsWith('pending:')) {
+          return c.redirect('/settings?oauth_error=no_pending_auth')
+        }
+        const userId = pending.userId
 
         // CSRF: verify the state matches the stored opaque state
         if (pending.accessToken !== `pending:${userId}:${state}`) {
@@ -169,6 +201,82 @@ export function oauthRoutes(deps: AppDependencies) {
         }
 
         return c.redirect('/settings?oauth_success=spotify')
+      }
+      case 'deezer': {
+        const deezerPending = await findPendingOAuthByState(deps.db, 'deezer', state)
+        if (!deezerPending || !deezerPending.accessToken.startsWith('pending:')) {
+          return c.redirect('/settings?oauth_error=no_pending_auth')
+        }
+        const deezerUserId = deezerPending.userId
+
+        if (deezerPending.accessToken !== `pending:${deezerUserId}:${state}`) {
+          return c.redirect('/settings?oauth_error=state_mismatch')
+        }
+
+        if (!envConfig.deezerAppId || !envConfig.deezerAppSecret) {
+          return c.redirect('/settings?oauth_error=missing_credentials')
+        }
+
+        const tokenParams = new URLSearchParams({
+          app_id: envConfig.deezerAppId,
+          secret: envConfig.deezerAppSecret,
+          code,
+          output: 'json',
+        })
+
+        const deezerController = new AbortController()
+        const deezerTimer = setTimeout(() => deezerController.abort(), 10_000)
+        let deezerTokenRes: Response
+        try {
+          deezerTokenRes = await fetch(`${DEEZER_TOKEN_URL}?${tokenParams}`, {
+            signal: deezerController.signal,
+          })
+        } finally {
+          clearTimeout(deezerTimer)
+        }
+
+        if (!deezerTokenRes.ok) {
+          console.error(`Deezer token exchange failed: ${deezerTokenRes.status}`)
+          return c.redirect('/settings?oauth_error=token_exchange_failed')
+        }
+
+        const rawBody = await deezerTokenRes.text()
+        let deezerTokenData: { access_token?: string; expires?: number } = {}
+        try {
+          deezerTokenData = JSON.parse(rawBody)
+        } catch {
+          // Fall back to form-encoded (e.g. "access_token=xxx&expires=0")
+          const parsed = new URLSearchParams(rawBody)
+          deezerTokenData = {
+            access_token: parsed.get('access_token') ?? undefined,
+            expires: parsed.has('expires') ? Number(parsed.get('expires')) : undefined,
+          }
+        }
+
+        if (!deezerTokenData.access_token) {
+          console.error('Deezer token exchange: no access_token in response')
+          return c.redirect('/settings?oauth_error=token_exchange_failed')
+        }
+
+        // expires=0 means long-lived -- treat as 1 year
+        const expiresIn =
+          deezerTokenData.expires === 0
+            ? 365 * 24 * 3600
+            : (deezerTokenData.expires ?? 365 * 24 * 3600)
+        const expiresAt = new Date(Date.now() + expiresIn * 1000)
+
+        await upsertOAuthToken(deps.db, {
+          userId: deezerUserId,
+          provider: 'deezer',
+          accessToken: deezerTokenData.access_token,
+          refreshToken: null,
+          expiresAt,
+          scopes: DEEZER_SCOPES,
+          clientId: null,
+          clientSecret: null,
+        })
+
+        return c.redirect('/settings?oauth_success=deezer')
       }
       default:
         return c.redirect('/settings?oauth_error=unknown_provider')
