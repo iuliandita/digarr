@@ -26,6 +26,7 @@ const mockClient = {
   getSimilarArtists: vi.fn(),
   getListenCount: vi.fn(),
   getListeningActivity: vi.fn(),
+  getTagRadio: vi.fn(),
   testConnection: vi.fn(),
 }
 

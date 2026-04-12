@@ -92,7 +92,7 @@ type LbTagRadioRecording = {
 }
 
 function buildTagExpression(tags: TagRadioInput[]): string {
-  if (tags.length === 1) return tags[0]!.tag
+  if (tags.length === 1) return tags[0]?.tag ?? ''
   return tags.map((t) => `(${t.tag}):${t.weight}`).join(':')
 }
 
