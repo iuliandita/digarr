@@ -87,6 +87,10 @@ export const envConfig = {
   oidcClientId: env('OIDC_CLIENT_ID'),
   oidcClientSecret: env('OIDC_CLIENT_SECRET'),
   oidcScopes: env('OIDC_SCOPES'),
+
+  // Deezer OAuth
+  deezerAppId: env('DEEZER_APP_ID'),
+  deezerAppSecret: env('DEEZER_APP_SECRET'),
 } as const
 
 export type EnvConfig = typeof envConfig
