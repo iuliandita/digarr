@@ -1,5 +1,6 @@
-import type { RadioMode } from '@/core/clients/listenbrainz'
+import type { RadioMode, TagRadioInput } from '@/core/clients/listenbrainz'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
 import { createListenBrainzAdapter } from '@/core/subscriptions/adapters/listenbrainz'
 import type {
   DiscoveryConfigField,
@@ -156,6 +157,17 @@ function mapRadioArtists(
   }
 }
 
+function parseRawTagExpression(raw: string): TagRadioInput[] {
+  const results: TagRadioInput[] = []
+  for (const m of raw.matchAll(/\(([^)]+)\):(\d+)/g)) {
+    if (m[1]) results.push({ tag: m[1], weight: Number(m[2]) })
+  }
+  if (results.length === 0) {
+    return [{ tag: raw.trim(), weight: 1 }]
+  }
+  return results
+}
+
 export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
   const adventurenessField: DiscoveryConfigField = {
     key: 'adventurousness',
@@ -279,4 +291,100 @@ export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
   }
 
   return [artistRadio, userRadio, similarUsersDeep]
+}
+
+export function createListenBrainzTagRadioMode(): DiscoveryModeDefinition {
+  return {
+    id: 'lb-tag-radio',
+    label: 'Tag Radio',
+    description: 'Discover artists matching genre tags via ListenBrainz radio',
+    availability: 'strict',
+    easyFields: [
+      {
+        key: 'tags',
+        label: 'Tags',
+        type: 'tags' as DiscoveryConfigField['type'],
+        required: true,
+        helpText: 'Genre or style tags to discover from. Add multiple tags with weights.',
+      },
+    ],
+    advancedFields: [
+      {
+        key: 'tags',
+        label: 'Tags',
+        type: 'tags' as DiscoveryConfigField['type'],
+        required: true,
+        helpText: 'Genre or style tags to discover from. Add multiple tags with weights.',
+      },
+      {
+        key: 'rawTagExpression',
+        label: 'Raw tag expression',
+        type: 'text',
+        helpText: 'Override tag builder with raw LB syntax, e.g. (trip hop):2:(ambient):1',
+      },
+      {
+        key: 'count',
+        label: 'Recordings to fetch',
+        type: 'number',
+        helpText:
+          'Default 25. Higher values improve diversity but are slower due to MusicBrainz rate limiting (~1 second per recording).',
+      },
+      {
+        key: 'popBegin',
+        label: 'Popularity min',
+        type: 'number',
+        helpText: '0-100. Filter out recordings below this popularity.',
+      },
+      {
+        key: 'popEnd',
+        label: 'Popularity max',
+        type: 'number',
+        helpText: '0-100. Filter out recordings above this popularity.',
+      },
+    ],
+    executor: async (request) => {
+      const { client } = await getConnectedClient(request.userId)
+      const [{ db }, { createMusicBrainzClient }] = await Promise.all([
+        import('@/db'),
+        import('@/core/clients/musicbrainz'),
+      ])
+      const mbClient = createMusicBrainzClient()
+
+      const rawExpr = String(request.normalizedSettings.rawTagExpression ?? '').trim()
+      let tags: TagRadioInput[]
+      if (rawExpr) {
+        tags = parseRawTagExpression(rawExpr)
+      } else {
+        const tagsRaw = request.normalizedSettings.tags
+        tags = Array.isArray(tagsRaw)
+          ? (tagsRaw as Array<Record<string, unknown>>)
+              .filter((t) => typeof t.tag === 'string' && t.tag.trim())
+              .map((t) => ({ tag: String(t.tag).trim(), weight: Number(t.weight) || 1 }))
+          : []
+      }
+
+      if (tags.length === 0) {
+        throw new Error('At least one tag is required.')
+      }
+
+      const count = Number(request.normalizedSettings.count) || 25
+      const popBegin = Number(request.normalizedSettings.popBegin) || 0
+      const popEnd = Number(request.normalizedSettings.popEnd) || 100
+
+      const recordings = await client.getTagRadio(tags, { count, popBegin, popEnd })
+      const resolved = await resolveTagRadioRecordings(recordings, mbClient, db)
+
+      const limit = getNormalizedLimit(request, 25)
+      return {
+        candidates: resolved.slice(0, limit).map((a) => ({
+          candidateType: 'artist' as const,
+          name: a.artistName,
+          mbid: a.artistMbid,
+          provenanceProvider: 'listenbrainz:tag-radio',
+          confidenceHint: a.score,
+          fallbackUsed: false,
+        })),
+      }
+    },
+  }
 }
