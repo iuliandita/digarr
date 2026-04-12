@@ -1,5 +1,7 @@
 import { Cron } from 'croner'
 import { Hono } from 'hono'
+import { createDeezerUserClient } from '@/core/clients/deezer-user'
+import { resolveDeezerToken } from '@/core/deezer-auth'
 import {
   buildDiscoveryModeExecutionContext,
   evaluateDiscoveryModeAvailability,
@@ -595,14 +597,12 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
-    const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
-    if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
+    let accessToken: string
+    try {
+      accessToken = await resolveDeezerToken(deps.db, userId)
+    } catch {
       return c.json({ error: 'Deezer is not connected' }, 400)
     }
-
-    const { resolveDeezerToken } = await import('@/core/deezer-auth')
-    const { createDeezerUserClient } = await import('@/core/clients/deezer-user')
-    const accessToken = await resolveDeezerToken(deps.db, userId)
     const client = createDeezerUserClient(accessToken)
     const playlists = await client.getPlaylists()
 
