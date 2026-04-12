@@ -71,6 +71,31 @@ export type SimilarUser = {
   similarity: number
 }
 
+export type TagRadioInput = {
+  tag: string
+  weight: number
+}
+
+export type TagRadioRecording = {
+  recordingMbid: string
+  percent: number
+  source: string
+  tagCount: number
+}
+
+// Raw LB tag radio response shape
+type LbTagRadioRecording = {
+  recording_mbid: string
+  percent: number
+  source: string
+  tag_count: number
+}
+
+function buildTagExpression(tags: TagRadioInput[]): string {
+  if (tags.length === 1) return tags[0]!.tag
+  return tags.map((t) => `(${t.tag}):${t.weight}`).join(':')
+}
+
 function extractRadioArtists(res: LbRadioResponse, excludeMbid?: string): RadioArtist[] {
   const seen = new Set<string>()
   const artists: RadioArtist[] = []
@@ -193,6 +218,25 @@ export function createListenBrainzClient(username: string, token: string) {
     }))
   }
 
+  async function getTagRadio(
+    tags: TagRadioInput[],
+    options?: { count?: number; popBegin?: number; popEnd?: number },
+  ): Promise<TagRadioRecording[]> {
+    const params = new URLSearchParams({
+      tag: buildTagExpression(tags),
+      count: String(options?.count ?? 25),
+      pop_begin: String(options?.popBegin ?? 0),
+      pop_end: String(options?.popEnd ?? 100),
+    })
+    const res = await http.get<LbTagRadioRecording[]>(`/1/lb-radio/tags?${params.toString()}`)
+    return (res ?? []).map((r) => ({
+      recordingMbid: r.recording_mbid,
+      percent: r.percent,
+      source: r.source,
+      tagCount: r.tag_count,
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const count = await getListenCount()
@@ -215,6 +259,7 @@ export function createListenBrainzClient(username: string, token: string) {
     getUserRadio,
     getSimilarUsers,
     getTopArtistsForUser,
+    getTagRadio,
     testConnection,
   }
 }
