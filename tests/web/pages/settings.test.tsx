@@ -334,7 +334,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Lidarr')).toBeInTheDocument()
+      expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
     })
     // Lidarr URL field should be present
     expect(screen.getByDisplayValue('http://localhost:8686')).toBeInTheDocument()
@@ -380,7 +380,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Lidarr')).toBeInTheDocument()
+      expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
     })
 
     // Find the Lidarr section's Test Connection button (first one)
@@ -404,7 +404,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Lidarr')).toBeInTheDocument()
+      expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
     })
 
     // Find the Lidarr section's Save button (first one)
