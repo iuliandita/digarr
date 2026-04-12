@@ -1,3 +1,5 @@
+import type { PopularityRange, RadioMode } from '@/core/clients/listenbrainz'
+import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { deduplicateByName } from '@/core/subscriptions/dedup'
 import type {
   AdapterConfigField,
@@ -14,6 +16,9 @@ const CONFIG_FIELDS: AdapterConfigField[] = [
     options: [
       { value: 'fresh-releases', label: 'Fresh Releases' },
       { value: 'weekly-jams', label: 'Weekly Jams' },
+      { value: 'artist-radio', label: 'Artist Radio' },
+      { value: 'tag-radio', label: 'Genre Tag Radio' },
+      { value: 'similar-users', label: 'Similar Users' },
     ],
     helpText: 'Which ListenBrainz feed to pull artists from.',
   },
@@ -73,6 +78,16 @@ export function createListenBrainzAdapter(deps: {
         return fetchWeeklyJams(deps.username, deps.token)
       }
 
+      if (feedType === 'artist-radio') {
+        return fetchArtistRadio(deps, config)
+      }
+      if (feedType === 'tag-radio') {
+        return fetchTagRadio(deps, config)
+      }
+      if (feedType === 'similar-users') {
+        return fetchSimilarUsers(deps, config)
+      }
+
       return { artists: [] }
     },
   }
@@ -106,6 +121,72 @@ async function fetchFreshReleases(token: string): Promise<AdapterResult> {
     similarityScore: 0.6,
     source: 'listenbrainz:fresh-releases',
   }))
+
+  return { artists }
+}
+
+async function fetchArtistRadio(
+  deps: { username: string; token: string },
+  config: Record<string, unknown>,
+): Promise<AdapterResult> {
+  const client = createListenBrainzClient(deps.username, deps.token)
+  const mbid = String(config.seedArtistMbid ?? '')
+  const mode = (config.adventurousness as RadioMode) ?? 'medium'
+  if (!mbid) return { artists: [] }
+  const radio = await client.getArtistRadio(mbid, mode)
+  return {
+    artists: radio.map((a) => ({
+      name: a.name,
+      similarityScore: a.score,
+      source: 'listenbrainz:artist-radio',
+    })),
+  }
+}
+
+async function fetchTagRadio(
+  deps: { username: string; token: string },
+  config: Record<string, unknown>,
+): Promise<AdapterResult> {
+  const client = createListenBrainzClient(deps.username, deps.token)
+  const tag = String(config.tag ?? '')
+  const popularity = (config.popularity as PopularityRange) ?? 'all'
+  const mode = (config.adventurousness as RadioMode) ?? 'medium'
+  if (!tag) return { artists: [] }
+  const radio = await client.getTagRadio(tag, popularity, mode)
+  return {
+    artists: radio.map((a) => ({
+      name: a.name,
+      similarityScore: a.score,
+      source: 'listenbrainz:tag-radio',
+    })),
+  }
+}
+
+async function fetchSimilarUsers(
+  deps: { username: string; token: string },
+  config: Record<string, unknown>,
+): Promise<AdapterResult> {
+  const client = createListenBrainzClient(deps.username, deps.token)
+  const maxUsers = Math.min(Math.max(1, Number(config.maxUsers) || 3), 10)
+  const similarUsers = await client.getSimilarUsers()
+  const topUsers = similarUsers.slice(0, maxUsers)
+
+  const seen = new Set<string>()
+  const artists: AdapterResult['artists'] = []
+
+  for (const simUser of topUsers) {
+    const topArtists = await client.getTopArtistsForUser(simUser.username, 'month')
+    for (const artist of topArtists) {
+      const key = artist.name.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      artists.push({
+        name: artist.name,
+        similarityScore: simUser.similarity * 0.8,
+        source: 'listenbrainz:similar-users',
+      })
+    }
+  }
 
   return { artists }
 }
