@@ -79,6 +79,22 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
 
+### Integrations
+
+Connect external services to unlock discovery feeds, library sync, playlist export, and one-click imports.
+
+| Service | Discovery | Subscriptions | Library Sync | Playlist Export | Import |
+|---------|-----------|--------------|-------------|----------------|--------|
+| ListenBrainz | Radio (Artist, Tag, User), Similar Users | Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users | - | - | - |
+| Spotify | - | Liked Songs, Charts, Playlist | - | Yes | Playlist |
+| Deezer | - | Favorites, Followed, Flow | - | - | Favorites, Followed, Playlists |
+| Last.fm | - | Charts, Tag Radio | - | - | - |
+| Lidarr | - | - | Artists, Albums | - | - |
+| Plex | - | - | Artists, Albums | Yes | - |
+| Jellyfin | - | - | Artists, Albums | Yes | - |
+| Emby | - | - | Artists, Albums | Yes | - |
+| AI Provider | Mood Discover | - | - | - | - |
+
 ---
 
 ## Quick Start

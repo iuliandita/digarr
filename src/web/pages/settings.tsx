@@ -9,6 +9,7 @@ import { AdministrationTab } from '../components/admin/administration-tab'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
 import { Hint } from '../components/hint'
+import { IntegrationCapabilities } from '../components/integration-capabilities'
 import { LanguageSwitcher } from '../components/language-switcher'
 import { ServiceCard } from '../components/service-card'
 import {
@@ -532,6 +533,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         </div>
       ) : (
         <>
+          <IntegrationCapabilities />
           {/* Lidarr */}
           <div className={isLidarrConfigured ? '' : 'opacity-60'}>
             <ServiceCard
