@@ -229,6 +229,113 @@ describe('createListenBrainzClient', () => {
     })
   })
 
+  describe('getArtistRadio(mbid, mode)', () => {
+    it('extracts unique artists from radio response', async () => {
+      mockGet.mockResolvedValueOnce({
+        '0': [
+          {
+            recording_mbid: 'rec-1',
+            similar_artist_mbid: 'artist-1',
+            similar_artist_name: 'Artist One',
+            total_listen_count: 100,
+          },
+          {
+            recording_mbid: 'rec-2',
+            similar_artist_mbid: 'artist-1',
+            similar_artist_name: 'Artist One',
+            total_listen_count: 80,
+          },
+          {
+            recording_mbid: 'rec-3',
+            similar_artist_mbid: 'artist-2',
+            similar_artist_name: 'Artist Two',
+            total_listen_count: 50,
+          },
+        ],
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getArtistRadio('seed-mbid', 'medium')
+
+      expect(result).toEqual([
+        { name: 'Artist One', mbid: 'artist-1', score: expect.any(Number) },
+        { name: 'Artist Two', mbid: 'artist-2', score: expect.any(Number) },
+      ])
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/1/lb-radio/artist/seed-mbid'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('mode=medium'))
+    })
+
+    it('defaults mode to medium', async () => {
+      mockGet.mockResolvedValueOnce({})
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      await client.getArtistRadio('seed-mbid')
+
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('mode=medium'))
+    })
+
+    it('filters out the seed MBID from results', async () => {
+      mockGet.mockResolvedValueOnce({
+        '0': [
+          {
+            recording_mbid: 'rec-seed',
+            similar_artist_mbid: 'seed-mbid',
+            similar_artist_name: 'Seed Artist',
+            total_listen_count: 999,
+          },
+          {
+            recording_mbid: 'rec-other',
+            similar_artist_mbid: 'other-artist',
+            similar_artist_name: 'Other Artist',
+            total_listen_count: 50,
+          },
+        ],
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getArtistRadio('seed-mbid', 'medium')
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.mbid).toBe('other-artist')
+    })
+
+    it('deduplicates artists appearing across multiple groups', async () => {
+      mockGet.mockResolvedValueOnce({
+        '0': [
+          {
+            recording_mbid: 'rec-1',
+            similar_artist_mbid: 'shared-artist',
+            similar_artist_name: 'Shared Artist',
+            total_listen_count: 100,
+          },
+        ],
+        '1': [
+          {
+            recording_mbid: 'rec-2',
+            similar_artist_mbid: 'shared-artist',
+            similar_artist_name: 'Shared Artist',
+            total_listen_count: 200,
+          },
+        ],
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getArtistRadio('seed-mbid', 'medium')
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.mbid).toBe('shared-artist')
+    })
+
+    it('returns empty array for empty response', async () => {
+      mockGet.mockResolvedValueOnce({})
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getArtistRadio('seed-mbid')
+
+      expect(result).toEqual([])
+    })
+  })
+
   describe('testConnection()', () => {
     it('returns success:true when getListenCount() resolves', async () => {
       mockGet.mockResolvedValueOnce({ payload: { count: 999 } })
