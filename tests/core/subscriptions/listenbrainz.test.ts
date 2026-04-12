@@ -62,7 +62,7 @@ describe('tag-radio feed type', () => {
     })
 
     expect(mockClient.getTagRadio).toHaveBeenCalledWith('electronic', 'high', 'medium')
-    expect(result.artists[0].source).toBe('listenbrainz:tag-radio')
+    expect(result.artists[0]?.source).toBe('listenbrainz:tag-radio')
   })
 })
 

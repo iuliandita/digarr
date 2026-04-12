@@ -36,7 +36,7 @@ beforeEach(() => {
   vi.mocked(getDiscoveryModeConnections).mockResolvedValue({
     listenbrainzUsername: 'testuser',
     listenbrainzToken: 'testtoken',
-  })
+  } as any)
   vi.mocked(getNormalizedLimit).mockReturnValue(25)
 })
 
@@ -70,7 +70,7 @@ describe('lb-artist-radio mode', () => {
   })
 
   it('throws when LB not connected', async () => {
-    vi.mocked(getDiscoveryModeConnections).mockResolvedValue({})
+    vi.mocked(getDiscoveryModeConnections).mockResolvedValue({} as any)
 
     const modes = createListenBrainzRadioModes()
     const artistRadio = modes.find((m) => m.id === 'lb-artist-radio')!
@@ -102,7 +102,7 @@ describe('lb-tag-radio mode', () => {
 
     expect(mockClient.getTagRadio).toHaveBeenCalledWith('jazz', 'low', 'hard')
     expect(result.candidates).toHaveLength(1)
-    expect(result.candidates[0].provenanceProvider).toBe('listenbrainz:tag-radio')
+    expect(result.candidates[0]?.provenanceProvider).toBe('listenbrainz:tag-radio')
   })
 })
 

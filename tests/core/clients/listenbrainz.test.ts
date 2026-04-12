@@ -369,7 +369,7 @@ describe('createListenBrainzClient', () => {
       const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
       await client.getTagRadio('jazz', 'low')
 
-      const call = mockGet.mock.calls[0][0] as string
+      const call = mockGet.mock.calls[0]?.[0] as string
       expect(call).toContain('pop_begin=0')
       expect(call).toContain('pop_end=40')
     })

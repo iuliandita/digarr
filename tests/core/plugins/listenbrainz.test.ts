@@ -24,6 +24,11 @@ describe('createListenBrainzSource()', () => {
         .mockResolvedValue([{ listen_count: 100, from_ts: 1000, to_ts: 2000 }]),
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
       getListenCount: vi.fn().mockResolvedValue(5000),
+      getArtistRadio: vi.fn().mockResolvedValue([]),
+      getTagRadio: vi.fn().mockResolvedValue([]),
+      getUserRadio: vi.fn().mockResolvedValue([]),
+      getSimilarUsers: vi.fn().mockResolvedValue([]),
+      getTopArtistsForUser: vi.fn().mockResolvedValue([]),
     }
     vi.mocked(createListenBrainzClient).mockReturnValue(client)
     return client
