@@ -1,6 +1,6 @@
 import type { DiscoveryModeRequest } from './request'
 
-export type DiscoveryFieldType = 'text' | 'number' | 'select' | 'multiselect' | 'toggle'
+export type DiscoveryFieldType = 'text' | 'number' | 'select' | 'multiselect' | 'toggle' | 'tags'
 
 export type DiscoveryConfigField = {
   key: string

@@ -31,6 +31,7 @@ function serializeValue(field: DiscoveryConfigField, value: unknown): DiscoveryM
 function getDefaultValue(field: DiscoveryConfigField): boolean | string {
   if (field.type === 'toggle') return false
   if (field.type === 'select') return field.options?.[0]?.value ?? ''
+  if (field.type === 'tags') return JSON.stringify([{ tag: '', weight: 1 }])
   return ''
 }
 
@@ -49,6 +50,21 @@ function normalizeValue(field: DiscoveryConfigField, value: boolean | string): u
       .split(',')
       .map((item) => item.trim())
       .filter(Boolean)
+  }
+  if (field.type === 'tags') {
+    try {
+      const arr = JSON.parse(String(value))
+      if (Array.isArray(arr))
+        return arr.filter(
+          (r: unknown) =>
+            typeof r === 'object' &&
+            r !== null &&
+            'tag' in r &&
+            typeof (r as Record<string, unknown>).tag === 'string' &&
+            ((r as Record<string, unknown>).tag as string).trim(),
+        )
+    } catch {}
+    return []
   }
   return String(value).trim()
 }
@@ -93,6 +109,107 @@ function buildSubmission(
       fallbackPolicy: mode.availability.fallbackUsed ? 'allow-fallback' : 'strict',
     } satisfies DiscoveryModeSubscriptionConfig,
   }
+}
+
+function TagBuilderField({
+  value,
+  onChange,
+  inputId,
+  helpId,
+}: {
+  value: string
+  onChange: (val: string) => void
+  inputId: string
+  helpId?: string
+}) {
+  type TagRow = { id: number; tag: string; weight: number }
+
+  let counter = 0
+  function nextId() {
+    counter += 1
+    return counter
+  }
+
+  function parse(raw: string): TagRow[] {
+    try {
+      const arr = JSON.parse(raw)
+      if (Array.isArray(arr) && arr.length > 0)
+        return arr.map((r: { tag?: string; weight?: number }) => ({
+          id: nextId(),
+          tag: typeof r.tag === 'string' ? r.tag : '',
+          weight: typeof r.weight === 'number' ? r.weight : 1,
+        }))
+    } catch {}
+    return [{ id: nextId(), tag: '', weight: 1 }]
+  }
+
+  function serialize(rows: TagRow[]): string {
+    return JSON.stringify(rows.map(({ tag, weight }) => ({ tag, weight })))
+  }
+
+  const rows = parse(value)
+  const showWeights = rows.length > 1 || (rows.length === 1 && rows[0]?.weight !== 1)
+
+  function updateRow(id: number, updates: Partial<TagRow>) {
+    const next = rows.map((r) => (r.id === id ? { ...r, ...updates } : r))
+    onChange(serialize(next))
+  }
+
+  function addRow() {
+    if (rows.length >= 10) return
+    onChange(serialize([...rows, { id: nextId(), tag: '', weight: 1 }]))
+  }
+
+  function removeRow(id: number) {
+    if (rows.length <= 1) return
+    onChange(serialize(rows.filter((r) => r.id !== id)))
+  }
+
+  return (
+    <div id={inputId} aria-describedby={helpId} className="space-y-2">
+      {rows.map((row) => (
+        <div key={row.id} className="flex items-center gap-2">
+          <input
+            type="text"
+            value={row.tag}
+            placeholder="e.g. trip hop"
+            onChange={(e) => updateRow(row.id, { tag: e.target.value })}
+            className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
+          />
+          {showWeights && (
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={row.weight}
+              onChange={(e) =>
+                updateRow(row.id, {
+                  weight: Math.max(1, Math.min(10, Number(e.target.value) || 1)),
+                })
+              }
+              className="w-16 rounded-md border border-border bg-surface px-2 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              title="Weight"
+            />
+          )}
+          {rows.length > 1 && (
+            <button
+              type="button"
+              onClick={() => removeRow(row.id)}
+              className="rounded-md px-2 py-2 text-sm text-muted hover:text-reject"
+              title="Remove tag"
+            >
+              x
+            </button>
+          )}
+        </div>
+      ))}
+      {rows.length < 10 && (
+        <button type="button" onClick={addRow} className="text-sm text-accent hover:underline">
+          + Add tag
+        </button>
+      )}
+    </div>
+  )
 }
 
 function DiscoveryModeFields({
@@ -149,6 +266,13 @@ function DiscoveryModeFields({
                   setValues((prev) => ({ ...prev, [field.key]: event.target.checked }))
                 }
                 className="h-4 w-4 rounded border-border"
+              />
+            ) : field.type === 'tags' ? (
+              <TagBuilderField
+                value={String(value)}
+                onChange={(val) => setValues((prev) => ({ ...prev, [field.key]: val }))}
+                inputId={inputId}
+                helpId={helpId}
               />
             ) : (
               <input
