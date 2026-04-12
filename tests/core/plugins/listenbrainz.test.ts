@@ -25,7 +25,6 @@ describe('createListenBrainzSource()', () => {
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
       getListenCount: vi.fn().mockResolvedValue(5000),
       getArtistRadio: vi.fn().mockResolvedValue([]),
-      getTagRadio: vi.fn().mockResolvedValue([]),
       getUserRadio: vi.fn().mockResolvedValue([]),
       getSimilarUsers: vi.fn().mockResolvedValue([]),
       getTopArtistsForUser: vi.fn().mockResolvedValue([]),

@@ -19,7 +19,6 @@ import {
 
 const mockClient = {
   getArtistRadio: vi.fn(),
-  getTagRadio: vi.fn(),
   getUserRadio: vi.fn(),
   getSimilarUsers: vi.fn(),
   getTopArtistsForUser: vi.fn(),
@@ -82,27 +81,6 @@ describe('lb-artist-radio mode', () => {
         settingsMode: 'easy',
       } as any),
     ).rejects.toThrow('Connect ListenBrainz')
-  })
-})
-
-describe('lb-tag-radio mode', () => {
-  it('calls getTagRadio with tag and popularity', async () => {
-    mockClient.getTagRadio.mockResolvedValueOnce([
-      { name: 'Jazz Artist', mbid: 'mbid-j', score: 0.8 },
-    ])
-
-    const modes = createListenBrainzRadioModes()
-    const tagRadio = modes.find((m) => m.id === 'lb-tag-radio')!
-
-    const result = await tagRadio.executor({
-      userId: 1,
-      normalizedSettings: { tag: 'jazz', popularity: 'low', adventurousness: 'hard' },
-      settingsMode: 'advanced',
-    } as any)
-
-    expect(mockClient.getTagRadio).toHaveBeenCalledWith('jazz', 'low', 'hard')
-    expect(result.candidates).toHaveLength(1)
-    expect(result.candidates[0]?.provenanceProvider).toBe('listenbrainz:tag-radio')
   })
 })
 

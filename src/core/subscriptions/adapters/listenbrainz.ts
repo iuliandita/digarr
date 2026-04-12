@@ -1,4 +1,4 @@
-import type { PopularityRange, RadioMode } from '@/core/clients/listenbrainz'
+import type { RadioMode } from '@/core/clients/listenbrainz'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { deduplicateByName } from '@/core/subscriptions/dedup'
 import type {
@@ -17,7 +17,7 @@ const CONFIG_FIELDS: AdapterConfigField[] = [
       { value: 'fresh-releases', label: 'Fresh Releases' },
       { value: 'weekly-jams', label: 'Weekly Jams' },
       { value: 'artist-radio', label: 'Artist Radio' },
-      { value: 'tag-radio', label: 'Genre Tag Radio' },
+
       { value: 'similar-users', label: 'Similar Users' },
     ],
     helpText: 'Which ListenBrainz feed to pull artists from.',
@@ -81,9 +81,7 @@ export function createListenBrainzAdapter(deps: {
       if (feedType === 'artist-radio') {
         return fetchArtistRadio(deps, config)
       }
-      if (feedType === 'tag-radio') {
-        return fetchTagRadio(deps, config)
-      }
+
       if (feedType === 'similar-users') {
         return fetchSimilarUsers(deps, config)
       }
@@ -139,25 +137,6 @@ async function fetchArtistRadio(
       name: a.name,
       similarityScore: a.score,
       source: 'listenbrainz:artist-radio',
-    })),
-  }
-}
-
-async function fetchTagRadio(
-  deps: { username: string; token: string },
-  config: Record<string, unknown>,
-): Promise<AdapterResult> {
-  const client = createListenBrainzClient(deps.username, deps.token)
-  const tag = String(config.tag ?? '')
-  const popularity = (config.popularity as PopularityRange) ?? 'all'
-  const mode = (config.adventurousness as RadioMode) ?? 'medium'
-  if (!tag) return { artists: [] }
-  const radio = await client.getTagRadio(tag, popularity, mode)
-  return {
-    artists: radio.map((a) => ({
-      name: a.name,
-      similarityScore: a.score,
-      source: 'listenbrainz:tag-radio',
     })),
   }
 }

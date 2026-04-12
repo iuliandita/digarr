@@ -9,7 +9,6 @@ import { createListenBrainzAdapter } from '@/core/subscriptions/adapters/listenb
 
 const mockClient = {
   getArtistRadio: vi.fn(),
-  getTagRadio: vi.fn(),
   getSimilarUsers: vi.fn(),
   getTopArtistsForUser: vi.fn(),
   getTopArtists: vi.fn(),
@@ -44,25 +43,6 @@ describe('artist-radio feed type', () => {
       similarityScore: 0.8,
       source: 'listenbrainz:artist-radio',
     })
-  })
-})
-
-describe('tag-radio feed type', () => {
-  it('calls getTagRadio and maps results', async () => {
-    mockClient.getTagRadio.mockResolvedValueOnce([
-      { name: 'Genre Artist', mbid: 'mbid-g', score: 0.7 },
-    ])
-
-    const adapter = createListenBrainzAdapter({ username: 'user', token: 'tok' })
-    const result = await adapter.fetch({
-      feedType: 'tag-radio',
-      tag: 'electronic',
-      popularity: 'high',
-      adventurousness: 'medium',
-    })
-
-    expect(mockClient.getTagRadio).toHaveBeenCalledWith('electronic', 'high', 'medium')
-    expect(result.artists[0]?.source).toBe('listenbrainz:tag-radio')
   })
 })
 

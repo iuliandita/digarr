@@ -1,4 +1,4 @@
-import type { PopularityRange, RadioMode } from '@/core/clients/listenbrainz'
+import type { RadioMode } from '@/core/clients/listenbrainz'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createListenBrainzAdapter } from '@/core/subscriptions/adapters/listenbrainz'
 import type {
@@ -204,53 +204,10 @@ export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
     },
   }
 
-  const tagRadio: DiscoveryModeDefinition = {
-    id: 'lb-tag-radio',
-    label: 'Genre Radio',
-    description: 'Discover artists by genre tag via ListenBrainz radio',
-    availability: 'strict',
-    easyFields: [
-      {
-        key: 'tag',
-        label: 'Genre Tag',
-        type: 'text',
-        required: true,
-        helpText: 'e.g. rock, jazz, electronic',
-      },
-      adventurenessField,
-    ],
-    advancedFields: [
-      { key: 'tag', label: 'Genre Tag', type: 'text', required: true },
-      {
-        key: 'popularity',
-        label: 'Popularity',
-        type: 'select',
-        options: [
-          { value: 'all', label: 'All' },
-          { value: 'low', label: 'Underground' },
-          { value: 'medium', label: 'Mid-range' },
-          { value: 'high', label: 'Popular' },
-        ],
-      },
-      adventurenessField,
-      { key: 'limit', label: 'Limit', type: 'number' },
-    ],
-    executor: async (request) => {
-      const { client } = await getConnectedClient(request.userId)
-      const tag = String(request.normalizedSettings.tag)
-      const popularity = (request.normalizedSettings.popularity as PopularityRange) ?? 'all'
-      const mode = (request.normalizedSettings.adventurousness as RadioMode) ?? 'medium'
-      const limit = getNormalizedLimit(request, 25)
-      const artists = await client.getTagRadio(tag, popularity, mode)
-      return mapRadioArtists(artists, 'listenbrainz:tag-radio', limit)
-    },
-  }
-
   const userRadio: DiscoveryModeDefinition = {
     id: 'lb-user-radio',
     label: 'User Radio',
-    description:
-      'Discover artists from a personalized ListenBrainz radio based on listening history',
+    description: "Discover artists via radio seeded from a user's top listened artist",
     availability: 'strict',
     easyFields: [],
     advancedFields: [
@@ -321,5 +278,5 @@ export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
     },
   }
 
-  return [artistRadio, tagRadio, userRadio, similarUsersDeep]
+  return [artistRadio, userRadio, similarUsersDeep]
 }

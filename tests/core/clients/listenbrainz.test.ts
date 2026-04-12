@@ -336,53 +336,21 @@ describe('createListenBrainzClient', () => {
     })
   })
 
-  describe('getTagRadio(tag, popularity, mode)', () => {
-    it('sends tag and popularity params', async () => {
-      mockGet.mockResolvedValueOnce({
-        '0': [
-          {
-            recording_mbid: 'rec-1',
-            similar_artist_mbid: 'artist-1',
-            similar_artist_name: 'Tag Artist',
-            total_listen_count: 100,
-          },
-        ],
-      })
-
-      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      const result = await client.getTagRadio('rock', 'medium', 'hard')
-
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'Tag Artist',
-        mbid: 'artist-1',
-        score: expect.any(Number),
-      })
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/1/lb-radio/tags'))
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('tag=rock'))
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('mode=hard'))
-    })
-
-    it('maps popularity preset to numeric range', async () => {
-      mockGet.mockResolvedValueOnce({})
-
-      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      await client.getTagRadio('jazz', 'low')
-
-      const call = mockGet.mock.calls[0]?.[0] as string
-      expect(call).toContain('pop_begin=0')
-      expect(call).toContain('pop_end=40')
-    })
-  })
-
   describe('getUserRadio(targetUsername, mode)', () => {
-    it('calls user radio endpoint', async () => {
+    it('fetches top artists then runs artist radio on the top one', async () => {
+      // First call: getTopArtistsForUser
+      mockGet.mockResolvedValueOnce({
+        payload: {
+          artists: [{ artist_name: 'Top Artist', artist_mbid: 'top-mbid', listen_count: 500 }],
+        },
+      })
+      // Second call: getArtistRadio on top-mbid
       mockGet.mockResolvedValueOnce({
         '0': [
           {
             recording_mbid: 'rec-1',
             similar_artist_mbid: 'artist-1',
-            similar_artist_name: 'User Pick',
+            similar_artist_name: 'Radio Result',
             total_listen_count: 200,
           },
         ],
@@ -392,8 +360,24 @@ describe('createListenBrainzClient', () => {
       const result = await client.getUserRadio('targetuser', 'easy')
 
       expect(result).toHaveLength(1)
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/1/lb-radio/user/targetuser'))
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('mode=easy'))
+      expect(result[0]).toMatchObject({ name: 'Radio Result', mbid: 'artist-1' })
+      // First call fetches top artists for targetuser
+      expect(mockGet).toHaveBeenCalledWith('/1/stats/user/targetuser/artists?range=month')
+      // Second call runs artist radio seeded from top artist
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/1/lb-radio/artist/top-mbid'))
+    })
+
+    it('returns empty when user has no artists with MBIDs', async () => {
+      mockGet.mockResolvedValueOnce({
+        payload: {
+          artists: [{ artist_name: 'No MBID', artist_mbid: '', listen_count: 100 }],
+        },
+      })
+
+      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+      const result = await client.getUserRadio('targetuser')
+
+      expect(result).toEqual([])
     })
   })
 
