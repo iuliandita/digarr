@@ -52,6 +52,20 @@ export type MBRecording = {
   isrcs?: string[]
 }
 
+export type RecordingArtistCredit = {
+  recordingMbid: string
+  artistMbid: string
+  artistName: string
+}
+
+type MBRecordingLookup = {
+  id: string
+  title: string
+  'artist-credit'?: Array<{
+    artist: { id: string; name: string }
+  }>
+}
+
 export type StreamingUrls = {
   spotify?: string
   youtube?: string
@@ -154,6 +168,24 @@ export function createMusicBrainzClient() {
     }))
   }
 
+  async function lookupRecording(mbid: string): Promise<RecordingArtistCredit | null> {
+    const params = new URLSearchParams({ inc: 'artist-credits', fmt: 'json' })
+    let data: MBRecordingLookup
+    try {
+      data = await request<MBRecordingLookup>(`/recording/${mbid}?${params}`)
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('404')) return null
+      throw err
+    }
+    const credit = data['artist-credit']?.[0]
+    if (!credit) return null
+    return {
+      recordingMbid: mbid,
+      artistMbid: credit.artist.id,
+      artistName: credit.artist.name,
+    }
+  }
+
   function extractStreamingUrls(relations: MBRelation[]): StreamingUrls {
     const result: StreamingUrls = {}
 
@@ -179,6 +211,7 @@ export function createMusicBrainzClient() {
     searchArtist,
     getReleaseGroups,
     getRecordings,
+    lookupRecording,
     extractStreamingUrls,
   }
 }
