@@ -166,6 +166,15 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     expect(res.headers.get('Location')).toContain('oauth_error=access_denied')
   })
 
+  it('redirects with oauth_error when error_reason is present (Deezer denial)', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request(
+      '/api/auth/oauth/deezer/callback?error_reason=user_denied&state=s',
+    )
+    expect(res.status).toBe(302)
+    expect(res.headers.get('Location')).toContain('oauth_error=user_denied')
+  })
+
   it('redirects with oauth_error when code or state is missing', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/auth/oauth/deezer/callback?code=abc')

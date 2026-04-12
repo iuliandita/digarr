@@ -103,7 +103,7 @@ export function oauthRoutes(deps: AppDependencies) {
     const provider = c.req.param('provider')
     const code = c.req.query('code')
     const state = c.req.query('state')
-    const error = c.req.query('error')
+    const error = c.req.query('error') ?? c.req.query('error_reason')
 
     if (error) {
       return c.redirect(`/settings?oauth_error=${encodeURIComponent(error)}`)
