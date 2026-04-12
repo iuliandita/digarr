@@ -1,4 +1,3 @@
-import PQueue from 'p-queue'
 import type { TagRadioRecording } from '@/core/clients/listenbrainz'
 import type { RecordingArtistCredit } from '@/core/clients/musicbrainz'
 import type { Database } from '@/db'
@@ -32,11 +31,11 @@ export async function resolveTagRadioRecordings(
   // 2. Partition into hits and misses
   const misses = recordings.filter((r) => !cacheMap.has(r.recordingMbid))
 
-  // 3. Resolve misses via MB with rate limiting
-  const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
-  const resolved = await Promise.all(
-    misses.map((r) => queue.add(() => mbClient.lookupRecording(r.recordingMbid))),
-  )
+  // 3. Resolve misses via MB (client handles rate limiting internally)
+  const resolved: (RecordingArtistCredit | null)[] = []
+  for (const r of misses) {
+    resolved.push(await mbClient.lookupRecording(r.recordingMbid))
+  }
 
   // 4. Write newly resolved to cache
   const newEntries = resolved.filter((r): r is RecordingArtistCredit => r != null)

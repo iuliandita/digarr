@@ -1,14 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('p-queue', () => {
-  const mockAdd = vi.fn((fn: () => unknown) => fn())
-  const MockPQueue = vi.fn().mockImplementation(function (this: { add: typeof mockAdd }) {
-    this.add = mockAdd
-  })
-  return { default: MockPQueue }
-})
-
 // Mock DB queries
 const mockGetCached = vi.fn()
 const mockInsertCached = vi.fn()
