@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+### Changed
+
+- Discovery Modes now live on their own page under the Discover menu, keeping the main Discover view focused on recommendation review
+
+### Fixed
+
+- Shipped ListenBrainz radio modes no longer appear as "not shipped yet", and unavailable cards now explain why they are blocked
+
 ## v0.25.0 - 2026-04-13
 
 ### Added

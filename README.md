@@ -39,7 +39,7 @@ Digarr takes signals from up to 7 sources, runs them through an AI-assisted pipe
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
 
 ### Discovery Modes
-Run focused discovery flows for the currently shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, and Similar Artist Web. Labels and Artist Relationships stay visible in the UI so you can see what is planned, but they are marked unavailable and rejected server-side until they have real implementations. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
+Run focused discovery flows from Discover -> Discovery Modes for the currently shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, and Similar Artist Web. Labels and Artist Relationships stay visible on that page so you can see what is planned, and unavailable cards explain why they are blocked while the server rejects those runs until real implementations ship. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
 
 ### Auto-Playlists
 Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
@@ -137,7 +137,7 @@ Digarr runs a 7-stage recommendation pipeline:
 6. **Filter:** removes library duplicates, rejected artists with cooldowns, and low-score results
 7. **Store:** saves the batch and its recommendations
 
-You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or through the manual discovery-mode cards on the Discover page.
+You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or from Discover -> Discovery Modes for focused manual runs.
 
 ---
 

@@ -107,8 +107,9 @@ Locale notes:
 
 **GET /api/discovery-modes** notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
+- In the web UI, these modes are exposed from Discover -> Discovery Modes
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
-- Unavailable modes should be treated as read-only UI metadata, not runnable jobs
+- Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/discovery-modes/run** body:
 ```json
@@ -125,7 +126,7 @@ Locale notes:
 **POST /api/discovery-modes/run** behavior:
 - Returns `202 { "message": "Discovery run started" }` after validation; the actual run continues in the background
 - The server re-evaluates availability and execution context from the current user connections before starting the run
-- Returns `400` with the availability reason when a mode is currently unavailable
+- Returns `400` with the availability reason when a mode is currently unavailable, matching the `availability.reason` shown in the UI
 
 ---
 
