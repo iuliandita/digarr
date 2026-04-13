@@ -160,8 +160,12 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
 
   await installAuthToken(page, token)
 
-  await page.goto('/discover')
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Discover' }).click()
+  await page.getByRole('menuitem', { name: 'Discovery Modes' }).click()
+  await expect(page).toHaveURL('/discover/modes')
   await expect(page.getByRole('heading', { name: 'Discovery Modes' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Recommendations' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'ListenBrainz' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Release Radar' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Artist Relationships' })).toBeVisible()
