@@ -168,7 +168,7 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'This mode is not shipped yet.' })
+    expect(await res.json()).toEqual({ error: 'This mode is not implemented yet.' })
     expect(createSubscription).not.toHaveBeenCalled()
   })
 

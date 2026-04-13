@@ -102,7 +102,7 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'This mode is not shipped yet.' })
+    expect(await res.json()).toEqual({ error: 'This mode is not implemented yet.' })
   })
 
   it('returns 400 for request validation failures', async () => {
