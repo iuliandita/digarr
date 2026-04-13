@@ -9,7 +9,7 @@ import {
 
 describe('i18n machine translation helpers', () => {
   it('passes real source strings to the model without escaping them', () => {
-    const artistPlaceholder = '${artist}'
+    const artistPlaceholder = `${'${'}artist}`
     const messages = buildTranslationMessages('en', 'fr', {
       sample: `Keep ${artistPlaceholder} in \`code\` form.\nSecond line.`,
     })
@@ -21,8 +21,8 @@ describe('i18n machine translation helpers', () => {
   })
 
   it('rejects placeholder and line-break drift', () => {
-    const namePlaceholder = '${name}'
-    const usernamePlaceholder = '${username}'
+    const namePlaceholder = `${'${'}name}`
+    const usernamePlaceholder = `${'${'}username}`
     expect(() =>
       validateTranslatedCatalog(
         {

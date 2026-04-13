@@ -87,9 +87,16 @@ describe('API routes: discovery modes', () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    const byId = Object.fromEntries(body.modes.map((mode: { id: string; availability: { enabled: boolean } }) => [mode.id, mode]))
+    const byId = Object.fromEntries(
+      body.modes.map((mode: { id: string; availability: { enabled: boolean } }) => [mode.id, mode]),
+    )
 
-    for (const modeId of ['lb-artist-radio', 'lb-user-radio', 'similar-users-deep', 'lb-tag-radio']) {
+    for (const modeId of [
+      'lb-artist-radio',
+      'lb-user-radio',
+      'similar-users-deep',
+      'lb-tag-radio',
+    ]) {
       expect(byId[modeId].availability.enabled).toBe(true)
     }
   })

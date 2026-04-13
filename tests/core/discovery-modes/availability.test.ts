@@ -24,7 +24,12 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLibrarySync: false,
     }
 
-    for (const modeId of ['lb-artist-radio', 'lb-user-radio', 'similar-users-deep', 'lb-tag-radio']) {
+    for (const modeId of [
+      'lb-artist-radio',
+      'lb-user-radio',
+      'similar-users-deep',
+      'lb-tag-radio',
+    ]) {
       expect(evaluateDiscoveryModeAvailability(modeId, snapshot)).toMatchObject({
         enabled: true,
         fallbackUsed: false,

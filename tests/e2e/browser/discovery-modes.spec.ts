@@ -167,7 +167,9 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await expect(page.getByRole('heading', { name: 'Discovery Modes' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Recommendations' })).toBeVisible()
   await page.getByRole('button', { name: 'Discover', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Discover', exact: true })).toHaveClass(/text-accent/)
+  await expect(page.getByRole('button', { name: 'Discover', exact: true })).toHaveClass(
+    /text-accent/,
+  )
   await expect(page.getByRole('menuitem', { name: 'Recommendations' })).toHaveClass(/text-text/)
   await expect(page.getByRole('menuitem', { name: 'Discovery Modes' })).toHaveClass(/text-accent/)
   await expect(page.getByRole('heading', { name: 'ListenBrainz' })).toBeVisible()

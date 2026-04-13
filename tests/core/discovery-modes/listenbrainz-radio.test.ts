@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import type { DiscoveryModeDefinition } from '@/core/discovery-modes/types'
+import type { UserConnections } from '@/db/queries/users'
 
 vi.mock('@/core/clients/listenbrainz', () => ({
   createListenBrainzClient: vi.fn(),
@@ -30,15 +33,60 @@ const mockClient = {
   testConnection: vi.fn(),
 }
 
+const baseConnections: UserConnections = {
+  listenbrainzUsername: null,
+  listenbrainzToken: null,
+  lastfmUsername: null,
+  lastfmApiKey: null,
+  plexUrl: null,
+  plexToken: null,
+  jellyfinUrl: null,
+  jellyfinApiKey: null,
+  jellyfinUserId: null,
+  embyUrl: null,
+  embyApiKey: null,
+  embyUserId: null,
+  discogsToken: null,
+  discogsUsername: null,
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(createListenBrainzClient).mockReturnValue(mockClient)
-  vi.mocked(getDiscoveryModeConnections).mockResolvedValue({
+  const connections: UserConnections = {
+    ...baseConnections,
     listenbrainzUsername: 'testuser',
     listenbrainzToken: 'testtoken',
-  } as any)
+  }
+  vi.mocked(getDiscoveryModeConnections).mockResolvedValue(connections)
   vi.mocked(getNormalizedLimit).mockReturnValue(25)
 })
+
+function getMode(modes: DiscoveryModeDefinition[], id: string): DiscoveryModeDefinition {
+  const mode = modes.find((entry) => entry.id === id)
+  if (!mode) {
+    throw new Error(`Mode not found in test: ${id}`)
+  }
+
+  return mode
+}
+
+function makeRequest(
+  modeId: string,
+  settingsMode: DiscoveryModeRequest['settingsMode'],
+  normalizedSettings: Record<string, unknown>,
+): DiscoveryModeRequest {
+  return {
+    modeId,
+    triggerType: 'manual',
+    settingsMode,
+    userId: 1,
+    rawUserSettings: normalizedSettings,
+    normalizedSettings,
+    providerContext: { providerPath: ['listenbrainz'] },
+    fallbackPolicy: 'strict',
+  }
+}
 
 describe('lb-artist-radio mode', () => {
   it('calls getArtistRadio and maps candidates', async () => {
@@ -48,16 +96,14 @@ describe('lb-artist-radio mode', () => {
     ])
 
     const modes = createListenBrainzRadioModes()
-    const artistRadio = modes.find((m) => m.id === 'lb-artist-radio')!
+    const artistRadio = getMode(modes, 'lb-artist-radio')
 
-    const result = await artistRadio.executor({
-      userId: 1,
-      normalizedSettings: {
+    const result = await artistRadio.executor(
+      makeRequest('lb-artist-radio', 'easy', {
         seedArtistMbid: 'seed-mbid',
         adventurousness: 'medium',
-      },
-      settingsMode: 'easy',
-    } as any)
+      }),
+    )
 
     expect(mockClient.getArtistRadio).toHaveBeenCalledWith('seed-mbid', 'medium')
     expect(result.candidates).toHaveLength(2)
@@ -70,17 +116,19 @@ describe('lb-artist-radio mode', () => {
   })
 
   it('throws when LB not connected', async () => {
-    vi.mocked(getDiscoveryModeConnections).mockResolvedValue({} as any)
+    const connections: UserConnections = baseConnections
+    vi.mocked(getDiscoveryModeConnections).mockResolvedValue(connections)
 
     const modes = createListenBrainzRadioModes()
-    const artistRadio = modes.find((m) => m.id === 'lb-artist-radio')!
+    const artistRadio = getMode(modes, 'lb-artist-radio')
 
     await expect(
-      artistRadio.executor({
-        userId: 1,
-        normalizedSettings: { seedArtistMbid: 'x', adventurousness: 'easy' },
-        settingsMode: 'easy',
-      } as any),
+      artistRadio.executor(
+        makeRequest('lb-artist-radio', 'easy', {
+          seedArtistMbid: 'x',
+          adventurousness: 'easy',
+        }),
+      ),
     ).rejects.toThrow('Connect ListenBrainz')
   })
 })
@@ -90,13 +138,14 @@ describe('lb-user-radio mode', () => {
     mockClient.getUserRadio.mockResolvedValueOnce([])
 
     const modes = createListenBrainzRadioModes()
-    const userRadio = modes.find((m) => m.id === 'lb-user-radio')!
+    const userRadio = getMode(modes, 'lb-user-radio')
 
-    await userRadio.executor({
-      userId: 1,
-      normalizedSettings: { targetUsername: '', adventurousness: 'medium' },
-      settingsMode: 'advanced',
-    } as any)
+    await userRadio.executor(
+      makeRequest('lb-user-radio', 'advanced', {
+        targetUsername: '',
+        adventurousness: 'medium',
+      }),
+    )
 
     expect(mockClient.getUserRadio).toHaveBeenCalledWith('testuser', 'medium')
   })
@@ -105,13 +154,14 @@ describe('lb-user-radio mode', () => {
     mockClient.getUserRadio.mockResolvedValueOnce([])
 
     const modes = createListenBrainzRadioModes()
-    const userRadio = modes.find((m) => m.id === 'lb-user-radio')!
+    const userRadio = getMode(modes, 'lb-user-radio')
 
-    await userRadio.executor({
-      userId: 1,
-      normalizedSettings: { targetUsername: 'friend', adventurousness: 'easy' },
-      settingsMode: 'advanced',
-    } as any)
+    await userRadio.executor(
+      makeRequest('lb-user-radio', 'advanced', {
+        targetUsername: 'friend',
+        adventurousness: 'easy',
+      }),
+    )
 
     expect(mockClient.getUserRadio).toHaveBeenCalledWith('friend', 'easy')
   })
@@ -134,13 +184,11 @@ describe('similar-users-deep mode', () => {
       ])
 
     const modes = createListenBrainzRadioModes()
-    const deep = modes.find((m) => m.id === 'similar-users-deep')!
+    const deep = getMode(modes, 'similar-users-deep')
 
-    const result = await deep.executor({
-      userId: 1,
-      normalizedSettings: { maxUsers: 2 },
-      settingsMode: 'advanced',
-    } as any)
+    const result = await deep.executor(
+      makeRequest('similar-users-deep', 'advanced', { maxUsers: 2 }),
+    )
 
     expect(mockClient.getSimilarUsers).toHaveBeenCalled()
     expect(mockClient.getTopArtistsForUser).toHaveBeenCalledTimes(2)
@@ -164,13 +212,9 @@ describe('similar-users-deep mode', () => {
     mockClient.getTopArtistsForUser.mockResolvedValue([])
 
     const modes = createListenBrainzRadioModes()
-    const deep = modes.find((m) => m.id === 'similar-users-deep')!
+    const deep = getMode(modes, 'similar-users-deep')
 
-    await deep.executor({
-      userId: 1,
-      normalizedSettings: { maxUsers: 2 },
-      settingsMode: 'advanced',
-    } as any)
+    await deep.executor(makeRequest('similar-users-deep', 'advanced', { maxUsers: 2 }))
 
     expect(mockClient.getTopArtistsForUser).toHaveBeenCalledTimes(2)
   })
