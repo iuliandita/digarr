@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
@@ -199,6 +200,23 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+const SESSION_TOKEN = 'genres-session-token'
+
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  await createSession(1, SESSION_TOKEN)
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${SESSION_TOKEN}`,
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockGenreService.getLibraryGenres.mockResolvedValue(mockGenres)
@@ -212,7 +230,7 @@ beforeEach(() => {
 describe('GET /api/genres', () => {
   it('returns all genres with example artists', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres')
+    const res = await authedRequest(app, '/api/genres')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body)).toBe(true)
@@ -226,7 +244,7 @@ describe('GET /api/genres', () => {
 describe('GET /api/genres/search', () => {
   it('returns search results for valid query', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/search?q=rock')
+    const res = await authedRequest(app, '/api/genres/search?q=rock')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body)).toBe(true)
@@ -235,13 +253,13 @@ describe('GET /api/genres/search', () => {
 
   it('returns 400 for query shorter than 2 chars', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/search?q=r')
+    const res = await authedRequest(app, '/api/genres/search?q=r')
     expect(res.status).toBe(400)
   })
 
   it('returns 400 for missing query', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/search')
+    const res = await authedRequest(app, '/api/genres/search')
     expect(res.status).toBe(400)
   })
 })
@@ -249,7 +267,7 @@ describe('GET /api/genres/search', () => {
 describe('GET /api/genres/:slug', () => {
   it('returns genre with sub-genres when found', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/rock')
+    const res = await authedRequest(app, '/api/genres/rock')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.slug).toBe('rock')
@@ -260,7 +278,7 @@ describe('GET /api/genres/:slug', () => {
 
   it('returns 404 for unknown slug', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/does-not-exist')
+    const res = await authedRequest(app, '/api/genres/does-not-exist')
     expect(res.status).toBe(404)
   })
 })
@@ -268,7 +286,7 @@ describe('GET /api/genres/:slug', () => {
 describe('POST /api/genres/seed', () => {
   it('returns 202 when Lidarr is configured', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/genres/seed', { method: 'POST' })
+    const res = await authedRequest(app, '/api/genres/seed', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.message).toBeDefined()
@@ -280,7 +298,7 @@ describe('POST /api/genres/seed', () => {
         getSettings: vi.fn(async () => ({ id: 1 }) as SettingsRow),
       }),
     )
-    const res = await app.request('/api/genres/seed', { method: 'POST' })
+    const res = await authedRequest(app, '/api/genres/seed', { method: 'POST' })
     expect(res.status).toBe(400)
   })
 })

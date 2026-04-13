@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { SupportedLocale } from '@/core/i18n/locales'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { AdministrationTab } from '../components/admin/administration-tab'
@@ -14,7 +15,9 @@ import { LanguageSwitcher } from '../components/language-switcher'
 import { ServiceCard } from '../components/service-card'
 import {
   AiProviderIcon,
+  DeezerIcon,
   DiscogsIcon,
+  EmbyIcon,
   JellyfinIcon,
   LastfmIcon,
   LidarrIcon,
@@ -256,6 +259,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [saving, setSaving] = useState<Record<string, boolean>>({})
 
   const queryClient = useQueryClient()
+  const aiProviderLabel = t('settings.aiProviderTitle')
+  const webhookLabel = t('settings.webhookTitle')
+
+  function formatLabelMessage(key: MessageKey, label: string) {
+    return t(key).replace('{0}', label)
+  }
 
   const { data: spotifyStatus } = useQuery({
     queryKey: ['spotify-oauth-status'],
@@ -307,11 +316,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       try {
         const res = await testFn()
         setTest(key, res.success ? 'ok' : 'error')
-        if (res.success) toast.success(`${label} connected`)
-        else toast.error(res.message || `${label} connection failed`)
+        if (res.success) {
+          toast.success(formatLabelMessage('settings.serviceConnectedToast', label))
+        } else {
+          toast.error(
+            res.message || formatLabelMessage('settings.serviceConnectionFailedToast', label),
+          )
+        }
       } catch {
         setTest(key, 'error')
-        toast.error(`Could not reach ${label}`)
+        toast.error(formatLabelMessage('settings.serviceUnreachableToast', label))
       }
     }
   }
@@ -321,10 +335,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       setSave(key, true)
       try {
         await saveFn()
-        toast.success(`${label} settings saved`)
+        toast.success(formatLabelMessage('settings.serviceSettingsSavedToast', label))
         onSaved()
       } catch {
-        toast.error(`Failed to save ${label} settings`)
+        toast.error(formatLabelMessage('settings.serviceSettingsFailedToast', label))
       } finally {
         setSave(key, false)
       }
@@ -338,10 +352,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       await updateSettings({
         preferences: { ...prefs, webhookUrl: webhookUrl || undefined },
       })
-      toast.success('Webhook saved')
+      toast.success(t('settings.webhookSaved'))
       onSaved()
     } catch {
-      toast.error('Failed to save webhook')
+      toast.error(t('settings.webhookFailed'))
     } finally {
       setSavingWebhook(false)
     }
@@ -351,10 +365,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     setTestingWebhook(true)
     try {
       const res = await testWebhook()
-      if (res.success) toast.success('Test notification sent')
-      else toast.error(res.message || 'Webhook test failed')
+      if (res.success) toast.success(t('settings.webhookTestSuccess'))
+      else toast.error(res.message || t('settings.webhookTestFailed'))
     } catch {
-      toast.error('Failed to send test notification')
+      toast.error(t('settings.webhookTestFailed'))
     } finally {
       setTestingWebhook(false)
     }
@@ -391,14 +405,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     updateSettings({ lastfmUsername: lfUsername, lastfmApiKey: lfApiKey || undefined }),
   )
 
-  const testAi = createTester('ai', 'AI provider', () => {
+  const testAi = createTester('ai', aiProviderLabel, () => {
     const config: Record<string, string> = { provider: aiProvider, model: aiModel }
     if (aiProvider !== 'ollama' && aiProvider !== 'openai-compatible') config.apiKey = aiApiKey
     if (aiProvider === 'openai-compatible' && aiApiKey) config.apiKey = aiApiKey
     if (aiProvider === 'ollama' || aiProvider === 'openai-compatible') config.baseUrl = aiBaseUrl
     return testService('ai', config)
   })
-  const saveAi = createSaver('ai', 'AI', () =>
+  const saveAi = createSaver('ai', aiProviderLabel, () =>
     updateSettings({
       aiProvider,
       aiModel: aiModel || undefined,
@@ -452,7 +466,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       })
       window.location.href = res.authUrl
     } catch {
-      toast.error('Failed to start Spotify authorization')
+      toast.error(t('settings.spotifyAuthorizationFailed'))
     }
   }
 
@@ -462,7 +476,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       queryClient.invalidateQueries({ queryKey: ['spotify-oauth-status'] })
       toast.success(t('settings.spotifyDisconnected'))
     } catch {
-      toast.error('Failed to disconnect Spotify')
+      toast.error(t('settings.spotifyDisconnectFailed'))
     }
   }
 
@@ -474,7 +488,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         res.created ? t('settings.spotifyLikedSongsStarted') : t('settings.importStartedAgain'),
       )
     } catch {
-      toast.error('Failed to start Spotify Liked Songs import')
+      toast.error(t('settings.spotifyLikedSongsFailed'))
     } finally {
       setImportingSpotifyLikes(false)
     }
@@ -492,7 +506,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       )
       setPlaylistIdInput('')
     } catch {
-      toast.error('Failed to start playlist import')
+      toast.error(t('settings.spotifyPlaylistFailed'))
     } finally {
       setImportingPlaylist(false)
     }
@@ -529,7 +543,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           )}
           {settings.aiModel && (
             <div className="rounded-lg border border-border bg-surface p-3 flex items-center gap-3">
-              <span className="text-sm font-medium text-text">AI Provider</span>
+              <span className="text-sm font-medium text-text">{aiProviderLabel}</span>
               <span className="text-xs text-muted">
                 {settings.aiProvider as string} / {settings.aiModel as string}
               </span>
@@ -576,7 +590,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     placeholder={
                       settings.lidarrApiKey === '***'
                         ? `(${t('settings.saved')})`
-                        : 'Your Lidarr API key'
+                        : t('settings.fieldApiKey')
                     }
                     value={lidarrApiKey}
                     onChange={(e) => setLidarrApiKey(e.target.value)}
@@ -621,7 +635,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           </Hint>
           <div className={isAiConfigured ? '' : 'opacity-60'}>
             <ServiceCard
-              name="AI Provider"
+              name={aiProviderLabel}
               description={
                 <span>
                   {t('settings.aiDescription')}{' '}
@@ -695,7 +709,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                           : aiProvider === 'gemini'
                             ? 'gemini-3-flash-preview'
                             : aiProvider === 'openai-compatible'
-                              ? 'your-model-name'
+                              ? t('settings.fieldModel')
                               : 'llama4'
                     }
                     value={aiModel}
@@ -716,7 +730,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     id="ai-apikey"
                     type="password"
                     placeholder={
-                      settings.aiApiKey === '***' ? `(${t('settings.saved')})` : 'API key'
+                      settings.aiApiKey === '***'
+                        ? `(${t('settings.saved')})`
+                        : t('settings.fieldApiKey')
                     }
                     value={aiApiKey}
                     onChange={(e) => setAiApiKey(e.target.value)}
@@ -763,7 +779,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 
           {/* Webhook */}
           <ServiceCard
-            name="Webhook"
+            name={webhookLabel}
             description={t('settings.webhookDescription')}
             status={webhookUrl ? 'connected' : 'not_configured'}
             icon={<WebhookIcon />}
@@ -836,7 +852,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Field label={t('settings.fieldUsername')} id="lb-username">
               <Input
                 id="lb-username"
-                placeholder="your-username"
+                placeholder={t('settings.fieldUsername')}
                 value={lbUsername}
                 onChange={(e) => setLbUsername(e.target.value)}
               />
@@ -848,7 +864,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 placeholder={
                   settings.listenbrainzToken === '***'
                     ? `(${t('settings.saved')})`
-                    : 'ListenBrainz token'
+                    : t('settings.fieldUserToken')
                 }
                 value={lbToken}
                 onChange={(e) => setLbToken(e.target.value)}
@@ -904,7 +920,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Field label={t('settings.fieldUsername')} id="lfm-username">
               <Input
                 id="lfm-username"
-                placeholder="your-username"
+                placeholder={t('settings.fieldUsername')}
                 value={lfUsername}
                 onChange={(e) => setLfUsername(e.target.value)}
               />
@@ -914,7 +930,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 id="lfm-apikey"
                 type="password"
                 placeholder={
-                  settings.lastfmApiKey === '***' ? `(${t('settings.saved')})` : 'Last.fm API key'
+                  settings.lastfmApiKey === '***'
+                    ? `(${t('settings.saved')})`
+                    : t('settings.fieldApiKey')
                 }
                 value={lfApiKey}
                 onChange={(e) => setLfApiKey(e.target.value)}
@@ -981,7 +999,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   type="text"
                   value={playlistIdInput}
                   onChange={(e) => setPlaylistIdInput(e.target.value)}
-                  placeholder="Playlist URL or ID"
+                  placeholder={t('importArtists.playlistPlaceholder')}
                   className="flex-1 min-w-0 px-2.5 py-1.5 text-sm bg-bg border border-border rounded-md text-text placeholder:text-muted/60 focus:outline-none focus:border-accent"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') startSpotifyPlaylistImport()
@@ -1003,7 +1021,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 <Field label={t('settings.fieldClientId')} id="spotify-client-id">
                   <Input
                     id="spotify-client-id"
-                    placeholder="Your Spotify app client ID"
+                    placeholder={t('settings.fieldClientId')}
                     value={spotifyClientId}
                     onChange={(e) => setSpotifyClientId(e.target.value)}
                   />
@@ -1012,7 +1030,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   <Input
                     id="spotify-client-secret"
                     type="password"
-                    placeholder="Your Spotify app client secret"
+                    placeholder={t('settings.fieldClientSecret')}
                     value={spotifyClientSecret}
                     onChange={(e) => setSpotifyClientSecret(e.target.value)}
                   />
@@ -1038,6 +1056,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name={t('settings.deezer')}
           description={t('settings.deezerDescription')}
           status={deezerConnected ? 'connected' : 'not_configured'}
+          icon={<DeezerIcon />}
         >
           {deezerConnected ? (
             <div className="space-y-3">
@@ -1055,7 +1074,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                           : t('settings.importStartedAgain'),
                       )
                     } catch {
-                      toast.error('Failed to start Deezer Favorites import')
+                      toast.error(t('settings.deezerFavoritesFailed'))
                     } finally {
                       setImportingDeezerFavs(false)
                     }
@@ -1077,7 +1096,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                           : t('settings.importStartedAgain'),
                       )
                     } catch {
-                      toast.error('Failed to start Deezer Followed import')
+                      toast.error(t('settings.deezerFollowedFailed'))
                     } finally {
                       setImportingDeezerFollowed(false)
                     }
@@ -1097,7 +1116,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       queryClient.invalidateQueries({ queryKey: ['deezer-oauth-status'] })
                       toast.success(t('settings.deezerDisconnected'))
                     } catch {
-                      toast.error('Failed to disconnect Deezer')
+                      toast.error(t('settings.deezerDisconnectFailed'))
                     }
                   }}
                 >
@@ -1120,7 +1139,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       })
                       window.location.href = res.authUrl
                     } catch {
-                      toast.error('Failed to start Deezer authorization')
+                      toast.error(t('settings.deezerAuthorizationFailed'))
                     }
                   }}
                 >
@@ -1150,12 +1169,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setPlexUrl(e.target.value)}
               />
             </Field>
-            <Field label="Plex Token" id="plex-token">
+            <Field label={t('settings.plexToken')} id="plex-token">
               <Input
                 id="plex-token"
                 type="password"
                 placeholder={
-                  settings.plexToken === '***' ? `(${t('settings.saved')})` : 'Your Plex token'
+                  settings.plexToken === '***'
+                    ? `(${t('settings.saved')})`
+                    : t('settings.plexToken')
                 }
                 value={plexToken}
                 onChange={(e) => setPlexToken(e.target.value)}
@@ -1207,7 +1228,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 placeholder={
                   settings.jellyfinApiKey === '***'
                     ? `(${t('settings.saved')})`
-                    : 'Jellyfin API key'
+                    : t('settings.fieldApiKey')
                 }
                 value={jellyfinApiKey}
                 onChange={(e) => setJellyfinApiKey(e.target.value)}
@@ -1217,7 +1238,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           <Field label={t('settings.fieldUsernameOrUserId')} id="jellyfin-userid">
             <Input
               id="jellyfin-userid"
-              placeholder="e.g. admin"
+              placeholder={t('settings.fieldUsernameOrUserId')}
               value={jellyfinUserId}
               onChange={(e) => setJellyfinUserId(e.target.value)}
             />
@@ -1249,11 +1270,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           name="Emby"
           description={t('settings.embyDescription')}
           status={serviceStatus('emby')}
-          icon={
-            <span className="w-5 h-5 rounded bg-accent/20 text-accent text-micro font-bold flex items-center justify-center">
-              E
-            </span>
-          }
+          icon={<EmbyIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label={t('settings.fieldServerUrl')} id="emby-url">
@@ -1270,7 +1287,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 id="emby-apikey"
                 type="password"
                 placeholder={
-                  settings.embyApiKey === '***' ? `(${t('settings.saved')})` : 'Emby API key'
+                  settings.embyApiKey === '***'
+                    ? `(${t('settings.saved')})`
+                    : t('settings.fieldApiKey')
                 }
                 value={embyApiKey}
                 onChange={(e) => setEmbyApiKey(e.target.value)}
@@ -1280,7 +1299,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           <Field label={t('settings.fieldUserId')} id="emby-userid">
             <Input
               id="emby-userid"
-              placeholder="Emby user ID"
+              placeholder={t('settings.fieldUserId')}
               value={embyUserId}
               onChange={(e) => setEmbyUserId(e.target.value)}
             />
@@ -1330,7 +1349,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Field label={t('settings.fieldUsername')} id="discogs-username">
               <Input
                 id="discogs-username"
-                placeholder="your-discogs-username"
+                placeholder={t('settings.fieldUsername')}
                 value={discogsUsername}
                 onChange={(e) => setDiscogsUsername(e.target.value)}
               />
@@ -1340,7 +1359,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 id="discogs-token"
                 type="password"
                 placeholder={
-                  settings.discogsToken === '***' ? `(${t('settings.saved')})` : 'Discogs token'
+                  settings.discogsToken === '***'
+                    ? `(${t('settings.saved')})`
+                    : t('settings.fieldPersonalAccessToken')
                 }
                 value={discogsToken}
                 onChange={(e) => setDiscogsToken(e.target.value)}
@@ -1580,10 +1601,10 @@ function getTargetTypes(
         {
           key: 'apiKey',
           label: t('settings.fieldApiKey'),
-          placeholder: 'Enter API key',
+          placeholder: t('settings.fieldApiKey'),
           type: 'password',
         },
-        { key: 'userId', label: t('settings.fieldUserId'), placeholder: 'Enter Emby user ID' },
+        { key: 'userId', label: t('settings.fieldUserId'), placeholder: t('settings.fieldUserId') },
       ],
     },
   ]
@@ -1592,6 +1613,7 @@ function getTargetTypes(
 function TargetTypeIcon({ type }: { type: string }) {
   const iconMap: Record<string, string> = {
     lidarr: '/icons/lidarr.png',
+    'emby-playlist': '/icons/emby.svg',
     jellyfin: '/icons/jellyfin.svg',
     'spotify-playlist': '/icons/spotify.svg',
   }
@@ -2163,7 +2185,7 @@ function RecommendationsTabInner({
                 type="password"
                 value={fanartApiKey}
                 onChange={(e) => setFanartApiKey(e.target.value)}
-                placeholder="Personal API key from fanart.tv"
+                placeholder={t('settings.fieldFanartApiKey')}
               />
             </Field>
             <Field label={t('settings.fieldMetadataFallbackUrl')} id="metadata-fallback-url">
@@ -2507,7 +2529,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
         <Field label={t('settings.fieldClientId')} id="oidc-client-id">
           <Input
             id="oidc-client-id"
-            placeholder="your-client-id"
+            placeholder={t('settings.fieldClientId')}
             value={oidcClientId}
             onChange={(e) => setOidcClientId(e.target.value)}
           />
@@ -2519,7 +2541,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             placeholder={
               settings.oidcClientSecret === '***'
                 ? `(${t('settings.saved')})`
-                : 'your-client-secret'
+                : t('settings.fieldClientSecret')
             }
             value={oidcClientSecret}
             onChange={(e) => {
@@ -2557,10 +2579,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
             {t('settings.reverseProxyAuth')}
           </h2>
           <p className="text-xs text-muted mt-1">
-            {t('settings.reverseProxyDescription')} Controlled via environment variables (
-            <code className="font-mono text-xs">PROXY_AUTH_ENABLED</code>,{' '}
-            <code className="font-mono text-xs">PROXY_AUTH_HEADER</code>,{' '}
-            <code className="font-mono text-xs">PROXY_TRUSTED_IPS</code>).
+            {t('settings.reverseProxyDescription')} {t('settings.reverseProxyConfigHint')}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-3 text-sm">

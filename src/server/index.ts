@@ -265,20 +265,26 @@ export function createApp(deps: AppDependencies) {
   )
   app.use(
     '*',
-    authGuard(async () => (await deps.getUserCount()) > 0),
+    authGuard({
+      hasUsers: async () => (await deps.getUserCount()) > 0,
+      isSetupComplete: deps.isSetupComplete,
+    }),
   )
   app.use('*', setupGuard(deps.isSetupComplete))
 
   // Auth status (unauthenticated -- tells the frontend whether auth is required)
   app.get('/api/auth/status', async (c) => {
-    const userCount = await deps.getUserCount()
+    const [userCount, setupComplete] = await Promise.all([
+      deps.getUserCount(),
+      deps.isSetupComplete(),
+    ])
     const proxyAuth = c.get('proxyAuth')
     const sessionToken = c.get('sessionToken')
     const settings = await deps.getSettings()
     const oidcEnabled = !!(settings?.oidcIssuerUrl && settings.oidcClientId)
 
     const response: Record<string, unknown> = {
-      required: userCount > 0 || !!envConfig.authToken,
+      required: userCount > 0 || !!envConfig.authToken || setupComplete,
       hasUsers: userCount > 0,
       oidcEnabled,
       proxyAuthEnabled: envConfig.proxyAuthEnabled,

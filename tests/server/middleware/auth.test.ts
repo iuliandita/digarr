@@ -11,7 +11,7 @@ function makeMockOrchestrator() {
   })
 }
 
-function makeDeps() {
+function makeDeps(overrides: Partial<import('@/server').AppDependencies> = {}) {
   // Inline import type to avoid pulling in the whole module at top level
   type AppDependencies = import('@/server').AppDependencies
   return {
@@ -116,6 +116,7 @@ function makeDeps() {
       }),
       getJobsForSubscription: vi.fn().mockResolvedValue([]),
     },
+    ...overrides,
   } satisfies AppDependencies
 }
 
@@ -130,33 +131,48 @@ describe('auth middleware', () => {
     delete process.env.DIGARR_AUTH_TOKEN
   })
 
-  async function createAppWithAuth(token?: string) {
-    if (token) process.env.DIGARR_AUTH_TOKEN = token
+  async function createAppWithAuth(options?: {
+    token?: string
+    overrides?: Partial<import('@/server').AppDependencies>
+  }) {
+    if (options?.token) process.env.DIGARR_AUTH_TOKEN = options.token
     // Re-import to pick up the new env var
     const { createApp } = await import('@/server')
-    return createApp(makeDeps())
+    return createApp(makeDeps(options?.overrides))
   }
 
   describe('when DIGARR_AUTH_TOKEN is not set', () => {
-    it('allows all requests through without auth', async () => {
-      const app = await createAppWithAuth()
-      const res = await app.request('/api/recommendations')
-      // 200 or 404, but NOT 401
-      expect(res.status).not.toBe(401)
-    }, 15_000)
-
-    it('reports auth as not required', async () => {
-      const app = await createAppWithAuth()
+    it('reports auth as not required before setup completes', async () => {
+      const app = await createAppWithAuth({
+        overrides: { isSetupComplete: async () => false },
+      })
       const res = await app.request('/api/auth/status')
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.required).toBe(false)
+    }, 10_000)
+
+    it('requires auth after setup completes even when no users exist yet', async () => {
+      const app = await createAppWithAuth({
+        overrides: { isSetupComplete: async () => true, getUserCount: vi.fn(async () => 0) },
+      })
+
+      const statusRes = await app.request('/api/auth/status')
+      expect(statusRes.status).toBe(200)
+      await expect(statusRes.json()).resolves.toMatchObject({
+        required: true,
+        hasUsers: false,
+      })
+
+      const res = await app.request('/api/settings')
+      expect(res.status).toBe(401)
+      await expect(res.json()).resolves.toEqual({ error: 'Unauthorized' })
     })
   })
 
   describe('when DIGARR_AUTH_TOKEN is set', () => {
     it('reports auth as required', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/auth/status')
       expect(res.status).toBe(200)
       const body = await res.json()
@@ -164,7 +180,7 @@ describe('auth middleware', () => {
     })
 
     it('returns 401 for requests without Authorization header', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/settings')
       expect(res.status).toBe(401)
       const body = await res.json()
@@ -172,7 +188,7 @@ describe('auth middleware', () => {
     })
 
     it('returns 401 for requests with wrong token', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/settings', {
         headers: { Authorization: 'Bearer wrong-token' },
       })
@@ -180,7 +196,7 @@ describe('auth middleware', () => {
     })
 
     it('returns 401 for malformed Authorization header', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/settings', {
         headers: { Authorization: `Basic ${TOKEN}` },
       })
@@ -188,7 +204,7 @@ describe('auth middleware', () => {
     })
 
     it('allows requests with correct Bearer token', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/settings', {
         headers: { Authorization: `Bearer ${TOKEN}` },
       })
@@ -197,37 +213,37 @@ describe('auth middleware', () => {
     })
 
     it('allows SSE requests with correct token as query param', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request(`/api/pipeline/events?token=${TOKEN}`)
       expect(res.status).not.toBe(401)
     })
 
     it('returns 401 for token query params on regular API routes', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request(`/api/settings?token=${TOKEN}`)
       expect(res.status).toBe(401)
     })
 
     it('returns 401 for wrong token as query param on SSE routes', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/pipeline/events?token=wrong')
       expect(res.status).toBe(401)
     })
 
     it('bypasses auth for /health', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/health')
       expect(res.status).toBe(200)
     })
 
     it('bypasses auth for /api/auth/status', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/auth/status')
       expect(res.status).toBe(200)
     })
 
     it('returns 401 for length-mismatched tokens (timing-safe)', async () => {
-      const app = await createAppWithAuth(TOKEN)
+      const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/settings', {
         headers: { Authorization: 'Bearer x' },
       })

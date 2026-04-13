@@ -32,6 +32,7 @@ Notes:
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
+- `GET /api/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 
 ### OIDC / OAuth
 
@@ -59,6 +60,7 @@ Setup validation rules:
 - Emby is optional, but `embyUrl`, `embyApiKey`, and `embyUserId` must be provided together when used
 - When Lidarr is provided during setup, Digarr auto-creates the default Lidarr target for the first user
 - When Emby is provided during setup, Digarr stores the per-user Emby connection and auto-creates an Emby playlist target
+- Completing setup does not create a user account. If setup finishes before any user exists, the next step is to register or sign in; protected routes stay locked until then
 
 **POST /api/setup/complete** body:
 ```json

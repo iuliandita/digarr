@@ -42,6 +42,10 @@ export function SpotifyIcon() {
   return <ServiceLogo src="/icons/spotify.svg" alt="Spotify" />
 }
 
+export function DeezerIcon() {
+  return <ServiceLogo src="/icons/deezer.svg" alt="Deezer" />
+}
+
 export function PlexIcon() {
   return <ServiceLogo src="/icons/plex.svg" alt="Plex" />
 }
@@ -52,6 +56,10 @@ export function JellyfinIcon() {
 
 export function DiscogsIcon() {
   return <ServiceLogo src="/icons/discogs.svg" alt="Discogs" />
+}
+
+export function EmbyIcon() {
+  return <ServiceLogo src="/icons/emby.svg" alt="Emby" />
 }
 
 export function WebhookIcon() {

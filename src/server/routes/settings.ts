@@ -38,7 +38,9 @@ type SettingsResponse = Record<string, unknown>
 function maskSecrets(settings: Record<string, unknown>): SettingsResponse {
   const masked: SettingsResponse = { ...settings }
   for (const field of SECRET_FIELDS) {
-    masked[field] = '***'
+    if (typeof masked[field] === 'string' && masked[field].length > 0) {
+      masked[field] = '***'
+    }
   }
   return masked
 }

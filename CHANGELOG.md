@@ -107,7 +107,7 @@ All notable user-facing changes are documented here.
 
 ### Added
 
-- Full multilingual UI support across 15 shipped locales, with visible language switchers before and after login
+- Broad multilingual UI support across 15 shipped locales, with visible language switchers before and after login
 - Persisted per-user locale preference plus localized auth, setup, dashboard, discover, settings, analytics, subscriptions, and library surfaces
 - Translation maintenance tooling and browser coverage for language switching and localized flows
 

@@ -1,14 +1,44 @@
 // @vitest-environment node
 import { lookup } from 'node:dns/promises'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
+import type { UserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
 vi.mock('node:dns/promises', () => ({
   lookup: vi.fn(),
 }))
+
+const { mockGetUserConnections, mockUpdateUserConnections } = vi.hoisted(() => ({
+  mockGetUserConnections: vi.fn(async () => ({
+    listenbrainzUsername: null as string | null,
+    listenbrainzToken: null as string | null,
+    lastfmUsername: null as string | null,
+    lastfmApiKey: null as string | null,
+    plexUrl: null as string | null,
+    plexToken: null as string | null,
+    jellyfinUrl: null as string | null,
+    jellyfinApiKey: null as string | null,
+    jellyfinUserId: null as string | null,
+    embyUrl: null as string | null,
+    embyApiKey: null as string | null,
+    embyUserId: null as string | null,
+    discogsToken: null as string | null,
+    discogsUsername: null as string | null,
+  })),
+  mockUpdateUserConnections: vi.fn(async () => {}),
+}))
+
+vi.mock('@/db/queries/users', async () => {
+  const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
+  return {
+    ...actual,
+    getUserConnections: mockGetUserConnections,
+    updateUserConnections: mockUpdateUserConnections,
+  }
+})
 
 // The real ListenBrainz and Last.fm clients hit public APIs when testConnection()
 // is called. Those network round-trips collide with vitest's 5s default timeout
@@ -55,6 +85,23 @@ const mockSettings = {
   setupComplete: true,
   createdAt: new Date('2024-01-01').toISOString(),
   updatedAt: new Date('2024-01-01').toISOString(),
+}
+
+const defaultUserConnections: UserConnections = {
+  listenbrainzUsername: null,
+  listenbrainzToken: null,
+  lastfmUsername: null,
+  lastfmApiKey: null,
+  plexUrl: null,
+  plexToken: null,
+  jellyfinUrl: null,
+  jellyfinApiKey: null,
+  jellyfinUserId: null,
+  embyUrl: null,
+  embyApiKey: null,
+  embyUserId: null,
+  discogsToken: null,
+  discogsUsername: null,
 }
 
 function makeMockOrchestrator() {
@@ -195,27 +242,48 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+const SESSION_TOKEN = 'settings-session-token'
+
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  await createSession(1, SESSION_TOKEN)
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${SESSION_TOKEN}`,
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 describe('GET /api/settings', () => {
   it('returns settings with secrets masked', async () => {
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      listenbrainzUsername: 'testuser',
+      listenbrainzToken: 'lb-token',
+    })
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings')
+    const res = await authedRequest(app, '/api/settings')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.lidarrUrl).toBe('http://lidarr:8686')
     expect(body.lidarrApiKey).toBe('***')
     expect(body.listenbrainzToken).toBe('***')
-    expect(body.aiApiKey).toBe('***')
+    expect(body.aiApiKey).toBeNull()
   })
 
-  it('masks null secret fields as *** too', async () => {
+  it('preserves null secret fields instead of pretending they were saved', async () => {
+    mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings')
+    const res = await authedRequest(app, '/api/settings')
     expect(res.status).toBe(200)
     const body = await res.json()
-    // aiApiKey is null in mockSettings, still gets masked
-    expect(body.aiApiKey).toBe('***')
-    // lastfmApiKey is null too
-    expect(body.lastfmApiKey).toBe('***')
+    expect(body.aiApiKey).toBeNull()
+    expect(body.lastfmApiKey).toBeNull()
   })
 
   it('returns 403 when setup not complete', async () => {
@@ -226,7 +294,7 @@ describe('GET /api/settings', () => {
 
   it('returns 404 when no settings exist', async () => {
     const app = createApp(makeDeps({ getSettings: vi.fn(async () => null) }))
-    const res = await app.request('/api/settings')
+    const res = await authedRequest(app, '/api/settings')
     expect(res.status).toBe(404)
   })
 })
@@ -238,7 +306,7 @@ describe('PATCH /api/settings', () => {
     const getSettings = vi.fn(async () => updatedSettings as unknown as SettingsRow)
     const app = createApp(makeDeps({ updateSettings, getSettings }))
 
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lidarrUrl: 'http://new:8686' }),
@@ -252,7 +320,7 @@ describe('PATCH /api/settings', () => {
   it('restarts scheduler when cron is updated', async () => {
     const restartScheduler = vi.fn()
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { scheduleCron: '0 3 * * *' } }),
@@ -264,7 +332,7 @@ describe('PATCH /api/settings', () => {
   it('stops scheduler when cron is set to empty string', async () => {
     const restartScheduler = vi.fn()
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { scheduleCron: '' } }),
@@ -278,7 +346,7 @@ describe('PATCH /api/settings', () => {
       throw new TypeError('Invalid cron expression')
     })
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { scheduleCron: 'not a cron' } }),
@@ -291,7 +359,7 @@ describe('PATCH /api/settings', () => {
   it('does not restart scheduler when preferences lack scheduleCron', async () => {
     const restartScheduler = vi.fn()
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { librarySeedRatio: 0.5 } }),
@@ -314,7 +382,7 @@ describe('PATCH /api/settings', () => {
     )
     const app = createApp(makeDeps({ restartScheduler, getSettings }))
 
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { librarySeedRatio: 0.4 } }),
@@ -327,7 +395,7 @@ describe('PATCH /api/settings', () => {
   it('restarts playlist scheduling when playlist preferences change', async () => {
     const restartPlaylistScheduler = vi.fn(async () => {})
     const app = createApp(makeDeps({ restartPlaylistScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { playlistEnabled: true } }),
@@ -351,7 +419,7 @@ describe('PATCH /api/settings', () => {
     )
     const app = createApp(makeDeps({ restartPlaylistScheduler, getSettings }))
 
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { librarySeedRatio: 0.4 } }),
@@ -364,7 +432,7 @@ describe('PATCH /api/settings', () => {
   it('does not restart scheduler when no preferences in body', async () => {
     const restartScheduler = vi.fn()
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lidarrUrl: 'http://new:8686' }),
@@ -388,7 +456,7 @@ describe('PATCH /api/settings', () => {
     )
     const app = createApp(makeDeps({ updateSettings, getSettings }))
 
-    const res = await app.request('/api/settings', {
+    const res = await authedRequest(app, '/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: { subscriptionMode: 'ai-only' } }),
@@ -490,7 +558,7 @@ describe('POST /api/settings/test/:service', () => {
   it('tests lidarr and returns ServiceTestResult shape', async () => {
     const app = createApp(makeDeps())
     // Client will fail to connect but must return a ServiceTestResult (not throw)
-    const res = await app.request('/api/settings/test/lidarr', {
+    const res = await authedRequest(app, '/api/settings/test/lidarr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: 'http://invalid-lidarr:9999', apiKey: 'key' }),
@@ -503,7 +571,7 @@ describe('POST /api/settings/test/:service', () => {
 
   it('tests listenbrainz and returns ServiceTestResult shape', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/listenbrainz', {
+    const res = await authedRequest(app, '/api/settings/test/listenbrainz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', token: 'token123' }),
@@ -516,7 +584,7 @@ describe('POST /api/settings/test/:service', () => {
 
   it('tests lastfm and returns ServiceTestResult shape', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/lastfm', {
+    const res = await authedRequest(app, '/api/settings/test/lastfm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', apiKey: 'lfmkey' }),
@@ -529,7 +597,7 @@ describe('POST /api/settings/test/:service', () => {
 
   it('tests ai provider and returns ServiceTestResult shape', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/ai', {
+    const res = await authedRequest(app, '/api/settings/test/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -547,7 +615,7 @@ describe('POST /api/settings/test/:service', () => {
 
   it('returns 400 for unknown service', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/unknown', {
+    const res = await authedRequest(app, '/api/settings/test/unknown', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -622,7 +690,7 @@ describe('POST /api/settings/test/:service', () => {
     vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
 
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/oidc', {
+    const res = await authedRequest(app, '/api/settings/test/oidc', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -640,21 +708,13 @@ describe('POST /api/settings/test/:service', () => {
 })
 
 describe('per-user listening source connections', () => {
-  afterEach(async () => {
-    await clearAllSessions()
-  })
-
-  it('GET returns global settings with no scope indicators when no user session', async () => {
+  it('GET requires authentication once setup is complete', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/settings')
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.listenbrainzUsername).toBe('testuser')
-    expect(body._listenbrainzScope).toBeUndefined()
-    expect(body._lastfmScope).toBeUndefined()
+    expect(res.status).toBe(401)
   })
 
-  it('PATCH ignores user-scoped listening fields when no user session exists', async () => {
+  it('PATCH requires authentication once setup is complete', async () => {
     const updateSettings = vi.fn(async () => {})
     const app = createApp(makeDeps({ updateSettings }))
 
@@ -666,7 +726,7 @@ describe('per-user listening source connections', () => {
         listenbrainzToken: 'global-token',
       }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(401)
     expect(updateSettings).not.toHaveBeenCalled()
   })
 
@@ -676,29 +736,7 @@ describe('per-user listening source connections', () => {
     await createSession(99, sessionToken)
 
     const updateSettings = vi.fn(async () => {})
-    // db needs update() for updateUserConnections and select() for getUserConnections (in PATCH response)
-    const selectChain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue([]),
-    }
-    const dbWithUpdate = {
-      execute: vi.fn(async () => []),
-      update: vi.fn(() => ({
-        set: vi.fn(() => ({
-          where: vi.fn(() => Promise.resolve()),
-        })),
-      })),
-      select: vi.fn(() => selectChain),
-    } as unknown as AppDependencies['db']
-
-    const app = createApp(
-      makeDeps({
-        db: dbWithUpdate,
-        updateSettings,
-        getUserCount: vi.fn(async () => 1),
-      }),
-    )
+    const app = createApp(makeDeps({ updateSettings, getUserCount: vi.fn(async () => 1) }))
 
     const res = await app.request('/api/settings', {
       method: 'PATCH',
@@ -720,8 +758,14 @@ describe('per-user listening source connections', () => {
     expect(updateSettings).toHaveBeenCalledWith(
       expect.not.objectContaining({ listenbrainzUsername: expect.anything() }),
     )
-    // db.update was called (listenbrainz fields routed to user record)
-    expect(dbWithUpdate.update).toHaveBeenCalled()
+    expect(mockUpdateUserConnections).toHaveBeenCalledWith(
+      expect.anything(),
+      99,
+      expect.objectContaining({
+        listenbrainzUsername: 'my-lb',
+        listenbrainzToken: 'my-token',
+      }),
+    )
   })
 
   it('GET /api/settings exposes user-scoped emby fields for non-admins', async () => {
@@ -729,36 +773,25 @@ describe('per-user listening source connections', () => {
     const sessionToken = 'emby-session-token-7'
     await createSession(7, sessionToken)
 
-    const selectChainEmby = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue([
-        {
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          embyUrl: 'http://emby:8096',
-          embyApiKey: 'secret',
-          embyUserId: 'user-1',
-          discogsToken: null,
-          discogsUsername: null,
-        },
-      ]),
-    }
-    const dbWithEmby = {
-      execute: vi.fn(async () => []),
-      select: vi.fn(() => selectChainEmby),
-    } as unknown as AppDependencies['db']
+    mockGetUserConnections.mockResolvedValueOnce({
+      listenbrainzUsername: null,
+      listenbrainzToken: null,
+      lastfmUsername: null,
+      lastfmApiKey: null,
+      plexUrl: null,
+      plexToken: null,
+      jellyfinUrl: null,
+      jellyfinApiKey: null,
+      jellyfinUserId: null,
+      embyUrl: 'http://emby:8096',
+      embyApiKey: 'secret',
+      embyUserId: 'user-1',
+      discogsToken: null,
+      discogsUsername: null,
+    })
 
     const app = createApp(
       makeDeps({
-        db: dbWithEmby,
         getUserById: vi.fn(async () => ({
           id: 7,
           username: 'user7',
@@ -798,7 +831,7 @@ describe('per-user listening source connections', () => {
 
   it('POST /api/settings/test/emby validates the Emby connection', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/settings/test/emby', {
+    const res = await authedRequest(app, '/api/settings/test/emby', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -819,28 +852,7 @@ describe('per-user listening source connections', () => {
     await createSession(42, sessionToken)
 
     const updateSettings = vi.fn(async () => {})
-    const selectChain2 = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue([]),
-    }
-    const dbWithUpdate = {
-      execute: vi.fn(async () => []),
-      update: vi.fn(() => ({
-        set: vi.fn(() => ({
-          where: vi.fn(() => Promise.resolve()),
-        })),
-      })),
-      select: vi.fn(() => selectChain2),
-    } as unknown as AppDependencies['db']
-
-    const app = createApp(
-      makeDeps({
-        db: dbWithUpdate,
-        updateSettings,
-        getUserCount: vi.fn(async () => 1),
-      }),
-    )
+    const app = createApp(makeDeps({ updateSettings, getUserCount: vi.fn(async () => 1) }))
 
     const res = await app.request('/api/settings', {
       method: 'PATCH',
@@ -854,9 +866,14 @@ describe('per-user listening source connections', () => {
       }),
     })
     expect(res.status).toBe(200)
-    // Only user-connection fields sent -- global updateSettings should NOT be called
     expect(updateSettings).not.toHaveBeenCalled()
-    // db.update was called (lastfm fields routed to user record)
-    expect(dbWithUpdate.update).toHaveBeenCalled()
+    expect(mockUpdateUserConnections).toHaveBeenCalledWith(
+      expect.anything(),
+      42,
+      expect.objectContaining({
+        lastfmUsername: 'my-lfm',
+        lastfmApiKey: 'my-key',
+      }),
+    )
   })
 })

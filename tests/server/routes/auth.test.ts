@@ -688,7 +688,7 @@ describe('GET /api/auth/status', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.hasUsers).toBe(false)
-    expect(body.required).toBe(false)
+    expect(body.required).toBe(true)
   })
 
   it('reports hasUsers: true and required: true when users exist', async () => {

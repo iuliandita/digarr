@@ -182,6 +182,20 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: 'Bearer test-token',
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 const mockLidarrClient = {
   addArtist: vi.fn(),
   getQualityProfiles: vi.fn(async () => []),
@@ -225,7 +239,7 @@ beforeEach(() => {
 describe('GET /api/recommendations', () => {
   it('returns list and total', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations')
+    const res = await authedRequest(app, '/api/recommendations')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.total).toBe(1)
@@ -236,7 +250,7 @@ describe('GET /api/recommendations', () => {
   it('passes filters to listRecommendations', async () => {
     const listRecommendations = vi.fn(async () => ({ items: [], total: 0 }))
     const app = createApp(makeDeps({ listRecommendations }))
-    await app.request('/api/recommendations?status=pending&limit=5&offset=10')
+    await authedRequest(app, '/api/recommendations?status=pending&limit=5&offset=10')
     expect(listRecommendations).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'pending', limit: 5, offset: 10 }),
     )
@@ -245,7 +259,7 @@ describe('GET /api/recommendations', () => {
   it('returns 400 for an invalid batchId filter', async () => {
     const listRecommendations = vi.fn(async () => ({ items: [], total: 0 }))
     const app = createApp(makeDeps({ listRecommendations }))
-    const res = await app.request('/api/recommendations?batchId=not-a-number')
+    const res = await authedRequest(app, '/api/recommendations?batchId=not-a-number')
 
     expect(res.status).toBe(400)
     expect(listRecommendations).not.toHaveBeenCalled()
@@ -255,7 +269,7 @@ describe('GET /api/recommendations', () => {
 describe('GET /api/recommendations/:id', () => {
   it('returns 200 with recommendation when found', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/1')
+    const res = await authedRequest(app, '/api/recommendations/1')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.id).toBe(1)
@@ -264,7 +278,7 @@ describe('GET /api/recommendations/:id', () => {
 
   it('returns 404 when not found', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/999')
+    const res = await authedRequest(app, '/api/recommendations/999')
     expect(res.status).toBe(404)
   })
 })
@@ -273,7 +287,7 @@ describe('PATCH /api/recommendations/:id', () => {
   it('updates to rejected status without calling Lidarr', async () => {
     const updateRecommendationStatus = vi.fn(async () => {})
     const app = createApp(makeDeps({ updateRecommendationStatus }))
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'rejected' }),
@@ -305,7 +319,7 @@ describe('PATCH /api/recommendations/:id', () => {
         getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
       }),
     )
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({ status: 'approved' }),
@@ -341,7 +355,7 @@ describe('PATCH /api/recommendations/:id', () => {
         getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
       }),
     )
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({ status: 'approved' }),
@@ -359,7 +373,7 @@ describe('PATCH /api/recommendations/:id', () => {
 
   it('returns 400 when status is missing', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -369,7 +383,7 @@ describe('PATCH /api/recommendations/:id', () => {
 
   it('returns 404 for approve when recommendation not found', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/999', {
+    const res = await authedRequest(app, '/api/recommendations/999', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -399,7 +413,7 @@ describe('PATCH /api/recommendations/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({
@@ -436,7 +450,7 @@ describe('PATCH /api/recommendations/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({ status: 'approved', targetId: 'missing-target' }),
@@ -483,7 +497,7 @@ describe('PATCH /api/recommendations/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({
@@ -564,7 +578,7 @@ describe('PATCH /api/recommendations/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({
@@ -620,7 +634,7 @@ describe('PATCH /api/recommendations/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await authedRequest(app, '/api/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({
@@ -645,7 +659,7 @@ describe('POST /api/recommendations/bulk', () => {
     const bulkUpdateStatus = vi.fn(async () => {})
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
     const app = createApp(makeDeps({ bulkUpdateStatus, filterOwnedIds }))
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await authedRequest(app, '/api/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [1, 2, 3], action: 'reject' }),
@@ -653,13 +667,13 @@ describe('POST /api/recommendations/bulk', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.updated).toBe(3)
-    expect(filterOwnedIds).toHaveBeenCalledWith([1, 2, 3], undefined)
+    expect(filterOwnedIds).toHaveBeenCalledWith([1, 2, 3], 1)
     expect(bulkUpdateStatus).toHaveBeenCalledWith([1, 2, 3], 'rejected')
   })
 
   it('returns 400 for invalid action', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await authedRequest(app, '/api/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [1], action: 'delete' }),
@@ -669,7 +683,7 @@ describe('POST /api/recommendations/bulk', () => {
 
   it('returns 400 for missing ids', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await authedRequest(app, '/api/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [], action: 'reject' }),
@@ -692,7 +706,7 @@ describe('POST /api/recommendations/bulk', () => {
       }),
     )
 
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await authedRequest(app, '/api/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({ ids: [1], action: 'approve', targetId: 'missing-target' }),
@@ -715,7 +729,7 @@ describe('GET /api/recommendations/feedback-summary', () => {
         getFeedbackHistory: vi.fn().mockResolvedValue(history),
       }),
     )
-    const res = await app.request('/api/recommendations/feedback-summary')
+    const res = await authedRequest(app, '/api/recommendations/feedback-summary')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.summary).toHaveLength(2) // pop excluded (below 3 total)
@@ -726,7 +740,7 @@ describe('GET /api/recommendations/feedback-summary', () => {
 
   it('returns empty summary when no feedback data', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/recommendations/feedback-summary')
+    const res = await authedRequest(app, '/api/recommendations/feedback-summary')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.summary).toHaveLength(0)

@@ -984,6 +984,24 @@ export const en = {
   'settings.monthly': 'Monthly',
   'settings.embyUserIdHelp':
     'Found under Emby Dashboard -> Users -> (select user). The URL contains the user ID.',
+  'settings.aiProviderTitle': 'AI Provider',
+  'settings.webhookTitle': 'Webhook',
+  'settings.plexToken': 'Plex Token',
+  'settings.serviceConnectedToast': '{0} connected',
+  'settings.serviceConnectionFailedToast': '{0} connection failed',
+  'settings.serviceUnreachableToast': 'Could not reach {0}',
+  'settings.serviceSettingsSavedToast': '{0} settings saved',
+  'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
+  'settings.spotifyAuthorizationFailed': 'Failed to start Spotify authorization',
+  'settings.spotifyDisconnectFailed': 'Failed to disconnect Spotify',
+  'settings.spotifyLikedSongsFailed': 'Failed to start Spotify Liked Songs import',
+  'settings.spotifyPlaylistFailed': 'Failed to start playlist import',
+  'settings.deezerFavoritesFailed': 'Failed to start Deezer Favorites import',
+  'settings.deezerFollowedFailed': 'Failed to start Deezer Followed import',
+  'settings.deezerDisconnectFailed': 'Failed to disconnect Deezer',
+  'settings.deezerAuthorizationFailed': 'Failed to start Deezer authorization',
+  'settings.reverseProxyConfigHint':
+    'Use PROXY_AUTH_ENABLED and PROXY_AUTH_TRUSTED_PROXIES; your proxy must send X-Forwarded-User.',
   'settings.title': 'Settings',
 
   // Service status labels

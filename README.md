@@ -50,6 +50,11 @@ Use Anthropic, OpenAI, Google Gemini, Ollama, or any OpenAI-compatible endpoint.
 ### Multilingual UI And AI Output
 Digarr now ships localized catalogs for 15 languages, a visible language switcher before and after login, persisted per-user locale preferences, and locale-aware AI reasoning for mood discovery, quick discover, and full scans.
 
+> [!NOTE]
+> Shipped UI languages: English, Spanish, French, German, Portuguese (Brazil), Italian, Dutch, Romanian, Polish, Turkish, Ukrainian, Russian, Japanese, Korean, and Simplified Chinese.
+>
+> Translations are machine-generated and reviewed incrementally. If you notice awkward wording, missing context, or untranslated copy, please [open an issue](https://github.com/iuliandita/digarr/issues) or send a PR with fixes.
+
 ### Flexible Setup
 The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and add targets later from Settings, including playlist exports. `slskd` targets are configured later in Settings > Targets and support standalone queueing or linked Lidarr handoff.
 

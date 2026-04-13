@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createSession } from '@/core/sessions'
 
 vi.mock('@/core/clients/musicbrainz', () => ({
   createMusicBrainzClient: vi.fn(() => ({})),
@@ -165,11 +166,28 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+const SESSION_TOKEN = 'pipeline-session-token'
+
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  await createSession(1, SESSION_TOKEN)
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${SESSION_TOKEN}`,
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 describe('POST /api/pipeline/run', () => {
   it('returns 202 when pipeline is not running', async () => {
     const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await app.request('/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.message).toBe('Pipeline started')
@@ -178,7 +196,7 @@ describe('POST /api/pipeline/run', () => {
   it('returns 409 when pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await app.request('/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(409)
     const body = await res.json()
     expect(body.error).toMatch(/already running/i)
@@ -192,7 +210,7 @@ describe('POST /api/pipeline/run', () => {
         getSettings: vi.fn(async () => null),
       }),
     )
-    const res = await app.request('/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(400)
   })
 
@@ -233,7 +251,7 @@ describe('POST /api/pipeline/run', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await app.request('/api/pipeline/run', {
+    const res = await authedRequest(app, '/api/pipeline/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -254,7 +272,7 @@ describe('POST /api/pipeline/run', () => {
 describe('GET /api/pipeline/status', () => {
   it('returns running: false when not running', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/pipeline/status')
+    const res = await authedRequest(app, '/api/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.running).toBe(false)
@@ -264,7 +282,7 @@ describe('GET /api/pipeline/status', () => {
   it('returns running: true when orchestrator is running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await app.request('/api/pipeline/status')
+    const res = await authedRequest(app, '/api/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.running).toBe(true)
@@ -273,7 +291,7 @@ describe('GET /api/pipeline/status', () => {
   it('includes lastRun when a batch exists', async () => {
     const lastBatch = { id: 42, createdAt: new Date('2024-06-01'), status: 'completed' }
     const app = createApp(makeDeps({ getLastBatch: vi.fn(async () => lastBatch) }))
-    const res = await app.request('/api/pipeline/status')
+    const res = await authedRequest(app, '/api/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.lastRun).toBeDefined()
@@ -285,7 +303,7 @@ describe('GET /api/pipeline/status', () => {
 describe('GET /api/pipeline/events', () => {
   it('returns text/event-stream content type', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/pipeline/events')
+    const res = await authedRequest(app, '/api/pipeline/events')
     expect(res.headers.get('content-type')).toContain('text/event-stream')
   })
 })
@@ -354,7 +372,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await app.request('/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -438,7 +456,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await app.request('/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -522,7 +540,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await app.request('/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',

@@ -166,7 +166,11 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),
-    getUserById: vi.fn(async () => null),
+    getUserById: vi.fn(async () => ({
+      id: 1,
+      username: 'admin',
+      isAdmin: true,
+    })) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 0),
     updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
@@ -234,6 +238,23 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+const SESSION_TOKEN = 'library-session-token'
+
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  await createSession(1, SESSION_TOKEN)
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${SESSION_TOKEN}`,
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 const mockLidarrClient = {
   addArtist: vi.fn(),
   getQualityProfiles: vi.fn(async () => []),
@@ -295,7 +316,7 @@ describe('GET /api/library/health', () => {
       hasCached: true,
     }) as unknown as AppDependencies['libraryHealth']
     const app = createApp(makeDeps({ libraryHealth }))
-    const res = await app.request('/api/library/health')
+    const res = await authedRequest(app, '/api/library/health')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.scanning).toBe(false)
@@ -308,7 +329,7 @@ describe('GET /api/library/health', () => {
       hasCached: false,
     }) as unknown as AppDependencies['libraryHealth']
     const app = createApp(makeDeps({ libraryHealth }))
-    const res = await app.request('/api/library/health')
+    const res = await authedRequest(app, '/api/library/health')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.scanning).toBe(false)
@@ -322,7 +343,7 @@ describe('POST /api/library/health/scan', () => {
       hasCached: true,
     }) as unknown as AppDependencies['libraryHealth']
     const app = createApp(makeDeps({ libraryHealth }))
-    const res = await app.request('/api/library/health/scan', { method: 'POST' })
+    const res = await authedRequest(app, '/api/library/health/scan', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.scanning).toBe(true)
@@ -334,7 +355,7 @@ describe('POST /api/library/health/:checkId/fix', () => {
   it('triggers fix for a valid check ID', async () => {
     const libraryHealth = makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth']
     const app = createApp(makeDeps({ libraryHealth }))
-    const res = await app.request('/api/library/health/unmonitored/fix', { method: 'POST' })
+    const res = await authedRequest(app, '/api/library/health/unmonitored/fix', { method: 'POST' })
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.checkId).toBe('unmonitored')
@@ -346,7 +367,9 @@ describe('POST /api/library/health/:checkId/fix', () => {
 
   it('returns 400 for invalid check ID', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/library/health/totally-bogus/fix', { method: 'POST' })
+    const res = await authedRequest(app, '/api/library/health/totally-bogus/fix', {
+      method: 'POST',
+    })
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toBe('Invalid check ID')
@@ -360,7 +383,9 @@ describe('POST /api/library/health/:checkId/fix', () => {
       }),
     } as unknown as AppDependencies['libraryHealth']
     const app = createApp(makeDeps({ libraryHealth }))
-    const res = await app.request('/api/library/health/duplicate-artists/fix', { method: 'POST' })
+    const res = await authedRequest(app, '/api/library/health/duplicate-artists/fix', {
+      method: 'POST',
+    })
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toMatch(/not fixable/i)
@@ -370,7 +395,7 @@ describe('POST /api/library/health/:checkId/fix', () => {
 describe('GET /api/library/stats', () => {
   it('returns library statistics', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/library/stats')
+    const res = await authedRequest(app, '/api/library/stats')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.totalArtists).toBe(10)
@@ -396,7 +421,7 @@ describe('POST /api/library/warm', () => {
     const app = createApp(
       makeDeps({ skyhookWarmer: mockWarmer as unknown as AppDependencies['skyhookWarmer'] }),
     )
-    const res = await app.request('/api/library/warm', {
+    const res = await authedRequest(app, '/api/library/warm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mbids: ['mbid-1', 'mbid-2'] }),
@@ -412,7 +437,7 @@ describe('POST /api/library/warm', () => {
 
   it('returns 400 when warmer not available', async () => {
     const app = createApp(makeDeps({ skyhookWarmer: null }))
-    const res = await app.request('/api/library/warm', {
+    const res = await authedRequest(app, '/api/library/warm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mbids: ['mbid-1'] }),
@@ -425,7 +450,7 @@ describe('POST /api/library/warm', () => {
   it('returns 400 for missing mbids', async () => {
     const skyhookWarmer = makeMockWarmer() as unknown as AppDependencies['skyhookWarmer']
     const app = createApp(makeDeps({ skyhookWarmer }))
-    const res = await app.request('/api/library/warm', {
+    const res = await authedRequest(app, '/api/library/warm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -438,7 +463,7 @@ describe('POST /api/library/warm', () => {
   it('returns 400 for empty mbids array', async () => {
     const skyhookWarmer = makeMockWarmer() as unknown as AppDependencies['skyhookWarmer']
     const app = createApp(makeDeps({ skyhookWarmer }))
-    const res = await app.request('/api/library/warm', {
+    const res = await authedRequest(app, '/api/library/warm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mbids: [] }),
@@ -454,7 +479,7 @@ describe('POST /api/library/warm', () => {
       makeDeps({ skyhookWarmer: mockWarmer as unknown as AppDependencies['skyhookWarmer'] }),
     )
     const mbids = Array.from({ length: 60 }, (_, i) => `mbid-${i}`)
-    const res = await app.request('/api/library/warm', {
+    const res = await authedRequest(app, '/api/library/warm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mbids }),
@@ -470,7 +495,7 @@ describe('GET /api/library/warm/status', () => {
   it('returns statuses for requested MBIDs', async () => {
     const skyhookWarmer = makeMockWarmer() as unknown as AppDependencies['skyhookWarmer']
     const app = createApp(makeDeps({ skyhookWarmer }))
-    const res = await app.request('/api/library/warm/status?mbids=mbid-1,mbid-2')
+    const res = await authedRequest(app, '/api/library/warm/status?mbids=mbid-1,mbid-2')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.statuses['mbid-1']).toBe('warm')
@@ -479,7 +504,7 @@ describe('GET /api/library/warm/status', () => {
 
   it('returns empty statuses object when warmer not available', async () => {
     const app = createApp(makeDeps({ skyhookWarmer: null }))
-    const res = await app.request('/api/library/warm/status?mbids=mbid-1')
+    const res = await authedRequest(app, '/api/library/warm/status?mbids=mbid-1')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.statuses).toEqual({})
@@ -488,7 +513,7 @@ describe('GET /api/library/warm/status', () => {
   it('returns empty statuses when no mbids param', async () => {
     const skyhookWarmer = makeMockWarmer() as unknown as AppDependencies['skyhookWarmer']
     const app = createApp(makeDeps({ skyhookWarmer }))
-    const res = await app.request('/api/library/warm/status')
+    const res = await authedRequest(app, '/api/library/warm/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.statuses).toEqual({})
@@ -591,7 +616,7 @@ describe('GET /api/library/sources', () => {
     const { app, librarySyncStore } = makeSyncApp(undefined, {
       listSyncStateForUser: vi.fn(async () => mockRows),
     })
-    const res = await app.request('/api/library/sources')
+    const res = await authedRequest(app, '/api/library/sources')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.sources).toHaveLength(2)
@@ -619,7 +644,7 @@ describe('POST /api/library/sync', () => {
     })
     const { app } = makeSyncApp({ syncForUser, syncGlobal })
 
-    const res = await app.request('/api/library/sync', {
+    const res = await authedRequest(app, '/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -637,7 +662,7 @@ describe('POST /api/library/sync', () => {
 
   it('fires syncSpecificSource when source provided', async () => {
     const { app, librarySync } = makeSyncApp()
-    const res = await app.request('/api/library/sync', {
+    const res = await authedRequest(app, '/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ source: 'plex' }),
@@ -665,7 +690,7 @@ describe('POST /api/library/sync', () => {
       })
     const { app } = makeSyncApp({ syncSpecificSource })
 
-    const res = await app.request('/api/library/sync', {
+    const res = await authedRequest(app, '/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ source: 'plex' }),
@@ -681,7 +706,7 @@ describe('POST /api/library/sync', () => {
 
   it('POST /api/library/sync returns 202 (not 500) when body is JSON null', async () => {
     const { app } = makeSyncApp()
-    const res = await app.request('/api/library/sync', {
+    const res = await authedRequest(app, '/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'null',
@@ -691,7 +716,7 @@ describe('POST /api/library/sync', () => {
 
   it('POST /api/library/overrides returns 400 (not 500) when body is JSON null', async () => {
     const { app } = makeSyncApp()
-    const res = await app.request('/api/library/overrides', {
+    const res = await authedRequest(app, '/api/library/overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'null',
@@ -720,7 +745,7 @@ describe('GET /api/library/unreconciled', () => {
     const { app, librarySyncStore } = makeSyncApp(undefined, {
       listUnreconciledForUser: vi.fn(async () => mockItems),
     })
-    const res = await app.request('/api/library/unreconciled')
+    const res = await authedRequest(app, '/api/library/unreconciled')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.items).toHaveLength(1)
@@ -759,7 +784,7 @@ describe('GET /api/library/album-coverage/:artistMbid', () => {
       },
     })
 
-    const res = await app.request(`/api/library/album-coverage/${artistMbid}`)
+    const res = await authedRequest(app, `/api/library/album-coverage/${artistMbid}`)
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual(coverage)
@@ -803,7 +828,7 @@ describe('GET /api/library/album-coverage/:artistMbid', () => {
       }),
     )
 
-    const res = await app.request(`/api/library/album-coverage/${artistMbid}`, {
+    const res = await authedRequest(app, `/api/library/album-coverage/${artistMbid}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -829,7 +854,7 @@ describe('Mounted library admin gating', () => {
       }),
     )
 
-    const res = await app.request('/api/library/health/scan', {
+    const res = await authedRequest(app, '/api/library/health/scan', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -852,7 +877,7 @@ describe('Mounted library legacy-token gating', () => {
       libraryHealth: libraryHealth as unknown as AppDependencies['libraryHealth'],
     })
 
-    const res = await app.request('/api/library/health', {
+    const res = await authedRequest(app, '/api/library/health', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -864,7 +889,7 @@ describe('Mounted library legacy-token gating', () => {
     const token = 'legacy-library-token'
     const app = await createMountedAppWithLegacyToken(token)
 
-    const res = await app.request('/api/library/sources', {
+    const res = await authedRequest(app, '/api/library/sources', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -887,7 +912,7 @@ describe('Mounted library legacy-token gating', () => {
       },
     })
 
-    const res = await app.request(`/api/library/album-coverage/${artistMbid}`, {
+    const res = await authedRequest(app, `/api/library/album-coverage/${artistMbid}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -918,7 +943,7 @@ describe('GET /api/library/unreconciled-albums', () => {
       listUnreconciledAlbumsForUser: vi.fn(async () => mockItems),
     })
 
-    const res = await app.request('/api/library/unreconciled-albums')
+    const res = await authedRequest(app, '/api/library/unreconciled-albums')
 
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -934,7 +959,7 @@ describe('GET /api/library/unreconciled-albums', () => {
 describe('POST /api/library/overrides', () => {
   it('calls upsertOverride with correct args and returns ok', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/overrides', {
+    const res = await authedRequest(app, '/api/library/overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -958,7 +983,7 @@ describe('POST /api/library/overrides', () => {
 
   it('coerces empty string correctMbid to null', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    await app.request('/api/library/overrides', {
+    await authedRequest(app, '/api/library/overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ source: 'plex', sourceArtistId: 'plex-123', correctMbid: '' }),
@@ -974,7 +999,7 @@ describe('POST /api/library/overrides', () => {
 
   it('returns 400 when correctMbid is not a UUID', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/overrides', {
+    const res = await authedRequest(app, '/api/library/overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -990,7 +1015,7 @@ describe('POST /api/library/overrides', () => {
 
   it('returns 400 when source is missing', async () => {
     const { app } = makeSyncApp()
-    const res = await app.request('/api/library/overrides', {
+    const res = await authedRequest(app, '/api/library/overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sourceArtistId: 'plex-123' }),
@@ -1004,7 +1029,7 @@ describe('POST /api/library/overrides', () => {
 describe('POST /api/library/album-overrides', () => {
   it('calls upsertAlbumOverride with correct args for admins', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/album-overrides', {
+    const res = await authedRequest(app, '/api/library/album-overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1028,7 +1053,7 @@ describe('POST /api/library/album-overrides', () => {
 
   it('returns 400 when correctAlbumMbid is not a UUID', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/album-overrides', {
+    const res = await authedRequest(app, '/api/library/album-overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1044,7 +1069,7 @@ describe('POST /api/library/album-overrides', () => {
 
   it('returns 400 when sourceAlbumId is missing', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/album-overrides', {
+    const res = await authedRequest(app, '/api/library/album-overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1059,7 +1084,7 @@ describe('POST /api/library/album-overrides', () => {
 
   it('returns 403 for non-admin users', async () => {
     const { app, librarySyncStore } = makeSyncApp(undefined, undefined, { isAdmin: false })
-    const res = await app.request('/api/library/album-overrides', {
+    const res = await authedRequest(app, '/api/library/album-overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1077,7 +1102,9 @@ describe('POST /api/library/album-overrides', () => {
 describe('DELETE /api/library/overrides/:source/:sourceArtistId', () => {
   it('calls deleteOverride with correct args', async () => {
     const { app, librarySyncStore } = makeSyncApp()
-    const res = await app.request('/api/library/overrides/plex/plex-123', { method: 'DELETE' })
+    const res = await authedRequest(app, '/api/library/overrides/plex/plex-123', {
+      method: 'DELETE',
+    })
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
@@ -1092,7 +1119,7 @@ describe('DELETE /api/library/overrides/:source/:sourceArtistId', () => {
 describe('POST /api/library/reconcile', () => {
   it('fires syncForUser with force:true and returns 202', async () => {
     const { app, librarySync } = makeSyncApp()
-    const res = await app.request('/api/library/reconcile', { method: 'POST' })
+    const res = await authedRequest(app, '/api/library/reconcile', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.ok).toBe(true)

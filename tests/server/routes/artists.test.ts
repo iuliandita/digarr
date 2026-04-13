@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
@@ -177,6 +178,23 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
+const SESSION_TOKEN = 'artists-session-token'
+
+async function authedRequest(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  await createSession(1, SESSION_TOKEN)
+  return app.request(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${SESSION_TOKEN}`,
+      ...((init?.headers as Record<string, string> | undefined) ?? {}),
+    },
+  })
+}
+
 const MOCK_ARTIST = {
   id: 1,
   mbid: 'a3cb23fc-acd3-4ce0-8f36-1e5aa6a18432',
@@ -201,7 +219,7 @@ beforeEach(() => {
 describe('GET /api/artists/:id/top-tracks', () => {
   it('returns 404 for unknown artist', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/artists/999/top-tracks')
+    const res = await authedRequest(app, '/api/artists/999/top-tracks')
     expect(res.status).toBe(404)
     const body = await res.json()
     expect(body).toHaveProperty('error', 'Artist not found')
@@ -229,7 +247,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('tracks')
@@ -255,7 +273,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    await app.request('/api/artists/1/top-tracks')
+    await authedRequest(app, '/api/artists/1/top-tracks')
     expect(mockClient.searchArtists).not.toHaveBeenCalled()
     expect(mockClient.getArtistTopTracks).not.toHaveBeenCalled()
   })
@@ -280,7 +298,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.tracks).toHaveLength(1)
@@ -313,7 +331,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     // Should NOT have called Deezer top tracks (ambiguous name)
@@ -344,7 +362,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('tracks')
@@ -374,7 +392,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.tracks).toHaveLength(2)
@@ -408,7 +426,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await app.request('/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     // Should have the fresh Deezer data, not the stale cache

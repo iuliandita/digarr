@@ -16,6 +16,8 @@ function safeCompare(a: string, b: string): boolean {
 // Paths that never require authentication
 const PUBLIC_PATHS = new Set([
   '/health',
+  '/api/setup/status',
+  '/api/setup/complete',
   '/api/auth/status',
   '/api/auth/login',
   '/api/auth/register',
@@ -23,20 +25,29 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/oidc/callback',
 ])
 
+const OPTIONAL_AUTH_PATHS = new Set([
+  '/api/setup/status',
+  '/api/setup/complete',
+  '/api/auth/status',
+])
+
 // Only SSE/audio flows are allowed to use query-param auth tokens.
 const QUERY_TOKEN_PATHS = new Set(['/api/pipeline/events', '/api/preview/audio'])
 
-export function authGuard(hasUsers: () => Promise<boolean>) {
+export function authGuard(options: {
+  hasUsers: () => Promise<boolean>
+  isSetupComplete: () => Promise<boolean>
+}) {
   return createMiddleware<HonoEnv>(async (c, next) => {
-    // Skip auth for non-API paths (static assets, SPA routes), public API paths, and OAuth callbacks
-    // Only the callback path is public (browser redirect from provider, no auth header).
-    // Other OAuth paths (initiate, status, delete) need auth so userId is set on context.
-    if (
+    const publicPath =
       !c.req.path.startsWith('/api/') ||
       PUBLIC_PATHS.has(c.req.path) ||
       /^\/api\/auth\/oauth\/[^/]+\/callback$/.test(c.req.path)
-    )
-      return next()
+
+    // Skip auth for non-API paths (static assets, SPA routes), public API paths, and OAuth callbacks
+    // Only the callback path is public (browser redirect from provider, no auth header).
+    // Other OAuth paths (initiate, status, delete) need auth so userId is set on context.
+    if (publicPath && !OPTIONAL_AUTH_PATHS.has(c.req.path)) return next()
 
     // Proxy auth already validated upstream -- skip token checks
     const proxyAuthed = c.get('proxyAuth')
@@ -74,9 +85,14 @@ export function authGuard(hasUsers: () => Promise<boolean>) {
       return next()
     }
 
+    if (publicPath) return next()
+
     // Auth is required if a legacy token is configured OR users have been registered
-    const usersExist = await hasUsers()
-    if (!legacyToken && !usersExist) {
+    const [usersExist, setupComplete] = await Promise.all([
+      options.hasUsers(),
+      options.isSetupComplete(),
+    ])
+    if (!legacyToken && !usersExist && !setupComplete) {
       c.set('authSkipped', true)
       return next() // No auth configured at all
     }

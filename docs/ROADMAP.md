@@ -131,7 +131,7 @@ Low confidence. Would build only with real demand.
 
 ### v0.21.0
 
-- Full multilingual UI support across 15 shipped locales
+- Broad multilingual UI support across 15 shipped locales, with remaining long-tail copy cleanup tracked as follow-up work
 - Visible pre-login and authenticated language switchers with persisted per-user locale preference
 - Localized auth/setup flows, high-traffic pages, and locale-aware AI reasoning for mood discovery, quick discover, and full scans
 - Translation maintenance scripts, strict locale-catalog completeness checks, and browser coverage for language switching
