@@ -407,6 +407,23 @@ describe('POST /api/subscriptions/import/spotify-liked-songs', () => {
     expect(res.status).toBe(400)
     expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
   })
+
+  it('localizes spotify import errors', async () => {
+    mockGetOAuthToken.mockResolvedValueOnce(null)
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/subscriptions/import/spotify-liked-songs', {
+      method: 'POST',
+      headers: {
+        'X-Digarr-Locale': 'fr',
+      },
+    })
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Spotify n est pas connecte',
+    })
+  })
 })
 
 describe('PATCH /api/subscriptions/:id', () => {

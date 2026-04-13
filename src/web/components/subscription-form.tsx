@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { CronPicker } from './cron-picker'
 import { DiscoveryModeForm } from './discovery-mode-form'
 
@@ -37,12 +38,20 @@ type DiscoveryModeSubscriptionConfig = {
 const EDITABLE_SOURCE_TYPES = ['genre', 'similar', 'discovery-mode'] as const
 
 const SOURCE_TYPES = [
-  { value: 'genre', label: 'Genre', description: 'Discover artists in a specific genre' },
-  { value: 'similar', label: 'Similar', description: 'Find artists similar to your favorites' },
+  {
+    value: 'genre',
+    labelKey: 'subscriptionForm.sourceTypeGenre',
+    descriptionKey: 'subscriptionForm.sourceTypeGenreDesc',
+  },
+  {
+    value: 'similar',
+    labelKey: 'subscriptionForm.sourceTypeSimilar',
+    descriptionKey: 'subscriptionForm.sourceTypeSimilarDesc',
+  },
   {
     value: 'discovery-mode',
-    label: 'Discovery Mode',
-    description: 'Use a discovery mode to generate artists',
+    labelKey: 'subscriptionForm.discoveryMode',
+    descriptionKey: 'subscriptionForm.sourceTypeDiscoveryModeDesc',
   },
 ] as const
 
@@ -120,11 +129,12 @@ function DiscoveryModeFormWrapper({
   discoveryModeConfig: DiscoveryModeSubscriptionConfig | null
   setDiscoveryModeConfig: (config: DiscoveryModeSubscriptionConfig | null) => void
 }) {
+  const { t } = useI18n()
   const selectedDiscoveryMode = discoveryModes.find(
     (discoveryMode) => discoveryMode.id === discoveryModeId,
   )
   if (!selectedDiscoveryMode) {
-    return <p className="text-xs text-muted">Select a discovery mode to configure it.</p>
+    return <p className="text-xs text-muted">{t('subscriptionForm.selectDiscoveryMode')}</p>
   }
 
   return (
@@ -168,6 +178,7 @@ export function SubscriptionForm({
   configuredSources,
   discoveryModes = [],
 }: SubscriptionFormProps) {
+  const { t } = useI18n()
   const [name, setName] = useState(initial?.name ?? '')
   const [sourceType, setSourceType] = useState(initial?.sourceType ?? 'genre')
   const [providers, setProviders] = useState<string[]>(
@@ -246,25 +257,25 @@ export function SubscriptionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {
-      setError('Name is required')
+      setError(t('subscriptionForm.nameRequired'))
       return
     }
 
     if (sourceEditable) {
       if (sourceType === 'genre' && !genre.trim()) {
-        setError('Genre is required')
+        setError(t('subscriptionForm.genreRequired'))
         return
       }
       if (sourceType === 'similar' && !seedArtistInput.trim()) {
-        setError('At least one seed artist is required')
+        setError(t('subscriptionForm.seedArtistsRequired'))
         return
       }
       if (sourceType !== 'discovery-mode' && providers.length === 0) {
-        setError('Select at least one source')
+        setError(t('subscriptionForm.selectAtLeastOneSource'))
         return
       }
       if (sourceType === 'discovery-mode' && !discoveryModeConfig) {
-        setError('Discovery mode settings are required')
+        setError(t('subscriptionForm.discoveryModeSettingsRequired'))
         return
       }
     }
@@ -315,7 +326,9 @@ export function SubscriptionForm({
       onKeyDown={(e) => e.key === 'Escape' && onCancel()}
       role="dialog"
       aria-modal="true"
-      aria-label={mode === 'create' ? 'Create subscription' : 'Edit subscription'}
+      aria-label={
+        mode === 'create' ? t('subscriptionForm.dialogCreate') : t('subscriptionForm.dialogEdit')
+      }
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content panel */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop-propagation prevents backdrop dismiss */}
@@ -325,7 +338,9 @@ export function SubscriptionForm({
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-lg font-semibold text-text">
-            {mode === 'create' ? 'Create Subscription' : 'Edit Subscription'}
+            {mode === 'create'
+              ? t('subscriptionForm.titleCreate')
+              : t('subscriptionForm.titleEdit')}
           </h2>
 
           {error && (
@@ -337,14 +352,14 @@ export function SubscriptionForm({
           {/* Name */}
           <div>
             <label htmlFor="sub-name" className="block text-sm font-medium text-text mb-1">
-              Name
+              {t('subscriptionForm.name')}
             </label>
             <input
               id="sub-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="New Shoegaze Weekly"
+              placeholder={t('subscriptionForm.namePlaceholder')}
               className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
             />
           </div>
@@ -357,7 +372,7 @@ export function SubscriptionForm({
                   htmlFor="sub-source-type"
                   className="block text-sm font-medium text-text mb-1"
                 >
-                  Source Type
+                  {t('subscriptionForm.sourceType')}
                 </label>
                 <select
                   id="sub-source-type"
@@ -365,9 +380,9 @@ export function SubscriptionForm({
                   onChange={(e) => handleSourceTypeChange(e.target.value)}
                   className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
                 >
-                  {SOURCE_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label} -- {t.description}
+                  {SOURCE_TYPES.map((sourceTypeOption) => (
+                    <option key={sourceTypeOption.value} value={sourceTypeOption.value}>
+                      {t(sourceTypeOption.labelKey)} -- {t(sourceTypeOption.descriptionKey)}
                     </option>
                   ))}
                 </select>
@@ -377,14 +392,14 @@ export function SubscriptionForm({
               {sourceType === 'genre' ? (
                 <div>
                   <label htmlFor="sub-genre" className="block text-sm font-medium text-text mb-1">
-                    Genre
+                    {t('subscriptionForm.genre')}
                   </label>
                   <input
                     id="sub-genre"
                     type="text"
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
-                    placeholder="shoegaze"
+                    placeholder={t('subscriptionForm.genrePlaceholder')}
                     className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
                   />
                 </div>
@@ -392,21 +407,25 @@ export function SubscriptionForm({
                 <>
                   <div>
                     <label htmlFor="sub-seeds" className="block text-sm font-medium text-text mb-1">
-                      Seed Artists
+                      {t('subscriptionForm.seedArtists')}
                     </label>
                     <input
                       id="sub-seeds"
                       type="text"
                       value={seedArtistInput}
                       onChange={(e) => setSeedArtistInput(e.target.value)}
-                      placeholder="Radiohead, Portishead, Massive Attack"
+                      placeholder={t('subscriptionForm.seedArtistsPlaceholder')}
                       className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
                     />
-                    <p className="text-xs text-muted mt-1">Comma-separated artist names</p>
+                    <p className="text-xs text-muted mt-1">
+                      {t('subscriptionForm.seedArtistsHelp')}
+                    </p>
                   </div>
 
                   <div>
-                    <span className="block text-sm font-medium text-text mb-1">Sources</span>
+                    <span className="block text-sm font-medium text-text mb-1">
+                      {t('subscriptionForm.sources')}
+                    </span>
                     <div className="flex flex-wrap gap-2">
                       {SOURCE_PROVIDERS.filter((p) =>
                         p.capabilities.includes('similarArtists'),
@@ -432,16 +451,24 @@ export function SubscriptionForm({
                                   ? 'border-accent/50 bg-accent/15 text-accent'
                                   : 'border-border text-muted hover:border-accent/40 hover:text-text'
                             }`}
-                            title={configured ? undefined : 'Configure in Settings > Connections'}
+                            title={
+                              configured ? undefined : t('subscriptionForm.configureInSettings')
+                            }
                           >
                             {p.label}
-                            {!configured && <span className="text-xs ml-1">(not configured)</span>}
+                            {!configured && (
+                              <span className="text-xs ml-1">
+                                ({t('subscriptionForm.notConfigured')})
+                              </span>
+                            )}
                           </button>
                         )
                       })}
                     </div>
                     {providers.length === 0 && (
-                      <p className="text-xs text-reject mt-1">Select at least one source</p>
+                      <p className="text-xs text-reject mt-1">
+                        {t('subscriptionForm.selectAtLeastOneSource')}
+                      </p>
                     )}
                   </div>
                 </>
@@ -452,7 +479,7 @@ export function SubscriptionForm({
                       htmlFor="sub-discovery-mode"
                       className="block text-sm font-medium text-text mb-1"
                     >
-                      Discovery Mode
+                      {t('subscriptionForm.discoveryMode')}
                     </label>
                     <select
                       id="sub-discovery-mode"
@@ -479,12 +506,16 @@ export function SubscriptionForm({
                       setDiscoveryModeConfig={setDiscoveryModeConfig}
                     />
                   ) : (
-                    <p className="text-xs text-muted">Select a discovery mode to configure it.</p>
+                    <p className="text-xs text-muted">
+                      {t('subscriptionForm.selectDiscoveryMode')}
+                    </p>
                   )}
                 </div>
               ) : (
                 <div>
-                  <span className="block text-sm font-medium text-text mb-1">Sources</span>
+                  <span className="block text-sm font-medium text-text mb-1">
+                    {t('subscriptionForm.sources')}
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {SOURCE_PROVIDERS.filter((p) =>
                       p.capabilities.includes(
@@ -512,23 +543,31 @@ export function SubscriptionForm({
                                 ? 'border-accent/50 bg-accent/15 text-accent'
                                 : 'border-border text-muted hover:border-accent/40 hover:text-text'
                           }`}
-                          title={configured ? undefined : 'Configure in Settings > Connections'}
+                          title={configured ? undefined : t('subscriptionForm.configureInSettings')}
                         >
                           {p.label}
-                          {!configured && <span className="text-xs ml-1">(not configured)</span>}
+                          {!configured && (
+                            <span className="text-xs ml-1">
+                              ({t('subscriptionForm.notConfigured')})
+                            </span>
+                          )}
                         </button>
                       )
                     })}
                   </div>
                   {providers.length === 0 && (
-                    <p className="text-xs text-reject mt-1">Select at least one source</p>
+                    <p className="text-xs text-reject mt-1">
+                      {t('subscriptionForm.selectAtLeastOneSource')}
+                    </p>
                   )}
                 </div>
               )}
             </>
           ) : (
             <div>
-              <span className="block text-sm font-medium text-text mb-1">Source</span>
+              <span className="block text-sm font-medium text-text mb-1">
+                {t('subscriptionForm.source')}
+              </span>
               <div className="px-3 py-2 bg-surface/50 border border-border rounded text-sm text-muted">
                 {SOURCE_TYPE_LABELS[initial?.sourceType ?? ''] ?? initial?.sourceType}
                 {initial?.sourceConfig &&
@@ -540,22 +579,20 @@ export function SubscriptionForm({
                     return detail ? ` -- ${detail}` : null
                   })()}
               </div>
-              <p className="text-xs text-muted mt-1">
-                Source type and config cannot be changed for this subscription.
-              </p>
+              <p className="text-xs text-muted mt-1">{t('subscriptionForm.sourceLockedHelp')}</p>
             </div>
           )}
 
           {/* Schedule */}
           <div>
-            <span className="block text-sm font-medium text-text mb-1">Schedule</span>
+            <span className="block text-sm font-medium text-text mb-1">{t('common.schedule')}</span>
             <CronPicker value={cron} onChange={setCron} />
           </div>
 
           {/* Max artists per run */}
           <div>
             <label htmlFor="sub-max" className="block text-sm font-medium text-text mb-1">
-              Max artists per run
+              {t('subscriptionForm.maxArtistsPerRun')}
             </label>
             <input
               id="sub-max"
@@ -571,7 +608,7 @@ export function SubscriptionForm({
           {/* Weight preset */}
           <div>
             <label htmlFor="sub-preset" className="block text-sm font-medium text-text mb-1">
-              Scoring preset
+              {t('subscriptionForm.scoringPreset')}
             </label>
             <select
               id="sub-preset"
@@ -581,7 +618,9 @@ export function SubscriptionForm({
             >
               {WEIGHT_PRESETS.map((p) => (
                 <option key={p.value} value={p.value}>
-                  {p.label}
+                  {p.value === 'default'
+                    ? t('subscriptionForm.scoringPresetDefault')
+                    : t('subscriptionForm.scoringPresetGenre')}
                 </option>
               ))}
             </select>
@@ -597,7 +636,7 @@ export function SubscriptionForm({
               id="sub-enabled"
             />
             <label htmlFor="sub-enabled" className="text-sm text-text">
-              Enabled
+              {t('common.enabled')}
             </label>
           </div>
 
@@ -608,14 +647,18 @@ export function SubscriptionForm({
               onClick={onCancel}
               className="px-4 py-2 text-sm text-muted hover:text-text border border-border rounded"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-4 py-2 text-sm bg-accent text-accent-fg rounded font-medium hover:opacity-90 disabled:opacity-60"
             >
-              {submitting ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}
+              {submitting
+                ? t('settings.saving')
+                : mode === 'create'
+                  ? t('common.create')
+                  : t('common.save')}
             </button>
           </div>
         </form>

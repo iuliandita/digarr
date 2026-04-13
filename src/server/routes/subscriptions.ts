@@ -11,6 +11,7 @@ import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
+import { resolveRequestMessages } from '@/server/locale'
 import type { HonoEnv } from '@/server/types'
 
 /** Extract the bare playlist ID from a URL, URI, or raw ID. */
@@ -345,14 +346,18 @@ export function subscriptionRoutes(deps: AppDependencies) {
   })
 
   router.post('/api/subscriptions/import/spotify-liked-songs', async (c) => {
+    const messages = resolveRequestMessages({
+      requestLocale: c.req.header('X-Digarr-Locale'),
+      acceptLanguage: c.req.header('Accept-Language'),
+    })
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return c.json({ error: messages['common.unauthorized'] }, 401)
     }
 
     const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
     if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
-      return c.json({ error: 'Spotify is not connected' }, 400)
+      return c.json({ error: messages['subscriptions.spotifyNotConnected'] }, 400)
     }
 
     const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)

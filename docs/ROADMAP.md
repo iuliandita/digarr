@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-13 | Current: v0.26.3
+> Updated: 2026-04-13 | Current: v0.26.4
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -122,6 +122,11 @@ Low confidence. Would build only with real demand.
 - Library Health now persists scan snapshots, shows last sync timing, auto-rescans on the configured interval, and keeps a manual sync action
 - Settings now gives Job History and System Health dedicated tabs, expands target controls to match the newer admin style, and removes the oversized dashboard health block
 - Fresh databases now skip pre-migration auto-backups until the app tables exist, avoiding noisy first-boot warnings
+
+### v0.26.4
+
+- Shared forms, dialogs, admin surfaces, and server-side validation errors now respect the selected locale instead of falling back to hardcoded English
+- Locale catalogs now pass stricter quality checks for untranslated English fallbacks and restored native accents or diacritics where they belong
 
 ### v0.25.0
 

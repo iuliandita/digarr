@@ -700,6 +700,60 @@ describe('POST /api/settings/test/:service', () => {
     })
   })
 
+  it('localizes admin-only test endpoint errors', async () => {
+    await clearAllSessions()
+    await createSession(7, 'non-admin-oidc-token')
+
+    const app = createApp(
+      makeDeps({
+        getUserCount: vi.fn(async () => 1),
+        getUserById: vi.fn(async () => ({
+          id: 7,
+          username: 'user7',
+          isAdmin: false,
+          preferences: null,
+          email: null,
+          oidcSubject: null,
+          authProvider: 'local',
+          listenbrainzUsername: null,
+          listenbrainzToken: null,
+          lastfmUsername: null,
+          lastfmApiKey: null,
+          plexUrl: null,
+          plexToken: null,
+          jellyfinUrl: null,
+          jellyfinApiKey: null,
+          jellyfinUserId: null,
+          embyUrl: null,
+          embyApiKey: null,
+          embyUserId: null,
+          discogsToken: null,
+          discogsUsername: null,
+          createdAt: new Date(),
+        })),
+      }),
+    )
+
+    const res = await app.request('/api/settings/test/oidc', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer non-admin-oidc-token',
+        'X-Digarr-Locale': 'de',
+      },
+      body: JSON.stringify({
+        issuerUrl: 'https://issuer.example',
+        clientId: 'client-id',
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({
+      success: false,
+      message: 'Adminzugriff erforderlich',
+    })
+  })
+
   it('rejects OIDC issuers that resolve to private IPs', async () => {
     vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
 

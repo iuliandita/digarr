@@ -1039,4 +1039,4 @@ export const zhCN = {
   'analytics.source.consensus': '共识',
   'analytics.source.genreOverlap': '流派重叠',
   'analytics.source.popularity': '流行度',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

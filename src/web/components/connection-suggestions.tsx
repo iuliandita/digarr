@@ -1,23 +1,28 @@
 import { X } from 'lucide-react'
+import type { MessageKey } from '@/core/i18n/messages/types'
+import { useI18n } from '@/web/lib/i18n'
 
 type Suggestion = {
   id: string
-  label: string
+  labelKey: MessageKey
 }
 
 const SERVICE_SUGGESTIONS: Record<string, Suggestion[]> = {
   spotify: [
-    { id: 'discover-weekly', label: 'Set up a Discover Weekly subscription' },
-    { id: 'release-radar', label: 'Enable Release Radar subscription' },
+    { id: 'discover-weekly', labelKey: 'connectionSuggestions.spotifyDiscoverWeekly' },
+    { id: 'release-radar', labelKey: 'connectionSuggestions.spotifyReleaseRadar' },
   ],
-  lastfm: [{ id: 'top-genre-tags', label: 'Subscribe to your top genre tags' }],
+  lastfm: [{ id: 'top-genre-tags', labelKey: 'connectionSuggestions.lastfmTopGenreTags' }],
   listenbrainz: [
-    { id: 'weekly-jams', label: 'Enable Weekly Jams subscription' },
-    { id: 'weekly-exploration', label: 'Enable Weekly Exploration' },
+    { id: 'weekly-jams', labelKey: 'connectionSuggestions.listenbrainzWeeklyJams' },
+    {
+      id: 'weekly-exploration',
+      labelKey: 'connectionSuggestions.listenbrainzWeeklyExploration',
+    },
   ],
-  jellyfin: [{ id: 'jellyfin-digest', label: 'Create a weekly Digarr Digest playlist' }],
-  navidrome: [{ id: 'navidrome-digest', label: 'Create a weekly Digarr Digest playlist' }],
-  plex: [{ id: 'plex-digest', label: 'Create a weekly Digarr Digest playlist' }],
+  jellyfin: [{ id: 'jellyfin-digest', labelKey: 'connectionSuggestions.weeklyDigestPlaylist' }],
+  navidrome: [{ id: 'navidrome-digest', labelKey: 'connectionSuggestions.weeklyDigestPlaylist' }],
+  plex: [{ id: 'plex-digest', labelKey: 'connectionSuggestions.weeklyDigestPlaylist' }],
 }
 
 const SERVICE_DISPLAY: Record<string, string> = {
@@ -35,6 +40,7 @@ type ConnectionSuggestionsProps = {
 }
 
 export function ConnectionSuggestions({ service, onClose }: ConnectionSuggestionsProps) {
+  const { t } = useI18n()
   const suggestions = SERVICE_SUGGESTIONS[service] ?? []
   const displayName = SERVICE_DISPLAY[service] ?? service
 
@@ -43,11 +49,13 @@ export function ConnectionSuggestions({ service, onClose }: ConnectionSuggestion
   return (
     <div className="rounded-lg border border-border bg-surface p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-text">Suggestions for {displayName}</h3>
+        <h3 className="text-sm font-medium text-text">
+          {t('connectionSuggestions.title').replace('{0}', displayName)}
+        </h3>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close suggestions"
+          aria-label={t('connectionSuggestions.close')}
           className="text-muted hover:text-text transition-colors"
         >
           <X size={15} aria-hidden="true" />
@@ -57,7 +65,7 @@ export function ConnectionSuggestions({ service, onClose }: ConnectionSuggestion
       <ul className="list-disc list-inside space-y-1.5">
         {suggestions.map((s) => (
           <li key={s.id} className="text-sm text-text">
-            {s.label}
+            {t(s.labelKey)}
           </li>
         ))}
       </ul>
@@ -68,14 +76,14 @@ export function ConnectionSuggestions({ service, onClose }: ConnectionSuggestion
           onClick={onClose}
           className="px-3 py-1.5 bg-accent text-accent-fg rounded text-sm font-medium hover:opacity-90 transition-opacity"
         >
-          Got it
+          {t('connectionSuggestions.gotIt')}
         </button>
         <button
           type="button"
           onClick={onClose}
           className="text-xs text-muted hover:text-text transition-colors"
         >
-          Skip for now
+          {t('connectionSuggestions.skipForNow')}
         </button>
       </div>
     </div>

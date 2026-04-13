@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import type { MessageKey } from '@/core/i18n/messages/types'
+import { useI18n } from '@/web/lib/i18n'
 import { createSubscriptionApi, updateSettings } from '../lib/api'
 
 type Props = {
@@ -13,44 +15,45 @@ type PresetId = 'casual' | 'deep-diver' | 'ai-only' | 'custom'
 type Preset = {
   id: PresetId
   icon: string
-  title: string
-  description: string
+  titleKey: MessageKey
+  descriptionKey: MessageKey
   requiresCount?: number
-  requiresLabel?: string
+  requiresLabelKey?: MessageKey
 }
 
 const PRESETS: Preset[] = [
   {
     id: 'casual',
     icon: '🎵',
-    title: 'Casual',
-    description: 'Low-noise weekly recommendations',
+    titleKey: 'subscriptionPresets.casualTitle',
+    descriptionKey: 'subscriptionPresets.casualDescription',
     requiresCount: 1,
-    requiresLabel: '1 connected service',
+    requiresLabelKey: 'subscriptionPresets.oneConnectedService',
   },
   {
     id: 'deep-diver',
     icon: '🔍',
-    title: 'Deep Diver',
-    description: 'Broad multi-source discovery, daily updates',
+    titleKey: 'subscriptionPresets.deepDiverTitle',
+    descriptionKey: 'subscriptionPresets.deepDiverDescription',
     requiresCount: 2,
-    requiresLabel: '2 connected services',
+    requiresLabelKey: 'subscriptionPresets.twoConnectedServices',
   },
   {
     id: 'ai-only',
     icon: '🎯',
-    title: 'Discovery Only',
-    description: 'Pipeline-only, no external feeds',
+    titleKey: 'subscriptionPresets.discoveryOnlyTitle',
+    descriptionKey: 'subscriptionPresets.discoveryOnlyDescription',
   },
   {
     id: 'custom',
     icon: '⚙️',
-    title: 'Custom',
-    description: 'Build your own subscription mix',
+    titleKey: 'subscriptionPresets.customTitle',
+    descriptionKey: 'subscriptionPresets.customDescription',
   },
 ]
 
 export function SubscriptionPresets({ connectedServices, onComplete, onCustom }: Props) {
+  const { t } = useI18n()
   const [loading, setLoading] = useState<PresetId | null>(null)
 
   const serviceCount = connectedServices.length
@@ -105,10 +108,10 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
         await Promise.all(subs)
       }
 
-      toast.success('Casual preset applied')
+      toast.success(t('subscriptionPresets.casualApplied'))
       onComplete()
     } catch {
-      toast.error('Failed to apply preset')
+      toast.error(t('subscriptionPresets.applyFailed'))
     } finally {
       setLoading(null)
     }
@@ -162,10 +165,10 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
       }
 
       await Promise.all(subs)
-      toast.success('Deep Diver preset applied')
+      toast.success(t('subscriptionPresets.deepDiverApplied'))
       onComplete()
     } catch {
-      toast.error('Failed to apply preset')
+      toast.error(t('subscriptionPresets.applyFailed'))
     } finally {
       setLoading(null)
     }
@@ -175,10 +178,10 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
     setLoading('ai-only')
     try {
       await updateSettings({ preferences: { subscriptionMode: 'ai-only' } })
-      toast.success('AI-only mode enabled')
+      toast.success(t('subscriptionPresets.aiOnlyEnabled'))
       onComplete()
     } catch {
-      toast.error('Failed to enable AI-only mode')
+      toast.error(t('subscriptionPresets.aiOnlyEnableFailed'))
     } finally {
       setLoading(null)
     }
@@ -191,8 +194,12 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
   }
 
   function getDisabledReason(preset: Preset): string | null {
-    if (preset.requiresCount !== undefined && serviceCount < preset.requiresCount) {
-      return `Requires ${preset.requiresLabel}`
+    if (
+      preset.requiresCount !== undefined &&
+      preset.requiresLabelKey &&
+      serviceCount < preset.requiresCount
+    ) {
+      return t('subscriptionPresets.requires').replace('{0}', t(preset.requiresLabelKey))
     }
     return null
   }
@@ -205,17 +212,15 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
   }
 
   function buttonLabel(id: PresetId): string {
-    if (id === 'ai-only' || id === 'custom') return 'Select'
-    return 'Set up'
+    if (id === 'ai-only' || id === 'custom') return t('discover.select')
+    return t('subscriptionPresets.setUp')
   }
 
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm font-medium text-text">Get started with a preset</p>
-        <p className="text-xs text-muted mt-0.5">
-          Choose a preset to create subscriptions automatically, or build a custom setup.
-        </p>
+        <p className="text-sm font-medium text-text">{t('subscriptionPresets.getStarted')}</p>
+        <p className="text-xs text-muted mt-0.5">{t('subscriptionPresets.intro')}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {PRESETS.map((preset) => {
@@ -235,8 +240,8 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
                   {preset.icon}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text">{preset.title}</p>
-                  <p className="text-xs text-muted mt-0.5">{preset.description}</p>
+                  <p className="text-sm font-medium text-text">{t(preset.titleKey)}</p>
+                  <p className="text-xs text-muted mt-0.5">{t(preset.descriptionKey)}</p>
                   {disabledReason && <p className="text-xs text-muted/60 mt-1">{disabledReason}</p>}
                 </div>
               </div>
@@ -250,7 +255,7 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
                     : 'bg-accent text-accent-fg hover:opacity-90 disabled:opacity-50'
                 }`}
               >
-                {isLoading ? 'Applying...' : buttonLabel(preset.id)}
+                {isLoading ? t('subscriptionPresets.applying') : buttonLabel(preset.id)}
               </button>
             </div>
           )

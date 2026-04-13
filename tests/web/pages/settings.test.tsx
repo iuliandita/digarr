@@ -531,7 +531,7 @@ describe('SettingsPage', () => {
     const switcher = await screen.findByLabelText('Language')
     fireEvent.change(switcher, { target: { value: 'de' } })
 
-    expect(screen.getByLabelText('Language')).toHaveValue('de')
+    expect(switcher).toHaveValue('de')
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
     expect(client.getQueryData(['currentUser'])).toEqual({
       id: 1,
@@ -637,7 +637,7 @@ describe('SettingsPage', () => {
 
     fireEvent.click(screen.getByText('Destinations'))
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter une destination' }))
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
+    fireEvent.change(screen.getByLabelText('Categorie'), { target: { value: 'slskd' } })
 
     expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
   })

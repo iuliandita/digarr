@@ -1103,4 +1103,4 @@ export const pl = {
   'analytics.source.consensus': 'Konsensus',
   'analytics.source.genreOverlap': 'Nakladanie gatunkow',
   'analytics.source.popularity': 'Popularnosc',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

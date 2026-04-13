@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { errMsg } from '@/core/validation'
 import type { PlaylistInsert, PlaylistRow } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { CronPicker } from './cron-picker'
 
 type PlaylistFormProps = {
@@ -12,23 +13,28 @@ type PlaylistFormProps = {
 const STRATEGIES = [
   {
     value: 'weekly_digest',
-    label: 'Weekly Digest',
-    description: 'Curated selection from your recent discoveries',
+    labelKey: 'playlist.strategyWeeklyDigest',
+    descriptionKey: 'playlistForm.strategyWeeklyDigestDesc',
   },
-  { value: 'genre_focus', label: 'Genre Focus', description: 'Deep dive into a specific genre' },
+  {
+    value: 'genre_focus',
+    labelKey: 'playlist.strategyGenreFocus',
+    descriptionKey: 'playlistForm.strategyGenreFocusDesc',
+  },
   {
     value: 'mood_mix',
-    label: 'Mood Mix',
-    description: 'Tracks matching a specific mood or vibe',
+    labelKey: 'playlist.strategyMoodMix',
+    descriptionKey: 'playlistForm.strategyMoodMixDesc',
   },
   {
     value: 'rediscover',
-    label: 'Rediscover',
-    description: 'Resurface artists you may have forgotten',
+    labelKey: 'playlist.strategyRediscover',
+    descriptionKey: 'playlistForm.strategyRediscoverDesc',
   },
 ] as const
 
 export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) {
+  const { t } = useI18n()
   const [name, setName] = useState(playlist?.name ?? '')
   const [strategy, setStrategy] = useState(playlist?.strategy ?? 'weekly_digest')
   const [schedule, setSchedule] = useState(playlist?.schedule ?? '0 8 * * 1')
@@ -53,15 +59,15 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) {
-      setError('Name is required')
+      setError(t('playlistForm.nameRequired'))
       return
     }
     if (strategy === 'genre_focus' && !genre.trim()) {
-      setError('Genre is required for Genre Focus strategy')
+      setError(t('playlistForm.genreRequired'))
       return
     }
     if (strategy === 'mood_mix' && !mood.trim()) {
-      setError('Mood is required for Mood Mix strategy')
+      setError(t('playlistForm.moodRequired'))
       return
     }
     setError(null)
@@ -94,7 +100,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
       onClick={onCancel}
       role="dialog"
       aria-modal="true"
-      aria-label={isEdit ? 'Edit playlist' : 'Create playlist'}
+      aria-label={isEdit ? t('playlistForm.dialogEdit') : t('playlistForm.dialogCreate')}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content panel */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop-propagation prevents backdrop dismiss */}
@@ -104,7 +110,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-lg font-semibold text-text">
-            {isEdit ? 'Edit Playlist' : 'Create Playlist'}
+            {isEdit ? t('playlistForm.titleEdit') : t('playlistForm.titleCreate')}
           </h2>
 
           {error && (
@@ -116,14 +122,14 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           {/* Name */}
           <div>
             <label htmlFor="playlist-name" className="block text-sm font-medium text-text mb-1">
-              Name
+              {t('subscriptionForm.name')}
             </label>
             <input
               id="playlist-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Weekly Mix"
+              placeholder={t('playlistForm.namePlaceholder')}
               className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
             />
           </div>
@@ -131,7 +137,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           {/* Strategy */}
           <div>
             <label htmlFor="playlist-strategy" className="block text-sm font-medium text-text mb-1">
-              Strategy
+              {t('playlistForm.strategy')}
             </label>
             <select
               id="playlist-strategy"
@@ -141,7 +147,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
             >
               {STRATEGIES.map((s) => (
                 <option key={s.value} value={s.value}>
-                  {s.label} -- {s.description}
+                  {t(s.labelKey)} -- {t(s.descriptionKey)}
                 </option>
               ))}
             </select>
@@ -151,14 +157,14 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           {strategy === 'genre_focus' && (
             <div>
               <label htmlFor="playlist-genre" className="block text-sm font-medium text-text mb-1">
-                Genre
+                {t('subscriptionForm.genre')}
               </label>
               <input
                 id="playlist-genre"
                 type="text"
                 value={genre}
                 onChange={(e) => setGenre(e.target.value)}
-                placeholder="shoegaze"
+                placeholder={t('subscriptionForm.genrePlaceholder')}
                 className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
               />
             </div>
@@ -168,14 +174,14 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           {strategy === 'mood_mix' && (
             <div>
               <label htmlFor="playlist-mood" className="block text-sm font-medium text-text mb-1">
-                Mood
+                {t('playlistForm.mood')}
               </label>
               <input
                 id="playlist-mood"
                 type="text"
                 value={mood}
                 onChange={(e) => setMood(e.target.value)}
-                placeholder="late night driving"
+                placeholder={t('playlistForm.moodPlaceholder')}
                 className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
               />
             </div>
@@ -184,7 +190,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           {/* Track count */}
           <div>
             <label htmlFor="playlist-size" className="block text-sm font-medium text-text mb-1">
-              Track count
+              {t('playlistForm.trackCount')}
             </label>
             <input
               id="playlist-size"
@@ -208,7 +214,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
                 className="rounded border-border"
               />
               <label htmlFor="playlist-use-schedule" className="text-sm font-medium text-text">
-                Schedule automatic generation
+                {t('playlistForm.scheduleAutomaticGeneration')}
               </label>
             </div>
             {useSchedule && (
@@ -228,7 +234,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
               className="rounded border-border"
             />
             <label htmlFor="playlist-enabled" className="text-sm text-text">
-              Enabled
+              {t('common.enabled')}
             </label>
           </div>
 
@@ -239,14 +245,14 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
               onClick={onCancel}
               className="px-4 py-2 text-sm text-muted hover:text-text border border-border rounded"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-4 py-2 text-sm bg-accent text-accent-fg rounded font-medium hover:opacity-90 disabled:opacity-60"
             >
-              {submitting ? 'Saving...' : isEdit ? 'Save' : 'Create'}
+              {submitting ? t('settings.saving') : isEdit ? t('common.save') : t('common.create')}
             </button>
           </div>
         </form>

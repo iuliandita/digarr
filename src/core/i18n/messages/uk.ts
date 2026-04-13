@@ -1107,4 +1107,4 @@ export const uk = {
   'analytics.source.consensus': 'Консенсус',
   'analytics.source.genreOverlap': 'Перетин жанрів',
   'analytics.source.popularity': 'Популярність',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

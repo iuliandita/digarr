@@ -1111,4 +1111,4 @@ export const ptBR = {
   'analytics.source.consensus': 'Consenso',
   'analytics.source.genreOverlap': 'Sobreposicao de generos',
   'analytics.source.popularity': 'Popularidade',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

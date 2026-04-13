@@ -6,6 +6,7 @@ import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '@/web/App'
 import { AuthGate } from '@/web/components/auth-gate'
+import { LanguageSwitcher } from '@/web/components/language-switcher'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -137,7 +138,11 @@ vi.mock('@/web/pages/playlist-detail', () => ({
 }))
 vi.mock('@/web/pages/playlists', () => ({ PlaylistsPage: () => <div>playlists</div> }))
 vi.mock('@/web/pages/search', () => ({ SearchPage: () => <div>search</div> }))
-vi.mock('@/web/pages/settings', async (importOriginal) => importOriginal())
+vi.mock('@/web/pages/settings', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/web/pages/settings')>('@/web/pages/settings')
+  return actual
+})
 vi.mock('@/web/pages/setup', () => ({ SetupWizard: () => <div>setup</div> }))
 vi.mock('@/web/pages/subscriptions', () => ({ default: () => <div>subscriptions</div> }))
 vi.mock('@/web/pages/user-management', () => ({
@@ -308,6 +313,15 @@ describe('language switcher surfaces', () => {
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
   })
 
+  it('translates the language switcher label for the active locale', () => {
+    mockGetStoredLocale.mockReturnValue('fr')
+
+    renderWithProviders(<LanguageSwitcher value="fr" onChange={vi.fn()} />)
+
+    expect(screen.getByText('Langue')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Langue' })).toBeInTheDocument()
+  })
+
   it('persists authenticated locale changes without snapping back to stale account data', async () => {
     mockGetStoredToken.mockReturnValue('token')
     const userRequest = deferred<{
@@ -334,7 +348,7 @@ describe('language switcher surfaces', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Language')).toHaveValue('de')
+      expect(switcher).toHaveValue('de')
     })
 
     localeRequest.resolve({ success: true, preferredLocale: 'de' })
@@ -343,7 +357,7 @@ describe('language switcher surfaces', () => {
       expect(mockUpdatePreferredLocale.mock.calls[0]?.[0]).toBe('de')
     })
     await waitFor(() => {
-      expect(screen.getByLabelText('Language')).toHaveValue('de')
+      expect(switcher).toHaveValue('de')
     })
   })
 })

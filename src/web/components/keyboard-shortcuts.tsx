@@ -1,22 +1,33 @@
-import { useEffect } from 'react'
+import { type KeyboardEvent as ReactKeyboardEvent, useEffect } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
+import { useI18n } from '@/web/lib/i18n'
 
 type KeyboardShortcutsProps = {
   open: boolean
   onClose: () => void
 }
 
-const SHORTCUTS: { key: string; label: string }[] = [
-  { key: 'j', label: 'Next card' },
-  { key: 'k', label: 'Previous card' },
-  { key: 'a', label: 'Approve focused card' },
-  { key: 'r', label: 'Reject focused card' },
-  { key: 'd', label: 'Open / close detail view' },
-  { key: '?', label: 'Show / hide shortcuts' },
-  { key: '\u2190', label: 'Previous card (stack view)' },
-  { key: '\u2192', label: 'Next card (stack view)' },
+const SHORTCUTS: { key: string; labelKey: MessageKey }[] = [
+  { key: 'j', labelKey: 'keyboardShortcuts.nextCard' },
+  { key: 'k', labelKey: 'keyboardShortcuts.previousCard' },
+  { key: 'a', labelKey: 'keyboardShortcuts.approveFocusedCard' },
+  { key: 'r', labelKey: 'keyboardShortcuts.rejectFocusedCard' },
+  { key: 'd', labelKey: 'keyboardShortcuts.toggleDetailView' },
+  { key: '?', labelKey: 'keyboardShortcuts.toggleShortcuts' },
+  { key: '\u2190', labelKey: 'keyboardShortcuts.previousCardStack' },
+  { key: '\u2192', labelKey: 'keyboardShortcuts.nextCardStack' },
 ]
 
 export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
+  const { t } = useI18n()
+
+  function onBackdropKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onClose()
+    }
+  }
+
   // Close on Escape (handled in hook, but belt-and-suspenders here)
   useEffect(() => {
     if (!open) return
@@ -33,28 +44,30 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
   if (!open) return null
 
   return (
-    /* Full-screen backdrop as a button so click-outside closes the dialog */
-    <button
-      type="button"
+    /* Full-screen backdrop so click-outside closes the dialog */
+    /* biome-ignore lint/a11y/useSemanticElements: backdrop cannot be a real button because the dialog contains buttons */
+    <div
+      role="button"
+      tabIndex={0}
       className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 backdrop-blur-sm w-full cursor-default"
       onClick={onClose}
-      aria-label="Close shortcuts overlay"
+      onKeyDown={onBackdropKeyDown}
     >
       {/* Dialog card -- stop propagation so clicking inside doesn't close */}
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Keyboard shortcuts"
+        aria-label={t('keyboardShortcuts.title')}
         className="bg-surface border border-border rounded-xl shadow-xl p-6 w-full max-w-md mx-4 cursor-auto"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-text">Keyboard Shortcuts</h2>
+          <h2 className="text-base font-semibold text-text">{t('keyboardShortcuts.title')}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('keyboardShortcuts.close')}
             className="p-1 text-muted hover:text-text transition-colors"
           >
             <svg
@@ -75,20 +88,20 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
-          {SHORTCUTS.map(({ key, label }) => (
+          {SHORTCUTS.map(({ key, labelKey }) => (
             <div key={key} className="flex items-center justify-between gap-3">
               <kbd className="shrink-0 inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 text-xs font-mono bg-bg border border-border rounded text-text">
                 {key}
               </kbd>
-              <span className="text-xs text-muted text-right leading-tight">{label}</span>
+              <span className="text-xs text-muted text-right leading-tight">{t(labelKey)}</span>
             </div>
           ))}
         </div>
 
         <p className="mt-5 text-micro text-muted text-center">
-          Shortcuts are disabled when a text field is focused.
+          {t('keyboardShortcuts.disabledWhileTyping')}
         </p>
       </div>
-    </button>
+    </div>
   )
 }

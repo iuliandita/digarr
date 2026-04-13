@@ -65,9 +65,9 @@ export function HygieneSection() {
     try {
       const result = await runHygieneTool(tool.id, tool.params)
       setResults((prev) => ({ ...prev, [tool.id]: result }))
-      toast.success(`${t(tool.nameKey)} completed`)
+      toast.success(`${t(tool.nameKey)} ${t('common.done').toLowerCase()}`)
     } catch {
-      toast.error(`${t(tool.nameKey)} failed`)
+      toast.error(`${t(tool.nameKey)} ${t('common.failed').toLowerCase()}`)
     } finally {
       setRunning(null)
     }
@@ -97,8 +97,9 @@ export function HygieneSection() {
             )}
             {tool.id === 'ai-audit' && auditStatus?.inProgress && (
               <p className="text-xs text-muted mt-1">
-                Auto-fix in progress... ({auditStatus.fixedIds.length}/
-                {auditStatus.flaggedIds.length} fixed)
+                {t('admin.autoFixInProgress')
+                  .replace('{0}', String(auditStatus.fixedIds.length))
+                  .replace('{1}', String(auditStatus.flaggedIds.length))}
               </p>
             )}
           </div>

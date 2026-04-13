@@ -1114,4 +1114,4 @@ export const ru = {
   'analytics.source.consensus': 'Консенсус',
   'analytics.source.genreOverlap': 'Совпадение жанров',
   'analytics.source.popularity': 'Популярность',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

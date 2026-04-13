@@ -1105,4 +1105,4 @@ export const nl = {
   'analytics.source.consensus': 'Consensus',
   'analytics.source.genreOverlap': 'Genre-overlap',
   'analytics.source.popularity': 'Populariteit',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

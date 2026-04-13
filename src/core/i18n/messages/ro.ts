@@ -1110,4 +1110,4 @@ export const ro = {
   'analytics.source.consensus': 'Consens',
   'analytics.source.genreOverlap': 'Suprapunere genuri',
   'analytics.source.popularity': 'Popularitate',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

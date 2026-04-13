@@ -1,4 +1,6 @@
 import { DEFAULT_LOCALE, normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
+import { getMessages } from '@/core/i18n/messages'
+import type { MessageCatalog } from '@/core/i18n/messages/types'
 
 export function parseAcceptLanguage(input?: string | null): SupportedLocale | null {
   const value = input?.trim()
@@ -35,4 +37,12 @@ export function resolveRequestLocale(input: {
     parseAcceptLanguage(input.acceptLanguage) ??
     DEFAULT_LOCALE
   )
+}
+
+export function resolveRequestMessages(input: {
+  userPreferredLocale?: string | null
+  requestLocale?: string | null
+  acceptLanguage?: string | null
+}): MessageCatalog {
+  return getMessages(resolveRequestLocale(input))
 }

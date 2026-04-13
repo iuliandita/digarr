@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveRequestLocale } from '@/server/locale'
+import { resolveRequestLocale, resolveRequestMessages } from '@/server/locale'
 
 describe('resolveRequestLocale', () => {
   it('prefers the explicit request locale over the saved user locale', () => {
@@ -30,5 +30,17 @@ describe('resolveRequestLocale', () => {
         acceptLanguage: 'xx-YY;q=0.9,*;q=0.1',
       }),
     ).toBe('en')
+  })
+})
+
+describe('resolveRequestMessages', () => {
+  it('returns locale-specific messages for the resolved request locale', () => {
+    const messages = resolveRequestMessages({
+      userPreferredLocale: 'fr',
+      requestLocale: null,
+      acceptLanguage: null,
+    })
+
+    expect(messages['auth.signIn']).toBe('Se connecter')
   })
 })

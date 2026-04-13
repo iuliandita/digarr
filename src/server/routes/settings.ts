@@ -18,6 +18,7 @@ function isCloudMetadata(url: string): boolean {
 }
 
 import type { AppDependencies } from '@/server'
+import { resolveRequestMessages } from '@/server/locale'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
 
@@ -335,6 +336,10 @@ export function settingsRoutes(deps: AppDependencies) {
   })
 
   router.post('/api/settings/test/:service', async (c) => {
+    const messages = resolveRequestMessages({
+      requestLocale: c.req.header('X-Digarr-Locale'),
+      acceptLanguage: c.req.header('Accept-Language'),
+    })
     const service = c.req.param('service')
     const body = await c.req.json()
     const testUserId = c.get('userId')
@@ -348,7 +353,7 @@ export function settingsRoutes(deps: AppDependencies) {
         c.get('legacyTokenAuth'),
       )
       if (!isAdmin) {
-        return c.json({ success: false, message: 'Admin access required' }, 403)
+        return c.json({ success: false, message: messages['common.adminAccessRequired'] }, 403)
       }
     }
 

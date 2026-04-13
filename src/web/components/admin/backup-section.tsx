@@ -6,7 +6,7 @@ import { ApiError, downloadBackup, getLastAutoBackup, restoreBackupApi } from '@
 import { useI18n } from '@/web/lib/i18n'
 
 export function BackupSection() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const [includeCaches, setIncludeCaches] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -45,7 +45,9 @@ export function BackupSection() {
       } else {
         const total = Object.values(result.tablesRestored).reduce((a, b) => a + b, 0)
         toast.success(
-          `Restored ${total} rows across ${Object.keys(result.tablesRestored).length} tables`,
+          t('admin.restoreSummary')
+            .replace('{0}', String(total))
+            .replace('{1}', String(Object.keys(result.tablesRestored).length)),
         )
         if (result.warnings.length > 0) {
           toast.warning(result.warnings.join('; '))
@@ -73,7 +75,7 @@ export function BackupSection() {
     try {
       const result = await restoreBackupApi(confirmRestore.file, true)
       const total = Object.values(result.tablesRestored).reduce((a, b) => a + b, 0)
-      toast.success(`Restored ${total} rows. Re-enter credentials for encrypted fields.`)
+      toast.success(t('admin.restoreSummaryForce').replace('{0}', String(total)))
     } catch {
       toast.error(t('admin.restoreFailed'))
     } finally {
@@ -108,7 +110,7 @@ export function BackupSection() {
 
       {lastAuto && (
         <p className="text-xs text-muted">
-          Last auto-backup: {new Date(lastAuto.createdAt).toLocaleString()}
+          {t('admin.lastAutoBackup')} {new Date(lastAuto.createdAt).toLocaleString(locale)}
         </p>
       )}
 
@@ -132,10 +134,13 @@ export function BackupSection() {
       {confirmRestore?.mismatch && (
         <ConfirmDialog
           title={t('admin.encryptionMismatch')}
-          message={`The backup was created with a different encryption key. ${
+          message={`${t('admin.encryptionMismatchMessage')} ${
             confirmRestore.affectedFields?.length
-              ? `These fields will need re-entry: ${confirmRestore.affectedFields.join(', ')}`
-              : 'Some encrypted fields may need re-entry.'
+              ? t('admin.encryptionMismatchAffected').replace(
+                  '{0}',
+                  confirmRestore.affectedFields.join(', '),
+                )
+              : t('admin.encryptionMismatchFallback')
           }`}
           confirmLabel={restoring ? t('admin.restoring') : t('admin.restoreAnyway')}
           destructive

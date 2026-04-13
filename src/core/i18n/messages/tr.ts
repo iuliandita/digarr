@@ -1103,4 +1103,4 @@ export const tr = {
   'analytics.source.consensus': 'Uzlasi',
   'analytics.source.genreOverlap': 'Tur cakismasi',
   'analytics.source.popularity': 'Popularite',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

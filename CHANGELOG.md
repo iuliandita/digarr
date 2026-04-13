@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+## v0.26.4 - 2026-04-13
+
+### Fixed
+
+- Remaining shared UI forms, dialogs, and admin surfaces now use locale catalogs instead of hardcoded English copy
+- Settings and subscription server errors now resolve through the active request locale instead of leaking raw English into localized screens
+- Shipped locale catalogs now pass stricter translation-quality checks, including same-as-English detection and corrected native orthography for languages that use accents or diacritics
+
 ## v0.26.3 - 2026-04-13
 
 ### Changed

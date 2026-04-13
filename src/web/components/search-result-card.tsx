@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import type { SearchResult } from '../lib/api'
 import { quickDiscover } from '../lib/api'
 import { GENRE_COLORS } from '../lib/constants'
+import { useI18n } from '../lib/i18n'
 import { usePreviewContext } from '../lib/preview-context'
 import { cn } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
@@ -25,6 +26,7 @@ type SearchResultCardProps = {
 }
 
 export function SearchResultCard({ result }: SearchResultCardProps) {
+  const { t } = useI18n()
   const { play, stop, currentMbid, playing } = usePreviewContext()
   const [queuing, setQueuing] = useState(false)
   const [queued, setQueued] = useState(false)
@@ -59,9 +61,9 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
     try {
       await quickDiscover(result.name)
       setQueued(true)
-      toast.success(`${result.name} added to discovery queue`)
+      toast.success(t('searchResultCard.queuedSuccess').replace('{0}', result.name))
     } catch {
-      toast.error(`Failed to queue ${result.name}`)
+      toast.error(t('searchResultCard.queuedFailure').replace('{0}', result.name))
     } finally {
       setQueuing(false)
     }
@@ -84,12 +86,12 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
           <div className="flex items-center gap-1 shrink-0">
             {result.inLibrary && (
               <span className="text-micro px-1.5 py-0.5 rounded bg-approve/15 text-approve font-medium">
-                Library
+                {t('discover.inLibrary')}
               </span>
             )}
             {(result.inRecommendations || queued) && !result.inLibrary && (
               <span className="text-micro px-1.5 py-0.5 rounded bg-info/15 text-info font-medium">
-                In queue
+                {t('genreDetail.inQueue')}
               </span>
             )}
           </div>
@@ -144,7 +146,9 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
 
           {typeof result.popularity === 'number' && (
             <span className="text-micro px-1.5 py-0.5 rounded bg-border text-muted font-medium">
-              {result.popularity}% pop
+              {t('searchResultCard.popularity')
+                .replace('{0}', String(result.popularity))
+                .replace('{1}', '%')}
             </span>
           )}
         </div>
@@ -156,10 +160,10 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               type="button"
               onClick={handlePreview}
               className="flex items-center gap-1 text-micro-lg text-muted hover:text-text transition-colors"
-              title={isPlaying ? 'Stop preview' : 'Preview'}
+              title={isPlaying ? t('recommendation.stopPreview') : t('recommendation.playPreview')}
             >
               {isPlaying ? <Pause size={12} /> : <Play size={12} />}
-              {isPlaying ? 'Stop' : 'Preview'}
+              {isPlaying ? t('recommendation.stopPreview') : t('recommendation.playPreview')}
             </button>
           )}
 
@@ -169,10 +173,10 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               onClick={handleQuickDiscover}
               disabled={queuing}
               className="flex items-center gap-1 text-micro-lg text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
-              title="Add to discovery queue"
+              title={t('searchResultCard.addToQueue')}
             >
               <Zap size={12} />
-              {queuing ? 'Queuing...' : 'Quick Discover'}
+              {queuing ? t('searchResultCard.queuing') : t('jobHistory.quickDiscover')}
             </button>
           )}
         </div>

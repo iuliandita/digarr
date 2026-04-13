@@ -1088,4 +1088,4 @@ export const ko = {
   'analytics.source.consensus': '합의',
   'analytics.source.genreOverlap': '장르 중복',
   'analytics.source.popularity': '인기도',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

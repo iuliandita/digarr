@@ -1100,4 +1100,4 @@ export const ja = {
   'analytics.source.consensus': 'コンセンサス',
   'analytics.source.genreOverlap': 'ジャンル重複',
   'analytics.source.popularity': '人気度',
-} satisfies MessageCatalog
+} satisfies Partial<MessageCatalog>

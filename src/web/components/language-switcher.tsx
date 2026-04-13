@@ -4,6 +4,7 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from '@/core/i18n/locales'
+import { useI18n } from '@/web/lib/i18n'
 
 export function LanguageSwitcher({
   value,
@@ -12,11 +13,13 @@ export function LanguageSwitcher({
   value: SupportedLocale
   onChange: (value: SupportedLocale) => void
 }) {
+  const { t } = useI18n()
+
   return (
     <label className="flex items-center gap-2 text-sm text-muted">
-      <span>Language</span>
+      <span>{t('common.language')}</span>
       <select
-        aria-label="Language"
+        aria-label={t('common.language')}
         value={value}
         onChange={(e) => onChange(resolveSupportedLocale(e.target.value))}
         className="rounded-md border border-border bg-surface px-2 py-1 text-text"

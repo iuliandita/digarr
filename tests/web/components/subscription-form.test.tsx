@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+// @vitest-environment jsdom
+
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SubscriptionForm } from '@/web/components/subscription-form'
@@ -158,6 +160,27 @@ describe('SubscriptionForm discovery mode support', () => {
         }),
       )
     })
+  })
+
+  it('renders translated chrome for italian locale', () => {
+    localStorage.setItem('digarr-locale', 'it')
+
+    render(
+      <I18nProvider>
+        <SubscriptionForm
+          mode="create"
+          configuredSources={[]}
+          onCancel={() => {}}
+          onSubmit={vi.fn(async () => undefined)}
+          discoveryModes={discoveryModes}
+        />
+      </I18nProvider>,
+    )
+
+    expect(screen.getByRole('dialog', { name: 'Crea abbonamento' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Nome')).toBeInTheDocument()
+    expect(screen.getByLabelText('Tipo di sorgente')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Crea' })).toBeInTheDocument()
   })
 
   it('preserves an existing advanced discovery-mode subscription when editing', async () => {

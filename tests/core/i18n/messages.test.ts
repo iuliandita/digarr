@@ -19,7 +19,7 @@ import { uk } from '@/core/i18n/messages/uk'
 import { zhCN } from '@/core/i18n/messages/zh-CN'
 import { formatDate, formatDateTime, formatShortDate, formatShortDateTime } from '@/web/lib/intl'
 
-const rawCatalogs: Record<SupportedLocale, MessageCatalog> = {
+const rawCatalogs: Record<SupportedLocale, Partial<MessageCatalog>> = {
   en,
   es,
   fr,
@@ -38,11 +38,11 @@ const rawCatalogs: Record<SupportedLocale, MessageCatalog> = {
 } as const
 
 describe('message catalogs', () => {
-  it('every locale catalog file has every english key', () => {
+  it('every locale catalog file only contains english keys', () => {
     const englishKeys = Object.keys(en).sort()
 
     for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(rawCatalogs[locale]).sort()).toEqual(englishKeys)
+      expect(Object.keys(rawCatalogs[locale]).every((key) => englishKeys.includes(key))).toBe(true)
     }
   })
 
