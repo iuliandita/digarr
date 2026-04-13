@@ -76,6 +76,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       enabled: false,
       fallbackUsed: false,
       providerPath: [],
+      reason: 'This mode is not implemented yet.',
     })
     expect(evaluateDiscoveryModeAvailability('labels', snapshot)).toMatchObject({
       enabled: false,
