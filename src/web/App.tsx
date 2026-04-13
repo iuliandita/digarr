@@ -455,7 +455,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     {
                       to: '/discover/modes',
                       end: true,
-                      label: t('discover.discoveryModes'),
+                      label: t('nav.discoveryModes'),
                       icon: <Compass size={14} />,
                     },
                     { to: '/genres', label: t('nav.genres'), icon: <Music size={14} /> },
@@ -582,7 +582,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <span className="flex items-center gap-1.5">
                   <Compass size={14} aria-hidden="true" />
-                  {t('discover.discoveryModes')}
+                  {t('nav.discoveryModes')}
                 </span>
               </NavLink>
               <NavLink

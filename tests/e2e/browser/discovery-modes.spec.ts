@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test'
+import { getMessages } from '@/core/i18n/messages'
 import { ensureAdminToken, installAuthToken } from './auth'
 
 test('runs a discovery mode manually and saves one as a subscription', async ({ page }) => {
-  const token = await ensureAdminToken(page.request, { completeSetup: true })
+  const locale = 'ru'
+  const messages = getMessages(locale)
+  const token = await ensureAdminToken(page.request, { completeSetup: true, preferredLocale: locale })
   expect(token).toBeTruthy()
   if (!token) return
 
@@ -62,7 +65,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           enabled: false,
           fallbackUsed: false,
           providerPath: [],
-          reason: 'This mode is not shipped yet.',
+          reason: 'This mode is not implemented yet.',
         },
         easyFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
@@ -98,7 +101,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
           enabled: false,
           fallbackUsed: false,
           providerPath: [],
-          reason: 'This mode is not shipped yet.',
+          reason: 'This mode is not implemented yet.',
         },
         easyFields: [
           { key: 'seedArtists', label: 'Seed artists', type: 'multiselect', required: true },
@@ -161,30 +164,46 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await installAuthToken(page, token)
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Discover' }).click()
-  await page.getByRole('menuitem', { name: 'Discovery Modes' }).click()
+  await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
+  await page.getByRole('menuitem', { name: messages['nav.discoveryModes'] }).click()
   await expect(page).toHaveURL('/discover/modes')
-  await expect(page.getByRole('heading', { name: 'Discovery Modes' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Recommendations' })).toBeVisible()
-  await page.getByRole('button', { name: 'Discover', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Discover', exact: true })).toHaveClass(
+  await expect(page.getByRole('heading', { name: messages['discover.discoveryModes'] })).toBeVisible()
+  await expect(page.getByRole('link', { name: messages['nav.recommendations'] })).toBeVisible()
+  await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
+  await expect(page.getByRole('button', { name: messages['nav.discover'], exact: true })).toHaveClass(
     /text-accent/,
   )
-  await expect(page.getByRole('menuitem', { name: 'Recommendations' })).toHaveClass(/text-text/)
-  await expect(page.getByRole('menuitem', { name: 'Discovery Modes' })).toHaveClass(/text-accent/)
-  await expect(page.getByRole('heading', { name: 'ListenBrainz' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Release Radar' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Artist Relationships' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Similar Artist Web' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Labels' })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: messages['nav.recommendations'] })).toHaveClass(
+    /text-text/,
+  )
+  await expect(page.getByRole('menuitem', { name: messages['nav.discoveryModes'] })).toHaveClass(
+    /text-accent/,
+  )
+  await expect(
+    page.getByRole('heading', { name: messages['discoveryMode.listenbrainz.label'] }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: messages['discoveryMode.release-radar.label'] }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: messages['discoveryMode.artist-relationships.label'] }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: messages['discoveryMode.similar-artist-web.label'] }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: messages['discoveryMode.labels.label'] }),
+  ).toBeVisible()
+  await expect(page.getByText(messages['discoveryMode.reason.notImplementedYet'])).toHaveCount(2)
 
   const releaseRadarCard = page
-    .getByRole('heading', { name: 'Release Radar' })
+    .getByRole('heading', { name: messages['discoveryMode.release-radar.label'] })
     .locator('xpath=ancestor::article[1]')
-  await releaseRadarCard.getByLabel('Release window').fill('14')
-  await releaseRadarCard.getByRole('button', { name: 'Run discovery' }).click()
-  await expect(page.getByText(/discovery run started/i)).toBeVisible()
-  await expect(page.getByText(/check dashboard for progress/i)).toBeVisible()
+  await releaseRadarCard.getByLabel(messages['discoveryMode.field.releaseWindow']).fill('14')
+  await releaseRadarCard
+    .getByRole('button', { name: messages['discoveryMode.runDiscovery'] })
+    .click()
+  await expect(page.getByText(messages['discover.discoveryRunStarted'])).toBeVisible()
   expect(runRequestBody).toEqual({
     modeId: 'release-radar',
     settingsMode: 'easy',
@@ -195,11 +214,11 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   })
 
   await page.goto('/subscriptions')
-  await page.getByRole('button', { name: 'New' }).click()
+  await page.getByRole('button', { name: messages['subscriptions.new'] }).click()
   await page.getByLabel('Name').fill('Radar Weekly')
   await page.getByLabel('Source Type').selectOption('discovery-mode')
   await page.getByLabel('Discovery Mode').selectOption('release-radar')
-  await page.getByLabel('Release window').fill('14')
+  await page.getByLabel(messages['discoveryMode.field.releaseWindow']).fill('14')
   await page.getByRole('button', { name: 'Create' }).click()
 
   const subscriptionCard = page.locator('div.bg-surface.border.border-border.rounded-lg').filter({
