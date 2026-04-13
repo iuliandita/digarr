@@ -110,7 +110,7 @@ function NavDropdown({
 }: {
   label: string
   icon: React.ReactNode
-  items: { to: string; label: string; icon: React.ReactNode }[]
+  items: { to: string; label: string; icon: React.ReactNode; end?: boolean }[]
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -120,7 +120,9 @@ function NavDropdown({
 
   const isActive = items.some((item) => {
     const path = item.to.split('?')[0]
-    return location.pathname === path || location.pathname.startsWith(`${path}/`)
+    return item.end
+      ? location.pathname === path
+      : location.pathname === path || location.pathname.startsWith(`${path}/`)
   })
 
   return (
@@ -144,6 +146,7 @@ function NavDropdown({
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.end}
               role="menuitem"
               onClick={() => setOpen(false)}
               className={({ isActive: active }) =>
@@ -445,11 +448,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   items={[
                     {
                       to: '/discover',
+                      end: true,
                       label: t('nav.recommendations'),
                       icon: <Compass size={14} />,
                     },
                     {
                       to: '/discover/modes',
+                      end: true,
                       label: t('discover.discoveryModes'),
                       icon: <Compass size={14} />,
                     },
@@ -560,6 +565,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </NavLink>
               <NavLink
                 to="/discover"
+                end
                 className={mobileNavLinkClass}
                 onClick={() => setMenuOpen(false)}
               >
@@ -570,6 +576,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </NavLink>
               <NavLink
                 to="/discover/modes"
+                end
                 className={mobileNavLinkClass}
                 onClick={() => setMenuOpen(false)}
               >
