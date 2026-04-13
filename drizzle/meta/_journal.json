@@ -169,6 +169,13 @@
       "when": 1776105644557,
       "tag": "0023_nebulous_luckman",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1776118497463,
+      "tag": "0024_amazing_living_lightning",
+      "breakpoints": true
     }
   ]
 }

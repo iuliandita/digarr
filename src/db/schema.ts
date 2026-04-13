@@ -67,32 +67,43 @@ export const libraryHealthState = pgTable('library_health_state', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  username: text('username').unique().notNull(),
-  passwordHash: text('password_hash').notNull(),
-  isAdmin: boolean('is_admin').default(false).notNull(),
-  preferredLocale: text('preferred_locale'),
-  email: text('email'),
-  oidcSubject: text('oidc_subject'),
-  authProvider: text('auth_provider').notNull().default('local'),
-  preferences: jsonb('preferences').$type<Preferences>(),
-  listenbrainzUsername: text('listenbrainz_username'),
-  listenbrainzToken: text('listenbrainz_token'),
-  lastfmUsername: text('lastfm_username'),
-  lastfmApiKey: text('lastfm_api_key'),
-  plexUrl: text('plex_url'),
-  plexToken: text('plex_token'),
-  jellyfinUrl: text('jellyfin_url'),
-  jellyfinApiKey: text('jellyfin_api_key'),
-  jellyfinUserId: text('jellyfin_user_id'),
-  embyUrl: text('emby_url'),
-  embyApiKey: text('emby_api_key'),
-  embyUserId: text('emby_user_id'),
-  discogsToken: text('discogs_token'),
-  discogsUsername: text('discogs_username'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+export const users = pgTable(
+  'users',
+  {
+    id: serial('id').primaryKey(),
+    username: text('username').unique().notNull(),
+    passwordHash: text('password_hash').notNull(),
+    isAdmin: boolean('is_admin').default(false).notNull(),
+    preferredLocale: text('preferred_locale'),
+    email: text('email'),
+    oidcSubject: text('oidc_subject'),
+    authProvider: text('auth_provider').notNull().default('local'),
+    preferences: jsonb('preferences').$type<Preferences>(),
+    listenbrainzUsername: text('listenbrainz_username'),
+    listenbrainzToken: text('listenbrainz_token'),
+    lastfmUsername: text('lastfm_username'),
+    lastfmApiKey: text('lastfm_api_key'),
+    plexUrl: text('plex_url'),
+    plexToken: text('plex_token'),
+    jellyfinUrl: text('jellyfin_url'),
+    jellyfinApiKey: text('jellyfin_api_key'),
+    jellyfinUserId: text('jellyfin_user_id'),
+    embyUrl: text('emby_url'),
+    embyApiKey: text('emby_api_key'),
+    embyUserId: text('emby_user_id'),
+    discogsToken: text('discogs_token'),
+    discogsUsername: text('discogs_username'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    emailUniqueIdx: uniqueIndex('users_email_unique_idx')
+      .on(table.email)
+      .where(sql`${table.email} IS NOT NULL`),
+    oidcSubjectUniqueIdx: uniqueIndex('users_oidc_subject_unique_idx')
+      .on(table.oidcSubject)
+      .where(sql`${table.oidcSubject} IS NOT NULL`),
+  }),
+)
 
 export const genres = pgTable('genres', {
   id: serial('id').primaryKey(),

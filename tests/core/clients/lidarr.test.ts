@@ -315,6 +315,44 @@ describe('createLidarrClient', () => {
         },
       ])
     })
+
+    it('reads paginated wanted responses from the records array', async () => {
+      mockGet.mockResolvedValueOnce({
+        page: 1,
+        pageSize: 10,
+        totalRecords: 1,
+        records: [
+          {
+            id: 44,
+            title: 'Geogaddi',
+            artistId: 7,
+            foreignAlbumId: 'album-mbid-44',
+            artist: {
+              id: 7,
+              artistName: 'Boards of Canada',
+              foreignArtistId: '11111111-1111-1111-1111-111111111111',
+            },
+          },
+        ],
+      })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.getWantedMissing()
+
+      expect(result).toEqual([
+        {
+          id: 44,
+          title: 'Geogaddi',
+          artistId: 7,
+          foreignAlbumId: 'album-mbid-44',
+          artist: {
+            id: 7,
+            artistName: 'Boards of Canada',
+            foreignArtistId: '11111111-1111-1111-1111-111111111111',
+          },
+        },
+      ])
+    })
   })
 
   describe('updateArtist()', () => {

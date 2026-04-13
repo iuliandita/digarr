@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { getTableColumns } from 'drizzle-orm'
+import { getTableColumns, getTableName, sql } from 'drizzle-orm'
 import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
 import {
   getKeyFingerprint,
@@ -161,6 +161,7 @@ type RestoreSpec<TTable extends BackupTable> = {
   table: TTable
   clear: (tx: RestoreTx) => Promise<void>
   restore: (tx: RestoreTx, rows: Record<string, unknown>[]) => Promise<void>
+  resetSequence: (tx: RestoreTx) => Promise<void>
 }
 
 function createRestoreSpec<TTable extends BackupTable>(
@@ -186,6 +187,19 @@ function createRestoreSpec<TTable extends BackupTable>(
             set: safeRow as never,
           })
       }
+    },
+    async resetSequence(tx) {
+      const columns = getTableColumns(table)
+      const idColumn = columns.id as AnyPgColumn | undefined
+      if (!idColumn) return
+
+      await tx.execute(sql`
+        SELECT setval(
+          pg_get_serial_sequence(${`public.${getTableName(table)}`}, 'id'),
+          COALESCE((SELECT MAX(${idColumn}) FROM ${table}), 0) + 1,
+          false
+        )
+      `)
     },
   }
 }
@@ -271,6 +285,7 @@ export async function restoreBackup(
         if (!Array.isArray(rows) || rows.length === 0) continue
 
         await spec.restore(tx, rows)
+        await spec.resetSequence(tx)
         tablesRestored[spec.key] = rows.length
       }
     })

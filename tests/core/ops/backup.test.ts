@@ -137,9 +137,11 @@ function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
 function makeMockUpsertDb(): OpsDb & {
   insertCalls: Record<string, unknown[][]>
   deleteCalls: string[]
+  executeCalls: unknown[]
 } {
   const insertCalls: Record<string, unknown[][]> = {}
   const deleteCalls: string[] = []
+  const executeCalls: unknown[] = []
   const insertFn = vi.fn().mockImplementation((table: unknown) => {
     const name = getTableName(table as Parameters<typeof getTableName>[0])
     return {
@@ -159,11 +161,16 @@ function makeMockUpsertDb(): OpsDb & {
   const db = {
     insertCalls,
     deleteCalls,
+    executeCalls,
     insert: insertFn,
     delete: vi.fn().mockImplementation((table: unknown) => {
       const name = getTableName(table as Parameters<typeof getTableName>[0])
       deleteCalls.push(name)
       return Promise.resolve()
+    }),
+    execute: vi.fn().mockImplementation(async (query: unknown) => {
+      executeCalls.push(query)
+      return { rows: [] }
     }),
     select: selectFn,
     // Restore wraps everything in a transaction -- call the callback with `this`
@@ -174,6 +181,7 @@ function makeMockUpsertDb(): OpsDb & {
   return db as unknown as OpsDb & {
     insertCalls: Record<string, unknown[][]>
     deleteCalls: string[]
+    executeCalls: unknown[]
   }
 }
 
@@ -258,5 +266,14 @@ describe('restoreBackup', () => {
 
     expect(db.deleteCalls).toContain('targets')
     expect(db.deleteCalls).toContain('users')
+  })
+
+  it('repairs serial sequences after restoring explicit ids', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+
+    await restoreBackup(db, backup)
+
+    expect(db.executeCalls.length).toBeGreaterThan(0)
   })
 })

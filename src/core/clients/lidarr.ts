@@ -167,8 +167,14 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
   }
 
   async function getWantedMissing(): Promise<LidarrWantedMissing[]> {
-    const raw = await http.get<Record<string, unknown>[]>('/api/v1/wanted/missing')
-    return raw.map((album) => ({
+    const raw = await http.get<unknown>('/api/v1/wanted/missing')
+    const items = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === 'object' && Array.isArray((raw as { records?: unknown }).records)
+        ? ((raw as { records: unknown[] }).records as Record<string, unknown>[])
+        : []
+
+    return items.map((album) => ({
       id: album.id as number,
       title: album.title as string,
       artistId: album.artistId as number | undefined,

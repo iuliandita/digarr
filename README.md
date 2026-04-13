@@ -169,7 +169,7 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Manual backup:** `POST /api/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist and genre caches. The file is larger, but restores do not need to fetch that data from MusicBrainz again.
 
-**Restore:** `POST /api/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It uses natural-key upserts for cross-instance compatibility. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
+**Restore:** `POST /api/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It restores a cleared database using the backup's primary keys plus stable natural keys for cache and lookup tables where IDs are instance-specific. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
 
 **Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 5 auto-backups. Disable this with `DIGARR_AUTO_BACKUP=false`.
 
