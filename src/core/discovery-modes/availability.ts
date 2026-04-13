@@ -20,6 +20,16 @@ export type DiscoveryModeExecutionContext = {
   fallbackPolicy: 'strict' | 'allow-fallback'
 }
 
+const LISTENBRAINZ_MODE_IDS = new Set([
+  'listenbrainz',
+  'lb-artist-radio',
+  'lb-user-radio',
+  'similar-users-deep',
+  'lb-tag-radio',
+])
+
+const NOT_IMPLEMENTED_MODE_IDS = new Set(['artist-relationships', 'labels'])
+
 export function buildDiscoveryModeExecutionContext(
   availability: DiscoveryAvailabilityResult,
 ): DiscoveryModeExecutionContext {
@@ -35,16 +45,16 @@ export function evaluateDiscoveryModeAvailability(
   modeId: string,
   snapshot: DiscoveryConnectionSnapshot,
 ): DiscoveryAvailabilityResult {
-  if (modeId === 'artist-relationships' || modeId === 'labels') {
+  if (NOT_IMPLEMENTED_MODE_IDS.has(modeId)) {
     return {
       enabled: false,
       fallbackUsed: false,
       providerPath: [],
-      reason: 'This mode is not shipped yet.',
+      reason: 'This mode is not implemented yet.',
     }
   }
 
-  if (modeId === 'listenbrainz') {
+  if (LISTENBRAINZ_MODE_IDS.has(modeId)) {
     return snapshot.hasListenBrainz
       ? { enabled: true, fallbackUsed: false, providerPath: ['listenbrainz'] }
       : {
