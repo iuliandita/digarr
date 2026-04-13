@@ -5,6 +5,7 @@ import type {
   HealthCheckItem,
   HealthCheckResult,
   HealthFixProgress,
+  LibraryHealthState,
   LibraryStats,
 } from '@/core/library/types'
 import { errMsg } from '@/core/validation'
@@ -31,6 +32,15 @@ type HealthServiceDeps = {
   artistCache: {
     getAll: () => Promise<ArtistCacheEntry[]>
     updateImageUrl?: (mbid: string, imageUrl: string) => Promise<void>
+  }
+  stateStore?: {
+    get: () => Promise<LibraryHealthState | null>
+    markScanStarted: () => Promise<void>
+    save: (input: {
+      checks: HealthCheckResult[]
+      lastCompletedAt: Date
+      lastError: string | null
+    }) => Promise<void>
   }
 }
 
@@ -94,6 +104,9 @@ export class LibraryHealthService {
   startScan(): void {
     if (this._scanning) return
     this._scanning = true
+    void this.deps.stateStore?.markScanStarted().catch((err) => {
+      console.error('[library-health] failed to mark scan started:', err)
+    })
     this.runChecks()
       .catch((err) => console.error('[library-health] scan failed:', err))
       .finally(() => {
@@ -121,11 +134,21 @@ export class LibraryHealthService {
     ]
 
     this.cachedResults = results
+    const lastCompletedAt = new Date()
+    await this.deps.stateStore?.save({
+      checks: results,
+      lastCompletedAt,
+      lastError: null,
+    })
     return results
   }
 
   getLastResults(): HealthCheckResult[] | null {
     return this.cachedResults
+  }
+
+  async getState(): Promise<LibraryHealthState | null> {
+    return (await this.deps.stateStore?.get()) ?? null
   }
 
   async fixCheck(checkId: HealthCheckId): Promise<HealthFixProgress> {

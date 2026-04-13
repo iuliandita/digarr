@@ -102,6 +102,7 @@ export type AppDependencies = {
   getArtistById: (id: number) => Promise<ArtistRow | null>
   restartScheduler: (cron: string | null) => void
   restartPlaylistScheduler: () => Promise<void>
+  restartLibraryMaintenanceScheduler?: (intervalHours: number) => void
   // User query functions
   createUser: (data: {
     username: string
@@ -409,6 +410,7 @@ export function createApp(deps: AppDependencies) {
       skyhookWarmer: deps.skyhookWarmer,
       librarySync: deps.librarySync,
       librarySyncStore: deps.librarySyncStore,
+      getSettings: deps.getSettings,
       albumCoverage: deps.albumCoverage ?? {
         getCoverageForArtist: async () => {
           throw new Error('Album coverage service not configured')

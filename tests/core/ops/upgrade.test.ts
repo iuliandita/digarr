@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getPendingMigrations } from '@/core/ops/upgrade'
+import { getPendingMigrations, runPreFlightCheck } from '@/core/ops/upgrade'
+
+vi.mock('@/core/ops/backup', () => ({
+  createBackup: vi.fn(),
+}))
 
 // Mock fs for journal reading
 vi.mock('node:fs', async (importOriginal) => {
@@ -18,6 +22,7 @@ vi.mock('node:fs', async (importOriginal) => {
 })
 
 import { existsSync, readFileSync } from 'node:fs'
+import { createBackup } from '@/core/ops/backup'
 
 const mockJournal = {
   version: '7',
@@ -97,5 +102,66 @@ describe('getPendingMigrations', () => {
 
     const result = await getPendingMigrations(mockDb as never)
     expect(result.pendingCount).toBe(0)
+  })
+})
+
+describe('runPreFlightCheck', () => {
+  beforeEach(() => {
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockJournal))
+    vi.mocked(existsSync).mockReturnValue(true)
+    vi.mocked(createBackup).mockReset()
+  })
+
+  it('skips auto-backup on a fresh database with no app tables yet', async () => {
+    const mockDb = {
+      execute: vi
+        .fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ has_tables: false }] }),
+    }
+
+    const result = await runPreFlightCheck(mockDb as never)
+
+    expect(result.pendingCount).toBe(3)
+    expect(result.backupSkipped).toBe(true)
+    expect(result.backupPath).toBeNull()
+    expect(createBackup).not.toHaveBeenCalled()
+  })
+
+  it('still runs auto-backup when app tables already exist', async () => {
+    vi.mocked(createBackup).mockResolvedValue({
+      version: 1,
+      appVersion: '0.0.0-test',
+      createdAt: '2026-04-13T00:00:00.000Z',
+      encryptionKeyHash: null,
+      includesCaches: false,
+      data: {
+        settings: [],
+        users: [],
+        oauthTokens: [],
+        oidcTokens: [],
+        targets: [],
+        subscriptions: [],
+        jobRuns: [],
+        recommendationBatches: [],
+        recommendations: [],
+        playlists: [],
+        playlistTracks: [],
+      },
+    })
+
+    const mockDb = {
+      execute: vi
+        .fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ has_tables: true }] }),
+    }
+
+    const result = await runPreFlightCheck(mockDb as never)
+
+    expect(result.pendingCount).toBe(3)
+    expect(result.backupSkipped).toBe(false)
+    expect(createBackup).toHaveBeenCalledTimes(1)
+    expect(result.backupPath).toContain('pre-migrate-')
   })
 })

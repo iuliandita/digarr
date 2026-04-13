@@ -397,7 +397,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/library/health` | Admin | Health check results + scan status |
+| GET | `/api/library/health` | Admin | Health check results, persisted snapshot timestamps, last error, and configured auto-sync interval |
 | POST | `/api/library/health/scan` | Admin | Start background health scan (202) |
 | POST | `/api/library/health/:checkId/fix` | Admin | Apply fix for a health check |
 | GET | `/api/library/stats` | Admin | Library statistics |
@@ -525,7 +525,7 @@ Query params: `range` (week/month/year), `limit` (1-50).
 |--------|------|------|-------------|
 | GET | `/api/jobs` | Admin | Paginated job list |
 | GET | `/api/jobs/:id` | Admin | Single job detail |
-| GET | `/api/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, sources) |
+| GET | `/api/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources) |
 
 **GET /api/jobs** query params:
 - `type` -- `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`

@@ -189,6 +189,7 @@ export function settingsRoutes(deps: AppDependencies) {
     'lidarrUrl',
     'lidarrApiKey',
     'skipTlsVerify',
+    'librarySyncIntervalHours',
     'aiProvider',
     'aiApiKey',
     'aiModel',
@@ -223,6 +224,14 @@ export function settingsRoutes(deps: AppDependencies) {
     const body = await c.req.json()
     const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
+      if (key === 'librarySyncIntervalHours') {
+        if (!Number.isInteger(value) || (value as number) < 1 || (value as number) > 24) {
+          return c.json(
+            { error: 'librarySyncIntervalHours must be an integer between 1 and 24' },
+            400,
+          )
+        }
+      }
       if (ALL_MUTABLE_FIELDS.has(key)) {
         sanitized[key] = value
       }
@@ -312,6 +321,10 @@ export function settingsRoutes(deps: AppDependencies) {
       incomingPrefs?.playlistSchedule !== undefined
     ) {
       await deps.restartPlaylistScheduler()
+    }
+
+    if (typeof sanitized.librarySyncIntervalHours === 'number') {
+      deps.restartLibraryMaintenanceScheduler?.(sanitized.librarySyncIntervalHours)
     }
 
     const response = await buildSettingsResponse(deps, userId, isAdmin)

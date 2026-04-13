@@ -23,6 +23,7 @@ import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
 import { createAlbumCoverageService } from './core/library/album-coverage'
 import { LibraryHealthService } from './core/library/health'
+import { startLibraryHealthScheduler } from './core/library/health-scheduler'
 import { startLibrarySyncScheduler } from './core/library/scheduler'
 import { SkyHookWarmer } from './core/library/skyhook-warmer'
 import { createEmbyLibrarySource } from './core/library/sources/emby'
@@ -95,6 +96,11 @@ import {
   upsertGenre,
 } from './db/queries/genres'
 import * as jobQueries from './db/queries/jobs'
+import {
+  getLibraryHealthState,
+  markLibraryHealthScanStarted,
+  saveLibraryHealthState,
+} from './db/queries/library-health'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
   getEnabledPlaylists,
@@ -433,6 +439,12 @@ const libraryHealth = new LibraryHealthService({
     updateImageUrl: async (mbid, imageUrl) => {
       await db.update(artists).set({ imageUrl }).where(eq(artists.mbid, mbid))
     },
+  },
+  stateStore: {
+    get: () => getLibraryHealthState(db),
+    markScanStarted: () => markLibraryHealthScanStarted(db),
+    save: ({ checks, lastCompletedAt, lastError }) =>
+      saveLibraryHealthState(db, { checks, lastCompletedAt, lastError }),
   },
 })
 
@@ -1065,6 +1077,24 @@ async function restartPlaylistScheduler(): Promise<void> {
   }
 }
 
+let librarySyncCron: Cron | null = null
+let libraryHealthCron: Cron | null = null
+
+function restartLibraryMaintenanceScheduler(intervalHours: number): void {
+  librarySyncCron?.stop()
+  libraryHealthCron?.stop()
+
+  librarySyncCron = startLibrarySyncScheduler({
+    intervalHours,
+    orchestrator: librarySyncOrchestrator,
+    listUserIds: async () => (await listUsers(db)).map((u) => u.id),
+  })
+  libraryHealthCron = startLibraryHealthScheduler({
+    intervalHours,
+    libraryHealth,
+  })
+}
+
 // Lazy OIDC service getter -- reads current settings from DB on each call,
 // reconstructs the service only when the config (issuer/client/secret/scopes) changes.
 // This ensures settings-UI changes to OIDC config take effect without a restart.
@@ -1138,6 +1168,7 @@ const app = createApp({
     console.log(`Scheduler restarted with cron: ${cron}`)
   },
   restartPlaylistScheduler,
+  restartLibraryMaintenanceScheduler,
   createUser: (data) => createUser(db, data),
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
@@ -1418,16 +1449,13 @@ const server = serve({ fetch: app.fetch, port })
 
     await restartPlaylistScheduler()
 
-    // Library sync scheduler -- background, idempotent. Boot fire is non-blocking.
-    startLibrarySyncScheduler({
-      intervalHours: librarySyncIntervalHours,
-      orchestrator: librarySyncOrchestrator,
-      listUserIds: async () => (await listUsers(db)).map((u) => u.id),
-    })
-    // Fire one sync at boot so fresh installs don't wait for the first cron tick
+    // Library maintenance schedulers -- background, idempotent. Boot fire is non-blocking.
+    restartLibraryMaintenanceScheduler(librarySyncIntervalHours)
+    // Fire one sync + health scan at boot so fresh installs don't wait for the first cron tick.
     void librarySyncOrchestrator
       .syncGlobal()
       .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
+    libraryHealth.startScan()
     void slskdOrchestrator.warmup()
     new Cron('*/10 * * * *', async () => {
       try {

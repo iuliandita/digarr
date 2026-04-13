@@ -336,6 +336,10 @@ export type HealthCheckResult = {
 export type HealthCheckResponse = {
   checks: HealthCheckResult[]
   scanning: boolean
+  lastStartedAt: string | null
+  lastCompletedAt: string | null
+  lastError: string | null
+  syncIntervalHours: number
 }
 export type LibraryStats = {
   totalArtists: number
@@ -552,6 +556,10 @@ export const createTargetApi = (data: {
   name: string
   config: Record<string, unknown>
 }) => fetchApi<{ id: number }>('/targets', { method: 'POST', body: JSON.stringify(data) })
+export const updateTargetApi = (
+  id: number,
+  data: { name?: string; enabled?: boolean; config?: Record<string, unknown> },
+) => fetchApi(`/targets/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 export const deleteTargetApi = (id: number) => fetchApi(`/targets/${id}`, { method: 'DELETE' })
 export const testTargetApi = (id: number) =>
   fetchApi<{ success: boolean; message: string }>(`/targets/${id}/test`, { method: 'POST' })
@@ -1032,6 +1040,7 @@ export type JobHealth = {
   pipeline: { status: string; lastRun: string | null; nextRun: string | null }
   subscriptions: { status: string; healthy: number; total: number }
   playlists: { status: string; lastRun: string | null }
+  librarySync?: { status: string; lastRun: string | null }
   sources: Record<string, string>
 }
 

@@ -4,6 +4,17 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+### Changed
+
+- Settings now exposes `Job History` and `System Health` as first-class tabs in the shared settings shell, and the dashboard no longer carries the full system-health block at the top
+- Settings > Targets now mirrors the connections-style admin controls more closely, including inline editing, enabled/shared state, linked Lidarr context, and visible test results
+
+### Fixed
+
+- Discover > Subscriptions now uses the same content width as the other primary app pages
+- Library Health now persists the latest scan snapshot, shows last-sync timing, auto-rescans on the configured library-sync interval, and keeps a manual `Sync Now` action
+- Jobs health now includes library-sync status so the new system-health tab can surface it alongside pipeline, subscription, playlist, and source state
+
 ## v0.26.2 - 2026-04-13
 
 ### Fixed

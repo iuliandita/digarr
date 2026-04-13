@@ -14,6 +14,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import type { HealthCheckResult } from '@/core/library/types'
 
 export type DiscoveryModeProvenance = {
   modeId: string
@@ -52,6 +53,16 @@ export const settings = pgTable('settings', {
   preferences: jsonb('preferences').$type<Preferences>(),
   setupComplete: boolean('setup_complete').default(false).notNull(),
   librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const libraryHealthState = pgTable('library_health_state', {
+  id: serial('id').primaryKey(),
+  checks: jsonb('checks').$type<HealthCheckResult[]>().notNull().default([]),
+  lastStartedAt: timestamp('last_started_at', { withTimezone: true }),
+  lastCompletedAt: timestamp('last_completed_at', { withTimezone: true }),
+  lastError: text('last_error'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })

@@ -41,3 +41,10 @@ export type LibraryStats = {
   genreDistribution: Array<{ genre: string; count: number }>
   rootFolders: Array<{ path: string; freeSpace: number }>
 }
+
+export type LibraryHealthState = {
+  checks: HealthCheckResult[]
+  lastStartedAt: Date | null
+  lastCompletedAt: Date | null
+  lastError: string | null
+}

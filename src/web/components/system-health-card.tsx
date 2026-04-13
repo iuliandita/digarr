@@ -10,7 +10,16 @@ function StatusDot({ status }: { status: string }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
 }
 
-export function SystemHealthCard() {
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-bg/60 p-4">
+      <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
+      <div className="mt-1 text-lg font-semibold text-text">{value}</div>
+    </div>
+  )
+}
+
+export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
   const { locale, t } = useI18n()
   const { data, isLoading } = useQuery({
     queryKey: ['job-health'],
@@ -38,68 +47,108 @@ export function SystemHealthCard() {
 
   const sourceEntries = Object.entries(data.sources)
   const healthySources = sourceEntries.filter(([, s]) => s === 'ok').length
+  const degradedSources = sourceEntries.length - healthySources
+
+  const rows = [
+    {
+      key: 'pipeline',
+      status: data.pipeline.status,
+      label: t('systemHealth.pipeline'),
+      detail: `${t('systemHealth.lastRun')} ${formatRelativeTime(locale, data.pipeline.lastRun)}${
+        data.pipeline.nextRun
+          ? ` · ${t('systemHealth.nextRun')} ${formatUntil(data.pipeline.nextRun)}`
+          : ''
+      }`,
+    },
+    {
+      key: 'subscriptions',
+      status: data.subscriptions.status,
+      label: t('systemHealth.subscriptions'),
+      detail: `${data.subscriptions.healthy}/${data.subscriptions.total} ${t('systemHealth.healthy')}`,
+    },
+    {
+      key: 'playlists',
+      status: data.playlists.status,
+      label: t('systemHealth.playlists'),
+      detail: `${t('systemHealth.lastRun')} ${formatRelativeTime(locale, data.playlists.lastRun)}`,
+    },
+    ...(data.librarySync
+      ? [
+          {
+            key: 'library-sync',
+            status: data.librarySync.status,
+            label: t('systemHealth.librarySync'),
+            detail: `${t('systemHealth.lastRun')} ${formatRelativeTime(locale, data.librarySync.lastRun)}`,
+          },
+        ]
+      : []),
+    ...(sourceEntries.length > 0
+      ? [
+          {
+            key: 'sources',
+            status: degradedSources === 0 ? 'ok' : 'degraded',
+            label: t('systemHealth.sources'),
+            detail:
+              degradedSources === 0
+                ? `${healthySources}/${sourceEntries.length} ${t('systemHealth.healthy')}`
+                : `${healthySources}/${sourceEntries.length} ${t('systemHealth.healthy')} · ${sourceEntries
+                    .filter(([, status]) => status !== 'ok')
+                    .map(([name]) => name)
+                    .join(', ')}`,
+          },
+        ]
+      : []),
+  ]
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-text">{t('systemHealth.title')}</h3>
-        <Link to="/settings/jobs" className="text-xs text-accent hover:underline">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2
+            className={
+              embedded
+                ? 'text-sm font-semibold text-text uppercase tracking-wide'
+                : 'text-sm font-medium text-text'
+            }
+          >
+            {t('systemHealth.title')}
+          </h2>
+        </div>
+        <Link to="/settings?tab=jobs" className="text-xs text-accent hover:underline">
           {t('systemHealth.viewHistory')}
         </Link>
       </div>
-      <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <StatusDot status={data.pipeline.status} /> {t('systemHealth.pipeline')}
-          </span>
-          <span className="text-muted">
-            {t('systemHealth.lastRun')} {formatRelativeTime(locale, data.pipeline.lastRun)}
-            {data.pipeline.nextRun && (
-              <>
-                {' '}
-                &middot; {t('systemHealth.nextRun')} {formatUntil(data.pipeline.nextRun)}
-              </>
-            )}
-          </span>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard label={t('systemHealth.pipeline')} value={data.pipeline.status} />
+        <SummaryCard
+          label={t('systemHealth.subscriptions')}
+          value={`${data.subscriptions.healthy}/${data.subscriptions.total}`}
+        />
+        <SummaryCard
+          label={t('systemHealth.sources')}
+          value={`${healthySources}/${sourceEntries.length || 0}`}
+        />
+        <SummaryCard
+          label={t('systemHealth.librarySync')}
+          value={
+            data.librarySync?.lastRun ? formatRelativeTime(locale, data.librarySync.lastRun) : '--'
+          }
+        />
+      </div>
+
+      <div className="rounded-lg border border-border bg-surface">
+        <div className="divide-y divide-border">
+          {rows.map((row) => (
+            <div key={row.key} className="flex items-start justify-between gap-4 px-4 py-3">
+              <span className="flex items-center gap-2 text-sm text-text">
+                <StatusDot status={row.status} />
+                {row.label}
+              </span>
+              <span className="text-right text-xs text-muted">{row.detail}</span>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <StatusDot status={data.subscriptions.status} /> {t('systemHealth.subscriptions')}
-          </span>
-          <span className="text-muted">
-            {data.subscriptions.healthy}/{data.subscriptions.total} {t('systemHealth.healthy')}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <StatusDot status={data.playlists.status} /> {t('systemHealth.playlists')}
-          </span>
-          <span className="text-muted">
-            {t('systemHealth.lastRun')} {formatRelativeTime(locale, data.playlists.lastRun)}
-          </span>
-        </div>
-        {sourceEntries.length > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <StatusDot status={healthySources === sourceEntries.length ? 'ok' : 'degraded'} />{' '}
-              {t('systemHealth.sources')}
-            </span>
-            <span className="text-muted">
-              {healthySources}/{sourceEntries.length}
-              {sourceEntries.length > healthySources && (
-                <>
-                  {' '}
-                  &middot;{' '}
-                  {sourceEntries
-                    .filter(([, s]) => s !== 'ok')
-                    .map(([name]) => name)
-                    .join(', ')}{' '}
-                  {t('systemHealth.degraded')}
-                </>
-              )}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   )

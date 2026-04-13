@@ -77,6 +77,29 @@ function getBackupDir(): string {
   return process.env.DIGARR_BACKUP_DIR ?? join(process.cwd(), 'backups')
 }
 
+async function hasExistingAppTables(db: OpsDb): Promise<boolean> {
+  try {
+    const result = await (
+      db as unknown as {
+        execute: (q: unknown) => Promise<{ rows: Array<Record<string, unknown>> }>
+      }
+    ).execute(sql`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name IN ('settings', 'users')
+      ) AS has_tables
+    `)
+
+    const row = Array.isArray(result.rows) ? result.rows[0] : null
+    return row?.has_tables === true
+  } catch {
+    // Be conservative on query failures and keep backup enabled.
+    return true
+  }
+}
+
 function getLastAutoBackup(): MigrationStatus['lastAutoBackup'] {
   const dir = getBackupDir()
   if (!existsSync(dir)) return null
@@ -150,6 +173,16 @@ export async function runPreFlightCheck(db: OpsDb): Promise<PreFlightResult> {
     `[ops] ${status.pendingCount} pending migration(s) detected` +
       ` (current: ${status.currentVersion ?? 'none'}, target: ${status.targetVersion})`,
   )
+
+  if (status.currentVersion === null && !(await hasExistingAppTables(db))) {
+    console.log('[ops] Fresh database detected; skipping auto-backup before initial migrations')
+    return {
+      pendingCount: status.pendingCount,
+      backupPath: null,
+      backupSkipped: true,
+      backupError: null,
+    }
+  }
 
   if (!autoBackupEnabled) {
     console.log('[ops] Auto-backup disabled (DIGARR_AUTO_BACKUP=false)')

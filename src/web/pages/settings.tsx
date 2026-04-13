@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -26,6 +26,7 @@ import {
   SpotifyIcon,
   WebhookIcon,
 } from '../components/service-icons'
+import { SystemHealthCard } from '../components/system-health-card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
@@ -58,9 +59,11 @@ import {
   testTargetApi,
   testWebhook,
   updateSettings,
+  updateTargetApi,
   updateUserPreferences,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import JobHistoryPage from './job-history'
 import { UserManagementPage } from './user-management'
 
 type Settings = {
@@ -88,6 +91,7 @@ type Settings = {
   embyUserId?: string
   discogsToken?: string
   discogsUsername?: string
+  librarySyncIntervalHours?: number
   preferences?: Partial<Preferences>
   setupComplete?: boolean
   _listenbrainzScope?: 'user' | 'global'
@@ -103,6 +107,8 @@ type Tab =
   | 'auth'
   | 'users'
   | 'administration'
+  | 'jobs'
+  | 'system-health'
 
 function TabBar({
   active,
@@ -123,6 +129,8 @@ function TabBar({
     { id: 'auth', label: t('settings.tabs.authentication'), adminOnly: true },
     { id: 'users', label: t('settings.tabs.users'), adminOnly: true },
     { id: 'administration', label: t('settings.tabs.administration'), adminOnly: true },
+    { id: 'jobs', label: t('settings.tabs.jobHistory'), adminOnly: true },
+    { id: 'system-health', label: t('settings.tabs.systemHealth'), adminOnly: true },
   ]
   const tabs = allTabs.filter((tab) => !tab.adminOnly || isAdmin)
   return (
@@ -145,14 +153,6 @@ function TabBar({
           {tab.label}
         </button>
       ))}
-      {isAdmin && (
-        <Link
-          to="/settings/jobs"
-          className="px-3 sm:px-4 py-2 text-sm font-medium border-b-2 border-transparent -mb-px transition-colors whitespace-nowrap shrink-0 text-muted hover:text-text"
-        >
-          {t('settings.tabs.jobHistory')}
-        </Link>
-      )}
     </div>
   )
 }
@@ -1645,14 +1645,30 @@ function normalizeTargetConfig(
   return normalizedConfig
 }
 
+function serializeTargetConfigForForm(config: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(config)
+      .filter(([, value]) => value !== '***')
+      .map(([key, value]) => [key, typeof value === 'string' ? value : String(value)]),
+  )
+}
+
 function AddTargetDialog({
   onClose,
-  onCreated,
+  onSaved,
   targets,
+  initialTarget,
 }: {
   onClose: () => void
-  onCreated: () => void
+  onSaved: () => void
   targets: Array<{ id: number; type: string; name: string; enabled: boolean }>
+  initialTarget?: {
+    id: number
+    type: string
+    name: string
+    enabled: boolean
+    config: Record<string, unknown>
+  }
 }) {
   const { t } = useI18n()
   const targetTypes = getTargetTypes(
@@ -1661,27 +1677,40 @@ function AddTargetDialog({
       .filter((target) => target.type === 'lidarr' && target.enabled)
       .map((target) => ({ id: target.id, name: target.name })),
   )
-  const [type, setType] = useState('')
-  const [name, setName] = useState('')
-  const [config, setConfig] = useState<Record<string, string>>({})
+  const [type, setType] = useState(initialTarget?.type ?? '')
+  const [name, setName] = useState(initialTarget?.name ?? '')
+  const [enabled, setEnabled] = useState(initialTarget?.enabled ?? true)
+  const [config, setConfig] = useState<Record<string, string>>(
+    initialTarget ? serializeTargetConfigForForm(initialTarget.config) : {},
+  )
   const [saving, setSaving] = useState(false)
 
   const selectedType = targetTypes.find((tt) => tt.value === type)
+  const isEditing = Boolean(initialTarget)
 
   async function handleSave() {
     if (!type || !selectedType) return
     setSaving(true)
     try {
-      await createTargetApi({
-        type,
-        name: name || selectedType.label,
-        config: normalizeTargetConfig(type, config),
-      })
-      toast.success(t('settings.targetAdded'))
-      onCreated()
+      if (initialTarget) {
+        await updateTargetApi(initialTarget.id, {
+          name: name || selectedType.label,
+          enabled,
+          config: normalizeTargetConfig(type, config),
+        })
+        toast.success(t('settings.targetUpdated'))
+      } else {
+        await createTargetApi({
+          type,
+          name: name || selectedType.label,
+          config: normalizeTargetConfig(type, config),
+        })
+        toast.success(t('settings.targetAdded'))
+      }
+      onSaved()
       onClose()
     } catch {
-      toast.error(t('settings.targetAddFailed'))
+      toast.error(isEditing ? t('settings.targetUpdateFailed') : t('settings.targetAddFailed'))
     } finally {
       setSaving(false)
     }
@@ -1689,28 +1718,32 @@ function AddTargetDialog({
 
   return (
     <div className="rounded-lg border border-border bg-surface p-4 space-y-4">
-      <h4 className="text-sm font-medium text-text">{t('settings.addTarget')}</h4>
+      <h4 className="text-sm font-medium text-text">
+        {isEditing ? t('settings.editTarget') : t('settings.addTarget')}
+      </h4>
 
-      <div>
-        <label className="block text-xs text-muted mb-1">
-          {t('settings.type')}
-          <select
-            value={type}
-            onChange={(e) => {
-              setType(e.target.value)
-              setConfig({})
-            }}
-            className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
-          >
-            <option value="">{t('settings.selectTargetType')}</option>
-            {targetTypes.map((tt) => (
-              <option key={tt.value} value={tt.value}>
-                {tt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      {!isEditing && (
+        <div>
+          <label className="block text-xs text-muted mb-1">
+            {t('settings.type')}
+            <select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value)
+                setConfig({})
+              }}
+              className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+            >
+              <option value="">{t('settings.selectTargetType')}</option>
+              {targetTypes.map((tt) => (
+                <option key={tt.value} value={tt.value}>
+                  {tt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       {selectedType && (
         <>
@@ -1725,6 +1758,17 @@ function AddTargetDialog({
               />
             </label>
           </div>
+
+          {isEditing && (
+            <label className="flex items-center gap-2 text-sm text-text">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+              />
+              {t('common.enabled')}
+            </label>
+          )}
 
           {selectedType.fields.map((field) => (
             <div key={field.key}>
@@ -1782,7 +1826,13 @@ function AddTargetDialog({
               {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving || !type}>
-              {saving ? t('settings.adding') : t('settings.addTarget')}
+              {saving
+                ? isEditing
+                  ? t('settings.saving')
+                  : t('settings.adding')
+                : isEditing
+                  ? t('settings.saveChanges')
+                  : t('settings.addTarget')}
             </Button>
           </div>
         </>
@@ -1801,11 +1851,19 @@ function TargetsTab() {
   const isAdmin = currentUser?.isAdmin ?? false
   const [testing, setTesting] = useState<number | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [editingTargetId, setEditingTargetId] = useState<number | null>(null)
+  const [testResults, setTestResults] = useState<
+    Record<number, { success: boolean; message: string }>
+  >({})
 
   async function handleTest(id: number) {
     setTesting(id)
     try {
       const result = await testTargetApi(id)
+      setTestResults((prev) => ({
+        ...prev,
+        [id]: { success: result.success, message: result.message },
+      }))
       if (result.success) {
         toast.success(t('settings.targetTestSuccess'))
       } else {
@@ -1846,7 +1904,7 @@ function TargetsTab() {
       {addOpen && (
         <AddTargetDialog
           onClose={() => setAddOpen(false)}
-          onCreated={() => refetch()}
+          onSaved={() => refetch()}
           targets={targets ?? []}
         />
       )}
@@ -1857,13 +1915,36 @@ function TargetsTab() {
 
       {targets?.map((target) => {
         const owned = target.owned
+        const testResult = testResults[target.id]
+        const linkedLidarrTarget =
+          typeof target.config.lidarrTargetId === 'number'
+            ? targets?.find((item) => item.id === target.config.lidarrTargetId)
+            : null
         return (
-          <div key={target.id} className="rounded-lg border border-border bg-surface p-4">
+          <div key={target.id} className="rounded-lg border border-border bg-surface p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TargetTypeIcon type={target.type} />
-                <span className="text-sm font-medium text-text">{target.name}</span>
-                <span className="text-xs text-muted capitalize">({target.type})</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <TargetTypeIcon type={target.type} />
+                  <span className="text-sm font-medium text-text">{target.name}</span>
+                  <span className="text-xs text-muted capitalize">({target.type})</span>
+                  <span className="rounded-full bg-bg px-2 py-0.5 text-xs text-muted border border-border">
+                    {target.enabled ? t('common.enabled') : t('common.disabled')}
+                  </span>
+                  {testResult && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${
+                        testResult.success
+                          ? 'bg-approve/15 text-approve'
+                          : 'bg-reject/15 text-reject'
+                      }`}
+                    >
+                      {testResult.success
+                        ? t('settings.connected')
+                        : t('settings.targetTestFailed')}
+                    </span>
+                  )}
+                </div>
                 {!owned && (
                   <span className="text-xs px-1.5 py-0.5 rounded bg-bg text-muted border border-border">
                     {t('settings.shared')}
@@ -1872,6 +1953,9 @@ function TargetsTab() {
               </div>
               {owned && (
                 <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setEditingTargetId(target.id)}>
+                    {t('common.edit')}
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1892,7 +1976,24 @@ function TargetsTab() {
               )}
             </div>
             {typeof target.config.url === 'string' && (
-              <p className="text-xs text-muted mt-1">{target.config.url}</p>
+              <p className="text-xs text-muted">{target.config.url}</p>
+            )}
+            {linkedLidarrTarget && (
+              <p className="text-xs text-muted">
+                {t('settings.linkedTarget')} {linkedLidarrTarget.name}
+              </p>
+            )}
+            {testResult?.message && <p className="text-xs text-muted">{testResult.message}</p>}
+            {editingTargetId === target.id && (
+              <AddTargetDialog
+                onClose={() => setEditingTargetId(null)}
+                onSaved={() => {
+                  setEditingTargetId(null)
+                  refetch()
+                }}
+                targets={targets ?? []}
+                initialTarget={target}
+              />
             )}
           </div>
         )
@@ -2221,6 +2322,9 @@ function ScheduleTab({ settings }: { settings: Settings }) {
   const { t } = useI18n()
   const prefs = settings.preferences ?? {}
   const [cron, setCron] = useState(prefs.scheduleCron ?? '0 0 * * *')
+  const [librarySyncIntervalHours, setLibrarySyncIntervalHours] = useState(
+    String(settings.librarySyncIntervalHours ?? 6),
+  )
   const [saving, setSaving] = useState(false)
 
   const presetLabels: Record<string, string> = {
@@ -2233,7 +2337,10 @@ function ScheduleTab({ settings }: { settings: Settings }) {
   async function handleSave() {
     setSaving(true)
     try {
-      await updateSettings({ preferences: { ...prefs, scheduleCron: cron } })
+      await updateSettings({
+        preferences: { ...prefs, scheduleCron: cron },
+        librarySyncIntervalHours: Number.parseInt(librarySyncIntervalHours, 10) || 6,
+      })
       toast.success(t('settings.scheduleSaved'))
     } catch {
       toast.error(t('settings.scheduleFailed'))
@@ -2279,6 +2386,23 @@ function ScheduleTab({ settings }: { settings: Settings }) {
             className="font-mono"
           />
         </Field>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.librarySyncInterval')}
+        </h2>
+        <Field label={t('settings.librarySyncIntervalHours')} id="library-sync-interval-hours">
+          <Input
+            id="library-sync-interval-hours"
+            type="number"
+            min="1"
+            max="24"
+            value={librarySyncIntervalHours}
+            onChange={(e) => setLibrarySyncIntervalHours(e.target.value)}
+          />
+        </Field>
+        <p className="text-xs text-muted">{t('settings.librarySyncIntervalHelp')}</p>
       </section>
 
       <Button onClick={handleSave} disabled={saving}>
@@ -2612,7 +2736,7 @@ function SettingsSkeleton() {
 export function SettingsPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') as Tab | null
   const [tab, setTab] = useState<Tab>(initialTab ?? 'connections')
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
@@ -2628,6 +2752,19 @@ export function SettingsPage() {
 
   function refetch() {
     queryClient.invalidateQueries({ queryKey: ['settings'] })
+  }
+
+  useEffect(() => {
+    if (initialTab && initialTab !== tab) {
+      setTab(initialTab)
+    }
+  }, [initialTab, tab])
+
+  function handleTabChange(nextTab: Tab) {
+    setTab(nextTab)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', nextTab)
+    setSearchParams(nextParams, { replace: true })
   }
 
   if (loading) {
@@ -2653,7 +2790,7 @@ export function SettingsPage() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
-      <TabBar active={tab} onChange={setTab} isAdmin={isAdmin} />
+      <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}
       {tab === 'recommendations' && <RecommendationsTab />}
@@ -2662,6 +2799,8 @@ export function SettingsPage() {
       {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
       {tab === 'users' && <UserManagementPage />}
       {tab === 'administration' && <AdministrationTab />}
+      {tab === 'jobs' && <JobHistoryPage embedded />}
+      {tab === 'system-health' && <SystemHealthCard embedded />}
     </div>
   )
 }

@@ -6,13 +6,14 @@ import { useI18n } from '../lib/i18n'
 
 const PAGE_SIZE = 50
 
-export default function JobHistoryPage() {
+export default function JobHistoryPage({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n()
   const TABS = [
     { key: '', label: t('jobHistory.all') },
     { key: 'pipeline', label: t('jobHistory.pipeline') },
     { key: 'subscription', label: t('jobHistory.subscriptions') },
     { key: 'target', label: t('jobHistory.targets') },
+    { key: 'library_sync', label: t('jobHistory.librarySync') },
     { key: 'quick_discover', label: t('jobHistory.quickDiscover') },
     { key: 'playlist', label: t('jobHistory.playlists') },
   ]
@@ -26,8 +27,18 @@ export default function JobHistoryPage() {
   })
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-4">
-      <h1 className="text-xl font-bold text-text">{t('jobHistory.title')}</h1>
+    <div className={embedded ? 'space-y-4' : 'mx-auto max-w-6xl space-y-4 p-6'}>
+      <div>
+        <h2
+          className={
+            embedded
+              ? 'text-sm font-semibold text-text uppercase tracking-wide'
+              : 'text-xl font-bold text-text'
+          }
+        >
+          {t('jobHistory.title')}
+        </h2>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (

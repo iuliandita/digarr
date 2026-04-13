@@ -61,7 +61,6 @@ import { DiscoverPage } from './pages/discover'
 import { DiscoveryModesPage } from './pages/discovery-modes'
 import { GenreDetailPage } from './pages/genre-detail'
 import { GenresPage } from './pages/genres'
-import JobHistoryPage from './pages/job-history'
 import { LibraryHealthPage } from './pages/library-health'
 import { LibraryReconciliationPage } from './pages/library-reconciliation'
 import { PlaylistDetailPage } from './pages/playlist-detail'
@@ -735,7 +734,11 @@ function InnerApp() {
               <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/settings/jobs" element={<JobHistoryPage />} />
+              <Route path="/settings/jobs" element={<Navigate to="/settings?tab=jobs" replace />} />
+              <Route
+                path="/settings/system-health"
+                element={<Navigate to="/settings?tab=system-health" replace />}
+              />
               <Route path="/users" element={<UserManagementPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

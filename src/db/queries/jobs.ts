@@ -49,6 +49,7 @@ export type HealthSummary = {
   pipeline: { status: string; lastRun: string | null; nextRun: string | null }
   subscriptions: { status: string; healthy: number; total: number }
   playlists: { status: string; lastRun: string | null }
+  librarySync?: { status: string; lastRun: string | null }
   sources: Record<string, string>
 }
 
@@ -71,6 +72,13 @@ export async function getJobHealth(
     .select()
     .from(jobRuns)
     .where(eq(jobRuns.type, 'playlist'))
+    .orderBy(desc(jobRuns.startedAt))
+    .limit(1)
+
+  const [lastLibrarySync] = await db
+    .select()
+    .from(jobRuns)
+    .where(eq(jobRuns.type, 'library_sync'))
     .orderBy(desc(jobRuns.startedAt))
     .limit(1)
 
@@ -149,6 +157,10 @@ export async function getJobHealth(
   if (lastPlaylist?.status === 'failed') playlistStatus = 'failing'
   else if (lastPlaylist?.status === 'stuck') playlistStatus = 'degraded'
 
+  let librarySyncStatus = 'ok'
+  if (lastLibrarySync?.status === 'failed') librarySyncStatus = 'failing'
+  else if (lastLibrarySync?.status === 'stuck') librarySyncStatus = 'degraded'
+
   return {
     pipeline: {
       status: pipelineStatus,
@@ -163,6 +175,10 @@ export async function getJobHealth(
     playlists: {
       status: playlistStatus,
       lastRun: lastPlaylist?.completedAt?.toISOString() ?? null,
+    },
+    librarySync: {
+      status: librarySyncStatus,
+      lastRun: lastLibrarySync?.completedAt?.toISOString() ?? null,
     },
     sources,
   }

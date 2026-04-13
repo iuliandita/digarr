@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LidarrAlbum, LidarrArtist } from '@/core/clients/lidarr'
 import { LibraryHealthService } from '@/core/library/health'
+import type { LibraryHealthState } from '@/core/library/types'
 
 // ---------------------------------------------------------------------------
 // Mock p-queue: runs tasks immediately, no rate-limiting in tests
@@ -98,6 +99,9 @@ type MockDeps = {
   getRootFolders: ReturnType<typeof vi.fn>
   cacheGetAll: ReturnType<typeof vi.fn>
   cacheUpdateImageUrl: ReturnType<typeof vi.fn>
+  healthStateGet: ReturnType<typeof vi.fn>
+  healthStateStart: ReturnType<typeof vi.fn>
+  healthStateSave: ReturnType<typeof vi.fn>
 }
 
 function makeMocks(): MockDeps {
@@ -112,6 +116,9 @@ function makeMocks(): MockDeps {
       .mockResolvedValue([{ id: 1, path: '/music', freeSpace: 5_000_000_000 }]),
     cacheGetAll: vi.fn().mockResolvedValue([]),
     cacheUpdateImageUrl: vi.fn().mockResolvedValue(undefined),
+    healthStateGet: vi.fn(async (): Promise<LibraryHealthState | null> => null),
+    healthStateStart: vi.fn(async () => {}),
+    healthStateSave: vi.fn(async () => {}),
   }
 }
 
@@ -150,6 +157,15 @@ function makeService(mocks: MockDeps): LibraryHealthService {
         imageUrl: string,
       ) => Promise<void>,
     },
+    stateStore: {
+      get: mocks.healthStateGet as unknown as () => Promise<LibraryHealthState | null>,
+      markScanStarted: mocks.healthStateStart as unknown as () => Promise<void>,
+      save: mocks.healthStateSave as unknown as (input: {
+        checks: LibraryHealthState['checks']
+        lastCompletedAt: Date
+        lastError: string | null
+      }) => Promise<void>,
+    },
   })
 }
 
@@ -165,6 +181,54 @@ describe('LibraryHealthService', () => {
     mocks = makeMocks()
     service = makeService(mocks)
     vi.clearAllMocks()
+  })
+
+  describe('state persistence', () => {
+    it('persists the computed snapshot and exposes it via getState', async () => {
+      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_BJORK])
+      mocks.cacheGetAll.mockResolvedValue([
+        {
+          id: 1,
+          mbid: ARTIST_RADIOHEAD.foreignArtistId,
+          name: 'Radiohead',
+          genres: ['rock'],
+          tags: null,
+          imageUrl: 'http://img',
+          streamingUrls: null,
+        },
+      ])
+
+      const savedStates: LibraryHealthState[] = []
+      mocks.healthStateSave.mockImplementation(
+        async ({
+          checks,
+          lastCompletedAt,
+          lastError,
+        }: {
+          checks: LibraryHealthState['checks']
+          lastCompletedAt: Date
+          lastError: string | null
+        }) => {
+          savedStates.push({
+            checks,
+            lastStartedAt: new Date('2026-04-13T10:00:00.000Z'),
+            lastCompletedAt,
+            lastError,
+          })
+        },
+      )
+      mocks.healthStateGet.mockImplementation(async () => savedStates.at(-1) ?? null)
+
+      await service.runChecks()
+      const state = await service.getState()
+
+      expect(mocks.healthStateSave).toHaveBeenCalledTimes(1)
+      expect(state).not.toBeNull()
+      expect(state?.lastStartedAt?.toISOString()).toBe('2026-04-13T10:00:00.000Z')
+      expect(state?.lastCompletedAt).toBeInstanceOf(Date)
+      expect(state?.lastError).toBeNull()
+      expect(state?.checks.find((check) => check.id === 'unmonitored')?.count).toBe(1)
+    })
   })
 
   // -------------------------------------------------------------------------

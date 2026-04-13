@@ -17,6 +17,7 @@ import {
   type LibraryStats,
   scanLibraryHealth,
 } from '../lib/api'
+import { formatRelativeTime } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 
 // Checks where the fix is a Lidarr background task (refresh/search),
@@ -64,7 +65,7 @@ function StatsSkeleton() {
 // LibraryHealthPage
 
 export function LibraryHealthPage() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const queryClient = useQueryClient()
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set())
   const rescanTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -146,6 +147,8 @@ export function LibraryHealthPage() {
 
   const scanning = healthQuery.data?.scanning ?? false
   const checks: HealthCheckResult[] = healthQuery.data?.checks ?? []
+  const lastCompletedAt = healthQuery.data?.lastCompletedAt ?? null
+  const syncIntervalHours = healthQuery.data?.syncIntervalHours ?? 6
   const stats: LibraryStats | undefined = statsQuery.data
   const prefs = (settingsQuery.data?.preferences ?? {}) as Record<string, unknown>
   const lidarrBaseUrl =
@@ -154,18 +157,8 @@ export function LibraryHealthPage() {
 
   return (
     <div className="p-6 space-y-8 max-w-6xl mx-auto">
-      {/* Page title */}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-xl font-bold text-text">{t('libraryHealth.title')}</h1>
-        <button
-          type="button"
-          onClick={() => rescanMutation.mutate()}
-          disabled={scanning || rescanMutation.isPending}
-          className="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-        >
-          <RefreshCw size={14} className={scanning ? 'animate-spin' : undefined} />
-          {scanning ? t('app.scanning') : t('libraryHealth.rescan')}
-        </button>
       </div>
 
       <LibraryFirstSyncBanner />
@@ -173,6 +166,31 @@ export function LibraryHealthPage() {
       <Hint id="library-health-intro-tip" type="inline">
         {t('libraryHealth.introTip')}
       </Hint>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
+        <div className="rounded-lg border border-border bg-surface p-4 space-y-2">
+          <div className="text-xs uppercase tracking-wide text-muted">
+            {t('libraryHealth.snapshotTitle')}
+          </div>
+          <div className="text-sm text-text">
+            {lastCompletedAt
+              ? `${t('libraryHealth.lastSynced')} ${formatRelativeTime(locale, lastCompletedAt)}`
+              : t('libraryHealth.neverSynced')}
+          </div>
+          <div className="text-xs text-muted">
+            {t('libraryHealth.autoSyncEvery').replace('{0}', String(syncIntervalHours))}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => rescanMutation.mutate()}
+          disabled={scanning || rescanMutation.isPending}
+          className="flex items-center justify-center gap-2 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+        >
+          <RefreshCw size={14} className={scanning ? 'animate-spin' : undefined} />
+          {scanning ? t('app.scanning') : t('libraryHealth.syncNow')}
+        </button>
+      </div>
 
       {/* Scanning indicator */}
       {scanning && (

@@ -25,6 +25,7 @@ type LibraryRouteDeps = {
   skyhookWarmer?: SkyHookWarmer | null
   librarySync: SyncOrchestrator
   librarySyncStore: LibrarySyncStore
+  getSettings: () => Promise<{ librarySyncIntervalHours?: number } | null>
   albumCoverage: {
     getCoverageForArtist: (userId: number, artistMbid: string) => Promise<AlbumCoverage>
   }
@@ -76,8 +77,15 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   app.get('/api/library/health', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
-    const checks = deps.libraryHealth.getLastResults() ?? []
-    return c.json({ checks, scanning: deps.libraryHealth.scanning })
+    const [state, settings] = await Promise.all([deps.libraryHealth.getState(), deps.getSettings()])
+    return c.json({
+      checks: state?.checks ?? [],
+      scanning: deps.libraryHealth.scanning,
+      lastStartedAt: state?.lastStartedAt?.toISOString() ?? null,
+      lastCompletedAt: state?.lastCompletedAt?.toISOString() ?? null,
+      lastError: state?.lastError ?? null,
+      syncIntervalHours: settings?.librarySyncIntervalHours ?? 6,
+    })
   })
 
   // POST /api/library/health/scan -- kick off background scan, return 202

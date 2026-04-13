@@ -48,6 +48,7 @@ vi.mock('@/web/lib/api', () => ({
   getStoredToken: vi.fn(() => null),
   getSetupStatus: vi.fn().mockResolvedValue({ setupComplete: true }),
   listTargets: vi.fn().mockResolvedValue([]),
+  updateTargetApi: vi.fn().mockResolvedValue(undefined),
   deleteTargetApi: vi.fn().mockResolvedValue(undefined),
   testTargetApi: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
   exportRecommendations: vi.fn().mockResolvedValue(undefined),
@@ -101,8 +102,10 @@ vi.mock('@/web/lib/api', () => ({
     pipeline: { status: 'ok', lastRun: null, nextRun: null },
     subscriptions: { status: 'ok', healthy: 0, total: 0 },
     playlists: { status: 'ok', lastRun: null },
+    librarySync: { status: 'ok', lastRun: null },
     sources: {},
   }),
+  listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   updateUserPreferences: vi.fn().mockResolvedValue({ success: true }),
 }))
 
@@ -164,6 +167,7 @@ import {
   createTargetApi,
   getAuthStatus,
   getCurrentUser,
+  getJobHealth,
   getLidarrMetadataProfiles,
   getLidarrProfiles,
   getLidarrRootFolders,
@@ -172,10 +176,12 @@ import {
   getSettings,
   getStoredToken,
   importSpotifyLikedSongs,
+  listJobs,
   listTargets,
   testService,
   updatePreferredLocale,
   updateSettings,
+  updateTargetApi,
 } from '@/web/lib/api'
 import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SettingsPage } from '@/web/pages/settings'
@@ -196,6 +202,9 @@ const mockGetStoredLocale = getStoredLocale as ReturnType<typeof vi.fn>
 const mockUpdatePreferredLocale = updatePreferredLocale as ReturnType<typeof vi.fn>
 const mockCreateTargetApi = createTargetApi as ReturnType<typeof vi.fn>
 const mockListTargets = listTargets as ReturnType<typeof vi.fn>
+const mockUpdateTargetApi = updateTargetApi as ReturnType<typeof vi.fn>
+const mockListJobs = listJobs as ReturnType<typeof vi.fn>
+const mockGetJobHealth = getJobHealth as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -218,6 +227,7 @@ const mockSettings = {
     scheduleCron: '0 0 * * *',
     scoreThreshold: 0.5,
   },
+  librarySyncIntervalHours: 6,
   setupComplete: true,
 }
 
@@ -323,7 +333,7 @@ describe('SettingsPage', () => {
     expect(pulsingEls.length).toBeGreaterThan(0)
   })
 
-  it('renders tab bar with Connections, Recommendations, Schedule', async () => {
+  it('renders tab bar with Connections, Recommendations, Schedule, Job History, and System Health', async () => {
     setupMocks()
     renderWithQuery(<SettingsPage />)
 
@@ -332,6 +342,8 @@ describe('SettingsPage', () => {
     })
     expect(screen.getByText('Recommendations')).toBeInTheDocument()
     expect(screen.getByText('Schedule')).toBeInTheDocument()
+    expect(screen.getByText('Job History')).toBeInTheDocument()
+    expect(screen.getByText('System Health')).toBeInTheDocument()
   })
 
   it('defaults to Connections tab showing Lidarr section', async () => {
@@ -376,6 +388,49 @@ describe('SettingsPage', () => {
       expect(screen.getByText('Daily')).toBeInTheDocument()
       expect(screen.getByText('Weekly')).toBeInTheDocument()
       expect(screen.getByText('Custom Cron')).toBeInTheDocument()
+    })
+  })
+
+  it('tab switching shows Job History content inside settings', async () => {
+    setupMocks()
+    mockListJobs.mockResolvedValue({
+      items: [],
+      total: 0,
+    })
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Job History'))
+
+    await waitFor(() => {
+      expect(screen.getByText('All')).toBeInTheDocument()
+      expect(screen.getByText('No jobs found.')).toBeInTheDocument()
+    })
+  })
+
+  it('tab switching shows System Health content inside settings', async () => {
+    setupMocks()
+    mockGetJobHealth.mockResolvedValue({
+      pipeline: { status: 'ok', lastRun: null, nextRun: null },
+      subscriptions: { status: 'ok', healthy: 3, total: 4 },
+      playlists: { status: 'degraded', lastRun: null },
+      librarySync: { status: 'ok', lastRun: null },
+      sources: { spotify: 'ok', lastfm: 'degraded' },
+    })
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('System Health'))
+
+    await waitFor(() => {
+      expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Library Sync').length).toBeGreaterThan(0)
     })
   })
 
@@ -585,5 +640,40 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
 
     expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
+  })
+
+  it('allows editing an existing target from the targets tab', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        type: 'lidarr',
+        name: 'Primary Lidarr',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://lidarr:8686', apiKey: '***' },
+      },
+    ])
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+
+    const nameInput = await screen.findByDisplayValue('Primary Lidarr')
+    fireEvent.change(nameInput, { target: { value: 'Updated Lidarr' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    await waitFor(() => {
+      expect(mockUpdateTargetApi).toHaveBeenCalledWith(7, {
+        name: 'Updated Lidarr',
+        enabled: true,
+        config: { url: 'http://lidarr:8686' },
+      })
+    })
   })
 })

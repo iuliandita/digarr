@@ -53,8 +53,17 @@ const mockFixProgress = {
 }
 
 function makeMockLibraryHealth(opts: { hasCached?: boolean; scanning?: boolean } = {}) {
+  const state = opts.hasCached
+    ? {
+        checks: mockChecks,
+        lastStartedAt: new Date('2026-04-13T10:00:00.000Z'),
+        lastCompletedAt: new Date('2026-04-13T10:05:00.000Z'),
+        lastError: null,
+      }
+    : null
   return {
     getLastResults: vi.fn(() => (opts.hasCached ? mockChecks : null)),
+    getState: vi.fn(async () => state),
     runChecks: vi.fn(async () => mockChecks),
     startScan: vi.fn(),
     scanning: opts.scanning ?? false,
@@ -311,7 +320,7 @@ async function createMountedAppWithLegacyToken(
 }
 
 describe('GET /api/library/health', () => {
-  it('returns cached results and scanning status', async () => {
+  it('returns cached results, persisted timestamps, and the configured interval', async () => {
     const libraryHealth = makeMockLibraryHealth({
       hasCached: true,
     }) as unknown as AppDependencies['libraryHealth']
@@ -322,6 +331,9 @@ describe('GET /api/library/health', () => {
     expect(body.scanning).toBe(false)
     expect(body.checks).toHaveLength(1)
     expect(body.checks[0].id).toBe('missing-metadata')
+    expect(body.lastStartedAt).toBe('2026-04-13T10:00:00.000Z')
+    expect(body.lastCompletedAt).toBe('2026-04-13T10:05:00.000Z')
+    expect(body.syncIntervalHours).toBe(6)
   })
 
   it('returns empty checks when no cache', async () => {
@@ -573,6 +585,7 @@ function makeSyncApp(
     skyhookWarmer: null,
     librarySync,
     librarySyncStore,
+    getSettings: vi.fn(async () => ({ librarySyncIntervalHours: 6 })),
     albumCoverage,
     getUserById,
   } as Parameters<typeof libraryRoutes>[0] & {

@@ -135,6 +135,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getArtistById: vi.fn(async () => null),
     restartScheduler: vi.fn(),
     restartPlaylistScheduler: vi.fn(),
+    restartLibraryMaintenanceScheduler: vi.fn(),
     createUser: vi.fn(async () => ({
       id: 1,
       username: 'test',
@@ -439,6 +440,19 @@ describe('PATCH /api/settings', () => {
     })
     expect(res.status).toBe(200)
     expect(restartScheduler).not.toHaveBeenCalled()
+  })
+
+  it('restarts library maintenance scheduling when the sync interval is updated', async () => {
+    const restartLibraryMaintenanceScheduler = vi.fn()
+    const app = createApp(makeDeps({ restartLibraryMaintenanceScheduler }))
+    const res = await authedRequest(app, '/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ librarySyncIntervalHours: 12 }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(restartLibraryMaintenanceScheduler).toHaveBeenCalledWith(12)
   })
 
   it('merges partial preference updates with the stored preferences blob', async () => {
