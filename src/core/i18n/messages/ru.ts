@@ -57,6 +57,7 @@ export const ru = {
   'nav.analytics': 'Аналитика',
   'nav.search': 'Поиск',
   'nav.discover': 'Открытия',
+  'nav.discoveryModes': 'Режимы открытий',
   'nav.genres': 'Жанры',
   'nav.health': 'Состояние',
   'nav.library': 'Библиотека',
@@ -648,6 +649,7 @@ export const ru = {
   'search.failed': 'Ошибка поиска - попробуйте ещё раз',
   'search.noResultsFor': 'Исполнители не найдены для',
   'discoveryMode.available': 'Доступно',
+  'discoveryMode.notAvailableBecause': 'Недоступно, потому что',
   'discoveryMode.unavailable': 'Недоступно',
   'discoveryMode.easy': 'Простой',
   'discoveryMode.advanced': 'Расширенный',
@@ -691,6 +693,7 @@ export const ru = {
   'discoveryMode.reason.connectListeningSource': 'Сначала подключите источник прослушивания.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
+  'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',
   'discoveryMode.field.feed': 'Лента',

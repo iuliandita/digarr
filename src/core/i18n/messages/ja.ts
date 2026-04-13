@@ -57,6 +57,7 @@ export const ja = {
   'nav.analytics': '分析',
   'nav.search': '検索',
   'nav.discover': '発見',
+  'nav.discoveryModes': '発見モード',
   'nav.genres': 'ジャンル',
   'nav.health': '健全性',
   'nav.library': 'ライブラリ',
@@ -624,6 +625,7 @@ export const ja = {
   'search.failed': '検索に失敗しました - もう一度お試しください',
   'search.noResultsFor': 'アーティストが見つかりませんでした：',
   'discoveryMode.available': '利用可能',
+  'discoveryMode.notAvailableBecause': '利用できない理由',
   'discoveryMode.unavailable': '利用不可',
   'discoveryMode.easy': '簡単',
   'discoveryMode.advanced': '詳細',
@@ -668,6 +670,7 @@ export const ja = {
   'discoveryMode.reason.connectListeningSource': '先に再生ソースを接続してください。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'このモードを使うには ListenBrainz または Last.fm を接続してください。',
+  'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
   'discoveryMode.field.feed': 'フィード',

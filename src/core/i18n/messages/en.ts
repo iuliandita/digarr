@@ -55,6 +55,7 @@ export const en = {
   'nav.analytics': 'Analytics',
   'nav.search': 'Search',
   'nav.discover': 'Discover',
+  'nav.discoveryModes': 'Discovery Modes',
   'nav.genres': 'Genres',
   'nav.health': 'Health',
   'nav.library': 'Library',
@@ -638,6 +639,7 @@ export const en = {
 
   // Discovery Mode Card
   'discoveryMode.available': 'Available',
+  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.unavailable': 'Unavailable',
 
   // Discovery Mode Form
@@ -684,6 +686,7 @@ export const en = {
   'discoveryMode.reason.connectListeningSource': 'Connect a listening source first.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Connect ListenBrainz or Last.fm to use this mode.',
+  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artist',

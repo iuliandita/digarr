@@ -57,6 +57,7 @@ export const ko = {
   'nav.analytics': '분석',
   'nav.search': '검색',
   'nav.discover': '탐색',
+  'nav.discoveryModes': '탐색 모드',
   'nav.genres': '장르',
   'nav.health': '상태',
   'nav.library': '라이브러리',
@@ -619,6 +620,7 @@ export const ko = {
   'search.failed': '검색에 실패했습니다 - 다시 시도하세요',
   'search.noResultsFor': '해당 아티스트를 찾을 수 없습니다:',
   'discoveryMode.available': '사용 가능',
+  'discoveryMode.notAvailableBecause': '사용할 수 없는 이유',
   'discoveryMode.unavailable': '사용 불가',
   'discoveryMode.easy': '쉬움',
   'discoveryMode.advanced': '고급',
@@ -662,6 +664,7 @@ export const ko = {
   'discoveryMode.reason.connectListeningSource': '먼저 청취 소스를 연결하세요.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '이 모드를 사용하려면 ListenBrainz 또는 Last.fm을 연결하세요.',
+  'discoveryMode.reason.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
   'discoveryMode.field.feed': '피드',
   'discoveryMode.field.artist': '아티스트',

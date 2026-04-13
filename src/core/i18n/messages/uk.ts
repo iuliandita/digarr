@@ -57,6 +57,7 @@ export const uk = {
   'nav.analytics': 'Аналітика',
   'nav.search': 'Пошук',
   'nav.discover': 'Відкриття',
+  'nav.discoveryModes': 'Режими відкриттів',
   'nav.genres': 'Жанри',
   'nav.health': 'Стан',
   'nav.library': 'Бібліотека',
@@ -643,6 +644,7 @@ export const uk = {
   'search.failed': 'Помилка пошуку - спробуйте ще раз',
   'search.noResultsFor': 'Виконавців не знайдено для',
   'discoveryMode.available': 'Доступно',
+  'discoveryMode.notAvailableBecause': 'Недоступно, оскільки',
   'discoveryMode.unavailable': 'Недоступно',
   'discoveryMode.easy': 'Простий',
   'discoveryMode.advanced': 'Розширений',
@@ -686,6 +688,7 @@ export const uk = {
   'discoveryMode.reason.connectListeningSource': 'Спочатку підключіть джерело прослуховування.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Підключіть ListenBrainz або Last.fm, щоб користуватися цим режимом.',
+  'discoveryMode.reason.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',
   'discoveryMode.field.feed': 'Стрічка',

@@ -57,6 +57,7 @@ export const tr = {
   'nav.analytics': 'Analitik',
   'nav.search': 'Ara',
   'nav.discover': 'Keşfet',
+  'nav.discoveryModes': 'Keşif modları',
   'nav.genres': 'Türler',
   'nav.health': 'Sağlık',
   'nav.library': 'Kütüphane',
@@ -637,6 +638,7 @@ export const tr = {
   'search.failed': 'Arama basarisiz - tekrar deneyin',
   'search.noResultsFor': 'Su arama icin sanatci bulunamadi:',
   'discoveryMode.available': 'Kullanilabilir',
+  'discoveryMode.notAvailableBecause': 'Kullanılamıyor çünkü',
   'discoveryMode.unavailable': 'Kullanilamiyor',
   'discoveryMode.easy': 'Kolay',
   'discoveryMode.advanced': 'Gelismis',
@@ -680,6 +682,7 @@ export const tr = {
   'discoveryMode.reason.connectListeningSource': 'Once bir dinleme kaynagi baglayin.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Bu modu kullanmak icin ListenBrainz veya Last.fm baglayin.',
+  'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi icin yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Sanatci',

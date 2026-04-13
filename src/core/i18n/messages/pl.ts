@@ -57,6 +57,7 @@ export const pl = {
   'nav.analytics': 'Analityka',
   'nav.search': 'Szukaj',
   'nav.discover': 'Odkrywaj',
+  'nav.discoveryModes': 'Tryby odkrywania',
   'nav.genres': 'Gatunki',
   'nav.health': 'Stan',
   'nav.library': 'Biblioteka',
@@ -642,6 +643,7 @@ export const pl = {
   'search.failed': 'Wyszukiwanie nie powiodlo sie - sprobuj ponownie',
   'search.noResultsFor': 'Nie znaleziono artystow dla',
   'discoveryMode.available': 'Dostepny',
+  'discoveryMode.notAvailableBecause': 'Niedostępne, ponieważ',
   'discoveryMode.unavailable': 'Niedostepny',
   'discoveryMode.easy': 'Prosty',
   'discoveryMode.advanced': 'Zaawansowany',
@@ -684,6 +686,7 @@ export const pl = {
   'discoveryMode.reason.connectListeningSource': 'Najpierw polacz zrodlo odsluchu.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Polacz ListenBrainz lub Last.fm, aby uzyc tego trybu.',
+  'discoveryMode.reason.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.reason.releaseRadarFallback': 'Do odkrywania wydan uzywane sa zrodla zapasowe.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artysta',

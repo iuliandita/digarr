@@ -57,6 +57,7 @@ export const ro = {
   'nav.analytics': 'Analize',
   'nav.search': 'Căutare',
   'nav.discover': 'Descoperă',
+  'nav.discoveryModes': 'Moduri de descoperire',
   'nav.genres': 'Genuri',
   'nav.health': 'Sănătate',
   'nav.library': 'Bibliotecă',
@@ -636,6 +637,7 @@ export const ro = {
   'search.failed': 'Căutarea a eșuat - încercați din nou',
   'search.noResultsFor': 'Niciun artist găsit pentru',
   'discoveryMode.available': 'Disponibil',
+  'discoveryMode.notAvailableBecause': 'Indisponibil deoarece',
   'discoveryMode.unavailable': 'Indisponibil',
   'discoveryMode.easy': 'Ușor',
   'discoveryMode.advanced': 'Avansat',
@@ -680,6 +682,7 @@ export const ro = {
   'discoveryMode.reason.connectListeningSource': 'Conectați mai întâi o sursă de ascultare.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Conectați ListenBrainz sau Last.fm pentru a folosi acest mod.',
+  'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
   'discoveryMode.field.feed': 'Flux',

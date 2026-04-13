@@ -57,6 +57,7 @@ export const de = {
   'nav.analytics': 'Analysen',
   'nav.search': 'Suche',
   'nav.discover': 'Entdecken',
+  'nav.discoveryModes': 'Entdeckungsmodi',
   'nav.genres': 'Genres',
   'nav.health': 'Gesundheit',
   'nav.library': 'Bibliothek',
@@ -649,6 +650,7 @@ export const de = {
   'search.failed': 'Suche fehlgeschlagen – erneut versuchen',
   'search.noResultsFor': 'Keine Künstler gefunden für',
   'discoveryMode.available': 'Verfügbar',
+  'discoveryMode.notAvailableBecause': 'Nicht verfügbar, weil',
   'discoveryMode.unavailable': 'Nicht verfügbar',
   'discoveryMode.easy': 'Einfach',
   'discoveryMode.advanced': 'Erweitert',
@@ -691,6 +693,7 @@ export const de = {
   'discoveryMode.reason.connectListeningSource': 'Verbinde zuerst eine Hörquelle.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',
   'discoveryMode.field.feed': 'Feed',

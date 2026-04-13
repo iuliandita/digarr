@@ -34,6 +34,7 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect a listening source first.': 'discoveryMode.reason.connectListeningSource',
   'Connect ListenBrainz or Last.fm to use this mode.':
     'discoveryMode.reason.connectListenBrainzOrLastfm',
+  'This mode is not implemented yet.': 'discoveryMode.reason.notImplementedYet',
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
 }
 

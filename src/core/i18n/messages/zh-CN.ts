@@ -57,6 +57,7 @@ export const zhCN = {
   'nav.analytics': '分析',
   'nav.search': '搜索',
   'nav.discover': '发现',
+  'nav.discoveryModes': '发现模式',
   'nav.genres': '流派',
   'nav.health': '健康',
   'nav.library': '资料库',
@@ -591,6 +592,7 @@ export const zhCN = {
   'search.failed': '搜索失败，请重试',
   'search.noResultsFor': '未找到相关艺术家：',
   'discoveryMode.available': '可用',
+  'discoveryMode.notAvailableBecause': '不可用，因为',
   'discoveryMode.unavailable': '不可用',
   'discoveryMode.easy': '简单',
   'discoveryMode.advanced': '高级',
@@ -627,6 +629,7 @@ export const zhCN = {
   'discoveryMode.reason.connectListeningSource': '请先连接一个听歌来源。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '连接 ListenBrainz 或 Last.fm 后才能使用此模式。',
+  'discoveryMode.reason.notImplementedYet': '此模式尚未实现。',
   'discoveryMode.reason.releaseRadarFallback': '正在使用后备提供方来发现新发行。',
   'discoveryMode.field.feed': '订阅源',
   'discoveryMode.field.artist': '艺术家',

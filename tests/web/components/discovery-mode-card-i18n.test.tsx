@@ -98,9 +98,35 @@ describe('DiscoveryModeCard i18n', () => {
 
     expect(screen.getByText('Radar uscite')).toBeInTheDocument()
     expect(screen.getByText('Finestra di uscita')).toBeInTheDocument()
+    expect(screen.getByText('Non disponibile perché')).toBeInTheDocument()
     expect(screen.getByText("Collega prima una sorgente d'ascolto.")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Ignora' }))
     expect(screen.queryByText("Collega prima una sorgente d'ascolto.")).not.toBeInTheDocument()
+  })
+
+  it('translates the not-implemented-yet availability reason', () => {
+    render(
+      <I18nProvider>
+        <DiscoveryModeCard
+          mode={{
+            id: 'labels',
+            label: 'Labels',
+            description: 'Discover artists from label catalogs and scenes',
+            availability: {
+              enabled: false,
+              fallbackUsed: false,
+              providerPath: [],
+              reason: 'This mode is not implemented yet.',
+            },
+            easyFields: [],
+            advancedFields: [],
+          }}
+          onRun={vi.fn().mockResolvedValue(undefined)}
+        />
+      </I18nProvider>,
+    )
+
+    expect(screen.getByText('Questa modalità non è ancora implementata.')).toBeInTheDocument()
   })
 })

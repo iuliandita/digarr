@@ -57,6 +57,7 @@ export const nl = {
   'nav.analytics': 'Analyse',
   'nav.search': 'Zoeken',
   'nav.discover': 'Ontdekken',
+  'nav.discoveryModes': 'Ontdekkingsmodi',
   'nav.genres': 'Muziekgenres',
   'nav.health': 'Gezondheid',
   'nav.library': 'Bibliotheek',
@@ -641,6 +642,7 @@ export const nl = {
   'search.failed': 'Zoeken mislukt - probeer opnieuw',
   'search.noResultsFor': 'Geen artiesten gevonden voor',
   'discoveryMode.available': 'Beschikbaar',
+  'discoveryMode.notAvailableBecause': 'Niet beschikbaar omdat',
   'discoveryMode.unavailable': 'Niet beschikbaar',
   'discoveryMode.easy': 'Eenvoudig',
   'discoveryMode.advanced': 'Geavanceerd',
@@ -682,6 +684,7 @@ export const nl = {
   'discoveryMode.reason.connectListeningSource': 'Verbind eerst een luisterbron.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbind ListenBrainz of Last.fm om deze modus te gebruiken.',
+  'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
   'discoveryMode.field.feed': 'Feed',
