@@ -220,11 +220,11 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
 
   await page.goto('/subscriptions')
   await page.getByRole('button', { name: messages['subscriptions.new'] }).click()
-  await page.getByLabel('Name').fill('Radar Weekly')
-  await page.getByLabel('Source Type').selectOption('discovery-mode')
-  await page.getByLabel('Discovery Mode').selectOption('release-radar')
+  await page.getByLabel(messages['subscriptionForm.name']).fill('Radar Weekly')
+  await page.getByLabel(messages['subscriptionForm.sourceType']).selectOption('discovery-mode')
+  await page.getByLabel(messages['subscriptionForm.discoveryMode']).selectOption('release-radar')
   await page.getByLabel(messages['discoveryMode.field.releaseWindow']).fill('14')
-  await page.getByRole('button', { name: 'Create' }).click()
+  await page.getByRole('button', { name: messages['common.create'] }).click()
 
   const subscriptionCard = page.locator('div.bg-surface.border.border-border.rounded-lg').filter({
     has: page.getByText('Radar Weekly'),

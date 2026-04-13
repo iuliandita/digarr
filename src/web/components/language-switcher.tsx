@@ -19,6 +19,7 @@ export function LanguageSwitcher({
     <label className="flex items-center gap-2 text-sm text-muted">
       <span>{t('common.language')}</span>
       <select
+        data-testid="language-switcher"
         aria-label={t('common.language')}
         value={value}
         onChange={(e) => onChange(resolveSupportedLocale(e.target.value))}
