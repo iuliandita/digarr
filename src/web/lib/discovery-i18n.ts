@@ -35,7 +35,6 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect ListenBrainz or Last.fm to use this mode.':
     'discoveryMode.reason.connectListenBrainzOrLastfm',
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
-  'This mode is not implemented yet.': 'discoveryMode.reason.notImplementedYet',
 }
 
 function normalizeModeId(modeId: string): string {

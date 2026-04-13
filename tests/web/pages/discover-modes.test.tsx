@@ -116,7 +116,6 @@ describe('DiscoveryModesPage', () => {
     )
     await screen.findByText('This mode is not implemented yet.')
     await screen.findByText('Using fallback providers for release discovery.')
-    expect(screen.getAllByText('Not available because')).not.toHaveLength(0)
 
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '14' } })
     const releaseRadarHeading = screen.getByRole('heading', { name: 'Release Radar' })

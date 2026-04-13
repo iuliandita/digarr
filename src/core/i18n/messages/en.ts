@@ -268,8 +268,7 @@ export const en = {
   'discover.monitorSelected': 'Selected albums',
   'discover.monitorSelectedDescription': 'Choose which albums to monitor',
   'discover.monitorNoneDescription': 'Add unmonitored (tracking only)',
-  'discover.discoveryRunStarted': 'Discovery run started',
-  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
+  'discover.discoveryRunStarted': 'Discovery run started - check Dashboard for progress',
   'discover.expand': 'Expand',
   'discover.exportFailed': 'Export failed',
   'discover.exported': 'exported',
@@ -640,7 +639,6 @@ export const en = {
   // Discovery Mode Card
   'discoveryMode.available': 'Available',
   'discoveryMode.unavailable': 'Unavailable',
-  'discoveryMode.notAvailableBecause': 'Not available because',
 
   // Discovery Mode Form
   'discoveryMode.easy': 'Easy',
@@ -682,7 +680,6 @@ export const en = {
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Discover artists connected through label catalogs',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
   'discoveryMode.reason.connectListeningSource': 'Connect a listening source first.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

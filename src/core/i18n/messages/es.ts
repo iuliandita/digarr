@@ -269,8 +269,8 @@ export const es = {
   'discover.monitorSelected': 'Álbumes seleccionados',
   'discover.monitorSelectedDescription': 'Elige qué álbumes supervisar',
   'discover.monitorNoneDescription': 'Añadir sin supervisión (solo seguimiento)',
-  'discover.discoveryRunStarted': 'Discovery run started',
-  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
+  'discover.discoveryRunStarted':
+    'Se inició la ejecución de descubrimiento: verifique el progreso en el Panel de control',
   'discover.expand': 'Expandir',
   'discover.exportFailed': 'Exportación fallida',
   'discover.exported': 'exportado',
@@ -634,7 +634,6 @@ export const es = {
   'search.noResultsFor': 'No se encontraron artistas para',
   'discoveryMode.available': 'Disponible',
   'discoveryMode.unavailable': 'No disponible',
-  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Fácil',
   'discoveryMode.advanced': 'Avanzado',
   'discoveryMode.starting': 'Iniciando...',
@@ -674,7 +673,6 @@ export const es = {
   'discoveryMode.labels.description':
     'Descubre artistas conectados a través de catálogos de sellos',
   'discoveryMode.notShippedYet': 'Este modo aún no está disponible.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Conecta ListenBrainz para usar este modo.',
   'discoveryMode.reason.connectListeningSource': 'Conecta primero una fuente de escucha.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

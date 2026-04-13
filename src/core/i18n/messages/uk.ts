@@ -269,8 +269,8 @@ export const uk = {
   'discover.monitorSelected': 'Вибрані альбоми',
   'discover.monitorSelectedDescription': 'Виберіть, які альбоми відстежувати',
   'discover.monitorNoneDescription': 'Додати без моніторингу (лише відстеження)',
-  'discover.discoveryRunStarted': 'Discovery run started',
-  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
+  'discover.discoveryRunStarted':
+    'Запуск виявлення розпочато — перевірте прогрес на інформаційній панелі',
   'discover.expand': 'Розгорнути',
   'discover.exportFailed': 'Помилка експорту',
   'discover.exported': 'експортований',
@@ -644,7 +644,6 @@ export const uk = {
   'search.noResultsFor': 'Виконавців не знайдено для',
   'discoveryMode.available': 'Доступно',
   'discoveryMode.unavailable': 'Недоступно',
-  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Простий',
   'discoveryMode.advanced': 'Розширений',
   'discoveryMode.starting': 'Запуск...',
@@ -682,7 +681,6 @@ export const uk = {
   'discoveryMode.labels.label': 'Лейбли',
   'discoveryMode.labels.description': 'Знаходьте виконавців через каталоги лейблів',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz':
     'Підключіть ListenBrainz, щоб користуватися цим режимом.',
   'discoveryMode.reason.connectListeningSource': 'Спочатку підключіть джерело прослуховування.',

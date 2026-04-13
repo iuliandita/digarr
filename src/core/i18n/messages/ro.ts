@@ -269,8 +269,8 @@ export const ro = {
   'discover.monitorSelected': 'Albume selectate',
   'discover.monitorSelectedDescription': 'Alege ce albume să monitorizezi',
   'discover.monitorNoneDescription': 'Adaugă fără monitorizare (doar urmărire)',
-  'discover.discoveryRunStarted': 'Discovery run started',
-  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
+  'discover.discoveryRunStarted':
+    'Executarea descoperirii a început - verificați Tabloul de bord pentru progres',
   'discover.expand': 'Extindeți',
   'discover.exportFailed': 'Exportul nu a reușit',
   'discover.exported': 'exportate',
@@ -637,7 +637,6 @@ export const ro = {
   'search.noResultsFor': 'Niciun artist găsit pentru',
   'discoveryMode.available': 'Disponibil',
   'discoveryMode.unavailable': 'Indisponibil',
-  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Ușor',
   'discoveryMode.advanced': 'Avansat',
   'discoveryMode.starting': 'Se pornește...',
@@ -677,7 +676,6 @@ export const ro = {
   'discoveryMode.labels.description':
     'Descoperiți artiști conectați prin cataloagele caselor de discuri',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
   'discoveryMode.reason.connectListeningSource': 'Conectați mai întâi o sursă de ascultare.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

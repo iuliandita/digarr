@@ -268,8 +268,8 @@ export const tr = {
   'discover.monitorSelected': 'Seçili albümler',
   'discover.monitorSelectedDescription': 'Hangi albümlerin izleneceğini seç',
   'discover.monitorNoneDescription': 'İzleme olmadan ekle (yalnızca takip)',
-  'discover.discoveryRunStarted': 'Discovery run started',
-  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
+  'discover.discoveryRunStarted':
+    'Keşif çalıştırması başladı; ilerleme için Kontrol Panelini kontrol edin',
   'discover.expand': 'Genişlet',
   'discover.exportFailed': 'Dışa aktarma başarısız oldu',
   'discover.exported': 'ihraç edildi',
@@ -638,7 +638,6 @@ export const tr = {
   'search.noResultsFor': 'Su arama icin sanatci bulunamadi:',
   'discoveryMode.available': 'Kullanilabilir',
   'discoveryMode.unavailable': 'Kullanilamiyor',
-  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Kolay',
   'discoveryMode.advanced': 'Gelismis',
   'discoveryMode.starting': 'Baslatiliyor...',
@@ -677,7 +676,6 @@ export const tr = {
   'discoveryMode.labels.label': 'Etiketler',
   'discoveryMode.labels.description': 'Plak sirketi kataloglari uzerinden sanatci kesfet',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak icin ListenBrainz baglayin.',
   'discoveryMode.reason.connectListeningSource': 'Once bir dinleme kaynagi baglayin.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

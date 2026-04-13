@@ -14,9 +14,7 @@ export function DiscoveryModesSection() {
 
   async function handleRunDiscoveryMode(body: Record<string, unknown>) {
     await runDiscoveryMode(body)
-    toast.success(
-      `${t('discover.discoveryRunStarted')} - ${t('discover.discoveryRunDashboardHint')}`,
-    )
+    toast.success(t('discover.discoveryRunStarted'))
   }
 
   if (!discoveryModes?.modes.length) return null
