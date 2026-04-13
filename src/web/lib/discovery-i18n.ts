@@ -99,7 +99,8 @@ export function translateDiscoveryOption(
 export function translateDiscoveryReason(t: Translate, reason?: string | null): string | null {
   if (!reason) return null
   const key = REASON_KEY_ALIASES[reason]
-  return key ? t(key) : reason
+  if (!key) return reason
+  return translateKnownKey(t, key) ?? reason
 }
 
 export function buildDiscoveryFieldRequiredMessage(
