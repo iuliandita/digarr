@@ -11,6 +11,9 @@ import type { ReconciledAlbum } from './album-reconciler'
 import type { ReconciledArtist, ReconcilerOverride } from './reconciler'
 
 type Db = import('@/db').Database
+type ChunkInsertExecutor = Pick<Db, 'insert'>
+
+const SQLITE_MAX_HOST_PARAMETERS = 32_766
 
 export type LibrarySyncStateRow = {
   userId: number | null
@@ -143,6 +146,27 @@ export function emptyLibrarySyncCounts(): LibrarySyncCounts {
 }
 
 export function createLibrarySyncStore(database: Db): LibrarySyncStore {
+  async function insertRowsInChunks<TRow extends Record<string, unknown>>(
+    executor: ChunkInsertExecutor,
+    table: typeof libraryArtists | typeof libraryAlbums,
+    rows: TRow[],
+  ): Promise<void> {
+    if (rows.length === 0) return
+
+    let columnsPerRow = 1
+    for (const row of rows) {
+      columnsPerRow = Math.max(columnsPerRow, Object.keys(row).length)
+    }
+
+    // Keep bulk inserts under SQLite's host-parameter ceiling so the same
+    // sync path remains safe across supported and future database backends.
+    const chunkSize = Math.max(1, Math.floor(SQLITE_MAX_HOST_PARAMETERS / columnsPerRow))
+
+    for (let index = 0; index < rows.length; index += chunkSize) {
+      await executor.insert(table).values(rows.slice(index, index + chunkSize) as never)
+    }
+  }
+
   function makeUserClause(userId: number | null) {
     return userId === null ? isNull(libraryArtists.userId) : eq(libraryArtists.userId, userId)
   }
@@ -225,7 +249,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         await tx.delete(libraryAlbums).where(and(albumUserClause, eq(libraryAlbums.source, source)))
 
         if (artists.length > 0) {
-          await tx.insert(libraryArtists).values(
+          await insertRowsInChunks(
+            tx,
+            libraryArtists,
             artists.map((a) => ({
               userId,
               source,
@@ -241,7 +267,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         }
 
         if (albums.length > 0) {
-          await tx.insert(libraryAlbums).values(
+          await insertRowsInChunks(
+            tx,
+            libraryAlbums,
             albums.map((album) => ({
               userId,
               source,
@@ -272,7 +300,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         await tx.delete(libraryArtists).where(and(userClause, eq(libraryArtists.source, source)))
 
         if (artists.length === 0) return
-        await tx.insert(libraryArtists).values(
+        await insertRowsInChunks(
+          tx,
+          libraryArtists,
           artists.map((a) => ({
             userId,
             source,
@@ -298,7 +328,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
 
         if (albums.length === 0) return
 
-        await tx.insert(libraryAlbums).values(
+        await insertRowsInChunks(
+          tx,
+          libraryAlbums,
           albums.map((album) => ({
             userId,
             source,
