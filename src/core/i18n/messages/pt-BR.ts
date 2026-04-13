@@ -269,8 +269,8 @@ export const ptBR = {
   'discover.monitorSelected': 'Álbuns selecionados',
   'discover.monitorSelectedDescription': 'Escolha quais álbuns monitorar',
   'discover.monitorNoneDescription': 'Adicionar sem monitoramento (apenas rastreamento)',
-  'discover.discoveryRunStarted':
-    'Execução de descoberta iniciada – verifique o progresso no Painel',
+  'discover.discoveryRunStarted': 'Discovery run started',
+  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
   'discover.expand': 'Expandir',
   'discover.exportFailed': 'Falha na exportação',
   'discover.exported': 'exportado',
@@ -639,6 +639,7 @@ export const ptBR = {
   'search.noResultsFor': 'Nenhum artista encontrado para',
   'discoveryMode.available': 'Disponível',
   'discoveryMode.unavailable': 'Indisponível',
+  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Fácil',
   'discoveryMode.advanced': 'Avançado',
   'discoveryMode.starting': 'Iniciando...',
@@ -677,6 +678,7 @@ export const ptBR = {
   'discoveryMode.labels.label': 'Gravadoras',
   'discoveryMode.labels.description': 'Descubra artistas conectados por catálogos de gravadoras',
   'discoveryMode.notShippedYet': 'Este modo ainda não está disponível.',
+  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Conecte o ListenBrainz para usar este modo.',
   'discoveryMode.reason.connectListeningSource': 'Conecte primeiro uma fonte de escuta.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

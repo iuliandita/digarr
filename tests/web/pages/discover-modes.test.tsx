@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
@@ -12,13 +13,6 @@ vi.mock('@/web/lib/locale-storage', () => ({
   getRequestLocale: vi.fn(() => 'en'),
   getStoredLocale: vi.fn(() => 'en'),
   setStoredLocale: vi.fn(),
-}))
-
-const toast = vi.hoisted(() => ({
-  success: vi.fn(),
-  error: vi.fn(),
-  info: vi.fn(),
-  promise: vi.fn(),
 }))
 
 const noopPreview = {
@@ -35,48 +29,28 @@ function renderWithQuery(ui: ReactElement) {
     defaultOptions: { queries: { retry: false } },
   })
   return render(
-    <QueryClientProvider client={client}>
+    <MemoryRouter>
       <I18nProvider>
-        <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
+        <QueryClientProvider client={client}>
+          <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
+        </QueryClientProvider>
       </I18nProvider>
-    </QueryClientProvider>,
+    </MemoryRouter>,
   )
 }
 
 vi.mock('@/web/lib/api', () => ({
-  getRecommendations: vi.fn().mockResolvedValue({ items: [], total: 0 }),
-  updateRecommendation: vi.fn(),
-  approveRecommendation: vi.fn(),
-  approveToTarget: vi.fn(),
-  bulkAction: vi.fn(),
-  getWarmStatuses: vi.fn().mockResolvedValue({ statuses: {} }),
-  rescanArtists: vi.fn(),
-  triggerPipeline: vi.fn(),
-  listTargets: vi.fn().mockResolvedValue([]),
-  exportRecommendations: vi.fn(),
-  getUserPreferences: vi.fn().mockResolvedValue({}),
-  getLidarrProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Any' }]),
-  getLidarrMetadataProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Standard' }]),
-  getLidarrRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music', freeSpace: 0 }]),
   getDiscoveryModes: vi.fn(),
   runDiscoveryMode: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast,
-}))
-
 import { getDiscoveryModes, runDiscoveryMode } from '@/web/lib/api'
-import { DiscoverPage } from '@/web/pages/discover'
+import { DiscoveryModesPage } from '@/web/pages/discovery-modes'
 
-const mockGetDiscoveryModes = getDiscoveryModes as typeof getDiscoveryModes & {
-  mockResolvedValue: (value: Awaited<ReturnType<typeof getDiscoveryModes>>) => void
-}
-const mockRunDiscoveryMode = runDiscoveryMode as typeof runDiscoveryMode & {
-  mockResolvedValue: (value: Awaited<ReturnType<typeof runDiscoveryMode>>) => void
-}
+const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
+const mockRunDiscoveryMode = vi.mocked(runDiscoveryMode)
 
-describe('DiscoverPage discovery modes', () => {
+describe('DiscoveryModesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     globalThis.ResizeObserver = class {
@@ -86,7 +60,7 @@ describe('DiscoverPage discovery modes', () => {
     } as typeof ResizeObserver
   })
 
-  it('switches between easy and advanced fields and submits the exact discovery mode payload', async () => {
+  it('renders the dedicated discovery modes page and submits the release radar payload', async () => {
     mockGetDiscoveryModes.mockResolvedValue({
       modes: [
         {
@@ -94,112 +68,72 @@ describe('DiscoverPage discovery modes', () => {
           label: 'Labels',
           description: 'Discover artists connected through label catalogs',
           availability: {
+            enabled: false,
+            fallbackUsed: false,
+            providerPath: ['musicbrainz'],
+            reason: 'This mode is not implemented yet.',
+          },
+          easyFields: [],
+          advancedFields: [],
+        },
+        {
+          id: 'release-radar',
+          label: 'Release Radar',
+          description: 'Discover fresh releases through fallback providers',
+          availability: {
             enabled: true,
             fallbackUsed: true,
-            providerPath: ['musicbrainz'],
-            reason: 'Preferred provider unavailable; fallback will be used.',
+            providerPath: ['lastfm'],
+            reason: 'Using fallback providers for release discovery.',
           },
           easyFields: [
             {
-              key: 'seedArtists',
-              label: 'Seed artists',
-              type: 'multiselect',
+              key: 'windowDays',
+              label: 'Window days',
+              type: 'number',
               required: true,
             },
           ],
           advancedFields: [
             {
-              key: 'seedArtists',
-              label: 'Seed artists',
-              type: 'multiselect',
-              required: true,
-            },
-            {
-              key: 'limit',
-              label: 'Limit',
+              key: 'windowDays',
+              label: 'Window days',
               type: 'number',
               required: true,
             },
           ],
         },
-        {
-          id: 'listenbrainz',
-          label: 'ListenBrainz',
-          description: 'Discover from ListenBrainz graph data and feeds',
-          availability: {
-            enabled: false,
-            fallbackUsed: false,
-            providerPath: [],
-            reason: 'Connect ListenBrainz to use this mode.',
-          },
-          easyFields: [],
-          advancedFields: [],
-        },
       ],
     })
     mockRunDiscoveryMode.mockResolvedValue({ message: 'Discovery run started' })
 
-    renderWithQuery(<DiscoverPage />)
+    renderWithQuery(<DiscoveryModesPage />)
 
-    const labelsCardHeading = await screen.findByText('Labels')
-    const labelsCard = labelsCardHeading.closest('article')
-    expect(labelsCard).not.toBeNull()
-    // biome-ignore lint/style/noNonNullAssertion: checked above
-    const labelsCardQueries = within(labelsCard!)
+    expect(await screen.findByRole('heading', { name: 'Discovery Modes' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Recommendations' })).toHaveAttribute(
+      'href',
+      '/discover',
+    )
+    await screen.findByText('This mode is not implemented yet.')
+    await screen.findByText('Using fallback providers for release discovery.')
+    expect(screen.getAllByText('Not available because')).not.toHaveLength(0)
 
-    expect(labelsCardQueries.getByText(/preferred provider unavailable/i)).toBeInTheDocument()
-    expect(labelsCardQueries.getByRole('button', { name: 'Easy' })).toBeInTheDocument()
-    expect(labelsCardQueries.getByRole('button', { name: 'Advanced' })).toBeInTheDocument()
-    expect(labelsCardQueries.getByText('Seed artists')).toBeInTheDocument()
-    expect(labelsCardQueries.queryByText('Limit')).not.toBeInTheDocument()
-
-    fireEvent.click(labelsCardQueries.getByRole('button', { name: 'Advanced' }))
-
-    expect(labelsCardQueries.getByText('Limit')).toBeInTheDocument()
-
-    const textboxes = labelsCardQueries.getAllByRole('textbox')
-    const seedArtistsInput = textboxes[0]
-    expect(seedArtistsInput).toBeDefined()
-    // biome-ignore lint/style/noNonNullAssertion: asserted above
-    fireEvent.change(seedArtistsInput!, { target: { value: 'Broadcast, Stereolab' } })
-    fireEvent.change(labelsCardQueries.getByRole('spinbutton'), { target: { value: '25' } })
-    fireEvent.click(labelsCardQueries.getByRole('button', { name: 'Run discovery' }))
+    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '14' } })
+    const releaseRadarHeading = screen.getByRole('heading', { name: 'Release Radar' })
+    const releaseRadarCard = releaseRadarHeading.closest('article')
+    expect(releaseRadarCard).not.toBeNull()
+    if (!releaseRadarCard) throw new Error('Missing release radar card')
+    fireEvent.click(within(releaseRadarCard).getByRole('button', { name: 'Run discovery' }))
 
     await waitFor(() => {
       expect(mockRunDiscoveryMode).toHaveBeenCalledWith({
-        modeId: 'labels',
-        settingsMode: 'advanced',
-        rawUserSettings: {
-          seedArtists: ['Broadcast', 'Stereolab'],
-          limit: 25,
-        },
-        normalizedSettings: {
-          seedArtists: ['Broadcast', 'Stereolab'],
-          limit: 25,
-        },
-        providerContext: {
-          providerPath: ['musicbrainz'],
-        },
+        modeId: 'release-radar',
+        settingsMode: 'easy',
+        rawUserSettings: { windowDays: 14 },
+        normalizedSettings: { windowDays: 14 },
+        providerContext: { providerPath: ['lastfm'] },
         fallbackPolicy: 'allow-fallback',
       })
     })
-
-    expect(toast.success).toHaveBeenCalledWith(
-      'Discovery run started - check Dashboard for progress',
-    )
-
-    expect(await screen.findByText('ListenBrainz')).toBeInTheDocument()
-    expect(screen.getByText(/connect listenbrainz/i)).toBeInTheDocument()
-
-    const listenBrainzHeading = screen.getByText('ListenBrainz')
-    const listenBrainzCard = listenBrainzHeading.closest('article')
-    expect(listenBrainzCard).not.toBeNull()
-    // biome-ignore lint/style/noNonNullAssertion: checked above
-    const listenBrainzQueries = within(listenBrainzCard!)
-    const disabledSubmit = listenBrainzQueries.getByRole('button', { name: 'Run discovery' })
-
-    expect(disabledSubmit).toBeDisabled()
-    fireEvent.click(disabledSubmit)
-    expect(mockRunDiscoveryMode).toHaveBeenCalledTimes(1)
   })
 })

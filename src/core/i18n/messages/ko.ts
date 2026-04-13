@@ -265,8 +265,8 @@ export const ko = {
   'discover.monitorSelected': '선택한 앨범',
   'discover.monitorSelectedDescription': '모니터링할 앨범 선택',
   'discover.monitorNoneDescription': '모니터링 없이 추가(추적만)',
-  'discover.discoveryRunStarted':
-    '검색 실행이 시작되었습니다. 대시보드에서 진행 상황을 확인하세요.',
+  'discover.discoveryRunStarted': 'Discovery run started',
+  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
   'discover.expand': '펼치기',
   'discover.exportFailed': '내보내기 실패',
   'discover.exported': '수출됨',
@@ -620,6 +620,7 @@ export const ko = {
   'search.noResultsFor': '해당 아티스트를 찾을 수 없습니다:',
   'discoveryMode.available': '사용 가능',
   'discoveryMode.unavailable': '사용 불가',
+  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': '쉬움',
   'discoveryMode.advanced': '고급',
   'discoveryMode.starting': '시작 중...',
@@ -658,6 +659,7 @@ export const ko = {
   'discoveryMode.labels.label': '레이블',
   'discoveryMode.labels.description': '레이블 카탈로그를 통해 아티스트를 발견합니다',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
+  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
   'discoveryMode.reason.connectListeningSource': '먼저 청취 소스를 연결하세요.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':

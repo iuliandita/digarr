@@ -23,7 +23,8 @@ export function DiscoveryModeInfoBox({
 
   return (
     <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted">
-      <div>{children}</div>
+      <div className="font-medium text-text">{t('discoveryMode.notAvailableBecause')}</div>
+      <div className="mt-1">{children}</div>
       <div className="mt-3 flex justify-end">
         <button
           type="button"

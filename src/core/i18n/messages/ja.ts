@@ -268,8 +268,8 @@ export const ja = {
   'discover.monitorSelected': '選択したアルバム',
   'discover.monitorSelectedDescription': '監視するアルバムを選択',
   'discover.monitorNoneDescription': '監視せずに追加（追跡のみ）',
-  'discover.discoveryRunStarted':
-    '検出の実行が開始されました - ダッシュボードで進行状況を確認してください',
+  'discover.discoveryRunStarted': 'Discovery run started',
+  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
   'discover.expand': '展開する',
   'discover.exportFailed': 'エクスポートに失敗しました',
   'discover.exported': '輸出された',
@@ -625,6 +625,7 @@ export const ja = {
   'search.noResultsFor': 'アーティストが見つかりませんでした：',
   'discoveryMode.available': '利用可能',
   'discoveryMode.unavailable': '利用不可',
+  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': '簡単',
   'discoveryMode.advanced': '詳細',
   'discoveryMode.starting': '起動中...',
@@ -663,6 +664,7 @@ export const ja = {
   'discoveryMode.labels.label': 'レーベル',
   'discoveryMode.labels.description': 'レーベルのカタログを通じてアーティストを発見します',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
+  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz':
     'このモードを使うには ListenBrainz を接続してください。',
   'discoveryMode.reason.connectListeningSource': '先に再生ソースを接続してください。',

@@ -171,6 +171,18 @@ describe('DiscoverPage', () => {
     expect(screen.getByText('78%')).toBeInTheDocument()
   })
 
+  it('keeps the recommendation workspace free of discovery mode cards', async () => {
+    setupMockApi()
+    renderWithQuery(<DiscoverPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Artist')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('heading', { name: 'Discovery Modes' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Run discovery' })).not.toBeInTheDocument()
+  })
+
   it('shows skeleton cards while loading', () => {
     // Never resolves during this test
     mockGetRecommendations.mockReturnValue(new Promise(() => {}))

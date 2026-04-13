@@ -269,8 +269,8 @@ export const fr = {
   'discover.monitorSelected': 'Albums sélectionnés',
   'discover.monitorSelectedDescription': 'Choisir les albums à surveiller',
   'discover.monitorNoneDescription': 'Ajouter sans surveillance (suivi uniquement)',
-  'discover.discoveryRunStarted':
-    "L'exécution de la découverte a démarré – vérifiez la progression dans le tableau de bord",
+  'discover.discoveryRunStarted': 'Discovery run started',
+  'discover.discoveryRunDashboardHint': 'check Dashboard for progress',
   'discover.expand': 'Développer',
   'discover.exportFailed': "Échec de l'exportation",
   'discover.exported': 'exporté',
@@ -630,6 +630,7 @@ export const fr = {
   'search.noResultsFor': 'Aucun artiste trouvé pour',
   'discoveryMode.available': 'Disponible',
   'discoveryMode.unavailable': 'Indisponible',
+  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.easy': 'Facile',
   'discoveryMode.advanced': 'Avancé',
   'discoveryMode.starting': 'Démarrage...',
@@ -669,6 +670,7 @@ export const fr = {
   'discoveryMode.labels.description':
     'Découvrez des artistes connectés via les catalogues de labels',
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
+  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
   'discoveryMode.reason.connectListeningSource': 'Connectez d’abord une source d’écoute.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
