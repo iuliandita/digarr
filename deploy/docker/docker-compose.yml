@@ -5,11 +5,11 @@
 
 services:
   app:
-    image: docker.io/iuliandita/digarr:0.24
+    image: docker.io/iuliandita/digarr:0.26
     # Pin to a patch version for full stability:
-    # image: docker.io/iuliandita/digarr:0.24.2
+    # image: docker.io/iuliandita/digarr:0.26.7
     # Alpine variant (smaller image, musl libc):
-    # image: docker.io/iuliandita/digarr:0.24.2-alpine
+    # image: docker.io/iuliandita/digarr:0.26.7-alpine
     env_file:
       - path: .env
         required: false
@@ -32,6 +32,8 @@ services:
       start_period: 15s
       retries: 3
     read_only: true
+    volumes:
+      - backups:/app/backups
     tmpfs:
       - /tmp
     security_opt:
@@ -90,3 +92,4 @@ services:
 
 volumes:
   pgdata:
+  backups:

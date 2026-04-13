@@ -12,7 +12,7 @@
 [![Tests](https://img.shields.io/badge/tests-vitest%20%2B%20playwright-brightgreen)](https://github.com/iuliandita/digarr/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr turns that into a taste profile, a recommendation pipeline, and a queue you can actually work through. You can approve artists into Lidarr or playlist targets, run mood searches in plain English, launch targeted discovery modes, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, browse your library by genre, and switch the UI and AI-assisted discovery output across 15 shipped languages. It is self-hosted, so the data stays with you.
+**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr builds a taste profile, runs a recommendation pipeline, and gives you a queue you can actually review. Approve artists into Lidarr or playlist targets, run mood searches in plain English, launch focused discovery modes, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, browse by genre, and use the UI and AI-assisted discovery output across 15 shipped languages. It is self-hosted, so the data stays with you.
 
 > [!WARNING]
 > **Beta software, working toward v1.0.** You can use it today, but expect rough edges. Releases can land quickly, sometimes several in a day, so check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. If you run into something broken, [open an issue](https://github.com/iuliandita/digarr/issues) or send over a feature idea.
@@ -23,12 +23,8 @@
 
 [More screenshots](docs/SCREENSHOTS.md)
 
----
-
 > [!NOTE]
 > **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
-
----
 
 ## What Makes Digarr Different
 
@@ -69,8 +65,6 @@ In addition to approval-driven queueing, Digarr now runs a background `slskd` wo
 ### Cross-Platform Search
 Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match.
 
----
-
 ## Features
 
 - **8 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, and Discogs
@@ -109,8 +103,6 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Emby | - | - | Artists, Albums | Yes | - |
 | AI Provider | Mood Discover | - | - | - | - |
 
----
-
 ## Quick Start
 
 ```sh
@@ -128,8 +120,6 @@ For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `
 
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
----
-
 ## How It Works
 
 Digarr runs a 7-stage recommendation pipeline:
@@ -144,8 +134,6 @@ Digarr runs a 7-stage recommendation pipeline:
 
 You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or from Discover -> Discovery Modes for focused manual runs on `/discover/modes`.
 
----
-
 ## Requirements
 
 | Service | Required | Purpose |
@@ -155,13 +143,9 @@ You can run the pipeline on a schedule, by hand, through subscriptions for targe
 | **AI Provider** | Yes | Anthropic, OpenAI, Gemini, Ollama, or any compatible endpoint |
 | **PostgreSQL** | Yes | Data storage (included in Docker Compose) |
 
----
-
 ## Configuration
 
 Most day-to-day configuration lives in the web UI after initial setup. That includes connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Settings also includes dedicated `Job History` and `System Health` tabs for operational visibility, while Library Health now keeps the latest scan snapshot, shows when it last synced, auto-rescans on the configured library-sync interval, and still exposes a manual `Sync Now` action. Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a specific Lidarr target there so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
-
----
 
 ## Backup & Restore
 
@@ -186,8 +170,6 @@ Admin tools available under Settings > Administration > Data Hygiene:
 - **AI Reasoning Audit:** detect and fix AI hallucinations
 - **Purge Sessions:** clean out expired login sessions
 
----
-
 ## Deployment
 
 | Method | Path | Notes |
@@ -198,8 +180,6 @@ Admin tools available under Settings > Administration > Data Hygiene:
 | Unraid | [`deploy/unraid/`](deploy/unraid/) | Community Applications template. Requires external PostgreSQL. |
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
-
----
 
 ## Friends
 
@@ -216,19 +196,13 @@ Other self-hosted music discovery projects:
 | [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
 | [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |
 
----
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
----
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
-
----
 
 ## Star History
 

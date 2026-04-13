@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string", "minLength": 1 },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"]
+        }
+      },
+      "required": ["repository", "tag", "pullPolicy"]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      },
+      "required": ["type", "port"]
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      },
+      "required": ["enabled"]
+    },
+    "postgresql": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string", "minLength": 1 },
+            "password": { "type": "string" },
+            "database": { "type": "string", "minLength": 1 }
+          },
+          "required": ["username", "database"]
+        }
+      },
+      "required": ["enabled", "auth"]
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "name": { "type": "string", "minLength": 1 },
+        "user": { "type": "string", "minLength": 1 },
+        "password": { "type": "string" },
+        "existingSecret": { "type": "string" }
+      },
+      "required": ["port", "name", "user", "password", "existingSecret"]
+    }
+  },
+  "required": ["image", "service", "networkPolicy", "postgresql", "database"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "postgresql": {
+            "properties": {
+              "enabled": { "const": false }
+            },
+            "required": ["enabled"]
+          }
+        }
+      },
+      "then": {
+        "anyOf": [
+          {
+            "properties": {
+              "database": {
+                "properties": {
+                  "existingSecret": { "minLength": 1 }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "database": {
+                "properties": {
+                  "host": { "minLength": 1 },
+                  "password": { "minLength": 1 }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

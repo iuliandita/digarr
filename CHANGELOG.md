@@ -4,6 +4,18 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+## v0.26.7 - 2026-04-14
+
+### Fixed
+
+- Legacy shared-token auth can no longer write user locale, password, or preference settings that are meant for session-authenticated users only
+- Docker, Helm, raw Kubernetes, CI, and issue-template defaults were audited and brought back in line with the current release surface
+
+### Changed
+
+- Top-level docs and roadmap docs were tightened to reduce duplicated release detail and point readers at the changelog for per-release history
+- Dev helper scripts were simplified and cleaned up for more predictable local setup and teardown behavior
+
 ## v0.26.6 - 2026-04-14
 
 ### Fixed

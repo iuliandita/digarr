@@ -8,7 +8,7 @@ metadata:
     {{- include "digarr.labels" . | nindent 4 }}
     app.kubernetes.io/component: database
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
     - port: 5432
       targetPort: postgresql
@@ -38,11 +38,15 @@ spec:
         {{- include "digarr.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: database
     spec:
+      automountServiceAccountToken: false
       securityContext:
         fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: postgresql
           image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
           securityContext:
             runAsNonRoot: true
             runAsUser: 999
@@ -68,16 +72,22 @@ spec:
             - name: data
               mountPath: /var/lib/postgresql/data
           {{- end }}
-          livenessProbe:
+          startupProbe:
             exec:
               command: ["pg_isready", "-U", {{ .Values.postgresql.auth.username | quote }}]
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: postgresql
             initialDelaySeconds: 10
             periodSeconds: 30
             timeoutSeconds: 5
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", {{ .Values.postgresql.auth.username | quote }}]
-            initialDelaySeconds: 5
+            initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
           resources:

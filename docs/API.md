@@ -21,7 +21,7 @@ Admin-only endpoints return 403 for non-admin users.
 | PATCH | `/api/auth/me/locale` | Yes | Update the saved user locale. Session auth only. |
 | POST | `/api/auth/change-password` | Yes | Change password. Invalidates all sessions. Rate limited: 5/min |
 | GET | `/api/auth/me/preferences` | Yes | Get merged user preferences |
-| PATCH | `/api/auth/me/preferences` | Yes | Update user preferences (partial merge) |
+| PATCH | `/api/auth/me/preferences` | Yes | Update user preferences (partial merge). Session auth only. |
 
 **PATCH /api/auth/me/locale** body:
 ```json
@@ -32,6 +32,8 @@ Notes:
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
+- `POST /api/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
+- `PATCH /api/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
 - `GET /api/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 
 ### OIDC / OAuth

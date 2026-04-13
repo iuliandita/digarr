@@ -2,12 +2,34 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/iuliandita/digarr
-  tag: "0.24.2"
-  pullPolicy: IfNotPresent
+  tag: "0.26.7"
+  # Pin the digest after publishing the release image. The digest comes from the published registry artifact.
+  pullPolicy: Always
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
 
 service:
   type: ClusterIP
   port: 3000
+
+networkPolicy:
+  enabled: true
 
 ingress:
   enabled: false
@@ -27,17 +49,40 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+    ephemeral-storage: 256Mi
   limits:
     cpu: 500m
     memory: 512Mi
-
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
+    ephemeral-storage: 1Gi
 
 env:
   PORT: "3000"
   LOG_LEVEL: info
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  failureThreshold: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
 
 # ---------------------------------------------------------------------------
 # Database
@@ -58,6 +103,7 @@ postgresql:
   image:
     repository: postgres
     tag: "17-alpine"
+    pullPolicy: Always
   auth:
     username: digarr
     # password: ""  # REQUIRED -- helm install will fail without this
@@ -70,9 +116,11 @@ postgresql:
     requests:
       cpu: 50m
       memory: 64Mi
+      ephemeral-storage: 256Mi
     limits:
       cpu: 250m
       memory: 256Mi
+      ephemeral-storage: 1Gi
 
 # External database -- used when postgresql.enabled is false
 database:

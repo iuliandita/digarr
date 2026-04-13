@@ -69,3 +69,14 @@ PostgreSQL hostname -- bundled service or external host.
 {{- .Values.database.host }}
 {{- end }}
 {{- end }}
+
+{{/*
+App image reference -- prefer digest when provided.
+*/}}
+{{- define "digarr.image" -}}
+{{- if .Values.image.digest }}
+{{- printf "%s@%s" .Values.image.repository .Values.image.digest }}
+{{- else }}
+{{- printf "%s:%s" .Values.image.repository .Values.image.tag }}
+{{- end }}
+{{- end }}

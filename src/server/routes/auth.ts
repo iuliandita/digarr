@@ -49,6 +49,20 @@ export function authRoutes(deps: AppDependencies) {
       }),
     )
 
+  function requireSessionUser(c: Context<HonoEnv>) {
+    const userId = c.get('userId')
+    if (!userId) {
+      return { ok: false as const, response: c.json({ error: 'Not authenticated' }, 401) }
+    }
+    if (c.get('legacyTokenAuth')) {
+      return {
+        ok: false as const,
+        response: c.json({ error: 'Session authentication required' }, 403),
+      }
+    }
+    return { ok: true as const, userId }
+  }
+
   // Register a new user. First user becomes admin.
   router.post('/api/auth/register', async (c) => {
     const messages = getRequestMessages(c)
@@ -146,11 +160,8 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   router.patch('/api/auth/me/locale', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Not authenticated' }, 401)
-    if (c.get('legacyTokenAuth')) {
-      return c.json({ error: 'Session authentication required' }, 403)
-    }
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
 
     const body = await c.req.json()
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -162,7 +173,7 @@ export function authRoutes(deps: AppDependencies) {
       return c.json({ error: 'preferredLocale must be a string or null' }, 400)
     }
 
-    const user = await deps.getUserById(userId)
+    const user = await deps.getUserById(auth.userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
 
     const preferredLocale = rawPreferredLocale === null ? null : normalizeLocale(rawPreferredLocale)
@@ -171,16 +182,14 @@ export function authRoutes(deps: AppDependencies) {
       return c.json({ error: 'Unsupported locale' }, 400)
     }
 
-    await deps.updateUserPreferredLocale(userId, preferredLocale)
+    await deps.updateUserPreferredLocale(auth.userId, preferredLocale)
     return c.json({ success: true, preferredLocale })
   })
 
   // Change password for the current session user (requires session auth, not legacy token)
   router.post('/api/auth/change-password', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ error: 'Password change requires a user account' }, 403)
-    }
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
 
     const body = await c.req.json()
     const { currentPassword, newPassword } = body as {
@@ -195,7 +204,7 @@ export function authRoutes(deps: AppDependencies) {
       return c.json({ error: 'New password must be at least 8 characters' }, 400)
     }
 
-    const user = await deps.getUserById(userId)
+    const user = await deps.getUserById(auth.userId)
     if (!user) {
       return c.json({ error: 'User not found' }, 404)
     }
@@ -207,12 +216,12 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const newHash = hashPassword(newPassword)
-    await deps.updatePassword(userId, newHash)
+    await deps.updatePassword(auth.userId, newHash)
 
     // Invalidate all sessions for this user, then create a fresh one
-    await clearUserSessions(userId)
+    await clearUserSessions(auth.userId)
     const newToken = generateSessionToken()
-    await createSession(userId, newToken)
+    await createSession(auth.userId, newToken)
 
     return c.json({ ok: true, token: newToken })
   })
@@ -237,10 +246,10 @@ export function authRoutes(deps: AppDependencies) {
 
   // Update the authenticated user's preferences (partial merge)
   router.patch('/api/auth/me/preferences', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Not authenticated' }, 401)
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
     const body = await c.req.json()
-    const user = await deps.getUserById(userId)
+    const user = await deps.getUserById(auth.userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
     // Filter to allowed preference keys only
     const filtered: Record<string, unknown> = {}
@@ -283,7 +292,7 @@ export function authRoutes(deps: AppDependencies) {
     // Merge incoming with existing to preserve fields not being updated
     const current = (user.preferences ?? {}) as Record<string, unknown>
     const updated = { ...current, ...filtered }
-    await updateUserPreferences(deps.db, userId, updated as Preferences)
+    await updateUserPreferences(deps.db, auth.userId, updated as Preferences)
     return c.json({ success: true })
   })
 

@@ -43,8 +43,6 @@ bun run dev          # backend on :3000
 bun run dev:web      # frontend on :5173 (proxies /api to :3000)
 ```
 
----
-
 ## Code style
 
 Digarr uses [Biome](https://biomejs.dev/) for linting and formatting.
@@ -54,9 +52,7 @@ bun run lint        # check
 bun run lint:fix    # auto-fix
 ```
 
-TypeScript strict mode is enforced. No `any` -- use `unknown`, generics, or proper types.
-
----
+TypeScript strict mode is enforced. No `any`; use `unknown`, generics, or proper types.
 
 ## Testing
 
@@ -75,8 +71,6 @@ Tests live in `tests/`. Keep them close to the code they cover. E2E coverage liv
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
----
-
 ## Submitting a PR
 
 1. Create a branch from `main`: `git checkout -b feat/my-thing`
@@ -85,8 +79,6 @@ For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. 
 4. Run `bun run test:e2e` if your change affects routes, workflows, or UI behavior
 5. Open a PR against `main` and fill in the template
 6. A maintainer will review; be ready to iterate
-
----
 
 ## Commit style
 

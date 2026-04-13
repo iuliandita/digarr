@@ -52,7 +52,7 @@ jobs:
     needs: build
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -85,7 +85,7 @@ jobs:
     needs: api-route-test
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

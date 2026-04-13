@@ -681,6 +681,97 @@ describe('PATCH /api/auth/me/locale', () => {
   })
 })
 
+describe('POST /api/auth/change-password', () => {
+  it('changes the password for a session-authenticated user', async () => {
+    const storedHash = hashPassword('oldpassword123')
+    const updatePassword = vi.fn(async () => {})
+    const app = createApp(
+      makeDeps({
+        updatePassword,
+        getUserCount: vi.fn(async () => 1),
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+      }),
+    )
+
+    await createSession(1, 'session-token')
+    const res = await app.request('/api/auth/change-password', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer session-token',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    expect(body.token).toEqual(expect.any(String))
+    expect(body.token).not.toBe('session-token')
+    expect(updatePassword).toHaveBeenCalledOnce()
+    expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
+  })
+
+  it('rejects legacy read-only token auth', async () => {
+    const updatePassword = vi.fn(async () => {})
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('legacyTokenAuth', true)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps({ updatePassword })))
+
+    const res = await app.request('/api/auth/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(updatePassword).not.toHaveBeenCalled()
+  })
+})
+
+describe('PATCH /api/auth/me/preferences', () => {
+  it('rejects legacy read-only token auth', async () => {
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('legacyTokenAuth', true)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps()))
+
+    const res = await app.request('/api/auth/me/preferences', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        scoreThreshold: 0.8,
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+  })
+})
+
 describe('GET /api/auth/status', () => {
   it('reports hasUsers: false when no users exist', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 0) }))

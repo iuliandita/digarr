@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-14 | Current: v0.26.6
+> Updated: 2026-04-14 | Current: v0.26.7
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -36,8 +36,6 @@ Committed direction, roughly in priority order.
 
 ### Discovery
 
-- ~~Deezer favorites import~~ shipped in v0.22.0 (OAuth connect + favorites, followed, Flow, playlists)
-- ~~Deeper ListenBrainz integration (radio, similar-users coverage)~~ shipped in v0.23.0; ~~tag radio~~ shipped in v0.24.0 (with recording-artist cache for MB resolution)
 - Label-catalog discovery mode implementation
 - Artist-relationship discovery mode implementation
 
@@ -49,7 +47,7 @@ Committed direction, roughly in priority order.
 
 ## Exploring
 
-Ideas we're considering. Feedback welcome -- open an issue or discussion if any of these matter to you.
+Ideas we're considering. If any of these matter to you, open an issue or discussion.
 
 ### Discovery
 
@@ -77,6 +75,7 @@ Good ideas with no timeline yet.
 - Taste DNA / shareable profile
 - Audition playlists ("try before you add")
 - Interactive API docs (Swagger/Scalar UI)
+
 ## Experiments
 
 Low confidence. Would build only with real demand.
@@ -94,51 +93,16 @@ Low confidence. Would build only with real demand.
 - Native desktop client (Linux/Mac/Windows) -- PWA install already covers most of this
 - Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
 
-## Recently Shipped
+## Shipped Highlights
 
-### v0.24.0 -- v0.24.2
+For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
+Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml` and `deploy/helm/digarr/values.yaml`.
 
-- Tag Radio discovery mode via ListenBrainz radio (multiple tags, per-tag weights, raw LB syntax, popularity filtering)
-- Tag Radio subscription feed for recurring tag-based discovery
-- Recording-artist cache for MusicBrainz recording-to-artist lookups
-- Full i18n coverage: all remaining hardcoded English strings translated across 15 locales
-
-### v0.26.0
-
-- Discovery Modes moved to a dedicated page under the Discover menu so the main Discover view stays focused on recommendation review
-
-### v0.26.1
-
-- Shipped ListenBrainz radio modes now show as available, while placeholder modes stay blocked with explicit reasons
-- Manual discovery-mode runs now preflight Artist Radio seeds, return a `jobId` immediately, and surface quick failures instead of silently stalling behind a success toast
-
-### v0.26.2
-
-- Setup completion now hands cleanly into required registration or login instead of leaving a zero-user auth gap
-- Settings no longer report missing secrets as saved integrations, now show Deezer and Emby icons, and the docs/CI checks were tightened to match the current multilingual surface
-
-### v0.26.3
-
-### v0.26.4 -- v0.26.6
-
-- Finished the remaining localization sweep, tightened translation quality checks, and kept the shipped locale set aligned across the app
-- Large library syncs now batch database inserts to stay under backend parameter limits
-- Backup restore now repairs serial sequences after replaying explicit ids, and user identity fields now enforce unique non-null email and OIDC subject values
-- Linked `slskd` background sync now handles Lidarr's paginated wanted-release responses without crashing on each tick
-
-- Library Health now persists scan snapshots, shows last sync timing, auto-rescans on the configured interval, and keeps a manual sync action
-- Settings now gives Job History and System Health dedicated tabs, expands target controls to match the newer admin style, and removes the oversized dashboard health block
-- Fresh databases now skip pre-migration auto-backups until the app tables exist, avoiding noisy first-boot warnings
-
-### v0.26.4
-
-- Shared forms, dialogs, admin surfaces, and server-side validation errors now respect the selected locale instead of falling back to hardcoded English
-- Locale catalogs now pass stricter quality checks for untranslated English fallbacks and restored native accents or diacritics where they belong
-
-### v0.26.5
-
-- Large library syncs now batch artist and album inserts instead of sending one oversized statement that can exceed database parameter limits
-- The batch sizing targets SQLite-safe parameter ceilings so the same sync path stays portable across database backends
+- Discovery modes now live on their own page, ship ListenBrainz radio coverage plus Release Radar and Similar Artist Web, and can be saved as subscriptions
+- Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
+- Library operations now cover Lidarr, Plex, Jellyfin, Emby, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
+- Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
+- Recent integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
 
 ### v0.25.0
 

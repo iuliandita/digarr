@@ -21,19 +21,28 @@ spec:
       labels:
         app: digarr
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: digarr
           securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
-          image: ghcr.io/iuliandita/digarr:0.24.2
-          imagePullPolicy: IfNotPresent
+          # Pin the digest after publishing each release image. The digest comes from the published registry artifact.
+          image: ghcr.io/iuliandita/digarr:0.26.7
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3000
@@ -49,9 +58,15 @@ spec:
                 secretKeyRef:
                   name: digarr-db # name of your Secret
                   key: DATABASE_URL
-          livenessProbe:
+          startupProbe:
             httpGet:
               path: /health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
@@ -61,7 +76,7 @@ spec:
             httpGet:
               path: /health
               port: http
-            initialDelaySeconds: 5
+            initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
@@ -74,9 +89,11 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
+              ephemeral-storage: 256Mi
             limits:
               cpu: 500m
               memory: 512Mi
+              ephemeral-storage: 1Gi
       volumes:
         - name: tmp
           emptyDir: {}
