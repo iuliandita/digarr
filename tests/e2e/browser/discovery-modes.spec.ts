@@ -5,7 +5,10 @@ import { ensureAdminToken, installAuthToken } from './auth'
 test('runs a discovery mode manually and saves one as a subscription', async ({ page }) => {
   const locale = 'ru'
   const messages = getMessages(locale)
-  const token = await ensureAdminToken(page.request, { completeSetup: true, preferredLocale: locale })
+  const token = await ensureAdminToken(page.request, {
+    completeSetup: true,
+    preferredLocale: locale,
+  })
   expect(token).toBeTruthy()
   if (!token) return
 
@@ -167,12 +170,14 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
   await page.getByRole('menuitem', { name: messages['nav.discoveryModes'] }).click()
   await expect(page).toHaveURL('/discover/modes')
-  await expect(page.getByRole('heading', { name: messages['discover.discoveryModes'] })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: messages['discover.discoveryModes'] }),
+  ).toBeVisible()
   await expect(page.getByRole('link', { name: messages['nav.recommendations'] })).toBeVisible()
   await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
-  await expect(page.getByRole('button', { name: messages['nav.discover'], exact: true })).toHaveClass(
-    /text-accent/,
-  )
+  await expect(
+    page.getByRole('button', { name: messages['nav.discover'], exact: true }),
+  ).toHaveClass(/text-accent/)
   await expect(page.getByRole('menuitem', { name: messages['nav.recommendations'] })).toHaveClass(
     /text-text/,
   )
