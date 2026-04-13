@@ -57,5 +57,6 @@ export type DiscoveryModeDefinition = {
   availability: DiscoveryAvailabilityKind
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
+  prepare?: (request: DiscoveryModeRequest) => Promise<DiscoveryModeRequest>
   executor: (request: DiscoveryModeRequest) => Promise<RawDiscoveryExecutionResult>
 }

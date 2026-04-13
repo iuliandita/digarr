@@ -270,8 +270,7 @@ export const uk = {
   'discover.monitorSelected': 'Вибрані альбоми',
   'discover.monitorSelectedDescription': 'Виберіть, які альбоми відстежувати',
   'discover.monitorNoneDescription': 'Додати без моніторингу (лише відстеження)',
-  'discover.discoveryRunStarted':
-    'Запуск виявлення розпочато — перевірте прогрес на інформаційній панелі',
+  'discover.discoveryRunStarted': 'Запуск виявлення розпочато.',
   'discover.expand': 'Розгорнути',
   'discover.exportFailed': 'Помилка експорту',
   'discover.exported': 'експортований',
@@ -682,6 +681,7 @@ export const uk = {
     'Відкривайте учасників колаборацій, псевдоніми та суміжних виконавців',
   'discoveryMode.labels.label': 'Лейбли',
   'discoveryMode.labels.description': 'Знаходьте виконавців через каталоги лейблів',
+  'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
     'Підключіть ListenBrainz, щоб користуватися цим режимом.',

@@ -189,7 +189,10 @@ export type AppDependencies = {
   }
   discoveryModeRegistry?: DiscoveryModeRegistry
   getDiscoveryConnectionSnapshot?: (userId: number) => Promise<DiscoveryConnectionSnapshot>
-  runDiscoveryMode?: (request: DiscoveryModeRequest) => Promise<{ batchId: number }>
+  runDiscoveryMode?: (
+    request: DiscoveryModeRequest,
+    options?: { existingJobId?: number },
+  ) => Promise<{ batchId: number; artistsFound?: number }>
   // Job recording & queries
   jobRecorder: import('@/core/jobs/types').JobRecorder
   jobQueries: {

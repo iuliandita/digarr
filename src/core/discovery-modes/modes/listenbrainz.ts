@@ -1,5 +1,6 @@
 import type { RadioMode, TagRadioInput } from '@/core/clients/listenbrainz'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
 import { createListenBrainzAdapter } from '@/core/subscriptions/adapters/listenbrainz'
 import type {
@@ -168,6 +169,32 @@ function parseRawTagExpression(raw: string): TagRadioInput[] {
   return results
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+async function resolveArtistSeedToMbid(seed: string): Promise<string> {
+  const trimmed = seed.trim()
+  if (!trimmed) {
+    throw new Error('Artist seed is required.')
+  }
+  if (UUID_RE.test(trimmed)) {
+    return trimmed
+  }
+
+  const searchResult = await createMusicBrainzClient().searchArtist(trimmed)
+  const normalizedSeed = normalizeDiscoveryName(trimmed)
+  const exactMatch = searchResult.artists.find(
+    (artist) => normalizeDiscoveryName(artist.name) === normalizedSeed,
+  )
+  const singleResult = searchResult.artists.length === 1 ? searchResult.artists[0] : null
+  const resolved = exactMatch ?? singleResult
+
+  if (!resolved?.id) {
+    throw new Error(`Could not resolve artist seed "${trimmed}" to a MusicBrainz artist.`)
+  }
+
+  return resolved.id
+}
+
 export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
   const adventurenessField: DiscoveryConfigField = {
     key: 'adventurousness',
@@ -206,6 +233,19 @@ export function createListenBrainzRadioModes(): DiscoveryModeDefinition[] {
       adventurenessField,
       { key: 'limit', label: 'Limit', type: 'number' },
     ],
+    prepare: async (request) => {
+      const seedArtistMbid = await resolveArtistSeedToMbid(
+        String(request.normalizedSettings.seedArtistMbid ?? ''),
+      )
+
+      return {
+        ...request,
+        normalizedSettings: {
+          ...request.normalizedSettings,
+          seedArtistMbid,
+        },
+      }
+    },
     executor: async (request) => {
       const { client } = await getConnectedClient(request.userId)
       const mbid = String(request.normalizedSettings.seedArtistMbid)

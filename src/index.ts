@@ -579,6 +579,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
 
 const executeDiscoveryModeRun = async (
   request: import('./core/discovery-modes/request').DiscoveryModeRequest,
+  options?: { existingJobId?: number },
 ) => {
   const { pipelineDeps } = await buildDiscoveryModePipelineDeps(request.userId)
 
@@ -588,6 +589,7 @@ const executeDiscoveryModeRun = async (
     orchestrator,
     pipelineDeps,
     jobRecorder,
+    existingJobId: options?.existingJobId,
   })
 }
 

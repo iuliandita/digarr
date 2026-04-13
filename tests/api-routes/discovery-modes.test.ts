@@ -115,4 +115,32 @@ describe('API routes: discovery modes', () => {
     expect(body.modes.length).toBeGreaterThan(0)
     expect(body.modes.some((mode: { id: string }) => mode.id === 'labels')).toBe(true)
   })
+
+  it('surfaces ListenBrainz radio-derived modes as enabled when ListenBrainz is connected', async () => {
+    const { app } = createTestApp({
+      discoveryModeRegistry: createDefaultDiscoveryModeRegistry(),
+      getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue({
+        hasListenBrainz: true,
+        hasSpotify: false,
+        hasLastfm: false,
+        hasDiscogs: false,
+        hasLibrarySync: false,
+      }),
+    })
+
+    const res = await app.request('/api/discovery-modes', {
+      headers: { Authorization: 'Bearer test-token' },
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    const byId = Object.fromEntries(
+      body.modes.map((mode: { id: string; availability: { enabled: boolean } }) => [mode.id, mode]),
+    )
+
+    expect(byId['lb-artist-radio'].availability).toMatchObject({ enabled: true })
+    expect(byId['lb-user-radio'].availability).toMatchObject({ enabled: true })
+    expect(byId['similar-users-deep'].availability).toMatchObject({ enabled: true })
+    expect(byId['lb-tag-radio'].availability).toMatchObject({ enabled: true })
+  })
 })

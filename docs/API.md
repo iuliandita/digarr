@@ -103,7 +103,7 @@ Locale notes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/discovery-modes` | Yes | List discovery modes with current availability, fallback, and field metadata |
-| POST | `/api/discovery-modes/run` | Yes | Start a manual discovery-mode run. Returns 202 with no batch ID. |
+| POST | `/api/discovery-modes/run` | Yes | Start a manual discovery-mode run. Returns 202 with a `jobId`, but no batch ID. |
 
 **GET /api/discovery-modes** notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
@@ -125,8 +125,10 @@ Locale notes:
 
 **POST /api/discovery-modes/run** behavior:
 - Returns `202 { "message": "Discovery run started" }` after validation; the actual run continues in the background
+- The accepted response now includes `jobId`, so clients can poll the job detail endpoint while the run continues in the background
 - The server re-evaluates availability and execution context from the current user connections before starting the run
 - Returns `400` with the availability reason when a mode is currently unavailable, matching the `availability.reason` shown in the UI
+- Mode-specific preflight preparation can still reject the request before `202`; for example, Artist Radio resolves free-text artist seeds to MusicBrainz IDs before the job is accepted
 
 ---
 

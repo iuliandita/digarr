@@ -13,6 +13,9 @@ All notable user-facing changes are documented here.
 ### Fixed
 
 - Shipped ListenBrainz radio modes no longer appear as "not shipped yet", and unavailable cards now explain why they are blocked
+- Manual discovery-mode runs now return a `jobId` immediately, so the UI can track the accepted job instead of showing a blind success toast
+- ListenBrainz Artist Radio now resolves artist-name seeds to MusicBrainz IDs before the run is accepted, so invalid free-text seeds fail up front instead of dying silently in the background
+- Discovery-run feedback now surfaces quick job failures to the user instead of only logging them server-side
 
 ## v0.25.0 - 2026-04-13
 
@@ -133,7 +136,7 @@ All notable user-facing changes are documented here.
 
 ### Added
 
-- Discovery modes on the Discover page, with runnable ListenBrainz, Release Radar, and Similar Artist Web flows
+- Discovery modes on the dedicated `/discover/modes` page, with runnable ListenBrainz, Release Radar, and Similar Artist Web flows
 - Discovery-mode subscriptions that reuse the existing subscription runner, scheduler, job history, and browser coverage
 
 ### Fixed

@@ -91,6 +91,29 @@ describe('evaluateDiscoveryModeAvailability', () => {
     })
   })
 
+  it('treats ListenBrainz radio-derived modes as strict ListenBrainz modes', () => {
+    const snapshot = {
+      hasListenBrainz: true,
+      hasSpotify: false,
+      hasLastfm: false,
+      hasDiscogs: false,
+      hasLibrarySync: false,
+    }
+
+    for (const modeId of [
+      'lb-artist-radio',
+      'lb-user-radio',
+      'similar-users-deep',
+      'lb-tag-radio',
+    ]) {
+      expect(evaluateDiscoveryModeAvailability(modeId, snapshot)).toMatchObject({
+        enabled: true,
+        fallbackUsed: false,
+        providerPath: ['listenbrainz'],
+      })
+    }
+  })
+
   it('uses real similar-artist providers instead of discogs or musicbrainz placeholders', () => {
     const result = evaluateDiscoveryModeAvailability('similar-artist-web', {
       hasListenBrainz: false,

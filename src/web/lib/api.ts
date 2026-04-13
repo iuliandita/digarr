@@ -21,6 +21,11 @@ export type DiscoveryModeResponse = {
   advancedFields: DiscoveryConfigField[]
 }
 
+export type DiscoveryRunResponse = {
+  message: string
+  jobId?: number
+}
+
 const BASE = '/api'
 
 const AUTH_TOKEN_KEY = 'digarr-auth-token'
@@ -45,8 +50,22 @@ export class ApiError extends Error {
     public status: number,
     public data: unknown,
   ) {
-    super(`API Error ${status}`)
+    super(extractApiErrorMessage(status, data))
   }
+}
+
+function extractApiErrorMessage(status: number, data: unknown): string {
+  if (data && typeof data === 'object') {
+    const record = data as Record<string, unknown>
+    if (typeof record.error === 'string' && record.error.trim()) {
+      return record.error
+    }
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message
+    }
+  }
+
+  return `API Error ${status}`
 }
 
 // Fired when any fetchApi call gets 401 -- AuthGate listens and shows login
@@ -240,7 +259,7 @@ export const getDiscoveryModes = () =>
   fetchApi<{ modes: DiscoveryModeResponse[] }>('/discovery-modes')
 
 export const runDiscoveryMode = (body: Record<string, unknown>) =>
-  fetchApi<{ message: string }>('/discovery-modes/run', {
+  fetchApi<DiscoveryRunResponse>('/discovery-modes/run', {
     method: 'POST',
     body: JSON.stringify(body),
   })

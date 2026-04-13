@@ -3,9 +3,11 @@ import { useI18n } from '../lib/i18n'
 
 export function DiscoveryModeInfoBox({
   storageKey,
+  title,
   children,
 }: {
   storageKey: string
+  title?: string
   children: React.ReactNode
 }) {
   const { t } = useI18n()
@@ -23,6 +25,7 @@ export function DiscoveryModeInfoBox({
 
   return (
     <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted">
+      {title && <div className="mb-1 font-medium text-text">{title}</div>}
       <div>{children}</div>
       <div className="mt-3 flex justify-end">
         <button

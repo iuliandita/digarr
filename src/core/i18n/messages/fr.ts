@@ -270,8 +270,7 @@ export const fr = {
   'discover.monitorSelected': 'Albums sélectionnés',
   'discover.monitorSelectedDescription': 'Choisir les albums à surveiller',
   'discover.monitorNoneDescription': 'Ajouter sans surveillance (suivi uniquement)',
-  'discover.discoveryRunStarted':
-    "L'exécution de la découverte a démarré – vérifiez la progression dans le tableau de bord",
+  'discover.discoveryRunStarted': "L'exécution de la découverte a démarré.",
   'discover.expand': 'Développer',
   'discover.exportFailed': "Échec de l'exportation",
   'discover.exported': 'exporté',
@@ -670,6 +669,7 @@ export const fr = {
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description':
     'Découvrez des artistes connectés via les catalogues de labels',
+  'discoveryMode.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
   'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
   'discoveryMode.reason.connectListeningSource': 'Connectez d’abord une source d’écoute.',

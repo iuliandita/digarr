@@ -36,7 +36,7 @@ All screenshots use the Youtarr theme.
 
 ## Discovery Modes
 
-No committed screenshot yet. Discovery Modes now lives on its own page under the Discover menu. That page includes ListenBrainz Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep, plus Release Radar and Similar Artist Web. Labels and Artist Relationships still appear there as unavailable placeholders until those modes ship, and each blocked card now shows an explicit reason.
+No committed screenshot yet. Discovery Modes now lives on its own page under the Discover menu at `/discover/modes`. That page includes ListenBrainz Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep, plus Release Radar and Similar Artist Web. Labels and Artist Relationships still appear there as unavailable placeholders until those modes ship, and each blocked card now shows an explicit reason. Manual runs now validate Artist Radio seeds before they are accepted and show job-backed feedback instead of a blind "started" toast.
 
 ## Library Health
 

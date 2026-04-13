@@ -269,8 +269,7 @@ export const tr = {
   'discover.monitorSelected': 'Seçili albümler',
   'discover.monitorSelectedDescription': 'Hangi albümlerin izleneceğini seç',
   'discover.monitorNoneDescription': 'İzleme olmadan ekle (yalnızca takip)',
-  'discover.discoveryRunStarted':
-    'Keşif çalıştırması başladı; ilerleme için Kontrol Panelini kontrol edin',
+  'discover.discoveryRunStarted': 'Keşif çalıştırması başladı.',
   'discover.expand': 'Genişlet',
   'discover.exportFailed': 'Dışa aktarma başarısız oldu',
   'discover.exported': 'ihraç edildi',
@@ -677,6 +676,7 @@ export const tr = {
     'Isbirlikleri, takma adlar ve yakin sanatci grafigi baglantilarini kesfet',
   'discoveryMode.labels.label': 'Etiketler',
   'discoveryMode.labels.description': 'Plak sirketi kataloglari uzerinden sanatci kesfet',
+  'discoveryMode.notImplementedYet': 'Bu mod henuz uygulanmadi.',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak icin ListenBrainz baglayin.',
   'discoveryMode.reason.connectListeningSource': 'Once bir dinleme kaynagi baglayin.',

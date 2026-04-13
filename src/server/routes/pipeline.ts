@@ -6,8 +6,10 @@ import {
   buildDiscoveryModeExecutionContext,
   evaluateDiscoveryModeAvailability,
 } from '@/core/discovery-modes/availability'
+import { prepareDiscoveryModeRequest } from '@/core/discovery-modes/prepare'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
+import { buildDiscoveryModeJobMetadata } from '@/core/discovery-modes/run'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
 import { filter } from '@/core/pipeline/filter'
@@ -133,24 +135,30 @@ export function pipelineRoutes(deps: AppDependencies) {
     try {
       const body = await c.req.json()
       const request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
+      const preparedRequest = await prepareDiscoveryModeRequest(request, deps.discoveryModeRegistry)
       const snapshot = await (deps.getDiscoveryConnectionSnapshot?.(userId) ??
         Promise.resolve(EMPTY_DISCOVERY_SNAPSHOT))
-      const availability = evaluateDiscoveryModeAvailability(request.modeId, snapshot)
+      const availability = evaluateDiscoveryModeAvailability(preparedRequest.modeId, snapshot)
       if (!availability.enabled) {
         return c.json({ error: availability.reason ?? 'This mode is unavailable.' }, 400)
       }
       const executionContext = buildDiscoveryModeExecutionContext(availability)
       const executableRequest: DiscoveryModeRequest = {
-        ...request,
+        ...preparedRequest,
         providerContext: executionContext.providerContext,
         fallbackPolicy: executionContext.fallbackPolicy,
       }
+      const jobId = await deps.jobRecorder.start({
+        type: 'quick_discover',
+        userId,
+        metadata: buildDiscoveryModeJobMetadata(executableRequest),
+      })
 
-      deps.runDiscoveryMode(executableRequest).catch((err: unknown) => {
+      deps.runDiscoveryMode(executableRequest, { existingJobId: jobId }).catch((err: unknown) => {
         console.error('Discovery mode run failed:', err)
       })
 
-      return c.json({ message: 'Discovery run started' }, 202)
+      return c.json({ message: 'Discovery run started', jobId }, 202)
     } catch (err: unknown) {
       return c.json({ error: errMsg(err) }, 400)
     }

@@ -43,7 +43,7 @@ describe('API routes: discovery mode pipeline runs', () => {
       executor: vi.fn(async () => ({ candidates: [] })),
     })
 
-    const { app } = createTestApp({
+    const { app, deps } = createTestApp({
       discoveryModeRegistry,
       getDiscoveryConnectionSnapshot: vi.fn().mockResolvedValue({
         hasListenBrainz: false,
@@ -72,14 +72,24 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
 
     expect(res.status).toBe(202)
-    expect(await res.json()).toEqual({ message: 'Discovery run started' })
+    expect(await res.json()).toEqual({ message: 'Discovery run started', jobId: 1 })
     expect(runDiscoveryMode).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         modeId: 'release-radar',
+        settingsMode: 'easy',
+        rawUserSettings: { seedArtists: ['Broadcast'] },
+        normalizedSettings: { seedArtists: ['Broadcast'] },
         userId: 1,
         triggerType: 'manual',
         providerContext: { providerPath: ['lastfm'] },
         fallbackPolicy: 'allow-fallback',
+      },
+      { existingJobId: 1 },
+    )
+    expect(deps.jobRecorder.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'quick_discover',
+        userId: 1,
       }),
     )
 
@@ -170,7 +180,7 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
 
     expect(res.status).toBe(202)
-    expect(await res.json()).toEqual({ message: 'Discovery run started' })
+    expect(await res.json()).toEqual({ message: 'Discovery run started', jobId: 1 })
     await Promise.resolve()
     expect(consoleError).toHaveBeenCalledWith(
       'Discovery mode run failed:',

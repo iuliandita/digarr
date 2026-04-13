@@ -1,5 +1,6 @@
 import { discoveryCandidatesToDiscoveredArtists } from '@/core/discovery-modes/candidates'
 import { executeDiscoveryMode } from '@/core/discovery-modes/executor'
+import { prepareDiscoveryModeRequest } from '@/core/discovery-modes/prepare'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { JobRecorder } from '@/core/jobs/types'
@@ -17,6 +18,7 @@ type RunDiscoveryModeParams = {
     'explicitCandidates' | 'explicitDiscoveryMode' | 'jobRecorder' | 'trigger' | 'userId'
   >
   jobRecorder?: JobRecorder
+  existingJobId?: number
 }
 
 function extractProviderPath(providerContext: Record<string, unknown>): string[] {
@@ -28,6 +30,17 @@ function extractProviderPath(providerContext: Record<string, unknown>): string[]
   return providerPath.filter((segment): segment is string => typeof segment === 'string')
 }
 
+export function buildDiscoveryModeJobMetadata(request: DiscoveryModeRequest) {
+  return {
+    trigger: request.triggerType,
+    discoveryMode: {
+      modeId: request.modeId,
+      settingsMode: request.settingsMode,
+      providerPath: extractProviderPath(request.providerContext),
+    },
+  }
+}
+
 export async function runDiscoveryMode({
   request,
   registry,
@@ -36,23 +49,18 @@ export async function runDiscoveryMode({
   maxArtistsPerRun,
   pipelineDeps,
   jobRecorder,
+  existingJobId,
 }: RunDiscoveryModeParams): Promise<{ batchId: number; artistsFound: number }> {
-  const providerPath = extractProviderPath(request.providerContext)
+  const preparedRequest = await prepareDiscoveryModeRequest(request, registry)
+  const providerPath = extractProviderPath(preparedRequest.providerContext)
 
-  let jobId: number | null = null
-  if (jobRecorder) {
+  let jobId: number | null = existingJobId ?? null
+  if (jobId == null && jobRecorder) {
     try {
       jobId = await jobRecorder.start({
         type: 'quick_discover',
-        userId: request.userId,
-        metadata: {
-          trigger: request.triggerType,
-          discoveryMode: {
-            modeId: request.modeId,
-            settingsMode: request.settingsMode,
-            providerPath,
-          },
-        },
+        userId: preparedRequest.userId,
+        metadata: buildDiscoveryModeJobMetadata(preparedRequest),
       })
     } catch (error: unknown) {
       console.error('[discovery-mode] Failed to record job start:', error)
@@ -60,7 +68,7 @@ export async function runDiscoveryMode({
   }
 
   try {
-    const execution = await executeDiscoveryMode(request, registry)
+    const execution = await executeDiscoveryMode(preparedRequest, registry)
     const explicitCandidates = discoveryCandidatesToDiscoveredArtists(execution.candidates).slice(
       0,
       maxArtistsPerRun ?? Number.POSITIVE_INFINITY,
@@ -68,12 +76,12 @@ export async function runDiscoveryMode({
 
     const result = await orchestrator.run({
       ...pipelineDeps,
-      userId: request.userId,
+      userId: preparedRequest.userId,
       subscriptionId,
-      trigger: request.triggerType === 'subscription' ? 'scheduled' : 'manual',
+      trigger: preparedRequest.triggerType === 'subscription' ? 'scheduled' : 'manual',
       explicitDiscoveryMode: {
-        modeId: request.modeId,
-        settingsMode: request.settingsMode,
+        modeId: preparedRequest.modeId,
+        settingsMode: preparedRequest.settingsMode,
         providerPath,
       },
       explicitCandidates,
@@ -82,11 +90,11 @@ export async function runDiscoveryMode({
     if (jobId != null && jobRecorder) {
       await jobRecorder.complete(jobId, {
         metadata: {
-          trigger: request.triggerType,
+          trigger: preparedRequest.triggerType,
           artistsDiscovered: explicitCandidates.length,
           discoveryMode: {
-            modeId: request.modeId,
-            settingsMode: request.settingsMode,
+            modeId: preparedRequest.modeId,
+            settingsMode: preparedRequest.settingsMode,
             providerPath,
           },
         },

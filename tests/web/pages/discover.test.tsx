@@ -61,12 +61,12 @@ import {
   updateRecommendation,
 } from '@/web/lib/api'
 
-const mockApproveToTarget = vi.mocked(approveToTarget)
-const mockGetRecommendations = vi.mocked(getRecommendations)
-const mockUpdateRecommendation = vi.mocked(updateRecommendation)
-const mockApproveRecommendation = vi.mocked(approveRecommendation)
-const mockBulkAction = vi.mocked(bulkAction)
-const mockListTargets = vi.mocked(listTargets)
+const mockApproveToTarget = approveToTarget as ReturnType<typeof vi.fn>
+const mockGetRecommendations = getRecommendations as ReturnType<typeof vi.fn>
+const mockUpdateRecommendation = updateRecommendation as ReturnType<typeof vi.fn>
+const mockApproveRecommendation = approveRecommendation as ReturnType<typeof vi.fn>
+const mockBulkAction = bulkAction as ReturnType<typeof vi.fn>
+const mockListTargets = listTargets as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -114,7 +114,7 @@ function setupMockApi(recs: ReturnType<typeof makeRec>[] = [makeRec()]) {
   mockGetRecommendations.mockResolvedValue(
     makeRes(recs) as unknown as { items: unknown[]; total: number },
   )
-  vi.mocked(getWarmStatuses).mockResolvedValue({ statuses: {} })
+  ;(getWarmStatuses as ReturnType<typeof vi.fn>).mockResolvedValue({ statuses: {} })
   mockListTargets.mockResolvedValue([])
 }
 
@@ -147,15 +147,14 @@ describe('DiscoverPage', () => {
         }),
       },
     })
-    // sonner toast -- not rendered in jsdom, silence it
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
+    Object.defineProperty(globalThis, 'ResizeObserver', {
+      configurable: true,
+      value: class {
         observe() {}
         unobserve() {}
         disconnect() {}
       },
-    )
+    })
   })
 
   it('renders recommendation cards from API data', async () => {

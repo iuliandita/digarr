@@ -6,9 +6,9 @@ export function DiscoveryModesPage() {
   const { t } = useI18n()
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6 px-6 py-6">
       <div className="space-y-3">
-        <Link to="/discover" className="text-sm text-muted hover:text-text transition-colors">
+        <Link to="/discover" className="text-sm text-accent hover:underline">
           {t('nav.recommendations')}
         </Link>
         <div className="space-y-1">
