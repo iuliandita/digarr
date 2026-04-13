@@ -101,6 +101,12 @@ describe('DiscoveryModesPage', () => {
               type: 'number',
               required: true,
             },
+            {
+              key: 'seedArtist',
+              label: 'Seed artist',
+              type: 'text',
+              required: false,
+            },
           ],
         },
       ],
@@ -117,12 +123,31 @@ describe('DiscoveryModesPage', () => {
     await screen.findByText('This mode is not implemented yet.')
     await screen.findByText('Using fallback providers for release discovery.')
 
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '14' } })
     const releaseRadarHeading = screen.getByRole('heading', { name: 'Release Radar' })
     const releaseRadarCard = releaseRadarHeading.closest('article')
     expect(releaseRadarCard).not.toBeNull()
     if (!releaseRadarCard) throw new Error('Missing release radar card')
-    fireEvent.click(within(releaseRadarCard).getByRole('button', { name: 'Run discovery' }))
+    const releaseRadarQueries = within(releaseRadarCard)
+
+    expect(releaseRadarQueries.getByRole('spinbutton')).toBeInTheDocument()
+    expect(releaseRadarQueries.queryByText('Seed artist')).not.toBeInTheDocument()
+
+    const labelsHeading = screen.getByRole('heading', { name: 'Labels' })
+    const labelsCard = labelsHeading.closest('article')
+    expect(labelsCard).not.toBeNull()
+    if (!labelsCard) throw new Error('Missing labels card')
+    const labelsQueries = within(labelsCard)
+    expect(labelsQueries.getByRole('button', { name: 'Run discovery' })).toBeDisabled()
+    fireEvent.click(labelsQueries.getByRole('button', { name: 'Run discovery' }))
+    expect(mockRunDiscoveryMode).toHaveBeenCalledTimes(0)
+
+    fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Advanced' }))
+
+    expect(releaseRadarQueries.getByText('Seed artist')).toBeInTheDocument()
+
+    fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Easy' }))
+    fireEvent.change(releaseRadarQueries.getByRole('spinbutton'), { target: { value: '14' } })
+    fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Run discovery' }))
 
     await waitFor(() => {
       expect(mockRunDiscoveryMode).toHaveBeenCalledWith({
