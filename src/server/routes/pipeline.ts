@@ -107,6 +107,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         providerRegistry: deps.providerRegistry,
         userConnections,
         autoApproveDeps,
+        librarySync: deps.librarySync,
         jobRecorder: deps.jobRecorder,
         trigger: 'manual',
         responseLocale,

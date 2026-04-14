@@ -267,6 +267,15 @@ describe('POST /api/pipeline/run', () => {
       }),
     )
   })
+
+  it('passes librarySync into the orchestrator (regression: GH #105)', async () => {
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const librarySync = { syncForUser: vi.fn() } as unknown as AppDependencies['librarySync']
+    const app = createApp(makeDeps({ orchestrator, librarySync }))
+    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
+    expect(res.status).toBe(202)
+    expect(orchestrator.run).toHaveBeenCalledWith(expect.objectContaining({ librarySync }))
+  })
 })
 
 describe('GET /api/pipeline/status', () => {

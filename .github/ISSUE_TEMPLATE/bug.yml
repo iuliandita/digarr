@@ -35,16 +35,53 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: environment
+  - type: input
+    id: digarr-version
     attributes:
-      label: Environment
-      description: OS, browser, Digarr version, deployment method
-      placeholder: |
-        - OS: Ubuntu 24.04
-        - Browser: Firefox 126
-        - Digarr: 0.26.7
-        - Deploy: Docker Compose
+      label: Digarr version
+      description: Visible in the footer of the web UI, or `package.json`.
+      placeholder: "e.g. 0.27.3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment method
+      options:
+        - Docker Compose
+        - Docker (plain)
+        - Helm (Kubernetes)
+        - Kubernetes (raw manifests)
+        - Bun (from source)
+        - Other / custom
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Host OS
+      description: OS and version of the machine running Digarr (or the K8s node).
+      placeholder: "e.g. Ubuntu 24.04, Debian 12, CachyOS rolling, Talos 1.8"
+    validations:
+      required: true
+
+  - type: input
+    id: postgres-version
+    attributes:
+      label: Postgres version
+      description: Run `SELECT version();` or check your image tag.
+      placeholder: "e.g. 16.4, 17.2"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Only if the bug is in the web UI. Skip for backend-only issues.
+      placeholder: "e.g. Firefox 126, Chrome 138, Safari 17"
     validations:
       required: false
 
