@@ -1138,4 +1138,10 @@ export const ko = {
   'pipeline.message.resolvingArtist': '{0} 해결 중...',
   'pipeline.message.searchingArtist': '{0} 검색 중...',
   'pipeline.message.resolutionComplete': '해결 완료',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': '라이브러리 카탈로그 구축 중',
+  'firstSyncBanner.body':
+    'Digarr가 라이브러리를 MusicBrainz와 매칭하고 있습니다. MusicBrainz의 속도 제한은 분당 약 60명의 아티스트를 허용하므로 5,000명 규모의 라이브러리를 완전히 정합하는 데 약 80분이 걸립니다. 이 작업은 한 번만 수행되며 -- 이후 동기화는 로컬 캐시를 사용해 몇 초 만에 완료됩니다.',
+  'librarySync.message.syncingSource': '{0} 동기화 중...',
 } satisfies Partial<MessageCatalog>

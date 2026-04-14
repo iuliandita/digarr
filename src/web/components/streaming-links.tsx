@@ -1,4 +1,5 @@
 import { isHttpUrl } from '@/core/validation'
+import { useI18n } from '../lib/i18n'
 
 type StreamingLinksProps = {
   streamingUrls: Record<string, string> | null
@@ -78,6 +79,7 @@ function extractSpotifyId(url: string): { type: string; id: string } | null {
 }
 
 function SpotifyEmbed({ url }: SpotifyEmbedProps) {
+  const { t } = useI18n()
   const parsed = extractSpotifyId(url)
   if (!parsed) return null
   const embedUrl = `https://open.spotify.com/embed/${parsed.type}/${parsed.id}?utm_source=generator`
@@ -89,7 +91,7 @@ function SpotifyEmbed({ url }: SpotifyEmbedProps) {
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
       className="rounded border border-border mt-2"
-      title="Spotify preview"
+      title={t('streaming.spotifyEmbedTitle')}
     />
   )
 }
@@ -101,6 +103,7 @@ export function StreamingLinks({
   onPlay,
   isPlaying = false,
 }: StreamingLinksProps) {
+  const { t } = useI18n()
   const urls = streamingUrls ?? {}
 
   // Build the list of links: prefer direct URL, fall back to search URL for known services
@@ -140,7 +143,7 @@ export function StreamingLinks({
             onClick={onPlay}
             className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border border-green-500/40 text-green-500 bg-surface/50 hover:opacity-80 transition-opacity"
           >
-            {isPlaying ? 'STOP' : 'PLAY'}
+            {isPlaying ? t('streaming.stopShort') : t('streaming.playShort')}
           </button>
         )}
         {links.map(({ key, label, url, color }) => (

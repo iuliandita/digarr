@@ -67,7 +67,11 @@ export interface PipelineDeps {
   librarySync: {
     syncForUser: (
       userId: number,
-      options?: { force?: boolean; onProgress?: (msg: string) => void },
+      options?: {
+        force?: boolean
+        onProgress?: (msg: string) => void
+        t?: import('@/core/i18n/translator').Translator
+      },
     ) => Promise<unknown>
   }
 }
@@ -229,6 +233,7 @@ export class PipelineOrchestrator extends EventEmitter {
       } else {
         await deps.librarySync.syncForUser(userIdForSync, {
           onProgress: (msg) => this.emit('progress', { stage: 'collect', message: msg }),
+          t,
         })
       }
 

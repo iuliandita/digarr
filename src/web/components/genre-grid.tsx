@@ -1,4 +1,5 @@
 import type { GenreInfo } from '../../core/genre/types'
+import { useI18n } from '../lib/i18n'
 import { GenreCard } from './genre-card'
 import { Skeleton } from './ui/skeleton'
 
@@ -25,6 +26,7 @@ function GenreSkeletonGrid() {
 }
 
 export function GenreGrid({ genres, loading = false }: GenreGridProps) {
+  const { t } = useI18n()
   if (loading) {
     return <GenreSkeletonGrid />
   }
@@ -32,7 +34,7 @@ export function GenreGrid({ genres, loading = false }: GenreGridProps) {
   if (genres.length === 0) {
     return (
       <div className="py-12 text-center">
-        <p className="text-muted text-sm">No genres found.</p>
+        <p className="text-muted text-sm">{t('genres.noneFound')}</p>
       </div>
     )
   }

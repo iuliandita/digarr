@@ -1163,4 +1163,10 @@ export const ru = {
   'pipeline.message.resolvingArtist': 'Сопоставление {0}...',
   'pipeline.message.searchingArtist': 'Поиск {0}...',
   'pipeline.message.resolutionComplete': 'Сопоставление завершено',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Создание каталога вашей библиотеки',
+  'firstSyncBanner.body':
+    'Digarr сопоставляет вашу библиотеку с MusicBrainz. Лимит запросов MusicBrainz позволяет обрабатывать около 60 исполнителей в минуту, поэтому полное сопоставление библиотеки из 5 000 исполнителей занимает около 80 минут. Это происходит только один раз -- последующие синхронизации используют локальный кэш и завершаются за секунды.',
+  'librarySync.message.syncingSource': 'Синхронизация {0}...',
 } satisfies Partial<MessageCatalog>

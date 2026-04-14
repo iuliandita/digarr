@@ -1204,7 +1204,7 @@ export function DiscoverPage() {
           </button>
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label={t('common.dismiss')}
             onClick={() => {
               if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
               setUndoEntry(null)

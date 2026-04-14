@@ -1151,4 +1151,10 @@ export const pl = {
   'pipeline.message.resolvingArtist': 'Rozwiązywanie {0}...',
   'pipeline.message.searchingArtist': 'Wyszukiwanie {0}...',
   'pipeline.message.resolutionComplete': 'Rozwiązywanie zakończone',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Budowanie katalogu biblioteki',
+  'firstSyncBanner.body':
+    'Digarr dopasowuje twoją bibliotekę do MusicBrainz. Limit zapytań MusicBrainz pozwala na około 60 artystów na minutę, więc biblioteka licząca 5000 artystów potrzebuje około 80 minut do pełnego uzgodnienia. Dzieje się to tylko raz -- kolejne synchronizacje korzystają z lokalnej pamięci podręcznej i kończą się w kilka sekund.',
+  'librarySync.message.syncingSource': 'Synchronizacja {0}...',
 } satisfies Partial<MessageCatalog>

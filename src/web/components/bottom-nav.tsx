@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
 
 // Icons (inline SVG -- consistent with existing component style)
@@ -99,10 +100,11 @@ const NAV_ITEMS = [
  * Fixed to bottom of screen, above any content via z-index.
  */
 export function BottomNav() {
+  const { t } = useI18n()
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg border-t border-border"
-      aria-label="Mobile navigation"
+      aria-label={t('app.mobileNav')}
     >
       <div className="flex items-center justify-around h-14 px-2">
         {NAV_ITEMS.map(({ to, label, Icon, exact }) => (

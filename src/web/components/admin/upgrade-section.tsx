@@ -12,7 +12,7 @@ export function UpgradeSection() {
     queryFn: getPendingMigrations,
   })
 
-  if (!data) return <p className="text-sm text-muted">Loading...</p>
+  if (!data) return <p className="text-sm text-muted">{t('common.loading')}</p>
 
   return (
     <div className="space-y-3 pt-2">

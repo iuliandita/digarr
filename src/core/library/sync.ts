@@ -43,6 +43,7 @@ export type SyncSummary = {
 export type SyncOptions = {
   force?: boolean
   onProgress?: (msg: string) => void
+  t?: import('@/core/i18n/translator').Translator
 }
 
 export type SyncOrchestratorDeps = {
@@ -106,7 +107,11 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         lastSyncError: null,
       })
 
-      options?.onProgress?.(`Syncing ${source.name}...`)
+      options?.onProgress?.(
+        options?.t
+          ? options.t('librarySync.message.syncingSource', source.name)
+          : `Syncing ${source.name}...`,
+      )
       const rawArtists = await source.listArtists()
 
       const overrides = userId != null ? await deps.store.getAllOverrides(userId) : new Map()

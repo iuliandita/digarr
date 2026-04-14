@@ -1159,4 +1159,10 @@ export const ro = {
   'pipeline.message.resolvingArtist': 'Se rezolvă {0}...',
   'pipeline.message.searchingArtist': 'Se caută {0}...',
   'pipeline.message.resolutionComplete': 'Rezolvare completă',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Se construiește catalogul bibliotecii tale',
+  'firstSyncBanner.body':
+    'Digarr potrivește biblioteca ta cu MusicBrainz. Limita de rată MusicBrainz permite aproximativ 60 de artiști pe minut, deci o bibliotecă de 5.000 de artiști durează aproximativ 80 de minute pentru reconciliere completă. Acest proces are loc o singură dată -- sincronizările ulterioare folosesc memoria cache locală și se finalizează în câteva secunde.',
+  'librarySync.message.syncingSource': 'Se sincronizează {0}...',
 } satisfies Partial<MessageCatalog>

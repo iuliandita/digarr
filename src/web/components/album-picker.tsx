@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getAlbums } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { ArtistThumb } from './artist-thumb'
 import { Button } from './ui/button'
 
@@ -42,6 +43,7 @@ export function AlbumPicker({
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useI18n()
   const albumsQuery = useQuery({
     queryKey: ['albums', artistMbid],
     queryFn: () => getAlbums(artistMbid),
@@ -104,7 +106,7 @@ export function AlbumPicker({
             type="button"
             onClick={onCancel}
             className="text-muted hover:text-text transition-colors p-1"
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +138,9 @@ export function AlbumPicker({
           )}
 
           {albumsQuery.isSuccess && sortedAlbums.length === 0 && (
-            <p className="text-sm text-muted text-center py-8">No release groups found</p>
+            <p className="text-sm text-muted text-center py-8">
+              {t('albumPicker.noReleaseGroups')}
+            </p>
           )}
 
           {albumsQuery.isSuccess && sortedAlbums.length > 0 && (

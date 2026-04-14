@@ -1,5 +1,6 @@
 import { Music, X } from 'lucide-react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
+import { useI18n } from '../lib/i18n'
 
 const SOURCE_LABELS: Record<PreviewSource['type'], string> = {
   'spotify-embed': 'Spotify',
@@ -21,6 +22,7 @@ type Props = {
  * bottom-0. Only renders when a preview is active (loading or playing).
  */
 export function PreviewPlayer({ playing, artistName, source, loading, onStop }: Props) {
+  const { t } = useI18n()
   if (!playing && !loading) return null
 
   const sourceLabel = source ? SOURCE_LABELS[source.type] : null
@@ -29,7 +31,7 @@ export function PreviewPlayer({ playing, artistName, source, loading, onStop }: 
   return (
     <section
       className="fixed bottom-14 md:bottom-0 left-0 right-0 z-50 bg-surface border-t border-border shadow-lg"
-      aria-label="Preview player"
+      aria-label={t('preview.playerRegion')}
     >
       <div className="max-w-3xl mx-auto px-4 py-2">
         <div className="flex items-center gap-3">
@@ -37,13 +39,15 @@ export function PreviewPlayer({ playing, artistName, source, loading, onStop }: 
 
           <div className="flex-1 min-w-0">
             {loading && !artistName ? (
-              <span className="text-sm text-muted">Loading preview...</span>
+              <span className="text-sm text-muted">{t('preview.loadingPreview')}</span>
             ) : (
               <div className="flex items-center gap-2 min-w-0">
                 {artistName && (
                   <span className="text-sm text-text font-medium truncate">{artistName}</span>
                 )}
-                {loading && <span className="text-xs text-muted shrink-0">Loading...</span>}
+                {loading && (
+                  <span className="text-xs text-muted shrink-0">{t('common.loading')}</span>
+                )}
                 {!loading && sourceLabel && (
                   <span className="text-xs text-muted uppercase shrink-0">{sourceLabel}</span>
                 )}
@@ -55,10 +59,10 @@ export function PreviewPlayer({ playing, artistName, source, loading, onStop }: 
             type="button"
             onClick={onStop}
             className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-sm text-muted hover:text-text hover:bg-bg/50 transition-colors"
-            aria-label="Close preview"
+            aria-label={t('preview.closePreview')}
           >
             <X size={14} aria-hidden="true" />
-            <span className="hidden sm:inline">Close</span>
+            <span className="hidden sm:inline">{t('common.close')}</span>
           </button>
         </div>
 

@@ -40,12 +40,12 @@ export function MoodPromptBar({
     setQueued((prev) => new Set([...prev, artistName]))
     try {
       await quickDiscover(artistName)
-      toast.success(`Added "${artistName}" and discovering similar artists`)
+      toast.success(t('discover.moodAddedSuccess').replace('{0}', artistName))
       // Seed artist is stored async on the backend -- poll for it to appear
       setTimeout(onQueued, 2000)
       setTimeout(onQueued, 5000)
     } catch {
-      toast.error(`Failed to add "${artistName}"`)
+      toast.error(t('discover.moodAddFailed').replace('{0}', artistName))
       setQueued((prev) => {
         const next = new Set(prev)
         next.delete(artistName)

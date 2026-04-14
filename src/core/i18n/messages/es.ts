@@ -1157,4 +1157,10 @@ export const es = {
   'pipeline.message.resolvingArtist': 'Resolviendo {0}...',
   'pipeline.message.searchingArtist': 'Buscando {0}...',
   'pipeline.message.resolutionComplete': 'Resolución completa',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Construyendo el catálogo de tu biblioteca',
+  'firstSyncBanner.body':
+    'Digarr está comparando tu biblioteca con MusicBrainz. El límite de tasa de MusicBrainz permite aproximadamente 60 artistas por minuto, por lo que una biblioteca de 5.000 artistas tarda cerca de 80 minutos en reconciliarse por completo. Esto solo sucede una vez -- las sincronizaciones posteriores usan la caché local y terminan en segundos.',
+  'librarySync.message.syncingSource': 'Sincronizando {0}...',
 } satisfies Partial<MessageCatalog>

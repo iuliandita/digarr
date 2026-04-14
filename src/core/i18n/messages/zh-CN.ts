@@ -1086,4 +1086,10 @@ export const zhCN = {
   'pipeline.message.resolvingArtist': '正在解析 {0}...',
   'pipeline.message.searchingArtist': '正在搜索 {0}...',
   'pipeline.message.resolutionComplete': '解析完成',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': '正在构建您的库目录',
+  'firstSyncBanner.body':
+    'Digarr 正在将您的库与 MusicBrainz 进行匹配。MusicBrainz 的速率限制约为每分钟 60 位艺术家,因此 5,000 位艺术家的库大约需要 80 分钟才能完全协调完成。这只发生一次 -- 后续同步使用本地缓存,几秒内即可完成。',
+  'librarySync.message.syncingSource': '正在同步 {0}...',
 } satisfies Partial<MessageCatalog>

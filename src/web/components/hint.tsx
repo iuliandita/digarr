@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useHints } from '../hooks/use-hints'
+import { useI18n } from '../lib/i18n'
 
 type HintProps = {
   id: string
@@ -10,6 +11,7 @@ type HintProps = {
 
 export function Hint({ id, type = 'inline', children, className = '' }: HintProps) {
   const { isHintDismissed, dismissHint } = useHints()
+  const { t } = useI18n()
 
   if (isHintDismissed(id)) return null
 
@@ -22,7 +24,7 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
         <button
           type="button"
           onClick={() => dismissHint(id)}
-          aria-label="Dismiss hint"
+          aria-label={t('hint.dismissHint')}
           className="shrink-0 text-muted hover:text-text transition-colors"
         >
           <X size={13} aria-hidden="true" />
@@ -40,7 +42,7 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
         <button
           type="button"
           onClick={() => dismissHint(id)}
-          aria-label="Dismiss hint"
+          aria-label={t('hint.dismissHint')}
           className="shrink-0 text-muted hover:text-text transition-colors"
         >
           <X size={13} aria-hidden="true" />
@@ -58,7 +60,7 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
           onClick={() => dismissHint(id)}
           className="text-xs text-muted hover:text-text transition-colors underline underline-offset-2"
         >
-          Dismiss
+          {t('common.dismiss')}
         </button>
       </div>
     )
@@ -73,7 +75,7 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
       <button
         type="button"
         onClick={() => dismissHint(id)}
-        aria-label="Dismiss hint"
+        aria-label={t('hint.dismissHint')}
         className="shrink-0 text-muted hover:text-text transition-colors"
       >
         <X size={13} aria-hidden="true" />

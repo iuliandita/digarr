@@ -1153,4 +1153,10 @@ export const nl = {
   'pipeline.message.resolvingArtist': '{0} wordt opgehaald...',
   'pipeline.message.searchingArtist': 'Zoeken naar {0}...',
   'pipeline.message.resolutionComplete': 'Resolutie voltooid',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Je bibliotheekcatalogus wordt opgebouwd',
+  'firstSyncBanner.body':
+    'Digarr matcht je bibliotheek met MusicBrainz. De MusicBrainz-snelheidslimiet staat ongeveer 60 artiesten per minuut toe, dus een bibliotheek van 5.000 artiesten doet er ongeveer 80 minuten over om volledig te worden verwerkt. Dit gebeurt maar één keer -- volgende synchronisaties gebruiken de lokale cache en zijn binnen seconden klaar.',
+  'librarySync.message.syncingSource': '{0} wordt gesynchroniseerd...',
 } satisfies Partial<MessageCatalog>

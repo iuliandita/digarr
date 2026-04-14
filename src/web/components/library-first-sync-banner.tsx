@@ -2,10 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import { useState } from 'react'
 import { getLibrarySources } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 
 const STORAGE_KEY = 'digarr.firstSyncBannerDismissed'
 
 export function LibraryFirstSyncBanner() {
+  const { t } = useI18n()
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === 'undefined') return false
     return window.localStorage.getItem(STORAGE_KEY) === '1'
@@ -40,18 +42,13 @@ export function LibraryFirstSyncBanner() {
         type="button"
         onClick={dismiss}
         className="absolute top-3 right-3 text-muted hover:opacity-70 transition-opacity"
-        aria-label="Dismiss"
+        aria-label={t('common.dismiss')}
       >
         <X size={14} />
       </button>
       <div className="pr-6 space-y-1">
-        <div className="text-sm font-semibold text-text">Building your library catalog</div>
-        <div className="text-sm text-muted">
-          Digarr is matching your library against MusicBrainz. The MusicBrainz rate limit allows
-          roughly 60 artists per minute, so a 5,000-artist library takes around 80 minutes to fully
-          reconcile. This only happens once -- subsequent syncs use the local cache and complete in
-          seconds.
-        </div>
+        <div className="text-sm font-semibold text-text">{t('firstSyncBanner.title')}</div>
+        <div className="text-sm text-muted">{t('firstSyncBanner.body')}</div>
       </div>
     </div>
   )

@@ -1150,4 +1150,10 @@ export const ja = {
   'pipeline.message.resolvingArtist': '{0} を解決中...',
   'pipeline.message.searchingArtist': '{0} を検索中...',
   'pipeline.message.resolutionComplete': '解決が完了しました',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'ライブラリのカタログを構築中',
+  'firstSyncBanner.body':
+    'Digarrはライブラリを MusicBrainz と照合しています。MusicBrainz のレート制限は1分あたり約60名のアーティストまでなので、5,000名のライブラリの完全な照合には約80分かかります。これは初回のみで、以降の同期はローカルキャッシュを使って数秒で完了します。',
+  'librarySync.message.syncingSource': '{0} を同期中...',
 } satisfies Partial<MessageCatalog>

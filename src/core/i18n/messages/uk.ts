@@ -1155,4 +1155,10 @@ export const uk = {
   'pipeline.message.resolvingArtist': 'Зіставлення {0}...',
   'pipeline.message.searchingArtist': 'Пошук {0}...',
   'pipeline.message.resolutionComplete': 'Зіставлення завершено',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Створення каталогу вашої бібліотеки',
+  'firstSyncBanner.body':
+    'Digarr зіставляє вашу бібліотеку з MusicBrainz. Ліміт запитів MusicBrainz дозволяє приблизно 60 виконавців на хвилину, тому повне зіставлення бібліотеки з 5 000 виконавців займає близько 80 хвилин. Це відбувається лише один раз -- наступні синхронізації використовують локальний кеш і завершуються за кілька секунд.',
+  'librarySync.message.syncingSource': 'Синхронізація {0}...',
 } satisfies Partial<MessageCatalog>

@@ -1151,4 +1151,10 @@ export const tr = {
   'pipeline.message.resolvingArtist': '{0} çözülüyor...',
   'pipeline.message.searchingArtist': '{0} aranıyor...',
   'pipeline.message.resolutionComplete': 'Çözüm tamamlandı',
+
+  // Batch 6: first-sync banner + library sync messages
+  'firstSyncBanner.title': 'Kitaplık kataloğun oluşturuluyor',
+  'firstSyncBanner.body':
+    'Digarr, kitaplığını MusicBrainz ile eşleştiriyor. MusicBrainz hız sınırı dakikada yaklaşık 60 sanatçıya izin verir, bu nedenle 5.000 sanatçılık bir kitaplığın tam olarak eşitlenmesi yaklaşık 80 dakika sürer. Bu sadece bir kez gerçekleşir -- sonraki eşitlemeler yerel önbelleği kullanır ve saniyeler içinde tamamlanır.',
+  'librarySync.message.syncingSource': '{0} eşitleniyor...',
 } satisfies Partial<MessageCatalog>
