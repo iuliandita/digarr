@@ -18,6 +18,16 @@
       },
       "required": ["repository", "tag", "pullPolicy"]
     },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "boolean" },
+        "name": { "type": "string" },
+        "automountServiceAccountToken": { "type": "boolean" },
+        "annotations": { "type": "object" }
+      },
+      "required": ["create", "automountServiceAccountToken"]
+    },
     "service": {
       "type": "object",
       "properties": {
@@ -30,6 +40,25 @@
       "type": "object",
       "properties": {
         "enabled": { "type": "boolean" }
+      },
+      "required": ["enabled"]
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minAvailable": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "string", "pattern": "^[0-9]+%$" }
+          ]
+        },
+        "maxUnavailable": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "string", "pattern": "^[0-9]+%$" }
+          ]
+        }
       },
       "required": ["enabled"]
     },
@@ -62,7 +91,15 @@
       "required": ["port", "name", "user", "password", "existingSecret"]
     }
   },
-  "required": ["image", "service", "networkPolicy", "postgresql", "database"],
+  "required": [
+    "image",
+    "serviceAccount",
+    "service",
+    "networkPolicy",
+    "podDisruptionBudget",
+    "postgresql",
+    "database"
+  ],
   "allOf": [
     {
       "if": {

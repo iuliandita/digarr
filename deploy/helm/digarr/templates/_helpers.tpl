@@ -71,6 +71,17 @@ PostgreSQL hostname -- bundled service or external host.
 {{- end }}
 
 {{/*
+ServiceAccount name -- uses override if supplied, otherwise derives from fullname.
+*/}}
+{{- define "digarr.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "digarr.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
 App image reference -- prefer digest when provided.
 */}}
 {{- define "digarr.image" -}}

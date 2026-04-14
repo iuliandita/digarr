@@ -1,0 +1,14 @@
+# Digarr Namespace
+# Pod Security Standards labels fail-close any pod that does not satisfy
+# the "restricted" profile. If someone weakens the pod securityContext by
+# mistake, the API server rejects the admission.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: digarr
+  labels:
+    app: digarr
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

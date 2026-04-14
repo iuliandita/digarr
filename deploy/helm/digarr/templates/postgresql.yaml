@@ -40,6 +40,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
         fsGroup: 999
         seccompProfile:
           type: RuntimeDefault
@@ -51,6 +52,9 @@ spec:
             runAsNonRoot: true
             runAsUser: 999
             allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: postgresql
               containerPort: 5432

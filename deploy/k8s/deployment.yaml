@@ -21,6 +21,7 @@ spec:
       labels:
         app: digarr
     spec:
+      serviceAccountName: digarr
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

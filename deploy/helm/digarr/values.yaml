@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/iuliandita/digarr
-  tag: "0.27.6"
+  tag: "0.27.7"
   # Pin the digest after publishing the release image. The digest comes from the published registry artifact.
   digest: "sha256:be46740aa026f901ae9dbd2c0ff1337a96d28ddf2fe077ced8384602ae22ef9b"
   pullPolicy: Always
@@ -25,12 +25,31 @@ containerSecurityContext:
     drop:
       - ALL
 
+serviceAccount:
+  # Create a dedicated ServiceAccount with token automount disabled.
+  # Set create=false and supply serviceAccount.name to reuse an existing one
+  # (for example, one with IRSA / Workload Identity annotations).
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+
 service:
   type: ClusterIP
   port: 3000
 
 networkPolicy:
   enabled: true
+
+# PodDisruptionBudget protects the app from voluntary evictions during
+# node drains. Disabled by default because the chart ships replicaCount=1 --
+# a PDB with minAvailable=1 at replicas=1 blocks every drain. The template
+# also gates on replicaCount > 1, so flipping enabled=true without scaling
+# up is a no-op.
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1  # alternative to minAvailable
 
 ingress:
   enabled: false

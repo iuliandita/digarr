@@ -1,0 +1,20 @@
+# Digarr PodDisruptionBudget
+# Only meaningful once replicas >= 2. A PDB with minAvailable=1 at replicas=1
+# blocks every voluntary disruption (node drains, cluster upgrades) because
+# the scheduler cannot guarantee 1 available pod while the single replica is
+# being evicted.
+#
+# Uncomment and apply once you scale the Deployment to 2+ replicas.
+# ---
+# apiVersion: policy/v1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: digarr
+#   namespace: digarr
+#   labels:
+#     app: digarr
+# spec:
+#   minAvailable: 1
+#   selector:
+#     matchLabels:
+#       app: digarr

@@ -1,5 +1,14 @@
 Digarr has been deployed!
 
+For defense-in-depth, label the namespace with Pod Security Standards so
+future pod specs that weaken the securityContext are rejected at admission:
+
+  kubectl label namespace {{ .Release.Namespace }} \
+    pod-security.kubernetes.io/enforce=restricted \
+    pod-security.kubernetes.io/enforce-version=latest \
+    pod-security.kubernetes.io/audit=restricted \
+    pod-security.kubernetes.io/warn=restricted --overwrite
+
 1. Get the application URL:
 {{- if .Values.ingress.enabled }}
 {{- range .Values.ingress.hosts }}
