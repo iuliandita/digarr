@@ -12,6 +12,8 @@ import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveRequestLocale } from '@/server/locale'
+import { changePasswordSchema, registerSchema } from '@/server/schemas/auth'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 const ALLOWED_PREF_KEYS = new Set([
@@ -64,8 +66,7 @@ export function authRoutes(deps: AppDependencies) {
   }
 
   // Register a new user. First user becomes admin.
-  router.post('/api/auth/register', async (c) => {
-    const messages = getRequestMessages(c)
+  router.post('/api/auth/register', zJson(registerSchema), async (c) => {
     // Registration closed by default after first user. Set DIGARR_DISABLE_REGISTRATION=false to open.
     const userCount = await deps.getUserCount()
     if (userCount > 0 && envConfig.disableRegistration) {
@@ -78,18 +79,7 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
-    const body = await c.req.json()
-    const { username, password } = body as { username?: string; password?: string }
-
-    if (!username || !password) {
-      return c.json({ error: messages['auth.credentialsRequired'] }, 400)
-    }
-    if (username.length < 2 || username.length > 50) {
-      return c.json({ error: 'Username must be 2-50 characters' }, 400)
-    }
-    if (password.length < 8) {
-      return c.json({ error: 'Password must be at least 8 characters' }, 400)
-    }
+    const { username, password } = c.req.valid('json')
 
     const existingUser = await deps.getUserByUsername(username)
     if (existingUser) {
@@ -107,11 +97,18 @@ export function authRoutes(deps: AppDependencies) {
     return c.json({ user, token }, 201)
   })
 
-  // Login with username + password
+  // Login with username + password.
+  // Keeps manual validation so the "credentials required" error stays
+  // i18n'd via the request-locale messages bundle -- login is the most
+  // user-visible error surface and the existing locales cover it.
   router.post('/api/auth/login', async (c) => {
     const messages = getRequestMessages(c)
-    const body = await c.req.json()
-    const { username, password } = body as { username?: string; password?: string }
+    const body = (await c.req.json().catch(() => null)) as {
+      username?: unknown
+      password?: unknown
+    } | null
+    const username = typeof body?.username === 'string' ? body.username : ''
+    const password = typeof body?.password === 'string' ? body.password : ''
 
     if (!username || !password) {
       return c.json({ error: messages['auth.credentialsRequired'] }, 400)
@@ -187,22 +184,11 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Change password for the current session user (requires session auth, not legacy token)
-  router.post('/api/auth/change-password', async (c) => {
+  router.post('/api/auth/change-password', zJson(changePasswordSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
 
-    const body = await c.req.json()
-    const { currentPassword, newPassword } = body as {
-      currentPassword?: string
-      newPassword?: string
-    }
-
-    if (!currentPassword || !newPassword) {
-      return c.json({ error: 'Current password and new password are required' }, 400)
-    }
-    if (newPassword.length < 8) {
-      return c.json({ error: 'New password must be at least 8 characters' }, 400)
-    }
+    const { currentPassword, newPassword } = c.req.valid('json')
 
     const user = await deps.getUserById(auth.userId)
     if (!user) {

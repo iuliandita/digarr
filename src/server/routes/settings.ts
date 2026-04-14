@@ -10,6 +10,8 @@ import type { Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveRequestMessages } from '@/server/locale'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
+import { updateSettingsSchema } from '@/server/schemas/settings'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 const SECRET_FIELDS = [
@@ -185,18 +187,11 @@ export function settingsRoutes(deps: AppDependencies) {
 
   const ALL_MUTABLE_FIELDS = new Set([...GLOBAL_MUTABLE_FIELDS, ...USER_CONNECTION_FIELDS])
 
-  router.patch('/api/settings', async (c) => {
-    const body = await c.req.json()
+  router.patch('/api/settings', zJson(updateSettingsSchema), async (c) => {
+    const body = c.req.valid('json')
     const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
-      if (key === 'librarySyncIntervalHours') {
-        if (!Number.isInteger(value) || (value as number) < 1 || (value as number) > 24) {
-          return c.json(
-            { error: 'librarySyncIntervalHours must be an integer between 1 and 24' },
-            400,
-          )
-        }
-      }
+      if (value === undefined) continue
       if (ALL_MUTABLE_FIELDS.has(key)) {
         sanitized[key] = value
       }

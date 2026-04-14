@@ -1,6 +1,6 @@
 {
   "name": "digarr",
-  "version": "0.27.8",
+  "version": "0.27.9",
   "type": "module",
   "private": true,
   "scripts": {
@@ -60,12 +60,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
     "@hono/node-server": "^1.19.13",
+    "@hono/zod-validator": "^0.7.6",
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
     "hono": "^4.12.12",
     "openai": "^6.31.0",
     "openid-client": "^6.8.2",
     "p-queue": "^9.1.0",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "zod": "^4.3.6"
   }
 }

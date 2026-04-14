@@ -2,6 +2,8 @@ import { type Context, Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
+import { createUserSchema, updateUserSchema, userIdParamSchema } from '@/server/schemas/users'
+import { zJson, zParam } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 export function userRoutes(deps: AppDependencies) {
@@ -39,21 +41,11 @@ export function userRoutes(deps: AppDependencies) {
   })
 
   // POST /api/users -- create a new user (admin only)
-  router.post('/api/users', async (c) => {
+  router.post('/api/users', zJson(createUserSchema), async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
 
-    const body = (await c.req.json()) as Record<string, unknown>
-    const username = typeof body.username === 'string' ? body.username.trim() : ''
-    const password = typeof body.password === 'string' ? body.password : ''
-    const isAdmin = body.isAdmin === true
-
-    if (!username || username.length < 2 || username.length > 50) {
-      return c.json({ error: 'Username must be 2-50 characters' }, 400)
-    }
-    if (password.length < 8) {
-      return c.json({ error: 'Password must be at least 8 characters' }, 400)
-    }
+    const { username, password, isAdmin } = c.req.valid('json')
 
     const existing = await deps.getUserByUsername(username)
     if (existing) {
@@ -68,16 +60,14 @@ export function userRoutes(deps: AppDependencies) {
   // PATCH /api/users/:id -- update user (admin only)
   // Body: { isAdmin?: boolean }
   // Guards: can't remove own admin role, can't remove last admin
-  router.patch('/api/users/:id', async (c) => {
+  router.patch('/api/users/:id', zParam(userIdParamSchema), zJson(updateUserSchema), async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
     const caller = await deps.getUserById(auth.userId)
     if (!caller) return c.json({ error: 'Admin access required' }, 403)
 
-    const targetId = Number(c.req.param('id'))
-    if (!Number.isFinite(targetId)) return c.json({ error: 'Invalid user id' }, 400)
-
-    const body = (await c.req.json()) as Record<string, unknown>
+    const { id: targetId } = c.req.valid('param')
+    const body = c.req.valid('json')
 
     // Guard: admin cannot remove their own admin role
     if (body.isAdmin === false && caller.id === targetId) {
@@ -101,14 +91,13 @@ export function userRoutes(deps: AppDependencies) {
 
   // DELETE /api/users/:id -- delete user (admin only)
   // Guards: can't delete self, can't delete last admin
-  router.delete('/api/users/:id', async (c) => {
+  router.delete('/api/users/:id', zParam(userIdParamSchema), async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
     const caller = await deps.getUserById(auth.userId)
     if (!caller) return c.json({ error: 'Admin access required' }, 403)
 
-    const targetId = Number(c.req.param('id'))
-    if (!Number.isFinite(targetId)) return c.json({ error: 'Invalid user id' }, 400)
+    const { id: targetId } = c.req.valid('param')
 
     if (caller.id === targetId) {
       return c.json({ error: 'Cannot delete your own account' }, 400)

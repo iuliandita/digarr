@@ -12,6 +12,7 @@ import {
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { backupFileSchema } from '@/server/schemas/admin'
 import type { HonoEnv } from '@/server/types'
 
 export interface AdminDeps {
@@ -51,12 +52,16 @@ export function adminRoutes(deps: AdminDeps) {
     })
   })
 
-  // POST /api/admin/restore -- upload and restore backup JSON
+  // POST /api/admin/restore -- upload and restore backup JSON.
+  // Dual-format (multipart + raw JSON) rules out zJson middleware; we parse
+  // then validate with the same schema in-handler. Zod catches prototype
+  // pollution, missing top-level keys, and non-array table payloads before
+  // restoreBackup touches the DB.
   router.post('/api/admin/restore', async (c) => {
     const force = c.req.query('force') === 'true'
     const contentType = c.req.header('content-type') ?? ''
 
-    let backup: BackupFile
+    let raw: unknown
     try {
       if (contentType.includes('multipart/form-data')) {
         const form = await c.req.formData()
@@ -65,17 +70,32 @@ export function adminRoutes(deps: AdminDeps) {
           return c.json({ error: 'No file provided' }, 400)
         }
         const text = await file.text()
-        backup = JSON.parse(text)
+        raw = JSON.parse(text)
       } else {
-        backup = await c.req.json<BackupFile>()
+        raw = await c.req.json()
       }
     } catch {
       return c.json({ error: 'Invalid backup file format' }, 400)
     }
 
-    if (!backup.version || !backup.data) {
-      return c.json({ error: 'Invalid backup file structure' }, 400)
+    const parsed = backupFileSchema.safeParse(raw)
+    if (!parsed.success) {
+      const first = parsed.error.issues[0]
+      const where = first?.path.length ? first.path.join('.') : 'root'
+      return c.json(
+        {
+          error: `Invalid backup file structure at ${where}: ${first?.message ?? 'unknown'}`,
+          code: 'validation_failed' as const,
+          details: parsed.error.issues.map((i) => ({
+            path: i.path,
+            code: i.code,
+            message: i.message,
+          })),
+        },
+        400,
+      )
     }
+    const backup: BackupFile = parsed.data as BackupFile
 
     let result: Awaited<ReturnType<typeof restoreBackup>>
     try {
