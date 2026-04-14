@@ -239,6 +239,13 @@ const storeDb: StoreDb = {
     return { id: row.id }
   },
   insertRecommendation: (data) => insertRecommendation(db, data),
+  // Atomic pair: prevents orphaned artist rows when the followup insert fails
+  upsertArtistAndRecommendation: async (artistData, recData) => {
+    await db.transaction(async (tx) => {
+      const row = await upsertArtist(tx, artistData)
+      await insertRecommendation(tx, { ...recData, artistId: row.id })
+    })
+  },
   getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
   getFeedbackHistory: () => getGenreFeedbackHistory(db),
   lookupArtistMetadata: (name) => lookupByName(db, name),

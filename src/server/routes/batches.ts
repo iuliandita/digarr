@@ -11,6 +11,7 @@ export function batchRoutes(deps: AppDependencies) {
 
   router.get('/api/batches/:id', async (c) => {
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid batch ID' }, 400)
     const batch = await deps.getBatch(id)
     if (!batch) {
       return c.json({ error: 'Batch not found' }, 404)

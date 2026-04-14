@@ -20,3 +20,8 @@ const pool = new pg.Pool({
 export const db = drizzle(pool, { schema })
 export { pool }
 export type Database = typeof db
+
+// A db handle that can be either the top-level Database or an in-flight
+// transaction. Query helpers that participate in caller-provided transactions
+// should accept this type.
+export type DbOrTx = Database | Parameters<Parameters<Database['transaction']>[0]>[0]

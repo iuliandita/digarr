@@ -265,34 +265,31 @@ export async function restoreBackup(
   const tablesRestored: Record<string, number> = {}
   const warnings: string[] = []
 
-  // Wrap in a transaction so partial failures roll back cleanly
-  try {
-    // Backward compatibility: map old subscriptionRuns to jobRuns format
-    const backupData = backup.data as unknown as Record<string, unknown[]>
-    if (backupData.subscriptionRuns?.length && !backup.data.jobRuns?.length) {
-      backup.data.jobRuns = backupData.subscriptionRuns as Record<string, unknown>[]
+  // Backward compatibility: map old subscriptionRuns to jobRuns format
+  const backupData = backup.data as unknown as Record<string, unknown[]>
+  if (backupData.subscriptionRuns?.length && !backup.data.jobRuns?.length) {
+    backup.data.jobRuns = backupData.subscriptionRuns as Record<string, unknown>[]
+  }
+
+  // Wrap in a transaction so partial failures roll back cleanly.
+  // Let errors bubble up to the caller so HTTP returns 500, not 200 with
+  // an empty tablesRestored map and a warning the UI may miss.
+  await db.transaction(async (tx) => {
+    const includedSpecs = RESTORE_ORDER.filter((spec) => Array.isArray(backup.data[spec.key]))
+
+    for (const spec of [...includedSpecs].reverse()) {
+      await spec.clear(tx)
     }
 
-    await db.transaction(async (tx) => {
-      const includedSpecs = RESTORE_ORDER.filter((spec) => Array.isArray(backup.data[spec.key]))
+    for (const spec of RESTORE_ORDER) {
+      const rows = backup.data[spec.key]
+      if (!Array.isArray(rows) || rows.length === 0) continue
 
-      for (const spec of [...includedSpecs].reverse()) {
-        await spec.clear(tx)
-      }
-
-      for (const spec of RESTORE_ORDER) {
-        const rows = backup.data[spec.key]
-        if (!Array.isArray(rows) || rows.length === 0) continue
-
-        await spec.restore(tx, rows)
-        await spec.resetSequence(tx)
-        tablesRestored[spec.key] = rows.length
-      }
-    })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    warnings.push(`Restore failed (rolled back): ${msg}`)
-  }
+      await spec.restore(tx, rows)
+      await spec.resetSequence(tx)
+      tablesRestored[spec.key] = rows.length
+    }
+  })
 
   return {
     tablesRestored,

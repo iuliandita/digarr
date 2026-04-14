@@ -68,6 +68,15 @@ export interface StoreDb {
   >
 
   userHasAnySyncState?: (userId: number) => Promise<boolean>
+
+  // Optional atomic variant: wraps upsertArtist + insertRecommendation in a
+  // single DB transaction so a crash between the two cannot leave an artist
+  // row without a matching recommendation. Prod wiring provides this; test
+  // mocks keep the two separate methods.
+  upsertArtistAndRecommendation?: (
+    artist: Parameters<StoreDb['upsertArtist']>[0],
+    rec: Omit<Parameters<StoreDb['insertRecommendation']>[0], 'artistId'>,
+  ) => Promise<void>
 }
 
 export type StoreOptions = {
@@ -93,33 +102,37 @@ export async function store(
   let failed = 0
 
   for (const artist of artists) {
+    const artistData = {
+      mbid: artist.mbid,
+      name: artist.name,
+      disambiguation: artist.disambiguation,
+      tags: artist.tags,
+      genres: artist.genres,
+      imageUrl: artist.imageUrl,
+      logoUrl: artist.logoUrl,
+      imageFailed: artist.imageFailed,
+      streamingUrls: artist.streamingUrls,
+      beginYear: artist.beginYear,
+      endYear: artist.endYear,
+    }
+    const recData = {
+      batchId: batch.id,
+      score: artist.score,
+      sources: artist.sourceScores,
+      aiReasoning: artist.aiReasoning,
+      status: 'pending',
+      userId: options.userId,
+      recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
+      recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
+    }
+
     try {
-      const upserted = await db.upsertArtist({
-        mbid: artist.mbid,
-        name: artist.name,
-        disambiguation: artist.disambiguation,
-        tags: artist.tags,
-        genres: artist.genres,
-        imageUrl: artist.imageUrl,
-        logoUrl: artist.logoUrl,
-        imageFailed: artist.imageFailed,
-        streamingUrls: artist.streamingUrls,
-        beginYear: artist.beginYear,
-        endYear: artist.endYear,
-      })
-
-      await db.insertRecommendation({
-        artistId: upserted.id,
-        batchId: batch.id,
-        score: artist.score,
-        sources: artist.sourceScores,
-        aiReasoning: artist.aiReasoning,
-        status: 'pending',
-        userId: options.userId,
-        recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
-        recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
-      })
-
+      if (db.upsertArtistAndRecommendation) {
+        await db.upsertArtistAndRecommendation(artistData, recData)
+      } else {
+        const upserted = await db.upsertArtist(artistData)
+        await db.insertRecommendation({ ...recData, artistId: upserted.id })
+      }
       added++
     } catch (err: unknown) {
       failed++

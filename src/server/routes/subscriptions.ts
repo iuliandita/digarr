@@ -714,6 +714,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)
@@ -780,6 +781,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)
@@ -800,6 +802,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)
@@ -841,6 +844,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)

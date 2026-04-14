@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm'
-import type { Database } from '@/db'
+import type { Database, DbOrTx } from '@/db'
 import { artists, genres } from '@/db/schema'
 
 export type ArtistRow = typeof artists.$inferSelect
@@ -18,7 +18,7 @@ export type ArtistInsert = {
   endYear?: number | null
 }
 
-export async function upsertArtist(db: Database, artist: ArtistInsert): Promise<ArtistRow> {
+export async function upsertArtist(db: DbOrTx, artist: ArtistInsert): Promise<ArtistRow> {
   const { imageFailed, ...artistData } = artist
 
   const imageFailedAtInsert = imageFailed ? new Date() : artist.imageUrl ? null : undefined

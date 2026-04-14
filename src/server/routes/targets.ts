@@ -100,6 +100,7 @@ export function targetRoutes(deps: TargetDeps) {
       return c.json({ error: 'Admin access required' }, 403)
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid target ID' }, 400)
     const target = await deps.targetQueries.getTarget(id)
     if (!target || target.userId !== userId) {
       return c.json({ error: 'Target not found' }, 404)
@@ -130,6 +131,7 @@ export function targetRoutes(deps: TargetDeps) {
       return c.json({ error: 'Admin access required' }, 403)
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid target ID' }, 400)
     const target = await deps.targetQueries.getTarget(id)
     if (!target || target.userId !== userId) {
       return c.json({ error: 'Target not found' }, 404)
@@ -144,6 +146,7 @@ export function targetRoutes(deps: TargetDeps) {
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid target ID' }, 400)
     const target = await deps.targetQueries.getTarget(id)
     if (!target || target.userId !== userId) {
       return c.json({ error: 'Target not found' }, 404)

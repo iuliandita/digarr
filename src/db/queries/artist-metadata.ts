@@ -30,29 +30,37 @@ export async function lookupByName(db: Database, name: string): Promise<ArtistMe
   return row ?? null
 }
 
+// Postgres bind-parameter limit is 65535. artist_metadata inserts 5 cols per row
+// (name, nameNormalized, spotifyGenres, spotifyPopularity, deezerFans), so keep
+// chunks well under floor(65535/5)=13107. 5000 leaves headroom.
+const BULK_UPSERT_CHUNK = 5000
+
 export async function bulkUpsert(db: Database, rows: ArtistMetadataInsert[]): Promise<number> {
   if (rows.length === 0) return 0
-  await db
-    .insert(artistMetadata)
-    .values(
-      rows.map((row) => ({
-        name: row.name,
-        nameNormalized: row.nameNormalized,
-        spotifyGenres: row.spotifyGenres ?? null,
-        spotifyPopularity: row.spotifyPopularity ?? null,
-        deezerFans: row.deezerFans ?? null,
-      })),
-    )
-    .onConflictDoUpdate({
-      target: artistMetadata.nameNormalized,
-      set: {
-        name: sql`excluded.name`,
-        spotifyGenres: sql`excluded.spotify_genres`,
-        spotifyPopularity: sql`excluded.spotify_popularity`,
-        deezerFans: sql`excluded.deezer_fans`,
-        cachedAt: sql`now()`,
-      },
-    })
+  for (let i = 0; i < rows.length; i += BULK_UPSERT_CHUNK) {
+    const chunk = rows.slice(i, i + BULK_UPSERT_CHUNK)
+    await db
+      .insert(artistMetadata)
+      .values(
+        chunk.map((row) => ({
+          name: row.name,
+          nameNormalized: row.nameNormalized,
+          spotifyGenres: row.spotifyGenres ?? null,
+          spotifyPopularity: row.spotifyPopularity ?? null,
+          deezerFans: row.deezerFans ?? null,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: artistMetadata.nameNormalized,
+        set: {
+          name: sql`excluded.name`,
+          spotifyGenres: sql`excluded.spotify_genres`,
+          spotifyPopularity: sql`excluded.spotify_popularity`,
+          deezerFans: sql`excluded.deezer_fans`,
+          cachedAt: sql`now()`,
+        },
+      })
+  }
   return rows.length
 }
 

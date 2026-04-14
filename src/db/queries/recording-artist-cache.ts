@@ -15,13 +15,19 @@ export async function getCachedRecordingArtists(
     .where(inArray(recordingArtistCache.recordingMbid, recordingMbids))
 }
 
+// Postgres bind-parameter limit is 65535; 3 cols per row -> floor(65535/3)=21845.
+// 5000 is safe headroom and also limits transaction size.
+const CACHE_INSERT_CHUNK = 5000
+
 export async function insertCachedRecordingArtists(
   db: Database,
   entries: Array<{ recordingMbid: string; artistMbid: string; artistName: string }>,
 ): Promise<void> {
   if (entries.length === 0) return
-  await db
-    .insert(recordingArtistCache)
-    .values(entries)
-    .onConflictDoNothing({ target: recordingArtistCache.recordingMbid })
+  for (let i = 0; i < entries.length; i += CACHE_INSERT_CHUNK) {
+    await db
+      .insert(recordingArtistCache)
+      .values(entries.slice(i, i + CACHE_INSERT_CHUNK))
+      .onConflictDoNothing({ target: recordingArtistCache.recordingMbid })
+  }
 }

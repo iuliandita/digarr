@@ -276,6 +276,7 @@ export function recommendationRoutes(deps: AppDependencies) {
 
   router.get('/api/recommendations/:id', async (c) => {
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid recommendation ID' }, 400)
     const rec = await deps.getRecommendation(id)
     if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
     const userId = c.get('userId')
@@ -285,6 +286,7 @@ export function recommendationRoutes(deps: AppDependencies) {
 
   router.patch('/api/recommendations/:id', async (c) => {
     const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid recommendation ID' }, 400)
     const body = await c.req.json()
     const {
       status,

@@ -1,5 +1,5 @@
 import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
-import type { Database } from '@/db'
+import type { Database, DbOrTx } from '@/db'
 import { artistMetadata, artists, recommendationBatches, recommendations } from '@/db/schema'
 
 type RecommendationRow = typeof recommendations.$inferSelect
@@ -314,7 +314,7 @@ export async function getGenreArtists(
 }
 
 export async function insertRecommendation(
-  db: Database,
+  db: DbOrTx,
   data: {
     artistId: number
     batchId: number

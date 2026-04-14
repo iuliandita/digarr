@@ -77,7 +77,13 @@ export function adminRoutes(deps: AdminDeps) {
       return c.json({ error: 'Invalid backup file structure' }, 400)
     }
 
-    const result = await restoreBackup(deps.db, backup, { force })
+    let result: Awaited<ReturnType<typeof restoreBackup>>
+    try {
+      result = await restoreBackup(deps.db, backup, { force })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return c.json({ error: `Restore failed (rolled back): ${msg}` }, 500)
+    }
 
     if (result.encryptionMismatch && !force) {
       return c.json(
