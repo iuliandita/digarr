@@ -5,6 +5,10 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
+vi.mock('node:dns/promises', () => ({
+  lookup: vi.fn(async () => ({ address: '93.184.216.34', family: 4 })),
+}))
+
 vi.mock('@/core/sessions', async () => {
   const actual = await vi.importActual<typeof import('@/core/sessions')>('@/core/sessions')
   return {

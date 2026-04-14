@@ -65,6 +65,10 @@ export async function upsertOAuthToken(
   return decryptOAuthRow(row)
 }
 
+function escapeLikePattern(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+}
+
 /** Find a pending OAuth token by provider and opaque state (stored as `pending:{userId}:{state}`). */
 export async function findPendingOAuthByState(
   db: Database,
@@ -72,11 +76,13 @@ export async function findPendingOAuthByState(
   state: string,
 ): Promise<OAuthTokenRow | null> {
   // Use SQL suffix match to avoid loading all pending tokens into memory.
-  // The accessToken format is `pending:{userId}:{state}`.
+  // The accessToken format is `pending:{userId}:{state}`. Escape LIKE wildcards
+  // so attacker-supplied `%` or `_` in state can't broaden the match.
+  const pattern = `%:${escapeLikePattern(state)}`
   const rows = await db
     .select()
     .from(oauthTokens)
-    .where(and(eq(oauthTokens.provider, provider), like(oauthTokens.accessToken, `%:${state}`)))
+    .where(and(eq(oauthTokens.provider, provider), like(oauthTokens.accessToken, pattern)))
   // Verify the match is actually a pending token (not a coincidental suffix)
   const match = rows.find(
     (r) => r.accessToken.startsWith('pending:') && r.accessToken.endsWith(`:${state}`),

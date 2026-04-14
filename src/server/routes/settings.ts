@@ -1,21 +1,11 @@
-import { lookup } from 'node:dns/promises'
 import { Hono } from 'hono'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
-import { isPrivateIp, isPrivateUrl, sendWebhook } from '@/core/notifications'
-import { errMsg, isHttpUrl } from '@/core/validation'
+import { sendWebhook } from '@/core/notifications'
+import { errMsg, validatePublicServiceUrl } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
-
-function isCloudMetadata(url: string): boolean {
-  try {
-    const hostname = new URL(url).hostname
-    return hostname === '169.254.169.254' || hostname === 'metadata.google.internal'
-  } catch {
-    return false
-  }
-}
 
 import type { AppDependencies } from '@/server'
 import { resolveRequestMessages } from '@/server/locale'
@@ -63,32 +53,6 @@ function mergePreferenceUpdate(
   }
 
   return merged
-}
-
-async function validatePublicServiceUrl(
-  url: string,
-  label: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (!isHttpUrl(url)) {
-    return { ok: false, message: `${label} must start with http:// or https://` }
-  }
-  if (isCloudMetadata(url)) {
-    return { ok: false, message: 'Cloud metadata endpoints are not allowed' }
-  }
-  if (isPrivateUrl(url)) {
-    return { ok: false, message: `${label} must not point to a private or internal address` }
-  }
-
-  try {
-    const { address } = await lookup(new URL(url).hostname)
-    if (isPrivateIp(address)) {
-      return { ok: false, message: `${label} resolves to a private/internal IP` }
-    }
-  } catch {
-    return { ok: false, message: `Could not resolve ${label.toLowerCase()} hostname` }
-  }
-
-  return { ok: true }
 }
 
 /** Strip global connection fields that should not leak to non-admin users. */
@@ -277,19 +241,24 @@ export function settingsRoutes(deps: AppDependencies) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
     }
 
-    if (!isAdmin) {
-      for (const [field, label] of [
-        ['plexUrl', 'Plex URL'],
-        ['jellyfinUrl', 'Jellyfin URL'],
-        ['embyUrl', 'Emby URL'],
-      ] as const) {
-        const url = userUpdate[field]
-        if (typeof url === 'string' && url) {
-          const validation = await validatePublicServiceUrl(url, label)
-          if (!validation.ok) {
-            return c.json({ error: validation.message }, 400)
-          }
+    for (const [field, label] of [
+      ['plexUrl', 'Plex URL'],
+      ['jellyfinUrl', 'Jellyfin URL'],
+      ['embyUrl', 'Emby URL'],
+    ] as const) {
+      const url = userUpdate[field]
+      if (typeof url === 'string' && url) {
+        const validation = await validatePublicServiceUrl(url, label)
+        if (!validation.ok) {
+          return c.json({ error: validation.message }, 400)
         }
+      }
+    }
+
+    if (typeof globalFields.aiBaseUrl === 'string' && globalFields.aiBaseUrl) {
+      const validation = await validatePublicServiceUrl(globalFields.aiBaseUrl, 'AI base URL')
+      if (!validation.ok) {
+        return c.json({ error: validation.message }, 400)
       }
     }
 
@@ -401,12 +370,19 @@ export function settingsRoutes(deps: AppDependencies) {
       }
       case 'ai': {
         try {
+          const effectiveBaseUrl = body.baseUrl || (stored?.aiBaseUrl as string) || ''
+          if (effectiveBaseUrl) {
+            const validation = await validatePublicServiceUrl(effectiveBaseUrl, 'AI base URL')
+            if (!validation.ok) {
+              return c.json({ success: false, message: validation.message }, 400)
+            }
+          }
           const provider = await deps.providerRegistry.create(
             body.provider || (stored?.aiProvider as string) || '',
             {
               apiKey: body.apiKey || (stored?.aiApiKey as string) || null,
               model: body.model || (stored?.aiModel as string) || '',
-              baseUrl: body.baseUrl || (stored?.aiBaseUrl as string) || null,
+              baseUrl: effectiveBaseUrl || null,
             },
           )
           const result = await provider.testConnection()

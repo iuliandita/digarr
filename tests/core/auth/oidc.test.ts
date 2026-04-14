@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('openid-client', () => ({
+  customFetch: Symbol.for('openid-client-custom-fetch'),
   discovery: vi.fn(),
   buildAuthorizationUrl: vi.fn(),
   authorizationCodeGrant: vi.fn(),
@@ -43,6 +44,8 @@ describe('OidcService', () => {
         new URL('https://auth.example.com'),
         'test-client',
         'test-secret',
+        undefined,
+        expect.objectContaining({ [oidcClient.customFetch]: expect.any(Function) }),
       )
       expect(oidcClient.randomPKCECodeVerifier).toHaveBeenCalled()
       expect(oidcClient.calculatePKCECodeChallenge).toHaveBeenCalledWith('mock-code-verifier')
@@ -313,6 +316,8 @@ describe('OidcService', () => {
         new URL('https://auth.example.com'),
         'public-client',
         undefined,
+        undefined,
+        expect.objectContaining({ [oidcClient.customFetch]: expect.any(Function) }),
       )
     })
   })

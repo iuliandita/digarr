@@ -610,6 +610,7 @@ describe('POST /api/settings/test/:service', () => {
   })
 
   it('tests ai provider and returns ServiceTestResult shape', async () => {
+    vi.mocked(lookup).mockResolvedValue({ address: '93.184.216.34', family: 4 })
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/settings/test/ai', {
       method: 'POST',
@@ -618,7 +619,7 @@ describe('POST /api/settings/test/:service', () => {
         provider: 'ollama',
         apiKey: null,
         model: 'llama3',
-        baseUrl: 'http://invalid:11434',
+        baseUrl: 'http://ollama.example.com:11434',
       }),
     })
     expect(res.status).toBe(200)

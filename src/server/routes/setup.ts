@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { validatePublicServiceUrl } from '@/core/validation'
 import type { SetupConfig } from '@/db/queries/settings'
 import { updateUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
@@ -50,6 +51,13 @@ export function setupRoutes(deps: AppDependencies) {
 
     if (missing.length > 0) {
       return c.json({ error: 'Missing required fields', fields: missing }, 400)
+    }
+
+    if (typeof body.embyUrl === 'string' && body.embyUrl) {
+      const validation = await validatePublicServiceUrl(body.embyUrl, 'Emby URL')
+      if (!validation.ok) {
+        return c.json({ error: validation.message }, 400)
+      }
     }
 
     await deps.completeSetup(sanitized as SetupConfig)
