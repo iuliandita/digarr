@@ -2,6 +2,15 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { OllamaProvider } from '@/core/providers/ollama'
 import type { TasteProfile } from '@/core/types'
 
+// OllamaProvider runs the user-supplied baseUrl through validatePublicServiceUrl
+// at request time for SSRF defense-in-depth. Mock DNS + URL helpers so the
+// test's stand-in hostname resolves cleanly without hitting the network.
+vi.mock('@/core/url-safety', () => ({
+  validatePublicServiceUrl: vi.fn(async () => ({ ok: true })),
+}))
+
+const TEST_BASE_URL = 'http://ollama.example.com:11434'
+
 const sampleProfile: TasteProfile = {
   topArtists: [
     { name: 'Godspeed You! Black Emperor', mbid: 'zzz', playCount: 600, source: 'listenbrainz' },
@@ -37,7 +46,7 @@ describe('OllamaProvider', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    provider = new OllamaProvider('llama3', 'http://localhost:11434')
+    provider = new OllamaProvider('llama3', TEST_BASE_URL)
     fetchSpy = vi.spyOn(globalThis, 'fetch')
   })
 
@@ -83,7 +92,7 @@ describe('OllamaProvider', () => {
 
       expect(fetchSpy).toHaveBeenCalledOnce()
       const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit]
-      expect(url).toBe('http://localhost:11434/api/chat')
+      expect(url).toBe(`${TEST_BASE_URL}/api/chat`)
       expect(init.method).toBe('POST')
 
       const body = JSON.parse(init.body as string) as {
@@ -187,7 +196,7 @@ describe('OllamaProvider', () => {
       await provider.testConnection()
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        'http://localhost:11434/api/tags',
+        `${TEST_BASE_URL}/api/tags`,
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       )
     })

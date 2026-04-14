@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OpenAICompatibleProvider } from '@/core/providers/openai-compatible'
 
+// Mock URL safety helpers so the provider's SSRF check doesn't trip on
+// the stand-in hostname used below.
+vi.mock('@/core/url-safety', () => ({
+  validatePublicServiceUrl: vi.fn(async () => ({ ok: true })),
+}))
+
+const TEST_BASE_URL = 'http://openai.example.com:8080'
+
 describe('OpenAICompatibleProvider', () => {
   const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
@@ -28,7 +36,7 @@ describe('OpenAICompatibleProvider', () => {
       ),
     )
 
-    const provider = new OpenAICompatibleProvider('http://localhost:8080', 'local-model', 'key123')
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'local-model', 'key123')
     const results = await provider.getRecommendations({
       topArtists: [{ name: 'Portishead', playCount: 50, source: 'lastfm' }],
       topGenres: [{ name: 'trip-hop', weight: 1 }],
@@ -39,7 +47,7 @@ describe('OpenAICompatibleProvider', () => {
     expect(results[0]?.artistName).toBe('Massive Attack')
 
     const [url] = fetchSpy.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('http://localhost:8080/v1/chat/completions')
+    expect(url).toBe(`${TEST_BASE_URL}/v1/chat/completions`)
   })
 
   it('works without API key', async () => {
@@ -51,7 +59,7 @@ describe('OpenAICompatibleProvider', () => {
       ),
     )
 
-    const provider = new OpenAICompatibleProvider('http://localhost:8080', 'model')
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model')
     await provider.getRecommendations({
       topArtists: [{ name: 'Test', playCount: 1, source: 'lastfm' }],
       topGenres: [{ name: 'rock', weight: 1 }],
@@ -72,7 +80,7 @@ describe('OpenAICompatibleProvider', () => {
       ),
     )
 
-    const provider = new OpenAICompatibleProvider('http://localhost:8080', 'model', 'sk-key')
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model', 'sk-key')
     await provider.getRecommendations({
       topArtists: [{ name: 'Test', playCount: 1, source: 'lastfm' }],
       topGenres: [{ name: 'rock', weight: 1 }],
@@ -93,10 +101,10 @@ describe('OpenAICompatibleProvider', () => {
       ),
     )
 
-    const provider = new OpenAICompatibleProvider('http://localhost:8080', 'model')
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model')
     const result = await provider.testConnection()
     expect(result.success).toBe(true)
-    expect(result.message).toContain('localhost:8080')
+    expect(result.message).toContain('openai.example.com:8080')
   })
 
   it('handles wrapped JSON object response', async () => {
@@ -123,7 +131,7 @@ describe('OpenAICompatibleProvider', () => {
       ),
     )
 
-    const provider = new OpenAICompatibleProvider('http://localhost:8080', 'model')
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model')
     const results = await provider.getRecommendations({
       topArtists: [{ name: 'Test', playCount: 1, source: 'lastfm' }],
       topGenres: [{ name: 'electronic', weight: 1 }],

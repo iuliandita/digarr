@@ -3,6 +3,7 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
+import { validatePublicServiceUrl } from '@/core/url-safety'
 import { errMsg } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
@@ -10,7 +11,6 @@ import type { AppDependencies } from '@/server'
 import { resolveRequestMessages } from '@/server/locale'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
-import { validatePublicServiceUrl } from '@/server/url-safety'
 
 const SECRET_FIELDS = [
   'lidarrApiKey',

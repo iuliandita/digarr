@@ -3,6 +3,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmbyClient } from '@/core/clients/emby'
 
+// publicIpOnly triggers dns.lookup; the test URLs aren't resolvable.
+vi.mock('node:dns/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:dns/promises')>()
+  return {
+    ...actual,
+    lookup: vi.fn(async () => ({ address: '93.184.216.34', family: 4 })),
+  }
+})
+
 describe('createEmbyClient', () => {
   beforeEach(() => {
     vi.restoreAllMocks()

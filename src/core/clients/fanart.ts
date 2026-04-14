@@ -14,6 +14,7 @@ export function createFanartClient(apiKey: string, baseUrl = 'https://webservice
     headers: { 'api-key': apiKey },
     retries: 1,
     timeout: 8_000,
+    publicIpOnly: true,
   })
 
   return {

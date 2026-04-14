@@ -1,4 +1,5 @@
 import type { AiRecommendation, TasteProfile } from '@/core/types'
+import { validatePublicServiceUrl } from '@/core/url-safety'
 import { errMsg } from '@/core/validation'
 import {
   buildRecommendationPrompt,
@@ -18,7 +19,13 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     this.apiKey = apiKey
   }
 
+  private async ensureBaseUrlSafe(): Promise<void> {
+    const validation = await validatePublicServiceUrl(this.baseUrl, 'AI base URL')
+    if (!validation.ok) throw new Error(validation.message)
+  }
+
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
+    await this.ensureBaseUrlSafe()
     const prompt = buildRecommendationPrompt(profile)
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
@@ -57,6 +64,11 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
+    try {
+      await this.ensureBaseUrlSafe()
+    } catch (err: unknown) {
+      return { success: false, message: errMsg(err) }
+    }
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 10_000)
     try {

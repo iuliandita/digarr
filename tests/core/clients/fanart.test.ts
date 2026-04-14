@@ -1,7 +1,31 @@
 // @vitest-environment node
 import * as http from 'node:http'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createFanartClient } from '@/core/clients/fanart'
+
+// The http client is configured with `publicIpOnly: true` for SSRF
+// hardening, which rejects loopback/localhost. The test server runs on
+// localhost, so mock the URL safety helpers and DNS resolver to let
+// the publicIpOnly path through without disabling the production guard.
+// Return 127.0.0.1 so the http client's IP-pinning rewrite still points
+// at our local test server; combined with the isPrivateIp/isPrivateUrl
+// overrides below, the publicIpOnly path accepts the test hostname.
+vi.mock('node:dns/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:dns/promises')>()
+  return {
+    ...actual,
+    lookup: vi.fn(async () => ({ address: '127.0.0.1', family: 4 })),
+  }
+})
+vi.mock('@/core/notifications', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/core/notifications')>('@/core/notifications')
+  return {
+    ...actual,
+    isPrivateUrl: () => false,
+    isPrivateIp: () => false,
+  }
+})
 
 let server: http.Server
 let baseUrl: string
