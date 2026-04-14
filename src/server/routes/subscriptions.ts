@@ -1,4 +1,3 @@
-import { Cron } from 'croner'
 import { Hono } from 'hono'
 import { createDeezerUserClient } from '@/core/clients/deezer-user'
 import { resolveDeezerToken } from '@/core/deezer-auth'
@@ -12,6 +11,15 @@ import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
 import { resolveRequestMessages } from '@/server/locale'
+import {
+  bulkToggleSchema,
+  createSubscriptionSchema,
+  deezerPlaylistImportSchema,
+  spotifyPlaylistImportSchema,
+  subscriptionIdParamSchema,
+  updateSubscriptionSchema,
+} from '@/server/schemas/subscriptions'
+import { zJson, zParam } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 /** Extract the bare playlist ID from a URL, URI, or raw ID. */
@@ -22,18 +30,6 @@ function extractPlaylistId(raw: string): string {
   if (urlMatch?.[1]) return urlMatch[1]
   return raw.trim()
 }
-
-const ALLOWED_UPDATE_FIELDS = new Set([
-  'name',
-  'enabled',
-  'sourceConfig',
-  'maxArtistsPerRun',
-  'listenerRange',
-  'cron',
-  'scoreThreshold',
-  'scoringWeightPreset',
-  'scoringWeightOverrides',
-])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -273,31 +269,17 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json(subs)
   })
 
-  router.post('/api/subscriptions', async (c) => {
+  router.post('/api/subscriptions', zJson(createSubscriptionSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
-    const body = await c.req.json()
-    const { name, sourceType, sourceProvider, sourceConfig, cron } = body as Record<string, unknown>
-
-    if (!name || typeof name !== 'string') {
-      return c.json({ error: 'name is required' }, 400)
-    }
-    if (!sourceType || typeof sourceType !== 'string') {
-      return c.json({ error: 'sourceType is required' }, 400)
-    }
-    if (!sourceProvider || typeof sourceProvider !== 'string') {
-      return c.json({ error: 'sourceProvider is required' }, 400)
-    }
-    if (!sourceConfig || typeof sourceConfig !== 'object' || Array.isArray(sourceConfig)) {
-      return c.json({ error: 'sourceConfig is required' }, 400)
-    }
-    let normalizedSourceConfig = sourceConfig as Record<string, unknown>
-    if (sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
+    const body = c.req.valid('json')
+    let normalizedSourceConfig = body.sourceConfig
+    if (body.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
       const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
-        sourceConfig,
+        body.sourceConfig,
         userId,
         deps,
       )
@@ -306,33 +288,20 @@ export function subscriptionRoutes(deps: AppDependencies) {
       }
       normalizedSourceConfig = normalizedConfig as Record<string, unknown>
     }
-    if (!cron || typeof cron !== 'string') {
-      return c.json({ error: 'cron is required' }, 400)
-    }
-    try {
-      new Cron(cron, { maxRuns: 0 })
-    } catch {
-      return c.json({ error: 'Invalid cron expression' }, 400)
-    }
 
     const sub = await deps.subscriptionQueries.createSubscription({
-      name,
+      name: body.name,
       userId,
-      sourceType,
-      sourceProvider,
+      sourceType: body.sourceType,
+      sourceProvider: body.sourceProvider,
       sourceConfig: normalizedSourceConfig,
-      cron,
-      enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
-      maxArtistsPerRun:
-        typeof body.maxArtistsPerRun === 'number' ? body.maxArtistsPerRun : undefined,
+      cron: body.cron,
+      enabled: body.enabled ?? true,
+      maxArtistsPerRun: body.maxArtistsPerRun,
       action: 'add_to_recommendations',
       scoreThreshold: undefined,
-      listenerRange:
-        body.listenerRange && typeof body.listenerRange === 'object'
-          ? (body.listenerRange as { min?: number; max?: number })
-          : undefined,
-      scoringWeightPreset:
-        typeof body.scoringWeightPreset === 'string' ? body.scoringWeightPreset : undefined,
+      listenerRange: body.listenerRange,
+      scoringWeightPreset: body.scoringWeightPreset,
     })
 
     // Auto-schedule if enabled (default is true)
@@ -446,61 +415,61 @@ export function subscriptionRoutes(deps: AppDependencies) {
     )
   })
 
-  router.post('/api/subscriptions/import/spotify-playlist', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  router.post(
+    '/api/subscriptions/import/spotify-playlist',
+    zJson(spotifyPlaylistImportSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401)
+      }
 
-    const body = await c.req.json()
-    const rawId = String((body as Record<string, unknown>).playlistId ?? '').trim()
-    if (!rawId) {
-      return c.json({ error: 'playlistId is required' }, 400)
-    }
+      const { playlistId: rawId } = c.req.valid('json')
 
-    const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
-    if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
-      return c.json({ error: 'Spotify is not connected' }, 400)
-    }
+      const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
+      if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
+        return c.json({ error: 'Spotify is not connected' }, 400)
+      }
 
-    // Normalize URL/URI to bare ID
-    const playlistId = extractPlaylistId(rawId)
+      // Normalize URL/URI to bare ID
+      const playlistId = extractPlaylistId(rawId)
 
-    const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
-    const existing = existingSubs.find(
-      (sub) =>
-        sub.sourceType === 'spotify-playlist' &&
-        (sub.sourceConfig as Record<string, unknown>).playlistId === playlistId,
-    )
+      const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
+      const existing = existingSubs.find(
+        (sub) =>
+          sub.sourceType === 'spotify-playlist' &&
+          (sub.sourceConfig as Record<string, unknown>).playlistId === playlistId,
+      )
 
-    const subscription =
-      existing ??
-      (await deps.subscriptionQueries.createSubscription({
-        name: `Spotify Playlist Import`,
-        userId,
-        sourceType: 'spotify-playlist',
-        sourceProvider: 'spotify',
-        sourceConfig: { playlistId },
-        cron: '0 6 * * 1',
-        enabled: false,
-        maxArtistsPerRun: 100,
-        action: 'add_to_recommendations',
-        scoringWeightPreset: 'default',
-      }))
+      const subscription =
+        existing ??
+        (await deps.subscriptionQueries.createSubscription({
+          name: `Spotify Playlist Import`,
+          userId,
+          sourceType: 'spotify-playlist',
+          sourceProvider: 'spotify',
+          sourceConfig: { playlistId },
+          cron: '0 6 * * 1',
+          enabled: false,
+          maxArtistsPerRun: 100,
+          action: 'add_to_recommendations',
+          scoringWeightPreset: 'default',
+        }))
 
-    deps.runSubscription(subscription.id).catch((err: unknown) => {
-      console.error('Spotify playlist import failed:', err)
-    })
+      deps.runSubscription(subscription.id).catch((err: unknown) => {
+        console.error('Spotify playlist import failed:', err)
+      })
 
-    return c.json(
-      {
-        message: 'Spotify playlist import started',
-        subscriptionId: subscription.id,
-        created: !existing,
-      },
-      202,
-    )
-  })
+      return c.json(
+        {
+          message: 'Spotify playlist import started',
+          subscriptionId: subscription.id,
+          created: !existing,
+        },
+        202,
+      )
+    },
+  )
 
   router.post('/api/subscriptions/import/deezer-favorites', async (c) => {
     const userId = c.get('userId')
@@ -614,71 +583,66 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json({ playlists })
   })
 
-  router.post('/api/subscriptions/import/deezer-playlists', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  router.post(
+    '/api/subscriptions/import/deezer-playlists',
+    zJson(deezerPlaylistImportSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401)
+      }
 
-    const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
-    if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
-      return c.json({ error: 'Deezer is not connected' }, 400)
-    }
+      const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
+      if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
+        return c.json({ error: 'Deezer is not connected' }, 400)
+      }
 
-    const body = await c.req.json()
-    const playlistIds = (body as Record<string, unknown>).playlistIds
-    if (!Array.isArray(playlistIds) || playlistIds.length === 0) {
-      return c.json({ error: 'playlistIds must be a non-empty array' }, 400)
-    }
+      const { playlistIds } = c.req.valid('json')
 
-    const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
-    const playlistIdsStr = (playlistIds as number[]).join(',')
-    const existing = existingSubs.find(
-      (sub) =>
-        sub.sourceType === 'deezer' &&
-        (sub.sourceConfig as Record<string, unknown>).feedType === 'playlists' &&
-        (sub.sourceConfig as Record<string, unknown>).playlistIds === playlistIdsStr,
-    )
+      const existingSubs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
+      const playlistIdsStr = playlistIds.map((v) => String(v)).join(',')
+      const existing = existingSubs.find(
+        (sub) =>
+          sub.sourceType === 'deezer' &&
+          (sub.sourceConfig as Record<string, unknown>).feedType === 'playlists' &&
+          (sub.sourceConfig as Record<string, unknown>).playlistIds === playlistIdsStr,
+      )
 
-    const subscription =
-      existing ??
-      (await deps.subscriptionQueries.createSubscription({
-        name: 'Deezer Playlist Import',
-        userId,
-        sourceType: 'deezer',
-        sourceProvider: 'deezer',
-        sourceConfig: { feedType: 'playlists', playlistIds: playlistIdsStr },
-        cron: '0 6 * * 1',
-        enabled: false,
-        maxArtistsPerRun: 100,
-        action: 'add_to_recommendations',
-        scoringWeightPreset: 'default',
-      }))
+      const subscription =
+        existing ??
+        (await deps.subscriptionQueries.createSubscription({
+          name: 'Deezer Playlist Import',
+          userId,
+          sourceType: 'deezer',
+          sourceProvider: 'deezer',
+          sourceConfig: { feedType: 'playlists', playlistIds: playlistIdsStr },
+          cron: '0 6 * * 1',
+          enabled: false,
+          maxArtistsPerRun: 100,
+          action: 'add_to_recommendations',
+          scoringWeightPreset: 'default',
+        }))
 
-    deps.runSubscription(subscription.id).catch((err: unknown) => {
-      console.error('Deezer playlist import failed:', err)
-    })
+      deps.runSubscription(subscription.id).catch((err: unknown) => {
+        console.error('Deezer playlist import failed:', err)
+      })
 
-    return c.json(
-      {
-        message: 'Deezer Playlist import started',
-        subscriptionId: subscription.id,
-        created: !existing,
-      },
-      202,
-    )
-  })
+      return c.json(
+        {
+          message: 'Deezer Playlist import started',
+          subscriptionId: subscription.id,
+          created: !existing,
+        },
+        202,
+      )
+    },
+  )
 
-  router.post('/api/subscriptions/bulk-toggle', async (c) => {
+  router.post('/api/subscriptions/bulk-toggle', zJson(bulkToggleSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const body = await c.req.json()
-    const enabled =
-      typeof (body as Record<string, unknown>).enabled === 'boolean'
-        ? ((body as Record<string, unknown>).enabled as boolean)
-        : null
-    if (enabled === null) return c.json({ error: 'enabled (boolean) is required' }, 400)
+    const { enabled } = c.req.valid('json')
 
     const subs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
     let updated = 0
@@ -707,14 +671,69 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json({ jobs })
   })
 
-  router.patch('/api/subscriptions/:id', async (c) => {
+  router.patch(
+    '/api/subscriptions/:id',
+    zParam(subscriptionIdParamSchema),
+    zJson(updateSubscriptionSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) {
+        return c.json({ error: 'Unauthorized' }, 401)
+      }
+
+      const { id } = c.req.valid('param')
+      const existing = await deps.subscriptionQueries.getSubscription(id)
+      if (!existing) {
+        return c.json({ error: 'Subscription not found' }, 404)
+      }
+      if (existing.userId !== userId) {
+        return c.json({ error: 'Forbidden' }, 403)
+      }
+
+      const body = c.req.valid('json')
+      const update: Record<string, unknown> = { ...body, action: 'add_to_recommendations' }
+
+      if (
+        existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE &&
+        update.sourceConfig !== undefined
+      ) {
+        const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
+          update.sourceConfig,
+          userId,
+          deps,
+        )
+        if (error) {
+          return c.json({ error }, 400)
+        }
+        update.sourceConfig = normalizedConfig as Record<string, unknown>
+      }
+
+      await deps.subscriptionQueries.updateSubscription(id, update)
+
+      // Sync scheduler when cron or enabled changes
+      const jobName = `subscription-${id}`
+      const newEnabled = Object.hasOwn(update, 'enabled')
+        ? (update.enabled as boolean)
+        : existing.enabled
+      const newCron = (update.cron as string | undefined) ?? existing.cron
+
+      if (!newEnabled) {
+        deps.scheduler.remove(jobName)
+      } else if (Object.hasOwn(update, 'enabled') || Object.hasOwn(update, 'cron')) {
+        // Re/schedule if enabled toggled on OR cron changed while enabled
+        deps.scheduler.schedule(jobName, newCron, () => deps.runSubscription(id))
+      }
+
+      return c.json({ updated: true })
+    },
+  )
+
+  router.delete('/api/subscriptions/:id', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
-
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
+    const { id } = c.req.valid('param')
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)
@@ -722,87 +741,18 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (existing.userId !== userId) {
       return c.json({ error: 'Forbidden' }, 403)
     }
-
-    const body = await c.req.json()
-    const update: Record<string, unknown> = {}
-    for (const key of ALLOWED_UPDATE_FIELDS) {
-      if (Object.hasOwn(body, key)) {
-        update[key] = (body as Record<string, unknown>)[key]
-      }
-    }
-    update.action = 'add_to_recommendations'
-
-    if (Object.hasOwn(update, 'cron') && update.cron !== undefined) {
-      try {
-        new Cron(update.cron as string, { maxRuns: 0 })
-      } catch {
-        return c.json({ error: 'Invalid cron expression' }, 400)
-      }
-    }
-
-    if (
-      existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE &&
-      Object.hasOwn(update, 'sourceConfig')
-    ) {
-      const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
-        update.sourceConfig,
-        userId,
-        deps,
-      )
-      if (error) {
-        return c.json({ error }, 400)
-      }
-      update.sourceConfig = normalizedConfig as Record<string, unknown>
-    }
-
-    await deps.subscriptionQueries.updateSubscription(id, update)
-
-    // Sync scheduler when cron or enabled changes
-    const jobName = `subscription-${id}`
-    const newEnabled = Object.hasOwn(update, 'enabled')
-      ? (update.enabled as boolean)
-      : existing.enabled
-    const newCron = (update.cron as string | undefined) ?? existing.cron
-
-    if (!newEnabled) {
-      deps.scheduler.remove(jobName)
-    } else if (Object.hasOwn(update, 'enabled') || Object.hasOwn(update, 'cron')) {
-      // Re/schedule if enabled toggled on OR cron changed while enabled
-      deps.scheduler.schedule(jobName, newCron, () => deps.runSubscription(id))
-    }
-
-    return c.json({ updated: true })
-  })
-
-  router.delete('/api/subscriptions/:id', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
-    const existing = await deps.subscriptionQueries.getSubscription(id)
-    if (!existing) {
-      return c.json({ error: 'Subscription not found' }, 404)
-    }
-    if (existing.userId !== userId) {
-      return c.json({ error: 'Forbidden' }, 403)
-    }
-
     await deps.subscriptionQueries.deleteSubscription(id)
     deps.scheduler.remove(`subscription-${id}`)
     return c.json({ deleted: true })
   })
 
-  router.post('/api/subscriptions/:id/run', async (c) => {
+  router.post('/api/subscriptions/:id/run', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
+    const { id } = c.req.valid('param')
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return c.json({ error: 'Subscription not found' }, 404)

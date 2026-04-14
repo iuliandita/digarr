@@ -74,20 +74,20 @@ describe('GET /api/jobs', () => {
     })
   })
 
-  it('caps limit at 100', async () => {
+  it('rejects limit above 100', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    await app.request('/api/jobs?limit=999')
-    expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(expect.objectContaining({ limit: 100 }))
+    const res = await app.request('/api/jobs?limit=999')
+    expect(res.status).toBe(400)
+    expect(deps.jobQueries.listJobs).not.toHaveBeenCalled()
   })
 
-  it('clamps limit to 1 and offset to 0 for negative values', async () => {
+  it('rejects negative limit / offset', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    await app.request('/api/jobs?limit=-10&offset=-5')
-    expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(
-      expect.objectContaining({ limit: 1, offset: 0 }),
-    )
+    const res = await app.request('/api/jobs?limit=-10&offset=-5')
+    expect(res.status).toBe(400)
+    expect(deps.jobQueries.listJobs).not.toHaveBeenCalled()
   })
 
   it('accepts library_sync as a valid job type filter', async () => {

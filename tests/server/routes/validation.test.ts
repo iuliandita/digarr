@@ -212,6 +212,143 @@ describe('validation: settings PATCH', () => {
   })
 })
 
+describe('validation: subscriptions', () => {
+  it('rejects POST /api/subscriptions with missing cron', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        name: 'Test',
+        sourceType: 'listenbrainz',
+        sourceProvider: 'listenbrainz',
+        sourceConfig: { userName: 'x' },
+        // cron missing
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects POST /api/subscriptions with invalid cron', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/subscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        name: 'Test',
+        sourceType: 'listenbrainz',
+        sourceProvider: 'listenbrainz',
+        sourceConfig: {},
+        cron: 'not a cron expression',
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects deezer-playlists import with empty playlistIds array', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/subscriptions/import/deezer-playlists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ playlistIds: [] }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects deezer-playlists import with >100 playlistIds (array size cap)', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/subscriptions/import/deezer-playlists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        playlistIds: Array.from({ length: 101 }, (_, i) => i + 1),
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects bulk-toggle without enabled field', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/subscriptions/bulk-toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('validation: recommendations', () => {
+  it('rejects PATCH with invalid status enum', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ status: 'maybe' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects bulk with >500 ids (array size cap)', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        ids: Array.from({ length: 501 }, (_, i) => i + 1),
+        action: 'reject',
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects bulk with invalid action', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ ids: [1, 2], action: 'delete' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects GET query with invalid sort enum', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/recommendations?sort=random', { headers })
+    expect(res.status).toBe(400)
+  })
+})
+
+// Playlist routes need playlistDeps wired; covered by playlists.test.ts.
+
+describe('validation: oauth initiate', () => {
+  it('rejects non-http redirectUri', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/auth/oauth/spotify/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        clientId: 'x',
+        clientSecret: 'y',
+        redirectUri: 'javascript:alert(1)',
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('validation: quick-discover', () => {
+  it('rejects empty artistName', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/pipeline/quick-discover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ artistName: '' }),
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
 describe('validation: admin restore', () => {
   it('rejects POST /api/admin/restore with missing data section', async () => {
     const { app, headers } = await authedApp()

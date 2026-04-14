@@ -7,6 +7,8 @@ import {
   upsertOAuthToken,
 } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
+import { oauthInitiateSchema } from '@/server/schemas/oauth'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
@@ -22,17 +24,12 @@ export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
   // Initiate OAuth flow for a provider
-  router.post('/api/auth/oauth/:provider/initiate', async (c) => {
+  router.post('/api/auth/oauth/:provider/initiate', zJson(oauthInitiateSchema), async (c) => {
     const provider = c.req.param('provider')
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
 
-    const body = await c.req.json().catch(() => ({}))
-    const { clientId, clientSecret, redirectUri } = body as {
-      clientId?: string
-      clientSecret?: string
-      redirectUri?: string
-    }
+    const { clientId, clientSecret, redirectUri } = c.req.valid('json')
 
     switch (provider) {
       case 'spotify': {

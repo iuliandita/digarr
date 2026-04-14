@@ -1,4 +1,3 @@
-import { Cron } from 'croner'
 import { Hono } from 'hono'
 import {
   exportPlaylistToCsv,
@@ -18,7 +17,14 @@ import {
   updatePlaylist,
 } from '@/db/queries/playlists'
 import { getSettings } from '@/db/queries/settings'
-import { mergePreferences, type PlaylistConfig, type PlaylistStrategy } from '@/db/schema'
+import { mergePreferences, type PlaylistConfig } from '@/db/schema'
+import {
+  createPlaylistSchema,
+  playlistExportFormatParamSchema,
+  playlistIdParamSchema,
+  updatePlaylistSchema,
+} from '@/server/schemas/playlists'
+import { zJson, zParam } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 export type PlaylistDeps = {
@@ -27,15 +33,6 @@ export type PlaylistDeps = {
   runPlaylistGeneration: (playlistId: number) => Promise<void>
   restartPlaylistScheduler: () => Promise<void>
 }
-
-const ALLOWED_UPDATE_FIELDS = new Set<string>([
-  'name',
-  'strategy',
-  'targetIds',
-  'schedule',
-  'config',
-  'enabled',
-])
 
 const PLAYLIST_EXPORT_CONTENT_TYPES: Record<PlaylistExportFormat, string> = {
   json: 'application/json',
@@ -103,40 +100,19 @@ export function playlistRoutes(deps: PlaylistDeps) {
   })
 
   // POST /api/playlists
-  router.post('/api/playlists', async (c) => {
+  router.post('/api/playlists', zJson(createPlaylistSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const body: Record<string, unknown> = await c.req.json()
-    const { name, strategy } = body
-
-    if (!name || typeof name !== 'string') {
-      return c.json({ error: 'name is required' }, 400)
-    }
-    if (!strategy || typeof strategy !== 'string') {
-      return c.json({ error: 'strategy is required' }, 400)
-    }
-
-    const validStrategies = ['weekly_digest', 'genre_focus', 'mood_mix', 'rediscover']
-    if (!validStrategies.includes(strategy)) {
-      return c.json({ error: `strategy must be one of: ${validStrategies.join(', ')}` }, 400)
-    }
-    if (body.schedule != null && typeof body.schedule === 'string') {
-      try {
-        new Cron(body.schedule, { maxRuns: 0 })
-      } catch {
-        return c.json({ error: 'Invalid schedule cron expression' }, 400)
-      }
-    }
-
+    const body = c.req.valid('json')
     const data: PlaylistInsert = {
-      name,
+      name: body.name,
       userId,
-      strategy: strategy as PlaylistStrategy,
-      targetIds: Array.isArray(body.targetIds) ? (body.targetIds as number[]) : [],
-      schedule: typeof body.schedule === 'string' ? body.schedule : null,
-      config: body.config != null ? (body.config as PlaylistConfig) : null,
-      enabled: typeof body.enabled === 'boolean' ? body.enabled : true,
+      strategy: body.strategy,
+      targetIds: body.targetIds ?? [],
+      schedule: body.schedule ?? null,
+      config: (body.config ?? null) as PlaylistConfig | null,
+      enabled: body.enabled ?? true,
     }
 
     const row = await createPlaylist(db, data)
@@ -145,12 +121,11 @@ export function playlistRoutes(deps: PlaylistDeps) {
   })
 
   // GET /api/playlists/:id
-  router.get('/api/playlists/:id', async (c) => {
+  router.get('/api/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+    const { id } = c.req.valid('param')
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)
@@ -160,76 +135,61 @@ export function playlistRoutes(deps: PlaylistDeps) {
   })
 
   // GET /api/playlists/:id/export/:format
-  router.get('/api/playlists/:id/export/:format', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+  router.get(
+    '/api/playlists/:id/export/:format',
+    zParam(playlistExportFormatParamSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+      const { id, format } = c.req.valid('param')
+      const exporter = PLAYLIST_EXPORTERS[format]
+      const contentType = PLAYLIST_EXPORT_CONTENT_TYPES[format]
 
-    const format = c.req.param('format') as PlaylistExportFormat
-    const exporter = PLAYLIST_EXPORTERS[format]
-    const contentType = PLAYLIST_EXPORT_CONTENT_TYPES[format]
-    if (!exporter || !contentType) {
-      return c.json({ error: 'Unsupported format. Use json, csv, m3u, or xspf' }, 400)
-    }
+      const result = await getPlaylistWithTracks(db, id)
+      if (!result) return c.json({ error: 'Not found' }, 404)
+      if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
 
-    const result = await getPlaylistWithTracks(db, id)
-    if (!result) return c.json({ error: 'Not found' }, 404)
-    if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+      const tracks = result.tracks.slice().sort((a, b) => a.position - b.position)
+      const filename = sanitizeFilename(result.playlist.name) || `playlist-${id}`
+      const body = exporter({ name: result.playlist.name, tracks })
 
-    const tracks = result.tracks.slice().sort((a, b) => a.position - b.position)
-    const filename = sanitizeFilename(result.playlist.name) || `playlist-${id}`
-    const body = exporter({ name: result.playlist.name, tracks })
-
-    return new Response(body, {
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${filename}.${format}"`,
-      },
-    })
-  })
+      return new Response(body, {
+        headers: {
+          'Content-Type': contentType,
+          'Content-Disposition': `attachment; filename="${filename}.${format}"`,
+        },
+      })
+    },
+  )
 
   // PATCH /api/playlists/:id
-  router.patch('/api/playlists/:id', async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+  router.patch(
+    '/api/playlists/:id',
+    zParam(playlistIdParamSchema),
+    zJson(updatePlaylistSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+      const { id } = c.req.valid('param')
+      const existing = await getPlaylistWithTracks(db, id)
+      if (!existing) return c.json({ error: 'Not found' }, 404)
+      if (existing.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
 
-    const existing = await getPlaylistWithTracks(db, id)
-    if (!existing) return c.json({ error: 'Not found' }, 404)
-    if (existing.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
-
-    const body: Record<string, unknown> = await c.req.json()
-    const update: Record<string, unknown> = {}
-    for (const key of ALLOWED_UPDATE_FIELDS) {
-      if (Object.hasOwn(body, key)) {
-        update[key] = body[key]
-      }
-    }
-
-    if (Object.hasOwn(update, 'schedule') && update.schedule != null) {
-      try {
-        new Cron(String(update.schedule), { maxRuns: 0 })
-      } catch {
-        return c.json({ error: 'Invalid schedule cron expression' }, 400)
-      }
-    }
-
-    await updatePlaylist(db, id, update)
-    await deps.restartPlaylistScheduler()
-    return c.json({ updated: true })
-  })
+      const body = c.req.valid('json')
+      await updatePlaylist(db, id, body as Record<string, unknown>)
+      await deps.restartPlaylistScheduler()
+      return c.json({ updated: true })
+    },
+  )
 
   // DELETE /api/playlists/:id
-  router.delete('/api/playlists/:id', async (c) => {
+  router.delete('/api/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+    const { id } = c.req.valid('param')
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)
@@ -241,12 +201,11 @@ export function playlistRoutes(deps: PlaylistDeps) {
   })
 
   // POST /api/playlists/:id/generate
-  router.post('/api/playlists/:id/generate', async (c) => {
+  router.post('/api/playlists/:id/generate', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid id' }, 400)
+    const { id } = c.req.valid('param')
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)

@@ -515,17 +515,17 @@ describe('PATCH /api/subscriptions/:id', () => {
     )
   })
 
-  it('strips non-allowlisted fields from update', async () => {
+  it('rejects non-allowlisted fields on update (strict schema)', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    await app.request('/api/subscriptions/1', {
+    const res = await app.request('/api/subscriptions/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'ok', sourceType: 'evil', userId: 999 }),
     })
-    expect(mockSubQueries.updateSubscription).toHaveBeenCalledWith(
-      1,
-      expect.not.objectContaining({ sourceType: 'evil', userId: 999 }),
-    )
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.code).toBe('validation_failed')
+    expect(mockSubQueries.updateSubscription).not.toHaveBeenCalled()
   })
 })
 

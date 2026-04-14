@@ -2,6 +2,13 @@ import { Hono } from 'hono'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
+import {
+  bulkRecommendationSchema,
+  listRecommendationsQuerySchema,
+  recommendationIdParamSchema,
+  updateRecommendationSchema,
+} from '@/server/schemas/recommendations'
+import { zJson, zParam, zQuery } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 type TargetWithCapabilities = Awaited<
@@ -27,15 +34,6 @@ type TargetExecutionResult = {
   success: boolean
   lidarrArtistId?: number | string
   lidarrError?: string
-}
-
-function parseOptionalInteger(value: string | undefined, field: string): number | undefined {
-  if (value === undefined) return undefined
-  const parsed = Number(value)
-  if (!Number.isInteger(parsed)) {
-    throw new Error(`Invalid ${field}: ${value}`)
-  }
-  return parsed
 }
 
 async function addArtistToTarget(
@@ -232,26 +230,17 @@ async function buildAddOptions(
 export function recommendationRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/recommendations', async (c) => {
-    const query = c.req.query()
+  router.get('/api/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
     const userId = c.get('userId')
-    let batchId: number | undefined
-    try {
-      batchId = parseOptionalInteger(query.batchId, 'batchId')
-    } catch (err) {
-      return c.json({ error: (err as Error).message }, 400)
-    }
+    const query = c.req.valid('query')
     const filters = {
       status: query.status,
-      batchId,
+      batchId: query.batchId,
       userId,
       decades: query.decades || undefined,
-      sort: query.sort as 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc' | undefined,
-      limit:
-        query.limit !== undefined
-          ? Math.max(1, Math.min(200, Number(query.limit) || 20))
-          : undefined,
-      offset: query.offset !== undefined ? Math.max(0, Number(query.offset) || 0) : undefined,
+      sort: query.sort,
+      limit: query.limit,
+      offset: query.offset,
     }
     const result = await deps.listRecommendations(filters)
     return c.json(result)
@@ -274,9 +263,8 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json({ summary })
   })
 
-  router.get('/api/recommendations/:id', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid recommendation ID' }, 400)
+  router.get('/api/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
+    const { id } = c.req.valid('param')
     const rec = await deps.getRecommendation(id)
     if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
     const userId = c.get('userId')
@@ -284,157 +272,140 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json(rec)
   })
 
-  router.patch('/api/recommendations/:id', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid recommendation ID' }, 400)
-    const body = await c.req.json()
-    const {
-      status,
-      approvalMode: rawApprovalMode,
-      lidarrTargetId,
-      monitorOption,
-      selectedAlbumIds,
-      targetId,
-      qualityProfileId: qpOverride,
-      metadataProfileId: mpOverride,
-      rootFolderId: rfOverride,
-    } = body as {
-      status: string
-      approvalMode?: ApprovalMode
-      lidarrTargetId?: string
-      monitorOption?: 'all' | 'new' | 'none' | 'selected'
-      selectedAlbumIds?: string[]
-      targetId?: string
-      qualityProfileId?: number
-      metadataProfileId?: number
-      rootFolderId?: number
-    }
+  router.patch(
+    '/api/recommendations/:id',
+    zParam(recommendationIdParamSchema),
+    zJson(updateRecommendationSchema),
+    async (c) => {
+      const { id } = c.req.valid('param')
+      const body = c.req.valid('json')
+      const {
+        status,
+        approvalMode: rawApprovalMode,
+        lidarrTargetId,
+        monitorOption,
+        selectedAlbumIds,
+        targetId,
+        qualityProfileId: qpOverride,
+        metadataProfileId: mpOverride,
+        rootFolderId: rfOverride,
+      } = body
 
-    if (!status) return c.json({ error: 'status is required' }, 400)
+      const approvalMode: ApprovalMode = rawApprovalMode ?? 'single_target'
 
-    const approvalMode = rawApprovalMode ?? 'single_target'
-    if (approvalMode !== 'single_target' && approvalMode !== 'combined_lidarr_slskd') {
-      return c.json({ error: `Invalid approvalMode: ${approvalMode}` }, 400)
-    }
+      if (status === 'approved') {
+        const rec = await deps.getRecommendation(id)
+        if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
+        const userId = c.get('userId')
+        if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
 
-    // Validate status early -- before any DB work
-    if (status !== 'approved' && status !== 'rejected' && status !== 'pending') {
-      return c.json({ error: `Invalid status: ${status}` }, 400)
-    }
+        const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
+        const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
+        const lidarrTargets = targets.filter(
+          (target) => target.type === 'lidarr' && target.capabilities?.includes('addArtist'),
+        )
+        const slskdTarget = effectiveTargets.find(
+          (target) => target.type === 'slskd' && target.capabilities?.includes('addArtist'),
+        )
+        const selectedLidarrTargetId =
+          lidarrTargetId ??
+          (slskdTarget?.type === 'slskd' ? slskdTarget.linkedLidarrTargetId : undefined)
+        const lidarrTarget = selectedLidarrTargetId
+          ? lidarrTargets.find((target) => target.id === selectedLidarrTargetId)
+          : lidarrTargets[0]
 
-    if (status === 'approved') {
+        if (approvalMode === 'combined_lidarr_slskd') {
+          if (!targetId) {
+            return c.json({ error: 'targetId is required for combined approval' }, 400)
+          }
+          if (!slskdTarget) {
+            return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
+          }
+          if (selectedLidarrTargetId) {
+            if (!lidarrTarget) {
+              return c.json({ error: `Unknown lidarrTargetId: ${selectedLidarrTargetId}` }, 400)
+            }
+          } else if (lidarrTargets.length !== 1) {
+            return c.json(
+              { error: 'Combined approval requires exactly one enabled Lidarr target' },
+              400,
+            )
+          }
+        } else {
+          if (targetId && effectiveTargets.length === 0) {
+            return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
+          }
+          if (targetId && !effectiveTargets.some((t) => t.capabilities?.includes('addArtist'))) {
+            return c.json({ error: `Target does not support artist approval: ${targetId}` }, 400)
+          }
+        }
+
+        // Pre-warm SkyHook if any Lidarr target exists
+        if (
+          deps.skyhookWarmer &&
+          rec.artist?.mbid &&
+          (approvalMode === 'combined_lidarr_slskd'
+            ? Boolean(lidarrTarget)
+            : effectiveTargets.some((t) => t.type === 'lidarr'))
+        ) {
+          try {
+            await deps.skyhookWarmer.warm(rec.artist.mbid)
+          } catch {
+            // Best-effort
+          }
+        }
+
+        const addOptions = await buildAddOptions(deps, userId, {
+          monitorOption: monitorOption ?? 'all',
+          selectedAlbumIds,
+          qualityProfileId: qpOverride,
+          metadataProfileId: mpOverride,
+          rootFolderId: rfOverride,
+        })
+
+        const result =
+          approvalMode === 'combined_lidarr_slskd' && lidarrTarget && slskdTarget
+            ? await approveWithCombinedLidarrSlskd(
+                { mbid: rec.artist.mbid, name: rec.artist.name },
+                lidarrTarget,
+                slskdTarget,
+                addOptions,
+                id,
+                deps.jobRecorder,
+                userId,
+              )
+            : await approveToTargets(
+                { mbid: rec.artist.mbid, name: rec.artist.name },
+                effectiveTargets,
+                addOptions,
+                deps.jobRecorder,
+                userId,
+                id,
+              )
+
+        const extra: Record<string, unknown> = { targetActions: result.targetActions }
+        if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
+        if (result.lidarrError) extra.lidarrError = result.lidarrError
+
+        await deps.updateRecommendationStatus(id, result.status, extra)
+        return c.json({
+          status: result.status,
+          targetActions: result.targetActions,
+          ...(result.lidarrError ? { lidarrError: result.lidarrError } : {}),
+        })
+      }
+
       const rec = await deps.getRecommendation(id)
       if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
       const userId = c.get('userId')
       if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
 
-      const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
-      const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
-      const lidarrTargets = targets.filter(
-        (target) => target.type === 'lidarr' && target.capabilities?.includes('addArtist'),
-      )
-      const slskdTarget = effectiveTargets.find(
-        (target) => target.type === 'slskd' && target.capabilities?.includes('addArtist'),
-      )
-      const selectedLidarrTargetId =
-        lidarrTargetId ??
-        (slskdTarget?.type === 'slskd' ? slskdTarget.linkedLidarrTargetId : undefined)
-      const lidarrTarget = selectedLidarrTargetId
-        ? lidarrTargets.find((target) => target.id === selectedLidarrTargetId)
-        : lidarrTargets[0]
+      await deps.updateRecommendationStatus(id, status)
+      return c.json({ status })
+    },
+  )
 
-      if (approvalMode === 'combined_lidarr_slskd') {
-        if (!targetId) {
-          return c.json({ error: 'targetId is required for combined approval' }, 400)
-        }
-        if (!slskdTarget) {
-          return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
-        }
-        if (selectedLidarrTargetId) {
-          if (!lidarrTarget) {
-            return c.json({ error: `Unknown lidarrTargetId: ${selectedLidarrTargetId}` }, 400)
-          }
-        } else if (lidarrTargets.length !== 1) {
-          return c.json(
-            { error: 'Combined approval requires exactly one enabled Lidarr target' },
-            400,
-          )
-        }
-      } else {
-        if (targetId && effectiveTargets.length === 0) {
-          return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
-        }
-        if (targetId && !effectiveTargets.some((t) => t.capabilities?.includes('addArtist'))) {
-          return c.json({ error: `Target does not support artist approval: ${targetId}` }, 400)
-        }
-      }
-
-      // Pre-warm SkyHook if any Lidarr target exists
-      if (
-        deps.skyhookWarmer &&
-        rec.artist?.mbid &&
-        (approvalMode === 'combined_lidarr_slskd'
-          ? Boolean(lidarrTarget)
-          : effectiveTargets.some((t) => t.type === 'lidarr'))
-      ) {
-        try {
-          await deps.skyhookWarmer.warm(rec.artist.mbid)
-        } catch {
-          // Best-effort
-        }
-      }
-
-      const addOptions = await buildAddOptions(deps, userId, {
-        monitorOption: monitorOption ?? 'all',
-        selectedAlbumIds,
-        qualityProfileId: qpOverride,
-        metadataProfileId: mpOverride,
-        rootFolderId: rfOverride,
-      })
-
-      const result =
-        approvalMode === 'combined_lidarr_slskd' && lidarrTarget && slskdTarget
-          ? await approveWithCombinedLidarrSlskd(
-              { mbid: rec.artist.mbid, name: rec.artist.name },
-              lidarrTarget,
-              slskdTarget,
-              addOptions,
-              id,
-              deps.jobRecorder,
-              userId,
-            )
-          : await approveToTargets(
-              { mbid: rec.artist.mbid, name: rec.artist.name },
-              effectiveTargets,
-              addOptions,
-              deps.jobRecorder,
-              userId,
-              id,
-            )
-
-      const extra: Record<string, unknown> = { targetActions: result.targetActions }
-      if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
-      if (result.lidarrError) extra.lidarrError = result.lidarrError
-
-      await deps.updateRecommendationStatus(id, result.status, extra)
-      return c.json({
-        status: result.status,
-        targetActions: result.targetActions,
-        ...(result.lidarrError ? { lidarrError: result.lidarrError } : {}),
-      })
-    }
-
-    const rec = await deps.getRecommendation(id)
-    if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
-    const userId = c.get('userId')
-    if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
-
-    await deps.updateRecommendationStatus(id, status)
-    return c.json({ status })
-  })
-
-  router.post('/api/recommendations/bulk', async (c) => {
-    const body = await c.req.json()
+  router.post('/api/recommendations/bulk', zJson(bulkRecommendationSchema), async (c) => {
     const {
       ids,
       action,
@@ -442,21 +413,7 @@ export function recommendationRoutes(deps: AppDependencies) {
       qualityProfileId: qpOverride,
       metadataProfileId: mpOverride,
       rootFolderId: rfOverride,
-    } = body as {
-      ids: number[]
-      action: 'approve' | 'reject'
-      targetId?: string
-      qualityProfileId?: number
-      metadataProfileId?: number
-      rootFolderId?: number
-    }
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return c.json({ error: 'ids array is required' }, 400)
-    }
-    if (action !== 'approve' && action !== 'reject') {
-      return c.json({ error: 'action must be approve or reject' }, 400)
-    }
+    } = c.req.valid('json')
 
     const userId = c.get('userId')
 

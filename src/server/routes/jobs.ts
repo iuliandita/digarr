@@ -3,17 +3,9 @@ import type { JobRunRow, JobType } from '@/core/jobs/types'
 import type { HealthSummary } from '@/db/queries/jobs'
 import type { AppDependencies } from '@/server'
 import { adminGuard } from '@/server/middleware/admin-guard'
+import { jobIdParamSchema, listJobsQuerySchema } from '@/server/schemas/jobs'
+import { zParam, zQuery } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
-
-const VALID_TYPES = new Set<string>([
-  'pipeline',
-  'quick_discover',
-  'subscription',
-  'target',
-  'playlist',
-  'library_sync',
-])
-const VALID_STATUSES = new Set<string>(['running', 'completed', 'failed', 'stuck'])
 
 type JobRouteDeps = Pick<AppDependencies, 'getUserById'> & {
   jobQueries: {
@@ -42,31 +34,24 @@ export function jobRoutes(deps: JobRouteDeps) {
   })
 
   // Single job detail
-  router.get('/api/jobs/:id', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (Number.isNaN(id)) return c.json({ error: 'Invalid job ID' }, 400)
+  router.get('/api/jobs/:id', zParam(jobIdParamSchema), async (c) => {
+    const { id } = c.req.valid('param')
     const job = await deps.jobQueries.getJobById(id)
     if (!job) return c.json({ error: 'Job not found' }, 404)
     return c.json(job)
   })
 
   // Paginated job list
-  router.get('/api/jobs', async (c) => {
-    const typeParam = c.req.query('type')
-    if (typeParam && !VALID_TYPES.has(typeParam)) {
-      return c.json({ error: `Invalid type. Use: ${Array.from(VALID_TYPES).join(', ')}` }, 400)
-    }
-    const type = typeParam as JobType | undefined
-    const statusParam = c.req.query('status')
-    if (statusParam && !VALID_STATUSES.has(statusParam)) {
-      return c.json({ error: `Invalid status. Use: ${Array.from(VALID_STATUSES).join(', ')}` }, 400)
-    }
-    const status = statusParam
-    const rawLimit = Number(c.req.query('limit'))
-    const rawOffset = Number(c.req.query('offset'))
-    const limit = Math.max(1, Math.min(Number.isFinite(rawLimit) ? rawLimit : 50, 100))
-    const offset = Math.max(0, Number.isFinite(rawOffset) ? rawOffset : 0)
-    const result = await deps.jobQueries.listJobs({ type, status, limit, offset })
+  router.get('/api/jobs', zQuery(listJobsQuerySchema), async (c) => {
+    const { type, status, limit: rawLimit, offset: rawOffset } = c.req.valid('query')
+    const limit = rawLimit ?? 50
+    const offset = rawOffset ?? 0
+    const result = await deps.jobQueries.listJobs({
+      type: type as JobType | undefined,
+      status,
+      limit,
+      offset,
+    })
     return c.json(result)
   })
 

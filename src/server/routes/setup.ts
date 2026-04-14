@@ -3,6 +3,8 @@ import { validatePublicServiceUrl } from '@/core/url-safety'
 import type { SetupConfig } from '@/db/queries/settings'
 import { updateUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
+import { setupCompleteSchema } from '@/server/schemas/setup'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 export function setupRoutes(deps: AppDependencies) {
@@ -23,13 +25,13 @@ export function setupRoutes(deps: AppDependencies) {
     return c.json({ setupComplete: complete })
   })
 
-  router.post('/api/setup/complete', async (c) => {
+  router.post('/api/setup/complete', zJson(setupCompleteSchema), async (c) => {
     const alreadyDone = await deps.isSetupComplete()
     if (alreadyDone) {
       return c.json({ error: 'Setup already complete' }, 409)
     }
 
-    const body = (await c.req.json()) as Record<string, unknown>
+    const body = c.req.valid('json') as Record<string, unknown>
     const sanitized = Object.fromEntries(
       Object.entries(body).filter(([key]) => GLOBAL_SETUP_FIELDS.has(key)),
     )

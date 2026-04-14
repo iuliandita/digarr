@@ -25,6 +25,8 @@ import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { resolveRequestLocale } from '@/server/locale'
+import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pipeline'
+import { zJson } from '@/server/schemas/validator'
 import { createPipelineSSEStream } from '@/server/sse'
 import type { HonoEnv } from '@/server/types'
 
@@ -120,7 +122,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     return c.json({ message: 'Pipeline started' }, 202)
   })
 
-  router.post('/api/discovery-modes/run', async (c) => {
+  router.post('/api/discovery-modes/run', zJson(discoveryModeRunSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
       return c.json({ error: 'A scan is already running' }, 409)
     }
@@ -134,7 +136,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     }
 
     try {
-      const body = await c.req.json()
+      const body = c.req.valid('json')
       const request = normalizeDiscoveryModeRequest(userId, body, deps.discoveryModeRegistry)
       const preparedRequest = await prepareDiscoveryModeRequest(request, deps.discoveryModeRegistry)
       const snapshot = await (deps.getDiscoveryConnectionSnapshot?.(userId) ??
@@ -193,17 +195,13 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   // Quick discover: find similar artists to a specific artist
-  router.post('/api/pipeline/quick-discover', async (c) => {
+  router.post('/api/pipeline/quick-discover', zJson(quickDiscoverSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
       return c.json({ error: 'A scan is already running' }, 409)
     }
 
-    const body = await c.req.json()
-    const { artistName } = body as { artistName: string }
-    const trimmedArtistName = artistName?.trim()
-    if (!trimmedArtistName) {
-      return c.json({ error: 'artistName is required' }, 400)
-    }
+    const { artistName } = c.req.valid('json')
+    const trimmedArtistName = artistName
 
     const settings = await deps.getSettings()
     if (!settings) {
