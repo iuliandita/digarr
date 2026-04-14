@@ -61,6 +61,8 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'shoegaze',
   'Radiohead, Portishead, Massive Attack',
   'Weekly Jams',
+  'PLAY',
+  'STOP',
 ])
 
 function shouldFlagSameAsSource(value: string): boolean {

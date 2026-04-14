@@ -86,6 +86,15 @@ function getSourceBadgeClass(sourceKey: string): string {
   return SUBSCRIPTION_COLORS[prefix] ?? 'bg-zinc-500/20 text-zinc-400'
 }
 
+const ANALYTICS_SOURCE_KEYS: Partial<Record<string, MessageKey>> = {
+  similarity: 'analytics.source.similarity',
+  aiConfidence: 'analytics.source.aiConfidence',
+  feedbackBoost: 'analytics.source.feedbackBoost',
+  consensus: 'analytics.source.consensus',
+  genreOverlap: 'analytics.source.genreOverlap',
+  popularity: 'analytics.source.popularity',
+}
+
 function formatSourceLabel(sourceKey: string, t: (key: MessageKey) => string): string {
   const [type, detail] = sourceKey.split(':')
   switch (type) {
@@ -103,8 +112,10 @@ function formatSourceLabel(sourceKey: string, t: (key: MessageKey) => string): s
       return t('recommendation.sourceLastfmCharts')
     case 'listenbrainz':
       return t('recommendation.sourceListenBrainz')
-    default:
-      return sourceKey
+    default: {
+      const analyticsKey = ANALYTICS_SOURCE_KEYS[sourceKey]
+      return analyticsKey ? t(analyticsKey) : sourceKey
+    }
   }
 }
 
@@ -259,19 +270,19 @@ function ApproveDropdown({
       </div>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-10 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
-          {actionableTargets.map((t) => (
+          {actionableTargets.map((target) => (
             <button
-              key={t.id}
+              key={target.id}
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                onApproveToTarget?.(recId, `${t.type}-${t.id}`)
+                onApproveToTarget?.(recId, `${target.type}-${target.id}`)
                 setOpen(false)
               }}
               className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-accent/10 flex items-center gap-2"
             >
-              <TargetIcon type={t.type} />
-              {targetActionLabel(t.type, t.name)}
+              <TargetIcon type={target.type} />
+              {targetActionLabel(target.type, target.name, t)}
             </button>
           ))}
         </div>

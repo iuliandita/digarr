@@ -258,18 +258,18 @@ export function TodaysPick({
             </div>
             {dropdownOpen && (
               <div className="absolute right-0 bottom-full mb-1 z-20 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
-                {actionableTargets.map((t) => (
+                {actionableTargets.map((target) => (
                   <button
-                    key={t.id}
+                    key={target.id}
                     type="button"
                     onClick={() => {
-                      onApproveToTarget?.(rec.id, `${t.type}-${t.id}`)
+                      onApproveToTarget?.(rec.id, `${target.type}-${target.id}`)
                       setDropdownOpen(false)
                     }}
                     className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-accent/10 flex items-center gap-2"
                   >
-                    <TargetIcon type={t.type} />
-                    {targetActionLabel(t.type, t.name)}
+                    <TargetIcon type={target.type} />
+                    {targetActionLabel(target.type, target.name, t)}
                   </button>
                 ))}
               </div>

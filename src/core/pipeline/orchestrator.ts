@@ -5,6 +5,7 @@ import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createMusicinfoClient } from '@/core/clients/musicinfo'
 import { decryptField } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
+import { createTranslator } from '@/core/i18n/translator'
 import { sendWebhook } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
@@ -98,6 +99,8 @@ export class PipelineOrchestrator extends EventEmitter {
     this._currentUserId = deps.userId
 
     let jobId: number | null = null
+
+    const t = createTranslator(deps.responseLocale)
 
     try {
       const { db, settings, providerRegistry } = deps
@@ -209,7 +212,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       const mbClient = createMusicBrainzClient()
 
-      this.emit('progress', { stage: 'collect', message: 'Loading your library...' })
+      this.emit('progress', { stage: 'collect', message: t('pipeline.message.loadingLibrary') })
 
       const userIdForSync = deps.userId
       const hasAnyState = await db.userHasAnySyncState(userIdForSync)
@@ -221,7 +224,7 @@ export class PipelineOrchestrator extends EventEmitter {
           .catch((err: unknown) => console.error('[pipeline] first library sync failed:', err))
         this.emit('progress', {
           stage: 'collect',
-          message: 'First library sync running in background -- proceeding without it',
+          message: t('pipeline.message.firstSyncBackground'),
         })
       } else {
         await deps.librarySync.syncForUser(userIdForSync, {
@@ -243,13 +246,19 @@ export class PipelineOrchestrator extends EventEmitter {
       const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
       this.emit('progress', {
         stage: 'collect',
-        message: `Loaded ${libraryMbids.size} library artists across ${sourceCount} source${sourceCount === 1 ? '' : 's'}`,
+        message: t(
+          sourceCount === 1
+            ? 'pipeline.message.loadedLibrarySingular'
+            : 'pipeline.message.loadedLibraryPlural',
+          String(libraryMbids.size),
+          String(sourceCount),
+        ),
       })
 
       const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
       const feedbackHistory = await db.getFeedbackHistory()
 
-      this.emit('progress', { stage: 'analyze', message: 'Building your taste profile...' })
+      this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
         ...(await analyze(registry.all())),
         responseLocale: deps.responseLocale,
@@ -257,12 +266,16 @@ export class PipelineOrchestrator extends EventEmitter {
       }
       this.emit('progress', {
         stage: 'analyze',
-        message: `Profiled ${tasteProfile.topArtists.length} top artists, ${tasteProfile.topGenres.length} genres`,
+        message: t(
+          'pipeline.message.profiled',
+          String(tasteProfile.topArtists.length),
+          String(tasteProfile.topGenres.length),
+        ),
       })
 
       this.emit('progress', {
         stage: 'discover',
-        message: 'Finding similar artists from all sources...',
+        message: t('pipeline.message.findingSimilar'),
       })
       const discovered = await discover(
         tasteProfile,
@@ -281,7 +294,7 @@ export class PipelineOrchestrator extends EventEmitter {
       )
       this.emit('progress', {
         stage: 'discover',
-        message: `Discovered ${discovered.length} candidate artists`,
+        message: t('pipeline.message.discovered', String(discovered.length)),
       })
 
       // Collect per-source results for job recording
@@ -331,7 +344,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', {
         stage: 'resolve',
-        message: `Resolving ${discovered.length} artists via MusicBrainz...`,
+        message: t('pipeline.message.resolving', String(discovered.length)),
       })
       const rawResolved = await resolve(
         discovered,
@@ -342,6 +355,7 @@ export class PipelineOrchestrator extends EventEmitter {
         lidarrClient,
         fanartClient,
         musicinfoClient,
+        t,
       )
 
       // Enrich sparse genres from artist_metadata (if available)
@@ -349,7 +363,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', {
         stage: 'score',
-        message: `Scoring ${resolved.length} resolved artists...`,
+        message: t('pipeline.message.scoring', String(resolved.length)),
       })
       const popularityMap = (await db.getPopularityMap?.()) ?? new Map<string, number>()
       const scored = score(
@@ -362,7 +376,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', {
         stage: 'filter',
-        message: `Filtering ${scored.length} scored artists...`,
+        message: t('pipeline.message.filtering', String(scored.length)),
       })
       const existingMbids = await db.getExistingRecommendationMbids(deps.userId)
       for (const mbid of existingMbids) {
@@ -388,7 +402,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', {
         stage: 'store',
-        message: `Saving ${filtered.length} recommendations...`,
+        message: t('pipeline.message.saving', String(filtered.length)),
       })
       const batchId = await store(filtered, db, {
         userId: deps.userId,
@@ -406,7 +420,10 @@ export class PipelineOrchestrator extends EventEmitter {
         }
         this.emit('progress', {
           stage: 'store',
-          message: `Auto-approving above ${Math.round(autoConfig.threshold * 100)}%...`,
+          message: t(
+            'pipeline.message.autoApproving',
+            String(Math.round(autoConfig.threshold * 100)),
+          ),
         })
         const autoResult = await autoApprove(batchId, autoConfig, deps.autoApproveDeps)
         if (autoResult.approved > 0 || autoResult.failed > 0) {
@@ -421,14 +438,14 @@ export class PipelineOrchestrator extends EventEmitter {
           event: 'batch_complete',
           batchId,
           stats: { discovered: scored.length, added: filtered.length, failed: 0 },
-          message: `Scan complete: ${filtered.length} new recommendations found.`,
+          message: t('pipeline.message.scanComplete', String(filtered.length)),
           timestamp: new Date().toISOString(),
         }).catch((err) => console.error('Webhook send failed:', err))
       }
 
       this.emit('progress', {
         stage: 'complete',
-        message: `Done! ${filtered.length} new recommendations found.`,
+        message: t('pipeline.message.done', String(filtered.length)),
       })
 
       if (jobId != null && deps.jobRecorder) {

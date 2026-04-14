@@ -1,6 +1,7 @@
 import { extractImages, type ImageEntry } from '@/core/clients/image-utils'
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import { parseYear } from '@/core/clients/musicbrainz'
+import type { Translator } from '@/core/i18n/translator'
 import type { DiscoveredArtist, PipelineProgress, ResolvedArtist } from '@/core/types'
 
 interface MusicBrainzClient {
@@ -41,6 +42,7 @@ export async function resolve(
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
+  t?: Translator,
 ): Promise<ResolvedArtist[]> {
   // Group by MBID (if known) then by name, to deduplicate
   const byMbid = new Map<string, DiscoveredArtist[]>()
@@ -64,13 +66,23 @@ export async function resolve(
   let current = 0
   const resolved: ResolvedArtist[] = []
 
-  onProgress?.({ stage: 'resolve', current: 0, total, message: 'Starting resolution' })
+  onProgress?.({
+    stage: 'resolve',
+    current: 0,
+    total,
+    message: t ? t('pipeline.message.startingResolution') : 'Starting resolution',
+  })
 
   // Resolve artists that already have MBIDs
   for (const [mbid, discoveries] of byMbid) {
     current++
     const artistName = discoveries[0]?.name ?? mbid
-    onProgress?.({ stage: 'resolve', current, total, message: `Resolving ${artistName}...` })
+    onProgress?.({
+      stage: 'resolve',
+      current,
+      total,
+      message: t ? t('pipeline.message.resolvingArtist', artistName) : `Resolving ${artistName}...`,
+    })
 
     try {
       const mbArtist = await mb.lookupArtist(mbid)
@@ -84,7 +96,12 @@ export async function resolve(
   for (const [_nameLower, discoveries] of byName) {
     current++
     const firstName = discoveries[0]?.name ?? ''
-    onProgress?.({ stage: 'resolve', current, total, message: `Searching ${firstName}...` })
+    onProgress?.({
+      stage: 'resolve',
+      current,
+      total,
+      message: t ? t('pipeline.message.searchingArtist', firstName) : `Searching ${firstName}...`,
+    })
     if (!firstName) continue
 
     try {
@@ -133,7 +150,12 @@ export async function resolve(
     }
   }
 
-  onProgress?.({ stage: 'resolve', current: total, total, message: 'Resolution complete' })
+  onProgress?.({
+    stage: 'resolve',
+    current: total,
+    total,
+    message: t ? t('pipeline.message.resolutionComplete') : 'Resolution complete',
+  })
 
   // Final dedup by MBID in case search returned same MBID twice
   const seenMbids = new Set<string>()

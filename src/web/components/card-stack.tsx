@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import type { Recommendation } from './recommendation-card'
@@ -64,6 +65,7 @@ function StackCard({
   onReject: () => void
   onDetail: () => void
 }) {
+  const { t } = useI18n()
   const isPending = rec.status === 'pending'
   const genres = rec.artist.genres ?? []
   const tags = rec.artist.tags ?? []
@@ -140,15 +142,15 @@ function StackCard({
               <button
                 type="button"
                 onClick={onReject}
-                aria-label="Reject"
+                aria-label={t('recommendation.reject')}
                 className="flex-1 py-2.5 rounded-xl bg-reject/10 text-reject border border-reject/30 font-medium text-sm hover:bg-reject/20 transition-colors"
               >
-                Reject
+                {t('recommendation.reject')}
               </button>
               <button
                 type="button"
                 onClick={onDetail}
-                aria-label="View details"
+                aria-label={t('recommendation.viewDetails')}
                 className="px-3 py-2.5 rounded-xl bg-surface border border-border text-muted hover:text-text transition-colors"
               >
                 <svg
@@ -170,10 +172,10 @@ function StackCard({
               <button
                 type="button"
                 onClick={onApprove}
-                aria-label="Approve"
+                aria-label={t('recommendation.approve')}
                 className="flex-1 py-2.5 rounded-xl bg-approve/10 text-approve border border-approve/30 font-medium text-sm hover:bg-approve/20 transition-colors"
               >
-                Approve
+                {t('recommendation.approve')}
               </button>
             </>
           )}
@@ -181,10 +183,10 @@ function StackCard({
             <button
               type="button"
               onClick={onDetail}
-              aria-label="View details"
+              aria-label={t('recommendation.viewDetails')}
               className="flex-1 py-2.5 rounded-xl bg-surface border border-border text-muted hover:text-text transition-colors text-sm font-medium"
             >
-              View Details
+              {t('recommendation.viewDetails')}
             </button>
           )}
         </div>
@@ -200,6 +202,7 @@ function StackCard({
  * Arrow keys also navigate.
  */
 export function CardStack({ recommendations, onApprove, onReject, onDetail }: CardStackProps) {
+  const { t } = useI18n()
   const [index, setIndex] = useState(0)
   const [exiting, setExiting] = useState<'left' | 'right' | null>(null)
   const exitingRef = useRef(exiting)
@@ -291,8 +294,8 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
           </svg>
         </div>
         <div>
-          <p className="text-text font-medium">No more recommendations</p>
-          <p className="text-xs text-muted mt-1">Run a scan to discover more artists</p>
+          <p className="text-text font-medium">{t('recommendation.noMore')}</p>
+          <p className="text-xs text-muted mt-1">{t('recommendation.runScanToDiscover')}</p>
         </div>
       </div>
     )
@@ -306,7 +309,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
           type="button"
           onClick={() => setIndex((i) => Math.max(i - 1, 0))}
           disabled={index === 0}
-          aria-label="Previous card"
+          aria-label={t('recommendation.previousCardNav')}
           className="p-1 rounded hover:text-text disabled:opacity-30 transition-colors"
         >
           <svg
@@ -330,7 +333,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
           type="button"
           onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
           disabled={index >= total - 1}
-          aria-label="Next card"
+          aria-label={t('recommendation.nextCardNav')}
           className="p-1 rounded hover:text-text disabled:opacity-30 transition-colors"
         >
           <svg

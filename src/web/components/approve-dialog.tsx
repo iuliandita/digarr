@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getLidarrMetadataProfiles, getLidarrProfiles, getLidarrRootFolders } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import type { MonitorOption } from './monitoring-options'
 import { Button } from './ui/button'
 
@@ -19,6 +20,7 @@ type Props = {
 }
 
 export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: Props) {
+  const { t } = useI18n()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [metadataProfiles, setMetadataProfiles] = useState<Profile[]>([])
   const [rootFolders, setRootFolders] = useState<RootFolder[]>([])
@@ -62,7 +64,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
           <h3 className="text-sm font-medium text-text mb-3">Lidarr Settings for This Artist</h3>
 
           {loading ? (
-            <p className="text-sm text-muted">Loading profiles...</p>
+            <p className="text-sm text-muted">{t('approveDialog.loadingProfiles')}</p>
           ) : error ? (
             <p className="text-sm text-red-400">
               Failed to load Lidarr profiles. Check your Lidarr connection.
@@ -137,7 +139,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
                 })
               }
             >
-              Add to Lidarr
+              {t('target.action.addToLidarr')}
             </Button>
           </div>
         </div>

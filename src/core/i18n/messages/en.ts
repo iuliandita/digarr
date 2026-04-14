@@ -1253,4 +1253,72 @@ export const en = {
   'keyboardShortcuts.previousCardStack': 'Previous card (stack view)',
   'keyboardShortcuts.nextCardStack': 'Next card (stack view)',
   'keyboardShortcuts.disabledWhileTyping': 'Shortcuts are disabled when a text field is focused.',
+
+  // Card stack navigation and empty state
+  'recommendation.viewDetails': 'View details',
+  'recommendation.noMore': 'No more recommendations',
+  'recommendation.runScanToDiscover': 'Run a scan to discover more artists',
+  'recommendation.previousCardNav': 'Previous card',
+  'recommendation.nextCardNav': 'Next card',
+
+  // Preview player
+  'preview.playerRegion': 'Preview player',
+  'preview.closePreview': 'Close preview',
+  'preview.loadingPreview': 'Loading preview...',
+
+  // Streaming links (compact play/stop control + Spotify embed)
+  'streaming.playShort': 'PLAY',
+  'streaming.stopShort': 'STOP',
+  'streaming.spotifyEmbedTitle': 'Spotify preview',
+
+  // Mood discover toasts
+  'discover.moodAddedSuccess': 'Added "{0}" and discovering similar artists',
+  'discover.moodAddFailed': 'Failed to add "{0}"',
+
+  // Album picker empty state
+  'albumPicker.noReleaseGroups': 'No release groups found',
+
+  // Approve dialog
+  'approveDialog.loadingProfiles': 'Loading profiles...',
+
+  // Genre grid empty state
+  'genres.noneFound': 'No genres found.',
+
+  // Generic dismiss control (banner, hint, toast)
+  'common.dismiss': 'Dismiss',
+
+  // Hint component
+  'hint.dismissHint': 'Dismiss hint',
+
+  // Mobile navigation region
+  'app.mobileNav': 'Mobile navigation',
+
+  // Target action labels (approve menu, todays pick)
+  'target.action.addTo': 'Add to {0}',
+  'target.action.favoriteIn': 'Favorite in {0}',
+  'target.action.addToSpotifyPlaylist': 'Add to Spotify playlist',
+  'target.action.sendTo': 'Send to {0}',
+  'target.action.addToLidarr': 'Add to Lidarr',
+
+  // Pipeline progress messages (emitted via SSE, shown in the UI)
+  'pipeline.message.loadingLibrary': 'Loading your library...',
+  'pipeline.message.firstSyncBackground':
+    'First library sync running in background -- proceeding without it',
+  'pipeline.message.loadedLibrarySingular': 'Loaded {0} library artists across {1} source',
+  'pipeline.message.loadedLibraryPlural': 'Loaded {0} library artists across {1} sources',
+  'pipeline.message.buildingProfile': 'Building your taste profile...',
+  'pipeline.message.profiled': 'Profiled {0} top artists, {1} genres',
+  'pipeline.message.findingSimilar': 'Finding similar artists from all sources...',
+  'pipeline.message.discovered': 'Discovered {0} candidate artists',
+  'pipeline.message.resolving': 'Resolving {0} artists via MusicBrainz...',
+  'pipeline.message.scoring': 'Scoring {0} resolved artists...',
+  'pipeline.message.filtering': 'Filtering {0} scored artists...',
+  'pipeline.message.saving': 'Saving {0} recommendations...',
+  'pipeline.message.autoApproving': 'Auto-approving above {0}%...',
+  'pipeline.message.scanComplete': 'Scan complete: {0} new recommendations found.',
+  'pipeline.message.done': 'Done! {0} new recommendations found.',
+  'pipeline.message.startingResolution': 'Starting resolution',
+  'pipeline.message.resolvingArtist': 'Resolving {0}...',
+  'pipeline.message.searchingArtist': 'Searching {0}...',
+  'pipeline.message.resolutionComplete': 'Resolution complete',
 } as const

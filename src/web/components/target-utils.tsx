@@ -56,17 +56,23 @@ export function resolveApprovalTargetOptions(
   return { approvalMode: 'single_target' }
 }
 
-export function targetActionLabel(type: string, name: string): string {
+import type { MessageKey } from '@/core/i18n/messages/types'
+
+export function targetActionLabel(
+  type: string,
+  name: string,
+  t: (key: MessageKey) => string,
+): string {
   switch (type) {
     case 'lidarr':
     case 'slskd':
-      return `Add to ${name}`
+      return t('target.action.addTo').replace('{0}', name)
     case 'navidrome':
     case 'jellyfin':
-      return `Favorite in ${name}`
+      return t('target.action.favoriteIn').replace('{0}', name)
     case 'spotify-playlist':
-      return 'Add to Spotify playlist'
+      return t('target.action.addToSpotifyPlaylist')
     default:
-      return `Send to ${name}`
+      return t('target.action.sendTo').replace('{0}', name)
   }
 }
