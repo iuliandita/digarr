@@ -339,7 +339,8 @@ export const oidcTokens = pgTable('oidc_tokens', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
     .references(() => users.id, { onDelete: 'cascade' })
-    .notNull(),
+    .notNull()
+    .unique(),
   issuerUrl: text('issuer_url').notNull(),
   accessToken: text('access_token').notNull(),
   refreshToken: text('refresh_token'),

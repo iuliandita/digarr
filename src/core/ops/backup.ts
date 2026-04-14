@@ -5,6 +5,7 @@ import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
 import {
   getKeyFingerprint,
   SENSITIVE_OAUTH,
+  SENSITIVE_OIDC,
   SENSITIVE_SETTINGS,
   SENSITIVE_TARGET_CONFIG,
   SENSITIVE_USER_CONNECTIONS,
@@ -126,7 +127,7 @@ const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
   settings: SENSITIVE_SETTINGS,
   users: SENSITIVE_USER_CONNECTIONS,
   oauthTokens: SENSITIVE_OAUTH,
-  oidcTokens: SENSITIVE_OAUTH,
+  oidcTokens: SENSITIVE_OIDC,
   targets: SENSITIVE_TARGET_CONFIG,
 }
 
