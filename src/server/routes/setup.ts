@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
-import { validatePublicServiceUrl } from '@/core/validation'
 import type { SetupConfig } from '@/db/queries/settings'
 import { updateUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import type { HonoEnv } from '@/server/types'
+import { validatePublicServiceUrl } from '@/server/url-safety'
 
 export function setupRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
