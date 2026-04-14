@@ -37,15 +37,16 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # cosign keyless signing via Sigstore OIDC
     strategy:
       matrix:
         include:
           - variant: debian
-            runtime-image: "oven/bun:1.3.11-slim"
+            runtime-image: "oven/bun:1.3.11-slim@sha256:478281fdd196871c7e51ba6a820b7803a8ae97042ec86cdbc2e1c6b6626442d9"
             suffix: ""
             latest: "auto"
           - variant: alpine
-            runtime-image: "oven/bun:1.3.11-alpine"
+            runtime-image: "oven/bun:1.3.11-alpine@sha256:7ed9f74c326d1c260abe247ac423ccbf5ac92af62bb442d515d1f92f21e8ea9b"
             suffix: "-alpine"
             latest: "false"
     steps:
@@ -56,6 +57,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
@@ -93,6 +97,7 @@ jobs:
             type=raw,value=alpine,enable=${{ matrix.variant == 'alpine' }},suffix=
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
         with:
           context: .
@@ -103,6 +108,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             RUNTIME_IMAGE=${{ matrix.runtime-image }}
+
+      - name: Sign images (cosign keyless)
+        env:
+          GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DOCKER_IMAGE: docker.io/iuliandita/digarr
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign sign --yes "${GHCR_IMAGE}@${DIGEST}"
+          cosign sign --yes "${DOCKER_IMAGE}@${DIGEST}"
 
       - name: Generate SBOM (container)
         if: matrix.variant == 'debian'
@@ -119,6 +133,16 @@ jobs:
           path: .
           artifact-name: sbom-source.spdx.json
           output-file: sbom-source.spdx.json
+
+      - name: Attest SBOM (container) via cosign
+        if: matrix.variant == 'debian'
+        env:
+          GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DOCKER_IMAGE: docker.io/iuliandita/digarr
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign attest --yes --type spdxjson --predicate sbom-container.spdx.json "${GHCR_IMAGE}@${DIGEST}"
+          cosign attest --yes --type spdxjson --predicate sbom-container.spdx.json "${DOCKER_IMAGE}@${DIGEST}"
 
       - name: Ensure release exists and upload SBOMs
         if: matrix.variant == 'debian'

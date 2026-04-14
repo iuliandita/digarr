@@ -181,6 +181,29 @@ Admin tools available under Settings > Administration > Data Hygiene:
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
 
+### Verifying image signatures
+
+Since v0.27.8, every release image is signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC (no long-lived keys). Signatures are stored alongside the image at both `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`. The generated SBOM is attached as a signed SPDX attestation bound to the same image digest.
+
+Install cosign and verify a pulled image before running it:
+
+```sh
+# Replace <TAG> with the version you pulled, e.g. 0.27.8
+cosign verify \
+  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  ghcr.io/iuliandita/digarr:<TAG>
+
+# Verify the signed SBOM
+cosign verify-attestation \
+  --type spdxjson \
+  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  ghcr.io/iuliandita/digarr:<TAG>
+```
+
+A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Any tampering or registry compromise after publication would fail verification.
+
 ## Friends
 
 Other self-hosted music discovery projects:
