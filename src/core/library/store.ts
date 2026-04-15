@@ -142,6 +142,7 @@ export function emptyLibrarySyncCounts(): LibrarySyncCounts {
     unreconciledNoCandidate: 0,
     cacheHits: 0,
     mbApiCalls: 0,
+    mbApiCallsFailed: 0,
   }
 }
 

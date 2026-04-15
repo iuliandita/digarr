@@ -692,6 +692,8 @@ export const zhCN = {
   'librarySources.justNow': '刚刚',
   'librarySources.minAgo': '{0} 分钟前',
   'librarySources.hoursAgo': '{0} 小时前',
+  'librarySources.mbWarning':
+    '{0} 次 MusicBrainz 查询失败。受影响的艺术家未匹配，将在下次同步时重试。',
   'libraryStats.title': '资料库统计',
   'libraryStats.artists': '艺术家',
   'libraryStats.monitored': '监控中',

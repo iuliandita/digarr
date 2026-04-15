@@ -746,6 +746,8 @@ export const es = {
   'librarySources.justNow': 'ahora mismo',
   'librarySources.minAgo': 'hace {0} min',
   'librarySources.hoursAgo': 'hace {0} h',
+  'librarySources.mbWarning':
+    '{0} consultas a MusicBrainz fallaron. Los artistas afectados quedan sin reconciliar y se reintentarán en la próxima sincronización.',
   'libraryStats.title': 'Estadísticas de biblioteca',
   'libraryStats.artists': 'Artistas',
   'libraryStats.monitored': 'Monitorizados',

@@ -102,10 +102,12 @@ describe('lookupRecording(mbid)', () => {
     })
   })
 
-  it('throws on non-404 errors', async () => {
-    mockFetch.mockResolvedValueOnce(new Response('Server Error', { status: 500 }))
+  it('throws on non-404 errors after retries are exhausted', async () => {
+    // 500 is transient: the client retries 3x before surfacing. Each attempt
+    // consumes one mocked response.
+    mockFetch.mockResolvedValue(new Response('Server Error', { status: 500 }))
 
     const client = createMusicBrainzClient()
     await expect(client.lookupRecording('bad-mbid')).rejects.toThrow(/500/)
-  })
+  }, 30_000)
 })

@@ -753,6 +753,8 @@ export const pl = {
   'librarySources.justNow': 'przed chwila',
   'librarySources.minAgo': '{0} min temu',
   'librarySources.hoursAgo': '{0} godz. temu',
+  'librarySources.mbWarning':
+    '{0} zapytan MusicBrainz nie powiodlo sie. Artyscie nie zostali dopasowani i zostana ponownie sprobowani przy nastepnej synchronizacji.',
   'libraryStats.title': 'Statystyki biblioteki',
   'libraryStats.artists': 'Artysci',
   'libraryStats.monitored': 'Monitorowani',

@@ -762,6 +762,8 @@ export const de = {
   'librarySources.justNow': 'gerade eben',
   'librarySources.minAgo': 'vor {0} Min.',
   'librarySources.hoursAgo': 'vor {0} Std.',
+  'librarySources.mbWarning':
+    '{0} MusicBrainz-Abfragen fehlgeschlagen. Betroffene Künstler bleiben unabgeglichen und werden beim nächsten Sync erneut versucht.',
   'libraryStats.title': 'Bibliotheksstatistik',
   'libraryStats.artists': 'Künstler',
   'libraryStats.monitored': 'Überwacht',

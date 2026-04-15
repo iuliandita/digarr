@@ -46,9 +46,26 @@ function makeRow(
 export async function reconcileAlbumsForArtist(
   artistMbid: string,
   albums: LibraryAlbum[],
-  deps: { mbClient: MBClient },
+  deps: {
+    mbClient: MBClient
+    /**
+     * Invoked when MB getReleaseGroups throws (5xx, timeout, network). Albums
+     * for this artist fall through to `albumMbid: null` rather than aborting
+     * the sync.
+     */
+    onMbError?: (err: unknown) => void
+  },
 ): Promise<ReconciledAlbum[]> {
-  const releaseGroups = await deps.mbClient.getReleaseGroups(artistMbid)
+  let releaseGroups: Awaited<ReturnType<MBClient['getReleaseGroups']>>
+  try {
+    releaseGroups = await deps.mbClient.getReleaseGroups(artistMbid)
+  } catch (err) {
+    deps.onMbError?.(err)
+    console.warn(
+      `[library-reconcile] MB getReleaseGroups failed for artist ${artistMbid}; albums left unreconciled: ${err instanceof Error ? err.message : String(err)}`,
+    )
+    releaseGroups = []
+  }
 
   return albums.map((album) => {
     const titleNormalized = normalizeAlbumTitle(album.title)

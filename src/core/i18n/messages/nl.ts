@@ -754,6 +754,8 @@ export const nl = {
   'librarySources.justNow': 'zojuist',
   'librarySources.minAgo': '{0} min. geleden',
   'librarySources.hoursAgo': '{0} u geleden',
+  'librarySources.mbWarning':
+    '{0} MusicBrainz-verzoeken mislukt. Betroffen artiesten blijven niet gekoppeld en worden bij de volgende synchronisatie opnieuw geprobeerd.',
   'libraryStats.title': 'Bibliotheekstatistieken',
   'libraryStats.artists': 'Artiesten',
   'libraryStats.monitored': 'Bewaakt',

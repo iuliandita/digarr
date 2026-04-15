@@ -748,6 +748,8 @@ export const it = {
   'librarySources.justNow': 'proprio ora',
   'librarySources.minAgo': '{0} min fa',
   'librarySources.hoursAgo': '{0} h fa',
+  'librarySources.mbWarning':
+    '{0} richieste a MusicBrainz non riuscite. Gli artisti interessati restano non riconciliati e verranno riprovati alla prossima sincronizzazione.',
   'libraryStats.title': 'Statistiche della libreria',
   'libraryStats.artists': 'Artisti',
   'libraryStats.monitored': 'Monitorati',

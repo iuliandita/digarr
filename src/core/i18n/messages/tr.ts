@@ -750,6 +750,8 @@ export const tr = {
   'librarySources.justNow': 'az once',
   'librarySources.minAgo': '{0} dk once',
   'librarySources.hoursAgo': '{0} sa once',
+  'librarySources.mbWarning':
+    '{0} MusicBrainz sorgusu basarisiz oldu. Etkilenen sanatcilar eslesmemis olarak kalir ve bir sonraki esitlemede tekrar denenir.',
   'libraryStats.title': 'Kutuphane Istatistikleri',
   'libraryStats.artists': 'Sanatcilar',
   'libraryStats.monitored': 'Izlenenler',

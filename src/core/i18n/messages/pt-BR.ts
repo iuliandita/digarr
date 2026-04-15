@@ -751,6 +751,8 @@ export const ptBR = {
   'librarySources.justNow': 'agora mesmo',
   'librarySources.minAgo': 'há {0} min',
   'librarySources.hoursAgo': 'há {0} h',
+  'librarySources.mbWarning':
+    '{0} consultas ao MusicBrainz falharam. Os artistas afetados ficam sem reconciliação e serão tentados novamente na próxima sincronização.',
   'libraryStats.title': 'Estatísticas da biblioteca',
   'libraryStats.artists': 'Artistas',
   'libraryStats.monitored': 'Monitorados',

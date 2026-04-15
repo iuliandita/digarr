@@ -757,6 +757,8 @@ export const uk = {
   'librarySources.justNow': 'щойно',
   'librarySources.minAgo': '{0} хв тому',
   'librarySources.hoursAgo': '{0} год тому',
+  'librarySources.mbWarning':
+    '{0} запитів до MusicBrainz не вдалися. Порушені виконавці залишаться незіставленими і будуть повторені при наступній синхронізації.',
   'libraryStats.title': 'Статистика бібліотеки',
   'libraryStats.artists': 'Виконавці',
   'libraryStats.monitored': 'Відстежувані',

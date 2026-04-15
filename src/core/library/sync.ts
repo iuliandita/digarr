@@ -152,19 +152,31 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
               const rawAlbums = await listAlbums(artist.sourceArtistId)
               const reconciledAlbums = await reconcileAlbumsForArtist(artist.mbid, rawAlbums, {
                 mbClient: deps.mbClient,
+                onMbError: () => {
+                  counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
+                },
               })
               albumRows.push(...reconciledAlbums)
             }),
           )
         }
 
+        // Per-artist album tasks fail soft: any rejected task is logged and
+        // counted, but the sync still completes. MB-domain errors (5xx,
+        // timeouts) are already caught inside reconcileAlbumsForArtist; this
+        // outer catch protects against unexpected failures from the source's
+        // listAlbums() implementation.
         const albumResults = await Promise.allSettled(albumTasks)
         await albumQueue.onIdle()
-        const albumFailure = albumResults.find(
-          (result): result is PromiseRejectedResult => result.status === 'rejected',
-        )
-        if (albumFailure) {
-          throw albumFailure.reason
+        for (const result of albumResults) {
+          if (result.status === 'rejected') {
+            counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
+            console.warn(
+              `[library-sync] album task failed during ${source.id} sync; continuing: ${
+                result.reason instanceof Error ? result.reason.message : String(result.reason)
+              }`,
+            )
+          }
         }
 
         writtenCounts = await deps.store.replaceLibrarySnapshot(
@@ -181,6 +193,7 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         ...writtenCounts,
         cacheHits: counts.cacheHits,
         mbApiCalls: counts.mbApiCalls,
+        mbApiCallsFailed: counts.mbApiCallsFailed ?? 0,
         albumsSynced: writtenCounts.albumsSynced ?? 0,
       }
 

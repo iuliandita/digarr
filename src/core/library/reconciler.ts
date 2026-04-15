@@ -10,6 +10,14 @@ type MBClient = Pick<
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+function mbErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err)
+}
+
+function bumpMbFailed(counts: LibrarySyncCounts): void {
+  counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
+}
+
 export type ReconciledArtist = {
   sourceArtistId: string
   name: string
@@ -123,9 +131,22 @@ export async function reconcileArtist(
     return matchedRow(artist, nameNormalized, cached[0].mbid, 'name_anchored', 0.85)
   }
 
-  // Cache miss or ambiguous: fall through to MB API
+  // Cache miss or ambiguous: fall through to MB API.
+  // MB errors (5xx, timeout, network) are soft-failed so one flaky upstream
+  // call doesn't abort the whole sync. The artist is left unreconciled and
+  // will retry on the next sync run.
   ctx.counts.mbApiCalls += 1
-  const mbResult = await ctx.mbClient.searchArtist(nameNormalized)
+  let mbResult: Awaited<ReturnType<MBClient['searchArtist']>>
+  try {
+    mbResult = await ctx.mbClient.searchArtist(nameNormalized)
+  } catch (err) {
+    bumpMbFailed(ctx.counts)
+    console.warn(
+      `[library-reconcile] MB searchArtist failed for "${artist.name}"; leaving unreconciled: ${mbErrorMessage(err)}`,
+    )
+    ctx.counts.unreconciledNoCandidate += 1
+    return unreconciledRow(artist, nameNormalized, 'no_candidate')
+  }
   const candidates = (mbResult.artists ?? []).filter(
     (c) => normalizeArtistName(c.name) === nameNormalized,
   )
@@ -154,13 +175,21 @@ export async function reconcileArtist(
     const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
     const scored = await Promise.all(
       candidates.map(async (c) => {
-        const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
-        const mbTitles = new Set(releaseGroups.map((rg) => normalizeArtistName(rg.title)))
-        let overlap = 0
-        for (const t of normalizedSourceTitles) {
-          if (mbTitles.has(t)) overlap += 1
+        try {
+          const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
+          const mbTitles = new Set(releaseGroups.map((rg) => normalizeArtistName(rg.title)))
+          let overlap = 0
+          for (const t of normalizedSourceTitles) {
+            if (mbTitles.has(t)) overlap += 1
+          }
+          return { candidate: c, overlap }
+        } catch (err) {
+          bumpMbFailed(ctx.counts)
+          console.warn(
+            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}"; treating as zero overlap: ${mbErrorMessage(err)}`,
+          )
+          return { candidate: c, overlap: 0 }
         }
-        return { candidate: c, overlap }
       }),
     )
     scored.sort((a, b) => b.overlap - a.overlap)

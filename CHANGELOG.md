@@ -4,6 +4,16 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+## v0.27.12 - 2026-04-16
+
+### Fixed
+
+- Library sync no longer aborts when MusicBrainz returns a transient error (HTTP 503, timeouts, network blips). The affected artist or album is left unreconciled and retried on the next sync run. A warning with the failure count appears on the Library Sources panel so the user knows some data was skipped. Applies to all library sources (Plex, Jellyfin, Emby, Lidarr) since they share the same reconciler. Fixes #115.
+
+### Changed
+
+- The MusicBrainz client now retries transient failures (5xx, 429, network errors) up to 3 times with exponential backoff plus jitter, honoring `Retry-After` when provided. This absorbs short MB hiccups before the graceful-degrade path kicks in.
+
 ## v0.27.11 - 2026-04-15
 
 ### Fixed

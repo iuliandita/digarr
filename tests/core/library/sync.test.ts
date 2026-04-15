@@ -331,7 +331,7 @@ describe('createSyncOrchestrator', () => {
     expect(store.replaceLibrarySnapshot).toHaveBeenCalledWith(1, 'lidarr', expect.any(Array), [])
   })
 
-  it('fails the source sync when album reconciliation throws', async () => {
+  it('completes the sync and logs an MB error when album reconciliation throws', async () => {
     const a = sourceWithAlbums(
       'lidarr',
       [{ sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }],
@@ -364,11 +364,16 @@ describe('createSyncOrchestrator', () => {
 
     const summary = await sync.syncForUser(1, { force: true })
 
-    expect(summary.results[0]?.status).toBe('failed')
-    expect(store.replaceLibrarySnapshot).not.toHaveBeenCalled()
+    // Graceful degradation: one flaky album task no longer nukes the source.
+    // The sync completes with an empty album snapshot and an mb-failure tick.
+    expect(summary.results[0]?.status).toBe('completed')
+    expect(store.replaceLibrarySnapshot).toHaveBeenCalled()
+    if (summary.results[0]?.status === 'completed') {
+      expect(summary.results[0]?.counts.mbApiCallsFailed).toBeGreaterThanOrEqual(1)
+    }
   })
 
-  it('waits for queued album tasks to settle before returning a failure', async () => {
+  it('waits for queued album tasks to settle even when one fails', async () => {
     const albumTaskSettled: string[] = []
     const albumTaskStarted: string[] = []
     const a: LibrarySource = {
@@ -410,7 +415,10 @@ describe('createSyncOrchestrator', () => {
 
     const summary = await sync.syncForUser(1, { force: true })
 
-    expect(summary.results[0]?.status).toBe('failed')
+    // Previously this test asserted a 'failed' status. Since graceful
+    // degradation, the sync completes and only the failing album task is
+    // counted as an MB failure; the other three still settle.
+    expect(summary.results[0]?.status).toBe('completed')
     expect(albumTaskStarted).toEqual(['1', '2', '3', '4'])
     expect(albumTaskSettled).toContain('2')
     expect(albumTaskSettled).toContain('3')

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { getLibrarySources, triggerLibrarySync } from '../lib/api'
@@ -134,6 +134,21 @@ export function LibrarySourcesPanel() {
                       {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
                       disambiguated, {unreconciled} unreconciled
                     </div>
+
+                    {typeof counts.mbApiCallsFailed === 'number' && counts.mbApiCallsFailed > 0 && (
+                      <div
+                        className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400"
+                        data-testid={`mb-warning-${row.source}`}
+                      >
+                        <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                        <span>
+                          {t('librarySources.mbWarning').replace(
+                            '{0}',
+                            String(counts.mbApiCallsFailed),
+                          )}
+                        </span>
+                      </div>
+                    )}
 
                     {typeof counts.albumsSynced === 'number' && (
                       <div className="space-y-1">

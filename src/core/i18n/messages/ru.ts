@@ -761,6 +761,8 @@ export const ru = {
   'librarySources.justNow': 'только что',
   'librarySources.minAgo': '{0} мин назад',
   'librarySources.hoursAgo': '{0} ч назад',
+  'librarySources.mbWarning':
+    '{0} запросов к MusicBrainz не удались. Затронутые исполнители остаются не сопоставленными и будут повторены при следующей синхронизации.',
   'libraryStats.title': 'Статистика библиотеки',
   'libraryStats.artists': 'Исполнители',
   'libraryStats.monitored': 'Отслеживаемые',

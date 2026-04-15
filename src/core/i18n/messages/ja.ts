@@ -739,6 +739,8 @@ export const ja = {
   'librarySources.justNow': 'たった今',
   'librarySources.minAgo': '{0} 分前',
   'librarySources.hoursAgo': '{0} 時間前',
+  'librarySources.mbWarning':
+    '{0} 件の MusicBrainz クエリが失敗しました。影響を受けたアーティストは未照合のままで、次回の同期で再試行されます。',
   'libraryStats.title': 'ライブラリ統計',
   'libraryStats.artists': 'アーティスト',
   'libraryStats.monitored': '監視中',

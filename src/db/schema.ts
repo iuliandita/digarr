@@ -616,6 +616,8 @@ export type LibrarySyncCounts = {
   unreconciledNoCandidate: number
   cacheHits: number
   mbApiCalls: number
+  /** MB API calls that threw (5xx, timeout, network). Artists/albums degrade to unreconciled. */
+  mbApiCallsFailed?: number
   estimatedSecondsRemaining?: number
   albumsSynced?: number
 }

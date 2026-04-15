@@ -841,6 +841,8 @@ export const en = {
   'librarySources.justNow': 'just now',
   'librarySources.minAgo': '{0} min ago',
   'librarySources.hoursAgo': '{0} h ago',
+  'librarySources.mbWarning':
+    '{0} MusicBrainz lookups failed. Affected artists are left unreconciled and will retry next sync.',
 
   // Library Stats
   'libraryStats.title': 'Library Statistics',

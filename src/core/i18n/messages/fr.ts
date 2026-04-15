@@ -744,6 +744,8 @@ export const fr = {
   'librarySources.justNow': "à l'instant",
   'librarySources.minAgo': 'il y a {0} min',
   'librarySources.hoursAgo': 'il y a {0} h',
+  'librarySources.mbWarning':
+    '{0} requêtes MusicBrainz ont échoué. Les artistes concernés restent non rapprochés et seront réessayés lors de la prochaine synchronisation.',
   'libraryStats.title': 'Statistiques de la bibliothèque',
   'libraryStats.artists': 'Artistes',
   'libraryStats.monitored': 'Surveillés',

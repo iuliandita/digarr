@@ -89,29 +89,96 @@ const STREAMING_PATTERNS: Array<[RegExp, keyof StreamingUrls]> = [
 
 const STREAMING_TYPES = new Set(['streaming music', 'free streaming'])
 
+const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504])
+const MAX_RETRIES = 3
+const BASE_BACKOFF_MS = 1000
+const MAX_RETRY_AFTER_MS = 30_000
+
+function parseRetryAfterMs(header: string | null): number | null {
+  if (!header) return null
+  const seconds = Number(header)
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS)
+  }
+  // HTTP-date form
+  const when = Date.parse(header)
+  if (Number.isFinite(when)) {
+    return Math.min(Math.max(when - Date.now(), 0), MAX_RETRY_AFTER_MS)
+  }
+  return null
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export function createMusicBrainzClient() {
   const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
 
-  async function request<T>(path: string): Promise<T> {
-    return queue.add(async () => {
-      const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), 10_000)
+  async function fetchOnce(path: string): Promise<Response> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10_000)
+    try {
+      return await fetch(`${BASE_URL}${path}`, {
+        headers: { 'User-Agent': USER_AGENT },
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timer)
+    }
+  }
 
+  async function requestWithRetry<T>(path: string): Promise<T> {
+    let lastErr: unknown
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
       try {
-        const res = await fetch(`${BASE_URL}${path}`, {
-          headers: { 'User-Agent': USER_AGENT },
-          signal: controller.signal,
-        })
+        const res = await fetchOnce(path)
 
-        if (!res.ok) {
+        if (res.ok) {
+          return (await res.json()) as T
+        }
+
+        // Non-retryable HTTP status: surface immediately.
+        if (!TRANSIENT_STATUSES.has(res.status)) {
           throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
         }
 
-        return res.json() as Promise<T>
-      } finally {
-        clearTimeout(timer)
+        // Transient HTTP status: prefer server-provided Retry-After, else
+        // exponential backoff with jitter. Final failed attempt throws out.
+        if (attempt === MAX_RETRIES) {
+          throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+        }
+        const retryAfter = parseRetryAfterMs(res.headers.get('retry-after'))
+        const backoff = retryAfter ?? BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250
+        console.warn(
+          `[musicbrainz] HTTP ${res.status} for ${path} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${Math.round(backoff)}ms`,
+        )
+        await sleep(backoff)
+        lastErr = new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+      } catch (err) {
+        // Network/timeout errors are retryable. The final attempt rethrows.
+        const retryable =
+          err instanceof Error &&
+          (err.name === 'AbortError' ||
+            err instanceof TypeError ||
+            /fetch failed|network|ECONN|ENOTFOUND|ETIMEDOUT|ECONNRESET/i.test(err.message))
+        if (!retryable || attempt === MAX_RETRIES) {
+          throw err
+        }
+        const backoff = BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250
+        console.warn(
+          `[musicbrainz] ${err instanceof Error ? err.message : String(err)} for ${path} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${Math.round(backoff)}ms`,
+        )
+        await sleep(backoff)
+        lastErr = err
       }
-    }) as Promise<T>
+    }
+    // Unreachable under normal flow -- loop either returns or throws above.
+    throw lastErr instanceof Error ? lastErr : new Error(`MusicBrainz request failed for ${path}`)
+  }
+
+  async function request<T>(path: string): Promise<T> {
+    return queue.add(() => requestWithRetry<T>(path)) as Promise<T>
   }
 
   function lookupArtist(mbid: string): Promise<MBArtist> {

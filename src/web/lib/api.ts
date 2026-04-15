@@ -411,6 +411,7 @@ export type LibrarySyncCounts = {
   unreconciledNoCandidate: number
   cacheHits: number
   mbApiCalls: number
+  mbApiCallsFailed?: number
   estimatedSecondsRemaining?: number
   albumsSynced?: number
 }

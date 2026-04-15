@@ -147,4 +147,28 @@ describe('reconcileAlbumsForArtist', () => {
       titleNormalized: 'dummy',
     })
   })
+
+  it('degrades gracefully when MB getReleaseGroups throws 503', async () => {
+    const mbClient = {
+      getReleaseGroups: vi
+        .fn()
+        .mockRejectedValue(new Error('MusicBrainz HTTP 503 for /release-group?...')),
+    }
+    const onMbError = vi.fn()
+
+    const rows = await reconcileAlbumsForArtist(
+      ARTIST_MBID,
+      [album({ title: 'Stranger Things', releaseYear: 2019 })],
+      { mbClient, onMbError },
+    )
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      albumMbid: null,
+      artistMbid: ARTIST_MBID,
+      matchMethod: null,
+      releaseYear: 2019,
+    })
+    expect(onMbError).toHaveBeenCalledOnce()
+  })
 })

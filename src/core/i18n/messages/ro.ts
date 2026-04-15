@@ -751,6 +751,8 @@ export const ro = {
   'librarySources.justNow': 'chiar acum',
   'librarySources.minAgo': 'acum {0} min',
   'librarySources.hoursAgo': 'acum {0} h',
+  'librarySources.mbWarning':
+    '{0} cereri MusicBrainz au eșuat. Artiștii afectați rămân nereconciliați și vor fi reîncercați la următoarea sincronizare.',
   'libraryStats.title': 'Statistici bibliotecă',
   'libraryStats.artists': 'Artiști',
   'libraryStats.monitored': 'Monitorizați',
