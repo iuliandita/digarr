@@ -5,7 +5,7 @@ import type {
 } from '@/core/subscriptions/types'
 import { extractArtistsFromPlaylist } from './spotify-shared'
 
-// Viral 50 playlists only have a reliable global ID -- regional viral playlists
+// Viral 50 playlists only have a reliable global ID - regional viral playlists
 // are not publicly stable, so we only offer viral50 for the global region.
 const CHART_PLAYLIST_IDS: Record<string, Record<string, string>> = {
   global: {

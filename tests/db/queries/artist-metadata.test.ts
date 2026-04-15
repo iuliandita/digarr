@@ -63,7 +63,7 @@ describe('artist-metadata queries', () => {
 
   it('getCount returns row count', async () => {
     mockDb.where.mockResolvedValue(undefined)
-    // getCount uses select({total: count()}).from(...) -- mock the from chain
+    // getCount uses select({total: count()}).from(...) - mock the from chain
     mockDb.from.mockResolvedValue([{ total: 42 }])
     const result = await getCount(mockDb as never)
     expect(result).toBe(42)

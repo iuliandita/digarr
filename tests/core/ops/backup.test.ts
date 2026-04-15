@@ -173,7 +173,7 @@ function makeMockUpsertDb(): OpsDb & {
       return { rows: [] }
     }),
     select: selectFn,
-    // Restore wraps everything in a transaction -- call the callback with `this`
+    // Restore wraps everything in a transaction - call the callback with `this`
     transaction: vi.fn().mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
       await cb(db)
     }),

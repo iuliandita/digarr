@@ -147,7 +147,7 @@ export async function getRecentActivity(
     })
   }
 
-  // 3. Recent batches (scan events) -- admin sees all
+  // 3. Recent batches (scan events) - admin sees all
   if (isAdmin) {
     const recentBatches = await db
       .select({

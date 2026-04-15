@@ -139,7 +139,7 @@ export function TodaysPick({
 
   return (
     <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
-      {/* Banner -- fills ~40% of card height */}
+      {/* Banner - fills ~40% of card height */}
       <div className="relative shrink-0 h-72" style={bannerStyle}>
         {hasImage && (
           <img

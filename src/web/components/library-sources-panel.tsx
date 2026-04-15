@@ -127,9 +127,9 @@ export function LibrarySourcesPanel() {
                     <div className="text-xs text-muted">
                       {counts.total} artists
                       {typeof counts.albumsSynced === 'number'
-                        ? ` -- ${counts.albumsSynced} albums`
+                        ? ` - ${counts.albumsSynced} albums`
                         : ''}
-                      {' -- '}
+                      {' - '}
                       {counts.matchedMbid} MBID, {counts.matchedNameExact} exact,{' '}
                       {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
                       disambiguated, {unreconciled} unreconciled

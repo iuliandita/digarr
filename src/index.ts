@@ -173,7 +173,7 @@ import {
 import { createApp } from './server'
 import { resolveUserPreferences } from './server/helpers/preferences'
 
-// Job recording -- initialized after DB setup, before createApp()
+// Job recording - initialized after DB setup, before createApp()
 let jobRecorder: import('./core/jobs/types').JobRecorder
 
 // Initialize encryption before any DB operations.
@@ -182,7 +182,7 @@ if (isEncryptionEnabled()) {
   console.log('Field-level encryption enabled')
 } else if (process.env.NODE_ENV === 'production') {
   console.warn(
-    'WARNING: DIGARR_ENCRYPTION_KEY is not set -- API keys and tokens are stored as plaintext in the database. Set this variable for production security.',
+    'WARNING: DIGARR_ENCRYPTION_KEY is not set - API keys and tokens are stored as plaintext in the database. Set this variable for production security.',
   )
 } else {
   console.log('Field-level encryption disabled (set DIGARR_ENCRYPTION_KEY to enable)')
@@ -192,7 +192,7 @@ if (isEncryptionEnabled()) {
 await runPreFlightCheck(db)
 
 // Run pending database migrations before anything else.
-// Uses drizzle-orm's programmatic migrator -- safe to run every boot (idempotent).
+// Uses drizzle-orm's programmatic migrator - safe to run every boot (idempotent).
 await migrate(db, { migrationsFolder: './drizzle' })
 console.log('Database migrations applied')
 
@@ -691,7 +691,7 @@ const subscriptionQueriesImpl = {
   deleteSubscription: (id: number) => deleteSubscription(db, id),
 }
 
-// Cache adapter registries per user -- building one per execution is redundant when
+// Cache adapter registries per user - building one per execution is redundant when
 // multiple subscriptions fire on the same schedule for the same user.
 // TTL is short (60s) so credential changes (e.g. new OAuth token) take effect quickly.
 const adapterRegistryCache = new Map<string, { registry: AdapterRegistry; builtAt: number }>()
@@ -712,7 +712,7 @@ function setCachedAdapterRegistry(userId: number | null, registry: AdapterRegist
 async function executeSubscription(subscriptionId: number): Promise<void> {
   const sub = await getSubscription(db, subscriptionId)
   if (!sub) {
-    console.warn(`[subscription-runner] Subscription ${subscriptionId} not found -- skipping`)
+    console.warn(`[subscription-runner] Subscription ${subscriptionId} not found - skipping`)
     return
   }
 
@@ -752,7 +752,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   }
 
   // Build adapter registry from available sources, or reuse a cached one.
-  // Cache is keyed by userId with a 60s TTL -- short enough that credential
+  // Cache is keyed by userId with a 60s TTL - short enough that credential
   // changes take effect quickly, long enough to avoid rebuilding for every
   // subscription when many fire on the same schedule for the same user.
   const userId = sub.userId
@@ -768,18 +768,18 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     )
     adapterRegistry.register(createCsvImportAdapter())
 
-    // Last.fm adapters -- only if the user has a Last.fm API key
+    // Last.fm adapters - only if the user has a Last.fm API key
     if (lfApiKey) {
       adapterRegistry.register(createLastfmTagAdapter({ apiKey: lfApiKey }))
       adapterRegistry.register(createLastfmChartsAdapter({ apiKey: lfApiKey }))
     }
 
-    // ListenBrainz adapter -- only if the user has LB credentials
+    // ListenBrainz adapter - only if the user has LB credentials
     if (lbUsername && lbToken) {
       adapterRegistry.register(createListenBrainzAdapter({ username: lbUsername, token: lbToken }))
     }
 
-    // Spotify adapters -- only if the user has a stored OAuth token
+    // Spotify adapters - only if the user has a stored OAuth token
     if (userId !== null && userId !== undefined) {
       const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
       if (spotifyOAuthRow) {
@@ -790,7 +790,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       }
     }
 
-    // Deezer adapter -- only if the user has a stored OAuth token
+    // Deezer adapter - only if the user has a stored OAuth token
     if (userId !== null && userId !== undefined) {
       const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
       if (deezerOAuthRow && !deezerOAuthRow.accessToken.startsWith('pending:')) {
@@ -805,7 +805,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   const adapter = adapterRegistry.get(sub.sourceType)
   if (!adapter && sub.sourceType !== DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
     console.warn(
-      `[subscription-runner] Unknown type '${sub.sourceType}' for subscription ${subscriptionId} -- skipping`,
+      `[subscription-runner] Unknown type '${sub.sourceType}' for subscription ${subscriptionId} - skipping`,
     )
     return
   }
@@ -937,7 +937,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
 
   const result = await getPlaylistWithTracks(db, playlistId)
   if (!result) {
-    console.warn(`[playlist-scheduler] Playlist ${playlistId} not found -- skipping`)
+    console.warn(`[playlist-scheduler] Playlist ${playlistId} not found - skipping`)
     return
   }
 
@@ -1102,7 +1102,7 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   })
 }
 
-// Lazy OIDC service getter -- reads current settings from DB on each call,
+// Lazy OIDC service getter - reads current settings from DB on each call,
 // reconstructs the service only when the config (issuer/client/secret/scopes) changes.
 // This ensures settings-UI changes to OIDC config take effect without a restart.
 let oidcServiceCache: { service: OidcService; configKey: string } | null = null
@@ -1130,7 +1130,7 @@ async function getOidcService(): Promise<OidcService | null> {
   return service
 }
 
-// Static search sources -- no auth required, safe to build once at startup.
+// Static search sources - no auth required, safe to build once at startup.
 function buildStaticSearchSources(): SearchSource[] {
   return [
     createMusicBrainzSearchSource(createMusicBrainzClient()),
@@ -1238,7 +1238,7 @@ const app = createApp({
     }
 
     if (type === 'spotify-playlist') {
-      // Spotify test requires OAuth -- can't test from config alone
+      // Spotify test requires OAuth - can't test from config alone
       return {
         success: false,
         message:
@@ -1390,7 +1390,7 @@ const server = serve({ fetch: app.fetch, port })
     if (initialUsername && initialPassword) {
       if (initialPassword.length < 8) {
         console.error(
-          'DIGARR_INITIAL_PASSWORD must be at least 8 characters -- skipping user creation',
+          'DIGARR_INITIAL_PASSWORD must be at least 8 characters - skipping user creation',
         )
       } else {
         const count = await getUserCount(db)
@@ -1440,7 +1440,7 @@ const server = serve({ fetch: app.fetch, port })
       }
     }
 
-    // Start schedulers -- single getSettings() call shared across all
+    // Start schedulers - single getSettings() call shared across all
     const prefs = mergePreferences(settings?.preferences)
     const cron = prefs.scheduleCron
     if (cron) {
@@ -1456,7 +1456,7 @@ const server = serve({ fetch: app.fetch, port })
 
     await restartPlaylistScheduler()
 
-    // Library maintenance schedulers -- background, idempotent. Boot fire is non-blocking.
+    // Library maintenance schedulers - background, idempotent. Boot fire is non-blocking.
     restartLibraryMaintenanceScheduler(librarySyncIntervalHours)
     // Fire one sync + health scan at boot so fresh installs don't wait for the first cron tick.
     void librarySyncOrchestrator
@@ -1494,12 +1494,12 @@ setInterval(
 console.log(`Digarr running on http://localhost:${port}`)
 if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
   console.warn(
-    'ALLOWED_ORIGIN not set -- CORS rejects all cross-origin requests. Set ALLOWED_ORIGIN to your domain.',
+    'ALLOWED_ORIGIN not set - CORS rejects all cross-origin requests. Set ALLOWED_ORIGIN to your domain.',
   )
 }
 if (envConfig.authToken && envConfig.authToken.length < 16) {
   console.warn(
-    'DIGARR_AUTH_TOKEN is shorter than 16 characters -- this is trivially brute-forceable. Use a longer token.',
+    'DIGARR_AUTH_TOKEN is shorter than 16 characters - this is trivially brute-forceable. Use a longer token.',
   )
 }
 if (envConfig.authToken) {
@@ -1509,11 +1509,11 @@ if (envConfig.authToken) {
 }
 if (!envConfig.authToken && !envConfig.initialUsername) {
   console.warn(
-    'No DIGARR_AUTH_TOKEN or DIGARR_INITIAL_USERNAME set -- the API is unauthenticated until the first user registers. Set one for production security.',
+    'No DIGARR_AUTH_TOKEN or DIGARR_INITIAL_USERNAME set - the API is unauthenticated until the first user registers. Set one for production security.',
   )
 }
 
-// Graceful shutdown -- wait for in-flight pipeline runs before exiting
+// Graceful shutdown - wait for in-flight pipeline runs before exiting
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, async () => {
     console.log(`${signal} received, shutting down...`)

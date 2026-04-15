@@ -33,7 +33,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
     async function checkAuth() {
       try {
-        // Handle OIDC callback -- token or error passed in URL fragment (#)
+        // Handle OIDC callback - token or error passed in URL fragment (#)
         // Fragments never leak to server logs or Referer headers
         const hash = window.location.hash.slice(1) // strip leading #
         const hashParams = new URLSearchParams(hash)
@@ -49,7 +49,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
         if (oidcError) {
           window.history.replaceState({}, '', window.location.pathname)
-          // Fall through -- show login with the error visible via state
+          // Fall through - show login with the error visible via state
         }
 
         const status = await getAuthStatus()
@@ -62,7 +62,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           return
         }
 
-        // Proxy auth -- backend resolved the identity and issued a token
+        // Proxy auth - backend resolved the identity and issued a token
         if (status.proxyAuth && status.token) {
           setStoredToken(status.token)
           setState('authenticated')
@@ -80,7 +80,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
         setState(status.hasUsers ? 'login' : 'register')
       } catch {
-        // Can't reach server -- render children and let it fail naturally
+        // Can't reach server - render children and let it fail naturally
         setState('not-required')
       }
     }

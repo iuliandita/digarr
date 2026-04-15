@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
 
 describe('auth helpers', () => {
-  // scrypt N=2^17 takes ~2-4s per hash -- raise timeout for the full suite
+  // scrypt N=2^17 takes ~2-4s per hash - raise timeout for the full suite
   describe('hashPassword / verifyPassword', { timeout: 30_000 }, () => {
     it('verifies a correct password', () => {
       const hash = hashPassword('hunter2')

@@ -99,7 +99,7 @@ export class LibraryHealthService {
     return this._scanning
   }
 
-  // startScan -- fire-and-forget, returns immediately
+  // startScan - fire-and-forget, returns immediately
 
   startScan(): void {
     if (this._scanning) return
@@ -409,7 +409,7 @@ function extractImageUrl(results: unknown[]): string | null {
     if (typeof result !== 'object' || result === null) continue
     const r = result as Record<string, unknown>
 
-    // Look for images array (Lidarr lookup format -- remoteUrl is the CDN URL)
+    // Look for images array (Lidarr lookup format - remoteUrl is the CDN URL)
     if (Array.isArray(r.images)) {
       for (const img of r.images as Array<Record<string, unknown>>) {
         if (img.coverType === 'poster' && typeof img.remoteUrl === 'string') return img.remoteUrl

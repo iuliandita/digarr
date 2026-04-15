@@ -41,7 +41,7 @@ const preferencesSchema = z
   })
   .passthrough()
 
-// PATCH body for /api/settings. Every field optional -- it's a partial update.
+// PATCH body for /api/settings. Every field optional - it's a partial update.
 // Unknown top-level keys are silently stripped (matches the existing allowlist
 // behavior). Per-field types prevent accidental string-where-number bugs from
 // the UI or curl.

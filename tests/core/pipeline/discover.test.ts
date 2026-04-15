@@ -104,7 +104,7 @@ describe('discover()', () => {
     expect(aiResults.length).toBeGreaterThan(0)
   })
 
-  it('isolates LB source failure -- other sources still return results', async () => {
+  it('isolates LB source failure - other sources still return results', async () => {
     const lb: DiscoverySource = {
       id: 'listenbrainz',
       name: 'ListenBrainz',
@@ -125,7 +125,7 @@ describe('discover()', () => {
     expect(results.filter((r) => r.source === 'listenbrainz').length).toBe(0)
   })
 
-  it('isolates AI source failure -- other sources still return results', async () => {
+  it('isolates AI source failure - other sources still return results', async () => {
     const lb = makeLb()
     const ai = { getRecommendations: vi.fn().mockRejectedValue(new Error('AI down')) }
 
@@ -135,7 +135,7 @@ describe('discover()', () => {
     expect(results.filter((r) => r.source === 'ai').length).toBe(0)
   })
 
-  it('respects topArtistsLimit -- skips artists beyond the limit', async () => {
+  it('respects topArtistsLimit - skips artists beyond the limit', async () => {
     const lb = makeLb()
     // Limit to 1 artist, so only Radiohead's similar artists should be fetched
     await discover(profile, { listeningSources: [lb] }, 1)
@@ -262,7 +262,7 @@ describe('discover()', () => {
     }
 
     const results = await discover(narrowProfile, { ai }, 10)
-    // "Air" is only 3 chars -- below the 4-char threshold, so no false positive
+    // "Air" is only 3 chars - below the 4-char threshold, so no false positive
     expect(results.map((r) => r.name)).toContain('Airborne Toxic Event')
   })
 

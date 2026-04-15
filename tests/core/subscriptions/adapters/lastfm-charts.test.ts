@@ -74,7 +74,7 @@ describe('createLastfmChartsAdapter', () => {
     const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
     const result = await adapter.fetch({})
 
-    // A, B, C -- lowercase dupe of A filtered
+    // A, B, C - lowercase dupe of A filtered
     expect(result.artists).toHaveLength(3)
     const names = result.artists.map((a) => a.name)
     expect(names).toContain('Top Artist A')

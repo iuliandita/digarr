@@ -47,7 +47,7 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading }: Pro
 
   return (
     <div className="relative inline-flex">
-      {/* Primary approve button -- defaults to 'all' */}
+      {/* Primary approve button - defaults to 'all' */}
       <Button
         size="sm"
         variant="outline"

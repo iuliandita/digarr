@@ -36,7 +36,7 @@ export function oauthRoutes(deps: AppDependencies) {
         if (!clientId || !clientSecret || !redirectUri) {
           return c.json({ error: 'clientId, clientSecret, and redirectUri are required' }, 400)
         }
-        // Use opaque state token -- userId is stored server-side, not in the URL
+        // Use opaque state token - userId is stored server-side, not in the URL
         const state = crypto.randomUUID()
         // Store client credentials temporarily so the callback can use them
         await upsertOAuthToken(deps.db, {
@@ -95,7 +95,7 @@ export function oauthRoutes(deps: AppDependencies) {
     }
   })
 
-  // OAuth callback -- exchanges code for tokens
+  // OAuth callback - exchanges code for tokens
   router.get('/api/auth/oauth/:provider/callback', async (c) => {
     const provider = c.req.param('provider')
     const code = c.req.query('code')
@@ -194,7 +194,7 @@ export function oauthRoutes(deps: AppDependencies) {
           }
         } catch (err: unknown) {
           console.error('Failed to auto-create Spotify target:', err)
-          // Non-fatal -- OAuth succeeded, target creation is best-effort
+          // Non-fatal - OAuth succeeded, target creation is best-effort
         }
 
         return c.redirect('/settings?oauth_success=spotify')
@@ -257,7 +257,7 @@ export function oauthRoutes(deps: AppDependencies) {
           return c.redirect('/settings?oauth_error=token_exchange_failed')
         }
 
-        // expires=0 means long-lived -- treat as 1 year
+        // expires=0 means long-lived - treat as 1 year
         const expiresIn =
           deezerTokenData.expires === 0
             ? 365 * 24 * 3600

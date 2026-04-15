@@ -99,7 +99,7 @@ export function authRoutes(deps: AppDependencies) {
 
   // Login with username + password.
   // Keeps manual validation so the "credentials required" error stays
-  // i18n'd via the request-locale messages bundle -- login is the most
+  // i18n'd via the request-locale messages bundle - login is the most
   // user-visible error surface and the existing locales cover it.
   router.post('/api/auth/login', async (c) => {
     const messages = getRequestMessages(c)

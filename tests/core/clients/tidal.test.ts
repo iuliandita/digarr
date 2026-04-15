@@ -132,7 +132,7 @@ describe('createTidalClient', () => {
       const before = tokenRequestCount
       await client.searchArtists('portishead')
       await client.searchArtists('massive attack')
-      // Both calls should use the same token -- only 1 fetch after `before`
+      // Both calls should use the same token - only 1 fetch after `before`
       expect(tokenRequestCount - before).toBe(1)
     })
 
@@ -198,7 +198,7 @@ describe('createTidalClient', () => {
         tokenUrl: `${authBaseUrl}/token`,
         baseUrl: 'http://127.0.0.1:1/v2',
       })
-      // Auth succeeds (real auth server), search fails -- should not throw
+      // Auth succeeds (real auth server), search fails - should not throw
       const results = await client.searchArtists('portishead')
       expect(results).toEqual([])
     })

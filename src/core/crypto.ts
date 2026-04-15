@@ -16,7 +16,7 @@ export function initEncryption(keyInput: string | undefined): void {
   }
   // HKDF-derived key (current)
   derivedKey = Buffer.from(hkdfSync('sha256', keyInput, '', 'digarr-field-encryption', 32))
-  // SHA-256 key (legacy -- kept for decrypting pre-migration values)
+  // SHA-256 key (legacy - kept for decrypting pre-migration values)
   legacyKey = createHash('sha256').update(keyInput).digest()
 }
 
@@ -82,7 +82,7 @@ export function decryptField(value: string | null | undefined): typeof value {
         // Both keys failed
       }
     }
-    throw new Error('Decryption failed -- check DIGARR_ENCRYPTION_KEY')
+    throw new Error('Decryption failed - check DIGARR_ENCRYPTION_KEY')
   }
 }
 

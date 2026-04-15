@@ -54,7 +54,7 @@ export function createLidarrTarget(
               }
             }
           } catch {
-            // Best-effort -- artist was added, album monitoring is secondary
+            // Best-effort - artist was added, album monitoring is secondary
           }
         }
 

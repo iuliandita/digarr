@@ -10,23 +10,23 @@ All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release,
 
 ## v1 Goals
 
-### New User Can Reach First Value -- Pass
+### New User Can Reach First Value - Pass
 
 Setup wizard, Spotify playlist import, CSV import, and guided empty states get new users to their first recommendations without friction.
 
-### Core Discovery Is Resilient -- Pass
+### Core Discovery Is Resilient - Pass
 
 External source failures degrade gracefully. Image and metadata fallbacks cover the major fragile paths. The app gives useful results even when Spotify is unavailable.
 
-### Operators Have Safety Rails -- Pass
+### Operators Have Safety Rails - Pass
 
 Backup/restore, pre-flight migration checks, auto-backup before upgrades, and data hygiene repair tools are all in place.
 
-### Background Work Is Observable -- Pass
+### Background Work Is Observable - Pass
 
 Admin job tracking surface with health endpoint, run history, stuck-task detection, and actionable error messages.
 
-### Critical Workflows Have Release Protection -- Pass
+### Critical Workflows Have Release Protection - Pass
 
 End-to-end browser test suite (Playwright) covering setup, login, scan, approve/reject, discovery modes, subscriptions, and playlists. CI gates on critical workflow failures.
 
@@ -90,8 +90,8 @@ Low confidence. Would build only with real demand.
 - Advanced analytics export
 - Navidrome WASM plugin
 - TUI client (terminal UI for discovery and approval)
-- Native desktop client (Linux/Mac/Windows) -- PWA install already covers most of this
-- Native mobile apps (Android/iOS) -- PWA is already installable; native value is mostly reliable push notifications
+- Native desktop client (Linux/Mac/Windows) - PWA install already covers most of this
+- Native mobile apps (Android/iOS) - PWA is already installable; native value is mostly reliable push notifications
 
 ## Shipped Highlights
 
@@ -104,7 +104,7 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
 - Recent integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
 
-### v0.27.0 -- v0.27.11
+### v0.27.0 - v0.27.11
 
 - Data-safety fixes for legacy `SERIAL` sequence restore and identity-index carryover
 - Pipeline isolation so manual runs no longer share state with scheduled runs
@@ -165,12 +165,12 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Emby support for library sync and playlist push
 - Setup wizard Emby connection flow with auto-created playlist target
 
-### v0.19.0 -- v0.19.2
+### v0.19.0 - v0.19.2
 
 - Per-user listening source connections (ListenBrainz, Last.fm) instead of shared globals
 - Hermetic settings route tests that no longer depend on public external APIs
 
-### v0.18.0 -- v0.19.0
+### v0.18.0 - v0.19.0
 
 - Album coverage service and API with persistent album overrides
 - Album coverage badge on recommendation cards
@@ -178,21 +178,21 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Album sync coverage summary in the admin Library Sources panel
 - Helm chart version aligned with app version
 
-### v0.17.0 -- v0.18.0
+### v0.17.0 - v0.18.0
 
 - Album-level library sync for Lidarr, Plex, and Jellyfin
 - Per-source album sync counts in the admin Library Sources panel
 - Atomic artist+album snapshot writes for source syncs
 - Album reconciliation pipeline with MusicBrainz release-group matching
 
-### v0.16.0 -- v0.17.0
+### v0.16.0 - v0.17.0
 
 - Plex and Jellyfin library sync
 - Reconciliation review page with correct/ignore actions and rerun support
 - Setup wizard first-sync guidance and admin library sources/status surface
 - Library-aware pipeline integration with regression, integration, and browser coverage
 
-### v0.15.0 -- v0.16.0
+### v0.15.0 - v0.16.0
 
 - Background job tracking with admin UI, health endpoint, and stuck-task detection
 - E2E browser test suite (Playwright) with CI gates
@@ -202,7 +202,7 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Security hardening (two full audit rounds)
 - API docs: rate limits, OIDC notes, decades query param
 
-### v0.13.0 -- v0.14.0
+### v0.13.0 - v0.14.0
 
 - Spotify playlist one-click import
 - Generic CSV artist import (flexible column detection, up to 500 artists)

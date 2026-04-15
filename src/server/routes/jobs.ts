@@ -27,7 +27,7 @@ export function jobRoutes(deps: JobRouteDeps) {
   router.use('/api/jobs/*', adminGuard(deps.getUserById))
   router.use('/api/jobs', adminGuard(deps.getUserById))
 
-  // Health summary -- must be before /:id to avoid matching 'health' as an id
+  // Health summary - must be before /:id to avoid matching 'health' as an id
   router.get('/api/jobs/health', async (c) => {
     const health = await deps.jobQueries.getJobHealth(deps.scheduler.nextRun)
     return c.json(health)

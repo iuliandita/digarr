@@ -132,7 +132,7 @@ describe('createSyncOrchestrator', () => {
     })
     await sync.syncForUser(1)
 
-    // syncForUser only walks per-user sources -- global sources are syncGlobal's job
+    // syncForUser only walks per-user sources - global sources are syncGlobal's job
     // but Task 12 has the orchestrator order both within a single call when called from
     // the scheduler. Update test expectations once we wire the scheduler.
     expect(order).toEqual(['plex'])

@@ -124,7 +124,7 @@ describe('multiSourceSearch', () => {
     expect(unknown?.inRecommendations).toBe(false)
   })
 
-  it('handles source errors gracefully -- one fails, others succeed', async () => {
+  it('handles source errors gracefully - one fails, others succeed', async () => {
     const good = makeSource('a', [
       { name: 'Portishead', mbid: mbid1, images: [], genres: [], sourceId: 'a' },
     ])
@@ -167,7 +167,7 @@ describe('multiSourceSearch', () => {
       makeSource('a', [r1, r2]),
       makeSource('b', [r3]),
     ])
-    // Artist A appears in 2 sources, Artist B in 1 -- A should come first
+    // Artist A appears in 2 sources, Artist B in 1 - A should come first
     expect(results[0]?.name).toBe('Artist A')
     expect(results[1]?.name).toBe('Artist B')
   })

@@ -198,7 +198,7 @@ describe('searchGenres', () => {
     }
     const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
 
-    // Should not throw -- the escape happens before ilike is called
+    // Should not throw - the escape happens before ilike is called
     await searchGenres(db, '100% _pure_')
     expect(chain.where).toHaveBeenCalledOnce()
   })

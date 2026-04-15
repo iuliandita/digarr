@@ -362,7 +362,7 @@ describe('createMusicBrainzClient', () => {
     })
   })
 
-  describe('rate limiter -- queue integration', () => {
+  describe('rate limiter - queue integration', () => {
     it('routes lookupArtist through the p-queue', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
       const client = createMusicBrainzClient()

@@ -219,7 +219,7 @@ export function createPlexClient(
       const sectionId = await getMusicSectionId()
       return {
         success: true,
-        message: `Connected to Plex -- music library section ${sectionId}`,
+        message: `Connected to Plex - music library section ${sectionId}`,
         details: { sectionId },
       }
     } catch (err: unknown) {

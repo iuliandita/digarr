@@ -232,7 +232,7 @@ describe('resolveTracksForArtist()', () => {
       const tracks = await resolveTracksForArtist('Radiohead', undefined, deps, DEFAULT_CONFIG)
 
       expect(musicbrainzRecordings).not.toHaveBeenCalled()
-      // No sources available -- empty result
+      // No sources available - empty result
       expect(tracks).toHaveLength(0)
     })
   })
@@ -357,7 +357,7 @@ describe('resolveTracksForArtist()', () => {
       expect(tracks).toHaveLength(0)
     })
 
-    it('never throws -- always returns an array', async () => {
+    it('never throws - always returns an array', async () => {
       const deps: TrackResolverDeps = {
         jellyfinSearch: vi.fn().mockRejectedValue(new Error('kaboom')),
       }

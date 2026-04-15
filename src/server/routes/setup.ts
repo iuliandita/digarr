@@ -38,14 +38,14 @@ export function setupRoutes(deps: AppDependencies) {
     const missing: string[] = []
     if (!sanitized.aiProvider) missing.push('aiProvider')
     if (!sanitized.aiModel) missing.push('aiModel')
-    // Lidarr is optional -- only validate if partially provided
+    // Lidarr is optional - only validate if partially provided
     if (sanitized.lidarrUrl && !sanitized.lidarrApiKey) {
       missing.push('lidarrApiKey (required when lidarrUrl is set)')
     }
     if (!sanitized.lidarrUrl && sanitized.lidarrApiKey) {
       missing.push('lidarrUrl (required when lidarrApiKey is set)')
     }
-    // Emby is optional -- only validate if partially provided
+    // Emby is optional - only validate if partially provided
     if (body.embyUrl && (!body.embyApiKey || !body.embyUserId)) {
       missing.push('embyApiKey and embyUserId (required when embyUrl is set)')
     }
@@ -71,7 +71,7 @@ export function setupRoutes(deps: AppDependencies) {
           userId,
         })
       } catch {
-        // Best-effort -- the boot-time backfill will handle it on next restart
+        // Best-effort - the boot-time backfill will handle it on next restart
       }
     }
 
@@ -108,7 +108,7 @@ export function setupRoutes(deps: AppDependencies) {
           userId,
         })
       } catch (err) {
-        // Best-effort -- surface failures later via the targets UI
+        // Best-effort - surface failures later via the targets UI
         console.warn('[setup] createTarget failed for emby-playlist:', err)
       }
     }

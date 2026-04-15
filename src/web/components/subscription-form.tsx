@@ -382,7 +382,7 @@ export function SubscriptionForm({
                 >
                   {SOURCE_TYPES.map((sourceTypeOption) => (
                     <option key={sourceTypeOption.value} value={sourceTypeOption.value}>
-                      {t(sourceTypeOption.labelKey)} -- {t(sourceTypeOption.descriptionKey)}
+                      {t(sourceTypeOption.labelKey)} - {t(sourceTypeOption.descriptionKey)}
                     </option>
                   ))}
                 </select>
@@ -576,7 +576,7 @@ export function SubscriptionForm({
                       initial.sourceType ?? '',
                       initial.sourceConfig as Record<string, unknown>,
                     )
-                    return detail ? ` -- ${detail}` : null
+                    return detail ? ` - ${detail}` : null
                   })()}
               </div>
               <p className="text-xs text-muted mt-1">{t('subscriptionForm.sourceLockedHelp')}</p>

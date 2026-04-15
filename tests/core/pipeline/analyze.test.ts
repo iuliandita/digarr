@@ -71,7 +71,7 @@ describe('analyze()', () => {
     const lfm = makeLfm()
     const profile = await analyze([lb, lfm])
 
-    // Radiohead appears in both -- LFM has higher play count (600 vs 500)
+    // Radiohead appears in both - LFM has higher play count (600 vs 500)
     const radiohead = profile.topArtists.find((a) => a.name.toLowerCase() === 'radiohead')
     expect(radiohead).toBeDefined()
     expect(radiohead?.playCount).toBe(600)

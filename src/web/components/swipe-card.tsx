@@ -76,7 +76,7 @@ export function SwipeCard({ onSwipeLeft, onSwipeRight, enabled = true, children 
 
   return (
     <div ref={ref} className={cn('relative rounded-lg', swiping && 'overflow-hidden')}>
-      {/* Tint overlay -- stays in place, card slides over it */}
+      {/* Tint overlay - stays in place, card slides over it */}
       {enabled && swiping && (
         <div
           className={cn(

@@ -66,7 +66,7 @@ export function pipelineRoutes(deps: AppDependencies) {
       try {
         spotifyAccessToken = await resolveSpotifyToken(deps.db, userId)
       } catch {
-        // Best-effort -- continue without Spotify
+        // Best-effort - continue without Spotify
       }
     }
 
@@ -77,7 +77,7 @@ export function pipelineRoutes(deps: AppDependencies) {
       userId,
     )
 
-    // Build auto-approve deps -- closures capture userId for per-user target lookup
+    // Build auto-approve deps - closures capture userId for per-user target lookup
     const autoApproveDeps: AutoApproveDeps = {
       getRecommendationsByBatch: async (batchId) => {
         const result = await deps.listRecommendations({ batchId, limit: 1000 })
@@ -266,7 +266,7 @@ export function pipelineRoutes(deps: AppDependencies) {
               source: 'mood',
             },
           ]
-          // Resolve via MB only (no Lidarr image lookup -- avoids SkyHook dependency)
+          // Resolve via MB only (no Lidarr image lookup - avoids SkyHook dependency)
           const seedResolved = await resolve(seedDiscovered, mb)
           const newSeeds = seedResolved.filter((s) => !existingMbids.has(s.mbid))
           if (newSeeds.length > 0) {
@@ -468,7 +468,7 @@ export function pipelineRoutes(deps: AppDependencies) {
           })
           updated++
         } else {
-          // No image found -- refresh the negative cache TTL
+          // No image found - refresh the negative cache TTL
           await upsertArtist(deps.db, {
             mbid,
             name: artist.name as string,

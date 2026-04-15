@@ -392,7 +392,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       sourceType: 'csv-import',
       sourceProvider: 'csv',
       sourceConfig: { artists },
-      cron: '0 0 1 1 *', // never recurs -- just a carrier for the one-shot run
+      cron: '0 0 1 1 *', // never recurs - just a carrier for the one-shot run
       enabled: false,
       maxArtistsPerRun: artists.length,
       action: 'add_to_recommendations',

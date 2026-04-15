@@ -537,7 +537,7 @@ describe('GET /api/library/warm/status', () => {
 //
 // These handlers require userId to be set on the context. Rather than fighting
 // the authSkipped+userId gap in the full createApp path, we mount libraryRoutes
-// directly with a tiny middleware that sets userId -- same pattern as jobs.test.ts.
+// directly with a tiny middleware that sets userId - same pattern as jobs.test.ts.
 // ---------------------------------------------------------------------------
 
 import { libraryRoutes } from '@/server/routes/library'

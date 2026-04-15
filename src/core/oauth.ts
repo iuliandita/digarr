@@ -32,7 +32,7 @@ export async function getValidToken(
     return token.accessToken
   }
 
-  // Token expired or about to expire -- refresh it
+  // Token expired or about to expire - refresh it
   if (!token.refreshToken) return null
 
   const params = new URLSearchParams({

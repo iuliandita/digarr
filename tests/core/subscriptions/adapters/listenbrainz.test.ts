@@ -119,7 +119,7 @@ describe('createListenBrainzAdapter', () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'fresh-releases' })
 
-      // One, Two, Three -- duplicate of One filtered, missing artist skipped
+      // One, Two, Three - duplicate of One filtered, missing artist skipped
       expect(result.artists).toHaveLength(3)
       const names = result.artists.map((a) => a.name)
       expect(names).toContain('Artist One')
@@ -148,7 +148,7 @@ describe('createListenBrainzAdapter', () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'weekly-jams' })
 
-      // X, Y, Z -- duplicate of X filtered, missing creator skipped
+      // X, Y, Z - duplicate of X filtered, missing creator skipped
       expect(result.artists).toHaveLength(3)
       const names = result.artists.map((a) => a.name)
       expect(names).toContain('Jam Artist X')

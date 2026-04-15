@@ -130,7 +130,7 @@ export type AppDependencies = {
   genreService: GenreService
   // Library health service
   libraryHealth: LibraryHealthService
-  // SkyHook cache warmer (optional -- absent if Lidarr is not configured)
+  // SkyHook cache warmer (optional - absent if Lidarr is not configured)
   skyhookWarmer?: SkyHookWarmer | null
   // Library sync orchestrator + store
   librarySync: SyncOrchestrator
@@ -207,21 +207,21 @@ export type AppDependencies = {
       limit?: number,
     ) => Promise<import('@/core/jobs/types').JobRunRow[]>
   }
-  // Playlist deps (optional -- omit in test environments without a DB)
+  // Playlist deps (optional - omit in test environments without a DB)
   playlistDeps?: PlaylistDeps
-  // Search deps (optional -- absent when no search sources are configured)
+  // Search deps (optional - absent when no search sources are configured)
   search?: SearchDeps
 }
 
 export function createApp(deps: AppDependencies) {
   const app = new Hono<HonoEnv>()
 
-  // Log all requests first -- before auth/cors so we capture everything
+  // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
 
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
     console.warn(
-      'ALLOWED_ORIGIN is not set in production -- CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
+      'ALLOWED_ORIGIN is not set in production - CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
     )
   }
   app.use(
@@ -273,7 +273,7 @@ export function createApp(deps: AppDependencies) {
   )
   app.use('*', setupGuard(deps.isSetupComplete))
 
-  // Auth status (unauthenticated -- tells the frontend whether auth is required)
+  // Auth status (unauthenticated - tells the frontend whether auth is required)
   app.get('/api/auth/status', async (c) => {
     const [userCount, setupComplete] = await Promise.all([
       deps.getUserCount(),

@@ -5,7 +5,7 @@ type PlexClient = ReturnType<typeof createPlexClient>
 
 /**
  * Wraps the existing Plex client as a LibrarySource. The default Plex
- * Music agent does not store MBIDs, so mbidQuality is 'low' -- the
+ * Music agent does not store MBIDs, so mbidQuality is 'low' - the
  * reconciler will name-match against MusicBrainz and anchor against
  * Lidarr/Jellyfin rows when possible.
  *

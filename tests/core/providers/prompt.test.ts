@@ -102,7 +102,7 @@ describe('parseRecommendationResponse()', () => {
   })
 
   it('handles escaped backslashes before quotes in strings', () => {
-    // JSON: {"reasoning": "path\\"} -- literal backslash then closing quote
+    // JSON: {"reasoning": "path\\"} - literal backslash then closing quote
     const response =
       '[{"artistName":"Test","reasoning":"a path\\\\","confidence":0.8,"genres":["rock"]}]'
 

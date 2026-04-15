@@ -16,7 +16,7 @@ function getSocketIp(c: { env?: unknown }): string | null {
 
 /**
  * Simple in-memory rate limiter keyed by client IP.
- * Not shared across processes -- sufficient for single-process deployments.
+ * Not shared across processes - sufficient for single-process deployments.
  */
 export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: string }) {
   const buckets = new Map<string, RateLimitBucket>()

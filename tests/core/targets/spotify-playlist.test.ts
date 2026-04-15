@@ -12,12 +12,12 @@ function setupMockResponses() {
   mockFetch.mockImplementation(async (url: string | URL | Request, opts?: RequestInit) => {
     const urlStr = String(url)
 
-    // GET /me -- current user
+    // GET /me - current user
     if (urlStr.includes('/v1/me') && !urlStr.includes('/playlists')) {
       return new Response(JSON.stringify({ id: 'spotify-user-1', display_name: 'Test' }))
     }
 
-    // GET /search -- artist search
+    // GET /search - artist search
     if (urlStr.includes('/v1/search')) {
       return new Response(
         JSON.stringify({
@@ -40,7 +40,7 @@ function setupMockResponses() {
       )
     }
 
-    // POST /users/{id}/playlists -- create playlist
+    // POST /users/{id}/playlists - create playlist
     if (urlStr.includes('/playlists') && opts?.method === 'POST' && !urlStr.includes('/tracks')) {
       return new Response(
         JSON.stringify({
@@ -51,7 +51,7 @@ function setupMockResponses() {
       )
     }
 
-    // POST /playlists/{id}/tracks -- add tracks
+    // POST /playlists/{id}/tracks - add tracks
     if (urlStr.includes('/tracks') && opts?.method === 'POST') {
       return new Response(JSON.stringify({ snapshot_id: 'snap-1' }))
     }

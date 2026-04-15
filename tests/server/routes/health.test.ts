@@ -151,7 +151,7 @@ describe('setup guard', () => {
 
   it('allows /api/* through when setup is complete', async () => {
     const app = createApp(makeDeps())
-    // No route registered for this path -- expect 404, not 403
+    // No route registered for this path - expect 404, not 403
     const res = await app.request('/api/something')
     expect(res.status).not.toBe(403)
   })

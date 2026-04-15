@@ -231,7 +231,7 @@ describe('DiscoverPage', () => {
       expect(screen.getByText('Test Artist')).toBeInTheDocument()
     })
 
-    // Click the card -- AI reasoning should appear in expanded view
+    // Click the card - AI reasoning should appear in expanded view
     fireEvent.click(screen.getByText('Test Artist'))
 
     await waitFor(() => {

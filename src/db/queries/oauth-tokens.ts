@@ -35,7 +35,7 @@ export async function upsertOAuthToken(
   db: Database,
   data: OAuthTokenInsert,
 ): Promise<OAuthTokenRow> {
-  // Don't encrypt pending tokens -- they're searched by prefix and are temporary
+  // Don't encrypt pending tokens - they're searched by prefix and are temporary
   const isPending = data.accessToken.startsWith('pending:')
   const values = isPending
     ? data

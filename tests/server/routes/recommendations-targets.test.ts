@@ -32,7 +32,7 @@ function createTestApp() {
 describe('target-aware approval', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('approves without targets -- sets status to approved', async () => {
+  it('approves without targets - sets status to approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
@@ -56,7 +56,7 @@ describe('target-aware approval', () => {
     )
   })
 
-  it('approves with Lidarr target -- adds to Lidarr and sets added_to_lidarr', async () => {
+  it('approves with Lidarr target - adds to Lidarr and sets added_to_lidarr', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
@@ -89,7 +89,7 @@ describe('target-aware approval', () => {
     )
   })
 
-  it('approves with failing Lidarr target -- sets add_failed', async () => {
+  it('approves with failing Lidarr target - sets add_failed', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
@@ -118,7 +118,7 @@ describe('target-aware approval', () => {
     expect(body.status).toBe('add_failed')
   })
 
-  it('approves with createPlaylist-only targets -- sets approved', async () => {
+  it('approves with createPlaylist-only targets - sets approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },

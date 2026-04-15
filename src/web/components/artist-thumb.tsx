@@ -7,7 +7,7 @@ import { hueFromName } from '../lib/utils'
  * Artist avatar: shows the image if available, falls back to a colored
  * two-letter placeholder derived from the artist name.
  *
- * size -- grid unit (Tailwind style, multiplied by 4 to get px). Default: 10.
+ * size - grid unit (Tailwind style, multiplied by 4 to get px). Default: 10.
  */
 export function ArtistThumb({
   name,

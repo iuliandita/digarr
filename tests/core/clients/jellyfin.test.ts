@@ -232,7 +232,7 @@ describe('jellyfin client.testConnection()', () => {
 
     await expect(client.testConnection()).resolves.toMatchObject({
       success: true,
-      message: 'Connected to Jellyfin "Home Media" v10.9.0 -- 0 top artist(s)',
+      message: 'Connected to Jellyfin "Home Media" v10.9.0 - 0 top artist(s)',
     })
 
     expect(mockGet).toHaveBeenNthCalledWith(

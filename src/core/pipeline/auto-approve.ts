@@ -60,7 +60,7 @@ export async function autoApprove(
     }
 
     if (addTargets.length === 0) {
-      // No targets -- mark as approved (discovery-only)
+      // No targets - mark as approved (discovery-only)
       await deps.updateRecommendationStatus(rec.id, 'approved', { targetActions: {} })
       approved++
       continue

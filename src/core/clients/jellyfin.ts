@@ -284,7 +284,7 @@ export function createJellyfinClient(
       const artists = await getTopArtists(5)
       return {
         success: true,
-        message: `Connected to Jellyfin "${info.ServerName}" v${info.Version} -- ${artists.length} top artist(s)`,
+        message: `Connected to Jellyfin "${info.ServerName}" v${info.Version} - ${artists.length} top artist(s)`,
         details: {
           serverName: info.ServerName,
           version: info.Version,

@@ -40,7 +40,7 @@ describe('GenreService', () => {
       expect(svc.slugify('Post-Punk')).toBe('post-punk')
     })
 
-    it("strips '&' -- 'R&B' becomes 'rb'", () => {
+    it("strips '&' - 'R&B' becomes 'rb'", () => {
       const svc = new GenreService({ genreQueries: makeQueries() })
       expect(svc.slugify('R&B')).toBe('rb')
     })

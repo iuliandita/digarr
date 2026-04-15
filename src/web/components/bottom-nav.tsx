@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
 
-// Icons (inline SVG -- consistent with existing component style)
+// Icons (inline SVG - consistent with existing component style)
 
 function DashboardIcon({ className }: { className?: string }) {
   return (

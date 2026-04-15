@@ -1,6 +1,6 @@
 // FRAGILE: TIDAL has no official public API. This uses client credentials OAuth2
 // against undocumented/semi-public endpoints that may change without notice.
-// All errors are caught and return empty results or failure -- do NOT throw here.
+// All errors are caught and return empty results or failure - do NOT throw here.
 
 import { createHttpClient } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
@@ -113,7 +113,7 @@ export function createTidalClient(config: {
       // Create a fresh http client per search so the Authorization header reflects
       // the current (possibly just-refreshed) token. The token fetch above uses raw
       // fetch because it hits a different base URL (auth.tidal.com) with form-encoded
-      // body -- createHttpClient only handles JSON, so the auth endpoint stays as-is.
+      // body - createHttpClient only handles JSON, so the auth endpoint stays as-is.
       const http = createHttpClient({
         baseUrl: searchBaseUrl,
         headers: {
@@ -144,7 +144,7 @@ export function createTidalClient(config: {
         ]
       })
     } catch {
-      // TIDAL API is fragile -- swallow all errors and return empty
+      // TIDAL API is fragile - swallow all errors and return empty
       return []
     }
   }
@@ -155,7 +155,7 @@ export function createTidalClient(config: {
       const results = await searchArtists('test', 1)
       return {
         success: true,
-        message: `Connected to TIDAL -- API responding`,
+        message: `Connected to TIDAL - API responding`,
         details: { resultCount: results.length },
       }
     } catch (err: unknown) {

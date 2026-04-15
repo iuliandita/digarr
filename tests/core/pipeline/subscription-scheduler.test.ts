@@ -48,7 +48,7 @@ describe('SubscriptionScheduler', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       // We can't trigger croner's internal callback directly without faking time,
       // but we can verify the wrapper doesn't throw by invoking the fn manually
-      // through a custom croner-aware path -- just verify schedule() itself succeeds
+      // through a custom croner-aware path - just verify schedule() itself succeeds
       // even when the fn would throw.
       scheduler.schedule('err-job', '*/5 * * * *', async () => {
         throw new Error('boom')
@@ -147,13 +147,13 @@ describe('SubscriptionScheduler', () => {
       expect(scheduler.has('b')).toBe(false)
     })
 
-    it('is idempotent -- calling twice does not throw', () => {
+    it('is idempotent - calling twice does not throw', () => {
       scheduler.schedule('once', '0 * * * *', async () => {})
       scheduler.stopAll()
       expect(() => scheduler.stopAll()).not.toThrow()
     })
 
-    it('leaves scheduler in clean state -- new jobs can be added after stopAll', () => {
+    it('leaves scheduler in clean state - new jobs can be added after stopAll', () => {
       scheduler.schedule('before', '0 * * * *', async () => {})
       scheduler.stopAll()
       scheduler.schedule('after', '0 * * * *', async () => {})

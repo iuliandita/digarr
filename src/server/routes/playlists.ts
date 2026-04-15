@@ -62,7 +62,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
   const router = new Hono<HonoEnv>()
   const { db } = deps
 
-  // GET /api/playlists/scheduler -- must be registered before :id route
+  // GET /api/playlists/scheduler - must be registered before :id route
   router.get('/api/playlists/scheduler', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)

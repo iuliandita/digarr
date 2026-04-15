@@ -33,7 +33,7 @@ describe('createJellyfinSource()', () => {
       ]),
       testConnection: vi.fn().mockResolvedValue({
         success: true,
-        message: 'Connected to Jellyfin "MyServer" v10.9.0 -- 2 top artist(s)',
+        message: 'Connected to Jellyfin "MyServer" v10.9.0 - 2 top artist(s)',
       }),
     }
     vi.mocked(createJellyfinClient).mockReturnValue(client as never)

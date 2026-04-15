@@ -150,7 +150,7 @@ export class PipelineOrchestrator extends EventEmitter {
         registry.register(createLastFmSource(lfUsername, lfApiKey))
       }
 
-      // Spotify (OAuth -- token resolved before pipeline run)
+      // Spotify (OAuth - token resolved before pipeline run)
       if (settings.spotifyAccessToken) {
         registry.register(createSpotifySource(settings.spotifyAccessToken))
       }
@@ -388,7 +388,7 @@ export class PipelineOrchestrator extends EventEmitter {
         libraryMbids.add(mbid)
       }
 
-      // Also exclude top artists from listening history -- the AI prompt asks
+      // Also exclude top artists from listening history - the AI prompt asks
       // models to skip these, but smaller models ignore the instruction.
       const topArtistNames = new Set<string>()
       for (const artist of tasteProfile.topArtists) {

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { TARGET_TYPES } from '@/core/targets/types'
 
 // URL must be http(s). Private-IP / SSRF checks live in handlers and
-// outbound HTTP clients (publicIpOnly) -- schema just enforces the scheme.
+// outbound HTTP clients (publicIpOnly) - schema just enforces the scheme.
 export const httpUrl = z
   .string()
   .trim()

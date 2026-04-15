@@ -115,7 +115,7 @@ export function createLastFmClient(username: string, apiKey: string) {
       const artists = await getTopArtists('7day')
       return {
         success: true,
-        message: `Connected to Last.fm -- ${artists.length} top artists for ${username}`,
+        message: `Connected to Last.fm - ${artists.length} top artists for ${username}`,
         details: { artistCount: artists.length },
       }
     } catch (err: unknown) {

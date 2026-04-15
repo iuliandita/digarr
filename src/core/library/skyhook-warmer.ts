@@ -25,7 +25,7 @@ export class SkyHookWarmer {
 
   private evictIfNeeded(): void {
     if (this.status.size <= 5000) return
-    // Evict 'warm' entries -- cheapest to re-warm if needed
+    // Evict 'warm' entries - cheapest to re-warm if needed
     for (const [mbid, s] of this.status) {
       if (s === 'warm') this.status.delete(mbid)
     }

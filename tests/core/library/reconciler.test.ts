@@ -32,7 +32,7 @@ function makeCtx(overrides: Partial<ReconcilerContext> = {}): ReconcilerContext 
 const VALID_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 const OTHER_MBID = '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11'
 
-describe('reconcileArtist -- Step 0 (override)', () => {
+describe('reconcileArtist - Step 0 (override)', () => {
   it('returns matched row when override has correctMbid', async () => {
     const overrides = new Map([['plex:rk-1', { correctMbid: OTHER_MBID }]])
     const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
@@ -58,7 +58,7 @@ describe('reconcileArtist -- Step 0 (override)', () => {
   })
 })
 
-describe('reconcileArtist -- Step 1 (source-provided MBID)', () => {
+describe('reconcileArtist - Step 1 (source-provided MBID)', () => {
   it('trusts source MBID when present and valid', async () => {
     const artist: LibraryArtist = { sourceArtistId: 'lid-1', name: 'Radiohead', mbid: VALID_MBID }
     const result = await reconcileArtist(artist, 'lidarr', makeCtx())
@@ -81,7 +81,7 @@ describe('reconcileArtist -- Step 1 (source-provided MBID)', () => {
   })
 })
 
-describe('reconcileArtist -- Step 2 (cache short-circuit)', () => {
+describe('reconcileArtist - Step 2 (cache short-circuit)', () => {
   it('uses cache hit when exactly one match in library_artists by normalized name', async () => {
     const ctx = makeCtx({
       cacheLookup: vi
@@ -140,7 +140,7 @@ describe('reconcileArtist -- Step 2 (cache short-circuit)', () => {
   })
 })
 
-describe('reconcileArtist -- Step 3 (anchoring)', () => {
+describe('reconcileArtist - Step 3 (anchoring)', () => {
   it('anchors when MB returns multiple candidates and one matches knownMbids', async () => {
     const ctx = makeCtx({
       knownMbids: new Set([VALID_MBID]),
@@ -178,7 +178,7 @@ describe('reconcileArtist -- Step 3 (anchoring)', () => {
     const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
     const result = await reconcileArtist(artist, 'plex', ctx)
     // Will fall through to Step 5 disambiguation in Task 10. For now (Task 9),
-    // since there's no album data, expect "ambiguous" -- Task 10 may rewrite this.
+    // since there's no album data, expect "ambiguous" - Task 10 may rewrite this.
     expect(result.matchMethod).toBeNull()
     expect(result.unreconciledReason).toBe('ambiguous')
   })
@@ -203,7 +203,7 @@ describe('reconcileArtist -- Step 3 (anchoring)', () => {
   })
 })
 
-describe('reconcileArtist -- Step 5 (album-overlap disambiguation)', () => {
+describe('reconcileArtist - Step 5 (album-overlap disambiguation)', () => {
   it('picks winner when album overlap is clear', async () => {
     const ctx = makeCtx({
       mbClient: {
@@ -317,7 +317,7 @@ describe('reconcileArtist -- Step 5 (album-overlap disambiguation)', () => {
   })
 })
 
-describe('reconcileArtist -- MusicBrainz degradation', () => {
+describe('reconcileArtist - MusicBrainz degradation', () => {
   it('returns unreconciled "no_candidate" when searchArtist throws 503', async () => {
     const ctx = makeCtx({
       mbClient: {

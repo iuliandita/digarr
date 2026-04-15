@@ -87,7 +87,7 @@ export type SubscriptionRunDeps = {
   feedbackHistory: Map<string, { approved: number; total: number }>
   cooldownDays: number
   defaultScoreThreshold: number
-  /** Lowercase names of the user's top listened artists -- excluded from results. */
+  /** Lowercase names of the user's top listened artists - excluded from results. */
   topArtistNames?: Set<string>
   discoveryModeRunner?: typeof runDiscoveryMode
   discoveryModeRegistry?: DiscoveryModeRegistry

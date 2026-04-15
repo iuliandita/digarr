@@ -147,7 +147,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
             >
               {STRATEGIES.map((s) => (
                 <option key={s.value} value={s.value}>
-                  {t(s.labelKey)} -- {t(s.descriptionKey)}
+                  {t(s.labelKey)} - {t(s.descriptionKey)}
                 </option>
               ))}
             </select>

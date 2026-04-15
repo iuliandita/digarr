@@ -49,7 +49,7 @@ export function authGuard(options: {
     // Other OAuth paths (initiate, status, delete) need auth so userId is set on context.
     if (publicPath && !OPTIONAL_AUTH_PATHS.has(c.req.path)) return next()
 
-    // Proxy auth already validated upstream -- skip token checks
+    // Proxy auth already validated upstream - skip token checks
     const proxyAuthed = c.get('proxyAuth')
     if (proxyAuthed) return next()
 
@@ -76,7 +76,7 @@ export function authGuard(options: {
     const legacyToken = envConfig.authToken
     if (legacyToken && provided && safeCompare(provided, legacyToken)) {
       console.warn(
-        `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} -- no admin access, no per-user features. Migrate to user sessions.`,
+        `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} - no admin access, no per-user features. Migrate to user sessions.`,
       )
       // Assign userId=1 (first user) so downstream queries scope correctly
       // instead of matching NULL userId records

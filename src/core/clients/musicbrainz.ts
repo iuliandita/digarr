@@ -173,7 +173,7 @@ export function createMusicBrainzClient() {
         lastErr = err
       }
     }
-    // Unreachable under normal flow -- loop either returns or throws above.
+    // Unreachable under normal flow - loop either returns or throws above.
     throw lastErr instanceof Error ? lastErr : new Error(`MusicBrainz request failed for ${path}`)
   }
 

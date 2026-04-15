@@ -11,7 +11,7 @@
  * 7. Strip interior ", The ": "Tyler, The Creator" -> "tyler, creator"
  * 8. Collapse whitespace and trim
  *
- * Used by the reconciler. Pure function -- no I/O, no globals.
+ * Used by the reconciler. Pure function - no I/O, no globals.
  */
 export function normalizeArtistName(raw: string): string {
   if (!raw.trim()) return ''

@@ -254,12 +254,12 @@ describe('resolve()', () => {
 
       const result = await resolve(discovered, mb)
 
-      // Should be dropped -- genres completely mismatch
+      // Should be dropped - genres completely mismatch
       expect(result).toHaveLength(0)
     })
 
     it('accepts artist when AI provides genres but MB candidate has no tags', async () => {
-      // MB having no tags is common for lesser-known artists -- should not reject
+      // MB having no tags is common for lesser-known artists - should not reject
       const discovered: DiscoveredArtist[] = [
         {
           name: 'Obscure Band',
@@ -283,7 +283,7 @@ describe('resolve()', () => {
 
       const result = await resolve(discovered, mb)
 
-      // Should be accepted -- no tags to contradict, not a confirmed mismatch
+      // Should be accepted - no tags to contradict, not a confirmed mismatch
       expect(result).toHaveLength(1)
       expect(result[0]?.mbid).toBe('mbid-obscure')
     })

@@ -497,7 +497,7 @@ export function DiscoverPage() {
     }
   }, [undoEntry, refetch, t])
 
-  // Count per filter for tab badges -- fetch all counts independently
+  // Count per filter for tab badges - fetch all counts independently
   const { data: allCountData } = useQuery({
     queryKey: ['recommendations', 'count', 'all'],
     queryFn: () => getRecommendations({ limit: '1' }),
@@ -535,7 +535,7 @@ export function DiscoverPage() {
         setApproveDialogState({ recId: id, monitorOption: option })
         return
       }
-      // 'selected' flow -- album picker already ran, call API directly
+      // 'selected' flow - album picker already ran, call API directly
       setActingIds((prev) => new Set([...prev, id]))
       try {
         await approveRecommendation(id, {
@@ -862,7 +862,7 @@ export function DiscoverPage() {
               ))}
             </div>
 
-            {/* Approve All Above + Select -- hidden in stack mode */}
+            {/* Approve All Above + Select - hidden in stack mode */}
             {viewMode !== 'stack' && (
               <>
                 <select
@@ -1254,7 +1254,7 @@ export function DiscoverPage() {
         </div>
       )}
 
-      {/* FAB: Run Scan -- mobile only, above bottom nav */}
+      {/* FAB: Run Scan - mobile only, above bottom nav */}
       {!bulkMode && (
         <button
           type="button"

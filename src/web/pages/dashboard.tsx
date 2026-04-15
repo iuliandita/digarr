@@ -299,7 +299,7 @@ export function Dashboard() {
   const [actedIds, setActedIds] = useState<Set<number>>(new Set())
   const [listenRange, setListenRange] = useState<'week' | 'month'>('month')
 
-  // Pending pick -- fetch 10 so skip has runway
+  // Pending pick - fetch 10 so skip has runway
   const { data: pickData, isLoading: pickLoading } = useQuery({
     queryKey: ['dashboard-pick'],
     queryFn: () => getRecommendations({ status: 'pending', sort: 'score_desc', limit: '10' }),

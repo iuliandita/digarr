@@ -29,7 +29,7 @@ vi.mock('@/core/spotify-auth', async (importOriginal) => {
   }
 })
 
-// resolveUserPreferences calls DB queries -- mock the whole helper.
+// resolveUserPreferences calls DB queries - mock the whole helper.
 vi.mock('@/server/helpers/preferences', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/server/helpers/preferences')>()
   return {

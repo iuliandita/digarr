@@ -114,7 +114,7 @@ export function LibraryHealthPage() {
         if (data.failed === 0) {
           if (isDeferred) {
             toast.success(
-              `${t('libraryHealth.triggeredActionFor')} ${data.completed} ${artistLabel(data.completed)} -- ${t('libraryHealth.rescanningSoon')}`,
+              `${t('libraryHealth.triggeredActionFor')} ${data.completed} ${artistLabel(data.completed)} - ${t('libraryHealth.rescanningSoon')}`,
             )
           } else {
             toast.success(

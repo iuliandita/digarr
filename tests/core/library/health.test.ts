@@ -664,7 +664,7 @@ describe('LibraryHealthService', () => {
 
       expect(mocks.lookupArtist).toHaveBeenCalledWith(`lidarr:${MBID}`)
       expect(mocks.cacheUpdateImageUrl).not.toHaveBeenCalled()
-      expect(progress.completed).toBe(1) // still "completed" -- just no image found
+      expect(progress.completed).toBe(1) // still "completed" - just no image found
     })
 
     it('counts failures when fix throws', async () => {
@@ -682,7 +682,7 @@ describe('LibraryHealthService', () => {
     })
 
     it('returns completed status with zero items when no cached results', async () => {
-      // Don't run runChecks first -- cachedResults is null
+      // Don't run runChecks first - cachedResults is null
       const fresh = makeService(mocks)
       mocks.updateArtist.mockResolvedValue({})
 

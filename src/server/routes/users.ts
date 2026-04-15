@@ -31,7 +31,7 @@ export function userRoutes(deps: AppDependencies) {
     return { ok: true as const, userId }
   }
 
-  // GET /api/users -- list all users (admin only)
+  // GET /api/users - list all users (admin only)
   router.get('/api/users', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -40,7 +40,7 @@ export function userRoutes(deps: AppDependencies) {
     return c.json(userList)
   })
 
-  // POST /api/users -- create a new user (admin only)
+  // POST /api/users - create a new user (admin only)
   router.post('/api/users', zJson(createUserSchema), async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -57,7 +57,7 @@ export function userRoutes(deps: AppDependencies) {
     return c.json(user, 201)
   })
 
-  // PATCH /api/users/:id -- update user (admin only)
+  // PATCH /api/users/:id - update user (admin only)
   // Body: { isAdmin?: boolean }
   // Guards: can't remove own admin role, can't remove last admin
   router.patch('/api/users/:id', zParam(userIdParamSchema), zJson(updateUserSchema), async (c) => {
@@ -89,7 +89,7 @@ export function userRoutes(deps: AppDependencies) {
     return c.json({ ok: true })
   })
 
-  // DELETE /api/users/:id -- delete user (admin only)
+  // DELETE /api/users/:id - delete user (admin only)
   // Guards: can't delete self, can't delete last admin
   router.delete('/api/users/:id', zParam(userIdParamSchema), async (c) => {
     const auth = await requireAdmin(c)

@@ -1,6 +1,6 @@
 import type { ScoredArtist } from '@/core/types'
 
-// Minimal database interface -- only what store() needs
+// Minimal database interface - only what store() needs
 export interface StoreDb {
   getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
 

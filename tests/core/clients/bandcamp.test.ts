@@ -207,12 +207,12 @@ describe('createBandcampClient', () => {
   })
 
   describe('rate limiting', () => {
-    it('uses p-queue (concurrency 1) -- sequential calls do not interleave', async () => {
+    it('uses p-queue (concurrency 1) - sequential calls do not interleave', async () => {
       // This is a structural test: just verifying the client can make multiple calls
       // without throwing (the queue ensures they serialize).
       const client = createBandcampClient({ baseUrl })
       const before = requestCount
-      // Fire two calls -- they will queue up
+      // Fire two calls - they will queue up
       const [r1, r2] = await Promise.all([
         client.searchArtists('portishead'),
         client.searchArtists('portishead'),

@@ -212,7 +212,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
 // we need a session. Instead we test the 401 paths (no auth) and ownership (403).
 // For ownership tests, we need a way to set userId. We do this by patching
 // the app to bypass auth (getUserCount returns 0) and set userId via a custom middleware.
-// The cleanest approach is to use the existing session mechanism -- but since sessions
+// The cleanest approach is to use the existing session mechanism - but since sessions
 // are in-memory we can't easily inject one in tests. Instead we wrap createApp
 // with a pre-auth middleware that sets userId on the context.
 

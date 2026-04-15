@@ -608,7 +608,7 @@ export function RecommendationCard({
           />
         </button>
       )}
-      {/* Hover edge buttons -- desktop only, pending cards, not when expanded */}
+      {/* Hover edge buttons - desktop only, pending cards, not when expanded */}
       {!bulkMode && isPending && !expanded && (
         <>
           {/* Left edge: reject */}
@@ -666,7 +666,7 @@ export function RecommendationCard({
           </button>
         </>
       )}
-      {/* biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] -- nesting <button> inside <button> is invalid HTML */}
+      {/* biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] - nesting <button> inside <button> is invalid HTML */}
       <div
         role="button"
         tabIndex={0}
@@ -780,7 +780,7 @@ export function RecommendationCard({
 
           {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
 
-          {/* Action buttons -- compact mode only, hidden in bulk mode */}
+          {/* Action buttons - compact mode only, hidden in bulk mode */}
           {!expanded && (
             <>
               <ActionButtons
@@ -931,7 +931,7 @@ export function RecommendationCard({
               />
             )}
 
-            {/* Action buttons (re-shown in expanded too) -- hidden in bulk mode */}
+            {/* Action buttons (re-shown in expanded too) - hidden in bulk mode */}
             <div className="px-4">
               <ActionButtons
                 rec={rec}

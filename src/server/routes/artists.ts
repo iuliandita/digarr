@@ -70,7 +70,7 @@ export function artistRoutes(deps: AppDependencies) {
       }
     }
 
-    // Cache track names/durations (preview URLs are not cached -- fetched fresh each time)
+    // Cache track names/durations (preview URLs are not cached - fetched fresh each time)
     const toCache = tracks.map((t) => ({ name: t.name, durationMs: t.durationMs }))
     const topTracksCache: TopTracksCache = { tracks: toCache, cachedAt: new Date().toISOString() }
     await deps.db.update(artists).set({ topTracks: topTracksCache }).where(eq(artists.id, id))

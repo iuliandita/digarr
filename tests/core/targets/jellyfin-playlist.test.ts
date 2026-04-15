@@ -90,7 +90,7 @@ describe('createJellyfinPlaylistTarget()', () => {
       mockFetch.mockImplementation(async (url: string | URL | Request, opts?: RequestInit) => {
         const urlStr = String(url)
 
-        // GET /Users/{userId}/Items -- track search
+        // GET /Users/{userId}/Items - track search
         if (urlStr.includes('/Items') && (!opts?.method || opts.method === 'GET')) {
           return ok({
             Items: [
@@ -106,7 +106,7 @@ describe('createJellyfinPlaylistTarget()', () => {
           })
         }
 
-        // POST /Playlists -- create playlist
+        // POST /Playlists - create playlist
         if (urlStr.includes('/Playlists') && opts?.method === 'POST') {
           return ok({ Id: 'jf-pl-1', Name: 'Digarr Picks' })
         }

@@ -112,7 +112,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
       const results = await searchArtists('test', 1)
       return {
         success: true,
-        message: `Connected to Deezer -- API responding`,
+        message: `Connected to Deezer - API responding`,
         details: { resultCount: results.length },
       }
     } catch (err: unknown) {

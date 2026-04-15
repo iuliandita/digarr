@@ -101,7 +101,7 @@ describe('store()', () => {
     )
   })
 
-  it('handles empty artists array -- creates batch with no recommendations', async () => {
+  it('handles empty artists array - creates batch with no recommendations', async () => {
     const db = makeDb(5)
 
     const batchId = await store([], db)

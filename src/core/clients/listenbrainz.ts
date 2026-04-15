@@ -242,7 +242,7 @@ export function createListenBrainzClient(username: string, token: string) {
       const count = await getListenCount()
       return {
         success: true,
-        message: `Connected to ListenBrainz -- ${count} listens for ${username}`,
+        message: `Connected to ListenBrainz - ${count} listens for ${username}`,
         details: { listenCount: count },
       }
     } catch (err: unknown) {

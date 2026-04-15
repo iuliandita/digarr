@@ -77,7 +77,7 @@ export function exportRoutes(deps: ExportDeps) {
       suggestedAlbum: rec.recommendedReleaseGroupTitle ?? undefined,
     }))
 
-    // format already validated above -- safe to index directly
+    // format already validated above - safe to index directly
     const output = EXPORTERS[format]?.(exportable)
     const timestamp = new Date().toISOString().slice(0, 10)
 

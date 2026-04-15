@@ -21,7 +21,7 @@ const fixtureResponse = {
 function makeAdapter() {
   return createLastfmTagAdapter({
     apiKey: 'testkey',
-    // Patch fetch URL via global -- we'll use a custom approach instead
+    // Patch fetch URL via global - we'll use a custom approach instead
   })
 }
 
@@ -84,7 +84,7 @@ describe('createLastfmTagAdapter', () => {
     const adapter = makeAdapter()
     const result = await adapter.fetch({ tag: 'metal' })
 
-    // A, B, C -- lowercase dupe of A filtered
+    // A, B, C - lowercase dupe of A filtered
     expect(result.artists).toHaveLength(3)
     const names = result.artists.map((a) => a.name)
     expect(names).toContain('Metal Artist A')

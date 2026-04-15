@@ -164,7 +164,7 @@ describe('sendWebhook', () => {
       })
     })
 
-    // The real timeout is 10s -- we can't wait that long in tests.
+    // The real timeout is 10s - we can't wait that long in tests.
     // Instead, verify the signal is passed to fetch.
     const promise = sendWebhook('https://hooks.example.com/webhook', makePayload())
 

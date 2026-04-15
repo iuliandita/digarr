@@ -154,7 +154,7 @@ export function usePreview() {
           setStateAndRef((s) => ({ ...s, playing: true }))
           return
         }
-        // For embeds, just flip playing flag -- iframe handles playback
+        // For embeds, just flip playing flag - iframe handles playback
         setStateAndRef((s) => ({ ...s, playing: true }))
         return
       }
@@ -198,7 +198,7 @@ export function usePreview() {
           setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
         } catch {
           setStateAndRef(() => INITIAL_STATE)
-          toast.error('Playback blocked by browser -- try clicking again')
+          toast.error('Playback blocked by browser - try clicking again')
         }
         return
       }

@@ -125,7 +125,7 @@ describe('PipelineProgress', () => {
       wrapper: createQueryWrapper(),
     })
 
-    // The component uses setTimeout(onComplete, 500) -- advance timers
+    // The component uses setTimeout(onComplete, 500) - advance timers
     await waitFor(() => {
       expect(screen.getByText('Done')).toBeInTheDocument()
     })

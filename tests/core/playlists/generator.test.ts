@@ -321,7 +321,7 @@ describe('generatePlaylist()', () => {
     expect(result.tracks.every((t) => t.source === 'spotify')).toBe(true)
   })
 
-  it('respects size limit -- trims tracks to config.size', async () => {
+  it('respects size limit - trims tracks to config.size', async () => {
     const strategyDeps = makeStrategyDeps()
     const resolverDeps = makeResolverDeps()
 

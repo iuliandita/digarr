@@ -79,7 +79,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
 
   async function getArtists(): Promise<LidarrArtist[]> {
     const raw = await http.get<Record<string, unknown>[]>('/api/v1/artist')
-    // Strip to only the fields we need -- the full Lidarr response includes
+    // Strip to only the fields we need - the full Lidarr response includes
     // images, statistics, albums, links, ratings etc. that we don't use,
     // which wastes significant memory for large libraries.
     return raw.map((a) => ({
@@ -146,7 +146,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
 
   async function getAlbums(artistId: number): Promise<LidarrAlbum[]> {
     const raw = await http.get<Record<string, unknown>[]>(`/api/v1/album?artistId=${artistId}`)
-    // Strip to only the fields we need -- Lidarr album responses include
+    // Strip to only the fields we need - Lidarr album responses include
     // full track lists, images, and other metadata we don't use.
     return raw.map((a) => ({
       id: a.id as number,
@@ -213,7 +213,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
       const profiles = await http.get<QualityProfile[]>('/api/v1/qualityprofile')
       return {
         success: true,
-        message: `Connected to Lidarr -- ${profiles.length} quality profile(s) found`,
+        message: `Connected to Lidarr - ${profiles.length} quality profile(s) found`,
         details: { profileCount: profiles.length },
       }
     } catch (err: unknown) {

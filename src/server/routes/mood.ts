@@ -75,7 +75,7 @@ export function moodRoutes(deps: MoodDeps) {
         const artists = await lidarr.getArtists()
         libraryNames = new Set(artists.map((a) => a.artistName.toLowerCase()))
       } catch {
-        // Lidarr unavailable -- skip library check
+        // Lidarr unavailable - skip library check
       }
     }
 

@@ -427,7 +427,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <NavLink to="/" className="text-xl font-bold text-accent hover:opacity-90">
                 digarr
               </NavLink>
-              {/* Desktop nav links -- grouped */}
+              {/* Desktop nav links - grouped */}
               <div className="hidden sm:flex items-center gap-4">
                 <NavLink to="/" end className={navLinkClass}>
                   <span className="flex items-center gap-1">
@@ -675,7 +675,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
         </nav>
-        {/* Main content -- add pb-16 on mobile so bottom nav doesn't overlap */}
+        {/* Main content - add pb-16 on mobile so bottom nav doesn't overlap */}
         <main className="pb-16 md:pb-0">{children}</main>
         <BottomNav />
         <KeyboardShortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
@@ -694,7 +694,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Inner app -- only mounts after AuthGate has resolved auth
+// Inner app - only mounts after AuthGate has resolved auth
 function InnerApp() {
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
 

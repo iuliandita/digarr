@@ -134,13 +134,13 @@ export async function resolveTracksForArtist(
     if (tracks.length > 0) return tracks
   }
 
-  // MusicBrainz fallback -- only if we have an MBID
+  // MusicBrainz fallback - only if we have an MBID
   if (artistMbid) {
     const mbTracks = await resolveFromMusicBrainz(artistName, artistMbid, deps, limit)
     if (mbTracks.length > 0) return mbTracks
   }
 
-  // Nothing resolved -- let the caller handle the empty case
+  // Nothing resolved - let the caller handle the empty case
   return []
 }
 

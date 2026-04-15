@@ -526,7 +526,7 @@ describe('PipelineOrchestrator', () => {
       userId: 1,
     })
 
-    // score() is the 5th stage -- check its second argument (libraryGenres)
+    // score() is the 5th stage - check its second argument (libraryGenres)
     const scoreCall = mockScore.mock.calls[0]
     const passedGenres = scoreCall?.[1] as string[]
     expect(passedGenres).toBeDefined()
@@ -653,7 +653,7 @@ describe('PipelineOrchestrator', () => {
     const syncForUser = vi.fn(
       () =>
         new Promise((resolve) => {
-          // Never resolves during the test -- simulates a slow first sync
+          // Never resolves during the test - simulates a slow first sync
           setTimeout(() => {
             firstSyncResolved = true
             resolve({ userId: 1, results: [] })

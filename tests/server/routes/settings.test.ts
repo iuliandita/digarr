@@ -52,7 +52,7 @@ vi.mock('@/core/clients/listenbrainz', () => ({
     getSimilarArtists: vi.fn(async () => []),
     testConnection: vi.fn(async () => ({
       success: true,
-      message: 'Connected to ListenBrainz -- 0 listens for testuser',
+      message: 'Connected to ListenBrainz - 0 listens for testuser',
       details: { listenCount: 0 },
     })),
   })),
@@ -562,7 +562,7 @@ describe('PATCH /api/settings', () => {
 
     // Self-hosted media servers are the user's own box. Private IPs and
     // split-horizon-DNS hostnames that resolve to LAN addresses must be
-    // accepted -- that's the default deployment, not an SSRF target.
+    // accepted - that's the default deployment, not an SSRF target.
     expect(res.status).toBe(200)
     expect(mockUpdateUserConnections).toHaveBeenCalledWith(
       expect.anything(),

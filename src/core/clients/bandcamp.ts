@@ -102,7 +102,7 @@ function parseSearchResults(html: string, limit: number): BandcampSearchResult[]
 export function createBandcampClient(config?: { baseUrl?: string }) {
   const baseUrl = config?.baseUrl ?? DEFAULT_BASE_URL
 
-  // 1 request per 2 seconds -- Bandcamp will throttle/block higher rates
+  // 1 request per 2 seconds - Bandcamp will throttle/block higher rates
   const queue = new PQueue({ concurrency: 1, interval: 2000, intervalCap: 1 })
 
   async function fetchHtml(url: string): Promise<string> {
@@ -133,7 +133,7 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
       const html = await (queue.add(() => fetchHtml(url)) as Promise<string>)
       return parseSearchResults(html, limit)
     } catch {
-      // Scraping is fragile -- always return empty on any error
+      // Scraping is fragile - always return empty on any error
       return []
     }
   }
@@ -143,11 +143,11 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
       const params = new URLSearchParams({ q: 'test', item_type: 'b' })
       const url = `${baseUrl}/search?${params.toString()}`
       const html = await (queue.add(() => fetchHtml(url)) as Promise<string>)
-      // Just check we got HTML back -- don't care about parse results
+      // Just check we got HTML back - don't care about parse results
       if (html.includes('bandcamp') || html.includes('search')) {
         return {
           success: true,
-          message: 'Connected to Bandcamp -- HTML scraper responding',
+          message: 'Connected to Bandcamp - HTML scraper responding',
         }
       }
       return { success: false, message: 'Unexpected response from Bandcamp' }

@@ -8,7 +8,7 @@
 
 ---
 
-## DSM 7.2+ (Container Manager -- has Project support)
+## DSM 7.2+ (Container Manager - has Project support)
 
 Container Manager supports compose projects natively. Use it if you want a no-SSH setup.
 
@@ -18,7 +18,7 @@ Container Manager supports compose projects natively. Use it if you want a no-SS
 2. Set the project name to `digarr`
 3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
 4. Paste the contents of the [docker-compose.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml)
-5. In the environment/variables section, set at minimum: `DB_PASS` (pick any password -- this is internal to the containers)
+5. In the environment/variables section, set at minimum: `DB_PASS` (pick any password - this is internal to the containers)
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
@@ -36,7 +36,7 @@ sudo docker compose up -d
 
 ---
 
-## DSM 7.1 (Docker package -- no Project support)
+## DSM 7.1 (Docker package - no Project support)
 
 The Docker package on DSM 7.1 does not support compose projects in the GUI.
 You can create containers individually with the Launch wizard.
@@ -92,9 +92,9 @@ If you prefer the GUI, you must create each container separately. A custom
 network lets them reach each other by container name.
 
 > **Important:** DSM 7.1 only shows network and environment settings during
-> container **creation**. You cannot change them afterward -- if you make a
+> container **creation**. You cannot change them afterward - if you make a
 > mistake, delete the container and recreate it. Using `localhost` in
-> DATABASE_URL will not work -- each container has its own network namespace.
+> DATABASE_URL will not work - each container has its own network namespace.
 
 #### Step 1: Create a network
 
@@ -109,11 +109,11 @@ network lets them reach each other by container name.
 3. **Image** > select `postgres:17-alpine` > **Launch**
 4. **Network**: select `digarr-net` (deselect `bridge`)
 5. Container name: `digarr-db`
-6. Click **Advanced Settings** > **Environment** -- add these variables:
+6. Click **Advanced Settings** > **Environment** - add these variables:
    - `POSTGRES_USER` = `digarr`
    - `POSTGRES_PASSWORD` = pick a password (remember it for step 3)
    - `POSTGRES_DB` = `digarr`
-7. Still in **Advanced Settings** > **Volume** -- add a folder mapping:
+7. Still in **Advanced Settings** > **Volume** - add a folder mapping:
    - File/Folder: create `/volume1/docker/digarr-db` (or any path)
    - Mount path: `/var/lib/postgresql/data`
 8. Click **Next** / **Apply** to create and start the container
@@ -127,9 +127,9 @@ network lets them reach each other by container name.
 4. **Network**: select `digarr-net` (deselect `bridge`)
 5. Container name: `digarr`
 6. **Port Settings**: set local port `3000` -> container port `3000`
-7. Click **Advanced Settings** > **Environment** -- add these variables:
+7. Click **Advanced Settings** > **Environment** - add these variables:
    - `DATABASE_URL` = `postgresql://digarr:YOUR_PASSWORD@digarr-db:5432/digarr`
-     (replace `YOUR_PASSWORD` with the password from step 2 -- the hostname
+     (replace `YOUR_PASSWORD` with the password from step 2 - the hostname
      `digarr-db` resolves because both containers are on `digarr-net`)
    - `DIGARR_INITIAL_USERNAME` = pick an admin username
    - `DIGARR_INITIAL_PASSWORD` = pick a password (min 8 chars)
@@ -142,7 +142,7 @@ Open `http://<nas-ip>:3000` in your browser.
 ## ARM-based Synology models
 
 Digarr publishes multi-arch images (amd64 + arm64). ARM-based models
-(DS220j, DS223, DS124, etc.) work out of the box -- Docker pulls the
+(DS220j, DS223, DS124, etc.) work out of the box - Docker pulls the
 correct architecture automatically.
 
 ## Updating

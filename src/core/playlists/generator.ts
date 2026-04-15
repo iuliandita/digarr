@@ -24,7 +24,7 @@ export function getStrategy(strategy: PlaylistStrategy): PlaylistStrategyImpl {
     case 'rediscover':
       return rediscoverStrategy
     default: {
-      // TypeScript exhaustiveness check -- if PlaylistStrategy ever gains a new
+      // TypeScript exhaustiveness check - if PlaylistStrategy ever gains a new
       // variant and getStrategy isn't updated, this throws at runtime.
       const _exhaustive: never = strategy
       throw new Error(`Unknown playlist strategy: ${_exhaustive}`)
@@ -64,7 +64,7 @@ export async function generatePlaylist(
     const allTracks = await resolvePlaylistTracks(artists, resolverDeps, resolverConfig)
     tracks = allTracks.slice(0, config.size)
   } else {
-    // No track resolver deps configured -- create artist-level entries
+    // No track resolver deps configured - create artist-level entries
     // so playlists still show the selected artists
     tracks = artists.slice(0, config.size).map((a) => ({
       artistName: a.name,

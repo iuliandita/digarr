@@ -287,7 +287,7 @@ export function settingsRoutes(deps: AppDependencies) {
     const body = await c.req.json()
     const testUserId = c.get('userId')
 
-    // Admin-only services: lidarr, ai, oidc -- only enforced when user sessions are active
+    // Admin-only services: lidarr, ai, oidc - only enforced when user sessions are active
     if (testUserId && (service === 'lidarr' || service === 'ai' || service === 'oidc')) {
       const isAdmin = await resolveAdmin(
         testUserId,
@@ -325,7 +325,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const result = await client.testConnection()
         if (result.success && !token) {
           result.message +=
-            ' (warning: no API token set -- listening data, subscriptions, and recommendations will not work without it)'
+            ' (warning: no API token set - listening data, subscriptions, and recommendations will not work without it)'
         }
         return c.json(result)
       }
@@ -382,7 +382,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const client = createJellyfinClient(url, apiKey, jfUserId, { skipTlsVerify: skipTls })
         const result = await client.testConnection()
         if (result.success && !jfUserId) {
-          result.message += ' (warning: no user ID set -- listening data will not work without it)'
+          result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
         return c.json(result)
       }
@@ -398,7 +398,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
         const result = await client.testConnection()
         if (result.success && !embyUserId) {
-          result.message += ' (warning: no user ID set -- listening data will not work without it)'
+          result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
         return c.json(result)
       }

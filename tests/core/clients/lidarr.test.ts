@@ -161,7 +161,7 @@ describe('createLidarrClient', () => {
       )
     })
 
-    it('caches getRootFolders() -- only calls the API once across multiple addArtist calls', async () => {
+    it('caches getRootFolders() - only calls the API once across multiple addArtist calls', async () => {
       mockGet.mockResolvedValue(mockFolders)
       mockPost.mockResolvedValue({ id: 11 })
 

@@ -80,7 +80,7 @@ export class OllamaProvider implements RecommendationProvider {
 
       return {
         success: true,
-        message: `Connected to Ollama -- ${modelCount} model(s) available`,
+        message: `Connected to Ollama - ${modelCount} model(s) available`,
       }
     } catch (err: unknown) {
       return { success: false, message: errMsg(err) }

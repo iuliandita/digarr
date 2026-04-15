@@ -66,7 +66,7 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
     let user = await deps.getUserByUsername(forwardedUser)
     if (!user) {
       const isFirstUser = (await deps.getUserCount()) === 0
-      // Generate random password hash -- proxy users authenticate via headers, not passwords
+      // Generate random password hash - proxy users authenticate via headers, not passwords
       const randomHash = hashPassword(crypto.randomUUID())
       user = await deps.createUser({
         username: forwardedUser,

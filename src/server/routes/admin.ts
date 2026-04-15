@@ -36,7 +36,7 @@ const VALID_STATUSES = new Set([
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
 
-  // POST /api/admin/backup -- download backup JSON
+  // POST /api/admin/backup - download backup JSON
   router.post('/api/admin/backup', async (c) => {
     const includeCaches = c.req.query('includeCaches') === 'true'
     const backup = await createBackup(deps.db, { includeCaches })
@@ -52,7 +52,7 @@ export function adminRoutes(deps: AdminDeps) {
     })
   })
 
-  // POST /api/admin/restore -- upload and restore backup JSON.
+  // POST /api/admin/restore - upload and restore backup JSON.
   // Dual-format (multipart + raw JSON) rules out zJson middleware; we parse
   // then validate with the same schema in-handler. Zod catches prototype
   // pollution, missing top-level keys, and non-array table payloads before
@@ -119,13 +119,13 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  // GET /api/admin/backup/last -- last auto-backup metadata
+  // GET /api/admin/backup/last - last auto-backup metadata
   router.get('/api/admin/backup/last', async (c) => {
     const status = await getPendingMigrations(deps.db)
     return c.json({ lastAutoBackup: status.lastAutoBackup })
   })
 
-  // GET /api/admin/migrations/pending -- pending migration status
+  // GET /api/admin/migrations/pending - pending migration status
   router.get('/api/admin/migrations/pending', async (c) => {
     const status = await getPendingMigrations(deps.db)
     return c.json(status)
@@ -161,7 +161,7 @@ export function adminRoutes(deps: AdminDeps) {
       return c.json({ error: 'No valid status values provided' }, 400)
     }
 
-    // Library genres unavailable in offline rescore -- zero the weight to avoid score drift
+    // Library genres unavailable in offline rescore - zero the weight to avoid score drift
     const adjustedWeights = { ...prefs.scoringWeights, genreOverlap: 0 }
     const result = await rescoreRecommendations(deps.db, adjustedWeights, [], statuses)
     return c.json(result)

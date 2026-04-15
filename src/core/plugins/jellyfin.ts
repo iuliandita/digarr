@@ -34,10 +34,10 @@ export function createJellyfinSource(
         const key = fav.name.toLowerCase()
         const existing = merged.get(key)
         if (existing) {
-          // Favorite already in top list -- 1.2x play count boost
+          // Favorite already in top list - 1.2x play count boost
           existing.playCount = Math.round(existing.playCount * 1.2)
         } else {
-          // New favorite not in top list -- add with their play count (min 1)
+          // New favorite not in top list - add with their play count (min 1)
           merged.set(key, {
             name: fav.name,
             playCount: Math.max(fav.playCount, 1),

@@ -70,7 +70,7 @@ describe('createSpotifyPlaylistAdapter', () => {
     const adapter = createSpotifyPlaylistAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ playlistId: PLAYLIST_ID })
 
-    // Alpha, Beta, Gamma -- lowercase duplicate of Alpha filtered out
+    // Alpha, Beta, Gamma - lowercase duplicate of Alpha filtered out
     expect(result.artists).toHaveLength(3)
     const names = result.artists.map((a) => a.name)
     expect(names).toContain('Artist Alpha')

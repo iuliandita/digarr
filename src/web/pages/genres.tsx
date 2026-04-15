@@ -136,7 +136,7 @@ export function GenresPage() {
         </div>
       )}
 
-      {/* FAB: Seed Genres -- mobile only, above bottom nav */}
+      {/* FAB: Seed Genres - mobile only, above bottom nav */}
       <button
         type="button"
         onClick={handleSeed}

@@ -45,7 +45,7 @@ beforeAll(async () => {
     const parsed = new URL(rawUrl, 'http://localhost')
     const path = parsed.pathname
 
-    // Slow endpoint for timeout test -- delays 500ms
+    // Slow endpoint for timeout test - delays 500ms
     if (path === '/slow') {
       await new Promise((r) => setTimeout(r, 500))
       sendJson(res, 200, { ok: true })
@@ -151,7 +151,7 @@ describe('createHttpClient', () => {
     })
   })
 
-  describe('4xx errors -- no retry', () => {
+  describe('4xx errors - no retry', () => {
     it('throws HttpError on 404', async () => {
       const client = createHttpClient({ baseUrl, retries: 3 })
       await expect(client.get('/notfound')).rejects.toThrow(HttpError)
@@ -206,9 +206,9 @@ describe('createHttpClient', () => {
     })
   })
 
-  describe('5xx errors -- retry with exponential backoff', () => {
+  describe('5xx errors - retry with exponential backoff', () => {
     it('retries on 500 and succeeds when server recovers', async () => {
-      // /flaky/test-recover?fails=2 -- fails first 2 hits, succeeds on 3rd
+      // /flaky/test-recover?fails=2 - fails first 2 hits, succeeds on 3rd
       const path = '/flaky/test-recover'
       const before = serverHits.get(path) ?? 0
       const client = createHttpClient({ baseUrl, retries: 3 })

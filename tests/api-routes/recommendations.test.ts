@@ -45,7 +45,7 @@ describe('API routes: approve/reject', () => {
       body: JSON.stringify({ status: 'rejected' }),
     })
     expect(res.status).toBe(200)
-    // Rejection calls updateRecommendationStatus with only (id, status) -- no extra arg
+    // Rejection calls updateRecommendationStatus with only (id, status) - no extra arg
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(2, 'rejected')
   })
 

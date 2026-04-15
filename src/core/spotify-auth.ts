@@ -12,7 +12,7 @@ const SPOTIFY_TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token'
 export async function resolveSpotifyToken(db: Database, userId: number): Promise<string> {
   const row = await getOAuthToken(db, userId, 'spotify')
   if (!row || row.accessToken.startsWith('pending:')) {
-    throw new Error('No Spotify OAuth token -- connect Spotify in Settings')
+    throw new Error('No Spotify OAuth token - connect Spotify in Settings')
   }
   if (row.clientId && row.clientSecret) {
     const token = await getValidToken(db, userId, 'spotify', {

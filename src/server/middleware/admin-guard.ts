@@ -5,7 +5,7 @@ type GetUserById = (id: number) => Promise<{ isAdmin: boolean } | null>
 
 /**
  * Middleware that rejects non-admin users with 403.
- * Legacy token auth (no userId) is NOT admin -- users should migrate to session auth.
+ * Legacy token auth (no userId) is NOT admin - users should migrate to session auth.
  * authSkipped (fresh installs) is allowed through because the setup guard already
  * blocks non-setup API paths when setup is not complete.
  */

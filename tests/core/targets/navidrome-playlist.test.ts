@@ -97,7 +97,7 @@ describe('createNavidromePlaylistTarget()', () => {
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
         const urlStr = String(url)
 
-        // search3 -- track search
+        // search3 - track search
         if (urlStr.includes('/rest/search3')) {
           return okResponse({
             searchResult3: {
@@ -141,7 +141,7 @@ describe('createNavidromePlaylistTarget()', () => {
     it('skips items without trackName', async () => {
       const target = createNavidromePlaylistTarget(5, CONFIG)
       const result = await target.createPlaylist?.('Artist-only Playlist', [
-        // No trackName -- artist-level item, should be skipped
+        // No trackName - artist-level item, should be skipped
         { artistName: 'Radiohead', artistMbid: 'mbid-rh' },
       ])
 

@@ -83,7 +83,7 @@ export function AlbumPicker({
   }
 
   return (
-    /* Modal backdrop -- aria-hidden because the close button inside handles keyboard */
+    /* Modal backdrop - aria-hidden because the close button inside handles keyboard */
     /* biome-ignore lint/a11y/noStaticElementInteractions: backdrop click-to-dismiss is intentional; keyboard handled by Escape key */
     /* biome-ignore lint/a11y/useKeyWithClickEvents: close button inside provides keyboard alternative */
     <div

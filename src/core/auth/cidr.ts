@@ -2,7 +2,7 @@ function ipToInt(ip: string): number {
   return ip.split('.').reduce((acc, octet) => (acc << 8) + Number.parseInt(octet, 10), 0) >>> 0
 }
 
-/** Check if an IPv4 address is within a CIDR range. IPv4 only -- IPv6 CIDRs are not supported. */
+/** Check if an IPv4 address is within a CIDR range. IPv4 only - IPv6 CIDRs are not supported. */
 export function isIpInCidr(ip: string, cidr: string): boolean {
   const [cidrIp, bitsStr] = cidr.split('/')
   if (!cidrIp) return false

@@ -53,7 +53,7 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
       onClick={onClose}
       onKeyDown={onBackdropKeyDown}
     >
-      {/* Dialog card -- stop propagation so clicking inside doesn't close */}
+      {/* Dialog card - stop propagation so clicking inside doesn't close */}
       <div
         role="dialog"
         aria-modal="true"

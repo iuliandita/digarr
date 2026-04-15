@@ -34,7 +34,7 @@ export function getStoredToken(): string | null {
   return localStorage.getItem(AUTH_TOKEN_KEY)
 }
 
-// SPA session tokens require client-side storage -- cookies would need
+// SPA session tokens require client-side storage - cookies would need
 // server-side session management. Token is never logged or transmitted
 // except via Authorization header or query param (SSE/audio fallback).
 export function setStoredToken(token: string): void {
@@ -68,13 +68,13 @@ function extractApiErrorMessage(status: number, data: unknown): string {
   return `API Error ${status}`
 }
 
-// Fired when any fetchApi call gets 401 -- AuthGate listens and shows login
+// Fired when any fetchApi call gets 401 - AuthGate listens and shows login
 export const AUTH_EXPIRED_EVENT = 'digarr:auth-expired'
 
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {}
   headers['X-Digarr-Locale'] = getRequestLocale()
-  // Skip Content-Type for FormData -- browser sets it with the correct boundary
+  // Skip Content-Type for FormData - browser sets it with the correct boundary
   if (!(options?.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }
@@ -141,7 +141,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
         'X-Digarr-Locale': getRequestLocale(),
       },
     })
-    if (!res.ok) return null // Legacy token users have no userId -- don't trigger auth-expired
+    if (!res.ok) return null // Legacy token users have no userId - don't trigger auth-expired
     return res.json() as Promise<UserProfile>
   } catch {
     return null
@@ -400,7 +400,7 @@ export const warmArtists = (mbids: string[]) =>
   })
 
 // Library sync
-// LibrarySyncCounts mirrors src/db/schema.ts -- redeclared here to avoid pulling drizzle into the web bundle
+// LibrarySyncCounts mirrors src/db/schema.ts - redeclared here to avoid pulling drizzle into the web bundle
 export type LibrarySyncCounts = {
   total: number
   matchedMbid: number
@@ -827,7 +827,7 @@ export const importCsvFile = async (file: File) => {
   }>('/subscriptions/import/csv', {
     method: 'POST',
     body: formData,
-    // Do NOT set Content-Type -- browser sets it with boundary for FormData
+    // Do NOT set Content-Type - browser sets it with boundary for FormData
   })
 }
 

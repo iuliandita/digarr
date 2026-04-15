@@ -11,7 +11,7 @@ function normalizeName(name: string): string {
 }
 
 /**
- * Detect likely AI name confusion -- the model meant to describe a top artist
+ * Detect likely AI name confusion - the model meant to describe a top artist
  * but output a similarly-named different artist. Checks substring containment
  * in both directions (covers "Sonic Youth" in "Sonic Youth Junior").
  */

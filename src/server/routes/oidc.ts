@@ -90,7 +90,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
 
       const sessionToken = generateSessionToken()
       await createSession(user.id, sessionToken)
-      // Use fragment (#) not query param (?) -- fragments are never sent to
+      // Use fragment (#) not query param (?) - fragments are never sent to
       // the server in Referer headers or logged by reverse proxies
       return c.redirect(`/#oidc_token=${encodeURIComponent(sessionToken)}`)
     } catch (err: unknown) {

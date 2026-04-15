@@ -118,7 +118,7 @@ export async function resolve(
           const mbArtist = await mb.lookupArtist(hit.id)
 
           if (discoveryGenres.length === 0) {
-            // No genre data -- trust MB search ranking
+            // No genre data - trust MB search ranking
             bestCandidate = mbArtist
             break
           }
@@ -137,7 +137,7 @@ export async function resolve(
       // Skip when AI provided genres but the best MB candidate has zero overlap --
       // strong signal that the AI confused similarly-named artists (e.g. "Digital
       // Underground" vs "The Velvet Underground"). bestOverlap of -1 means MB had
-      // no tags to compare, which is fine -- many lesser-known artists lack tags.
+      // no tags to compare, which is fine - many lesser-known artists lack tags.
       if (discoveryGenres.length > 0 && bestOverlap === 0) continue
 
       if (!bestCandidate || byMbid.has(bestCandidate.id)) continue
@@ -200,7 +200,7 @@ async function matchSuggestedAlbum(
       return { releaseGroupId: normalized.id, title: normalized.title, type: normalized.type }
     }
 
-    // Step 3: no match -- return free text without releaseGroupId
+    // Step 3: no match - return free text without releaseGroupId
     return { title: suggestedAlbum }
   } catch {
     return { title: suggestedAlbum }

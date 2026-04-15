@@ -71,7 +71,7 @@ function createTestApp(deps: PlaylistDeps, userId: number | undefined) {
   return app
 }
 
-// Mock playlist queries used by the route -- factory must not reference module-level vars (hoisting)
+// Mock playlist queries used by the route - factory must not reference module-level vars (hoisting)
 vi.mock('@/db/queries/playlists', () => ({
   createPlaylist: vi.fn(),
   getPlaylistsByUser: vi.fn(),

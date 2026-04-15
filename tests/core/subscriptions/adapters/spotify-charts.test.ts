@@ -80,7 +80,7 @@ describe('createSpotifyChartsAdapter', () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ region: 'global', chartType: 'top50' })
 
-    // One/Two/Three -- lowercase dupe of One filtered out
+    // One/Two/Three - lowercase dupe of One filtered out
     expect(result.artists).toHaveLength(3)
   })
 

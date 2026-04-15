@@ -72,7 +72,7 @@ export const envConfig = {
   // Webhook (injected into preferences during auto-setup only)
   webhookUrl: env('WEBHOOK_URL'),
 
-  // Encryption (optional -- encrypts API keys and tokens at rest in the DB)
+  // Encryption (optional - encrypts API keys and tokens at rest in the DB)
   encryptionKey: env('DIGARR_ENCRYPTION_KEY'),
 
   // Registration control
@@ -140,6 +140,6 @@ export function canAutoSetup(): boolean {
   const { aiProvider, aiModel } = envConfig
   // AI provider + model are always required
   if (!aiProvider || !aiModel) return false
-  // Lidarr is optional -- if not set, runs in discovery-only mode
+  // Lidarr is optional - if not set, runs in discovery-only mode
   return true
 }

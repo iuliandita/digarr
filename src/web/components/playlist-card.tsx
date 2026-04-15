@@ -136,7 +136,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
   }
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] -- action buttons nested inside prevent using <button>
+    // biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] - action buttons nested inside prevent using <button>
     <div
       role="button"
       tabIndex={0}

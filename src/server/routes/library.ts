@@ -73,7 +73,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return auth
   }
 
-  // GET /api/library/health -- return cached results + scanning status
+  // GET /api/library/health - return cached results + scanning status
   app.get('/api/library/health', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -88,7 +88,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     })
   })
 
-  // POST /api/library/health/scan -- kick off background scan, return 202
+  // POST /api/library/health/scan - kick off background scan, return 202
   app.post('/api/library/health/scan', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -96,7 +96,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ scanning: true }, 202)
   })
 
-  // POST /api/library/health/:checkId/fix -- trigger fix for a check
+  // POST /api/library/health/:checkId/fix - trigger fix for a check
   app.post('/api/library/health/:checkId/fix', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -112,7 +112,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
   })
 
-  // GET /api/library/stats -- library statistics
+  // GET /api/library/stats - library statistics
   app.get('/api/library/stats', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -120,7 +120,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json(stats)
   })
 
-  // POST /api/library/warm -- trigger background warming for a batch of MBIDs
+  // POST /api/library/warm - trigger background warming for a batch of MBIDs
   app.post('/api/library/warm', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -143,7 +143,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ queued: batch.length }, 202)
   })
 
-  // GET /api/library/warm/status -- check warm status for MBIDs
+  // GET /api/library/warm/status - check warm status for MBIDs
   app.get('/api/library/warm/status', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -159,7 +159,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ statuses })
   })
 
-  // GET /api/library/sources -- per-source sync state for current user + global rows
+  // GET /api/library/sources - per-source sync state for current user + global rows
   app.get('/api/library/sources', async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
@@ -167,7 +167,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ sources })
   })
 
-  // POST /api/library/sync -- manual "Sync now", rate-limited 5/min
+  // POST /api/library/sync - manual "Sync now", rate-limited 5/min
   app.use('/api/library/sync', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'libsync' }))
   app.post('/api/library/sync', async (c) => {
     const auth = await requireAdmin(c)
@@ -177,7 +177,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const source = typeof body.source === 'string' ? body.source : undefined
     if (source) {
       let result = await deps.librarySync.syncSpecificSource(auth.userId, source, { force: true })
-      // Per-user source not configured -- retry as a global source. This is safe today because
+      // Per-user source not configured - retry as a global source. This is safe today because
       // (a) the route is admin-gated and (b) per-user/global source IDs do not overlap. If a
       // future source becomes both per-user AND global, restrict this fallback to known-global
       // IDs to avoid letting per-user calls trigger global syncs they shouldn't reach.
@@ -193,7 +193,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
   })
 
-  // GET /api/library/unreconciled -- rows where mbid IS NULL for current user + global
+  // GET /api/library/unreconciled - rows where mbid IS NULL for current user + global
   app.get('/api/library/unreconciled', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -219,7 +219,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ items })
   })
 
-  // POST /api/library/overrides -- create/update an MBID override
+  // POST /api/library/overrides - create/update an MBID override
   app.post('/api/library/overrides', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -273,7 +273,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ ok: true })
   })
 
-  // DELETE /api/library/overrides/:source/:sourceArtistId -- remove an override
+  // DELETE /api/library/overrides/:source/:sourceArtistId - remove an override
   app.delete('/api/library/overrides/:source/:sourceArtistId', async (c) => {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
@@ -283,7 +283,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ ok: true })
   })
 
-  // POST /api/library/reconcile -- re-run reconciler for current user (forced syncForUser)
+  // POST /api/library/reconcile - re-run reconciler for current user (forced syncForUser)
   // Note: a "reconcile only without re-fetch" path is a follow-up task.
   app.post('/api/library/reconcile', async (c) => {
     const auth = await requireAdmin(c)

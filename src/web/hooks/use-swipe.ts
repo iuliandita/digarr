@@ -56,7 +56,7 @@ export function useSwipe(options: UseSwipeOptions) {
     const dx = touch.clientX - startXRef.current
     const dy = touch.clientY - startYRef.current
 
-    // Vertical dominates -- let the page scroll, bail out
+    // Vertical dominates - let the page scroll, bail out
     if (!swipingRef.current && Math.abs(dy) > Math.abs(dx)) return
 
     // Commit to horizontal swipe once past 10px

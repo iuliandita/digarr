@@ -1388,7 +1388,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         </ServiceCard>
       </div>
 
-      {/* Lidarr Preferences -- per-user, visible to all */}
+      {/* Lidarr Preferences - per-user, visible to all */}
       {settings.lidarrUrl && <LidarrPreferencesSection />}
     </div>
   )
@@ -2101,7 +2101,7 @@ function RecommendationsTabInner({
         {t('settings.recommendationsTip')}
       </Hint>
 
-      {/* Essential -- always visible */}
+      {/* Essential - always visible */}
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
           {t('settings.scoreThreshold')}
@@ -2117,7 +2117,7 @@ function RecommendationsTabInner({
         />
       </section>
 
-      {/* Tuning -- collapsed by default */}
+      {/* Tuning - collapsed by default */}
       <CollapsibleSection title={t('settings.scoringWeights')}>
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3">
@@ -2230,7 +2230,7 @@ function RecommendationsTabInner({
         </div>
       </CollapsibleSection>
 
-      {/* Advanced -- collapsed by default */}
+      {/* Advanced - collapsed by default */}
       <CollapsibleSection title={t('settings.advancedSettings')}>
         <div className="space-y-6 pt-2">
           <section className="space-y-4">
