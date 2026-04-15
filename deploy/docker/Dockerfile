@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Global ARG -- must be before any FROM to use in FROM instructions
-ARG RUNTIME_IMAGE=oven/bun:1.3.11-slim@sha256:478281fdd196871c7e51ba6a820b7803a8ae97042ec86cdbc2e1c6b6626442d9
+ARG RUNTIME_IMAGE=oven/bun:1.3.12-slim@sha256:d3c7094c144dd3975d183a4dbc4ec0a764223995bff73290d983edb47043a75f
 
 # Build stage -- always Debian for consistent toolchain
 FROM oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160 AS builder
