@@ -86,7 +86,6 @@ export function createPlexClient(
       'X-Plex-Token': token,
       Accept: 'application/json',
     },
-    publicIpOnly: true,
   })
 
   const queue = new PQueue({ concurrency: 3, interval: 1000, intervalCap: 10 })

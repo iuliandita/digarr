@@ -40,7 +40,7 @@ body:
     attributes:
       label: Digarr version
       description: Visible in the footer of the web UI, or `package.json`.
-      placeholder: "e.g. 0.27.3"
+      placeholder: "e.g. 0.27.11"
     validations:
       required: true
 

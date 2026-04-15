@@ -498,7 +498,7 @@ describe('PATCH /api/settings', () => {
     expect(res.status).toBe(403)
   })
 
-  it('rejects private media-server URLs for non-admin users', async () => {
+  it('accepts private media-server URLs (self-hosted LAN / reverse-proxy setups)', async () => {
     await clearAllSessions()
     await createSession(7, 'user-session-token')
 
@@ -560,11 +560,19 @@ describe('PATCH /api/settings', () => {
       }),
     })
 
-    expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({
-      error: 'Emby URL must not point to a private or internal address',
-    })
-    expect(dbWithUpdate.update).not.toHaveBeenCalled()
+    // Self-hosted media servers are the user's own box. Private IPs and
+    // split-horizon-DNS hostnames that resolve to LAN addresses must be
+    // accepted -- that's the default deployment, not an SSRF target.
+    expect(res.status).toBe(200)
+    expect(mockUpdateUserConnections).toHaveBeenCalledWith(
+      expect.anything(),
+      7,
+      expect.objectContaining({
+        embyUrl: 'http://127.0.0.1:8096',
+        embyApiKey: 'secret',
+        embyUserId: 'user-1',
+      }),
+    )
   })
 })
 

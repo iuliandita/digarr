@@ -236,27 +236,6 @@ export function settingsRoutes(deps: AppDependencies) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
     }
 
-    for (const [field, label] of [
-      ['plexUrl', 'Plex URL'],
-      ['jellyfinUrl', 'Jellyfin URL'],
-      ['embyUrl', 'Emby URL'],
-    ] as const) {
-      const url = userUpdate[field]
-      if (typeof url === 'string' && url) {
-        const validation = await validatePublicServiceUrl(url, label)
-        if (!validation.ok) {
-          return c.json({ error: validation.message }, 400)
-        }
-      }
-    }
-
-    if (typeof globalFields.aiBaseUrl === 'string' && globalFields.aiBaseUrl) {
-      const validation = await validatePublicServiceUrl(globalFields.aiBaseUrl, 'AI base URL')
-      if (!validation.ok) {
-        return c.json({ error: validation.message }, 400)
-      }
-    }
-
     if (userId && Object.keys(userUpdate).length > 0) {
       await updateUserConnections(deps.db, userId, userUpdate)
     }
@@ -366,12 +345,6 @@ export function settingsRoutes(deps: AppDependencies) {
       case 'ai': {
         try {
           const effectiveBaseUrl = body.baseUrl || (stored?.aiBaseUrl as string) || ''
-          if (effectiveBaseUrl) {
-            const validation = await validatePublicServiceUrl(effectiveBaseUrl, 'AI base URL')
-            if (!validation.ok) {
-              return c.json({ success: false, message: validation.message }, 400)
-            }
-          }
           const provider = await deps.providerRegistry.create(
             body.provider || (stored?.aiProvider as string) || '',
             {

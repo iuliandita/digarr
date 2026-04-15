@@ -2,13 +2,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { OllamaProvider } from '@/core/providers/ollama'
 import type { TasteProfile } from '@/core/types'
 
-// OllamaProvider runs the user-supplied baseUrl through validatePublicServiceUrl
-// at request time for SSRF defense-in-depth. Mock DNS + URL helpers so the
-// test's stand-in hostname resolves cleanly without hitting the network.
-vi.mock('@/core/url-safety', () => ({
-  validatePublicServiceUrl: vi.fn(async () => ({ ok: true })),
-}))
-
 const TEST_BASE_URL = 'http://ollama.example.com:11434'
 
 const sampleProfile: TasteProfile = {

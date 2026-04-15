@@ -1,6 +1,6 @@
 {
   "name": "digarr",
-  "version": "0.27.10",
+  "version": "0.27.11",
   "type": "module",
   "private": true,
   "scripts": {

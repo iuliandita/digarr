@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Digarr</Name>
-   <Repository>docker.io/iuliandita/digarr:0.26.7</Repository>
-   <Tag>0.26.7</Tag>
-   <TagDescription>v0.26.7 stable release</TagDescription>
+   <Repository>docker.io/iuliandita/digarr:0.27.11</Repository>
+   <Tag>0.27.11</Tag>
+   <TagDescription>v0.27.11 stable release</TagDescription>
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>

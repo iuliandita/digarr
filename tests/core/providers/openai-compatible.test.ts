@@ -1,12 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OpenAICompatibleProvider } from '@/core/providers/openai-compatible'
 
-// Mock URL safety helpers so the provider's SSRF check doesn't trip on
-// the stand-in hostname used below.
-vi.mock('@/core/url-safety', () => ({
-  validatePublicServiceUrl: vi.fn(async () => ({ ok: true })),
-}))
-
 const TEST_BASE_URL = 'http://openai.example.com:8080'
 
 describe('OpenAICompatibleProvider', () => {

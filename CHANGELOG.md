@@ -4,6 +4,17 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+## v0.27.11 - 2026-04-15
+
+### Fixed
+
+- Self-hosted Plex, Jellyfin, Emby URLs behind reverse proxies on a LAN are no longer rejected as SSRF targets. The "URL resolves to a private/internal IP" block treated the user's own media server like an untrusted webhook destination, which broke split-horizon DNS deployments (public hostname resolving to a private IP) and every direct-LAN setup.
+- Self-hosted AI base URLs are accepted for the same reason. Local Ollama at the default `http://localhost:11434` and any OpenAI-compatible endpoint on a private address now work without tripping the private-IP guard on connect or at request time.
+
+### Changed
+
+- The private-IP guard stays in place for user-configurable outbound URLs that can plausibly be adversarially set (webhooks, OIDC issuer, metadata fallback, fanart.tv, musicinfo.pro). It's only relaxed on admin-owned service URLs where private IPs are the expected default.
+
 ## v0.26.7 - 2026-04-14
 
 ### Fixed

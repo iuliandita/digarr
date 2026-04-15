@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-14 | Current: v0.27.8
+> Updated: 2026-04-15 | Current: v0.27.11
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -104,12 +104,14 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
 - Recent integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
 
-### v0.27.0 -- v0.27.8
+### v0.27.0 -- v0.27.11
 
 - Data-safety fixes for legacy `SERIAL` sequence restore and identity-index carryover
 - Pipeline isolation so manual runs no longer share state with scheduled runs
 - `oidc_tokens` table now encrypted at rest via the same AES-256-GCM / HKDF envelope as other sensitive columns
-- Full SSRF sweep: CGNAT (100.64.0.0/10), LIKE-escape on OAuth state lookup, OIDC IP pinning via `openid-client` `customFetch`, route + client + provider-level URL validation, `publicIpOnly` on HTTP clients that talk to user-configured endpoints
+- Full SSRF sweep: CGNAT (100.64.0.0/10), LIKE-escape on OAuth state lookup, OIDC IP pinning via `openid-client` `customFetch`, route + client + provider-level URL validation, `publicIpOnly` on HTTP clients that talk to webhooks and third-party APIs
+- Self-hosted media and AI targets are no longer blocked by that private-IP guard (v0.27.11): Plex, Jellyfin, Emby, Ollama, and openai-compatible endpoints accept LAN addresses and split-horizon hostnames, matching what self-hosters actually deploy
+- Zod validation sweep across auth, users, targets, settings, subscriptions, playlists, recommendations, pipeline, oauth, jobs, setup, and admin-restore routes with a shared error shape and strict `.strict()`/array-cap protections on write paths
 - i18n coverage sweep across components and library-sync progress messages; catalog parity held at 15 locales with targeted MT-quality fixes
 - Kubernetes hardening: dedicated ServiceAccount with token automount disabled, PodDisruptionBudget template gated on replicas > 1, Pod Security Standards `enforce: restricted` on the namespace, bundled Postgres container now drops all capabilities
 - CI supply chain: all Forgejo runner images and Dockerfile FROMs pinned by `@sha256` digest; GitHub release workflow now signs every published image with cosign via Sigstore OIDC (keyless) and attaches the SBOM as a cosign attestation bound to the image digest

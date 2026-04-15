@@ -63,7 +63,6 @@ export function createJellyfinClient(
       Authorization: `MediaBrowser Token="${apiKey}"`,
     },
     skipTlsVerify: options?.skipTlsVerify,
-    publicIpOnly: true,
   })
 
   const queue = new PQueue({ concurrency: 3, interval: 1000, intervalCap: 10 })

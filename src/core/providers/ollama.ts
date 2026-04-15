@@ -1,5 +1,4 @@
 import type { AiRecommendation, TasteProfile } from '@/core/types'
-import { validatePublicServiceUrl } from '@/core/url-safety'
 import { errMsg } from '@/core/validation'
 import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
 import type { RecommendationProvider } from './types'
@@ -26,13 +25,7 @@ export class OllamaProvider implements RecommendationProvider {
     this.baseUrl = baseUrl.replace(/\/$/, '')
   }
 
-  private async ensureBaseUrlSafe(): Promise<void> {
-    const validation = await validatePublicServiceUrl(this.baseUrl, 'Ollama base URL')
-    if (!validation.ok) throw new Error(validation.message)
-  }
-
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
-    await this.ensureBaseUrlSafe()
     const prompt = buildRecommendationPrompt(profile)
 
     const controller = new AbortController()
@@ -68,11 +61,6 @@ export class OllamaProvider implements RecommendationProvider {
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    try {
-      await this.ensureBaseUrlSafe()
-    } catch (err: unknown) {
-      return { success: false, message: errMsg(err) }
-    }
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 10_000)
     try {
