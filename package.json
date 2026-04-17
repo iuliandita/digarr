@@ -64,7 +64,7 @@
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
-    "hono": "^4.12.12",
+    "hono": "^4.12.14",
     "openai": "^6.31.0",
     "openid-client": "^6.8.2",
     "p-queue": "^9.1.0",
