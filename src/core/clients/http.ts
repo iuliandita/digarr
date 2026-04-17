@@ -1,6 +1,9 @@
 import * as dns from 'node:dns/promises'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
 
+const REDACTED_QUERY_VALUE = '[REDACTED]'
+const SENSITIVE_QUERY_KEYS = new Set(['api_key', 'apikey', 'key', 'token', 'secret', 'password'])
+
 type HttpClientConfig = {
   baseUrl: string
   headers?: Record<string, string>
@@ -84,7 +87,7 @@ export function createHttpClient(config: HttpClientConfig) {
       }
     }
 
-    throw new Error(`Request failed after ${retries} retries: ${method} ${url}`)
+    throw new Error(`Request failed after ${retries} retries: ${method} ${redactUrlForLog(url)}`)
   }
 
   async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -152,11 +155,15 @@ export class HttpError extends Error {
   constructor(
     public status: number,
     public body: string,
-    public url: string,
+    url: string,
   ) {
-    super(`HTTP ${status} from ${url}: ${body}`)
+    const redactedUrl = redactUrlForLog(url)
+    super(`HTTP ${status} from ${redactedUrl}: ${body}`)
     this.name = 'HttpError'
+    this.url = redactedUrl
   }
+
+  public url: string
 }
 
 function sleep(ms: number): Promise<void> {
@@ -166,4 +173,25 @@ function sleep(ms: number): Promise<void> {
 async function readResponseText(res: Response): Promise<string> {
   const text = await res.text()
   return text || '(empty response body)'
+}
+
+export function redactUrlForLog(url: string): string {
+  try {
+    const absolute = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url)
+    const parsed = absolute ? new URL(url) : new URL(url, 'http://redact.invalid')
+    const redactedParams = new URLSearchParams()
+
+    for (const [key, value] of parsed.searchParams.entries()) {
+      redactedParams.append(
+        key,
+        SENSITIVE_QUERY_KEYS.has(key.toLowerCase()) ? REDACTED_QUERY_VALUE : value,
+      )
+    }
+
+    parsed.search = redactedParams.toString()
+    const serialized = parsed.toString()
+    return absolute ? serialized : serialized.replace('http://redact.invalid', '')
+  } catch {
+    return url
+  }
 }
