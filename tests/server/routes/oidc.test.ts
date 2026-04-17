@@ -10,7 +10,14 @@ vi.mock('@/config/env', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/config/env')>()
   return {
     ...original,
-    envConfig: { ...original.envConfig, allowedOrigin: 'http://localhost:3000' },
+    envConfig: {
+      ...original.envConfig,
+      allowedOrigin: 'http://localhost:3000',
+      // Opt in to email-verified auto-link for tests that assert the old
+      // behavior. Tests that need the default (refuse) override this
+      // explicitly via vi.doMock or claim shape.
+      oidcTrustEmailVerified: true,
+    },
   }
 })
 
@@ -182,6 +189,27 @@ describe('GET /api/auth/oidc/callback', () => {
     )
   })
 
+  it('sanitizes malicious preferredUsername claims', async () => {
+    const deps = makeDeps()
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      claims: {
+        sub: 'oidc-subject-777',
+        email: 'mallory@example.com',
+        emailVerified: true,
+        preferredUsername: 'mallory<script>alert(1)</script>',
+      },
+      accessToken: 'at',
+      expiresIn: 3600,
+    })
+    const app = createTestApp(deps)
+
+    await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+
+    expect(deps.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({ username: 'malloryscriptalert1script' }),
+    )
+  })
+
   it('does not auto-link by unverified email', async () => {
     const deps = makeDeps({
       getUserByEmail: vi.fn(async () => ({
@@ -258,7 +286,7 @@ describe('GET /api/auth/oidc/callback', () => {
     )
   })
 
-  it('handles errors and redirects with oidc_error', async () => {
+  it('handles errors and redirects with short error code (no message leak)', async () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockRejectedValue(
       new Error('Unknown or expired OIDC state'),
@@ -269,12 +297,14 @@ describe('GET /api/auth/oidc/callback', () => {
 
     expect(res.status).toBe(302)
     const location = res.headers.get('Location')
-    expect(location).toContain('oidc_error=')
-    expect(location).toContain('Unknown%20or%20expired%20OIDC%20state')
+    expect(location).toBe('/#oidc_error=oidc_failed')
+    // IdP-sourced error strings must not echo into the frontend URL.
+    expect(location).not.toContain('Unknown')
+    expect(location).not.toContain('expired')
     expect(deps.createUser).not.toHaveBeenCalled()
   })
 
-  it('handles non-Error thrown values', async () => {
+  it('handles non-Error thrown values with the same short error code', async () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockRejectedValue('string-error')
     const app = createTestApp(deps)
@@ -283,6 +313,6 @@ describe('GET /api/auth/oidc/callback', () => {
 
     expect(res.status).toBe(302)
     const location = res.headers.get('Location')
-    expect(location).toContain('oidc_error=OIDC%20authentication%20failed')
+    expect(location).toBe('/#oidc_error=oidc_failed')
   })
 })

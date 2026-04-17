@@ -28,6 +28,40 @@ function buildRedirectUri(): string | null {
   return `${envConfig.allowedOrigin}/api/auth/oidc/callback`
 }
 
+const USERNAME_MAX_LENGTH = 50
+const USERNAME_DISALLOWED = /[^A-Za-z0-9._-]/g
+
+/**
+ * Strip disallowed characters from an OIDC `preferred_username` claim and cap
+ * length. Untrusted IdPs may supply arbitrary strings; we constrain the
+ * character set to what downstream systems (filesystem paths, SQL, UI
+ * rendering) can reliably handle.
+ */
+export function sanitizePreferredUsername(input: string): string {
+  return input.replace(USERNAME_DISALLOWED, '').slice(0, USERNAME_MAX_LENGTH)
+}
+
+/**
+ * Decide whether an OIDC callback is allowed to auto-link to an existing
+ * local user by matching on the `email` claim.
+ *
+ * Gated behind OIDC_TRUST_EMAIL_VERIFIED because a multi-tenant or public
+ * issuer can claim `email_verified=true` for arbitrary email strings,
+ * which would let it hijack any account with that email. Single-tenant
+ * IdPs with controlled domains are safe to opt in.
+ *
+ * Returns the email to link on success, or null to refuse.
+ */
+export function maybeAutoLink(
+  claims: { email?: string; emailVerified?: boolean },
+  trustEmailVerified: boolean,
+): string | null {
+  if (!trustEmailVerified) return null
+  if (claims.emailVerified !== true) return null
+  if (!claims.email) return null
+  return claims.email
+}
+
 export function oidcRoutes(deps: OidcRouteDeps) {
   const router = new Hono()
 
@@ -47,7 +81,8 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
 
       if (!envConfig.allowedOrigin) {
-        return c.redirect('/#oidc_error=ALLOWED_ORIGIN+must+be+set+when+OIDC+is+enabled')
+        console.warn('[oidc] callback aborted: ALLOWED_ORIGIN not set')
+        return c.redirect('/#oidc_error=config')
       }
       const baseUrl = envConfig.allowedOrigin
 
@@ -58,20 +93,31 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       // User matching: OIDC subject -> email -> username -> auto-create
       let user = await deps.getUserByOidcSubject(result.claims.sub)
 
-      if (!user && result.claims.email && result.claims.emailVerified === true) {
-        const emailUser = await deps.getUserByEmail(result.claims.email)
-        if (emailUser) {
-          await deps.updateUser(emailUser.id, { oidcSubject: result.claims.sub })
-          user = emailUser
+      if (!user) {
+        const emailToLink = maybeAutoLink(
+          { email: result.claims.email, emailVerified: result.claims.emailVerified },
+          envConfig.oidcTrustEmailVerified,
+        )
+        if (emailToLink) {
+          const emailUser = await deps.getUserByEmail(emailToLink)
+          if (emailUser) {
+            await deps.updateUser(emailUser.id, { oidcSubject: result.claims.sub })
+            user = emailUser
+          }
         }
       }
 
       if (!user) {
         const isFirstUser = (await deps.getUserCount()) === 0
-        let username =
+        const rawPreferred =
           result.claims.preferredUsername ??
           result.claims.email?.split('@')[0] ??
           `oidc-${result.claims.sub.slice(0, 8)}`
+        let username = sanitizePreferredUsername(rawPreferred)
+        // If sanitization emptied the string, fall back to a safe derived value
+        if (!username) {
+          username = `oidc-${result.claims.sub.slice(0, 8)}`
+        }
 
         // Avoid UNIQUE constraint violation on username
         const existing = await deps.getUserByUsername(username)
@@ -110,7 +156,8 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       return c.redirect(`/#oidc_token=${encodeURIComponent(sessionToken)}`)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'OIDC authentication failed'
-      return c.redirect(`/#oidc_error=${encodeURIComponent(message)}`)
+      console.warn('[oidc] callback failed:', message)
+      return c.redirect('/#oidc_error=oidc_failed')
     }
   })
 
