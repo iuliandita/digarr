@@ -26,6 +26,8 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('64:ff9b::1')).toBe(true)
     expect(isPrivateIp('2001::1')).toBe(true)
     expect(isPrivateIp('2001:db8::1')).toBe(true)
+    expect(isPrivateIp('2001:db8::192.0.2.33')).toBe(true)
+    expect(isPrivateIp('64:ff9b::192.0.2.33')).toBe(true)
   })
 
   it('allows public addresses', () => {

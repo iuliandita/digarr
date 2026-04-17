@@ -53,6 +53,19 @@ function parseIpv4(address: string): number | null {
 function parseIpv6(address: string): number[] | null {
   if (!address.includes(':')) return null
 
+  if (address.includes('.')) {
+    const lastColon = address.lastIndexOf(':')
+    if (lastColon === -1) return null
+
+    const ipv4Tail = address.slice(lastColon + 1)
+    const ipv4 = parseIpv4(ipv4Tail)
+    if (ipv4 === null) return null
+
+    const high = (ipv4 >>> 16) & 0xffff
+    const low = ipv4 & 0xffff
+    address = `${address.slice(0, lastColon + 1)}${high.toString(16)}:${low.toString(16)}`
+  }
+
   const halves = address.split('::')
   if (halves.length > 2) return null
 
@@ -108,7 +121,16 @@ export function isPrivateIp(address: string): boolean {
   const ipv6 = parseIpv6(normalized)
   if (ipv6 === null) return false
 
-  const [group1 = 0, group2 = 0, group3 = 0, group4 = 0, group5 = 0, group6 = 0, group7 = 0, group8 = 0] = ipv6
+  const [
+    group1 = 0,
+    group2 = 0,
+    group3 = 0,
+    group4 = 0,
+    group5 = 0,
+    group6 = 0,
+    group7 = 0,
+    group8 = 0,
+  ] = ipv6
   if (
     group1 === 0 &&
     group2 === 0 &&
