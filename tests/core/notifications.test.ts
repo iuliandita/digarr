@@ -104,9 +104,11 @@ describe('sendWebhook', () => {
     expect(fetchMock).toHaveBeenCalledOnce()
     const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')
     const [url, init] = call
-    expect(url).toBe('https://hooks.example.com/webhook')
+    expect(url).toBe('https://93.184.216.34/webhook')
     expect(init.method).toBe('POST')
     expect(init.headers['Content-Type']).toBe('application/json')
+    expect(init.headers.Host).toBe('hooks.example.com')
+    expect(init.tls).toEqual(expect.objectContaining({ serverName: 'hooks.example.com' }))
     expect(JSON.parse(init.body)).toEqual(payload)
   })
 

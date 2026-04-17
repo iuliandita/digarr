@@ -76,26 +76,29 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
 
   const safeUrl = url.replace(/:\/\/[^@]*@/, '://***@')
   const body = isDiscordWebhook(url) ? formatDiscordPayload(payload) : payload
+  const fetchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+  const fetchUrl = new URL(url)
+  fetchUrl.hostname = resolvedAddress
 
   // Pin the resolved IP to prevent DNS rebinding between check and use.
-  // For HTTPS this only works when the server accepts the IP directly;
-  // most webhook targets (Discord, Slack) use SNI so we keep the original URL
-  // for https:// and only pin for http://.
-  const fetchUrl =
-    parsedUrl.protocol === 'http:' ? url.replace(parsedUrl.hostname, resolvedAddress) : url
-  const fetchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (parsedUrl.protocol === 'http:' && resolvedAddress !== parsedUrl.hostname) {
-    fetchHeaders.Host = parsedUrl.hostname
+  // HTTPS keeps the original hostname for SNI while connecting to the pinned IP.
+  if (resolvedAddress !== parsedUrl.hostname || parsedUrl.protocol === 'https:') {
+    fetchHeaders.Host = parsedUrl.host
+  }
+
+  const fetchInit: RequestInit & { tls?: { serverName: string } } = {
+    method: 'POST',
+    headers: fetchHeaders,
+    body: JSON.stringify(body),
+    signal: controller.signal,
+    redirect: 'manual',
+  }
+  if (parsedUrl.protocol === 'https:') {
+    fetchInit.tls = { serverName: parsedUrl.hostname }
   }
 
   try {
-    const res = await fetch(fetchUrl, {
-      method: 'POST',
-      headers: fetchHeaders,
-      body: JSON.stringify(body),
-      signal: controller.signal,
-      redirect: 'manual',
-    })
+    const res = await fetch(fetchUrl.toString(), fetchInit)
     if (!res.ok) {
       console.error(`Webhook POST to ${safeUrl} failed: HTTP ${res.status}`)
     }
