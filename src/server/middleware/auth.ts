@@ -105,6 +105,13 @@ export function authGuard(options: {
       c.set('authSkipped', true)
       return next() // No auth configured at all
     }
+    // Degenerate state: setup marked complete but no users exist. Indicates
+    // orphaned DB state (admin record deleted while setup flag stayed true,
+    // or an interrupted migration). Return 503 so ops can notice and re-run
+    // setup, rather than 401 which would let callers retry indefinitely.
+    if (!legacyToken && !usersExist && setupComplete) {
+      return c.json({ error: 're-run setup', detail: 'admin record missing' }, 503)
+    }
 
     return c.json({ error: 'Unauthorized' }, 401)
   })

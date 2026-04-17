@@ -2,7 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearAllSessions } from '@/core/sessions'
+import { clearAllSessions, createSession } from '@/core/sessions'
 
 // Registration closed by default; override so future tests that register don't blow up.
 vi.mock('@/config/env', async (importOriginal) => {
@@ -171,5 +171,78 @@ describe('GET /api/auth/status response shape', () => {
     expect(body.authenticated).toBe(false)
     expect(body.isAdmin).toBe(false)
     expect(body.userId).toBeUndefined()
+  })
+
+  it('anonymous response does NOT include version (fingerprint protection)', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/auth/status')
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).not.toHaveProperty('version')
+  })
+
+  it('anonymous response does NOT include proxyAuthEnabled (deployment topology)', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/auth/status')
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).not.toHaveProperty('proxyAuthEnabled')
+  })
+
+  it('anonymous response still includes oidcEnabled for login-screen UX', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/auth/status')
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).toHaveProperty('oidcEnabled')
+  })
+})
+
+describe('GET /api/auth/meta', () => {
+  it('returns 401 for unauthenticated callers (non-degenerate state)', async () => {
+    // Setup complete, users exist: auth is strictly required, 401 on miss.
+    const app = createApp(
+      makeDeps({
+        isSetupComplete: async () => true,
+        getUserCount: vi.fn(async () => 1),
+      }),
+    )
+    const res = await app.request('/api/auth/meta')
+    expect(res.status).toBe(401)
+  })
+
+  it('exposes version / proxyAuthEnabled / oidcEnabled to authenticated callers', async () => {
+    // Seed a session directly - the module-level vi.mock on @/config/env
+    // freezes envConfig.authToken at undefined, so the legacy-token path is
+    // unreachable. Session auth bypasses that.
+    const SESSION_TOKEN = 'session-token-for-meta-test-abc123'
+    await createSession(1, SESSION_TOKEN)
+    const app = createApp(
+      makeDeps({
+        isSetupComplete: async () => true,
+        getUserCount: vi.fn(async () => 1),
+      }),
+    )
+    const res = await app.request('/api/auth/meta', {
+      headers: { Authorization: `Bearer ${SESSION_TOKEN}` },
+    })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).toHaveProperty('version')
+    expect(body).toHaveProperty('proxyAuthEnabled')
+    expect(body).toHaveProperty('oidcEnabled')
+  })
+})
+
+describe('authGuard degenerate state (setup complete + no users)', () => {
+  it('returns 503 on auth-required endpoints', async () => {
+    const app = createApp(
+      makeDeps({
+        isSetupComplete: async () => true,
+        getUserCount: vi.fn(async () => 0),
+      }),
+    )
+    // /api/auth/me is auth-required (not in PUBLIC_PATHS)
+    const res = await app.request('/api/auth/me')
+    expect(res.status).toBe(503)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).toMatchObject({ error: 're-run setup' })
   })
 })

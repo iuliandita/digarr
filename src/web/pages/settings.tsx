@@ -39,7 +39,7 @@ import {
   createTargetApi,
   deleteTargetApi,
   disconnectOAuth,
-  getAuthStatus,
+  getAuthMeta,
   getCurrentUser,
   getLidarrMetadataProfiles,
   getLidarrProfiles,
@@ -2585,9 +2585,11 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
   const [saving, setSaving] = useState(false)
   const [testingOidc, setTestingOidc] = useState(false)
 
-  const { data: authStatus } = useQuery({
-    queryKey: ['authStatus'],
-    queryFn: getAuthStatus,
+  // proxyAuthEnabled moved off /auth/status (fingerprint hardening); fetch
+  // it from /auth/meta (auth-gated). Settings page is always authenticated.
+  const { data: authMeta } = useQuery({
+    queryKey: ['authMeta'],
+    queryFn: getAuthMeta,
   })
 
   async function handleSave() {
@@ -2707,7 +2709,7 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-3 text-sm">
-          {authStatus?.proxyAuthEnabled ? (
+          {authMeta?.proxyAuthEnabled ? (
             <span className="text-text">{t('settings.proxyEnabled')}</span>
           ) : (
             <span className="text-muted">{t('settings.proxyDisabled')}</span>

@@ -109,10 +109,18 @@ export type AuthStatus = {
   userId?: number
   isAdmin?: boolean
   oidcEnabled?: boolean
-  proxyAuthEnabled?: boolean
-  version?: string
+  // version and proxyAuthEnabled are auth-gated on /auth/meta - do NOT re-add
+  // them here without rechecking the fingerprint-hardening audit (1.5).
 }
 export const getAuthStatus = () => fetchApi<AuthStatus>('/auth/status')
+
+// Deployment metadata that leaks fingerprint/topology info - kept behind auth.
+export type AuthMeta = {
+  version: string
+  oidcEnabled: boolean
+  proxyAuthEnabled: boolean
+}
+export const getAuthMeta = () => fetchApi<AuthMeta>('/auth/meta')
 
 export type AuthResponse = {
   user: { id: number; username: string; isAdmin: boolean }

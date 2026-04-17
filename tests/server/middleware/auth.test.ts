@@ -152,7 +152,10 @@ describe('auth middleware', () => {
       expect(body.required).toBe(false)
     }, 10_000)
 
-    it('requires auth after setup completes even when no users exist yet', async () => {
+    it('returns 503 for degenerate state: setup complete but no users exist', async () => {
+      // Orphaned DB state - admin record deleted while setup flag stayed true,
+      // or an interrupted migration. 503 signals ops to re-run setup rather
+      // than letting callers retry a 401 indefinitely.
       const app = await createAppWithAuth({
         overrides: { isSetupComplete: async () => true, getUserCount: vi.fn(async () => 0) },
       })
@@ -165,8 +168,10 @@ describe('auth middleware', () => {
       })
 
       const res = await app.request('/api/settings')
-      expect(res.status).toBe(401)
-      await expect(res.json()).resolves.toEqual({ error: 'Unauthorized' })
+      expect(res.status).toBe(503)
+      await expect(res.json()).resolves.toMatchObject({
+        error: 're-run setup',
+      })
     })
   })
 

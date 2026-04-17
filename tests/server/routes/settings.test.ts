@@ -786,14 +786,17 @@ describe('POST /api/settings/test/:service', () => {
 
 describe('per-user listening source connections', () => {
   it('GET requires authentication once setup is complete', async () => {
-    const app = createApp(makeDeps())
+    // Users exist -> non-degenerate state. authGuard 401s the unauthenticated
+    // call. (Degenerate state `setupComplete=true && no users` returns 503,
+    // covered separately in auth-status-shape.test.ts.)
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
     const res = await app.request('/api/settings')
     expect(res.status).toBe(401)
   })
 
   it('PATCH requires authentication once setup is complete', async () => {
     const updateSettings = vi.fn(async () => {})
-    const app = createApp(makeDeps({ updateSettings }))
+    const app = createApp(makeDeps({ updateSettings, getUserCount: vi.fn(async () => 1) }))
 
     const res = await app.request('/api/settings', {
       method: 'PATCH',
