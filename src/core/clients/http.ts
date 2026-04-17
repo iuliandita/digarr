@@ -63,7 +63,11 @@ export function createHttpClient(config: HttpClientConfig) {
 
         if (!followRedirects && res.status >= 300 && res.status < 400) {
           const location = res.headers.get('location')
-          throw new HttpError(res.status, `Redirect blocked${location ? `: ${location}` : ''}`, url)
+          throw new HttpError(
+            res.status,
+            `Redirect blocked${location ? `: ${redactUrlForLog(location)}` : ''}`,
+            url,
+          )
         }
 
         const errorBody = await readResponseText(res)

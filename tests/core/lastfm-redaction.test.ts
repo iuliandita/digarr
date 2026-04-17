@@ -8,6 +8,17 @@ let baseUrl: string
 
 beforeAll(async () => {
   server = http.createServer((_req, res) => {
+    const rawUrl = _req.url ?? '/'
+    const parsed = new URL(rawUrl, 'http://localhost')
+    if (parsed.pathname === '/redirect') {
+      res.writeHead(302, {
+        Location:
+          'https://ws.audioscrobbler.com/2.0/?method=user.getTopArtists&api_key=secret&user=test',
+      })
+      res.end()
+      return
+    }
+
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('not found')
   })
@@ -69,6 +80,22 @@ describe('query redaction', () => {
       expect(error.message).not.toContain('password=sixth')
       expect(error.url).toContain('artist=Radiohead')
       expect(error.url).not.toContain('api_key=secret')
+    }
+  })
+
+  it('redacts sensitive query params from blocked redirect errors', async () => {
+    const client = createHttpClient({ baseUrl })
+
+    try {
+      await client.get('/redirect')
+      expect.fail('should have thrown')
+    } catch (err) {
+      expect(err).toBeInstanceOf(HttpError)
+      const error = err as HttpError
+      expect(error.message).toContain('Redirect blocked:')
+      expect(error.message).toContain('method=user.getTopArtists')
+      expect(error.message).toContain('api_key=%5BREDACTED%5D')
+      expect(error.message).not.toContain('api_key=secret')
     }
   })
 })
