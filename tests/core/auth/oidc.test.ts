@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('node:dns/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:dns/promises')>()
+  return {
+    ...actual,
+    lookup: vi.fn(),
+  }
+})
+
 vi.mock('openid-client', () => ({
   customFetch: Symbol.for('openid-client-custom-fetch'),
   discovery: vi.fn(),
@@ -11,6 +19,7 @@ vi.mock('openid-client', () => ({
   calculatePKCECodeChallenge: vi.fn(async () => 'mock-code-challenge'),
 }))
 
+import * as dns from 'node:dns/promises'
 import * as oidcClient from 'openid-client'
 import { OidcService } from '@/core/auth/oidc'
 
@@ -82,6 +91,37 @@ describe('OidcService', () => {
       await expect(service.getAuthorizationUrl('http://localhost:3000/cb')).rejects.toThrow(
         'Network error',
       )
+    })
+
+    it('normalizes bracketed IPv6 issuer URLs before custom DNS lookup', async () => {
+      const ipv6Url = 'https://[2001:4860:4860::8888]/.well-known/openid-configuration'
+      const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }))
+      vi.stubGlobal('fetch', fetchMock)
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      vi.mocked(dns.lookup).mockResolvedValue({
+        address: '2001:4860:4860::8888',
+        family: 6,
+      } as never)
+
+      await service.getAuthorizationUrl('http://localhost:3000/cb')
+
+      const discoveryCall = vi.mocked(oidcClient.discovery).mock.calls[0]
+      const options = discoveryCall?.[4]
+      const customFetch = options?.[oidcClient.customFetch] as
+        | ((url: string, init: RequestInit) => Promise<Response>)
+        | undefined
+
+      expect(customFetch).toBeDefined()
+
+      await customFetch?.(ipv6Url, { headers: {} })
+
+      expect(dns.lookup).toHaveBeenCalledWith('2001:4860:4860::8888')
+      expect(fetchMock).toHaveBeenCalledWith(ipv6Url, expect.any(Object))
+
+      vi.unstubAllGlobals()
     })
 
     it('resetDiscovery forces re-fetch on next call', async () => {

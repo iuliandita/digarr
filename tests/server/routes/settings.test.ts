@@ -905,13 +905,13 @@ describe('POST /api/settings/test/:service', () => {
     })
   })
 
-  it('allows admins to test private OIDC issuer URLs', async () => {
+  it('allows admins to test OIDC issuer URLs', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/settings/test/oidc', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        issuerUrl: 'http://127.0.0.1:8080',
+        issuerUrl: 'https://issuer.example',
         clientId: 'client-id',
       }),
     })

@@ -1,5 +1,11 @@
 import { lookup } from 'node:dns/promises'
-import { isCloudMetadata, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
+import {
+  getLookupHostname,
+  isCloudMetadata,
+  isHttpUrl,
+  isPrivateIp,
+  isPrivateUrl,
+} from '@/core/validation'
 
 export type UrlValidation = { ok: true } | { ok: false; message: string }
 
@@ -15,7 +21,7 @@ export async function validatePublicServiceUrl(url: string, label: string): Prom
   }
 
   try {
-    const { address } = await lookup(new URL(url).hostname)
+    const { address } = await lookup(getLookupHostname(url))
     if (isPrivateIp(address)) {
       return { ok: false, message: `${label} resolves to a private/internal IP` }
     }

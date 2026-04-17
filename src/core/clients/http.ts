@@ -1,5 +1,6 @@
 import * as dns from 'node:dns/promises'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
+import { getLookupHostname } from '@/core/validation'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set(['api_key', 'apikey', 'key', 'token', 'secret', 'password'])
@@ -134,14 +135,17 @@ async function prepareRequest(
     }
 
     const parsedUrl = new URL(url)
-    const { address } = await dns.lookup(parsedUrl.hostname)
+    const hostname = getLookupHostname(parsedUrl)
+    const { address } = await dns.lookup(hostname)
     if (isPrivateIp(address)) {
       throw new Error('URL resolves to a private/internal IP')
     }
 
-    if (parsedUrl.protocol === 'http:' && address !== parsedUrl.hostname) {
-      fetchUrl = url.replace(parsedUrl.hostname, address)
-      headers.set('Host', parsedUrl.hostname)
+    if (parsedUrl.protocol === 'http:' && address !== hostname) {
+      const pinnedUrl = new URL(url)
+      pinnedUrl.hostname = address
+      fetchUrl = pinnedUrl.toString()
+      headers.set('Host', parsedUrl.host)
     }
   }
 

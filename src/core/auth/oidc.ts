@@ -2,21 +2,23 @@ import * as dns from 'node:dns/promises'
 import type { Configuration } from 'openid-client'
 import * as oidcClient from 'openid-client'
 import { isPrivateIp } from '@/core/notifications'
-import { errMsg } from '@/core/validation'
+import { errMsg, getLookupHostname } from '@/core/validation'
 
 const ipPinningFetch: oidcClient.CustomFetch = async (url, options) => {
   const parsedUrl = new URL(url)
-  const { address } = await dns.lookup(parsedUrl.hostname)
+  const hostname = getLookupHostname(parsedUrl)
+  const { address } = await dns.lookup(hostname)
   if (isPrivateIp(address)) {
     throw new Error('OIDC issuer resolves to a private/internal IP')
   }
 
   const headers = new Headers(options.headers)
   const init = { ...options, headers } as unknown as RequestInit
-  if (parsedUrl.protocol === 'http:' && address !== parsedUrl.hostname) {
-    const pinnedUrl = url.replace(parsedUrl.hostname, address)
-    headers.set('Host', parsedUrl.hostname)
-    return fetch(pinnedUrl, init)
+  if (parsedUrl.protocol === 'http:' && address !== hostname) {
+    const pinnedUrl = new URL(url)
+    pinnedUrl.hostname = address
+    headers.set('Host', parsedUrl.host)
+    return fetch(pinnedUrl.toString(), init)
   }
 
   return fetch(url, init)

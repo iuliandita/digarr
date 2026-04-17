@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { isPrivateIp } from '@/core/validation'
+import { getLookupHostname, isPrivateIp } from '@/core/validation'
 
 describe('isPrivateIp', () => {
   it('rejects IPv4 reserved and documentation ranges', () => {
@@ -36,5 +36,17 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('1.1.1.1')).toBe(false)
     expect(isPrivateIp('93.184.216.34')).toBe(false)
     expect(isPrivateIp('2001:4860:4860::8888')).toBe(false)
+  })
+})
+
+describe('getLookupHostname', () => {
+  it('strips IPv6 brackets before DNS lookup', () => {
+    expect(getLookupHostname('https://[2001:4860:4860::8888]:32400/library')).toBe(
+      '2001:4860:4860::8888',
+    )
+  })
+
+  it('preserves regular hostnames for DNS lookup', () => {
+    expect(getLookupHostname('https://hooks.example.com/webhook')).toBe('hooks.example.com')
   })
 })

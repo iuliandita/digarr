@@ -84,16 +84,23 @@ describe('sendWebhook HTTPS SSRF hardening', () => {
     expect(init.tls).toBeUndefined()
   })
 
-  it('keeps HTTPS IPv6 literals pinned without forcing SNI', async () => {
-    lookupMock.mockResolvedValueOnce({ address: '93.184.216.34', family: 4 })
+  it('normalizes HTTPS IPv6 literals before lookup and keeps SNI disabled', async () => {
+    lookupMock.mockResolvedValueOnce({ address: '2001:4860:4860::8888', family: 6 })
     fetchMock.mockResolvedValueOnce({ ok: true, status: 200 })
 
     await sendWebhook('https://[2001:4860:4860::8888]/webhook', makePayload())
 
+    expect(lookupMock).toHaveBeenCalledWith('2001:4860:4860::8888')
     expect(fetchMock).toHaveBeenCalledOnce()
     const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')
     const [url, init] = call
-    expect(String(url)).toBe('https://93.184.216.34/webhook')
+    expect(String(url)).toBe('https://[2001:4860:4860::8888]/webhook')
     expect(init.tls).toBeUndefined()
+    expect(init.headers).toEqual(
+      expect.objectContaining({
+        Host: '[2001:4860:4860::8888]',
+        'Content-Type': 'application/json',
+      }),
+    )
   })
 })

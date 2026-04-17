@@ -8,7 +8,7 @@ import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
 import { clearUserSessions, createSession, deleteSession } from '@/core/sessions'
-import { isHttpUrl } from '@/core/validation'
+import { getLookupHostname, isHttpUrl } from '@/core/validation'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -273,7 +273,7 @@ export function authRoutes(deps: AppDependencies) {
         return c.json({ error: 'Metadata fallback URL must not point to a private address' }, 400)
       }
       try {
-        const hostname = new URL(fallbackUrl).hostname
+        const hostname = getLookupHostname(fallbackUrl)
         const { address } = await lookup(hostname)
         if (isPrivateIp(address)) {
           return c.json({ error: 'Metadata fallback URL resolves to a private/internal IP' }, 400)

@@ -35,6 +35,11 @@ export function normalizeIp(address: string): string {
   return mapped
 }
 
+export function getLookupHostname(input: string | URL): string {
+  const url = typeof input === 'string' ? new URL(input) : input
+  return normalizeIp(url.hostname)
+}
+
 function parseIpv4(address: string): number | null {
   const parts = address.split('.')
   if (parts.length !== 4) return null
@@ -164,8 +169,7 @@ export function isPrivateIp(address: string): boolean {
 
 export function isPrivateUrl(urlString: string): boolean {
   try {
-    const url = new URL(urlString)
-    const hostname = normalizeIp(url.hostname)
+    const hostname = getLookupHostname(urlString)
     if (isPrivateIp(hostname)) return true
     if (hostname === 'localhost') return true
     return false

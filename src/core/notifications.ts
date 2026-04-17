@@ -1,6 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
-import { isHttpUrl, isPrivateIp, isPrivateUrl, normalizeIp } from './validation'
+import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl, normalizeIp } from './validation'
 
 export { isPrivateIp, isPrivateUrl }
 
@@ -61,7 +61,7 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
   let parsedUrl: URL
   try {
     parsedUrl = new URL(url)
-    const { address } = await lookup(parsedUrl.hostname)
+    const { address } = await lookup(getLookupHostname(parsedUrl))
     if (isPrivateIp(address)) {
       console.error('Webhook URL resolves to a private/internal IP address')
       return
