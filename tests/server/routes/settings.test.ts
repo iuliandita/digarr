@@ -40,6 +40,13 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
   })),
 }))
 
+const { mockOidcTestConnection } = vi.hoisted(() => ({
+  mockOidcTestConnection: vi.fn(async () => ({
+    success: true,
+    message: 'OIDC discovery successful',
+  })),
+}))
+
 vi.mock('@/db/queries/users', async () => {
   const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
   return {
@@ -80,6 +87,12 @@ vi.mock('@/core/clients/lastfm', () => ({
 
 vi.mock('@/core/clients/emby', () => ({
   createEmbyClient: mockCreateEmbyClient,
+}))
+
+vi.mock('@/core/auth/oidc', () => ({
+  OidcService: class OidcService {
+    testConnection = mockOidcTestConnection
+  },
 }))
 
 const mockSettings = {
@@ -888,24 +901,22 @@ describe('POST /api/settings/test/:service', () => {
     })
   })
 
-  it('rejects OIDC issuers that resolve to private IPs', async () => {
-    vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
-
+  it('allows admins to test private OIDC issuer URLs', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/settings/test/oidc', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        issuerUrl: 'https://oidc.example',
+        issuerUrl: 'http://127.0.0.1:8080',
         clientId: 'client-id',
       }),
     })
 
-    expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({
-      success: false,
-      message: 'OIDC issuer URL resolves to a private/internal IP',
-    })
+    expect(res.status).toBe(200)
+    expect(mockOidcTestConnection).toHaveBeenCalledTimes(1)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.message).toBe('OIDC discovery successful')
   })
 })
 

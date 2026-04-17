@@ -3,7 +3,6 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
-import { validatePublicServiceUrl } from '@/core/url-safety'
 import { errMsg } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
@@ -435,12 +434,6 @@ export function settingsRoutes(deps: AppDependencies) {
         const issuerUrl = body.issuerUrl || (stored?.oidcIssuerUrl as string) || ''
         const clientId = body.clientId || (stored?.oidcClientId as string) || ''
         const clientSecret = body.clientSecret || (stored?.oidcClientSecret as string) || ''
-        if (issuerUrl) {
-          const validation = await validatePublicServiceUrl(issuerUrl, 'OIDC issuer URL')
-          if (!validation.ok) {
-            return c.json({ success: false, message: validation.message }, 400)
-          }
-        }
         if (!issuerUrl || !clientId) {
           return c.json({ success: false, message: 'Issuer URL and Client ID are required' })
         }
