@@ -1,6 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
-import { isHttpUrl, isPrivateIp, isPrivateUrl } from './validation'
+import { isHttpUrl, isPrivateIp, isPrivateUrl, normalizeIp } from './validation'
 
 export { isPrivateIp, isPrivateUrl }
 
@@ -94,8 +94,9 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
     signal: controller.signal,
     redirect: 'manual',
   }
-  if (parsedUrl.protocol === 'https:' && !isIpLiteral(parsedUrl.hostname)) {
-    fetchInit.tls = { serverName: parsedUrl.hostname }
+  const normalizedHostname = normalizeIp(parsedUrl.hostname)
+  if (parsedUrl.protocol === 'https:' && !isIpLiteral(normalizedHostname)) {
+    fetchInit.tls = { serverName: normalizedHostname }
   }
 
   try {
