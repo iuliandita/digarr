@@ -57,6 +57,11 @@ function mergePreferenceUpdate(
   return merged
 }
 
+function sanitizeServiceTestResult(result: { success: boolean; message: string }) {
+  if (result.success) return result
+  return { success: false, message: 'Connection test failed' }
+}
+
 /** Strip global connection fields that should not leak to non-admin users. */
 function stripForNonAdmin(settings: Record<string, unknown>): SettingsResponse {
   const stripped: SettingsResponse = {}
@@ -284,21 +289,18 @@ export function settingsRoutes(deps: AppDependencies) {
       acceptLanguage: c.req.header('Accept-Language'),
     })
     const service = c.req.param('service')
+    const isAdmin = await resolveAdmin(
+      c.get('userId'),
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
+    if (!isAdmin) {
+      return c.json({ success: false, message: messages['common.adminAccessRequired'] }, 403)
+    }
+
     const body = await c.req.json()
     const testUserId = c.get('userId')
-
-    // Admin-only services: lidarr, ai, oidc - only enforced when user sessions are active
-    if (testUserId && (service === 'lidarr' || service === 'ai' || service === 'oidc')) {
-      const isAdmin = await resolveAdmin(
-        testUserId,
-        deps.getUserById,
-        c.get('authSkipped'),
-        c.get('legacyTokenAuth'),
-      )
-      if (!isAdmin) {
-        return c.json({ success: false, message: messages['common.adminAccessRequired'] }, 403)
-      }
-    }
 
     // Fall back to stored credentials when the request sends empty keys
     const stored = await deps.getSettings()
@@ -313,7 +315,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const client = createLidarrClient(url, apiKey, body.skipTlsVerify)
         const result = await client.testConnection()
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'listenbrainz': {
         const username = body.username || userConns?.listenbrainzUsername || ''
@@ -327,7 +329,7 @@ export function settingsRoutes(deps: AppDependencies) {
           result.message +=
             ' (warning: no API token set - listening data, subscriptions, and recommendations will not work without it)'
         }
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'lastfm': {
         const username = body.username || userConns?.lastfmUsername || ''
@@ -340,7 +342,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const client = createLastFmClient(username, apiKey)
         const result = await client.testConnection()
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'ai': {
         try {
@@ -354,9 +356,9 @@ export function settingsRoutes(deps: AppDependencies) {
             },
           )
           const result = await provider.testConnection()
-          return c.json(result)
-        } catch (err: unknown) {
-          return c.json({ success: false, message: errMsg(err) })
+          return c.json(sanitizeServiceTestResult(result))
+        } catch (_err: unknown) {
+          return c.json({ success: false, message: 'Connection test failed' })
         }
       }
       case 'plex': {
@@ -368,7 +370,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createPlexClient } = await import('@/core/clients/plex')
         const client = createPlexClient(url, token)
         const result = await client.testConnection()
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'jellyfin': {
         const url = body.url || userConns?.jellyfinUrl || ''
@@ -384,7 +386,7 @@ export function settingsRoutes(deps: AppDependencies) {
         if (result.success && !jfUserId) {
           result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'emby': {
         const url = body.url || userConns?.embyUrl || ''
@@ -400,7 +402,7 @@ export function settingsRoutes(deps: AppDependencies) {
         if (result.success && !embyUserId) {
           result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'discogs': {
         const token = body.token || userConns?.discogsToken || ''
@@ -414,7 +416,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createDiscogsClient } = await import('@/core/clients/discogs')
         const client = createDiscogsClient(token, username)
         const result = await client.testConnection()
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'spotify': {
         const spotifyUserId = c.get('userId')
@@ -427,7 +429,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createSpotifyClient } = await import('@/core/clients/spotify')
         const client = createSpotifyClient(oauthToken.accessToken)
         const result = await client.testConnection()
-        return c.json(result)
+        return c.json(sanitizeServiceTestResult(result))
       }
       case 'oidc': {
         const issuerUrl = body.issuerUrl || (stored?.oidcIssuerUrl as string) || ''
@@ -449,7 +451,7 @@ export function settingsRoutes(deps: AppDependencies) {
           clientSecret: clientSecret || undefined,
           scopes: 'openid',
         })
-        return c.json(await svc.testConnection())
+        return c.json(sanitizeServiceTestResult(await svc.testConnection()))
       }
       default:
         return c.json({ error: `Unknown service: ${service}` }, 400)

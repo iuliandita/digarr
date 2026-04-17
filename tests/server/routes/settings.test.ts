@@ -31,6 +31,15 @@ const { mockGetUserConnections, mockUpdateUserConnections } = vi.hoisted(() => (
   mockUpdateUserConnections: vi.fn(async () => {}),
 }))
 
+const { mockCreateEmbyClient } = vi.hoisted(() => ({
+  mockCreateEmbyClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Emby',
+    })),
+  })),
+}))
+
 vi.mock('@/db/queries/users', async () => {
   const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
   return {
@@ -67,6 +76,10 @@ vi.mock('@/core/clients/lastfm', () => ({
       message: 'Connected to Last.fm as testuser',
     })),
   })),
+}))
+
+vi.mock('@/core/clients/emby', () => ({
+  createEmbyClient: mockCreateEmbyClient,
 }))
 
 const mockSettings = {
@@ -577,6 +590,118 @@ describe('PATCH /api/settings', () => {
 })
 
 describe('POST /api/settings/test/:service', () => {
+  it('requires admin access for every settings test service', async () => {
+    await clearAllSessions()
+    await createSession(7, 'non-admin-settings-test-token')
+
+    const app = createApp(
+      makeDeps({
+        getUserCount: vi.fn(async () => 1),
+        getUserById: vi.fn(async () => ({
+          id: 7,
+          username: 'user7',
+          isAdmin: false,
+          preferences: null,
+          email: null,
+          oidcSubject: null,
+          authProvider: 'local',
+          listenbrainzUsername: null,
+          listenbrainzToken: null,
+          lastfmUsername: null,
+          lastfmApiKey: null,
+          plexUrl: null,
+          plexToken: null,
+          jellyfinUrl: null,
+          jellyfinApiKey: null,
+          jellyfinUserId: null,
+          embyUrl: null,
+          embyApiKey: null,
+          embyUserId: null,
+          discogsToken: null,
+          discogsUsername: null,
+          createdAt: new Date(),
+        })),
+      }),
+    )
+
+    const services = [
+      'lidarr',
+      'listenbrainz',
+      'lastfm',
+      'ai',
+      'plex',
+      'jellyfin',
+      'emby',
+      'discogs',
+      'spotify',
+      'oidc',
+    ]
+
+    for (const service of services) {
+      const res = await app.request(`/api/settings/test/${service}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer non-admin-settings-test-token',
+        },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status, `service: ${service}`).toBe(403)
+      await expect(res.json()).resolves.toEqual({
+        success: false,
+        message: 'Admin access required',
+      })
+    }
+  })
+
+  it('allows admins to test private HTTP service URLs', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/settings/test/emby', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://127.0.0.1:8096',
+        apiKey: 'key',
+        userId: 'user-1',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://127.0.0.1:8096', 'key', 'user-1', {
+      skipTlsVerify: false,
+    })
+  })
+
+  it('sanitizes failed probe responses', async () => {
+    const providerRegistry = {
+      create: vi.fn(async () => ({
+        testConnection: vi.fn(async () => ({
+          success: false,
+          message: 'HTTP 500 <html>probe failed from 127.0.0.1</html>',
+        })),
+      })),
+    }
+
+    const app = createApp(makeDeps({ providerRegistry: providerRegistry as never }))
+    const res = await authedRequest(app, '/api/settings/test/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider: 'ollama',
+        model: 'llama3',
+        baseUrl: 'http://127.0.0.1:11434',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(false)
+    expect(body.message).not.toContain('HTTP 500')
+    expect(body.message).not.toContain('probe failed')
+    expect(body.message).not.toContain('127.0.0.1')
+  })
+
   it('tests lidarr and returns ServiceTestResult shape', async () => {
     const app = createApp(makeDeps())
     // Client will fail to connect but must return a ServiceTestResult (not throw)
