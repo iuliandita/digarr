@@ -88,7 +88,7 @@ describe('sendWebhook HTTPS SSRF hardening', () => {
     lookupMock.mockResolvedValueOnce({ address: '93.184.216.34', family: 4 })
     fetchMock.mockResolvedValueOnce({ ok: true, status: 200 })
 
-    await sendWebhook('https://[2001:db8::1]/webhook', makePayload())
+    await sendWebhook('https://[2001:4860:4860::8888]/webhook', makePayload())
 
     expect(fetchMock).toHaveBeenCalledOnce()
     const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')

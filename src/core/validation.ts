@@ -35,18 +35,119 @@ export function normalizeIp(address: string): string {
   return mapped
 }
 
+function parseIpv4(address: string): number | null {
+  const parts = address.split('.')
+  if (parts.length !== 4) return null
+
+  let value = 0
+  for (const part of parts) {
+    if (!/^\d+$/.test(part)) return null
+    const octet = Number.parseInt(part, 10)
+    if (octet < 0 || octet > 255) return null
+    value = (value << 8) | octet
+  }
+
+  return value >>> 0
+}
+
+function parseIpv6(address: string): number[] | null {
+  if (!address.includes(':')) return null
+
+  const halves = address.split('::')
+  if (halves.length > 2) return null
+
+  const parseHalf = (half: string): number[] | null => {
+    if (half === '') return []
+    const groups = half.split(':')
+    const parsed: number[] = []
+    for (const group of groups) {
+      if (!/^[0-9a-f]{1,4}$/i.test(group)) return null
+      parsed.push(Number.parseInt(group, 16))
+    }
+    return parsed
+  }
+
+  const left = parseHalf(halves[0] ?? '')
+  if (left === null) return null
+
+  if (halves.length === 1) {
+    return left.length === 8 ? left : null
+  }
+
+  const right = parseHalf(halves[1] ?? '')
+  if (right === null) return null
+
+  if (left.length + right.length > 8) return null
+  return [...left, ...Array(8 - left.length - right.length).fill(0), ...right]
+}
+
 export function isPrivateIp(address: string): boolean {
   const normalized = normalizeIp(address)
-  if (/^127\./.test(normalized)) return true
-  if (/^10\./.test(normalized)) return true
-  if (/^172\.(1[6-9]|2\d|3[01])\./.test(normalized)) return true
-  if (/^192\.168\./.test(normalized)) return true
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(normalized)) return true
-  if (/^169\.254\./.test(normalized)) return true
-  if (normalized === '0.0.0.0') return true
-  if (normalized === '::1') return true
-  if (/^f[cd]/i.test(normalized)) return true
-  if (/^fe80/i.test(normalized)) return true
+  const ipv4 = parseIpv4(normalized)
+  if (ipv4 !== null) {
+    const octet1 = (ipv4 >>> 24) & 0xff
+    const octet2 = (ipv4 >>> 16) & 0xff
+    const octet3 = (ipv4 >>> 8) & 0xff
+
+    if (octet1 === 0) return true
+    if (octet1 === 10) return true
+    if (octet1 === 127) return true
+    if (octet1 === 100 && octet2 >= 64 && octet2 <= 127) return true
+    if (octet1 === 169 && octet2 === 254) return true
+    if (octet1 === 172 && octet2 >= 16 && octet2 <= 31) return true
+    if (octet1 === 192 && octet2 === 168) return true
+    if (octet1 === 192 && octet2 === 0 && octet3 === 2) return true
+    if (octet1 === 198 && octet2 === 18) return true
+    if (octet1 === 198 && octet2 === 19) return true
+    if (octet1 === 198 && octet2 === 51 && octet3 === 100) return true
+    if (octet1 === 203 && octet2 === 0 && octet3 === 113) return true
+    if (octet1 >= 224) return true
+    return false
+  }
+
+  const ipv6 = parseIpv6(normalized)
+  if (ipv6 === null) return false
+
+  const [group1 = 0, group2 = 0, group3 = 0, group4 = 0, group5 = 0, group6 = 0, group7 = 0, group8 = 0] = ipv6
+  if (
+    group1 === 0 &&
+    group2 === 0 &&
+    group3 === 0 &&
+    group4 === 0 &&
+    group5 === 0 &&
+    group6 === 0 &&
+    group7 === 0 &&
+    group8 === 0
+  ) {
+    return true
+  }
+  if (
+    group1 === 0 &&
+    group2 === 0 &&
+    group3 === 0 &&
+    group4 === 0 &&
+    group5 === 0 &&
+    group6 === 0 &&
+    group7 === 0 &&
+    group8 === 1
+  ) {
+    return true
+  }
+  if (group1 >= 0xfc00 && group1 <= 0xfdff) return true
+  if (group1 >= 0xfe80 && group1 <= 0xfebf) return true
+  if (group1 >= 0xff00 && group1 <= 0xffff) return true
+  if (
+    group1 === 0x0064 &&
+    group2 === 0xff9b &&
+    group3 === 0 &&
+    group4 === 0 &&
+    group5 === 0 &&
+    group6 === 0
+  ) {
+    return true
+  }
+  if (group1 === 0x2001 && group2 === 0x0000) return true
+  if (group1 === 0x2001 && group2 === 0x0db8) return true
   return false
 }
 
