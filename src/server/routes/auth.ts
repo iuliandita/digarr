@@ -3,6 +3,7 @@ import { type Context, Hono } from 'hono'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField } from '@/core/crypto'
+import { isSingleAdminCollision } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
@@ -89,7 +90,24 @@ export function authRoutes(deps: AppDependencies) {
     const isAdmin = userCount === 0
 
     const passwordHash = hashPassword(password)
-    const user = await deps.createUser({ username, passwordHash, isAdmin })
+    // Defence-in-depth against the first-admin bootstrap race: two
+    // concurrent requests can both see userCount === 0. The 0026 unique
+    // partial index on users(is_admin) WHERE is_admin = true serialises
+    // admin creation at the DB layer; the loser falls back to non-admin.
+    let user: Awaited<ReturnType<typeof deps.createUser>>
+    try {
+      user = await deps.createUser({ username, passwordHash, isAdmin })
+    } catch (err: unknown) {
+      if (!isAdmin || !isSingleAdminCollision(err)) throw err
+      // Lost the race. Username may or may not still be free - recheck,
+      // because the unique-username violation would surface as a separate
+      // 23505 on a different constraint which we let propagate.
+      const existing = await deps.getUserByUsername(username)
+      if (existing) {
+        return c.json({ error: 'Username already taken' }, 409)
+      }
+      user = await deps.createUser({ username, passwordHash, isAdmin: false })
+    }
 
     const token = generateSessionToken()
     await createSession(user.id, token)

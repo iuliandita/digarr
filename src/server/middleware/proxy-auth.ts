@@ -2,6 +2,7 @@ import { getCookie, setCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { generateSessionToken, hashPassword } from '@/core/auth'
 import { isIpTrusted } from '@/core/auth/cidr'
+import { isSingleAdminCollision } from '@/core/db-errors'
 import { createSession, getSession } from '@/core/sessions'
 import { SESSION_TTL_MS } from '@/db/queries/sessions'
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/server/middleware/session-cookie'
@@ -71,13 +72,31 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
       const isFirstUser = (await deps.getUserCount()) === 0
       // Generate random password hash - proxy users authenticate via headers, not passwords
       const randomHash = hashPassword(crypto.randomUUID())
-      user = await deps.createUser({
-        username: forwardedUser,
-        passwordHash: randomHash,
-        isAdmin: isFirstUser,
-        email: forwardedEmail,
-        authProvider: 'proxy',
-      })
+      try {
+        user = await deps.createUser({
+          username: forwardedUser,
+          passwordHash: randomHash,
+          isAdmin: isFirstUser,
+          email: forwardedEmail,
+          authProvider: 'proxy',
+        })
+      } catch (err: unknown) {
+        // First-admin race: a concurrent request won the admin slot via the
+        // users_single_admin partial unique index. Retry as a non-admin.
+        if (!isFirstUser || !isSingleAdminCollision(err)) throw err
+        const existing = await deps.getUserByUsername(forwardedUser)
+        if (existing) {
+          user = existing
+        } else {
+          user = await deps.createUser({
+            username: forwardedUser,
+            passwordHash: randomHash,
+            isAdmin: false,
+            email: forwardedEmail,
+            authProvider: 'proxy',
+          })
+        }
+      }
     }
 
     // Reuse the existing session cookie when it already points at this user.

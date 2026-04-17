@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword } from '@/core/auth'
 import type { OidcService } from '@/core/auth/oidc'
+import { isSingleAdminCollision } from '@/core/db-errors'
 import { createSession } from '@/core/sessions'
 
 type OidcRouteDeps = {
@@ -78,14 +79,28 @@ export function oidcRoutes(deps: OidcRouteDeps) {
           username = `${username}-${result.claims.sub.slice(0, 8)}`
         }
 
-        user = await deps.createUser({
-          username,
-          passwordHash: hashPassword(crypto.randomUUID()),
-          isAdmin: isFirstUser,
-          email: result.claims.email,
-          oidcSubject: result.claims.sub,
-          authProvider: 'oidc',
-        })
+        try {
+          user = await deps.createUser({
+            username,
+            passwordHash: hashPassword(crypto.randomUUID()),
+            isAdmin: isFirstUser,
+            email: result.claims.email,
+            oidcSubject: result.claims.sub,
+            authProvider: 'oidc',
+          })
+        } catch (err: unknown) {
+          // First-admin race: a concurrent request won the admin slot via
+          // the users_single_admin partial unique index. Retry as non-admin.
+          if (!isFirstUser || !isSingleAdminCollision(err)) throw err
+          user = await deps.createUser({
+            username,
+            passwordHash: hashPassword(crypto.randomUUID()),
+            isAdmin: false,
+            email: result.claims.email,
+            oidcSubject: result.claims.sub,
+            authProvider: 'oidc',
+          })
+        }
       }
 
       const sessionToken = generateSessionToken()

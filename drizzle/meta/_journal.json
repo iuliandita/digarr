@@ -183,6 +183,13 @@
       "when": 1776300000000,
       "tag": "0025_oidc_tokens_user_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1776456510416,
+      "tag": "0026_single_admin_partial_index",
+      "breakpoints": true
     }
   ]
 }
