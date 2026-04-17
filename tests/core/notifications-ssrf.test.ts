@@ -70,4 +70,17 @@ describe('sendWebhook HTTPS SSRF hardening', () => {
     )
     expect(init.tls).toEqual(expect.objectContaining({ serverName: 'hooks.example.com' }))
   })
+
+  it('keeps HTTPS public IP literals pinned without forcing SNI', async () => {
+    lookupMock.mockResolvedValueOnce({ address: '93.184.216.34', family: 4 })
+    fetchMock.mockResolvedValueOnce({ ok: true, status: 200 })
+
+    await sendWebhook('https://93.184.216.34/webhook', makePayload())
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const call = requireCall(fetchMock.mock.calls[0], 'Expected webhook fetch call')
+    const [url, init] = call
+    expect(String(url)).toBe('https://93.184.216.34/webhook')
+    expect(init.tls).toBeUndefined()
+  })
 })
