@@ -1,11 +1,12 @@
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSession, getActiveSessionForUser } from '@/core/sessions'
+import { createSession, getSession } from '@/core/sessions'
 import { proxyAuthMiddleware } from '@/server/middleware/proxy-auth'
+import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 
 vi.mock('@/core/sessions', () => ({
   createSession: vi.fn(async () => {}),
-  getActiveSessionForUser: vi.fn(async () => null),
+  getSession: vi.fn(async () => null),
 }))
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'test-token-123'),
@@ -46,6 +47,7 @@ describe('proxyAuthMiddleware', () => {
     vi.clearAllMocks()
     mockGetUserByUsername.mockResolvedValue(null)
     mockGetUserCount.mockResolvedValue(0)
+    vi.mocked(getSession).mockResolvedValue(null)
   })
 
   // Note: In tests, getSocketIp() falls back to '0.0.0.0' (no real socket, fail-closed).
@@ -120,8 +122,7 @@ describe('proxyAuthMiddleware', () => {
     expect(body.proxyAuth).toBeUndefined()
   })
 
-  it('reuses existing session instead of creating new one', async () => {
-    vi.mocked(getActiveSessionForUser).mockResolvedValue('existing-token')
+  it('sets a session cookie when minting a new session', async () => {
     mockGetUserByUsername.mockResolvedValue({
       id: 10,
       username: 'carol',
@@ -129,8 +130,54 @@ describe('proxyAuthMiddleware', () => {
       isAdmin: false,
     })
     const app = buildApp(['0.0.0.0/32'])
-    await app.request('/test', { headers: { 'X-Forwarded-User': 'carol' } })
+    const res = await app.request('/test', { headers: { 'X-Forwarded-User': 'carol' } })
+    expect(createSession).toHaveBeenCalledWith(10, 'test-token-123')
+    const cookie = res.headers.get('set-cookie')
+    expect(cookie).toBeTruthy()
+    expect(cookie).toContain(`${SESSION_COOKIE_NAME}=test-token-123`)
+    expect(cookie).toContain('HttpOnly')
+    expect(cookie).toMatch(/SameSite=Lax/i)
+  })
+
+  it('does not re-mint when the inbound cookie matches the same user', async () => {
+    vi.mocked(getSession).mockResolvedValue({ userId: 10 })
+    mockGetUserByUsername.mockResolvedValue({
+      id: 10,
+      username: 'carol',
+      passwordHash: 'h',
+      isAdmin: false,
+    })
+    const app = buildApp(['0.0.0.0/32'])
+    const res = await app.request('/test', {
+      headers: {
+        'X-Forwarded-User': 'carol',
+        cookie: `${SESSION_COOKIE_NAME}=existing-valid-token`,
+      },
+    })
+    expect(res.status).toBe(200)
     expect(createSession).not.toHaveBeenCalled()
+  })
+
+  it('mints a fresh session when the inbound cookie belongs to a different user', async () => {
+    // Password-mode user 99 is cached in the cookie; proxy now says user 10.
+    // Must NOT reuse user 99's token - that was the cross-mode leak.
+    vi.mocked(getSession).mockResolvedValue({ userId: 99 })
+    mockGetUserByUsername.mockResolvedValue({
+      id: 10,
+      username: 'carol',
+      passwordHash: 'h',
+      isAdmin: false,
+    })
+    const app = buildApp(['0.0.0.0/32'])
+    const res = await app.request('/test', {
+      headers: {
+        'X-Forwarded-User': 'carol',
+        cookie: `${SESSION_COOKIE_NAME}=user-99-token`,
+      },
+    })
+    expect(createSession).toHaveBeenCalledWith(10, 'test-token-123')
+    const cookie = res.headers.get('set-cookie')
+    expect(cookie).toContain(`${SESSION_COOKIE_NAME}=test-token-123`)
   })
 
   it('silently falls through when X-Forwarded-User is empty after trim', async () => {

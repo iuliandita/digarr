@@ -83,6 +83,9 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 
   const { headers: extraHeaders, ...restOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
+    // Send the httpOnly session cookie on same-origin requests so proxy-auth
+    // and OIDC flows authenticate without JS having to read the token.
+    credentials: 'same-origin',
     ...restOptions,
     headers: { ...headers, ...(extraHeaders as Record<string, string>) },
   })
@@ -102,11 +105,11 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 export type AuthStatus = {
   required: boolean
   hasUsers: boolean
+  authenticated?: boolean
+  userId?: number
+  isAdmin?: boolean
   oidcEnabled?: boolean
   proxyAuthEnabled?: boolean
-  proxyAuth?: boolean
-  token?: string
-  userId?: number
   version?: string
 }
 export const getAuthStatus = () => fetchApi<AuthStatus>('/auth/status')

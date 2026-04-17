@@ -62,9 +62,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           return
         }
 
-        // Proxy auth - backend resolved the identity and issued a token
-        if (status.proxyAuth && status.token) {
-          setStoredToken(status.token)
+        // Cookie-backed auth (proxy-auth / OIDC callback / password login). The
+        // server already validated the session cookie on /api/auth/status, so
+        // authenticated === true means subsequent API calls will succeed.
+        if (status.authenticated) {
           setState('authenticated')
           return
         }

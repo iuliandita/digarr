@@ -273,32 +273,30 @@ export function createApp(deps: AppDependencies) {
   )
   app.use('*', setupGuard(deps.isSetupComplete))
 
-  // Auth status (unauthenticated - tells the frontend whether auth is required)
+  // Auth status (optional auth - tells the frontend whether auth is required
+  // AND whether the caller is already authenticated via session cookie / bearer
+  // token / proxy auth. Never returns a raw session token: the cookie handles
+  // authentication on subsequent requests.
   app.get('/api/auth/status', async (c) => {
     const [userCount, setupComplete] = await Promise.all([
       deps.getUserCount(),
       deps.isSetupComplete(),
     ])
-    const proxyAuth = c.get('proxyAuth')
-    const sessionToken = c.get('sessionToken')
+    const userId = c.get('userId')
+    const user = typeof userId === 'number' ? await deps.getUserById(userId) : null
     const settings = await deps.getSettings()
     const oidcEnabled = !!(settings?.oidcIssuerUrl && settings.oidcClientId)
 
-    const response: Record<string, unknown> = {
+    return c.json({
+      authenticated: !!user,
+      userId: user?.id,
+      isAdmin: user?.isAdmin ?? false,
       required: userCount > 0 || !!envConfig.authToken || setupComplete,
       hasUsers: userCount > 0,
       oidcEnabled,
       proxyAuthEnabled: envConfig.proxyAuthEnabled,
       version: VERSION,
-    }
-
-    if (proxyAuth && sessionToken) {
-      response.proxyAuth = true
-      response.token = sessionToken
-      response.userId = c.get('userId')
-    }
-
-    return c.json(response)
+    })
   })
 
   app.route(

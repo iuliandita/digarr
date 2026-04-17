@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { envConfig } from '@/config/env'
 import { getSession } from '@/core/sessions'
+import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
 /** Constant-time comparison that does not leak length via early return. */
@@ -53,7 +55,10 @@ export function authGuard(options: {
     const proxyAuthed = c.get('proxyAuth')
     if (proxyAuthed) return next()
 
-    // Extract token from Authorization header or query param (SSE fallback)
+    // Extract token from Authorization header, query param (SSE fallback), or
+    // the httpOnly session cookie (set by proxy-auth / OIDC callback / login).
+    // Header wins over cookie so the SPA's localStorage flow keeps working;
+    // the cookie is the fallback for browser-only sessions.
     const header = c.req.header('Authorization')
     let provided: string | undefined
     if (header?.startsWith('Bearer ')) {
@@ -61,6 +66,10 @@ export function authGuard(options: {
     } else {
       const qp = c.req.query('token')
       if (qp && QUERY_TOKEN_PATHS.has(c.req.path)) provided = qp
+      if (!provided) {
+        const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
+        if (cookieToken) provided = cookieToken
+      }
     }
 
     // Try session token first
