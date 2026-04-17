@@ -196,6 +196,31 @@ export function redactUrlForLog(url: string): string {
     const serialized = parsed.toString()
     return absolute ? serialized : serialized.replace('http://redact.invalid', '')
   } catch {
-    return url
+    return redactQueryStringFallback(url)
   }
+}
+
+function redactQueryStringFallback(url: string): string {
+  const queryStart = url.indexOf('?')
+  if (queryStart === -1) return url
+
+  const hashStart = url.indexOf('#', queryStart)
+  const prefix = url.slice(0, queryStart + 1)
+  const query = url.slice(queryStart + 1, hashStart === -1 ? undefined : hashStart)
+  const suffix = hashStart === -1 ? '' : url.slice(hashStart)
+
+  const redactedQuery = query
+    .split('&')
+    .map((part) => {
+      const equalsIndex = part.indexOf('=')
+      if (equalsIndex === -1) return part
+
+      const key = part.slice(0, equalsIndex).toLowerCase()
+      if (!SENSITIVE_QUERY_KEYS.has(key)) return part
+
+      return `${part.slice(0, equalsIndex + 1)}${REDACTED_QUERY_VALUE}`
+    })
+    .join('&')
+
+  return `${prefix}${redactedQuery}${suffix}`
 }

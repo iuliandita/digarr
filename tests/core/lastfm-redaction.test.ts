@@ -19,6 +19,14 @@ beforeAll(async () => {
       return
     }
 
+    if (parsed.pathname === '/redirect-malformed') {
+      res.writeHead(302, {
+        Location: 'https://example.com:abc/?api_key=secret&user=test',
+      })
+      res.end()
+      return
+    }
+
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('not found')
   })
@@ -95,6 +103,22 @@ describe('query redaction', () => {
       expect(error.message).toContain('Redirect blocked:')
       expect(error.message).toContain('method=user.getTopArtists')
       expect(error.message).toContain('api_key=%5BREDACTED%5D')
+      expect(error.message).not.toContain('api_key=secret')
+    }
+  })
+
+  it('redacts sensitive query params from malformed blocked redirect errors', async () => {
+    const client = createHttpClient({ baseUrl })
+
+    try {
+      await client.get('/redirect-malformed')
+      expect.fail('should have thrown')
+    } catch (err) {
+      expect(err).toBeInstanceOf(HttpError)
+      const error = err as HttpError
+      expect(error.message).toContain('Redirect blocked:')
+      expect(error.message).toContain('api_key=[REDACTED]')
+      expect(error.message).toContain('user=test')
       expect(error.message).not.toContain('api_key=secret')
     }
   })
