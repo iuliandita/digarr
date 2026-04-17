@@ -202,7 +202,7 @@ describe('first-admin race: POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'loser', password: 'password123' }),
+      body: JSON.stringify({ username: 'loser', password: 'password1234' }),
     })
 
     expect(res.status).toBe(201)
@@ -249,7 +249,7 @@ describe('first-admin race: POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'loser', password: 'password123' }),
+      body: JSON.stringify({ username: 'loser', password: 'password1234' }),
     })
 
     expect(res.status).toBe(409)
@@ -274,7 +274,7 @@ describe('first-admin race: POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'collider', password: 'password123' }),
+      body: JSON.stringify({ username: 'collider', password: 'password1234' }),
     })
 
     expect(res.status).toBe(500)

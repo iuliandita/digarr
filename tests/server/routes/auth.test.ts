@@ -201,7 +201,7 @@ describe('POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: 'password123' }),
+      body: JSON.stringify({ username: 'admin', password: 'password1234' }),
     })
 
     expect(res.status).toBe(201)
@@ -245,7 +245,7 @@ describe('POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'user2', password: 'password123' }),
+      body: JSON.stringify({ username: 'user2', password: 'password1234' }),
     })
 
     expect(res.status).toBe(201)
@@ -277,7 +277,7 @@ describe('POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'x', password: 'password123' }),
+      body: JSON.stringify({ username: 'x', password: 'password1234' }),
     })
     expect(res.status).toBe(400)
   })
@@ -296,7 +296,7 @@ describe('POST /api/auth/register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'taken', password: 'password123' }),
+      body: JSON.stringify({ username: 'taken', password: 'password1234' }),
     })
     expect(res.status).toBe(409)
   })
@@ -356,7 +356,7 @@ describe('POST /api/auth/login', () => {
     const res = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'nobody', password: 'password123' }),
+      body: JSON.stringify({ username: 'nobody', password: 'password1234' }),
     })
     expect(res.status).toBe(401)
   })
@@ -393,7 +393,7 @@ describe('POST /api/auth/login', () => {
 
 describe('session token authentication', () => {
   it('session token from login grants access to protected routes', async () => {
-    const storedHash = hashPassword('password123')
+    const storedHash = hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => ({
@@ -410,7 +410,7 @@ describe('session token authentication', () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'testuser', password: 'password123' }),
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
     })
     const { token } = await loginRes.json()
 
@@ -438,7 +438,7 @@ describe('session token authentication', () => {
 
 describe('POST /api/auth/logout', () => {
   it('invalidates the session token', async () => {
-    const storedHash = hashPassword('password123')
+    const storedHash = hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => ({
@@ -455,7 +455,7 @@ describe('POST /api/auth/logout', () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'testuser', password: 'password123' }),
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
     })
     const { token } = await loginRes.json()
 
@@ -476,7 +476,7 @@ describe('POST /api/auth/logout', () => {
 
 describe('GET /api/auth/me', () => {
   it('returns current user when authenticated via session', async () => {
-    const storedHash = hashPassword('password123')
+    const storedHash = hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => ({
@@ -517,7 +517,7 @@ describe('GET /api/auth/me', () => {
     const loginRes = await app.request('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'testuser', password: 'password123' }),
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
     })
     const { token } = await loginRes.json()
 

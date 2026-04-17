@@ -6,7 +6,7 @@ export const usernameSchema = z
   .min(2, 'Username must be 2-50 characters')
   .max(50, 'Username must be 2-50 characters')
 
-export const passwordSchema = z.string().min(8, 'Password must be at least 8 characters')
+export const passwordSchema = z.string().min(12, 'Password must be at least 12 characters')
 
 export const registerSchema = z.object({
   username: usernameSchema,
@@ -21,8 +21,8 @@ export const loginSchema = z.object({
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: passwordSchema.refine(
-    (val) => val.length >= 8,
-    'New password must be at least 8 characters',
+    (val) => val.length >= 12,
+    'New password must be at least 12 characters',
   ),
 })
 

@@ -1388,9 +1388,9 @@ const server = serve({ fetch: app.fetch, port })
     // Bootstrap initial admin user from env vars if no users exist
     const { initialUsername, initialPassword } = envConfig
     if (initialUsername && initialPassword) {
-      if (initialPassword.length < 8) {
+      if (initialPassword.length < 12) {
         console.error(
-          'DIGARR_INITIAL_PASSWORD must be at least 8 characters - skipping user creation',
+          'DIGARR_INITIAL_PASSWORD must be at least 12 characters - skipping user creation',
         )
       } else {
         const count = await getUserCount(db)

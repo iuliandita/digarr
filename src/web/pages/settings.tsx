@@ -2437,7 +2437,7 @@ function AccountTab() {
       toast.error(t('settings.passwordsDoNotMatch'))
       return
     }
-    if (newPassword.length < 8) {
+    if (newPassword.length < 12) {
       toast.error(t('settings.passwordTooShort'))
       return
     }

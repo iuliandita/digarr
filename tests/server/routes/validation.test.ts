@@ -72,7 +72,7 @@ describe('validation: auth.register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: 'password123' }),
+      body: JSON.stringify({ password: 'password1234' }),
     })
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -80,12 +80,12 @@ describe('validation: auth.register', () => {
     expect(body.details.some((d: { path: string[] }) => d.path.includes('username'))).toBe(true)
   })
 
-  it('rejects password shorter than 8 characters', async () => {
+  it('rejects password shorter than 12 characters', async () => {
     const { app } = await authedApp()
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'alice', password: '1234567' }),
+      body: JSON.stringify({ username: 'alice', password: 'elevenchars' }),
     })
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -98,7 +98,7 @@ describe('validation: auth.register', () => {
     const res = await app.request('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 42, password: 'password123' }),
+      body: JSON.stringify({ username: 42, password: 'password1234' }),
     })
     expect(res.status).toBe(400)
   })
@@ -112,7 +112,7 @@ describe('validation: users', () => {
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
         username: 'newuser',
-        password: 'password123',
+        password: 'password1234',
         isAdmin: 'yes',
       }),
     })

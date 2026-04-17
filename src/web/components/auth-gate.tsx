@@ -304,7 +304,7 @@ function RegisterForm({
       setError(t('auth.usernameRequired'))
       return
     }
-    if (password.length < 8) {
+    if (password.length < 12) {
       setError(t('auth.passwordMinError'))
       return
     }
