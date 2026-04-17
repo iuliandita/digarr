@@ -1,3 +1,5 @@
+import { assertCidr } from '@/core/auth/cidr'
+
 function env(key: string): string | undefined {
   const val = process.env[key]
   return val || undefined
@@ -94,6 +96,30 @@ export const envConfig = {
 } as const
 
 export type EnvConfig = typeof envConfig
+
+/**
+ * Validate PROXY_AUTH_TRUSTED_PROXIES at module load. Every CIDR must parse
+ * strictly (IPv4 or IPv6) and the unbounded ranges `0.0.0.0/0` and `::/0`
+ * are rejected because they disable the proxy-auth trust boundary entirely.
+ */
+function validateTrustedProxies(): void {
+  const raw = envConfig.proxyAuthTrustedProxies
+  if (!raw) return
+  const entries = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  for (const cidr of entries) {
+    try {
+      assertCidr(cidr)
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err)
+      throw new Error(`PROXY_AUTH_TRUSTED_PROXIES entry invalid: ${reason}`)
+    }
+  }
+}
+
+validateTrustedProxies()
 
 /**
  * Build a DATABASE_URL from either the env var directly or individual DB_* vars.
