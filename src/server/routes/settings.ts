@@ -56,9 +56,12 @@ function mergePreferenceUpdate(
   return merged
 }
 
-function sanitizeServiceTestResult(result: { success: boolean; message: string }) {
+function sanitizeServiceTestResult(
+  result: { success: boolean; message: string },
+  fallbackMessage: string,
+) {
   if (result.success) return result
-  return { success: false, message: 'Connection test failed' }
+  return { success: false, message: fallbackMessage }
 }
 
 /** Strip global connection fields that should not leak to non-admin users. */
@@ -314,7 +317,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const client = createLidarrClient(url, apiKey, body.skipTlsVerify)
         const result = await client.testConnection()
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'listenbrainz': {
         const username = body.username || userConns?.listenbrainzUsername || ''
@@ -328,7 +331,7 @@ export function settingsRoutes(deps: AppDependencies) {
           result.message +=
             ' (warning: no API token set - listening data, subscriptions, and recommendations will not work without it)'
         }
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'lastfm': {
         const username = body.username || userConns?.lastfmUsername || ''
@@ -341,7 +344,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const client = createLastFmClient(username, apiKey)
         const result = await client.testConnection()
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'ai': {
         try {
@@ -355,9 +358,9 @@ export function settingsRoutes(deps: AppDependencies) {
             },
           )
           const result = await provider.testConnection()
-          return c.json(sanitizeServiceTestResult(result))
+          return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
         } catch (_err: unknown) {
-          return c.json({ success: false, message: 'Connection test failed' })
+          return c.json({ success: false, message: messages['common.unknownError'] })
         }
       }
       case 'plex': {
@@ -369,7 +372,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createPlexClient } = await import('@/core/clients/plex')
         const client = createPlexClient(url, token)
         const result = await client.testConnection()
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'jellyfin': {
         const url = body.url || userConns?.jellyfinUrl || ''
@@ -385,7 +388,7 @@ export function settingsRoutes(deps: AppDependencies) {
         if (result.success && !jfUserId) {
           result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'emby': {
         const url = body.url || userConns?.embyUrl || ''
@@ -401,7 +404,7 @@ export function settingsRoutes(deps: AppDependencies) {
         if (result.success && !embyUserId) {
           result.message += ' (warning: no user ID set - listening data will not work without it)'
         }
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'discogs': {
         const token = body.token || userConns?.discogsToken || ''
@@ -415,7 +418,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createDiscogsClient } = await import('@/core/clients/discogs')
         const client = createDiscogsClient(token, username)
         const result = await client.testConnection()
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'spotify': {
         const spotifyUserId = c.get('userId')
@@ -428,7 +431,7 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createSpotifyClient } = await import('@/core/clients/spotify')
         const client = createSpotifyClient(oauthToken.accessToken)
         const result = await client.testConnection()
-        return c.json(sanitizeServiceTestResult(result))
+        return c.json(sanitizeServiceTestResult(result, messages['common.unknownError']))
       }
       case 'oidc': {
         const issuerUrl = body.issuerUrl || (stored?.oidcIssuerUrl as string) || ''
@@ -444,7 +447,9 @@ export function settingsRoutes(deps: AppDependencies) {
           clientSecret: clientSecret || undefined,
           scopes: 'openid',
         })
-        return c.json(sanitizeServiceTestResult(await svc.testConnection()))
+        return c.json(
+          sanitizeServiceTestResult(await svc.testConnection(), messages['common.unknownError']),
+        )
       }
       default:
         return c.json({ error: `Unknown service: ${service}` }, 400)

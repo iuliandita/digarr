@@ -699,7 +699,10 @@ describe('POST /api/settings/test/:service', () => {
     const app = createApp(makeDeps({ providerRegistry: providerRegistry as never }))
     const res = await authedRequest(app, '/api/settings/test/ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Digarr-Locale': 'de',
+      },
       body: JSON.stringify({
         provider: 'ollama',
         model: 'llama3',
@@ -713,6 +716,7 @@ describe('POST /api/settings/test/:service', () => {
     expect(body.message).not.toContain('HTTP 500')
     expect(body.message).not.toContain('probe failed')
     expect(body.message).not.toContain('127.0.0.1')
+    expect(body.message).toBe('Unbekannter Fehler')
   })
 
   it('tests lidarr and returns ServiceTestResult shape', async () => {

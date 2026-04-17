@@ -261,6 +261,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const queryClient = useQueryClient()
   const aiProviderLabel = t('settings.aiProviderTitle')
   const webhookLabel = t('settings.webhookTitle')
+  const canTestUserConnections = isAdmin
 
   function formatLabelMessage(key: MessageKey, label: string) {
     return t(key).replace('{0}', label)
@@ -872,16 +873,18 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </Field>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testListenbrainz}
-              disabled={tests.listenbrainz === 'testing'}
-            >
-              {tests.listenbrainz === 'testing'
-                ? t('settings.testing')
-                : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testListenbrainz}
+                disabled={tests.listenbrainz === 'testing'}
+              >
+                {tests.listenbrainz === 'testing'
+                  ? t('settings.testing')
+                  : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={saveListenbrainz} disabled={saving.listenbrainz}>
               {saving.listenbrainz
                 ? t('settings.saving')
@@ -940,14 +943,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </Field>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testLastfm}
-              disabled={tests.lastfm === 'testing'}
-            >
-              {tests.lastfm === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testLastfm}
+                disabled={tests.lastfm === 'testing'}
+              >
+                {tests.lastfm === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={saveLastfm} disabled={saving.lastfm}>
               {saving.lastfm
                 ? t('settings.saving')
@@ -1184,14 +1189,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </Field>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testPlex}
-              disabled={tests.plex === 'testing'}
-            >
-              {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testPlex}
+                disabled={tests.plex === 'testing'}
+              >
+                {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={savePlex} disabled={saving.plex}>
               {saving.plex
                 ? t('settings.saving')
@@ -1245,14 +1252,18 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <p className="text-xs text-muted mt-1">{t('settings.jellyfinUserIdHelp')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testJellyfin}
-              disabled={tests.jellyfin === 'testing'}
-            >
-              {tests.jellyfin === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testJellyfin}
+                disabled={tests.jellyfin === 'testing'}
+              >
+                {tests.jellyfin === 'testing'
+                  ? t('settings.testing')
+                  : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={saveJellyfin} disabled={saving.jellyfin}>
               {saving.jellyfin
                 ? t('settings.saving')
@@ -1306,14 +1317,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <p className="text-xs text-muted mt-1">{t('settings.embyUserIdHelp')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testEmby}
-              disabled={tests.emby === 'testing'}
-            >
-              {tests.emby === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testEmby}
+                disabled={tests.emby === 'testing'}
+              >
+                {tests.emby === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={saveEmby} disabled={saving.emby}>
               {saving.emby
                 ? t('settings.saving')
@@ -1369,14 +1382,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </Field>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testDiscogs}
-              disabled={tests.discogs === 'testing'}
-            >
-              {tests.discogs === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testDiscogs}
+                disabled={tests.discogs === 'testing'}
+              >
+                {tests.discogs === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+            )}
             <Button size="sm" onClick={saveDiscogs} disabled={saving.discogs}>
               {saving.discogs
                 ? t('settings.saving')

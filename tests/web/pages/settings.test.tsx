@@ -479,6 +479,35 @@ describe('SettingsPage', () => {
     })
   })
 
+  it('hides test buttons for non-admin per-user connections but keeps save actions', async () => {
+    setupMocks()
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'user',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('ListenBrainz')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('button', { name: 'Test Connection' })).not.toBeInTheDocument()
+
+    const saveButtons = screen.getAllByRole('button', { name: 'Save' })
+    const firstSaveButton = saveButtons[0]
+    expect(firstSaveButton).toBeDefined()
+    if (!firstSaveButton) return
+    fireEvent.click(firstSaveButton)
+
+    await waitFor(() => {
+      expect(mockUpdateSettings).toHaveBeenCalled()
+    })
+  })
+
   it('shows error state when settings fail to load', async () => {
     mockGetSettings.mockRejectedValue(new Error('Network error'))
     renderWithQuery(<SettingsPage />)

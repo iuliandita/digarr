@@ -158,17 +158,6 @@ export function isPrivateIp(address: string): boolean {
   if (group1 >= 0xfc00 && group1 <= 0xfdff) return true
   if (group1 >= 0xfe80 && group1 <= 0xfebf) return true
   if (group1 >= 0xff00 && group1 <= 0xffff) return true
-  if (
-    group1 === 0x0064 &&
-    group2 === 0xff9b &&
-    group3 === 0 &&
-    group4 === 0 &&
-    group5 === 0 &&
-    group6 === 0
-  ) {
-    return true
-  }
-  if (group1 === 0x2001 && group2 === 0x0000) return true
   if (group1 === 0x2001 && group2 === 0x0db8) return true
   return false
 }
