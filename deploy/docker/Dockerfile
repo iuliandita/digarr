@@ -42,6 +42,8 @@ COPY --from=deps-prod /app/package.json /app/bun.lock ./
 COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
+COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
+RUN chmod +x /app/healthcheck.sh
 
 RUN mkdir -p /app/backups && chown bun:bun /app/backups
 VOLUME ["/app/backups"]
@@ -50,8 +52,8 @@ ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-  CMD bun -e "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD ["/app/healthcheck.sh"]
 
 USER bun
 CMD ["bun", "dist/server/index.js"]

@@ -9,6 +9,11 @@ secrets:
   database_url:
     file: ./secrets/database_url
 
+networks:
+  frontend:
+  backend:
+    internal: true
+
 services:
   app:
     image: docker.io/iuliandita/digarr:0.34
@@ -17,6 +22,9 @@ services:
     # Alpine variant (smaller image, musl libc):
     # image: docker.io/iuliandita/digarr:0.34.4-alpine
     user: "1000:1000"
+    networks:
+      - frontend
+      - backend
     env_file:
       - path: .env
         required: false
@@ -31,14 +39,10 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'bun -e "fetch(''http://localhost:3000/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
-        ]
+      test: ["CMD", "/app/healthcheck.sh"]
       interval: 30s
       timeout: 5s
-      start_period: 15s
+      start_period: 30s
       retries: 3
     read_only: true
     volumes:
@@ -63,6 +67,8 @@ services:
 
   postgres:
     image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
+    networks:
+      - backend
     env_file:
       - path: .env
         required: false

@@ -10,6 +10,7 @@ dist/
 .forgejo/
 docs/
 deploy/
+!deploy/docker/healthcheck.sh
 CLAUDE.md
 AGENTS.md
 SECURITY-AUDIT.md
