@@ -647,7 +647,9 @@ describe('POST /api/library/sync', () => {
     let resolved = false
     const syncForUser = vi.fn(async () => {
       order.push('user')
-      await new Promise((r) => setTimeout(r, 10))
+      // Async boundary (setImmediate) instead of a wall-clock sleep; the
+      // assertion only cares that the route awaited the user sync.
+      await new Promise<void>((r) => setImmediate(r))
       resolved = true
       return { userId: 1, results: [] }
     })

@@ -4,6 +4,11 @@ import type { LibraryAlbum, LibrarySource } from '@/core/library/sources/types'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { createSyncOrchestrator } from '@/core/library/sync'
 
+// Microtask yield: introduces an async boundary without burning wall time.
+// Used inside mocks that simulated slow I/O via setTimeout. Coalescing and
+// p-queue ordering tests care about the async gap, not the specific delay.
+const asyncYield = () => new Promise<void>((r) => setImmediate(r))
+
 function makeStore(): LibrarySyncStore {
   return {
     replaceLibrarySnapshot: vi.fn(async () => ({
@@ -191,7 +196,7 @@ describe('createSyncOrchestrator', () => {
     let listCalls = 0
     a.listArtists = vi.fn(async () => {
       listCalls += 1
-      await new Promise((r) => setTimeout(r, 25))
+      await asyncYield()
       return []
     })
     const sync = createSyncOrchestrator({
@@ -397,7 +402,10 @@ describe('createSyncOrchestrator', () => {
         if (sourceArtistId === '1') {
           throw new Error('album boom')
         }
-        await new Promise((resolve) => setTimeout(resolve, sourceArtistId === '4' ? 5 : 25))
+        // Differing number of async yields simulates varying completion order
+        // without relying on real-wall-clock setTimeout jitter.
+        const yieldCount = sourceArtistId === '4' ? 1 : 3
+        for (let i = 0; i < yieldCount; i++) await asyncYield()
         albumTaskSettled.push(sourceArtistId)
         return []
       }),

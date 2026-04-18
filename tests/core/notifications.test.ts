@@ -170,8 +170,10 @@ describe('sendWebhook', () => {
     // Instead, verify the signal is passed to fetch.
     const promise = sendWebhook('https://hooks.example.com/webhook', makePayload())
 
-    // Yield to let async DNS lookup resolve before checking fetch
-    await new Promise((r) => setTimeout(r, 10))
+    // Yield to let async DNS lookup resolve before checking fetch.
+    // setImmediate queues past the microtask + macrotask queue — cheaper
+    // than burning 10ms of real wall time on every run.
+    await new Promise<void>((r) => setImmediate(r))
 
     // Verify signal was passed
     expect(fetchMock).toHaveBeenCalledOnce()

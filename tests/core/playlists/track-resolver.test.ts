@@ -449,7 +449,9 @@ describe('resolvePlaylistTracks()', () => {
     const spotifySearch = vi.fn().mockImplementation(async () => {
       activeCount++
       maxActive = Math.max(maxActive, activeCount)
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      // setImmediate-backed yield keeps the async boundary p-queue needs
+      // to observe concurrent tasks, without burning real wall time.
+      await new Promise<void>((resolve) => setImmediate(resolve))
       activeCount--
       return SPOTIFY_RESULTS
     })

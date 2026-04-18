@@ -45,7 +45,10 @@ beforeAll(async () => {
     const parsed = new URL(rawUrl, 'http://localhost')
     const path = parsed.pathname
 
-    // Slow endpoint for timeout test - delays 500ms
+    // Slow endpoint for timeout test - delays 500ms. This setTimeout runs
+    // inside a real Node http.Server handler, not test code, so vitest
+    // fake timers wouldn't affect it. The delay is intentional real wall
+    // time so createHttpClient's AbortController can race the request.
     if (path === '/slow') {
       await new Promise((r) => setTimeout(r, 500))
       sendJson(res, 200, { ok: true })
