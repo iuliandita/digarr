@@ -375,16 +375,12 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
     getLibrarySyncState,
 
     async upsertLibrarySyncState(userId, source, patch) {
-      const existing = await getLibrarySyncState(userId, source)
-      if (existing) {
-        const userClause =
-          userId === null ? isNull(librarySyncState.userId) : eq(librarySyncState.userId, userId)
-        await database
-          .update(librarySyncState)
-          .set(patch)
-          .where(and(userClause, eq(librarySyncState.source, source)))
-      } else {
-        await database.insert(librarySyncState).values({
+      // Atomic upsert on the (user_id, source) natural key. The unique index
+      // is NULLS NOT DISTINCT so the ON CONFLICT target matches both null and
+      // non-null user_id rows without the old check-then-write race.
+      await database
+        .insert(librarySyncState)
+        .values({
           userId,
           source,
           lastSyncStartedAt: patch.lastSyncStartedAt ?? null,
@@ -393,7 +389,10 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
           lastSyncError: patch.lastSyncError ?? null,
           lastSyncCounts: patch.lastSyncCounts ?? null,
         })
-      }
+        .onConflictDoUpdate({
+          target: [librarySyncState.userId, librarySyncState.source],
+          set: patch,
+        })
     },
 
     async clearRunningSyncStates() {
@@ -423,27 +422,23 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
     },
 
     async upsertOverride(userId, source, sourceArtistId, correctMbid, note) {
-      const existing = await getOverride(userId, source, sourceArtistId)
-      if (existing) {
-        await database
-          .update(libraryMatchOverrides)
-          .set({ correctMbid, note: note ?? null, updatedAt: new Date() })
-          .where(
-            and(
-              eq(libraryMatchOverrides.userId, userId),
-              eq(libraryMatchOverrides.source, source),
-              eq(libraryMatchOverrides.sourceArtistId, sourceArtistId),
-            ),
-          )
-      } else {
-        await database.insert(libraryMatchOverrides).values({
+      await database
+        .insert(libraryMatchOverrides)
+        .values({
           userId,
           source,
           sourceArtistId,
           correctMbid,
           note: note ?? null,
         })
-      }
+        .onConflictDoUpdate({
+          target: [
+            libraryMatchOverrides.userId,
+            libraryMatchOverrides.source,
+            libraryMatchOverrides.sourceArtistId,
+          ],
+          set: { correctMbid, note: note ?? null, updatedAt: new Date() },
+        })
     },
 
     async deleteOverride(userId, source, sourceArtistId) {
@@ -459,38 +454,23 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
     },
 
     async upsertAlbumOverride(userId, source, sourceAlbumId, correctAlbumMbid, note) {
-      const existing = await database
-        .select({ id: libraryAlbumMatchOverrides.id })
-        .from(libraryAlbumMatchOverrides)
-        .where(
-          and(
-            eq(libraryAlbumMatchOverrides.userId, userId),
-            eq(libraryAlbumMatchOverrides.source, source),
-            eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
-          ),
-        )
-        .limit(1)
-
-      if (existing[0]) {
-        await database
-          .update(libraryAlbumMatchOverrides)
-          .set({ correctAlbumMbid, note: note ?? null, updatedAt: new Date() })
-          .where(
-            and(
-              eq(libraryAlbumMatchOverrides.userId, userId),
-              eq(libraryAlbumMatchOverrides.source, source),
-              eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
-            ),
-          )
-      } else {
-        await database.insert(libraryAlbumMatchOverrides).values({
+      await database
+        .insert(libraryAlbumMatchOverrides)
+        .values({
           userId,
           source,
           sourceAlbumId,
           correctAlbumMbid,
           note: note ?? null,
         })
-      }
+        .onConflictDoUpdate({
+          target: [
+            libraryAlbumMatchOverrides.userId,
+            libraryAlbumMatchOverrides.source,
+            libraryAlbumMatchOverrides.sourceAlbumId,
+          ],
+          set: { correctAlbumMbid, note: note ?? null, updatedAt: new Date() },
+        })
     },
 
     async deleteAlbumOverride(userId, source, sourceAlbumId) {

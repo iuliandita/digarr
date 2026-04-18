@@ -537,4 +537,57 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
       },
     ])
   })
+
+  // Regression: check-then-write upserts could insert duplicate rows when two
+  // sync cycles overlapped. Now uses INSERT ... ON CONFLICT DO UPDATE with
+  // NULLS NOT DISTINCT so concurrent callers resolve to a single row.
+  it('upsertLibrarySyncState concurrent calls do not duplicate', async () => {
+    const store = createLibrarySyncStore(db)
+    await Promise.all([
+      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' }),
+      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'completed' }),
+      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' }),
+    ])
+    const rows = await db
+      .select()
+      .from(librarySyncState)
+      .where(eq(librarySyncState.userId, userId))
+    expect(rows).toHaveLength(1)
+  })
+
+  it('upsertOverride concurrent calls do not duplicate', async () => {
+    const store = createLibrarySyncStore(db)
+    await Promise.all([
+      store.upsertOverride(userId, PLEX_SOURCE, 'artist-1', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      store.upsertOverride(userId, PLEX_SOURCE, 'artist-1', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+    ])
+    const rows = await db
+      .select()
+      .from(libraryMatchOverrides)
+      .where(eq(libraryMatchOverrides.userId, userId))
+    expect(rows).toHaveLength(1)
+  })
+
+  it('upsertAlbumOverride concurrent calls do not duplicate', async () => {
+    const store = createLibrarySyncStore(db)
+    await Promise.all([
+      store.upsertAlbumOverride(
+        userId,
+        PLEX_SOURCE,
+        'album-1',
+        'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      ),
+      store.upsertAlbumOverride(
+        userId,
+        PLEX_SOURCE,
+        'album-1',
+        'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      ),
+    ])
+    const rows = await db
+      .select()
+      .from(libraryAlbumMatchOverrides)
+      .where(eq(libraryAlbumMatchOverrides.userId, userId))
+    expect(rows).toHaveLength(1)
+  })
 })
