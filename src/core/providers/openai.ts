@@ -28,6 +28,7 @@ export class OpenAIProvider implements RecommendationProvider {
     const response = await this.client.chat.completions.create({
       model: this.model,
       response_format: { type: 'json_object' },
+      max_completion_tokens: 4096,
       messages: [
         {
           role: 'system',

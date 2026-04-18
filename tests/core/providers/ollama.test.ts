@@ -141,10 +141,11 @@ describe('OllamaProvider', () => {
       expect(promptText).toContain('drone')
     })
 
-    test('throws on non-OK response', async () => {
+    test('throws on 4xx response without retrying', async () => {
       fetchSpy.mockResolvedValueOnce(new Response('Model not found', { status: 404 }))
 
-      await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow('Ollama API error')
+      await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(/client error 404/)
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -197,24 +198,21 @@ describe('OllamaProvider', () => {
 
   describe('timeout', () => {
     test('aborts getRecommendations when configured timeout elapses', async () => {
-      vi.useFakeTimers()
-      try {
-        const short = new OllamaProvider('llama3', TEST_BASE_URL, 2)
-        // fetch mock resolves after 5s so the 2s timeout fires first
-        fetchSpy.mockImplementationOnce(
-          (_url: RequestInfo | URL, init?: RequestInit) =>
-            new Promise<Response>((_resolve, reject) => {
-              const signal = init?.signal
-              signal?.addEventListener('abort', () => reject(new Error('aborted')))
-            }),
-        )
-        const pending = short.getRecommendations(sampleProfile)
-        const expectation = expect(pending).rejects.toThrow(/abort/i)
-        await vi.advanceTimersByTimeAsync(2_100)
-        await expectation
-      } finally {
-        vi.useRealTimers()
-      }
+      // Use a 1-second timeout + a fetch mock that never resolves unless the
+      // signal aborts. The retry helper treats AbortError as non-retriable,
+      // so we expect a single aborted call.
+      const short = new OllamaProvider('llama3', TEST_BASE_URL, 1)
+      fetchSpy.mockImplementationOnce(
+        (_url: RequestInfo | URL, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            const signal = init?.signal
+            const abortErr = new Error('aborted')
+            abortErr.name = 'AbortError'
+            signal?.addEventListener('abort', () => reject(abortErr))
+          }),
+      )
+      await expect(short.getRecommendations(sampleProfile)).rejects.toThrow(/abort/i)
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
 
     test('defaults to the Ollama-friendly 120s when no timeout provided', () => {

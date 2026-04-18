@@ -1,6 +1,7 @@
 import type { AiRecommendation, TasteProfile } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
+import { fetchWithRetry } from './retry'
 import type { RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gemini-3-flash-preview'
@@ -21,26 +22,25 @@ export class GeminiProvider implements RecommendationProvider {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 60_000)
     try {
-      const res = await fetch(`${API_BASE}/${this.model}:generateContent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': this.apiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            maxOutputTokens: 4096,
+      const res = await fetchWithRetry(
+        `${API_BASE}/${this.model}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': this.apiKey,
           },
-        }),
-        signal: controller.signal,
-      })
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '')
-        throw new Error(`Gemini API error: ${res.status} ${res.statusText} ${body}`)
-      }
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              maxOutputTokens: 4096,
+            },
+          }),
+          signal: controller.signal,
+        },
+        { providerLabel: 'gemini' },
+      )
 
       const data = (await res.json()) as {
         candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>

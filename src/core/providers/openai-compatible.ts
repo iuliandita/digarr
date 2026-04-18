@@ -5,6 +5,7 @@ import {
   parseRecommendationResponse,
   unwrapRecommendationArrayPayload,
 } from './prompt'
+import { fetchWithRetry } from './retry'
 import type { RecommendationProvider } from './types'
 
 export class OpenAICompatibleProvider implements RecommendationProvider {
@@ -26,24 +27,23 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 60_000)
     try {
-      const res = await fetch(`${this.baseUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            { role: 'system', content: 'Respond with a JSON array only.' },
-            { role: 'user', content: prompt },
-          ],
-          max_completion_tokens: 4096,
-        }),
-        signal: controller.signal,
-      })
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '')
-        throw new Error(`API error: ${res.status} ${body}`)
-      }
+      const res = await fetchWithRetry(
+        `${this.baseUrl}/v1/chat/completions`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model: this.model,
+            messages: [
+              { role: 'system', content: 'Respond with a JSON array only.' },
+              { role: 'user', content: prompt },
+            ],
+            max_completion_tokens: 4096,
+          }),
+          signal: controller.signal,
+        },
+        { providerLabel: 'openai-compatible' },
+      )
 
       const data = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>

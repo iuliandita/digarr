@@ -1,6 +1,7 @@
 import type { AiRecommendation, TasteProfile } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
+import { fetchWithRetry } from './retry'
 import type { RecommendationProvider } from './types'
 
 const DEFAULT_BASE_URL = 'http://localhost:11434'
@@ -38,21 +39,21 @@ export class OllamaProvider implements RecommendationProvider {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
-      const response = await fetch(`${this.baseUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
-          format: 'json',
-          stream: false,
-        }),
-        signal: controller.signal,
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`)
-      }
+      const response = await fetchWithRetry(
+        `${this.baseUrl}/api/chat`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: this.model,
+            messages: [{ role: 'user', content: prompt }],
+            format: 'json',
+            stream: false,
+          }),
+          signal: controller.signal,
+        },
+        { providerLabel: 'ollama' },
+      )
 
       const data = (await response.json()) as OllamaChatResponse
       const content = data.message?.content
