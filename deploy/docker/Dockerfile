@@ -14,6 +14,13 @@ RUN bun run build
 
 # Runtime stage -- override RUNTIME_IMAGE for alpine variant
 FROM ${RUNTIME_IMAGE}
+
+LABEL org.opencontainers.image.source="https://github.com/iuliandita/digarr"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.title="digarr"
+LABEL org.opencontainers.image.description="Music discovery and recommendation pipeline"
+LABEL org.opencontainers.image.vendor="iuliandita"
+
 WORKDIR /app
 
 # Non-root user (bun base image ships with bun:bun at UID/GID 1000)
@@ -24,6 +31,9 @@ RUN bun install --frozen-lockfile --production \
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
+
+RUN mkdir -p /app/backups && chown bun:bun /app/backups
+VOLUME ["/app/backups"]
 
 ENV NODE_ENV=production
 ENV PORT=3000

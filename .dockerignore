@@ -17,3 +17,14 @@ SECURITY-AUDIT.md
 .worktrees/
 *.md
 !README.md
+tests/
+.planning/
+docs/local/
+backups/
+playwright.config.ts
+mempalace.yaml
+entities.json
+coverage/
+.vitest-cache/
+*.tsbuildinfo
+.DS_Store
