@@ -1,38 +1,20 @@
+# Dev override -- additive layer on top of docker-compose.yml.
+# Only keys that differ from production live here.
+#
+# Usage:
+#   docker compose -f deploy/docker/docker-compose.yml \
+#                  -f deploy/docker/docker-compose.dev.yml up
+#
+# Prerequisites (one-time):
+#   cp deploy/docker/secrets/postgres_password.example deploy/docker/secrets/postgres_password
+#   cp deploy/docker/secrets/database_url.example      deploy/docker/secrets/database_url
+
 services:
   app:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile
-    env_file:
-      - path: .env
-        required: false
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER:-digarr}:${DB_PASS:?DB_PASS is required -- set it in .env}@postgres:5432/${DB_NAME:-digarr}
-      - PORT=3000
-    ports:
-      - "${PORT:-3000}:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
 
   postgres:
-    image: postgres:17-alpine
-    env_file:
-      - path: .env
-        required: false
-    environment:
-      - POSTGRES_USER=${DB_USER:-digarr}
-      - POSTGRES_PASSWORD=${DB_PASS:?DB_PASS is required -- set it in .env}
-      - POSTGRES_DB=${DB_NAME:-digarr}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-digarr}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-volumes:
-  pgdata:
+    ports:
+      - "5432:5432"
