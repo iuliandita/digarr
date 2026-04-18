@@ -106,6 +106,8 @@ jobs:
           cat /tmp/digarr-backend.log || true
           cat /tmp/digarr-frontend.log || true
           exit 1
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
       - name: Run browser E2E tests
         run: |
           PLAYWRIGHT_SKIP_WEBSERVER=1 bun run test:e2e || {
