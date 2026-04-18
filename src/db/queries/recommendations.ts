@@ -153,28 +153,25 @@ export async function bulkUpdateStatus(db: Database, ids: number[], status: stri
 export async function getGenreFeedbackHistory(
   db: Database,
 ): Promise<Map<string, { approved: number; total: number }>> {
-  // Query all acted-upon recommendations joined with artists
-  const rows = await db
-    .select({
-      genres: artists.genres,
-      status: recommendations.status,
-    })
-    .from(recommendations)
-    .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .where(sql`${recommendations.actedOnAt} is not null`)
+  // Pushing the per-genre tally into SQL via unnest lets Postgres do the
+  // hash-aggregate work - JS side only walks the reduced result.
+  const result = await db.execute(sql`
+    SELECT
+      genre,
+      COUNT(*)::int AS total,
+      COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved
+    FROM recommendations r
+    JOIN artists a ON a.id = r.artist_id
+    CROSS JOIN LATERAL unnest(a.genres) AS genre
+    WHERE r.acted_on_at IS NOT NULL
+      AND a.genres IS NOT NULL
+    GROUP BY genre
+  `)
 
   const genreMap = new Map<string, { approved: number; total: number }>()
-
-  for (const row of rows) {
-    if (!row.genres) continue
-    for (const genre of row.genres) {
-      const entry = genreMap.get(genre) ?? { approved: 0, total: 0 }
-      entry.total += 1
-      if (row.status === 'approved' || row.status === 'added_to_lidarr') entry.approved += 1
-      genreMap.set(genre, entry)
-    }
+  for (const row of result.rows as Array<{ genre: string; total: number; approved: number }>) {
+    genreMap.set(row.genre, { approved: row.approved, total: row.total })
   }
-
   return genreMap
 }
 
@@ -299,7 +296,9 @@ export async function getGenreArtists(
     })
     .from(recommendations)
     .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .leftJoin(artistMetadata, sql`lower(${artistMetadata.nameNormalized}) = lower(${artists.name})`)
+    // artistMetadata.nameNormalized is already lowercased at write time; the
+    // extra lower() wrapper would defeat any btree index on the column.
+    .leftJoin(artistMetadata, sql`${artistMetadata.nameNormalized} = lower(${artists.name})`)
     .where(
       and(
         genreCondition,

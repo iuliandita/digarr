@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import {
   artists,
@@ -20,34 +20,37 @@ export async function getTopGenresForUser(
   userId: number | undefined,
   limit = 5,
 ): Promise<TasteGenre[]> {
-  const statusFilter = inArray(recommendations.status, [
-    'approved',
-    'added_to_lidarr',
-    'add_failed',
-  ])
-  const where = userId ? and(statusFilter, eq(recommendations.userId, userId)) : statusFilter
+  // Push genre tallying into Postgres. unnest() explodes each artist's genres
+  // array into rows so we can GROUP BY genre. A correlated subquery over the
+  // same CTE yields the total tag count on every returned row, letting us
+  // compute the percentage without a second roundtrip.
+  const userClause = userId ? sql`AND r.user_id = ${userId}` : sql``
+  const result = await db.execute(sql`
+    WITH tags AS (
+      SELECT unnest(a.genres) AS genre
+      FROM recommendations r
+      JOIN artists a ON a.id = r.artist_id
+      WHERE r.status IN ('approved', 'added_to_lidarr', 'add_failed')
+        AND a.genres IS NOT NULL
+        ${userClause}
+    )
+    SELECT
+      genre,
+      COUNT(*)::int AS count,
+      (SELECT COUNT(*)::int FROM tags) AS total_tags
+    FROM tags
+    GROUP BY genre
+    ORDER BY count DESC
+    LIMIT ${limit}
+  `)
 
-  const rows = await db
-    .select({ genres: artists.genres })
-    .from(recommendations)
-    .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .where(where)
-
-  const genreCounts = new Map<string, number>()
-  let totalGenreTags = 0
-  for (const row of rows) {
-    for (const genre of row.genres ?? []) {
-      genreCounts.set(genre, (genreCounts.get(genre) ?? 0) + 1)
-      totalGenreTags++
-    }
-  }
-
-  const sorted = [...genreCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit)
-
-  return sorted.map(([genre, count]) => ({
-    genre,
-    count,
-    percentage: totalGenreTags > 0 ? Math.round((count / totalGenreTags) * 100) : 0,
+  const rows = result.rows as Array<{ genre: string; count: number; total_tags: number }>
+  if (rows.length === 0) return []
+  const total = rows[0]?.total_tags ?? 0
+  return rows.map((row) => ({
+    genre: row.genre,
+    count: row.count,
+    percentage: total > 0 ? Math.round((row.count / total) * 100) : 0,
   }))
 }
 

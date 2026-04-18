@@ -47,15 +47,27 @@ function collectParamValues(node: unknown): unknown[] {
   return values
 }
 
+// Aggregation moved into SQL (unnest + GROUP BY), so the unit tests now mock
+// pre-aggregated execute() rows. The SQL correctness is covered by the
+// integration tests that run against Postgres.
+function makeExecuteMock(rows: unknown[]): Database {
+  return {
+    select: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    transaction: vi.fn(),
+    execute: vi.fn().mockResolvedValue({ rows }),
+  } as unknown as Database
+}
+
 describe('getGenreFeedbackHistory', () => {
   it('returns correct approved/total counts per genre', async () => {
-    const rows = [
-      { genres: ['rock', 'metal'], status: 'approved' },
-      { genres: ['rock'], status: 'rejected' },
-      { genres: ['jazz'], status: 'approved' },
-      { genres: ['metal'], status: 'approved' },
-    ]
-    const db = makeMockDb(rows)
+    const db = makeExecuteMock([
+      { genre: 'rock', total: 2, approved: 1 },
+      { genre: 'metal', total: 2, approved: 2 },
+      { genre: 'jazz', total: 1, approved: 1 },
+    ])
 
     const result = await getGenreFeedbackHistory(db)
 
@@ -65,20 +77,9 @@ describe('getGenreFeedbackHistory', () => {
   })
 
   it('returns empty map when no acted-upon recommendations', async () => {
-    const db = makeMockDb([])
+    const db = makeExecuteMock([])
     const result = await getGenreFeedbackHistory(db)
     expect(result.size).toBe(0)
-  })
-
-  it('skips rows with null genres', async () => {
-    const rows = [
-      { genres: null, status: 'approved' },
-      { genres: ['pop'], status: 'approved' },
-    ]
-    const db = makeMockDb(rows)
-    const result = await getGenreFeedbackHistory(db)
-    expect(result.size).toBe(1)
-    expect(result.get('pop')).toEqual({ approved: 1, total: 1 })
   })
 })
 
