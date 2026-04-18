@@ -441,7 +441,7 @@ describe('PATCH /api/subscriptions/:id', () => {
     )
   })
 
-  it('returns 403 when user does not own subscription', async () => {
+  it('hides cross-user subscription with 404', async () => {
     const OTHER_USER = 99
     const app = createTestApp(makeDeps(), OTHER_USER)
     const res = await app.request('/api/subscriptions/1', {
@@ -449,7 +449,7 @@ describe('PATCH /api/subscriptions/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Hacked' }),
     })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
     expect(mockSubQueries.updateSubscription).not.toHaveBeenCalled()
   })
 
@@ -615,10 +615,10 @@ describe('DELETE /api/subscriptions/:id', () => {
     expect(mockScheduler.remove).toHaveBeenCalledWith('subscription-1')
   })
 
-  it('returns 403 when user does not own subscription', async () => {
+  it('hides cross-user subscription with 404', async () => {
     const app = createTestApp(makeDeps(), 99)
     const res = await app.request('/api/subscriptions/1', { method: 'DELETE' })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
     expect(mockSubQueries.deleteSubscription).not.toHaveBeenCalled()
   })
 
@@ -637,10 +637,10 @@ describe('POST /api/subscriptions/:id/run', () => {
     expect(res.status).toBe(202)
   })
 
-  it('returns 403 when user does not own subscription', async () => {
+  it('hides cross-user subscription with 404', async () => {
     const app = createTestApp(makeDeps(), 99)
     const res = await app.request('/api/subscriptions/1/run', { method: 'POST' })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 
@@ -655,10 +655,10 @@ describe('GET /api/subscriptions/:id/runs', () => {
     expect(deps.jobQueries.getJobsForSubscription).toHaveBeenCalledWith(1)
   })
 
-  it('returns 403 for non-owner', async () => {
+  it('hides cross-user subscription with 404', async () => {
     const app = createTestApp(makeDeps(), 99)
     const res = await app.request('/api/subscriptions/1/runs')
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 
   it('returns 404 for unknown subscription', async () => {

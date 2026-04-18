@@ -129,7 +129,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)
-    if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+    if (result.playlist.userId !== userId) return c.json({ error: 'Not found' }, 404)
 
     return c.json(result)
   })
@@ -148,7 +148,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
       const result = await getPlaylistWithTracks(db, id)
       if (!result) return c.json({ error: 'Not found' }, 404)
-      if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+      if (result.playlist.userId !== userId) return c.json({ error: 'Not found' }, 404)
 
       const tracks = result.tracks.slice().sort((a, b) => a.position - b.position)
       const filename = sanitizeFilename(result.playlist.name) || `playlist-${id}`
@@ -175,7 +175,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
       const { id } = c.req.valid('param')
       const existing = await getPlaylistWithTracks(db, id)
       if (!existing) return c.json({ error: 'Not found' }, 404)
-      if (existing.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+      if (existing.playlist.userId !== userId) return c.json({ error: 'Not found' }, 404)
 
       const body = c.req.valid('json')
       await updatePlaylist(db, id, body as Record<string, unknown>)
@@ -193,7 +193,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)
-    if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+    if (result.playlist.userId !== userId) return c.json({ error: 'Not found' }, 404)
 
     await deletePlaylist(db, id)
     await deps.restartPlaylistScheduler()
@@ -209,7 +209,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const result = await getPlaylistWithTracks(db, id)
     if (!result) return c.json({ error: 'Not found' }, 404)
-    if (result.playlist.userId !== userId) return c.json({ error: 'Forbidden' }, 403)
+    if (result.playlist.userId !== userId) return c.json({ error: 'Not found' }, 404)
 
     // Fire-and-forget
     Promise.resolve()

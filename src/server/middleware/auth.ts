@@ -113,6 +113,10 @@ export function authGuard(options: {
       return c.json({ error: 're-run setup', detail: 'admin record missing' }, 503)
     }
 
+    // RFC 7235: unauthenticated responses should advertise an auth scheme.
+    // `realm` is an opaque client-facing tag; kept stable so automated probes
+    // can key on it without parsing our domain name out.
+    c.header('WWW-Authenticate', 'Bearer realm="digarr"')
     return c.json({ error: 'Unauthorized' }, 401)
   })
 }

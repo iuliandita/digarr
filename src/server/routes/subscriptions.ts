@@ -687,7 +687,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
         return c.json({ error: 'Subscription not found' }, 404)
       }
       if (existing.userId !== userId) {
-        return c.json({ error: 'Forbidden' }, 403)
+        return c.json({ error: 'Subscription not found' }, 404)
       }
 
       const body = c.req.valid('json')
@@ -739,7 +739,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Subscription not found' }, 404)
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Forbidden' }, 403)
+      return c.json({ error: 'Subscription not found' }, 404)
     }
     await deps.subscriptionQueries.deleteSubscription(id)
     deps.scheduler.remove(`subscription-${id}`)
@@ -758,7 +758,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Subscription not found' }, 404)
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Forbidden' }, 403)
+      return c.json({ error: 'Subscription not found' }, 404)
     }
 
     try {
@@ -800,7 +800,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Subscription not found' }, 404)
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Forbidden' }, 403)
+      return c.json({ error: 'Subscription not found' }, 404)
     }
 
     const runs = await deps.jobQueries.getJobsForSubscription(id)

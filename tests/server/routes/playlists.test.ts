@@ -247,10 +247,10 @@ describe('GET /api/playlists/:id', () => {
     expect(Array.isArray(body.tracks)).toBe(true)
   })
 
-  it('returns 403 for non-owner', async () => {
+  it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999) // different user
     const res = await app.request('/api/playlists/1')
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 
   it('returns 404 for missing playlist', async () => {
@@ -288,10 +288,10 @@ describe('GET /api/playlists/:id/export/:format', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 403 for non-owner export access', async () => {
+  it('hides cross-user playlist with 404 export access', async () => {
     const app = createTestApp(makeDeps(), 999)
     const res = await app.request('/api/playlists/1/export/m3u')
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 
@@ -310,14 +310,14 @@ describe('PATCH /api/playlists/:id', () => {
     expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
-  it('returns 403 for non-owner', async () => {
+  it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
     const res = await app.request('/api/playlists/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'hack' }),
     })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 
@@ -332,10 +332,10 @@ describe('DELETE /api/playlists/:id', () => {
     expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
-  it('returns 403 for non-owner', async () => {
+  it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
     const res = await app.request('/api/playlists/1', { method: 'DELETE' })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 })
 
@@ -350,10 +350,10 @@ describe('POST /api/playlists/:id/generate', () => {
     expect(deps.runPlaylistGeneration).toHaveBeenCalledWith(1)
   })
 
-  it('returns 403 for non-owner', async () => {
+  it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
     const res = await app.request('/api/playlists/1/generate', { method: 'POST' })
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
   })
 
   it('returns 404 for missing playlist', async () => {

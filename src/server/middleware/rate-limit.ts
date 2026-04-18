@@ -63,11 +63,24 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
 
     bucket.count++
 
+    const remaining = Math.max(0, opts.max - bucket.count)
+    const resetEpoch = Math.ceil(bucket.resetAt / 1000)
+    const windowSeconds = Math.ceil(opts.windowMs / 1000)
+
+    // Legacy X-RateLimit-* headers stay for existing clients; the new
+    // RateLimit-* set (IETF draft-ietf-httpapi-ratelimit-headers) is added
+    // in parallel so forward-looking clients can rely on the standard.
     c.header('X-RateLimit-Limit', String(opts.max))
-    c.header('X-RateLimit-Remaining', String(Math.max(0, opts.max - bucket.count)))
-    c.header('X-RateLimit-Reset', String(Math.ceil(bucket.resetAt / 1000)))
+    c.header('X-RateLimit-Remaining', String(remaining))
+    c.header('X-RateLimit-Reset', String(resetEpoch))
+    c.header('RateLimit-Policy', `${opts.max};w=${windowSeconds}`)
+    c.header('RateLimit-Limit', String(opts.max))
+    c.header('RateLimit-Remaining', String(remaining))
+    c.header('RateLimit-Reset', String(Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))))
 
     if (bucket.count > opts.max) {
+      const retryAfter = Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))
+      c.header('Retry-After', String(retryAfter))
       return c.json({ error: 'Too many requests' }, 429)
     }
 
