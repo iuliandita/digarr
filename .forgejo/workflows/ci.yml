@@ -96,7 +96,7 @@ jobs:
           bun run tests/e2e/browser/start-backend.ts > /tmp/digarr-backend.log 2>&1 &
           bun run dev:web > /tmp/digarr-frontend.log 2>&1 &
 
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 120); do
             if bun -e "const backend = await fetch('http://127.0.0.1:3000/health').catch(() => null); const frontend = await fetch('http://127.0.0.1:5173').catch(() => null); if (backend?.ok && frontend?.ok) process.exit(0); process.exit(1);"; then
               exit 0
             fi
