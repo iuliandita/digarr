@@ -4,7 +4,7 @@ import { getPendingMigrations } from '@/web/lib/api'
 import { useI18n } from '@/web/lib/i18n'
 
 export function UpgradeSection() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const [expanded, setExpanded] = useState(false)
 
   const { data } = useQuery({
@@ -50,7 +50,7 @@ export function UpgradeSection() {
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted">{t('admin.lastAutoBackup')}</span>
           <span className="text-xs text-muted">
-            {new Date(data.lastAutoBackup.createdAt).toLocaleString()}
+            {new Date(data.lastAutoBackup.createdAt).toLocaleString(locale)}
           </span>
         </div>
       )}

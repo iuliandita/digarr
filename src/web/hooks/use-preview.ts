@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useI18n } from '../lib/i18n'
 
 export type PreviewSource = {
   type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
@@ -104,6 +105,7 @@ export async function resolvePreviewSource(
  * require the consumer to render an iframe using `state.source.embedUrl`.
  */
 export function usePreview() {
+  const { t } = useI18n()
   const [state, setState] = useState<PreviewState>(INITIAL_STATE)
   const stateRef = useRef<PreviewState>(INITIAL_STATE)
   const currentMbidRef = useRef<string | null>(null)
@@ -183,7 +185,7 @@ export function usePreview() {
 
       if (!source) {
         setStateAndRef(() => INITIAL_STATE)
-        toast.error('No preview available for this artist')
+        toast.error(t('preview.noPreviewAvailable'))
         return
       }
 
@@ -198,7 +200,7 @@ export function usePreview() {
           setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
         } catch {
           setStateAndRef(() => INITIAL_STATE)
-          toast.error('Playback blocked by browser - try clicking again')
+          toast.error(t('preview.playbackBlocked'))
         }
         return
       }
@@ -206,7 +208,7 @@ export function usePreview() {
       // Embed source: component renders the iframe; just expose the source
       setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
     },
-    [setStateAndRef],
+    [setStateAndRef, t],
   )
 
   const hasPreview = useCallback((streamingUrls: Record<string, string> | null): boolean => {

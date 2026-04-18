@@ -327,7 +327,9 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
           </svg>
         </button>
         <span className="tabular-nums font-medium">
-          {index + 1} of {total}
+          {t('cardStack.counter')
+            .replace('{0}', String(index + 1))
+            .replace('{1}', String(total))}
         </span>
         <button
           type="button"
@@ -381,7 +383,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
 
       {/* Swipe hint */}
       {rec?.status === 'pending' && (
-        <p className="text-micro text-muted">Swipe right to approve, left to reject</p>
+        <p className="text-micro text-muted">{t('cardStack.swipeHint')}</p>
       )}
     </div>
   )

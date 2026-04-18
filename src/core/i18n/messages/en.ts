@@ -1263,9 +1263,34 @@ export const en = {
 
   // Album picker empty state
   'albumPicker.noReleaseGroups': 'No release groups found',
+  'albumPicker.title': 'Select albums',
+  'albumPicker.loadFailed': 'Failed to load albums',
+  'albumPicker.selectAll': 'All',
+  'albumPicker.selectNone': 'None',
+  'albumPicker.selectedCount': '{0} selected',
+  'albumPicker.aiPick': 'AI pick',
+  'albumPicker.monitorSingular': 'Monitor {0} album',
+  'albumPicker.monitorPlural': 'Monitor {0} albums',
+  'albumPicker.monitor': 'Monitor',
 
   // Approve dialog
   'approveDialog.loadingProfiles': 'Loading profiles...',
+  'approveDialog.title': 'Lidarr Settings for This Artist',
+  'approveDialog.loadFailed': 'Failed to load Lidarr profiles. Check your Lidarr connection.',
+  'approveDialog.qualityProfile': 'Quality Profile',
+  'approveDialog.metadataProfile': 'Metadata Profile',
+  'approveDialog.rootFolder': 'Root Folder',
+
+  // Card stack navigation hints
+  'cardStack.counter': '{0} of {1}',
+  'cardStack.swipeHint': 'Swipe right to approve, left to reject',
+
+  // Service card footer
+  'serviceCard.testConnection': 'Test Connection',
+
+  // Preview playback toasts
+  'preview.noPreviewAvailable': 'No preview available for this artist',
+  'preview.playbackBlocked': 'Playback blocked by browser - try clicking again',
 
   // Genre grid empty state
   'genres.noneFound': 'No genres found.',

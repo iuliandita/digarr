@@ -63,6 +63,7 @@ export function ServiceCard({
   onTest,
   children,
 }: ServiceCardProps) {
+  const { t } = useI18n()
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -81,7 +82,7 @@ export function ServiceCard({
       {onTest && (
         <CardFooter>
           <Button variant="outline" size="sm" onClick={onTest} disabled={status === 'testing'}>
-            Test Connection
+            {t('serviceCard.testConnection')}
           </Button>
         </CardFooter>
       )}

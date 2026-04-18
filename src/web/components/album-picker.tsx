@@ -98,7 +98,7 @@ export function AlbumPicker({
           <div className="flex items-center gap-3">
             <ArtistThumb name={artistName} imageUrl={artistImageUrl} size={10} />
             <div>
-              <h2 className="text-sm font-semibold text-text">Select albums</h2>
+              <h2 className="text-sm font-semibold text-text">{t('albumPicker.title')}</h2>
               <p className="text-xs text-muted mt-0.5">{artistName}</p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export function AlbumPicker({
           )}
 
           {albumsQuery.isError && (
-            <p className="text-sm text-reject text-center py-8">Failed to load albums</p>
+            <p className="text-sm text-reject text-center py-8">{t('albumPicker.loadFailed')}</p>
           )}
 
           {albumsQuery.isSuccess && sortedAlbums.length === 0 && (
@@ -152,17 +152,17 @@ export function AlbumPicker({
                   onClick={handleSelectAll}
                   className="text-xs text-accent hover:underline"
                 >
-                  All
+                  {t('albumPicker.selectAll')}
                 </button>
                 <button
                   type="button"
                   onClick={handleDeselectAll}
                   className="text-xs text-muted hover:text-text"
                 >
-                  None
+                  {t('albumPicker.selectNone')}
                 </button>
                 <span className="ml-auto text-xs text-muted tabular-nums">
-                  {selected.size} selected
+                  {t('albumPicker.selectedCount').replace('{0}', String(selected.size))}
                 </span>
               </div>
 
@@ -185,7 +185,7 @@ export function AlbumPicker({
                             <span className="text-sm text-text truncate">{album.title}</span>
                             {isSuggested && (
                               <span className="text-micro px-1.5 py-0.5 rounded-full bg-accent/20 text-accent shrink-0">
-                                AI pick
+                                {t('albumPicker.aiPick')}
                               </span>
                             )}
                           </div>
@@ -213,7 +213,7 @@ export function AlbumPicker({
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border shrink-0">
           <Button size="sm" variant="ghost" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             size="sm"
@@ -221,8 +221,12 @@ export function AlbumPicker({
             disabled={selected.size === 0}
             onClick={() => onConfirm([...selected])}
           >
-            Monitor{' '}
-            {selected.size > 0 ? `${selected.size} album${selected.size !== 1 ? 's' : ''}` : ''}
+            {selected.size === 0
+              ? t('albumPicker.monitor')
+              : (selected.size === 1
+                  ? t('albumPicker.monitorSingular')
+                  : t('albumPicker.monitorPlural')
+                ).replace('{0}', String(selected.size))}
           </Button>
         </div>
       </div>

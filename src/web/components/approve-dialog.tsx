@@ -61,18 +61,16 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
             if (e.key === 'Escape') onCancel()
           }}
         >
-          <h3 className="text-sm font-medium text-text mb-3">Lidarr Settings for This Artist</h3>
+          <h3 className="text-sm font-medium text-text mb-3">{t('approveDialog.title')}</h3>
 
           {loading ? (
             <p className="text-sm text-muted">{t('approveDialog.loadingProfiles')}</p>
           ) : error ? (
-            <p className="text-sm text-red-400">
-              Failed to load Lidarr profiles. Check your Lidarr connection.
-            </p>
+            <p className="text-sm text-red-400">{t('approveDialog.loadFailed')}</p>
           ) : (
             <div className="space-y-3">
               <label className="block">
-                <span className="text-xs text-muted">Quality Profile</span>
+                <span className="text-xs text-muted">{t('approveDialog.qualityProfile')}</span>
                 <select
                   value={qp}
                   onChange={(e) => setQp(e.target.value)}
@@ -86,7 +84,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
                 </select>
               </label>
               <label className="block">
-                <span className="text-xs text-muted">Metadata Profile</span>
+                <span className="text-xs text-muted">{t('approveDialog.metadataProfile')}</span>
                 <select
                   value={mp}
                   onChange={(e) => setMp(e.target.value)}
@@ -100,7 +98,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
                 </select>
               </label>
               <label className="block">
-                <span className="text-xs text-muted">Root Folder</span>
+                <span className="text-xs text-muted">{t('approveDialog.rootFolder')}</span>
                 <select
                   value={rf}
                   onChange={(e) => setRf(e.target.value)}
@@ -118,7 +116,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
 
           <div className="flex justify-end gap-2 mt-4">
             <Button size="sm" variant="outline" onClick={onCancel}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               size="sm"
