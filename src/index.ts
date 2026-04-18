@@ -32,6 +32,7 @@ import { createLidarrLibrarySource } from './core/library/sources/lidarr'
 import { createPlexLibrarySource } from './core/library/sources/plex'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
+import { markShuttingDown } from './core/lifecycle'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
@@ -1519,10 +1520,16 @@ if (!envConfig.authToken && !envConfig.initialUsername) {
   )
 }
 
-// Graceful shutdown - wait for in-flight pipeline runs before exiting
+// Graceful shutdown - flip readiness, drain, wait for in-flight work, exit
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, async () => {
     console.log(`${signal} received, shutting down...`)
+    // Flip /health to 503 so kube-proxy / ingress stop routing traffic
+    // to this pod. Wait for one readiness-probe cycle (5s period + 5s
+    // timeout + 2 failures = up to 20s) before closing the server so
+    // in-flight requests finish on the listener we still own.
+    markShuttingDown()
+    await new Promise((resolve) => setTimeout(resolve, 12_000))
     scheduler.stopAll()
     playlistScheduler.stopAll()
     slskdCron?.stop()

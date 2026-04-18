@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { markShuttingDown, resetLifecycleForTests } from '@/core/lifecycle'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
@@ -118,12 +119,36 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
 }
 
 describe('GET /health', () => {
+  afterEach(() => {
+    resetLifecycleForTests()
+  })
+
   it('returns 200 with status ok', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/health')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('ok')
+  })
+
+  it('returns 503 with status draining when shutting down', async () => {
+    const app = createApp(makeDeps())
+    markShuttingDown()
+    const res = await app.request('/health')
+    expect(res.status).toBe(503)
+    const body = await res.json()
+    expect(body.status).toBe('draining')
+  })
+
+  it('short-circuits DB check when shutting down', async () => {
+    const execute = vi.fn(async () => [])
+    const deps = makeDeps({
+      db: { execute } as unknown as AppDependencies['db'],
+    })
+    const app = createApp(deps)
+    markShuttingDown()
+    await app.request('/health')
+    expect(execute).not.toHaveBeenCalled()
   })
 })
 
