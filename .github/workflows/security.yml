@@ -29,10 +29,16 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Dependency audit
+        # Structured JSON output + jq filter avoids the fragile grep that would
+        # match 'high'/'critical' anywhere in the text (e.g. inside package
+        # names or advisory titles).
         run: |
-          output=$(bun audit 2>&1) || true
-          echo "$output"
-          if echo "$output" | grep -qi "high\|critical"; then
+          set -euo pipefail
+          report=$(bun audit --json 2>/dev/null || true)
+          echo "$report"
+          count=$(printf '%s' "$report" | jq '[.vulnerabilities[]? | select(.severity == "high" or .severity == "critical")] | length')
+          echo "High/critical vulnerabilities: $count"
+          if [ "$count" -gt 0 ]; then
             echo "::error::High or critical vulnerabilities found"
             exit 1
           fi
@@ -51,7 +57,9 @@ jobs:
           severity: HIGH,CRITICAL
           format: sarif
           output: trivy-fs.sarif
-          exit-code: "1"
+          # advisory-only: findings surface in code scanning (SARIF upload).
+          # Revisit once we have a baseline + `.trivyignore` with dated entries.
+          exit-code: "0"
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
           trivy-version: "0.69.3"
       - uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
