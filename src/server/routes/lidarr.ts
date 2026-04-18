@@ -2,9 +2,13 @@ import { Hono } from 'hono'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { errMsg } from '@/core/validation'
 import type { AppDependencies } from '@/server'
+import { adminGuard } from '@/server/middleware/admin-guard'
+import { lidarrAddSchema } from '@/server/schemas/lidarr'
+import { zJson } from '@/server/schemas/validator'
+import type { HonoEnv } from '@/server/types'
 
 export function lidarrRoutes(deps: AppDependencies) {
-  const router = new Hono()
+  const router = new Hono<HonoEnv>()
 
   async function getClient() {
     const settings = await deps.getSettings()
@@ -44,31 +48,24 @@ export function lidarrRoutes(deps: AppDependencies) {
     return c.json(await client.getRootFolders())
   })
 
-  router.post('/api/lidarr/add', async (c) => {
-    const body = await c.req.json()
-    const { foreignArtistId, artistName, qualityProfileId, metadataProfileId, rootFolderId } =
-      body as {
-        foreignArtistId: string
-        artistName: string
-        qualityProfileId: number
-        metadataProfileId: number
-        rootFolderId: number
-      }
-
-    if (!foreignArtistId || !artistName) {
-      return c.json({ error: 'foreignArtistId and artistName are required' }, 400)
-    }
-
-    const client = await getClient()
-    const artist = await client.addArtist(
-      foreignArtistId,
-      artistName,
-      qualityProfileId ?? 1,
-      metadataProfileId ?? 1,
-      rootFolderId ?? 1,
-    )
-    return c.json(artist)
-  })
+  router.post(
+    '/api/lidarr/add',
+    adminGuard(deps.getUserById),
+    zJson(lidarrAddSchema),
+    async (c) => {
+      const { foreignArtistId, artistName, qualityProfileId, metadataProfileId, rootFolderId } =
+        c.req.valid('json')
+      const client = await getClient()
+      const artist = await client.addArtist(
+        foreignArtistId,
+        artistName,
+        qualityProfileId ?? 1,
+        metadataProfileId ?? 1,
+        rootFolderId ?? 1,
+      )
+      return c.json(artist)
+    },
+  )
 
   return router
 }
