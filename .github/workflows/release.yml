@@ -180,7 +180,12 @@ jobs:
           TAG: ${{ steps.tag.outputs.value }}
           REPO: ${{ github.repository }}
         run: |
-          gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes 2>/dev/null || true
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "release $TAG already exists; skipping create"
+          else
+            gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
+          fi
           gh release upload "$TAG" sbom-container.spdx.json sbom-source.spdx.json --clobber
 
   verify-digest-sync:
