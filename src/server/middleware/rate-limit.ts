@@ -2,6 +2,30 @@ import { createMiddleware } from 'hono/factory'
 import type { HonoEnv } from '@/server/types'
 
 type RateLimitBucket = { count: number; resetAt: number }
+type RateLimitStore = Map<string, RateLimitBucket>
+
+const registry: RateLimitStore[] = []
+let pruneInterval: ReturnType<typeof setInterval> | null = null
+
+function ensurePruneStarted(): void {
+  if (pruneInterval) return
+  pruneInterval = setInterval(() => {
+    const now = Date.now()
+    for (const store of registry) {
+      for (const [key, bucket] of store) {
+        if (bucket.resetAt <= now) store.delete(key)
+      }
+    }
+  }, 60_000)
+  pruneInterval.unref?.()
+}
+
+/** Exposed for tests: clear the shared prune interval and registry. */
+export function __shutdownRateLimiter(): void {
+  if (pruneInterval) clearInterval(pruneInterval)
+  pruneInterval = null
+  registry.length = 0
+}
 
 /** Extract socket-level IP (not forgeable headers). Mirrors proxy-auth.ts. */
 function getSocketIp(c: { env?: unknown }): string | null {
@@ -17,17 +41,12 @@ function getSocketIp(c: { env?: unknown }): string | null {
 /**
  * Simple in-memory rate limiter keyed by client IP.
  * Not shared across processes - sufficient for single-process deployments.
+ * All limiter instances share one prune interval via the module-level registry.
  */
 export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: string }) {
-  const buckets = new Map<string, RateLimitBucket>()
-
-  // Prune expired buckets every 60s to avoid unbounded growth
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, bucket] of buckets) {
-      if (bucket.resetAt <= now) buckets.delete(key)
-    }
-  }, 60_000).unref()
+  const buckets: RateLimitStore = new Map()
+  registry.push(buckets)
+  ensurePruneStarted()
 
   return createMiddleware<HonoEnv>(async (c, next) => {
     // Use socket IP to prevent bypass via forged X-Forwarded-For headers.

@@ -1086,6 +1086,8 @@ async function restartPlaylistScheduler(): Promise<void> {
 
 let librarySyncCron: Cron | null = null
 let libraryHealthCron: Cron | null = null
+let slskdCron: Cron | null = null
+let stuckDetectorCron: Cron | null = null
 
 function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   librarySyncCron?.stop()
@@ -1464,7 +1466,7 @@ const server = serve({ fetch: app.fetch, port })
       .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
     libraryHealth.startScan()
     void slskdOrchestrator.warmup()
-    new Cron('*/10 * * * *', async () => {
+    slskdCron = new Cron('*/10 * * * *', async () => {
       try {
         await slskdOrchestrator.triggerSync()
       } catch (err) {
@@ -1473,7 +1475,7 @@ const server = serve({ fetch: app.fetch, port })
     })
 
     // Start stuck job detector
-    startStuckDetector(jobRecorder)
+    stuckDetectorCron = startStuckDetector(jobRecorder)
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }
@@ -1519,6 +1521,10 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     console.log(`${signal} received, shutting down...`)
     scheduler.stopAll()
     playlistScheduler.stopAll()
+    slskdCron?.stop()
+    stuckDetectorCron?.stop()
+    librarySyncCron?.stop()
+    libraryHealthCron?.stop()
     server.close()
     // Hard deadline: exit no matter what after 30s
     const deadline = setTimeout(() => {

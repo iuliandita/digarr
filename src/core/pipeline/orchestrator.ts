@@ -475,6 +475,8 @@ export class PipelineOrchestrator extends EventEmitter {
       throw err
     } finally {
       this.running = false
+      // Drop the userId so subsequent non-pipeline emits don't inherit a stale owner
+      this._currentUserId = undefined
     }
   }
 
