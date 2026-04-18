@@ -88,35 +88,12 @@ function buildLanguageInstruction(locale?: SupportedLocale): string {
   return locale ? `All reasoning fields must be written in ${getLocaleLabel(locale)}.\n` : ''
 }
 
-export function buildRecommendationPrompt(profile: TasteProfile): string {
-  if (profile._rawPrompt) return profile._rawPrompt
+// Static, cacheable block. Identical bytes across every request, which is
+// what makes Anthropic's ephemeral prompt cache useful here. Nothing in this
+// string may depend on the caller's profile or locale.
+export const RECOMMENDATION_SYSTEM_PRELUDE = `You are a music discovery expert.
 
-  const topArtistNames = profile.topArtists
-    .slice(0, 20)
-    .map((a) => `${a.name} (${a.playCount} plays)`)
-    .join(', ')
-
-  const topGenres = profile.topGenres
-    .slice(0, 10)
-    .map((g) => `${g.name} (weight: ${g.weight.toFixed(2)})`)
-    .join(', ')
-
-  const trend = profile.listeningPatterns.recentTrend
-  const totalListens = profile.listeningPatterns.totalListens
-  const languageInstruction = buildLanguageInstruction(profile.responseLocale)
-
-  return `You are a music discovery expert.
-${languageInstruction}Based on the following listening profile, recommend 15-20 artists the listener has NOT heard yet but would likely enjoy.
-
-## Listening Profile
-
-**Top Artists:** ${topArtistNames || 'none recorded'}
-
-**Top Genres:** ${topGenres || 'none recorded'}
-
-**Listening Patterns:**
-- Total listens: ${totalListens}
-- Recent trend: ${trend}
+Based on the listening profile in the user turn, recommend 15-20 artists the listener has NOT heard yet but would likely enjoy.
 
 ## Instructions
 
@@ -141,6 +118,42 @@ Example:
 IMPORTANT: For each recommendation, verify that the reasoning accurately describes the EXACT artist named in artistName. Do not confuse similarly-named artists (e.g., "Velvet Underground" and "Digital Underground" are completely different artists). The genres field must match the actual genres of the named artist.
 
 Provide 15-20 diverse recommendations. Prioritize lesser-known artists alongside some well-known ones. Do not include artists already in the listener's top artists list.`
+
+/**
+ * Variable half of the recommendation prompt - the listener profile and
+ * optional response-language override. This is what goes in the user turn
+ * when the prelude is cached as a system block (Anthropic). For providers
+ * without prompt caching, callers concatenate prelude + userTurn.
+ */
+export function buildRecommendationUserTurn(profile: TasteProfile): string {
+  const topArtistNames = profile.topArtists
+    .slice(0, 20)
+    .map((a) => `${a.name} (${a.playCount} plays)`)
+    .join(', ')
+
+  const topGenres = profile.topGenres
+    .slice(0, 10)
+    .map((g) => `${g.name} (weight: ${g.weight.toFixed(2)})`)
+    .join(', ')
+
+  const trend = profile.listeningPatterns.recentTrend
+  const totalListens = profile.listeningPatterns.totalListens
+  const languageInstruction = buildLanguageInstruction(profile.responseLocale)
+
+  return `${languageInstruction}## Listening Profile
+
+**Top Artists:** ${topArtistNames || 'none recorded'}
+
+**Top Genres:** ${topGenres || 'none recorded'}
+
+**Listening Patterns:**
+- Total listens: ${totalListens}
+- Recent trend: ${trend}`
+}
+
+export function buildRecommendationPrompt(profile: TasteProfile): string {
+  if (profile._rawPrompt) return profile._rawPrompt
+  return `${RECOMMENDATION_SYSTEM_PRELUDE}\n\n${buildRecommendationUserTurn(profile)}`
 }
 
 // Strip control chars (except tab, LF, CR) that users could inject to break

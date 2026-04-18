@@ -6,13 +6,14 @@ import {
   getAiRecommendationsJsonSchema,
   validateAiRecommendations,
 } from './prompt'
-import type { RecommendationProvider } from './types'
+import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gpt-5.4-mini'
 
 export class OpenAIProvider implements RecommendationProvider {
   private client: OpenAI
   private model: string
+  lastUsage: AiUsage | null = null
 
   constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
     this.client = new OpenAI({
@@ -23,6 +24,7 @@ export class OpenAIProvider implements RecommendationProvider {
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
+    this.lastUsage = null
     const prompt = buildRecommendationPrompt(profile)
     const schema = getAiRecommendationsJsonSchema()
 
@@ -46,6 +48,15 @@ export class OpenAIProvider implements RecommendationProvider {
         { role: 'user', content: prompt },
       ],
     })
+
+    if (response.usage) {
+      this.lastUsage = {
+        provider: 'openai',
+        model: this.model,
+        inputTokens: response.usage.prompt_tokens,
+        outputTokens: response.usage.completion_tokens,
+      }
+    }
 
     const content = response.choices[0]?.message?.content
     if (!content) {

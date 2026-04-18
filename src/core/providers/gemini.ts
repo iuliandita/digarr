@@ -6,7 +6,7 @@ import {
   validateAiRecommendations,
 } from './prompt'
 import { fetchWithRetry } from './retry'
-import type { RecommendationProvider } from './types'
+import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gemini-3-flash-preview'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
@@ -40,6 +40,7 @@ function sanitizeGeminiSchema(input: unknown): unknown {
 export class GeminiProvider implements RecommendationProvider {
   private apiKey: string
   private model: string
+  lastUsage: AiUsage | null = null
 
   constructor(apiKey: string, model: string = DEFAULT_MODEL) {
     this.apiKey = apiKey
@@ -47,6 +48,7 @@ export class GeminiProvider implements RecommendationProvider {
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
+    this.lastUsage = null
     const prompt = buildRecommendationPrompt(profile)
 
     const controller = new AbortController()
@@ -75,6 +77,18 @@ export class GeminiProvider implements RecommendationProvider {
 
       const data = (await res.json()) as {
         candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+        usageMetadata?: {
+          promptTokenCount?: number
+          candidatesTokenCount?: number
+        }
+      }
+      if (data.usageMetadata) {
+        this.lastUsage = {
+          provider: 'gemini',
+          model: this.model,
+          inputTokens: data.usageMetadata.promptTokenCount,
+          outputTokens: data.usageMetadata.candidatesTokenCount,
+        }
       }
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text
       if (!text) throw new Error('Empty response from Gemini')

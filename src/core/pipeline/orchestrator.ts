@@ -462,6 +462,7 @@ export class PipelineOrchestrator extends EventEmitter {
             artistsDiscovered: scored.length,
             artistsStored: filtered.length,
             artistsFiltered: scored.length - filtered.length,
+            ...(aiProvider?.lastUsage ? { aiUsage: aiProvider.lastUsage } : {}),
           },
           sourceResults,
           batchId,

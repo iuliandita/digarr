@@ -2,7 +2,7 @@ import type { AiRecommendation, TasteProfile } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
 import { fetchWithRetry } from './retry'
-import type { RecommendationProvider } from './types'
+import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_BASE_URL = 'http://localhost:11434'
 const DEFAULT_TIMEOUT_SECONDS = 120
@@ -12,6 +12,8 @@ type OllamaChatResponse = {
     role: string
     content: string
   }
+  prompt_eval_count?: number
+  eval_count?: number
 }
 
 type OllamaTagsResponse = {
@@ -22,6 +24,7 @@ export class OllamaProvider implements RecommendationProvider {
   private model: string
   private baseUrl: string
   private timeoutMs: number
+  lastUsage: AiUsage | null = null
 
   constructor(
     model: string,
@@ -34,6 +37,7 @@ export class OllamaProvider implements RecommendationProvider {
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
+    this.lastUsage = null
     const prompt = buildRecommendationPrompt(profile)
 
     const controller = new AbortController()
@@ -57,6 +61,15 @@ export class OllamaProvider implements RecommendationProvider {
 
       const data = (await response.json()) as OllamaChatResponse
       const content = data.message?.content
+
+      if (data.prompt_eval_count != null || data.eval_count != null) {
+        this.lastUsage = {
+          provider: 'ollama',
+          model: this.model,
+          inputTokens: data.prompt_eval_count,
+          outputTokens: data.eval_count,
+        }
+      }
 
       if (!content) {
         throw new Error('Empty response from Ollama API')

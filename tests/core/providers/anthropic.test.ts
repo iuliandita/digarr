@@ -137,6 +137,85 @@ describe('AnthropicProvider', () => {
       })
     })
 
+    test('sends cacheable system prelude with ephemeral cache_control', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+      })
+
+      await provider.getRecommendations(sampleProfile)
+      const args = mockCreate.mock.calls[0]?.[0] as {
+        system?: Array<{ type: string; text: string; cache_control?: { type: string } }>
+        messages: Array<{ content: string }>
+      }
+      expect(args.system?.[0]?.type).toBe('text')
+      expect(args.system?.[0]?.cache_control).toEqual({ type: 'ephemeral' })
+      // The system block must NOT contain the listener-specific profile data;
+      // profile fields must live in the user turn so the prelude is cacheable.
+      expect(args.system?.[0]?.text).not.toContain('Boards of Canada')
+      expect(args.messages[0]?.content).toContain('Boards of Canada')
+    })
+
+    test('records lastUsage from the response', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+        usage: {
+          input_tokens: 120,
+          output_tokens: 80,
+          cache_read_input_tokens: 100,
+          cache_creation_input_tokens: 20,
+        },
+      })
+
+      await provider.getRecommendations(sampleProfile)
+      expect(provider.lastUsage).toEqual({
+        provider: 'anthropic',
+        model: 'claude-3-5-sonnet-20241022',
+        inputTokens: 120,
+        outputTokens: 80,
+        cacheReadInputTokens: 100,
+        cacheCreationInputTokens: 20,
+      })
+    })
+
+    test('resets lastUsage when a prior call completed without usage', async () => {
+      mockCreate
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'tool_use',
+              name: 'emit_recommendations',
+              input: { recommendations: sampleRecommendations },
+            },
+          ],
+          usage: { input_tokens: 10, output_tokens: 5 },
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'tool_use',
+              name: 'emit_recommendations',
+              input: { recommendations: sampleRecommendations },
+            },
+          ],
+        })
+      await provider.getRecommendations(sampleProfile)
+      expect(provider.lastUsage).not.toBeNull()
+      await provider.getRecommendations(sampleProfile)
+      expect(provider.lastUsage).toBeNull()
+    })
+
     test('sends prompt that includes top artists from profile', async () => {
       mockCreate.mockResolvedValueOnce({
         content: [{ type: 'text', text: JSON.stringify(sampleRecommendations) }],

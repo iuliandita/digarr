@@ -150,6 +150,21 @@ describe('OpenAIProvider', () => {
         'Empty response from OpenAI API',
       )
     })
+
+    test('records lastUsage from the response', async () => {
+      mockChatCreate.mockResolvedValueOnce({
+        choices: [{ message: { content: JSON.stringify(sampleRecommendations) } }],
+        usage: { prompt_tokens: 200, completion_tokens: 150 },
+      })
+
+      await provider.getRecommendations(sampleProfile)
+      expect(provider.lastUsage).toEqual({
+        provider: 'openai',
+        model: 'gpt-4o',
+        inputTokens: 200,
+        outputTokens: 150,
+      })
+    })
   })
 
   describe('testConnection', () => {
