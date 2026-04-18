@@ -6,18 +6,37 @@ const PREFIX = 'enc:v1:'
 
 let derivedKey: Buffer | null = null
 let legacyKey: Buffer | null = null
+let nextKey: Buffer | null = null
 
-/** Initialize encryption with a key string. Call once at startup. */
-export function initEncryption(keyInput: string | undefined): void {
+function deriveHkdfKey(input: string): Buffer {
+  return Buffer.from(hkdfSync('sha256', input, '', 'digarr-field-encryption', 32))
+}
+
+/**
+ * Initialize encryption with a key string. Call once at startup.
+ *
+ * `nextKeyInput` enables dual-key mode for rotation: during rotation the
+ * operator sets a second key so decrypts fall through to it, then swaps the
+ * roles across two deploys with a re-encryption pass in between. See
+ * docs/runbooks/encryption-key-rotation.md.
+ */
+export function initEncryption(
+  keyInput: string | undefined,
+  nextKeyInput?: string | undefined,
+): void {
   if (!keyInput) {
     derivedKey = null
     legacyKey = null
+    nextKey = null
     return
   }
   // HKDF-derived key (current)
-  derivedKey = Buffer.from(hkdfSync('sha256', keyInput, '', 'digarr-field-encryption', 32))
+  derivedKey = deriveHkdfKey(keyInput)
   // SHA-256 key (legacy - kept for decrypting pre-migration values)
   legacyKey = createHash('sha256').update(keyInput).digest()
+  // Optional second HKDF key for rotation. decryptField tries primary first
+  // and falls back to this key on auth-tag failure.
+  nextKey = nextKeyInput ? deriveHkdfKey(nextKeyInput) : null
 }
 
 export function isEncryptionEnabled(): boolean {
@@ -71,19 +90,28 @@ export function decryptField(value: string | null | undefined): typeof value {
   const [ivStr, encStr, tagStr] = value.slice(PREFIX.length).split('.')
   if (!ivStr || !encStr || !tagStr) return value // malformed
 
-  // Try HKDF key first, then fall back to legacy SHA-256 key for pre-migration values
+  // Try primary HKDF key, then rotation NEXT key, then legacy SHA-256.
+  // AES-GCM auth-tag verification is cheap so trial decryption is fine.
   try {
     return decryptWithKey(ivStr, encStr, tagStr, derivedKey)
   } catch {
-    if (legacyKey) {
-      try {
-        return decryptWithKey(ivStr, encStr, tagStr, legacyKey)
-      } catch {
-        // Both keys failed
-      }
-    }
-    throw new Error('Decryption failed - check DIGARR_ENCRYPTION_KEY')
+    // fall through
   }
+  if (nextKey) {
+    try {
+      return decryptWithKey(ivStr, encStr, tagStr, nextKey)
+    } catch {
+      // fall through
+    }
+  }
+  if (legacyKey) {
+    try {
+      return decryptWithKey(ivStr, encStr, tagStr, legacyKey)
+    } catch {
+      // fall through
+    }
+  }
+  throw new Error('Decryption failed - check DIGARR_ENCRYPTION_KEY')
 }
 
 /** Encrypt specific string fields in an object. */

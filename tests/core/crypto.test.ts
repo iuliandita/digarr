@@ -97,6 +97,34 @@ describe('crypto', () => {
     })
   })
 
+  describe('dual-key rotation mode', () => {
+    it('decryptField falls back to NEXT key when primary cannot decrypt', () => {
+      initEncryption('old-key')
+      const enc = encryptField('rotated-value')
+
+      // Simulate the post-swap state: new key is primary, old key is NEXT.
+      initEncryption('new-key', 'old-key')
+      expect(decryptField(enc)).toBe('rotated-value')
+    })
+
+    it('encryptField always uses the primary key even in dual-key mode', () => {
+      initEncryption('primary-key', 'fallback-key')
+      const enc = encryptField('value') as string
+
+      // Dropping NEXT, primary alone must still decrypt what we just wrote.
+      initEncryption('primary-key')
+      expect(decryptField(enc)).toBe('value')
+    })
+
+    it('throws when neither key can decrypt', () => {
+      initEncryption('old-key')
+      const enc = encryptField('value')
+
+      initEncryption('wrong-primary', 'wrong-next')
+      expect(() => decryptField(enc)).toThrow(/Decryption failed/)
+    })
+  })
+
   describe('encryptFields / decryptFields', () => {
     it('encrypts and decrypts the named sensitive fields only', () => {
       const row = {

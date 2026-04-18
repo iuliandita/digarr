@@ -177,9 +177,13 @@ import { resolveUserPreferences } from './server/helpers/preferences'
 let jobRecorder: import('./core/jobs/types').JobRecorder
 
 // Initialize encryption before any DB operations.
-initEncryption(envConfig.encryptionKey)
+initEncryption(envConfig.encryptionKey, envConfig.encryptionKeyNext)
 if (isEncryptionEnabled()) {
-  console.log('Field-level encryption enabled')
+  if (envConfig.encryptionKeyNext) {
+    console.log('Field-level encryption enabled (dual-key rotation mode)')
+  } else {
+    console.log('Field-level encryption enabled')
+  }
 } else if (process.env.NODE_ENV === 'production') {
   console.warn(
     'WARNING: DIGARR_ENCRYPTION_KEY is not set - API keys and tokens are stored as plaintext in the database. Set this variable for production security.',

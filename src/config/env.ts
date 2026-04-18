@@ -76,6 +76,9 @@ export const envConfig = {
 
   // Encryption (optional - encrypts API keys and tokens at rest in the DB)
   encryptionKey: env('DIGARR_ENCRYPTION_KEY'),
+  // Secondary key for rotation. When set, decryptField falls back to this
+  // key if the primary key fails. See docs/runbooks/encryption-key-rotation.md.
+  encryptionKeyNext: env('DIGARR_ENCRYPTION_KEY_NEXT'),
 
   // Registration control
   disableRegistration: envBool('DIGARR_DISABLE_REGISTRATION', true),
