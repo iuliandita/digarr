@@ -1,18 +1,31 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.7
 
 # Global ARG -- must be before any FROM to use in FROM instructions
 ARG RUNTIME_IMAGE=oven/bun:1.3.12-slim@sha256:d3c7094c144dd3975d183a4dbc4ec0a764223995bff73290d983edb47043a75f
 
-# Build stage -- always Debian for consistent toolchain
-FROM oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160 AS builder
+# Deps stage -- all deps (dev + prod) for the builder. Cache-mount accelerates rebuilds.
+FROM oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160 AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
+    bun install --frozen-lockfile
+
+# Build stage -- reuses deps, produces dist/.
+FROM oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160 AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NODE_ENV=production
 RUN bun run build
 
-# Runtime stage -- override RUNTIME_IMAGE for alpine variant
+# Deps-prod stage -- production-only deps, shared cache id.
+FROM oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160 AS deps-prod
+WORKDIR /app
+COPY package.json bun.lock* ./
+RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
+    bun install --frozen-lockfile --production
+
+# Runtime stage -- override RUNTIME_IMAGE for alpine variant.
 FROM ${RUNTIME_IMAGE}
 
 LABEL org.opencontainers.image.source="https://github.com/iuliandita/digarr"
@@ -25,10 +38,8 @@ WORKDIR /app
 
 # Non-root user (bun base image ships with bun:bun at UID/GID 1000)
 
-COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile --production \
-    && rm -rf /tmp/* /home/bun/.bun/install/cache
-
+COPY --from=deps-prod /app/package.json /app/bun.lock ./
+COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 
