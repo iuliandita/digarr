@@ -12,8 +12,13 @@ const ssl =
 
 const pool = new pg.Pool({
   connectionString: buildDatabaseUrl(),
-  max: envConfig.dbPoolMax,
+  max: envConfig.dbPoolMax ?? 20,
+  idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: envConfig.dbConnectTimeoutMs,
+  // Cap any single query at 30s server-side. Protects against runaway
+  // reports/hygiene scans hogging a connection. Override per-query via
+  // `SET LOCAL statement_timeout` when a longer budget is required.
+  statement_timeout: 30_000,
   ssl,
 })
 
