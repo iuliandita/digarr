@@ -1,8 +1,26 @@
+import { readFileSync } from 'node:fs'
 import { assertCidr } from '@/core/auth/cidr'
 
 function env(key: string): string | undefined {
   const val = process.env[key]
   return val || undefined
+}
+
+/**
+ * Read an env var, falling back to the file referenced by `${key}_FILE`.
+ * Enables the Docker / Compose secrets convention without forcing users to
+ * inline sensitive values in shell env. Returns undefined if both miss.
+ */
+function envOrFile(key: string): string | undefined {
+  const direct = env(key)
+  if (direct) return direct
+  const filePath = env(`${key}_FILE`)
+  if (!filePath) return undefined
+  try {
+    return readFileSync(filePath, 'utf8').trim() || undefined
+  } catch {
+    return undefined
+  }
 }
 
 function envBool(key: string, fallback = false): boolean {
@@ -31,11 +49,11 @@ const DB_SSL_MODES = ['disable', 'require', 'no-verify'] as const
 
 export const envConfig = {
   // Database
-  databaseUrl: env('DATABASE_URL'),
+  databaseUrl: envOrFile('DATABASE_URL'),
   dbHost: env('DB_HOST'),
   dbPort: envInt('DB_PORT'),
   dbUser: env('DB_USER'),
-  dbPass: env('DB_PASS'),
+  dbPass: envOrFile('DB_PASS'),
   dbName: env('DB_NAME'),
   dbPoolMax: envInt('DB_POOL_MAX'),
   dbConnectTimeoutMs: envInt('DB_CONNECT_TIMEOUT_MS'),

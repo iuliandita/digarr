@@ -3,19 +3,28 @@
 #   volumes:
 #     - pgdata:/var/lib/postgresql/data:Z
 
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
+  database_url:
+    file: ./secrets/database_url
+
 services:
   app:
-    image: docker.io/iuliandita/digarr:0.32
+    image: docker.io/iuliandita/digarr:0.34
     # Pin to a patch version for full stability:
-    # image: docker.io/iuliandita/digarr:0.32.3
+    # image: docker.io/iuliandita/digarr:0.34.4
     # Alpine variant (smaller image, musl libc):
-    # image: docker.io/iuliandita/digarr:0.32.3-alpine
+    # image: docker.io/iuliandita/digarr:0.34.4-alpine
+    user: "1000:1000"
     env_file:
       - path: .env
         required: false
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-digarr}:${DB_PASS:?DB_PASS is required -- set it in .env}@postgres:5432/${DB_NAME:-digarr}
       - PORT=3000
+      - DATABASE_URL_FILE=/run/secrets/database_url
+    secrets:
+      - database_url
     ports:
       - "${PORT:-3000}:3000"
     depends_on:
@@ -53,14 +62,16 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
     env_file:
       - path: .env
         required: false
     environment:
       - POSTGRES_USER=${DB_USER:-digarr}
-      - POSTGRES_PASSWORD=${DB_PASS:?DB_PASS is required -- set it in .env}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - POSTGRES_DB=${DB_NAME:-digarr}
+    secrets:
+      - postgres_password
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
