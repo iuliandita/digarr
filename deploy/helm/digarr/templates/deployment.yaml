@@ -18,6 +18,9 @@ spec:
     metadata:
       labels:
         {{- include "digarr.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
       serviceAccountName: {{ include "digarr.serviceAccountName" . }}
       automountServiceAccountToken: false
@@ -36,12 +39,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "digarr.fullname" . }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           env:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ include "digarr.databaseSecretName" . }}
                   key: DATABASE_URL
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           startupProbe:
             {{- toYaml .Values.startupProbe | nindent 12 }}
           livenessProbe:

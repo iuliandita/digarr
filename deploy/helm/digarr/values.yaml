@@ -84,6 +84,26 @@ env:
   PORT: "3000"
   LOG_LEVEL: info
 
+# Extra environment variables appended to the deployment container.
+# Use this for secrets like DIGARR_ENCRYPTION_KEY, OIDC_CLIENT_SECRET, etc.
+# Each entry follows the Kubernetes envVar shape (name + value or valueFrom).
+# Example:
+#   extraEnv:
+#     - name: DIGARR_ENCRYPTION_KEY
+#       valueFrom:
+#         secretKeyRef:
+#           name: my-digarr-secret
+#           key: encryption-key
+extraEnv: []
+
+# Extra envFrom sources appended to the deployment container. Useful for
+# importing an entire secret or configmap of env vars in one block.
+# Example:
+#   extraEnvFrom:
+#     - secretRef:
+#         name: my-oidc-secret
+extraEnvFrom: []
+
 startupProbe:
   httpGet:
     path: /health
