@@ -4,6 +4,32 @@ All notable user-facing changes are documented here.
 
 ## Unreleased
 
+## v0.37.5 - 2026-04-18
+
+Phase 10 of the deep-audit remediation: AI/LLM hardening. Anthropic and OpenAI now respect `baseURL` so proxy deployments work; Gemini, Ollama, and OpenAI-compatible providers retry with exponential backoff and honour `Retry-After`; Ollama's timeout is configurable via `DIGARR_AI_TIMEOUT_SECONDS`; the mood endpoint wraps user input in `<user_query>` delimiters with control-character sanitation. Every recommendation response is now Zod-validated, Anthropic requests use tool-use + prompt caching (`cache_control: { type: 'ephemeral' }` on a static prelude), and per-request token usage lands in `job_runs.metadata.aiUsage`. Promptfoo fixtures ship as an advisory eval gate.
+
+### Added
+
+- `DIGARR_AI_TIMEOUT_SECONDS` env var overrides the per-provider request timeout (Ollama defaults to 120 s, others 30 s).
+- `src/core/providers/retry.ts` - shared `fetchWithRetry` helper distinguishes 429 (honours `Retry-After`), 5xx (exp-backoff), and 4xx-not-429 (non-retriable via p-retry `AbortError`).
+- `AiRecommendationItemSchema` + `validateAiRecommendations()` replace the ad-hoc per-field filter. Items that fail schema validation are dropped.
+- Anthropic prompt caching: the ~40-line system prelude is sent as a cached ephemeral block; listener profile moves to the user turn for per-request variability.
+- `lastUsage` per-provider property surfaces `inputTokens`, `outputTokens`, and (for Anthropic) `cacheReadInputTokens` / `cacheCreationInputTokens`. The pipeline and quick-discover job paths merge `aiUsage` into `job_runs.metadata`.
+- `promptfooconfig.yaml` + `prompts/recommendation.txt` with 10 neighbour-assertion fixtures across genres. `.github/workflows/evals.yml` runs them on `workflow_dispatch`; results are advisory (`continue-on-error: true`).
+
+### Changed
+
+- Anthropic and OpenAI provider constructors accept an optional `baseUrl`; the SDK receives it as `baseURL`. Threaded through the provider registry from settings.
+- OpenAI uses `response_format: { type: 'json_schema' }` with the shared recommendations schema and `max_completion_tokens: 4096` (was `max_tokens`, now deprecated).
+- Anthropic requests force-call the `emit_recommendations` tool with the recommendations JSON schema as `input_schema`; parses tool-use output directly and falls back to text parsing when the block is absent (proxy deployments).
+- Gemini adds a sanitised `responseSchema` to its `generationConfig` (dropping `$schema`, `additionalProperties`, and other JSON-Schema fields Gemini rejects).
+- Mood endpoint wraps user input in `<user_query>...</user_query>` and restates the task after the closing tag. Control characters and attempted nested `<user_query>` tags are stripped before wrapping.
+- `parseRecommendationResponse` strips `<think>...</think>` blocks from reasoning-model output before the bracket-depth parser runs. `unwrapRecommendationArrayPayload` does the same before JSON.parse.
+
+### Security
+
+- Settings test endpoint (`POST /api/settings/test/:service`) now carries an inline comment documenting that the route-wide `resolveAdmin` check already blocks legacy-token callers from reaching the stored-apiKey fallback - the previously-unclear admin gate is preserved and made explicit.
+
 ## v0.32.3 - 2026-04-18
 
 Phase 5 of the deep-audit remediation: supply chain and release integrity. Forgejo demoted to CI-only so GitHub is the sole release surface. SLSA v1.0 build provenance attestations now ride alongside cosign signatures on every published image. Image digests are kept in lockstep across `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml` by a new sync script, with a CI assertion that fails the release pipeline on drift. Buildx now caches across runs via GitHub Actions cache, and the docker job is gated on a `production` environment with required reviewer.
