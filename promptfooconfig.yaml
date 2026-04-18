@@ -1,0 +1,160 @@
+description: digarr AI recommendation quality evals
+
+# Advisory fixtures. The assertions aim for "one plausible neighbour in the
+# suggestion list" rather than an exact set match - model output varies run to
+# run. When a fixture starts failing consistently across models, it is a
+# signal that the recommendation prompt or a provider has drifted.
+
+prompts:
+  - file://prompts/recommendation.txt
+
+providers:
+  - anthropic:messages:claude-haiku-4-5-20251001
+  - openai:chat:gpt-5.4-mini
+
+defaultTest:
+  assert:
+    # Must emit valid JSON. If this fails, the native JSON mode changes are
+    # regressing for that provider.
+    - type: is-json
+
+tests:
+  - description: Seed artist in the indie / art-rock neighbourhood
+    vars:
+      seedArtist: Radiohead
+      userProfile: Enjoys art rock, melancholic, prefers 90s-00s albums.
+    assert:
+      - type: contains-any
+        value:
+          - Thom Yorke
+          - Atoms for Peace
+          - Portishead
+          - Sigur Ros
+          - Wilco
+          - Elliott Smith
+
+  - description: Soft-rock / folk-adjacent 70s listener
+    vars:
+      seedArtist: Fleetwood Mac
+      userProfile: Soft rock, folk-adjacent, 70s-heavy with a taste for close harmonies.
+    assert:
+      - type: contains-any
+        value:
+          - Crosby, Stills, Nash
+          - Eagles
+          - Jackson Browne
+          - Joni Mitchell
+          - Linda Ronstadt
+          - America
+
+  - description: Ambient + drone listener
+    vars:
+      seedArtist: Brian Eno
+      userProfile: Ambient, drone, texture-first, often plays long-form records for focus.
+    assert:
+      - type: contains-any
+        value:
+          - Harold Budd
+          - Stars of the Lid
+          - William Basinski
+          - Tim Hecker
+          - Grouper
+          - Aphex Twin
+
+  - description: Hip-hop / boom-bap revival
+    vars:
+      seedArtist: Madvillain
+      userProfile: Classic boom-bap, dense sample collages, lyrical and experimental.
+    assert:
+      - type: contains-any
+        value:
+          - MF DOOM
+          - J Dilla
+          - DJ Premier
+          - Freddie Gibbs
+          - Aesop Rock
+          - Company Flow
+
+  - description: Post-rock cinematic taste
+    vars:
+      seedArtist: Godspeed You! Black Emperor
+      userProfile: Post-rock, instrumental, long dynamic builds, cinematic scope.
+    assert:
+      - type: contains-any
+        value:
+          - Mogwai
+          - Explosions in the Sky
+          - Mono
+          - A Silver Mt. Zion
+          - Do Make Say Think
+          - This Will Destroy You
+
+  - description: Electronic / IDM listener
+    vars:
+      seedArtist: Aphex Twin
+      userProfile: IDM, glitchy, experimental electronic, strong affection for the Warp Records roster.
+    assert:
+      - type: contains-any
+        value:
+          - Autechre
+          - Squarepusher
+          - Boards of Canada
+          - Venetian Snares
+          - Clark
+          - Flying Lotus
+
+  - description: Classic metal pivot
+    vars:
+      seedArtist: Black Sabbath
+      userProfile: Heavy riffs, doom-leaning, 70s origins, open to slower tempos.
+    assert:
+      - type: contains-any
+        value:
+          - Pentagram
+          - Saint Vitus
+          - Candlemass
+          - Electric Wizard
+          - Sleep
+          - Sir Lord Baltimore
+
+  - description: Afrobeat / funk cross-over
+    vars:
+      seedArtist: Fela Kuti
+      userProfile: Afrobeat, extended grooves, political energy, horns and polyrhythm.
+    assert:
+      - type: contains-any
+        value:
+          - Tony Allen
+          - Antibalas
+          - Ebo Taylor
+          - Orlando Julius
+          - The Budos Band
+          - Femi Kuti
+
+  - description: Lo-fi indie songwriter
+    vars:
+      seedArtist: Elliott Smith
+      userProfile: Intimate songwriting, fingerpicked guitar, melancholy and interior.
+    assert:
+      - type: contains-any
+        value:
+          - Nick Drake
+          - Mark Kozelek
+          - Jason Molina
+          - Bill Callahan
+          - Sufjan Stevens
+          - Phoebe Bridgers
+
+  - description: Jazz deep-listener
+    vars:
+      seedArtist: John Coltrane
+      userProfile: Spiritual jazz, modal explorations, late-50s through early-70s.
+    assert:
+      - type: contains-any
+        value:
+          - Pharoah Sanders
+          - Alice Coltrane
+          - Sun Ra
+          - Albert Ayler
+          - McCoy Tyner
+          - Archie Shepp

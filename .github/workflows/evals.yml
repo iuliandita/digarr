@@ -1,0 +1,31 @@
+name: AI Recommendation Evals
+
+# Advisory eval gate. Runs promptfoo against the live recommendation prompt to
+# flag quality regressions in provider choice or prompt wording. Never blocks
+# merge - failures are informational.
+#
+# Triggered manually because the evals cost real API tokens and require
+# ANTHROPIC_API_KEY + OPENAI_API_KEY to be configured in repository secrets.
+# Promote to PR-trigger once the secrets are in place and the fixtures are
+# stable.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Run promptfoo evals
+        run: npx --yes promptfoo@0.119.0 eval --config promptfooconfig.yaml
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Mark result as advisory
+        if: always()
+        run: echo "::notice::AI recommendation evals are advisory - review results but do not block merge on failure."
