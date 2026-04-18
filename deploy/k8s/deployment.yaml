@@ -13,6 +13,11 @@ metadata:
     app: digarr
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: digarr
@@ -67,20 +72,21 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: http
-            initialDelaySeconds: 10
-            periodSeconds: 30
-            timeoutSeconds: 5
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: http
-            initialDelaySeconds: 3
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 2
           volumeMounts:
             - name: tmp
               mountPath: /tmp
