@@ -1060,7 +1060,7 @@ export const ro = {
   'recommendation.ownStudioAlbums': 'Detii {0}/{1} albume de studio',
   'recommendation.owned': 'Detinute',
   'recommendation.missingAlbums': 'Lipsa',
-  'admin.backupRestore': 'Backup si restaurare',
+  'admin.backupRestore': 'Backup și restaurare',
   'admin.dataHygiene': 'Igiena datelor',
   'admin.upgradeInfo': 'Info actualizare',
   'admin.downloadBackup': 'Descarca backup',
@@ -1080,12 +1080,12 @@ export const ro = {
   'admin.clearImageFailuresDesc':
     'Reseteaza cache-ul de imagini esuate pentru a reincerca la urmatoarea scanare.',
   'admin.rebuildGenreCache': 'Reconstruieste cache-ul de genuri',
-  'admin.rebuildGenreCacheDesc': 'Regenereaza genurile din tag-urile si metadatele artistilor.',
+  'admin.rebuildGenreCacheDesc': 'Regenerează genurile din tag-urile și metadatele artiștilor.',
   'admin.rescoreRecommendations': 'Recalculeaza scorurile',
   'admin.rescoreRecommendationsDesc':
     'Recalculeaza scorurile recomandarilor in asteptare cu ponderile actuale.',
   'admin.dedupeRepair': 'Reparare duplicate',
-  'admin.dedupeRepairDesc': 'Gaseste si sterge recomandarile duplicate pentru acelasi artist.',
+  'admin.dedupeRepairDesc': 'Găsește și șterge recomandările duplicate pentru același artist.',
   'admin.aiReasoningAudit': 'Audit rationament IA',
   'admin.aiReasoningAuditDesc': 'Detecteaza neconcordante artist/descriere din halucinatii IA.',
   'admin.purgeExpiredSessions': 'Sterge sesiunile expirate',

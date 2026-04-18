@@ -101,12 +101,12 @@ describe('SetupWizard', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /lidarr/i }))
     await screen.findByText(/Connect(?:er)? Lidarr/i)
-    expect(screen.getByPlaceholderText('Votre cle API Lidarr')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Votre clé API Lidarr')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /retour/i }))
     fireEvent.click(screen.getByRole('button', { name: /emby/i }))
     await screen.findByText(/Connect(?:er)? Emby/i)
-    expect(screen.getByPlaceholderText('Votre cle API Emby')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Votre clé API Emby')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('ID utilisateur Emby')).toBeInTheDocument()
   })
 
@@ -127,7 +127,7 @@ describe('SetupWizard', () => {
     await screen.findByText('Fournisseur IA')
     expect(
       screen.getByText(
-        /Vous connecterez vos sources d ecoute personnelles plus tard dans les parametres/i,
+        /Vous connecterez vos sources d'écoute personnelles plus tard dans les paramètres/i,
       ),
     ).toBeInTheDocument()
   })
@@ -157,6 +157,6 @@ describe('SetupWizard', () => {
       target: { value: 'openai-compatible' },
     })
 
-    expect(screen.getByPlaceholderText('nom-du-modele')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('nom-du-modèle')).toBeInTheDocument()
   })
 })

@@ -102,9 +102,9 @@ describe('shared component i18n', () => {
       </ErrorBoundary>,
     )
 
-    expect(screen.getByText('Un probleme est survenu')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Reessayer' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: "Retour a l'accueil" })).toBeInTheDocument()
+    expect(screen.getByText('Un problème est survenu')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: "Retour à l'accueil" })).toBeInTheDocument()
   })
 
   it('formats backup timestamps with the active locale', async () => {
@@ -112,8 +112,8 @@ describe('shared component i18n', () => {
 
     renderWithProviders(<BackupSection />)
 
-    expect(await screen.findByText(/Derniere sauvegarde auto/)).toHaveTextContent(
-      `Derniere sauvegarde auto : ${new Date('2025-12-31T14:05:00.000Z').toLocaleString('fr')}`,
+    expect(await screen.findByText(/Dernière sauvegarde auto/)).toHaveTextContent(
+      `Dernière sauvegarde auto : ${new Date('2025-12-31T14:05:00.000Z').toLocaleString('fr')}`,
     )
   })
 })

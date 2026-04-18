@@ -270,8 +270,8 @@ describe('language switcher surfaces', () => {
       </AuthGate>,
     )
 
-    expect(await screen.findByRole('button', { name: 'Creer un compte' })).toBeInTheDocument()
-    expect(screen.getByText('Vous avez deja un compte ? Se connecter')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Créer un compte' })).toBeInTheDocument()
+    expect(screen.getByText('Vous avez déjà un compte ? Se connecter')).toBeInTheDocument()
   })
 
   it('uses translated SSO copy in French', async () => {
