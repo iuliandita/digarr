@@ -123,8 +123,12 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
 
 // ── Restore ────────────────────────────────────
 
+// Flags for the detectEncryptionMismatch warning. Entries may be top-level
+// column names (e.g. 'lidarrApiKey') or nested jsonb paths in dotted form
+// (e.g. 'preferences.fanartApiKey'). The detector only uses these labels for
+// the surfaced error message, so dotted paths are a pure string contract.
 const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
-  settings: SENSITIVE_SETTINGS,
+  settings: [...SENSITIVE_SETTINGS, 'preferences.fanartApiKey'],
   users: SENSITIVE_USER_CONNECTIONS,
   oauthTokens: SENSITIVE_OAUTH,
   oidcTokens: SENSITIVE_OIDC,

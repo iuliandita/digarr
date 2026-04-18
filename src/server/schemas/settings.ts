@@ -1,9 +1,10 @@
 import * as z from 'zod'
 
 // Inner preferences object. Enforces numeric ranges where they exist and
-// keeps other fields permissive enough that partial merges (the normal PATCH
-// pattern) still pass. Passthrough catches any legacy key still in flight --
-// the merge in handlers is the authoritative filter.
+// keeps every field optional so partial PATCH merges stay ergonomic. Strict
+// shape (no passthrough) rejects unknown keys up front so a hostile or buggy
+// admin client cannot inflate the preferences jsonb with arbitrary garbage.
+// Every key here must stay in lockstep with Preferences in src/db/schema.ts.
 const scoringWeightsSchema = z
   .object({
     consensus: z.number().min(0).max(1).optional(),
@@ -13,7 +14,7 @@ const scoringWeightsSchema = z
     feedbackBoost: z.number().min(0).max(1).optional(),
     popularity: z.number().min(0).max(1).optional(),
   })
-  .partial()
+  .strict()
 
 const preferencesSchema = z
   .object({
@@ -39,7 +40,7 @@ const preferencesSchema = z
     fanartApiKey: z.string().optional(),
     metadataFallbackUrl: z.string().optional(),
   })
-  .passthrough()
+  .strict()
 
 // PATCH body for /api/settings. Every field optional - it's a partial update.
 // Unknown top-level keys are silently stripped (matches the existing allowlist
