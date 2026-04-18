@@ -14,25 +14,46 @@ spec:
     - Egress
   ingress:
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
           port: 3000
   egress:
+    # DNS to kube-system (CoreDNS / kube-dns)
     - to:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # In-cluster Postgres in same namespace
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
       ports:
         - protocol: TCP
           port: 5432
-        - protocol: TCP
-          port: 53
-        - protocol: UDP
-          port: 53
+    # External HTTP/HTTPS to public internet only -- excludes RFC1918/link-local/ULA
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+        - ipBlock:
+            cidr: ::/0
+            except:
+              - fd00::/8
       ports:
         - protocol: TCP
-          port: 80
-        - protocol: TCP
           port: 443
+        - protocol: TCP
+          port: 80

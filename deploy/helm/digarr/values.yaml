@@ -54,6 +54,11 @@ podDisruptionBudget:
 ingress:
   enabled: false
   className: nginx
+  # Namespace of the ingress controller. Used by the NetworkPolicy ingress
+  # rule to allow traffic from this namespace only. The controller's
+  # namespace must carry the `kubernetes.io/metadata.name` label
+  # (automatic on Kubernetes >= 1.22).
+  controllerNamespace: ingress-nginx
   annotations: {}
   hosts:
     - host: digarr.example.com
