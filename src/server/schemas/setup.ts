@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // Setup wizard accepts a bunch of fields, most optional, with
 // conditional-require rules enforced in the handler (e.g., lidarrApiKey

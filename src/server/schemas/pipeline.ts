@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // normalizeDiscoveryModeRequest is the authoritative parser for the body
 // shape; schema here catches gross mismatches (wrong types on the top-level

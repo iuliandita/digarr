@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // Initiate body is optional overall (Deezer branch reads env config only),
 // but if any field is set for the Spotify branch, all three must be strings.

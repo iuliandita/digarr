@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { TARGET_TYPES } from '@/core/targets/types'
 
 // URL must be http(s). Private-IP / SSRF checks live in handlers and

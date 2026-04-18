@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // MAX_BULK_IDS caps the bulk write surface so one approve-all payload cannot
 // starve the worker. 500 matches the Spotify CSV import truncation ceiling.

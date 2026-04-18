@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // Inner preferences object. Enforces numeric ranges where they exist and
 // keeps other fields permissive enough that partial merges (the normal PATCH

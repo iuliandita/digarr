@@ -1,5 +1,5 @@
 import { Cron } from 'croner'
-import { z } from 'zod'
+import * as z from 'zod'
 
 // Cron string: any expression croner can parse. Validate by construction
 // attempt so the error surfaces at the schema boundary instead of later.

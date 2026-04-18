@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { cronSchema } from './subscriptions'
 
 export const playlistStrategySchema = z.enum([

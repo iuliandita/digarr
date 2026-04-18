@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 // Backup data table rows are shape-heterogeneous (22 tables, mixed schemas),
 // so each table is typed as an array of records. restoreBackup is the

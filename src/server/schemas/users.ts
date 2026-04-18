@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { passwordSchema, usernameSchema } from './auth'
 
 export const createUserSchema = z.object({
