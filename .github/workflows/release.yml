@@ -153,3 +153,32 @@ jobs:
         run: |
           gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes 2>/dev/null || true
           gh release upload "$TAG" sbom-container.spdx.json sbom-source.spdx.json --clobber
+
+  verify-digest-sync:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+      - name: Assert deploy artefacts carry the same digest
+        run: |
+          k8s=$(grep -oE 'sha256:[a-f0-9]+' deploy/k8s/deployment.yaml | head -1)
+          helm=$(grep -oE 'sha256:[a-f0-9]+' deploy/helm/digarr/values.yaml | head -1)
+          unraid=$(grep -oE 'sha256:[a-f0-9]+' deploy/unraid/digarr.xml | head -1)
+          if [ -z "$k8s" ] || [ -z "$helm" ] || [ -z "$unraid" ]; then
+            echo "missing digest in one or more deploy files:"
+            echo "  k8s=$k8s"
+            echo "  helm=$helm"
+            echo "  unraid=$unraid"
+            exit 1
+          fi
+          if [ "$k8s" != "$helm" ] || [ "$k8s" != "$unraid" ]; then
+            echo "digest drift detected:"
+            echo "  k8s=$k8s"
+            echo "  helm=$helm"
+            echo "  unraid=$unraid"
+            echo "Run: bun scripts/sync-deploy-digests.ts <tag>"
+            exit 1
+          fi
+          echo "digests aligned: $k8s"
