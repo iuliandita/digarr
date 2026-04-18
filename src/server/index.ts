@@ -252,6 +252,7 @@ export function createApp(deps: AppDependencies) {
           apiKey: (s.aiApiKey as string) ?? null,
           model: (s.aiModel as string) ?? '',
           baseUrl: (s.aiBaseUrl as string) ?? null,
+          timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
         })
         const genreList = genres.length > 0 ? genres.join(', ') : 'unknown'
         const results = await provider.getRecommendations({

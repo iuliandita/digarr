@@ -81,6 +81,7 @@ export const envConfig = {
   aiApiKey: env('AI_API_KEY'),
   aiModel: env('AI_MODEL'),
   aiBaseUrl: env('AI_BASE_URL'),
+  aiTimeoutSeconds: envInt('DIGARR_AI_TIMEOUT_SECONDS'),
 
   // Auth
   authToken: env('DIGARR_AUTH_TOKEN') ?? null,

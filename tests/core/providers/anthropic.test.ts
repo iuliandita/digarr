@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import type { TasteProfile } from '@/core/types'
 
 const mockCreate = vi.fn()
+const anthropicCtorCalls: Array<Record<string, unknown>> = []
 
 vi.mock('@anthropic-ai/sdk', () => {
-  const MockAnthropic = vi.fn(function (this: Record<string, unknown>) {
+  const MockAnthropic = vi.fn(function (
+    this: Record<string, unknown>,
+    options: Record<string, unknown>,
+  ) {
+    anthropicCtorCalls.push(options)
     this.messages = { create: mockCreate }
   })
   return { default: MockAnthropic }
@@ -48,7 +53,28 @@ describe('AnthropicProvider', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    anthropicCtorCalls.length = 0
     provider = new AnthropicProvider('test-api-key', 'claude-3-5-sonnet-20241022')
+  })
+
+  describe('baseURL', () => {
+    test('omits baseURL when none provided', () => {
+      new AnthropicProvider('k')
+      const lastCall = anthropicCtorCalls.at(-1) ?? {}
+      expect(lastCall.baseURL).toBeUndefined()
+    })
+
+    test('threads baseURL into SDK constructor', () => {
+      new AnthropicProvider('k', 'claude-3-5-sonnet-20241022', 'https://proxy.example.com')
+      const lastCall = anthropicCtorCalls.at(-1) ?? {}
+      expect(lastCall.baseURL).toBe('https://proxy.example.com')
+    })
+
+    test('ignores null baseURL', () => {
+      new AnthropicProvider('k', 'claude-3-5-sonnet-20241022', null)
+      const lastCall = anthropicCtorCalls.at(-1) ?? {}
+      expect(lastCall.baseURL).toBeUndefined()
+    })
   })
 
   describe('getRecommendations', () => {

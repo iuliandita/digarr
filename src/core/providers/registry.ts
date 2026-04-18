@@ -4,6 +4,7 @@ export type AiProviderConfig = {
   apiKey: string | null
   model: string
   baseUrl?: string | null
+  timeoutSeconds?: number | null
 }
 
 export type AiProviderDefinition = {
@@ -42,30 +43,30 @@ export function createDefaultRegistry(): AiProviderRegistry {
   registry.register({
     id: 'anthropic',
     name: 'Anthropic',
-    async create({ apiKey, model }) {
+    async create({ apiKey, model, baseUrl }) {
       const { AnthropicProvider } = await import('./anthropic')
       if (!apiKey) throw new Error('Anthropic requires an API key')
-      return new AnthropicProvider(apiKey, model)
+      return new AnthropicProvider(apiKey, model, baseUrl)
     },
   })
 
   registry.register({
     id: 'openai',
     name: 'OpenAI',
-    async create({ apiKey, model }) {
+    async create({ apiKey, model, baseUrl }) {
       const { OpenAIProvider } = await import('./openai')
       if (!apiKey) throw new Error('OpenAI requires an API key')
-      return new OpenAIProvider(apiKey, model)
+      return new OpenAIProvider(apiKey, model, baseUrl)
     },
   })
 
   registry.register({
     id: 'ollama',
     name: 'Ollama',
-    async create({ model, baseUrl }) {
+    async create({ model, baseUrl, timeoutSeconds }) {
       const { OllamaProvider } = await import('./ollama')
       if (!baseUrl) throw new Error('Ollama requires a base URL')
-      return new OllamaProvider(model, baseUrl)
+      return new OllamaProvider(model, baseUrl, timeoutSeconds ?? undefined)
     },
   })
 

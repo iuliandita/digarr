@@ -4,6 +4,7 @@ import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt
 import type { RecommendationProvider } from './types'
 
 const DEFAULT_BASE_URL = 'http://localhost:11434'
+const DEFAULT_TIMEOUT_SECONDS = 120
 
 type OllamaChatResponse = {
   message: {
@@ -19,17 +20,23 @@ type OllamaTagsResponse = {
 export class OllamaProvider implements RecommendationProvider {
   private model: string
   private baseUrl: string
+  private timeoutMs: number
 
-  constructor(model: string, baseUrl: string = DEFAULT_BASE_URL) {
+  constructor(
+    model: string,
+    baseUrl: string = DEFAULT_BASE_URL,
+    timeoutSeconds: number = DEFAULT_TIMEOUT_SECONDS,
+  ) {
     this.model = model
     this.baseUrl = baseUrl.replace(/\/$/, '')
+    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
     const prompt = buildRecommendationPrompt(profile)
 
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 60_000)
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
         method: 'POST',

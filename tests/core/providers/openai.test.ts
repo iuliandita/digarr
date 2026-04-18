@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import type { TasteProfile } from '@/core/types'
 
 const mockChatCreate = vi.fn()
+const openaiCtorCalls: Array<Record<string, unknown>> = []
 
 vi.mock('openai', () => {
-  const MockOpenAI = vi.fn(function (this: Record<string, unknown>) {
+  const MockOpenAI = vi.fn(function (
+    this: Record<string, unknown>,
+    options: Record<string, unknown>,
+  ) {
+    openaiCtorCalls.push(options)
     this.chat = { completions: { create: mockChatCreate } }
   })
   return { default: MockOpenAI }
@@ -47,7 +52,22 @@ describe('OpenAIProvider', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    openaiCtorCalls.length = 0
     provider = new OpenAIProvider('test-api-key', 'gpt-4o')
+  })
+
+  describe('baseURL', () => {
+    test('omits baseURL when none provided', () => {
+      new OpenAIProvider('k')
+      const lastCall = openaiCtorCalls.at(-1) ?? {}
+      expect(lastCall.baseURL).toBeUndefined()
+    })
+
+    test('threads baseURL into SDK constructor', () => {
+      new OpenAIProvider('k', 'gpt-4o', 'https://proxy.example.com')
+      const lastCall = openaiCtorCalls.at(-1) ?? {}
+      expect(lastCall.baseURL).toBe('https://proxy.example.com')
+    })
   })
 
   describe('getRecommendations', () => {

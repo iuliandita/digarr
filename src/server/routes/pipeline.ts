@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { envConfig } from '@/config/env'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
@@ -331,6 +332,7 @@ export function pipelineRoutes(deps: AppDependencies) {
               apiKey: (settings.aiApiKey as string) ?? null,
               model: settings.aiModel as string,
               baseUrl: (settings.aiBaseUrl as string) ?? null,
+              timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
             })
             const aiRecs = await provider.getRecommendations({
               topArtists: [

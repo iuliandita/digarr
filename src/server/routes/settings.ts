@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { envConfig } from '@/config/env'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
@@ -348,6 +349,9 @@ export function settingsRoutes(deps: AppDependencies) {
       }
       case 'ai': {
         try {
+          // Admin check above gates the stored-apiKey fallback: legacy tokens
+          // and non-admin sessions cannot reach this branch, so we will never
+          // leak a stored credential to a lower-privilege caller.
           const effectiveBaseUrl = body.baseUrl || (stored?.aiBaseUrl as string) || ''
           const provider = await deps.providerRegistry.create(
             body.provider || (stored?.aiProvider as string) || '',
@@ -355,6 +359,7 @@ export function settingsRoutes(deps: AppDependencies) {
               apiKey: body.apiKey || (stored?.aiApiKey as string) || null,
               model: body.model || (stored?.aiModel as string) || '',
               baseUrl: effectiveBaseUrl || null,
+              timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
             },
           )
           const result = await provider.testConnection()

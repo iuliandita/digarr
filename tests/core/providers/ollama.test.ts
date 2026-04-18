@@ -194,4 +194,32 @@ describe('OllamaProvider', () => {
       )
     })
   })
+
+  describe('timeout', () => {
+    test('aborts getRecommendations when configured timeout elapses', async () => {
+      vi.useFakeTimers()
+      try {
+        const short = new OllamaProvider('llama3', TEST_BASE_URL, 2)
+        // fetch mock resolves after 5s so the 2s timeout fires first
+        fetchSpy.mockImplementationOnce(
+          (_url: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              const signal = init?.signal
+              signal?.addEventListener('abort', () => reject(new Error('aborted')))
+            }),
+        )
+        const pending = short.getRecommendations(sampleProfile)
+        const expectation = expect(pending).rejects.toThrow(/abort/i)
+        await vi.advanceTimersByTimeAsync(2_100)
+        await expectation
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    test('defaults to the Ollama-friendly 120s when no timeout provided', () => {
+      const p = new OllamaProvider('llama3', TEST_BASE_URL)
+      expect((p as unknown as { timeoutMs: number }).timeoutMs).toBe(120_000)
+    })
+  })
 })

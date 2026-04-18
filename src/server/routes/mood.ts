@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { envConfig } from '@/config/env'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { buildMoodPrompt } from '@/core/providers/prompt'
@@ -39,6 +40,7 @@ export function moodRoutes(deps: MoodDeps) {
       apiKey: aiApiKey ?? null,
       model: aiModel,
       baseUrl: aiBaseUrl ?? null,
+      timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
     })
 
     const userId = c.get('userId')

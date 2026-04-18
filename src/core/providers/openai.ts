@@ -14,8 +14,11 @@ export class OpenAIProvider implements RecommendationProvider {
   private client: OpenAI
   private model: string
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL) {
-    this.client = new OpenAI({ apiKey })
+  constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
+    this.client = new OpenAI({
+      apiKey,
+      ...(baseUrl ? { baseURL: baseUrl } : {}),
+    })
     this.model = model
   }
 

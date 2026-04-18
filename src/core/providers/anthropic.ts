@@ -10,8 +10,11 @@ export class AnthropicProvider implements RecommendationProvider {
   private client: Anthropic
   private model: string
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL) {
-    this.client = new Anthropic({ apiKey })
+  constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
+    this.client = new Anthropic({
+      apiKey,
+      ...(baseUrl ? { baseURL: baseUrl } : {}),
+    })
     this.model = model
   }
 
