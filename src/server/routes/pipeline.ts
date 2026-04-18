@@ -25,6 +25,7 @@ import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
+import { problem } from '@/server/helpers/problem'
 import { resolveRequestLocale } from '@/server/locale'
 import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pipeline'
 import { zJson } from '@/server/schemas/validator'
@@ -44,7 +45,15 @@ export function pipelineRoutes(deps: AppDependencies) {
 
   router.post('/api/pipeline/run', async (c) => {
     if (deps.orchestrator.isRunning) {
-      return c.json({ error: 'Pipeline already running' }, 409)
+      return problem(
+        c,
+        'pipeline-already-running',
+        'A pipeline run is already in progress',
+        409,
+        undefined,
+        undefined,
+        'errors.pipeline.alreadyRunning',
+      )
     }
 
     const settings = await deps.getSettings()
@@ -125,7 +134,15 @@ export function pipelineRoutes(deps: AppDependencies) {
 
   router.post('/api/discovery-modes/run', zJson(discoveryModeRunSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
-      return c.json({ error: 'A scan is already running' }, 409)
+      return problem(
+        c,
+        'pipeline-already-running',
+        'A pipeline run is already in progress',
+        409,
+        undefined,
+        undefined,
+        'errors.pipeline.alreadyRunning',
+      )
     }
 
     const userId = c.get('userId')
@@ -198,7 +215,15 @@ export function pipelineRoutes(deps: AppDependencies) {
   // Quick discover: find similar artists to a specific artist
   router.post('/api/pipeline/quick-discover', zJson(quickDiscoverSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
-      return c.json({ error: 'A scan is already running' }, 409)
+      return problem(
+        c,
+        'pipeline-already-running',
+        'A pipeline run is already in progress',
+        409,
+        undefined,
+        undefined,
+        'errors.pipeline.alreadyRunning',
+      )
     }
 
     const { artistName } = c.req.valid('json')

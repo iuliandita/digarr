@@ -389,6 +389,18 @@ describe('POST /api/auth/login', () => {
       }),
     )
   })
+
+  it('emits i18n code for invalid credentials', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'nope', password: 'wrongpassword' }),
+    })
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body.code).toBe('errors.auth.invalidCredentials')
+  })
 })
 
 describe('session token authentication', () => {

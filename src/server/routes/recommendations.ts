@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
+import { problem } from '@/server/helpers/problem'
 import {
   bulkRecommendationSchema,
   listRecommendationsQuerySchema,
@@ -266,9 +267,27 @@ export function recommendationRoutes(deps: AppDependencies) {
   router.get('/api/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
     const rec = await deps.getRecommendation(id)
-    if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
+    if (!rec)
+      return problem(
+        c,
+        'recommendation-not-found',
+        'Recommendation not found',
+        404,
+        undefined,
+        undefined,
+        'errors.recommendation.notFound',
+      )
     const userId = c.get('userId')
-    if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
+    if (!isOwned(rec, userId))
+      return problem(
+        c,
+        'recommendation-not-found',
+        'Recommendation not found',
+        404,
+        undefined,
+        undefined,
+        'errors.recommendation.notFound',
+      )
     return c.json(rec)
   })
 
@@ -295,9 +314,27 @@ export function recommendationRoutes(deps: AppDependencies) {
 
       if (status === 'approved') {
         const rec = await deps.getRecommendation(id)
-        if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
+        if (!rec)
+          return problem(
+            c,
+            'recommendation-not-found',
+            'Recommendation not found',
+            404,
+            undefined,
+            undefined,
+            'errors.recommendation.notFound',
+          )
         const userId = c.get('userId')
-        if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
+        if (!isOwned(rec, userId))
+          return problem(
+            c,
+            'recommendation-not-found',
+            'Recommendation not found',
+            404,
+            undefined,
+            undefined,
+            'errors.recommendation.notFound',
+          )
 
         const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
         const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
@@ -396,9 +433,27 @@ export function recommendationRoutes(deps: AppDependencies) {
       }
 
       const rec = await deps.getRecommendation(id)
-      if (!rec) return c.json({ error: 'Recommendation not found' }, 404)
+      if (!rec)
+        return problem(
+          c,
+          'recommendation-not-found',
+          'Recommendation not found',
+          404,
+          undefined,
+          undefined,
+          'errors.recommendation.notFound',
+        )
       const userId = c.get('userId')
-      if (!isOwned(rec, userId)) return c.json({ error: 'Recommendation not found' }, 404)
+      if (!isOwned(rec, userId))
+        return problem(
+          c,
+          'recommendation-not-found',
+          'Recommendation not found',
+          404,
+          undefined,
+          undefined,
+          'errors.recommendation.notFound',
+        )
 
       await deps.updateRecommendationStatus(id, status)
       return c.json({ status })

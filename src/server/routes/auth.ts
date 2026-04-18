@@ -12,6 +12,7 @@ import { getLookupHostname, isHttpUrl } from '@/core/validation'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
 import { resolveRequestLocale } from '@/server/locale'
 import {
@@ -82,7 +83,15 @@ export function authRoutes(deps: AppDependencies) {
 
     const existingUser = await deps.getUserByUsername(username)
     if (existingUser) {
-      return c.json({ error: 'Username already taken' }, 409)
+      return problem(
+        c,
+        'auth-username-taken',
+        'Username already taken',
+        409,
+        undefined,
+        undefined,
+        'errors.auth.usernameTaken',
+      )
     }
 
     const isAdmin = userCount === 0
@@ -102,7 +111,15 @@ export function authRoutes(deps: AppDependencies) {
       // 23505 on a different constraint which we let propagate.
       const existing = await deps.getUserByUsername(username)
       if (existing) {
-        return c.json({ error: 'Username already taken' }, 409)
+        return problem(
+          c,
+          'auth-username-taken',
+          'Username already taken',
+          409,
+          undefined,
+          undefined,
+          'errors.auth.usernameTaken',
+        )
       }
       user = await deps.createUser({ username, passwordHash, isAdmin: false })
     }
@@ -137,7 +154,15 @@ export function authRoutes(deps: AppDependencies) {
     const hashToVerify = user?.passwordHash ?? DUMMY_PASSWORD_HASH
     const passwordOk = verifyPassword(password, hashToVerify)
     if (!user || !passwordOk) {
-      return c.json({ error: messages['auth.invalidCredentials'] }, 401)
+      return problem(
+        c,
+        'auth-invalid-credentials',
+        messages['auth.invalidCredentials'],
+        401,
+        undefined,
+        undefined,
+        'errors.auth.invalidCredentials',
+      )
     }
 
     const token = generateSessionToken()
@@ -160,7 +185,15 @@ export function authRoutes(deps: AppDependencies) {
   router.get('/api/auth/me', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Not authenticated' }, 401)
+      return problem(
+        c,
+        'auth-not-authenticated',
+        'Not authenticated',
+        401,
+        undefined,
+        undefined,
+        'errors.auth.notAuthenticated',
+      )
     }
     const user = await deps.getUserById(userId)
     if (!user) {
@@ -172,7 +205,15 @@ export function authRoutes(deps: AppDependencies) {
   router.get('/api/auth/validate', (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Not authenticated' }, 401)
+      return problem(
+        c,
+        'auth-not-authenticated',
+        'Not authenticated',
+        401,
+        undefined,
+        undefined,
+        'errors.auth.notAuthenticated',
+      )
     }
     return c.body(null, 204)
   })
@@ -211,7 +252,15 @@ export function authRoutes(deps: AppDependencies) {
     // Need the full row with passwordHash for verification
     const fullUser = await deps.getUserByUsername(user.username)
     if (!fullUser || !verifyPassword(currentPassword, fullUser.passwordHash)) {
-      return c.json({ error: 'Current password is incorrect' }, 401)
+      return problem(
+        c,
+        'auth-password-incorrect',
+        'Current password is incorrect',
+        401,
+        undefined,
+        undefined,
+        'errors.auth.passwordIncorrect',
+      )
     }
 
     const newHash = hashPassword(newPassword)
@@ -228,7 +277,16 @@ export function authRoutes(deps: AppDependencies) {
   // Get the authenticated user's merged preferences
   router.get('/api/auth/me/preferences', async (c) => {
     const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Not authenticated' }, 401)
+    if (!userId)
+      return problem(
+        c,
+        'auth-not-authenticated',
+        'Not authenticated',
+        401,
+        undefined,
+        undefined,
+        'errors.auth.notAuthenticated',
+      )
     const user = await deps.getUserById(userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
     const merged = mergePreferences(user.preferences)

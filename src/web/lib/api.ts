@@ -1,6 +1,8 @@
 import type { DiscoveryAvailabilityResult } from '../../core/discovery-modes/availability'
 import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
 import type { GenreInfo } from '../../core/genre/types'
+import { getMessages } from '../../core/i18n/messages'
+import type { MessageKey } from '../../core/i18n/messages/types'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -57,6 +59,15 @@ export class ApiError extends Error {
 function extractApiErrorMessage(status: number, data: unknown): string {
   if (data && typeof data === 'object') {
     const record = data as Record<string, unknown>
+    // problem+json: translate `code` i18n key, fall back to `title`.
+    if (typeof record.code === 'string' && record.code.trim()) {
+      const translated = translateErrorCode(record.code)
+      if (translated) return translated
+      if (typeof record.title === 'string' && record.title.trim()) return record.title
+    }
+    if (typeof record.title === 'string' && record.title.trim()) {
+      return record.title
+    }
     if (typeof record.error === 'string' && record.error.trim()) {
       return record.error
     }
@@ -66,6 +77,12 @@ function extractApiErrorMessage(status: number, data: unknown): string {
   }
 
   return `API Error ${status}`
+}
+
+function translateErrorCode(code: string): string | null {
+  const messages = getMessages(getRequestLocale())
+  const value = messages[code as MessageKey]
+  return typeof value === 'string' && value.length > 0 ? value : null
 }
 
 // Fired when any fetchApi call gets 401 - AuthGate listens and shows login

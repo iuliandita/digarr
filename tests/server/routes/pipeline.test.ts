@@ -199,7 +199,8 @@ describe('POST /api/pipeline/run', () => {
     const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(409)
     const body = await res.json()
-    expect(body.error).toMatch(/already running/i)
+    expect(body.title).toMatch(/already/i)
+    expect(body.code).toBe('errors.pipeline.alreadyRunning')
   })
 
   it('returns 400 when settings are missing', async () => {

@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
+import { problem } from '@/server/helpers/problem'
 import { adminGuard } from '@/server/middleware/admin-guard'
 import {
   createTargetSchema,
@@ -75,7 +76,15 @@ export function targetRoutes(deps: TargetDeps) {
       const { id } = c.req.valid('param')
       const target = await deps.targetQueries.getTarget(id)
       if (!target || target.userId !== userId) {
-        return c.json({ error: 'Target not found' }, 404)
+        return problem(
+          c,
+          'target-not-found',
+          'Target not found',
+          404,
+          undefined,
+          undefined,
+          'errors.target.notFound',
+        )
       }
 
       const allowed: TargetUpdate = c.req.valid('json')
@@ -95,7 +104,15 @@ export function targetRoutes(deps: TargetDeps) {
       const { id } = c.req.valid('param')
       const target = await deps.targetQueries.getTarget(id)
       if (!target || target.userId !== userId) {
-        return c.json({ error: 'Target not found' }, 404)
+        return problem(
+          c,
+          'target-not-found',
+          'Target not found',
+          404,
+          undefined,
+          undefined,
+          'errors.target.notFound',
+        )
       }
 
       await deps.targetQueries.deleteTarget(id)
@@ -110,7 +127,15 @@ export function targetRoutes(deps: TargetDeps) {
     const { id } = c.req.valid('param')
     const target = await deps.targetQueries.getTarget(id)
     if (!target || target.userId !== userId) {
-      return c.json({ error: 'Target not found' }, 404)
+      return problem(
+        c,
+        'target-not-found',
+        'Target not found',
+        404,
+        undefined,
+        undefined,
+        'errors.target.notFound',
+      )
     }
 
     const result = await deps.testTargetConnection(target.type, target.config)

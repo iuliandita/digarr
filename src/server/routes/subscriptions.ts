@@ -10,6 +10,7 @@ import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
+import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
 import {
   bulkToggleSchema,
@@ -684,10 +685,26 @@ export function subscriptionRoutes(deps: AppDependencies) {
       const { id } = c.req.valid('param')
       const existing = await deps.subscriptionQueries.getSubscription(id)
       if (!existing) {
-        return c.json({ error: 'Subscription not found' }, 404)
+        return problem(
+          c,
+          'subscription-not-found',
+          'Subscription not found',
+          404,
+          undefined,
+          undefined,
+          'errors.subscription.notFound',
+        )
       }
       if (existing.userId !== userId) {
-        return c.json({ error: 'Subscription not found' }, 404)
+        return problem(
+          c,
+          'subscription-not-found',
+          'Subscription not found',
+          404,
+          undefined,
+          undefined,
+          'errors.subscription.notFound',
+        )
       }
 
       const body = c.req.valid('json')
@@ -736,10 +753,26 @@ export function subscriptionRoutes(deps: AppDependencies) {
     const { id } = c.req.valid('param')
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
     await deps.subscriptionQueries.deleteSubscription(id)
     deps.scheduler.remove(`subscription-${id}`)
@@ -755,10 +788,26 @@ export function subscriptionRoutes(deps: AppDependencies) {
     const { id } = c.req.valid('param')
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
 
     try {
@@ -797,10 +846,26 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
     if (existing.userId !== userId) {
-      return c.json({ error: 'Subscription not found' }, 404)
+      return problem(
+        c,
+        'subscription-not-found',
+        'Subscription not found',
+        404,
+        undefined,
+        undefined,
+        'errors.subscription.notFound',
+      )
     }
 
     const runs = await deps.jobQueries.getJobsForSubscription(id)
