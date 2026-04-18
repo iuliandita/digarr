@@ -6,9 +6,22 @@
  * Usage: bun scripts/i18n-check.ts
  */
 
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
 import { getMessages } from '../src/core/i18n/messages'
+
+// Markers that indicate stripped diacritics in de/es catalogs. CI fails on
+// any match so we cannot regress to ASCII-substituted spellings.
+const ASCII_MARKERS: Record<string, RegExp> = {
+  de: /\b(Zurueck|Taeglich|Laedt|Hoerverlauf|Durchlaeufe|Kuenstler|Aehnliche|Veroeffentlichungen|Wochentliche)\b/,
+  es: /\b(Configuracion|Ultima|automatica|busqueda|suscripcion|Genero|puntuacion)\b/,
+}
+
+// Key prefixes accessed via template literals in app code. Treat as
+// referenced so the orphan check doesn't flag every mode/stage key.
+const DYNAMIC_PREFIXES = ['discoveryMode.', 'pipeline.stage.', 'pipeline.description.']
 
 const referenceLocale = 'en'
 const referenceMessages = getMessages(referenceLocale)
@@ -90,6 +103,50 @@ export function findCatalogIssues(
   return { missing, extra, empty, sameAsSource }
 }
 
+function findAsciiMarkers(locale: string, messages: Record<string, string>): string[] {
+  const regex = ASCII_MARKERS[locale]
+  if (!regex) return []
+  const hits: string[] = []
+  for (const [key, value] of Object.entries(messages)) {
+    if (typeof value === 'string' && regex.test(value)) {
+      hits.push(`${key}: "${value}"`)
+    }
+  }
+  return hits
+}
+
+function collectSourceFiles(dir: string, out: string[]): void {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry)
+    const stat = statSync(full)
+    if (stat.isDirectory()) {
+      if (full.endsWith('/i18n/messages')) continue
+      collectSourceFiles(full, out)
+    } else if (full.endsWith('.ts') || full.endsWith('.tsx')) {
+      out.push(full)
+    }
+  }
+}
+
+async function findOrphanedKeys(referenceKeys: string[]): Promise<string[]> {
+  const files: string[] = []
+  collectSourceFiles('src', files)
+  const body = files.map((f) => readFileSync(f, 'utf8')).join('\n')
+
+  const confirmedDynamic = DYNAMIC_PREFIXES.filter((prefix) => {
+    const escaped = prefix.replace(/\./g, '\\.')
+    return new RegExp(`\\b${escaped}\\$\\{`).test(body)
+  })
+
+  return referenceKeys.filter((key) => {
+    if (body.includes(key)) return false
+    for (const prefix of confirmedDynamic) {
+      if (key.startsWith(prefix)) return false
+    }
+    return true
+  })
+}
+
 export async function main(): Promise<void> {
   let failed = false
 
@@ -97,12 +154,14 @@ export async function main(): Promise<void> {
     const messages = getMessages(locale)
     const { missing, extra, empty, sameAsSource } = findCatalogIssues(referenceMessages, messages)
     const untranslated = locale === referenceLocale ? [] : sameAsSource
+    const asciiHits = findAsciiMarkers(locale, messages)
 
     if (
       missing.length === 0 &&
       extra.length === 0 &&
       empty.length === 0 &&
-      untranslated.length === 0
+      untranslated.length === 0 &&
+      asciiHits.length === 0
     ) {
       continue
     }
@@ -113,13 +172,23 @@ export async function main(): Promise<void> {
     if (extra.length > 0) console.error(`  extra: ${extra.join(', ')}`)
     if (empty.length > 0) console.error(`  empty: ${empty.join(', ')}`)
     if (untranslated.length > 0) console.error(`  untranslated: ${untranslated.join(', ')}`)
+    if (asciiHits.length > 0) console.error(`  ascii-stripped: ${asciiHits.join('; ')}`)
+  }
+
+  const orphans = await findOrphanedKeys(Object.keys(referenceMessages))
+  if (orphans.length > 0) {
+    failed = true
+    console.error(`Orphaned keys (in en.ts, not referenced in src/):`)
+    for (const key of orphans) console.error(`  - ${key}`)
   }
 
   if (failed) {
     process.exit(1)
   }
 
-  console.log(`Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}`)
+  console.log(
+    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no orphans or ASCII markers.`,
+  )
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
