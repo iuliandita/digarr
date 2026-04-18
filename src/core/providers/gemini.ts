@@ -1,11 +1,41 @@
 import type { AiRecommendation, TasteProfile } from '@/core/types'
 import { errMsg } from '@/core/validation'
-import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
+import {
+  buildRecommendationPrompt,
+  getAiRecommendationsJsonSchema,
+  validateAiRecommendations,
+} from './prompt'
 import { fetchWithRetry } from './retry'
 import type { RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gemini-3-flash-preview'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+
+// Gemini's responseSchema is a subset of JSON Schema and rejects fields like
+// `$schema`, `additionalProperties`, `exclusiveMinimum`, etc. Strip the ones
+// that are known to cause 400s while keeping the shape-defining fields.
+const GEMINI_DROP_KEYS = new Set([
+  '$schema',
+  '$id',
+  'additionalProperties',
+  'exclusiveMinimum',
+  'exclusiveMaximum',
+  'default',
+  'const',
+  'examples',
+])
+function sanitizeGeminiSchema(input: unknown): unknown {
+  if (Array.isArray(input)) return input.map((v) => sanitizeGeminiSchema(v))
+  if (input && typeof input === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(input)) {
+      if (GEMINI_DROP_KEYS.has(k)) continue
+      out[k] = sanitizeGeminiSchema(v)
+    }
+    return out
+  }
+  return input
+}
 
 export class GeminiProvider implements RecommendationProvider {
   private apiKey: string
@@ -34,6 +64,7 @@ export class GeminiProvider implements RecommendationProvider {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               responseMimeType: 'application/json',
+              responseSchema: sanitizeGeminiSchema(getAiRecommendationsJsonSchema()),
               maxOutputTokens: 4096,
             },
           }),
@@ -48,7 +79,7 @@ export class GeminiProvider implements RecommendationProvider {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text
       if (!text) throw new Error('Empty response from Gemini')
 
-      return parseRecommendationResponse(text)
+      return validateAiRecommendations(JSON.parse(text))
     } finally {
       clearTimeout(timer)
     }

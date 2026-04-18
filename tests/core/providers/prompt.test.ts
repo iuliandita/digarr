@@ -1,11 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
+  AiRecommendationItemSchema,
   buildMoodPrompt,
   buildRecommendationPrompt,
+  getAiRecommendationsJsonSchema,
   parseRecommendationResponse,
   stripReasoningBlocks,
   unwrapRecommendationArrayPayload,
+  validateAiRecommendations,
 } from '@/core/providers/prompt'
 import type { TasteProfile } from '@/core/types'
 
@@ -191,7 +194,12 @@ describe('parseRecommendationResponse()', () => {
     expect(result[0]?.artistName).toBe('Test')
   })
 
-  it('ignores non-string suggestedAlbum values', () => {
+  it('drops items with wrong-typed optional fields', () => {
+    // The schema is stricter than the previous per-field filter: a non-string
+    // suggestedAlbum now invalidates the entire row rather than silently
+    // dropping just that one field. Providers almost never emit this shape
+    // (structured-output mode enforces types), so a dropped row is a fine
+    // signal that the upstream payload drifted.
     const response = JSON.stringify([
       {
         artistName: 'Four Tet',
@@ -200,11 +208,81 @@ describe('parseRecommendationResponse()', () => {
         genres: ['electronic'],
         suggestedAlbum: 42,
       },
+      {
+        artistName: 'Burial',
+        reasoning: 'Dark electronic producer.',
+        confidence: 0.9,
+        genres: ['electronic'],
+      },
     ])
 
     const result = parseRecommendationResponse(response)
 
     expect(result).toHaveLength(1)
-    expect(result[0]?.suggestedAlbum).toBeUndefined()
+    expect(result[0]?.artistName).toBe('Burial')
+  })
+})
+
+describe('validateAiRecommendations()', () => {
+  const valid = {
+    artistName: 'Grouper',
+    reasoning: 'Ambient artist.',
+    confidence: 0.8,
+    genres: ['ambient'],
+  }
+
+  it('accepts a bare array', () => {
+    expect(validateAiRecommendations([valid])).toHaveLength(1)
+  })
+
+  it('unwraps a { recommendations } object', () => {
+    expect(validateAiRecommendations({ recommendations: [valid] })).toHaveLength(1)
+  })
+
+  it('rejects arbitrary non-array payloads', () => {
+    expect(() => validateAiRecommendations({ foo: 'bar' })).toThrow(/recommendations array/)
+  })
+
+  it('drops items that fail bounds (confidence > 1)', () => {
+    const bad = { ...valid, confidence: 5 }
+    expect(validateAiRecommendations([valid, bad])).toHaveLength(1)
+  })
+
+  it('drops items with empty artistName', () => {
+    const bad = { ...valid, artistName: '' }
+    expect(validateAiRecommendations([valid, bad])).toHaveLength(1)
+  })
+
+  it('drops items with oversized reasoning', () => {
+    const bad = { ...valid, reasoning: 'x'.repeat(3000) }
+    expect(validateAiRecommendations([valid, bad])).toHaveLength(1)
+  })
+})
+
+describe('getAiRecommendationsJsonSchema()', () => {
+  it('describes a recommendations wrapper object', () => {
+    const schema = getAiRecommendationsJsonSchema() as {
+      type: string
+      required?: string[]
+      properties: { recommendations: { type: string; items: { required: string[] } } }
+    }
+    expect(schema.type).toBe('object')
+    expect(schema.required).toContain('recommendations')
+    expect(schema.properties.recommendations.type).toBe('array')
+    expect(schema.properties.recommendations.items.required).toEqual(
+      expect.arrayContaining(['artistName', 'reasoning', 'confidence', 'genres']),
+    )
+  })
+})
+
+describe('AiRecommendationItemSchema', () => {
+  it('safeParses a minimal valid payload', () => {
+    const result = AiRecommendationItemSchema.safeParse({
+      artistName: 'A',
+      reasoning: 'r',
+      confidence: 0.5,
+      genres: ['g'],
+    })
+    expect(result.success).toBe(true)
   })
 })

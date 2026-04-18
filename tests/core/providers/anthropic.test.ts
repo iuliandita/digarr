@@ -78,7 +78,45 @@ describe('AnthropicProvider', () => {
   })
 
   describe('getRecommendations', () => {
-    test('returns parsed AiRecommendation[] from API response', async () => {
+    test('prefers the tool_use block when present', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+      })
+
+      const result = await provider.getRecommendations(sampleProfile)
+
+      expect(result).toHaveLength(2)
+      expect(result[0]?.artistName).toBe('Grouper')
+    })
+
+    test('requests the emit_recommendations tool', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+      })
+
+      await provider.getRecommendations(sampleProfile)
+      const callArgs = mockCreate.mock.calls[0]?.[0] as {
+        tools?: Array<{ name: string; input_schema?: Record<string, unknown> }>
+        tool_choice?: { type: string; name?: string }
+      }
+      expect(callArgs.tools?.[0]?.name).toBe('emit_recommendations')
+      expect(callArgs.tools?.[0]?.input_schema).toBeDefined()
+      expect(callArgs.tool_choice).toEqual({ type: 'tool', name: 'emit_recommendations' })
+    })
+
+    test('falls back to text parsing when no tool_use block returned', async () => {
       mockCreate.mockResolvedValueOnce({
         content: [
           {

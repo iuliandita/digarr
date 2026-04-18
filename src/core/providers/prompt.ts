@@ -1,5 +1,88 @@
+import { z } from 'zod'
 import { getLocaleLabel, type SupportedLocale } from '@/core/i18n/locales'
 import type { AiRecommendation, TasteProfile } from '@/core/types'
+
+// Bounded Zod schema for a single AI recommendation. Tight upper bounds on
+// strings and array sizes prevent provider responses from stuffing the payload
+// with unbounded prose or thousands of genre tokens.
+export const AiRecommendationItemSchema = z
+  .object({
+    artistName: z.string().min(1).max(200),
+    reasoning: z.string().min(1).max(2000),
+    confidence: z.number().min(0).max(1),
+    genres: z.array(z.string().min(1).max(100)).max(25),
+    suggestedAlbum: z.string().min(1).max(300).optional(),
+  })
+  .strip()
+
+export const AiRecommendationArraySchema = z.array(AiRecommendationItemSchema).max(50)
+
+// Wrapper object used for tool_use / JSON-schema structured output across
+// providers that require the top-level payload to be an object.
+export const AiRecommendationWrapperSchema = z.object({
+  recommendations: AiRecommendationArraySchema,
+})
+
+/**
+ * Validate a parsed AI response (either the array directly or an object
+ * containing a `recommendations` array). Silently drops items that fail
+ * schema validation so a single bad entry does not tank the whole batch, but
+ * throws if the whole payload has the wrong shape.
+ */
+export function validateAiRecommendations(raw: unknown): AiRecommendation[] {
+  const array = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === 'object' && 'recommendations' in raw
+      ? (raw as { recommendations: unknown }).recommendations
+      : null
+
+  if (!Array.isArray(array)) {
+    throw new Error('AI response did not contain a recommendations array')
+  }
+
+  const validated: AiRecommendation[] = []
+  for (const entry of array) {
+    const result = AiRecommendationItemSchema.safeParse(entry)
+    if (result.success) validated.push(result.data)
+    // Malformed entries are dropped; callers retry the request rather than
+    // trying to salvage partial rows. Log-worthy but not fatal here.
+  }
+  return validated
+}
+
+// JSON Schema mirror of AiRecommendationWrapperSchema. Hand-written so we can
+// drop fields (e.g. `additionalProperties`) that Gemini's subset rejects, and
+// so we do not take a dependency on a Zod-v3-only schema generator. Keep the
+// bounds in sync with the Zod schemas above.
+const AI_RECOMMENDATIONS_JSON_SCHEMA: Record<string, unknown> = Object.freeze({
+  type: 'object',
+  properties: {
+    recommendations: {
+      type: 'array',
+      maxItems: 50,
+      items: {
+        type: 'object',
+        properties: {
+          artistName: { type: 'string', minLength: 1, maxLength: 200 },
+          reasoning: { type: 'string', minLength: 1, maxLength: 2000 },
+          confidence: { type: 'number', minimum: 0, maximum: 1 },
+          genres: {
+            type: 'array',
+            maxItems: 25,
+            items: { type: 'string', minLength: 1, maxLength: 100 },
+          },
+          suggestedAlbum: { type: 'string', minLength: 1, maxLength: 300 },
+        },
+        required: ['artistName', 'reasoning', 'confidence', 'genres'],
+      },
+    },
+  },
+  required: ['recommendations'],
+})
+
+export function getAiRecommendationsJsonSchema(): Record<string, unknown> {
+  return AI_RECOMMENDATIONS_JSON_SCHEMA
+}
 
 function buildLanguageInstruction(locale?: SupportedLocale): string {
   return locale ? `All reasoning fields must be written in ${getLocaleLabel(locale)}.\n` : ''
@@ -154,26 +237,7 @@ export function parseRecommendationResponse(text: string): AiRecommendation[] {
   const jsonStr = cleaned.slice(arrayStart, arrayEnd + 1)
   const parsed: unknown = JSON.parse(jsonStr)
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('AI response did not contain an array')
-  }
-
-  return parsed
-    .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object')
-    .filter(
-      (item) =>
-        typeof item.artistName === 'string' &&
-        typeof item.reasoning === 'string' &&
-        typeof item.confidence === 'number' &&
-        Array.isArray(item.genres),
-    )
-    .map((item) => ({
-      artistName: item.artistName as string,
-      reasoning: item.reasoning as string,
-      confidence: item.confidence as number,
-      genres: (item.genres as unknown[]).filter((g): g is string => typeof g === 'string'),
-      suggestedAlbum: typeof item.suggestedAlbum === 'string' ? item.suggestedAlbum : undefined,
-    }))
+  return validateAiRecommendations(parsed)
 }
 
 export function unwrapRecommendationArrayPayload(text: string): string {
