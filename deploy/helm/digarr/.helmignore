@@ -1,0 +1,15 @@
+# Patterns to ignore when building packages.
+# Mirrors the default helm-create set plus local artifacts.
+.DS_Store
+.git/
+.gitignore
+.project
+.idea/
+.vscode/
+*.swp
+*.bak
+*.tmp
+*.orig
+*~
+# OWNERS and license files are not chart content
+OWNERS

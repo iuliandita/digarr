@@ -80,6 +80,23 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
 
+  helm-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
+        with:
+          version: v3.16.4
+      - name: Lint Helm chart
+        run: helm lint deploy/helm/digarr --set postgresql.auth.password=lint
+      - name: Verify deploy/k8s/rendered.yaml is in sync with chart
+        run: |
+          ./scripts/k8s-sync.sh
+          if ! git diff --exit-code -- deploy/k8s/rendered.yaml; then
+            echo "::error::deploy/k8s/rendered.yaml is out of date. Run scripts/k8s-sync.sh locally and commit the result."
+            exit 1
+          fi
+
   browser-test:
     runs-on: ubuntu-latest
     needs: api-route-test

@@ -1,6 +1,12 @@
 apiVersion: v2
 name: digarr
-description: Music discovery app -- finds new artists based on your listening history
 type: application
-version: 0.32.3
-appVersion: "0.32.3"
+description: Music discovery and recommendation pipeline for Lidarr, Plex, Jellyfin, Emby, and Navidrome.
+version: 0.33.6
+appVersion: "0.33.6"
+kubeVersion: ">=1.29.0"
+sources:
+  - https://github.com/iuliandita/digarr
+maintainers:
+  - name: iuliandita
+    email: iulian.dita@gmail.com

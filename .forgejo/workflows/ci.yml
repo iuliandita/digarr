@@ -73,6 +73,38 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
 
+  helm-drift:
+    runs-on: docker
+    container:
+      image: oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160
+    env:
+      HELM_VERSION: v3.16.4
+      HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
+    steps:
+      - name: Install git and curl
+        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates > /dev/null
+      - name: Install Helm
+        run: |
+          set -euo pipefail
+          curl -fsSLo /tmp/helm.tgz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
+          echo "${HELM_SHA256}  /tmp/helm.tgz" | sha256sum -c -
+          tar -xzf /tmp/helm.tgz -C /tmp
+          install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm
+          helm version --short
+      # mirror: .github/workflows/ci.yml `helm-drift` -> actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 1
+      - name: Lint Helm chart
+        run: helm lint deploy/helm/digarr --set postgresql.auth.password=lint
+      - name: Verify deploy/k8s/rendered.yaml is in sync with chart
+        run: |
+          ./scripts/k8s-sync.sh
+          if ! git diff --exit-code -- deploy/k8s/rendered.yaml; then
+            echo "deploy/k8s/rendered.yaml is out of date. Run scripts/k8s-sync.sh locally and commit the result."
+            exit 1
+          fi
+
   browser-test:
     runs-on: docker
     container:
