@@ -204,6 +204,13 @@
       "when": 1776509887445,
       "tag": "0028_library_natural_keys_nulls_not_distinct",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1776510950630,
+      "tag": "0029_artists_gin_indexes",
+      "breakpoints": true
     }
   ]
 }
