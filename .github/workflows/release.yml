@@ -9,6 +9,15 @@ on:
         description: "Tag to release (e.g. v0.12.13)"
         required: true
 
+# Workflow baseline is read-only. Jobs that need more (docker) escalate per-job.
+permissions:
+  contents: read
+
+# Serialize releases on the same ref; never cancel a release mid-flight.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
