@@ -1,3 +1,8 @@
+# Mirror of .github/workflows/ci.yml. Forgejo runs CI only; releases live on
+# GitHub. Action SHAs below MUST stay in sync with their counterparts in the
+# GitHub workflow -- Dependabot only updates `.github/`, so manual sync is
+# required when bumping the GitHub side. Use the job-name annotations on each
+# `uses:` line below to find the matching GitHub step.
 name: CI
 on:
   push:
@@ -13,6 +18,7 @@ jobs:
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      # mirror: .github/workflows/ci.yml `lint-typecheck-test` -> actions/checkout
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
@@ -30,6 +36,7 @@ jobs:
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      # mirror: .github/workflows/ci.yml `build` -> actions/checkout
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
@@ -56,6 +63,7 @@ jobs:
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      # mirror: .github/workflows/ci.yml `api-route-test` -> actions/checkout
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
@@ -85,6 +93,7 @@ jobs:
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git > /dev/null
+      # mirror: .github/workflows/ci.yml `browser-test` -> actions/checkout
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
