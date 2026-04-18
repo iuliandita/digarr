@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
-import { resolveAdmin } from '@/server/middleware/admin-guard'
+import { adminGuard } from '@/server/middleware/admin-guard'
 import {
   createTargetSchema,
   targetIdParamSchema,
@@ -44,48 +44,33 @@ export function targetRoutes(deps: TargetDeps) {
     )
   })
 
-  router.post('/api/targets', zJson(createTargetSchema), async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+  router.post(
+    '/api/targets',
+    adminGuard(deps.getUserById),
+    zJson(createTargetSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+      const { type, name, config } = c.req.valid('json')
 
-    if (
-      !(await resolveAdmin(
+      const result = await deps.targetQueries.createTarget({
+        type,
+        name,
+        config,
         userId,
-        deps.getUserById,
-        c.get('authSkipped'),
-        c.get('legacyTokenAuth'),
-      ))
-    )
-      return c.json({ error: 'Admin access required' }, 403)
-
-    const { type, name, config } = c.req.valid('json')
-
-    const result = await deps.targetQueries.createTarget({
-      type,
-      name,
-      config,
-      userId,
-    })
-    return c.json(result, 201)
-  })
+      })
+      return c.json(result, 201)
+    },
+  )
 
   router.patch(
     '/api/targets/:id',
+    adminGuard(deps.getUserById),
     zParam(targetIdParamSchema),
     zJson(updateTargetSchema),
     async (c) => {
       const userId = c.get('userId')
       if (!userId) return c.json({ error: 'Unauthorized' }, 401)
-
-      if (
-        !(await resolveAdmin(
-          userId,
-          deps.getUserById,
-          c.get('authSkipped'),
-          c.get('legacyTokenAuth'),
-        ))
-      )
-        return c.json({ error: 'Admin access required' }, 403)
 
       const { id } = c.req.valid('param')
       const target = await deps.targetQueries.getTarget(id)
@@ -99,29 +84,24 @@ export function targetRoutes(deps: TargetDeps) {
     },
   )
 
-  router.delete('/api/targets/:id', zParam(targetIdParamSchema), async (c) => {
-    const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+  router.delete(
+    '/api/targets/:id',
+    adminGuard(deps.getUserById),
+    zParam(targetIdParamSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    if (
-      !(await resolveAdmin(
-        userId,
-        deps.getUserById,
-        c.get('authSkipped'),
-        c.get('legacyTokenAuth'),
-      ))
-    )
-      return c.json({ error: 'Admin access required' }, 403)
+      const { id } = c.req.valid('param')
+      const target = await deps.targetQueries.getTarget(id)
+      if (!target || target.userId !== userId) {
+        return c.json({ error: 'Target not found' }, 404)
+      }
 
-    const { id } = c.req.valid('param')
-    const target = await deps.targetQueries.getTarget(id)
-    if (!target || target.userId !== userId) {
-      return c.json({ error: 'Target not found' }, 404)
-    }
-
-    await deps.targetQueries.deleteTarget(id)
-    return c.body(null, 204)
-  })
+      await deps.targetQueries.deleteTarget(id)
+      return c.body(null, 204)
+    },
+  )
 
   router.post('/api/targets/:id/test', zParam(targetIdParamSchema), async (c) => {
     const userId = c.get('userId')
