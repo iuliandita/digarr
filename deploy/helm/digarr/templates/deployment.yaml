@@ -68,4 +68,9 @@ spec:
         - name: tmp
           emptyDir: {}
         - name: backups
+          {{- if .Values.backups.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "digarr.fullname" . }}-backups
+          {{- else }}
           emptyDir: {}
+          {{- end }}

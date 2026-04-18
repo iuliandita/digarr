@@ -1,0 +1,17 @@
+{{- if .Values.backups.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "digarr.fullname" . }}-backups
+  labels:
+    {{- include "digarr.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.backups.persistence.size | default "5Gi" }}
+  {{- with .Values.backups.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
