@@ -401,6 +401,24 @@ describe('POST /api/auth/login', () => {
     const body = await res.json()
     expect(body.code).toBe('errors.auth.invalidCredentials')
   })
+
+  it('rate limits bursts from the same source at 11th request', async () => {
+    // Each failed login runs constant-time scrypt (~700ms), so the whole
+    // burst fits in ~8s. Bump timeout past the default 5s.
+    const { __shutdownRateLimiter } = await import('@/server/middleware/rate-limit')
+    __shutdownRateLimiter()
+    const app = createApp(makeDeps())
+    const headers = { 'Content-Type': 'application/json' }
+    const body = JSON.stringify({ username: 'nobody', password: 'wrongpassword123' })
+    for (let i = 0; i < 10; i++) {
+      const r = await app.request('/api/auth/login', { method: 'POST', headers, body })
+      expect(r.status).toBe(401)
+    }
+    const r11 = await app.request('/api/auth/login', { method: 'POST', headers, body })
+    expect(r11.status).toBe(429)
+    expect(r11.headers.get('Retry-After')).not.toBeNull()
+    __shutdownRateLimiter()
+  }, 15_000)
 })
 
 describe('session token authentication', () => {
