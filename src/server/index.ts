@@ -6,6 +6,7 @@ import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
 import { VERSION } from '@/version'
+import { openapiDoc } from './helpers/openapi-doc'
 import { problem } from './helpers/problem'
 import { adminGuard } from './middleware/admin-guard'
 import { authGuard } from './middleware/auth'
@@ -179,6 +180,30 @@ export function createApp(deps: AppDependencies) {
       proxyAuthEnabled: envConfig.proxyAuthEnabled,
     })
   })
+
+  // OpenAPI 3.1 spec. Intentionally public so integrators can read the
+  // contract without credentials. The spec is a skeleton today - see
+  // src/server/helpers/openapi-doc.ts. `/api/docs` returns a tiny
+  // no-external-JS landing page pointing at the spec; rendering with
+  // Scalar/Swagger is deferred to keep the CSP strict.
+  app.get('/api/docs/openapi.json', (c) =>
+    c.json(openapiDoc, 200, { 'cache-control': 'public, max-age=60' }),
+  )
+  app.get(
+    '/api/docs',
+    (_c) =>
+      new Response(
+        `<!doctype html><html><head><meta charset="utf-8"><title>digarr API</title>
+<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem;line-height:1.5}code{background:#f4f4f4;padding:.1rem .3rem;border-radius:.2rem}</style>
+</head><body>
+<h1>digarr API</h1>
+<p>The machine-readable OpenAPI 3.1 specification is served at
+<a href="/api/docs/openapi.json"><code>/api/docs/openapi.json</code></a>.</p>
+<p>Paste the URL into your favourite viewer (Scalar, Swagger UI, Redoc, Insomnia, Bruno, Postman) to browse it interactively.</p>
+</body></html>`,
+        { headers: { 'content-type': 'text/html; charset=utf-8' } },
+      ),
+  )
 
   app.route(
     '/',

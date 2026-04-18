@@ -25,6 +25,8 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/register',
   '/api/auth/oidc/login',
   '/api/auth/oidc/callback',
+  '/api/docs',
+  '/api/docs/openapi.json',
 ])
 
 const OPTIONAL_AUTH_PATHS = new Set([
