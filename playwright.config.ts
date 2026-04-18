@@ -1,5 +1,23 @@
 import { defineConfig } from '@playwright/test'
 
+const webServer =
+  process.env.PLAYWRIGHT_SKIP_WEBSERVER === '1'
+    ? undefined
+    : [
+        {
+          command: 'bun run tests/e2e/browser/start-backend.ts',
+          port: 3000,
+          reuseExistingServer: false,
+          timeout: 30_000,
+        },
+        {
+          command: 'bun run dev:web',
+          port: 5173,
+          reuseExistingServer: false,
+          timeout: 30_000,
+        },
+      ]
+
 export default defineConfig({
   testDir: 'tests/e2e/browser',
   timeout: 30_000,
@@ -10,18 +28,5 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
   },
-  webServer: [
-    {
-      command: 'bun run tests/e2e/browser/start-backend.ts',
-      port: 3000,
-      reuseExistingServer: false,
-      timeout: 30_000,
-    },
-    {
-      command: 'bun run dev:web',
-      port: 5173,
-      reuseExistingServer: false,
-      timeout: 30_000,
-    },
-  ],
+  webServer,
 })
