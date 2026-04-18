@@ -548,10 +548,7 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
       store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'completed' }),
       store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' }),
     ])
-    const rows = await db
-      .select()
-      .from(librarySyncState)
-      .where(eq(librarySyncState.userId, userId))
+    const rows = await db.select().from(librarySyncState).where(eq(librarySyncState.userId, userId))
     expect(rows).toHaveLength(1)
   })
 

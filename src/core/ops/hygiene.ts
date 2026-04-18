@@ -119,20 +119,30 @@ export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
   // Clear and rebuild
   await db.delete(genres)
 
-  for (const [name, count] of genreCounts) {
-    await db
-      .insert(genres)
-      .values({
-        name,
-        slug: slugify(name),
-        source: 'rebuild',
-        artistCount: count,
-        cachedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: genres.slug,
-        set: { artistCount: count, cachedAt: new Date(), source: 'rebuild' },
-      })
+  if (genreCounts.size > 0) {
+    const rows = Array.from(genreCounts, ([name, count]) => ({
+      name,
+      slug: slugify(name),
+      source: 'rebuild',
+      artistCount: count,
+      cachedAt: new Date(),
+    }))
+    // genres has ~6 columns; 2000 rows = ~12k params, safely under the 65535 cap.
+    const CHUNK = 2000
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK)
+      await db
+        .insert(genres)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: genres.slug,
+          set: {
+            artistCount: sql`excluded.artist_count`,
+            cachedAt: sql`excluded.cached_at`,
+            source: sql`excluded.source`,
+          },
+        })
+    }
   }
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
@@ -185,20 +195,39 @@ export async function rescoreRecommendations(
     .innerJoin(artists, eq(recommendations.artistId, artists.id))
     .where(inArray(recommendations.status, statusFilter))
 
-  let rescored = 0
-  for (const rec of recs) {
-    const allGenres = [...(rec.artistGenres ?? []), ...(rec.artistTags ?? [])]
-    const newScore = rescoreOne(rec.sources ?? {}, allGenres, libraryGenres, weights)
-
-    await db
-      .update(recommendations)
-      .set({ score: newScore })
-      .where(eq(recommendations.id, rec.recId))
-
-    rescored++
+  if (recs.length === 0) {
+    return { tool: 'rescore', rescored: 0, weightProfile: weights }
   }
 
-  return { tool: 'rescore', rescored, weightProfile: weights }
+  // Compute all new scores in memory, then flush via one UPDATE ... FROM
+  // unnest(ids, scores) per chunk instead of one UPDATE per row. unnest
+  // collapses the variadic payload to two array parameters, so Postgres'
+  // 65535 bind-param limit applies to the arrays (not row*column) and we can
+  // run large chunks without risk.
+  const updates = recs.map((rec) => ({
+    id: rec.recId,
+    score: rescoreOne(
+      rec.sources ?? {},
+      [...(rec.artistGenres ?? []), ...(rec.artistTags ?? [])],
+      libraryGenres,
+      weights,
+    ),
+  }))
+
+  const CHUNK = 5000
+  for (let i = 0; i < updates.length; i += CHUNK) {
+    const chunk = updates.slice(i, i + CHUNK)
+    const ids = chunk.map((u) => u.id)
+    const scores = chunk.map((u) => u.score)
+    await db.execute(sql`
+      UPDATE ${recommendations}
+      SET score = v.score
+      FROM unnest(${ids}::int[], ${scores}::real[]) AS v(id, score)
+      WHERE ${recommendations.id} = v.id
+    `)
+  }
+
+  return { tool: 'rescore', rescored: updates.length, weightProfile: weights }
 }
 
 // ── AI Reasoning Audit ──────────────────────────

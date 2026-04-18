@@ -122,6 +122,7 @@ describe('rescoreRecommendations', () => {
           where: vi.fn().mockResolvedValue({ rowCount: 1 }),
         }),
       }),
+      execute: vi.fn().mockResolvedValue({ rowCount: 1 }),
     }
 
     const weights = {
