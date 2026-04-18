@@ -9,9 +9,35 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
 
 jobs:
+  # Fail-closed gate for fork PRs. The primary control is the Forgejo repo
+  # setting "Require approval for first-time contributors"; this job is
+  # defense-in-depth + visibly logged. Step-level `if:` ensures the job runs
+  # trivially on push events so downstream `needs: guard` chains cleanly.
+  guard:
+    runs-on: docker
+    # Reuse the pinned bun image already warm on the runner cache -- cheap and
+    # avoids juggling an extra digest in the mirror policy comment.
+    container:
+      image: oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160
+    steps:
+      - name: Reject fork PRs until approved
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          if [ "$HEAD_REPO" != "$REPO" ]; then
+            echo "Fork PR from $HEAD_REPO - CI blocked."
+            echo "Fork runs must be approved in Forgejo repo settings."
+            exit 1
+          fi
+
   lint-typecheck-test:
+    needs: guard
     runs-on: docker
     container:
       image: oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160
@@ -74,6 +100,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
 
   helm-drift:
+    needs: guard
     runs-on: docker
     container:
       image: oven/bun:1.3.12@sha256:8956c7667fa17beb6e3c664115e66bdacfe502da5d99603626e74c197bdef160

@@ -6,8 +6,9 @@ name: Dependabot bun.lock sync
 #
 # Security: pull_request_target runs with write token from the base repo.
 # Guarded to only run on dependabot[bot] PRs from the same repo (never forks).
-# Bun does not execute lifecycle scripts by default, so running `bun install`
-# on PR-supplied package.json is safe without --ignore-scripts.
+# Bun does not execute lifecycle scripts by default today, but we pass
+# --ignore-scripts as defense-in-depth so this stays safe if bun flips the
+# default or introduces new install-time hooks.
 #
 # Re-triggering CI: pushing with GITHUB_TOKEN does NOT fire new workflow runs,
 # so auto-merge would stall. Set repo secret DEPENDABOT_SYNC_TOKEN to a
@@ -43,7 +44,7 @@ jobs:
           bun-version: "1.3.12"
 
       - name: Regenerate bun.lock
-        run: bun install
+        run: bun install --ignore-scripts
 
       - name: Commit and push if changed
         env:
