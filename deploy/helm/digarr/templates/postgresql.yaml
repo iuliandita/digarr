@@ -52,6 +52,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 999
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -71,11 +72,15 @@ spec:
               value: {{ .Values.postgresql.auth.database | quote }}
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
-          {{- if .Values.postgresql.persistence.enabled }}
           volumeMounts:
+            - name: postgres-run
+              mountPath: /var/run/postgresql
+            - name: postgres-tmp
+              mountPath: /tmp
+            {{- if .Values.postgresql.persistence.enabled }}
             - name: data
               mountPath: /var/lib/postgresql/data
-          {{- end }}
+            {{- end }}
           startupProbe:
             exec:
               command: ["pg_isready", "-U", {{ .Values.postgresql.auth.username | quote }}]
@@ -96,6 +101,11 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.postgresql.resources | nindent 12 }}
+      volumes:
+        - name: postgres-run
+          emptyDir: {}
+        - name: postgres-tmp
+          emptyDir: {}
   {{- if .Values.postgresql.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
