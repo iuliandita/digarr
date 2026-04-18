@@ -232,7 +232,7 @@ const storeDb: StoreDb = {
     return row
   },
   completeBatch: async (id, stats) => {
-    await completeBatch(db, id, { ...stats, filtered: 0, scored: 0 })
+    await completeBatch(db, id, { ...stats, filtered: 0 })
   },
   upsertArtist: async (data) => {
     const row = await upsertArtist(db, data)

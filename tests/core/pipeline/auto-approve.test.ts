@@ -140,4 +140,145 @@ describe('autoApprove()', () => {
     expect(result.approved).toBe(1)
     expect(result.failed).toBe(1)
   })
+
+  it('marks add_failed when Lidarr target exists but addArtist failed', async () => {
+    const deps = makeDeps({
+      getEnabledTargets: vi.fn().mockResolvedValue([
+        {
+          id: 'lidarr-1',
+          name: 'Lidarr',
+          type: 'lidarr',
+          capabilities: ['addArtist'],
+          addArtist: vi.fn().mockResolvedValue({
+            success: false,
+            targetType: 'lidarr',
+            targetId: 1,
+            error: 'connection refused',
+          }),
+          testConnection: vi.fn(),
+        },
+      ]),
+      getRecommendationsByBatch: vi
+        .fn()
+        .mockResolvedValue([
+          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
+        ]),
+    })
+    const result = await autoApprove(
+      1,
+      {
+        threshold: 0.5,
+        monitorOption: 'all',
+        qualityProfileId: 1,
+        metadataProfileId: 1,
+        rootFolderId: 1,
+      },
+      deps,
+    )
+    expect(result.approved).toBe(0)
+    expect(result.failed).toBe(1)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'add_failed',
+      expect.objectContaining({ lidarrError: 'connection refused' }),
+    )
+  })
+
+  it('sets added_to_lidarr only when the Lidarr target actually succeeded', async () => {
+    // Regression guard: prior code keyed final status off `hasLidarr` (target presence),
+    // so a succeeding non-Lidarr target alongside a failing Lidarr target could yield
+    // `added_to_lidarr`. With Lidarr failing, the status must NOT be `added_to_lidarr`.
+    const deps = makeDeps({
+      getEnabledTargets: vi.fn().mockResolvedValue([
+        {
+          id: 'lidarr-1',
+          name: 'Lidarr',
+          type: 'lidarr',
+          capabilities: ['addArtist'],
+          addArtist: vi.fn().mockResolvedValue({
+            success: false,
+            targetType: 'lidarr',
+            targetId: 1,
+            error: 'lidarr down',
+          }),
+          testConnection: vi.fn(),
+        },
+        {
+          id: 'emby-1',
+          name: 'Emby',
+          type: 'emby',
+          capabilities: ['addArtist'],
+          addArtist: vi.fn().mockResolvedValue({
+            success: true,
+            targetType: 'emby',
+            targetId: 2,
+            externalId: 'emby-artist-1',
+          }),
+          testConnection: vi.fn(),
+        },
+      ]),
+      getRecommendationsByBatch: vi
+        .fn()
+        .mockResolvedValue([
+          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
+        ]),
+    })
+    await autoApprove(
+      1,
+      {
+        threshold: 0.5,
+        monitorOption: 'all',
+        qualityProfileId: 1,
+        metadataProfileId: 1,
+        rootFolderId: 1,
+      },
+      deps,
+    )
+    // Lidarr is authoritative: if its add failed, status must NOT be added_to_lidarr
+    // even when a secondary target succeeded. Caller treats this as a failure.
+    const mock = deps.updateRecommendationStatus as ReturnType<typeof vi.fn>
+    const firstCall = mock.mock.calls[0]
+    if (!firstCall) throw new Error('expected updateRecommendationStatus to be called')
+    const finalStatus = firstCall[1]
+    expect(finalStatus).not.toBe('added_to_lidarr')
+    expect(finalStatus).toBe('add_failed')
+  })
+
+  it('uses approved status when no Lidarr target is configured', async () => {
+    const deps = makeDeps({
+      getEnabledTargets: vi.fn().mockResolvedValue([
+        {
+          id: 'emby-1',
+          name: 'Emby',
+          type: 'emby',
+          capabilities: ['addArtist'],
+          addArtist: vi.fn().mockResolvedValue({
+            success: true,
+            targetType: 'emby',
+            targetId: 2,
+            externalId: 'emby-artist-1',
+          }),
+          testConnection: vi.fn(),
+        },
+      ]),
+      getRecommendationsByBatch: vi
+        .fn()
+        .mockResolvedValue([
+          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
+        ]),
+    })
+    const result = await autoApprove(
+      1,
+      {
+        threshold: 0.5,
+        monitorOption: 'all',
+        qualityProfileId: 1,
+        metadataProfileId: 1,
+        rootFolderId: 1,
+      },
+      deps,
+    )
+    expect(result.approved).toBe(1)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(1, 'approved', expect.any(Object))
+  })
 })

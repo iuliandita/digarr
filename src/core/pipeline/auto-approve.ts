@@ -68,7 +68,11 @@ export async function autoApprove(
 
     const targetActions: Record<string, unknown> = {}
     let anySuccess = false
-    let lidarrResult: { externalId?: number | string; error?: string } | null = null
+    let lidarrResult: {
+      success: boolean
+      externalId?: number | string
+      error?: string
+    } | null = null
 
     for (const target of addTargets) {
       const targetJobId = deps.jobRecorder
@@ -129,7 +133,15 @@ export async function autoApprove(
       if (lidarrResult.error) extra.lidarrError = lidarrResult.error
     }
 
-    const finalStatus = anySuccess ? (hasLidarr ? 'added_to_lidarr' : 'approved') : 'add_failed'
+    const lidarrSucceeded = lidarrResult?.success === true
+    const lidarrFailed = hasLidarr && lidarrResult != null && !lidarrResult.success
+    const finalStatus = lidarrSucceeded
+      ? 'added_to_lidarr'
+      : lidarrFailed
+        ? 'add_failed'
+        : anySuccess
+          ? 'approved'
+          : 'add_failed'
 
     await deps.updateRecommendationStatus(rec.id, finalStatus, extra)
     if (anySuccess) approved++

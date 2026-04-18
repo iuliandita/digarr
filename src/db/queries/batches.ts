@@ -7,7 +7,6 @@ export type BatchRow = typeof recommendationBatches.$inferSelect
 export type BatchStats = {
   discovered: number
   filtered: number
-  scored: number
   added: number
   failed: number
 }

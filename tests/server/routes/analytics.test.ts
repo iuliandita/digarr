@@ -201,7 +201,7 @@ describe('GET /api/analytics/batches', () => {
           id: 1,
           created_at: '2024-06-01T00:00:00Z',
           status: 'completed',
-          stats: { discovered: 20, filtered: 5, scored: 15, added: 15, failed: 0 },
+          stats: { discovered: 20, filtered: 5, added: 15, failed: 0 },
           total: 15,
           approved: 5,
           rejected: 3,
