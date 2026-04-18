@@ -356,9 +356,21 @@ describe('validation: quick-discover', () => {
 })
 
 describe('validation: admin restore', () => {
-  it('rejects POST /api/admin/restore with missing data section', async () => {
+  it('rejects POST /api/admin/restore without confirm=true', async () => {
     const { app, headers } = await authedApp()
     const res = await app.request('/api/admin/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.code).toBe('confirmation_required')
+  })
+
+  it('rejects POST /api/admin/restore with missing data section', async () => {
+    const { app, headers } = await authedApp()
+    const res = await app.request('/api/admin/restore?confirm=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -377,7 +389,7 @@ describe('validation: admin restore', () => {
 
   it('rejects POST /api/admin/restore when a table is not an array', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/admin/restore', {
+    const res = await app.request('/api/admin/restore?confirm=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({

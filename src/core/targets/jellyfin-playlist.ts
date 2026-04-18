@@ -71,7 +71,12 @@ export function createJellyfinPlaylistTarget(
         artistName,
         trackName,
       )
-    } catch {
+    } catch (err) {
+      console.warn('[jellyfin-playlist] searchTrack transport error:', {
+        artistName,
+        trackName,
+        error: err instanceof Error ? err.message : String(err),
+      })
       return null
     }
   }

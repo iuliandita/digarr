@@ -7,24 +7,25 @@ import * as z from 'zod'
 // types) before restore logic runs.
 const tableArray = z.array(z.record(z.string(), z.unknown()))
 
-export const backupDataSchema = z
-  .object({
-    settings: tableArray,
-    users: tableArray,
-    oauthTokens: tableArray,
-    oidcTokens: tableArray,
-    targets: tableArray,
-    subscriptions: tableArray,
-    jobRuns: tableArray,
-    recommendationBatches: tableArray,
-    recommendations: tableArray,
-    playlists: tableArray,
-    playlistTracks: tableArray,
-    artists: tableArray.optional(),
-    genres: tableArray.optional(),
-    artistMetadata: tableArray.optional(),
-  })
-  .passthrough()
+// Locked to the known table names. Unknown keys are rejected so a crafted
+// backup can't smuggle a prototype-pollution payload through a field
+// restoreBackup doesn't filter.
+export const backupDataSchema = z.strictObject({
+  settings: tableArray,
+  users: tableArray,
+  oauthTokens: tableArray,
+  oidcTokens: tableArray,
+  targets: tableArray,
+  subscriptions: tableArray,
+  jobRuns: tableArray,
+  recommendationBatches: tableArray,
+  recommendations: tableArray,
+  playlists: tableArray,
+  playlistTracks: tableArray,
+  artists: tableArray.optional(),
+  genres: tableArray.optional(),
+  artistMetadata: tableArray.optional(),
+})
 
 export const backupFileSchema = z.object({
   version: z.number().int().positive(),

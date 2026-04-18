@@ -21,7 +21,9 @@ export type ArtistInsert = {
 export async function upsertArtist(db: DbOrTx, artist: ArtistInsert): Promise<ArtistRow> {
   const { imageFailed, ...artistData } = artist
 
-  const imageFailedAtInsert = imageFailed ? new Date() : artist.imageUrl ? null : undefined
+  // Match the update-path priority: clear negative cache when an image is present,
+  // otherwise mark failure time; undefined leaves the column at the schema default.
+  const imageFailedAtInsert = artist.imageUrl ? null : imageFailed ? new Date() : undefined
 
   const rows = await db
     .insert(artists)

@@ -368,7 +368,7 @@ export function createApp(deps: AppDependencies) {
           topArtists: [],
           topGenres: [],
           listeningPatterns: { totalListens: 0, recentTrend: 'stable' },
-          _rawPrompt: `Describe the artist "${artistName}" (genres: ${genreList}) in 2-3 sentences. First describe what they sound like and what they're known for, then explain why fans of ${genreList} might enjoy them. Return ONLY a JSON array with one element: [{"artistName":"${artistName}","reasoning":"...","confidence":0.8,"genres":${JSON.stringify(genres)}}]`,
+          _rawPrompt: `Describe the artist ${JSON.stringify(artistName)} (genres: ${genreList}) in 2-3 sentences. First describe what they sound like and what they're known for, then explain why fans of ${genreList} might enjoy them. Return ONLY a JSON array with one element: [{"artistName":${JSON.stringify(artistName)},"reasoning":"...","confidence":0.8,"genres":${JSON.stringify(genres)}}]`,
         })
         return results[0]?.reasoning ?? `${artistName} is an artist in the ${genreList} genre.`
       },

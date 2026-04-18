@@ -17,6 +17,12 @@ import { changePasswordSchema, registerSchema } from '@/server/schemas/auth'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
+// Pre-computed at module load so "username not found" still pays the scrypt
+// cost during login, preventing a timing-based user enumeration oracle.
+const DUMMY_PASSWORD_HASH = hashPassword(
+  'digarr-login-dummy-hash-input-never-matches-any-real-user',
+)
+
 const ALLOWED_PREF_KEYS = new Set([
   'scoreThreshold',
   'scoringWeights',
@@ -133,7 +139,12 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const user = await deps.getUserByUsername(username)
-    if (!user || !verifyPassword(password, user.passwordHash)) {
+    // Always run scrypt once to equalize response time between "user missing"
+    // and "user exists but password wrong". Without this, a username enumeration
+    // oracle exists via timing.
+    const hashToVerify = user?.passwordHash ?? DUMMY_PASSWORD_HASH
+    const passwordOk = verifyPassword(password, hashToVerify)
+    if (!user || !passwordOk) {
       return c.json({ error: messages['auth.invalidCredentials'] }, 401)
     }
 

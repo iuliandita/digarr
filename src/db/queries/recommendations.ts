@@ -1,4 +1,5 @@
 import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
 import { artistMetadata, artists, recommendationBatches, recommendations } from '@/db/schema'
 
@@ -48,8 +49,11 @@ export async function listRecommendations(
   const conditions = []
   if (status !== undefined) {
     if (status.includes(',')) {
-      conditions.push(inArray(recommendations.status, status.split(',')))
-    } else {
+      const filtered = parseStatusFilter(status)
+      if (filtered.length > 0) {
+        conditions.push(inArray(recommendations.status, filtered))
+      }
+    } else if (isValidStatus(status)) {
       conditions.push(eq(recommendations.status, status))
     }
   }

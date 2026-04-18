@@ -11,6 +11,7 @@ import {
 } from '@/core/ops/hygiene'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
+import { isValidStatus } from '@/core/recommendations/statuses'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { backupFileSchema } from '@/server/schemas/admin'
 import type { HonoEnv } from '@/server/types'
@@ -23,15 +24,6 @@ export interface AdminDeps {
   getSettings: () => Promise<{ preferences?: Partial<Preferences> | null } | null>
   generateReasoning?: (artistName: string, genres: string[]) => Promise<string>
 }
-
-const VALID_STATUSES = new Set([
-  'pending',
-  'approved',
-  'rejected',
-  'added_to_lidarr',
-  'add_failed',
-  'duplicate',
-])
 
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
@@ -59,6 +51,16 @@ export function adminRoutes(deps: AdminDeps) {
   // restoreBackup touches the DB.
   router.post('/api/admin/restore', async (c) => {
     const force = c.req.query('force') === 'true'
+    const confirm = c.req.query('confirm') === 'true'
+    if (!confirm) {
+      return c.json(
+        {
+          error: 'Restore overwrites existing data. Re-submit with ?confirm=true to acknowledge.',
+          code: 'confirmation_required' as const,
+        },
+        400,
+      )
+    }
     const contentType = c.req.header('content-type') ?? ''
 
     let raw: unknown
@@ -156,7 +158,7 @@ export function adminRoutes(deps: AdminDeps) {
     const user = await deps.getUserById(userId)
     const prefs = mergePreferences(user?.preferences)
     const statusParam = c.req.query('status') ?? 'pending'
-    const statuses = statusParam.split(',').filter((s) => VALID_STATUSES.has(s))
+    const statuses = statusParam.split(',').filter((s) => isValidStatus(s))
     if (statuses.length === 0) {
       return c.json({ error: 'No valid status values provided' }, 400)
     }
