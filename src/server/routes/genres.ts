@@ -4,6 +4,7 @@ import { createLidarrLibrarySource } from '@/core/library/sources/lidarr'
 import { getArtistsByGenre, getGenreEnrichments } from '@/db/queries/artists'
 import { getGenreArtists } from '@/db/queries/recommendations'
 import type { AppDependencies } from '@/server'
+import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
 import type { HonoEnv } from '@/server/types'
 
 export function genreRoutes(deps: AppDependencies) {
@@ -52,7 +53,12 @@ export function genreRoutes(deps: AppDependencies) {
   router.get('/api/genres/:slug/artists', async (c) => {
     const slug = c.req.param('slug')
     const view = (c.req.query('view') ?? 'recommended') as 'recommended' | 'trending' | 'deep_cuts'
-    const limit = Math.max(1, Math.min(100, Number(c.req.query('limit') ?? 20) || 20))
+    const limit = parseIntClamp(c.req.query('limit'), {
+      name: 'limit',
+      min: 1,
+      max: 100,
+      default: 20,
+    })
     const userId = c.get('userId')
 
     const VALID_VIEWS = new Set(['recommended', 'trending', 'deep_cuts'])

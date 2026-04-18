@@ -12,8 +12,14 @@ import { getLookupHostname, isHttpUrl } from '@/core/validation'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { requireSessionUser } from '@/server/helpers/require-user'
 import { resolveRequestLocale } from '@/server/locale'
-import { changePasswordSchema, registerSchema } from '@/server/schemas/auth'
+import {
+  changePasswordSchema,
+  registerSchema,
+  updateLocaleSchema,
+  updatePreferencesSchema,
+} from '@/server/schemas/auth'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -57,20 +63,6 @@ export function authRoutes(deps: AppDependencies) {
         acceptLanguage: c.req.header('Accept-Language'),
       }),
     )
-
-  function requireSessionUser(c: Context<HonoEnv>) {
-    const userId = c.get('userId')
-    if (!userId) {
-      return { ok: false as const, response: c.json({ error: 'Not authenticated' }, 401) }
-    }
-    if (c.get('legacyTokenAuth')) {
-      return {
-        ok: false as const,
-        response: c.json({ error: 'Session authentication required' }, 403),
-      }
-    }
-    return { ok: true as const, userId }
-  }
 
   // Register a new user. First user becomes admin.
   router.post('/api/auth/register', zJson(registerSchema), async (c) => {
@@ -185,19 +177,11 @@ export function authRoutes(deps: AppDependencies) {
     return c.body(null, 204)
   })
 
-  router.patch('/api/auth/me/locale', async (c) => {
+  router.patch('/api/auth/me/locale', zJson(updateLocaleSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
 
-    const body = await c.req.json()
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return c.json({ error: 'preferredLocale must be a string or null' }, 400)
-    }
-
-    const { preferredLocale: rawPreferredLocale } = body as { preferredLocale?: unknown }
-    if (rawPreferredLocale !== null && typeof rawPreferredLocale !== 'string') {
-      return c.json({ error: 'preferredLocale must be a string or null' }, 400)
-    }
+    const { preferredLocale: rawPreferredLocale } = c.req.valid('json')
 
     const user = await deps.getUserById(auth.userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
@@ -260,15 +244,15 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Update the authenticated user's preferences (partial merge)
-  router.patch('/api/auth/me/preferences', async (c) => {
+  router.patch('/api/auth/me/preferences', zJson(updatePreferencesSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
-    const body = await c.req.json()
+    const body = c.req.valid('json')
     const user = await deps.getUserById(auth.userId)
     if (!user) return c.json({ error: 'User not found' }, 404)
     // Filter to allowed preference keys only
     const filtered: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
+    for (const [key, value] of Object.entries(body)) {
       if (ALLOWED_PREF_KEYS.has(key)) {
         filtered[key] = value
       }

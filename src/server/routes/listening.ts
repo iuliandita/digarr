@@ -5,6 +5,7 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { getUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
+import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
 import type { HonoEnv } from '@/server/types'
 
 type ListenTrack = {
@@ -23,7 +24,12 @@ export function listeningRoutes(deps: AppDependencies) {
     if (!settings) return c.json({ tracks: [] })
 
     const range = (c.req.query('range') as 'week' | 'month' | 'year') || 'month'
-    const limit = Math.min(Math.max(Number(c.req.query('limit')) || 5, 1), 50)
+    const limit = parseIntClamp(c.req.query('limit'), {
+      name: 'limit',
+      min: 1,
+      max: 50,
+      default: 5,
+    })
     const rangeLabel =
       range === 'week' ? 'this week' : range === 'year' ? 'this year' : 'this month'
 

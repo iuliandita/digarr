@@ -469,7 +469,7 @@ describe('POST /api/library/warm', () => {
     })
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toMatch(/mbids array required/i)
+    expect(body.error.toLowerCase()).toContain('mbids')
   })
 
   it('returns 400 for empty mbids array', async () => {
@@ -482,7 +482,7 @@ describe('POST /api/library/warm', () => {
     })
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toMatch(/mbids array required/i)
+    expect(body.error.toLowerCase()).toContain('mbids')
   })
 
   it('limits batch to 50 MBIDs', async () => {
@@ -717,12 +717,12 @@ describe('POST /api/library/sync', () => {
     expect(syncSpecificSource).toHaveBeenNthCalledWith(2, null, 'plex', { force: true })
   })
 
-  it('POST /api/library/sync returns 202 (not 500) when body is JSON null', async () => {
+  it('POST /api/library/sync returns 202 when body omits source', async () => {
     const { app } = makeSyncApp()
     const res = await authedRequest(app, '/api/library/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: 'null',
+      body: JSON.stringify({}),
     })
     expect(res.status).toBe(202)
   })

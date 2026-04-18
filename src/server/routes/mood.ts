@@ -4,6 +4,8 @@ import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { buildMoodPrompt } from '@/core/providers/prompt'
 import type { AiProviderRegistry } from '@/core/providers/registry'
 import { resolveRequestLocale } from '@/server/locale'
+import { moodDiscoverSchema } from '@/server/schemas/mood'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 export type MoodDeps = {
@@ -15,16 +17,12 @@ export type MoodDeps = {
 export function moodRoutes(deps: MoodDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.post('/api/mood/discover', async (c) => {
-    const body = await c.req.json()
-    const { query } = body as { query?: string }
-    const trimmedQuery = query?.trim()
+  router.post('/api/mood/discover', zJson(moodDiscoverSchema), async (c) => {
+    const { query } = c.req.valid('json')
+    const trimmedQuery = query.trim()
 
     if (!trimmedQuery) {
       return c.json({ error: 'query is required' }, 400)
-    }
-    if (trimmedQuery.length > 500) {
-      return c.json({ error: 'query must be 500 characters or less' }, 400)
     }
 
     const settings = await deps.getSettings()

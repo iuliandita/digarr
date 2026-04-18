@@ -1,7 +1,7 @@
-import { type Context, Hono } from 'hono'
+import { Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
-import { resolveAdmin } from '@/server/middleware/admin-guard'
+import { requireAdmin as requireAdminShared } from '@/server/helpers/require-user'
 import { createUserSchema, updateUserSchema, userIdParamSchema } from '@/server/schemas/users'
 import { zJson, zParam } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
@@ -16,20 +16,8 @@ export function userRoutes(deps: AppDependencies) {
     return otherAdmins.length === 0
   }
 
-  async function requireAdmin(c: Context<HonoEnv>) {
-    const userId = c.get('userId')
-    if (!userId) return { ok: false as const, response: c.json({ error: 'Unauthorized' }, 401) }
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-    )
-    if (!isAdmin) {
-      return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
-    }
-    return { ok: true as const, userId }
-  }
+  const requireAdmin = (c: Parameters<typeof requireAdminShared>[0]) =>
+    requireAdminShared(c, deps.getUserById)
 
   // GET /api/users - list all users (admin only)
   router.get('/api/users', async (c) => {

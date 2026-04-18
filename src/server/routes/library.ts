@@ -1,4 +1,4 @@
-import { type Context, Hono } from 'hono'
+import { Hono } from 'hono'
 import type { AlbumCoverage } from '@/core/library/album-coverage'
 import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
@@ -6,8 +6,15 @@ import type { LibrarySyncStore } from '@/core/library/store'
 import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
 import type { HealthCheckId } from '@/core/library/types'
 import { errMsg } from '@/core/validation'
-import { resolveAdmin } from '@/server/middleware/admin-guard'
+import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
+import {
+  libraryAlbumOverrideSchema,
+  libraryOverrideSchema,
+  librarySyncSchema,
+  libraryWarmSchema,
+} from '@/server/schemas/library'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 const VALID_CHECK_IDS: Set<string> = new Set([
@@ -35,47 +42,11 @@ type LibraryRouteDeps = {
 export function libraryRoutes(deps: LibraryRouteDeps) {
   const app = new Hono<HonoEnv>()
 
-  function requireUser(c: Context<HonoEnv>) {
-    const userId = c.get('userId')
-    if (!userId) {
-      return { ok: false as const, response: c.json({ error: 'Auth required' }, 401) }
-    }
-    return { ok: true as const, userId }
-  }
-
-  function requireSessionUser(c: Context<HonoEnv>) {
-    const auth = requireUser(c)
-    if (!auth.ok) return auth
-    if (c.get('legacyTokenAuth')) {
-      return {
-        ok: false as const,
-        response: c.json({ error: 'Session authentication required' }, 403),
-      }
-    }
-    return auth
-  }
-
-  async function requireAdmin(c: Context<HonoEnv>) {
-    if (c.get('authSkipped')) {
-      return { ok: true as const, userId: c.get('userId') ?? 0 }
-    }
-    const auth = requireUser(c)
-    if (!auth.ok) return auth
-    const isAdmin = await resolveAdmin(
-      auth.userId,
-      deps.getUserById,
-      false,
-      c.get('legacyTokenAuth'),
-    )
-    if (!isAdmin) {
-      return { ok: false as const, response: c.json({ error: 'Admin access required' }, 403) }
-    }
-    return auth
-  }
+  const adminGate = (c: Parameters<typeof requireAdmin>[0]) => requireAdmin(c, deps.getUserById)
 
   // GET /api/library/health - return cached results + scanning status
   app.get('/api/library/health', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const [state, settings] = await Promise.all([deps.libraryHealth.getState(), deps.getSettings()])
     return c.json({
@@ -90,7 +61,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // POST /api/library/health/scan - kick off background scan, return 202
   app.post('/api/library/health/scan', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     deps.libraryHealth.startScan()
     return c.json({ scanning: true }, 202)
@@ -98,7 +69,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // POST /api/library/health/:checkId/fix - trigger fix for a check
   app.post('/api/library/health/:checkId/fix', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const checkId = c.req.param('checkId')
     if (!VALID_CHECK_IDS.has(checkId)) {
@@ -114,29 +85,21 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/stats - library statistics
   app.get('/api/library/stats', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const stats = await deps.libraryHealth.getStats()
     return c.json(stats)
   })
 
   // POST /api/library/warm - trigger background warming for a batch of MBIDs
-  app.post('/api/library/warm', async (c) => {
-    const auth = await requireAdmin(c)
+  app.post('/api/library/warm', zJson(libraryWarmSchema), async (c) => {
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
       return c.json({ error: 'SkyHook warming not available (Lidarr not configured)' }, 400)
     }
-    const body = await c.req.json()
-    const rawMbids = body.mbids
-    if (!Array.isArray(rawMbids) || rawMbids.length === 0) {
-      return c.json({ error: 'mbids array required' }, 400)
-    }
-    const mbids = rawMbids.filter((m): m is string => typeof m === 'string')
-    if (mbids.length === 0) {
-      return c.json({ error: 'mbids array required' }, 400)
-    }
-    const batch = mbids.slice(0, 50) // Limit batch size
+    const { mbids } = c.req.valid('json')
+    const batch = mbids.slice(0, 50) // Runtime cap; schema allows up to 200 for future use.
     for (const mbid of batch) {
       deps.skyhookWarmer.warmInBackground(mbid)
     }
@@ -145,7 +108,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/warm/status - check warm status for MBIDs
   app.get('/api/library/warm/status', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
       return c.json({ statuses: {} })
@@ -169,12 +132,10 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // POST /api/library/sync - manual "Sync now", rate-limited 5/min
   app.use('/api/library/sync', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'libsync' }))
-  app.post('/api/library/sync', async (c) => {
-    const auth = await requireAdmin(c)
+  app.post('/api/library/sync', zJson(librarySyncSchema), async (c) => {
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
-    const raw = await c.req.json().catch(() => null)
-    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
-    const source = typeof body.source === 'string' ? body.source : undefined
+    const { source } = c.req.valid('json')
     if (source) {
       let result = await deps.librarySync.syncSpecificSource(auth.userId, source, { force: true })
       // Per-user source not configured - retry as a global source. This is safe today because
@@ -195,7 +156,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // GET /api/library/unreconciled - rows where mbid IS NULL for current user + global
   app.get('/api/library/unreconciled', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledForUser(auth.userId)
     return c.json({ items })
@@ -213,69 +174,40 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   })
 
   app.get('/api/library/unreconciled-albums', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId)
     return c.json({ items })
   })
 
   // POST /api/library/overrides - create/update an MBID override
-  app.post('/api/library/overrides', async (c) => {
-    const auth = await requireAdmin(c)
+  app.post('/api/library/overrides', zJson(libraryOverrideSchema), async (c) => {
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
-    const raw = await c.req.json().catch(() => null)
-    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
-    const { source, sourceArtistId, correctMbid, note } = body
-    if (typeof source !== 'string' || !source) {
-      return c.json({ error: 'source is required' }, 400)
-    }
-    if (typeof sourceArtistId !== 'string' || !sourceArtistId) {
-      return c.json({ error: 'sourceArtistId is required' }, 400)
-    }
-    const mbid = correctMbid === '' || correctMbid == null ? null : (correctMbid as string)
-    if (mbid !== null && !UUID_RE.test(mbid)) {
-      return c.json({ error: 'correctMbid must be a valid UUID' }, 400)
-    }
-    await deps.librarySyncStore.upsertOverride(
-      auth.userId,
-      source,
-      sourceArtistId,
-      mbid,
-      typeof note === 'string' ? note : undefined,
-    )
+    const { source, sourceArtistId, correctMbid, note } = c.req.valid('json')
+    const mbid = !correctMbid ? null : correctMbid
+    await deps.librarySyncStore.upsertOverride(auth.userId, source, sourceArtistId, mbid, note)
     return c.json({ ok: true })
   })
 
-  app.post('/api/library/album-overrides', async (c) => {
-    const auth = await requireAdmin(c)
+  app.post('/api/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
-    const raw = await c.req.json().catch(() => null)
-    const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
-    const { source, sourceAlbumId, correctAlbumMbid, note } = body
-    if (typeof source !== 'string' || !source) {
-      return c.json({ error: 'source is required' }, 400)
-    }
-    if (typeof sourceAlbumId !== 'string' || !sourceAlbumId) {
-      return c.json({ error: 'sourceAlbumId is required' }, 400)
-    }
-    const albumMbid =
-      correctAlbumMbid === '' || correctAlbumMbid == null ? null : (correctAlbumMbid as string)
-    if (albumMbid !== null && !UUID_RE.test(albumMbid)) {
-      return c.json({ error: 'correctAlbumMbid must be a valid UUID' }, 400)
-    }
+    const { source, sourceAlbumId, correctAlbumMbid, note } = c.req.valid('json')
+    const albumMbid = !correctAlbumMbid ? null : correctAlbumMbid
     await deps.librarySyncStore.upsertAlbumOverride(
       auth.userId,
       source,
       sourceAlbumId,
       albumMbid,
-      typeof note === 'string' ? note : undefined,
+      note,
     )
     return c.json({ ok: true })
   })
 
   // DELETE /api/library/overrides/:source/:sourceArtistId - remove an override
   app.delete('/api/library/overrides/:source/:sourceArtistId', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const source = c.req.param('source')
     const sourceArtistId = c.req.param('sourceArtistId')
@@ -286,7 +218,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   // POST /api/library/reconcile - re-run reconciler for current user (forced syncForUser)
   // Note: a "reconcile only without re-fetch" path is a follow-up task.
   app.post('/api/library/reconcile', async (c) => {
-    const auth = await requireAdmin(c)
+    const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     deps.librarySync.syncForUser(auth.userId, { force: true }).catch((err: unknown) => {
       console.error('[library/reconcile] sync error:', errMsg(err))

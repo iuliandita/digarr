@@ -26,6 +26,23 @@ export const changePasswordSchema = z.object({
   ),
 })
 
-export const updateLocaleSchema = z.object({
-  preferredLocale: z.string().nullable(),
-})
+export const updateLocaleSchema = z
+  .object({
+    preferredLocale: z.string().nullable(),
+  })
+  .strict()
+
+// Login accepts anything truthy and lets the route handler decide how to
+// localise the "credentials required" copy. Keep non-strict so clients
+// forwarding extra analytics fields don't 400.
+export const loginBodySchema = z
+  .object({
+    username: z.string(),
+    password: z.string(),
+  })
+  .passthrough()
+
+// Partial preferences update. Unknown keys are filtered by the route handler
+// so we stay permissive here; a stricter schema would be a breaking change
+// for in-flight client code. Individual value types are validated in-handler.
+export const updatePreferencesSchema = z.record(z.string(), z.unknown())
