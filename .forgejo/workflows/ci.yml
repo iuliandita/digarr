@@ -92,6 +92,10 @@ jobs:
       - name: Install Playwright
         run: bunx playwright install --with-deps chromium
       - name: Run browser E2E tests
-        run: bun run test:e2e
+        run: |
+          bun run test:e2e || {
+            rm -rf test-results playwright-report
+            bun run test:e2e
+          }
         env:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
