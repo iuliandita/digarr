@@ -8,6 +8,7 @@ import { App } from '@/web/App'
 import { AuthGate } from '@/web/components/auth-gate'
 import { LanguageSwitcher } from '@/web/components/language-switcher'
 import { I18nProvider } from '@/web/lib/i18n'
+import { queryClient } from '@/web/lib/query-client'
 
 vi.mock('@/web/lib/locale-storage', () => ({
   detectBrowserLocale: vi.fn(() => 'en'),
@@ -201,6 +202,7 @@ function renderWithAppShell() {
 describe('language switcher surfaces', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    queryClient.clear()
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
       value: {
