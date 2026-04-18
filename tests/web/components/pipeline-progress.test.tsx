@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -138,6 +138,3 @@ describe('PipelineProgress', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 })
-
-// Need afterEach import
-import { afterEach } from 'vitest'
