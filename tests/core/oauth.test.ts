@@ -105,25 +105,34 @@ describe('getValidToken()', () => {
     expect(upsertOAuthToken).not.toHaveBeenCalled()
   })
 
-  it('refreshes token when expired', async () => {
+  it('refreshes token when expired and preserves clientId, clientSecret, scopes', async () => {
     const pastDate = new Date(Date.now() - 60 * 1000) // 1 minute ago
     vi.mocked(getOAuthToken).mockResolvedValue({
       accessToken: 'expired-token',
       refreshToken: 'my-refresh-token',
       expiresAt: pastDate,
+      clientId: 'stored-client-id',
+      clientSecret: 'stored-client-secret',
+      scopes: 'read write',
     } as never)
     vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
 
     const result = await getValidToken(mockDb, 1, 'spotify', refreshConfig)
 
     expect(result).toBe('new-access-token')
-    expect(upsertOAuthToken).toHaveBeenCalledWith(mockDb, {
-      userId: 1,
-      provider: 'spotify',
-      accessToken: 'new-access-token',
-      refreshToken: 'new-refresh-token',
-      expiresAt: expect.any(Date),
-    })
+    expect(upsertOAuthToken).toHaveBeenCalledWith(
+      mockDb,
+      expect.objectContaining({
+        userId: 1,
+        provider: 'spotify',
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresAt: expect.any(Date),
+        clientId: 'stored-client-id',
+        clientSecret: 'stored-client-secret',
+        scopes: 'read write',
+      }),
+    )
   })
 
   it('refreshes token when within 5-minute buffer', async () => {

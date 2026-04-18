@@ -71,6 +71,11 @@ export async function getValidToken(
     accessToken: data.access_token,
     refreshToken: data.refresh_token ?? token.refreshToken,
     expiresAt,
+    // Preserve credentials and scopes so the row stays whole after refresh.
+    // decryptOAuthRow has already decrypted these on the read path.
+    clientId: token.clientId,
+    clientSecret: token.clientSecret,
+    scopes: token.scopes,
   })
 
   return data.access_token

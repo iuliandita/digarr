@@ -35,16 +35,18 @@ export async function upsertOAuthToken(
   db: Database,
   data: OAuthTokenInsert,
 ): Promise<OAuthTokenRow> {
-  // Don't encrypt pending tokens - they're searched by prefix and are temporary
+  // accessToken stays plaintext when it's a pending marker so the LIKE-prefix
+  // lookup in findPendingOAuthByState can match. refreshToken and clientSecret
+  // are never searched by prefix, so they must always be encrypted.
   const isPending = data.accessToken.startsWith('pending:')
-  const values = isPending
-    ? data
-    : {
-        ...data,
-        accessToken: encryptField(data.accessToken) ?? data.accessToken,
-        refreshToken: encryptField(data.refreshToken) ?? data.refreshToken,
-        clientSecret: encryptField(data.clientSecret) ?? data.clientSecret,
-      }
+  const values = {
+    ...data,
+    accessToken: isPending
+      ? data.accessToken
+      : (encryptField(data.accessToken) ?? data.accessToken),
+    refreshToken: encryptField(data.refreshToken) ?? data.refreshToken,
+    clientSecret: encryptField(data.clientSecret) ?? data.clientSecret,
+  }
   const [row] = await db
     .insert(oauthTokens)
     .values(values)
