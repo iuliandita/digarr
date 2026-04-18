@@ -2,6 +2,7 @@ import { resolve } from 'node:path'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
 import type { OidcService } from '@/core/auth/oidc'
@@ -36,6 +37,7 @@ type SubscriptionRow = typeof subscriptions.$inferSelect
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
 import type { UserPublic } from '@/db/queries/users'
 import { VERSION } from '@/version'
+import { problem } from './helpers/problem'
 import { adminGuard } from './middleware/admin-guard'
 import { authGuard } from './middleware/auth'
 import { requestLogger } from './middleware/logger'
@@ -215,6 +217,33 @@ export type AppDependencies = {
 
 export function createApp(deps: AppDependencies) {
   const app = new Hono<HonoEnv>()
+
+  // Central error handler: maps HTTPException (including zJson's hook failures
+  // when a handler throws one) and unknown errors to RFC 9457 problem+json.
+  // Zod/validator hooks still return their {error, code, details} shape
+  // directly so existing clients keep working; only unhandled throws flow here.
+  app.onError((err, c) => {
+    if (err instanceof HTTPException) {
+      const res = err.getResponse()
+      // If the exception already carries a fully-formed response (e.g. from a
+      // middleware that built its own body), prefer it over the problem+json
+      // envelope to avoid clobbering specialised payloads.
+      if (res.headers.get('content-type')?.includes('application/json')) return res
+      return problem(c, `http-${err.status}`, err.message || 'HTTP Error', err.status, undefined)
+    }
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[server] unhandled error:', msg, err instanceof Error ? err.stack : '')
+    return problem(c, 'internal-error', 'Internal Server Error', 500)
+  })
+
+  // 404 for unmatched /api/* requests. Non-API paths fall through to the SPA
+  // static serving in production, so we only intercept API routes here.
+  app.notFound((c) => {
+    if (c.req.path.startsWith('/api/')) {
+      return problem(c, 'not-found', 'Not Found', 404, `No route for ${c.req.method} ${c.req.path}`)
+    }
+    return c.text('Not Found', 404)
+  })
 
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
