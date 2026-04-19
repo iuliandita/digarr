@@ -149,8 +149,11 @@ export interface SubscriptionDeps {
 export interface TargetDeps {
   targetQueries: {
     createTarget: (data: TargetInsert) => Promise<{ id: number }>
-    getTargetsByUser: (userId: number) => Promise<TargetRow[]>
-    getAllTargets: () => Promise<TargetRow[]>
+    getTargetsByUser: (
+      userId: number,
+      opts?: { limit?: number; cursor?: Cursor | null },
+    ) => Promise<TargetRow[]>
+    getAllTargets: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<TargetRow[]>
     getTarget: (id: number) => Promise<TargetRow | null>
     updateTarget: (id: number, data: TargetUpdate) => Promise<void>
     deleteTarget: (id: number) => Promise<void>

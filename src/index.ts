@@ -1210,8 +1210,9 @@ const app = createApp({
   runSubscription: (id) => executeSubscription(id),
   targetQueries: {
     createTarget: (data: TargetInsert) => createTarget(db, data),
-    getTargetsByUser: (userId: number) => getTargetsByUser(db, userId),
-    getAllTargets: () => getAllTargets(db),
+    getTargetsByUser: (userId: number, opts?: Parameters<typeof getTargetsByUser>[2]) =>
+      getTargetsByUser(db, userId, opts),
+    getAllTargets: (opts?: Parameters<typeof getAllTargets>[1]) => getAllTargets(db, opts),
     getTarget: (id: number) => getTarget(db, id),
     updateTarget: (id: number, data: Parameters<typeof updateTarget>[2]) =>
       updateTarget(db, id, data),

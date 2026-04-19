@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm'
+import { and, desc, eq, lt, or } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_TARGET_CONFIG } from '@/core/crypto'
 import type { Database } from '@/db'
 import { targets } from '@/db/schema'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 export type TargetInsert = {
   type: string
@@ -49,13 +50,50 @@ export async function getTarget(db: Database, id: number): Promise<TargetRow | n
   return row ? decryptConfig(row) : null
 }
 
-export async function getTargetsByUser(db: Database, userId: number): Promise<TargetRow[]> {
-  const rows = await db.select().from(targets).where(eq(targets.userId, userId))
+export async function getTargetsByUser(
+  db: Database,
+  userId: number,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
+): Promise<TargetRow[]> {
+  const conditions = [eq(targets.userId, userId)]
+  if (opts.cursor) {
+    conditions.push(
+      or(
+        lt(targets.createdAt, new Date(opts.cursor.ts)),
+        and(eq(targets.createdAt, new Date(opts.cursor.ts)), lt(targets.id, opts.cursor.id)),
+      ) as NonNullable<ReturnType<typeof or>>,
+    )
+  }
+  const base = db
+    .select()
+    .from(targets)
+    .where(and(...conditions))
+    .orderBy(desc(targets.createdAt), desc(targets.id))
+  const rows = await (opts.limit ? base.limit(opts.limit) : base)
   return rows.map(decryptConfig)
 }
 
-export async function getAllTargets(db: Database): Promise<TargetRow[]> {
-  const rows = await db.select().from(targets)
+export async function getAllTargets(
+  db: Database,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
+): Promise<TargetRow[]> {
+  const conditions = []
+  if (opts.cursor) {
+    conditions.push(
+      or(
+        lt(targets.createdAt, new Date(opts.cursor.ts)),
+        and(eq(targets.createdAt, new Date(opts.cursor.ts)), lt(targets.id, opts.cursor.id)),
+      ) as NonNullable<ReturnType<typeof or>>,
+    )
+  }
+  const base = conditions.length
+    ? db
+        .select()
+        .from(targets)
+        .where(and(...conditions))
+    : db.select().from(targets)
+  const ordered = base.orderBy(desc(targets.createdAt), desc(targets.id))
+  const rows = await (opts.limit ? ordered.limit(opts.limit) : ordered)
   return rows.map(decryptConfig)
 }
 
