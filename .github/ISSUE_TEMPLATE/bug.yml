@@ -94,8 +94,10 @@ body:
         - label: ListenBrainz
         - label: Last.fm
         - label: Spotify
+        - label: Deezer
         - label: Plex
         - label: Jellyfin
+        - label: Emby
         - label: Discogs
 
   - type: checkboxes
@@ -108,7 +110,9 @@ body:
         - label: Navidrome
         - label: Jellyfin playlists
         - label: Plex playlists
+        - label: Emby playlists
         - label: Spotify playlists
+        - label: slskd
         - label: None (discovery only)
 
   - type: input

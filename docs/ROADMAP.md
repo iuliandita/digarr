@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-18 | Current: v0.32.3
+> Updated: 2026-04-19 | Current: v0.39.4
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -133,8 +133,9 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Backup restore schema is strict (prototype-pollution surface closed) and the restore route now requires `?confirm=true` in addition to `?force=`
 - `hono` pinned >=4.12.14 for GHSA-458j-xx4x-4375
 
-### v0.27.0 - v0.27.11
+### v0.27.0 - v0.27.12
 
+- Transient MusicBrainz failures during library sync (HTTP 503, timeouts, network blips) now leave the affected artist or album unreconciled and retried on the next run, with a visible warning on the Library Sources panel; the MusicBrainz client retries 5xx/429/network errors up to 3 times with exponential backoff plus jitter and honors `Retry-After`
 - Data-safety fixes for legacy `SERIAL` sequence restore and identity-index carryover
 - Pipeline isolation so manual runs no longer share state with scheduled runs
 - `oidc_tokens` table now encrypted at rest via the same AES-256-GCM / HKDF envelope as other sensitive columns

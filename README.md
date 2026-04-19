@@ -29,7 +29,7 @@
 ## What Makes Digarr Different
 
 ### 7-Stage AI Pipeline
-Digarr takes signals from up to 7 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
+Digarr takes signals from up to 8 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
 
 ### Mood Discovery
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
@@ -43,7 +43,7 @@ Build playlists from approved recommendations and send them to Navidrome, Jellyf
 ### Your AI, Your Choice
 Use Anthropic, OpenAI, Google Gemini, Ollama, or any OpenAI-compatible endpoint. Recommendation cards include a short explanation of why an artist made the cut.
 
-### Multilingual UI And AI Output
+### Multilingual UI and AI Output
 Digarr now ships localized catalogs for 15 languages, a visible language switcher before and after login, persisted per-user locale preferences, and locale-aware AI reasoning for mood discovery, quick discover, and full scans.
 
 > [!NOTE]
