@@ -112,7 +112,7 @@ describe('LibraryReconciliationPage', () => {
       },
     })
     mockGetLibraryUnreconciledAlbums.mockResolvedValue({ items: [] })
-    mockRerunLibraryReconciler.mockResolvedValue({ ok: true })
+    mockRerunLibraryReconciler.mockResolvedValue(undefined)
   })
 
   it('groups unreconciled rows by source', async () => {
@@ -191,7 +191,7 @@ describe('LibraryReconciliationPage', () => {
     mockGetLibraryUnreconciled
       .mockResolvedValueOnce({ items: [row] })
       .mockResolvedValueOnce({ items: [] })
-    mockSaveLibraryOverride.mockResolvedValue({ ok: true })
+    mockSaveLibraryOverride.mockResolvedValue(undefined)
 
     renderWithQuery(<LibraryReconciliationPage />)
 
@@ -220,7 +220,7 @@ describe('LibraryReconciliationPage', () => {
     mockGetLibraryUnreconciled
       .mockResolvedValueOnce({ items: [row] })
       .mockResolvedValueOnce({ items: [] })
-    mockSaveLibraryOverride.mockResolvedValue({ ok: true })
+    mockSaveLibraryOverride.mockResolvedValue(undefined)
 
     renderWithQuery(<LibraryReconciliationPage />)
 

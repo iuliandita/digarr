@@ -365,9 +365,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   async function handleTestWebhook() {
     setTestingWebhook(true)
     try {
-      const res = await testWebhook()
-      if (res.success) toast.success(t('settings.webhookTestSuccess'))
-      else toast.error(res.message || t('settings.webhookTestFailed'))
+      await testWebhook()
+      toast.success(t('settings.webhookTestSuccess'))
     } catch {
       toast.error(t('settings.webhookTestFailed'))
     } finally {

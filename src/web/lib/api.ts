@@ -115,6 +115,9 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     const error = await res.json().catch(() => ({ error: res.statusText }))
     throw new ApiError(res.status, error)
   }
+  if (res.status === 204) {
+    return undefined as T
+  }
   return res.json() as Promise<T>
 }
 
@@ -176,17 +179,17 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   }
 }
 export const changePassword = (currentPassword: string, newPassword: string) =>
-  fetchApi<{ ok: boolean; token?: string }>('/auth/change-password', {
+  fetchApi<{ token?: string }>('/auth/change-password', {
     method: 'POST',
     body: JSON.stringify({ currentPassword, newPassword }),
   })
 export const updatePreferredLocale = (preferredLocale: string | null) =>
-  fetchApi<{ success: true; preferredLocale: string | null }>('/auth/me/locale', {
+  fetchApi<{ preferredLocale: string | null }>('/auth/me/locale', {
     method: 'PATCH',
     body: JSON.stringify({ preferredLocale }),
   })
 
-export const logoutUser = () => fetchApi<{ ok: boolean }>('/auth/logout', { method: 'POST' })
+export const logoutUser = () => fetchApi<void>('/auth/logout', { method: 'POST' })
 
 // Setup
 export const getSetupStatus = () => fetchApi<{ setupComplete: boolean }>('/setup/status')
@@ -202,8 +205,7 @@ export const testService = (service: string, config: Record<string, unknown>) =>
     method: 'POST',
     body: JSON.stringify(config),
   })
-export const testWebhook = () =>
-  fetchApi<{ success: boolean; message: string }>('/settings/test-webhook', { method: 'POST' })
+export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { method: 'POST' })
 
 // Pipeline
 export const triggerPipeline = () => fetchApi('/pipeline/run', { method: 'POST' })
@@ -531,22 +533,22 @@ export const getLibraryAlbumCoverage = (artistMbid: string) =>
 export const getLibraryUnreconciledAlbums = () =>
   fetchApi<{ items: LibraryUnreconciledAlbumRow[] }>('/library/unreconciled-albums')
 export const saveLibraryOverride = (payload: LibraryOverrideInput) =>
-  fetchApi<{ ok: true }>('/library/overrides', {
+  fetchApi<void>('/library/overrides', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 export const saveLibraryAlbumOverride = (payload: LibraryAlbumOverrideInput) =>
-  fetchApi<{ ok: true }>('/library/album-overrides', {
+  fetchApi<void>('/library/album-overrides', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 export const deleteLibraryOverride = (source: string, sourceArtistId: string) =>
-  fetchApi<{ ok: true }>(
+  fetchApi<void>(
     `/library/overrides/${encodeURIComponent(source)}/${encodeURIComponent(sourceArtistId)}`,
     { method: 'DELETE' },
   )
 export const rerunLibraryReconciler = () =>
-  fetchApi<{ ok: true }>('/library/reconcile', { method: 'POST' })
+  fetchApi<void>('/library/reconcile', { method: 'POST' })
 
 // User management (admin)
 export const listUsers = () =>
@@ -792,13 +794,13 @@ export const createSubscriptionApi = (data: {
   })
 
 export const updateSubscriptionApi = (id: number, data: Partial<Subscription>) =>
-  fetchApi<{ updated: boolean }>(`/subscriptions/${id}`, {
+  fetchApi<void>(`/subscriptions/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   })
 
 export const deleteSubscriptionApi = (id: number) =>
-  fetchApi<{ deleted: boolean }>(`/subscriptions/${id}`, { method: 'DELETE' })
+  fetchApi<void>(`/subscriptions/${id}`, { method: 'DELETE' })
 
 export const triggerSubscriptionRun = (id: number) =>
   fetchApi<{ message: string }>(`/subscriptions/${id}/run`, { method: 'POST' })
@@ -951,13 +953,13 @@ export const createPlaylistApi = (data: PlaylistInsert) =>
   })
 
 export const updatePlaylistApi = (id: number, data: Partial<PlaylistInsert>) =>
-  fetchApi<{ updated: boolean }>(`/playlists/${id}`, {
+  fetchApi<void>(`/playlists/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   })
 
 export const deletePlaylistApi = (id: number) =>
-  fetchApi<{ deleted: boolean }>(`/playlists/${id}`, { method: 'DELETE' })
+  fetchApi<void>(`/playlists/${id}`, { method: 'DELETE' })
 
 export const generatePlaylistApi = (id: number) =>
   fetchApi<{ status: string }>(`/playlists/${id}/generate`, { method: 'POST' })
