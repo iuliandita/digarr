@@ -982,7 +982,6 @@ export const tr = {
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
   'settings.serviceConnectedToast': '{0} connected',
-  'settings.serviceConnectionFailedToast': '{0} connection failed',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
