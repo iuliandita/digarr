@@ -81,7 +81,8 @@ describe('getPlaylistsByUser', () => {
     ]
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(rows),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue(rows),
     }
     const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
 
@@ -94,7 +95,8 @@ describe('getPlaylistsByUser', () => {
   it('returns empty array when user has no playlists', async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([]),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([]),
     }
     const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
 

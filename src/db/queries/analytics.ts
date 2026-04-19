@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import type { Database } from '@/db'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 export type OverviewStats = {
   totalRecs: number
@@ -61,7 +62,14 @@ export async function getOverviewStats(db: Database): Promise<OverviewStats> {
   }
 }
 
-export async function getBatchesWithCounts(db: Database): Promise<BatchWithCounts[]> {
+export async function getBatchesWithCounts(
+  db: Database,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
+): Promise<BatchWithCounts[]> {
+  const cursorClause = opts.cursor
+    ? sql`WHERE b.created_at < ${new Date(opts.cursor.ts)} OR (b.created_at = ${new Date(opts.cursor.ts)} AND b.id < ${opts.cursor.id})`
+    : sql``
+  const limitClause = opts.limit ? sql`LIMIT ${opts.limit}` : sql``
   const rows = await db.execute(sql`
     SELECT
       b.id,
@@ -74,8 +82,10 @@ export async function getBatchesWithCounts(db: Database): Promise<BatchWithCount
       COUNT(CASE WHEN r.status = 'pending' THEN 1 END)::int AS pending
     FROM recommendation_batches b
     LEFT JOIN recommendations r ON r.batch_id = b.id
+    ${cursorClause}
     GROUP BY b.id
-    ORDER BY b.created_at DESC
+    ORDER BY b.created_at DESC, b.id DESC
+    ${limitClause}
   `)
 
   return rows.rows.map((r) => {
