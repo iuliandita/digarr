@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 
 const getUserConnections = vi.fn()
@@ -47,6 +47,16 @@ vi.mock('@/core/plugins/spotify', () => ({
 describe('createReleaseRadarMode', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // Pin the clock so the 30-day window covers both fixture release dates
+    // regardless of when the test is actually run. Without this the test
+    // becomes a date-boundary flake the moment wall time moves past the
+    // oldest fixture date + windowDays.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-17T00:00:00.000Z'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('emits recent release candidates from fallback listening sources', async () => {
