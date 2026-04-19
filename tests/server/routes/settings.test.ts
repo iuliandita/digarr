@@ -661,10 +661,9 @@ describe('POST /api/v1/settings/test/:service', () => {
       })
 
       expect(res.status, `service: ${service}`).toBe(403)
-      await expect(res.json()).resolves.toEqual({
-        success: false,
-        message: 'Admin access required',
-      })
+      const body = await res.json()
+      expect(body.type).toBe('/problems/admin-required')
+      expect(body.title).toBe('Admin access required')
     }
   })
 
@@ -710,56 +709,56 @@ describe('POST /api/v1/settings/test/:service', () => {
       }),
     })
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(502)
     const body = await res.json()
-    expect(body.success).toBe(false)
-    expect(body.message).not.toContain('HTTP 500')
-    expect(body.message).not.toContain('probe failed')
-    expect(body.message).not.toContain('127.0.0.1')
-    expect(body.message).toBe('Unbekannter Fehler')
+    expect(body.type).toBe('/problems/probe-failed')
+    expect(body.detail).not.toContain('HTTP 500')
+    expect(body.detail).not.toContain('probe failed')
+    expect(body.detail).not.toContain('127.0.0.1')
+    expect(body.detail).toBe('Unbekannter Fehler')
   })
 
-  it('tests lidarr and returns ServiceTestResult shape', async () => {
+  it('tests lidarr and returns 200 or 502 with problem+json', async () => {
     const app = createApp(makeDeps())
-    // Client will fail to connect but must return a ServiceTestResult (not throw)
+    // Client will fail to connect - 502 problem+json, not a 200 with success:false
     const res = await authedRequest(app, '/api/v1/settings/test/lidarr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: 'http://invalid-lidarr:9999', apiKey: 'key' }),
     })
-    expect(res.status).toBe(200)
+    expect([200, 502]).toContain(res.status)
     const body = await res.json()
-    expect(typeof body.success).toBe('boolean')
-    expect(typeof body.message).toBe('string')
+    if (res.status === 200) expect(typeof body.message).toBe('string')
+    else expect(body.type).toBe('/problems/probe-failed')
   })
 
-  it('tests listenbrainz and returns ServiceTestResult shape', async () => {
+  it('tests listenbrainz and returns 200 or 502 with problem+json', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/listenbrainz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', token: 'token123' }),
     })
-    expect(res.status).toBe(200)
+    expect([200, 502]).toContain(res.status)
     const body = await res.json()
-    expect(typeof body.success).toBe('boolean')
-    expect(typeof body.message).toBe('string')
+    if (res.status === 200) expect(typeof body.message).toBe('string')
+    else expect(body.type).toBe('/problems/probe-failed')
   })
 
-  it('tests lastfm and returns ServiceTestResult shape', async () => {
+  it('tests lastfm and returns 200 or 502 with problem+json', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/lastfm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', apiKey: 'lfmkey' }),
     })
-    expect(res.status).toBe(200)
+    expect([200, 502]).toContain(res.status)
     const body = await res.json()
-    expect(typeof body.success).toBe('boolean')
-    expect(typeof body.message).toBe('string')
+    if (res.status === 200) expect(typeof body.message).toBe('string')
+    else expect(body.type).toBe('/problems/probe-failed')
   })
 
-  it('tests ai provider and returns ServiceTestResult shape', async () => {
+  it('tests ai provider and returns 200 or 502 with problem+json', async () => {
     vi.mocked(lookup).mockResolvedValue({ address: '93.184.216.34', family: 4 })
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/ai', {
@@ -772,10 +771,10 @@ describe('POST /api/v1/settings/test/:service', () => {
         baseUrl: 'http://ollama.example.com:11434',
       }),
     })
-    expect(res.status).toBe(200)
+    expect([200, 502]).toContain(res.status)
     const body = await res.json()
-    expect(typeof body.success).toBe('boolean')
-    expect(typeof body.message).toBe('string')
+    if (res.status === 200) expect(typeof body.message).toBe('string')
+    else expect(body.type).toBe('/problems/probe-failed')
   })
 
   it('returns 400 for unknown service', async () => {
@@ -845,10 +844,9 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({
-      success: false,
-      message: 'Admin access required',
-    })
+    const body = await res.json()
+    expect(body.type).toBe('/problems/admin-required')
+    expect(body.title).toBe('Admin access required')
   })
 
   it('localizes admin-only test endpoint errors', async () => {
@@ -899,10 +897,9 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({
-      success: false,
-      message: 'Adminzugriff erforderlich',
-    })
+    const body = await res.json()
+    expect(body.type).toBe('/problems/admin-required')
+    expect(body.code).toBe('common.adminAccessRequired')
   })
 
   it('allows admins to test OIDC issuer URLs', async () => {
@@ -919,7 +916,6 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(res.status).toBe(200)
     expect(mockOidcTestConnection).toHaveBeenCalledTimes(1)
     const body = await res.json()
-    expect(body.success).toBe(true)
     expect(body.message).toBe('OIDC discovery successful')
   })
 })
@@ -1060,10 +1056,10 @@ describe('per-user listening source connections', () => {
         userId: 'user-1',
       }),
     })
-    expect(res.status).toBe(200)
+    expect([200, 502]).toContain(res.status)
     const body = await res.json()
-    expect(typeof body.success).toBe('boolean')
-    expect(typeof body.message).toBe('string')
+    if (res.status === 200) expect(typeof body.message).toBe('string')
+    else expect(body.type).toBe('/problems/probe-failed')
   })
 
   it('PATCH excludes lastfm fields from global updateSettings when user is authenticated', async () => {

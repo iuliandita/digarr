@@ -307,23 +307,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     return 'not_configured'
   }
 
-  function createTester(
-    key: string,
-    label: string,
-    testFn: () => Promise<{ success: boolean; message?: string }>,
-  ) {
+  function createTester(key: string, label: string, testFn: () => Promise<{ message: string }>) {
     return async () => {
       setTest(key, 'testing')
       try {
-        const res = await testFn()
-        setTest(key, res.success ? 'ok' : 'error')
-        if (res.success) {
-          toast.success(formatLabelMessage('settings.serviceConnectedToast', label))
-        } else {
-          toast.error(
-            res.message || formatLabelMessage('settings.serviceConnectionFailedToast', label),
-          )
-        }
+        await testFn()
+        setTest(key, 'ok')
+        toast.success(formatLabelMessage('settings.serviceConnectedToast', label))
       } catch {
         setTest(key, 'error')
         toast.error(formatLabelMessage('settings.serviceUnreachableToast', label))
@@ -2630,13 +2620,12 @@ function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => voi
   async function handleTestOidc() {
     setTestingOidc(true)
     try {
-      const res = await testService('oidc', {
+      await testService('oidc', {
         issuerUrl: oidcIssuerUrl,
         clientId: oidcClientId,
         clientSecret: oidcClientSecret || undefined,
       })
-      if (res.success) toast.success(t('settings.oidcTestSuccess'))
-      else toast.error(res.message || t('settings.oidcTestFailed'))
+      toast.success(t('settings.oidcTestSuccess'))
     } catch {
       toast.error(t('settings.oidcTestFailed'))
     } finally {
