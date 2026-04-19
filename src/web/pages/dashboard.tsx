@@ -59,7 +59,7 @@ function SectionHeader({
     <div className="flex items-center justify-between mb-3">
       <h2 className="text-sm font-semibold text-text uppercase tracking-wide">{title}</h2>
       {linkText && linkTo && (
-        <Link to={linkTo} className="text-xs text-accent hover:underline">
+        <Link to={linkTo} className="text-xs text-accent underline">
           {linkText}
         </Link>
       )}
@@ -85,7 +85,7 @@ function SubscriptionPulse({
         />
         <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
           <p className="text-sm text-muted">{t('dashboard.subscriptionsEmpty')}</p>
-          <Link to="/subscriptions" className="text-xs text-accent hover:underline inline-block">
+          <Link to="/subscriptions" className="text-xs text-accent underline inline-block">
             {t('dashboard.setUpAutomaticDiscovery')}
           </Link>
         </div>
@@ -168,7 +168,7 @@ function ListeningActivity({
       {!data || data.tracks.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
           <p className="text-sm text-muted">{t('dashboard.connectListening')}</p>
-          <Link to="/settings" className="text-xs text-accent hover:underline inline-block">
+          <Link to="/settings" className="text-xs text-accent underline inline-block">
             {t('dashboard.connectAccount')}
           </Link>
         </div>

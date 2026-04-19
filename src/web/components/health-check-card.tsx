@@ -94,7 +94,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
                   href={`${lidarrBaseUrl.replace(/\/$/, '')}/artist/${item.mbid}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium text-accent hover:underline truncate"
+                  className="font-medium text-accent underline truncate"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {item.artistName}
@@ -114,7 +114,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
       {hasMore && (
         <button
           type="button"
-          className="text-xs text-accent hover:underline text-left w-fit"
+          className="text-xs text-accent underline text-left w-fit"
           onClick={() => setExpanded((v) => !v)}
         >
           {expanded ? 'Show less' : `Show all ${check.count}`}

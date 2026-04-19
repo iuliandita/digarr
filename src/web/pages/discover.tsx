@@ -1157,11 +1157,7 @@ export function DiscoverPage() {
       {bulkMode && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm">
           <span className="text-muted tabular-nums">{checkedIds.size} selected</span>
-          <button
-            type="button"
-            onClick={handleSelectAll}
-            className="text-xs text-accent hover:underline"
-          >
+          <button type="button" onClick={handleSelectAll} className="text-xs text-accent underline">
             {t('common.all')}
           </button>
           <button

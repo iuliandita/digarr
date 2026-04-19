@@ -150,7 +150,7 @@ export function AlbumPicker({
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="text-xs text-accent hover:underline"
+                  className="text-xs text-accent underline"
                 >
                   {t('albumPicker.selectAll')}
                 </button>

@@ -38,7 +38,7 @@ export function DiscoveryModeInfoBox({
             }
             setDismissed(true)
           }}
-          className="text-xs font-medium text-accent hover:underline"
+          className="text-xs font-medium text-accent underline"
         >
           {t('discoveryMode.dismiss')}
         </button>
