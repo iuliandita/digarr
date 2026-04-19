@@ -1,7 +1,15 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
   "files": {
-    "includes": ["**", "!drizzle", "!dist", "!.worktrees", "!docs/local"]
+    "includes": [
+      "**",
+      "!drizzle",
+      "!dist",
+      "!.worktrees",
+      "!docs/local",
+      "!test-results",
+      "!playwright-report"
+    ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
