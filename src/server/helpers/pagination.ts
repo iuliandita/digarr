@@ -4,11 +4,12 @@
 // existing integrations while letting new callers opt into pagination.
 
 import type { Context } from 'hono'
+import { decodeCursor, type Cursor } from '@/server/helpers/pagination-cursor'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
 
 export type PaginationParams = {
-  limit?: number
-  cursor?: string
+  limit: number
+  cursor: Cursor | null
 }
 
 export type Paginated<T> = {
@@ -25,8 +26,8 @@ export function readPagination(
   opts: { min?: number; max?: number; default?: number } = {},
 ): PaginationParams | null {
   const rawLimit = c.req.query('limit')
-  const cursor = c.req.query('cursor') ?? undefined
-  if (rawLimit == null && cursor == null) return null
+  const rawCursor = c.req.query('cursor')
+  if (rawLimit == null && rawCursor == null) return null
 
   const limit = parseIntClamp(rawLimit ?? null, {
     name: 'limit',
@@ -34,5 +35,6 @@ export function readPagination(
     max: opts.max ?? 500,
     default: opts.default ?? 50,
   })
+  const cursor = rawCursor ? decodeCursor(rawCursor) : null
   return { limit, cursor }
 }
