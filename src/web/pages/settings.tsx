@@ -555,7 +555,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         <>
           <IntegrationCapabilities />
           {/* Lidarr */}
-          <div className={isLidarrConfigured ? '' : 'opacity-60'}>
+          <div>
             <ServiceCard
               name="Lidarr"
               description={
@@ -565,7 +565,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     href="https://wiki.servarr.com/lidarr/settings#security"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-accent hover:underline"
+                    className="text-accent underline"
                   >
                     {t('settings.getApiKey')}
                   </a>
@@ -634,7 +634,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           <Hint id="settings-ai-tip" type="inline">
             {t('settings.aiTip')}
           </Hint>
-          <div className={isAiConfigured ? '' : 'opacity-60'}>
+          <div>
             <ServiceCard
               name={aiProviderLabel}
               description={
@@ -645,7 +645,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       href="https://console.anthropic.com/settings/keys"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent hover:underline"
+                      className="text-accent underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -655,7 +655,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       href="https://platform.openai.com/api-keys"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent hover:underline"
+                      className="text-accent underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -665,7 +665,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       href="https://aistudio.google.com/apikey"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent hover:underline"
+                      className="text-accent underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -675,7 +675,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       href="https://ollama.com/library"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent hover:underline"
+                      className="text-accent underline"
                     >
                       {t('settings.browseModels')}
                     </a>
@@ -827,7 +827,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </Hint>
 
       {/* ListenBrainz */}
-      <div className={isLbConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="ListenBrainz"
           description={
@@ -837,7 +837,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 href="https://listenbrainz.org/settings/"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent hover:underline"
+                className="text-accent underline"
               >
                 {t('settings.getToken')}
               </a>
@@ -897,7 +897,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Last.fm */}
-      <div className={isLfConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Last.fm"
           description={
@@ -907,7 +907,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 href="https://www.last.fm/api/account/create"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent hover:underline"
+                className="text-accent underline"
               >
                 {t('settings.getApiKey')}
               </a>
@@ -965,7 +965,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Spotify */}
-      <div className={spotifyConnected ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Spotify"
           description={
@@ -975,7 +975,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 href="https://developer.spotify.com/dashboard"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent hover:underline"
+                className="text-accent underline"
               >
                 {t('settings.createSpotifyApp')}
               </a>
@@ -1056,7 +1056,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Deezer */}
-      <div className={deezerConnected ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name={t('settings.deezer')}
           description={t('settings.deezerDescription')}
@@ -1157,7 +1157,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Plex */}
-      <div className={isPlexConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Plex"
           description={t('settings.plexDescription')}
@@ -1211,7 +1211,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Jellyfin */}
-      <div className={isJellyfinConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Jellyfin"
           description={t('settings.jellyfinDescription')}
@@ -1276,7 +1276,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Emby */}
-      <div className={isEmbyConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Emby"
           description={t('settings.embyDescription')}
@@ -1339,7 +1339,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       </div>
 
       {/* Discogs */}
-      <div className={isDiscogsConfigured ? '' : 'opacity-60'}>
+      <div>
         <ServiceCard
           name="Discogs"
           description={

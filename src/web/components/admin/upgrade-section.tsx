@@ -30,7 +30,7 @@ export function UpgradeSection() {
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="text-accent hover:underline"
+              className="text-accent underline"
             >
               {data.pendingCount} pending
             </button>

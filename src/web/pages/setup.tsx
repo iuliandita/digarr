@@ -345,7 +345,7 @@ function StepAi({
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-accent hover:underline"
+                className="text-xs text-accent underline"
               >
                 {t('setup.getApiKey')}
               </a>

@@ -176,7 +176,7 @@ function StatusBadge({
           <button
             type="button"
             onClick={() => onRetry(id)}
-            className="text-xs text-accent hover:underline"
+            className="text-xs text-accent underline"
           >
             {t('recommendation.retry')}
           </button>
@@ -841,7 +841,7 @@ export function RecommendationCard({
                 href={`https://musicbrainz.org/artist/${rec.artist.mbid}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-accent hover:underline"
+                className="text-xs text-accent underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 {t('recommendation.viewOnMusicBrainz')}

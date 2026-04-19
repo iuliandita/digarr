@@ -114,7 +114,7 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
             {t('systemHealth.title')}
           </h2>
         </div>
-        <Link to="/settings?tab=jobs" className="text-xs text-accent hover:underline">
+        <Link to="/settings?tab=jobs" className="text-xs text-accent underline">
           {t('systemHealth.viewHistory')}
         </Link>
       </div>

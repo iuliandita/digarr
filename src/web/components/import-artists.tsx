@@ -104,7 +104,7 @@ export function ImportArtists({
             ) : (
               <p className="text-xs text-muted italic">
                 {t('importArtists.connectSpotifyFirst').split('{0}')[0]}
-                <Link to="/settings" className="text-accent hover:underline">
+                <Link to="/settings" className="text-accent underline">
                   {t('nav.settings')}
                 </Link>
                 {t('importArtists.connectSpotifyFirst').split('{0}')[1]}
@@ -143,7 +143,7 @@ export function ImportArtists({
             ) : (
               <p className="text-xs text-muted italic">
                 {t('importArtists.connectSpotifyFirst').split('{0}')[0]}
-                <Link to="/settings" className="text-accent hover:underline">
+                <Link to="/settings" className="text-accent underline">
                   {t('nav.settings')}
                 </Link>
                 {t('importArtists.connectSpotifyFirst').split('{0}')[1]}
