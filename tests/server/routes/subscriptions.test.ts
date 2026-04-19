@@ -281,6 +281,32 @@ describe('GET /api/v1/subscriptions', () => {
     const res = await app.request('/api/v1/subscriptions')
     expect(res.status).toBe(401)
   })
+
+  it('returns {data, meta} envelope when limit is sent', async () => {
+    const rows = Array.from({ length: 11 }, (_, i) => ({
+      ...mockSub,
+      id: i + 1,
+      createdAt: new Date(Date.UTC(2026, 0, 20 - i)),
+    }))
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce(rows)
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/v1/subscriptions?limit=10')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toHaveProperty('data')
+    expect(body).toHaveProperty('meta.limit', 10)
+    expect(body.data).toHaveLength(10)
+    expect(typeof body.meta.nextCursor).toBe('string')
+  })
+
+  it('returns nextCursor=null when result set fits within limit', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([mockSub])
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/v1/subscriptions?limit=10')
+    const body = await res.json()
+    expect(body.meta.nextCursor).toBeNull()
+    expect(body.data).toHaveLength(1)
+  })
 })
 
 describe('POST /api/v1/subscriptions', () => {

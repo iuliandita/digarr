@@ -689,7 +689,10 @@ const subscriptionQueriesImpl = {
   createSubscription: (data: Parameters<typeof createSubscription>[1]) =>
     createSubscription(db, data),
   getSubscription: (id: number) => getSubscription(db, id),
-  getSubscriptionsByUser: (userId: number) => getSubscriptionsByUser(db, userId),
+  getSubscriptionsByUser: (
+    userId: number,
+    opts?: Parameters<typeof getSubscriptionsByUser>[2],
+  ) => getSubscriptionsByUser(db, userId, opts),
   getEnabledSubscriptions: () => getEnabledSubscriptions(db),
   updateSubscription: (id: number, data: Parameters<typeof updateSubscription>[2]) =>
     updateSubscription(db, id, data),

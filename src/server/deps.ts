@@ -28,6 +28,7 @@ import type {
   StatusUpdateExtra,
 } from '@/db/queries/recommendations'
 import type { SettingsRow, SetupConfig } from '@/db/queries/settings'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 import type { SubscriptionInsert, SubscriptionUpdate } from '@/db/queries/subscriptions'
 import type { subscriptions } from '@/db/schema'
 
@@ -132,7 +133,10 @@ export interface SubscriptionDeps {
   subscriptionQueries: {
     createSubscription: (data: SubscriptionInsert) => Promise<SubscriptionRow>
     getSubscription: (id: number) => Promise<SubscriptionRow | null>
-    getSubscriptionsByUser: (userId: number) => Promise<SubscriptionRow[]>
+    getSubscriptionsByUser: (
+      userId: number,
+      opts?: { limit?: number; cursor?: Cursor | null },
+    ) => Promise<SubscriptionRow[]>
     getEnabledSubscriptions: () => Promise<SubscriptionRow[]>
     updateSubscription: (id: number, data: SubscriptionUpdate) => Promise<void>
     deleteSubscription: (id: number) => Promise<void>

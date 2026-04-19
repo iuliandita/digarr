@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm'
+import { and, desc, eq, lt, or } from 'drizzle-orm'
 import type { DiscoveryModeSubscriptionConfig } from '@/core/subscriptions/types'
 import type { Database } from '@/db'
 import { subscriptions } from '@/db/schema'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 import { getBatch } from './batches'
 
 type SubscriptionRow = typeof subscriptions.$inferSelect
@@ -47,8 +48,27 @@ export async function getSubscription(db: Database, id: number): Promise<Subscri
 export async function getSubscriptionsByUser(
   db: Database,
   userId: number,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
 ): Promise<SubscriptionRow[]> {
-  return db.select().from(subscriptions).where(eq(subscriptions.userId, userId))
+  const conditions = [eq(subscriptions.userId, userId)]
+  if (opts.cursor) {
+    // Keyset: rows ordered by (createdAt DESC, id DESC); fetch strictly older.
+    conditions.push(
+      or(
+        lt(subscriptions.createdAt, new Date(opts.cursor.ts)),
+        and(
+          eq(subscriptions.createdAt, new Date(opts.cursor.ts)),
+          lt(subscriptions.id, opts.cursor.id),
+        ),
+      ) as NonNullable<ReturnType<typeof or>>,
+    )
+  }
+  const base = db
+    .select()
+    .from(subscriptions)
+    .where(and(...conditions))
+    .orderBy(desc(subscriptions.createdAt), desc(subscriptions.id))
+  return opts.limit ? base.limit(opts.limit) : base
 }
 
 export async function getEnabledSubscriptions(db: Database): Promise<SubscriptionRow[]> {

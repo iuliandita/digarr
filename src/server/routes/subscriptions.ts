@@ -10,6 +10,8 @@ import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
+import { encodeCursor } from '@/server/helpers/pagination-cursor'
+import { readPagination } from '@/server/helpers/pagination'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
 import {
@@ -266,8 +268,21 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
-    const subs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
-    return c.json(subs)
+    const page = readPagination(c)
+    if (page === null) {
+      const subs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
+      return c.json(subs)
+    }
+    const rows = await deps.subscriptionQueries.getSubscriptionsByUser(userId, {
+      limit: page.limit + 1,
+      cursor: page.cursor,
+    })
+    const hasMore = rows.length > page.limit
+    const data = hasMore ? rows.slice(0, page.limit) : rows
+    const last = data[data.length - 1]
+    const nextCursor =
+      hasMore && last ? encodeCursor({ id: last.id, ts: last.createdAt.toISOString() }) : null
+    return c.json({ data, meta: { limit: page.limit, nextCursor } })
   })
 
   router.post('/api/v1/subscriptions', zJson(createSubscriptionSchema), async (c) => {
