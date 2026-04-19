@@ -164,6 +164,10 @@ export function isPrivateIp(address: string): boolean {
   if (group1 >= 0xfe80 && group1 <= 0xfebf) return true
   if (group1 >= 0xff00 && group1 <= 0xffff) return true
   if (group1 === 0x2001 && group2 === 0x0db8) return true
+  // NAT64 (RFC 6052) maps IPv4 into IPv6; reject to prevent tunneled access to RFC1918.
+  if (group1 === 0x0064 && group2 === 0xff9b) return true
+  // Teredo (RFC 4380) embeds arbitrary IPv4 in 2001::/32; same rationale.
+  if (group1 === 0x2001 && group2 === 0x0000) return true
   return false
 }
 
