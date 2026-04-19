@@ -119,14 +119,14 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   let runRequestBody: Record<string, unknown> | null = null
   let createdSubscription: Record<string, unknown> | null = null
 
-  await page.route('**/api/discovery-modes', async (route) => {
+  await page.route('**/api/v1/discovery-modes', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(discoveryModes),
     })
   })
-  await page.route('**/api/discovery-modes/run', async (route) => {
+  await page.route('**/api/v1/discovery-modes/run', async (route) => {
     runRequestBody = route.request().postDataJSON() as Record<string, unknown>
     await route.fulfill({
       status: 202,
@@ -134,7 +134,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
       body: JSON.stringify({ message: 'Discovery run started' }),
     })
   })
-  await page.route('**/api/subscriptions', async (route) => {
+  await page.route('**/api/v1/subscriptions', async (route) => {
     if (route.request().method() === 'POST') {
       const body = route.request().postDataJSON() as Record<string, unknown>
       createdSubscription = {

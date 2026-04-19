@@ -9,7 +9,7 @@ test.describe('library album coverage', () => {
 
     await installAuthToken(page, token)
 
-    await page.route('**/api/recommendations**', async (route) => {
+    await page.route('**/api/v1/recommendations**', async (route) => {
       const url = new URL(route.request().url())
       const status = url.searchParams.get('status')
       const isPendingList = status === 'pending' || status === null
@@ -47,7 +47,7 @@ test.describe('library album coverage', () => {
       })
     })
 
-    await page.route('**/api/warm-status**', async (route) => {
+    await page.route('**/api/v1/warm-status**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -55,7 +55,7 @@ test.describe('library album coverage', () => {
       })
     })
 
-    await page.route('**/api/targets', async (route) => {
+    await page.route('**/api/v1/targets', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -63,7 +63,7 @@ test.describe('library album coverage', () => {
       })
     })
 
-    await page.route('**/api/library/album-coverage/**', async (route) => {
+    await page.route('**/api/v1/library/album-coverage/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
