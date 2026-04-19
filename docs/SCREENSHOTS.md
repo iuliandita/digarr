@@ -1,6 +1,6 @@
 # Screenshots
 
-All screenshots use the Youtarr theme.
+All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screenshots.ts` - see the header in that file for env vars.
 
 ## Dashboard (dark)
 
@@ -13,6 +13,12 @@ All screenshots use the Youtarr theme.
 ## Discover
 
 ![Discover](screenshots/discover.png)
+
+## Discovery Modes
+
+![Discovery Modes](screenshots/discovery-modes.png)
+
+Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. It includes ListenBrainz Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep, plus Release Radar and Similar Artist Web. Labels and Artist Relationships appear as unavailable placeholders until those modes ship, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
 
 ## Search
 
@@ -34,21 +40,21 @@ All screenshots use the Youtarr theme.
 
 ![Subscriptions](screenshots/subscriptions.png)
 
-## Discovery Modes
-
-No committed screenshot yet. Discovery Modes now lives on its own page under the Discover menu at `/discover/modes`. That page includes ListenBrainz Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep, plus Release Radar and Similar Artist Web. Labels and Artist Relationships still appear there as unavailable placeholders until those modes ship, and each blocked card now shows an explicit reason. Manual runs now validate Artist Radio seeds before they are accepted and show job-backed feedback instead of a blind "started" toast.
-
 ## Library Health
 
 ![Library Health](screenshots/library-health.png)
 
 ## Library Reconciliation
 
-No committed screenshot yet. This page shipped in `v0.17.0` and covers unreconciled-artist review plus manual correct/ignore override flow. Extended in `v0.19.0` with unreconciled-album review and album override persistence.
+![Library Reconciliation](screenshots/library-reconciliation.png)
+
+Shipped in `v0.17.0`: unreconciled-artist review plus manual correct/ignore override flow. Extended in `v0.19.0` with unreconciled-album review and album override persistence.
 
 ## Library Sources Panel
 
-No committed screenshot yet. This admin panel shipped in `v0.17.0` and expanded in `v0.18.0` with per-source album sync counts and snapshot status. Polished in `v0.19.0` with album sync coverage summaries.
+![Library Sources Panel](screenshots/library-sources.png)
+
+Admin panel on the Library Health page. Shipped in `v0.17.0` and expanded in `v0.18.0` with per-source album sync counts and snapshot status. Polished in `v0.19.0` with album sync coverage summaries.
 
 ## Analytics
 
