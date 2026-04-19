@@ -1349,7 +1349,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 href="https://www.discogs.com/settings/developers"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent hover:underline"
+                className="text-accent underline"
               >
                 {t('settings.getPersonalAccessToken')}
               </a>
@@ -1635,7 +1635,7 @@ function TargetTypeIcon({ type }: { type: string }) {
   const src = iconMap[type]
   if (src) return <img src={src} alt="" className="w-5 h-5" />
   return (
-    <span className="w-5 h-5 rounded bg-accent/20 text-accent text-micro font-bold flex items-center justify-center uppercase">
+    <span className="w-5 h-5 rounded bg-accent text-accent-fg text-micro font-bold flex items-center justify-center uppercase">
       {type.charAt(0)}
     </span>
   )
@@ -2490,7 +2490,7 @@ function AccountTab() {
             {t('settings.signedInAs')}{' '}
             <span className="text-text font-medium">{user?.username ?? '...'}</span>
             {user?.isAdmin && (
-              <span className="ml-2 text-xs bg-accent/20 text-accent px-1.5 py-0.5 rounded">
+              <span className="ml-2 text-xs bg-accent text-accent-fg px-1.5 py-0.5 rounded">
                 {t('userManagement.adminBadge')}
               </span>
             )}

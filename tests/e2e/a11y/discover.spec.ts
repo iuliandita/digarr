@@ -12,7 +12,7 @@ test.describe('Discover page a11y', () => {
     await page.goto('/discover')
 
     // Main content landmark should be on-screen before we scan.
-    await expect(page.getByRole('main').or(page.getByRole('heading'))).toBeVisible({
+    await expect(page.getByRole('main')).toBeVisible({
       timeout: 10_000,
     })
 

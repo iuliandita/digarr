@@ -158,7 +158,7 @@ function ListeningActivity({
               key={r}
               type="button"
               onClick={() => onRangeChange(r)}
-              className={`text-xs px-2 py-0.5 rounded ${range === r ? 'bg-accent/20 text-accent' : 'text-muted hover:text-text'}`}
+              className={`text-xs px-2 py-0.5 rounded ${range === r ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'}`}
             >
               {r === 'week' ? t('dashboard.week') : t('dashboard.month')}
             </button>

@@ -11,7 +11,7 @@ test.describe('Settings page a11y', () => {
     await installAuthToken(page, token)
     await page.goto('/settings')
 
-    await expect(page.getByRole('main').or(page.getByRole('heading'))).toBeVisible({
+    await expect(page.getByRole('main')).toBeVisible({
       timeout: 10_000,
     })
 
