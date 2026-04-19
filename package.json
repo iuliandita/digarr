@@ -1,6 +1,6 @@
 {
   "name": "digarr",
-  "version": "0.39.3",
+  "version": "0.39.4",
   "type": "module",
   "private": true,
   "scripts": {
@@ -19,7 +19,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:a11y": "playwright test --config=playwright.a11y.config.ts"
   },
   "overrides": {
     "brace-expansion": "5.0.5",
@@ -28,6 +29,7 @@
     "vite": "8.0.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.2",
     "@biomejs/biome": "^2.4.7",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
