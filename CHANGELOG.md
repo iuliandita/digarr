@@ -2,8 +2,6 @@
 
 All notable user-facing changes are documented here.
 
-## Unreleased
-
 ## v0.37.5 - 2026-04-18
 
 Phase 10 of the deep-audit remediation: AI/LLM hardening. Anthropic and OpenAI now respect `baseURL` so proxy deployments work; Gemini, Ollama, and OpenAI-compatible providers retry with exponential backoff and honour `Retry-After`; Ollama's timeout is configurable via `DIGARR_AI_TIMEOUT_SECONDS`; the mood endpoint wraps user input in `<user_query>` delimiters with control-character sanitation. Every recommendation response is now Zod-validated, Anthropic requests use tool-use + prompt caching (`cache_control: { type: 'ephemeral' }` on a static prelude), and per-request token usage lands in `job_runs.metadata.aiUsage`. Promptfoo fixtures ship as an advisory eval gate.
@@ -156,6 +154,159 @@ Security-critical release: closes the three-step unauthenticated admin-takeover 
 ### Changed
 
 - The private-IP guard stays in place for user-configurable outbound URLs that can plausibly be adversarially set (webhooks, OIDC issuer, metadata fallback, fanart.tv, musicinfo.pro). It's only relaxed on admin-owned service URLs where private IPs are the expected default.
+
+## v0.27.10 - 2026-04-14
+
+Batch 8b of the 0.27.x hardening sweep: Zod validation extended to the remaining write routes.
+
+### Added
+
+- Zod schemas for subscriptions, playlists, recommendations, pipeline, setup, OAuth, and jobs write routes. Reusable croner-verified `cronSchema` and enum types for statuses, sort orders, export formats, and job types.
+- Array size caps at the schema layer: deezer-playlist import max 100, bulk recommendations max 500, `selectedAlbumIds` max 200, `targetIds` max 50. Prevents a single payload from starving the worker.
+
+### Changed
+
+- Strict PATCH on subscriptions and playlists rejects unknown keys with 400 instead of silently dropping them.
+- Jobs list query: out-of-range `limit` / `offset` returns 400 instead of clamping.
+- OAuth `redirectUri` restricted to `http(s)` at the schema boundary; `javascript:` / `data:` URIs rejected before they can reach auth-URL rendering.
+- Dead code removed: `ALLOWED_UPDATE_FIELDS` sets in subscriptions and playlists; `parseOptionalInteger` helper in recommendations.
+
+## v0.27.9 - 2026-04-14
+
+Batch 8a of the 0.27.x hardening sweep: Zod validation on the highest-risk write/admin endpoints.
+
+### Added
+
+- `zod@4`, `@hono/zod-validator`, and `drizzle-zod` dependencies. New `src/server/schemas/` foundation with `zJson` / `zQuery` / `zParam` helpers returning a consistent `{ error, code: 'validation_failed', details: [...] }` shape on 400. `error` stays human-readable for the existing frontend; `code` is the stable machine identifier.
+- 15 invalid-input regression tests in `tests/server/routes/validation.test.ts`.
+
+### Changed
+
+- `POST /api/auth/register`, `POST /api/auth/change-password`, `POST` + `PATCH /api/users`, `POST` + `PATCH` + `DELETE /api/targets`, `PATCH /api/settings`, and `POST /api/admin/restore` now validate input with Zod before touching business logic. Login stays on the manual handler so its `credentialsRequired` error remains i18n'd in 15 locales.
+- Targets: `type` constrained to the `TARGET_TYPES` enum, `config.url` forced to `http(s)`, PATCH `.strict()` rejects unknown keys.
+- `/api/settings` preferences: enums and `[0, 1]` ranges enforced at the edge. Unknown top-level keys still silently dropped to preserve allowlist semantics.
+- `/api/admin/restore`: backup envelope validated before `restoreBackup` runs. Non-array table payloads, missing envelope keys, and wrong types all 400 out at the edge.
+
+## v0.27.8 - 2026-04-14
+
+Batch 7 of the 0.27.x hardening sweep: SHA-pinned runner images and keyless cosign signing.
+
+### Added
+
+- Cosign keyless signing in `.github/workflows/release.yml` via `sigstore/cosign-installer@v4.1.1` (SHA-pinned). Signs each pushed image at both ghcr.io and docker.io by immutable digest using Sigstore OIDC, so there are no private keys, no secret rotation, and the signing identity is the workflow run itself.
+- `cosign attest` binds the existing SPDX SBOM to the image digest.
+- README verification recipe with `cosign verify` and `cosign verify-attestation` showing the `certificate-identity-regexp` + `certificate-oidc-issuer` flags that pin the signer to this repo's `release.yml`.
+
+### Changed
+
+- SHA-pinned every runner and base image: `oven/bun:1.3.11` (4 + 2 occurrences in Forgejo CI and release workflows), `postgres:17-alpine` (2 occurrences), the Dockerfile builder FROM and its default `RUNTIME_IMAGE` ARG, and both bun-slim and bun-alpine matrix variants in the GitHub release workflow. Closes SEV-009 (mutable-tag exposure).
+
+## v0.27.7 - 2026-04-14
+
+Batch 6 of the 0.27.x hardening sweep: Kubernetes posture - ServiceAccount, PodDisruptionBudget, Pod Security Standards restricted.
+
+### Added
+
+- Dedicated ServiceAccount on both the Helm chart and raw manifests, with `automountServiceAccountToken: false` as defense-in-depth on top of the existing pod-level flag. New `serviceAccount.*` values let operators swap in a pre-existing SA for IRSA / Workload Identity.
+- PodDisruptionBudget template in the Helm chart, gated on `podDisruptionBudget.enabled && replicaCount > 1` so the default (replicas=1) behavior is unchanged. Commented example in `deploy/k8s/poddisruptionbudget.yaml`.
+- Pod Security Standards namespace template with `enforce=restricted`. Helm `NOTES.txt` emits the equivalent `kubectl label` command.
+
+### Changed
+
+- Postgres StatefulSet container securityContext now drops `ALL` capabilities and sets pod-level `runAsNonRoot: true` explicitly so the bundled Postgres passes PSS restricted.
+- `values.schema.json` extended with `serviceAccount` and `podDisruptionBudget` blocks.
+
+## v0.27.6 - 2026-04-14
+
+i18n batch 6: finish component coverage and extend translator into the library sync.
+
+### Fixed
+
+- Hardcoded English strings translated in `preview-player`, `streaming-links` (PLAY / STOP and the Spotify embed iframe title), `mood-prompt-bar` toasts, `album-picker` (close + empty state), `genre-grid` empty state, `hint` (3 aria-labels + dismiss), `library-first-sync-banner` (dismiss + MusicBrainz rate-limit body), `bottom-nav` aria-label, `discover` undo-toast, and `admin/upgrade-section` loading fallback.
+- Library-sync `Syncing {source}...` SSE progress messages translate via a translator threaded through the orchestrator into `SyncOptions`. Graceful English fallback when no translator is provided.
+
+### Added
+
+- 3 new keys (`firstSyncBanner.title`, `firstSyncBanner.body`, `librarySync.message.syncingSource`) plus translations across all 14 shipped locales. Catalog parity restored.
+
+## v0.27.5 - 2026-04-14
+
+i18n batch 5: pipeline progress messages, card-stack / approve-dialog coverage, and a machine-translation quality pass.
+
+### Fixed
+
+- Pipeline progress SSE messages from `orchestrator.ts` and `resolve.ts` no longer leak English into non-English UIs. A small `src/core/i18n/translator.ts` gives the server-side paths a locale-aware `getMessages(locale)` with `{0}` interpolation, threaded through via the existing `responseLocale` plumbing.
+- `targetActionLabel(type, name, t)`, the `ApproveDialog` button and loading state, card-stack approve / reject / view-details labels and aria-labels, prev/next nav aria-labels, and the "No more recommendations" empty state all translate.
+- Source-score chips (`consensus`, `popularity`, `similarity`, `aiConfidence`, `genreOverlap`, `feedbackBoost`) now map to the existing `analytics.source.*` keys instead of falling through to the raw key.
+- Bad machine translations corrected across 11-13 locales for `recommendation.match`, `pipeline.stage.score`, and `pipeline.runningFor`, which previously read as "sports match" or "physical running" instead of compatibility / execution senses. The `recommendation-card` chip variable was also shadowing the i18n `t` function; renamed.
+
+### Added
+
+- 43 new i18n keys in `en.ts` covering card-stack nav, preview player, streaming PLAY / STOP, mood-discover toasts, album picker, genre grid, hint dismiss, mobile nav, target actions, and pipeline messages, plus translations across all 14 shipped locales.
+- PLAY / STOP added to the `i18n-check` allowlist (intentionally identical across locales; render as icon-style labels).
+
+## v0.27.4 - 2026-04-14
+
+Full SSRF sweep of the remaining outbound-URL surfaces.
+
+### Security
+
+- CGNAT range (`100.64.0.0/10`) added to `isPrivateIp`.
+- LIKE-injection escape on `findPendingOAuthByState`: attacker-controlled OAuth state can no longer widen the suffix match via `%` or `_`.
+- OIDC DNS rebinding hardened. `OidcService` passes a custom fetch to `openid-client` that resolves DNS per request, rejects private IPs, and pins the resolved IP for `http://` via the Host header.
+- URL validation at write paths: `POST /api/setup/complete` validates `embyUrl`; `PATCH /api/settings` validates `aiBaseUrl`; user-scoped Plex / Jellyfin / Emby URLs validated for admins too; `POST /api/settings/test/ai` validates `body.baseUrl`.
+- Client-level `publicIpOnly: true` on the Plex, Jellyfin, Emby, and fanart HTTP clients.
+- `OllamaProvider` and `OpenAICompatibleProvider` now run `validatePublicServiceUrl` before every `getRecommendations()` and `testConnection()` call.
+
+### Added
+
+- `src/core/url-safety.ts` houses `validatePublicServiceUrl`. Kept out of `src/core/validation.ts` so the React bundle does not pull `node:dns/promises` into the browser module graph. `src/core/notifications.ts` re-exports `isPrivateIp` / `isPrivateUrl` for backward compatibility with its existing callers.
+
+## v0.27.3 - 2026-04-14
+
+Hotfix for broken manual scans.
+
+### Fixed
+
+- Manual scans from the UI no longer fail with "Pipeline orchestrator requires librarySync, userId, and library StoreDb methods". `POST /api/pipeline/run` now passes `librarySync: deps.librarySync` through to `orchestrator.run()`; the scheduled-run and discovery-mode paths were already correct. The `as unknown as PipelineDeps` cast in the manual-trigger path had hidden the missing field at compile time. Fixes #105.
+
+### Changed
+
+- `.github/ISSUE_TEMPLATE/bug.yml` Environment field split into required structured inputs (digarr version, deployment method, host OS, Postgres version) plus an optional browser field, so future bug reports are actionable instead of arriving as `_No response_`.
+
+## v0.27.2 - 2026-04-14
+
+### Security
+
+- `oidc_tokens.accessToken`, `refreshToken`, and `idToken` are now covered by a new `SENSITIVE_OIDC` encryption field map. Previously the table had two gaps: `ENCRYPTED_FIELD_MAP` used the wrong field set (`SENSITIVE_OAUTH`, which lists `clientSecret` that `oidc_tokens` does not have while omitting `idToken`), and there was no query-helper module to force encryption on future writes. No rows are currently persisted (the OIDC flow returns tokens to the caller without storing them), so this is a preventive fix.
+- New `src/db/queries/oidc-tokens.ts` with `getOidcTokensByUserId`, `upsertOidcTokens`, and `deleteOidcTokensByUserId`, all transparently encrypted via `encryptFields` / `decryptFields`.
+- Migration `0025_oidc_tokens_user_unique.sql` marks `oidcTokens.userId` as `.unique()` so `upsertOidcTokens()`'s `ON CONFLICT (user_id)` target is valid. The table is empty, so no duplicates exist.
+
+### Added
+
+- 17 new crypto round-trip tests covering `encryptField` / `decryptField` (simple, unicode, 10 KB), fresh-IV property, idempotency, null / undefined preservation, wrong-key throw behavior, malformed-prefix tolerance, legacy plaintext pass-through, and `getKeyFingerprint` stability. `crypto.ts` previously had zero direct unit tests (only indirect coverage via backup tests).
+
+## v0.27.1 - 2026-04-14
+
+Six data-safety fixes from the deep audit.
+
+### Fixed
+
+- `analyze.ts` now uses `Promise.allSettled` over listening sources instead of `Promise.all`. A single flaky Last.fm / ListenBrainz / Spotify call no longer aborts the entire pipeline run. Activity merge is deterministic (first fulfilled source wins).
+- Pipeline `store` adds optional `upsertArtistAndRecommendation` to `StoreDb`. Production wiring runs artist upsert and recommendation insert inside a single DB transaction, so a crash in the middle no longer leaves an orphan artist row.
+- Backup restore (`POST /api/admin/restore`) no longer swallows errors into `warnings[]`. Errors bubble up; the admin route returns HTTP 500 instead of 200-with-empty-`tablesRestored`, so silent restore failures are no longer possible.
+- `artistMetadata.bulkUpsert` and `recordingArtistCache.insertCachedRecordingArtists` chunk at 5000 rows. The prior single-INSERT path crashed above ~9362 rows due to Postgres's 65535 bind-parameter ceiling.
+- `!Number.isFinite(id)` guards added on `batches/:id`, `recommendations/:id` (2 handlers), `subscriptions/:id` (4 handlers), and `targets/:id` (3 handlers). Bad IDs now return 400 instead of 500, matching the pattern already in place for `artists/:id`, `jobs/:id`, and `users/:id`.
+
+### Added
+
+- `DbOrTx` type in `src/db/index.ts` so query helpers can accept either `Database` or an in-flight Drizzle transaction. Used by `upsertArtist` and `insertRecommendation`.
+
+## v0.27.0 - 2026-04-14
+
+### Security
+
+- `trivy-version: "0.69.3"` pinned on both `trivy-fs` and `trivy-image` scan steps in `.github/workflows/security.yml`. `aquasecurity/trivy-action@v0.35.0` previously resolved the latest trivy binary at runtime and was not pinned, which exposed the workflow to the compromised trivy v0.69.4-v0.69.6 releases distributed during the 2026-03-19 to 2026-03-23 window (CVE-2026-33634, credential-stealing malware). `security.yml` ran ~100 times during that window; `DOCKERHUB_TOKEN` and any other secrets exposed to those runs should be rotated as a precaution.
 
 ## v0.26.7 - 2026-04-14
 
