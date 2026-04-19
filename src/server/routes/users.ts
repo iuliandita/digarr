@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
+import { readPagination } from '@/server/helpers/pagination'
+import { encodeCursor } from '@/server/helpers/pagination-cursor'
 import { requireAdmin as requireAdminShared } from '@/server/helpers/require-user'
 import { createUserSchema, updateUserSchema, userIdParamSchema } from '@/server/schemas/users'
 import { zJson, zParam } from '@/server/schemas/validator'
@@ -24,8 +26,18 @@ export function userRoutes(deps: AppDependencies) {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
 
-    const userList = await deps.listUsers()
-    return c.json(userList)
+    const page = readPagination(c)
+    if (page === null) {
+      const userList = await deps.listUsers()
+      return c.json(userList)
+    }
+    const rows = await deps.listUsers({ limit: page.limit + 1, cursor: page.cursor })
+    const hasMore = rows.length > page.limit
+    const data = hasMore ? rows.slice(0, page.limit) : rows
+    const last = data[data.length - 1]
+    const nextCursor =
+      hasMore && last ? encodeCursor({ id: last.id, ts: last.createdAt.toISOString() }) : null
+    return c.json({ data, meta: { limit: page.limit, nextCursor } })
   })
 
   // POST /api/v1/users - create a new user (admin only)

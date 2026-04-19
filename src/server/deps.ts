@@ -78,7 +78,7 @@ export interface UserDeps {
     id: number,
     data: { isAdmin?: boolean; email?: string; oidcSubject?: string },
   ) => Promise<void>
-  listUsers: () => Promise<UserPublic[]>
+  listUsers: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<UserPublic[]>
   deleteUser: (id: number) => Promise<void>
 }
 

@@ -1,9 +1,10 @@
-import { count, eq } from 'drizzle-orm'
+import { and, count, desc, eq, lt, or } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { Database } from '@/db'
 import type { Preferences } from '@/db/schema'
 import { users } from '@/db/schema'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 type UserRow = typeof users.$inferSelect
 
@@ -75,8 +76,27 @@ export async function updateUserPreferredLocale(
   await db.update(users).set({ preferredLocale }).where(eq(users.id, id))
 }
 
-export async function listUsers(db: Database): Promise<UserPublic[]> {
-  const rows = await db.select().from(users)
+export async function listUsers(
+  db: Database,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
+): Promise<UserPublic[]> {
+  const conditions = []
+  if (opts.cursor) {
+    conditions.push(
+      or(
+        lt(users.createdAt, new Date(opts.cursor.ts)),
+        and(eq(users.createdAt, new Date(opts.cursor.ts)), lt(users.id, opts.cursor.id)),
+      ) as NonNullable<ReturnType<typeof or>>,
+    )
+  }
+  const base = conditions.length
+    ? db
+        .select()
+        .from(users)
+        .where(and(...conditions))
+    : db.select().from(users)
+  const ordered = base.orderBy(desc(users.createdAt), desc(users.id))
+  const rows = await (opts.limit ? ordered.limit(opts.limit) : ordered)
   return rows.map(toPublic)
 }
 

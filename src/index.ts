@@ -1197,7 +1197,7 @@ const app = createApp({
   getUserByOidcSubject: (subject) => getUserByOidcSubject(db, subject),
   getUserByEmail: (email) => getUserByEmail(db, email),
   updateUser: (id, data) => updateUser(db, id, data),
-  listUsers: () => listUsers(db),
+  listUsers: (opts?: Parameters<typeof listUsers>[1]) => listUsers(db, opts),
   deleteUser: (id) => deleteUser(db, id),
   genreService,
   libraryHealth,
