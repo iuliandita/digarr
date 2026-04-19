@@ -25,7 +25,7 @@ function makeDeps(overrides: Partial<SearchDeps> = {}): SearchDeps {
   }
 }
 
-describe('GET /api/search/sources', () => {
+describe('GET /api/v1/search/sources', () => {
   it('returns source metadata from the deps', async () => {
     const listSources = vi.fn().mockResolvedValue([
       { id: 'deezer', label: 'Deezer', available: true },
@@ -39,7 +39,7 @@ describe('GET /api/search/sources', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ listSources })))
 
-    const res = await app.request('/api/search/sources')
+    const res = await app.request('/api/v1/search/sources')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { sources: SearchSourceDescriptor[] }
     expect(body.sources).toHaveLength(2)
@@ -47,12 +47,12 @@ describe('GET /api/search/sources', () => {
   })
 })
 
-describe('GET /api/search', () => {
+describe('GET /api/v1/search', () => {
   it('returns 400 when q is missing', async () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps()))
 
-    const res = await app.request('/api/search')
+    const res = await app.request('/api/v1/search')
     expect(res.status).toBe(400)
     const body = (await res.json()) as { error: string }
     expect(body.error).toMatch(/q parameter/)
@@ -62,7 +62,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps()))
 
-    const res = await app.request('/api/search?q=')
+    const res = await app.request('/api/v1/search?q=')
     expect(res.status).toBe(400)
   })
 
@@ -70,7 +70,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps()))
 
-    const res = await app.request('/api/search?q=%20%20')
+    const res = await app.request('/api/v1/search?q=%20%20')
     expect(res.status).toBe(400)
   })
 
@@ -78,7 +78,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps()))
 
-    const res = await app.request('/api/search?q=portishead')
+    const res = await app.request('/api/v1/search?q=portishead')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { results: MergedSearchResult[] }
     expect(body.results).toHaveLength(2)
@@ -90,7 +90,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test&limit=5')
+    await app.request('/api/v1/search?q=test&limit=5')
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 5 }))
   })
 
@@ -99,7 +99,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test&limit=999')
+    await app.request('/api/v1/search?q=test&limit=999')
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 50 }))
   })
 
@@ -108,7 +108,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test&limit=0')
+    await app.request('/api/v1/search?q=test&limit=0')
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 1 }))
   })
 
@@ -117,7 +117,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test&limit=-5')
+    await app.request('/api/v1/search?q=test&limit=-5')
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 1 }))
   })
 
@@ -126,7 +126,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test')
+    await app.request('/api/v1/search?q=test')
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 20 }))
   })
 
@@ -135,7 +135,7 @@ describe('GET /api/search', () => {
     const app = new Hono()
     app.route('/', searchRoutes(makeDeps({ search: searchFn })))
 
-    await app.request('/api/search?q=test&sources=spotify,deezer')
+    await app.request('/api/v1/search?q=test&sources=spotify,deezer')
     expect(searchFn).toHaveBeenCalledWith(
       'test',
       expect.objectContaining({ sources: ['spotify', 'deezer'] }),
@@ -153,7 +153,7 @@ describe('GET /api/search', () => {
       ),
     )
 
-    const res = await app.request('/api/search?q=test')
+    const res = await app.request('/api/v1/search?q=test')
     expect(res.status).toBe(500)
     const body = (await res.json()) as { error: string }
     expect(body.error).toBe('Search failed')

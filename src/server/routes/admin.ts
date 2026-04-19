@@ -28,8 +28,8 @@ export interface AdminDeps {
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
 
-  // POST /api/admin/backup - download backup JSON
-  router.post('/api/admin/backup', async (c) => {
+  // POST /api/v1/admin/backup - download backup JSON
+  router.post('/api/v1/admin/backup', async (c) => {
     const includeCaches = c.req.query('includeCaches') === 'true'
     const backup = await createBackup(deps.db, { includeCaches })
     const json = JSON.stringify(backup, null, 2)
@@ -44,12 +44,12 @@ export function adminRoutes(deps: AdminDeps) {
     })
   })
 
-  // POST /api/admin/restore - upload and restore backup JSON.
+  // POST /api/v1/admin/restore - upload and restore backup JSON.
   // Dual-format (multipart + raw JSON) rules out zJson middleware; we parse
   // then validate with the same schema in-handler. Zod catches prototype
   // pollution, missing top-level keys, and non-array table payloads before
   // restoreBackup touches the DB.
-  router.post('/api/admin/restore', async (c) => {
+  router.post('/api/v1/admin/restore', async (c) => {
     const force = c.req.query('force') === 'true'
     const confirm = c.req.query('confirm') === 'true'
     if (!confirm) {
@@ -121,21 +121,21 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  // GET /api/admin/backup/last - last auto-backup metadata
-  router.get('/api/admin/backup/last', async (c) => {
+  // GET /api/v1/admin/backup/last - last auto-backup metadata
+  router.get('/api/v1/admin/backup/last', async (c) => {
     const status = await getPendingMigrations(deps.db)
     return c.json({ lastAutoBackup: status.lastAutoBackup })
   })
 
-  // GET /api/admin/migrations/pending - pending migration status
-  router.get('/api/admin/migrations/pending', async (c) => {
+  // GET /api/v1/admin/migrations/pending - pending migration status
+  router.get('/api/v1/admin/migrations/pending', async (c) => {
     const status = await getPendingMigrations(deps.db)
     return c.json(status)
   })
 
   // ── Hygiene endpoints ─────────────────────────
 
-  router.post('/api/admin/hygiene/clear-image-failures', async (c) => {
+  router.post('/api/v1/admin/hygiene/clear-image-failures', async (c) => {
     const olderThan = c.req.query('olderThan')
     let days: number | undefined
     if (olderThan) {
@@ -146,12 +146,12 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  router.post('/api/admin/hygiene/rebuild-genres', async (c) => {
+  router.post('/api/v1/admin/hygiene/rebuild-genres', async (c) => {
     const result = await rebuildGenres(deps.db)
     return c.json(result)
   })
 
-  router.post('/api/admin/hygiene/rescore', async (c) => {
+  router.post('/api/v1/admin/hygiene/rescore', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'No user context' }, 400)
 
@@ -169,12 +169,12 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  router.post('/api/admin/hygiene/dedupe', async (c) => {
+  router.post('/api/v1/admin/hygiene/dedupe', async (c) => {
     const result = await dedupeRepair(deps.db)
     return c.json(result)
   })
 
-  router.post('/api/admin/hygiene/ai-audit', async (c) => {
+  router.post('/api/v1/admin/hygiene/ai-audit', async (c) => {
     const autoFix = c.req.query('autoFix') === 'true'
 
     const result = await aiReasoningAudit(
@@ -190,11 +190,11 @@ export function adminRoutes(deps: AdminDeps) {
     return c.json(result)
   })
 
-  router.get('/api/admin/hygiene/ai-audit/results', async (c) => {
+  router.get('/api/v1/admin/hygiene/ai-audit/results', async (c) => {
     return c.json(getAiAuditStatus())
   })
 
-  router.post('/api/admin/hygiene/purge-sessions', async (c) => {
+  router.post('/api/v1/admin/hygiene/purge-sessions', async (c) => {
     const result = await purgeSessions(deps.db)
     return c.json(result)
   })

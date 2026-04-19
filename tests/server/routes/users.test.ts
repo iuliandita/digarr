@@ -206,15 +206,15 @@ async function createMountedAppWithLegacyToken(
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/users
+// GET /api/v1/users
 // ---------------------------------------------------------------------------
 
-describe('GET /api/users', () => {
+describe('GET /api/v1/users', () => {
   it('returns user list for admin', async () => {
     const token = await adminToken()
     const app = createApp(makeDeps())
 
-    const res = await app.request('/api/users', {
+    const res = await app.request('/api/v1/users', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -234,7 +234,7 @@ describe('GET /api/users', () => {
       }),
     )
 
-    const res = await app.request('/api/users', {
+    const res = await app.request('/api/v1/users', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -244,7 +244,7 @@ describe('GET /api/users', () => {
   it('returns 401 for unauthenticated', async () => {
     const app = createApp(makeDeps())
     // No Authorization header, but users exist so auth is required
-    const res = await app.request('/api/users')
+    const res = await app.request('/api/v1/users')
     expect(res.status).toBe(401)
   })
 
@@ -254,7 +254,7 @@ describe('GET /api/users', () => {
       getUserById: vi.fn(async (id: number) => (id === 1 ? adminUser : null)),
     })
 
-    const res = await app.request('/api/users', {
+    const res = await app.request('/api/v1/users', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -263,10 +263,10 @@ describe('GET /api/users', () => {
 })
 
 // ---------------------------------------------------------------------------
-// PATCH /api/users/:id
+// PATCH /api/v1/users/:id
 // ---------------------------------------------------------------------------
 
-describe('PATCH /api/users/:id', () => {
+describe('PATCH /api/v1/users/:id', () => {
   it('admin can toggle isAdmin on another user', async () => {
     const updateUser = vi.fn(async () => {})
     const token = await adminToken()
@@ -281,7 +281,7 @@ describe('PATCH /api/users/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/users/2', {
+    const res = await app.request('/api/v1/users/2', {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ isAdmin: true }),
@@ -297,7 +297,7 @@ describe('PATCH /api/users/:id', () => {
     const token = await adminToken()
     const app = createApp(makeDeps())
 
-    const res = await app.request('/api/users/1', {
+    const res = await app.request('/api/v1/users/1', {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ isAdmin: false }),
@@ -317,7 +317,7 @@ describe('PATCH /api/users/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/users/99', {
+    const res = await app.request('/api/v1/users/99', {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ isAdmin: true }),
@@ -328,10 +328,10 @@ describe('PATCH /api/users/:id', () => {
 })
 
 // ---------------------------------------------------------------------------
-// DELETE /api/users/:id
+// DELETE /api/v1/users/:id
 // ---------------------------------------------------------------------------
 
-describe('DELETE /api/users/:id', () => {
+describe('DELETE /api/v1/users/:id', () => {
   it('admin can delete another user', async () => {
     const deleteUser = vi.fn(async () => {})
     const token = await adminToken()
@@ -346,7 +346,7 @@ describe('DELETE /api/users/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/users/2', {
+    const res = await app.request('/api/v1/users/2', {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -361,7 +361,7 @@ describe('DELETE /api/users/:id', () => {
     const token = await adminToken()
     const app = createApp(makeDeps())
 
-    const res = await app.request('/api/users/1', {
+    const res = await app.request('/api/v1/users/1', {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -379,7 +379,7 @@ describe('DELETE /api/users/:id', () => {
       }),
     )
 
-    const res = await app.request('/api/users/99', {
+    const res = await app.request('/api/v1/users/99', {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })

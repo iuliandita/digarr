@@ -60,7 +60,7 @@ describe('AuthGate', () => {
     await screen.findByText('secret area')
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/auth/validate',
+      '/api/v1/auth/validate',
       expect.objectContaining({
         headers: { Authorization: 'Bearer stored-token' },
       }),

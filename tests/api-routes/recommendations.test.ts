@@ -18,7 +18,7 @@ describe('API routes: recommendations list', () => {
       listRecommendations: vi.fn(async () => ({ items: [rec], total: 1 })) as never,
     })
 
-    const res = await app.request('/api/recommendations', {
+    const res = await app.request('/api/v1/recommendations', {
       headers: { Authorization: 'Bearer tok' },
     })
     expect(res.status).toBe(200)
@@ -36,7 +36,7 @@ describe('API routes: approve/reject', () => {
       filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     })
 
-    const res = await app.request('/api/recommendations/2', {
+    const res = await app.request('/api/v1/recommendations/2', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ describe('API routes: approve/reject', () => {
   it('returns 400 for invalid status', async () => {
     const { app } = createTestApp()
 
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ describe('API routes: approve/reject', () => {
       getRecommendation: vi.fn(async () => null),
     })
 
-    const res = await app.request('/api/recommendations/999', {
+    const res = await app.request('/api/v1/recommendations/999', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

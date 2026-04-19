@@ -40,7 +40,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -75,7 +75,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([mockTarget])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -108,7 +108,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([mockTarget])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -133,7 +133,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -181,7 +181,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([lidarrTarget1, lidarrTarget2])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved', targetId: 'lidarr-2' }),
@@ -226,7 +226,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([lidarrTarget1, lidarrTarget2])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'approved' }),
@@ -260,7 +260,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([mockTarget])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await app.request('/api/v1/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [1], action: 'approve' }),
@@ -282,7 +282,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await app.request('/api/v1/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [1], action: 'approve' }),
@@ -307,7 +307,7 @@ describe('target-aware approval', () => {
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
 
     const app = createTestApp()
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await app.request('/api/v1/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: [1], action: 'approve' }),

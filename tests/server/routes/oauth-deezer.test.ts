@@ -52,13 +52,13 @@ beforeEach(() => {
 })
 
 // ---------------------------------------------------------------------------
-// POST /api/auth/oauth/deezer/initiate
+// POST /api/v1/auth/oauth/deezer/initiate
 // ---------------------------------------------------------------------------
 
-describe('POST /api/auth/oauth/deezer/initiate', () => {
+describe('POST /api/v1/auth/oauth/deezer/initiate', () => {
   it('returns 401 when not authenticated', async () => {
     const app = createApp(makeDeps(), false)
-    const res = await app.request('/api/auth/oauth/deezer/initiate', { method: 'POST' })
+    const res = await app.request('/api/v1/auth/oauth/deezer/initiate', { method: 'POST' })
     expect(res.status).toBe(401)
   })
 
@@ -70,7 +70,7 @@ describe('POST /api/auth/oauth/deezer/initiate', () => {
     ;(envConfig as Record<string, unknown>).deezerAppSecret = undefined
 
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/oauth/deezer/initiate', {
+    const res = await app.request('/api/v1/auth/oauth/deezer/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -86,7 +86,7 @@ describe('POST /api/auth/oauth/deezer/initiate', () => {
 
   it('returns authUrl pointing to deezer with correct params', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/oauth/deezer/initiate', {
+    const res = await app.request('/api/v1/auth/oauth/deezer/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', host: 'example.com' },
       body: JSON.stringify({}),
@@ -97,13 +97,13 @@ describe('POST /api/auth/oauth/deezer/initiate', () => {
     const url = new URL(body.authUrl)
     expect(url.searchParams.get('app_id')).toBe('test-app-id')
     expect(url.searchParams.get('perms')).toContain('basic_access')
-    expect(url.searchParams.get('redirect_uri')).toContain('/api/auth/oauth/deezer/callback')
+    expect(url.searchParams.get('redirect_uri')).toContain('/api/v1/auth/oauth/deezer/callback')
     expect(url.searchParams.get('state')).toBeTruthy()
   })
 
   it('uses x-forwarded-proto header for redirect_uri', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/oauth/deezer/initiate', {
+    const res = await app.request('/api/v1/auth/oauth/deezer/initiate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ describe('POST /api/auth/oauth/deezer/initiate', () => {
 
   it('stores a pending token with null clientId and clientSecret', async () => {
     const app = createApp(makeDeps())
-    await app.request('/api/auth/oauth/deezer/initiate', {
+    await app.request('/api/v1/auth/oauth/deezer/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -140,7 +140,7 @@ describe('POST /api/auth/oauth/deezer/initiate', () => {
 })
 
 // ---------------------------------------------------------------------------
-// GET /api/auth/oauth/deezer/callback
+// GET /api/v1/auth/oauth/deezer/callback
 // ---------------------------------------------------------------------------
 
 function makePendingToken(state: string, userId = 1) {
@@ -156,11 +156,11 @@ function makePendingToken(state: string, userId = 1) {
   }
 }
 
-describe('GET /api/auth/oauth/deezer/callback', () => {
+describe('GET /api/v1/auth/oauth/deezer/callback', () => {
   it('redirects with oauth_error when error query param is present', async () => {
     const app = createApp(makeDeps())
     const res = await app.request(
-      '/api/auth/oauth/deezer/callback?error=access_denied&state=s&code=c',
+      '/api/v1/auth/oauth/deezer/callback?error=access_denied&state=s&code=c',
     )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=access_denied')
@@ -169,7 +169,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
   it('redirects with oauth_error when error_reason is present (Deezer denial)', async () => {
     const app = createApp(makeDeps())
     const res = await app.request(
-      '/api/auth/oauth/deezer/callback?error_reason=user_denied&state=s',
+      '/api/v1/auth/oauth/deezer/callback?error_reason=user_denied&state=s',
     )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=user_denied')
@@ -177,7 +177,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
 
   it('redirects with oauth_error when code or state is missing', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/oauth/deezer/callback?code=abc')
+    const res = await app.request('/api/v1/auth/oauth/deezer/callback?code=abc')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=missing_code_or_state')
   })
@@ -185,7 +185,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
   it('redirects with no_pending_auth when no pending token found', async () => {
     vi.mocked(findPendingOAuthByState).mockResolvedValue(null)
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/oauth/deezer/callback?code=abc&state=no-such-state')
+    const res = await app.request('/api/v1/auth/oauth/deezer/callback?code=abc&state=no-such-state')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=no_pending_auth')
   })
@@ -194,7 +194,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken('real-state') as never)
     const app = createApp(makeDeps())
     const res = await app.request(
-      '/api/auth/oauth/deezer/callback?code=auth-code&state=wrong-state',
+      '/api/v1/auth/oauth/deezer/callback?code=auth-code&state=wrong-state',
     )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=state_mismatch')
@@ -210,7 +210,9 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    const res = await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    const res = await app.request(
+      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
+    )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe('/settings?oauth_success=deezer')
   })
@@ -225,7 +227,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    await app.request(`/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
 
     expect(upsertOAuthToken).toHaveBeenCalledWith(
       expect.anything(),
@@ -250,7 +252,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    await app.request(`/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
 
     const call = vi.mocked(upsertOAuthToken).mock.calls[0]?.[1]
     const expiresAt = call?.expiresAt as Date
@@ -269,7 +271,9 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    const res = await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    const res = await app.request(
+      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
+    )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe('/settings?oauth_success=deezer')
     expect(upsertOAuthToken).toHaveBeenCalledWith(
@@ -285,7 +289,9 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401 } as Response)
 
     const app = createApp(makeDeps())
-    const res = await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    const res = await app.request(
+      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
+    )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
   })
@@ -300,7 +306,9 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    const res = await app.request(`/api/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    const res = await app.request(
+      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
+    )
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
   })
@@ -315,7 +323,7 @@ describe('GET /api/auth/oauth/deezer/callback', () => {
     } as Response)
 
     const app = createApp(makeDeps())
-    await app.request(`/api/auth/oauth/deezer/callback?code=my-code&state=${state}`)
+    await app.request(`/api/v1/auth/oauth/deezer/callback?code=my-code&state=${state}`)
 
     const fetchCall = vi.mocked(global.fetch).mock.calls[0]
     const calledUrl = fetchCall?.[0] as string

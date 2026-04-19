@@ -183,11 +183,11 @@ async function authedRequest(
   })
 }
 
-describe('POST /api/pipeline/run', () => {
+describe('POST /api/v1/pipeline/run', () => {
   it('returns 202 when pipeline is not running', async () => {
     const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
     expect(body.message).toBe('Pipeline started')
@@ -196,7 +196,7 @@ describe('POST /api/pipeline/run', () => {
   it('returns 409 when pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(409)
     const body = await res.json()
     expect(body.title).toMatch(/already/i)
@@ -211,7 +211,7 @@ describe('POST /api/pipeline/run', () => {
         getSettings: vi.fn(async () => null),
       }),
     )
-    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(400)
   })
 
@@ -252,7 +252,7 @@ describe('POST /api/pipeline/run', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await authedRequest(app, '/api/pipeline/run', {
+    const res = await authedRequest(app, '/api/v1/pipeline/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -273,16 +273,16 @@ describe('POST /api/pipeline/run', () => {
     const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
     const librarySync = { syncForUser: vi.fn() } as unknown as AppDependencies['librarySync']
     const app = createApp(makeDeps({ orchestrator, librarySync }))
-    const res = await authedRequest(app, '/api/pipeline/run', { method: 'POST' })
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(202)
     expect(orchestrator.run).toHaveBeenCalledWith(expect.objectContaining({ librarySync }))
   })
 })
 
-describe('GET /api/pipeline/status', () => {
+describe('GET /api/v1/pipeline/status', () => {
   it('returns running: false when not running', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/pipeline/status')
+    const res = await authedRequest(app, '/api/v1/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.running).toBe(false)
@@ -292,7 +292,7 @@ describe('GET /api/pipeline/status', () => {
   it('returns running: true when orchestrator is running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
-    const res = await authedRequest(app, '/api/pipeline/status')
+    const res = await authedRequest(app, '/api/v1/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.running).toBe(true)
@@ -301,7 +301,7 @@ describe('GET /api/pipeline/status', () => {
   it('includes lastRun when a batch exists', async () => {
     const lastBatch = { id: 42, createdAt: new Date('2024-06-01'), status: 'completed' }
     const app = createApp(makeDeps({ getLastBatch: vi.fn(async () => lastBatch) }))
-    const res = await authedRequest(app, '/api/pipeline/status')
+    const res = await authedRequest(app, '/api/v1/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.lastRun).toBeDefined()
@@ -310,15 +310,15 @@ describe('GET /api/pipeline/status', () => {
   })
 })
 
-describe('GET /api/pipeline/events', () => {
+describe('GET /api/v1/pipeline/events', () => {
   it('returns text/event-stream content type', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/pipeline/events')
+    const res = await authedRequest(app, '/api/v1/pipeline/events')
     expect(res.headers.get('content-type')).toContain('text/event-stream')
   })
 })
 
-describe('POST /api/pipeline/quick-discover', () => {
+describe('POST /api/v1/pipeline/quick-discover', () => {
   it('passes the resolved response locale into AI recommendations', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])
     const app = createApp(
@@ -382,7 +382,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/v1/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -466,7 +466,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/v1/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -550,7 +550,7 @@ describe('POST /api/pipeline/quick-discover', () => {
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
 
-    const res = await authedRequest(app, '/api/pipeline/quick-discover', {
+    const res = await authedRequest(app, '/api/v1/pipeline/quick-discover', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',

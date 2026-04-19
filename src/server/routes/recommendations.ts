@@ -231,7 +231,7 @@ async function buildAddOptions(
 export function recommendationRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
+  router.get('/api/v1/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
     const userId = c.get('userId')
     const query = c.req.valid('query')
     const filters = {
@@ -247,7 +247,7 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json(result)
   })
 
-  router.get('/api/recommendations/feedback-summary', async (c) => {
+  router.get('/api/v1/recommendations/feedback-summary', async (c) => {
     const history = await deps.getFeedbackHistory()
     const summary = [...history.entries()]
       .map(([genre, { approved, total }]) => ({
@@ -264,7 +264,7 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json({ summary })
   })
 
-  router.get('/api/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
+  router.get('/api/v1/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
     const rec = await deps.getRecommendation(id)
     if (!rec)
@@ -292,7 +292,7 @@ export function recommendationRoutes(deps: AppDependencies) {
   })
 
   router.patch(
-    '/api/recommendations/:id',
+    '/api/v1/recommendations/:id',
     zParam(recommendationIdParamSchema),
     zJson(updateRecommendationSchema),
     async (c) => {
@@ -460,7 +460,7 @@ export function recommendationRoutes(deps: AppDependencies) {
     },
   )
 
-  router.post('/api/recommendations/bulk', zJson(bulkRecommendationSchema), async (c) => {
+  router.post('/api/v1/recommendations/bulk', zJson(bulkRecommendationSchema), async (c) => {
     const {
       ids,
       action,

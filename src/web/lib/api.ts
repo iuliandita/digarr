@@ -28,7 +28,7 @@ export type DiscoveryRunResponse = {
   jobId?: number
 }
 
-const BASE = '/api'
+const BASE = '/api/v1'
 
 const AUTH_TOKEN_KEY = 'digarr-auth-token'
 

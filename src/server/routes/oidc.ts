@@ -25,7 +25,7 @@ type OidcRouteDeps = {
 function buildRedirectUri(): string | null {
   // Require ALLOWED_ORIGIN for OIDC to prevent Host header spoofing (CWE-601)
   if (!envConfig.allowedOrigin) return null
-  return `${envConfig.allowedOrigin}/api/auth/oidc/callback`
+  return `${envConfig.allowedOrigin}/api/v1/auth/oidc/callback`
 }
 
 const USERNAME_MAX_LENGTH = 50
@@ -65,7 +65,7 @@ export function maybeAutoLink(
 export function oidcRoutes(deps: OidcRouteDeps) {
   const router = new Hono()
 
-  router.get('/api/auth/oidc/login', async (c) => {
+  router.get('/api/v1/auth/oidc/login', async (c) => {
     const oidcService = await deps.getOidcService()
     if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
     const redirectUri = buildRedirectUri()
@@ -75,7 +75,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
     return c.redirect(url)
   })
 
-  router.get('/api/auth/oidc/callback', async (c) => {
+  router.get('/api/v1/auth/oidc/callback', async (c) => {
     try {
       const oidcService = await deps.getOidcService()
       if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)

@@ -24,17 +24,17 @@ type JobRouteDeps = Pick<AppDependencies, 'getUserById'> & {
 export function jobRoutes(deps: JobRouteDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.use('/api/jobs/*', adminGuard(deps.getUserById))
-  router.use('/api/jobs', adminGuard(deps.getUserById))
+  router.use('/api/v1/jobs/*', adminGuard(deps.getUserById))
+  router.use('/api/v1/jobs', adminGuard(deps.getUserById))
 
   // Health summary - must be before /:id to avoid matching 'health' as an id
-  router.get('/api/jobs/health', async (c) => {
+  router.get('/api/v1/jobs/health', async (c) => {
     const health = await deps.jobQueries.getJobHealth(deps.scheduler.nextRun)
     return c.json(health)
   })
 
   // Single job detail
-  router.get('/api/jobs/:id', zParam(jobIdParamSchema), async (c) => {
+  router.get('/api/v1/jobs/:id', zParam(jobIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
     const job = await deps.jobQueries.getJobById(id)
     if (!job) return c.json({ error: 'Job not found' }, 404)
@@ -42,7 +42,7 @@ export function jobRoutes(deps: JobRouteDeps) {
   })
 
   // Paginated job list
-  router.get('/api/jobs', zQuery(listJobsQuerySchema), async (c) => {
+  router.get('/api/v1/jobs', zQuery(listJobsQuerySchema), async (c) => {
     const { type, status, limit: rawLimit, offset: rawOffset } = c.req.valid('query')
     const limit = rawLimit ?? 50
     const offset = rawOffset ?? 0

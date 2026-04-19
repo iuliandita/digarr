@@ -67,7 +67,7 @@ export function PipelineProgress({
     queryKey: ['pipelineStatus'],
     queryFn: getPipelineStatus,
   })
-  const { data: sseData } = useSSE('/api/pipeline/events')
+  const { data: sseData } = useSSE('/api/v1/pipeline/events')
   const completeFired = useRef(false)
 
   // Elapsed timer

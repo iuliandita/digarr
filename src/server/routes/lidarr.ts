@@ -24,7 +24,7 @@ export function lidarrRoutes(deps: AppDependencies) {
 
   router.onError((err, c) => c.json({ error: errMsg(err) }, 500))
 
-  router.get('/api/lidarr/stats', async (c) => {
+  router.get('/api/v1/lidarr/stats', async (c) => {
     const client = await getClient()
     const artists = await client.getArtists()
     return c.json({
@@ -33,23 +33,23 @@ export function lidarrRoutes(deps: AppDependencies) {
     })
   })
 
-  router.get('/api/lidarr/metadataprofiles', async (c) => {
+  router.get('/api/v1/lidarr/metadataprofiles', async (c) => {
     const client = await getClient()
     return c.json(await client.getMetadataProfiles())
   })
 
-  router.get('/api/lidarr/profiles', async (c) => {
+  router.get('/api/v1/lidarr/profiles', async (c) => {
     const client = await getClient()
     return c.json(await client.getQualityProfiles())
   })
 
-  router.get('/api/lidarr/rootfolders', async (c) => {
+  router.get('/api/v1/lidarr/rootfolders', async (c) => {
     const client = await getClient()
     return c.json(await client.getRootFolders())
   })
 
   router.post(
-    '/api/lidarr/add',
+    '/api/v1/lidarr/add',
     adminGuard(deps.getUserById),
     zJson(lidarrAddSchema),
     async (c) => {

@@ -18,7 +18,7 @@ export type MoodDeps = {
 export function moodRoutes(deps: MoodDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.post('/api/mood/discover', zJson(moodDiscoverSchema), async (c) => {
+  router.post('/api/v1/mood/discover', zJson(moodDiscoverSchema), async (c) => {
     const { query } = c.req.valid('json')
     const trimmedQuery = query.trim()
 

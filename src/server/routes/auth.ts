@@ -66,7 +66,7 @@ export function authRoutes(deps: AppDependencies) {
     )
 
   // Register a new user. First user becomes admin.
-  router.post('/api/auth/register', zJson(registerSchema), async (c) => {
+  router.post('/api/v1/auth/register', zJson(registerSchema), async (c) => {
     // Registration closed by default after first user. Set DIGARR_DISABLE_REGISTRATION=false to open.
     const userCount = await deps.getUserCount()
     if (userCount > 0 && envConfig.disableRegistration) {
@@ -134,7 +134,7 @@ export function authRoutes(deps: AppDependencies) {
   // Keeps manual validation so the "credentials required" error stays
   // i18n'd via the request-locale messages bundle - login is the most
   // user-visible error surface and the existing locales cover it.
-  router.post('/api/auth/login', async (c) => {
+  router.post('/api/v1/auth/login', async (c) => {
     const messages = getRequestMessages(c)
     const body = (await c.req.json().catch(() => null)) as {
       username?: unknown
@@ -173,7 +173,7 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Logout (invalidate session token)
-  router.post('/api/auth/logout', async (c) => {
+  router.post('/api/v1/auth/logout', async (c) => {
     const header = c.req.header('Authorization')
     if (header?.startsWith('Bearer ')) {
       await deleteSession(header.slice(7))
@@ -182,7 +182,7 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Get current user from session token
-  router.get('/api/auth/me', async (c) => {
+  router.get('/api/v1/auth/me', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return problem(
@@ -202,7 +202,7 @@ export function authRoutes(deps: AppDependencies) {
     return c.json(user)
   })
 
-  router.get('/api/auth/validate', (c) => {
+  router.get('/api/v1/auth/validate', (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return problem(
@@ -218,7 +218,7 @@ export function authRoutes(deps: AppDependencies) {
     return c.body(null, 204)
   })
 
-  router.patch('/api/auth/me/locale', zJson(updateLocaleSchema), async (c) => {
+  router.patch('/api/v1/auth/me/locale', zJson(updateLocaleSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
 
@@ -238,7 +238,7 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Change password for the current session user (requires session auth, not legacy token)
-  router.post('/api/auth/change-password', zJson(changePasswordSchema), async (c) => {
+  router.post('/api/v1/auth/change-password', zJson(changePasswordSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
 
@@ -275,7 +275,7 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Get the authenticated user's merged preferences
-  router.get('/api/auth/me/preferences', async (c) => {
+  router.get('/api/v1/auth/me/preferences', async (c) => {
     const userId = c.get('userId')
     if (!userId)
       return problem(
@@ -302,7 +302,7 @@ export function authRoutes(deps: AppDependencies) {
   })
 
   // Update the authenticated user's preferences (partial merge)
-  router.patch('/api/auth/me/preferences', zJson(updatePreferencesSchema), async (c) => {
+  router.patch('/api/v1/auth/me/preferences', zJson(updatePreferencesSchema), async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
     const body = c.req.valid('json')

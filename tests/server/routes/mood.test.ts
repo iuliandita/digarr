@@ -30,13 +30,13 @@ function makeDeps(overrides: Partial<MoodDeps> = {}): MoodDeps {
   }
 }
 
-describe('POST /api/mood/discover', () => {
+describe('POST /api/v1/mood/discover', () => {
   it('returns AI recommendations for mood query', async () => {
     const deps = makeDeps()
     const app = new Hono()
     app.route('/', moodRoutes(deps))
 
-    const res = await app.request('/api/mood/discover', {
+    const res = await app.request('/api/v1/mood/discover', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: 'dark ambient with field recordings' }),
@@ -51,7 +51,7 @@ describe('POST /api/mood/discover', () => {
     const app = new Hono()
     app.route('/', moodRoutes(makeDeps()))
 
-    const res = await app.request('/api/mood/discover', {
+    const res = await app.request('/api/v1/mood/discover', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: '' }),
@@ -70,7 +70,7 @@ describe('POST /api/mood/discover', () => {
       ),
     )
 
-    const res = await app.request('/api/mood/discover', {
+    const res = await app.request('/api/v1/mood/discover', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: 'chill vibes' }),
@@ -103,7 +103,7 @@ describe('POST /api/mood/discover', () => {
       ),
     )
 
-    await app.request('/api/mood/discover', {
+    await app.request('/api/v1/mood/discover', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ describe('POST /api/mood/discover', () => {
       ),
     )
 
-    await app.request('/api/mood/discover', {
+    await app.request('/api/v1/mood/discover', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

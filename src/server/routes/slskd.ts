@@ -11,10 +11,10 @@ type SlskdRouteDeps = Pick<AppDependencies, 'getUserById'> & {
 export function slskdRoutes(deps: SlskdRouteDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.use('/api/slskd/*', adminGuard(deps.getUserById))
-  router.use('/api/slskd/sync', adminGuard(deps.getUserById))
+  router.use('/api/v1/slskd/*', adminGuard(deps.getUserById))
+  router.use('/api/v1/slskd/sync', adminGuard(deps.getUserById))
 
-  router.get('/api/slskd/jobs', async (c) => {
+  router.get('/api/v1/slskd/jobs', async (c) => {
     const rawLimit = c.req.query('limit')
     const parsedLimit = rawLimit == null ? null : Number(rawLimit)
     const limit =
@@ -35,7 +35,7 @@ export function slskdRoutes(deps: SlskdRouteDeps) {
     })
   })
 
-  router.post('/api/slskd/sync', async (c) => {
+  router.post('/api/v1/slskd/sync', async (c) => {
     try {
       void deps.slskdOrchestrator.triggerSync().catch((error) => {
         console.error('[slskd] manual sync failed:', error)

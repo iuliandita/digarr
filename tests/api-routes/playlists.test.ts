@@ -50,7 +50,7 @@ describe('API routes: playlists', () => {
       },
     })
 
-    const createRes = await app.request('/api/playlists', {
+    const createRes = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ describe('API routes: playlists', () => {
       },
     })
 
-    const generateRes = await app.request('/api/playlists/1/generate', {
+    const generateRes = await app.request('/api/v1/playlists/1/generate', {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })
@@ -89,7 +89,7 @@ describe('API routes: playlists', () => {
   it('returns 404 for playlist routes when playlistDeps is absent', async () => {
     const { app } = createTestApp({ playlistDeps: undefined })
 
-    const createRes = await app.request('/api/playlists', {
+    const createRes = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ describe('API routes: playlists', () => {
   it('returns playlist list when playlistDeps is absent', async () => {
     const { app } = createTestApp({ playlistDeps: undefined })
 
-    const listRes = await app.request('/api/playlists', {
+    const listRes = await app.request('/api/v1/playlists', {
       headers: { Authorization: 'Bearer tok' },
     })
     // Without playlistDeps the route is not mounted

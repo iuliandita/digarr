@@ -35,7 +35,7 @@ describe('API routes: subscription CRUD', () => {
       },
     })
 
-    const createRes = await app.request('/api/subscriptions', {
+    const createRes = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ describe('API routes: subscription CRUD', () => {
   it('returns 400 for missing required fields', async () => {
     const { app } = createTestApp()
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ describe('API routes: subscription CRUD', () => {
       },
     })
 
-    const listRes = await app.request('/api/subscriptions', {
+    const listRes = await app.request('/api/v1/subscriptions', {
       headers: { Authorization: 'Bearer tok' },
     })
     expect(listRes.status).toBe(200)
@@ -106,7 +106,7 @@ describe('API routes: subscription run', () => {
       runSubscription,
     })
 
-    const runRes = await app.request('/api/subscriptions/1/run', {
+    const runRes = await app.request('/api/v1/subscriptions/1/run', {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })
@@ -126,7 +126,7 @@ describe('API routes: subscription run', () => {
       },
     })
 
-    const runRes = await app.request('/api/subscriptions/999/run', {
+    const runRes = await app.request('/api/v1/subscriptions/999/run', {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })

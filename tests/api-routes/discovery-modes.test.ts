@@ -43,7 +43,7 @@ describe('API routes: discovery modes', () => {
       discoveryModeRegistry: fakeDiscoveryRegistry(),
     })
 
-    const res = await app.request('/api/discovery-modes')
+    const res = await app.request('/api/v1/discovery-modes')
 
     expect(res.status).toBe(401)
   })
@@ -60,7 +60,7 @@ describe('API routes: discovery modes', () => {
       }),
     })
 
-    const res = await app.request('/api/discovery-modes', {
+    const res = await app.request('/api/v1/discovery-modes', {
       headers: { Authorization: 'Bearer test-token' },
     })
 
@@ -81,7 +81,7 @@ describe('API routes: discovery modes', () => {
       }),
     })
 
-    const res = await app.request('/api/discovery-modes', {
+    const res = await app.request('/api/v1/discovery-modes', {
       headers: { Authorization: 'Bearer test-token' },
     })
 
@@ -106,7 +106,7 @@ describe('API routes: discovery modes', () => {
       discoveryModeRegistry: createDefaultDiscoveryModeRegistry(),
     })
 
-    const res = await app.request('/api/discovery-modes', {
+    const res = await app.request('/api/v1/discovery-modes', {
       headers: { Authorization: 'Bearer test-token' },
     })
 
@@ -128,7 +128,7 @@ describe('API routes: discovery modes', () => {
       }),
     })
 
-    const res = await app.request('/api/discovery-modes', {
+    const res = await app.request('/api/v1/discovery-modes', {
       headers: { Authorization: 'Bearer test-token' },
     })
 

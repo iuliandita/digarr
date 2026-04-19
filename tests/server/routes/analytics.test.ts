@@ -143,7 +143,7 @@ async function authedRequest(
   })
 }
 
-describe('GET /api/analytics/overview', () => {
+describe('GET /api/v1/analytics/overview', () => {
   it('returns 200 with expected shape on empty db', async () => {
     const execute = vi
       .fn()
@@ -154,7 +154,7 @@ describe('GET /api/analytics/overview', () => {
         rows: [{ total: 0 }],
       })
     const app = createApp(makeDeps({ db: { execute } as unknown as AppDependencies['db'] }))
-    const res = await authedRequest(app, '/api/analytics/overview')
+    const res = await authedRequest(app, '/api/v1/analytics/overview')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual({
@@ -175,7 +175,7 @@ describe('GET /api/analytics/overview', () => {
         rows: [{ total: 2 }],
       })
     const app = createApp(makeDeps({ db: { execute } as unknown as AppDependencies['db'] }))
-    const res = await authedRequest(app, '/api/analytics/overview')
+    const res = await authedRequest(app, '/api/v1/analytics/overview')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.totalRecs).toBe(10)
@@ -185,10 +185,10 @@ describe('GET /api/analytics/overview', () => {
   })
 })
 
-describe('GET /api/analytics/batches', () => {
+describe('GET /api/v1/analytics/batches', () => {
   it('returns 200 with empty array on empty db', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/analytics/batches')
+    const res = await authedRequest(app, '/api/v1/analytics/batches')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
@@ -210,7 +210,7 @@ describe('GET /api/analytics/batches', () => {
       ],
     })
     const app = createApp(makeDeps({ db: { execute } as unknown as AppDependencies['db'] }))
-    const res = await authedRequest(app, '/api/analytics/batches')
+    const res = await authedRequest(app, '/api/v1/analytics/batches')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(1)
@@ -222,10 +222,10 @@ describe('GET /api/analytics/batches', () => {
   })
 })
 
-describe('GET /api/analytics/genres', () => {
+describe('GET /api/v1/analytics/genres', () => {
   it('returns 200 with empty array on empty db', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/analytics/genres')
+    const res = await authedRequest(app, '/api/v1/analytics/genres')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
@@ -239,7 +239,7 @@ describe('GET /api/analytics/genres', () => {
       ],
     })
     const app = createApp(makeDeps({ db: { execute } as unknown as AppDependencies['db'] }))
-    const res = await authedRequest(app, '/api/analytics/genres')
+    const res = await authedRequest(app, '/api/v1/analytics/genres')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(2)
@@ -250,10 +250,10 @@ describe('GET /api/analytics/genres', () => {
   })
 })
 
-describe('GET /api/analytics/sources', () => {
+describe('GET /api/v1/analytics/sources', () => {
   it('returns 200 with empty array on empty db', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/analytics/sources')
+    const res = await authedRequest(app, '/api/v1/analytics/sources')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
@@ -267,7 +267,7 @@ describe('GET /api/analytics/sources', () => {
       ],
     })
     const app = createApp(makeDeps({ db: { execute } as unknown as AppDependencies['db'] }))
-    const res = await authedRequest(app, '/api/analytics/sources')
+    const res = await authedRequest(app, '/api/v1/analytics/sources')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(2)

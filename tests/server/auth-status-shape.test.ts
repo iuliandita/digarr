@@ -139,10 +139,10 @@ afterEach(async () => {
   await clearAllSessions()
 })
 
-describe('GET /api/auth/status response shape', () => {
+describe('GET /api/v1/auth/status response shape', () => {
   it('never returns a raw session token', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     expect(res.status).toBe(200)
     const body = (await res.json()) as Record<string, unknown>
     expect(body).not.toHaveProperty('token')
@@ -150,14 +150,14 @@ describe('GET /api/auth/status response shape', () => {
 
   it('never returns a proxyAuth field', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body).not.toHaveProperty('proxyAuth')
   })
 
   it('exposes authenticated / hasUsers / required', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body).toHaveProperty('authenticated')
     expect(body).toHaveProperty('hasUsers')
@@ -166,7 +166,7 @@ describe('GET /api/auth/status response shape', () => {
 
   it('authenticated=false and isAdmin=false for anonymous callers', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body.authenticated).toBe(false)
     expect(body.isAdmin).toBe(false)
@@ -175,27 +175,27 @@ describe('GET /api/auth/status response shape', () => {
 
   it('anonymous response does NOT include version (fingerprint protection)', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body).not.toHaveProperty('version')
   })
 
   it('anonymous response does NOT include proxyAuthEnabled (deployment topology)', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body).not.toHaveProperty('proxyAuthEnabled')
   })
 
   it('anonymous response still includes oidcEnabled for login-screen UX', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     const body = (await res.json()) as Record<string, unknown>
     expect(body).toHaveProperty('oidcEnabled')
   })
 })
 
-describe('GET /api/auth/meta', () => {
+describe('GET /api/v1/auth/meta', () => {
   it('returns 401 for unauthenticated callers (non-degenerate state)', async () => {
     // Setup complete, users exist: auth is strictly required, 401 on miss.
     const app = createApp(
@@ -204,7 +204,7 @@ describe('GET /api/auth/meta', () => {
         getUserCount: vi.fn(async () => 1),
       }),
     )
-    const res = await app.request('/api/auth/meta')
+    const res = await app.request('/api/v1/auth/meta')
     expect(res.status).toBe(401)
   })
 
@@ -220,7 +220,7 @@ describe('GET /api/auth/meta', () => {
         getUserCount: vi.fn(async () => 1),
       }),
     )
-    const res = await app.request('/api/auth/meta', {
+    const res = await app.request('/api/v1/auth/meta', {
       headers: { Authorization: `Bearer ${SESSION_TOKEN}` },
     })
     expect(res.status).toBe(200)
@@ -240,7 +240,7 @@ describe('authGuard degenerate state (setup complete + no users)', () => {
       }),
     )
     // /api/auth/me is auth-required (not in PUBLIC_PATHS)
-    const res = await app.request('/api/auth/me')
+    const res = await app.request('/api/v1/auth/me')
     expect(res.status).toBe(503)
     const body = (await res.json()) as Record<string, unknown>
     expect(body).toMatchObject({ error: 're-run setup' })

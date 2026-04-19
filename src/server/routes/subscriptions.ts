@@ -121,7 +121,7 @@ async function resolveDiscoveryModeSourceConfig(
 export function subscriptionRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/subscriptions/adapter-types', (c) => {
+  router.get('/api/v1/subscriptions/adapter-types', (c) => {
     return c.json({
       types: [
         {
@@ -261,7 +261,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     })
   })
 
-  router.get('/api/subscriptions', async (c) => {
+  router.get('/api/v1/subscriptions', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -270,7 +270,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json(subs)
   })
 
-  router.post('/api/subscriptions', zJson(createSubscriptionSchema), async (c) => {
+  router.post('/api/v1/subscriptions', zJson(createSubscriptionSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -315,7 +315,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json(sub, 201)
   })
 
-  router.post('/api/subscriptions/import/spotify-liked-songs', async (c) => {
+  router.post('/api/v1/subscriptions/import/spotify-liked-songs', async (c) => {
     const messages = resolveRequestMessages({
       requestLocale: c.req.header('X-Digarr-Locale'),
       acceptLanguage: c.req.header('Accept-Language'),
@@ -362,7 +362,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     )
   })
 
-  router.post('/api/subscriptions/import/csv', async (c) => {
+  router.post('/api/v1/subscriptions/import/csv', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -417,7 +417,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   })
 
   router.post(
-    '/api/subscriptions/import/spotify-playlist',
+    '/api/v1/subscriptions/import/spotify-playlist',
     zJson(spotifyPlaylistImportSchema),
     async (c) => {
       const userId = c.get('userId')
@@ -472,7 +472,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     },
   )
 
-  router.post('/api/subscriptions/import/deezer-favorites', async (c) => {
+  router.post('/api/v1/subscriptions/import/deezer-favorites', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -519,7 +519,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     )
   })
 
-  router.post('/api/subscriptions/import/deezer-followed', async (c) => {
+  router.post('/api/v1/subscriptions/import/deezer-followed', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -566,7 +566,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     )
   })
 
-  router.get('/api/subscriptions/import/deezer-playlists', async (c) => {
+  router.get('/api/v1/subscriptions/import/deezer-playlists', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -585,7 +585,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   })
 
   router.post(
-    '/api/subscriptions/import/deezer-playlists',
+    '/api/v1/subscriptions/import/deezer-playlists',
     zJson(deezerPlaylistImportSchema),
     async (c) => {
       const userId = c.get('userId')
@@ -639,7 +639,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     },
   )
 
-  router.post('/api/subscriptions/bulk-toggle', zJson(bulkToggleSchema), async (c) => {
+  router.post('/api/v1/subscriptions/bulk-toggle', zJson(bulkToggleSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -664,7 +664,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json({ updated })
   })
 
-  router.get('/api/subscriptions/scheduler', async (c) => {
+  router.get('/api/v1/subscriptions/scheduler', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -673,7 +673,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   })
 
   router.patch(
-    '/api/subscriptions/:id',
+    '/api/v1/subscriptions/:id',
     zParam(subscriptionIdParamSchema),
     zJson(updateSubscriptionSchema),
     async (c) => {
@@ -745,7 +745,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     },
   )
 
-  router.delete('/api/subscriptions/:id', zParam(subscriptionIdParamSchema), async (c) => {
+  router.delete('/api/v1/subscriptions/:id', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -779,7 +779,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json({ deleted: true })
   })
 
-  router.post('/api/subscriptions/:id/run', zParam(subscriptionIdParamSchema), async (c) => {
+  router.post('/api/v1/subscriptions/:id/run', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)
@@ -836,7 +836,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     return c.json({ message: 'Subscription run started' }, 202)
   })
 
-  router.get('/api/subscriptions/:id/runs', async (c) => {
+  router.get('/api/v1/subscriptions/:id/runs', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)

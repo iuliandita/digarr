@@ -216,10 +216,10 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('GET /api/artists/:id/top-tracks', () => {
+describe('GET /api/v1/artists/:id/top-tracks', () => {
   it('returns 404 for unknown artist', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/artists/999/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/999/top-tracks')
     expect(res.status).toBe(404)
     const body = await res.json()
     expect(body).toHaveProperty('error', 'Artist not found')
@@ -247,7 +247,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('tracks')
@@ -273,7 +273,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    await authedRequest(app, '/api/artists/1/top-tracks')
+    await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(mockClient.searchArtists).not.toHaveBeenCalled()
     expect(mockClient.getArtistTopTracks).not.toHaveBeenCalled()
   })
@@ -298,7 +298,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.tracks).toHaveLength(1)
@@ -331,7 +331,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     // Should NOT have called Deezer top tracks (ambiguous name)
@@ -362,7 +362,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('tracks')
@@ -392,7 +392,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.tracks).toHaveLength(2)
@@ -426,7 +426,7 @@ describe('GET /api/artists/:id/top-tracks', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/artists/1/top-tracks')
+    const res = await authedRequest(app, '/api/v1/artists/1/top-tracks')
     expect(res.status).toBe(200)
     const body = await res.json()
     // Should have the fresh Deezer data, not the stale cache

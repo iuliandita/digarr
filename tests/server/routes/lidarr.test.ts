@@ -44,12 +44,12 @@ function createTestApp(opts: { userId?: number; deps?: Partial<RouteDeps> } = {}
   return app
 }
 
-describe('POST /api/lidarr/add', () => {
+describe('POST /api/v1/lidarr/add', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 403 for non-admin user', async () => {
     const app = createTestApp({ userId: 2 })
-    const res = await app.request('/api/lidarr/add', {
+    const res = await app.request('/api/v1/lidarr/add', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ foreignArtistId: 'mbid-1', artistName: 'Test' }),
@@ -59,7 +59,7 @@ describe('POST /api/lidarr/add', () => {
 
   it('returns 403 for unauthenticated caller', async () => {
     const app = createTestApp({})
-    const res = await app.request('/api/lidarr/add', {
+    const res = await app.request('/api/v1/lidarr/add', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ foreignArtistId: 'mbid-1', artistName: 'Test' }),
@@ -69,7 +69,7 @@ describe('POST /api/lidarr/add', () => {
 
   it('returns 400 on malformed body', async () => {
     const app = createTestApp({ userId: 1 })
-    const res = await app.request('/api/lidarr/add', {
+    const res = await app.request('/api/v1/lidarr/add', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({}),
@@ -79,7 +79,7 @@ describe('POST /api/lidarr/add', () => {
 
   it('returns 400 when artistName missing', async () => {
     const app = createTestApp({ userId: 1 })
-    const res = await app.request('/api/lidarr/add', {
+    const res = await app.request('/api/v1/lidarr/add', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ foreignArtistId: 'mbid-1' }),
@@ -89,7 +89,7 @@ describe('POST /api/lidarr/add', () => {
 
   it('accepts admin request with valid body', async () => {
     const app = createTestApp({ userId: 1 })
-    const res = await app.request('/api/lidarr/add', {
+    const res = await app.request('/api/v1/lidarr/add', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ foreignArtistId: 'mbid-1', artistName: 'Test Artist' }),

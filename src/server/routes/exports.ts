@@ -40,7 +40,7 @@ function parseOptionalInteger(value: string | undefined, field: string): number 
 export function exportRoutes(deps: ExportDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/exports/:format', async (c) => {
+  router.get('/api/v1/exports/:format', async (c) => {
     const format = c.req.param('format')
     if (!CONTENT_TYPES[format] || !EXPORTERS[format]) {
       return c.json({ error: `Unsupported format: ${format}. Use json, csv, m3u, or xspf` }, 400)

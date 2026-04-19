@@ -42,9 +42,9 @@ function createTestApp() {
 describe('export routes', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('GET /api/exports/json returns JSON with correct content-type', async () => {
+  it('GET /api/v1/exports/json returns JSON with correct content-type', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/json')
+    const res = await app.request('/api/v1/exports/json')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('application/json')
     expect(res.headers.get('content-disposition')).toContain('attachment')
@@ -52,27 +52,27 @@ describe('export routes', () => {
     expect(body).toHaveLength(1)
   })
 
-  it('GET /api/exports/csv returns CSV with correct content-type', async () => {
+  it('GET /api/v1/exports/csv returns CSV with correct content-type', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/csv')
+    const res = await app.request('/api/v1/exports/csv')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('text/csv')
     const text = await res.text()
     expect(text).toContain('artist,mbid')
   })
 
-  it('GET /api/exports/m3u returns M3U with correct content-type', async () => {
+  it('GET /api/v1/exports/m3u returns M3U with correct content-type', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/m3u')
+    const res = await app.request('/api/v1/exports/m3u')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('audio/x-mpegurl')
     const text = await res.text()
     expect(text).toContain('#EXTM3U')
   })
 
-  it('GET /api/exports/xspf returns XSPF with correct content-type', async () => {
+  it('GET /api/v1/exports/xspf returns XSPF with correct content-type', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/xspf')
+    const res = await app.request('/api/v1/exports/xspf')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('application/xspf+xml')
     const text = await res.text()
@@ -82,13 +82,13 @@ describe('export routes', () => {
 
   it('returns 400 for unknown format', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/xml')
+    const res = await app.request('/api/v1/exports/xml')
     expect(res.status).toBe(400)
   })
 
   it('supports status filter query param', async () => {
     const app = createTestApp()
-    await app.request('/api/exports/json?status=approved')
+    await app.request('/api/v1/exports/json?status=approved')
     expect(mockDeps.listRecommendations).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'approved' }),
     )
@@ -96,7 +96,7 @@ describe('export routes', () => {
 
   it('supports batchId filter query param', async () => {
     const app = createTestApp()
-    await app.request('/api/exports/json?batchId=5')
+    await app.request('/api/v1/exports/json?batchId=5')
     expect(mockDeps.listRecommendations).toHaveBeenCalledWith(
       expect.objectContaining({ batchId: 5 }),
     )
@@ -104,7 +104,7 @@ describe('export routes', () => {
 
   it('returns 400 for an invalid batchId filter', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/exports/json?batchId=not-a-number')
+    const res = await app.request('/api/v1/exports/json?batchId=not-a-number')
 
     expect(res.status).toBe(400)
     expect(mockDeps.listRecommendations).not.toHaveBeenCalled()

@@ -95,29 +95,29 @@ afterEach(async () => {
   await clearAllSessions()
 })
 
-describe('GET /api/auth/oidc/login', () => {
+describe('GET /api/v1/auth/oidc/login', () => {
   it('redirects to OIDC provider (302)', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/login')
+    const res = await app.request('/api/v1/auth/oidc/login')
 
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe(
       'https://idp.example.com/authorize?state=abc&code_challenge=xyz',
     )
     expect(deps.mockOidcService.getAuthorizationUrl).toHaveBeenCalledWith(
-      'http://localhost:3000/api/auth/oidc/callback',
+      'http://localhost:3000/api/v1/auth/oidc/callback',
     )
   })
 })
 
-describe('GET /api/auth/oidc/callback', () => {
+describe('GET /api/v1/auth/oidc/callback', () => {
   it('creates a new user and redirects with token', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     const location = res.headers.get('Location')
@@ -143,7 +143,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oidc_token=mock-session-token-123')
@@ -161,7 +161,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     expect(deps.updateUser).toHaveBeenCalledWith(10, {
@@ -180,7 +180,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     expect(deps.updateUser).not.toHaveBeenCalled()
@@ -203,7 +203,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'malloryscriptalert1script' }),
@@ -231,7 +231,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     expect(deps.updateUser).not.toHaveBeenCalled()
@@ -244,7 +244,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
     expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: false }))
@@ -263,7 +263,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'bob' }))
   })
@@ -279,7 +279,7 @@ describe('GET /api/auth/oidc/callback', () => {
     })
     const app = createTestApp(deps)
 
-    await app.request('/api/auth/oidc/callback?state=abc&code=auth-code-123')
+    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'oidc-abcdefgh' }),
@@ -293,7 +293,7 @@ describe('GET /api/auth/oidc/callback', () => {
     )
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=bad&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=bad&code=auth-code-123')
 
     expect(res.status).toBe(302)
     const location = res.headers.get('Location')
@@ -309,7 +309,7 @@ describe('GET /api/auth/oidc/callback', () => {
     deps.mockOidcService.handleCallback.mockRejectedValue('string-error')
     const app = createTestApp(deps)
 
-    const res = await app.request('/api/auth/oidc/callback?state=bad&code=auth-code-123')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=bad&code=auth-code-123')
 
     expect(res.status).toBe(302)
     const location = res.headers.get('Location')

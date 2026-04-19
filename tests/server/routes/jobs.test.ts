@@ -47,7 +47,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('GET /api/jobs', () => {
+describe('GET /api/v1/jobs', () => {
   it('returns paginated job list', async () => {
     const deps = makeMockDeps()
     deps.jobQueries.listJobs.mockResolvedValue({
@@ -55,7 +55,7 @@ describe('GET /api/jobs', () => {
       total: 1,
     })
     const app = createApp(deps)
-    const res = await app.request('/api/jobs')
+    const res = await app.request('/api/v1/jobs')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.items).toHaveLength(1)
@@ -65,7 +65,7 @@ describe('GET /api/jobs', () => {
   it('passes filter params to listJobs', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    await app.request('/api/jobs?type=pipeline&status=failed&limit=10&offset=5')
+    await app.request('/api/v1/jobs?type=pipeline&status=failed&limit=10&offset=5')
     expect(deps.jobQueries.listJobs).toHaveBeenCalledWith({
       type: 'pipeline',
       status: 'failed',
@@ -77,7 +77,7 @@ describe('GET /api/jobs', () => {
   it('rejects limit above 100', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs?limit=999')
+    const res = await app.request('/api/v1/jobs?limit=999')
     expect(res.status).toBe(400)
     expect(deps.jobQueries.listJobs).not.toHaveBeenCalled()
   })
@@ -85,7 +85,7 @@ describe('GET /api/jobs', () => {
   it('rejects negative limit / offset', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs?limit=-10&offset=-5')
+    const res = await app.request('/api/v1/jobs?limit=-10&offset=-5')
     expect(res.status).toBe(400)
     expect(deps.jobQueries.listJobs).not.toHaveBeenCalled()
   })
@@ -93,7 +93,7 @@ describe('GET /api/jobs', () => {
   it('accepts library_sync as a valid job type filter', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    await app.request('/api/jobs?type=library_sync')
+    await app.request('/api/v1/jobs?type=library_sync')
     expect(deps.jobQueries.listJobs).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'library_sync' }),
     )
@@ -102,14 +102,14 @@ describe('GET /api/jobs', () => {
   it('returns 400 for an invalid type filter', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs?type=bogus')
+    const res = await app.request('/api/v1/jobs?type=bogus')
     expect(res.status).toBe(400)
   })
 
   it('returns 400 for an invalid status filter', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs?status=bogus')
+    const res = await app.request('/api/v1/jobs?status=bogus')
     expect(res.status).toBe(400)
   })
 
@@ -118,16 +118,16 @@ describe('GET /api/jobs', () => {
       getUserById: vi.fn().mockResolvedValue({ id: 2, isAdmin: false }),
     })
     const app = createApp(deps)
-    const res = await app.request('/api/jobs')
+    const res = await app.request('/api/v1/jobs')
     expect(res.status).toBe(403)
   })
 })
 
-describe('GET /api/jobs/health', () => {
+describe('GET /api/v1/jobs/health', () => {
   it('returns health summary', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs/health')
+    const res = await app.request('/api/v1/jobs/health')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.pipeline).toBeDefined()
@@ -138,16 +138,16 @@ describe('GET /api/jobs/health', () => {
     const nextRun = new Date('2026-04-06T00:00:00Z')
     const deps = makeMockDeps({ scheduler: { nextRun } })
     const app = createApp(deps)
-    await app.request('/api/jobs/health')
+    await app.request('/api/v1/jobs/health')
     expect(deps.jobQueries.getJobHealth).toHaveBeenCalledWith(nextRun)
   })
 })
 
-describe('GET /api/jobs/:id', () => {
+describe('GET /api/v1/jobs/:id', () => {
   it('returns 404 for unknown job', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs/999')
+    const res = await app.request('/api/v1/jobs/999')
     expect(res.status).toBe(404)
   })
 
@@ -155,7 +155,7 @@ describe('GET /api/jobs/:id', () => {
     const deps = makeMockDeps()
     deps.jobQueries.getJobById.mockResolvedValue({ id: 1, type: 'pipeline', status: 'completed' })
     const app = createApp(deps)
-    const res = await app.request('/api/jobs/1')
+    const res = await app.request('/api/v1/jobs/1')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.id).toBe(1)
@@ -164,7 +164,7 @@ describe('GET /api/jobs/:id', () => {
   it('returns 400 for non-numeric id', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)
-    const res = await app.request('/api/jobs/abc')
+    const res = await app.request('/api/v1/jobs/abc')
     expect(res.status).toBe(400)
   })
 })

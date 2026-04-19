@@ -14,13 +14,13 @@ export type SearchDeps = {
 export function searchRoutes(deps: SearchDeps) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/search/sources', async (c) => {
+  router.get('/api/v1/search/sources', async (c) => {
     const userId = c.get('userId')
     const sources = await deps.listSources(userId)
     return c.json({ sources })
   })
 
-  router.get('/api/search', async (c) => {
+  router.get('/api/v1/search', async (c) => {
     const query = c.req.query('q')
     if (!query || query.trim() === '') {
       return c.json({ error: 'q parameter is required' }, 400)

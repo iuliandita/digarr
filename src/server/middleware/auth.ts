@@ -18,25 +18,25 @@ function safeCompare(a: string, b: string): boolean {
 // Paths that never require authentication
 const PUBLIC_PATHS = new Set([
   '/health',
-  '/api/setup/status',
-  '/api/setup/complete',
-  '/api/auth/status',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/oidc/login',
-  '/api/auth/oidc/callback',
-  '/api/docs',
-  '/api/docs/openapi.json',
+  '/api/v1/setup/status',
+  '/api/v1/setup/complete',
+  '/api/v1/auth/status',
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/v1/auth/oidc/login',
+  '/api/v1/auth/oidc/callback',
+  '/api/v1/docs',
+  '/api/v1/docs/openapi.json',
 ])
 
 const OPTIONAL_AUTH_PATHS = new Set([
-  '/api/setup/status',
-  '/api/setup/complete',
-  '/api/auth/status',
+  '/api/v1/setup/status',
+  '/api/v1/setup/complete',
+  '/api/v1/auth/status',
 ])
 
 // Only SSE/audio flows are allowed to use query-param auth tokens.
-const QUERY_TOKEN_PATHS = new Set(['/api/pipeline/events', '/api/preview/audio'])
+const QUERY_TOKEN_PATHS = new Set(['/api/v1/pipeline/events', '/api/v1/preview/audio'])
 
 export function authGuard(options: {
   hasUsers: () => Promise<boolean>
@@ -44,9 +44,9 @@ export function authGuard(options: {
 }) {
   return createMiddleware<HonoEnv>(async (c, next) => {
     const publicPath =
-      !c.req.path.startsWith('/api/') ||
+      !c.req.path.startsWith('/api/v1/') ||
       PUBLIC_PATHS.has(c.req.path) ||
-      /^\/api\/auth\/oauth\/[^/]+\/callback$/.test(c.req.path)
+      /^\/api\/v1\/auth\/oauth\/[^/]+\/callback$/.test(c.req.path)
 
     // Skip auth for non-API paths (static assets, SPA routes), public API paths, and OAuth callbacks
     // Only the callback path is public (browser redirect from provider, no auth header).

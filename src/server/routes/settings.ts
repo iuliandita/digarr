@@ -145,7 +145,7 @@ async function buildSettingsResponse(
 export function settingsRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/settings', async (c) => {
+  router.get('/api/v1/settings', async (c) => {
     const userId = c.get('userId')
     const isAdmin = await resolveAdmin(
       userId,
@@ -195,7 +195,7 @@ export function settingsRoutes(deps: AppDependencies) {
 
   const ALL_MUTABLE_FIELDS = new Set([...GLOBAL_MUTABLE_FIELDS, ...USER_CONNECTION_FIELDS])
 
-  router.patch('/api/settings', zJson(updateSettingsSchema), async (c) => {
+  router.patch('/api/v1/settings', zJson(updateSettingsSchema), async (c) => {
     const body = c.req.valid('json')
     const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
@@ -286,7 +286,7 @@ export function settingsRoutes(deps: AppDependencies) {
     return c.json(maskSecrets(response))
   })
 
-  router.post('/api/settings/test/:service', async (c) => {
+  router.post('/api/v1/settings/test/:service', async (c) => {
     const messages = resolveRequestMessages({
       requestLocale: c.req.header('X-Digarr-Locale'),
       acceptLanguage: c.req.header('Accept-Language'),
@@ -462,7 +462,7 @@ export function settingsRoutes(deps: AppDependencies) {
   })
 
   // Test webhook by sending a test payload to the configured URL
-  router.post('/api/settings/test-webhook', async (c) => {
+  router.post('/api/v1/settings/test-webhook', async (c) => {
     const userId = c.get('userId')
     if (
       !(await resolveAdmin(

@@ -48,7 +48,7 @@ beforeEach(async () => {
 describe('validation: shared error shape', () => {
   it('returns error summary + code + details for a validation failure', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/users', {
+    const res = await app.request('/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ username: 'a', password: 'short' }),
@@ -69,7 +69,7 @@ describe('validation: shared error shape', () => {
 describe('validation: auth.register', () => {
   it('rejects missing username', async () => {
     const { app } = await authedApp()
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: 'password1234' }),
@@ -82,7 +82,7 @@ describe('validation: auth.register', () => {
 
   it('rejects password shorter than 12 characters', async () => {
     const { app } = await authedApp()
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'alice', password: 'elevenchars' }),
@@ -95,7 +95,7 @@ describe('validation: auth.register', () => {
 
   it('rejects username with wrong type', async () => {
     const { app } = await authedApp()
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 42, password: 'password1234' }),
@@ -107,7 +107,7 @@ describe('validation: auth.register', () => {
 describe('validation: users', () => {
   it('rejects POST /api/users with non-boolean isAdmin', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/users', {
+    const res = await app.request('/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -123,7 +123,7 @@ describe('validation: users', () => {
 
   it('rejects PATCH /api/users/:id with unknown field', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/users/2', {
+    const res = await app.request('/api/v1/users/2', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ isAdmin: true, passwordHash: 'injected' }),
@@ -133,7 +133,7 @@ describe('validation: users', () => {
 
   it('rejects PATCH /api/users/:id with non-numeric id param', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/users/not-a-number', {
+    const res = await app.request('/api/v1/users/not-a-number', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ isAdmin: true }),
@@ -145,7 +145,7 @@ describe('validation: users', () => {
 describe('validation: targets', () => {
   it('rejects POST /api/targets with invalid target type', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ type: 'made-up-type', name: 'x', config: {} }),
@@ -157,7 +157,7 @@ describe('validation: targets', () => {
 
   it('rejects POST /api/targets with non-http URL in config', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -171,7 +171,7 @@ describe('validation: targets', () => {
 
   it('rejects POST /api/targets with empty name', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ type: 'lidarr', name: '', config: {} }),
@@ -183,7 +183,7 @@ describe('validation: targets', () => {
 describe('validation: settings PATCH', () => {
   it('rejects librarySyncIntervalHours out of range', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ librarySyncIntervalHours: 99 }),
@@ -195,7 +195,7 @@ describe('validation: settings PATCH', () => {
 
   it('rejects skipTlsVerify with wrong type', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ skipTlsVerify: 'true' }),
@@ -205,7 +205,7 @@ describe('validation: settings PATCH', () => {
 
   it('rejects scoringWeights.consensus out of [0, 1]', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -219,7 +219,7 @@ describe('validation: settings PATCH', () => {
 describe('validation: subscriptions', () => {
   it('rejects POST /api/subscriptions with missing cron', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -235,7 +235,7 @@ describe('validation: subscriptions', () => {
 
   it('rejects POST /api/subscriptions with invalid cron', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -251,7 +251,7 @@ describe('validation: subscriptions', () => {
 
   it('rejects deezer-playlists import with empty playlistIds array', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/subscriptions/import/deezer-playlists', {
+    const res = await app.request('/api/v1/subscriptions/import/deezer-playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ playlistIds: [] }),
@@ -261,7 +261,7 @@ describe('validation: subscriptions', () => {
 
   it('rejects deezer-playlists import with >100 playlistIds (array size cap)', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/subscriptions/import/deezer-playlists', {
+    const res = await app.request('/api/v1/subscriptions/import/deezer-playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -273,7 +273,7 @@ describe('validation: subscriptions', () => {
 
   it('rejects bulk-toggle without enabled field', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/subscriptions/bulk-toggle', {
+    const res = await app.request('/api/v1/subscriptions/bulk-toggle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({}),
@@ -285,7 +285,7 @@ describe('validation: subscriptions', () => {
 describe('validation: recommendations', () => {
   it('rejects PATCH with invalid status enum', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/recommendations/1', {
+    const res = await app.request('/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ status: 'maybe' }),
@@ -295,7 +295,7 @@ describe('validation: recommendations', () => {
 
   it('rejects bulk with >500 ids (array size cap)', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await app.request('/api/v1/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -308,7 +308,7 @@ describe('validation: recommendations', () => {
 
   it('rejects bulk with invalid action', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/recommendations/bulk', {
+    const res = await app.request('/api/v1/recommendations/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ ids: [1, 2], action: 'delete' }),
@@ -318,7 +318,7 @@ describe('validation: recommendations', () => {
 
   it('rejects GET query with invalid sort enum', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/recommendations?sort=random', {
+    const res = await app.request('/api/v1/recommendations?sort=random', {
       headers,
     })
     expect(res.status).toBe(400)
@@ -330,7 +330,7 @@ describe('validation: recommendations', () => {
 describe('validation: oauth initiate', () => {
   it('rejects non-http redirectUri', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/auth/oauth/spotify/initiate', {
+    const res = await app.request('/api/v1/auth/oauth/spotify/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -346,7 +346,7 @@ describe('validation: oauth initiate', () => {
 describe('validation: quick-discover', () => {
   it('rejects empty artistName', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/pipeline/quick-discover', {
+    const res = await app.request('/api/v1/pipeline/quick-discover', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({ artistName: '' }),
@@ -358,7 +358,7 @@ describe('validation: quick-discover', () => {
 describe('validation: admin restore', () => {
   it('rejects POST /api/admin/restore without confirm=true', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/admin/restore', {
+    const res = await app.request('/api/v1/admin/restore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({}),
@@ -370,7 +370,7 @@ describe('validation: admin restore', () => {
 
   it('rejects POST /api/admin/restore with missing data section', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/admin/restore?confirm=true', {
+    const res = await app.request('/api/v1/admin/restore?confirm=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({
@@ -389,7 +389,7 @@ describe('validation: admin restore', () => {
 
   it('rejects POST /api/admin/restore when a table is not an array', async () => {
     const { app, headers } = await authedApp()
-    const res = await app.request('/api/admin/restore?confirm=true', {
+    const res = await app.request('/api/v1/admin/restore?confirm=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify({

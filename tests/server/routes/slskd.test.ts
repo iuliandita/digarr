@@ -171,7 +171,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('POST /api/slskd/sync', () => {
+describe('POST /api/v1/slskd/sync', () => {
   it('returns 202 and triggers a background sync', async () => {
     const slskdOrchestrator = {
       isSyncing: false,
@@ -181,7 +181,7 @@ describe('POST /api/slskd/sync', () => {
     }
     const app = createApp(makeDeps({ slskdOrchestrator }))
 
-    const res = await app.request('/api/slskd/sync', {
+    const res = await app.request('/api/v1/slskd/sync', {
       method: 'POST',
       headers: { Authorization: 'Bearer test-token' },
     })
@@ -207,7 +207,7 @@ describe('POST /api/slskd/sync', () => {
     const app = createApp(makeDeps({ slskdOrchestrator }))
 
     const responsePromise = Promise.resolve(
-      app.request('/api/slskd/sync', {
+      app.request('/api/v1/slskd/sync', {
         method: 'POST',
         headers: { Authorization: 'Bearer test-token' },
       }),
@@ -238,7 +238,7 @@ describe('POST /api/slskd/sync', () => {
       }),
     )
 
-    const res = await app.request('/api/slskd/sync', {
+    const res = await app.request('/api/v1/slskd/sync', {
       method: 'POST',
       headers: { Authorization: 'Bearer test-token' },
     })
@@ -248,7 +248,7 @@ describe('POST /api/slskd/sync', () => {
   })
 })
 
-describe('GET /api/slskd/jobs', () => {
+describe('GET /api/v1/slskd/jobs', () => {
   it('returns sync status and active jobs for admins', async () => {
     const getActiveJobs = vi.fn(async () => [
       {
@@ -267,7 +267,7 @@ describe('GET /api/slskd/jobs', () => {
     }
     const app = createApp(makeDeps({ slskdOrchestrator }))
 
-    const res = await app.request('/api/slskd/jobs?limit=25', {
+    const res = await app.request('/api/v1/slskd/jobs?limit=25', {
       headers: { Authorization: 'Bearer test-token' },
     })
 
@@ -302,7 +302,7 @@ describe('GET /api/slskd/jobs', () => {
       }),
     )
 
-    const res = await app.request('/api/slskd/jobs', {
+    const res = await app.request('/api/v1/slskd/jobs', {
       headers: { Authorization: 'Bearer test-token' },
     })
 

@@ -5,14 +5,14 @@ const E2E_ADMIN_USERNAME = 'setup-e2e'
 const E2E_ADMIN_PASSWORD = 'e2e-password-123'
 
 async function loginOrRegister(request: APIRequestContext): Promise<string | null> {
-  const authStatusRes = await request.get('/api/auth/status')
+  const authStatusRes = await request.get('/api/v1/auth/status')
   if (!authStatusRes.ok()) return null
 
   const authStatus = (await authStatusRes.json()) as { hasUsers?: boolean }
   let token: string | null = null
 
   if (!authStatus.hasUsers) {
-    const registerRes = await request.post('/api/auth/register', {
+    const registerRes = await request.post('/api/v1/auth/register', {
       data: {
         username: E2E_ADMIN_USERNAME,
         password: E2E_ADMIN_PASSWORD,
@@ -25,7 +25,7 @@ async function loginOrRegister(request: APIRequestContext): Promise<string | nul
   }
 
   if (!token) {
-    const loginRes = await request.post('/api/auth/login', {
+    const loginRes = await request.post('/api/v1/auth/login', {
       data: {
         username: E2E_ADMIN_USERNAME,
         password: E2E_ADMIN_PASSWORD,
@@ -46,7 +46,7 @@ export async function ensureAdminToken(
   const token = await loginOrRegister(request)
   if (!token) return null
 
-  const meRes = await request.get('/api/auth/me', {
+  const meRes = await request.get('/api/v1/auth/me', {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!meRes.ok()) return null
@@ -55,7 +55,7 @@ export async function ensureAdminToken(
 
   const preferredLocale = options.preferredLocale ?? 'en'
   const setLocale = async () => {
-    const localeRes = await request.patch('/api/auth/me/locale', {
+    const localeRes = await request.patch('/api/v1/auth/me/locale', {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         preferredLocale,
@@ -68,14 +68,14 @@ export async function ensureAdminToken(
     return (await setLocale()) ? token : null
   }
 
-  const setupStatusRes = await request.get('/api/setup/status', {
+  const setupStatusRes = await request.get('/api/v1/setup/status', {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!setupStatusRes.ok()) return null
   const setupStatus = (await setupStatusRes.json()) as { setupComplete?: boolean }
 
   if (!setupStatus.setupComplete) {
-    const completeRes = await request.post('/api/setup/complete', {
+    const completeRes = await request.post('/api/v1/setup/complete', {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         aiProvider: 'openai',

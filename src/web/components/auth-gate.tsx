@@ -24,7 +24,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function validateToken(token: string): Promise<boolean> {
-      const res = await fetch('/api/auth/validate', {
+      const res = await fetch('/api/v1/auth/validate', {
         headers: { Authorization: `Bearer ${token}` },
       })
       return res.ok
@@ -163,7 +163,7 @@ function LoginForm({
       setError(t('auth.tokenRequired'))
       return
     }
-    const res = await fetch('/api/auth/validate', {
+    const res = await fetch('/api/v1/auth/validate', {
       headers: { Authorization: `Bearer ${token.trim()}` },
     })
     if (res.status === 401) {
@@ -188,7 +188,7 @@ function LoginForm({
           {oidcEnabled && (
             <div className="space-y-3 mb-4">
               <a
-                href="/api/auth/oidc/login"
+                href="/api/v1/auth/oidc/login"
                 className="block w-full text-center px-4 py-2 rounded bg-accent text-accent-fg font-medium hover:bg-accent/90"
               >
                 {t('auth.signInWithSso')}

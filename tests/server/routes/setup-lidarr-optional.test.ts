@@ -34,7 +34,7 @@ describe('Lidarr-optional setup', () => {
 
   it('accepts setup without Lidarr when listening source + AI are provided', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -53,7 +53,7 @@ describe('Lidarr-optional setup', () => {
 
   it('still requires AI provider and model', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -66,7 +66,7 @@ describe('Lidarr-optional setup', () => {
 
   it('accepts setup without listening sources', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -80,7 +80,7 @@ describe('Lidarr-optional setup', () => {
 
   it('rejects partial Lidarr config (url without apiKey)', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -97,7 +97,7 @@ describe('Lidarr-optional setup', () => {
 
   it('creates Lidarr target when Lidarr config provided', async () => {
     const app = createTestApp()
-    await app.request('/api/setup/complete', {
+    await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

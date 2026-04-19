@@ -119,7 +119,7 @@ function createTestApp(deps: AppDependencies, userId = USER_ID) {
   return app
 }
 
-describe('GET /api/listening/recent', () => {
+describe('GET /api/v1/listening/recent', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -146,7 +146,7 @@ describe('GET /api/listening/recent', () => {
     } as unknown as ReturnType<typeof createLastFmClient>)
 
     const app = createTestApp(makeDeps())
-    const res = await app.request('/api/listening/recent')
+    const res = await app.request('/api/v1/listening/recent')
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
@@ -174,7 +174,7 @@ describe('GET /api/listening/recent', () => {
     })
 
     const app = createTestApp(makeDeps())
-    const res = await app.request('/api/listening/recent')
+    const res = await app.request('/api/v1/listening/recent')
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ tracks: [] })
@@ -207,7 +207,7 @@ describe('GET /api/listening/recent', () => {
     } as unknown as ReturnType<typeof createListenBrainzClient>)
 
     const app = createTestApp(makeDeps())
-    const res = await app.request('/api/listening/recent?range=month&limit=1')
+    const res = await app.request('/api/v1/listening/recent?range=month&limit=1')
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({

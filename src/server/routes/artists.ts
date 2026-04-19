@@ -12,7 +12,7 @@ export function artistRoutes(deps: AppDependencies) {
   const deezer = createDeezerClient()
   const mb = createMusicBrainzClient()
 
-  router.get('/api/artists/:id', async (c) => {
+  router.get('/api/v1/artists/:id', async (c) => {
     const id = Number(c.req.param('id'))
     if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
     const artist = await deps.getArtistById(id)
@@ -22,7 +22,7 @@ export function artistRoutes(deps: AppDependencies) {
     return c.json(artist)
   })
 
-  router.get('/api/artists/:id/top-tracks', async (c) => {
+  router.get('/api/v1/artists/:id/top-tracks', async (c) => {
     const id = Number(c.req.param('id'))
     if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
     const artist = await deps.getArtistById(id)
@@ -80,7 +80,7 @@ export function artistRoutes(deps: AppDependencies) {
 
   // Proxy Deezer preview audio to avoid CORS issues in browsers
   router.get(
-    '/api/preview/audio',
+    '/api/v1/preview/audio',
     rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview' }),
     async (c) => {
       const url = c.req.query('url')
@@ -118,7 +118,7 @@ export function artistRoutes(deps: AppDependencies) {
     },
   )
 
-  router.get('/api/albums/:mbid', async (c) => {
+  router.get('/api/v1/albums/:mbid', async (c) => {
     const mbid = c.req.param('mbid')
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mbid)) {
       return c.json({ error: 'Invalid MBID format' }, 400)

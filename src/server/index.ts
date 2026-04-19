@@ -151,10 +151,10 @@ export function createApp(deps: AppDependencies) {
   // authentication on subsequent requests.
   //
   // Deployment-fingerprint fields (version, proxyAuthEnabled) live on
-  // `/api/auth/meta` behind auth so an unauthenticated attacker cannot
+  // `/api/v1/auth/meta` behind auth so an unauthenticated attacker cannot
   // enumerate the build or infer deployment topology. `oidcEnabled` stays
   // here because the login screen needs it to render the SSO button.
-  app.get('/api/auth/status', async (c) => {
+  app.get('/api/v1/auth/status', async (c) => {
     const [userCount, setupComplete] = await Promise.all([
       deps.getUserCount(),
       deps.isSetupComplete(),
@@ -178,7 +178,7 @@ export function createApp(deps: AppDependencies) {
   // fields off the public /api/auth/status surface. Not listed in
   // PUBLIC_PATHS / OPTIONAL_AUTH_PATHS, so authGuard enforces a 401 for
   // unauthenticated callers.
-  app.get('/api/auth/meta', async (c) => {
+  app.get('/api/v1/auth/meta', async (c) => {
     const settings = await deps.getSettings()
     return c.json({
       version: VERSION,
@@ -189,14 +189,14 @@ export function createApp(deps: AppDependencies) {
 
   // OpenAPI 3.1 spec. Intentionally public so integrators can read the
   // contract without credentials. The spec is a skeleton today - see
-  // src/server/helpers/openapi-doc.ts. `/api/docs` returns a tiny
+  // src/server/helpers/openapi-doc.ts. `/api/v1/docs` returns a tiny
   // no-external-JS landing page pointing at the spec; rendering with
   // Scalar/Swagger is deferred to keep the CSP strict.
-  app.get('/api/docs/openapi.json', (c) =>
+  app.get('/api/v1/docs/openapi.json', (c) =>
     c.json(openapiDoc, 200, { 'cache-control': 'public, max-age=60' }),
   )
   app.get(
-    '/api/docs',
+    '/api/v1/docs',
     (_c) =>
       new Response(
         `<!doctype html><html><head><meta charset="utf-8"><title>digarr API</title>
@@ -204,7 +204,7 @@ export function createApp(deps: AppDependencies) {
 </head><body>
 <h1>digarr API</h1>
 <p>The machine-readable OpenAPI 3.1 specification is served at
-<a href="/api/docs/openapi.json"><code>/api/docs/openapi.json</code></a>.</p>
+<a href="/api/v1/docs/openapi.json"><code>/api/v1/docs/openapi.json</code></a>.</p>
 <p>Paste the URL into your favourite viewer (Scalar, Swagger UI, Redoc, Insomnia, Bruno, Postman) to browse it interactively.</p>
 </body></html>`,
         { headers: { 'content-type': 'text/html; charset=utf-8' } },
@@ -224,13 +224,16 @@ export function createApp(deps: AppDependencies) {
     }),
   )
   // Rate limit auth endpoints: 10 attempts per minute for login/register
-  app.use('/api/auth/login', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'auth' }))
-  app.use('/api/auth/register', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'reg' }))
-  app.use('/api/auth/change-password', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'chpw' }))
-  // Rate limit AI-consuming endpoints to prevent API budget exhaustion
-  app.use('/api/mood/discover', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'mood' }))
+  app.use('/api/v1/auth/login', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'auth' }))
+  app.use('/api/v1/auth/register', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'reg' }))
   app.use(
-    '/api/pipeline/quick-discover',
+    '/api/v1/auth/change-password',
+    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'chpw' }),
+  )
+  // Rate limit AI-consuming endpoints to prevent API budget exhaustion
+  app.use('/api/v1/mood/discover', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'mood' }))
+  app.use(
+    '/api/v1/pipeline/quick-discover',
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
   )
   app.route('/', authRoutes(deps))
@@ -241,8 +244,8 @@ export function createApp(deps: AppDependencies) {
   app.route('/', pipelineRoutes(deps))
   app.route('/', recommendationRoutes(deps))
   app.route('/', batchRoutes(deps))
-  app.use('/api/admin/*', adminGuard(deps.getUserById))
-  app.use('/api/analytics/*', adminGuard(deps.getUserById))
+  app.use('/api/v1/admin/*', adminGuard(deps.getUserById))
+  app.use('/api/v1/analytics/*', adminGuard(deps.getUserById))
 
   app.route(
     '/',

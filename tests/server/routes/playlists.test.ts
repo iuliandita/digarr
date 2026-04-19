@@ -126,10 +126,10 @@ beforeEach(async () => {
   } as never)
 })
 
-describe('GET /api/playlists/scheduler', () => {
+describe('GET /api/v1/playlists/scheduler', () => {
   it('returns null nextRun when scheduler is idle', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/scheduler')
+    const res = await app.request('/api/v1/playlists/scheduler')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { nextRun: string | null }
     expect(body.nextRun).toBeNull()
@@ -152,7 +152,7 @@ describe('GET /api/playlists/scheduler', () => {
       }),
       USER_ID,
     )
-    const res = await app.request('/api/playlists/scheduler')
+    const res = await app.request('/api/v1/playlists/scheduler')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { nextRun: string | null }
     expect(body.nextRun).toBe(nextDate.toISOString())
@@ -160,15 +160,15 @@ describe('GET /api/playlists/scheduler', () => {
 
   it('returns 401 when not authenticated', async () => {
     const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/playlists/scheduler')
+    const res = await app.request('/api/v1/playlists/scheduler')
     expect(res.status).toBe(401)
   })
 })
 
-describe('GET /api/playlists', () => {
+describe('GET /api/v1/playlists', () => {
   it('returns playlists for the authenticated user', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists')
+    const res = await app.request('/api/v1/playlists')
     expect(res.status).toBe(200)
     const body = (await res.json()) as unknown[]
     expect(Array.isArray(body)).toBe(true)
@@ -176,16 +176,16 @@ describe('GET /api/playlists', () => {
 
   it('returns 401 when unauthenticated', async () => {
     const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/playlists')
+    const res = await app.request('/api/v1/playlists')
     expect(res.status).toBe(401)
   })
 })
 
-describe('POST /api/playlists', () => {
+describe('POST /api/v1/playlists', () => {
   it('creates a playlist with valid body', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/playlists', {
+    const res = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'My Mix', strategy: 'weekly_digest' }),
@@ -198,7 +198,7 @@ describe('POST /api/playlists', () => {
 
   it('returns 400 when name is missing', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists', {
+    const res = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ strategy: 'weekly_digest' }),
@@ -208,7 +208,7 @@ describe('POST /api/playlists', () => {
 
   it('returns 400 for invalid strategy', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists', {
+    const res = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'My Mix', strategy: 'not_a_strategy' }),
@@ -218,7 +218,7 @@ describe('POST /api/playlists', () => {
 
   it('returns 400 for invalid schedule cron', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists', {
+    const res = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'My Mix', strategy: 'weekly_digest', schedule: 'not a cron' }),
@@ -228,7 +228,7 @@ describe('POST /api/playlists', () => {
 
   it('returns 401 when unauthenticated', async () => {
     const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/playlists', {
+    const res = await app.request('/api/v1/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'X', strategy: 'weekly_digest' }),
@@ -237,10 +237,10 @@ describe('POST /api/playlists', () => {
   })
 })
 
-describe('GET /api/playlists/:id', () => {
+describe('GET /api/v1/playlists/:id', () => {
   it('returns playlist with tracks for owner', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/1')
+    const res = await app.request('/api/v1/playlists/1')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { playlist: unknown; tracks: unknown[] }
     expect(body.playlist).toBeDefined()
@@ -249,21 +249,21 @@ describe('GET /api/playlists/:id', () => {
 
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999) // different user
-    const res = await app.request('/api/playlists/1')
+    const res = await app.request('/api/v1/playlists/1')
     expect(res.status).toBe(404)
   })
 
   it('returns 404 for missing playlist', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/9999')
+    const res = await app.request('/api/v1/playlists/9999')
     expect(res.status).toBe(404)
   })
 })
 
-describe('GET /api/playlists/:id/export/:format', () => {
+describe('GET /api/v1/playlists/:id/export/:format', () => {
   it('exports a playlist as M3U for the owner', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/1/export/m3u')
+    const res = await app.request('/api/v1/playlists/1/export/m3u')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('audio/x-mpegurl')
     expect(res.headers.get('content-disposition')).toContain('weekly-mix.m3u')
@@ -274,7 +274,7 @@ describe('GET /api/playlists/:id/export/:format', () => {
 
   it('exports a playlist as XSPF for the owner', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/1/export/xspf')
+    const res = await app.request('/api/v1/playlists/1/export/xspf')
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('application/xspf+xml')
     const body = await res.text()
@@ -284,22 +284,22 @@ describe('GET /api/playlists/:id/export/:format', () => {
 
   it('returns 400 for unsupported export format', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/1/export/xml')
+    const res = await app.request('/api/v1/playlists/1/export/xml')
     expect(res.status).toBe(400)
   })
 
   it('hides cross-user playlist with 404 export access', async () => {
     const app = createTestApp(makeDeps(), 999)
-    const res = await app.request('/api/playlists/1/export/m3u')
+    const res = await app.request('/api/v1/playlists/1/export/m3u')
     expect(res.status).toBe(404)
   })
 })
 
-describe('PATCH /api/playlists/:id', () => {
+describe('PATCH /api/v1/playlists/:id', () => {
   it('updates allowed fields for owner', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/playlists/1', {
+    const res = await app.request('/api/v1/playlists/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Updated Mix', enabled: false }),
@@ -312,7 +312,7 @@ describe('PATCH /api/playlists/:id', () => {
 
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
-    const res = await app.request('/api/playlists/1', {
+    const res = await app.request('/api/v1/playlists/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'hack' }),
@@ -321,11 +321,11 @@ describe('PATCH /api/playlists/:id', () => {
   })
 })
 
-describe('DELETE /api/playlists/:id', () => {
+describe('DELETE /api/v1/playlists/:id', () => {
   it('deletes playlist for owner', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/playlists/1', { method: 'DELETE' })
+    const res = await app.request('/api/v1/playlists/1', { method: 'DELETE' })
     expect(res.status).toBe(200)
     const body = (await res.json()) as { deleted: boolean }
     expect(body.deleted).toBe(true)
@@ -334,16 +334,16 @@ describe('DELETE /api/playlists/:id', () => {
 
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
-    const res = await app.request('/api/playlists/1', { method: 'DELETE' })
+    const res = await app.request('/api/v1/playlists/1', { method: 'DELETE' })
     expect(res.status).toBe(404)
   })
 })
 
-describe('POST /api/playlists/:id/generate', () => {
+describe('POST /api/v1/playlists/:id/generate', () => {
   it('returns 202 and fires generation for owner', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/playlists/1/generate', { method: 'POST' })
+    const res = await app.request('/api/v1/playlists/1/generate', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = (await res.json()) as { status: string }
     expect(body.status).toBe('generating')
@@ -352,13 +352,13 @@ describe('POST /api/playlists/:id/generate', () => {
 
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999)
-    const res = await app.request('/api/playlists/1/generate', { method: 'POST' })
+    const res = await app.request('/api/v1/playlists/1/generate', { method: 'POST' })
     expect(res.status).toBe(404)
   })
 
   it('returns 404 for missing playlist', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/playlists/9999/generate', { method: 'POST' })
+    const res = await app.request('/api/v1/playlists/9999/generate', { method: 'POST' })
     expect(res.status).toBe(404)
   })
 })

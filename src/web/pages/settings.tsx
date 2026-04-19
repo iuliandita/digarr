@@ -463,7 +463,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       const res = await initiateOAuth('spotify', {
         clientId: spotifyClientId,
         clientSecret: spotifyClientSecret,
-        redirectUri: `${window.location.origin}/api/auth/oauth/spotify/callback`,
+        redirectUri: `${window.location.origin}/api/v1/auth/oauth/spotify/callback`,
       })
       window.location.href = res.authUrl
     } catch {
@@ -1140,7 +1140,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                       const res = await initiateOAuth('deezer', {
                         clientId: '',
                         clientSecret: '',
-                        redirectUri: `${window.location.origin}/api/auth/oauth/deezer/callback`,
+                        redirectUri: `${window.location.origin}/api/v1/auth/oauth/deezer/callback`,
                       })
                       window.location.href = res.authUrl
                     } catch {

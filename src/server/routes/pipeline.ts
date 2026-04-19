@@ -43,7 +43,7 @@ const EMPTY_DISCOVERY_SNAPSHOT = {
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.post('/api/pipeline/run', async (c) => {
+  router.post('/api/v1/pipeline/run', async (c) => {
     if (deps.orchestrator.isRunning) {
       return problem(
         c,
@@ -132,7 +132,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     return c.json({ message: 'Pipeline started' }, 202)
   })
 
-  router.post('/api/discovery-modes/run', zJson(discoveryModeRunSchema), async (c) => {
+  router.post('/api/v1/discovery-modes/run', zJson(discoveryModeRunSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
       return problem(
         c,
@@ -185,7 +185,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     }
   })
 
-  router.get('/api/pipeline/status', async (c) => {
+  router.get('/api/v1/pipeline/status', async (c) => {
     const lastBatch = await deps.getLastBatch()
     return c.json({
       running: deps.orchestrator.isRunning,
@@ -201,7 +201,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     })
   })
 
-  router.get('/api/pipeline/events', (_c) => {
+  router.get('/api/v1/pipeline/events', (_c) => {
     const stream = createPipelineSSEStream(deps.orchestrator)
     return new Response(stream, {
       headers: {
@@ -213,7 +213,7 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   // Quick discover: find similar artists to a specific artist
-  router.post('/api/pipeline/quick-discover', zJson(quickDiscoverSchema), async (c) => {
+  router.post('/api/v1/pipeline/quick-discover', zJson(quickDiscoverSchema), async (c) => {
     if (deps.orchestrator.isRunning) {
       return problem(
         c,
@@ -448,7 +448,7 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   // Re-resolve existing artists to update images/metadata
-  router.post('/api/pipeline/rescan', async (c) => {
+  router.post('/api/v1/pipeline/rescan', async (c) => {
     const settings = await deps.getSettings()
     if (!settings?.lidarrUrl || !settings?.lidarrApiKey) {
       return c.json({ error: 'Lidarr not configured' }, 400)

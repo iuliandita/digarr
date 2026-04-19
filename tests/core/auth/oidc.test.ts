@@ -46,7 +46,7 @@ describe('OidcService', () => {
       )
 
       const result = await service.getAuthorizationUrl(
-        'http://localhost:3000/api/auth/oidc/callback',
+        'http://localhost:3000/api/v1/auth/oidc/callback',
       )
 
       expect(oidcClient.discovery).toHaveBeenCalledWith(
@@ -61,7 +61,7 @@ describe('OidcService', () => {
       expect(oidcClient.buildAuthorizationUrl).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          redirect_uri: 'http://localhost:3000/api/auth/oidc/callback',
+          redirect_uri: 'http://localhost:3000/api/v1/auth/oidc/callback',
           scope: 'openid profile email',
           state: 'mock-state',
           nonce: 'mock-nonce',
@@ -164,12 +164,12 @@ describe('OidcService', () => {
       service['pendingAuths'].set('mock-state', {
         nonce: 'mock-nonce',
         codeVerifier: 'mock-code-verifier',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
       })
 
       const result = await service.handleCallback(
-        new URL('http://localhost:3000/api/auth/oidc/callback?code=auth-code&state=mock-state'),
+        new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
       )
 
       expect(oidcClient.authorizationCodeGrant).toHaveBeenCalledWith(
@@ -209,12 +209,12 @@ describe('OidcService', () => {
       service['pendingAuths'].set('mock-state', {
         nonce: 'mock-nonce',
         codeVerifier: 'mock-code-verifier',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
       })
 
       await service.handleCallback(
-        new URL('http://localhost:3000/api/auth/oidc/callback?code=auth-code&state=mock-state'),
+        new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
       )
 
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
@@ -224,14 +224,14 @@ describe('OidcService', () => {
     it('rejects callback with unknown state', async () => {
       await expect(
         service.handleCallback(
-          new URL('http://localhost:3000/api/auth/oidc/callback?code=x&state=unknown'),
+          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x&state=unknown'),
         ),
       ).rejects.toThrow('Unknown or expired OIDC state')
     })
 
     it('rejects callback without state parameter', async () => {
       await expect(
-        service.handleCallback(new URL('http://localhost:3000/api/auth/oidc/callback?code=x')),
+        service.handleCallback(new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x')),
       ).rejects.toThrow('Missing state parameter')
     })
 
@@ -248,13 +248,13 @@ describe('OidcService', () => {
       service['pendingAuths'].set('mock-state', {
         nonce: 'mock-nonce',
         codeVerifier: 'mock-code-verifier',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
       })
 
       await expect(
         service.handleCallback(
-          new URL('http://localhost:3000/api/auth/oidc/callback?code=auth-code&state=mock-state'),
+          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
         ),
       ).rejects.toThrow('No ID token claims')
     })
@@ -267,13 +267,13 @@ describe('OidcService', () => {
       service['pendingAuths'].set('mock-state', {
         nonce: 'mock-nonce',
         codeVerifier: 'mock-code-verifier',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
       })
 
       await expect(
         service.handleCallback(
-          new URL('http://localhost:3000/api/auth/oidc/callback?code=x&state=mock-state'),
+          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x&state=mock-state'),
         ),
       ).rejects.toThrow('invalid_grant')
     })
@@ -285,14 +285,14 @@ describe('OidcService', () => {
       service['pendingAuths'].set('old-state', {
         nonce: 'n',
         codeVerifier: 'cv',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now() - 20 * 60 * 1000,
       })
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
       service['pendingAuths'].set('fresh-state', {
         nonce: 'n2',
         codeVerifier: 'cv2',
-        redirectUri: 'http://localhost:3000/api/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
       })
 

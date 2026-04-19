@@ -32,7 +32,7 @@ export function targetRoutes(deps: TargetDeps) {
 
   // Returns all targets. Each target includes `owned: true` if it belongs to the caller.
   // Non-owners see masked configs and cannot modify/delete.
-  router.get('/api/targets', async (c) => {
+  router.get('/api/v1/targets', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
     const allTargets = await deps.targetQueries.getAllTargets()
@@ -46,7 +46,7 @@ export function targetRoutes(deps: TargetDeps) {
   })
 
   router.post(
-    '/api/targets',
+    '/api/v1/targets',
     adminGuard(deps.getUserById),
     zJson(createTargetSchema),
     async (c) => {
@@ -65,7 +65,7 @@ export function targetRoutes(deps: TargetDeps) {
   )
 
   router.patch(
-    '/api/targets/:id',
+    '/api/v1/targets/:id',
     adminGuard(deps.getUserById),
     zParam(targetIdParamSchema),
     zJson(updateTargetSchema),
@@ -94,7 +94,7 @@ export function targetRoutes(deps: TargetDeps) {
   )
 
   router.delete(
-    '/api/targets/:id',
+    '/api/v1/targets/:id',
     adminGuard(deps.getUserById),
     zParam(targetIdParamSchema),
     async (c) => {
@@ -120,7 +120,7 @@ export function targetRoutes(deps: TargetDeps) {
     },
   )
 
-  router.post('/api/targets/:id/test', zParam(targetIdParamSchema), async (c) => {
+  router.post('/api/v1/targets/:id/test', zParam(targetIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 

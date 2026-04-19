@@ -63,8 +63,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
   const router = new Hono<HonoEnv>()
   const { db } = deps
 
-  // GET /api/playlists/scheduler - must be registered before :id route
-  router.get('/api/playlists/scheduler', async (c) => {
+  // GET /api/v1/playlists/scheduler - must be registered before :id route
+  router.get('/api/v1/playlists/scheduler', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -91,8 +91,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     })
   })
 
-  // GET /api/playlists
-  router.get('/api/playlists', async (c) => {
+  // GET /api/v1/playlists
+  router.get('/api/v1/playlists', async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -100,8 +100,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     return c.json(rows)
   })
 
-  // POST /api/playlists
-  router.post('/api/playlists', zJson(createPlaylistSchema), async (c) => {
+  // POST /api/v1/playlists
+  router.post('/api/v1/playlists', zJson(createPlaylistSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -121,8 +121,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     return c.json(row, 201)
   })
 
-  // GET /api/playlists/:id
-  router.get('/api/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
+  // GET /api/v1/playlists/:id
+  router.get('/api/v1/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -153,9 +153,9 @@ export function playlistRoutes(deps: PlaylistDeps) {
     return c.json(result)
   })
 
-  // GET /api/playlists/:id/export/:format
+  // GET /api/v1/playlists/:id/export/:format
   router.get(
-    '/api/playlists/:id/export/:format',
+    '/api/v1/playlists/:id/export/:format',
     zParam(playlistExportFormatParamSchema),
     async (c) => {
       const userId = c.get('userId')
@@ -200,9 +200,9 @@ export function playlistRoutes(deps: PlaylistDeps) {
     },
   )
 
-  // PATCH /api/playlists/:id
+  // PATCH /api/v1/playlists/:id
   router.patch(
-    '/api/playlists/:id',
+    '/api/v1/playlists/:id',
     zParam(playlistIdParamSchema),
     zJson(updatePlaylistSchema),
     async (c) => {
@@ -239,8 +239,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     },
   )
 
-  // DELETE /api/playlists/:id
-  router.delete('/api/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
+  // DELETE /api/v1/playlists/:id
+  router.delete('/api/v1/playlists/:id', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -273,8 +273,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     return c.json({ deleted: true })
   })
 
-  // POST /api/playlists/:id/generate
-  router.post('/api/playlists/:id/generate', zParam(playlistIdParamSchema), async (c) => {
+  // POST /api/v1/playlists/:id/generate
+  router.post('/api/v1/playlists/:id/generate', zParam(playlistIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 

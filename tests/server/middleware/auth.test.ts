@@ -146,7 +146,7 @@ describe('auth middleware', () => {
       const app = await createAppWithAuth({
         overrides: { isSetupComplete: async () => false },
       })
-      const res = await app.request('/api/auth/status')
+      const res = await app.request('/api/v1/auth/status')
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.required).toBe(false)
@@ -160,14 +160,14 @@ describe('auth middleware', () => {
         overrides: { isSetupComplete: async () => true, getUserCount: vi.fn(async () => 0) },
       })
 
-      const statusRes = await app.request('/api/auth/status')
+      const statusRes = await app.request('/api/v1/auth/status')
       expect(statusRes.status).toBe(200)
       await expect(statusRes.json()).resolves.toMatchObject({
         required: true,
         hasUsers: false,
       })
 
-      const res = await app.request('/api/settings')
+      const res = await app.request('/api/v1/settings')
       expect(res.status).toBe(503)
       await expect(res.json()).resolves.toMatchObject({
         error: 're-run setup',
@@ -178,7 +178,7 @@ describe('auth middleware', () => {
   describe('when DIGARR_AUTH_TOKEN is set', () => {
     it('reports auth as required', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/auth/status')
+      const res = await app.request('/api/v1/auth/status')
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.required).toBe(true)
@@ -186,7 +186,7 @@ describe('auth middleware', () => {
 
     it('returns 401 for requests without Authorization header', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/settings')
+      const res = await app.request('/api/v1/settings')
       expect(res.status).toBe(401)
       const body = await res.json()
       expect(body.error).toBe('Unauthorized')
@@ -194,7 +194,7 @@ describe('auth middleware', () => {
 
     it('returns 401 for requests with wrong token', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/settings', {
+      const res = await app.request('/api/v1/settings', {
         headers: { Authorization: 'Bearer wrong-token' },
       })
       expect(res.status).toBe(401)
@@ -202,7 +202,7 @@ describe('auth middleware', () => {
 
     it('returns 401 for malformed Authorization header', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/settings', {
+      const res = await app.request('/api/v1/settings', {
         headers: { Authorization: `Basic ${TOKEN}` },
       })
       expect(res.status).toBe(401)
@@ -210,7 +210,7 @@ describe('auth middleware', () => {
 
     it('allows requests with correct Bearer token', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/settings', {
+      const res = await app.request('/api/v1/settings', {
         headers: { Authorization: `Bearer ${TOKEN}` },
       })
       // Should pass auth (may get other errors, but not 401)
@@ -219,19 +219,19 @@ describe('auth middleware', () => {
 
     it('allows SSE requests with correct token as query param', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request(`/api/pipeline/events?token=${TOKEN}`)
+      const res = await app.request(`/api/v1/pipeline/events?token=${TOKEN}`)
       expect(res.status).not.toBe(401)
     })
 
     it('returns 401 for token query params on regular API routes', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request(`/api/settings?token=${TOKEN}`)
+      const res = await app.request(`/api/v1/settings?token=${TOKEN}`)
       expect(res.status).toBe(401)
     })
 
     it('returns 401 for wrong token as query param on SSE routes', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/pipeline/events?token=wrong')
+      const res = await app.request('/api/v1/pipeline/events?token=wrong')
       expect(res.status).toBe(401)
     })
 
@@ -243,13 +243,13 @@ describe('auth middleware', () => {
 
     it('bypasses auth for /api/auth/status', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/auth/status')
+      const res = await app.request('/api/v1/auth/status')
       expect(res.status).toBe(200)
     })
 
     it('returns 401 for length-mismatched tokens (timing-safe)', async () => {
       const app = await createAppWithAuth({ token: TOKEN })
-      const res = await app.request('/api/settings', {
+      const res = await app.request('/api/v1/settings', {
         headers: { Authorization: 'Bearer x' },
       })
       expect(res.status).toBe(401)

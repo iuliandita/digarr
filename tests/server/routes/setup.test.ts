@@ -144,10 +144,10 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   }
 }
 
-describe('GET /api/setup/status', () => {
+describe('GET /api/v1/setup/status', () => {
   it('returns setupComplete: false when setup is not done', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/setup/status')
+    const res = await app.request('/api/v1/setup/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.setupComplete).toBe(false)
@@ -155,14 +155,14 @@ describe('GET /api/setup/status', () => {
 
   it('returns setupComplete: true after setup is complete', async () => {
     const app = createApp(makeDeps({ isSetupComplete: async () => true }))
-    const res = await app.request('/api/setup/status')
+    const res = await app.request('/api/v1/setup/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.setupComplete).toBe(true)
   })
 })
 
-describe('POST /api/setup/complete', () => {
+describe('POST /api/v1/setup/complete', () => {
   const validBody = {
     lidarrUrl: 'http://lidarr:8686',
     lidarrApiKey: 'abc123',
@@ -172,7 +172,7 @@ describe('POST /api/setup/complete', () => {
 
   it('accepts valid config and returns 200', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
@@ -183,7 +183,7 @@ describe('POST /api/setup/complete', () => {
   it('calls completeSetup with the config', async () => {
     const completeSetup = vi.fn(async () => ({ id: 1, setupComplete: true }))
     const app = createApp(makeDeps({ completeSetup }))
-    await app.request('/api/setup/complete', {
+    await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
@@ -194,7 +194,7 @@ describe('POST /api/setup/complete', () => {
   it('rejects missing lidarrUrl with 400', async () => {
     const app = createApp(makeDeps())
     const { lidarrUrl: _, ...body } = validBody
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -205,7 +205,7 @@ describe('POST /api/setup/complete', () => {
   it('rejects missing lidarrApiKey with 400', async () => {
     const app = createApp(makeDeps())
     const { lidarrApiKey: _, ...body } = validBody
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -216,7 +216,7 @@ describe('POST /api/setup/complete', () => {
   it('rejects missing aiProvider with 400', async () => {
     const app = createApp(makeDeps())
     const { aiProvider: _, ...body } = validBody
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -227,7 +227,7 @@ describe('POST /api/setup/complete', () => {
   it('rejects missing aiModel with 400', async () => {
     const app = createApp(makeDeps())
     const { aiModel: _, ...body } = validBody
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -241,7 +241,7 @@ describe('POST /api/setup/complete', () => {
       aiProvider: 'ollama',
       aiModel: 'llama3',
     }
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -259,7 +259,7 @@ describe('POST /api/setup/complete', () => {
       lastfmUsername: 'legacy-lastfm',
       lastfmApiKey: 'legacy-key',
     }
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -275,7 +275,7 @@ describe('POST /api/setup/complete', () => {
 
   it('rejects emby fields when apiKey or userId are missing', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -302,7 +302,7 @@ describe('POST /api/setup/complete', () => {
       },
     })
     const app = createApp(deps)
-    const res = await app.request('/api/setup/complete', {
+    const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

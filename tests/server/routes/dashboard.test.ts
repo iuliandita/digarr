@@ -194,7 +194,7 @@ async function createMountedAppWithLegacyToken(
   return createApp(makeDeps(overrides))
 }
 
-describe('GET /api/dashboard/taste', () => {
+describe('GET /api/v1/dashboard/taste', () => {
   it('returns array of taste genres', async () => {
     const mockResult = [{ genre: 'post-rock', count: 5, percentage: 32 }]
     const deps = makeDeps({
@@ -204,7 +204,7 @@ describe('GET /api/dashboard/taste', () => {
       },
     })
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/dashboard/taste')
+    const res = await app.request('/api/v1/dashboard/taste')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body)).toBe(true)
@@ -216,13 +216,13 @@ describe('GET /api/dashboard/taste', () => {
   it('passes undefined userId when not authenticated', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, undefined)
-    const res = await app.request('/api/dashboard/taste')
+    const res = await app.request('/api/v1/dashboard/taste')
     expect(res.status).toBe(200)
     expect(deps.dashboardQueries.getTopGenresForUser).toHaveBeenCalledWith(undefined)
   })
 })
 
-describe('GET /api/dashboard/activity', () => {
+describe('GET /api/v1/dashboard/activity', () => {
   it('returns array of activity entries', async () => {
     const mockActivity = [
       {
@@ -238,7 +238,7 @@ describe('GET /api/dashboard/activity', () => {
       },
     })
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/dashboard/activity')
+    const res = await app.request('/api/v1/dashboard/activity')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(Array.isArray(body)).toBe(true)
@@ -249,7 +249,7 @@ describe('GET /api/dashboard/activity', () => {
   it('passes limit from query param', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/dashboard/activity?limit=3')
+    const res = await app.request('/api/v1/dashboard/activity?limit=3')
     expect(res.status).toBe(200)
     expect(deps.dashboardQueries.getRecentActivity).toHaveBeenCalledWith(
       USER_ID,
@@ -261,7 +261,7 @@ describe('GET /api/dashboard/activity', () => {
   it('caps limit at 20', async () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
-    const res = await app.request('/api/dashboard/activity?limit=100')
+    const res = await app.request('/api/v1/dashboard/activity?limit=100')
     expect(res.status).toBe(200)
     expect(deps.dashboardQueries.getRecentActivity).toHaveBeenCalledWith(
       USER_ID,
@@ -304,7 +304,7 @@ describe('GET /api/dashboard/activity', () => {
       },
     })
 
-    const res = await app.request('/api/dashboard/activity', {
+    const res = await app.request('/api/v1/dashboard/activity', {
       headers: { Authorization: `Bearer ${token}` },
     })
 

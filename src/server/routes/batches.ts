@@ -4,12 +4,12 @@ import type { AppDependencies } from '@/server'
 export function batchRoutes(deps: AppDependencies) {
   const router = new Hono()
 
-  router.get('/api/batches', async (c) => {
+  router.get('/api/v1/batches', async (c) => {
     const batches = await deps.listBatches()
     return c.json(batches)
   })
 
-  router.get('/api/batches/:id', async (c) => {
+  router.get('/api/v1/batches/:id', async (c) => {
     const id = Number(c.req.param('id'))
     if (!Number.isFinite(id)) return c.json({ error: 'Invalid batch ID' }, 400)
     const batch = await deps.getBatch(id)

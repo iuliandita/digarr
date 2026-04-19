@@ -44,8 +44,8 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   const adminGate = (c: Parameters<typeof requireAdmin>[0]) => requireAdmin(c, deps.getUserById)
 
-  // GET /api/library/health - return cached results + scanning status
-  app.get('/api/library/health', async (c) => {
+  // GET /api/v1/library/health - return cached results + scanning status
+  app.get('/api/v1/library/health', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const [state, settings] = await Promise.all([deps.libraryHealth.getState(), deps.getSettings()])
@@ -59,16 +59,16 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     })
   })
 
-  // POST /api/library/health/scan - kick off background scan, return 202
-  app.post('/api/library/health/scan', async (c) => {
+  // POST /api/v1/library/health/scan - kick off background scan, return 202
+  app.post('/api/v1/library/health/scan', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     deps.libraryHealth.startScan()
     return c.json({ scanning: true }, 202)
   })
 
-  // POST /api/library/health/:checkId/fix - trigger fix for a check
-  app.post('/api/library/health/:checkId/fix', async (c) => {
+  // POST /api/v1/library/health/:checkId/fix - trigger fix for a check
+  app.post('/api/v1/library/health/:checkId/fix', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const checkId = c.req.param('checkId')
@@ -83,16 +83,16 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
   })
 
-  // GET /api/library/stats - library statistics
-  app.get('/api/library/stats', async (c) => {
+  // GET /api/v1/library/stats - library statistics
+  app.get('/api/v1/library/stats', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const stats = await deps.libraryHealth.getStats()
     return c.json(stats)
   })
 
-  // POST /api/library/warm - trigger background warming for a batch of MBIDs
-  app.post('/api/library/warm', zJson(libraryWarmSchema), async (c) => {
+  // POST /api/v1/library/warm - trigger background warming for a batch of MBIDs
+  app.post('/api/v1/library/warm', zJson(libraryWarmSchema), async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
@@ -106,8 +106,8 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ queued: batch.length }, 202)
   })
 
-  // GET /api/library/warm/status - check warm status for MBIDs
-  app.get('/api/library/warm/status', async (c) => {
+  // GET /api/v1/library/warm/status - check warm status for MBIDs
+  app.get('/api/v1/library/warm/status', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     if (!deps.skyhookWarmer) {
@@ -122,17 +122,17 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ statuses })
   })
 
-  // GET /api/library/sources - per-source sync state for current user + global rows
-  app.get('/api/library/sources', async (c) => {
+  // GET /api/v1/library/sources - per-source sync state for current user + global rows
+  app.get('/api/v1/library/sources', async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
     const sources = await deps.librarySyncStore.listSyncStateForUser(auth.userId)
     return c.json({ sources })
   })
 
-  // POST /api/library/sync - manual "Sync now", rate-limited 5/min
-  app.use('/api/library/sync', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'libsync' }))
-  app.post('/api/library/sync', zJson(librarySyncSchema), async (c) => {
+  // POST /api/v1/library/sync - manual "Sync now", rate-limited 5/min
+  app.use('/api/v1/library/sync', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'libsync' }))
+  app.post('/api/v1/library/sync', zJson(librarySyncSchema), async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const { source } = c.req.valid('json')
@@ -154,15 +154,15 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     }
   })
 
-  // GET /api/library/unreconciled - rows where mbid IS NULL for current user + global
-  app.get('/api/library/unreconciled', async (c) => {
+  // GET /api/v1/library/unreconciled - rows where mbid IS NULL for current user + global
+  app.get('/api/v1/library/unreconciled', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledForUser(auth.userId)
     return c.json({ items })
   })
 
-  app.get('/api/library/album-coverage/:artistMbid', async (c) => {
+  app.get('/api/v1/library/album-coverage/:artistMbid', async (c) => {
     const auth = requireSessionUser(c)
     if (!auth.ok) return auth.response
     const artistMbid = c.req.param('artistMbid')
@@ -173,15 +173,15 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json(coverage)
   })
 
-  app.get('/api/library/unreconciled-albums', async (c) => {
+  app.get('/api/v1/library/unreconciled-albums', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId)
     return c.json({ items })
   })
 
-  // POST /api/library/overrides - create/update an MBID override
-  app.post('/api/library/overrides', zJson(libraryOverrideSchema), async (c) => {
+  // POST /api/v1/library/overrides - create/update an MBID override
+  app.post('/api/v1/library/overrides', zJson(libraryOverrideSchema), async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const { source, sourceArtistId, correctMbid, note } = c.req.valid('json')
@@ -190,7 +190,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ ok: true })
   })
 
-  app.post('/api/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
+  app.post('/api/v1/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const { source, sourceAlbumId, correctAlbumMbid, note } = c.req.valid('json')
@@ -205,8 +205,8 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ ok: true })
   })
 
-  // DELETE /api/library/overrides/:source/:sourceArtistId - remove an override
-  app.delete('/api/library/overrides/:source/:sourceArtistId', async (c) => {
+  // DELETE /api/v1/library/overrides/:source/:sourceArtistId - remove an override
+  app.delete('/api/v1/library/overrides/:source/:sourceArtistId', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const source = c.req.param('source')
@@ -215,9 +215,9 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ ok: true })
   })
 
-  // POST /api/library/reconcile - re-run reconciler for current user (forced syncForUser)
+  // POST /api/v1/library/reconcile - re-run reconciler for current user (forced syncForUser)
   // Note: a "reconcile only without re-fetch" path is a follow-up task.
-  app.post('/api/library/reconcile', async (c) => {
+  app.post('/api/v1/library/reconcile', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     deps.librarySync.syncForUser(auth.userId, { force: true }).catch((err: unknown) => {

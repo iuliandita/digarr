@@ -19,7 +19,7 @@ type ListenTrack = {
 export function listeningRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/listening/recent', async (c) => {
+  router.get('/api/v1/listening/recent', async (c) => {
     const settings = await deps.getSettings()
     if (!settings) return c.json({ tracks: [] })
 

@@ -42,7 +42,7 @@ describe('API routes: pipeline', () => {
   it('triggers scan and returns 202', async () => {
     const { app } = createTestApp()
 
-    const runRes = await app.request('/api/pipeline/run', {
+    const runRes = await app.request('/api/v1/pipeline/run', {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })
@@ -56,7 +56,7 @@ describe('API routes: pipeline', () => {
     // Simulate running state
     ;(deps.orchestrator as unknown as Record<string, unknown>).isRunning = true
 
-    const runRes = await app.request('/api/pipeline/run', {
+    const runRes = await app.request('/api/v1/pipeline/run', {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })
@@ -66,7 +66,7 @@ describe('API routes: pipeline', () => {
   it('returns pipeline status', async () => {
     const { app } = createTestApp()
 
-    const statusRes = await app.request('/api/pipeline/status', {
+    const statusRes = await app.request('/api/v1/pipeline/status', {
       headers: { Authorization: 'Bearer tok' },
     })
     expect(statusRes.status).toBe(200)
@@ -77,7 +77,7 @@ describe('API routes: pipeline', () => {
   it('job health endpoint works for admin users', async () => {
     const { app } = createTestApp()
 
-    const healthRes = await app.request('/api/jobs/health', {
+    const healthRes = await app.request('/api/v1/jobs/health', {
       headers: { Authorization: 'Bearer tok' },
     })
     expect(healthRes.status).toBe(200)

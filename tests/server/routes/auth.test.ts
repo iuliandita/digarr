@@ -169,7 +169,7 @@ afterEach(async () => {
   await clearAllSessions()
 })
 
-describe('POST /api/auth/register', () => {
+describe('POST /api/v1/auth/register', () => {
   it('creates the first user as admin', async () => {
     const createUser = vi.fn(async (data: { username: string; isAdmin?: boolean }) => ({
       id: 1,
@@ -198,7 +198,7 @@ describe('POST /api/auth/register', () => {
     }))
     const app = createApp(makeDeps({ createUser, getUserCount: vi.fn(async () => 0) }))
 
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'admin', password: 'password1234' }),
@@ -242,7 +242,7 @@ describe('POST /api/auth/register', () => {
     }))
     const app = createApp(makeDeps({ createUser, getUserCount: vi.fn(async () => 1) }))
 
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'user2', password: 'password1234' }),
@@ -254,7 +254,7 @@ describe('POST /api/auth/register', () => {
 
   it('returns 400 for missing username or password', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'test' }),
@@ -264,7 +264,7 @@ describe('POST /api/auth/register', () => {
 
   it('returns 400 for short password', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'test', password: 'short' }),
@@ -274,7 +274,7 @@ describe('POST /api/auth/register', () => {
 
   it('returns 400 for short username', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'x', password: 'password1234' }),
@@ -293,7 +293,7 @@ describe('POST /api/auth/register', () => {
         })),
       }),
     )
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'taken', password: 'password1234' }),
@@ -302,7 +302,7 @@ describe('POST /api/auth/register', () => {
   })
 })
 
-describe('POST /api/auth/login', () => {
+describe('POST /api/v1/auth/login', () => {
   it('returns token on successful login', async () => {
     const storedHash = hashPassword('correctpassword')
     const app = createApp(
@@ -316,7 +316,7 @@ describe('POST /api/auth/login', () => {
       }),
     )
 
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', password: 'correctpassword' }),
@@ -343,7 +343,7 @@ describe('POST /api/auth/login', () => {
       }),
     )
 
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', password: 'wrongpassword' }),
@@ -353,7 +353,7 @@ describe('POST /api/auth/login', () => {
 
   it('returns 401 for nonexistent user', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'nobody', password: 'password1234' }),
@@ -363,7 +363,7 @@ describe('POST /api/auth/login', () => {
 
   it('returns 400 for missing fields', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -373,7 +373,7 @@ describe('POST /api/auth/login', () => {
 
   it('localizes missing-credentials errors from the request locale', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -392,7 +392,7 @@ describe('POST /api/auth/login', () => {
 
   it('emits i18n code for invalid credentials', async () => {
     const app = createApp(makeDeps())
-    const res = await app.request('/api/auth/login', {
+    const res = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'nope', password: 'wrongpassword' }),
@@ -411,10 +411,10 @@ describe('POST /api/auth/login', () => {
     const headers = { 'Content-Type': 'application/json' }
     const body = JSON.stringify({ username: 'nobody', password: 'wrongpassword123' })
     for (let i = 0; i < 10; i++) {
-      const r = await app.request('/api/auth/login', { method: 'POST', headers, body })
+      const r = await app.request('/api/v1/auth/login', { method: 'POST', headers, body })
       expect(r.status).toBe(401)
     }
-    const r11 = await app.request('/api/auth/login', { method: 'POST', headers, body })
+    const r11 = await app.request('/api/v1/auth/login', { method: 'POST', headers, body })
     expect(r11.status).toBe(429)
     expect(r11.headers.get('Retry-After')).not.toBeNull()
     __shutdownRateLimiter()
@@ -437,7 +437,7 @@ describe('session token authentication', () => {
     )
 
     // Login to get a session token
-    const loginRes = await app.request('/api/auth/login', {
+    const loginRes = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
@@ -445,7 +445,7 @@ describe('session token authentication', () => {
     const { token } = await loginRes.json()
 
     // Use the session token to access a protected route
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       headers: { Authorization: `Bearer ${token}` },
     })
     // Should not be 401 (may be 404 since getSettings returns null)
@@ -459,14 +459,14 @@ describe('session token authentication', () => {
       }),
     )
 
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       headers: { Authorization: 'Bearer invalid-token-here' },
     })
     expect(res.status).toBe(401)
   })
 })
 
-describe('POST /api/auth/logout', () => {
+describe('POST /api/v1/auth/logout', () => {
   it('invalidates the session token', async () => {
     const storedHash = hashPassword('password1234')
     const app = createApp(
@@ -482,7 +482,7 @@ describe('POST /api/auth/logout', () => {
     )
 
     // Login
-    const loginRes = await app.request('/api/auth/login', {
+    const loginRes = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
@@ -490,21 +490,21 @@ describe('POST /api/auth/logout', () => {
     const { token } = await loginRes.json()
 
     // Logout
-    const logoutRes = await app.request('/api/auth/logout', {
+    const logoutRes = await app.request('/api/v1/auth/logout', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })
     expect(logoutRes.status).toBe(200)
 
     // Token should no longer work
-    const res = await app.request('/api/settings', {
+    const res = await app.request('/api/v1/settings', {
       headers: { Authorization: `Bearer ${token}` },
     })
     expect(res.status).toBe(401)
   })
 })
 
-describe('GET /api/auth/me', () => {
+describe('GET /api/v1/auth/me', () => {
   it('returns current user when authenticated via session', async () => {
     const storedHash = hashPassword('password1234')
     const app = createApp(
@@ -544,14 +544,14 @@ describe('GET /api/auth/me', () => {
       }),
     )
 
-    const loginRes = await app.request('/api/auth/login', {
+    const loginRes = await app.request('/api/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
     })
     const { token } = await loginRes.json()
 
-    const res = await app.request('/api/auth/me', {
+    const res = await app.request('/api/v1/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
     })
     expect(res.status).toBe(200)
@@ -592,7 +592,7 @@ describe('GET /api/auth/me', () => {
     )
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/me', {
+    const res = await app.request('/api/v1/auth/me', {
       headers: { Authorization: 'Bearer session-token' },
     })
 
@@ -601,12 +601,12 @@ describe('GET /api/auth/me', () => {
   })
 })
 
-describe('GET /api/auth/validate', () => {
+describe('GET /api/v1/auth/validate', () => {
   it('returns 204 for a valid session token', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/validate', {
+    const res = await app.request('/api/v1/auth/validate', {
       headers: { Authorization: 'Bearer session-token' },
     })
 
@@ -615,12 +615,12 @@ describe('GET /api/auth/validate', () => {
 
   it('returns 401 when unauthenticated', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
-    const res = await app.request('/api/auth/validate')
+    const res = await app.request('/api/v1/auth/validate')
     expect(res.status).toBe(401)
   })
 })
 
-describe('PATCH /api/auth/me/locale', () => {
+describe('PATCH /api/v1/auth/me/locale', () => {
   it('updates preferred locale through PATCH /api/auth/me/locale', async () => {
     const updateUserPreferredLocale = vi.fn(async () => {})
     const app = createApp({
@@ -629,7 +629,7 @@ describe('PATCH /api/auth/me/locale', () => {
     } as AppDependencies)
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/me/locale', {
+    const res = await app.request('/api/v1/auth/me/locale', {
       method: 'PATCH',
       headers: {
         Authorization: 'Bearer session-token',
@@ -651,7 +651,7 @@ describe('PATCH /api/auth/me/locale', () => {
     })
     app.route('/', authRoutes(makeDeps()))
 
-    const res = await app.request('/api/auth/me/locale', {
+    const res = await app.request('/api/v1/auth/me/locale', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -673,7 +673,7 @@ describe('PATCH /api/auth/me/locale', () => {
     )
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/me/locale', {
+    const res = await app.request('/api/v1/auth/me/locale', {
       method: 'PATCH',
       headers: {
         Authorization: 'Bearer session-token',
@@ -697,7 +697,7 @@ describe('PATCH /api/auth/me/locale', () => {
     )
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/me/locale', {
+    const res = await app.request('/api/v1/auth/me/locale', {
       method: 'PATCH',
       headers: {
         Authorization: 'Bearer session-token',
@@ -711,7 +711,7 @@ describe('PATCH /api/auth/me/locale', () => {
   })
 })
 
-describe('POST /api/auth/change-password', () => {
+describe('POST /api/v1/auth/change-password', () => {
   it('changes the password for a session-authenticated user', async () => {
     const storedHash = hashPassword('oldpassword123')
     const updatePassword = vi.fn(async () => {})
@@ -729,7 +729,7 @@ describe('POST /api/auth/change-password', () => {
     )
 
     await createSession(1, 'session-token')
-    const res = await app.request('/api/auth/change-password', {
+    const res = await app.request('/api/v1/auth/change-password', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer session-token',
@@ -760,7 +760,7 @@ describe('POST /api/auth/change-password', () => {
     })
     app.route('/', authRoutes(makeDeps({ updatePassword })))
 
-    const res = await app.request('/api/auth/change-password', {
+    const res = await app.request('/api/v1/auth/change-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -777,7 +777,7 @@ describe('POST /api/auth/change-password', () => {
   })
 })
 
-describe('PATCH /api/auth/me/preferences', () => {
+describe('PATCH /api/v1/auth/me/preferences', () => {
   it('rejects legacy read-only token auth', async () => {
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
@@ -787,7 +787,7 @@ describe('PATCH /api/auth/me/preferences', () => {
     })
     app.route('/', authRoutes(makeDeps()))
 
-    const res = await app.request('/api/auth/me/preferences', {
+    const res = await app.request('/api/v1/auth/me/preferences', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -802,10 +802,10 @@ describe('PATCH /api/auth/me/preferences', () => {
   })
 })
 
-describe('GET /api/auth/status', () => {
+describe('GET /api/v1/auth/status', () => {
   it('reports hasUsers: false when no users exist', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 0) }))
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.hasUsers).toBe(false)
@@ -814,7 +814,7 @@ describe('GET /api/auth/status', () => {
 
   it('reports hasUsers: true and required: true when users exist', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 2) }))
-    const res = await app.request('/api/auth/status')
+    const res = await app.request('/api/v1/auth/status')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.hasUsers).toBe(true)

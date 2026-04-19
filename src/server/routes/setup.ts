@@ -19,12 +19,12 @@ export function setupRoutes(deps: AppDependencies) {
     'preferences',
   ])
 
-  router.get('/api/setup/status', async (c) => {
+  router.get('/api/v1/setup/status', async (c) => {
     const complete = await deps.isSetupComplete()
     return c.json({ setupComplete: complete })
   })
 
-  router.post('/api/setup/complete', zJson(setupCompleteSchema), async (c) => {
+  router.post('/api/v1/setup/complete', zJson(setupCompleteSchema), async (c) => {
     const alreadyDone = await deps.isSetupComplete()
     if (alreadyDone) {
       return c.json({ error: 'Setup already complete' }, 409)

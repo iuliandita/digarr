@@ -53,7 +53,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -110,7 +110,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -151,7 +151,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -185,7 +185,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -218,7 +218,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions', {
+    const res = await app.request('/api/v1/subscriptions', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -284,7 +284,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions/1', {
+    const res = await app.request('/api/v1/subscriptions/1', {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -345,7 +345,7 @@ describe('API routes: discovery mode subscriptions', () => {
       },
     })
 
-    const res = await app.request('/api/subscriptions/1', {
+    const res = await app.request('/api/v1/subscriptions/1', {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify({
@@ -373,7 +373,7 @@ describe('API routes: discovery mode subscriptions', () => {
   it('lists discovery mode as an available adapter type', async () => {
     const { app } = createTestApp()
 
-    const res = await app.request('/api/subscriptions/adapter-types', {
+    const res = await app.request('/api/v1/subscriptions/adapter-types', {
       headers: { Authorization: 'Bearer tok' },
     })
 

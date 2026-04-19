@@ -10,7 +10,7 @@ import type { HonoEnv } from '@/server/types'
 export function genreRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
-  router.get('/api/genres', async (c) => {
+  router.get('/api/v1/genres', async (c) => {
     const [genres, enrichments] = await Promise.all([
       deps.genreService.getLibraryGenres(),
       getGenreEnrichments(deps.db, 3),
@@ -28,7 +28,7 @@ export function genreRoutes(deps: AppDependencies) {
     return c.json(enriched)
   })
 
-  router.get('/api/genres/search', async (c) => {
+  router.get('/api/v1/genres/search', async (c) => {
     const q = c.req.query('q') ?? ''
     if (q.length < 2) {
       return c.json({ error: 'Query must be at least 2 characters' }, 400)
@@ -37,7 +37,7 @@ export function genreRoutes(deps: AppDependencies) {
     return c.json(results)
   })
 
-  router.get('/api/genres/:slug', async (c) => {
+  router.get('/api/v1/genres/:slug', async (c) => {
     const slug = c.req.param('slug')
     const genre = await deps.genreService.getOrFetchGenre(slug)
     if (!genre) {
@@ -50,7 +50,7 @@ export function genreRoutes(deps: AppDependencies) {
     return c.json({ ...genre, subGenres, libraryArtists })
   })
 
-  router.get('/api/genres/:slug/artists', async (c) => {
+  router.get('/api/v1/genres/:slug/artists', async (c) => {
     const slug = c.req.param('slug')
     const view = (c.req.query('view') ?? 'recommended') as 'recommended' | 'trending' | 'deep_cuts'
     const limit = parseIntClamp(c.req.query('limit'), {
@@ -75,7 +75,7 @@ export function genreRoutes(deps: AppDependencies) {
     return c.json({ artists })
   })
 
-  router.post('/api/genres/seed', async (c) => {
+  router.post('/api/v1/genres/seed', async (c) => {
     const settings = await deps.getSettings()
     if (!settings?.lidarrUrl || !settings?.lidarrApiKey) {
       return c.json({ error: 'Lidarr not configured' }, 400)

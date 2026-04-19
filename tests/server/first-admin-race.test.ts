@@ -199,7 +199,7 @@ describe('first-admin race: POST /api/auth/register', () => {
       }),
     )
 
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'loser', password: 'password1234' }),
@@ -246,7 +246,7 @@ describe('first-admin race: POST /api/auth/register', () => {
       }),
     )
 
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'loser', password: 'password1234' }),
@@ -271,7 +271,7 @@ describe('first-admin race: POST /api/auth/register', () => {
       }),
     )
 
-    const res = await app.request('/api/auth/register', {
+    const res = await app.request('/api/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'collider', password: 'password1234' }),
@@ -420,7 +420,7 @@ describe('first-admin race: oidc callback', () => {
     })
 
     const { app } = buildOidcApp({ createUser })
-    const res = await app.request('/api/auth/oidc/callback?state=s&code=c')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=s&code=c')
 
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oidc_token=')
@@ -435,7 +435,7 @@ describe('first-admin race: oidc callback', () => {
     })
 
     const { app } = buildOidcApp({ createUser })
-    const res = await app.request('/api/auth/oidc/callback?state=s&code=c')
+    const res = await app.request('/api/v1/auth/oidc/callback?state=s&code=c')
 
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oidc_error=')

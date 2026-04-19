@@ -24,7 +24,7 @@ export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
   // Initiate OAuth flow for a provider
-  router.post('/api/auth/oauth/:provider/initiate', zJson(oauthInitiateSchema), async (c) => {
+  router.post('/api/v1/auth/oauth/:provider/initiate', zJson(oauthInitiateSchema), async (c) => {
     const provider = c.req.param('provider')
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
@@ -68,7 +68,7 @@ export function oauthRoutes(deps: AppDependencies) {
         const state = crypto.randomUUID()
         const proto = c.req.header('x-forwarded-proto') ?? 'http'
         const host = c.req.header('host') ?? 'localhost'
-        const deezerRedirectUri = `${proto}://${host}/api/auth/oauth/deezer/callback`
+        const deezerRedirectUri = `${proto}://${host}/api/v1/auth/oauth/deezer/callback`
 
         await upsertOAuthToken(deps.db, {
           userId,
@@ -96,7 +96,7 @@ export function oauthRoutes(deps: AppDependencies) {
   })
 
   // OAuth callback - exchanges code for tokens
-  router.get('/api/auth/oauth/:provider/callback', async (c) => {
+  router.get('/api/v1/auth/oauth/:provider/callback', async (c) => {
     const provider = c.req.param('provider')
     const code = c.req.query('code')
     const state = c.req.query('state')
@@ -133,7 +133,7 @@ export function oauthRoutes(deps: AppDependencies) {
         // Reuse the exact redirect URI from initiate (stored in refreshToken during pending)
         const redirectUri =
           pending.refreshToken ??
-          `${c.req.header('x-forwarded-proto') ?? 'http'}://${c.req.header('host')}/api/auth/oauth/spotify/callback`
+          `${c.req.header('x-forwarded-proto') ?? 'http'}://${c.req.header('host')}/api/v1/auth/oauth/spotify/callback`
 
         const controller = new AbortController()
         const tokenTimer = setTimeout(() => controller.abort(), 10_000)
@@ -283,7 +283,7 @@ export function oauthRoutes(deps: AppDependencies) {
   })
 
   // Disconnect an OAuth provider
-  router.delete('/api/auth/oauth/:provider', async (c) => {
+  router.delete('/api/v1/auth/oauth/:provider', async (c) => {
     const provider = c.req.param('provider')
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
@@ -293,7 +293,7 @@ export function oauthRoutes(deps: AppDependencies) {
   })
 
   // Check OAuth connection status
-  router.get('/api/auth/oauth/:provider/status', async (c) => {
+  router.get('/api/v1/auth/oauth/:provider/status', async (c) => {
     const provider = c.req.param('provider')
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Authentication required' }, 401)

@@ -35,7 +35,7 @@ describe('target routes', () => {
     vi.clearAllMocks()
   })
 
-  it('GET /api/targets returns all targets with ownership flag', async () => {
+  it('GET /api/v1/targets returns all targets with ownership flag', async () => {
     mockDeps.targetQueries.getAllTargets.mockResolvedValue([
       {
         id: 1,
@@ -55,7 +55,7 @@ describe('target routes', () => {
       },
     ])
     const app = createTestApp()
-    const res = await app.request('/api/targets')
+    const res = await app.request('/api/v1/targets')
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(2)
@@ -65,9 +65,9 @@ describe('target routes', () => {
     expect(body[1].owned).toBe(false)
   })
 
-  it('POST /api/targets creates a target', async () => {
+  it('POST /api/v1/targets creates a target', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -80,9 +80,9 @@ describe('target routes', () => {
     expect(mockDeps.targetQueries.createTarget).toHaveBeenCalled()
   })
 
-  it('POST /api/targets validates required fields', async () => {
+  it('POST /api/v1/targets validates required fields', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'No type' }),
@@ -90,9 +90,9 @@ describe('target routes', () => {
     expect(res.status).toBe(400)
   })
 
-  it('POST /api/targets validates type is known', async () => {
+  it('POST /api/v1/targets validates type is known', async () => {
     const app = createTestApp()
-    const res = await app.request('/api/targets', {
+    const res = await app.request('/api/v1/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'unknown', name: 'Bad', config: {} }),
@@ -100,26 +100,26 @@ describe('target routes', () => {
     expect(res.status).toBe(400)
   })
 
-  it('DELETE /api/targets/:id deletes a target', async () => {
+  it('DELETE /api/v1/targets/:id deletes a target', async () => {
     mockDeps.targetQueries.getTarget.mockResolvedValue({
       id: 1,
       userId: 1,
       type: 'lidarr',
     })
     const app = createTestApp()
-    const res = await app.request('/api/targets/1', { method: 'DELETE' })
+    const res = await app.request('/api/v1/targets/1', { method: 'DELETE' })
     expect(res.status).toBe(204)
     expect(mockDeps.targetQueries.deleteTarget).toHaveBeenCalledWith(1)
   })
 
-  it('DELETE /api/targets/:id returns 404 for missing target', async () => {
+  it('DELETE /api/v1/targets/:id returns 404 for missing target', async () => {
     mockDeps.targetQueries.getTarget.mockResolvedValue(null)
     const app = createTestApp()
-    const res = await app.request('/api/targets/999', { method: 'DELETE' })
+    const res = await app.request('/api/v1/targets/999', { method: 'DELETE' })
     expect(res.status).toBe(404)
   })
 
-  it('POST /api/targets/:id/test tests connection', async () => {
+  it('POST /api/v1/targets/:id/test tests connection', async () => {
     mockDeps.targetQueries.getTarget.mockResolvedValue({
       id: 1,
       userId: 1,
@@ -127,18 +127,18 @@ describe('target routes', () => {
       config: { url: 'http://lidarr:8686', apiKey: 'abc' },
     })
     const app = createTestApp()
-    const res = await app.request('/api/targets/1/test', { method: 'POST' })
+    const res = await app.request('/api/v1/targets/1/test', { method: 'POST' })
     expect(res.status).toBe(200)
   })
 
-  it('PATCH /api/targets/:id updates a target', async () => {
+  it('PATCH /api/v1/targets/:id updates a target', async () => {
     mockDeps.targetQueries.getTarget.mockResolvedValue({
       id: 1,
       userId: 1,
       type: 'lidarr',
     })
     const app = createTestApp()
-    const res = await app.request('/api/targets/1', {
+    const res = await app.request('/api/v1/targets/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Updated Lidarr' }),

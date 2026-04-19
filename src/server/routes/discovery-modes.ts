@@ -18,7 +18,7 @@ export function discoveryModeRoutes(deps: AppDependencies) {
   const getDiscoveryConnectionSnapshot =
     deps.getDiscoveryConnectionSnapshot ?? (async () => EMPTY_DISCOVERY_SNAPSHOT)
 
-  router.get('/api/discovery-modes', async (c) => {
+  router.get('/api/v1/discovery-modes', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ error: 'Unauthorized' }, 401)

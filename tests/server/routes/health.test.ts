@@ -155,7 +155,7 @@ describe('GET /health', () => {
 describe('setup guard', () => {
   it('blocks /api/* with 403 when setup is not complete', async () => {
     const app = createApp(makeDeps({ isSetupComplete: async () => false }))
-    const res = await app.request('/api/something')
+    const res = await app.request('/api/v1/something')
     expect(res.status).toBe(403)
     const body = await res.json()
     expect(body.error).toBe('Setup not complete')
@@ -164,7 +164,7 @@ describe('setup guard', () => {
 
   it('allows /api/setup/* through when setup is not complete', async () => {
     const app = createApp(makeDeps({ isSetupComplete: async () => false }))
-    const res = await app.request('/api/setup/status')
+    const res = await app.request('/api/v1/setup/status')
     expect(res.status).not.toBe(403)
   })
 
@@ -177,7 +177,7 @@ describe('setup guard', () => {
   it('allows /api/* through when setup is complete', async () => {
     const app = createApp(makeDeps())
     // No route registered for this path - expect 404, not 403
-    const res = await app.request('/api/something')
+    const res = await app.request('/api/v1/something')
     expect(res.status).not.toBe(403)
   })
 })

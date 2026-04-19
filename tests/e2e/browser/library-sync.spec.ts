@@ -13,7 +13,7 @@ test.describe('library sync', () => {
     await expect(page.getByRole('heading', { name: 'Library Sources' })).toBeVisible()
 
     const syncRequest = page.waitForRequest(
-      (req) => req.url().includes('/api/library/sync') && req.method() === 'POST',
+      (req) => req.url().includes('/api/v1/library/sync') && req.method() === 'POST',
     )
     await page.getByRole('button', { name: /sync all/i }).click()
     await syncRequest

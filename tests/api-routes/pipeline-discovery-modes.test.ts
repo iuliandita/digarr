@@ -15,7 +15,7 @@ describe('API routes: discovery mode pipeline runs', () => {
   it('returns 401 when unauthenticated', async () => {
     const { app } = createTestApp()
 
-    const res = await app.request('/api/discovery-modes/run', {
+    const res = await app.request('/api/v1/discovery-modes/run', {
       method: 'POST',
       body: JSON.stringify({ modeId: 'labels' }),
       headers: { 'Content-Type': 'application/json' },
@@ -55,7 +55,7 @@ describe('API routes: discovery mode pipeline runs', () => {
       runDiscoveryMode,
     } as never)
 
-    const res = await app.request('/api/discovery-modes/run', {
+    const res = await app.request('/api/v1/discovery-modes/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer test-token',
@@ -99,7 +99,7 @@ describe('API routes: discovery mode pipeline runs', () => {
   it('rejects discovery modes that are currently unavailable', async () => {
     const { app } = createTestApp()
 
-    const res = await app.request('/api/discovery-modes/run', {
+    const res = await app.request('/api/v1/discovery-modes/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer test-token',
@@ -121,7 +121,7 @@ describe('API routes: discovery mode pipeline runs', () => {
       discoveryModeRegistry,
     } as never)
 
-    const res = await app.request('/api/discovery-modes/run', {
+    const res = await app.request('/api/v1/discovery-modes/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer test-token',
@@ -163,7 +163,7 @@ describe('API routes: discovery mode pipeline runs', () => {
       runDiscoveryMode,
     } as never)
 
-    const res = await app.request('/api/discovery-modes/run', {
+    const res = await app.request('/api/v1/discovery-modes/run', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer test-token',

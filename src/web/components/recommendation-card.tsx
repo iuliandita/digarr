@@ -448,7 +448,7 @@ function TopTracks({ artistId }: { artistId: number }) {
     const token = localStorage.getItem('digarr-auth-token')
     const params = new URLSearchParams({ url: previewUrl })
     if (token) params.set('token', token)
-    const proxyUrl = `/api/preview/audio?${params.toString()}`
+    const proxyUrl = `/api/v1/preview/audio?${params.toString()}`
     const audio = new Audio(proxyUrl)
     audioRef.current = audio
     audio.onended = () => setPlayingUrl(null)
