@@ -403,8 +403,8 @@ describe('POST /api/auth/login', () => {
   })
 
   it('rate limits bursts from the same source at 11th request', async () => {
-    // Each failed login runs constant-time scrypt (~700ms), so the whole
-    // burst fits in ~8s. Bump timeout past the default 5s.
+    // Each failed login runs constant-time scrypt (~700ms uninstrumented,
+    // ~2s under v8 coverage), so the burst can reach 20-25s. Bump timeout.
     const { __shutdownRateLimiter } = await import('@/server/middleware/rate-limit')
     __shutdownRateLimiter()
     const app = createApp(makeDeps())
@@ -418,7 +418,7 @@ describe('POST /api/auth/login', () => {
     expect(r11.status).toBe(429)
     expect(r11.headers.get('Retry-After')).not.toBeNull()
     __shutdownRateLimiter()
-  }, 15_000)
+  }, 60_000)
 })
 
 describe('session token authentication', () => {
