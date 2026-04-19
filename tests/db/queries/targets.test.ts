@@ -5,6 +5,8 @@ const mockDb = {
   select: vi.fn().mockReturnThis(),
   from: vi.fn().mockReturnThis(),
   where: vi.fn().mockReturnThis(),
+  orderBy: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis(),
   insert: vi.fn().mockReturnThis(),
   values: vi.fn().mockReturnThis(),
   returning: vi.fn().mockResolvedValue([{ id: 1 }]),
@@ -48,7 +50,8 @@ describe('target queries', () => {
   })
 
   it('getTargetsByUser returns rows', async () => {
-    mockDb.where.mockResolvedValue([{ id: 1, userId: 1, type: 'lidarr' }])
+    mockDb.where.mockReturnThis()
+    mockDb.orderBy.mockResolvedValue([{ id: 1, userId: 1, type: 'lidarr' }])
     const result = await getTargetsByUser(mockDb as never, 1)
     expect(result).toHaveLength(1)
   })

@@ -1172,7 +1172,7 @@ const app = createApp({
     updateRecommendationStatus(db, id, status, extra),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
-  listBatches: () => listBatches(db),
+  listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),
   getBatch: (id) => getBatch(db, id),
   getArtistById: (id) => getArtistById(db, id),
   restartScheduler: (cron: string | null) => {

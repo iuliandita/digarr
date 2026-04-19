@@ -130,7 +130,8 @@ describe('getSubscriptionsByUser', () => {
     ]
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(rows),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue(rows),
     }
     const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
 
@@ -143,7 +144,8 @@ describe('getSubscriptionsByUser', () => {
   it('returns empty array when user has no subscriptions', async () => {
     const chain = {
       from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([]),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([]),
     }
     const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
 

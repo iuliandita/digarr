@@ -121,7 +121,7 @@ export interface RecommendationDeps {
   ) => Promise<void>
   bulkUpdateStatus: (ids: number[], status: string) => Promise<void>
   filterOwnedIds: (ids: number[], userId: number | undefined) => Promise<number[]>
-  listBatches: () => Promise<BatchRow[]>
+  listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>
   getBatch: (id: number) => Promise<BatchRow | null>
   getArtistById: (id: number) => Promise<ArtistRow | null>
   getFeedbackHistory: () => Promise<Map<string, { approved: number; total: number }>>
