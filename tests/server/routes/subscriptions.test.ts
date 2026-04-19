@@ -434,7 +434,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Updated Name' }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockSubQueries.updateSubscription).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ name: 'Updated Name' }),
@@ -480,7 +480,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cron: '0 12 * * 1' }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       'subscription-1',
       '0 12 * * 1',
@@ -495,7 +495,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled: false }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockScheduler.remove).toHaveBeenCalledWith('subscription-1')
   })
 
@@ -507,7 +507,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled: true }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       'subscription-1',
       '0 9 * * *',
@@ -610,7 +610,7 @@ describe('DELETE /api/v1/subscriptions/:id', () => {
   it('deletes subscription and removes from scheduler', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
     const res = await app.request('/api/v1/subscriptions/1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockSubQueries.deleteSubscription).toHaveBeenCalledWith(1)
     expect(mockScheduler.remove).toHaveBeenCalledWith('subscription-1')
   })

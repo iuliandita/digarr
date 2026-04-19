@@ -78,7 +78,7 @@ export function userRoutes(deps: AppDependencies) {
         targetId,
         typeof body.isAdmin === 'boolean' ? { isAdmin: body.isAdmin } : {},
       )
-      return c.json({ ok: true })
+      return c.body(null, 204)
     },
   )
 
@@ -105,7 +105,7 @@ export function userRoutes(deps: AppDependencies) {
     }
 
     await deps.deleteUser(targetId)
-    return c.json({ ok: true })
+    return c.body(null, 204)
   })
 
   return router

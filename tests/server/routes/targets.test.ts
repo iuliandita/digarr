@@ -143,7 +143,7 @@ describe('target routes', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Updated Lidarr' }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockDeps.targetQueries.updateTarget).toHaveBeenCalledWith(1, { name: 'Updated Lidarr' })
   })
 })

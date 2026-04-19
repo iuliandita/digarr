@@ -289,7 +289,7 @@ export function oauthRoutes(deps: AppDependencies) {
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
 
     await deleteOAuthToken(deps.db, userId, provider)
-    return c.json({ success: true })
+    return c.body(null, 204)
   })
 
   // Check OAuth connection status

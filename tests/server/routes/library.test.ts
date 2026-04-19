@@ -986,9 +986,7 @@ describe('POST /api/v1/library/overrides', () => {
         note: 'manual fix',
       }),
     })
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
+    expect(res.status).toBe(204)
     expect(librarySyncStore.upsertOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       42,
       'plex',
@@ -1057,8 +1055,7 @@ describe('POST /api/v1/library/album-overrides', () => {
       }),
     })
 
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(res.status).toBe(204)
     expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       42,
       'plex',
@@ -1122,9 +1119,7 @@ describe('DELETE /api/v1/library/overrides/:source/:sourceArtistId', () => {
     const res = await authedRequest(app, '/api/v1/library/overrides/plex/plex-123', {
       method: 'DELETE',
     })
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
+    expect(res.status).toBe(204)
     expect(librarySyncStore.deleteOverride as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       42,
       'plex',
@@ -1138,8 +1133,6 @@ describe('POST /api/v1/library/reconcile', () => {
     const { app, librarySync } = makeSyncApp()
     const res = await authedRequest(app, '/api/v1/library/reconcile', { method: 'POST' })
     expect(res.status).toBe(202)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
     await Promise.resolve()
     expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(42, {
       force: true,

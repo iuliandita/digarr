@@ -45,7 +45,7 @@ export function slskdRoutes(deps: SlskdRouteDeps) {
       return c.json({ error: errMsg(error) }, 500)
     }
 
-    return c.json({ accepted: true }, 202)
+    return c.body(null, 202)
   })
 
   return router

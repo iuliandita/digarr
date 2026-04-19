@@ -46,7 +46,7 @@ describe('API routes: setup', () => {
         aiModel: 'gpt-4o',
       }),
     })
-    expect(completeRes.status).toBe(200)
+    expect(completeRes.status).toBe(204)
     expect(completeSetup).toHaveBeenCalled()
   })
 
@@ -84,7 +84,7 @@ describe('API routes: setup', () => {
         lastfmUsername: 'legacy-lastfm',
       }),
     })
-    expect(completeRes.status).toBe(200)
+    expect(completeRes.status).toBe(204)
     expect(completeSetup).toHaveBeenCalledWith(
       expect.not.objectContaining({
         listenbrainzUsername: expect.anything(),

@@ -113,7 +113,7 @@ export function setupRoutes(deps: AppDependencies) {
       }
     }
 
-    return c.json({ success: true }, 200)
+    return c.body(null, 204)
   })
 
   return router

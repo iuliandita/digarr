@@ -547,8 +547,7 @@ export const deleteLibraryOverride = (source: string, sourceArtistId: string) =>
     `/library/overrides/${encodeURIComponent(source)}/${encodeURIComponent(sourceArtistId)}`,
     { method: 'DELETE' },
   )
-export const rerunLibraryReconciler = () =>
-  fetchApi<void>('/library/reconcile', { method: 'POST' })
+export const rerunLibraryReconciler = () => fetchApi<void>('/library/reconcile', { method: 'POST' })
 
 // User management (admin)
 export const listUsers = () =>

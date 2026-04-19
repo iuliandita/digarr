@@ -304,9 +304,7 @@ describe('PATCH /api/v1/playlists/:id', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Updated Mix', enabled: false }),
     })
-    expect(res.status).toBe(200)
-    const body = (await res.json()) as { updated: boolean }
-    expect(body.updated).toBe(true)
+    expect(res.status).toBe(204)
     expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
@@ -326,9 +324,7 @@ describe('DELETE /api/v1/playlists/:id', () => {
     const deps = makeDeps()
     const app = createTestApp(deps, USER_ID)
     const res = await app.request('/api/v1/playlists/1', { method: 'DELETE' })
-    expect(res.status).toBe(200)
-    const body = (await res.json()) as { deleted: boolean }
-    expect(body.deleted).toBe(true)
+    expect(res.status).toBe(204)
     expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 

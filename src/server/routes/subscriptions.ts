@@ -741,7 +741,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
         deps.scheduler.schedule(jobName, newCron, () => deps.runSubscription(id))
       }
 
-      return c.json({ updated: true })
+      return c.body(null, 204)
     },
   )
 
@@ -776,7 +776,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
     await deps.subscriptionQueries.deleteSubscription(id)
     deps.scheduler.remove(`subscription-${id}`)
-    return c.json({ deleted: true })
+    return c.body(null, 204)
   })
 
   router.post('/api/v1/subscriptions/:id/run', zParam(subscriptionIdParamSchema), async (c) => {

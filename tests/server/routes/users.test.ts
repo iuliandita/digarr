@@ -287,9 +287,7 @@ describe('PATCH /api/v1/users/:id', () => {
       body: JSON.stringify({ isAdmin: true }),
     })
 
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
+    expect(res.status).toBe(204)
     expect(updateUser).toHaveBeenCalledWith(2, { isAdmin: true })
   })
 
@@ -351,9 +349,7 @@ describe('DELETE /api/v1/users/:id', () => {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.ok).toBe(true)
+    expect(res.status).toBe(204)
     expect(deleteUser).toHaveBeenCalledWith(2)
   })
 

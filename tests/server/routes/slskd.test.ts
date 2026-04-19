@@ -187,7 +187,7 @@ describe('POST /api/v1/slskd/sync', () => {
     })
 
     expect(res.status).toBe(202)
-    await expect(res.json()).resolves.toEqual({ accepted: true })
+    expect(await res.text()).toBe('')
     expect(slskdOrchestrator.triggerSync).toHaveBeenCalledTimes(1)
   })
 

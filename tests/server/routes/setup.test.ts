@@ -170,14 +170,14 @@ describe('POST /api/v1/setup/complete', () => {
     aiModel: 'llama3',
   }
 
-  it('accepts valid config and returns 200', async () => {
+  it('accepts valid config and returns 204', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
   })
 
   it('calls completeSetup with the config', async () => {
@@ -246,7 +246,7 @@ describe('POST /api/v1/setup/complete', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
   })
 
   it('strips legacy listening-source fields before persisting setup', async () => {
@@ -264,7 +264,7 @@ describe('POST /api/v1/setup/complete', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(completeSetup).toHaveBeenCalledWith({
       lidarrUrl: 'http://lidarr:8686',
       lidarrApiKey: 'abc123',
@@ -317,7 +317,7 @@ describe('POST /api/v1/setup/complete', () => {
         aiModel: 'gpt-5.4-mini',
       }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(createTarget).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'emby-playlist',

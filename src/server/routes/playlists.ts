@@ -235,7 +235,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
       const body = c.req.valid('json')
       await updatePlaylist(db, id, body as Record<string, unknown>)
       await deps.restartPlaylistScheduler()
-      return c.json({ updated: true })
+      return c.body(null, 204)
     },
   )
 
@@ -270,7 +270,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     await deletePlaylist(db, id)
     await deps.restartPlaylistScheduler()
-    return c.json({ deleted: true })
+    return c.body(null, 204)
   })
 
   // POST /api/v1/playlists/:id/generate

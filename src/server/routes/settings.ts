@@ -8,6 +8,7 @@ import { errMsg } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
 import { updateSettingsSchema } from '@/server/schemas/settings'
@@ -472,14 +473,30 @@ export function settingsRoutes(deps: AppDependencies) {
         c.get('legacyTokenAuth'),
       ))
     ) {
-      return c.json({ success: false, message: 'Admin access required' }, 403)
+      return problem(
+        c,
+        'admin-required',
+        'Admin access required',
+        403,
+        undefined,
+        undefined,
+        'common.adminAccessRequired',
+      )
     }
 
     const stored = await deps.getSettings()
     const prefs = stored?.preferences
     const url = prefs?.webhookUrl
     if (!url) {
-      return c.json({ success: false, message: 'No webhook URL configured' })
+      return problem(
+        c,
+        'webhook-not-configured',
+        'No webhook URL configured',
+        400,
+        undefined,
+        undefined,
+        'common.unknownError',
+      )
     }
     try {
       await sendWebhook(url, {
@@ -489,9 +506,17 @@ export function settingsRoutes(deps: AppDependencies) {
         message: 'Test notification from digarr.',
         timestamp: new Date().toISOString(),
       })
-      return c.json({ success: true, message: 'Test webhook sent' })
+      return c.body(null, 204)
     } catch (err: unknown) {
-      return c.json({ success: false, message: errMsg(err) })
+      return problem(
+        c,
+        'webhook-test-failed',
+        'Webhook test failed',
+        502,
+        errMsg(err),
+        undefined,
+        'common.unknownError',
+      )
     }
   })
 

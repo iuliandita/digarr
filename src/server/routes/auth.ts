@@ -178,7 +178,7 @@ export function authRoutes(deps: AppDependencies) {
     if (header?.startsWith('Bearer ')) {
       await deleteSession(header.slice(7))
     }
-    return c.json({ ok: true })
+    return c.body(null, 204)
   })
 
   // Get current user from session token
@@ -234,7 +234,7 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     await deps.updateUserPreferredLocale(auth.userId, preferredLocale)
-    return c.json({ success: true, preferredLocale })
+    return c.json({ preferredLocale })
   })
 
   // Change password for the current session user (requires session auth, not legacy token)
@@ -271,7 +271,7 @@ export function authRoutes(deps: AppDependencies) {
     const newToken = generateSessionToken()
     await createSession(auth.userId, newToken)
 
-    return c.json({ ok: true, token: newToken })
+    return c.json({ token: newToken })
   })
 
   // Get the authenticated user's merged preferences
@@ -350,7 +350,7 @@ export function authRoutes(deps: AppDependencies) {
     const current = (user.preferences ?? {}) as Record<string, unknown>
     const updated = { ...current, ...filtered }
     await updateUserPreferences(deps.db, auth.userId, updated as Preferences)
-    return c.json({ success: true })
+    return c.body(null, 204)
   })
 
   return router

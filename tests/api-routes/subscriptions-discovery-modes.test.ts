@@ -357,7 +357,7 @@ describe('API routes: discovery mode subscriptions', () => {
       }),
     })
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(updateSubscription).toHaveBeenCalledWith(
       1,
       expect.objectContaining({

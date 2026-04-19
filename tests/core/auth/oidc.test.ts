@@ -254,7 +254,9 @@ describe('OidcService', () => {
 
       await expect(
         service.handleCallback(
-          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
+          new URL(
+            'http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state',
+          ),
         ),
       ).rejects.toThrow('No ID token claims')
     })

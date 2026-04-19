@@ -494,7 +494,8 @@ describe('POST /api/v1/auth/logout', () => {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })
-    expect(logoutRes.status).toBe(200)
+    expect(logoutRes.status).toBe(204)
+    expect(await logoutRes.text()).toBe('')
 
     // Token should no longer work
     const res = await app.request('/api/v1/settings', {
@@ -743,9 +744,9 @@ describe('POST /api/v1/auth/change-password', () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.ok).toBe(true)
     expect(body.token).toEqual(expect.any(String))
     expect(body.token).not.toBe('session-token')
+    expect(body.ok).toBeUndefined()
     expect(updatePassword).toHaveBeenCalledOnce()
     expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
   })

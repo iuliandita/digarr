@@ -45,7 +45,7 @@ describe('Lidarr-optional setup', () => {
         listenbrainzToken: 'token',
       }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
     expect(mockDeps.completeSetup).toHaveBeenCalled()
     // No Lidarr target should be created
     expect(mockDeps.targetQueries.createTarget).not.toHaveBeenCalled()
@@ -75,7 +75,7 @@ describe('Lidarr-optional setup', () => {
         aiApiKey: 'sk-test',
       }),
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(204)
   })
 
   it('rejects partial Lidarr config (url without apiKey)', async () => {

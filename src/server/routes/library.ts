@@ -187,7 +187,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const { source, sourceArtistId, correctMbid, note } = c.req.valid('json')
     const mbid = !correctMbid ? null : correctMbid
     await deps.librarySyncStore.upsertOverride(auth.userId, source, sourceArtistId, mbid, note)
-    return c.json({ ok: true })
+    return c.body(null, 204)
   })
 
   app.post('/api/v1/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
@@ -202,7 +202,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
       albumMbid,
       note,
     )
-    return c.json({ ok: true })
+    return c.body(null, 204)
   })
 
   // DELETE /api/v1/library/overrides/:source/:sourceArtistId - remove an override
@@ -212,7 +212,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const source = c.req.param('source')
     const sourceArtistId = c.req.param('sourceArtistId')
     await deps.librarySyncStore.deleteOverride(auth.userId, source, sourceArtistId)
-    return c.json({ ok: true })
+    return c.body(null, 204)
   })
 
   // POST /api/v1/library/reconcile - re-run reconciler for current user (forced syncForUser)
@@ -223,7 +223,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     deps.librarySync.syncForUser(auth.userId, { force: true }).catch((err: unknown) => {
       console.error('[library/reconcile] sync error:', errMsg(err))
     })
-    return c.json({ ok: true }, 202)
+    return c.body(null, 202)
   })
 
   return app

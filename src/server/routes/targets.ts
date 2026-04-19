@@ -89,7 +89,7 @@ export function targetRoutes(deps: TargetDeps) {
 
       const allowed: TargetUpdate = c.req.valid('json')
       await deps.targetQueries.updateTarget(id, allowed)
-      return c.json({ success: true })
+      return c.body(null, 204)
     },
   )
 
