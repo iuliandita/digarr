@@ -16,6 +16,9 @@ CLAUDE.md
 /ROADMAP.md
 PLAN.md
 .claude/
+.codex/
+.opencode/
+.cursor/
 .worktrees/
 .playwright-mcp/
 docs/local/

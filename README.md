@@ -223,6 +223,18 @@ Other self-hosted music discovery projects:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+### Commit message format
+
+This repo uses Conventional Commits. The commit-msg hook at `.githooks/commit-msg` enforces:
+
+    type(scope): description
+
+Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `build`, `ci`, `revert`. Scope is optional.
+
+Activate the hook once per clone:
+
+    git config --local core.hooksPath .githooks
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

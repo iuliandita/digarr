@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Conventional Commits enforcement.
+# Activate with: git config --local core.hooksPath .githooks
+# Allowed types: feat, fix, chore, docs, refactor, test, perf, build, ci, revert.
+# Scope is optional and must match [a-z0-9_-]+.
+# fixup!/squash! commits bypass the check so interactive rebases still work.
+
+msg=$(head -1 "$1")
+
+if [[ "$msg" =~ ^(fixup|squash)! ]]; then
+  exit 0
+fi
+
+pattern='^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert)(\([a-z0-9_-]+\))?!?:[[:space:]].+'
+
+if ! [[ "$msg" =~ $pattern ]]; then
+  {
+    echo "commit-msg: title must match Conventional Commits format."
+    echo "  type(scope): description"
+    echo "  types: feat, fix, chore, docs, refactor, test, perf, build, ci, revert"
+    echo "  got: $msg"
+  } >&2
+  exit 1
+fi

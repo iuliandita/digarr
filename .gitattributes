@@ -1,0 +1,9 @@
+* text=auto
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ico binary
+bun.lock linguist-generated
+drizzle/meta/_journal.json linguist-generated
