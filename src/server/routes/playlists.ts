@@ -18,6 +18,8 @@ import {
 } from '@/db/queries/playlists'
 import { getSettings } from '@/db/queries/settings'
 import { mergePreferences, type PlaylistConfig } from '@/db/schema'
+import { readPagination } from '@/server/helpers/pagination'
+import { encodeCursor } from '@/server/helpers/pagination-cursor'
 import { problem } from '@/server/helpers/problem'
 import {
   createPlaylistSchema,
@@ -96,8 +98,21 @@ export function playlistRoutes(deps: PlaylistDeps) {
     const userId = c.get('userId')
     if (!userId) return c.json({ error: 'Unauthorized' }, 401)
 
-    const rows = await getPlaylistsByUser(db, userId)
-    return c.json(rows)
+    const page = readPagination(c)
+    if (page === null) {
+      const rows = await getPlaylistsByUser(db, userId)
+      return c.json(rows)
+    }
+    const rows = await getPlaylistsByUser(db, userId, {
+      limit: page.limit + 1,
+      cursor: page.cursor,
+    })
+    const hasMore = rows.length > page.limit
+    const data = hasMore ? rows.slice(0, page.limit) : rows
+    const last = data[data.length - 1]
+    const nextCursor =
+      hasMore && last ? encodeCursor({ id: last.id, ts: last.createdAt.toISOString() }) : null
+    return c.json({ data, meta: { limit: page.limit, nextCursor } })
   })
 
   // POST /api/v1/playlists

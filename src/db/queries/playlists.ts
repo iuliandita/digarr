@@ -1,7 +1,8 @@
-import { and, asc, eq, isNull, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, isNull, lt, or } from 'drizzle-orm'
 import type { Database } from '@/db'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
 import { playlists, playlistTracks } from '@/db/schema'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 export type PlaylistInsert = {
   userId?: number | null
@@ -52,9 +53,26 @@ export async function createPlaylist(db: Database, data: PlaylistInsert): Promis
   return { id: row.id }
 }
 
-export async function getPlaylistsByUser(db: Database, userId: number): Promise<PlaylistRow[]> {
-  const rows = await db.select().from(playlists).where(eq(playlists.userId, userId))
-  return rows
+export async function getPlaylistsByUser(
+  db: Database,
+  userId: number,
+  opts: { limit?: number; cursor?: Cursor | null } = {},
+): Promise<PlaylistRow[]> {
+  const conditions = [eq(playlists.userId, userId)]
+  if (opts.cursor) {
+    conditions.push(
+      or(
+        lt(playlists.createdAt, new Date(opts.cursor.ts)),
+        and(eq(playlists.createdAt, new Date(opts.cursor.ts)), lt(playlists.id, opts.cursor.id)),
+      ) as NonNullable<ReturnType<typeof or>>,
+    )
+  }
+  const base = db
+    .select()
+    .from(playlists)
+    .where(and(...conditions))
+    .orderBy(desc(playlists.createdAt), desc(playlists.id))
+  return opts.limit ? base.limit(opts.limit) : base
 }
 
 export async function getEnabledPlaylists(db: Database): Promise<PlaylistRow[]> {
