@@ -2,6 +2,22 @@
 
 All notable user-facing changes are documented here.
 
+## v0.41.0 - 2026-04-19
+
+Phase 9 of the deep-audit remediation: API hygiene. The entire HTTP surface moves to `/api/v1/*`; legacy `/api/*` paths respond with `308 Permanent Redirect` + `Deprecation` + `Sunset` headers (sunset 2026-07-19). Mutation routes now return `204 No Content` instead of `{ok:true}`-family JSON bodies. The probe endpoint reports probe failure via HTTP status codes (502/504 + problem+json) rather than a `success:false` body flag. Six list endpoints opt into cursor pagination via `?limit=N&cursor=OPAQUE`.
+
+### Changed (breaking)
+
+- `/api/*` -> `/api/v1/*`. Old prefix 308-redirects for one release, removed in the next major. Clients that post-date RFC 7538 (2015+) handle 308 POST bodies correctly. Re-register OIDC callback URLs at your IdP. Update any webhook targets that point at `/api/` paths.
+- Mutation endpoints (auth password change, logout; settings update; subscription/target/playlist/user CRUD; library overrides/reconcile; setup complete; slskd accept; OAuth disconnect) return `204 No Content` with empty body. Two endpoints retain a body: `PATCH /api/v1/auth/me/locale` returns `{preferredLocale}`; `POST /api/v1/auth/change-password` returns `{token}`.
+- `POST /api/v1/settings/test/:service` returns `200 {message}` on success; `502 Bad Gateway` with `application/problem+json` on failure. The `success` field is gone; read the HTTP status. `POST /api/v1/settings/test-webhook` returns `204` on success and problem+json on failure.
+
+### Added
+
+- `readPagination(c)` accepts `?limit` + `?cursor` on subscriptions, targets, batches, users, playlists, and analytics/batches endpoints. Absence of both query params preserves the legacy naked-array response.
+- `src/server/helpers/pagination-cursor.ts` - opaque base64url-encoded `{id, ts}` cursor. Malformed cursors are treated as a fresh request.
+- `src/server/middleware/api-version.ts` - 308 redirect with `Deprecation: true` and `Sunset: Sat, 19 Jul 2026 00:00:00 GMT`.
+
 ## v0.40.6 - 2026-04-19
 
 Closes the last Phase 2 SSRF gap from the deep audit (item 2.3). NAT64 (RFC 6052, `64:ff9b::/32`) and Teredo (RFC 4380, `2001::/32`) encode arbitrary IPv4 inside IPv6, so an attacker controlling DNS for an IPv6 hostname could previously tunnel webhook/probe traffic back into RFC1918 space. `isPrivateIp` now rejects both prefixes.

@@ -28,9 +28,9 @@ import type {
   StatusUpdateExtra,
 } from '@/db/queries/recommendations'
 import type { SettingsRow, SetupConfig } from '@/db/queries/settings'
-import type { Cursor } from '@/server/helpers/pagination-cursor'
 import type { SubscriptionInsert, SubscriptionUpdate } from '@/db/queries/subscriptions'
 import type { subscriptions } from '@/db/schema'
+import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 type SubscriptionRow = typeof subscriptions.$inferSelect
 

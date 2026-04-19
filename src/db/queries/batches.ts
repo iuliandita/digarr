@@ -61,7 +61,10 @@ export async function listBatches(
         .from(recommendationBatches)
         .where(and(...conditions))
     : db.select().from(recommendationBatches)
-  const ordered = base.orderBy(desc(recommendationBatches.createdAt), desc(recommendationBatches.id))
+  const ordered = base.orderBy(
+    desc(recommendationBatches.createdAt),
+    desc(recommendationBatches.id),
+  )
   return opts.limit ? ordered.limit(opts.limit) : ordered
 }
 

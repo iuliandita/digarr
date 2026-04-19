@@ -4,7 +4,7 @@
 // existing integrations while letting new callers opt into pagination.
 
 import type { Context } from 'hono'
-import { decodeCursor, type Cursor } from '@/server/helpers/pagination-cursor'
+import { type Cursor, decodeCursor } from '@/server/helpers/pagination-cursor'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
 
 export type PaginationParams = {
