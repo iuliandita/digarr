@@ -211,6 +211,13 @@
       "when": 1776510950630,
       "tag": "0029_artists_gin_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1776691758179,
+      "tag": "0030_sweet_ender_wiggin",
+      "breakpoints": true
     }
   ]
 }

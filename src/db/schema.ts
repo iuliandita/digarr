@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   real,
   serial,
@@ -50,6 +51,9 @@ export const settings = pgTable('settings', {
   oidcClientSecret: text('oidc_client_secret'),
   oidcScopes: text('oidc_scopes'),
   skipTlsVerify: boolean('skip_tls_verify').default(false).notNull(),
+  audiodbApiKey: text('audiodb_api_key'),
+  audiodbProxyImages: boolean('audiodb_proxy_images').notNull().default(false),
+  wikidataEnabled: boolean('wikidata_enabled').notNull().default(true),
   preferences: jsonb('preferences').$type<Preferences>(),
   setupComplete: boolean('setup_complete').default(false).notNull(),
   librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
@@ -173,6 +177,17 @@ export const artists = pgTable('artists', {
   beginYear: integer('begin_year'),
   endYear: integer('end_year'),
   topTracks: jsonb('top_tracks').$type<TopTracksCache>(),
+  description: jsonb('description').$type<Record<string, string> | null>(),
+  externalLinks: jsonb('external_links').$type<Record<string, string> | null>(),
+  wikidataId: text('wikidata_id'),
+  wikidataFetchedAt: timestamp('wikidata_fetched_at', { withTimezone: true }),
+  wikidataFailedAt: timestamp('wikidata_failed_at', { withTimezone: true }),
+})
+
+export const rateLimitBuckets = pgTable('rate_limit_buckets', {
+  key: text('key').primaryKey(),
+  tokens: numeric('tokens', { precision: 10, scale: 4 }).notNull(),
+  lastRefillAt: timestamp('last_refill_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
 export const recommendationBatches = pgTable('recommendation_batches', {
