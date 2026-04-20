@@ -26,6 +26,8 @@ const mockClient = {
   getSimilarUsers: vi.fn(),
   getTopArtistsForUser: vi.fn(),
   getTopArtists: vi.fn(),
+  getTopArtistsPaged: vi.fn(),
+  getListens: vi.fn(),
   getSimilarArtists: vi.fn(),
   getListenCount: vi.fn(),
   getListeningActivity: vi.fn(),

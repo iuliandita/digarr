@@ -273,17 +273,44 @@ export const getArtistEnrichment = (id: number, locale: string) =>
   fetchApi<ArtistEnrichment>(`/artists/${id}/enrichment?locale=${encodeURIComponent(locale)}`)
 
 // Listening
-export const getRecentListens = (range = 'month', limit = 5) => {
-  const qs = new URLSearchParams({ range, limit: String(limit) })
+export type ListeningTopRange = 'this_week' | 'this_month' | 'this_year' | 'all_time'
+
+export type TopArtistEntry = {
+  artist: string
+  track: string
+  source: string
+  imageUrl?: string
+  mbid?: string
+}
+
+export type RecentTrackEntry = {
+  artist: string
+  track: string
+  source: string
+  imageUrl?: string
+  playedAt?: string
+  nowPlaying?: boolean
+  mbid?: string
+}
+
+export const getTopArtists = (range: ListeningTopRange, offset = 0, limit = 5) => {
+  const qs = new URLSearchParams({ range, offset: String(offset), limit: String(limit) })
   return fetchApi<{
-    tracks: Array<{
-      artist: string
-      track: string
-      source: string
-      imageUrl?: string
-      mbid?: string
-    }>
-  }>(`/listening/recent?${qs}`)
+    tracks: TopArtistEntry[]
+    total: number
+    offset: number
+    limit: number
+    source: 'listenbrainz' | 'lastfm' | null
+  }>(`/listening/top-artists?${qs}`)
+}
+
+export const getRecentTracks = (limit = 5) => {
+  const qs = new URLSearchParams({ limit: String(limit) })
+  return fetchApi<{
+    tracks: RecentTrackEntry[]
+    hasSource: boolean
+    source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | null
+  }>(`/listening/recent-tracks?${qs}`)
 }
 
 // Quick discover

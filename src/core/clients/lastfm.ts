@@ -15,8 +15,18 @@ export type LastFmTopArtist = {
 }
 
 export type LastFmRecentTrack = {
-  artist: { '#text': string }
+  artist: { '#text': string; mbid?: string }
   name: string
+  album?: { '#text': string }
+  image?: Array<{ '#text': string; size: string }>
+  date?: { uts: string; '#text': string }
+  '@attr'?: { nowplaying?: string }
+  mbid?: string
+}
+
+export type LastFmPagedTopArtists = {
+  artists: LastFmTopArtist[]
+  totalCount: number
 }
 
 // Raw Last.fm response shapes
@@ -29,6 +39,7 @@ type LfmSimilarArtistsResponse = {
 type LfmTopArtistsResponse = {
   topartists: {
     artist: Array<{ name: string; mbid: string; playcount: string }>
+    '@attr'?: { total?: string; totalPages?: string; page?: string; perPage?: string }
   }
 }
 
@@ -84,11 +95,35 @@ export function createLastFmClient(username: string, apiKey: string) {
     }))
   }
 
-  async function getRecentTracks(): Promise<LastFmRecentTrack[]> {
+  async function getTopArtistsPaged(
+    period: LastFmPeriod,
+    options: { page?: number; limit?: number } = {},
+  ): Promise<LastFmPagedTopArtists> {
+    const params: Record<string, string> = {
+      method: 'user.getTopArtists',
+      user: username,
+      period,
+    }
+    if (options.page != null) params.page = String(options.page)
+    if (options.limit != null) params.limit = String(options.limit)
+    const res = await get<LfmTopArtistsResponse>(params)
+    const totalCount = parseInt(res.topartists['@attr']?.total ?? '0', 10)
+    return {
+      artists: res.topartists.artist.map((a) => ({
+        name: a.name,
+        mbid: a.mbid || undefined,
+        playCount: parseInt(a.playcount, 10),
+        source: 'lastfm' as const,
+      })),
+      totalCount: Number.isFinite(totalCount) ? totalCount : res.topartists.artist.length,
+    }
+  }
+
+  async function getRecentTracks(limit = 50): Promise<LastFmRecentTrack[]> {
     const res = await get<LfmRecentTracksResponse>({
       method: 'user.getRecentTracks',
       user: username,
-      limit: '50',
+      limit: String(limit),
     })
     return res.recenttracks.track
   }
@@ -126,6 +161,7 @@ export function createLastFmClient(username: string, apiKey: string) {
   return {
     getSimilarArtists,
     getTopArtists,
+    getTopArtistsPaged,
     getTopArtistsByTag,
     getRecentTracks,
     testConnection,

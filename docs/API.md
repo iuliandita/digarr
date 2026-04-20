@@ -516,9 +516,20 @@ Query params: `status`, `batchId`. Limit: 10,000 rows.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/listening/recent` | Yes | Recent listening history (Last.fm/ListenBrainz) |
+| GET | `/api/v1/listening/top-artists` | Yes | Top artists by play count for a given period (ListenBrainz primary, Last.fm fallback) |
+| GET | `/api/v1/listening/recent-tracks` | Yes | Most recent scrobbles (Last.fm primary, ListenBrainz, Jellyfin, Emby fallback) |
 
-Query params: `range` (week/month/year), `limit` (1-50).
+**GET /api/v1/listening/top-artists** query params:
+- `range` - `this_week`, `this_month`, `this_year`, `all_time` (default `this_month`). Calendar-aligned ongoing periods, not rolling windows. Legacy `week`/`month`/`year` map to `this_week`/`this_month`/`this_year` for back-compat.
+- `offset` - 0-10000 (default 0)
+- `limit` - 1-50 (default 5)
+
+Response: `{ tracks, total, offset, limit, source }`. `source` is `"listenbrainz"`, `"lastfm"`, or `null`. Last.fm periods are rolling windows (`7day`, `1month`, `12month`, `overall`) and map approximately to the requested calendar range.
+
+**GET /api/v1/listening/recent-tracks** query params:
+- `limit` - 1-50 (default 5)
+
+Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobble-capable source is connected (UI should hide the tile). `source` identifies which source served the data.
 
 ---
 

@@ -20,6 +20,7 @@ describe('createLastFmSource()', () => {
         { name: 'Tricky', mbid: 'mbid-tr', similarityScore: 0.75, source: 'lastfm' },
       ]),
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
+      getTopArtistsPaged: vi.fn().mockResolvedValue({ artists: [], totalCount: 0 }),
       getRecentTracks: vi.fn().mockResolvedValue([]),
       getTopArtistsByTag: vi.fn().mockResolvedValue([
         { name: 'Portishead', mbid: 'mbid-pt', listeners: 1200000 },

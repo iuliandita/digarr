@@ -230,7 +230,16 @@ export const en = {
     'Approve or reject recommendations to teach Digarr your taste. The more feedback you give, the better your future recommendations get.',
   'dashboard.foundLastRun': 'found last run',
   'dashboard.getStarted': 'Get started',
-  'dashboard.listening': 'Listening',
+  'dashboard.listeningHistory': 'Listening History',
+  'dashboard.recentPlays': 'Recently Played',
+  'dashboard.recentPlaysEmpty': 'No recent plays',
+  'dashboard.thisWeek': 'This week',
+  'dashboard.thisMonth': 'This month',
+  'dashboard.thisYear': 'This year',
+  'dashboard.allTime': 'All time',
+  'dashboard.prev': 'Prev',
+  'dashboard.next': 'Next',
+  'dashboard.nowPlaying': 'Now playing',
   'dashboard.listeningTip':
     'Your listening data comes from ListenBrainz or Last.fm. Make sure your token is set in Settings for accurate results.',
   'dashboard.manage': 'Manage',
@@ -699,10 +708,6 @@ export const en = {
   'systemHealth.overdue': 'overdue',
   'systemHealth.inMinutes': 'in {0}m',
   'systemHealth.inHours': 'in {0}h',
-
-  // Dashboard
-  'dashboard.week': 'week',
-  'dashboard.month': 'month',
 
   // Search Page
   'search.title': 'Search',

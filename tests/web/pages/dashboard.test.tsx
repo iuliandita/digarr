@@ -47,7 +47,8 @@ vi.mock('@/web/lib/api', () => ({
   deletePlaylistApi: vi.fn(),
   generatePlaylistApi: vi.fn(),
   listTargets: vi.fn().mockResolvedValue([]),
-  getRecentListens: vi.fn(),
+  getTopArtists: vi.fn(),
+  getRecentTracks: vi.fn(),
   getSubscriptions: vi.fn(),
   getSchedulerInfo: vi.fn(),
   getDashboardTaste: vi.fn(),
@@ -85,17 +86,19 @@ import {
   getDashboardActivity,
   getDashboardTaste,
   getPipelineStatus,
-  getRecentListens,
+  getRecentTracks,
   getRecommendations,
   getSchedulerInfo,
   getSubscriptions,
+  getTopArtists,
   listTargets,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
 
 const mockApproveToTarget = vi.mocked(approveToTarget)
 const mockGetRecommendations = vi.mocked(getRecommendations)
-const mockGetRecentListens = vi.mocked(getRecentListens)
+const mockGetTopArtists = vi.mocked(getTopArtists)
+const mockGetRecentTracks = vi.mocked(getRecentTracks)
 const mockGetSubscriptions = vi.mocked(getSubscriptions)
 const mockGetSchedulerInfo = vi.mocked(getSchedulerInfo)
 const mockGetDashboardTaste = vi.mocked(getDashboardTaste)
@@ -159,8 +162,25 @@ function setupMocks() {
     return Promise.resolve({ items: [], total: 0 })
   })
 
-  mockGetRecentListens.mockResolvedValue({
+  mockGetTopArtists.mockResolvedValue({
+    tracks: [
+      {
+        artist: 'Bon Iver',
+        track: '42 plays this month',
+        source: 'listenbrainz',
+        mbid: 'mbid-bon-iver',
+      },
+    ],
+    total: 1,
+    offset: 0,
+    limit: 5,
+    source: 'listenbrainz',
+  })
+
+  mockGetRecentTracks.mockResolvedValue({
     tracks: [{ artist: 'Bon Iver', track: 'Holocene', source: 'listenbrainz' }],
+    hasSource: true,
+    source: 'listenbrainz',
   })
 
   mockGetSubscriptions.mockResolvedValue([
@@ -236,13 +256,14 @@ describe('Dashboard', () => {
     expect(await screen.findByText('Le choix du jour')).toBeInTheDocument()
   })
 
-  it('renders listening activity', async () => {
+  it('renders listening history and recent plays', async () => {
     setupMocks()
     renderWithQuery(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByText('Bon Iver')).toBeInTheDocument()
+      expect(screen.getByText('42 plays this month')).toBeInTheDocument()
       expect(screen.getByText('Holocene')).toBeInTheDocument()
+      expect(screen.getAllByText('Bon Iver').length).toBeGreaterThan(0)
     })
   })
 

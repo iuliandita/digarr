@@ -995,7 +995,6 @@ export const MESSAGE_OVERRIDES: Partial<Record<SupportedLocale, Partial<MessageC
     'settings.capImport': 'Importeren',
     'systemHealth.pipeline': 'Ontdekkingsrun',
     'systemHealth.librarySync': 'Bibliotheeksynchronisatie',
-    'dashboard.week': 'weekoverzicht',
     'discoveryMode.labels.label': 'Etiketten',
     'discoveryMode.field.feed': 'Feedbron',
     'discoveryMode.field.tags': 'Trefwoorden',

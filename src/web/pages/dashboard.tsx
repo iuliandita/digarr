@@ -17,16 +17,20 @@ import {
   approveToTarget,
   getDashboardActivity,
   getDashboardTaste,
-  getRecentListens,
+  getRecentTracks,
   getRecommendations,
   getSchedulerInfo,
   getSubscriptions,
+  getTopArtists,
   getUserPreferences,
+  type ListeningTopRange,
   listTargets,
+  type RecentTrackEntry,
   rescanArtists,
   type SchedulerJob,
   type Subscription,
   type TasteGenre,
+  type TopArtistEntry,
   triggerPipeline,
   updateRecommendation,
 } from '../lib/api'
@@ -126,41 +130,67 @@ function SubscriptionPulse({
   )
 }
 
-function ListeningActivity({
+const LISTENING_TOP_RANGES: readonly ListeningTopRange[] = [
+  'this_week',
+  'this_month',
+  'this_year',
+  'all_time',
+]
+
+function rangeLabelKey(
+  r: ListeningTopRange,
+): 'dashboard.thisWeek' | 'dashboard.thisMonth' | 'dashboard.thisYear' | 'dashboard.allTime' {
+  return r === 'this_week'
+    ? 'dashboard.thisWeek'
+    : r === 'this_month'
+      ? 'dashboard.thisMonth'
+      : r === 'this_year'
+        ? 'dashboard.thisYear'
+        : 'dashboard.allTime'
+}
+
+function ListeningHistory({
   data,
   range,
+  page,
+  pageSize,
   onRangeChange,
+  onPageChange,
 }: {
   data:
     | {
-        tracks: Array<{
-          artist: string
-          track: string
-          source: string
-          imageUrl?: string
-          mbid?: string
-        }>
+        tracks: TopArtistEntry[]
+        total: number
+        offset: number
+        limit: number
       }
     | undefined
-  range: 'week' | 'month'
-  onRangeChange: (r: 'week' | 'month') => void
+  range: ListeningTopRange
+  page: number
+  pageSize: number
+  onRangeChange: (r: ListeningTopRange) => void
+  onPageChange: (p: number) => void
 }) {
   const { t } = useI18n()
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const hasPrev = page > 0
+  const hasNext = page + 1 < totalPages
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 gap-2">
         <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('dashboard.listening')}
+          {t('dashboard.listeningHistory')}
         </h2>
-        <div className="flex gap-1">
-          {(['week', 'month'] as const).map((r) => (
+        <div className="flex gap-1 flex-wrap justify-end">
+          {LISTENING_TOP_RANGES.map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => onRangeChange(r)}
               className={`text-xs px-2 py-0.5 rounded ${range === r ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'}`}
             >
-              {r === 'week' ? t('dashboard.week') : t('dashboard.month')}
+              {t(rangeLabelKey(r))}
             </button>
           ))}
         </div>
@@ -173,17 +203,85 @@ function ListeningActivity({
           </Link>
         </div>
       ) : (
+        <div className="bg-surface border border-border rounded-lg">
+          <div className="divide-y divide-border">
+            {data.tracks.map((entry) => (
+              <div
+                key={`${entry.source}-${entry.artist}-${entry.track}`}
+                className="flex items-center gap-3 px-4 py-2.5"
+              >
+                <ArtistThumb name={entry.artist} imageUrl={entry.imageUrl} size={8} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-text truncate">{entry.artist}</p>
+                  <p className="text-xs text-muted truncate">{entry.track}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => onPageChange(page - 1)}
+                disabled={!hasPrev}
+                className="text-xs text-muted disabled:opacity-40 disabled:cursor-not-allowed hover:text-text"
+              >
+                {t('dashboard.prev')}
+              </button>
+              <span className="text-xs text-muted">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => onPageChange(page + 1)}
+                disabled={!hasNext}
+                className="text-xs text-muted disabled:opacity-40 disabled:cursor-not-allowed hover:text-text"
+              >
+                {t('dashboard.next')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RecentActivity({
+  data,
+}: {
+  data: { tracks: RecentTrackEntry[]; hasSource: boolean } | undefined
+}) {
+  const { t, locale } = useI18n()
+  if (!data || !data.hasSource) return null
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-text uppercase tracking-wide mb-3">
+        {t('dashboard.recentPlays')}
+      </h2>
+      {data.tracks.length === 0 ? (
+        <div className="bg-surface border border-border rounded-lg p-6 text-center">
+          <p className="text-sm text-muted">{t('dashboard.recentPlaysEmpty')}</p>
+        </div>
+      ) : (
         <div className="bg-surface border border-border rounded-lg divide-y divide-border">
-          {data.tracks.map((t) => (
+          {data.tracks.map((entry) => (
             <div
-              key={`${t.source}-${t.artist}-${t.track}`}
+              key={`${entry.source}-${entry.playedAt ?? ''}-${entry.artist}-${entry.track}`}
               className="flex items-center gap-3 px-4 py-2.5"
             >
-              <ArtistThumb name={t.artist} imageUrl={t.imageUrl} size={8} />
+              <ArtistThumb name={entry.artist} imageUrl={entry.imageUrl} size={8} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-text truncate">{t.artist}</p>
-                <p className="text-xs text-muted truncate">{t.track}</p>
+                <p className="text-sm text-text truncate">{entry.artist}</p>
+                <p className="text-xs text-muted truncate">{entry.track}</p>
               </div>
+              {entry.nowPlaying ? (
+                <span className="text-xs text-accent shrink-0">{t('dashboard.nowPlaying')}</span>
+              ) : entry.playedAt ? (
+                <span className="text-xs text-muted shrink-0">
+                  {formatRelativeTime(locale, entry.playedAt)}
+                </span>
+              ) : null}
             </div>
           ))}
         </div>
@@ -297,7 +395,9 @@ export function Dashboard() {
   const queryClient = useQueryClient()
   const [skippedIds, setSkippedIds] = useState<Set<number>>(new Set())
   const [actedIds, setActedIds] = useState<Set<number>>(new Set())
-  const [listenRange, setListenRange] = useState<'week' | 'month'>('month')
+  const [listenRange, setListenRange] = useState<ListeningTopRange>('this_month')
+  const [listenPage, setListenPage] = useState(0)
+  const LISTEN_PAGE_SIZE = 5
 
   // Pending pick - fetch 10 so skip has runway
   const { data: pickData, isLoading: pickLoading } = useQuery({
@@ -332,10 +432,17 @@ export function Dashboard() {
     staleTime: 30_000,
   })
 
-  // Listening
-  const { data: listensData } = useQuery({
-    queryKey: ['dashboard-listens', listenRange],
-    queryFn: () => getRecentListens(listenRange, 3),
+  // Listening history (top artists)
+  const { data: topArtistsData } = useQuery({
+    queryKey: ['dashboard-top-artists', listenRange, listenPage, LISTEN_PAGE_SIZE],
+    queryFn: () => getTopArtists(listenRange, listenPage * LISTEN_PAGE_SIZE, LISTEN_PAGE_SIZE),
+    staleTime: 30_000,
+  })
+
+  // Recent activity (latest scrobbles)
+  const { data: recentTracksData } = useQuery({
+    queryKey: ['dashboard-recent-tracks'],
+    queryFn: () => getRecentTracks(5),
     staleTime: 30_000,
   })
 
@@ -535,14 +642,21 @@ export function Dashboard() {
           </Hint>
         </div>
         <div className="space-y-3">
-          <ListeningActivity
-            data={listensData}
+          <ListeningHistory
+            data={topArtistsData}
             range={listenRange}
-            onRangeChange={setListenRange}
+            page={listenPage}
+            pageSize={LISTEN_PAGE_SIZE}
+            onRangeChange={(r) => {
+              setListenRange(r)
+              setListenPage(0)
+            }}
+            onPageChange={setListenPage}
           />
           <Hint id="dashboard-listening-tip" type="inline">
             {t('dashboard.listeningTip')}
           </Hint>
+          <RecentActivity data={recentTracksData} />
         </div>
       </div>
 

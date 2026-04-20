@@ -5,13 +5,34 @@ import { createHttpClient } from './http'
 
 const BASE_URL = 'https://api.listenbrainz.org'
 
-export type ListenBrainzRange = 'week' | 'month' | 'year' | 'all_time'
+export type ListenBrainzRange =
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'this_week'
+  | 'this_month'
+  | 'this_year'
+  | 'all_time'
 
 export type TopArtist = {
   name: string
   mbid?: string
   playCount: number
   source: 'listenbrainz'
+}
+
+export type PagedTopArtists = {
+  artists: TopArtist[]
+  totalCount: number
+}
+
+export type RecentListen = {
+  artist: string
+  track: string
+  listenedAt: number
+  artistMbid?: string
+  recordingMbid?: string
+  releaseName?: string
 }
 
 export type SimilarArtist = {
@@ -34,6 +55,25 @@ type LbTopArtistsResponse = {
       artist_name: string
       artist_mbid: string
       listen_count: number
+    }>
+    total_artist_count?: number
+    count?: number
+  }
+}
+
+type LbListensResponse = {
+  payload: {
+    listens: Array<{
+      listened_at: number
+      track_metadata: {
+        artist_name: string
+        track_name: string
+        release_name?: string
+        additional_info?: {
+          artist_mbids?: string[]
+          recording_mbid?: string
+        }
+      }
     }>
   }
 }
@@ -132,6 +172,39 @@ export function createListenBrainzClient(username: string, token: string) {
       mbid: a.artist_mbid || undefined,
       playCount: a.listen_count,
       source: 'listenbrainz' as const,
+    }))
+  }
+
+  async function getTopArtistsPaged(
+    range: ListenBrainzRange,
+    options: { offset?: number; count?: number } = {},
+  ): Promise<PagedTopArtists> {
+    const params = new URLSearchParams({ range })
+    if (options.offset != null) params.set('offset', String(options.offset))
+    if (options.count != null) params.set('count', String(options.count))
+    const res = await http.get<LbTopArtistsResponse>(
+      `/1/stats/user/${username}/artists?${params.toString()}`,
+    )
+    return {
+      artists: res.payload.artists.map((a) => ({
+        name: a.artist_name,
+        mbid: a.artist_mbid || undefined,
+        playCount: a.listen_count,
+        source: 'listenbrainz' as const,
+      })),
+      totalCount: res.payload.total_artist_count ?? res.payload.artists.length,
+    }
+  }
+
+  async function getListens(count = 20): Promise<RecentListen[]> {
+    const res = await http.get<LbListensResponse>(`/1/user/${username}/listens?count=${count}`)
+    return res.payload.listens.map((l) => ({
+      artist: l.track_metadata.artist_name,
+      track: l.track_metadata.track_name,
+      listenedAt: l.listened_at,
+      artistMbid: l.track_metadata.additional_info?.artist_mbids?.[0],
+      recordingMbid: l.track_metadata.additional_info?.recording_mbid,
+      releaseName: l.track_metadata.release_name,
     }))
   }
 
@@ -252,6 +325,8 @@ export function createListenBrainzClient(username: string, token: string) {
 
   return {
     getTopArtists,
+    getTopArtistsPaged,
+    getListens,
     getListenCount,
     getListeningActivity,
     getSimilarArtists,
