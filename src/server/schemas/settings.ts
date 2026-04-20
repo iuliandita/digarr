@@ -59,6 +59,11 @@ export const updateSettingsSchema = z.object({
   aiModel: z.string().optional(),
   aiBaseUrl: z.string().optional(),
 
+  // Metadata enrichment (global)
+  audiodbApiKey: z.string().nullable().optional(),
+  audiodbProxyImages: z.boolean().optional(),
+  wikidataEnabled: z.boolean().optional(),
+
   // Preferences (nested)
   preferences: preferencesSchema.optional(),
 
