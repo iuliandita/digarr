@@ -7,6 +7,7 @@ import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { AdministrationTab } from '../components/admin/administration-tab'
+import { setAudiodbProxyFlag } from '../components/artist-thumb'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
 import { Hint } from '../components/hint'
@@ -2021,6 +2022,12 @@ function RecommendationsTab() {
     queryFn: getSettings,
   })
 
+  useEffect(() => {
+    if (!settings) return
+    const proxy = (settings as { audiodbProxyImages?: boolean }).audiodbProxyImages
+    if (typeof proxy === 'boolean') setAudiodbProxyFlag(proxy)
+  }, [settings])
+
   if (prefsLoading || !prefs) {
     return <div className="text-sm text-muted">{t('settings.loadingPreferences')}</div>
   }
@@ -2119,6 +2126,7 @@ function RecommendationsTabInner({
         audiodbProxyImages,
         wikidataEnabled,
       })
+      setAudiodbProxyFlag(audiodbProxyImages)
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       queryClient.invalidateQueries({ queryKey: ['settings'] })
       toast.success(t('settings.recommendationsSaved'))

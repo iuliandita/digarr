@@ -5,6 +5,7 @@ export type HealthCheckId =
   | 'duplicate-artists'
   | 'genre-gaps'
   | 'image-gaps'
+  | 'missing-wikidata'
 
 export type HealthCheckSeverity = 'info' | 'warning' | 'error'
 

@@ -888,8 +888,7 @@ export const tr = {
   'settings.imageSourcesHelp':
     'Sanatci gorselleri oncelikle TheAudioDB kaynagindan gelir; Lidarr/SkyHook, fanart.tv ve musicinfo.pro yedek olarak kullanilir.',
   'settings.audiodb.apiKey': 'TheAudioDB premium API anahtari (isteğe bagli)',
-  'settings.audiodb.apiKeyPlaceholder':
-    'Ucretsiz ortak anahtari kullanmak icin bos birakin',
+  'settings.audiodb.apiKeyPlaceholder': 'Ucretsiz ortak anahtari kullanmak icin bos birakin',
   'settings.audiodb.proxyImages': 'Gorselleri Digarr uzerinden aktar',
   'settings.audiodb.proxyHint':
     'Gorsel isteklerini bu sunucu uzerinden yonlendirerek IP adresinizi TheAudioDB CDN karsisinda gizler.',

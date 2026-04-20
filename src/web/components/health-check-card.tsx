@@ -1,4 +1,4 @@
-import { Copy, Image, Music, Search, Tag, User } from 'lucide-react'
+import { BookOpen, Copy, Image, Music, Search, Tag, User } from 'lucide-react'
 import { useState } from 'react'
 import type { HealthCheckItem, HealthCheckResult } from '../lib/api'
 import { Button } from './ui/button'
@@ -10,7 +10,17 @@ const FIX_HINTS: Record<string, string> = {
   'genre-gaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
   'image-gaps':
     'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+  'missing-wikidata':
+    'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
 }
+
+// Per-check i18n keys used by the (future) localised overrides of the backend's
+// hardcoded English CHECK_META.name/description strings. Referenced here so the
+// i18n-check orphan detector sees them.
+export const HEALTH_CHECK_I18N_KEYS = [
+  'libraryHealth.artistsMissingWikidata.title',
+  'libraryHealth.artistsMissingWikidata.description',
+] as const
 
 const CHECK_ICONS: Record<string, React.ReactNode> = {
   'missing-metadata': <Search size={16} className="text-muted shrink-0" />,
@@ -19,6 +29,7 @@ const CHECK_ICONS: Record<string, React.ReactNode> = {
   'duplicate-artists': <Copy size={16} className="text-muted shrink-0" />,
   'genre-gaps': <Tag size={16} className="text-muted shrink-0" />,
   'image-gaps': <Image size={16} className="text-muted shrink-0" />,
+  'missing-wikidata': <BookOpen size={16} className="text-muted shrink-0" />,
 }
 
 function severityBorderClass(severity: HealthCheckResult['severity']): string {

@@ -453,6 +453,9 @@ const libraryHealth = new LibraryHealthService({
     updateImageUrl: async (mbid, imageUrl) => {
       await db.update(artists).set({ imageUrl }).where(eq(artists.mbid, mbid))
     },
+    updateWikidataEnrichment: async (mbid, data) => {
+      await db.update(artists).set(data).where(eq(artists.mbid, mbid))
+    },
   },
   stateStore: {
     get: () => getLibraryHealthState(db),

@@ -1,9 +1,26 @@
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { getSettings } from '../lib/api'
 import { hueFromName } from '../lib/utils'
 
 const AUDIODB_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])
+const PROXY_FLAG_KEY = 'digarr:audiodbProxyImages'
+
+export function setAudiodbProxyFlag(enabled: boolean): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(PROXY_FLAG_KEY, enabled ? '1' : '0')
+  } catch {
+    // storage unavailable; proxy just won't kick in
+  }
+}
+
+function readProxyFlag(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(PROXY_FLAG_KEY) === '1'
+  } catch {
+    return false
+  }
+}
 
 function resolveSrc(url: string | null | undefined, proxy: boolean): string | undefined {
   if (!url) return undefined
@@ -42,11 +59,7 @@ export function ArtistThumb({
   className?: string
 }) {
   const [imgError, setImgError] = useState(false)
-  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: getSettings })
-  const proxy = Boolean(
-    (settings as { audiodbProxyImages?: boolean } | undefined)?.audiodbProxyImages,
-  )
-  const resolvedSrc = resolveSrc(imageUrl ?? null, proxy)
+  const resolvedSrc = resolveSrc(imageUrl ?? null, readProxyFlag())
   const px = size * 4
   const hue = hueFromName(name)
 

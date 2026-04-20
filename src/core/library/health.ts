@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import type { LidarrAlbum, LidarrArtist } from '@/core/clients/lidarr'
+import { createWikidataClient } from '@/core/clients/wikidata'
 import type {
   HealthCheckId,
   HealthCheckItem,
@@ -18,6 +19,8 @@ type ArtistCacheEntry = {
   tags: string[] | null
   imageUrl: string | null
   streamingUrls: Record<string, string> | null
+  wikidataFetchedAt?: Date | null
+  wikidataFailedAt?: Date | null
 }
 
 type HealthServiceDeps = {
@@ -32,6 +35,16 @@ type HealthServiceDeps = {
   artistCache: {
     getAll: () => Promise<ArtistCacheEntry[]>
     updateImageUrl?: (mbid: string, imageUrl: string) => Promise<void>
+    updateWikidataEnrichment?: (
+      mbid: string,
+      data: {
+        wikidataId: string | null
+        description: Record<string, string> | null
+        externalLinks: Record<string, string> | null
+        wikidataFetchedAt: Date | null
+        wikidataFailedAt: Date | null
+      },
+    ) => Promise<void>
   }
   stateStore?: {
     get: () => Promise<LibraryHealthState | null>
@@ -84,6 +97,13 @@ const CHECK_META: Record<
     severity: 'info',
     fixable: true,
   },
+  'missing-wikidata': {
+    name: 'Artists missing Wikidata enrichment',
+    description:
+      'Fetch short descriptions and external links for artists without cached Wikidata data.',
+    severity: 'info',
+    fixable: true,
+  },
 }
 
 export class LibraryHealthService {
@@ -131,6 +151,7 @@ export class LibraryHealthService {
       this.checkDuplicateArtists(lidarrArtists),
       this.checkGenreGaps(lidarrArtists, cachedByMbid),
       this.checkImageGaps(cachedArtists, lidarrArtists),
+      this.checkMissingWikidata(cachedArtists, lidarrArtists),
     ]
 
     this.cachedResults = results
@@ -372,6 +393,28 @@ export class LibraryHealthService {
     return { ...meta, id: 'image-gaps', count: items.length, items }
   }
 
+  private checkMissingWikidata(
+    cachedArtists: ArtistCacheEntry[],
+    lidarrArtists: LidarrArtist[],
+  ): HealthCheckResult {
+    const meta = CHECK_META['missing-wikidata']
+    const lidarrByMbid = new Map(lidarrArtists.map((a) => [a.foreignArtistId, a]))
+
+    const items: HealthCheckItem[] = cachedArtists
+      .filter((a) => a.wikidataFetchedAt == null && a.wikidataFailedAt == null)
+      .map((a) => {
+        const lidarr = lidarrByMbid.get(a.mbid)
+        return {
+          artistId: lidarr?.id ?? 0,
+          artistName: a.name,
+          mbid: a.mbid,
+          detail: 'No Wikidata',
+        }
+      })
+
+    return { ...meta, id: 'missing-wikidata', count: items.length, items }
+  }
+
   // Private: fix dispatch
 
   private async applyFix(checkId: HealthCheckId, item: HealthCheckItem): Promise<void> {
@@ -394,6 +437,31 @@ export class LibraryHealthService {
         const imageUrl = extractImageUrl(results)
         if (imageUrl && this.deps.artistCache.updateImageUrl) {
           await this.deps.artistCache.updateImageUrl(item.mbid, imageUrl)
+        }
+        break
+      }
+
+      case 'missing-wikidata': {
+        const updateFn = this.deps.artistCache.updateWikidataEnrichment
+        if (!updateFn) break
+        const wikidata = createWikidataClient()
+        const result = await wikidata.getArtistEnrichment(item.mbid, 'en')
+        if (!result.wikidataId && !result.description) {
+          await updateFn(item.mbid, {
+            wikidataId: null,
+            description: null,
+            externalLinks: null,
+            wikidataFetchedAt: null,
+            wikidataFailedAt: new Date(),
+          })
+        } else {
+          await updateFn(item.mbid, {
+            wikidataId: result.wikidataId,
+            description: result.description ? { en: result.description } : null,
+            externalLinks: result.externalLinks,
+            wikidataFetchedAt: new Date(),
+            wikidataFailedAt: null,
+          })
         }
         break
       }
