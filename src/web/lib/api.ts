@@ -264,6 +264,14 @@ export const getBatch = (id: number) => fetchApi<unknown>(`/batches/${id}`)
 // Artists
 export const getArtist = (id: number) => fetchApi<unknown>(`/artists/${id}`)
 
+export type ArtistEnrichment = {
+  description: string | null
+  externalLinks: Record<string, string>
+  wikidataId: string | null
+}
+export const getArtistEnrichment = (id: number, locale: string) =>
+  fetchApi<ArtistEnrichment>(`/artists/${id}/enrichment?locale=${encodeURIComponent(locale)}`)
+
 // Listening
 export const getRecentListens = (range = 'month', limit = 5) => {
   const qs = new URLSearchParams({ range, limit: String(limit) })
