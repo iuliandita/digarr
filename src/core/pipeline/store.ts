@@ -77,6 +77,11 @@ export interface StoreDb {
     artist: Parameters<StoreDb['upsertArtist']>[0],
     rec: Omit<Parameters<StoreDb['insertRecommendation']>[0], 'artistId'>,
   ) => Promise<void>
+
+  tryConsumeRateLimit?: (
+    key: string,
+    config: { capacity: number; refillPerMs: number },
+  ) => Promise<boolean>
 }
 
 export type StoreOptions = {

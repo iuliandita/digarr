@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
+import { createAudiodbClient } from '@/core/clients/audiodb'
 import { createFanartClient } from '@/core/clients/fanart'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
@@ -45,6 +46,7 @@ export interface PipelineSettings {
   preferences: Preferences | null
   skipTlsVerify?: boolean
   spotifyAccessToken?: string | null
+  audiodbApiKey?: string | null
 }
 
 export interface PipelineDeps {
@@ -128,6 +130,18 @@ export class PipelineOrchestrator extends EventEmitter {
         settings.lidarrUrl && settings.lidarrApiKey
           ? createLidarrClient(settings.lidarrUrl, settings.lidarrApiKey, settings.skipTlsVerify)
           : null
+
+      const audiodbApiKey = decryptField(settings.audiodbApiKey ?? null) ?? undefined
+      const audiodbClient = db.tryConsumeRateLimit
+        ? createAudiodbClient({
+            apiKey: audiodbApiKey,
+            tryConsume: () =>
+              db.tryConsumeRateLimit?.('audiodb', {
+                capacity: 30,
+                refillPerMs: 30 / 60_000,
+              }) ?? Promise.resolve(false),
+          })
+        : null
 
       const fanartApiKey = decryptField(prefs.fanartApiKey) ?? null
       const fanartClient = fanartApiKey ? createFanartClient(fanartApiKey) : null
@@ -363,6 +377,7 @@ export class PipelineOrchestrator extends EventEmitter {
         fanartClient,
         musicinfoClient,
         t,
+        audiodbClient,
       )
 
       // Enrich sparse genres from artist_metadata (if available)
