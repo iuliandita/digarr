@@ -2,15 +2,20 @@ import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { createDeezerClient } from '@/core/clients/deezer'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { createWikidataClient } from '@/core/clients/wikidata'
 import type { TopTrack, TopTracksCache } from '@/db/schema'
 import { artists } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 
+const ENRICHMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const ENRICHMENT_NEG_TTL_MS = 24 * 60 * 60 * 1000
+
 export function artistRoutes(deps: AppDependencies) {
   const router = new Hono()
   const deezer = createDeezerClient()
   const mb = createMusicBrainzClient()
+  const wikidata = createWikidataClient()
 
   router.get('/api/v1/artists/:id', async (c) => {
     const id = Number(c.req.param('id'))
@@ -117,6 +122,70 @@ export function artistRoutes(deps: AppDependencies) {
       }
     },
   )
+
+  router.get('/api/v1/artists/:id/enrichment', async (c) => {
+    const id = Number(c.req.param('id'))
+    if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
+    const localeRaw = c.req.query('locale') ?? 'en'
+    const locale = /^[a-zA-Z-]{2,10}$/.test(localeRaw) ? localeRaw : 'en'
+
+    const row = await deps.db.query.artists.findFirst({ where: eq(artists.id, id) })
+    if (!row) return c.json({ error: 'Artist not found' }, 404)
+
+    const emptyPayload = { description: null, externalLinks: {}, wikidataId: null }
+
+    const settings = await deps.getSettings()
+    if (!settings?.wikidataEnabled) return c.json(emptyPayload)
+
+    const now = Date.now()
+    const failedAt = row.wikidataFailedAt?.getTime() ?? 0
+    if (failedAt && now - failedAt < ENRICHMENT_NEG_TTL_MS) {
+      return c.json(emptyPayload)
+    }
+
+    const fetchedAt = row.wikidataFetchedAt?.getTime() ?? 0
+    const cached = row.description as Record<string, string> | null
+    if (fetchedAt && now - fetchedAt < ENRICHMENT_TTL_MS && cached?.[locale]) {
+      return c.json({
+        description: cached[locale],
+        externalLinks: row.externalLinks ?? {},
+        wikidataId: row.wikidataId,
+      })
+    }
+
+    const result = await wikidata.getArtistEnrichment(row.mbid, locale)
+    if (!result.wikidataId && !result.description) {
+      await deps.db
+        .update(artists)
+        .set({ wikidataFailedAt: new Date() })
+        .where(eq(artists.id, id))
+      return c.json(emptyPayload)
+    }
+
+    const mergedDescription: Record<string, string> = {
+      ...(cached ?? {}),
+      ...(result.description ? { [locale]: result.description } : {}),
+    }
+    await deps.db
+      .update(artists)
+      .set({
+        description: mergedDescription,
+        externalLinks: {
+          ...((row.externalLinks as Record<string, string> | null) ?? {}),
+          ...result.externalLinks,
+        },
+        wikidataId: result.wikidataId,
+        wikidataFetchedAt: new Date(),
+        wikidataFailedAt: null,
+      })
+      .where(eq(artists.id, id))
+
+    return c.json({
+      description: result.description,
+      externalLinks: result.externalLinks,
+      wikidataId: result.wikidataId,
+    })
+  })
 
   router.get('/api/v1/albums/:mbid', async (c) => {
     const mbid = c.req.param('mbid')

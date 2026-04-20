@@ -24,6 +24,13 @@ vi.mock('@/core/clients/musicbrainz', () => ({
   })),
 }))
 
+const wikidataGetEnrichment = vi.fn()
+vi.mock('@/core/clients/wikidata', () => ({
+  createWikidataClient: vi.fn(() => ({
+    getArtistEnrichment: wikidataGetEnrichment,
+  })),
+}))
+
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
   return Object.assign(emitter, {
@@ -437,5 +444,132 @@ describe('GET /api/v1/artists/:id/top-tracks', () => {
     // Should have the fresh Deezer data, not the stale cache
     expect(body.tracks[0].name).toBe('Numb')
     expect(mockSearchArtists).toHaveBeenCalled()
+  })
+})
+
+type ArtistLike = typeof MOCK_ARTIST
+function makeEnrichmentDb(artist: ArtistLike | null) {
+  const setCalls: Array<Record<string, unknown>> = []
+  const db = {
+    query: {
+      artists: {
+        findFirst: vi.fn(async () => artist),
+      },
+    },
+    update: vi.fn(() => ({
+      set: vi.fn((values: Record<string, unknown>) => {
+        setCalls.push(values)
+        return { where: vi.fn(async () => undefined) }
+      }),
+    })),
+  }
+  return { db: db as unknown as AppDependencies['db'], setCalls }
+}
+
+const enrichmentSettings = (override: Partial<SettingsRow> = {}): SettingsRow =>
+  ({ id: 1, wikidataEnabled: true, ...override }) as SettingsRow
+
+describe('GET /api/v1/artists/:id/enrichment', () => {
+  beforeEach(() => {
+    wikidataGetEnrichment.mockReset()
+  })
+
+  it('returns cached description when within TTL', async () => {
+    const { db } = makeEnrichmentDb({
+      ...MOCK_ARTIST,
+      description: { en: 'English blurb' } as unknown as null,
+      externalLinks: { wikipedia: 'https://en.wikipedia.org/wiki/X' } as unknown as null,
+      wikidataId: 'Q1',
+      wikidataFetchedAt: new Date() as unknown as null,
+    })
+    const app = createApp(
+      makeDeps({
+        db,
+        getSettings: vi.fn(async () => enrichmentSettings()),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/artists/1/enrichment?locale=en')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.description).toBe('English blurb')
+    expect(wikidataGetEnrichment).not.toHaveBeenCalled()
+  })
+
+  it('fetches from Wikidata on cache miss and persists', async () => {
+    wikidataGetEnrichment.mockResolvedValueOnce({
+      wikidataId: 'Q2',
+      description: 'Fresh bio',
+      externalLinks: { wikipedia: 'https://en.wikipedia.org/wiki/Y' },
+    })
+    const { db, setCalls } = makeEnrichmentDb({ ...MOCK_ARTIST })
+    const app = createApp(
+      makeDeps({
+        db,
+        getSettings: vi.fn(async () => enrichmentSettings()),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/artists/1/enrichment?locale=en')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.description).toBe('Fresh bio')
+    expect(wikidataGetEnrichment).toHaveBeenCalledWith(MOCK_ARTIST.mbid, 'en')
+    expect(setCalls[0]).toMatchObject({ wikidataId: 'Q2' })
+  })
+
+  it('stamps failure and returns empty when Wikidata yields nothing', async () => {
+    wikidataGetEnrichment.mockResolvedValueOnce({
+      wikidataId: null,
+      description: null,
+      externalLinks: {},
+    })
+    const { db, setCalls } = makeEnrichmentDb({ ...MOCK_ARTIST })
+    const app = createApp(
+      makeDeps({
+        db,
+        getSettings: vi.fn(async () => enrichmentSettings()),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/artists/1/enrichment?locale=en')
+    const body = await res.json()
+    expect(body.description).toBeNull()
+    expect(setCalls[0]).toHaveProperty('wikidataFailedAt')
+  })
+
+  it('skips Wikidata within 24h of prior failure', async () => {
+    const { db } = makeEnrichmentDb({
+      ...MOCK_ARTIST,
+      wikidataFailedAt: new Date() as unknown as null,
+    })
+    const app = createApp(
+      makeDeps({
+        db,
+        getSettings: vi.fn(async () => enrichmentSettings()),
+      }),
+    )
+    await authedRequest(app, '/api/v1/artists/1/enrichment?locale=en')
+    expect(wikidataGetEnrichment).not.toHaveBeenCalled()
+  })
+
+  it('returns empty without calling Wikidata when wikidataEnabled=false', async () => {
+    const { db } = makeEnrichmentDb({ ...MOCK_ARTIST })
+    const app = createApp(
+      makeDeps({
+        db,
+        getSettings: vi.fn(async () => enrichmentSettings({ wikidataEnabled: false })),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/artists/1/enrichment?locale=en')
+    const body = await res.json()
+    expect(body.description).toBeNull()
+    expect(wikidataGetEnrichment).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 when artist not found', async () => {
+    const { db } = makeEnrichmentDb(null)
+    const app = createApp(
+      makeDeps({ db, getSettings: vi.fn(async () => enrichmentSettings()) }),
+    )
+    const res = await authedRequest(app, '/api/v1/artists/999/enrichment?locale=en')
+    expect(res.status).toBe(404)
   })
 })
