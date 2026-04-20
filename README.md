@@ -101,6 +101,8 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Plex | - | - | Artists, Albums | Yes | - |
 | Jellyfin | - | - | Artists, Albums | Yes | - |
 | Emby | - | - | Artists, Albums | Yes | - |
+| TheAudioDB | - | - | - | - | Artist images (primary) |
+| Wikidata | - | - | - | - | Bio + external links per artist |
 | AI Provider | Mood Discover | - | - | - | - |
 
 ## Quick Start

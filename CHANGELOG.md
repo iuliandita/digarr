@@ -2,6 +2,16 @@
 
 All notable user-facing changes are documented here.
 
+## Unreleased
+
+### Added
+
+- TheAudioDB is now the primary source for artist images, with the existing Lidarr/SkyHook, fanart.tv, and musicinfo.pro chain as fallback. A Postgres-backed token-bucket rate limiter keeps AudioDB traffic under the free-tier budget and survives process restarts.
+- Recommendation cards expose a short artist description and external links (Wikipedia, official site, Discogs, MusicBrainz) sourced from Wikidata. Responses are cached per locale for 30 days with a 24h negative cache on SPARQL misses.
+- Settings > Recommendations: TheAudioDB premium API key (optional), image-proxy toggle, and Wikidata enable toggle.
+- Optional image proxy route (`GET /api/v1/media/image-proxy`) hides the client IP from the TheAudioDB CDN when enabled. Allowlisted to AudioDB hosts, SSRF-guarded, off by default.
+- Library health check "Artists missing Wikidata enrichment" backfills descriptions and external links in bulk at a polite 1 rps.
+
 ## v0.41.0 - 2026-04-19
 
 Phase 9 of the deep-audit remediation: API hygiene. The entire HTTP surface moves to `/api/v1/*`; legacy `/api/*` paths respond with `308 Permanent Redirect` + `Deprecation` + `Sunset` headers (sunset 2026-07-19). Mutation routes now return `204 No Content` instead of `{ok:true}`-family JSON bodies. The probe endpoint reports probe failure via HTTP status codes (502/504 + problem+json) rather than a `success:false` body flag. Six list endpoints opt into cursor pagination via `?limit=N&cursor=OPAQUE`.
