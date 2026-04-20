@@ -1,3 +1,4 @@
+import { type AudiodbClient, RateLimitedError } from '@/core/clients/audiodb'
 import { extractImages, type ImageEntry } from '@/core/clients/image-utils'
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import { parseYear } from '@/core/clients/musicbrainz'
@@ -43,6 +44,7 @@ export async function resolve(
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
   t?: Translator,
+  audiodb?: AudiodbClient | null,
 ): Promise<ResolvedArtist[]> {
   // Group by MBID (if known) then by name, to deduplicate
   const byMbid = new Map<string, DiscoveredArtist[]>()
@@ -86,7 +88,9 @@ export async function resolve(
 
     try {
       const mbArtist = await mb.lookupArtist(mbid)
-      resolved.push(await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo))
+      resolved.push(
+        await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo, audiodb),
+      )
     } catch {
       // Drop unresolvable
     }
@@ -142,7 +146,15 @@ export async function resolve(
 
       if (!bestCandidate || byMbid.has(bestCandidate.id)) continue
       resolved.push(
-        await buildResolvedArtist(bestCandidate, discoveries, mb, lidarr, fanart, musicinfo),
+        await buildResolvedArtist(
+          bestCandidate,
+          discoveries,
+          mb,
+          lidarr,
+          fanart,
+          musicinfo,
+          audiodb,
+        ),
       )
       byMbid.set(bestCandidate.id, discoveries)
     } catch {
@@ -214,12 +226,20 @@ async function buildResolvedArtist(
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
+  audiodb?: AudiodbClient | null,
 ): Promise<ResolvedArtist> {
   const tags = (mbArtist.tags ?? []).map((t) => t.name)
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
 
-  // Get artist image from Lidarr's metadata, falling back to fanart.tv then musicinfo.pro
-  const imageResult = await fetchArtistImage(mbArtist.id, lidarr, fanart, musicinfo)
+  // AudioDB first, then Lidarr -> fanart.tv -> musicinfo.pro
+  const imageResult = await fetchArtistImage(
+    mbArtist.id,
+    mbArtist.name,
+    audiodb,
+    lidarr,
+    fanart,
+    musicinfo,
+  )
 
   // Resolve suggested album from AI discoveries
   const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
@@ -244,12 +264,31 @@ async function buildResolvedArtist(
   }
 }
 
-async function fetchArtistImage(
+export async function fetchArtistImage(
   mbid: string,
+  name: string,
+  audiodb?: AudiodbClient | null,
   lidarr?: LidarrLookupClient | null,
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
 ): Promise<{ url?: string; logoUrl?: string; failed: boolean }> {
+  // Primary: AudioDB (MBID first, then name search when MBID yields nothing).
+  // A rate-limit error skips straight to the fallback chain (no name search).
+  if (audiodb) {
+    try {
+      const byMbid = await audiodb.getArtistImages(mbid)
+      if (byMbid.url) return { ...byMbid, failed: false }
+      if (name) {
+        const byName = await audiodb.searchArtistByName(name)
+        if (byName.url) return { ...byName, failed: false }
+      }
+    } catch (err) {
+      if (!(err instanceof RateLimitedError)) {
+        console.warn(`[resolve] audiodb image lookup failed for ${mbid}:`, err)
+      }
+    }
+  }
+
   // Fallback chain: Lidarr -> fanart.tv -> musicinfo.pro
   if (lidarr) {
     try {

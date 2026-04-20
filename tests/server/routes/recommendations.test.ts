@@ -46,6 +46,11 @@ const mockArtist = {
   beginYear: null,
   endYear: null,
   topTracks: null,
+  description: null,
+  externalLinks: null,
+  wikidataId: null,
+  wikidataFetchedAt: null,
+  wikidataFailedAt: null,
 }
 
 const mockRecommendation = {

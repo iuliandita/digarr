@@ -210,6 +210,11 @@ const MOCK_ARTIST = {
   beginYear: 1991,
   endYear: null,
   topTracks: null,
+  description: null,
+  externalLinks: null,
+  wikidataId: null,
+  wikidataFetchedAt: null,
+  wikidataFailedAt: null,
 }
 
 beforeEach(() => {
