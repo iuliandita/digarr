@@ -9,6 +9,7 @@ import { GENRE_COLORS } from '../lib/constants'
 import { useI18n } from '../lib/i18n'
 import { usePreviewContext } from '../lib/preview-context'
 import { cn, hueFromName } from '../lib/utils'
+import { ArtistEnrichmentPanel } from './artist-enrichment-panel'
 import { ArtistThumb } from './artist-thumb'
 import { Hint } from './hint'
 import { LibraryAlbumCoverageBadge } from './library-album-coverage-badge'
@@ -857,6 +858,11 @@ export function RecommendationCard({
                 <p className="text-sm text-text italic">{rec.aiReasoning}</p>
               </div>
             )}
+
+            {/* Wikidata enrichment: bio + external links */}
+            <div className="px-4">
+              <ArtistEnrichmentPanel artistId={rec.artist.id} mbid={rec.artist.mbid} />
+            </div>
 
             {/* Top tracks */}
             <div className="px-4">
