@@ -1,5 +1,23 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { getSettings } from '../lib/api'
 import { hueFromName } from '../lib/utils'
+
+const AUDIODB_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])
+
+function resolveSrc(url: string | null | undefined, proxy: boolean): string | undefined {
+  if (!url) return undefined
+  if (!proxy) return url
+  try {
+    const u = new URL(url)
+    if (AUDIODB_HOSTS.has(u.hostname)) {
+      return `/api/v1/media/image-proxy?src=${encodeURIComponent(url)}`
+    }
+  } catch {
+    // fall through
+  }
+  return url
+}
 
 // ArtistThumb
 
@@ -24,16 +42,21 @@ export function ArtistThumb({
   className?: string
 }) {
   const [imgError, setImgError] = useState(false)
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: getSettings })
+  const proxy = Boolean(
+    (settings as { audiodbProxyImages?: boolean } | undefined)?.audiodbProxyImages,
+  )
+  const resolvedSrc = resolveSrc(imageUrl ?? null, proxy)
   const px = size * 4
   const hue = hueFromName(name)
 
   const sizeStyle = fill ? undefined : { width: `${px}px`, height: `${px}px` }
   const sizeClass = fill ? 'w-full h-full' : 'shrink-0'
 
-  if (imageUrl && !imgError) {
+  if (resolvedSrc && !imgError) {
     return (
       <img
-        src={imageUrl}
+        src={resolvedSrc}
         alt={name}
         className={`rounded-md object-cover bg-bg ${sizeClass} ${className ?? ''}`}
         style={sizeStyle}
