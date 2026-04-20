@@ -479,7 +479,7 @@ describe('GET /api/v1/artists/:id/enrichment', () => {
       ...MOCK_ARTIST,
       description: { en: 'English blurb' } as unknown as null,
       externalLinks: { wikipedia: 'https://en.wikipedia.org/wiki/X' } as unknown as null,
-      wikidataId: 'Q1',
+      wikidataId: 'Q1' as unknown as null,
       wikidataFetchedAt: new Date() as unknown as null,
     })
     const app = createApp(

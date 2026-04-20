@@ -29,6 +29,7 @@ import { jobRoutes } from './routes/jobs'
 import { libraryRoutes } from './routes/library'
 import { lidarrRoutes } from './routes/lidarr'
 import { listeningRoutes } from './routes/listening'
+import { mediaRoutes } from './routes/media'
 import { moodRoutes } from './routes/mood'
 import { oauthRoutes } from './routes/oauth'
 import { oidcRoutes } from './routes/oidc'
@@ -276,6 +277,7 @@ export function createApp(deps: AppDependencies) {
   )
   app.route('/', analyticsRoutes(deps))
   app.route('/', artistRoutes(deps))
+  app.route('/', mediaRoutes(deps))
   app.route('/', lidarrRoutes(deps))
   app.route('/', listeningRoutes(deps))
   app.route('/', discoveryModeRoutes(deps))
