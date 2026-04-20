@@ -30,8 +30,7 @@ const DEFAULT_BASE = 'https://www.theaudiodb.com/api/v1/json'
 
 function pickImages(artist: AudiodbArtist | undefined): ImageResult {
   if (!artist) return {}
-  const url =
-    artist.strArtistThumb || artist.strArtistFanart || artist.strArtistBanner || undefined
+  const url = artist.strArtistThumb || artist.strArtistFanart || artist.strArtistBanner || undefined
   const logoUrl = artist.strArtistLogo || undefined
   return { url, logoUrl }
 }
@@ -78,9 +77,7 @@ export function createAudiodbClient(config: AudiodbClientConfig) {
 
     async searchArtistByName(name: string): Promise<ImageResult> {
       try {
-        const data = await guardedGet<AudiodbResponse>(
-          `/search.php?s=${encodeURIComponent(name)}`,
-        )
+        const data = await guardedGet<AudiodbResponse>(`/search.php?s=${encodeURIComponent(name)}`)
         const matches = data.artists ?? []
         if (matches.length !== 1) return {}
         return pickImages(matches[0])

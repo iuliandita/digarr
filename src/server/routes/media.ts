@@ -2,11 +2,7 @@ import { Hono } from 'hono'
 import { isPrivateUrl } from '@/core/notifications'
 import type { AppDependencies } from '@/server'
 
-const ALLOWED_HOSTS = new Set([
-  'img.theaudiodb.com',
-  'theaudiodb.com',
-  'www.theaudiodb.com',
-])
+const ALLOWED_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])
 
 export function mediaRoutes(deps: AppDependencies) {
   const router = new Hono()

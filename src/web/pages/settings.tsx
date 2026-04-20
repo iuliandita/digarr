@@ -77,6 +77,9 @@ type Settings = {
   aiApiKey?: string
   aiModel?: string
   aiBaseUrl?: string
+  audiodbApiKey?: string
+  audiodbProxyImages?: boolean
+  wikidataEnabled?: boolean
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string
@@ -2013,19 +2016,31 @@ function RecommendationsTab() {
     queryKey: ['user-preferences'],
     queryFn: getUserPreferences,
   })
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  })
 
   if (prefsLoading || !prefs) {
     return <div className="text-sm text-muted">{t('settings.loadingPreferences')}</div>
   }
 
-  return <RecommendationsTabInner prefs={prefs} queryClient={queryClient} />
+  return (
+    <RecommendationsTabInner
+      prefs={prefs}
+      settings={(settings ?? {}) as Settings}
+      queryClient={queryClient}
+    />
+  )
 }
 
 function RecommendationsTabInner({
   prefs,
+  settings,
   queryClient,
 }: {
   prefs: Record<string, unknown>
+  settings: Settings
   queryClient: ReturnType<typeof useQueryClient>
 }) {
   const { t } = useI18n()
@@ -2061,6 +2076,15 @@ function RecommendationsTabInner({
   const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
     String(prefs.metadataFallbackUrl ?? ''),
   )
+  const [audiodbApiKey, setAudiodbApiKey] = useState(
+    settings.audiodbApiKey === '***' ? '' : (settings.audiodbApiKey ?? ''),
+  )
+  const [audiodbProxyImages, setAudiodbProxyImages] = useState<boolean>(
+    Boolean(settings.audiodbProxyImages),
+  )
+  const [wikidataEnabled, setWikidataEnabled] = useState<boolean>(
+    settings.wikidataEnabled !== false,
+  )
   const [saving, setSaving] = useState(false)
 
   const weightSum =
@@ -2090,7 +2114,13 @@ function RecommendationsTabInner({
         fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
         metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
+      await updateSettings({
+        audiodbApiKey: audiodbApiKey === '***' ? undefined : audiodbApiKey || null,
+        audiodbProxyImages,
+        wikidataEnabled,
+      })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
+      queryClient.invalidateQueries({ queryKey: ['settings'] })
       toast.success(t('settings.recommendationsSaved'))
     } catch {
       toast.error(t('settings.recommendationsFailed'))
@@ -2284,6 +2314,29 @@ function RecommendationsTabInner({
               {t('settings.imageSources')}
             </h3>
             <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
+            <Field label={t('settings.audiodb.apiKey')} id="audiodb-api-key">
+              <Input
+                id="audiodb-api-key"
+                type="password"
+                value={audiodbApiKey}
+                onChange={(e) => setAudiodbApiKey(e.target.value)}
+                placeholder={t('settings.audiodb.apiKeyPlaceholder')}
+              />
+            </Field>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={audiodbProxyImages}
+                onChange={(e) => setAudiodbProxyImages(e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm">
+                {t('settings.audiodb.proxyImages')}
+                <span className="block text-micro text-muted">
+                  {t('settings.audiodb.proxyHint')}
+                </span>
+              </span>
+            </label>
             <Field label={t('settings.fieldFanartApiKey')} id="fanart-api-key">
               <Input
                 id="fanart-api-key"
@@ -2302,6 +2355,21 @@ function RecommendationsTabInner({
               />
             </Field>
             <p className="text-micro text-muted">{t('settings.metadataFallbackHelp')}</p>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              {t('settings.wikidata.title')}
+            </h3>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={wikidataEnabled}
+                onChange={(e) => setWikidataEnabled(e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm">{t('settings.wikidata.enabled')}</span>
+            </label>
           </section>
         </div>
       </CollapsibleSection>

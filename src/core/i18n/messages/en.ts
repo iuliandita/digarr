@@ -980,7 +980,22 @@ export const en = {
   'settings.librarySeedRatio': 'Library seed ratio',
   'settings.imageSources': 'Image Sources',
   'settings.imageSourcesHelp':
-    'Artist images come from Lidarr/SkyHook by default. A fanart.tv API key enables a fallback when SkyHook is down.',
+    'Artist images are sourced from TheAudioDB first, with Lidarr/SkyHook, fanart.tv, and musicinfo.pro as fallbacks.',
+  'settings.audiodb.apiKey': 'TheAudioDB premium API key (optional)',
+  'settings.audiodb.apiKeyPlaceholder': 'Leave blank to use the free public key',
+  'settings.audiodb.proxyImages': 'Proxy images through Digarr',
+  'settings.audiodb.proxyHint':
+    'Hides your IP from the TheAudioDB CDN by routing image requests through this server.',
+  'settings.wikidata.title': 'Wikidata enrichment',
+  'settings.wikidata.enabled': 'Show artist bio and external links on recommendation cards',
+  'artist.noDescription': 'No description available.',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.officialSite': 'Official site',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'libraryHealth.artistsMissingWikidata.title': 'Artists missing Wikidata enrichment',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Fetch short descriptions and external links for artists without cached Wikidata data.',
   'settings.metadataFallbackHelp':
     "Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your own hearring-aid instance URL if self-hosting.",
   'settings.recommendationsSaved': 'Recommendation settings saved',

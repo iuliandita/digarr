@@ -23,7 +23,9 @@ function makeDeps(
     scheduler: {} as AppDependencies['scheduler'],
     providerRegistry: {} as unknown as AppDependencies['providerRegistry'],
     isSetupComplete: async () => true,
-    getSettings: vi.fn(async () => ({ id: 1, audiodbProxyImages: false, ...settings }) as SettingsRow),
+    getSettings: vi.fn(
+      async () => ({ id: 1, audiodbProxyImages: false, ...settings }) as SettingsRow,
+    ),
     updateSettings: vi.fn(async () => {}),
     completeSetup: vi.fn(async () => ({ id: 1, setupComplete: true })),
     getLastBatch: vi.fn(async () => null),
@@ -81,7 +83,10 @@ async function authedReq(app: ReturnType<typeof createApp>, url: string): Promis
 describe('GET /api/v1/media/image-proxy', () => {
   it('returns 404 when audiodbProxyImages=false (feature gated)', async () => {
     const app = createApp(makeDeps({}, { audiodbProxyImages: false }))
-    const res = await authedReq(app, '/api/v1/media/image-proxy?src=https://img.theaudiodb.com/x.jpg')
+    const res = await authedReq(
+      app,
+      '/api/v1/media/image-proxy?src=https://img.theaudiodb.com/x.jpg',
+    )
     expect(res.status).toBe(404)
   })
 
@@ -93,19 +98,13 @@ describe('GET /api/v1/media/image-proxy', () => {
 
   it('rejects private IP target', async () => {
     const app = createApp(makeDeps({}, { audiodbProxyImages: true }))
-    const res = await authedReq(
-      app,
-      '/api/v1/media/image-proxy?src=http://169.254.169.254/meta',
-    )
+    const res = await authedReq(app, '/api/v1/media/image-proxy?src=http://169.254.169.254/meta')
     expect(res.status).toBe(400)
   })
 
   it('rejects non-http protocol', async () => {
     const app = createApp(makeDeps({}, { audiodbProxyImages: true }))
-    const res = await authedReq(
-      app,
-      '/api/v1/media/image-proxy?src=file:///etc/passwd',
-    )
+    const res = await authedReq(app, '/api/v1/media/image-proxy?src=file:///etc/passwd')
     expect(res.status).toBe(400)
   })
 

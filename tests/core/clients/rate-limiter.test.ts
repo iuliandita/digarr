@@ -1,7 +1,7 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
+import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { tryConsume } from '@/core/clients/rate-limiter'
 import * as schema from '@/db/schema'
 
@@ -72,9 +72,7 @@ describe('rate-limiter', () => {
   it('handles concurrent consumers at capacity=1 (exactly one wins)', async () => {
     if (!pgAvailable) return
     const results = await Promise.all(
-      Array.from({ length: 10 }, () =>
-        tryConsume(db, 'race', { capacity: 1, refillPerMs: 0 }),
-      ),
+      Array.from({ length: 10 }, () => tryConsume(db, 'race', { capacity: 1, refillPerMs: 0 })),
     )
     expect(results.filter(Boolean).length).toBe(1)
   })

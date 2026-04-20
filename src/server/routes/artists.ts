@@ -155,10 +155,7 @@ export function artistRoutes(deps: AppDependencies) {
 
     const result = await wikidata.getArtistEnrichment(row.mbid, locale)
     if (!result.wikidataId && !result.description) {
-      await deps.db
-        .update(artists)
-        .set({ wikidataFailedAt: new Date() })
-        .where(eq(artists.id, id))
+      await deps.db.update(artists).set({ wikidataFailedAt: new Date() }).where(eq(artists.id, id))
       return c.json(emptyPayload)
     }
 

@@ -566,9 +566,7 @@ describe('GET /api/v1/artists/:id/enrichment', () => {
 
   it('returns 404 when artist not found', async () => {
     const { db } = makeEnrichmentDb(null)
-    const app = createApp(
-      makeDeps({ db, getSettings: vi.fn(async () => enrichmentSettings()) }),
-    )
+    const app = createApp(makeDeps({ db, getSettings: vi.fn(async () => enrichmentSettings()) }))
     const res = await authedRequest(app, '/api/v1/artists/999/enrichment?locale=en')
     expect(res.status).toBe(404)
   })

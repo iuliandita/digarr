@@ -12,14 +12,7 @@ describe('fetchArtistImage with AudioDB', () => {
     const lidarr = { lookupArtist: vi.fn() }
     const fanart = { getArtistImages: vi.fn() }
     const musicinfo = { lookupArtistImages: vi.fn() }
-    const result = await fetchArtistImage(
-      'mbid-1',
-      'Artist',
-      audiodb,
-      lidarr,
-      fanart,
-      musicinfo,
-    )
+    const result = await fetchArtistImage('mbid-1', 'Artist', audiodb, lidarr, fanart, musicinfo)
     expect(result.url).toBe('adb://thumb')
     expect(result.failed).toBe(false)
     expect(lidarr.lookupArtist).not.toHaveBeenCalled()
@@ -31,14 +24,7 @@ describe('fetchArtistImage with AudioDB', () => {
       getArtistImages: vi.fn(async () => ({})),
       searchArtistByName: vi.fn(async () => ({ url: 'adb://name' })),
     }
-    const result = await fetchArtistImage(
-      'mbid-2',
-      'Niche Artist',
-      audiodb,
-      null,
-      null,
-      null,
-    )
+    const result = await fetchArtistImage('mbid-2', 'Niche Artist', audiodb, null, null, null)
     expect(result.url).toBe('adb://name')
     expect(audiodb.searchArtistByName).toHaveBeenCalledWith('Niche Artist')
   })
@@ -55,14 +41,7 @@ describe('fetchArtistImage with AudioDB', () => {
         { images: [{ coverType: 'poster', remoteUrl: 'lidarr://x' }] },
       ]),
     }
-    const result = await fetchArtistImage(
-      'mbid-3',
-      'Name',
-      audiodb,
-      lidarr,
-      null,
-      null,
-    )
+    const result = await fetchArtistImage('mbid-3', 'Name', audiodb, lidarr, null, null)
     expect(audiodb.searchArtistByName).not.toHaveBeenCalled()
     expect(result.url).toBe('lidarr://x')
   })
