@@ -892,7 +892,21 @@ export const uk = {
   'settings.librarySeedRatio': 'Частка початкових даних з бібліотеки',
   'settings.imageSources': 'Джерела зображень',
   'settings.imageSourcesHelp':
-    'Зображення виконавців беруться з Lidarr/SkyHook за замовчуванням. API Key fanart.tv дає резервне джерело, коли SkyHook недоступний.',
+    'Зображення виконавців спочатку беруться з TheAudioDB; Lidarr/SkyHook, fanart.tv і musicinfo.pro працюють як резерв.',
+  'settings.audiodb.apiKey': 'Преміум API-ключ TheAudioDB (необов’язковий)',
+  'settings.audiodb.apiKeyPlaceholder':
+    'Залиште порожнім, щоб використовувати безкоштовний публічний ключ',
+  'settings.audiodb.proxyImages': 'Пропускати зображення через Digarr',
+  'settings.audiodb.proxyHint':
+    'Приховує вашу IP-адресу від CDN TheAudioDB, направляючи запити зображень через цей сервер.',
+  'settings.wikidata.title': 'Збагачення з Wikidata',
+  'settings.wikidata.enabled':
+    'Показувати біографію виконавця та зовнішні посилання на картках рекомендацій',
+  'artist.noDescription': 'Опис недоступний.',
+  'artist.externalLinks.officialSite': 'Офіційний сайт',
+  'libraryHealth.artistsMissingWikidata.title': 'Виконавці без даних Wikidata',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Отримати описи та зовнішні посилання для виконавців, у яких немає кешованих даних Wikidata.',
   'settings.metadataFallbackHelp':
     'Використовується, коли сервер метаданих Lidarr недоступний. За замовчуванням api.musicinfo.pro. Вкажіть URL свого екземпляра hearring-aid, якщо ви самостійно його розгортаєте.',
   'settings.recommendationsSaved': 'Налаштування рекомендацій збережено',

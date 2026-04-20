@@ -887,7 +887,20 @@ export const pl = {
   'settings.librarySeedRatio': 'Wspolczynnik seeda biblioteki',
   'settings.imageSources': 'Źródła obrazów',
   'settings.imageSourcesHelp':
-    'Zdjecia artystów domyślnie pochodza z Lidarr/SkyHook. Klucz API fanart.tv umozliwia fallback, gdy SkyHook jest niedostępny.',
+    'Zdjecia artystów pochodza najpierw z TheAudioDB; Lidarr/SkyHook, fanart.tv i musicinfo.pro pelnia role rezerwy.',
+  'settings.audiodb.apiKey': 'Klucz API premium TheAudioDB (opcjonalny)',
+  'settings.audiodb.apiKeyPlaceholder': 'Pozostaw puste, aby uzyc darmowego klucza publicznego',
+  'settings.audiodb.proxyImages': 'Przekazuj obrazy przez Digarr',
+  'settings.audiodb.proxyHint':
+    'Ukrywa Twoje IP przed CDN TheAudioDB, kierujac zadania obrazów przez ten serwer.',
+  'settings.wikidata.title': 'Wzbogacenie z Wikidata',
+  'settings.wikidata.enabled':
+    'Pokazuj biografie i linki zewnetrzne artysty na kartach rekomendacji',
+  'artist.noDescription': 'Brak dostepnego opisu.',
+  'artist.externalLinks.officialSite': 'Oficjalna strona',
+  'libraryHealth.artistsMissingWikidata.title': 'Artysci bez wzbogacenia Wikidata',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Pobierz opisy i linki zewnetrzne dla artystów bez danych Wikidata w cache.',
   'settings.metadataFallbackHelp':
     'Używane gdy serwer metadanych Lidarr jest niedostępny. Domyślnie api.musicinfo.pro. Przy self-hostingu podaj URL własnej instancji hearring-aid.',
   'settings.recommendationsSaved': 'Ustawienia rekomendacji zapisane',

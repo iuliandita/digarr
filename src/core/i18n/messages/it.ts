@@ -887,7 +887,20 @@ export const it = {
   'settings.librarySeedRatio': 'Rapporto di seed dalla libreria',
   'settings.imageSources': 'Sorgenti immagini',
   'settings.imageSourcesHelp':
-    'Le immagini degli artisti provengono da Lidarr/SkyHook per impostazione predefinita. Una chiave API fanart.tv abilita un fallback quando SkyHook non è disponibile.',
+    'Le immagini degli artisti provengono prima da TheAudioDB, con Lidarr/SkyHook, fanart.tv e musicinfo.pro come ripieghi.',
+  'settings.audiodb.apiKey': 'Chiave API premium TheAudioDB (opzionale)',
+  'settings.audiodb.apiKeyPlaceholder': 'Lascia vuoto per usare la chiave pubblica gratuita',
+  'settings.audiodb.proxyImages': 'Instrada le immagini tramite Digarr',
+  'settings.audiodb.proxyHint':
+    'Nasconde il tuo IP al CDN di TheAudioDB instradando le richieste di immagini attraverso questo server.',
+  'settings.wikidata.title': 'Arricchimento da Wikidata',
+  'settings.wikidata.enabled':
+    "Mostra biografia e link esterni dell'artista sulle schede di raccomandazione",
+  'artist.noDescription': 'Nessuna descrizione disponibile.',
+  'artist.externalLinks.officialSite': 'Sito ufficiale',
+  'libraryHealth.artistsMissingWikidata.title': 'Artisti senza arricchimento Wikidata',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Recupera descrizioni brevi e link esterni per gli artisti senza dati Wikidata in cache.',
   'settings.metadataFallbackHelp':
     "Usato quando il server di metadati di Lidarr non è disponibile. Predefinito su api.musicinfo.pro. Imposta l'URL della tua istanza se la ospiti tu stesso.",
   'settings.recommendationsSaved': 'Impostazioni raccomandazioni salvate',

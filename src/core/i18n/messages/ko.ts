@@ -863,7 +863,19 @@ export const ko = {
   'settings.librarySeedRatio': '라이브러리 시드 비율',
   'settings.imageSources': '이미지 소스',
   'settings.imageSourcesHelp':
-    '아티스트 이미지는 기본적으로 Lidarr/SkyHook에서 가져옵니다. fanart.tv API Key를 설정하면 SkyHook이 다운될 때 대체 소스로 사용됩니다.',
+    '아티스트 이미지는 우선 TheAudioDB에서 가져오며, Lidarr/SkyHook, fanart.tv, musicinfo.pro는 대체 소스로 사용됩니다.',
+  'settings.audiodb.apiKey': 'TheAudioDB 프리미엄 API 키 (선택 사항)',
+  'settings.audiodb.apiKeyPlaceholder': '비워 두면 무료 공용 키가 사용됩니다',
+  'settings.audiodb.proxyImages': '이미지를 Digarr로 프록시',
+  'settings.audiodb.proxyHint':
+    '이 서버를 통해 이미지 요청을 라우팅하여 TheAudioDB CDN에서 IP 주소를 숨깁니다.',
+  'settings.wikidata.title': 'Wikidata 보강',
+  'settings.wikidata.enabled': '추천 카드에 아티스트 소개와 외부 링크 표시',
+  'artist.noDescription': '이용 가능한 설명이 없습니다.',
+  'artist.externalLinks.officialSite': '공식 사이트',
+  'libraryHealth.artistsMissingWikidata.title': 'Wikidata 데이터가 없는 아티스트',
+  'libraryHealth.artistsMissingWikidata.description':
+    '캐시된 Wikidata 데이터가 없는 아티스트에 대한 설명과 외부 링크를 가져옵니다.',
   'settings.metadataFallbackHelp':
     'Lidarr 메타데이터 서버가 다운될 때 사용됩니다. 기본값은 api.musicinfo.pro. 셀프 호스팅 시 자체 인스턴스 URL을 설정하세요.',
   'settings.recommendationsSaved': '추천 설정이 저장되었습니다',

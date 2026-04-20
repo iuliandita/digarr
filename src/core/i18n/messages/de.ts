@@ -898,7 +898,20 @@ export const de = {
   'settings.librarySeedRatio': 'Bibliotheks-Seed-Verhältnis',
   'settings.imageSources': 'Bildquellen',
   'settings.imageSourcesHelp':
-    'Künstlerbilder kommen standardmäßig von Lidarr/SkyHook. Ein fanart.tv-API-Key ermöglicht einen Fallback, wenn SkyHook nicht erreichbar ist.',
+    'Künstlerbilder stammen primär von TheAudioDB, mit Lidarr/SkyHook, fanart.tv und musicinfo.pro als Fallback.',
+  'settings.audiodb.apiKey': 'TheAudioDB Premium-API-Schlüssel (optional)',
+  'settings.audiodb.apiKeyPlaceholder': 'Leer lassen, um den öffentlichen Schlüssel zu verwenden',
+  'settings.audiodb.proxyImages': 'Bilder über Digarr proxyen',
+  'settings.audiodb.proxyHint':
+    'Verbirgt deine IP vor dem TheAudioDB-CDN, indem Bildanfragen durch diesen Server geleitet werden.',
+  'settings.wikidata.title': 'Wikidata-Anreicherung',
+  'settings.wikidata.enabled':
+    'Biografie und externe Links des Künstlers auf Empfehlungskarten anzeigen',
+  'artist.noDescription': 'Keine Beschreibung verfügbar.',
+  'artist.externalLinks.officialSite': 'Offizielle Seite',
+  'libraryHealth.artistsMissingWikidata.title': 'Künstler ohne Wikidata-Anreicherung',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Kurzbeschreibungen und externe Links für Künstler abrufen, die noch keine Wikidata-Daten im Cache haben.',
   'settings.metadataFallbackHelp':
     'Wird verwendet, wenn Lidarrs Metadatenserver nicht erreichbar ist. Standard ist api.musicinfo.pro. Bei Self-Hosting eigene hearring-aid-Instanz-URL angeben.',
   'settings.recommendationsSaved': 'Empfehlungseinstellungen gespeichert',

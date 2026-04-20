@@ -889,7 +889,20 @@ export const ro = {
   'settings.librarySeedRatio': 'Raport de alimentare din bibliotecă',
   'settings.imageSources': 'Surse de imagini',
   'settings.imageSourcesHelp':
-    'Imaginile artiștilor provin din Lidarr/SkyHook implicit. O cheie API fanart.tv activează un fallback când SkyHook nu este disponibil.',
+    'Imaginile artiștilor provin în primul rând de la TheAudioDB; Lidarr/SkyHook, fanart.tv și musicinfo.pro servesc ca rezerve.',
+  'settings.audiodb.apiKey': 'Cheie API premium TheAudioDB (opțional)',
+  'settings.audiodb.apiKeyPlaceholder': 'Lăsați gol pentru a folosi cheia publică gratuită',
+  'settings.audiodb.proxyImages': 'Redirecționează imaginile prin Digarr',
+  'settings.audiodb.proxyHint':
+    'Ascunde IP-ul tău de la CDN-ul TheAudioDB prin rutarea cererilor de imagini prin acest server.',
+  'settings.wikidata.title': 'Îmbogățire din Wikidata',
+  'settings.wikidata.enabled':
+    'Afișează biografia și linkurile externe ale artistului pe cardurile de recomandare',
+  'artist.noDescription': 'Nicio descriere disponibilă.',
+  'artist.externalLinks.officialSite': 'Site oficial',
+  'libraryHealth.artistsMissingWikidata.title': 'Artiști fără date Wikidata',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Preia descrieri și linkuri externe pentru artiștii fără date Wikidata în cache.',
   'settings.metadataFallbackHelp':
     'Folosit când serverul de metadate Lidarr nu este disponibil. Implicit api.musicinfo.pro. Setați URL-ul propriei instanțe dacă o găzduiți singur.',
   'settings.recommendationsSaved': 'Setările de recomandări salvate',

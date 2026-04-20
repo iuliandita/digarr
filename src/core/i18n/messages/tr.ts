@@ -886,7 +886,21 @@ export const tr = {
   'settings.librarySeedRatio': 'Kutuphane seed orani',
   'settings.imageSources': 'Gorsel Kaynaklar',
   'settings.imageSourcesHelp':
-    "Sanatci gorselleri varsayilan olarak Lidarr/SkyHook'tan gelir. Bir fanart.tv API anahtari, SkyHook down oldugunda yedek saglayici etkinlestirir.",
+    'Sanatci gorselleri oncelikle TheAudioDB kaynagindan gelir; Lidarr/SkyHook, fanart.tv ve musicinfo.pro yedek olarak kullanilir.',
+  'settings.audiodb.apiKey': 'TheAudioDB premium API anahtari (isteğe bagli)',
+  'settings.audiodb.apiKeyPlaceholder':
+    'Ucretsiz ortak anahtari kullanmak icin bos birakin',
+  'settings.audiodb.proxyImages': 'Gorselleri Digarr uzerinden aktar',
+  'settings.audiodb.proxyHint':
+    'Gorsel isteklerini bu sunucu uzerinden yonlendirerek IP adresinizi TheAudioDB CDN karsisinda gizler.',
+  'settings.wikidata.title': 'Wikidata zenginlestirmesi',
+  'settings.wikidata.enabled':
+    'Oneri kartlarinda sanatci biyografisi ve harici baglantilari goster',
+  'artist.noDescription': 'Aciklama mevcut degil.',
+  'artist.externalLinks.officialSite': 'Resmi site',
+  'libraryHealth.artistsMissingWikidata.title': 'Wikidata verisi olmayan sanatcilar',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Wikidata onbelleginde veri bulunmayan sanatcilar icin aciklamalar ve harici baglantilar al.',
   'settings.metadataFallbackHelp':
     "Lidarr'in meta veri sunucusu kapaliyken kullanilir. Varsayilan api.musicinfo.pro. Kendi sunucunuzu barindiriyorsaniz kendi hearring-aid ornek URL'nizi girin.",
   'settings.recommendationsSaved': 'Öneri ayarlari kaydedildi',

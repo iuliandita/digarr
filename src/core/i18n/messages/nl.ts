@@ -889,7 +889,20 @@ export const nl = {
   'settings.librarySeedRatio': 'Bibliotheek-seedverhouding',
   'settings.imageSources': 'Afbeeldingsbronnen',
   'settings.imageSourcesHelp':
-    'Artiestafbeeldingen komen standaard van Lidarr/SkyHook. Een fanart.tv API-sleutel maakt een fallback mogelijk als SkyHook niet beschikbaar is.',
+    'Artiestafbeeldingen komen eerst van TheAudioDB; Lidarr/SkyHook, fanart.tv en musicinfo.pro dienen als fallback.',
+  'settings.audiodb.apiKey': 'TheAudioDB premium API-sleutel (optioneel)',
+  'settings.audiodb.apiKeyPlaceholder': 'Laat leeg om de gratis publieke sleutel te gebruiken',
+  'settings.audiodb.proxyImages': 'Afbeeldingen via Digarr proxyen',
+  'settings.audiodb.proxyHint':
+    'Verbergt je IP voor het TheAudioDB-CDN door afbeeldingsverzoeken via deze server te sturen.',
+  'settings.wikidata.title': 'Wikidata-verrijking',
+  'settings.wikidata.enabled':
+    'Toon biografie en externe links van de artiest op aanbevelingskaarten',
+  'artist.noDescription': 'Geen beschrijving beschikbaar.',
+  'artist.externalLinks.officialSite': 'Officiële site',
+  'libraryHealth.artistsMissingWikidata.title': 'Artiesten zonder Wikidata-verrijking',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Haal beschrijvingen en externe links op voor artiesten zonder Wikidata-cache.',
   'settings.metadataFallbackHelp':
     "Gebruikt als Lidarr's metadataserver niet beschikbaar is. Standaard is api.musicinfo.pro. Gebruik je eigen hearring-aid-instantie-URL bij zelfhosting.",
   'settings.recommendationsSaved': 'Aanbevelingsinstellingen opgeslagen',

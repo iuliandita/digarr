@@ -820,7 +820,18 @@ export const zhCN = {
   'settings.librarySeedRatio': '资料库种子比例',
   'settings.imageSources': '图片来源',
   'settings.imageSourcesHelp':
-    '艺术家图片默认来自 Lidarr/SkyHook。配置 fanart.tv API Key 可在 SkyHook 不可用时作为备选。',
+    '艺术家图片优先来自 TheAudioDB；Lidarr/SkyHook、fanart.tv 和 musicinfo.pro 作为备选来源。',
+  'settings.audiodb.apiKey': 'TheAudioDB 高级 API 密钥（可选）',
+  'settings.audiodb.apiKeyPlaceholder': '留空以使用免费公共密钥',
+  'settings.audiodb.proxyImages': '通过 Digarr 代理图片',
+  'settings.audiodb.proxyHint': '通过本服务器转发图片请求，从而对 TheAudioDB CDN 隐藏你的 IP。',
+  'settings.wikidata.title': 'Wikidata 丰富信息',
+  'settings.wikidata.enabled': '在推荐卡片上显示艺术家简介和外部链接',
+  'artist.noDescription': '暂无描述。',
+  'artist.externalLinks.officialSite': '官方网站',
+  'libraryHealth.artistsMissingWikidata.title': '缺少 Wikidata 数据的艺术家',
+  'libraryHealth.artistsMissingWikidata.description':
+    '为尚未缓存 Wikidata 数据的艺术家获取简介和外部链接。',
   'settings.metadataFallbackHelp':
     '当 Lidarr 元数据服务器不可用时使用。默认为 api.musicinfo.pro。如自托管，可填写你的实例 URL。',
   'settings.recommendationsSaved': '推荐设置已保存',

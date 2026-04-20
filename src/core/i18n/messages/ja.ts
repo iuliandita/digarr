@@ -873,7 +873,19 @@ export const ja = {
   'settings.librarySeedRatio': 'ライブラリシード比率',
   'settings.imageSources': '画像ソース',
   'settings.imageSourcesHelp':
-    'アーティスト画像はデフォルトで Lidarr/SkyHook から取得されます。fanart.tv の API Key を設定すると SkyHook が利用できないときのフォールバックになります。',
+    'アーティスト画像はまず TheAudioDB から取得され、Lidarr/SkyHook、fanart.tv、musicinfo.pro がフォールバックとして使用されます。',
+  'settings.audiodb.apiKey': 'TheAudioDB プレミアム API キー（任意）',
+  'settings.audiodb.apiKeyPlaceholder': '空のままにすると無料の公開キーが使用されます',
+  'settings.audiodb.proxyImages': '画像を Digarr 経由で配信',
+  'settings.audiodb.proxyHint':
+    '画像リクエストをこのサーバー経由にすることで、TheAudioDB の CDN から IP アドレスを隠します。',
+  'settings.wikidata.title': 'Wikidata エンリッチメント',
+  'settings.wikidata.enabled': 'レコメンデーションカードにアーティストの経歴と外部リンクを表示',
+  'artist.noDescription': '説明はありません。',
+  'artist.externalLinks.officialSite': '公式サイト',
+  'libraryHealth.artistsMissingWikidata.title': 'Wikidata データのないアーティスト',
+  'libraryHealth.artistsMissingWikidata.description':
+    'キャッシュされた Wikidata データがないアーティストの説明と外部リンクを取得します。',
   'settings.metadataFallbackHelp':
     'Lidarr のメタデータサーバーが利用できないときに使用されます。デフォルトは api.musicinfo.pro。セルフホストの場合はインスタンスの URL を設定してください。',
   'settings.recommendationsSaved': 'おすすめの設定を保存しました',

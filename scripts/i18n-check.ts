@@ -21,7 +21,13 @@ const ASCII_MARKERS: Record<string, RegExp> = {
 
 // Key prefixes accessed via template literals in app code. Treat as
 // referenced so the orphan check doesn't flag every mode/stage key.
-const DYNAMIC_PREFIXES = ['discoveryMode.', 'pipeline.stage.', 'pipeline.description.']
+const DYNAMIC_PREFIXES = [
+  'discoveryMode.',
+  'pipeline.stage.',
+  'pipeline.description.',
+  'artist.externalLinks.',
+  'libraryHealth.',
+]
 
 const referenceLocale = 'en'
 const referenceMessages = getMessages(referenceLocale)
@@ -31,6 +37,9 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'ListenBrainz',
   'Last.fm',
   'MusicBrainz',
+  'TheAudioDB',
+  'Wikidata',
+  'Wikipedia',
   'Lidarr',
   'Jellyfin',
   'Emby',
