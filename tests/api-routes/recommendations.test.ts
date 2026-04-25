@@ -45,8 +45,11 @@ describe('API routes: approve/reject', () => {
       body: JSON.stringify({ status: 'rejected' }),
     })
     expect(res.status).toBe(200)
-    // Rejection calls updateRecommendationStatus with only (id, status) - no extra arg
-    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(2, 'rejected')
+    // Rejection routes through rejectRecommendation now (transactional dual-write
+    // path that also handles the optional permanent-block flag).
+    expect(deps.rejectRecommendation).toHaveBeenCalledWith(
+      expect.objectContaining({ recommendationId: 2, reason: null, permanent: false }),
+    )
   })
 
   it('returns 400 for invalid status', async () => {

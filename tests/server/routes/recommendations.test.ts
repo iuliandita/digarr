@@ -98,6 +98,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     listRecommendations: vi.fn(async () => ({ items: [mockRecommendation], total: 1 })),
     getRecommendation: vi.fn(async (id: number) => (id === 1 ? mockRecommendation : null)),
     updateRecommendationStatus: vi.fn(async () => {}),
+    rejectRecommendation: vi.fn(async () => 1),
     bulkUpdateStatus: vi.fn(async () => {}),
     filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     listBatches: vi.fn(async () => []),
@@ -292,8 +293,8 @@ describe('GET /api/v1/recommendations/:id', () => {
 
 describe('PATCH /api/v1/recommendations/:id', () => {
   it('updates to rejected status without calling Lidarr', async () => {
-    const updateRecommendationStatus = vi.fn(async () => {})
-    const app = createApp(makeDeps({ updateRecommendationStatus }))
+    const rejectRecommendation = vi.fn(async () => 1)
+    const app = createApp(makeDeps({ rejectRecommendation }))
     const res = await authedRequest(app, '/api/v1/recommendations/1', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -302,7 +303,48 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('rejected')
-    expect(updateRecommendationStatus).toHaveBeenCalledWith(1, 'rejected')
+    expect(rejectRecommendation).toHaveBeenCalledWith({
+      recommendationId: 1,
+      userId: expect.any(Number),
+      reason: null,
+      reasonText: null,
+      permanent: false,
+    })
+  })
+
+  it('persists structured reason + permanent block when supplied', async () => {
+    const rejectRecommendation = vi.fn(async () => 1)
+    const app = createApp(makeDeps({ rejectRecommendation }))
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'rejected',
+        reason: 'tried_didnt_like',
+        permanent: true,
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect(rejectRecommendation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'tried_didnt_like',
+        permanent: true,
+      }),
+    )
+  })
+
+  it('returns 400 when reason=not_right_now combined with permanent=true', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'rejected',
+        reason: 'not_right_now',
+        permanent: true,
+      }),
+    })
+    expect(res.status).toBe(400)
   })
 
   it('approve triggers target add and sets added_to_lidarr on success', async () => {

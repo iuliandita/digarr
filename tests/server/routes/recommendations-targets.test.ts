@@ -8,6 +8,7 @@ const mockDeps = {
   db: {} as never,
   getRecommendation: vi.fn(),
   updateRecommendationStatus: vi.fn().mockResolvedValue(undefined),
+  rejectRecommendation: vi.fn().mockResolvedValue(1),
   bulkUpdateStatus: vi.fn().mockResolvedValue(undefined),
   filterOwnedIds: vi.fn(async (ids: number[]) => ids),
   listRecommendations: vi.fn().mockResolvedValue({ items: [], total: 0 }),

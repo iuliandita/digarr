@@ -27,6 +27,10 @@ export const updateRecommendationSchema = z.object({
   qualityProfileId: z.number().int().optional(),
   metadataProfileId: z.number().int().optional(),
   rootFolderId: z.number().int().optional(),
+  // Reject-only fields. Strict refinement applied via rejectStatusSchema below.
+  reason: z.enum(REJECTION_REASONS).optional(),
+  reasonText: z.string().max(400).optional(),
+  permanent: z.boolean().optional(),
 })
 
 export const bulkRecommendationSchema = z.object({

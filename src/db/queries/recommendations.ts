@@ -1,7 +1,14 @@
 import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
+import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
-import { artistMetadata, artists, recommendationBatches, recommendations } from '@/db/schema'
+import {
+  artistBlocks,
+  artistMetadata,
+  artists,
+  recommendationBatches,
+  recommendations,
+} from '@/db/schema'
 
 type RecommendationRow = typeof recommendations.$inferSelect
 type ArtistRow = typeof artists.$inferSelect
@@ -140,6 +147,65 @@ export async function updateRecommendationStatus(
     .update(recommendations)
     .set({ status, actedOnAt: new Date(), ...extra })
     .where(eq(recommendations.id, id))
+}
+
+export type RejectRecommendationParams = {
+  recommendationId: number
+  userId: number | undefined
+  reason: RejectionReason | null
+  reasonText: string | null
+  permanent: boolean
+}
+
+/**
+ * Transactional reject: marks the recommendation rejected with a structured
+ * reason, and (when permanent=true) upserts a row into artist_blocks so the
+ * filter stage drops this artist forever.
+ *
+ * Returns the artistId of the rejected recommendation, or null if no row matched.
+ */
+export async function rejectRecommendation(
+  db: Database,
+  params: RejectRecommendationParams,
+): Promise<number | null> {
+  return db.transaction(async (tx) => {
+    const conditions = [eq(recommendations.id, params.recommendationId)]
+    if (params.userId !== undefined) {
+      conditions.push(eq(recommendations.userId, params.userId))
+    }
+    const [rec] = await tx
+      .update(recommendations)
+      .set({
+        status: 'rejected',
+        rejectionReason: params.reason,
+        rejectionReasonText: params.reasonText,
+        actedOnAt: new Date(),
+      })
+      .where(and(...conditions))
+      .returning({ artistId: recommendations.artistId })
+    if (!rec) return null
+
+    if (params.permanent && params.userId !== undefined) {
+      await tx
+        .insert(artistBlocks)
+        .values({
+          userId: params.userId,
+          artistId: rec.artistId,
+          reason: params.reason,
+          reasonText: params.reasonText,
+          source: 'rejection',
+        })
+        .onConflictDoUpdate({
+          target: [artistBlocks.userId, artistBlocks.artistId],
+          set: {
+            reason: params.reason,
+            reasonText: params.reasonText,
+            blockedAt: new Date(),
+          },
+        })
+    }
+    return rec.artistId
+  })
 }
 
 export async function bulkUpdateStatus(db: Database, ids: number[], status: string): Promise<void> {

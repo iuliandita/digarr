@@ -7,6 +7,7 @@ import {
   bulkRecommendationSchema,
   listRecommendationsQuerySchema,
   recommendationIdParamSchema,
+  rejectStatusSchema,
   updateRecommendationSchema,
 } from '@/server/schemas/recommendations'
 import { zJson, zParam, zQuery } from '@/server/schemas/validator'
@@ -454,6 +455,29 @@ export function recommendationRoutes(deps: AppDependencies) {
           undefined,
           'errors.recommendation.notFound',
         )
+
+      if (status === 'rejected') {
+        const validated = rejectStatusSchema.safeParse(body)
+        if (!validated.success) {
+          return problem(
+            c,
+            'validation-failed',
+            'Invalid rejection payload',
+            400,
+            undefined,
+            { issues: validated.error.issues },
+            'errors.validation.failed',
+          )
+        }
+        await deps.rejectRecommendation({
+          recommendationId: id,
+          userId,
+          reason: validated.data.reason ?? null,
+          reasonText: validated.data.reasonText ?? null,
+          permanent: validated.data.permanent,
+        })
+        return c.json({ status: 'rejected' })
+      }
 
       await deps.updateRecommendationStatus(id, status)
       return c.json({ status })

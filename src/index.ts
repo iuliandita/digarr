@@ -119,6 +119,7 @@ import {
   getRejectedArtistMbids,
   insertRecommendation,
   listRecommendations,
+  rejectRecommendation,
   updateRecommendationStatus,
 } from './db/queries/recommendations'
 import { sessionQueries } from './db/queries/sessions'
@@ -1177,6 +1178,7 @@ const app = createApp({
   getRecommendation: (id) => getRecommendation(db, id),
   updateRecommendationStatus: (id, status, extra) =>
     updateRecommendationStatus(db, id, status, extra),
+  rejectRecommendation: (params) => rejectRecommendation(db, params),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),

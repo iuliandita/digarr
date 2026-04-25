@@ -119,6 +119,9 @@ export interface RecommendationDeps {
     status: string,
     extra?: StatusUpdateExtra,
   ) => Promise<void>
+  rejectRecommendation: (
+    params: import('@/db/queries/recommendations').RejectRecommendationParams,
+  ) => Promise<number | null>
   bulkUpdateStatus: (ids: number[], status: string) => Promise<void>
   filterOwnedIds: (ids: number[], userId: number | undefined) => Promise<number[]>
   listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>

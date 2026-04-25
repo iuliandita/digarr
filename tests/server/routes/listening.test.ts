@@ -102,6 +102,7 @@ function makeDeps(
     listRecommendations: vi.fn(async () => ({ items: [], total: 0 })),
     getRecommendation: vi.fn(async () => null),
     updateRecommendationStatus: vi.fn(async () => {}),
+    rejectRecommendation: vi.fn(async () => 1),
     bulkUpdateStatus: vi.fn(async () => {}),
     filterOwnedIds: vi.fn(async () => []),
     listBatches: vi.fn(async () => []),
