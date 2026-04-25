@@ -1266,6 +1266,38 @@ export const en = {
   'recommendation.previousCardNav': 'Previous card',
   'recommendation.nextCardNav': 'Next card',
 
+  // Rejection picker (bottom sheet on mobile, modal on desktop)
+  'rejectionPicker.title': 'Why are you rejecting?',
+  'rejectionPicker.dontShowAgain': "Don't show this artist again",
+  'rejectionPicker.dontShowAgainDisabled': "Disabled when 'Maybe later' is selected",
+  'rejectionPicker.cancel': 'Cancel',
+  'rejectionPicker.reject': 'Reject',
+  'rejectionPicker.blockForever': 'Block forever',
+  'rejectionPicker.otherPlaceholder': 'Tell us why (optional, 200 chars)',
+
+  'rejectionReason.already_own': 'I already own this',
+  'rejectionReason.wrong_style': 'Wrong genre or style for me',
+  'rejectionReason.not_interested': 'Not interested in this artist',
+  'rejectionReason.tried_didnt_like': "Tried it, didn't like it",
+  'rejectionReason.not_right_now': 'Maybe later, not now',
+  'rejectionReason.other': 'Other',
+  'rejectionReason.unspecified': 'No reason given',
+
+  // Settings: Blocked Artists tab
+  'settings.blocked.tab': 'Blocked',
+  'settings.blocked.title': 'Blocked Artists',
+  'settings.blocked.search': 'Search blocked artists',
+  'settings.blocked.count_one': '{0} artist blocked',
+  'settings.blocked.count_other': '{0} artists blocked',
+  'settings.blocked.unblock': 'Unblock',
+  'settings.blocked.unblock_undo': 'Restore',
+  'settings.blocked.empty': 'No blocked artists yet.',
+  'settings.blocked.empty_hint': 'Reject a recommendation and tick "Don\'t show again" to add one.',
+  'settings.blocked.error': 'Failed to load blocked artists',
+  'settings.blocked.unblock_success': 'Unblocked',
+  'settings.blocked.unblock_failed': 'Failed to unblock',
+  'settings.blocked.loadMore': 'Load more',
+
   // Preview player
   'preview.playerRegion': 'Preview player',
   'preview.closePreview': 'Close preview',
