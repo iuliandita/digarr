@@ -1285,7 +1285,6 @@ export const en = {
   'rejectionReason.unspecified': 'No reason given',
 
   // Settings: Blocked Artists tab
-  'settings.blocked.tab': 'Blocked',
   'settings.blocked.title': 'Blocked Artists',
   'settings.blocked.search': 'Search blocked artists',
   'settings.blocked.count_one': '{0} artist blocked',

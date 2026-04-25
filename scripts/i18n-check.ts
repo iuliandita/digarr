@@ -27,6 +27,7 @@ const DYNAMIC_PREFIXES = [
   'pipeline.description.',
   'artist.externalLinks.',
   'libraryHealth.',
+  'rejectionReason.',
 ]
 
 const referenceLocale = 'en'
