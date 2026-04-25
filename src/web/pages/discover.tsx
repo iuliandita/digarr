@@ -591,10 +591,22 @@ export function DiscoverPage() {
   )
 
   const handleReject = useCallback(
-    async (id: number, prevStatus = 'pending') => {
+    async (
+      id: number,
+      prevStatus = 'pending',
+      payload?: {
+        reason?: string | null
+        reasonText?: string | null
+        permanent?: boolean
+      },
+    ) => {
       setActingIds((prev) => new Set([...prev, id]))
       try {
-        await updateRecommendation(id, { status: 'rejected' })
+        const body: Record<string, unknown> = { status: 'rejected' }
+        if (payload?.reason) body.reason = payload.reason
+        if (payload?.reasonText) body.reasonText = payload.reasonText
+        if (payload?.permanent) body.permanent = true
+        await updateRecommendation(id, body)
         showUndo({ id, prevStatus })
         refetch()
       } catch {

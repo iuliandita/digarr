@@ -1,15 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
+import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import type { Recommendation } from './recommendation-card'
+import { RejectionPicker } from './rejection-picker'
 import { StreamingLinks } from './streaming-links'
 import { SwipeCard } from './swipe-card'
+
+export type RejectPayload = {
+  reason?: RejectionReason | null
+  reasonText?: string | null
+  permanent?: boolean
+}
 
 type CardStackProps = {
   recommendations: Recommendation[]
   onApprove: (id: number, prevStatus?: string) => void
-  onReject: (id: number, prevStatus?: string) => void
+  onReject: (id: number, prevStatus?: string, payload?: RejectPayload) => void
   onDetail: (id: number) => void
 }
 
@@ -207,6 +215,11 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
   const [exiting, setExiting] = useState<'left' | 'right' | null>(null)
   const exitingRef = useRef(exiting)
   exitingRef.current = exiting
+  const [pickerState, setPickerState] = useState<{
+    id: number
+    prevStatus?: string
+    artistName?: string
+  } | null>(null)
 
   const total = recommendations.length
   const rec = recommendations[index]
@@ -265,15 +278,21 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
   approveRef.current = triggerApprove
 
   function triggerReject() {
-    if (!rec || exiting) return
+    if (!rec || exiting || pickerState) return
+    setPickerState({ id: rec.id, prevStatus: rec.status, artistName: rec.artist?.name })
+  }
+  rejectRef.current = triggerReject
+
+  function commitReject(payload: RejectPayload) {
+    const target = pickerState
+    if (!target) return
     setExiting('left')
     setTimeout(() => {
-      onReject(rec.id, rec.status)
+      onReject(target.id, target.prevStatus, payload)
       setIndex((i) => Math.min(i + 1, total - 1))
       setExiting(null)
     }, 250)
   }
-  rejectRef.current = triggerReject
 
   if (total === 0) {
     return (
@@ -385,6 +404,15 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
       {rec?.status === 'pending' && (
         <p className="text-micro text-muted">{t('cardStack.swipeHint')}</p>
       )}
+
+      <RejectionPicker
+        open={pickerState != null}
+        artistName={pickerState?.artistName}
+        onClose={() => setPickerState(null)}
+        onSubmit={async (payload) => {
+          commitReject(payload)
+        }}
+      />
     </div>
   )
 }
