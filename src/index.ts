@@ -86,6 +86,7 @@ import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
 import { db, pool } from './db'
+import { getBlockedMbids as getBlockedArtistMbids } from './db/queries/artist-blocks'
 import { getPopularityMap, lookupByName } from './db/queries/artist-metadata'
 import { getArtistById, upsertArtist } from './db/queries/artists'
 import { completeBatch, getBatch, listBatches } from './db/queries/batches'
@@ -110,7 +111,6 @@ import {
   replacePlaylistTracks,
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
-import { getBlockedMbids as getBlockedArtistMbids } from './db/queries/artist-blocks'
 import {
   bulkUpdateStatus,
   filterOwnedIds,
@@ -742,9 +742,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       : null
 
   const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
-  const blockedMbids = sub.userId
-    ? await storeDb.getBlockedMbids(sub.userId)
-    : new Set<string>()
+  const blockedMbids = sub.userId ? await storeDb.getBlockedMbids(sub.userId) : new Set<string>()
   const feedbackHistory = await storeDb.getFeedbackHistory()
 
   const userConns = sub.userId ? await getUserConnections(db, sub.userId) : null

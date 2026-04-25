@@ -1,8 +1,12 @@
 import * as z from 'zod'
+import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 
 // MAX_BULK_IDS caps the bulk write surface so one approve-all payload cannot
 // starve the worker. 500 matches the Spotify CSV import truncation ceiling.
 const MAX_BULK_IDS = 500
+
+// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping ASCII control chars from user-supplied freeform text is the point
+const stripControlChars = (s: string) => s.replace(/[\x00-\x1f\x7f]/g, '')
 
 export const recommendationIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -33,6 +37,29 @@ export const bulkRecommendationSchema = z.object({
   metadataProfileId: z.number().int().optional(),
   rootFolderId: z.number().int().optional(),
 })
+
+// PATCH /api/v1/recommendations/:id/status payload (when status='rejected'):
+// captures structured reason + optional freeform text + permanent-block flag.
+// Refine rules mirror the UI invariants.
+export const rejectStatusSchema = z
+  .object({
+    status: z.literal('rejected'),
+    reason: z.enum(REJECTION_REASONS).nullish(),
+    reasonText: z
+      .string()
+      .transform((s) => stripControlChars(s).trim())
+      .pipe(z.string().max(200))
+      .nullish(),
+    permanent: z.boolean().default(false),
+  })
+  .refine((v) => !(v.permanent && v.reason === 'not_right_now'), {
+    message: 'not_right_now is incompatible with permanent',
+    path: ['permanent'],
+  })
+  .refine((v) => v.reason === 'other' || v.reasonText == null || v.reasonText === '', {
+    message: 'reasonText only valid when reason=other',
+    path: ['reasonText'],
+  })
 
 // GET /api/recommendations query: permissive (optional, empty strings tolerated)
 // so existing frontend URLs keep working.
