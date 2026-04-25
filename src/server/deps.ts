@@ -128,6 +128,22 @@ export interface RecommendationDeps {
   getBatch: (id: number) => Promise<BatchRow | null>
   getArtistById: (id: number) => Promise<ArtistRow | null>
   getFeedbackHistory: () => Promise<Map<string, { approved: number; total: number }>>
+  listArtistBlocks: (params: {
+    userId: number
+    limit?: number
+    cursor?: import('@/db/queries/artist-blocks').ListBlocksCursor | null
+    q?: string | null
+  }) => Promise<{
+    items: import('@/db/queries/artist-blocks').BlockedArtistRow[]
+    nextCursor: import('@/db/queries/artist-blocks').ListBlocksCursor | null
+  }>
+  removeArtistBlock: (params: { userId: number; artistId: number }) => Promise<boolean>
+  addArtistBlock: (params: {
+    userId: number
+    artistId: number
+    reason?: import('@/core/recommendations/rejection-reasons').RejectionReason | null
+    reasonText?: string | null
+  }) => Promise<void>
 }
 
 // ---- Subscriptions ----

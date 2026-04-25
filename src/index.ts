@@ -86,7 +86,12 @@ import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
 import { db, pool } from './db'
-import { getBlockedMbids as getBlockedArtistMbids } from './db/queries/artist-blocks'
+import {
+  addBlock as addArtistBlockQuery,
+  getBlockedMbids as getBlockedArtistMbids,
+  listBlocks as listArtistBlocksQuery,
+  removeBlock as removeArtistBlockQuery,
+} from './db/queries/artist-blocks'
 import { getPopularityMap, lookupByName } from './db/queries/artist-metadata'
 import { getArtistById, upsertArtist } from './db/queries/artists'
 import { completeBatch, getBatch, listBatches } from './db/queries/batches'
@@ -1179,6 +1184,16 @@ const app = createApp({
   updateRecommendationStatus: (id, status, extra) =>
     updateRecommendationStatus(db, id, status, extra),
   rejectRecommendation: (params) => rejectRecommendation(db, params),
+  listArtistBlocks: (params) => listArtistBlocksQuery(db, params),
+  removeArtistBlock: (params) => removeArtistBlockQuery(db, params),
+  addArtistBlock: (params) =>
+    addArtistBlockQuery(db, {
+      userId: params.userId,
+      artistId: params.artistId,
+      reason: params.reason ?? null,
+      reasonText: params.reasonText ?? null,
+      source: 'manual',
+    }),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),

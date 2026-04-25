@@ -17,6 +17,7 @@ import { rateLimiter } from './middleware/rate-limit'
 import { setupGuard } from './middleware/setup-guard'
 import { adminRoutes } from './routes/admin'
 import { analyticsRoutes } from './routes/analytics'
+import { artistBlocksRoutes } from './routes/artist-blocks'
 import { artistRoutes } from './routes/artists'
 import { authRoutes } from './routes/auth'
 import { batchRoutes } from './routes/batches'
@@ -295,6 +296,14 @@ export function createApp(deps: AppDependencies) {
     )
   }
   app.route('/', dashboardRoutes(deps))
+  app.route(
+    '/',
+    artistBlocksRoutes({
+      listArtistBlocks: deps.listArtistBlocks,
+      removeArtistBlock: deps.removeArtistBlock,
+      addArtistBlock: deps.addArtistBlock,
+    }),
+  )
   app.route(
     '/',
     jobRoutes({
