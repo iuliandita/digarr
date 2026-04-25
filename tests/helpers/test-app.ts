@@ -13,6 +13,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       upsertArtist: vi.fn(async () => ({ id: 1 })),
       insertRecommendation: vi.fn(),
       getRejectedMbids: vi.fn(async () => new Set()),
+      getBlockedMbids: vi.fn(async () => new Set()),
       getFeedbackHistory: vi.fn(async () => new Map()),
     } as unknown as AppDependencies['storeDb'],
     orchestrator: Object.assign(new EventEmitter(), {

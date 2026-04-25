@@ -45,6 +45,7 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
       upsertArtist: vi.fn().mockResolvedValue({ id: 1 }),
       insertRecommendation: vi.fn().mockResolvedValue(undefined),
       getRejectedMbids: vi.fn().mockResolvedValue(new Set()),
+      getBlockedMbids: vi.fn().mockResolvedValue(new Set()),
       getFeedbackHistory: vi.fn().mockResolvedValue(new Map()),
     },
     queries: {

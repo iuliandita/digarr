@@ -374,6 +374,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         storeDb: {
           getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
           getRejectedMbids: vi.fn(async () => new Set<string>()),
+          getBlockedMbids: vi.fn(async () => new Set<string>()),
           getFeedbackHistory: vi.fn(async () => new Map()),
         } as unknown as AppDependencies['storeDb'],
       }),
@@ -458,6 +459,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         storeDb: {
           getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
           getRejectedMbids: vi.fn(async () => new Set<string>()),
+          getBlockedMbids: vi.fn(async () => new Set<string>()),
           getFeedbackHistory: vi.fn(async () => new Map()),
         } as unknown as AppDependencies['storeDb'],
       }),
@@ -542,6 +544,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         storeDb: {
           getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
           getRejectedMbids: vi.fn(async () => new Set<string>()),
+          getBlockedMbids: vi.fn(async () => new Set<string>()),
           getFeedbackHistory: vi.fn(async () => new Map()),
         } as unknown as AppDependencies['storeDb'],
       }),

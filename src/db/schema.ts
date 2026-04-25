@@ -680,10 +680,7 @@ export const artistBlocks = pgTable(
     blockedAt: timestamp('blocked_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    userArtistUnique: uniqueIndex('artist_blocks_user_artist_idx').on(
-      table.userId,
-      table.artistId,
-    ),
+    userArtistUnique: uniqueIndex('artist_blocks_user_artist_idx').on(table.userId, table.artistId),
     userIdx: index('artist_blocks_user_idx').on(table.userId),
   }),
 )

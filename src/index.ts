@@ -110,6 +110,7 @@ import {
   replacePlaylistTracks,
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
+import { getBlockedMbids as getBlockedArtistMbids } from './db/queries/artist-blocks'
 import {
   bulkUpdateStatus,
   filterOwnedIds,
@@ -253,6 +254,7 @@ const storeDb: StoreDb = {
     })
   },
   getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
+  getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
   getFeedbackHistory: () => getGenreFeedbackHistory(db),
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),

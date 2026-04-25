@@ -28,6 +28,7 @@ function makePipelineDeps(): Omit<
       upsertArtist: vi.fn(async () => ({ id: 1 })),
       insertRecommendation: vi.fn(async () => undefined),
       getRejectedMbids: vi.fn(async () => new Set<string>()),
+      getBlockedMbids: vi.fn(async () => new Set<string>()),
       getFeedbackHistory: vi.fn(async () => new Map()),
       getLibraryArtistsForUser: vi.fn(async () => []),
       userHasAnySyncState: vi.fn(async () => false),
