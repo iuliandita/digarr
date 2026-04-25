@@ -129,6 +129,7 @@ function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
       recommendations: [],
       playlists: [],
       playlistTracks: [],
+      artistBlocks: [],
     },
     ...overrides,
   }

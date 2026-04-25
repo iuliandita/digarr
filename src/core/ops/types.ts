@@ -23,6 +23,7 @@ export interface BackupData {
   recommendations: Record<string, unknown>[]
   playlists: Record<string, unknown>[]
   playlistTracks: Record<string, unknown>[]
+  artistBlocks: Record<string, unknown>[]
   // Optional caches
   artists?: Record<string, unknown>[]
   genres?: Record<string, unknown>[]

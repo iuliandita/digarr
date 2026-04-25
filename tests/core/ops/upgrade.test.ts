@@ -147,6 +147,7 @@ describe('runPreFlightCheck', () => {
         recommendations: [],
         playlists: [],
         playlistTracks: [],
+        artistBlocks: [],
       },
     })
 

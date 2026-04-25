@@ -11,6 +11,7 @@ import {
   SENSITIVE_USER_CONNECTIONS,
 } from '@/core/crypto'
 import {
+  artistBlocks,
   artistMetadata,
   artists,
   genres,
@@ -29,6 +30,7 @@ import {
 import type { BackupFile, BackupOptions, OpsDb, RestoreOptions, RestoreResult } from './types'
 
 type BackupTable =
+  | typeof artistBlocks
   | typeof artistMetadata
   | typeof artists
   | typeof genres
@@ -72,6 +74,7 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
     recRows,
     playlistRows,
     trackRows,
+    blockRows,
   ] = await Promise.all([
     selectAll(db, settings),
     selectAll(db, users),
@@ -84,6 +87,7 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
     selectAll(db, recommendations),
     selectAll(db, playlists),
     selectAll(db, playlistTracks),
+    selectAll(db, artistBlocks),
   ])
 
   const backup: BackupFile = {
@@ -104,6 +108,7 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
       recommendations: recRows,
       playlists: playlistRows,
       playlistTracks: trackRows,
+      artistBlocks: blockRows,
     },
   }
 
@@ -237,6 +242,7 @@ const RESTORE_ORDER = [
   createRestoreSpec('jobRuns', jobRuns),
   createRestoreSpec('recommendations', recommendations),
   createRestoreSpec('playlistTracks', playlistTracks),
+  createRestoreSpec('artistBlocks', artistBlocks),
 ] as const
 
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
