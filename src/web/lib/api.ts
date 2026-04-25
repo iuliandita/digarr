@@ -1127,3 +1127,42 @@ export const listJobs = (params?: {
 }
 
 export const getJob = (id: number) => fetchApi<JobRun>(`/jobs/${id}`)
+
+// Artist Blocks (permanent rejection list)
+
+import type { RejectionReason } from '../../core/recommendations/rejection-reasons'
+
+export type BlockedArtistApi = {
+  artistId: number
+  name: string
+  mbid: string | null
+  reason: RejectionReason | null
+  reasonText: string | null
+  blockedAt: string
+}
+
+export const listArtistBlocks = (opts: {
+  limit?: number
+  cursor?: string
+  q?: string
+}): Promise<{ items: BlockedArtistApi[]; nextCursor: string | null }> => {
+  const params = new URLSearchParams()
+  if (opts.limit !== undefined) params.set('limit', String(opts.limit))
+  if (opts.cursor) params.set('cursor', opts.cursor)
+  if (opts.q) params.set('q', opts.q)
+  const qs = params.toString()
+  return fetchApi(`/artist-blocks${qs ? `?${qs}` : ''}`)
+}
+
+export const deleteArtistBlock = (artistId: number): Promise<void> =>
+  fetchApi(`/artist-blocks/${artistId}`, { method: 'DELETE' })
+
+export const createArtistBlock = (payload: {
+  artistId: number
+  reason?: RejectionReason | null
+  reasonText?: string | null
+}): Promise<void> =>
+  fetchApi('/artist-blocks', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
