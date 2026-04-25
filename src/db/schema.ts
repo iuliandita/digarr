@@ -219,6 +219,8 @@ export const recommendations = pgTable(
     recommendedReleaseGroupId: text('recommended_release_group_id'),
     recommendedReleaseGroupTitle: text('recommended_release_group_title'),
     targetActions: jsonb('target_actions').$type<Record<string, unknown>>(),
+    rejectionReason: text('rejection_reason'),
+    rejectionReasonText: text('rejection_reason_text'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     actedOnAt: timestamp('acted_on_at', { withTimezone: true }),
   },
@@ -661,3 +663,27 @@ export const recordingArtistCache = pgTable('recording_artist_cache', {
   artistName: text('artist_name').notNull(),
   cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow().notNull(),
 })
+
+export const artistBlocks = pgTable(
+  'artist_blocks',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    artistId: integer('artist_id')
+      .notNull()
+      .references(() => artists.id, { onDelete: 'cascade' }),
+    reason: text('reason'),
+    reasonText: text('reason_text'),
+    source: text('source').notNull().default('rejection'),
+    blockedAt: timestamp('blocked_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userArtistUnique: uniqueIndex('artist_blocks_user_artist_idx').on(
+      table.userId,
+      table.artistId,
+    ),
+    userIdx: index('artist_blocks_user_idx').on(table.userId),
+  }),
+)

@@ -68,6 +68,8 @@ const mockRecommendation = {
   recommendedReleaseGroupId: null,
   recommendedReleaseGroupTitle: null,
   targetActions: null,
+  rejectionReason: null,
+  rejectionReasonText: null,
   actedOnAt: null,
   createdAt: new Date('2024-01-01'),
   artist: mockArtist,
