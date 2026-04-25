@@ -39,6 +39,34 @@
   --color-svc-webhook: #60a5fa;
 }
 
+/* Digarr - Dark (project signature; cool slate-navy + muted moss + warm-dim crimson) */
+[data-theme="digarr-dark"] {
+  --color-bg: #0f1419;
+  --color-surface: #1a2231;
+  --color-border: #2a3340;
+  --color-accent: #5b88c5;
+  --color-accent-fg: #0f1419;
+  --color-approve: #7ab489;
+  --color-reject: #c45e5e;
+  --color-info: #7aa6c2;
+  --color-text: #e3ebf5;
+  --color-muted: #9aa6b2;
+}
+
+/* Digarr - Light */
+[data-theme="digarr-light"] {
+  --color-bg: #f3f5f9;
+  --color-surface: #e4e9f1;
+  --color-border: #c2cad7;
+  --color-accent: #3a5d8a;
+  --color-accent-fg: #ffffff;
+  --color-approve: #3d7050;
+  --color-reject: #a13d3d;
+  --color-info: #3a6680;
+  --color-text: #1a2231;
+  --color-muted: #5b6677;
+}
+
 /* Tokyo Night - Dark (Storm) */
 [data-theme="tokyonight-dark"] {
   --color-bg: #1a1b26;

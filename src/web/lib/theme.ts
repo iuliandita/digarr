@@ -1,6 +1,7 @@
 export type Mode = 'dark' | 'light' | 'system'
 
 export type ColorTheme =
+  | 'digarr'
   | 'tokyonight'
   | 'catppuccin'
   | 'dracula'
@@ -18,6 +19,8 @@ export type ColorTheme =
   | 'tidarr'
 
 export const COLOR_THEMES: { id: ColorTheme; name: string; group?: string }[] = [
+  // Project signature
+  { id: 'digarr', name: 'Digarr', group: 'Project' },
   // Editor themes
   { id: 'tokyonight', name: 'Tokyo Night', group: 'Editor' },
   { id: 'catppuccin', name: 'Catppuccin', group: 'Editor' },

@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-19 | Current: v0.39.4
+> Updated: 2026-04-25 | Current: v0.43.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -102,8 +102,10 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
 - Library operations now cover Lidarr, Plex, Jellyfin, Emby, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
-- Recent integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
-- Deep-audit remediation across 13 phases landed on v0.27.x through v0.39.x: auth-surface hardening and first-admin guards, full SSRF sweep and outbound IP pinning, pipeline isolation with atomic writes, DB index and upsert fixes, key rotation support, Kubernetes PSS / SA / PDB, cosign keyless signing plus SLSA v1.0 provenance, Zod validation on every write route, AI-provider reliability, i18n completeness at 15 locales, and an E2E browser-test gate in CI
+- Integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
+- TheAudioDB is now the primary artist-image source ahead of the Lidarr/SkyHook + fanart.tv + musicinfo.pro chain, with a token-bucket rate limiter and an optional SSRF-guarded image proxy. Recommendation cards expose a Wikidata-sourced artist description and external-link pills (Wikipedia, official site, Discogs, MusicBrainz), cached per locale
+- API surface migrated to `/api/v1/*` with mutation routes returning `204 No Content`, probe failures expressed as HTTP status plus `application/problem+json`, and cursor pagination on six list endpoints. Old `/api/*` paths 308-redirect with `Deprecation` and `Sunset` headers through 2026-07-19
+- Deep-audit remediation closed across 13 phases (v0.27.x through v0.40.x): auth-surface hardening and first-admin guards, full SSRF sweep including NAT64/Teredo and outbound IP pinning, pipeline isolation with atomic writes, DB index and upsert fixes, dual-key encryption rotation, Kubernetes PSS-restricted with dedicated SA and PDB, Docker hardening with BuildKit cache, cosign keyless signing plus SLSA v1.0 provenance via Sigstore OIDC, Zod validation on every write route, AI provider reliability (Anthropic prompt caching, retry/backoff, Zod-validated outputs, promptfoo eval gate), i18n completeness at 15 locales, component-test plus E2E plus a11y coverage hitting WCAG AA contrast, and a docs/architecture sweep with release-surface consolidation
 
 Release-level detail lives in [CHANGELOG.md](../CHANGELOG.md); this doc keeps
 the feature-level summary and the upcoming milestones only.
