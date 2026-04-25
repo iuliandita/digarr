@@ -8,6 +8,7 @@ import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { AdministrationTab } from '../components/admin/administration-tab'
 import { setAudiodbProxyFlag } from '../components/artist-thumb'
+import { BlockedArtistsTab } from '../components/blocked-artists-tab'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
 import { Hint } from '../components/hint'
@@ -106,6 +107,7 @@ type Tab =
   | 'connections'
   | 'targets'
   | 'recommendations'
+  | 'blocked'
   | 'schedule'
   | 'account'
   | 'auth'
@@ -128,6 +130,7 @@ function TabBar({
     { id: 'connections', label: t('settings.tabs.connections') },
     { id: 'targets', label: t('settings.tabs.targets') },
     { id: 'recommendations', label: t('settings.tabs.recommendations') },
+    { id: 'blocked', label: t('settings.tabs.blocked') },
     { id: 'schedule', label: t('settings.tabs.schedule'), adminOnly: true },
     { id: 'account', label: t('settings.tabs.account') },
     { id: 'auth', label: t('settings.tabs.authentication'), adminOnly: true },
@@ -2875,6 +2878,7 @@ export function SettingsPage() {
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}
       {tab === 'recommendations' && <RecommendationsTab />}
+      {tab === 'blocked' && <BlockedArtistsTab />}
       {tab === 'schedule' && <ScheduleTab settings={data} />}
       {tab === 'account' && <AccountTab />}
       {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}

@@ -856,6 +856,7 @@ export const en = {
   'settings.tabs.connections': 'Connections',
   'settings.tabs.targets': 'Targets',
   'settings.tabs.recommendations': 'Recommendations',
+  'settings.tabs.blocked': 'Blocked',
   'settings.tabs.schedule': 'Schedule',
   'settings.tabs.account': 'Account',
   'settings.tabs.authentication': 'Authentication',
