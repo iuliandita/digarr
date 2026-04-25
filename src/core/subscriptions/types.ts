@@ -84,6 +84,7 @@ export type SubscriptionRunDeps = {
   libraryMbids: Set<string>
   libraryGenres: string[]
   rejectedMbids: Set<string>
+  blockedMbids: Set<string>
   feedbackHistory: Map<string, { approved: number; total: number }>
   cooldownDays: number
   defaultScoreThreshold: number

@@ -65,6 +65,7 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
     libraryMbids: new Set<string>(),
     libraryGenres: [],
     rejectedMbids: new Set<string>(),
+    blockedMbids: new Set<string>(),
     feedbackHistory: new Map(),
     cooldownDays: 30,
     defaultScoreThreshold: 0.5,

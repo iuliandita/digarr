@@ -277,6 +277,7 @@ export class PipelineOrchestrator extends EventEmitter {
       })
 
       const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
+      const blockedMbids = await db.getBlockedMbids(userIdForSync)
       const feedbackHistory = await db.getFeedbackHistory()
 
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
@@ -417,6 +418,7 @@ export class PipelineOrchestrator extends EventEmitter {
         scored,
         libraryMbids,
         rejectedMbids,
+        blockedMbids,
         prefs.rejectionCooldownDays,
         prefs.scoreThreshold,
         topArtistNames,

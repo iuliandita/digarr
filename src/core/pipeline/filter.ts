@@ -4,6 +4,7 @@ export function filter(
   artists: ScoredArtist[],
   libraryMbids: Set<string>,
   rejectedMbids: Set<string> | Map<string, Date>,
+  blockedMbids: Set<string>,
   cooldownDays: number,
   scoreThreshold: number,
   topArtistNames?: Set<string>,
@@ -17,6 +18,9 @@ export function filter(
 
     // Remove artists the user already listens to (by name)
     if (topArtistNames?.has(artist.name.toLowerCase())) return false
+
+    // Permanent block layer: independent of cooldown, always drops
+    if (blockedMbids.has(artist.mbid)) return false
 
     // Remove artists rejected within the cooldown window
     if (rejectedMbids instanceof Map) {

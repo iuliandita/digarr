@@ -742,6 +742,9 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       : null
 
   const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
+  const blockedMbids = sub.userId
+    ? await storeDb.getBlockedMbids(sub.userId)
+    : new Set<string>()
   const feedbackHistory = await storeDb.getFeedbackHistory()
 
   const userConns = sub.userId ? await getUserConnections(db, sub.userId) : null
@@ -890,6 +893,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       libraryMbids,
       libraryGenres,
       rejectedMbids,
+      blockedMbids,
       feedbackHistory,
       cooldownDays: prefs.rejectionCooldownDays,
       defaultScoreThreshold: prefs.scoreThreshold,

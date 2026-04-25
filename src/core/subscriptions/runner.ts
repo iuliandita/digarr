@@ -255,6 +255,7 @@ export async function runSubscription(
       scored,
       deps.libraryMbids,
       deps.rejectedMbids,
+      deps.blockedMbids,
       deps.cooldownDays,
       threshold,
       deps.topArtistNames,

@@ -407,6 +407,9 @@ export function pipelineRoutes(deps: AppDependencies) {
 
         const resolved = await resolve(discovered, mb, undefined, lidarr ?? undefined)
         const rejectedMbids = await deps.storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
+        const blockedMbids = quickDiscoverUserId
+          ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
+          : new Set<string>()
         const feedbackHistory = await deps.storeDb.getFeedbackHistory()
         const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
         const existingMbids = await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
@@ -416,6 +419,7 @@ export function pipelineRoutes(deps: AppDependencies) {
           scored,
           libraryMbids,
           rejectedMbids,
+          blockedMbids,
           prefs.rejectionCooldownDays,
           prefs.scoreThreshold,
         )
