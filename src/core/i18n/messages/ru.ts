@@ -806,6 +806,11 @@ export const ru = {
   'settings.aiDescription': 'Генерирует музыкальные рекомендации.',
   'settings.aiOpenAiCompatibleHelp':
     'Совместим с Groq, OpenRouter, LiteLLM, LocalAI и любым OpenAI-совместимым эндпоинтом. API Key необязателен для локальных сервисов.',
+  'settings.aiPrivacyNoteHosted':
+    'Запросы для подбора отправляются выбранному провайдеру согласно его условиям. Переключитесь на Ollama или локальный OpenAI-совместимый эндпоинт, чтобы они оставались на вашем сервере.',
+  'settings.aiPrivacyNoteLocal': 'Запросы для подбора остаются на вашем сервере.',
+  'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
+  'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.webhookDescription':
     'Уведомления о завершении сканирования (Discord, Slack, ntfy, Gotify или любой HTTP-эндпоинт)',
   'settings.testWebhook': 'Тест вебхука',

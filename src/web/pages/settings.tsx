@@ -29,6 +29,7 @@ import {
   WebhookIcon,
 } from '../components/service-icons'
 import { SystemHealthCard } from '../components/system-health-card'
+import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
@@ -208,6 +209,24 @@ function SliderField({
 }
 
 type ServiceTestState = 'idle' | 'testing' | 'ok' | 'error'
+
+// True when the AI provider and base URL together describe a request that stays on the user's
+// own server. The privacy badge in the AI section flips between "fully local" and
+// "data leaves your server" based on this check.
+function isLocalAiProvider(provider: string, baseUrl: string): boolean {
+  if (provider === 'ollama') return true
+  if (provider !== 'openai-compatible') return false
+  // openai-compatible defaults to a localhost endpoint when the user has not entered one yet.
+  if (!baseUrl.trim()) return true
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase()
+    return (
+      host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host.endsWith('.local')
+    )
+  } catch {
+    return false
+  }
+}
 
 function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
@@ -754,6 +773,24 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               {aiProvider === 'openai-compatible' && (
                 <p className="text-xs text-muted">{t('settings.aiOpenAiCompatibleHelp')}</p>
               )}
+              {(() => {
+                const local = isLocalAiProvider(aiProvider, aiBaseUrl)
+                return (
+                  <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3 pt-1">
+                    <Badge
+                      variant={local ? 'success' : 'info'}
+                      className="self-start whitespace-nowrap"
+                    >
+                      {local
+                        ? t('settings.aiPrivacyBadgeLocal')
+                        : t('settings.aiPrivacyBadgeHosted')}
+                    </Badge>
+                    <p className="text-xs text-muted">
+                      {local ? t('settings.aiPrivacyNoteLocal') : t('settings.aiPrivacyNoteHosted')}
+                    </p>
+                  </div>
+                )
+              })()}
               <div className="flex justify-end gap-2 pt-1">
                 <Button
                   size="sm"

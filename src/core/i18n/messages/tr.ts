@@ -793,6 +793,11 @@ export const tr = {
   'settings.aiDescription': 'Müzik onerileri olusturur.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile calisir. Yerel hizmetler için API anahtari istege baglidir.',
+  'settings.aiPrivacyNoteHosted':
+    'Kesif istekleri seçtigin saglayiciya kendi sartlari altinda gonderilir. Sunucunda kalmasi için Ollama veya yerel bir OpenAI uyumlu son noktaya geç.',
+  'settings.aiPrivacyNoteLocal': 'Kesif istekleri sunucunda kalir.',
+  'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrilir',
+  'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
   'settings.webhookDescription':
     'Tarama tamamlanma bildirimleri (Discord, Slack, ntfy, Gotify veya herhangi bir HTTP son noktası)',
   'settings.testWebhook': 'Webhook test et',

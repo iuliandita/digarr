@@ -797,6 +797,11 @@ export const ro = {
   'settings.aiDescription': 'Generează recomandări muzicale.',
   'settings.aiOpenAiCompatibleHelp':
     'Funcționează cu Groq, OpenRouter, LiteLLM, LocalAI și orice endpoint compatibil OpenAI. Cheia API este opțională pentru serviciile locale.',
+  'settings.aiPrivacyNoteHosted':
+    'Interogările de descoperire sunt trimise furnizorului ales conform termenilor săi. Treci la Ollama sau la un endpoint local compatibil OpenAI pentru a le păstra pe serverul tău.',
+  'settings.aiPrivacyNoteLocal': 'Interogările de descoperire rămân pe serverul tău.',
+  'settings.aiPrivacyBadgeHosted': 'Datele părăsesc serverul tău',
+  'settings.aiPrivacyBadgeLocal': 'Complet local',
   'settings.webhookDescription':
     'Notificări la finalizarea scanării (Discord, Slack, ntfy, Gotify sau orice endpoint HTTP)',
   'settings.testWebhook': 'Testați webhook-ul',

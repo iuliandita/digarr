@@ -784,6 +784,11 @@ export const ja = {
   'settings.aiDescription': '音楽のおすすめを生成します。',
   'settings.aiOpenAiCompatibleHelp':
     'Groq、OpenRouter、LiteLLM、LocalAI、および OpenAI 互換エンドポイントで動作します。ローカルサービスでは API Key は任意です。',
+  'settings.aiPrivacyNoteHosted':
+    'ディスカバリープロンプトは選択したプロバイダーの規約に従って送信されます。サーバー内に保持したい場合は Ollama またはローカルの OpenAI 互換エンドポイントを選択してください。',
+  'settings.aiPrivacyNoteLocal': 'ディスカバリープロンプトはサーバー内に保持されます。',
+  'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
+  'settings.aiPrivacyBadgeLocal': '完全にローカル',
   'settings.webhookDescription':
     'スキャン完了通知（Discord、Slack、ntfy、Gotify、または任意の HTTP エンドポイント）',
   'settings.testWebhook': 'Webhook をテスト',

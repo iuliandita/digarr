@@ -775,6 +775,11 @@ export const ko = {
   'settings.aiDescription': '음악 추천을 생성합니다.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI 및 모든 OpenAI 호환 엔드포인트와 함께 작동합니다. 로컬 서비스의 API Key는 선택 사항입니다.',
+  'settings.aiPrivacyNoteHosted':
+    '검색 프롬프트는 선택한 제공업체의 약관에 따라 전송됩니다. 서버에 보관하려면 Ollama 또는 로컬 OpenAI 호환 엔드포인트로 전환하세요.',
+  'settings.aiPrivacyNoteLocal': '검색 프롬프트는 서버에 남아 있습니다.',
+  'settings.aiPrivacyBadgeHosted': '데이터가 서버를 떠납니다',
+  'settings.aiPrivacyBadgeLocal': '완전 로컬',
   'settings.webhookDescription':
     '스캔 완료 알림 (Discord, Slack, ntfy, Gotify, 또는 모든 HTTP 엔드포인트)',
   'settings.testWebhook': 'Webhook 테스트',

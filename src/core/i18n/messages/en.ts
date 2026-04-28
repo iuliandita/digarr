@@ -888,6 +888,11 @@ export const en = {
   'settings.aiDescription': 'Generates music recommendations.',
   'settings.aiOpenAiCompatibleHelp':
     'Works with Groq, OpenRouter, LiteLLM, LocalAI, and any OpenAI-compatible endpoint. API key is optional for local services.',
+  'settings.aiPrivacyNoteHosted':
+    'Discovery prompts are sent to your chosen provider under their terms. Switch to Ollama or a local OpenAI-compatible endpoint to keep them on your server.',
+  'settings.aiPrivacyNoteLocal': 'Discovery prompts stay on your server.',
+  'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
+  'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.webhookDescription':
     'Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)',
   'settings.testWebhook': 'Test Webhook',

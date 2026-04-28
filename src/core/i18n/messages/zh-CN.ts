@@ -737,6 +737,11 @@ export const zhCN = {
   'settings.aiDescription': '生成音乐推荐。',
   'settings.aiOpenAiCompatibleHelp':
     '兼容 Groq、OpenRouter、LiteLLM、LocalAI 及任何 OpenAI 兼容端点。本地服务 API Key 可选填。',
+  'settings.aiPrivacyNoteHosted':
+    '发现请求会按所选提供商的条款发送给该提供商。切换到 Ollama 或本地 OpenAI 兼容端点可让请求保留在你的服务器上。',
+  'settings.aiPrivacyNoteLocal': '发现请求保留在你的服务器上。',
+  'settings.aiPrivacyBadgeHosted': '数据离开你的服务器',
+  'settings.aiPrivacyBadgeLocal': '完全本地',
   'settings.webhookDescription': '扫描完成通知（Discord、Slack、ntfy、Gotify 或任意 HTTP 端点）',
   'settings.testWebhook': '测试 Webhook',
   'settings.sending': '发送中...',

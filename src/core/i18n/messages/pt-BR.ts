@@ -797,6 +797,11 @@ export const ptBR = {
   'settings.aiDescription': 'Gera recomendações musicais.',
   'settings.aiOpenAiCompatibleHelp':
     'Funciona com Groq, OpenRouter, LiteLLM, LocalAI e qualquer endpoint compatível com OpenAI. A chave de API é opcional para serviços locais.',
+  'settings.aiPrivacyNoteHosted':
+    'As consultas de descoberta são enviadas para o provedor escolhido sob seus termos. Mude para o Ollama ou um endpoint local compatível com OpenAI para mantê-las no seu servidor.',
+  'settings.aiPrivacyNoteLocal': 'As consultas de descoberta permanecem no seu servidor.',
+  'settings.aiPrivacyBadgeHosted': 'Os dados saem do seu servidor',
+  'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.webhookDescription':
     'Notificações ao concluir a varredura (Discord, Slack, ntfy, Gotify ou qualquer endpoint HTTP)',
   'settings.testWebhook': 'Testar webhook',

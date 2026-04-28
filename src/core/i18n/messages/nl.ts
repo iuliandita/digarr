@@ -798,6 +798,11 @@ export const nl = {
   'settings.aiDescription': 'Genereert muziekaanbevelingen.',
   'settings.aiOpenAiCompatibleHelp':
     'Werkt met Groq, OpenRouter, LiteLLM, LocalAI en elk OpenAI-compatibel eindpunt. API-sleutel is optioneel voor lokale diensten.',
+  'settings.aiPrivacyNoteHosted':
+    'Ontdekkingsverzoeken worden naar de gekozen aanbieder gestuurd onder hun voorwaarden. Kies Ollama of een lokaal OpenAI-compatibel eindpunt om ze op je server te houden.',
+  'settings.aiPrivacyNoteLocal': 'Ontdekkingsverzoeken blijven op je server.',
+  'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
+  'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.webhookDescription':
     'Meldingen bij voltooide scan (Discord, Slack, ntfy, Gotify of een willekeurig HTTP-eindpunt)',
   'settings.testWebhook': 'Webhook testen',
