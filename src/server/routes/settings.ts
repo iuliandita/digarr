@@ -4,6 +4,7 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
+import { validateAiBaseUrl } from '@/core/url-safety'
 import { errMsg } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
@@ -263,6 +264,24 @@ export function settingsRoutes(deps: AppDependencies) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
     }
 
+    if (typeof globalFields.aiBaseUrl === 'string' && globalFields.aiBaseUrl.length > 0) {
+      // The admin may patch aiProvider in the same request, or rely on the existing stored
+      // provider. Use the incoming provider when present so the validation matches the
+      // post-save state, otherwise fall back to what's persisted.
+      const provider =
+        typeof globalFields.aiProvider === 'string' && globalFields.aiProvider.length > 0
+          ? globalFields.aiProvider
+          : ((await deps.getSettings())?.aiProvider ?? '')
+      const validation = await validateAiBaseUrl(
+        globalFields.aiBaseUrl,
+        provider as string,
+        'AI base URL',
+      )
+      if (!validation.ok) {
+        return problem(c, 'invalid-base-url', 'Invalid AI base URL', 400, validation.message)
+      }
+    }
+
     if (userId && Object.keys(userUpdate).length > 0) {
       await updateUserConnections(deps.db, userId, userUpdate)
     }
@@ -379,16 +398,24 @@ export function settingsRoutes(deps: AppDependencies) {
           // Admin check above gates the stored-apiKey fallback: legacy tokens
           // and non-admin sessions cannot reach this branch, so we will never
           // leak a stored credential to a lower-privilege caller.
+          const effectiveProvider = body.provider || (stored?.aiProvider as string) || ''
           const effectiveBaseUrl = body.baseUrl || (stored?.aiBaseUrl as string) || ''
-          const provider = await deps.providerRegistry.create(
-            body.provider || (stored?.aiProvider as string) || '',
-            {
-              apiKey: body.apiKey || (stored?.aiApiKey as string) || null,
-              model: body.model || (stored?.aiModel as string) || '',
-              baseUrl: effectiveBaseUrl || null,
-              timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
-            },
-          )
+          if (effectiveBaseUrl) {
+            const validation = await validateAiBaseUrl(
+              effectiveBaseUrl,
+              effectiveProvider,
+              'AI base URL',
+            )
+            if (!validation.ok) {
+              return problem(c, 'invalid-base-url', 'Invalid AI base URL', 400, validation.message)
+            }
+          }
+          const provider = await deps.providerRegistry.create(effectiveProvider, {
+            apiKey: body.apiKey || (stored?.aiApiKey as string) || null,
+            model: body.model || (stored?.aiModel as string) || '',
+            baseUrl: effectiveBaseUrl || null,
+            timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
+          })
           const result = await provider.testConnection()
           return probeResult(c, result, messages['common.unknownError'])
         } catch (_err: unknown) {

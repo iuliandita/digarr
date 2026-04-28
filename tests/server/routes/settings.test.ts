@@ -690,6 +690,7 @@ describe('POST /api/v1/settings/test/:service', () => {
   })
 
   it('sanitizes failed probe responses', async () => {
+    vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
     const providerRegistry = {
       create: vi.fn(async () => ({
         testConnection: vi.fn(async () => ({
