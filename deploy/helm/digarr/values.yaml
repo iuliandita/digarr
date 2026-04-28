@@ -2,8 +2,12 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/iuliandita/digarr
+  # Helm deployments should keep a digest pin for reproducibility; the verify-digest-sync
+  # job in release.yml asserts k8s/helm/unraid digests match. If you prefer a floating
+  # channel for clusters where reproducibility is not a goal, set tag: "stable" and remove
+  # the digest line - :stable is promoted only after a release has been live >= 7 days
+  # without a follow-up patch.
   tag: "0.44.0"
-  # Pin the digest after publishing the release image. The digest comes from the published registry artifact.
   digest: "sha256:cdb25500e5646ca50635f0b08797a31b306bf1607e16deafd9ed4ae12104b51b"
   pullPolicy: Always
 

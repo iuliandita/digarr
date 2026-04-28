@@ -2,6 +2,8 @@
 
 All notable user-facing changes are documented here.
 
+Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
+
 ## v0.44.0 - 2026-04-26
 
 UX release. Rejecting a recommendation now opens a structured picker with six fixed reasons (already own, wrong style, not interested, tried it didn't like it, maybe later, other) plus a "Don't show again" checkbox that promotes the rejection to a permanent per-user blacklist. Settings gets a new Blocked tab to view, search, and unblock entries. The new blocklist filters the pipeline, subscriptions, and quick-discover independent of the existing rejection cooldown, so unblocking does not bypass the cooldown.
