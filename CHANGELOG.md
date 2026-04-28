@@ -24,6 +24,23 @@ UX release. Rejecting a recommendation now opens a structured picker with six fi
 - `StoreDb` interface gains `getBlockedMbids(userId)`; production wiring and all test mocks updated
 - New `Digarr` signature theme added to the theme picker (cool slate-navy + muted moss + warm-dim crimson)
 
+## v0.43.0 - 2026-04-23
+
+Dashboard fix release. ListenBrainz `range=week/month/year` returned the previous full calendar period, not the current or rolling window the UI implied; the dashboard tile showed March's top artist when asked about April. The single Listening tile is split into two endpoints with explicit semantics.
+
+### Changed
+
+- `GET /api/v1/listening/recent` is replaced by two endpoints:
+  - `GET /api/v1/listening/top-artists` (ListenBrainz primary, Last.fm fallback) accepts `this_week`, `this_month`, `this_year`, `all_time` ranges with `offset`+`limit` pagination. Last.fm `7day`/`1month`/`12month`/`overall` periods are mapped as best-effort approximations.
+  - `GET /api/v1/listening/recent-tracks` (Last.fm primary, then ListenBrainz listens, Jellyfin, Emby) returns a `hasSource` flag so the UI can hide the tile when no scrobble source is connected.
+- Dashboard splits into Listening History (four range chips + prev/next pagination) and Recent Activity (hidden when `hasSource=false`).
+- i18n keys added across all 15 locales; stale week/month/listening keys removed.
+- Back-compat maps the old `range=week|month|year` to the new `this_*` values so bookmarked URLs keep working.
+
+### Added
+
+- `getTopArtistsPaged` and `getListens` on the ListenBrainz client; `getTopArtistsPaged` on the Last.fm client with page-based pagination.
+
 ## v0.42.0 - 2026-04-20
 
 Metadata enrichment release. TheAudioDB becomes the primary artist-image source ahead of the existing Lidarr/SkyHook + fanart.tv + musicinfo.pro chain, and recommendation cards now carry a short Wikidata-sourced bio plus external-link pills (Wikipedia, official site, Discogs, MusicBrainz).
