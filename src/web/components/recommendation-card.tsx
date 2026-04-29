@@ -622,7 +622,7 @@ export function RecommendationCard({
             }}
             aria-label={t('recommendation.reject')}
           >
-            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
+            <span className="w-8 h-8 rounded-full bg-surface border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -649,7 +649,7 @@ export function RecommendationCard({
             }}
             aria-label={t('recommendation.approve')}
           >
-            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
+            <span className="w-8 h-8 rounded-full bg-surface border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
