@@ -597,29 +597,36 @@ export function Dashboard() {
         }
       />
 
-      {/* Today's Pick + Recently Approved */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <SectionHeader
-            title={t('dashboard.todaysPick')}
-            linkText={t('dashboard.discover')}
-            linkTo="/discover"
-          />
-          <TodaysPick
-            rec={currentPick}
-            loading={pickLoading}
-            onApprove={(id) => handleAction(id, 'approved')}
-            onReject={(id) => handleAction(id, 'rejected')}
-            onSkip={handleSkip}
-            onRunScan={() => {
-              triggerPipeline()
-                .then(() => toast.success(t('discover.scanStarted')))
-                .catch(() => toast.error(t('discover.scanStartFailed')))
-            }}
-            targets={approveTargets}
-            onApproveToTarget={handleApproveToTarget}
-          />
+      {/* Today's Pick - full-width hero, the daily-return hook */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-text">{t('dashboard.todaysPick')}</h2>
+          <Link to="/discover" className="text-xs text-accent underline">
+            {t('dashboard.discover')}
+          </Link>
         </div>
+        <TodaysPick
+          rec={currentPick}
+          loading={pickLoading}
+          onApprove={(id) => handleAction(id, 'approved')}
+          onReject={(id) => handleAction(id, 'rejected')}
+          onSkip={handleSkip}
+          onRunScan={() => {
+            triggerPipeline()
+              .then(() => toast.success(t('discover.scanStarted')))
+              .catch(() => toast.error(t('discover.scanStartFailed')))
+          }}
+          targets={approveTargets}
+          onApproveToTarget={handleApproveToTarget}
+        />
+      </section>
+
+      <Hint id="dashboard-feedback-tip" type="spotlight">
+        {t('dashboard.feedbackTip')}
+      </Hint>
+
+      {/* Recently Approved + Subscription Pulse */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <SectionHeader
             title={t('dashboard.recentlyApproved')}
@@ -628,20 +635,16 @@ export function Dashboard() {
           />
           <RecentlyApproved recs={approvedRecs} loading={approvedLoading} />
         </div>
-      </div>
-
-      <Hint id="dashboard-feedback-tip" type="spotlight">
-        {t('dashboard.feedbackTip')}
-      </Hint>
-
-      {/* Subscription Pulse + Listening Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
           <Hint id="dashboard-subscriptions-tip" type="inline">
             {t('dashboard.subscriptionsTip')}
           </Hint>
         </div>
+      </div>
+
+      {/* Listening Activity + Taste Profile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <ListeningHistory
             data={topArtistsData}
@@ -659,18 +662,16 @@ export function Dashboard() {
           </Hint>
           <RecentActivity data={recentTracksData} />
         </div>
-      </div>
-
-      {/* Taste Profile + Activity Feed */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <TasteProfile genres={tasteData} loading={tasteLoading} />
           <Hint id="dashboard-taste-tip" type="inline">
             {t('dashboard.tasteTip')}
           </Hint>
         </div>
-        <ActivityFeed entries={activityData} loading={activityLoading} />
       </div>
+
+      {/* Activity Feed - full-width */}
+      <ActivityFeed entries={activityData} loading={activityLoading} />
 
       {/* Lidarr profile picker dialog (Today's Pick target approve) */}
       {approveDialogState && (

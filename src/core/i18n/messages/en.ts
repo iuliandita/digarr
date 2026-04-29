@@ -137,6 +137,7 @@ export const en = {
   'todaysPick.skip': 'Skip',
   'todaysPick.approve': 'Approve',
   'todaysPick.approveSpecificTarget': 'Approve to specific target',
+  'todaysPick.discoverSimilar': 'Discover similar',
   'pipeline.runningFirstScan': 'Running your first scan',
   'setup.aiDescription': 'Used to generate music recommendations. Required.',
   'setup.aiProvider': 'AI Provider',

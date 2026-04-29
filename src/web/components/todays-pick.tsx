@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Sparkles } from 'lucide-react'
 import { Fragment, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { getAlbums } from '../lib/api'
 import { useI18n } from '../lib/i18n'
@@ -138,9 +139,12 @@ export function TodaysPick({
     : null
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
-      {/* Banner - fills ~40% of card height */}
-      <div className="relative shrink-0 h-72" style={bannerStyle}>
+    <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col md:flex-row">
+      {/* Banner - full width on mobile, left half on md+ */}
+      <div
+        className="relative shrink-0 h-56 md:h-auto md:w-1/2 md:min-h-[20rem]"
+        style={bannerStyle}
+      >
         {hasImage && (
           <img
             src={bannerUrl}
@@ -152,7 +156,7 @@ export function TodaysPick({
             }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:bg-gradient-to-r md:from-transparent md:via-black/20 md:to-black/60" />
 
         {/* Score badge */}
         <div
@@ -167,7 +171,7 @@ export function TodaysPick({
           </span>
         </div>
 
-        {/* Artist name / logo */}
+        {/* Artist name / logo - bottom on mobile, left on md+ */}
         <div className="absolute bottom-3 left-4 right-4">
           {artist.logoUrl ? (
             <img
@@ -182,118 +186,129 @@ export function TodaysPick({
             />
           ) : null}
           <h3
-            className={`text-white font-bold text-xl leading-tight drop-shadow-lg truncate${artist.logoUrl ? ' hidden' : ''}`}
+            className={`text-white font-bold text-xl md:text-2xl leading-tight drop-shadow-lg truncate${artist.logoUrl ? ' hidden' : ''}`}
           >
             {artist.name}
           </h3>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 overflow-y-auto min-h-0">
-        {artist.genres && artist.genres.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {artist.genres.slice(0, 6).map((genre) => (
-              <span
-                key={genre}
-                className="text-micro px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
-              >
-                {genre}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {rec.aiReasoning && (
-          <p className="text-xs text-muted mt-2 line-clamp-5">{highlightedReasoning}</p>
-        )}
-
-        <div className="mt-3">
-          <StreamingLinks streamingUrls={artist.streamingUrls ?? null} artistName={artist.name} />
-        </div>
-      </div>
-
-      {/* Hint above action buttons */}
-      <div className="px-4 pt-2">
-        <Hint id="todays-pick-skip-tip" type="inline">
-          {t('todaysPick.skipHint')}
-        </Hint>
-      </div>
-
-      {/* Action buttons */}
-      <div className="px-4 pb-4 pt-2 flex gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={() => onReject(rec.id)}
-          className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-reject/30 text-reject bg-reject/5 hover:bg-reject/15 transition-colors"
-        >
-          {t('todaysPick.reject')}
-        </button>
-        <button
-          type="button"
-          onClick={() => onSkip(rec.id)}
-          className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-amber-500/30 text-amber-400 bg-amber-500/5 hover:bg-amber-500/15 transition-colors"
-          title={t('todaysPick.skipTitle')}
-        >
-          {t('todaysPick.skip')}
-        </button>
-        {actionableTargets.length > 1 ? (
-          <div ref={dropdownRef} className="relative flex-1">
-            <div className="flex">
-              <button
-                type="button"
-                onClick={() => onApprove(rec.id)}
-                className="flex-1 py-2 text-sm font-medium text-center rounded-l-lg border border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
-              >
-                {t('todaysPick.approve')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen((v) => !v)}
-                className="px-2 py-2 text-sm font-medium rounded-r-lg border border-l-0 border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
-                aria-label={t('todaysPick.approveSpecificTarget')}
-              >
-                <ChevronDown size={14} />
-              </button>
+      {/* Right column on md+ */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Content */}
+        <div className="p-4 md:p-5 overflow-y-auto min-h-0 flex-1 space-y-3">
+          {artist.genres && artist.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {artist.genres.slice(0, 6).map((genre) => (
+                <span
+                  key={genre}
+                  className="text-micro px-1.5 py-0.5 bg-bg border border-border rounded text-muted"
+                >
+                  {genre}
+                </span>
+              ))}
             </div>
-            {dropdownOpen && (
-              <div className="absolute right-0 bottom-full mb-1 z-20 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
-                {actionableTargets.map((target) => (
-                  <button
-                    key={target.id}
-                    type="button"
-                    onClick={() => {
-                      onApproveToTarget?.(rec.id, `${target.type}-${target.id}`)
-                      setDropdownOpen(false)
-                    }}
-                    className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-accent/10 flex items-center gap-2"
-                  >
-                    <TargetIcon type={target.type} />
-                    {targetActionLabel(target.type, target.name, t)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
+          )}
+
+          {rec.aiReasoning && (
+            <p className="text-xs md:text-sm text-muted line-clamp-5 md:line-clamp-6">
+              {highlightedReasoning}
+            </p>
+          )}
+
+          <StreamingLinks streamingUrls={artist.streamingUrls ?? null} artistName={artist.name} />
+
+          <Link
+            to="/discover"
+            className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+          >
+            <Sparkles size={12} aria-hidden="true" />
+            {t('todaysPick.discoverSimilar')}
+          </Link>
+        </div>
+
+        {/* Hint above action buttons */}
+        <div className="px-4 md:px-5 pt-2">
+          <Hint id="todays-pick-skip-tip" type="inline">
+            {t('todaysPick.skipHint')}
+          </Hint>
+        </div>
+
+        {/* Action buttons */}
+        <div className="px-4 md:px-5 pb-4 pt-2 flex gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => {
-              if (standaloneApproveTarget?.type === 'slskd') {
-                onApproveToTarget?.(
-                  rec.id,
-                  `${standaloneApproveTarget.type}-${standaloneApproveTarget.id}`,
-                )
-                return
-              }
-
-              onApprove(rec.id)
-            }}
-            className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
+            onClick={() => onReject(rec.id)}
+            className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-reject/30 text-reject bg-reject/5 hover:bg-reject/15 transition-colors"
           >
-            {t('todaysPick.approve')}
+            {t('todaysPick.reject')}
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => onSkip(rec.id)}
+            className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-warning/35 text-warning bg-warning/8 hover:bg-warning/15 transition-colors"
+            title={t('todaysPick.skipTitle')}
+          >
+            {t('todaysPick.skip')}
+          </button>
+          {actionableTargets.length > 1 ? (
+            <div ref={dropdownRef} className="relative flex-1">
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={() => onApprove(rec.id)}
+                  className="flex-1 py-2 text-sm font-medium text-center rounded-l-lg border border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
+                >
+                  {t('todaysPick.approve')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen((v) => !v)}
+                  className="px-2 py-2 text-sm font-medium rounded-r-lg border border-l-0 border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
+                  aria-label={t('todaysPick.approveSpecificTarget')}
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+              {dropdownOpen && (
+                <div className="absolute right-0 bottom-full mb-1 z-20 rounded-lg border border-border bg-surface shadow-lg py-1 min-w-[180px]">
+                  {actionableTargets.map((target) => (
+                    <button
+                      key={target.id}
+                      type="button"
+                      onClick={() => {
+                        onApproveToTarget?.(rec.id, `${target.type}-${target.id}`)
+                        setDropdownOpen(false)
+                      }}
+                      className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-accent/10 flex items-center gap-2"
+                    >
+                      <TargetIcon type={target.type} />
+                      {targetActionLabel(target.type, target.name, t)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (standaloneApproveTarget?.type === 'slskd') {
+                  onApproveToTarget?.(
+                    rec.id,
+                    `${standaloneApproveTarget.type}-${standaloneApproveTarget.id}`,
+                  )
+                  return
+                }
+
+                onApprove(rec.id)
+              }}
+              className="flex-1 py-2 text-sm font-medium text-center rounded-lg border border-approve/30 text-approve bg-approve/5 hover:bg-approve/15 transition-colors"
+            >
+              {t('todaysPick.approve')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
