@@ -20,6 +20,7 @@
   --color-approve: #9ece6a;
   --color-reject: #f7768e;
   --color-info: #7dcfff;
+  --color-warning: #e0af68;
   --color-text: #c0caf5;
   --color-muted: #565f89;
 
@@ -49,6 +50,7 @@
   --color-approve: #7ab489;
   --color-reject: #c45e5e;
   --color-info: #7aa6c2;
+  --color-warning: #d4a86a;
   --color-text: #e3ebf5;
   --color-muted: #9aa6b2;
 }
@@ -63,6 +65,7 @@
   --color-approve: #3d7050;
   --color-reject: #a13d3d;
   --color-info: #3a6680;
+  --color-warning: #a8702d;
   --color-text: #1a2231;
   --color-muted: #5b6677;
 }
@@ -77,6 +80,7 @@
   --color-approve: #9ece6a;
   --color-reject: #f7768e;
   --color-info: #7dcfff;
+  --color-warning: #e0af68;
   --color-text: #c0caf5;
   --color-muted: #565f89;
 }
@@ -91,6 +95,7 @@
   --color-approve: #587539;
   --color-reject: #f52a65;
   --color-info: #007197;
+  --color-warning: #8c6c3e;
   --color-text: #3760bf;
   --color-muted: #6172b0;
 }
@@ -105,6 +110,7 @@
   --color-approve: #a6e3a1;
   --color-reject: #f38ba8;
   --color-info: #89b4fa;
+  --color-warning: #f9e2af;
   --color-text: #cdd6f4;
   --color-muted: #6c7086;
 }
@@ -119,6 +125,7 @@
   --color-approve: #40a02b;
   --color-reject: #d20f39;
   --color-info: #1e66f5;
+  --color-warning: #df8e1d;
   --color-text: #4c4f69;
   --color-muted: #7c7f93;
 }
@@ -133,6 +140,7 @@
   --color-approve: #50fa7b;
   --color-reject: #ff5555;
   --color-info: #8be9fd;
+  --color-warning: #f1fa8c;
   --color-text: #f8f8f2;
   --color-muted: #6272a4;
 }
@@ -147,6 +155,7 @@
   --color-approve: #2e8b57;
   --color-reject: #dc2626;
   --color-info: #0891b2;
+  --color-warning: #b58900;
   --color-text: #282a36;
   --color-muted: #6272a4;
 }
@@ -161,6 +170,7 @@
   --color-approve: #a3be8c;
   --color-reject: #bf616a;
   --color-info: #81a1c1;
+  --color-warning: #ebcb8b;
   --color-text: #eceff4;
   --color-muted: #616e88;
 }
@@ -175,6 +185,7 @@
   --color-approve: #68874a;
   --color-reject: #bf616a;
   --color-info: #5e81ac;
+  --color-warning: #a07e3d;
   --color-text: #2e3440;
   --color-muted: #4c566a;
 }
@@ -189,6 +200,7 @@
   --color-approve: #b8bb26;
   --color-reject: #fb4934;
   --color-info: #83a598;
+  --color-warning: #fabd2f;
   --color-text: #ebdbb2;
   --color-muted: #928374;
 }
@@ -203,6 +215,7 @@
   --color-approve: #79740e;
   --color-reject: #cc241d;
   --color-info: #458588;
+  --color-warning: #b57614;
   --color-text: #3c3836;
   --color-muted: #7c6f64;
 }
@@ -217,6 +230,7 @@
   --color-approve: #859900;
   --color-reject: #dc322f;
   --color-info: #2aa198;
+  --color-warning: #b58900;
   --color-text: #839496;
   --color-muted: #586e75;
 }
@@ -231,6 +245,7 @@
   --color-approve: #859900;
   --color-reject: #dc322f;
   --color-info: #2aa198;
+  --color-warning: #b58900;
   --color-text: #657b83;
   --color-muted: #93a1a1;
 }
@@ -245,6 +260,7 @@
   --color-approve: #31748f;
   --color-reject: #eb6f92;
   --color-info: #9ccfd8;
+  --color-warning: #f6c177;
   --color-text: #e0def4;
   --color-muted: #6e6a86;
 }
@@ -259,6 +275,7 @@
   --color-approve: #286983;
   --color-reject: #b4637a;
   --color-info: #56949f;
+  --color-warning: #ea9d34;
   --color-text: #575279;
   --color-muted: #9893a5;
 }
@@ -273,6 +290,7 @@
   --color-approve: #98c379;
   --color-reject: #e06c75;
   --color-info: #56b6c2;
+  --color-warning: #e5c07b;
   --color-text: #abb2bf;
   --color-muted: #5c6370;
 }
@@ -286,6 +304,7 @@
   --color-approve: #50a14f;
   --color-reject: #e45649;
   --color-info: #0184bc;
+  --color-warning: #c18401;
   --color-text: #383a42;
   --color-muted: #a0a1a7;
 }
@@ -300,6 +319,7 @@
   --color-approve: #1db954;
   --color-reject: #e22134;
   --color-info: #1ed760;
+  --color-warning: #ffa42b;
   --color-text: #ffffff;
   --color-muted: #727272;
 }
@@ -313,6 +333,7 @@
   --color-approve: #1db954;
   --color-reject: #e22134;
   --color-info: #1db954;
+  --color-warning: #cc7a00;
   --color-text: #191414;
   --color-muted: #727272;
 }
@@ -327,6 +348,7 @@
   --color-approve: #2ba640;
   --color-reject: #ff0000;
   --color-info: #3ea6ff;
+  --color-warning: #ffd54f;
   --color-text: #f1f1f1;
   --color-muted: #717171;
 }
@@ -340,6 +362,7 @@
   --color-approve: #2e7d32;
   --color-reject: #cc0000;
   --color-info: #065fd4;
+  --color-warning: #cc8400;
   --color-text: #0f0f0f;
   --color-muted: #606060;
 }
@@ -354,6 +377,7 @@
   --color-approve: #56e15c;
   --color-reject: #ff4f6e;
   --color-info: #38b6ff;
+  --color-warning: #ffba49;
   --color-text: #f5f5f5;
   --color-muted: #72727d;
 }
@@ -367,6 +391,7 @@
   --color-approve: #00b84d;
   --color-reject: #ef3340;
   --color-info: #3892ff;
+  --color-warning: #cc8400;
   --color-text: #1a1a2e;
   --color-muted: #72727d;
 }
@@ -381,6 +406,7 @@
   --color-approve: #25d1da;
   --color-reject: #f85149;
   --color-info: #58a6ff;
+  --color-warning: #ff9900;
   --color-text: #e6edf3;
   --color-muted: #7d8590;
 }
@@ -394,6 +420,7 @@
   --color-approve: #00a0a0;
   --color-reject: #cf222e;
   --color-info: #0969da;
+  --color-warning: #996600;
   --color-text: #1f2328;
   --color-muted: #656d76;
 }
@@ -408,6 +435,7 @@
   --color-approve: #34a853;
   --color-reject: #ea4335;
   --color-info: #4285f4;
+  --color-warning: #fbbc04;
   --color-text: #e8eaed;
   --color-muted: #6b6b80;
 }
@@ -421,6 +449,7 @@
   --color-approve: #0d904f;
   --color-reject: #d32f2f;
   --color-info: #2962ff;
+  --color-warning: #bf8c00;
   --color-text: #1a1a2e;
   --color-muted: #6b6b80;
 }
@@ -435,6 +464,7 @@
   --color-approve: #30d158;
   --color-reject: #ff453a;
   --color-info: #64d2ff;
+  --color-warning: #ffb340;
   --color-text: #f5f5f7;
   --color-muted: #8e8e93;
 }
@@ -448,6 +478,7 @@
   --color-approve: #34c759;
   --color-reject: #ff3b30;
   --color-info: #007aff;
+  --color-warning: #ff9500;
   --color-text: #1d1d1f;
   --color-muted: #8e8e93;
 }
@@ -462,6 +493,7 @@
   --color-approve: #00e676;
   --color-reject: #ff1744;
   --color-info: #00ffff;
+  --color-warning: #ffeb3b;
   --color-text: #f5f5f5;
   --color-muted: #6e6e6e;
 }
@@ -475,6 +507,7 @@
   --color-approve: #00c853;
   --color-reject: #d50000;
   --color-info: #00b4b4;
+  --color-warning: #cc9900;
   --color-text: #0d0d0d;
   --color-muted: #757575;
 }

@@ -713,7 +713,7 @@ export function RecommendationCard({
               <div className="flex items-center gap-1.5 shrink-0">
                 {warmStatus === 'warm' && (
                   <span
-                    className="w-2 h-2 rounded-full bg-green-500"
+                    className="w-2 h-2 rounded-full bg-approve"
                     title={t('recommendation.metadataCached')}
                     role="img"
                     aria-label={t('recommendation.metadataCached')}
@@ -721,7 +721,7 @@ export function RecommendationCard({
                 )}
                 {warmStatus === 'warming' && (
                   <span
-                    className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"
+                    className="w-2 h-2 rounded-full bg-warning animate-pulse"
                     title={t('recommendation.warmingCache')}
                     role="img"
                     aria-label={t('recommendation.warmingCache')}

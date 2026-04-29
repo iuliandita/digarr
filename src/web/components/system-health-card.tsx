@@ -5,8 +5,7 @@ import { formatRelativeTime } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 
 function StatusDot({ status }: { status: string }) {
-  const color =
-    status === 'ok' ? 'bg-green-500' : status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
+  const color = status === 'ok' ? 'bg-approve' : status === 'degraded' ? 'bg-warning' : 'bg-reject'
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
 }
 
