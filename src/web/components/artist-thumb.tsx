@@ -71,6 +71,8 @@ export function ArtistThumb({
       <img
         src={resolvedSrc}
         alt={name}
+        loading="lazy"
+        decoding="async"
         className={`rounded-md object-cover bg-bg ${sizeClass} ${className ?? ''}`}
         style={sizeStyle}
         onError={() => setImgError(true)}

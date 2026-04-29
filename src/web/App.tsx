@@ -17,7 +17,7 @@ import {
   User,
   Users,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
 import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
@@ -55,21 +55,46 @@ import {
   setStoredColorTheme,
   setStoredMode,
 } from './lib/theme'
-import { AnalyticsPage } from './pages/analytics'
+// Eager: dashboard is the default landing surface and setup gates the entire app
 import { Dashboard } from './pages/dashboard'
-import { DiscoverPage } from './pages/discover'
-import { DiscoveryModesPage } from './pages/discovery-modes'
-import { GenreDetailPage } from './pages/genre-detail'
-import { GenresPage } from './pages/genres'
-import { LibraryHealthPage } from './pages/library-health'
-import { LibraryReconciliationPage } from './pages/library-reconciliation'
-import { PlaylistDetailPage } from './pages/playlist-detail'
-import { PlaylistsPage } from './pages/playlists'
-import { SearchPage } from './pages/search'
-import { SettingsPage } from './pages/settings'
 import { SetupWizard } from './pages/setup'
-import SubscriptionsPage from './pages/subscriptions'
-import { UserManagementPage } from './pages/user-management'
+
+// Lazy: secondary routes split into per-page bundles to shrink first paint
+const AnalyticsPage = lazy(() =>
+  import('./pages/analytics').then((m) => ({ default: m.AnalyticsPage })),
+)
+const DiscoverPage = lazy(() =>
+  import('./pages/discover').then((m) => ({ default: m.DiscoverPage })),
+)
+const DiscoveryModesPage = lazy(() =>
+  import('./pages/discovery-modes').then((m) => ({ default: m.DiscoveryModesPage })),
+)
+const GenreDetailPage = lazy(() =>
+  import('./pages/genre-detail').then((m) => ({ default: m.GenreDetailPage })),
+)
+const GenresPage = lazy(() => import('./pages/genres').then((m) => ({ default: m.GenresPage })))
+const LibraryHealthPage = lazy(() =>
+  import('./pages/library-health').then((m) => ({ default: m.LibraryHealthPage })),
+)
+const LibraryReconciliationPage = lazy(() =>
+  import('./pages/library-reconciliation').then((m) => ({
+    default: m.LibraryReconciliationPage,
+  })),
+)
+const PlaylistDetailPage = lazy(() =>
+  import('./pages/playlist-detail').then((m) => ({ default: m.PlaylistDetailPage })),
+)
+const PlaylistsPage = lazy(() =>
+  import('./pages/playlists').then((m) => ({ default: m.PlaylistsPage })),
+)
+const SearchPage = lazy(() => import('./pages/search').then((m) => ({ default: m.SearchPage })))
+const SettingsPage = lazy(() =>
+  import('./pages/settings').then((m) => ({ default: m.SettingsPage })),
+)
+const SubscriptionsPage = lazy(() => import('./pages/subscriptions'))
+const UserManagementPage = lazy(() =>
+  import('./pages/user-management').then((m) => ({ default: m.UserManagementPage })),
+)
 
 // Service worker registration
 
@@ -720,28 +745,35 @@ function InnerApp() {
       <BrowserRouter>
         <ErrorBoundary>
           <AppShell>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/discover" element={<DiscoverPage />} />
-              <Route path="/discover/modes" element={<DiscoveryModesPage />} />
-              <Route path="/genres" element={<GenresPage />} />
-              <Route path="/genres/:slug" element={<GenreDetailPage />} />
-              <Route path="/playlists" element={<PlaylistsPage />} />
-              <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
-              <Route path="/subscriptions" element={<SubscriptionsPage />} />
-              <Route path="/library/health" element={<LibraryHealthPage />} />
-              <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/settings/jobs" element={<Navigate to="/settings?tab=jobs" replace />} />
-              <Route
-                path="/settings/system-health"
-                element={<Navigate to="/settings?tab=system-health" replace />}
-              />
-              <Route path="/users" element={<UserManagementPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+            <Suspense
+              fallback={<div className="p-6 text-sm text-muted">{/* lazy route loading */}</div>}
+            >
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/discover" element={<DiscoverPage />} />
+                <Route path="/discover/modes" element={<DiscoveryModesPage />} />
+                <Route path="/genres" element={<GenresPage />} />
+                <Route path="/genres/:slug" element={<GenreDetailPage />} />
+                <Route path="/playlists" element={<PlaylistsPage />} />
+                <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+                <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                <Route path="/library/health" element={<LibraryHealthPage />} />
+                <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route
+                  path="/settings/jobs"
+                  element={<Navigate to="/settings?tab=jobs" replace />}
+                />
+                <Route
+                  path="/settings/system-health"
+                  element={<Navigate to="/settings?tab=system-health" replace />}
+                />
+                <Route path="/users" element={<UserManagementPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Suspense>
           </AppShell>
         </ErrorBoundary>
         <Toaster theme="system" />

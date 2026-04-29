@@ -76,7 +76,7 @@ export function LibraryStatsDisplay({ stats }: Props) {
                 </span>
                 <div className="flex-1 h-4 bg-bg rounded overflow-hidden">
                   <div
-                    className="h-full bg-accent rounded transition-all"
+                    className="h-full bg-accent rounded transition-[width] duration-300"
                     style={{ width: `${Math.round((g.count / maxCount) * 100)}%` }}
                   />
                 </div>

@@ -314,7 +314,7 @@ function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; l
                 </div>
                 <div className="h-2 bg-bg rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-accent rounded-full transition-all"
+                    className="h-full bg-accent rounded-full transition-[width] duration-300"
                     style={{ width: `${g.percentage}%`, opacity: 1 - i * 0.15 }}
                   />
                 </div>
