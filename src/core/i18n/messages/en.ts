@@ -89,6 +89,10 @@ export const en = {
   'discover.rejected': 'Rejected',
   'discover.export': 'Export',
   'discover.exporting': 'Exporting...',
+  'discover.filters': 'Filters',
+  'discover.filtersActive': 'Filters ({0})',
+  'discover.moreActions': 'More actions',
+  'discover.decadesLabel': 'Decades',
   'discover.runScan': 'Run a scan',
   'discover.importArtists': 'Import artists',
   'discover.emptyAll':
