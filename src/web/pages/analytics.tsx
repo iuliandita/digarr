@@ -446,6 +446,7 @@ export function AnalyticsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <h1 className="sr-only">{t('analytics.title')}</h1>
       <Hint id="analytics-intro-tip" type="inline">
         {t('analytics.introTip')}
       </Hint>

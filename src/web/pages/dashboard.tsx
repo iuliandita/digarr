@@ -583,6 +583,7 @@ export function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
+      <h1 className="sr-only">{t('dashboard.title')}</h1>
       {/* Pipeline progress (self-hides) */}
       <PipelineProgress
         onComplete={() => {

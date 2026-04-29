@@ -487,6 +487,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-6">
       <div className="w-full max-w-md">
+        <h1 className="sr-only">{t('setup.title')}</h1>
         <div className="mb-8 text-center">
           <span className="text-3xl font-bold text-accent">digarr</span>
           <p className="text-muted text-sm mt-1">{t('setup.initialSetup')}</p>

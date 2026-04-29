@@ -799,6 +799,7 @@ export function DiscoverPage() {
       className={`space-y-6 max-w-6xl mx-auto${bulkMode ? ' pb-24' : ' pb-6'} md:pb-6`}
       {...pullHandlers}
     >
+      <h1 className="sr-only">{t('discover.title')}</h1>
       {/* Pull-to-refresh indicator */}
       {pullY > 0 && (
         <div
