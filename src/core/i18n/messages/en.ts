@@ -43,6 +43,7 @@ export const en = {
   'auth.password': 'Password',
   'common.cancel': 'Cancel',
   'common.clear': 'Clear',
+  'common.confirm': 'Confirm',
   'common.continue': 'Continue',
   'common.daily': 'Daily',
   'common.edit': 'Edit',
@@ -671,6 +672,20 @@ export const en = {
   'libraryHealth.statisticsTitle': 'Library Statistics',
   'libraryHealth.statisticsUnavailable':
     'Library statistics unavailable. Check your Lidarr connection in Settings.',
+  'libraryHealth.fix': 'Fix',
+  'libraryHealth.fixing': 'Fixing...',
+  'libraryHealth.showLess': 'Show less',
+  'libraryHealth.showAll': 'Show all {0}',
+  'libraryHealth.fixHint.missingMetadata':
+    'Triggers a metadata refresh in Lidarr for each affected artist',
+  'libraryHealth.fixHint.unmonitored': 'Sets all listed artists to monitored in Lidarr',
+  'libraryHealth.fixHint.missingAlbums':
+    'Triggers an album search in Lidarr for each affected artist',
+  'libraryHealth.fixHint.genreGaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
+  'libraryHealth.fixHint.imageGaps':
+    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+  'libraryHealth.fixHint.missingWikidata':
+    'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (fast, cheapest)',
   'setup.modelSuggestionAnthropicSonnet': 'Sonnet 4.6 (balanced)',
   'setup.modelSuggestionAnthropicOpus': 'Opus 4.6 (most capable)',

@@ -1,17 +1,17 @@
 import { BookOpen, Copy, Image, Music, Search, Tag, User } from 'lucide-react'
 import { useState } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import type { HealthCheckItem, HealthCheckResult } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 
-const FIX_HINTS: Record<string, string> = {
-  'missing-metadata': 'Triggers a metadata refresh in Lidarr for each affected artist',
-  unmonitored: 'Sets all listed artists to monitored in Lidarr',
-  'missing-albums': 'Triggers an album search in Lidarr for each affected artist',
-  'genre-gaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
-  'image-gaps':
-    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
-  'missing-wikidata':
-    'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
+const FIX_HINT_KEYS: Record<string, MessageKey> = {
+  'missing-metadata': 'libraryHealth.fixHint.missingMetadata',
+  unmonitored: 'libraryHealth.fixHint.unmonitored',
+  'missing-albums': 'libraryHealth.fixHint.missingAlbums',
+  'genre-gaps': 'libraryHealth.fixHint.genreGaps',
+  'image-gaps': 'libraryHealth.fixHint.imageGaps',
+  'missing-wikidata': 'libraryHealth.fixHint.missingWikidata',
 }
 
 // Per-check i18n keys used by the (future) localised overrides of the backend's
@@ -65,12 +65,14 @@ const PREVIEW_COUNT = 5
 
 export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) {
   const [expanded, setExpanded] = useState(false)
+  const { t } = useI18n()
 
   const visibleItems: HealthCheckItem[] = expanded
     ? check.items
     : check.items.slice(0, PREVIEW_COUNT)
   const hasMore = check.items.length > PREVIEW_COUNT
   const fixDisabled = fixing || check.count === 0 || !check.fixable
+  const fixHintKey = FIX_HINT_KEYS[check.id]
 
   return (
     <div
@@ -128,16 +130,16 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
           className="text-xs text-accent underline text-left w-fit"
           onClick={() => setExpanded((v) => !v)}
         >
-          {expanded ? 'Show less' : `Show all ${check.count}`}
+          {expanded
+            ? t('libraryHealth.showLess')
+            : t('libraryHealth.showAll').replace('{0}', String(check.count))}
         </button>
       )}
 
       {/* Fix button + hint */}
       {check.fixable && (
         <div className="pt-1 space-y-1.5">
-          {FIX_HINTS[check.id] && (
-            <p className="text-xs text-muted italic">{FIX_HINTS[check.id]}</p>
-          )}
+          {fixHintKey && <p className="text-xs text-muted italic">{t(fixHintKey)}</p>}
           <Button
             size="sm"
             variant="outline"
@@ -145,7 +147,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
             onClick={() => onFix(check.id)}
             className="text-xs"
           >
-            {fixing ? 'Fixing...' : 'Fix'}
+            {fixing ? t('libraryHealth.fixing') : t('libraryHealth.fix')}
           </Button>
         </div>
       )}
