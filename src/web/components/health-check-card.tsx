@@ -32,14 +32,25 @@ const CHECK_ICONS: Record<string, React.ReactNode> = {
   'missing-wikidata': <BookOpen size={16} className="text-muted shrink-0" />,
 }
 
-function severityBorderClass(severity: HealthCheckResult['severity']): string {
+function severitySurfaceClass(severity: HealthCheckResult['severity']): string {
   switch (severity) {
     case 'error':
-      return 'border-l-reject'
+      return 'border-reject/30 bg-reject/5'
     case 'warning':
-      return 'border-l-yellow-500'
+      return 'border-warning/35 bg-warning/8'
     case 'info':
-      return 'border-l-accent'
+      return 'border-accent/30 bg-accent/5'
+  }
+}
+
+function severityDotClass(severity: HealthCheckResult['severity']): string {
+  switch (severity) {
+    case 'error':
+      return 'bg-reject'
+    case 'warning':
+      return 'bg-warning'
+    case 'info':
+      return 'bg-accent'
   }
 }
 
@@ -48,7 +59,7 @@ function severityBadgeClass(severity: HealthCheckResult['severity']): string {
     case 'error':
       return 'bg-reject/15 text-reject'
     case 'warning':
-      return 'bg-yellow-500/15 text-yellow-500'
+      return 'bg-warning/15 text-warning'
     case 'info':
       return 'bg-accent/15 text-accent'
   }
@@ -76,12 +87,16 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
 
   return (
     <div
-      className={`bg-surface border border-border border-l-4 ${severityBorderClass(check.severity)} rounded-lg p-4 flex flex-col gap-3`}
+      className={`border ${severitySurfaceClass(check.severity)} rounded-lg p-4 flex flex-col gap-3`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-text flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${severityDotClass(check.severity)}`}
+            />
             {CHECK_ICONS[check.id]}
             {check.name}
           </p>

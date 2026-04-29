@@ -851,7 +851,7 @@ export function RecommendationCard({
 
             {/* Recommendation reasoning */}
             {rec.aiReasoning && (
-              <div className="mx-4 border-l-2 border-accent bg-surface/50 px-3 py-2 rounded-r">
+              <div className="mx-4 rounded-md border border-accent/30 bg-accent/8 px-3 py-2">
                 <p className="text-xs text-muted uppercase tracking-wide mb-1">
                   {t('recommendation.whyThisArtist')}
                 </p>
