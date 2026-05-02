@@ -28,6 +28,7 @@ spec:
     spec:
       serviceAccountName: digarr
       automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001

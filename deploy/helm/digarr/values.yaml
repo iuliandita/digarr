@@ -29,6 +29,9 @@ containerSecurityContext:
     drop:
       - ALL
 
+# Keep above the app shutdown deadline: 12s readiness drain + 30s hard stop.
+terminationGracePeriodSeconds: 45
+
 serviceAccount:
   # Create a dedicated ServiceAccount with token automount disabled.
   # Set create=false and supply serviceAccount.name to reuse an existing one

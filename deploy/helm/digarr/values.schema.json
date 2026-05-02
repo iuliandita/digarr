@@ -21,6 +21,7 @@
     },
     "podSecurityContext": { "type": "object" },
     "containerSecurityContext": { "type": "object" },
+    "terminationGracePeriodSeconds": { "type": "integer", "minimum": 1 },
     "serviceAccount": {
       "type": "object",
       "properties": {

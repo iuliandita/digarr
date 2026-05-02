@@ -26,6 +26,7 @@ spec:
     spec:
       serviceAccountName: {{ include "digarr.serviceAccountName" . }}
       automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

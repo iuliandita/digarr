@@ -236,6 +236,7 @@ spec:
     spec:
       serviceAccountName: digarr
       automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
       securityContext:
         fsGroup: 10001
         runAsGroup: 10001

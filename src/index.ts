@@ -1553,8 +1553,8 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.on(signal, async () => {
     console.log(`${signal} received, shutting down...`)
     // Flip /health to 503 so kube-proxy / ingress stop routing traffic
-    // to this pod. Wait for one readiness-probe cycle (5s period + 5s
-    // timeout + 2 failures = up to 20s) before closing the server so
+    // to this pod. Wait long enough for the default Kubernetes probe cadence
+    // to observe draining before closing the server so
     // in-flight requests finish on the listener we still own.
     markShuttingDown()
     await new Promise((resolve) => setTimeout(resolve, 12_000))
