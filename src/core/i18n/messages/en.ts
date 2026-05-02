@@ -275,8 +275,6 @@ export const en = {
   'discover.bulkApproveFailed': 'Bulk approve failed',
   'discover.bulkRejectFailed': 'Bulk reject failed',
   'discover.clearAll': 'Clear All',
-  'discover.clearAllTitle':
-    'Rejects all pending recommendations at once - useful after reviewing a batch',
   'discover.clearFailed': 'Failed to clear recommendations',
   'discover.clearedCount': 'Cleared',
   'discover.discoveryModes': 'Discovery Modes',

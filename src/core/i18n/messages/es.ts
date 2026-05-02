@@ -262,8 +262,6 @@ export const es = {
   'discover.bulkApproveFailed': 'Error en la aprobación masiva',
   'discover.bulkRejectFailed': 'Error en el rechazo masivo',
   'discover.clearAll': 'Borrar todo',
-  'discover.clearAllTitle':
-    'Rechaza todas las recomendaciones pendientes a la vez (útil después de revisar un lote)',
   'discover.clearFailed': 'No se han podido borrar las recomendaciones',
   'discover.clearedCount': 'Borrado',
   'discover.discoveryModes': 'Modos de descubrimiento',

@@ -262,8 +262,6 @@ export const fr = {
   'discover.bulkApproveFailed': "Échec de l'approbation groupée",
   'discover.bulkRejectFailed': 'Échec du rejet groupé',
   'discover.clearAll': 'Tout effacer',
-  'discover.clearAllTitle':
-    'Rejette toutes les recommandations en attente en même temps – utile après avoir examiné un lot',
   'discover.clearFailed': "Impossible d'effacer les recommandations",
   'discover.clearedCount': 'Effacé',
   'discover.discoveryModes': 'Modes de découverte',

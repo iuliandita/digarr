@@ -249,7 +249,6 @@ export const zhCN = {
   'discover.bulkApproveFailed': '批量批准失败',
   'discover.bulkRejectFailed': '批量拒绝失败',
   'discover.clearAll': '全部清除',
-  'discover.clearAllTitle': '一键拒绝所有待处理推荐，适合在查看完一批推荐后使用',
   'discover.clearFailed': '无法清除建议',
   'discover.clearedCount': '已清除',
   'discover.discoveryModes': '发现模式',

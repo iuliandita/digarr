@@ -261,8 +261,6 @@ export const ja = {
   'discover.bulkApproveFailed': '一括承認に失敗しました',
   'discover.bulkRejectFailed': '一括拒否に失敗しました',
   'discover.clearAll': 'すべてクリア',
-  'discover.clearAllTitle':
-    '保留中の推奨事項をすべて一度に拒否します - バッチをレビューした後に役立ちます',
   'discover.clearFailed': '推奨事項をクリアできませんでした',
   'discover.clearedCount': 'クリア済み',
   'discover.discoveryModes': '発見モード',

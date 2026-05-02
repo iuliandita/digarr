@@ -262,8 +262,6 @@ export const nl = {
   'discover.bulkApproveFailed': 'Bulkgoedkeuring mislukt',
   'discover.bulkRejectFailed': 'Bulkafwijzing mislukt',
   'discover.clearAll': 'Alles wissen',
-  'discover.clearAllTitle':
-    'Weigert alle openstaande aanbevelingen in één keer - handig na het beoordelen van een batch',
   'discover.clearFailed': 'Kan aanbevelingen niet wissen',
   'discover.clearedCount': 'Gewist',
   'discover.discoveryModes': 'Ontdekkingsmodi',

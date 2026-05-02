@@ -262,8 +262,6 @@ export const ru = {
   'discover.bulkApproveFailed': 'Массовое одобрение не удалось',
   'discover.bulkRejectFailed': 'Массовое отклонение не удалось',
   'discover.clearAll': 'Очистить все',
-  'discover.clearAllTitle':
-    'Отклоняет все ожидающие рекомендации одновременно — полезно после проверки пакета.',
   'discover.clearFailed': 'Не удалось удалить рекомендации.',
   'discover.clearedCount': 'Очищено',
   'discover.discoveryModes': 'Режимы поиска',

@@ -258,8 +258,6 @@ export const ko = {
   'discover.bulkApproveFailed': '일괄 승인 실패',
   'discover.bulkRejectFailed': '일괄 거부 실패',
   'discover.clearAll': '모두 지우기',
-  'discover.clearAllTitle':
-    '보류 중인 모든 권장 사항을 한 번에 거부합니다. 배치를 검토한 후 유용합니다.',
   'discover.clearFailed': '추천을 삭제하지 못했습니다.',
   'discover.clearedCount': '삭제됨',
   'discover.discoveryModes': '발견 모드',

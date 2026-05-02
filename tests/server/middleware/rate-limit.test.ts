@@ -2,6 +2,7 @@
 import { Hono } from 'hono'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { __shutdownRateLimiter, rateLimiter } from '@/server/middleware/rate-limit'
+import type { HonoEnv } from '@/server/types'
 
 // The limiter keys off socket-level IP to defeat forged X-Forwarded-For.
 // Hono's Request interface lets tests inject `c.env.remoteAddress` via the
@@ -109,7 +110,11 @@ describe('rateLimiter', () => {
   it('isolates buckets per authenticated user behind a shared IP', async () => {
     // Simulate auth middleware running before rate-limit by setting userId
     // upstream so the limiter keys on (ip, userId) instead of just ip.
-    const app = new Hono<{ Bindings: { remoteAddress?: string } }>()
+    const app = new Hono<
+      HonoEnv & {
+        Bindings: { remoteAddress?: string }
+      }
+    >()
     app.use('*', async (c, next) => {
       const claimed = c.req.header('x-test-user')
       if (claimed) c.set('userId', Number.parseInt(claimed, 10))

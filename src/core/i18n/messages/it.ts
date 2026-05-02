@@ -262,8 +262,6 @@ export const it = {
   'discover.bulkApproveFailed': 'Approvazione collettiva non riuscita',
   'discover.bulkRejectFailed': 'Il rifiuto collettivo non è riuscito',
   'discover.clearAll': 'Cancella tutto',
-  'discover.clearAllTitle':
-    'Rifiuta contemporaneamente tutte le raccomandazioni in sospeso: utile dopo aver esaminato un batch',
   'discover.clearFailed': 'Impossibile cancellare i consigli',
   'discover.clearedCount': 'Cancellato',
   'discover.discoveryModes': 'Modalità di scoperta',

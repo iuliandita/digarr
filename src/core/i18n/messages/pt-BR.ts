@@ -262,8 +262,6 @@ export const ptBR = {
   'discover.bulkApproveFailed': 'Falha na aprovação em massa',
   'discover.bulkRejectFailed': 'Falha na rejeição em massa',
   'discover.clearAll': 'Limpar tudo',
-  'discover.clearAllTitle':
-    'Rejeita todas as recomendações pendentes de uma só vez – útil após revisar um lote',
   'discover.clearFailed': 'Falha ao limpar recomendações',
   'discover.clearedCount': 'Desmarcado',
   'discover.discoveryModes': 'Modos de descoberta',

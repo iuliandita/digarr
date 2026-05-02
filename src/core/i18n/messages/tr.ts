@@ -261,8 +261,6 @@ export const tr = {
   'discover.bulkApproveFailed': 'Toplu onay başarısız oldu',
   'discover.bulkRejectFailed': 'Toplu reddetme başarısız oldu',
   'discover.clearAll': 'Tümünü Temizle',
-  'discover.clearAllTitle':
-    'Bekleyen tüm önerileri tek seferde reddeder; bir grubu inceledikten sonra faydalıdır',
   'discover.clearFailed': 'Öneriler temizlenemedi',
   'discover.clearedCount': 'Temizlendi',
   'discover.discoveryModes': 'Keşif Modları',

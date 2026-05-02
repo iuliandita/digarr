@@ -262,8 +262,6 @@ export const uk = {
   'discover.bulkApproveFailed': 'Помилка масового схвалення',
   'discover.bulkRejectFailed': 'Не вдалося масово відхилити',
   'discover.clearAll': 'Очистити все',
-  'discover.clearAllTitle':
-    'Відхиляє всі незавершені рекомендації одразу – корисно після перегляду пакету',
   'discover.clearFailed': 'Не вдалося очистити рекомендації',
   'discover.clearedCount': 'Очищено',
   'discover.discoveryModes': 'Режими пошуку',

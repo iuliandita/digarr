@@ -262,8 +262,6 @@ export const pl = {
   'discover.bulkApproveFailed': 'Zatwierdzenie zbiorcze nie powiodło się',
   'discover.bulkRejectFailed': 'Odrzucenie zbiorcze nie powiodło się',
   'discover.clearAll': 'Wyczyść wszystko',
-  'discover.clearAllTitle':
-    'Odrzuca jednocześnie wszystkie oczekujące rekomendacje – przydatne po przejrzeniu partii',
   'discover.clearFailed': 'Nie udało się wyczyścić rekomendacji',
   'discover.clearedCount': 'Wyczyszczone',
   'discover.discoveryModes': 'Tryby odkrywania',

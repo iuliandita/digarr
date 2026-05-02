@@ -262,8 +262,6 @@ export const ro = {
   'discover.bulkApproveFailed': 'Aprobarea în bloc a eșuat',
   'discover.bulkRejectFailed': 'Respingerea în bloc a eșuat',
   'discover.clearAll': 'Ștergeți tot',
-  'discover.clearAllTitle':
-    'Respingeți toate recomandările în așteptare simultan - util după examinarea unui lot',
   'discover.clearFailed': 'Recomandările nu s-au șters',
   'discover.clearedCount': 'Eliberat',
   'discover.discoveryModes': 'Moduri de descoperire',

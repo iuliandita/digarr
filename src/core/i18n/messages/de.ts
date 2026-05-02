@@ -262,8 +262,6 @@ export const de = {
   'discover.bulkApproveFailed': 'Die Massengenehmigung ist fehlgeschlagen',
   'discover.bulkRejectFailed': 'Die Massenablehnung ist fehlgeschlagen',
   'discover.clearAll': 'Alles löschen',
-  'discover.clearAllTitle':
-    'Lehnt alle ausstehenden Empfehlungen auf einmal ab – nützlich nach der Überprüfung eines Stapels',
   'discover.clearFailed': 'Empfehlungen konnten nicht gelöscht werden',
   'discover.clearedCount': 'Gelöscht',
   'discover.discoveryModes': 'Entdeckungsmodi',
