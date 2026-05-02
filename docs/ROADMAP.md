@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-04-26 | Current: v0.44.0
+> Updated: 2026-05-03 | Current: v0.44.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -41,8 +41,6 @@ Committed direction, roughly in priority order.
 
 ### UX
 
-- Permanent artist blacklist ("never show again" beyond cooldown)
-- Rejection reasons
 - Preview volume control
 
 ## Exploring
@@ -99,6 +97,7 @@ For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
 
 - Discovery modes now live on their own page, ship ListenBrainz radio coverage plus Release Radar and Similar Artist Web, and can be saved as subscriptions
+- Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover
 - Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
 - Library operations now cover Lidarr, Plex, Jellyfin, Emby, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
