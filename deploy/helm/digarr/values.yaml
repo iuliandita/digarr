@@ -117,8 +117,7 @@ startupProbe:
   timeoutSeconds: 3
 
 livenessProbe:
-  httpGet:
-    path: /health
+  tcpSocket:
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10

@@ -4,6 +4,7 @@ metadata:
   name: {{ include "digarr.fullname" . }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: app
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -13,3 +14,4 @@ spec:
       name: http
   selector:
     {{- include "digarr.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: app

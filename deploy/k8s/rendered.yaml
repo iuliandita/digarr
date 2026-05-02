@@ -18,11 +18,13 @@ metadata:
     app.kubernetes.io/instance: digarr
     app.kubernetes.io/version: "0.44.0"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: app
 spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: digarr
       app.kubernetes.io/instance: digarr
+      app.kubernetes.io/component: app
   policyTypes:
     - Ingress
     - Egress
@@ -73,6 +75,39 @@ spec:
           port: 443
         - protocol: TCP
           port: 80
+---
+# Source: digarr/templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: digarr-postgresql
+  labels:
+    helm.sh/chart: digarr-0.44.0
+    app.kubernetes.io/name: digarr
+    app.kubernetes.io/instance: digarr
+    app.kubernetes.io/version: "0.44.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: database
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: digarr
+      app.kubernetes.io/instance: digarr
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: digarr
+              app.kubernetes.io/instance: digarr
+              app.kubernetes.io/component: app
+      ports:
+        - protocol: TCP
+          port: 5432
+  egress: []
 ---
 # Source: digarr/templates/serviceaccount.yaml
 apiVersion: v1
@@ -153,6 +188,7 @@ metadata:
     app.kubernetes.io/instance: digarr
     app.kubernetes.io/version: "0.44.0"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: app
 spec:
   type: ClusterIP
   ports:
@@ -163,6 +199,7 @@ spec:
   selector:
     app.kubernetes.io/name: digarr
     app.kubernetes.io/instance: digarr
+    app.kubernetes.io/component: app
 ---
 # Source: digarr/templates/deployment.yaml
 apiVersion: apps/v1
@@ -175,6 +212,7 @@ metadata:
     app.kubernetes.io/instance: digarr
     app.kubernetes.io/version: "0.44.0"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: app
 spec:
   replicas: 1
   strategy:
@@ -191,6 +229,7 @@ spec:
       labels:
         app.kubernetes.io/name: digarr
         app.kubernetes.io/instance: digarr
+        app.kubernetes.io/component: app
       annotations:
         checksum/config: d1f49d7129a52c6e20a20a47284d6fc391ec6ce726c4370d79b49adb7d970d4f
         checksum/secret: 736e5aa5968b27b979e543888272d69df7a860623d4dbf452c4ee6150f61e9bf
@@ -239,11 +278,10 @@ spec:
             timeoutSeconds: 3
           livenessProbe:
             failureThreshold: 3
-            httpGet:
-              path: /health
-              port: http
             initialDelaySeconds: 30
             periodSeconds: 10
+            tcpSocket:
+              port: http
             timeoutSeconds: 10
           readinessProbe:
             failureThreshold: 2

@@ -4,6 +4,7 @@ metadata:
   name: {{ include "digarr.fullname" . }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: app
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -18,6 +19,7 @@ spec:
     metadata:
       labels:
         {{- include "digarr.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: app
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
