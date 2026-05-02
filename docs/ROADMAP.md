@@ -96,7 +96,7 @@ Low confidence. Would build only with real demand.
 ## Shipped Highlights
 
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
-Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml` and `deploy/helm/digarr/values.yaml`.
+Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
 
 - Discovery modes now live on their own page, ship ListenBrainz radio coverage plus Release Radar and Similar Artist Web, and can be saved as subscriptions
 - Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks

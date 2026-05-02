@@ -116,7 +116,10 @@ network lets them reach each other by container name.
 
 1. **Docker** > **Registry** > search for `postgres`
 2. Download `postgres:17-alpine`
-3. **Image** > select `postgres:17-alpine` > **Launch**
+3. **Image** > select
+   `postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609`
+   if your DSM build supports digest references; otherwise select
+   `postgres:17-alpine` > **Launch**
 4. **Network**: select `digarr-net` (deselect `bridge`)
 5. Container name: `digarr-db`
 6. Click **Advanced Settings** > **Environment** - add these variables:
