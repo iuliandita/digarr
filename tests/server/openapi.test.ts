@@ -80,4 +80,15 @@ describe('OpenAPI skeleton', () => {
     })
     expect(operation.responses['502']).toEqual({ $ref: '#/components/responses/ProbeFailed' })
   })
+
+  it('documents mutation success responses with the real handler shapes', () => {
+    const createBlock = openapiDoc.paths['/api/v1/artist-blocks'].post
+    expect(createBlock.responses['204']).toEqual({ description: 'Artist block created.' })
+    expect(createBlock.responses).not.toHaveProperty('200')
+
+    const updateRecommendation = openapiDoc.paths['/api/v1/recommendations/{id}'].patch
+    expect(updateRecommendation.responses['200'].content?.['application/json']?.schema).toEqual({
+      $ref: '#/components/schemas/RecommendationUpdateResult',
+    })
+  })
 })

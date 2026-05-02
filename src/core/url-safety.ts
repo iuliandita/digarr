@@ -5,6 +5,7 @@ import {
   isHttpUrl,
   isPrivateIp,
   isPrivateUrl,
+  normalizeIp,
 } from '@/core/validation'
 
 export type UrlValidation = { ok: true } | { ok: false; message: string }
@@ -59,7 +60,7 @@ export async function validateAiBaseUrl(
 
   try {
     const { address } = await lookup(getLookupHostname(url))
-    if (CLOUD_METADATA_IPS.has(address)) {
+    if (CLOUD_METADATA_IPS.has(normalizeIp(address))) {
       return { ok: false, message: `${label} resolves to a cloud metadata IP` }
     }
   } catch {

@@ -71,6 +71,16 @@ describe('validateAiBaseUrl', () => {
     expect(result).toEqual({ ok: false, message: 'AI base URL resolves to a cloud metadata IP' })
   })
 
+  it('blocks IPv4-mapped IPv6 metadata responses for local providers', async () => {
+    lookupMock.mockResolvedValueOnce({ address: '::ffff:a9fe:a9fe', family: 6 })
+    const result = await validateAiBaseUrl(
+      'http://mapped-metadata.example/',
+      'openai-compatible',
+      'AI base URL',
+    )
+    expect(result).toEqual({ ok: false, message: 'AI base URL resolves to a cloud metadata IP' })
+  })
+
   it('allows local providers to use a localhost hostname', async () => {
     lookupMock.mockResolvedValueOnce({ address: '127.0.0.1', family: 4 })
     const result = await validateAiBaseUrl('http://localhost:11434', 'ollama', 'AI base URL')

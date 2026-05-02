@@ -135,6 +135,16 @@ export const openapiDoc = {
         },
         additionalProperties: true,
       },
+      RecommendationUpdateResult: {
+        type: 'object',
+        required: ['status'],
+        properties: {
+          status: { type: 'string' },
+          targetActions: { type: 'object', additionalProperties: true },
+          lidarrError: { type: 'string' },
+        },
+        additionalProperties: true,
+      },
       ArtistBlock: {
         type: 'object',
         required: ['artistId'],
@@ -355,7 +365,7 @@ export const openapiDoc = {
         responses: {
           '200': {
             description: 'Updated recommendation status.',
-            ...jsonSchema('#/components/schemas/Recommendation'),
+            ...jsonSchema('#/components/schemas/RecommendationUpdateResult'),
           },
           '400': validationResponse,
           '401': unauthenticatedResponse,
@@ -390,10 +400,7 @@ export const openapiDoc = {
         security: authSecurity,
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
         responses: {
-          '200': {
-            description: 'Artist block.',
-            ...jsonSchema('#/components/schemas/ArtistBlock'),
-          },
+          '204': { description: 'Artist block created.' },
           '400': validationResponse,
           '401': unauthenticatedResponse,
         },
