@@ -13,7 +13,7 @@ CHART_DIR="${REPO_ROOT}/deploy/helm/digarr"
 OUT_FILE="${REPO_ROOT}/deploy/k8s/rendered.yaml"
 
 if ! command -v helm >/dev/null 2>&1; then
-  echo "error: helm not found on PATH" >&2
+  printf 'error: helm not found on PATH\n' >&2
   exit 1
 fi
 
@@ -35,4 +35,4 @@ HEADER
     --set postgresql.auth.password=REPLACE_ME
 } > "${OUT_FILE}"
 
-echo "wrote ${OUT_FILE#"${REPO_ROOT}"/} (chart ${CHART_VERSION})"
+printf 'wrote %s (chart %s)\n' "${OUT_FILE#"${REPO_ROOT}"/}" "${CHART_VERSION}"

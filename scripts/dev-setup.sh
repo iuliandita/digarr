@@ -12,6 +12,20 @@ red() { printf '\033[0;31m%s\033[0m\n' "$*"; }
 green() { printf '\033[0;32m%s\033[0m\n' "$*"; }
 blue() { printf '\033[0;34m%s\033[0m\n' "$*"; }
 
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    red "missing required command: $1"
+    exit 1
+  fi
+}
+
+ensure_commands() {
+  require_command git
+  require_command docker
+  require_command pg_isready
+  require_command bun
+}
+
 ensure_postgres_container() {
   if docker inspect "$CONTAINER_NAME" &>/dev/null; then
     if [[ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" == "true" ]]; then
@@ -79,6 +93,7 @@ print_next_steps() {
 }
 
 main() {
+  ensure_commands
   cd "$(git rev-parse --show-toplevel)"
 
   ensure_postgres_container
