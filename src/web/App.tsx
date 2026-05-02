@@ -156,7 +156,7 @@ function NavDropdown({
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex items-center gap-1 text-sm transition-colors ${isActive ? 'text-accent' : 'text-muted hover:text-text'}`}
+        className={`flex items-center gap-1 rounded-md text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-accent' : 'text-muted hover:text-text'}`}
       >
         {icon} {label}
         <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -212,7 +212,7 @@ function ThemePicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="p-1.5 text-muted hover:text-text transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
         aria-label={t('app.themeSettings')}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -299,7 +299,10 @@ function UserMenu({ username }: { username: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 p-1.5 text-muted hover:text-text transition-colors"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
+        aria-label={username}
+        aria-expanded={open}
+        aria-haspopup="menu"
         title={username}
       >
         <User size={18} />
@@ -429,7 +432,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     isActive ? 'text-text' : 'text-muted hover:text-text'
 
   const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `py-2 ${isActive ? 'text-text' : 'text-muted hover:text-text'}`
+    `flex min-h-11 items-center rounded-md px-2 py-2 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-text' : 'text-muted hover:text-text'}`
 
   return (
     <PreviewContext.Provider
@@ -523,7 +526,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              <div className="hidden sm:block">
+                <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              </div>
               <ThemePicker
                 mode={mode}
                 colorTheme={colorTheme}
@@ -542,7 +547,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
                     })
                 }
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-60"
+                className="flex min-h-11 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-60 sm:min-h-9 sm:px-4"
               >
                 {pipelineRunning ? (
                   <>
@@ -561,7 +566,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="sm:hidden p-1"
+                className="flex h-11 w-11 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:hidden"
                 aria-label={t('app.toggleMenu')}
               >
                 <MobileMenuIcon open={menuOpen} />
@@ -571,6 +576,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
           {/* Mobile nav dropdown */}
           {menuOpen && (
             <div className="sm:hidden flex flex-col gap-1 pt-3 pb-1">
+              <div className="px-2 py-2">
+                <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              </div>
               <NavLink to="/" end className={mobileNavLinkClass} onClick={() => setMenuOpen(false)}>
                 <span className="flex items-center gap-1.5">
                   <LayoutDashboard size={14} aria-hidden="true" />

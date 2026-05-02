@@ -74,7 +74,7 @@ export function ImportArtists({
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-text hover:bg-bg/50 transition-colors rounded-lg"
+        className="flex min-h-11 w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-text transition-colors hover:bg-bg/50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
       >
         <span className="flex items-center gap-2">
           <Upload size={14} />
@@ -88,7 +88,7 @@ export function ImportArtists({
           {/* Spotify Liked Songs */}
           <div className="border border-border rounded-md p-3 space-y-2">
             <div className="flex items-center gap-2">
-              <Music size={14} className="text-[#1DB954] shrink-0" />
+              <Music size={14} className="shrink-0 text-svc-spotify" />
               <p className="text-sm font-medium text-text">{t('importArtists.likedSongs')}</p>
             </div>
             <p className="text-xs text-muted">{t('importArtists.likedSongsDescription')}</p>
@@ -97,7 +97,7 @@ export function ImportArtists({
                 type="button"
                 onClick={handleLikedSongs}
                 disabled={importing !== null}
-                className="w-full px-3 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity"
+                className="min-h-11 w-full rounded-md bg-accent px-3 py-1.5 text-xs text-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 sm:min-h-8"
               >
                 {importing === 'liked-songs' ? t('common.importing') : t('importArtists.import')}
               </button>
@@ -115,7 +115,7 @@ export function ImportArtists({
           {/* Spotify Playlist */}
           <div className="border border-border rounded-md p-3 space-y-2">
             <div className="flex items-center gap-2">
-              <Music size={14} className="text-[#1DB954] shrink-0" />
+              <Music size={14} className="shrink-0 text-svc-spotify" />
               <p className="text-sm font-medium text-text">{t('importArtists.spotifyPlaylist')}</p>
             </div>
             <p className="text-xs text-muted">{t('importArtists.spotifyPlaylistDescription')}</p>
@@ -126,7 +126,7 @@ export function ImportArtists({
                   value={playlistUrl}
                   onChange={(e) => setPlaylistUrl(e.target.value)}
                   placeholder={t('importArtists.playlistPlaceholder')}
-                  className="flex-1 min-w-0 px-2 py-1.5 text-xs bg-bg border border-border rounded-md text-text placeholder:text-muted/60 focus:outline-none focus:border-accent"
+                  className="min-h-11 flex-1 min-w-0 rounded-md border border-border bg-bg px-2 py-1.5 text-xs text-text placeholder:text-muted/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent sm:min-h-8"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handlePlaylist()
                   }}
@@ -135,7 +135,7 @@ export function ImportArtists({
                   type="button"
                   onClick={handlePlaylist}
                   disabled={!playlistUrl.trim() || importing !== null}
-                  className="px-2.5 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
+                  className="min-h-11 shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs text-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 sm:min-h-8"
                 >
                   {importing === 'playlist' ? '...' : t('importArtists.go')}
                 </button>
@@ -169,7 +169,7 @@ export function ImportArtists({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={importing !== null}
-              className="w-full px-3 py-1.5 text-xs bg-accent text-accent-fg rounded-md hover:opacity-90 disabled:opacity-50 transition-opacity"
+              className="min-h-11 w-full rounded-md bg-accent px-3 py-1.5 text-xs text-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-50 sm:min-h-8"
             >
               {importing === 'csv' ? t('importArtists.uploading') : t('importArtists.chooseFile')}
             </button>
