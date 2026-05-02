@@ -10,6 +10,7 @@ cd deploy/docker
 cp secrets/postgres_password.example secrets/postgres_password
 cp secrets/database_url.example      secrets/database_url
 # edit both files with real values
+cp .env.example .env
 docker compose up -d
 ```
 
@@ -33,10 +34,11 @@ defined there (build context, postgres port publish). Everything else
 
 ## Secrets
 
-Both compose files use the `_FILE` env convention. The app reads
-`DATABASE_URL_FILE`; Postgres reads `POSTGRES_PASSWORD_FILE`. See
-`secrets/*.example` for the expected format.
+The base compose file uses the `_FILE` env convention. The app reads
+`DATABASE_URL_FILE`; Postgres reads `POSTGRES_PASSWORD_FILE`. Create
+`secrets/postgres_password` and `secrets/database_url` before starting the
+stack; see `secrets/*.example` for the expected format.
 
 If you need env-var-only deployment (e.g. platforms without Compose secrets),
-set `DATABASE_URL` and `DB_PASS` directly in `.env` -- the app falls back to
-direct env vars when the `_FILE` variant is unset.
+use a small compose override that sets `DATABASE_URL` for the app,
+`POSTGRES_PASSWORD` for Postgres, and removes the `_FILE` variables.

@@ -1,3 +1,5 @@
+# Compatibility workflow override. It keeps the production compose defaults
+# intact while building the app image from the checked-out source tree.
 services:
   app:
     build:

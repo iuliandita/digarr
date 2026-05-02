@@ -111,8 +111,11 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
+mkdir -p secrets
+printf '%s\n' 'change-this-password' > secrets/postgres_password
+printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
-# Edit .env and set DB_PASS at minimum
+# Edit both secrets files and optionally .env
 docker compose up -d
 ```
 
