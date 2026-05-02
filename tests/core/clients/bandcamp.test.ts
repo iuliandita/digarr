@@ -97,6 +97,19 @@ const SAMPLE_HTML_UNSAFE_URL = `
 </ul>
 `
 
+const SAMPLE_HTML_ENCODED_TAGS = `
+<ul>
+  <li class="searchresult band" itemtype="b">
+    <div class="result-info">
+      <div class="heading">
+        <a href="https://encoded.bandcamp.com">&lt;script&gt;Encoded&lt;/script&gt;</a>
+      </div>
+      <div class="genre">genre: &amp;lt;b&amp;gt;ambient&amp;lt;/b&amp;gt;</div>
+    </div>
+  </li>
+</ul>
+`
+
 let requestCount = 0
 
 function sendHtml(res: http.ServerResponse, status: number, body: string): void {
@@ -135,6 +148,11 @@ beforeAll(async () => {
 
       if (q === 'unsafe') {
         sendHtml(res, 200, SAMPLE_HTML_UNSAFE_URL)
+        return
+      }
+
+      if (q === 'encoded-tags') {
+        sendHtml(res, 200, SAMPLE_HTML_ENCODED_TAGS)
         return
       }
 
@@ -230,6 +248,15 @@ describe('createBandcampClient', () => {
         url: 'https://safeartist.bandcamp.com',
       })
       expect(results[0]?.imageUrl).toBeUndefined()
+    })
+
+    it('strips tags that appear after entity decoding', async () => {
+      const client = createBandcampClient({ baseUrl })
+      const results = await client.searchArtists('encoded-tags')
+      expect(results[0]).toMatchObject({
+        name: 'Encoded',
+        genre: 'ambient',
+      })
     })
   })
 

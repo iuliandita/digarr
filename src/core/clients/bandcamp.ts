@@ -61,7 +61,15 @@ function decodeHtmlEntities(value: string): string {
 }
 
 function stripHtml(s: string): string {
-  return decodeHtmlEntities(s.replace(RE_HTML_TAG, '')).trim()
+  let current = s
+  let previous: string
+
+  do {
+    previous = current
+    current = decodeHtmlEntities(current.replace(RE_HTML_TAG, ''))
+  } while (current !== previous)
+
+  return current.trim()
 }
 
 function normalizeBandcampUrl(rawUrl: string): string {
