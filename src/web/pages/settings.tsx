@@ -210,18 +210,25 @@ function SliderField({
 
 type ServiceTestState = 'idle' | 'testing' | 'ok' | 'error'
 
-// True when the AI provider and base URL together describe a request that stays on the user's
-// own server. The privacy badge in the AI section flips between "fully local" and
-// "data leaves your server" based on this check.
+const LOCAL_AI_DEFAULT_BASE_URLS: Record<string, string> = {
+  ollama: 'http://localhost:11434',
+  'openai-compatible': 'http://localhost:8080',
+}
+
+// True when the configured endpoint clearly points back to this machine or a local mDNS host.
+// The privacy badge must follow the actual endpoint, not only the selected provider name.
 function isLocalAiProvider(provider: string, baseUrl: string): boolean {
-  if (provider === 'ollama') return true
-  if (provider !== 'openai-compatible') return false
-  // openai-compatible defaults to a localhost endpoint when the user has not entered one yet.
-  if (!baseUrl.trim()) return true
+  const defaultBaseUrl = LOCAL_AI_DEFAULT_BASE_URLS[provider]
+  if (!defaultBaseUrl) return false
+  const effectiveBaseUrl = baseUrl.trim() || defaultBaseUrl
   try {
-    const host = new URL(baseUrl).hostname.toLowerCase()
+    const host = new URL(effectiveBaseUrl).hostname.toLowerCase()
     return (
-      host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host.endsWith('.local')
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '0.0.0.0' ||
+      host === '[::1]' ||
+      host.endsWith('.local')
     )
   } catch {
     return false
@@ -710,7 +717,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     <option value="anthropic">Anthropic</option>
                     <option value="openai">OpenAI</option>
                     <option value="gemini">Google Gemini</option>
-                    <option value="ollama">Ollama (local)</option>
+                    <option value="ollama">Ollama</option>
                     <option value="openai-compatible">OpenAI-Compatible</option>
                   </Select>
                 </Field>

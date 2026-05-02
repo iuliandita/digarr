@@ -805,7 +805,7 @@ export const ru = {
   'settings.aiOpenAiCompatibleHelp':
     'Совместим с Groq, OpenRouter, LiteLLM, LocalAI и любым OpenAI-совместимым эндпоинтом. API Key необязателен для локальных сервисов.',
   'settings.aiPrivacyNoteHosted':
-    'Запросы для подбора отправляются выбранному провайдеру согласно его условиям. Переключитесь на Ollama или локальный OpenAI-совместимый эндпоинт, чтобы они оставались на вашем сервере.',
+    'Запросы для подбора отправляются выбранному провайдеру согласно его условиям. Используйте Ollama на localhost или локальный OpenAI-совместимый эндпоинт, чтобы они оставались на вашем сервере.',
   'settings.aiPrivacyNoteLocal': 'Запросы для подбора остаются на вашем сервере.',
   'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',

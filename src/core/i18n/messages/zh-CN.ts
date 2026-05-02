@@ -737,7 +737,7 @@ export const zhCN = {
   'settings.aiOpenAiCompatibleHelp':
     '兼容 Groq、OpenRouter、LiteLLM、LocalAI 及任何 OpenAI 兼容端点。本地服务 API Key 可选填。',
   'settings.aiPrivacyNoteHosted':
-    '发现请求会按所选提供商的条款发送给该提供商。切换到 Ollama 或本地 OpenAI 兼容端点可让请求保留在你的服务器上。',
+    '发现请求会按所选提供商的条款发送给该提供商。使用 localhost 上的 Ollama 或本地 OpenAI 兼容端点可让请求保留在你的服务器上。',
   'settings.aiPrivacyNoteLocal': '发现请求保留在你的服务器上。',
   'settings.aiPrivacyBadgeHosted': '数据离开你的服务器',
   'settings.aiPrivacyBadgeLocal': '完全本地',

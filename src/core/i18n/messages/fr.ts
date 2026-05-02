@@ -789,7 +789,7 @@ export const fr = {
   'settings.aiOpenAiCompatibleHelp':
     'Compatible avec Groq, OpenRouter, LiteLLM, LocalAI et tout endpoint compatible OpenAI. La clé API est optionnelle pour les services locaux.',
   'settings.aiPrivacyNoteHosted':
-    "Les requêtes de découverte sont envoyées au fournisseur choisi selon ses conditions. Choisis Ollama ou un endpoint local compatible OpenAI pour qu'elles restent sur ton serveur.",
+    "Les requêtes de découverte sont envoyées au fournisseur choisi selon ses conditions. Utilise Ollama sur localhost ou un endpoint local compatible OpenAI pour qu'elles restent sur ton serveur.",
   'settings.aiPrivacyNoteLocal': 'Les requêtes de découverte restent sur ton serveur.',
   'settings.aiPrivacyBadgeHosted': 'Les données quittent ton serveur',
   'settings.aiPrivacyBadgeLocal': 'Entièrement local',

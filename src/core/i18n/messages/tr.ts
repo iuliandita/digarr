@@ -792,7 +792,7 @@ export const tr = {
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile calisir. Yerel hizmetler için API anahtari istege baglidir.',
   'settings.aiPrivacyNoteHosted':
-    'Kesif istekleri seçtigin saglayiciya kendi sartlari altinda gonderilir. Sunucunda kalmasi için Ollama veya yerel bir OpenAI uyumlu son noktaya geç.',
+    'Kesif istekleri seçtigin saglayiciya kendi sartlari altinda gonderilir. Sunucunda kalmasi için localhost uzerinde Ollama veya yerel bir OpenAI uyumlu son nokta kullan.',
   'settings.aiPrivacyNoteLocal': 'Kesif istekleri sunucunda kalir.',
   'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrilir',
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',

@@ -800,7 +800,7 @@ export const uk = {
   'settings.aiOpenAiCompatibleHelp':
     "Сумісний із Groq, OpenRouter, LiteLLM, LocalAI та будь-яким OpenAI-сумісним ендпоінтом. API Key необов'язковий для локальних сервісів.",
   'settings.aiPrivacyNoteHosted':
-    'Запити пошуку надсилаються обраному постачальнику згідно з його умовами. Перейдіть на Ollama або локальний OpenAI-сумісний ендпоінт, щоб вони залишалися на вашому сервері.',
+    'Запити пошуку надсилаються обраному постачальнику згідно з його умовами. Використовуйте Ollama на localhost або локальний OpenAI-сумісний ендпоінт, щоб вони залишалися на вашому сервері.',
   'settings.aiPrivacyNoteLocal': 'Запити пошуку залишаються на вашому сервері.',
   'settings.aiPrivacyBadgeHosted': 'Дані залишають ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Повністю локально',

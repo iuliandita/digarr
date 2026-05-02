@@ -783,7 +783,7 @@ export const ja = {
   'settings.aiOpenAiCompatibleHelp':
     'Groq、OpenRouter、LiteLLM、LocalAI、および OpenAI 互換エンドポイントで動作します。ローカルサービスでは API Key は任意です。',
   'settings.aiPrivacyNoteHosted':
-    'ディスカバリープロンプトは選択したプロバイダーの規約に従って送信されます。サーバー内に保持したい場合は Ollama またはローカルの OpenAI 互換エンドポイントを選択してください。',
+    'ディスカバリープロンプトは選択したプロバイダーの規約に従って送信されます。サーバー内に保持したい場合は localhost の Ollama またはローカルの OpenAI 互換エンドポイントを使用してください。',
   'settings.aiPrivacyNoteLocal': 'ディスカバリープロンプトはサーバー内に保持されます。',
   'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
   'settings.aiPrivacyBadgeLocal': '完全にローカル',

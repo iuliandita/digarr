@@ -911,7 +911,7 @@ export const en = {
   'settings.aiOpenAiCompatibleHelp':
     'Works with Groq, OpenRouter, LiteLLM, LocalAI, and any OpenAI-compatible endpoint. API key is optional for local services.',
   'settings.aiPrivacyNoteHosted':
-    'Discovery prompts are sent to your chosen provider under their terms. Switch to Ollama or a local OpenAI-compatible endpoint to keep them on your server.',
+    'Discovery prompts are sent to your chosen provider under their terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep them on your server.',
   'settings.aiPrivacyNoteLocal': 'Discovery prompts stay on your server.',
   'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
   'settings.aiPrivacyBadgeLocal': 'Fully local',

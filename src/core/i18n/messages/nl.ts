@@ -797,7 +797,7 @@ export const nl = {
   'settings.aiOpenAiCompatibleHelp':
     'Werkt met Groq, OpenRouter, LiteLLM, LocalAI en elk OpenAI-compatibel eindpunt. API-sleutel is optioneel voor lokale diensten.',
   'settings.aiPrivacyNoteHosted':
-    'Ontdekkingsverzoeken worden naar de gekozen aanbieder gestuurd onder hun voorwaarden. Kies Ollama of een lokaal OpenAI-compatibel eindpunt om ze op je server te houden.',
+    'Ontdekkingsverzoeken worden naar de gekozen aanbieder gestuurd onder hun voorwaarden. Gebruik Ollama op localhost of een lokaal OpenAI-compatibel eindpunt om ze op je server te houden.',
   'settings.aiPrivacyNoteLocal': 'Ontdekkingsverzoeken blijven op je server.',
   'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',

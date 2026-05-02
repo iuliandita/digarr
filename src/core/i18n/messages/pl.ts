@@ -795,7 +795,7 @@ export const pl = {
   'settings.aiOpenAiCompatibleHelp':
     'Dziala z Groq, OpenRouter, LiteLLM, LocalAI i dowolnym punktem koncowym zgodnym z OpenAI. Klucz API jest opcjonalny dla lokalnych uslug.',
   'settings.aiPrivacyNoteHosted':
-    'Zapytania wykrywania sa wysylane do wybranego dostawcy zgodnie z jego warunkami. Przelacz na Ollama lub lokalny punkt koncowy zgodny z OpenAI, aby pozostaly na twoim serwerze.',
+    'Zapytania wykrywania sa wysylane do wybranego dostawcy zgodnie z jego warunkami. Uzyj Ollama na localhost albo lokalnego punktu koncowego zgodnego z OpenAI, aby pozostaly na twoim serwerze.',
   'settings.aiPrivacyNoteLocal': 'Zapytania wykrywania pozostaja na twoim serwerze.',
   'settings.aiPrivacyBadgeHosted': 'Dane opuszczaja twoj serwer',
   'settings.aiPrivacyBadgeLocal': 'W pelni lokalnie',
