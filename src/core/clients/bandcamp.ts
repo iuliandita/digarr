@@ -31,7 +31,6 @@ const RE_ITEMURL_LINK =
 const RE_GENRE = /<div class="genre"[^>]*>([\s\S]*?)<\/div>/
 const RE_ITEM_TYPE = /<div class="itemtype"[^>]*>([\s\S]*?)<\/div>/
 const RE_IMAGE = /<img[^>]+src="([^"]+)"[^>]*>/
-const RE_HTML_TAG = /<[^>]+>/g
 const RE_BAND_TYPE_MARKER =
   /itemtype=(?:"|')b(?:"|')|data-search=(?:"|')[\s\S]*?(?:"|&quot;)type(?:"|&quot;)\s*:\s*(?:"|&quot;)b(?:"|&quot;)[\s\S]*?(?:"|')/i
 
@@ -60,13 +59,39 @@ function decodeHtmlEntities(value: string): string {
   })
 }
 
+function removeHtmlTags(value: string): string {
+  let result = ''
+  let inTag = false
+
+  for (const char of value) {
+    if (char === '<') {
+      inTag = true
+      continue
+    }
+
+    if (char === '>') {
+      if (inTag) {
+        inTag = false
+        continue
+      }
+      continue
+    }
+
+    if (!inTag) {
+      result += char
+    }
+  }
+
+  return result
+}
+
 function stripHtml(s: string): string {
   let current = s
   let previous: string
 
   do {
     previous = current
-    current = decodeHtmlEntities(current.replace(RE_HTML_TAG, ''))
+    current = removeHtmlTags(decodeHtmlEntities(current))
   } while (current !== previous)
 
   return current.trim()

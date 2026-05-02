@@ -102,7 +102,7 @@ const SAMPLE_HTML_ENCODED_TAGS = `
   <li class="searchresult band" itemtype="b">
     <div class="result-info">
       <div class="heading">
-        <a href="https://encoded.bandcamp.com">&lt;script&gt;Encoded&lt;/script&gt;</a>
+        <a href="https://encoded.bandcamp.com">Encoded &lt;script</a>
       </div>
       <div class="genre">genre: &amp;lt;b&amp;gt;ambient&amp;lt;/b&amp;gt;</div>
     </div>
@@ -250,7 +250,7 @@ describe('createBandcampClient', () => {
       expect(results[0]?.imageUrl).toBeUndefined()
     })
 
-    it('strips tags that appear after entity decoding', async () => {
+    it('strips complete and incomplete tags after entity decoding', async () => {
       const client = createBandcampClient({ baseUrl })
       const results = await client.searchArtists('encoded-tags')
       expect(results[0]).toMatchObject({
