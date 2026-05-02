@@ -302,7 +302,7 @@ describe('SettingsPage', () => {
       </I18nProvider>,
     )
 
-    expect(await screen.findByText('Tableau de bord')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Tableau de bord' })).toBeInTheDocument()
   })
 
   it('uses translated theme menu labels', async () => {

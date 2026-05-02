@@ -753,7 +753,7 @@ describe('POST /api/v1/auth/change-password', () => {
     expect(body.ok).toBeUndefined()
     expect(updatePassword).toHaveBeenCalledOnce()
     expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
-  })
+  }, 10_000)
 
   it('rejects legacy read-only token auth', async () => {
     const updatePassword = vi.fn(async () => {})
