@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -45,7 +45,7 @@ jobs:
 
   trivy-fs:
     name: Trivy filesystem scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     steps:
@@ -69,7 +69,7 @@ jobs:
 
   trivy-image:
     name: Trivy container scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # skip when DOCKERHUB secrets unavailable (fork PRs, dependabot)
     if: github.event_name != 'pull_request' || (!github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]')
     permissions:
@@ -107,7 +107,7 @@ jobs:
           sarif_file: trivy-image.sarif
 
   codeql:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     steps:
