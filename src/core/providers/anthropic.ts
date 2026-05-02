@@ -15,15 +15,25 @@ const RECOMMENDATION_TOOL_NAME = 'emit_recommendations'
 
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
 
+function timeoutSecondsToMs(timeoutSeconds?: number | null): number | undefined {
+  return timeoutSeconds == null ? undefined : Math.max(1, timeoutSeconds) * 1000
+}
+
 export class AnthropicProvider implements RecommendationProvider {
   private client: Anthropic
   private model: string
   lastUsage: AiUsage | null = null
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
+  constructor(
+    apiKey: string,
+    model: string = DEFAULT_MODEL,
+    baseUrl?: string | null,
+    timeoutSeconds?: number | null,
+  ) {
     this.client = new Anthropic({
       apiKey,
       ...(baseUrl ? { baseURL: baseUrl } : {}),
+      ...(timeoutSeconds != null ? { timeout: timeoutSecondsToMs(timeoutSeconds) } : {}),
     })
     this.model = model
   }

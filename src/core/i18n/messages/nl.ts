@@ -173,7 +173,7 @@ export const nl = {
   'setup.provider': 'Aanbieder',
   'setup.providerAnthropic': 'Antropisch',
   'setup.providerGemini': 'Google Tweelingen',
-  'setup.providerOllama': 'Ollama (lokaal)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'Open AI',
   'setup.providerOpenAiCompatible': 'OpenAI-compatibel',
   'setup.readyDescription': 'Dit is wat je hebt geconfigureerd:',

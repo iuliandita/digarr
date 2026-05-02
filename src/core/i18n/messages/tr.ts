@@ -172,7 +172,7 @@ export const tr = {
   'setup.provider': 'sağlayıcı',
   'setup.providerAnthropic': 'Antropik',
   'setup.providerGemini': 'Google İkizler',
-  'setup.providerOllama': 'Ollama (yerel)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI Uyumlu',
   'setup.readyDescription': 'İşte yapılandırdığınız şey:',

@@ -68,6 +68,12 @@ describe('OpenAIProvider', () => {
       const lastCall = openaiCtorCalls.at(-1) ?? {}
       expect(lastCall.baseURL).toBe('https://proxy.example.com')
     })
+
+    test('threads timeout into SDK constructor', () => {
+      new OpenAIProvider('k', 'gpt-4o', null, 45)
+      const lastCall = openaiCtorCalls.at(-1) ?? {}
+      expect(lastCall.timeout).toBe(45_000)
+    })
   })
 
   describe('getRecommendations', () => {

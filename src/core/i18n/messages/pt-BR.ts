@@ -173,7 +173,7 @@ export const ptBR = {
   'setup.provider': 'Provedor',
   'setup.providerAnthropic': 'Antrópico',
   'setup.providerGemini': 'Google Gêmeos',
-  'setup.providerOllama': 'Ollama (local)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Compatível com OpenAI',
   'setup.readyDescription': 'Aqui está o que você configurou:',

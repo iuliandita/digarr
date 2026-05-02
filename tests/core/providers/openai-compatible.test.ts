@@ -135,4 +135,9 @@ describe('OpenAICompatibleProvider', () => {
     expect(results).toHaveLength(1)
     expect(results[0]?.artistName).toBe('Burial')
   })
+
+  it('uses the configured recommendation timeout', () => {
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model', null, 45)
+    expect((provider as unknown as { timeoutMs: number }).timeoutMs).toBe(45_000)
+  })
 })

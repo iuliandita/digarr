@@ -86,4 +86,9 @@ describe('GeminiProvider', () => {
       }),
     ).rejects.toThrow()
   })
+
+  it('uses the configured recommendation timeout', () => {
+    const provider = new GeminiProvider('test-key', 'gemini-3-flash-preview', 45)
+    expect((provider as unknown as { timeoutMs: number }).timeoutMs).toBe(45_000)
+  })
 })

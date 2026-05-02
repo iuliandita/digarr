@@ -173,7 +173,7 @@ export const it = {
   'setup.provider': 'Fornitore',
   'setup.providerAnthropic': 'Antropico',
   'setup.providerGemini': 'Google Gemelli',
-  'setup.providerOllama': 'Ollama (locale)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Compatibile con OpenAI',
   'setup.readyDescription': 'Ecco cosa hai configurato:',

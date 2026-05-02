@@ -169,7 +169,7 @@ export const ko = {
   'setup.provider': '공급자',
   'setup.providerAnthropic': '인류학',
   'setup.providerGemini': '구글 제미니',
-  'setup.providerOllama': '올라마(현지)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': '오픈AI',
   'setup.providerOpenAiCompatible': 'OpenAI 호환',
   'setup.readyDescription': '구성한 내용은 다음과 같습니다.',

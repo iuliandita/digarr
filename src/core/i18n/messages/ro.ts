@@ -173,7 +173,7 @@ export const ro = {
   'setup.provider': 'Furnizor',
   'setup.providerAnthropic': 'antropică',
   'setup.providerGemini': 'Google Gemeni',
-  'setup.providerOllama': 'Ollama (local)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Compatibil cu OpenAI',
   'setup.readyDescription': 'Iată ce ați configurat:',

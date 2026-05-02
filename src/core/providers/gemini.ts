@@ -10,6 +10,7 @@ import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gemini-3-flash-preview'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+const DEFAULT_TIMEOUT_SECONDS = 60
 
 // Gemini's responseSchema is a subset of JSON Schema and rejects fields like
 // `$schema`, `additionalProperties`, `exclusiveMinimum`, etc. Strip the ones
@@ -40,11 +41,17 @@ function sanitizeGeminiSchema(input: unknown): unknown {
 export class GeminiProvider implements RecommendationProvider {
   private apiKey: string
   private model: string
+  private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL) {
+  constructor(
+    apiKey: string,
+    model: string = DEFAULT_MODEL,
+    timeoutSeconds: number = DEFAULT_TIMEOUT_SECONDS,
+  ) {
     this.apiKey = apiKey
     this.model = model
+    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
@@ -52,7 +59,7 @@ export class GeminiProvider implements RecommendationProvider {
     const prompt = buildRecommendationPrompt(profile)
 
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 60_000)
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const res = await fetchWithRetry(
         `${API_BASE}/${this.model}:generateContent`,

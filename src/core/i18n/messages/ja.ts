@@ -172,7 +172,7 @@ export const ja = {
   'setup.provider': 'プロバイダー',
   'setup.providerAnthropic': '人間的',
   'setup.providerGemini': 'Google ジェミニ',
-  'setup.providerOllama': 'オラマ (地元)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI対応',
   'setup.readyDescription': '設定した内容は次のとおりです。',

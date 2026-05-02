@@ -173,7 +173,7 @@ export const uk = {
   'setup.provider': 'Провайдер',
   'setup.providerAnthropic': 'Антропний',
   'setup.providerGemini': 'Google Gemini',
-  'setup.providerOllama': 'Оллама (місцевий)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Сумісність з OpenAI',
   'setup.readyDescription': 'Ось що ви налаштували:',

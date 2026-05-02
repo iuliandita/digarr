@@ -173,7 +173,7 @@ export const ru = {
   'setup.provider': 'Поставщик',
   'setup.providerAnthropic': 'антропный',
   'setup.providerGemini': 'Гугл Близнецы',
-  'setup.providerOllama': 'Оллама (местный)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'ОпенАИ',
   'setup.providerOpenAiCompatible': 'OpenAI-совместимый',
   'setup.readyDescription': 'Вот что вы настроили:',

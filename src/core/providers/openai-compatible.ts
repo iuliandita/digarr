@@ -12,12 +12,14 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
   private baseUrl: string
   private apiKey: string | null
   private model: string
+  private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(baseUrl: string, model: string, apiKey: string | null = null) {
+  constructor(baseUrl: string, model: string, apiKey: string | null = null, timeoutSeconds = 60) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
     this.model = model
     this.apiKey = apiKey
+    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
@@ -27,7 +29,7 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
 
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 60_000)
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const res = await fetchWithRetry(
         `${this.baseUrl}/v1/chat/completions`,

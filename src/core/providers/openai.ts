@@ -10,15 +10,25 @@ import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gpt-5.4-mini'
 
+function timeoutSecondsToMs(timeoutSeconds?: number | null): number | undefined {
+  return timeoutSeconds == null ? undefined : Math.max(1, timeoutSeconds) * 1000
+}
+
 export class OpenAIProvider implements RecommendationProvider {
   private client: OpenAI
   private model: string
   lastUsage: AiUsage | null = null
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
+  constructor(
+    apiKey: string,
+    model: string = DEFAULT_MODEL,
+    baseUrl?: string | null,
+    timeoutSeconds?: number | null,
+  ) {
     this.client = new OpenAI({
       apiKey,
       ...(baseUrl ? { baseURL: baseUrl } : {}),
+      ...(timeoutSeconds != null ? { timeout: timeoutSecondsToMs(timeoutSeconds) } : {}),
     })
     this.model = model
   }

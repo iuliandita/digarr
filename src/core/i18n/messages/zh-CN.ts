@@ -164,7 +164,7 @@ export const zhCN = {
   'setup.provider': '提供者',
   'setup.providerAnthropic': '人择',
   'setup.providerGemini': '谷歌双子座',
-  'setup.providerOllama': '奥拉马（当地）',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': '开放人工智能',
   'setup.providerOpenAiCompatible': 'OpenAI 兼容',
   'setup.readyDescription': '这是您的配置：',

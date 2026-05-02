@@ -43,20 +43,20 @@ export function createDefaultRegistry(): AiProviderRegistry {
   registry.register({
     id: 'anthropic',
     name: 'Anthropic',
-    async create({ apiKey, model, baseUrl }) {
+    async create({ apiKey, model, baseUrl, timeoutSeconds }) {
       const { AnthropicProvider } = await import('./anthropic')
       if (!apiKey) throw new Error('Anthropic requires an API key')
-      return new AnthropicProvider(apiKey, model, baseUrl)
+      return new AnthropicProvider(apiKey, model, baseUrl, timeoutSeconds ?? undefined)
     },
   })
 
   registry.register({
     id: 'openai',
     name: 'OpenAI',
-    async create({ apiKey, model, baseUrl }) {
+    async create({ apiKey, model, baseUrl, timeoutSeconds }) {
       const { OpenAIProvider } = await import('./openai')
       if (!apiKey) throw new Error('OpenAI requires an API key')
-      return new OpenAIProvider(apiKey, model, baseUrl)
+      return new OpenAIProvider(apiKey, model, baseUrl, timeoutSeconds ?? undefined)
     },
   })
 
@@ -73,20 +73,20 @@ export function createDefaultRegistry(): AiProviderRegistry {
   registry.register({
     id: 'gemini',
     name: 'Google Gemini',
-    async create({ apiKey, model }) {
+    async create({ apiKey, model, timeoutSeconds }) {
       const { GeminiProvider } = await import('./gemini')
       if (!apiKey) throw new Error('Gemini requires an API key')
-      return new GeminiProvider(apiKey, model)
+      return new GeminiProvider(apiKey, model, timeoutSeconds ?? undefined)
     },
   })
 
   registry.register({
     id: 'openai-compatible',
     name: 'OpenAI-Compatible',
-    async create({ apiKey, model, baseUrl }) {
+    async create({ apiKey, model, baseUrl, timeoutSeconds }) {
       const { OpenAICompatibleProvider } = await import('./openai-compatible')
       if (!baseUrl) throw new Error('OpenAI-Compatible requires a base URL')
-      return new OpenAICompatibleProvider(baseUrl, model, apiKey)
+      return new OpenAICompatibleProvider(baseUrl, model, apiKey, timeoutSeconds ?? undefined)
     },
   })
 

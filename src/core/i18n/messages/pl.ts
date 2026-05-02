@@ -173,7 +173,7 @@ export const pl = {
   'setup.provider': 'Dostawca',
   'setup.providerAnthropic': 'Antropiczny',
   'setup.providerGemini': 'Google Bliźnięta',
-  'setup.providerOllama': 'Ollama (lokalny)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Kompatybilny z OpenAI',
   'setup.readyDescription': 'Oto, co skonfigurowałeś:',
