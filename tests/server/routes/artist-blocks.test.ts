@@ -53,6 +53,16 @@ describe('GET /api/v1/artist-blocks', () => {
     })
   })
 
+  it('returns 400 when limit is not an integer', async () => {
+    const listArtistBlocks = vi.fn(async () => ({ items: [], nextCursor: null }))
+    const app = createApp(makeDeps({ listArtistBlocks }))
+    const res = await app.request('/api/v1/artist-blocks?limit=abc', {
+      headers: await authed(),
+    })
+    expect(res.status).toBe(400)
+    expect(listArtistBlocks).not.toHaveBeenCalled()
+  })
+
   it('returns 401 when unauthenticated', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/artist-blocks')
@@ -79,6 +89,17 @@ describe('DELETE /api/v1/artist-blocks/:artistId', () => {
       headers: await authed(),
     })
     expect(res.status).toBe(400)
+  })
+
+  it('rejects fractional ids before deleting', async () => {
+    const removeArtistBlock = vi.fn(async () => true)
+    const app = createApp(makeDeps({ removeArtistBlock }))
+    const res = await app.request('/api/v1/artist-blocks/1.5', {
+      method: 'DELETE',
+      headers: await authed(),
+    })
+    expect(res.status).toBe(400)
+    expect(removeArtistBlock).not.toHaveBeenCalled()
   })
 })
 

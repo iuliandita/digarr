@@ -274,6 +274,14 @@ describe('GET /api/v1/dashboard/activity', () => {
     )
   })
 
+  it('returns 400 when limit is not an integer', async () => {
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
+    const res = await app.request('/api/v1/dashboard/activity?limit=abc')
+    expect(res.status).toBe(400)
+    expect(deps.dashboardQueries.getRecentActivity).not.toHaveBeenCalled()
+  })
+
   it('treats legacy-token auth as non-admin even when user 1 is admin', async () => {
     const token = 'legacy-dashboard-token'
     const getRecentActivity = vi.fn(async () => [])

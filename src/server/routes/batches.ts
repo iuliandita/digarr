@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { AppDependencies } from '@/server'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
+import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 
 export function batchRoutes(deps: AppDependencies) {
   const router = new Hono()
@@ -22,8 +23,8 @@ export function batchRoutes(deps: AppDependencies) {
   })
 
   router.get('/api/v1/batches/:id', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid batch ID' }, 400)
+    const id = parsePositiveIntParam(c.req.param('id'))
+    if (id == null) return c.json({ error: 'Invalid batch ID' }, 400)
     const batch = await deps.getBatch(id)
     if (!batch) {
       return c.json({ error: 'Batch not found' }, 404)

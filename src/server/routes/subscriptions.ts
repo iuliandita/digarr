@@ -12,6 +12,7 @@ import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
+import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
 import {
@@ -857,8 +858,8 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid subscription ID' }, 400)
+    const id = parsePositiveIntParam(c.req.param('id'))
+    if (id == null) return c.json({ error: 'Invalid subscription ID' }, 400)
     const existing = await deps.subscriptionQueries.getSubscription(id)
     if (!existing) {
       return problem(

@@ -8,6 +8,15 @@ Admin-only endpoints return 403 for non-admin users.
 
 ---
 
+## API Metadata
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
+| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 skeleton for auth, security schemes, and shared error envelopes |
+
+---
+
 ## Auth
 
 | Method | Path | Auth | Description |
@@ -185,7 +194,7 @@ Approval notes:
 
 **GET /api/v1/artist-blocks** query params:
 - `q` - optional artist-name search
-- `limit` - 1-200 (default 50)
+- `limit` - integer, clamped to 1-200 (default 50). Non-integer values return `400`
 - `cursor` - opaque cursor from `nextCursor`
 
 **POST /api/v1/artist-blocks** body:
@@ -205,12 +214,34 @@ Approval notes:
 |--------|------|------|-------------|
 | GET | `/api/v1/artists/:id` | Yes | Get artist by ID |
 | GET | `/api/v1/artists/:id/top-tracks` | Yes | Top 5 tracks (Deezer, MB fallback) |
+| GET | `/api/v1/artists/:id/enrichment` | Yes | Cached Wikidata description and external links |
 | GET | `/api/v1/albums/:mbid` | Yes | Release groups for an artist MBID |
 | GET | `/api/v1/preview/audio` | Yes | Proxy Deezer preview audio (CORS bypass) |
+
+Path params:
+- `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
 
 **GET /api/v1/preview/audio** query params:
 - `url` - Deezer CDN preview URL (must match `*.dzcdn.net`)
 - `token` - auth token (for `<audio>` elements that can't send headers)
+
+**GET /api/v1/artists/:id/enrichment** query params:
+- `locale` - optional BCP 47-ish locale token; invalid tokens fall back to `en`
+
+---
+
+## Media
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/media/image-proxy` | Yes | Proxy whitelisted AudioDB image URLs when image proxying is enabled |
+
+**GET /api/v1/media/image-proxy** query params:
+- `src` - required `http` or `https` URL on `img.theaudiodb.com`, `theaudiodb.com`, or `www.theaudiodb.com`
+
+Notes:
+- Returns `404` when AudioDB image proxying is disabled
+- Rejects non-image content, redirects, private addresses, and non-whitelisted hosts
 
 ---
 
@@ -220,6 +251,9 @@ Approval notes:
 |--------|------|------|-------------|
 | GET | `/api/v1/batches` | Yes | List all recommendation batches |
 | GET | `/api/v1/batches/:id` | Yes | Get batch details |
+
+Path params:
+- `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
 
 ---
 
@@ -257,6 +291,9 @@ Approval notes:
   "maxArtistsPerRun": 20
 }
 ```
+
+Path params:
+- `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
 
 **Discovery-mode subscription body example:**
 ```json
@@ -330,10 +367,13 @@ Discovery-mode subscription notes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/genres` | Yes | List genres with artist counts and examples |
-| GET | `/api/v1/genres/search?q=` | Yes | Search genres (min 2 chars) |
+| GET | `/api/v1/genres/search` | Yes | Search genres |
 | GET | `/api/v1/genres/:slug` | Yes | Genre detail with sub-genres and library artists |
 | GET | `/api/v1/genres/:slug/artists` | Yes | Artists by genre (view: recommended/trending/deep_cuts) |
 | POST | `/api/v1/genres/seed` | Yes | Seed genre database from Lidarr library (202) |
+
+**GET /api/v1/genres/search** query params:
+- `q` - required search string, minimum 2 characters
 
 ---
 
@@ -399,7 +439,7 @@ Each source includes a `stability` field (`stable` or `experimental`). TIDAL and
 **GET /api/v1/search** query params:
 - `q` - required search string
 - `sources` - optional comma-separated source IDs
-- `limit` - 1-50 (default 20)
+- `limit` - integer, clamped to 1-50 (default 20). Non-integer values return `400`
 
 When one enabled source fails, Digarr still returns results from the healthy sources when possible.
 
@@ -532,7 +572,10 @@ Query params: `status`, `batchId`. Limit: 10,000 rows.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/dashboard/taste` | Yes | Top genres from user's library |
-| GET | `/api/v1/dashboard/activity?limit=` | Yes | Recent activity feed |
+| GET | `/api/v1/dashboard/activity` | Yes | Recent activity feed |
+
+**GET /api/v1/dashboard/activity** query params:
+- `limit` - integer, clamped to 1-20 (default 5). Non-integer values return `400`
 
 ---
 

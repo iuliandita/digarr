@@ -12,6 +12,12 @@ type Options = {
   default?: number
 }
 
+type ClampOptions = {
+  min: number
+  max: number
+  default: number
+}
+
 export function parseIntClamp(raw: string | undefined | null, opts: Options): number {
   if (raw == null || raw === '') {
     if (opts.default !== undefined) return opts.default
@@ -27,4 +33,21 @@ export function parseIntClamp(raw: string | undefined | null, opts: Options): nu
     })
   }
   return n
+}
+
+export function parsePositiveIntParam(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) return null
+  const n = Number(raw)
+  if (!Number.isSafeInteger(n) || n <= 0) return null
+  return n
+}
+
+export function parseOptionalClampedInt(
+  raw: string | undefined | null,
+  opts: ClampOptions,
+): number | null {
+  if (raw == null || raw === '') return opts.default
+  const n = Number(raw)
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null
+  return Math.min(Math.max(n, opts.min), opts.max)
 }

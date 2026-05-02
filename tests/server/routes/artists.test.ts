@@ -232,6 +232,16 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+describe('GET /api/v1/artists/:id', () => {
+  it('rejects fractional ids before querying', async () => {
+    const getArtistById = vi.fn(async () => MOCK_ARTIST)
+    const app = createApp(makeDeps({ getArtistById }))
+    const res = await authedRequest(app, '/api/v1/artists/1.5')
+    expect(res.status).toBe(400)
+    expect(getArtistById).not.toHaveBeenCalled()
+  })
+})
+
 describe('GET /api/v1/artists/:id/top-tracks', () => {
   it('returns 404 for unknown artist', async () => {
     const app = createApp(makeDeps())
