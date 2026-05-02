@@ -1,4 +1,5 @@
 import { createMiddleware } from 'hono/factory'
+import { problem } from '@/server/helpers/problem'
 import type { HonoEnv } from '@/server/types'
 
 type RateLimitBucket = { count: number; resetAt: number }
@@ -88,7 +89,7 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
     if (bucket.count > opts.max) {
       const retryAfter = Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))
       c.header('Retry-After', String(retryAfter))
-      return c.json({ error: 'Too many requests' }, 429)
+      return problem(c, 'rate-limited', 'Too many requests', 429, undefined, { retryAfter })
     }
 
     await next()

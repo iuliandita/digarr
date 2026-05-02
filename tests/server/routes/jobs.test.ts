@@ -120,6 +120,13 @@ describe('GET /api/v1/jobs', () => {
     const app = createApp(deps)
     const res = await app.request('/api/v1/jobs')
     expect(res.status).toBe(403)
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/admin-required',
+      title: 'Admin access required',
+      status: 403,
+      code: 'common.adminAccessRequired',
+    })
   })
 })
 

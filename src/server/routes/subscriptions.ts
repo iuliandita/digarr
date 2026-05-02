@@ -10,6 +10,7 @@ import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import type { AppDependencies } from '@/server'
+import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
 import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
@@ -267,7 +268,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.get('/api/v1/subscriptions', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
     const page = readPagination(c)
     if (page === null) {
@@ -289,7 +290,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.post('/api/v1/subscriptions', zJson(createSubscriptionSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const body = c.req.valid('json')
@@ -381,7 +382,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.post('/api/v1/subscriptions/import/csv', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const body = await c.req.parseBody()
@@ -438,7 +439,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     async (c) => {
       const userId = c.get('userId')
       if (!userId) {
-        return c.json({ error: 'Unauthorized' }, 401)
+        return notAuthenticated(c)
       }
 
       const { playlistId: rawId } = c.req.valid('json')
@@ -491,7 +492,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.post('/api/v1/subscriptions/import/deezer-favorites', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
@@ -538,7 +539,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.post('/api/v1/subscriptions/import/deezer-followed', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
@@ -585,7 +586,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.get('/api/v1/subscriptions/import/deezer-playlists', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     let accessToken: string
@@ -606,7 +607,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     async (c) => {
       const userId = c.get('userId')
       if (!userId) {
-        return c.json({ error: 'Unauthorized' }, 401)
+        return notAuthenticated(c)
       }
 
       const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
@@ -657,7 +658,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
 
   router.post('/api/v1/subscriptions/bulk-toggle', zJson(bulkToggleSchema), async (c) => {
     const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+    if (!userId) return notAuthenticated(c)
 
     const { enabled } = c.req.valid('json')
 
@@ -682,7 +683,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/subscriptions/scheduler', async (c) => {
     const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+    if (!userId) return notAuthenticated(c)
 
     const jobs = deps.scheduler.listJobs()
     return c.json({ jobs })
@@ -695,7 +696,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     async (c) => {
       const userId = c.get('userId')
       if (!userId) {
-        return c.json({ error: 'Unauthorized' }, 401)
+        return notAuthenticated(c)
       }
 
       const { id } = c.req.valid('param')
@@ -764,7 +765,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.delete('/api/v1/subscriptions/:id', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
     const { id } = c.req.valid('param')
     const existing = await deps.subscriptionQueries.getSubscription(id)
@@ -798,7 +799,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.post('/api/v1/subscriptions/:id/run', zParam(subscriptionIdParamSchema), async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const { id } = c.req.valid('param')
@@ -855,7 +856,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
   router.get('/api/v1/subscriptions/:id/runs', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const id = parsePositiveIntParam(c.req.param('id'))

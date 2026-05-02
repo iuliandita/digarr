@@ -915,7 +915,13 @@ describe('Mounted library legacy-token gating', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/session-auth-required',
+      title: 'Session authentication required',
+      status: 403,
+      code: 'errors.auth.notAuthenticated',
+    })
   })
 
   it('rejects legacy-token auth for album coverage', async () => {
@@ -938,7 +944,13 @@ describe('Mounted library legacy-token gating', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/session-auth-required',
+      title: 'Session authentication required',
+      status: 403,
+      code: 'errors.auth.notAuthenticated',
+    })
   })
 })
 

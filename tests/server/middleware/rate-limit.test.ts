@@ -29,7 +29,12 @@ describe('rateLimiter', () => {
     }
     const over = await app.request('/', {}, env('1.1.1.1'))
     expect(over.status).toBe(429)
-    expect(await over.json()).toEqual({ error: 'Too many requests' })
+    expect(over.headers.get('content-type')).toContain('application/problem+json')
+    expect(await over.json()).toMatchObject({
+      type: '/problems/rate-limited',
+      title: 'Too many requests',
+      status: 429,
+    })
   })
 
   it('X-RateLimit-Remaining decrements per call', async () => {

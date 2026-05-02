@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
 import type { AppDependencies } from '@/server'
+import { adminRequired } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
 import { requireAdmin as requireAdminShared } from '@/server/helpers/require-user'
@@ -68,7 +69,7 @@ export function userRoutes(deps: AppDependencies) {
       const auth = await requireAdmin(c)
       if (!auth.ok) return auth.response
       const caller = await deps.getUserById(auth.userId)
-      if (!caller) return c.json({ error: 'Admin access required' }, 403)
+      if (!caller) return adminRequired(c)
 
       const { id: targetId } = c.req.valid('param')
       const body = c.req.valid('json')
@@ -100,7 +101,7 @@ export function userRoutes(deps: AppDependencies) {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
     const caller = await deps.getUserById(auth.userId)
-    if (!caller) return c.json({ error: 'Admin access required' }, 403)
+    if (!caller) return adminRequired(c)
 
     const { id: targetId } = c.req.valid('param')
 

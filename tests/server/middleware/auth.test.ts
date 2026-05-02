@@ -173,8 +173,11 @@ describe('auth middleware', () => {
 
       const res = await app.request('/api/v1/settings')
       expect(res.status).toBe(503)
+      expect(res.headers.get('content-type')).toContain('application/problem+json')
       await expect(res.json()).resolves.toMatchObject({
-        error: 're-run setup',
+        type: '/problems/setup-admin-missing',
+        title: 'Setup admin user missing',
+        status: 503,
       })
     })
   })
@@ -192,8 +195,15 @@ describe('auth middleware', () => {
       const app = await createAppWithAuth({ token: TOKEN })
       const res = await app.request('/api/v1/settings')
       expect(res.status).toBe(401)
+      expect(res.headers.get('content-type')).toContain('application/problem+json')
+      expect(res.headers.get('WWW-Authenticate')).toBe('Bearer realm="digarr"')
       const body = await res.json()
-      expect(body.error).toBe('Unauthorized')
+      expect(body).toMatchObject({
+        type: '/problems/not-authenticated',
+        title: 'Not authenticated',
+        status: 401,
+        code: 'errors.auth.notAuthenticated',
+      })
     })
 
     it('returns 401 for requests with wrong token', async () => {

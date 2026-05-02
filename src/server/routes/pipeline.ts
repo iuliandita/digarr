@@ -24,6 +24,7 @@ import { upsertArtist } from '@/db/queries/artists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestLocale } from '@/server/locale'
@@ -147,7 +148,7 @@ export function pipelineRoutes(deps: AppDependencies) {
 
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
     if (!deps.discoveryModeRegistry || !deps.runDiscoveryMode) {
       return c.json({ error: 'Discovery mode execution is not configured' }, 500)
