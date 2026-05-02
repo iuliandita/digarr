@@ -54,6 +54,18 @@ describe('createHttpClient + publicIpOnly DNS rebinding defence', () => {
     expect(captured?.init.tls?.serverName).toBe('example.com')
   })
 
+  it('pins public IPv6 DNS results with bracketed URL literals', async () => {
+    lookupMock.mockResolvedValue({ address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 })
+    const client = createHttpClient({ baseUrl: 'https://example.com', publicIpOnly: true })
+
+    await client.get('/healthcheck')
+
+    expect(captured?.url).toBe('https://[2606:2800:220:1:248:1893:25c8:1946]/healthcheck')
+    const headers = new Headers(captured?.init.headers)
+    expect(headers.get('host')).toBe('example.com')
+    expect(captured?.init.tls?.serverName).toBe('example.com')
+  })
+
   it('rejects when the URL resolves to a private IP (rebinding to LAN)', async () => {
     lookupMock.mockResolvedValue({ address: '10.0.0.5', family: 4 })
     const client = createHttpClient({

@@ -40,6 +40,11 @@ export function getLookupHostname(input: string | URL): string {
   return normalizeIp(url.hostname)
 }
 
+export function formatUrlHostname(hostname: string): string {
+  const normalized = normalizeIp(hostname)
+  return normalized.includes(':') ? `[${normalized}]` : normalized
+}
+
 function parseIpv4(address: string): number | null {
   const parts = address.split('.')
   if (parts.length !== 4) return null

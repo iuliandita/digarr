@@ -1,7 +1,7 @@
 import * as dns from 'node:dns/promises'
 import { isIP } from 'node:net'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
-import { getLookupHostname, normalizeIp } from '@/core/validation'
+import { formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set(['api_key', 'apikey', 'key', 'token', 'secret', 'password'])
@@ -146,7 +146,7 @@ async function prepareRequest(
     // preserve the original hostname for SNI and cert verification.
     if (address !== hostname) {
       const pinnedUrl = new URL(url)
-      pinnedUrl.hostname = address
+      pinnedUrl.hostname = formatUrlHostname(address)
       fetchUrl = pinnedUrl.toString()
       headers.set('Host', parsedUrl.host)
       const normalizedHostname = normalizeIp(parsedUrl.hostname)
