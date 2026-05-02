@@ -52,7 +52,14 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
     // Use socket IP to prevent bypass via forged X-Forwarded-For headers.
     // Same approach as proxy-auth.ts getSocketIp().
     const ip = getSocketIp(c) ?? 'unknown'
-    const key = `${opts.keyPrefix ?? 'rl'}:${ip}`
+    // Append the resolved userId to the bucket key when auth has already run.
+    // Without this, every authenticated user behind a reverse proxy or shared
+    // NAT shares one bucket and a single noisy account drains the budget for
+    // everyone. Pre-auth limiters (login / register) leave userId undefined
+    // so they keep the IP-only behaviour.
+    const userId = c.get('userId')
+    const principal = typeof userId === 'number' ? `${ip}|u${userId}` : ip
+    const key = `${opts.keyPrefix ?? 'rl'}:${principal}`
     const now = Date.now()
 
     let bucket = buckets.get(key)

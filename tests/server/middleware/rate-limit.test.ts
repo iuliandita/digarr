@@ -105,4 +105,37 @@ describe('rateLimiter', () => {
     const r3 = await app.request('/')
     expect(r3.status).toBe(429)
   })
+
+  it('isolates buckets per authenticated user behind a shared IP', async () => {
+    // Simulate auth middleware running before rate-limit by setting userId
+    // upstream so the limiter keys on (ip, userId) instead of just ip.
+    const app = new Hono<{ Bindings: { remoteAddress?: string } }>()
+    app.use('*', async (c, next) => {
+      const claimed = c.req.header('x-test-user')
+      if (claimed) c.set('userId', Number.parseInt(claimed, 10))
+      await next()
+    })
+    app.use('*', rateLimiter({ max: 1, windowMs: 60_000, keyPrefix: 'multi' }))
+    app.get('/', (c) => c.text('ok'))
+
+    // Both calls come from the same proxy IP (8.8.8.8) but represent two
+    // different end users; without per-user keying, user 2 would already
+    // be over budget when they make their first call.
+    const u1First = await app.request('/', { headers: { 'x-test-user': '1' } }, env('8.8.8.8'))
+    expect(u1First.status).toBe(200)
+    const u2First = await app.request('/', { headers: { 'x-test-user': '2' } }, env('8.8.8.8'))
+    expect(u2First.status).toBe(200)
+    const u1Second = await app.request('/', { headers: { 'x-test-user': '1' } }, env('8.8.8.8'))
+    expect(u1Second.status).toBe(429)
+    const u2Second = await app.request('/', { headers: { 'x-test-user': '2' } }, env('8.8.8.8'))
+    expect(u2Second.status).toBe(429)
+  })
+
+  it('keeps the IP-only bucket for unauthenticated callers (login / register paths)', async () => {
+    const app = buildApp(rateLimiter({ max: 2, windowMs: 60_000, keyPrefix: 'pre-auth' }))
+    // No userId set on the context: every request from 6.6.6.6 shares one bucket.
+    expect((await app.request('/', {}, env('6.6.6.6'))).status).toBe(200)
+    expect((await app.request('/', {}, env('6.6.6.6'))).status).toBe(200)
+    expect((await app.request('/', {}, env('6.6.6.6'))).status).toBe(429)
+  })
 })
