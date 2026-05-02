@@ -6,13 +6,10 @@ import {
   getAiRecommendationsJsonSchema,
   validateAiRecommendations,
 } from './prompt'
+import { optionalTimeoutSecondsToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gpt-5.4-mini'
-
-function timeoutSecondsToMs(timeoutSeconds?: number | null): number | undefined {
-  return timeoutSeconds == null ? undefined : Math.max(1, timeoutSeconds) * 1000
-}
 
 export class OpenAIProvider implements RecommendationProvider {
   private client: OpenAI
@@ -25,10 +22,11 @@ export class OpenAIProvider implements RecommendationProvider {
     baseUrl?: string | null,
     timeoutSeconds?: number | null,
   ) {
+    const timeoutMs = optionalTimeoutSecondsToMs(timeoutSeconds)
     this.client = new OpenAI({
       apiKey,
       ...(baseUrl ? { baseURL: baseUrl } : {}),
-      ...(timeoutSeconds != null ? { timeout: timeoutSecondsToMs(timeoutSeconds) } : {}),
+      ...(timeoutMs ? { timeout: timeoutMs } : {}),
     })
     this.model = model
   }

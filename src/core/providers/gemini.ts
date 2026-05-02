@@ -6,6 +6,7 @@ import {
   validateAiRecommendations,
 } from './prompt'
 import { fetchWithRetry } from './retry'
+import { timeoutSecondsWithDefaultToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_MODEL = 'gemini-3-flash-preview'
@@ -44,14 +45,10 @@ export class GeminiProvider implements RecommendationProvider {
   private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(
-    apiKey: string,
-    model: string = DEFAULT_MODEL,
-    timeoutSeconds: number = DEFAULT_TIMEOUT_SECONDS,
-  ) {
+  constructor(apiKey: string, model: string = DEFAULT_MODEL, timeoutSeconds?: number | null) {
     this.apiKey = apiKey
     this.model = model
-    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
+    this.timeoutMs = timeoutSecondsWithDefaultToMs(timeoutSeconds, DEFAULT_TIMEOUT_SECONDS)
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {

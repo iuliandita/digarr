@@ -9,15 +9,12 @@ import {
   RECOMMENDATION_SYSTEM_PRELUDE,
   validateAiRecommendations,
 } from './prompt'
+import { optionalTimeoutSecondsToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
 
 const RECOMMENDATION_TOOL_NAME = 'emit_recommendations'
 
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
-
-function timeoutSecondsToMs(timeoutSeconds?: number | null): number | undefined {
-  return timeoutSeconds == null ? undefined : Math.max(1, timeoutSeconds) * 1000
-}
 
 export class AnthropicProvider implements RecommendationProvider {
   private client: Anthropic
@@ -30,10 +27,11 @@ export class AnthropicProvider implements RecommendationProvider {
     baseUrl?: string | null,
     timeoutSeconds?: number | null,
   ) {
+    const timeoutMs = optionalTimeoutSecondsToMs(timeoutSeconds)
     this.client = new Anthropic({
       apiKey,
       ...(baseUrl ? { baseURL: baseUrl } : {}),
-      ...(timeoutSeconds != null ? { timeout: timeoutSecondsToMs(timeoutSeconds) } : {}),
+      ...(timeoutMs ? { timeout: timeoutMs } : {}),
     })
     this.model = model
   }

@@ -6,7 +6,10 @@ import {
   unwrapRecommendationArrayPayload,
 } from './prompt'
 import { fetchWithRetry } from './retry'
+import { timeoutSecondsWithDefaultToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
+
+const DEFAULT_TIMEOUT_SECONDS = 60
 
 export class OpenAICompatibleProvider implements RecommendationProvider {
   private baseUrl: string
@@ -15,11 +18,16 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
   private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(baseUrl: string, model: string, apiKey: string | null = null, timeoutSeconds = 60) {
+  constructor(
+    baseUrl: string,
+    model: string,
+    apiKey: string | null = null,
+    timeoutSeconds?: number | null,
+  ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
     this.model = model
     this.apiKey = apiKey
-    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
+    this.timeoutMs = timeoutSecondsWithDefaultToMs(timeoutSeconds, DEFAULT_TIMEOUT_SECONDS)
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {

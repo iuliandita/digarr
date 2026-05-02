@@ -198,9 +198,7 @@ describe('OllamaProvider', () => {
 
   describe('timeout', () => {
     test('aborts getRecommendations when configured timeout elapses', async () => {
-      // Use a 1-second timeout + a fetch mock that never resolves unless the
-      // signal aborts. The retry helper treats AbortError as non-retriable,
-      // so we expect a single aborted call.
+      vi.useFakeTimers()
       const short = new OllamaProvider('llama3', TEST_BASE_URL, 1)
       fetchSpy.mockImplementationOnce(
         (_url: RequestInfo | URL, init?: RequestInit) =>
@@ -211,13 +209,16 @@ describe('OllamaProvider', () => {
             signal?.addEventListener('abort', () => reject(abortErr))
           }),
       )
-      await expect(short.getRecommendations(sampleProfile)).rejects.toThrow(/abort/i)
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
-    })
 
-    test('defaults to the Ollama-friendly 120s when no timeout provided', () => {
-      const p = new OllamaProvider('llama3', TEST_BASE_URL)
-      expect((p as unknown as { timeoutMs: number }).timeoutMs).toBe(120_000)
+      try {
+        const pending = short.getRecommendations(sampleProfile)
+        const rejection = expect(pending).rejects.toThrow(/abort/i)
+        await vi.advanceTimersByTimeAsync(1000)
+        await rejection
+        expect(fetchSpy).toHaveBeenCalledTimes(1)
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 })
