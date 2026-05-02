@@ -9,6 +9,7 @@
     "build": "vite build && bun build src/index.ts --outdir dist/server --target bun",
     "start": "bun dist/server/index.js",
     "i18n:check": "bun scripts/i18n-check.ts",
+    "check:api-docs": "bun scripts/check-api-docs.ts",
     "i18n:translate": "bun scripts/i18n-machine-translate.ts",
     "test": "vitest run",
     "test:api-routes": "vitest run tests/api-routes/",
