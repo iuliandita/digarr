@@ -45,11 +45,3 @@ export const libraryAlbumOverrideSchema = z
     note: z.string().optional(),
   })
   .strict()
-
-// Placeholder exports retained for future route refactors; centralising here
-// so routes don't have to reinvent the shape.
-export const libraryResolveSchema = librarySyncSchema
-export const libraryCoverageParamSchema = z
-  .object({ artistMbid: z.string().regex(UUID_RE) })
-  .strict()
-export const libraryCoverageQuerySchema = z.object({}).strict()

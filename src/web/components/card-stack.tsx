@@ -238,7 +238,6 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
   useEffect(() => {
     setIndex(0)
     setExiting(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recommendations])
 
   // Keyboard: left arrow = reject, right arrow = approve, up/down = navigate

@@ -1,10 +1,5 @@
 let nextId = 1000
 
-export function makeUser(overrides: Record<string, unknown> = {}) {
-  const id = nextId++
-  return { id, username: `user-${id}`, isAdmin: false, email: null, ...overrides }
-}
-
 export function makeRecommendation(overrides: Record<string, unknown> = {}) {
   const id = nextId++
   return {
@@ -45,25 +40,6 @@ export function makeSubscription(overrides: Record<string, unknown> = {}) {
     lastError: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    ...overrides,
-  }
-}
-
-export function makeJobRun(overrides: Record<string, unknown> = {}) {
-  const id = nextId++
-  return {
-    id,
-    type: 'pipeline',
-    status: 'completed',
-    userId: 1,
-    startedAt: new Date().toISOString(),
-    completedAt: new Date().toISOString(),
-    durationMs: 5000,
-    error: null,
-    metadata: {},
-    sourceResults: null,
-    subscriptionId: null,
-    batchId: null,
     ...overrides,
   }
 }
