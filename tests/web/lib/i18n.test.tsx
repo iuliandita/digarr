@@ -15,6 +15,9 @@ function Probe() {
 
 describe('I18nProvider', () => {
   beforeEach(() => {
+    document.documentElement.lang = 'en'
+    document.documentElement.dir = ''
+
     const storage = new Map<string, string>()
 
     vi.stubGlobal('localStorage', {
@@ -55,5 +58,18 @@ describe('I18nProvider', () => {
     )
 
     expect(screen.getByText('fr')).toBeInTheDocument()
+  })
+
+  it('syncs the document locale metadata', () => {
+    localStorage.setItem('digarr-locale', 'de')
+
+    render(
+      <I18nProvider>
+        <Probe />
+      </I18nProvider>,
+    )
+
+    expect(document.documentElement.lang).toBe('de')
+    expect(document.documentElement.dir).toBe('ltr')
   })
 })
