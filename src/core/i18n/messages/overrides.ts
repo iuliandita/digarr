@@ -45,7 +45,8 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.fixHint.missingMetadata': 'Actualise les métadonnées des artistes depuis Lidarr',
     'libraryHealth.fixHint.unmonitored':
       'Marque tous les artistes listés comme surveillés dans Lidarr',
-    'libraryHealth.fixHint.missingAlbums': 'Actualise les albums dans Lidarr pour trouver les manques',
+    'libraryHealth.fixHint.missingAlbums':
+      'Actualise les albums dans Lidarr pour trouver les manques',
     'libraryHealth.fixHint.genreGaps': 'Actualise les métadonnées Lidarr pour récupérer les genres',
     'libraryHealth.fixHint.imageGaps': "Relance la recherche d'images d'artistes",
     'libraryHealth.fixHint.missingWikidata': 'Récupère les biographies et liens depuis Wikidata',
@@ -66,8 +67,7 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.showLess': 'Weniger anzeigen',
     'libraryHealth.showAll': 'Alle {0} anzeigen',
     'libraryHealth.fixHint.missingMetadata': 'Aktualisiert Künstler-Metadaten aus Lidarr',
-    'libraryHealth.fixHint.unmonitored':
-      'Setzt alle aufgeführten Künstler in Lidarr auf überwacht',
+    'libraryHealth.fixHint.unmonitored': 'Setzt alle aufgeführten Künstler in Lidarr auf überwacht',
     'libraryHealth.fixHint.missingAlbums': 'Aktualisiert Alben in Lidarr, um fehlende zu finden',
     'libraryHealth.fixHint.genreGaps': 'Aktualisiert Lidarr-Metadaten, um Genres abzurufen',
     'libraryHealth.fixHint.imageGaps': 'Sucht Künstlerbilder erneut',
@@ -114,7 +114,8 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.fixHint.missingMetadata': 'Aggiorna i metadati degli artisti da Lidarr',
     'libraryHealth.fixHint.unmonitored':
       'Imposta tutti gli artisti elencati come monitorati in Lidarr',
-    'libraryHealth.fixHint.missingAlbums': 'Aggiorna gli album in Lidarr per trovare quelli mancanti',
+    'libraryHealth.fixHint.missingAlbums':
+      'Aggiorna gli album in Lidarr per trovare quelli mancanti',
     'libraryHealth.fixHint.genreGaps': 'Aggiorna i metadati Lidarr per recuperare i generi',
     'libraryHealth.fixHint.imageGaps': 'Cerca di nuovo le immagini degli artisti',
     'libraryHealth.fixHint.missingWikidata': 'Recupera biografie e link da Wikidata',
@@ -135,8 +136,7 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.showLess': 'Minder tonen',
     'libraryHealth.showAll': 'Alle {0} tonen',
     'libraryHealth.fixHint.missingMetadata': 'Vernieuwt artiestmetadata vanuit Lidarr',
-    'libraryHealth.fixHint.unmonitored':
-      'Zet alle vermelde artiesten in Lidarr op gemonitord',
+    'libraryHealth.fixHint.unmonitored': 'Zet alle vermelde artiesten in Lidarr op gemonitord',
     'libraryHealth.fixHint.missingAlbums': 'Vernieuwt albums in Lidarr om ontbrekende te vinden',
     'libraryHealth.fixHint.genreGaps': 'Vernieuwt Lidarr-metadata om genres op te halen',
     'libraryHealth.fixHint.imageGaps': 'Zoekt artiestafbeeldingen opnieuw',
@@ -158,9 +158,9 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.showLess': 'Afișează mai puțin',
     'libraryHealth.showAll': 'Afișează toate {0}',
     'libraryHealth.fixHint.missingMetadata': 'Actualizează metadatele artiștilor din Lidarr',
-    'libraryHealth.fixHint.unmonitored':
-      'Setează toți artiștii listați ca monitorizați în Lidarr',
-    'libraryHealth.fixHint.missingAlbums': 'Actualizează albumele în Lidarr pentru a găsi lipsurile',
+    'libraryHealth.fixHint.unmonitored': 'Setează toți artiștii listați ca monitorizați în Lidarr',
+    'libraryHealth.fixHint.missingAlbums':
+      'Actualizează albumele în Lidarr pentru a găsi lipsurile',
     'libraryHealth.fixHint.genreGaps': 'Actualizează metadatele Lidarr pentru genuri',
     'libraryHealth.fixHint.imageGaps': 'Caută din nou imagini pentru artiști',
     'libraryHealth.fixHint.missingWikidata': 'Preia biografii și linkuri din Wikidata',
@@ -204,8 +204,7 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.showLess': 'Daha az göster',
     'libraryHealth.showAll': 'Tümünü göster {0}',
     'libraryHealth.fixHint.missingMetadata': 'Lidarr üzerinden sanatçı meta verilerini yeniler',
-    'libraryHealth.fixHint.unmonitored':
-      'Listelenen tüm sanatçıları Lidarr içinde izleniyor yapar',
+    'libraryHealth.fixHint.unmonitored': 'Listelenen tüm sanatçıları Lidarr içinde izleniyor yapar',
     'libraryHealth.fixHint.missingAlbums': 'Eksikleri bulmak için Lidarr albümlerini yeniler',
     'libraryHealth.fixHint.genreGaps': 'Türleri almak için Lidarr meta verilerini yeniler',
     'libraryHealth.fixHint.imageGaps': 'Sanatçı görsellerini yeniden arar',
@@ -273,8 +272,7 @@ const REVIEW_GATE_TRANSLATIONS: Partial<
     'libraryHealth.showLess': '少なく表示',
     'libraryHealth.showAll': '{0} 件すべて表示',
     'libraryHealth.fixHint.missingMetadata': 'Lidarr からアーティストのメタデータを更新します',
-    'libraryHealth.fixHint.unmonitored':
-      '一覧のすべてのアーティストを Lidarr で監視対象にします',
+    'libraryHealth.fixHint.unmonitored': '一覧のすべてのアーティストを Lidarr で監視対象にします',
     'libraryHealth.fixHint.missingAlbums': '不足を見つけるため Lidarr のアルバムを更新します',
     'libraryHealth.fixHint.genreGaps': 'ジャンルを取得するため Lidarr メタデータを更新します',
     'libraryHealth.fixHint.imageGaps': 'アーティスト画像を再検索します',

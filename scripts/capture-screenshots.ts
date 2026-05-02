@@ -85,6 +85,7 @@ const specs: PageSpec[] = [
   { path: '/library/reconciliation', file: 'library-reconciliation.png', theme: 'dark' },
   { path: '/analytics', file: 'analytics.png', theme: 'dark' },
   { path: '/settings', file: 'settings.png', theme: 'dark' },
+  { path: '/settings?tab=blocked', file: 'settings-blocked.png', theme: 'dark' },
 ]
 
 await mkdir(OUT_DIR, { recursive: true })
