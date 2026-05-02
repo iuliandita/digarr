@@ -782,6 +782,39 @@ describe('POST /api/v1/settings/test/:service', () => {
     else expect(body.type).toBe('/problems/probe-failed')
   })
 
+  it('includes optional probe metadata on successful connection tests', async () => {
+    vi.mocked(lookup).mockResolvedValue({ address: '93.184.216.34', family: 4 })
+    const providerRegistry = {
+      create: vi.fn(async () => ({
+        testConnection: vi.fn(async () => ({
+          success: true,
+          message: 'Connected to test provider',
+          details: { version: '1.2.3' },
+        })),
+      })),
+    }
+    const app = createApp(makeDeps({ providerRegistry: providerRegistry as never }))
+
+    const res = await authedRequest(app, '/api/v1/settings/test/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider: 'ollama',
+        model: 'llama3',
+        baseUrl: 'http://ollama.example.com:11434',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toMatchObject({
+      message: 'Connected to test provider',
+      version: '1.2.3',
+    })
+    expect(body.latencyMs).toEqual(expect.any(Number))
+    expect(body.latencyMs).toBeGreaterThanOrEqual(0)
+  })
+
   it('returns 400 for unknown service', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/unknown', {

@@ -60,16 +60,31 @@ function mergePreferenceUpdate(
   return merged
 }
 
+type ProbeTestResult = {
+  success: boolean
+  message: string
+  details?: Record<string, unknown>
+}
+
 // Returns a problem+json response on probe failure with the detail sanitized
-// to avoid leaking upstream error bodies. Successful probes return the message
-// directly (so the UI can show "Connected to Lidarr v2.3.0" etc).
+// to avoid leaking upstream error bodies. Successful probes keep message as
+// the stable UI field and include cheap optional metadata when available.
 function probeResult(
   c: Parameters<typeof problem>[0],
-  result: { success: boolean; message: string },
+  result: ProbeTestResult,
   fallbackMessage: string,
+  latencyMs?: number,
 ) {
   if (result.success) {
-    return c.json({ message: result.message }, 200)
+    const version = result.details?.version
+    return c.json(
+      {
+        message: result.message,
+        ...(typeof version === 'string' && version.length > 0 ? { version } : {}),
+        ...(typeof latencyMs === 'number' ? { latencyMs } : {}),
+      },
+      200,
+    )
   }
   return problem(
     c,
@@ -79,6 +94,21 @@ function probeResult(
     fallbackMessage,
     undefined,
     'common.unknownError',
+  )
+}
+
+async function runProbe(
+  c: Parameters<typeof problem>[0],
+  probe: () => Promise<ProbeTestResult>,
+  fallbackMessage: string,
+) {
+  const startedAt = performance.now()
+  const result = await probe()
+  return probeResult(
+    c,
+    result,
+    fallbackMessage,
+    Math.max(0, Math.round(performance.now() - startedAt)),
   )
 }
 
@@ -366,8 +396,7 @@ export function settingsRoutes(deps: AppDependencies) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
         const client = createLidarrClient(url, apiKey, body.skipTlsVerify)
-        const result = await client.testConnection()
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'listenbrainz': {
         const username = body.username || userConns?.listenbrainzUsername || ''
@@ -376,12 +405,18 @@ export function settingsRoutes(deps: AppDependencies) {
           return missingInput('Missing username')
         }
         const client = createListenBrainzClient(username, token)
-        const result = await client.testConnection()
-        if (result.success && !token) {
-          result.message +=
-            ' (warning: no API token set - listening data, subscriptions, and recommendations will not work without it)'
-        }
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(
+          c,
+          async () => {
+            const result = await client.testConnection()
+            if (result.success && !token) {
+              result.message +=
+                ' (warning: no API token set - listening data, subscriptions, and recommendations will not work without it)'
+            }
+            return result
+          },
+          messages['common.unknownError'],
+        )
       }
       case 'lastfm': {
         const username = body.username || userConns?.lastfmUsername || ''
@@ -390,8 +425,7 @@ export function settingsRoutes(deps: AppDependencies) {
           return missingInput(`Missing ${!username ? 'username' : 'API key'}`)
         }
         const client = createLastFmClient(username, apiKey)
-        const result = await client.testConnection()
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'ai': {
         try {
@@ -416,8 +450,7 @@ export function settingsRoutes(deps: AppDependencies) {
             baseUrl: effectiveBaseUrl || null,
             timeoutSeconds: envConfig.aiTimeoutSeconds ?? null,
           })
-          const result = await provider.testConnection()
-          return probeResult(c, result, messages['common.unknownError'])
+          return runProbe(c, () => provider.testConnection(), messages['common.unknownError'])
         } catch (_err: unknown) {
           return problem(
             c,
@@ -438,8 +471,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const { createPlexClient } = await import('@/core/clients/plex')
         const client = createPlexClient(url, token)
-        const result = await client.testConnection()
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'jellyfin': {
         const url = body.url || userConns?.jellyfinUrl || ''
@@ -451,11 +483,18 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createJellyfinClient } = await import('@/core/clients/jellyfin')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
         const client = createJellyfinClient(url, apiKey, jfUserId, { skipTlsVerify: skipTls })
-        const result = await client.testConnection()
-        if (result.success && !jfUserId) {
-          result.message += ' (warning: no user ID set - listening data will not work without it)'
-        }
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(
+          c,
+          async () => {
+            const result = await client.testConnection()
+            if (result.success && !jfUserId) {
+              result.message +=
+                ' (warning: no user ID set - listening data will not work without it)'
+            }
+            return result
+          },
+          messages['common.unknownError'],
+        )
       }
       case 'emby': {
         const url = body.url || userConns?.embyUrl || ''
@@ -467,11 +506,18 @@ export function settingsRoutes(deps: AppDependencies) {
         const { createEmbyClient } = await import('@/core/clients/emby')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
         const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
-        const result = await client.testConnection()
-        if (result.success && !embyUserId) {
-          result.message += ' (warning: no user ID set - listening data will not work without it)'
-        }
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(
+          c,
+          async () => {
+            const result = await client.testConnection()
+            if (result.success && !embyUserId) {
+              result.message +=
+                ' (warning: no user ID set - listening data will not work without it)'
+            }
+            return result
+          },
+          messages['common.unknownError'],
+        )
       }
       case 'discogs': {
         const token = body.token || userConns?.discogsToken || ''
@@ -481,8 +527,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const { createDiscogsClient } = await import('@/core/clients/discogs')
         const client = createDiscogsClient(token, username)
-        const result = await client.testConnection()
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'spotify': {
         const spotifyUserId = c.get('userId')
@@ -494,8 +539,7 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const { createSpotifyClient } = await import('@/core/clients/spotify')
         const client = createSpotifyClient(oauthToken.accessToken)
-        const result = await client.testConnection()
-        return probeResult(c, result, messages['common.unknownError'])
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'oidc': {
         const issuerUrl = body.issuerUrl || (stored?.oidcIssuerUrl as string) || ''
@@ -511,7 +555,7 @@ export function settingsRoutes(deps: AppDependencies) {
           clientSecret: clientSecret || undefined,
           scopes: 'openid',
         })
-        return probeResult(c, await svc.testConnection(), messages['common.unknownError'])
+        return runProbe(c, () => svc.testConnection(), messages['common.unknownError'])
       }
       default:
         return problem(c, 'unknown-service', `Unknown service: ${service}`, 400)

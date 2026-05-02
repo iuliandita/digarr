@@ -631,6 +631,10 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
 - `lidarr` and `ai` test calls require admin access when user-session auth is active
+- Successful service probes return `200` with a required `message` plus optional metadata:
+  `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
+- Failed service probes return `application/problem+json`: `400` for missing or unknown input,
+  `403` for non-admin callers, and `502` when the upstream service probe fails
 
 ---
 

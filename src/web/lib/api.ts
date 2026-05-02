@@ -201,7 +201,7 @@ export const getSettings = () => fetchApi<Record<string, unknown>>('/settings')
 export const updateSettings = (partial: Record<string, unknown>) =>
   fetchApi('/settings', { method: 'PATCH', body: JSON.stringify(partial) })
 export const testService = (service: string, config: Record<string, unknown>) =>
-  fetchApi<{ message: string }>(`/settings/test/${service}`, {
+  fetchApi<{ message: string; version?: string; latencyMs?: number }>(`/settings/test/${service}`, {
     method: 'POST',
     body: JSON.stringify(config),
   })
