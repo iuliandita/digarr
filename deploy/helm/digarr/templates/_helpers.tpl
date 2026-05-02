@@ -91,3 +91,14 @@ App image reference -- prefer digest when provided.
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag }}
 {{- end }}
 {{- end }}
+
+{{/*
+PostgreSQL image reference -- prefer digest when provided.
+*/}}
+{{- define "digarr.postgresqlImage" -}}
+{{- if .Values.postgresql.image.digest }}
+{{- printf "%s@%s" .Values.postgresql.image.repository .Values.postgresql.image.digest }}
+{{- else }}
+{{- printf "%s:%s" .Values.postgresql.image.repository .Values.postgresql.image.tag }}
+{{- end }}
+{{- end }}

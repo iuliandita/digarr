@@ -26,6 +26,7 @@ RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
     bun install --frozen-lockfile --production
 
 # Runtime stage -- override RUNTIME_IMAGE for alpine variant.
+# checkov:skip=CKV_DOCKER_7: Default and release override runtime images are version-and-digest pinned.
 FROM ${RUNTIME_IMAGE}
 
 LABEL org.opencontainers.image.source="https://github.com/iuliandita/digarr"

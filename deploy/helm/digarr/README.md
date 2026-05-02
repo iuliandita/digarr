@@ -63,7 +63,7 @@ extraEnv:
 helm upgrade digarr deploy/helm/digarr -n arr -f my-values.yaml
 ```
 
-The pod template carries `checksum/config` and `checksum/secret` annotations,
+The pod template carries `checksum/config` and `checksum/sensitive-config` annotations,
 so ConfigMap or Secret changes trigger a rolling restart even when the image
 tag is unchanged.
 

@@ -12,6 +12,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: digarr
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -114,6 +115,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: digarr
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -127,6 +129,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: digarr-db
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -143,6 +146,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: digarr
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -158,6 +162,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: digarr-postgresql
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -182,6 +187,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: digarr
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -206,6 +212,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: digarr
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -231,8 +238,8 @@ spec:
         app.kubernetes.io/instance: digarr
         app.kubernetes.io/component: app
       annotations:
-        checksum/config: d1f49d7129a52c6e20a20a47284d6fc391ec6ce726c4370d79b49adb7d970d4f
-        checksum/secret: 736e5aa5968b27b979e543888272d69df7a860623d4dbf452c4ee6150f61e9bf
+        checksum/config: 82f13fe0566bd824f62e3eaecb611f794e8a8aae49f8f2e281a0654cd6305a3a
+        checksum/sensitive-config: e16ab5487878eced4ba847411885814b2ce55b32321479999677a646691e8183
     spec:
       serviceAccountName: digarr
       automountServiceAccountToken: false
@@ -317,6 +324,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: digarr-postgresql
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-0.44.0
     app.kubernetes.io/name: digarr
@@ -347,7 +355,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: postgresql
-          image: "postgres:17-alpine"
+          image: "postgres@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609"
           imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true

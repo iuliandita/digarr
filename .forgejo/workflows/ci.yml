@@ -76,7 +76,7 @@ jobs:
     needs: build
     services:
       postgres:
-        image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
+        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -139,7 +139,7 @@ jobs:
     needs: api-route-test
     services:
       postgres:
-        image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
+        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

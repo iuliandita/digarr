@@ -155,6 +155,7 @@ postgresql:
   image:
     repository: postgres
     tag: "17-alpine"
+    digest: "sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609"
     pullPolicy: Always
   auth:
     username: digarr
