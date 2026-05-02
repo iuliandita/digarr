@@ -26,17 +26,12 @@ const ROUTE_DECLARATION_RE = new RegExp(
   'g',
 )
 
-const MARKDOWN_TABLE_ROUTE_RE =
-  /^\s*\|\s*(GET|POST|PATCH|DELETE|PUT)\s*\|\s*`([^`]+)`\s*\|/gim
+const MARKDOWN_TABLE_ROUTE_RE = /^\s*\|\s*(GET|POST|PATCH|DELETE|PUT)\s*\|\s*`([^`]+)`\s*\|/gim
 
 const IGNORED_ROUTES = new Set<string>()
 
 function routeKey(route: RouteDeclaration): string {
   return `${route.method} ${route.path}`
-}
-
-function compareRoute(a: RouteDeclaration, b: RouteDeclaration): number {
-  return routeKey(a).localeCompare(routeKey(b))
 }
 
 function uniqueRoutes(routes: RouteDeclaration[]): RouteDeclaration[] {
