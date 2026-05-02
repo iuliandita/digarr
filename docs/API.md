@@ -8,6 +8,48 @@ Admin-only endpoints return 403 for non-admin users.
 
 ---
 
+## Pagination Shapes
+
+Digarr uses three pagination styles depending on the route's compatibility history.
+
+Shared cursor pagination is opt-in: callers that omit both `limit` and `cursor` receive the legacy array response, while callers that send either parameter receive:
+
+```json
+{
+  "data": [],
+  "meta": {
+    "limit": 50,
+    "nextCursor": null
+  }
+}
+```
+
+Routes using this shared cursor shape:
+- `GET /api/v1/subscriptions`
+- `GET /api/v1/targets`
+- `GET /api/v1/batches`
+- `GET /api/v1/users`
+- `GET /api/v1/playlists`
+- `GET /api/v1/analytics/batches`
+
+For these routes, non-integer `limit` values return `400`. `meta.nextCursor` is an opaque string when another page exists and `null` when the page is exhausted.
+
+`GET /api/v1/artist-blocks` uses a route-specific cursor shape:
+
+```json
+{
+  "items": [],
+  "nextCursor": null
+}
+```
+
+Offset-paginated routes:
+- `GET /api/v1/recommendations` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
+- `GET /api/v1/jobs` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
+- `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null }`
+
+---
+
 ## API Metadata
 
 | Method | Path | Auth | Description |
