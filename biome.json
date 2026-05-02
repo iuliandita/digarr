@@ -5,6 +5,7 @@
       "**",
       "!drizzle",
       "!dist",
+      "!coverage",
       "!.worktrees",
       "!docs/local",
       "!test-results",

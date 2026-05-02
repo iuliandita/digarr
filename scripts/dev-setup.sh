@@ -6,7 +6,7 @@ readonly DB_USER="digarr"
 readonly DB_PASS="digarr"
 readonly DB_NAME="digarr"
 readonly DB_PORT="5432"
-readonly DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}"
+readonly DEV_DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}"
 
 red() { printf '\033[0;31m%s\033[0m\n' "$*"; }
 green() { printf '\033[0;32m%s\033[0m\n' "$*"; }
@@ -102,7 +102,7 @@ main() {
   ensure_dependencies
 
   blue "running database migrations..."
-  DATABASE_URL="$DATABASE_URL" bun run db:migrate
+  env DATABASE_URL="$DEV_DATABASE_URL" bun run db:migrate
 
   green "setup complete"
   print_next_steps

@@ -25,7 +25,7 @@ docker run -d \
   -e POSTGRES_PASSWORD=digarr \
   -e POSTGRES_DB=digarr \
   -p 5432:5432 \
-  postgres:17-alpine
+  postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
 ```
 
 Copy the env file and set your API keys:
@@ -60,14 +60,15 @@ TypeScript strict mode is enforced. No `any`; use `unknown`, generics, or proper
 bun run lint
 bun run typecheck
 bun run test:api-routes
+bun run test:coverage
 bun run i18n:check
 bun run test         # run once
 bun run test:watch   # watch mode
-bun run test:e2e     # Playwright browser tests (needs dev servers running)
+bun run test:e2e     # Playwright browser tests (starts test dev servers)
 bun run test:e2e:ui  # Playwright UI mode
 ```
 
-Tests live in `tests/`. Keep them close to the code they cover. E2E coverage lives in `tests/e2e/` with `api/` (Vitest smoke tests) and `browser/` (Playwright) subdirectories. Browser tests require `bunx playwright install --with-deps chromium` first, plus both dev servers running (`bun run dev` on `:3000` and `bun run dev:web` on `:5173`).
+Tests live in `tests/`. Keep them close to the code they cover. Route-contract coverage lives in `tests/api-routes/`; browser coverage lives in `tests/e2e/browser/`; accessibility coverage lives in `tests/e2e/a11y/`. Browser tests require `bunx playwright install --with-deps chromium` first. By default, Playwright starts an isolated backend on `:3000` and Vite on `:5173`; set `PLAYWRIGHT_SKIP_WEBSERVER=1` only when those servers are already running.
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 

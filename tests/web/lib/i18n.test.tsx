@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider, useI18n } from '@/web/lib/i18n'

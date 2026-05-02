@@ -1,7 +1,5 @@
 // @vitest-environment jsdom
 
-// @vitest-environment jsdom
-
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SubscriptionForm } from '@/web/components/subscription-form'
