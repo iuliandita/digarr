@@ -13,7 +13,9 @@ Admin-only endpoints return 403 for non-admin users.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
-| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 skeleton for auth, security schemes, and shared error envelopes |
+| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
+
+OpenAPI coverage currently includes auth status/login, recommendations, artist blocks, jobs, and settings service probes. The Markdown reference remains the complete route inventory.
 
 ---
 
