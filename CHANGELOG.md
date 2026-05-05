@@ -2,6 +2,14 @@
 
 All notable user-facing changes are documented here.
 
+## v0.44.2 - 2026-05-05
+
+Recommendation clearing patch release.
+
+### Fixed
+
+- Clear All now rejects pending recommendations in API-sized batches instead of requesting an oversized `limit=10000` page, fixing the 400 response from the recommendations list endpoint.
+
 ## v0.44.1 - 2026-05-05
 
 Spotify OAuth patch release.
