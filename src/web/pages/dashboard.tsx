@@ -625,7 +625,7 @@ export function Dashboard() {
         {t('dashboard.feedbackTip')}
       </Hint>
 
-      {/* Recently Approved + Subscription Pulse */}
+      {/* Recently Approved + Listening Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <SectionHeader
@@ -635,16 +635,6 @@ export function Dashboard() {
           />
           <RecentlyApproved recs={approvedRecs} loading={approvedLoading} />
         </div>
-        <div className="space-y-3">
-          <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
-          <Hint id="dashboard-subscriptions-tip" type="inline">
-            {t('dashboard.subscriptionsTip')}
-          </Hint>
-        </div>
-      </div>
-
-      {/* Listening Activity + Taste Profile */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <ListeningHistory
             data={topArtistsData}
@@ -661,6 +651,16 @@ export function Dashboard() {
             {t('dashboard.listeningTip')}
           </Hint>
           <RecentActivity data={recentTracksData} />
+        </div>
+      </div>
+
+      {/* Subscription Pulse + Taste Profile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3">
+          <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
+          <Hint id="dashboard-subscriptions-tip" type="inline">
+            {t('dashboard.subscriptionsTip')}
+          </Hint>
         </div>
         <div className="space-y-3">
           <TasteProfile genres={tasteData} loading={tasteLoading} />

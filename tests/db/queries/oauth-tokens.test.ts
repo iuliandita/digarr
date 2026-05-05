@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { initEncryption } from '@/core/crypto'
 import type { Database } from '@/db'
-import { upsertOAuthToken } from '@/db/queries/oauth-tokens'
+import { findPendingOAuthByState, upsertOAuthToken } from '@/db/queries/oauth-tokens'
 
 const TEST_KEY = 'oauth-tokens-test-key-do-not-reuse'
 
@@ -92,5 +92,51 @@ describe('upsertOAuthToken encryption', () => {
     expect(values?.accessToken).toEqual(expect.stringMatching(/^enc:v1:/))
     expect(values?.refreshToken).toEqual(expect.stringMatching(/^enc:v1:/))
     expect(values?.clientSecret).toEqual(expect.stringMatching(/^enc:v1:/))
+  })
+})
+
+describe('findPendingOAuthByState encryption', () => {
+  it('decrypts pending OAuth credentials used by provider callbacks', async () => {
+    const capture: UpsertCapture = {}
+    const db = makeDb(capture)
+    const expiresAt = new Date(Date.now() + 60_000)
+
+    await upsertOAuthToken(db, {
+      userId: 1,
+      provider: 'spotify',
+      accessToken: 'pending:1:state-token',
+      refreshToken: 'https://app.example.com/api/v1/auth/oauth/spotify/callback',
+      expiresAt,
+      clientId: 'client-id-plain',
+      clientSecret: 'client-secret-plain',
+      scopes: 'read',
+    })
+
+    const rows = [
+      {
+        id: 1,
+        userId: 1,
+        provider: 'spotify',
+        accessToken: capture.insertValues?.accessToken ?? '',
+        refreshToken: capture.insertValues?.refreshToken ?? null,
+        expiresAt,
+        scopes: 'read',
+        clientId: 'client-id-plain',
+        clientSecret: capture.insertValues?.clientSecret ?? null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]
+    const selectChain = {
+      from: vi.fn(() => selectChain),
+      where: vi.fn().mockResolvedValue(rows),
+    }
+    const lookupDb = { select: vi.fn(() => selectChain) } as unknown as Database
+
+    const pending = await findPendingOAuthByState(lookupDb, 'spotify', 'state-token')
+
+    expect(pending?.accessToken).toBe('pending:1:state-token')
+    expect(pending?.refreshToken).toBe('https://app.example.com/api/v1/auth/oauth/spotify/callback')
+    expect(pending?.clientSecret).toBe('client-secret-plain')
   })
 })

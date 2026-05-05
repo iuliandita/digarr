@@ -89,7 +89,7 @@ export async function findPendingOAuthByState(
   const match = rows.find(
     (r) => r.accessToken.startsWith('pending:') && r.accessToken.endsWith(`:${state}`),
   )
-  return match ?? null
+  return match ? decryptOAuthRow(match) : null
 }
 
 export async function deleteOAuthToken(
