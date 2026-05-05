@@ -1,6 +1,13 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
-import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl, normalizeIp } from './validation'
+import {
+  formatUrlHostname,
+  getLookupHostname,
+  isHttpUrl,
+  isPrivateIp,
+  isPrivateUrl,
+  normalizeIp,
+} from './validation'
 
 export { isPrivateIp, isPrivateUrl }
 
@@ -79,7 +86,7 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
   const body = isDiscordWebhook(url) ? formatDiscordPayload(payload) : payload
   const fetchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
   const fetchUrl = new URL(url)
-  fetchUrl.hostname = resolvedAddress
+  fetchUrl.hostname = formatUrlHostname(resolvedAddress)
 
   // Pin the resolved IP to prevent DNS rebinding between check and use.
   // HTTPS keeps the original hostname for SNI while connecting to the pinned IP.

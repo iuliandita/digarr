@@ -6,6 +6,7 @@ import { createWikidataClient } from '@/core/clients/wikidata'
 import type { TopTrack, TopTracksCache } from '@/db/schema'
 import { artists } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 
 const ENRICHMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000
@@ -18,8 +19,8 @@ export function artistRoutes(deps: AppDependencies) {
   const wikidata = createWikidataClient()
 
   router.get('/api/v1/artists/:id', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
+    const id = parsePositiveIntParam(c.req.param('id'))
+    if (id == null) return c.json({ error: 'Invalid artist ID' }, 400)
     const artist = await deps.getArtistById(id)
     if (!artist) {
       return c.json({ error: 'Artist not found' }, 404)
@@ -28,8 +29,8 @@ export function artistRoutes(deps: AppDependencies) {
   })
 
   router.get('/api/v1/artists/:id/top-tracks', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
+    const id = parsePositiveIntParam(c.req.param('id'))
+    if (id == null) return c.json({ error: 'Invalid artist ID' }, 400)
     const artist = await deps.getArtistById(id)
     if (!artist) {
       return c.json({ error: 'Artist not found' }, 404)
@@ -124,8 +125,8 @@ export function artistRoutes(deps: AppDependencies) {
   )
 
   router.get('/api/v1/artists/:id/enrichment', async (c) => {
-    const id = Number(c.req.param('id'))
-    if (!Number.isFinite(id)) return c.json({ error: 'Invalid artist ID' }, 400)
+    const id = parsePositiveIntParam(c.req.param('id'))
+    if (id == null) return c.json({ error: 'Invalid artist ID' }, 400)
     const localeRaw = c.req.query('locale') ?? 'en'
     const locale = /^[a-zA-Z-]{2,10}$/.test(localeRaw) ? localeRaw : 'en'
 

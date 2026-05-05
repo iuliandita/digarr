@@ -12,12 +12,12 @@
 [![Tests](https://img.shields.io/badge/tests-vitest%20%2B%20playwright-brightgreen)](https://github.com/iuliandita/digarr/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**Music discovery for your *arr stack.** Connect your listening sources, pick an AI provider, and Digarr builds a taste profile, runs a recommendation pipeline, and gives you a queue you can actually review. Approve artists into Lidarr or playlist targets, run mood searches in plain English, launch focused discovery modes, import Spotify Liked Songs to get started faster, schedule recurring discovery, generate playlists, browse by genre, and use the UI and AI-assisted discovery output across 15 shipped languages. It is self-hosted, so the data stays with you.
+**Music discovery for your *arr stack.** Digarr builds a taste profile from your listening sources, asks your AI provider for candidates, scores them, and gives you a review queue. From there you can approve artists into Lidarr or playlist targets, run mood searches, save discovery subscriptions, generate playlists, and browse by genre. The UI and AI-assisted reasoning ship in 15 languages. It is self-hosted, so the data stays with you.
 
 > [!WARNING]
 > **Beta software, working toward v1.0.** You can use it today, but expect rough edges. Releases can land quickly, sometimes several in a day, so check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. If you run into something broken, [open an issue](https://github.com/iuliandita/digarr/issues) or send over a feature idea.
 >
-> Free and open source, forever. No tracking, no telemetry, no data collection. Your music taste stays on your server.
+> Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
@@ -111,12 +111,17 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
+mkdir -p secrets
+printf '%s\n' 'change-this-password' > secrets/postgres_password
+printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
-# Edit .env and set DB_PASS at minimum
+# Edit both secrets files and optionally .env
 docker compose up -d
 ```
 
 Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
+
+The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:0.44.0`) when you want the head of the release line.
 
 For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. Emby can be added during the setup wizard or later in Settings.
 
@@ -147,17 +152,19 @@ You can run the pipeline on a schedule, by hand, through subscriptions for targe
 
 ## Configuration
 
-Most day-to-day configuration lives in the web UI after initial setup. That includes connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes a one-click `Import Liked Songs` action to seed recommendations for a faster first scan. Settings also includes dedicated `Job History` and `System Health` tabs for operational visibility, while Library Health now keeps the latest scan snapshot, shows when it last synced, auto-rescans on the configured library-sync interval, and still exposes a manual `Sync Now` action. Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a specific Lidarr target there so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
+Most day-to-day configuration lives in the web UI after initial setup: connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes an `Import Liked Songs` action to seed recommendations for a faster first scan. Settings also includes `Job History` and `System Health` tabs; Library Health keeps the latest scan snapshot, shows when it last synced, auto-rescans on the configured library-sync interval, and still exposes a manual `Sync Now` action.
+
+Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 ## Backup & Restore
 
 Digarr provides application-level backup and restore through the admin UI (Settings > Administration) or API.
 
-**Manual backup:** `POST /api/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist and genre caches. The file is larger, but restores do not need to fetch that data from MusicBrainz again.
+**Manual backup:** `POST /api/v1/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist and genre caches. The file is larger, but restores do not need to fetch that data from MusicBrainz again.
 
-**Restore:** `POST /api/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It restores a cleared database using the backup's primary keys plus stable natural keys for cache and lookup tables where IDs are instance-specific. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
+**Restore:** `POST /api/v1/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It restores a cleared database using the backup's primary keys plus stable natural keys for cache and lookup tables where IDs are instance-specific. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
 
-**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 5 auto-backups. Disable this with `DIGARR_AUTO_BACKUP=false`.
+**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups so a self-hoster can miss roughly two weeks of releases and still roll back. Disable this with `DIGARR_AUTO_BACKUP=false`.
 
 **Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
 

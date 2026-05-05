@@ -164,7 +164,7 @@ export const zhCN = {
   'setup.provider': '提供者',
   'setup.providerAnthropic': '人择',
   'setup.providerGemini': '谷歌双子座',
-  'setup.providerOllama': '奥拉马（当地）',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': '开放人工智能',
   'setup.providerOpenAiCompatible': 'OpenAI 兼容',
   'setup.readyDescription': '这是您的配置：',
@@ -249,7 +249,6 @@ export const zhCN = {
   'discover.bulkApproveFailed': '批量批准失败',
   'discover.bulkRejectFailed': '批量拒绝失败',
   'discover.clearAll': '全部清除',
-  'discover.clearAllTitle': '一键拒绝所有待处理推荐，适合在查看完一批推荐后使用',
   'discover.clearFailed': '无法清除建议',
   'discover.clearedCount': '已清除',
   'discover.discoveryModes': '发现模式',
@@ -737,6 +736,11 @@ export const zhCN = {
   'settings.aiDescription': '生成音乐推荐。',
   'settings.aiOpenAiCompatibleHelp':
     '兼容 Groq、OpenRouter、LiteLLM、LocalAI 及任何 OpenAI 兼容端点。本地服务 API Key 可选填。',
+  'settings.aiPrivacyNoteHosted':
+    '发现请求会按所选提供商的条款发送给该提供商。使用 localhost 上的 Ollama 或本地 OpenAI 兼容端点可让请求保留在你的服务器上。',
+  'settings.aiPrivacyNoteLocal': '发现请求保留在你的服务器上。',
+  'settings.aiPrivacyBadgeHosted': '数据离开你的服务器',
+  'settings.aiPrivacyBadgeLocal': '完全本地',
   'settings.webhookDescription': '扫描完成通知（Discord、Slack、ntfy、Gotify 或任意 HTTP 端点）',
   'settings.testWebhook': '测试 Webhook',
   'settings.sending': '发送中...',

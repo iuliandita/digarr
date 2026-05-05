@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -45,7 +45,7 @@ jobs:
 
   trivy-fs:
     name: Trivy filesystem scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     steps:
@@ -61,15 +61,15 @@ jobs:
           # Revisit once we have a baseline + `.trivyignore` with dated entries.
           exit-code: "0"
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
-          trivy-version: "0.69.3"
-      - uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
+          trivy-version: "0.70.0"
+      - uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4
         if: always()
         with:
           sarif_file: trivy-fs.sarif
 
   trivy-image:
     name: Trivy container scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # skip when DOCKERHUB secrets unavailable (fork PRs, dependabot)
     if: github.event_name != 'pull_request' || (!github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]')
     permissions:
@@ -100,19 +100,19 @@ jobs:
           format: sarif
           output: trivy-image.sarif
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
-          trivy-version: "0.69.3"
-      - uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
+          trivy-version: "0.70.0"
+      - uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4
         if: always()
         with:
           sarif_file: trivy-image.sarif
 
   codeql:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
+      - uses: github/codeql-action/init@e46ed2cbd01164d986452f91f178727624ae40d7 # v4
         with:
           languages: javascript-typescript
-      - uses: github/codeql-action/analyze@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4
+      - uses: github/codeql-action/analyze@e46ed2cbd01164d986452f91f178727624ae40d7 # v4

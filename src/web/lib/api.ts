@@ -201,7 +201,7 @@ export const getSettings = () => fetchApi<Record<string, unknown>>('/settings')
 export const updateSettings = (partial: Record<string, unknown>) =>
   fetchApi('/settings', { method: 'PATCH', body: JSON.stringify(partial) })
 export const testService = (service: string, config: Record<string, unknown>) =>
-  fetchApi<{ message: string }>(`/settings/test/${service}`, {
+  fetchApi<{ message: string; version?: string; latencyMs?: number }>(`/settings/test/${service}`, {
     method: 'POST',
     body: JSON.stringify(config),
   })
@@ -256,13 +256,6 @@ export type ReleaseGroup = {
 }
 export const getAlbums = (mbid: string) =>
   fetchApi<ReleaseGroup[]>(`/albums/${encodeURIComponent(mbid)}`)
-
-// Batches
-export const getBatches = () => fetchApi<unknown[]>('/batches')
-export const getBatch = (id: number) => fetchApi<unknown>(`/batches/${id}`)
-
-// Artists
-export const getArtist = (id: number) => fetchApi<unknown>(`/artists/${id}`)
 
 export type ArtistEnrichment = {
   description: string | null
@@ -371,16 +364,12 @@ export const getApprovalTrend = () => fetchApi<ApprovalTrend[]>('/analytics/tren
 export const getTimeToAct = () => fetchApi<TimeToAct[]>('/analytics/time-to-act')
 
 // Lidarr
-export const getLidarrStats = () =>
-  fetchApi<{ artists: number; monitored: number }>('/lidarr/stats')
 export const getLidarrProfiles = () =>
   fetchApi<Array<{ id: number; name: string }>>('/lidarr/profiles')
 export const getLidarrMetadataProfiles = () =>
   fetchApi<Array<{ id: number; name: string }>>('/lidarr/metadataprofiles')
 export const getLidarrRootFolders = () =>
   fetchApi<Array<{ id: number; path: string; freeSpace?: number }>>('/lidarr/rootfolders')
-export const addToLidarr = (body: Record<string, unknown>) =>
-  fetchApi('/lidarr/add', { method: 'POST', body: JSON.stringify(body) })
 
 // Library Health
 export type HealthCheckItem = {
@@ -577,11 +566,6 @@ export const saveLibraryAlbumOverride = (payload: LibraryAlbumOverrideInput) =>
     method: 'POST',
     body: JSON.stringify(payload),
   })
-export const deleteLibraryOverride = (source: string, sourceArtistId: string) =>
-  fetchApi<void>(
-    `/library/overrides/${encodeURIComponent(source)}/${encodeURIComponent(sourceArtistId)}`,
-    { method: 'DELETE' },
-  )
 export const rerunLibraryReconciler = () => fetchApi<void>('/library/reconcile', { method: 'POST' })
 
 // User management (admin)
@@ -864,20 +848,6 @@ export const importDeezerFollowed = () =>
   fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
     '/subscriptions/import/deezer-followed',
     { method: 'POST' },
-  )
-
-export const getDeezerPlaylists = () =>
-  fetchApi<{
-    playlists: Array<{ id: number; title: string; trackCount: number; imageUrl?: string }>
-  }>('/subscriptions/import/deezer-playlists')
-
-export const importDeezerPlaylists = (playlistIds: number[]) =>
-  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
-    '/subscriptions/import/deezer-playlists',
-    {
-      method: 'POST',
-      body: JSON.stringify({ playlistIds }),
-    },
   )
 
 export const importCsvFile = async (file: File) => {

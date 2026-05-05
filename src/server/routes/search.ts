@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { SearchSourceDescriptor } from '@/core/search/catalog'
 import type { MergedSearchResult } from '@/core/search/multi-source'
+import { parseOptionalClampedInt } from '@/server/helpers/parse-int-clamp'
 import type { HonoEnv } from '@/server/types'
 
 export type SearchDeps = {
@@ -25,8 +26,10 @@ export function searchRoutes(deps: SearchDeps) {
     if (!query || query.trim() === '') {
       return c.json({ error: 'q parameter is required' }, 400)
     }
-    const rawLimit = Number(c.req.query('limit') ?? 20)
-    const limit = Math.max(1, Math.min(Number.isFinite(rawLimit) ? rawLimit : 20, 50))
+    const limit = parseOptionalClampedInt(c.req.query('limit'), { min: 1, max: 50, default: 20 })
+    if (limit == null) {
+      return c.json({ error: 'limit must be an integer' }, 400)
+    }
     const sourcesParam = c.req.query('sources')?.split(',').filter(Boolean)
     const userId = c.get('userId')
 

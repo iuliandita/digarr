@@ -3,6 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "digarr.fullname" . }}-backups
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
 spec:

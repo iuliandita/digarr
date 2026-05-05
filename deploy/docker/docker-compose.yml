@@ -16,11 +16,14 @@ networks:
 
 services:
   app:
-    image: docker.io/iuliandita/digarr:0.44
-    # Pin to a patch version for full stability:
-    # image: docker.io/iuliandita/digarr:0.44.0
+    image: docker.io/iuliandita/digarr:stable
+    # Channels:
+    #   :stable -> last release promoted after >= 7 days with no follow-up patch (recommended for self-hosters)
+    #   :latest -> head of the release line, may move multiple times per day
+    # Pin to a specific minor or patch when you want zero surprises:
+    # image: docker.io/iuliandita/digarr:1.0.0-rc.2
     # Alpine variant (smaller image, musl libc):
-    # image: docker.io/iuliandita/digarr:0.44.0-alpine
+    # image: docker.io/iuliandita/digarr:1.0.0-rc.2-alpine
     user: "1000:1000"
     networks:
       - frontend
@@ -66,7 +69,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
+    image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
     networks:
       - backend
     env_file:

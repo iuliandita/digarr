@@ -173,7 +173,7 @@ export const ru = {
   'setup.provider': 'Поставщик',
   'setup.providerAnthropic': 'антропный',
   'setup.providerGemini': 'Гугл Близнецы',
-  'setup.providerOllama': 'Оллама (местный)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'ОпенАИ',
   'setup.providerOpenAiCompatible': 'OpenAI-совместимый',
   'setup.readyDescription': 'Вот что вы настроили:',
@@ -262,8 +262,6 @@ export const ru = {
   'discover.bulkApproveFailed': 'Массовое одобрение не удалось',
   'discover.bulkRejectFailed': 'Массовое отклонение не удалось',
   'discover.clearAll': 'Очистить все',
-  'discover.clearAllTitle':
-    'Отклоняет все ожидающие рекомендации одновременно — полезно после проверки пакета.',
   'discover.clearFailed': 'Не удалось удалить рекомендации.',
   'discover.clearedCount': 'Очищено',
   'discover.discoveryModes': 'Режимы поиска',
@@ -806,6 +804,11 @@ export const ru = {
   'settings.aiDescription': 'Генерирует музыкальные рекомендации.',
   'settings.aiOpenAiCompatibleHelp':
     'Совместим с Groq, OpenRouter, LiteLLM, LocalAI и любым OpenAI-совместимым эндпоинтом. API Key необязателен для локальных сервисов.',
+  'settings.aiPrivacyNoteHosted':
+    'Запросы для подбора отправляются выбранному провайдеру согласно его условиям. Используйте Ollama на localhost или локальный OpenAI-совместимый эндпоинт, чтобы они оставались на вашем сервере.',
+  'settings.aiPrivacyNoteLocal': 'Запросы для подбора остаются на вашем сервере.',
+  'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
+  'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.webhookDescription':
     'Уведомления о завершении сканирования (Discord, Slack, ntfy, Gotify или любой HTTP-эндпоинт)',
   'settings.testWebhook': 'Тест вебхука',

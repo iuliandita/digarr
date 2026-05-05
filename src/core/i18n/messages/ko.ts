@@ -169,7 +169,7 @@ export const ko = {
   'setup.provider': '공급자',
   'setup.providerAnthropic': '인류학',
   'setup.providerGemini': '구글 제미니',
-  'setup.providerOllama': '올라마(현지)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': '오픈AI',
   'setup.providerOpenAiCompatible': 'OpenAI 호환',
   'setup.readyDescription': '구성한 내용은 다음과 같습니다.',
@@ -258,8 +258,6 @@ export const ko = {
   'discover.bulkApproveFailed': '일괄 승인 실패',
   'discover.bulkRejectFailed': '일괄 거부 실패',
   'discover.clearAll': '모두 지우기',
-  'discover.clearAllTitle':
-    '보류 중인 모든 권장 사항을 한 번에 거부합니다. 배치를 검토한 후 유용합니다.',
   'discover.clearFailed': '추천을 삭제하지 못했습니다.',
   'discover.clearedCount': '삭제됨',
   'discover.discoveryModes': '발견 모드',
@@ -775,6 +773,11 @@ export const ko = {
   'settings.aiDescription': '음악 추천을 생성합니다.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI 및 모든 OpenAI 호환 엔드포인트와 함께 작동합니다. 로컬 서비스의 API Key는 선택 사항입니다.',
+  'settings.aiPrivacyNoteHosted':
+    '검색 프롬프트는 선택한 제공업체의 약관에 따라 전송됩니다. 서버에 보관하려면 localhost의 Ollama 또는 로컬 OpenAI 호환 엔드포인트를 사용하세요.',
+  'settings.aiPrivacyNoteLocal': '검색 프롬프트는 서버에 남아 있습니다.',
+  'settings.aiPrivacyBadgeHosted': '데이터가 서버를 떠납니다',
+  'settings.aiPrivacyBadgeLocal': '완전 로컬',
   'settings.webhookDescription':
     '스캔 완료 알림 (Discord, Slack, ntfy, Gotify, 또는 모든 HTTP 엔드포인트)',
   'settings.testWebhook': 'Webhook 테스트',

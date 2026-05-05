@@ -3,6 +3,8 @@ import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { envConfig } from '@/config/env'
 import { getSession } from '@/core/sessions'
+import { notAuthenticated } from '@/server/helpers/auth-problems'
+import { problem } from '@/server/helpers/problem'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
@@ -112,13 +114,18 @@ export function authGuard(options: {
     // or an interrupted migration). Return 503 so ops can notice and re-run
     // setup, rather than 401 which would let callers retry indefinitely.
     if (!legacyToken && !usersExist && setupComplete) {
-      return c.json({ error: 're-run setup', detail: 'admin record missing' }, 503)
+      return problem(
+        c,
+        'setup-admin-missing',
+        'Setup admin user missing',
+        503,
+        'Setup is complete but no admin user exists; re-run setup.',
+      )
     }
 
     // RFC 7235: unauthenticated responses should advertise an auth scheme.
     // `realm` is an opaque client-facing tag; kept stable so automated probes
     // can key on it without parsing our domain name out.
-    c.header('WWW-Authenticate', 'Bearer realm="digarr"')
-    return c.json({ error: 'Unauthorized' }, 401)
+    return notAuthenticated(c)
   })
 }

@@ -172,7 +172,7 @@ export const ja = {
   'setup.provider': 'プロバイダー',
   'setup.providerAnthropic': '人間的',
   'setup.providerGemini': 'Google ジェミニ',
-  'setup.providerOllama': 'オラマ (地元)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI対応',
   'setup.readyDescription': '設定した内容は次のとおりです。',
@@ -261,8 +261,6 @@ export const ja = {
   'discover.bulkApproveFailed': '一括承認に失敗しました',
   'discover.bulkRejectFailed': '一括拒否に失敗しました',
   'discover.clearAll': 'すべてクリア',
-  'discover.clearAllTitle':
-    '保留中の推奨事項をすべて一度に拒否します - バッチをレビューした後に役立ちます',
   'discover.clearFailed': '推奨事項をクリアできませんでした',
   'discover.clearedCount': 'クリア済み',
   'discover.discoveryModes': '発見モード',
@@ -784,6 +782,11 @@ export const ja = {
   'settings.aiDescription': '音楽のおすすめを生成します。',
   'settings.aiOpenAiCompatibleHelp':
     'Groq、OpenRouter、LiteLLM、LocalAI、および OpenAI 互換エンドポイントで動作します。ローカルサービスでは API Key は任意です。',
+  'settings.aiPrivacyNoteHosted':
+    'ディスカバリープロンプトは選択したプロバイダーの規約に従って送信されます。サーバー内に保持したい場合は localhost の Ollama またはローカルの OpenAI 互換エンドポイントを使用してください。',
+  'settings.aiPrivacyNoteLocal': 'ディスカバリープロンプトはサーバー内に保持されます。',
+  'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
+  'settings.aiPrivacyBadgeLocal': '完全にローカル',
   'settings.webhookDescription':
     'スキャン完了通知（Discord、Slack、ntfy、Gotify、または任意の HTTP エンドポイント）',
   'settings.testWebhook': 'Webhook をテスト',

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { evaluateDiscoveryModeAvailability } from '@/core/discovery-modes/availability'
 import { createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { AppDependencies } from '@/server'
+import { notAuthenticated } from '@/server/helpers/auth-problems'
 import type { HonoEnv } from '@/server/types'
 
 const EMPTY_DISCOVERY_SNAPSHOT = {
@@ -21,7 +22,7 @@ export function discoveryModeRoutes(deps: AppDependencies) {
   router.get('/api/v1/discovery-modes', async (c) => {
     const userId = c.get('userId')
     if (!userId) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return notAuthenticated(c)
     }
 
     const snapshot = await getDiscoveryConnectionSnapshot(userId)

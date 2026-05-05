@@ -218,7 +218,7 @@ function GenreBreakdown({
           </span>
           <div className="flex-1 h-4 bg-bg rounded overflow-hidden">
             <div
-              className="h-full bg-approve rounded transition-all"
+              className="h-full bg-approve rounded transition-[width] duration-300"
               style={{ width: `${Math.round(g.approvalRate * 100)}%` }}
             />
           </div>
@@ -278,7 +278,7 @@ function SourceScores({
             </span>
             <div className="flex-1 h-4 bg-bg rounded overflow-hidden">
               <div
-                className="h-full bg-accent rounded transition-all"
+                className="h-full bg-accent rounded transition-[width] duration-300"
                 style={{ width: `${Math.round(s.approvalRate * 100)}%` }}
               />
             </div>
@@ -446,6 +446,7 @@ export function AnalyticsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <h1 className="sr-only">{t('analytics.title')}</h1>
       <Hint id="analytics-intro-tip" type="inline">
         {t('analytics.introTip')}
       </Hint>

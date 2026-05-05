@@ -173,7 +173,7 @@ export const ro = {
   'setup.provider': 'Furnizor',
   'setup.providerAnthropic': 'antropică',
   'setup.providerGemini': 'Google Gemeni',
-  'setup.providerOllama': 'Ollama (local)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Compatibil cu OpenAI',
   'setup.readyDescription': 'Iată ce ați configurat:',
@@ -262,8 +262,6 @@ export const ro = {
   'discover.bulkApproveFailed': 'Aprobarea în bloc a eșuat',
   'discover.bulkRejectFailed': 'Respingerea în bloc a eșuat',
   'discover.clearAll': 'Ștergeți tot',
-  'discover.clearAllTitle':
-    'Respingeți toate recomandările în așteptare simultan - util după examinarea unui lot',
   'discover.clearFailed': 'Recomandările nu s-au șters',
   'discover.clearedCount': 'Eliberat',
   'discover.discoveryModes': 'Moduri de descoperire',
@@ -797,6 +795,11 @@ export const ro = {
   'settings.aiDescription': 'Generează recomandări muzicale.',
   'settings.aiOpenAiCompatibleHelp':
     'Funcționează cu Groq, OpenRouter, LiteLLM, LocalAI și orice endpoint compatibil OpenAI. Cheia API este opțională pentru serviciile locale.',
+  'settings.aiPrivacyNoteHosted':
+    'Interogările de descoperire sunt trimise furnizorului ales conform termenilor săi. Folosește Ollama pe localhost sau un endpoint local compatibil OpenAI pentru a le păstra pe serverul tău.',
+  'settings.aiPrivacyNoteLocal': 'Interogările de descoperire rămân pe serverul tău.',
+  'settings.aiPrivacyBadgeHosted': 'Datele părăsesc serverul tău',
+  'settings.aiPrivacyBadgeLocal': 'Complet local',
   'settings.webhookDescription':
     'Notificări la finalizarea scanării (Discord, Slack, ntfy, Gotify sau orice endpoint HTTP)',
   'settings.testWebhook': 'Testați webhook-ul',

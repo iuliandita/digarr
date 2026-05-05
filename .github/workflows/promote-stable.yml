@@ -1,0 +1,119 @@
+name: Promote :stable
+
+# Manually promote a previously-released tag to :stable on Docker Hub and GHCR.
+# Promotion rule: a release should be live for at least 7 days with no
+# follow-up patch release before it gets promoted. The workflow soft-checks
+# the 7-day age so accidental same-day promotions need an explicit override.
+#
+# All workflow_dispatch inputs are surfaced through env: blocks before being
+# used in run: scripts, per the GitHub Actions injection-safety guidance.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to promote (e.g. v0.44.0)"
+        required: true
+      override_age_check:
+        description: "Allow promotion of releases younger than 7 days"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-stable
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Validate tag exists and check age
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          OVERRIDE: ${{ inputs.override_age_check }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::error::Tag $TAG has no GitHub release; cannot promote"
+            exit 1
+          fi
+          published_at=$(gh release view "$TAG" --repo "$REPO" --json publishedAt -q '.publishedAt')
+          age_days=$(( ( $(date -u +%s) - $(date -u -d "$published_at" +%s) ) / 86400 ))
+          echo "published_at=$published_at"
+          echo "age_days=$age_days"
+          if [ "$age_days" -lt 7 ] && [ "$OVERRIDE" != "true" ]; then
+            echo "::error::$TAG is only $age_days day(s) old; promotion requires >= 7 days or override_age_check=true"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag manifests as :stable
+        env:
+          GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DOCKER_IMAGE: docker.io/iuliandita/digarr
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          # Strip leading 'v' so docker tag matches what release.yml publishes (semver pattern={{version}}).
+          version="${TAG#v}"
+          # Multi-arch retag: imagetools create copies the manifest list under a new tag without re-uploading layers.
+          docker buildx imagetools create --tag "${GHCR_IMAGE}:stable" "${GHCR_IMAGE}:${version}"
+          docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable" "${DOCKER_IMAGE}:${version}"
+          # Same again for the alpine variant so both channels stay in lockstep.
+          docker buildx imagetools create --tag "${GHCR_IMAGE}:stable-alpine" "${GHCR_IMAGE}:${version}-alpine"
+          docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable-alpine" "${DOCKER_IMAGE}:${version}-alpine"
+
+      - name: Resolve promoted digest
+        id: digest
+        env:
+          GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        run: |
+          set -euo pipefail
+          digest=$(docker buildx imagetools inspect "${GHCR_IMAGE}:stable" --format '{{ .Manifest.Digest }}')
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Sign :stable tag (cosign keyless)
+        env:
+          GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          DOCKER_IMAGE: docker.io/iuliandita/digarr
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: |
+          # The original release.yml already signed this digest under its semver tags;
+          # signing again under the :stable name keeps cosign verify --tag :stable green.
+          cosign sign --yes "${GHCR_IMAGE}@${DIGEST}"
+          cosign sign --yes "${DOCKER_IMAGE}@${DIGEST}"

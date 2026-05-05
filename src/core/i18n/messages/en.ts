@@ -43,6 +43,7 @@ export const en = {
   'auth.password': 'Password',
   'common.cancel': 'Cancel',
   'common.clear': 'Clear',
+  'common.confirm': 'Confirm',
   'common.continue': 'Continue',
   'common.daily': 'Daily',
   'common.edit': 'Edit',
@@ -88,6 +89,10 @@ export const en = {
   'discover.rejected': 'Rejected',
   'discover.export': 'Export',
   'discover.exporting': 'Exporting...',
+  'discover.filters': 'Filters',
+  'discover.filtersActive': 'Filters ({0})',
+  'discover.moreActions': 'More actions',
+  'discover.decadesLabel': 'Decades',
   'discover.runScan': 'Run a scan',
   'discover.importArtists': 'Import artists',
   'discover.emptyAll':
@@ -102,8 +107,12 @@ export const en = {
   'genres.libraryGenres': 'Your Library Genres',
   'genreDetail.backToGenres': 'Back to Genres',
   'genreDetail.createSubscription': 'Create Subscription',
+  'analytics.title': 'Analytics',
+  'dashboard.title': 'Dashboard',
+  'discover.title': 'Discover',
   'jobHistory.title': 'Job History',
   'libraryHealth.title': 'Library Health',
+  'setup.title': 'Setup',
   'libraryReconciliation.title': 'Unreconciled Artists',
   'libraryReconciliation.albumsTitle': 'Unreconciled Albums',
   'userManagement.title': 'User Management',
@@ -128,6 +137,7 @@ export const en = {
   'todaysPick.skip': 'Skip',
   'todaysPick.approve': 'Approve',
   'todaysPick.approveSpecificTarget': 'Approve to specific target',
+  'todaysPick.discoverSimilar': 'Discover similar',
   'pipeline.runningFirstScan': 'Running your first scan',
   'setup.aiDescription': 'Used to generate music recommendations. Required.',
   'setup.aiProvider': 'AI Provider',
@@ -172,7 +182,7 @@ export const en = {
   'setup.provider': 'Provider',
   'setup.providerAnthropic': 'Anthropic',
   'setup.providerGemini': 'Google Gemini',
-  'setup.providerOllama': 'Ollama (local)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI-Compatible',
   'setup.readyDescription': "Here's what you've configured:",
@@ -265,8 +275,6 @@ export const en = {
   'discover.bulkApproveFailed': 'Bulk approve failed',
   'discover.bulkRejectFailed': 'Bulk reject failed',
   'discover.clearAll': 'Clear All',
-  'discover.clearAllTitle':
-    'Rejects all pending recommendations at once - useful after reviewing a batch',
   'discover.clearFailed': 'Failed to clear recommendations',
   'discover.clearedCount': 'Cleared',
   'discover.discoveryModes': 'Discovery Modes',
@@ -671,6 +679,20 @@ export const en = {
   'libraryHealth.statisticsTitle': 'Library Statistics',
   'libraryHealth.statisticsUnavailable':
     'Library statistics unavailable. Check your Lidarr connection in Settings.',
+  'libraryHealth.fix': 'Fix',
+  'libraryHealth.fixing': 'Fixing...',
+  'libraryHealth.showLess': 'Show less',
+  'libraryHealth.showAll': 'Show all {0}',
+  'libraryHealth.fixHint.missingMetadata':
+    'Triggers a metadata refresh in Lidarr for each affected artist',
+  'libraryHealth.fixHint.unmonitored': 'Sets all listed artists to monitored in Lidarr',
+  'libraryHealth.fixHint.missingAlbums':
+    'Triggers an album search in Lidarr for each affected artist',
+  'libraryHealth.fixHint.genreGaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
+  'libraryHealth.fixHint.imageGaps':
+    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+  'libraryHealth.fixHint.missingWikidata':
+    'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (fast, cheapest)',
   'setup.modelSuggestionAnthropicSonnet': 'Sonnet 4.6 (balanced)',
   'setup.modelSuggestionAnthropicOpus': 'Opus 4.6 (most capable)',
@@ -888,6 +910,11 @@ export const en = {
   'settings.aiDescription': 'Generates music recommendations.',
   'settings.aiOpenAiCompatibleHelp':
     'Works with Groq, OpenRouter, LiteLLM, LocalAI, and any OpenAI-compatible endpoint. API key is optional for local services.',
+  'settings.aiPrivacyNoteHosted':
+    'Discovery prompts are sent to your chosen provider under their terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep them on your server.',
+  'settings.aiPrivacyNoteLocal': 'Discovery prompts stay on your server.',
+  'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
+  'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.webhookDescription':
     'Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)',
   'settings.testWebhook': 'Test Webhook',

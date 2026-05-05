@@ -1,4 +1,12 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { DEFAULT_LOCALE, type SupportedLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -21,6 +29,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [pendingLocale, setPendingLocale] = useState<SupportedLocale | null>(null)
 
   const messages = getMessages(locale)
+
+  useEffect(() => {
+    document.documentElement.lang = locale
+    document.documentElement.dir = 'ltr'
+  }, [locale])
 
   const setLocale = useCallback((nextLocale: SupportedLocale) => {
     setPendingLocale(nextLocale)

@@ -27,6 +27,8 @@ function AlbumCover({ mbid, title }: { mbid: string; title: string }) {
     <img
       src={`https://coverartarchive.org/release-group/${mbid}/front-250`}
       alt={title}
+      loading="lazy"
+      decoding="async"
       className="w-10 h-10 rounded object-cover bg-bg shrink-0"
       onError={() => setFailed(true)}
     />

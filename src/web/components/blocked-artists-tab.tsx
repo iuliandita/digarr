@@ -9,7 +9,7 @@ import {
 import { useI18n } from '../lib/i18n'
 
 export function BlockedArtistsTab() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const [items, setItems] = useState<BlockedArtistApi[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [q, setQ] = useState('')
@@ -117,7 +117,7 @@ export function BlockedArtistsTab() {
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-muted">
-              <span>{new Date(row.blockedAt).toLocaleDateString()}</span>
+              <span>{new Date(row.blockedAt).toLocaleDateString(locale)}</span>
               <button
                 type="button"
                 onClick={() => unblock(row)}

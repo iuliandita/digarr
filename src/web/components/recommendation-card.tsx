@@ -622,7 +622,7 @@ export function RecommendationCard({
             }}
             aria-label={t('recommendation.reject')}
           >
-            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
+            <span className="w-8 h-8 rounded-full bg-surface border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -649,7 +649,7 @@ export function RecommendationCard({
             }}
             aria-label={t('recommendation.approve')}
           >
-            <span className="w-8 h-8 rounded-full bg-surface/90 backdrop-blur-sm border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
+            <span className="w-8 h-8 rounded-full bg-surface border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -713,7 +713,7 @@ export function RecommendationCard({
               <div className="flex items-center gap-1.5 shrink-0">
                 {warmStatus === 'warm' && (
                   <span
-                    className="w-2 h-2 rounded-full bg-green-500"
+                    className="w-2 h-2 rounded-full bg-approve"
                     title={t('recommendation.metadataCached')}
                     role="img"
                     aria-label={t('recommendation.metadataCached')}
@@ -721,7 +721,7 @@ export function RecommendationCard({
                 )}
                 {warmStatus === 'warming' && (
                   <span
-                    className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"
+                    className="w-2 h-2 rounded-full bg-warning animate-pulse"
                     title={t('recommendation.warmingCache')}
                     role="img"
                     aria-label={t('recommendation.warmingCache')}
@@ -851,7 +851,7 @@ export function RecommendationCard({
 
             {/* Recommendation reasoning */}
             {rec.aiReasoning && (
-              <div className="mx-4 border-l-2 border-accent bg-surface/50 px-3 py-2 rounded-r">
+              <div className="mx-4 rounded-md border border-accent/30 bg-accent/8 px-3 py-2">
                 <p className="text-xs text-muted uppercase tracking-wide mb-1">
                   {t('recommendation.whyThisArtist')}
                 </p>

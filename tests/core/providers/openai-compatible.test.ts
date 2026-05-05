@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OpenAICompatibleProvider } from '@/core/providers/openai-compatible'
+import type { TasteProfile } from '@/core/types'
 
 const TEST_BASE_URL = 'http://openai.example.com:8080'
+const sampleProfile: TasteProfile = {
+  topArtists: [{ name: 'Portishead', playCount: 50, source: 'lastfm' }],
+  topGenres: [{ name: 'trip-hop', weight: 1 }],
+  listeningPatterns: { totalListens: 200, recentTrend: 'stable' },
+}
 
 describe('OpenAICompatibleProvider', () => {
   const fetchSpy = vi.spyOn(globalThis, 'fetch')
@@ -31,11 +37,7 @@ describe('OpenAICompatibleProvider', () => {
     )
 
     const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'local-model', 'key123')
-    const results = await provider.getRecommendations({
-      topArtists: [{ name: 'Portishead', playCount: 50, source: 'lastfm' }],
-      topGenres: [{ name: 'trip-hop', weight: 1 }],
-      listeningPatterns: { totalListens: 200, recentTrend: 'stable' },
-    })
+    const results = await provider.getRecommendations(sampleProfile)
 
     expect(results).toHaveLength(1)
     expect(results[0]?.artistName).toBe('Massive Attack')
@@ -134,5 +136,28 @@ describe('OpenAICompatibleProvider', () => {
 
     expect(results).toHaveLength(1)
     expect(results[0]?.artistName).toBe('Burial')
+  })
+
+  it('aborts getRecommendations when configured timeout elapses', async () => {
+    vi.useFakeTimers()
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model', null, 1)
+    fetchSpy.mockImplementationOnce(
+      (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const abortErr = new Error('aborted')
+          abortErr.name = 'AbortError'
+          init?.signal?.addEventListener('abort', () => reject(abortErr))
+        }),
+    )
+
+    try {
+      const pending = provider.getRecommendations(sampleProfile)
+      const rejection = expect(pending).rejects.toThrow(/abort/i)
+      await vi.advanceTimersByTimeAsync(1000)
+      await rejection
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

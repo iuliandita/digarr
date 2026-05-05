@@ -696,6 +696,15 @@ describe('GET /api/v1/subscriptions/:id/runs', () => {
     const res = await app.request('/api/v1/subscriptions/999/runs')
     expect(res.status).toBe(404)
   })
+
+  it('rejects fractional ids before querying run history', async () => {
+    const deps = makeDeps()
+    const app = createTestApp(deps, USER_ID)
+    const res = await app.request('/api/v1/subscriptions/1.5/runs')
+    expect(res.status).toBe(400)
+    expect(deps.subscriptionQueries.getSubscription).not.toHaveBeenCalled()
+    expect(deps.jobQueries.getJobsForSubscription).not.toHaveBeenCalled()
+  })
 })
 
 describe('POST /api/v1/subscriptions/import/csv', () => {

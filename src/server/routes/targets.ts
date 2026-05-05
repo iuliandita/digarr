@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
+import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { type Cursor, encodeCursor } from '@/server/helpers/pagination-cursor'
 import { problem } from '@/server/helpers/problem'
@@ -36,7 +37,7 @@ export function targetRoutes(deps: TargetDeps) {
   // Non-owners see masked configs and cannot modify/delete.
   router.get('/api/v1/targets', async (c) => {
     const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+    if (!userId) return notAuthenticated(c)
     const page = readPagination(c)
     const shape = (t: TargetRow) => ({
       ...t,
@@ -65,7 +66,7 @@ export function targetRoutes(deps: TargetDeps) {
     zJson(createTargetSchema),
     async (c) => {
       const userId = c.get('userId')
-      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+      if (!userId) return notAuthenticated(c)
       const { type, name, config } = c.req.valid('json')
 
       const result = await deps.targetQueries.createTarget({
@@ -85,7 +86,7 @@ export function targetRoutes(deps: TargetDeps) {
     zJson(updateTargetSchema),
     async (c) => {
       const userId = c.get('userId')
-      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+      if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
       const target = await deps.targetQueries.getTarget(id)
@@ -113,7 +114,7 @@ export function targetRoutes(deps: TargetDeps) {
     zParam(targetIdParamSchema),
     async (c) => {
       const userId = c.get('userId')
-      if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+      if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
       const target = await deps.targetQueries.getTarget(id)
@@ -136,7 +137,7 @@ export function targetRoutes(deps: TargetDeps) {
 
   router.post('/api/v1/targets/:id/test', zParam(targetIdParamSchema), async (c) => {
     const userId = c.get('userId')
-    if (!userId) return c.json({ error: 'Unauthorized' }, 401)
+    if (!userId) return notAuthenticated(c)
 
     const { id } = c.req.valid('param')
     const target = await deps.targetQueries.getTarget(id)

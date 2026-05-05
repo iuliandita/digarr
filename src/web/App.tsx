@@ -17,7 +17,7 @@ import {
   User,
   Users,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
 import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
@@ -55,21 +55,46 @@ import {
   setStoredColorTheme,
   setStoredMode,
 } from './lib/theme'
-import { AnalyticsPage } from './pages/analytics'
+// Eager: dashboard is the default landing surface and setup gates the entire app
 import { Dashboard } from './pages/dashboard'
-import { DiscoverPage } from './pages/discover'
-import { DiscoveryModesPage } from './pages/discovery-modes'
-import { GenreDetailPage } from './pages/genre-detail'
-import { GenresPage } from './pages/genres'
-import { LibraryHealthPage } from './pages/library-health'
-import { LibraryReconciliationPage } from './pages/library-reconciliation'
-import { PlaylistDetailPage } from './pages/playlist-detail'
-import { PlaylistsPage } from './pages/playlists'
-import { SearchPage } from './pages/search'
-import { SettingsPage } from './pages/settings'
 import { SetupWizard } from './pages/setup'
-import SubscriptionsPage from './pages/subscriptions'
-import { UserManagementPage } from './pages/user-management'
+
+// Lazy: secondary routes split into per-page bundles to shrink first paint
+const AnalyticsPage = lazy(() =>
+  import('./pages/analytics').then((m) => ({ default: m.AnalyticsPage })),
+)
+const DiscoverPage = lazy(() =>
+  import('./pages/discover').then((m) => ({ default: m.DiscoverPage })),
+)
+const DiscoveryModesPage = lazy(() =>
+  import('./pages/discovery-modes').then((m) => ({ default: m.DiscoveryModesPage })),
+)
+const GenreDetailPage = lazy(() =>
+  import('./pages/genre-detail').then((m) => ({ default: m.GenreDetailPage })),
+)
+const GenresPage = lazy(() => import('./pages/genres').then((m) => ({ default: m.GenresPage })))
+const LibraryHealthPage = lazy(() =>
+  import('./pages/library-health').then((m) => ({ default: m.LibraryHealthPage })),
+)
+const LibraryReconciliationPage = lazy(() =>
+  import('./pages/library-reconciliation').then((m) => ({
+    default: m.LibraryReconciliationPage,
+  })),
+)
+const PlaylistDetailPage = lazy(() =>
+  import('./pages/playlist-detail').then((m) => ({ default: m.PlaylistDetailPage })),
+)
+const PlaylistsPage = lazy(() =>
+  import('./pages/playlists').then((m) => ({ default: m.PlaylistsPage })),
+)
+const SearchPage = lazy(() => import('./pages/search').then((m) => ({ default: m.SearchPage })))
+const SettingsPage = lazy(() =>
+  import('./pages/settings').then((m) => ({ default: m.SettingsPage })),
+)
+const SubscriptionsPage = lazy(() => import('./pages/subscriptions'))
+const UserManagementPage = lazy(() =>
+  import('./pages/user-management').then((m) => ({ default: m.UserManagementPage })),
+)
 
 // Service worker registration
 
@@ -131,7 +156,7 @@ function NavDropdown({
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex items-center gap-1 text-sm transition-colors ${isActive ? 'text-accent' : 'text-muted hover:text-text'}`}
+        className={`flex items-center gap-1 rounded-md text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-accent' : 'text-muted hover:text-text'}`}
       >
         {icon} {label}
         <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -187,7 +212,7 @@ function ThemePicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="p-1.5 text-muted hover:text-text transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
         aria-label={t('app.themeSettings')}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -274,7 +299,10 @@ function UserMenu({ username }: { username: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 p-1.5 text-muted hover:text-text transition-colors"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
+        aria-label={username}
+        aria-expanded={open}
+        aria-haspopup="menu"
         title={username}
       >
         <User size={18} />
@@ -404,7 +432,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     isActive ? 'text-text' : 'text-muted hover:text-text'
 
   const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `py-2 ${isActive ? 'text-text' : 'text-muted hover:text-text'}`
+    `flex min-h-11 items-center rounded-md px-2 py-2 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-text' : 'text-muted hover:text-text'}`
 
   return (
     <PreviewContext.Provider
@@ -498,7 +526,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              <div className="hidden sm:block">
+                <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              </div>
               <ThemePicker
                 mode={mode}
                 colorTheme={colorTheme}
@@ -517,7 +547,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
                     })
                 }
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-60"
+                className="flex min-h-11 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-60 sm:min-h-9 sm:px-4"
               >
                 {pipelineRunning ? (
                   <>
@@ -536,7 +566,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="sm:hidden p-1"
+                className="flex h-11 w-11 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:hidden"
                 aria-label={t('app.toggleMenu')}
               >
                 <MobileMenuIcon open={menuOpen} />
@@ -546,6 +576,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
           {/* Mobile nav dropdown */}
           {menuOpen && (
             <div className="sm:hidden flex flex-col gap-1 pt-3 pb-1">
+              <div className="px-2 py-2">
+                <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+              </div>
               <NavLink to="/" end className={mobileNavLinkClass} onClick={() => setMenuOpen(false)}>
                 <span className="flex items-center gap-1.5">
                   <LayoutDashboard size={14} aria-hidden="true" />
@@ -720,28 +753,35 @@ function InnerApp() {
       <BrowserRouter>
         <ErrorBoundary>
           <AppShell>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/discover" element={<DiscoverPage />} />
-              <Route path="/discover/modes" element={<DiscoveryModesPage />} />
-              <Route path="/genres" element={<GenresPage />} />
-              <Route path="/genres/:slug" element={<GenreDetailPage />} />
-              <Route path="/playlists" element={<PlaylistsPage />} />
-              <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
-              <Route path="/subscriptions" element={<SubscriptionsPage />} />
-              <Route path="/library/health" element={<LibraryHealthPage />} />
-              <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/settings/jobs" element={<Navigate to="/settings?tab=jobs" replace />} />
-              <Route
-                path="/settings/system-health"
-                element={<Navigate to="/settings?tab=system-health" replace />}
-              />
-              <Route path="/users" element={<UserManagementPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+            <Suspense
+              fallback={<div className="p-6 text-sm text-muted">{/* lazy route loading */}</div>}
+            >
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/discover" element={<DiscoverPage />} />
+                <Route path="/discover/modes" element={<DiscoveryModesPage />} />
+                <Route path="/genres" element={<GenresPage />} />
+                <Route path="/genres/:slug" element={<GenreDetailPage />} />
+                <Route path="/playlists" element={<PlaylistsPage />} />
+                <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+                <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                <Route path="/library/health" element={<LibraryHealthPage />} />
+                <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route
+                  path="/settings/jobs"
+                  element={<Navigate to="/settings?tab=jobs" replace />}
+                />
+                <Route
+                  path="/settings/system-health"
+                  element={<Navigate to="/settings?tab=system-health" replace />}
+                />
+                <Route path="/users" element={<UserManagementPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Suspense>
           </AppShell>
         </ErrorBoundary>
         <Toaster theme="system" />

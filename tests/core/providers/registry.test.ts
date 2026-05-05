@@ -19,10 +19,24 @@ vi.mock('@/core/providers/ollama', () => ({
   }),
 }))
 
+vi.mock('@/core/providers/gemini', () => ({
+  GeminiProvider: vi.fn(function (this: Record<string, unknown>) {
+    this._type = 'gemini'
+  }),
+}))
+
+vi.mock('@/core/providers/openai-compatible', () => ({
+  OpenAICompatibleProvider: vi.fn(function (this: Record<string, unknown>) {
+    this._type = 'openai-compatible'
+  }),
+}))
+
 const { AiProviderRegistry, createDefaultRegistry } = await import('@/core/providers/registry')
 const { AnthropicProvider } = await import('@/core/providers/anthropic')
 const { OpenAIProvider } = await import('@/core/providers/openai')
 const { OllamaProvider } = await import('@/core/providers/ollama')
+const { GeminiProvider } = await import('@/core/providers/gemini')
+const { OpenAICompatibleProvider } = await import('@/core/providers/openai-compatible')
 
 describe('AiProviderRegistry', () => {
   test('register() and has() work correctly', () => {
@@ -101,6 +115,7 @@ describe('createDefaultRegistry', () => {
       'sk-ant-key',
       'claude-3-5-sonnet-20241022',
       undefined,
+      undefined,
     )
     expect(provider).toBeDefined()
   })
@@ -116,13 +131,29 @@ describe('createDefaultRegistry', () => {
       'sk-ant-key',
       'claude-3-5-sonnet-20241022',
       'https://proxy.example.com',
+      undefined,
+    )
+  })
+
+  test('threads timeoutSeconds into AnthropicProvider', async () => {
+    const registry = createDefaultRegistry()
+    await registry.create('anthropic', {
+      apiKey: 'sk-ant-key',
+      model: 'claude-3-5-sonnet-20241022',
+      timeoutSeconds: 45,
+    })
+    expect(AnthropicProvider).toHaveBeenCalledWith(
+      'sk-ant-key',
+      'claude-3-5-sonnet-20241022',
+      undefined,
+      45,
     )
   })
 
   test('creates OpenAIProvider for "openai"', async () => {
     const registry = createDefaultRegistry()
     const provider = await registry.create('openai', { apiKey: 'sk-openai-key', model: 'gpt-4o' })
-    expect(OpenAIProvider).toHaveBeenCalledWith('sk-openai-key', 'gpt-4o', undefined)
+    expect(OpenAIProvider).toHaveBeenCalledWith('sk-openai-key', 'gpt-4o', undefined, undefined)
     expect(provider).toBeDefined()
   })
 
@@ -137,7 +168,18 @@ describe('createDefaultRegistry', () => {
       'sk-openai-key',
       'gpt-4o',
       'https://proxy.example.com',
+      undefined,
     )
+  })
+
+  test('threads timeoutSeconds into OpenAIProvider', async () => {
+    const registry = createDefaultRegistry()
+    await registry.create('openai', {
+      apiKey: 'sk-openai-key',
+      model: 'gpt-4o',
+      timeoutSeconds: 45,
+    })
+    expect(OpenAIProvider).toHaveBeenCalledWith('sk-openai-key', 'gpt-4o', undefined, 45)
   })
 
   test('creates OllamaProvider for "ollama"', async () => {
@@ -160,6 +202,32 @@ describe('createDefaultRegistry', () => {
       timeoutSeconds: 30,
     })
     expect(OllamaProvider).toHaveBeenCalledWith('llama3', 'http://localhost:11434', 30)
+  })
+
+  test('threads timeoutSeconds into GeminiProvider', async () => {
+    const registry = createDefaultRegistry()
+    await registry.create('gemini', {
+      apiKey: 'gemini-key',
+      model: 'gemini-3-flash-preview',
+      timeoutSeconds: 45,
+    })
+    expect(GeminiProvider).toHaveBeenCalledWith('gemini-key', 'gemini-3-flash-preview', 45)
+  })
+
+  test('threads timeoutSeconds into OpenAICompatibleProvider', async () => {
+    const registry = createDefaultRegistry()
+    await registry.create('openai-compatible', {
+      apiKey: 'compat-key',
+      model: 'local-model',
+      baseUrl: 'http://localhost:8080',
+      timeoutSeconds: 45,
+    })
+    expect(OpenAICompatibleProvider).toHaveBeenCalledWith(
+      'http://localhost:8080',
+      'local-model',
+      'compat-key',
+      45,
+    )
   })
 
   test('throws when anthropic is missing an API key', async () => {

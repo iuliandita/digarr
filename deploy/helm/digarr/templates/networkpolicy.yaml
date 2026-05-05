@@ -3,12 +3,15 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "digarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: app
 spec:
   podSelector:
     matchLabels:
       {{- include "digarr.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
   policyTypes:
     - Ingress
     - Egress
@@ -58,4 +61,32 @@ spec:
           port: 443
         - protocol: TCP
           port: 80
+{{- end }}
+{{- if and .Values.networkPolicy.enabled .Values.postgresql.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "digarr.fullname" . }}-postgresql
+  labels:
+    {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "digarr.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "digarr.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: app
+      ports:
+        - protocol: TCP
+          port: 5432
+  egress: []
 {{- end }}

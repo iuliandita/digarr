@@ -3,6 +3,7 @@ import * as z from 'zod'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import type { BlockedArtistRow, ListBlocksCursor } from '@/db/queries/artist-blocks'
 import { type Cursor, decodeCursor, encodeCursor } from '@/server/helpers/pagination-cursor'
+import { parseOptionalClampedInt, parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { problem } from '@/server/helpers/problem'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
@@ -67,8 +68,18 @@ export function artistBlocksRoutes(deps: ArtistBlocksRouteDeps) {
         'errors.auth.unauthorized',
       )
     }
-    const rawLimit = c.req.query('limit')
-    const limit = rawLimit ? Math.min(Math.max(Number(rawLimit) || 50, 1), 200) : 50
+    const limit = parseOptionalClampedInt(c.req.query('limit'), { min: 1, max: 200, default: 50 })
+    if (limit == null) {
+      return problem(
+        c,
+        'invalid-limit',
+        'Invalid limit',
+        400,
+        undefined,
+        undefined,
+        'errors.validation.failed',
+      )
+    }
     const cursorRaw = c.req.query('cursor')
     const q = c.req.query('q') ?? null
     const cursor = cursorRaw ? decodeCursor(cursorRaw) : null
@@ -100,8 +111,8 @@ export function artistBlocksRoutes(deps: ArtistBlocksRouteDeps) {
         'errors.auth.unauthorized',
       )
     }
-    const artistId = Number(c.req.param('artistId'))
-    if (!Number.isFinite(artistId) || artistId <= 0) {
+    const artistId = parsePositiveIntParam(c.req.param('artistId'))
+    if (artistId == null) {
       return problem(
         c,
         'invalid-id',

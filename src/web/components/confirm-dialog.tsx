@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 
 type Props = {
@@ -14,13 +15,16 @@ type Props = {
 export function ConfirmDialog({
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   destructive = true,
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useI18n()
   const confirmRef = useRef<HTMLButtonElement>(null)
+  const resolvedConfirm = confirmLabel ?? t('common.confirm')
+  const resolvedCancel = cancelLabel ?? t('common.cancel')
 
   useEffect(() => {
     confirmRef.current?.focus()
@@ -58,7 +62,7 @@ export function ConfirmDialog({
 
           <div className="flex justify-end gap-2 mt-4">
             <Button size="sm" variant="outline" onClick={onCancel}>
-              {cancelLabel}
+              {resolvedCancel}
             </Button>
             <Button
               ref={confirmRef}
@@ -66,7 +70,7 @@ export function ConfirmDialog({
               variant={destructive ? 'destructive' : 'default'}
               onClick={onConfirm}
             >
-              {confirmLabel}
+              {resolvedConfirm}
             </Button>
           </div>
         </div>

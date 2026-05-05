@@ -173,7 +173,7 @@ export const pl = {
   'setup.provider': 'Dostawca',
   'setup.providerAnthropic': 'Antropiczny',
   'setup.providerGemini': 'Google Bliźnięta',
-  'setup.providerOllama': 'Ollama (lokalny)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Kompatybilny z OpenAI',
   'setup.readyDescription': 'Oto, co skonfigurowałeś:',
@@ -262,8 +262,6 @@ export const pl = {
   'discover.bulkApproveFailed': 'Zatwierdzenie zbiorcze nie powiodło się',
   'discover.bulkRejectFailed': 'Odrzucenie zbiorcze nie powiodło się',
   'discover.clearAll': 'Wyczyść wszystko',
-  'discover.clearAllTitle':
-    'Odrzuca jednocześnie wszystkie oczekujące rekomendacje – przydatne po przejrzeniu partii',
   'discover.clearFailed': 'Nie udało się wyczyścić rekomendacji',
   'discover.clearedCount': 'Wyczyszczone',
   'discover.discoveryModes': 'Tryby odkrywania',
@@ -796,6 +794,11 @@ export const pl = {
   'settings.aiDescription': 'Generuje rekomendacje muzyczne.',
   'settings.aiOpenAiCompatibleHelp':
     'Dziala z Groq, OpenRouter, LiteLLM, LocalAI i dowolnym punktem koncowym zgodnym z OpenAI. Klucz API jest opcjonalny dla lokalnych uslug.',
+  'settings.aiPrivacyNoteHosted':
+    'Zapytania wykrywania sa wysylane do wybranego dostawcy zgodnie z jego warunkami. Uzyj Ollama na localhost albo lokalnego punktu koncowego zgodnego z OpenAI, aby pozostaly na twoim serwerze.',
+  'settings.aiPrivacyNoteLocal': 'Zapytania wykrywania pozostaja na twoim serwerze.',
+  'settings.aiPrivacyBadgeHosted': 'Dane opuszczaja twoj serwer',
+  'settings.aiPrivacyBadgeLocal': 'W pelni lokalnie',
   'settings.webhookDescription':
     'Powiadomienia o zakonczeniu skanowania (Discord, Slack, ntfy, Gotify lub dowolny punkt HTTP)',
   'settings.testWebhook': 'Testuj webhook',

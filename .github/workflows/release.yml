@@ -24,7 +24,7 @@ env:
 
 jobs:
   quality-gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -38,10 +38,11 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run i18n:check
       - run: bun run test
 
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: quality-gate
     environment: production
     permissions:
@@ -89,7 +90,19 @@ jobs:
         id: tag
         env:
           INPUT_TAG: ${{ github.event.inputs.tag || github.ref_name }}
-        run: echo "value=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          if [[ ! "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "::error::Release tag must look like v1.2.3 or v1.2.3-rc.0"
+            exit 1
+          fi
+
+          echo "value=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+          if [[ "$INPUT_TAG" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Extract metadata
         id: meta
@@ -105,7 +118,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}},value=${{ steps.tag.outputs.value }}
-            type=raw,value=alpine,enable=${{ matrix.variant == 'alpine' }},suffix=
+            type=raw,value=alpine,enable=${{ matrix.variant == 'alpine' && steps.tag.outputs.prerelease != 'true' }},suffix=
 
       - name: Build and push
         id: build
@@ -178,19 +191,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.tag.outputs.value }}
+          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
             echo "release $TAG already exists; skipping create"
           else
-            gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
+            release_args=(gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes)
+            if [ "$PRERELEASE" = "true" ]; then
+              release_args+=(--prerelease)
+            fi
+            "${release_args[@]}"
           fi
           gh release upload "$TAG" sbom-container.spdx.json sbom-source.spdx.json --clobber
 
   verify-digest-sync:
     needs: docker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:

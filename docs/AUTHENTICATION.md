@@ -23,7 +23,7 @@ Enable OIDC by setting:
 - `ALLOWED_ORIGIN` - required, used to build the redirect URI
 
 Users click "Sign in with OIDC" on the login screen, redirect to the IdP, and
-come back to `/api/auth/oidc/callback`. The callback uses URL fragments for
+come back to `/api/v1/auth/oidc/callback`. The callback uses URL fragments for
 token and error payloads so they never leak into server logs or Referer
 headers.
 

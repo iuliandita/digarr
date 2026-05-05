@@ -124,6 +124,50 @@ describe('OidcService', () => {
       vi.unstubAllGlobals()
     })
 
+    it('pins OIDC HTTPS discovery requests that resolve to public IPv6 addresses', async () => {
+      const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }))
+      vi.stubGlobal('fetch', fetchMock)
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      vi.mocked(dns.lookup).mockResolvedValue({
+        address: '2606:2800:220:1:248:1893:25c8:1946',
+        family: 6,
+      } as never)
+
+      await service.getAuthorizationUrl('http://localhost:3000/cb')
+
+      const discoveryCall = vi.mocked(oidcClient.discovery).mock.calls[0]
+      const options = discoveryCall?.[4]
+      const customFetch = options?.[oidcClient.customFetch] as
+        | ((url: string, init: RequestInit) => Promise<Response>)
+        | undefined
+
+      expect(customFetch).toBeDefined()
+
+      await customFetch?.('https://auth.example.com/.well-known/openid-configuration', {
+        headers: {},
+      })
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://[2606:2800:220:1:248:1893:25c8:1946]/.well-known/openid-configuration',
+        expect.objectContaining({
+          headers: expect.any(Headers),
+          tls: expect.objectContaining({ serverName: 'auth.example.com' }),
+        }),
+      )
+
+      expect(fetchMock.mock.calls[0]).toBeDefined()
+      const [, init] = fetchMock.mock.calls[0] as unknown as [
+        string,
+        RequestInit & { tls?: { serverName?: string } },
+      ]
+      expect(new Headers(init.headers).get('host')).toBe('auth.example.com')
+
+      vi.unstubAllGlobals()
+    })
+
     it('resetDiscovery forces re-fetch on next call', async () => {
       vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
       vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(

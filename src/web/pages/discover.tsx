@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Download, Filter as FilterIcon, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -14,6 +15,7 @@ import { type Recommendation, RecommendationCard } from '../components/recommend
 import { SwipeCard } from '../components/swipe-card'
 import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
 import { Skeleton } from '../components/ui/skeleton'
+import { useClickOutside } from '../hooks/use-click-outside'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
 import {
@@ -260,12 +262,99 @@ function FeedbackInsights() {
   )
 }
 
-// Export dropdown
+// Decade filter popover — replaces always-visible decade pill row
 
-function ExportDropdown({ filter }: { filter?: string }) {
+function DecadeFilterButton({
+  active,
+  onToggle,
+  onClear,
+}: {
+  active: Set<Decade>
+  onToggle: (d: Decade) => void
+  onClear: () => void
+}) {
+  const { t } = useI18n()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useClickOutside(ref, () => setOpen(false), open)
+
+  const count = active.size
+  const label =
+    count > 0 ? t('discover.filtersActive').replace('{0}', String(count)) : t('discover.filters')
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className={`flex items-center gap-1.5 px-3 py-1.5 border rounded text-sm font-medium transition-colors ${
+          count > 0
+            ? 'bg-accent/10 border-accent/40 text-accent'
+            : 'bg-surface border-border text-muted hover:text-text'
+        }`}
+      >
+        <FilterIcon size={14} aria-hidden="true" />
+        {label}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg p-3 min-w-[260px]">
+          <div className="text-xs uppercase tracking-wide text-muted mb-2">
+            {t('discover.decadesLabel')}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {DECADES.map((decade) => (
+              <button
+                key={decade}
+                type="button"
+                onClick={() => onToggle(decade)}
+                className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                  active.has(decade)
+                    ? 'bg-accent text-accent-fg'
+                    : 'bg-bg border border-border text-muted hover:text-text'
+                }`}
+              >
+                {decade}
+              </button>
+            ))}
+          </div>
+          {count > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                onClear()
+                setOpen(false)
+              }}
+              className="mt-3 text-xs text-muted hover:text-text transition-colors"
+            >
+              {t('common.clear')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Overflow menu — Refresh / Export / Clear All
+
+function MoreMenu({
+  filter,
+  onRefresh,
+  onClearAll,
+  showClearAll,
+}: {
+  filter?: string
+  onRefresh: () => void
+  onClearAll: () => void
+  showClearAll: boolean
+}) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [exporting, setExporting] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  useClickOutside(ref, () => setOpen(false), open)
 
   async function handleExport(format: 'json' | 'csv' | 'm3u') {
     setExporting(format)
@@ -281,38 +370,69 @@ function ExportDropdown({ filter }: { filter?: string }) {
   }
 
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-muted hover:text-text transition-colors"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={t('discover.moreActions')}
+        title={t('discover.moreActions')}
+        className="p-1.5 bg-surface border border-border rounded text-muted hover:text-text transition-colors"
       >
-        {t('discover.export')}
+        <MoreHorizontal size={16} aria-hidden="true" />
       </button>
       {open && (
-        <>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay for closing dropdown */}
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setOpen(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setOpen(false)
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              onRefresh()
+              setOpen(false)
             }}
-          />
-          <div className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[120px]">
-            {(['json', 'csv', 'm3u'] as const).map((fmt) => (
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
+          >
+            <RefreshCw size={14} aria-hidden="true" />
+            {t('discover.refreshData')}
+          </button>
+          <div className="my-1 border-t border-border" />
+          {(['json', 'csv', 'm3u'] as const).map((fmt) => (
+            <button
+              key={fmt}
+              type="button"
+              role="menuitem"
+              onClick={() => handleExport(fmt)}
+              disabled={exporting === fmt}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors disabled:opacity-50"
+            >
+              <Download size={14} aria-hidden="true" />
+              {exporting === fmt
+                ? t('discover.exporting')
+                : `${t('discover.export')} ${fmt.toUpperCase()}`}
+            </button>
+          ))}
+          {showClearAll && (
+            <>
+              <div className="my-1 border-t border-border" />
               <button
-                key={fmt}
                 type="button"
-                onClick={() => handleExport(fmt)}
-                disabled={exporting === fmt}
-                className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors disabled:opacity-50"
+                role="menuitem"
+                onClick={() => {
+                  onClearAll()
+                  setOpen(false)
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-reject hover:bg-reject/10 transition-colors"
               >
-                {exporting === fmt ? t('discover.exporting') : fmt.toUpperCase()}
+                <Trash2 size={14} aria-hidden="true" />
+                {t('discover.clearAll')}
               </button>
-            ))}
-          </div>
-        </>
+            </>
+          )}
+        </div>
       )}
     </div>
   )
@@ -799,6 +919,7 @@ export function DiscoverPage() {
       className={`space-y-6 max-w-6xl mx-auto${bulkMode ? ' pb-24' : ' pb-6'} md:pb-6`}
       {...pullHandlers}
     >
+      <h1 className="sr-only">{t('discover.title')}</h1>
       {/* Pull-to-refresh indicator */}
       {pullY > 0 && (
         <div
@@ -902,22 +1023,6 @@ export function DiscoverPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    toast.promise(rescanArtists(), {
-                      loading: t('discover.refreshingArtistData'),
-                      success: (r) =>
-                        `${t('discover.updatedArtists')} ${r.updated} ${t('discover.of')} ${r.total}`,
-                      error: t('discover.rescanFailed'),
-                    })
-                    setTimeout(refetch, 3000)
-                  }}
-                  className="px-3 py-1.5 bg-surface border border-border rounded text-sm text-muted hover:text-text transition-colors"
-                >
-                  {t('discover.refreshData')}
-                </button>
-                <ExportDropdown filter={statusParam} />
-                <button
-                  type="button"
                   onClick={handleToggleBulkMode}
                   className={`px-3 py-1.5 border rounded text-sm font-medium transition-colors ${
                     bulkMode
@@ -927,60 +1032,42 @@ export function DiscoverPage() {
                 >
                   {bulkMode ? t('common.cancel') : t('discover.select')}
                 </button>
-                {filter === 'pending' && (
-                  <button
-                    type="button"
-                    onClick={() => setShowClearAllConfirm(true)}
-                    className="px-2 py-1 text-xs text-muted hover:text-red-400 transition-colors"
-                    title={t('discover.clearAllTitle')}
-                  >
-                    {t('discover.clearAll')}
-                  </button>
-                )}
+                <DecadeFilterButton
+                  active={activeDecades}
+                  onToggle={(decade) => {
+                    setActiveDecades((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(decade)) {
+                        next.delete(decade)
+                      } else {
+                        next.add(decade)
+                      }
+                      return next
+                    })
+                    setPage(0)
+                  }}
+                  onClear={() => {
+                    setActiveDecades(new Set())
+                    setPage(0)
+                  }}
+                />
+                <MoreMenu
+                  filter={statusParam}
+                  onRefresh={() => {
+                    toast.promise(rescanArtists(), {
+                      loading: t('discover.refreshingArtistData'),
+                      success: (r) =>
+                        `${t('discover.updatedArtists')} ${r.updated} ${t('discover.of')} ${r.total}`,
+                      error: t('discover.rescanFailed'),
+                    })
+                    setTimeout(refetch, 3000)
+                  }}
+                  onClearAll={() => setShowClearAllConfirm(true)}
+                  showClearAll={filter === 'pending'}
+                />
               </>
             )}
           </div>
-        </div>
-
-        {/* Decade filter pills */}
-        <div className="flex items-center gap-1 flex-wrap pt-2">
-          {DECADES.map((decade) => (
-            <button
-              key={decade}
-              type="button"
-              onClick={() => {
-                setActiveDecades((prev) => {
-                  const next = new Set(prev)
-                  if (next.has(decade)) {
-                    next.delete(decade)
-                  } else {
-                    next.add(decade)
-                  }
-                  return next
-                })
-                setPage(0)
-              }}
-              className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                activeDecades.has(decade)
-                  ? 'bg-accent text-accent-fg'
-                  : 'bg-surface border border-border text-muted hover:text-text'
-              }`}
-            >
-              {decade}
-            </button>
-          ))}
-          {activeDecades.size > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setActiveDecades(new Set())
-                setPage(0)
-              }}
-              className="px-2 py-1 text-xs text-muted hover:text-text transition-colors"
-            >
-              {t('common.clear')}
-            </button>
-          )}
         </div>
       </div>
 

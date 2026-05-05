@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GeminiProvider } from '@/core/providers/gemini'
+import type { TasteProfile } from '@/core/types'
+
+const sampleProfile: TasteProfile = {
+  topArtists: [{ name: 'Aphex Twin', playCount: 100, source: 'lastfm' }],
+  topGenres: [{ name: 'electronic', weight: 1 }],
+  listeningPatterns: { totalListens: 500, recentTrend: 'stable' },
+}
 
 describe('GeminiProvider', () => {
   const fetchSpy = vi.spyOn(globalThis, 'fetch')
@@ -33,11 +40,7 @@ describe('GeminiProvider', () => {
     )
 
     const provider = new GeminiProvider('test-key', 'gemini-3-flash-preview')
-    const results = await provider.getRecommendations({
-      topArtists: [{ name: 'Aphex Twin', playCount: 100, source: 'lastfm' }],
-      topGenres: [{ name: 'electronic', weight: 1 }],
-      listeningPatterns: { totalListens: 500, recentTrend: 'stable' },
-    })
+    const results = await provider.getRecommendations(sampleProfile)
 
     expect(results).toHaveLength(1)
     expect(results[0]?.artistName).toBe('Boards of Canada')
@@ -85,5 +88,28 @@ describe('GeminiProvider', () => {
         listeningPatterns: { totalListens: 1, recentTrend: 'stable' },
       }),
     ).rejects.toThrow()
+  })
+
+  it('aborts getRecommendations when configured timeout elapses', async () => {
+    vi.useFakeTimers()
+    const provider = new GeminiProvider('test-key', 'gemini-3-flash-preview', 1)
+    fetchSpy.mockImplementationOnce(
+      (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const abortErr = new Error('aborted')
+          abortErr.name = 'AbortError'
+          init?.signal?.addEventListener('abort', () => reject(abortErr))
+        }),
+    )
+
+    try {
+      const pending = provider.getRecommendations(sampleProfile)
+      const rejection = expect(pending).rejects.toThrow(/abort/i)
+      await vi.advanceTimersByTimeAsync(1000)
+      await rejection
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

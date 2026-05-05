@@ -121,6 +121,17 @@ describe('GET /api/v1/search', () => {
     expect(searchFn).toHaveBeenCalledWith('test', expect.objectContaining({ limit: 1 }))
   })
 
+  it('returns 400 when limit is not an integer', async () => {
+    const searchFn = vi.fn().mockResolvedValue([])
+    const app = new Hono()
+    app.route('/', searchRoutes(makeDeps({ search: searchFn })))
+
+    const res = await app.request('/api/v1/search?q=test&limit=abc')
+
+    expect(res.status).toBe(400)
+    expect(searchFn).not.toHaveBeenCalled()
+  })
+
   it('defaults limit to 20 when not provided', async () => {
     const searchFn = vi.fn().mockResolvedValue([])
     const app = new Hono()

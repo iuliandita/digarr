@@ -62,7 +62,7 @@ async function ghcrDigest(tag: string): Promise<string> {
 type Target = {
   path: string
   pattern: RegExp
-  replacement: (digest: string) => string
+  replacement: (digest: string, match: string, ...groups: string[]) => string
 }
 
 const digest = await ghcrDigest(tag)
@@ -76,13 +76,13 @@ const targets: Target[] = [
   },
   {
     path: 'deploy/helm/digarr/values.yaml',
-    pattern: /sha256:[a-f0-9]+/g,
-    replacement: (d) => d,
+    pattern: /(^image:\n(?: {2}.*\n)*? {2}digest: ")sha256:[a-f0-9]+(")/m,
+    replacement: (d, _match, prefix, suffix) => `${prefix}${d}${suffix}`,
   },
   {
     path: 'deploy/unraid/digarr.xml',
-    pattern: /sha256:[a-f0-9]+/g,
-    replacement: (d) => d,
+    pattern: /(Digest pin \(synced via scripts\/sync-deploy-digests\.ts\): )sha256:[a-f0-9]+/,
+    replacement: (d, _match, prefix) => `${prefix}${d}`,
   },
 ]
 
@@ -95,7 +95,9 @@ for (const t of targets) {
     continue
   }
   t.pattern.lastIndex = 0
-  const updated = content.replace(t.pattern, t.replacement(digest))
+  const updated = content.replace(t.pattern, (match, ...groups) =>
+    t.replacement(digest, match, ...groups),
+  )
   writeFileSync(t.path, updated)
   console.log(`updated ${t.path}`)
 }

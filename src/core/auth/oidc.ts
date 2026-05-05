@@ -1,8 +1,9 @@
 import * as dns from 'node:dns/promises'
+import { isIP } from 'node:net'
 import type { Configuration } from 'openid-client'
 import * as oidcClient from 'openid-client'
 import { isPrivateIp } from '@/core/notifications'
-import { errMsg, getLookupHostname } from '@/core/validation'
+import { errMsg, formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
 
 const ipPinningFetch: oidcClient.CustomFetch = async (url, options) => {
   const parsedUrl = new URL(url)
@@ -13,11 +14,17 @@ const ipPinningFetch: oidcClient.CustomFetch = async (url, options) => {
   }
 
   const headers = new Headers(options.headers)
-  const init = { ...options, headers } as unknown as RequestInit
-  if (parsedUrl.protocol === 'http:' && address !== hostname) {
+  const init = { ...options, headers } as unknown as RequestInit & {
+    tls?: { serverName: string }
+  }
+  if (address !== hostname) {
     const pinnedUrl = new URL(url)
-    pinnedUrl.hostname = address
+    pinnedUrl.hostname = formatUrlHostname(address)
     headers.set('Host', parsedUrl.host)
+    const normalizedHostname = normalizeIp(parsedUrl.hostname)
+    if (parsedUrl.protocol === 'https:' && isIP(normalizedHostname) === 0) {
+      init.tls = { serverName: normalizedHostname }
+    }
     return fetch(pinnedUrl.toString(), init)
   }
 

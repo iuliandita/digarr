@@ -29,7 +29,6 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap, enabled = true) {
         action()
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [enabled, shortcuts],
   )
 

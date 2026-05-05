@@ -2,6 +2,7 @@ import type { AiRecommendation, TasteProfile } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { buildRecommendationPrompt, parseRecommendationResponse } from './prompt'
 import { fetchWithRetry } from './retry'
+import { timeoutSecondsWithDefaultToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_BASE_URL = 'http://localhost:11434'
@@ -26,14 +27,10 @@ export class OllamaProvider implements RecommendationProvider {
   private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(
-    model: string,
-    baseUrl: string = DEFAULT_BASE_URL,
-    timeoutSeconds: number = DEFAULT_TIMEOUT_SECONDS,
-  ) {
+  constructor(model: string, baseUrl: string = DEFAULT_BASE_URL, timeoutSeconds?: number | null) {
     this.model = model
     this.baseUrl = baseUrl.replace(/\/$/, '')
-    this.timeoutMs = Math.max(1, timeoutSeconds) * 1000
+    this.timeoutMs = timeoutSecondsWithDefaultToMs(timeoutSeconds, DEFAULT_TIMEOUT_SECONDS)
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {

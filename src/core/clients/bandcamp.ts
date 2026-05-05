@@ -31,12 +31,70 @@ const RE_ITEMURL_LINK =
 const RE_GENRE = /<div class="genre"[^>]*>([\s\S]*?)<\/div>/
 const RE_ITEM_TYPE = /<div class="itemtype"[^>]*>([\s\S]*?)<\/div>/
 const RE_IMAGE = /<img[^>]+src="([^"]+)"[^>]*>/
-const RE_HTML_TAG = /<[^>]+>/g
 const RE_BAND_TYPE_MARKER =
   /itemtype=(?:"|')b(?:"|')|data-search=(?:"|')[\s\S]*?(?:"|&quot;)type(?:"|&quot;)\s*:\s*(?:"|&quot;)b(?:"|&quot;)[\s\S]*?(?:"|')/i
 
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&',
+  apos: "'",
+  gt: '>',
+  lt: '<',
+  quot: '"',
+  '#39': "'",
+}
+
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (entity, code: string) => {
+    const named = HTML_ENTITIES[code.toLowerCase()]
+    if (named) return named
+    if (code.startsWith('#x')) {
+      const parsed = Number.parseInt(code.slice(2), 16)
+      return Number.isFinite(parsed) ? String.fromCodePoint(parsed) : entity
+    }
+    if (code.startsWith('#')) {
+      const parsed = Number.parseInt(code.slice(1), 10)
+      return Number.isFinite(parsed) ? String.fromCodePoint(parsed) : entity
+    }
+    return entity
+  })
+}
+
+function removeHtmlTags(value: string): string {
+  let result = ''
+  let inTag = false
+
+  for (const char of value) {
+    if (char === '<') {
+      inTag = true
+      continue
+    }
+
+    if (char === '>') {
+      if (inTag) {
+        inTag = false
+        continue
+      }
+      continue
+    }
+
+    if (!inTag) {
+      result += char
+    }
+  }
+
+  return result
+}
+
 function stripHtml(s: string): string {
-  return s.replace(RE_HTML_TAG, '').trim()
+  let current = s
+  let previous: string
+
+  do {
+    previous = current
+    current = removeHtmlTags(decodeHtmlEntities(current))
+  } while (current !== previous)
+
+  return current.trim()
 }
 
 function normalizeBandcampUrl(rawUrl: string): string {
@@ -44,10 +102,23 @@ function normalizeBandcampUrl(rawUrl: string): string {
   if (!trimmed) return ''
 
   try {
-    const parsed = new URL(trimmed)
+    const parsed = new URL(trimmed, DEFAULT_BASE_URL)
+    if (!['http:', 'https:'].includes(parsed.protocol)) return ''
     return `${parsed.origin}${parsed.pathname}`.replace(/\/+$/, '')
   } catch {
-    return trimmed.replace(/\?.*$/, '').replace(/\/+$/, '')
+    return ''
+  }
+}
+
+function normalizeImageUrl(rawUrl: string): string {
+  const trimmed = stripHtml(rawUrl)
+  if (!trimmed) return ''
+  try {
+    const parsed = new URL(trimmed, DEFAULT_BASE_URL)
+    if (!['http:', 'https:'].includes(parsed.protocol)) return ''
+    return parsed.href
+  } catch {
+    return ''
   }
 }
 
@@ -86,7 +157,7 @@ function parseSearchResults(html: string, limit: number): BandcampSearchResult[]
     const genre = genreMatch ? stripHtml(genreMatch[1] ?? '').replace(/^genre:\s*/i, '') : undefined
 
     const imageMatch = RE_IMAGE.exec(block)
-    const imageUrl = imageMatch ? (imageMatch[1] ?? '').trim() : undefined
+    const imageUrl = imageMatch ? normalizeImageUrl(imageMatch[1] ?? '') : undefined
 
     results.push({
       name: rawName,

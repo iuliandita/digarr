@@ -14,7 +14,7 @@ Return ONLY a JSON array with no additional text. Each element must have these f
 - artistName: string (the artist's name)
 - reasoning: string (2-3 sentences: first describe what this artist sounds like and what they're known for, then explain why they match this listener's taste)
 - confidence: number (0.0 to 1.0, how confident you are in this recommendation)
-- genres: string[] (list of genres this artist represents)
+- genres: string[] (list of the artist's genres)
 - suggestedAlbum: string (optional - the best album to start with for a new listener)
 
 IMPORTANT: For each recommendation, verify that the reasoning accurately describes the EXACT artist named in artistName. Do not confuse similarly-named artists. The genres field must match the actual genres of the named artist.

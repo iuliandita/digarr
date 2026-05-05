@@ -75,6 +75,12 @@ describe('AnthropicProvider', () => {
       const lastCall = anthropicCtorCalls.at(-1) ?? {}
       expect(lastCall.baseURL).toBeUndefined()
     })
+
+    test('threads timeout into SDK constructor', () => {
+      new AnthropicProvider('k', 'claude-3-5-sonnet-20241022', null, 45)
+      const lastCall = anthropicCtorCalls.at(-1) ?? {}
+      expect(lastCall.timeout).toBe(45_000)
+    })
   })
 
   describe('getRecommendations', () => {

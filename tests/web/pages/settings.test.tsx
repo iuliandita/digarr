@@ -231,8 +231,8 @@ const mockSettings = {
   setupComplete: true,
 }
 
-function setupMocks() {
-  mockGetSettings.mockResolvedValue(mockSettings as Record<string, unknown>)
+function setupMocks(settings: Record<string, unknown> = mockSettings) {
+  mockGetSettings.mockResolvedValue(settings)
   mockGetLidarrProfiles.mockResolvedValue([{ id: 1, name: 'Any' }])
   mockGetLidarrMetadataProfiles.mockResolvedValue([{ id: 1, name: 'Standard' }])
   mockGetLidarrRootFolders.mockResolvedValue([{ id: 1, path: '/data/music' }])
@@ -302,7 +302,7 @@ describe('SettingsPage', () => {
       </I18nProvider>,
     )
 
-    expect(await screen.findByText('Tableau de bord')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Tableau de bord' })).toBeInTheDocument()
   })
 
   it('uses translated theme menu labels', async () => {
@@ -355,6 +355,32 @@ describe('SettingsPage', () => {
     })
     // Lidarr URL field should be present
     expect(screen.getByDisplayValue('http://localhost:8686')).toBeInTheDocument()
+  })
+
+  it('labels Ollama as local when it points at localhost', async () => {
+    setupMocks({
+      ...mockSettings,
+      aiProvider: 'ollama',
+      aiBaseUrl: 'http://localhost:11434',
+    })
+    renderWithQuery(<SettingsPage />)
+
+    expect(await screen.findByText('Fully local')).toBeInTheDocument()
+    expect(screen.getByText('Discovery prompts stay on your server.')).toBeInTheDocument()
+  })
+
+  it('warns when Ollama points at a remote host', async () => {
+    setupMocks({
+      ...mockSettings,
+      aiProvider: 'ollama',
+      aiBaseUrl: 'http://ollama.example.com:11434',
+    })
+    renderWithQuery(<SettingsPage />)
+
+    expect(await screen.findByText('Data leaves your server')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Discovery prompts are sent to your chosen provider/),
+    ).toBeInTheDocument()
   })
 
   it('tab switching shows Recommendations content', async () => {

@@ -18,7 +18,9 @@ Container Manager supports compose projects natively. Use it if you want a no-SS
 2. Set the project name to `digarr`
 3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
 4. Paste the contents of the [docker-compose.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml)
-5. In the environment/variables section, set at minimum: `DB_PASS` (pick any password - this is internal to the containers)
+5. Create two files in the project folder before starting:
+   - `secrets/postgres_password` containing only the database password
+   - `secrets/database_url` containing `postgres://digarr:YOUR_PASSWORD@postgres:5432/digarr`
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
@@ -29,8 +31,12 @@ Both the app and PostgreSQL containers start together automatically.
 mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
+mkdir -p secrets
+printf '%s\n' 'change-this-password' > secrets/postgres_password
+printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
-vi .env  # set DB_PASS at minimum
+vi secrets/postgres_password
+vi secrets/database_url
 sudo docker compose up -d
 ```
 
@@ -67,13 +73,17 @@ support it. Use it on DSM 7.1 if you want the simpler setup path:
 sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
+sudo mkdir -p secrets
+printf '%s\n' 'change-this-password' | sudo tee secrets/postgres_password > /dev/null
+printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' | sudo tee secrets/database_url > /dev/null
 sudo cp .env.example .env
 ```
 
-Edit `.env` and set at least `DB_PASS`:
+Edit both secret files with the same real password:
 
 ```sh
-sudo vi .env
+sudo vi secrets/postgres_password
+sudo vi secrets/database_url
 ```
 
 Start both containers:
@@ -106,7 +116,10 @@ network lets them reach each other by container name.
 
 1. **Docker** > **Registry** > search for `postgres`
 2. Download `postgres:17-alpine`
-3. **Image** > select `postgres:17-alpine` > **Launch**
+3. **Image** > select
+   `postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609`
+   if your DSM build supports digest references; otherwise select
+   `postgres:17-alpine` > **Launch**
 4. **Network**: select `digarr-net` (deselect `bridge`)
 5. Container name: `digarr-db`
 6. Click **Advanced Settings** > **Environment** - add these variables:

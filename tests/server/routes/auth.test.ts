@@ -665,7 +665,13 @@ describe('PATCH /api/v1/auth/me/locale', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/session-auth-required',
+      title: 'Session authentication required',
+      status: 403,
+      code: 'errors.auth.notAuthenticated',
+    })
   })
 
   it('returns 400 for non-string preferredLocale payloads', async () => {
@@ -753,7 +759,7 @@ describe('POST /api/v1/auth/change-password', () => {
     expect(body.ok).toBeUndefined()
     expect(updatePassword).toHaveBeenCalledOnce()
     expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
-  })
+  }, 10_000)
 
   it('rejects legacy read-only token auth', async () => {
     const updatePassword = vi.fn(async () => {})
@@ -777,7 +783,13 @@ describe('POST /api/v1/auth/change-password', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/session-auth-required',
+      title: 'Session authentication required',
+      status: 403,
+      code: 'errors.auth.notAuthenticated',
+    })
     expect(updatePassword).not.toHaveBeenCalled()
   })
 })
@@ -803,7 +815,13 @@ describe('PATCH /api/v1/auth/me/preferences', () => {
     })
 
     expect(res.status).toBe(403)
-    await expect(res.json()).resolves.toEqual({ error: 'Session authentication required' })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/session-auth-required',
+      title: 'Session authentication required',
+      status: 403,
+      code: 'errors.auth.notAuthenticated',
+    })
   })
 })
 

@@ -34,4 +34,61 @@ describe('OpenAPI skeleton', () => {
       expect(responses?.[key as keyof typeof responses]).toBeDefined()
     }
   })
+
+  it('documents the first stable external-facing route groups', () => {
+    expect(Object.keys(openapiDoc.paths)).toEqual(
+      expect.arrayContaining([
+        '/api/v1/auth/status',
+        '/api/v1/auth/login',
+        '/api/v1/recommendations',
+        '/api/v1/recommendations/{id}',
+        '/api/v1/artist-blocks',
+        '/api/v1/artist-blocks/{artistId}',
+        '/api/v1/jobs',
+        '/api/v1/jobs/{id}',
+        '/api/v1/jobs/health',
+        '/api/v1/settings/test/{service}',
+      ]),
+    )
+  })
+
+  it('gives each added operation security, a success response, and common errors', () => {
+    const publicPaths = new Set(['/api/v1/auth/status', '/api/v1/auth/login'])
+    for (const [path, item] of Object.entries(openapiDoc.paths)) {
+      for (const [method, operation] of Object.entries(item)) {
+        const responseStatuses = Object.keys(operation.responses)
+        expect(
+          responseStatuses.some((status) => /^2\d\d$/.test(status)),
+          `${method.toUpperCase()} ${path}`,
+        ).toBe(true)
+        if (!publicPaths.has(path)) {
+          expect(operation.security, `${method.toUpperCase()} ${path}`).toEqual([
+            { sessionCookie: [] },
+            { bearerToken: [] },
+          ])
+          expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('401')
+        }
+        expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('400')
+      }
+    }
+  })
+
+  it('documents settings probe success and failure contracts', () => {
+    const operation = openapiDoc.paths['/api/v1/settings/test/{service}'].post
+    expect(operation.responses['200'].content?.['application/json']?.schema).toEqual({
+      $ref: '#/components/schemas/ProbeSuccess',
+    })
+    expect(operation.responses['502']).toEqual({ $ref: '#/components/responses/ProbeFailed' })
+  })
+
+  it('documents mutation success responses with the real handler shapes', () => {
+    const createBlock = openapiDoc.paths['/api/v1/artist-blocks'].post
+    expect(createBlock.responses['204']).toEqual({ description: 'Artist block created.' })
+    expect(createBlock.responses).not.toHaveProperty('200')
+
+    const updateRecommendation = openapiDoc.paths['/api/v1/recommendations/{id}'].patch
+    expect(updateRecommendation.responses['200'].content?.['application/json']?.schema).toEqual({
+      $ref: '#/components/schemas/RecommendationUpdateResult',
+    })
+  })
 })

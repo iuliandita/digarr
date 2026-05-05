@@ -6,11 +6,25 @@ readonly DB_USER="digarr"
 readonly DB_PASS="digarr"
 readonly DB_NAME="digarr"
 readonly DB_PORT="5432"
-readonly DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}"
+readonly DEV_DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}"
 
 red() { printf '\033[0;31m%s\033[0m\n' "$*"; }
 green() { printf '\033[0;32m%s\033[0m\n' "$*"; }
 blue() { printf '\033[0;34m%s\033[0m\n' "$*"; }
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    red "missing required command: $1"
+    exit 1
+  fi
+}
+
+ensure_commands() {
+  require_command git
+  require_command docker
+  require_command pg_isready
+  require_command bun
+}
 
 ensure_postgres_container() {
   if docker inspect "$CONTAINER_NAME" &>/dev/null; then
@@ -30,7 +44,7 @@ ensure_postgres_container() {
     -e POSTGRES_PASSWORD="$DB_PASS" \
     -e POSTGRES_DB="$DB_NAME" \
     -p "${DB_PORT}:5432" \
-    postgres:17-alpine
+    postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
 }
 
 wait_for_postgres() {
@@ -79,6 +93,7 @@ print_next_steps() {
 }
 
 main() {
+  ensure_commands
   cd "$(git rev-parse --show-toplevel)"
 
   ensure_postgres_container
@@ -87,7 +102,7 @@ main() {
   ensure_dependencies
 
   blue "running database migrations..."
-  DATABASE_URL="$DATABASE_URL" bun run db:migrate
+  env DATABASE_URL="$DEV_DATABASE_URL" bun run db:migrate
 
   green "setup complete"
   print_next_steps

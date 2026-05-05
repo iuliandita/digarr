@@ -173,7 +173,7 @@ export const nl = {
   'setup.provider': 'Aanbieder',
   'setup.providerAnthropic': 'Antropisch',
   'setup.providerGemini': 'Google Tweelingen',
-  'setup.providerOllama': 'Ollama (lokaal)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'Open AI',
   'setup.providerOpenAiCompatible': 'OpenAI-compatibel',
   'setup.readyDescription': 'Dit is wat je hebt geconfigureerd:',
@@ -262,8 +262,6 @@ export const nl = {
   'discover.bulkApproveFailed': 'Bulkgoedkeuring mislukt',
   'discover.bulkRejectFailed': 'Bulkafwijzing mislukt',
   'discover.clearAll': 'Alles wissen',
-  'discover.clearAllTitle':
-    'Weigert alle openstaande aanbevelingen in één keer - handig na het beoordelen van een batch',
   'discover.clearFailed': 'Kan aanbevelingen niet wissen',
   'discover.clearedCount': 'Gewist',
   'discover.discoveryModes': 'Ontdekkingsmodi',
@@ -798,6 +796,11 @@ export const nl = {
   'settings.aiDescription': 'Genereert muziekaanbevelingen.',
   'settings.aiOpenAiCompatibleHelp':
     'Werkt met Groq, OpenRouter, LiteLLM, LocalAI en elk OpenAI-compatibel eindpunt. API-sleutel is optioneel voor lokale diensten.',
+  'settings.aiPrivacyNoteHosted':
+    'Ontdekkingsverzoeken worden naar de gekozen aanbieder gestuurd onder hun voorwaarden. Gebruik Ollama op localhost of een lokaal OpenAI-compatibel eindpunt om ze op je server te houden.',
+  'settings.aiPrivacyNoteLocal': 'Ontdekkingsverzoeken blijven op je server.',
+  'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
+  'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.webhookDescription':
     'Meldingen bij voltooide scan (Discord, Slack, ntfy, Gotify of een willekeurig HTTP-eindpunt)',
   'settings.testWebhook': 'Webhook testen',

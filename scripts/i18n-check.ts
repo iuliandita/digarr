@@ -52,6 +52,7 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'OpenAI-compatible',
   'Google Gemini',
   'Anthropic',
+  'Ollama',
   'Ollama (local)',
   'Groq',
   'OpenRouter',

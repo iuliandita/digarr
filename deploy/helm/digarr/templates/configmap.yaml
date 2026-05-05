@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "digarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
 data:

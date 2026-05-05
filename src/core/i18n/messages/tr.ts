@@ -172,7 +172,7 @@ export const tr = {
   'setup.provider': 'sağlayıcı',
   'setup.providerAnthropic': 'Antropik',
   'setup.providerGemini': 'Google İkizler',
-  'setup.providerOllama': 'Ollama (yerel)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI Uyumlu',
   'setup.readyDescription': 'İşte yapılandırdığınız şey:',
@@ -261,8 +261,6 @@ export const tr = {
   'discover.bulkApproveFailed': 'Toplu onay başarısız oldu',
   'discover.bulkRejectFailed': 'Toplu reddetme başarısız oldu',
   'discover.clearAll': 'Tümünü Temizle',
-  'discover.clearAllTitle':
-    'Bekleyen tüm önerileri tek seferde reddeder; bir grubu inceledikten sonra faydalıdır',
   'discover.clearFailed': 'Öneriler temizlenemedi',
   'discover.clearedCount': 'Temizlendi',
   'discover.discoveryModes': 'Keşif Modları',
@@ -793,6 +791,11 @@ export const tr = {
   'settings.aiDescription': 'Müzik onerileri olusturur.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile calisir. Yerel hizmetler için API anahtari istege baglidir.',
+  'settings.aiPrivacyNoteHosted':
+    'Kesif istekleri seçtigin saglayiciya kendi sartlari altinda gonderilir. Sunucunda kalmasi için localhost uzerinde Ollama veya yerel bir OpenAI uyumlu son nokta kullan.',
+  'settings.aiPrivacyNoteLocal': 'Kesif istekleri sunucunda kalir.',
+  'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrilir',
+  'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
   'settings.webhookDescription':
     'Tarama tamamlanma bildirimleri (Discord, Slack, ntfy, Gotify veya herhangi bir HTTP son noktası)',
   'settings.testWebhook': 'Webhook test et',

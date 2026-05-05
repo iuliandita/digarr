@@ -2,6 +2,48 @@
 
 All notable user-facing changes are documented here.
 
+Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
+
+## v1.0.0-rc.2 - 2026-05-05
+
+Spotify OAuth fix release candidate.
+
+### Fixed
+
+- Spotify connection setup now decrypts the pending callback credentials before exchanging the authorization code, fixing `oauth_error=token_exchange_failed` redirects on Kubernetes and other deployments with field-level encryption enabled.
+
+## v1.0.0-rc.1 - 2026-05-05
+
+Dashboard layout polish release candidate.
+
+### Changed
+
+- Dashboard Listening History and Recent Activity now sit beside Recently Approved above the fold, while Subscription Pulse is grouped with Taste Profile lower on the page.
+
+## v1.0.0-rc.0 - 2026-05-03
+
+Release candidate for the v1 line. This consolidates the v1 audit follow-ups across API contracts, security hardening, CI release safety, accessibility, i18n, Docker/Kubernetes deployment defaults, and UI polish.
+
+### Added
+
+- `:stable` Docker channel support and a manual stable-promotion workflow, so release candidates and fresh releases can ship without moving the recommended self-hosting channel.
+- Probe success metadata for service test routes and expanded API documentation coverage for the v1 endpoint surface.
+- Warning theme token coverage across all shipped themes.
+
+### Changed
+
+- Docker release automation keeps prerelease tags off floating stable-style channels and creates GitHub prereleases automatically for prerelease tags.
+- Dashboard, discovery, mobile navigation, recommendation hover controls, touch targets, and focus-visible states were tightened for the v1 candidate.
+- AI provider settings copy now describes privacy behavior based on the configured host instead of making a blanket provider claim.
+
+### Fixed
+
+- DNS rebinding and pinned-IP handling for outbound HTTP checks, including AI base URL validation.
+- Problem-details responses for auth failures and validation for numeric route inputs.
+- Hardcoded English strings in navigation and health-check UI paths.
+- Bandcamp scraping sanitization for encoded and incomplete HTML tags.
+- Kubernetes app/database selector isolation, pod termination timing, shell script robustness, foreign-key index coverage, and release/security scan pinning.
+
 ## v0.44.0 - 2026-04-26
 
 UX release. Rejecting a recommendation now opens a structured picker with six fixed reasons (already own, wrong style, not interested, tried it didn't like it, maybe later, other) plus a "Don't show again" checkbox that promotes the rejection to a permanent per-user blacklist. Settings gets a new Blocked tab to view, search, and unblock entries. The new blocklist filters the pipeline, subscriptions, and quick-discover independent of the existing rejection cooldown, so unblocking does not bypass the cooldown.
@@ -23,6 +65,23 @@ UX release. Rejecting a recommendation now opens a structured picker with six fi
 - `POST /api/v1/recommendations/:id/status` with `status: 'rejected'` now accepts optional `reason`, `reasonText`, and `permanent` fields; legacy callers that omit them continue to work unchanged
 - `StoreDb` interface gains `getBlockedMbids(userId)`; production wiring and all test mocks updated
 - New `Digarr` signature theme added to the theme picker (cool slate-navy + muted moss + warm-dim crimson)
+
+## v0.43.0 - 2026-04-23
+
+Dashboard fix release. ListenBrainz `range=week/month/year` returned the previous full calendar period, not the current or rolling window the UI implied; the dashboard tile showed March's top artist when asked about April. The single Listening tile is split into two endpoints with explicit semantics.
+
+### Changed
+
+- `GET /api/v1/listening/recent` is replaced by two endpoints:
+  - `GET /api/v1/listening/top-artists` (ListenBrainz primary, Last.fm fallback) accepts `this_week`, `this_month`, `this_year`, `all_time` ranges with `offset`+`limit` pagination. Last.fm `7day`/`1month`/`12month`/`overall` periods are mapped as best-effort approximations.
+  - `GET /api/v1/listening/recent-tracks` (Last.fm primary, then ListenBrainz listens, Jellyfin, Emby) returns a `hasSource` flag so the UI can hide the tile when no scrobble source is connected.
+- Dashboard splits into Listening History (four range chips + prev/next pagination) and Recent Activity (hidden when `hasSource=false`).
+- i18n keys added across all 15 locales; stale week/month/listening keys removed.
+- Back-compat maps the old `range=week|month|year` to the new `this_*` values so bookmarked URLs keep working.
+
+### Added
+
+- `getTopArtistsPaged` and `getListens` on the ListenBrainz client; `getTopArtistsPaged` on the Last.fm client with page-based pagination.
 
 ## v0.42.0 - 2026-04-20
 

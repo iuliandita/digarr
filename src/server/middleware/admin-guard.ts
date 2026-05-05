@@ -1,4 +1,5 @@
 import { createMiddleware } from 'hono/factory'
+import { adminRequired } from '@/server/helpers/auth-problems'
 import type { HonoEnv } from '@/server/types'
 
 type GetUserById = (id: number) => Promise<{ isAdmin: boolean } | null>
@@ -12,11 +13,11 @@ type GetUserById = (id: number) => Promise<{ isAdmin: boolean } | null>
 export function adminGuard(getUserById: GetUserById) {
   return createMiddleware<HonoEnv>(async (c, next) => {
     if (c.get('authSkipped')) return next()
-    if (c.get('legacyTokenAuth')) return c.json({ error: 'Admin access required' }, 403)
+    if (c.get('legacyTokenAuth')) return adminRequired(c)
     const uid = c.get('userId')
-    if (!uid) return c.json({ error: 'Admin access required' }, 403)
+    if (!uid) return adminRequired(c)
     const u = await getUserById(uid)
-    if (!u?.isAdmin) return c.json({ error: 'Admin access required' }, 403)
+    if (!u?.isAdmin) return adminRequired(c)
     await next()
   })
 }

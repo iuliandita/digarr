@@ -68,6 +68,48 @@ const SAMPLE_HTML_EMPTY = `
 </html>
 `
 
+const SAMPLE_HTML_ENTITIES = `
+<ul>
+  <li class="searchresult band" itemtype="b">
+    <div class="result-info">
+      <div class="heading"><a href="https://rhythm.bandcamp.com">Rhythm &amp; Sound &#39;95</a></div>
+      <div class="genre">genre: dub &amp; techno</div>
+    </div>
+  </li>
+</ul>
+`
+
+const SAMPLE_HTML_UNSAFE_URL = `
+<ul>
+  <li class="searchresult band" itemtype="b">
+    <div class="result-info">
+      <div class="heading"><a href="javascript:alert(1)">Unsafe Artist</a></div>
+      <div class="genre">noise</div>
+      <img src="data:image/svg+xml;base64,PHN2Zy8+" />
+    </div>
+  </li>
+  <li class="searchresult band" itemtype="b">
+    <div class="result-info">
+      <div class="heading"><a href="https://safeartist.bandcamp.com">Safe Artist</a></div>
+      <div class="genre">ambient</div>
+    </div>
+  </li>
+</ul>
+`
+
+const SAMPLE_HTML_ENCODED_TAGS = `
+<ul>
+  <li class="searchresult band" itemtype="b">
+    <div class="result-info">
+      <div class="heading">
+        <a href="https://encoded.bandcamp.com">Encoded &lt;script</a>
+      </div>
+      <div class="genre">genre: &amp;lt;b&amp;gt;ambient&amp;lt;/b&amp;gt;</div>
+    </div>
+  </li>
+</ul>
+`
+
 let requestCount = 0
 
 function sendHtml(res: http.ServerResponse, status: number, body: string): void {
@@ -96,6 +138,21 @@ beforeAll(async () => {
 
       if (q === 'mixed') {
         sendHtml(res, 200, SAMPLE_HTML_MIXED)
+        return
+      }
+
+      if (q === 'entities') {
+        sendHtml(res, 200, SAMPLE_HTML_ENTITIES)
+        return
+      }
+
+      if (q === 'unsafe') {
+        sendHtml(res, 200, SAMPLE_HTML_UNSAFE_URL)
+        return
+      }
+
+      if (q === 'encoded-tags') {
+        sendHtml(res, 200, SAMPLE_HTML_ENCODED_TAGS)
         return
       }
 
@@ -171,6 +228,35 @@ describe('createBandcampClient', () => {
       const client = createBandcampClient({ baseUrl })
       const results = await client.searchArtists('portishead', 1)
       expect(results).toHaveLength(1)
+    })
+
+    it('decodes HTML entities in scraped text fields', async () => {
+      const client = createBandcampClient({ baseUrl })
+      const results = await client.searchArtists('entities')
+      expect(results[0]).toMatchObject({
+        name: "Rhythm & Sound '95",
+        genre: 'dub & techno',
+      })
+    })
+
+    it('drops non-http result and image URLs from scraped HTML', async () => {
+      const client = createBandcampClient({ baseUrl })
+      const results = await client.searchArtists('unsafe')
+      expect(results).toHaveLength(1)
+      expect(results[0]).toMatchObject({
+        name: 'Safe Artist',
+        url: 'https://safeartist.bandcamp.com',
+      })
+      expect(results[0]?.imageUrl).toBeUndefined()
+    })
+
+    it('strips complete and incomplete tags after entity decoding', async () => {
+      const client = createBandcampClient({ baseUrl })
+      const results = await client.searchArtists('encoded-tags')
+      expect(results[0]).toMatchObject({
+        name: 'Encoded',
+        genre: 'ambient',
+      })
     })
   })
 

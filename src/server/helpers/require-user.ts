@@ -1,4 +1,9 @@
 import type { Context } from 'hono'
+import {
+  adminRequired,
+  notAuthenticated,
+  sessionAuthRequired,
+} from '@/server/helpers/auth-problems'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
 
@@ -14,7 +19,7 @@ export type RequireUserResult = { ok: true; userId: number } | { ok: false; resp
 export function requireUser(c: Context<HonoEnv>): RequireUserResult {
   const userId = c.get('userId')
   if (!userId) {
-    return { ok: false, response: c.json({ error: 'Auth required' }, 401) }
+    return { ok: false, response: notAuthenticated(c) }
   }
   return { ok: true, userId }
 }
@@ -24,7 +29,7 @@ export function requireSessionUser(c: Context<HonoEnv>): RequireUserResult {
   const auth = requireUser(c)
   if (!auth.ok) return auth
   if (c.get('legacyTokenAuth')) {
-    return { ok: false, response: c.json({ error: 'Session authentication required' }, 403) }
+    return { ok: false, response: sessionAuthRequired(c) }
   }
   return auth
 }
@@ -41,7 +46,7 @@ export async function requireAdmin(
   if (!auth.ok) return auth
   const isAdmin = await resolveAdmin(auth.userId, getUserById, false, c.get('legacyTokenAuth'))
   if (!isAdmin) {
-    return { ok: false, response: c.json({ error: 'Admin access required' }, 403) }
+    return { ok: false, response: adminRequired(c) }
   }
   return auth
 }

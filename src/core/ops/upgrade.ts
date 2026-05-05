@@ -27,7 +27,7 @@ interface Journal {
 }
 
 const JOURNAL_PATH = join(process.cwd(), 'drizzle', 'meta', '_journal.json')
-const MAX_AUTO_BACKUPS = 5
+const MAX_AUTO_BACKUPS = 14
 
 function readJournal(): Journal | null {
   if (!existsSync(JOURNAL_PATH)) return null

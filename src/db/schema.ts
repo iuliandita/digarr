@@ -109,15 +109,21 @@ export const users = pgTable(
   }),
 )
 
-export const genres = pgTable('genres', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  slug: text('slug').notNull().unique(),
-  source: text('source').notNull(),
-  parentGenreId: integer('parent_genre_id').references((): AnyPgColumn => genres.id),
-  artistCount: integer('artist_count').default(0),
-  cachedAt: timestamp('cached_at', { withTimezone: true }),
-})
+export const genres = pgTable(
+  'genres',
+  {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    slug: text('slug').notNull().unique(),
+    source: text('source').notNull(),
+    parentGenreId: integer('parent_genre_id').references((): AnyPgColumn => genres.id),
+    artistCount: integer('artist_count').default(0),
+    cachedAt: timestamp('cached_at', { withTimezone: true }),
+  },
+  (table) => ({
+    parentGenreIdx: index('genres_parent_genre_id_idx').on(table.parentGenreId),
+  }),
+)
 
 export const subscriptions = pgTable(
   'subscriptions',
@@ -190,14 +196,20 @@ export const rateLimitBuckets = pgTable('rate_limit_buckets', {
   lastRefillAt: timestamp('last_refill_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
-export const recommendationBatches = pgTable('recommendation_batches', {
-  id: serial('id').primaryKey(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  sourceConfig: jsonb('source_config').$type<RecommendationBatchSourceConfig | null>(),
-  stats: jsonb('stats'),
-  status: text('status').notNull().default('running'),
-  subscriptionId: integer('subscription_id').references(() => subscriptions.id),
-})
+export const recommendationBatches = pgTable(
+  'recommendation_batches',
+  {
+    id: serial('id').primaryKey(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    sourceConfig: jsonb('source_config').$type<RecommendationBatchSourceConfig | null>(),
+    stats: jsonb('stats'),
+    status: text('status').notNull().default('running'),
+    subscriptionId: integer('subscription_id').references(() => subscriptions.id),
+  },
+  (table) => ({
+    subscriptionIdx: index('recommendation_batches_subscription_id_idx').on(table.subscriptionId),
+  }),
+)
 
 export const recommendations = pgTable(
   'recommendations',
@@ -241,22 +253,34 @@ export const recommendations = pgTable(
   }),
 )
 
-export const jobRuns = pgTable('job_runs', {
-  id: serial('id').primaryKey(),
-  type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
-  status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
-  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
-  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  durationMs: integer('duration_ms'),
-  error: text('error'),
-  metadata: jsonb('metadata').$type<JobMetadata>().notNull().default({}),
-  sourceResults: jsonb('source_results'),
-  subscriptionId: integer('subscription_id').references(() => subscriptions.id, {
-    onDelete: 'set null',
+export const jobRuns = pgTable(
+  'job_runs',
+  {
+    id: serial('id').primaryKey(),
+    type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
+    status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
+    userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    durationMs: integer('duration_ms'),
+    error: text('error'),
+    metadata: jsonb('metadata').$type<JobMetadata>().notNull().default({}),
+    sourceResults: jsonb('source_results'),
+    subscriptionId: integer('subscription_id').references(() => subscriptions.id, {
+      onDelete: 'set null',
+    }),
+    batchId: integer('batch_id').references(() => recommendationBatches.id, {
+      onDelete: 'set null',
+    }),
+  },
+  (table) => ({
+    userIdx: index('job_runs_user_id_idx').on(table.userId),
+    batchIdx: index('job_runs_batch_id_idx').on(table.batchId),
+    subscriptionIdx: index('idx_job_runs_subscription')
+      .on(table.subscriptionId)
+      .where(sql`${table.subscriptionId} IS NOT NULL`),
   }),
-  batchId: integer('batch_id').references(() => recommendationBatches.id, { onDelete: 'set null' }),
-})
+)
 
 export const targets = pgTable(
   'targets',
@@ -323,6 +347,8 @@ export const slskdJobs = pgTable(
       ),
     stateIdx: index('slskd_jobs_state_idx').on(table.state),
     userStateIdx: index('slskd_jobs_user_state_idx').on(table.userId, table.state),
+    targetIdx: index('slskd_jobs_target_id_idx').on(table.targetId),
+    recommendationIdx: index('slskd_jobs_recommendation_id_idx').on(table.recommendationId),
   }),
 )
 
@@ -682,5 +708,6 @@ export const artistBlocks = pgTable(
   (table) => ({
     userArtistUnique: uniqueIndex('artist_blocks_user_artist_idx').on(table.userId, table.artistId),
     userIdx: index('artist_blocks_user_idx').on(table.userId),
+    artistIdx: index('artist_blocks_artist_idx').on(table.artistId),
   }),
 )

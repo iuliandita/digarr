@@ -8,7 +8,10 @@ name: Dependabot bun.lock sync
 # Guarded to only run on dependabot[bot] PRs from the same repo (never forks).
 # Bun does not execute lifecycle scripts by default today, but we pass
 # --ignore-scripts as defense-in-depth so this stays safe if bun flips the
-# default or introduces new install-time hooks.
+# default or introduces new install-time hooks. Checkout does not persist
+# credentials and does not use actions/checkout on the PR head; the write token
+# is introduced only in the final push step after dependency resolution has
+# finished.
 #
 # Re-triggering CI: pushing with GITHUB_TOKEN does NOT fire new workflow runs,
 # so auto-merge would stall. Set repo secret DEPENDABOT_SYNC_TOKEN to a
@@ -29,15 +32,22 @@ jobs:
     if: >-
       github.actor == 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - name: Checkout PR head
+      - name: Checkout trusted base
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.DEPENDABOT_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+
+      - name: Switch to Dependabot PR head without persisted credentials
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" fetch --depth=1 origin "$HEAD_REF"
+          git checkout --detach FETCH_HEAD
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -49,6 +59,7 @@ jobs:
       - name: Commit and push if changed
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PUSH_TOKEN: ${{ secrets.DEPENDABOT_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet bun.lock; then
             echo "bun.lock already up to date"
@@ -58,4 +69,4 @@ jobs:
           git config user.email "iulian.dita@gmail.com"
           git add bun.lock
           git commit -m "chore: regenerate bun.lock"
-          git push origin HEAD:"$HEAD_REF"
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:"$HEAD_REF"

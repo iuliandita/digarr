@@ -3,8 +3,10 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "digarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: app
 spec:
   {{- if .Values.podDisruptionBudget.minAvailable }}
   minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
@@ -14,4 +16,5 @@ spec:
   selector:
     matchLabels:
       {{- include "digarr.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
 {{- end }}

@@ -247,6 +247,10 @@ describe('authGuard degenerate state (setup complete + no users)', () => {
     const res = await app.request('/api/v1/auth/me')
     expect(res.status).toBe(503)
     const body = (await res.json()) as Record<string, unknown>
-    expect(body).toMatchObject({ error: 're-run setup' })
+    expect(body).toMatchObject({
+      type: '/problems/setup-admin-missing',
+      title: 'Setup admin user missing',
+      status: 503,
+    })
   })
 })

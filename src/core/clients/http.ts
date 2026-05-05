@@ -1,6 +1,7 @@
 import * as dns from 'node:dns/promises'
+import { isIP } from 'node:net'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
-import { getLookupHostname } from '@/core/validation'
+import { formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set(['api_key', 'apikey', 'key', 'token', 'secret', 'password'])
@@ -51,13 +52,11 @@ export function createHttpClient(config: HttpClientConfig) {
           {
             publicIpOnly,
             followRedirects,
+            skipTlsVerify,
           },
         )
 
-        const res = await fetch(prepared.url, {
-          ...prepared.init,
-          ...(skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
-        } as RequestInit)
+        const res = await fetch(prepared.url, prepared.init)
 
         clearTimeout(timer)
         if (res.ok) return res
@@ -124,10 +123,11 @@ export function createHttpClient(config: HttpClientConfig) {
 async function prepareRequest(
   url: string,
   init: RequestInit,
-  options: { publicIpOnly: boolean; followRedirects: boolean },
+  options: { publicIpOnly: boolean; followRedirects: boolean; skipTlsVerify: boolean },
 ): Promise<{ url: string; init: RequestInit }> {
   const headers = new Headers(init.headers)
   let fetchUrl = url
+  let serverName: string | null = null
 
   if (options.publicIpOnly) {
     if (isPrivateUrl(url)) {
@@ -141,13 +141,25 @@ async function prepareRequest(
       throw new Error('URL resolves to a private/internal IP')
     }
 
-    if (parsedUrl.protocol === 'http:' && address !== hostname) {
+    // Pin the resolved IP for both http: and https: so a second DNS lookup
+    // during fetch() cannot rebind to a private address (TOCTOU). For HTTPS,
+    // preserve the original hostname for SNI and cert verification.
+    if (address !== hostname) {
       const pinnedUrl = new URL(url)
-      pinnedUrl.hostname = address
+      pinnedUrl.hostname = formatUrlHostname(address)
       fetchUrl = pinnedUrl.toString()
       headers.set('Host', parsedUrl.host)
+      const normalizedHostname = normalizeIp(parsedUrl.hostname)
+      if (parsedUrl.protocol === 'https:' && isIP(normalizedHostname) === 0) {
+        serverName = normalizedHostname
+      }
     }
   }
+
+  const tls: { serverName?: string; rejectUnauthorized?: boolean } = {}
+  if (serverName) tls.serverName = serverName
+  if (options.skipTlsVerify) tls.rejectUnauthorized = false
+  const tlsInit = Object.keys(tls).length > 0 ? { tls } : {}
 
   return {
     url: fetchUrl,
@@ -155,7 +167,8 @@ async function prepareRequest(
       ...init,
       headers,
       redirect: options.followRedirects ? 'follow' : 'manual',
-    },
+      ...tlsInit,
+    } as RequestInit,
   }
 }
 

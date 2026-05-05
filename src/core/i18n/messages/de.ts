@@ -173,7 +173,7 @@ export const de = {
   'setup.provider': 'Anbieter',
   'setup.providerAnthropic': 'Anthropic',
   'setup.providerGemini': 'Google Gemini',
-  'setup.providerOllama': 'Ollama (lokal)',
+  'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'OpenAI-kompatibel',
   'setup.readyDescription': 'Folgendes haben Sie konfiguriert:',
@@ -262,8 +262,6 @@ export const de = {
   'discover.bulkApproveFailed': 'Die Massengenehmigung ist fehlgeschlagen',
   'discover.bulkRejectFailed': 'Die Massenablehnung ist fehlgeschlagen',
   'discover.clearAll': 'Alles löschen',
-  'discover.clearAllTitle':
-    'Lehnt alle ausstehenden Empfehlungen auf einmal ab – nützlich nach der Überprüfung eines Stapels',
   'discover.clearFailed': 'Empfehlungen konnten nicht gelöscht werden',
   'discover.clearedCount': 'Gelöscht',
   'discover.discoveryModes': 'Entdeckungsmodi',
@@ -806,6 +804,11 @@ export const de = {
   'settings.aiDescription': 'Erstellt Musikempfehlungen.',
   'settings.aiOpenAiCompatibleHelp':
     'Kompatibel mit Groq, OpenRouter, LiteLLM, LocalAI und jedem OpenAI-kompatiblen Endpunkt. API-Key ist für lokale Dienste optional.',
+  'settings.aiPrivacyNoteHosted':
+    'Anfragen werden an den gewählten Anbieter unter dessen Bedingungen gesendet. Nutze Ollama auf localhost oder einen lokalen OpenAI-kompatiblen Endpunkt, damit sie auf deinem Server bleiben.',
+  'settings.aiPrivacyNoteLocal': 'Anfragen bleiben auf deinem Server.',
+  'settings.aiPrivacyBadgeHosted': 'Daten verlassen deinen Server',
+  'settings.aiPrivacyBadgeLocal': 'Vollständig lokal',
   'settings.webhookDescription':
     'Benachrichtigungen bei abgeschlossenem Scan (Discord, Slack, ntfy, Gotify oder beliebiger HTTP-Endpunkt)',
   'settings.testWebhook': 'Webhook testen',

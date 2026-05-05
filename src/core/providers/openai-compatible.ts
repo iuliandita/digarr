@@ -6,18 +6,28 @@ import {
   unwrapRecommendationArrayPayload,
 } from './prompt'
 import { fetchWithRetry } from './retry'
+import { timeoutSecondsWithDefaultToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
+
+const DEFAULT_TIMEOUT_SECONDS = 60
 
 export class OpenAICompatibleProvider implements RecommendationProvider {
   private baseUrl: string
   private apiKey: string | null
   private model: string
+  private timeoutMs: number
   lastUsage: AiUsage | null = null
 
-  constructor(baseUrl: string, model: string, apiKey: string | null = null) {
+  constructor(
+    baseUrl: string,
+    model: string,
+    apiKey: string | null = null,
+    timeoutSeconds?: number | null,
+  ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
     this.model = model
     this.apiKey = apiKey
+    this.timeoutMs = timeoutSecondsWithDefaultToMs(timeoutSeconds, DEFAULT_TIMEOUT_SECONDS)
   }
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
@@ -27,7 +37,7 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
 
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 60_000)
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const res = await fetchWithRetry(
         `${this.baseUrl}/v1/chat/completions`,

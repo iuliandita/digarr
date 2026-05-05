@@ -9,6 +9,7 @@ import {
   RECOMMENDATION_SYSTEM_PRELUDE,
   validateAiRecommendations,
 } from './prompt'
+import { optionalTimeoutSecondsToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
 
 const RECOMMENDATION_TOOL_NAME = 'emit_recommendations'
@@ -20,10 +21,17 @@ export class AnthropicProvider implements RecommendationProvider {
   private model: string
   lastUsage: AiUsage | null = null
 
-  constructor(apiKey: string, model: string = DEFAULT_MODEL, baseUrl?: string | null) {
+  constructor(
+    apiKey: string,
+    model: string = DEFAULT_MODEL,
+    baseUrl?: string | null,
+    timeoutSeconds?: number | null,
+  ) {
+    const timeoutMs = optionalTimeoutSecondsToMs(timeoutSeconds)
     this.client = new Anthropic({
       apiKey,
       ...(baseUrl ? { baseURL: baseUrl } : {}),
+      ...(timeoutMs ? { timeout: timeoutMs } : {}),
     })
     this.model = model
   }

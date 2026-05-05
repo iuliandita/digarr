@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   lint-typecheck-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -32,7 +32,7 @@ jobs:
       - run: bun run test
 
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Advisory during rollout. Promote to blocking once thresholds in
     # vite.config.ts have been ratcheted up against a stable baseline.
     continue-on-error: true
@@ -58,7 +58,7 @@ jobs:
           retention-days: 14
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: lint-typecheck-test
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -74,11 +74,11 @@ jobs:
       - run: bun run build
 
   api-route-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -107,7 +107,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
 
   helm-drift:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
@@ -124,11 +124,11 @@ jobs:
           fi
 
   browser-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: api-route-test
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -159,14 +159,14 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
 
   a11y:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: api-route-test
     # Advisory: axe-core violations surface the work, but don't block
     # merges until the baseline is clean and thresholds are promoted.
     continue-on-error: true
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

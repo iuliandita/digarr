@@ -1,0 +1,12 @@
+title = "digarr gitleaks config"
+minVersion = "8.0.0"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Helm rendered checksum annotation is a SHA-256 rollout checksum, not a secret"
+condition = "and"
+regexTarget = "line"
+paths = ['''deploy/k8s/rendered\.yaml''']
+regexes = ['''checksum/secret:\s+[a-f0-9]{64}''']

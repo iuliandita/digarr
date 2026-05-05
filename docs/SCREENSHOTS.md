@@ -65,3 +65,7 @@ Admin panel on the Library Health page. Shipped in `v0.17.0` and expanded in `v0
 ![Settings](screenshots/settings.png)
 
 The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
+
+## Settings > Blocked
+
+The screenshot capture script includes `settings-blocked.png` for the permanent artist blocklist tab added in `v0.44.0`.
