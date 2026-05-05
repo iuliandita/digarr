@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.3 - 2026-05-05
+
+Recommendation clearing fix release candidate.
+
+### Fixed
+
+- Clear All now rejects pending recommendations in API-sized batches instead of requesting an oversized `limit=10000` page, fixing the 400 response from the recommendations list endpoint.
+
 ## v1.0.0-rc.2 - 2026-05-05
 
 Spotify OAuth fix release candidate.
