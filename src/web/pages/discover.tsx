@@ -62,6 +62,7 @@ const STATUS_PARAM: Record<FilterTab, string | undefined> = {
 const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const PAGE_SIZE = 50
+const CLEAR_ALL_BATCH_SIZE = 200
 
 function SkeletonGrid() {
   return (
@@ -781,14 +782,27 @@ export function DiscoverPage() {
 
   async function handleClearAll() {
     try {
-      const pending = await getRecommendations({ status: 'pending', limit: '10000' })
-      const ids = (pending.items as Array<{ id: number }>).map((r) => r.id)
-      if (ids.length === 0) {
+      let cleared = 0
+
+      while (true) {
+        const pending = await getRecommendations({
+          status: 'pending',
+          limit: String(CLEAR_ALL_BATCH_SIZE),
+        })
+        const ids = (pending.items as Array<{ id: number }>).map((r) => r.id)
+        if (ids.length === 0) break
+
+        const result = (await bulkAction(ids, 'reject')) as { updated?: number } | undefined
+        const updated = typeof result?.updated === 'number' ? result.updated : ids.length
+        cleared += updated
+        if (updated === 0 || ids.length < CLEAR_ALL_BATCH_SIZE) break
+      }
+
+      if (cleared === 0) {
         toast.info(t('discover.noPendingToClear'))
         return
       }
-      await bulkAction(ids, 'reject')
-      toast.success(`${t('discover.clearedCount')} ${ids.length}`)
+      toast.success(`${t('discover.clearedCount')} ${cleared}`)
       refetch()
     } catch {
       toast.error(t('discover.clearFailed'))

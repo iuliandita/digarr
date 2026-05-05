@@ -283,6 +283,52 @@ describe('DiscoverPage', () => {
     })
   })
 
+  it('clears all pending recommendations in bounded batches', async () => {
+    mockBulkAction.mockResolvedValue(undefined as unknown as never)
+    const firstBatch = Array.from({ length: 200 }, (_, idx) => makeRec({ id: idx + 1 }))
+    const secondBatch = Array.from({ length: 50 }, (_, idx) => makeRec({ id: idx + 201 }))
+    const pendingBatches = [firstBatch, secondBatch, []]
+
+    mockGetRecommendations.mockImplementation((params) => {
+      const p = params as Record<string, string> | undefined
+      if (p?.status === 'pending' && p.limit === '200') {
+        return Promise.resolve(makeRes(pendingBatches.shift() ?? []))
+      }
+      if (p?.status === 'pending' && p.limit === '10000') {
+        return Promise.resolve(makeRes([...firstBatch, ...secondBatch]))
+      }
+      return Promise.resolve(makeRes([makeRec()]))
+    })
+    ;(getWarmStatuses as ReturnType<typeof vi.fn>).mockResolvedValue({ statuses: {} })
+    mockListTargets.mockResolvedValue([])
+
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Clear All' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Reject All' }))
+
+    await waitFor(() => {
+      expect(mockBulkAction).toHaveBeenCalledTimes(2)
+    })
+    expect(mockBulkAction).toHaveBeenNthCalledWith(
+      1,
+      firstBatch.map((r) => r.id),
+      'reject',
+    )
+    expect(mockBulkAction).toHaveBeenNthCalledWith(
+      2,
+      secondBatch.map((r) => r.id),
+      'reject',
+    )
+    expect(
+      mockGetRecommendations.mock.calls.some(([params]) => {
+        const p = params as Record<string, string> | undefined
+        return p?.status === 'pending' && Number(p.limit) > 200
+      }),
+    ).toBe(false)
+  })
+
   it('reject button calls updateRecommendation', async () => {
     mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
     setupMockApi()
