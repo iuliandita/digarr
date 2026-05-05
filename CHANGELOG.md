@@ -2,6 +2,14 @@
 
 All notable user-facing changes are documented here.
 
+## v0.44.1 - 2026-05-05
+
+Spotify OAuth patch release.
+
+### Fixed
+
+- Spotify connection setup now decrypts the pending callback credentials before exchanging the authorization code, fixing `oauth_error=token_exchange_failed` redirects on Kubernetes and other deployments with field-level encryption enabled.
+
 ## v0.44.0 - 2026-04-26
 
 UX release. Rejecting a recommendation now opens a structured picker with six fixed reasons (already own, wrong style, not interested, tried it didn't like it, maybe later, other) plus a "Don't show again" checkbox that promotes the rejection to a permanent per-user blacklist. Settings gets a new Blocked tab to view, search, and unblock entries. The new blocklist filters the pipeline, subscriptions, and quick-discover independent of the existing rejection cooldown, so unblocking does not bypass the cooldown.

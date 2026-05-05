@@ -2,8 +2,8 @@ apiVersion: v2
 name: digarr
 type: application
 description: Music discovery and recommendation pipeline for Lidarr, Plex, Jellyfin, Emby, and Navidrome.
-version: 0.44.0
-appVersion: "0.44.0"
+version: 0.44.1
+appVersion: "0.44.1"
 kubeVersion: ">=1.29.0"
 sources:
   - https://github.com/iuliandita/digarr
