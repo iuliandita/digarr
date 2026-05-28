@@ -7,7 +7,7 @@ image:
   # channel for clusters where reproducibility is not a goal, set tag: "stable" and remove
   # the digest line - :stable is promoted only after a release has been live >= 7 days
   # without a follow-up patch.
-  tag: "1.0.0-rc.4"
+  tag: "1.0.0-rc.5"
   digest: "sha256:0843728ff4497fbde2d101371ba2aea0493a0f7c8db3a5324510eef84c533d71"
   pullPolicy: Always
 

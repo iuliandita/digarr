@@ -4,6 +4,19 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.5 - 2026-05-28
+
+Dependency and CI maintenance release candidate.
+
+### Changed
+
+- Updated the Bun runtime base image to 1.3.14 and refreshed the production dependency group.
+- Refreshed pinned CI actions (docker/login-action, docker/metadata-action, docker/build-push-action, github/codeql-action, actions/stale).
+
+### Fixed
+
+- The Dependabot bun.lock sync workflow now authenticates its PR-head fetch with basic auth, so npm dependency updates regenerate the lockfile and pass CI instead of failing the frozen-lockfile check.
+
 ## v1.0.0-rc.4 - 2026-05-13
 
 Popular album approval release candidate.
