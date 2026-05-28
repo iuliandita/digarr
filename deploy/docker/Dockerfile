@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Global ARG -- must be before any FROM to use in FROM instructions
-ARG RUNTIME_IMAGE=oven/bun:1.3.13-slim@sha256:7e8ed3961db1cdedf17d516dda87948cfedbd294f53bf16462e5b57ed3fff0f1
+ARG RUNTIME_IMAGE=oven/bun:1.3.14-slim@sha256:d56a2534ffd262e92c12fd3249d3924d296d97086da773f821d7d0477435ea04
 
 # Deps stage -- all deps (dev + prod) for the builder. Cache-mount accelerates rebuilds.
 FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS deps

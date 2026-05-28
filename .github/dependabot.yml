@@ -5,30 +5,34 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
+    # Bump the package.json range to the new version (floor tracks latest)
+    # rather than only widening it.
+    versioning-strategy: increase
     groups:
       production:
         patterns:
           - "hono"
+          - "@hono/*"
           - "drizzle-*"
           - "pg"
           - "@anthropic-ai/*"
           - "openai"
           - "p-queue"
+          - "p-retry"
           - "croner"
-          - "@hono/*"
           - "openid-client"
+          - "zod"
       dev-tools:
+        # No update-types filter: majors are grouped too, not suppressed.
         patterns:
           - "typescript"
           - "vite"
           - "vitest"
+          - "@vitest/*"
           - "@biomejs/*"
           - "drizzle-kit"
           - "@vitejs/*"
           - "@types/bun"
-        update-types:
-          - minor
-          - patch
       react:
         patterns:
           - "react"
@@ -39,18 +43,40 @@ updates:
       testing:
         patterns:
           - "@testing-library/*"
+          - "@playwright/*"
+          - "@axe-core/*"
           - "jsdom"
       frontend:
         patterns:
           - "tailwindcss"
           - "@tailwindcss/*"
+          - "lucide-react"
+          - "sonner"
+          - "clsx"
+          - "class-variance-authority"
+          - "tailwind-merge"
+      # Catch-all so nothing falls through to noisy individual PRs.
+      misc:
+        patterns:
+          - "*"
 
   - package-ecosystem: docker
+    # Only scans Dockerfiles/compose here. Bun version strings and the
+    # postgres service-image digests in the CI workflows are NOT covered by
+    # any updater and must be bumped manually (same as the .forgejo mirror).
     directory: /deploy/docker
     schedule:
       interval: daily
+    groups:
+      docker-images:
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: daily
+    groups:
+      github-actions:
+        patterns:
+          - "*"
