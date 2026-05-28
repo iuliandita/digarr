@@ -4,6 +4,17 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.6 - 2026-05-29
+
+Dependency and toolchain maintenance release candidate.
+
+### Changed
+
+- Completed the Bun 1.3.14 alignment across the runtime image, CI workflows, and the release build matrix (slim and alpine variants), so the build and runtime stages no longer straddle two Bun versions.
+- Bumped every npm dependency to its latest version, including a major step for the esbuild build tool (0.27 to 0.28).
+- Reworked the dependency overrides from exact version pins to caret floors, so the security minimums no longer cap forward upgrades.
+- Widened Dependabot coverage so it surfaces major updates for build tooling, groups all packages, and groups the Docker and GitHub Actions ecosystems.
+
 ## v1.0.0-rc.5 - 2026-05-28
 
 Dependency and CI maintenance release candidate.

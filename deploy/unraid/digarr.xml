@@ -2,9 +2,9 @@
 <Container version="2">
   <Name>Digarr</Name>
   <!-- Digest pin (synced via scripts/sync-deploy-digests.ts): sha256:2a2e967df0802ce677ecbebd48ebbd4f13725211618e7c9720dafa233c2b91a4 -->
-   <Repository>docker.io/iuliandita/digarr:1.0.0-rc.5</Repository>
-   <Tag>1.0.0-rc.5</Tag>
-   <TagDescription>v1.0.0-rc.5 prerelease</TagDescription>
+   <Repository>docker.io/iuliandita/digarr:1.0.0-rc.6</Repository>
+   <Tag>1.0.0-rc.6</Tag>
+   <TagDescription>v1.0.0-rc.6 prerelease</TagDescription>
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
