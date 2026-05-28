@@ -46,7 +46,7 @@ jobs:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" fetch --depth=1 origin "$HEAD_REF"
+          git fetch --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$HEAD_REF"
           git checkout --detach FETCH_HEAD
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
