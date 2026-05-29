@@ -60,7 +60,7 @@
     "vitest": "^4.1.7"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.100.0",
+    "@anthropic-ai/sdk": "^0.100.1",
     "@hono/node-server": "^2.0.4",
     "@hono/zod-validator": "^0.8.0",
     "croner": "^10.0.1",
