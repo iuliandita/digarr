@@ -8,7 +8,7 @@ image:
   # the digest line - :stable is promoted only after a release has been live >= 7 days
   # without a follow-up patch.
   tag: "1.0.0-rc.6"
-  digest: "sha256:2a2e967df0802ce677ecbebd48ebbd4f13725211618e7c9720dafa233c2b91a4"
+  digest: "sha256:834164cb70b411f28e0a51c4e918241bba8f997f09d30f330b371558cd40db33"
   pullPolicy: Always
 
 podSecurityContext:
