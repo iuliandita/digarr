@@ -60,13 +60,13 @@
     "vitest": "^4.1.7"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.100.1",
-    "@hono/node-server": "^2.0.4",
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@hono/node-server": "^2.0.5",
     "@hono/zod-validator": "^0.8.0",
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.12.23",
-    "openai": "^6.39.1",
+    "hono": "^4.12.25",
+    "openai": "^6.42.0",
     "openid-client": "^6.8.4",
     "p-queue": "^9.3.0",
     "p-retry": "^8.0.0",
