@@ -4,7 +4,9 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
-## Unreleased
+## v1.0.0-rc.7 - 2026-06-17
+
+Startup resilience release candidate.
 
 ### Fixed
 
