@@ -34,6 +34,7 @@ SECURITY-AUDIT.md
 .worktrees/
 .playwright-mcp/
 docs/local/
+.commandcode/
 .planning/
 mempalace.yaml
 entities.json
