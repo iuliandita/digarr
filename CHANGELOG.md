@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- The app no longer crash-loops when Postgres is still starting up (SQLSTATE 57P03 "not yet accepting connections"). The initial DB connection now retries with exponential backoff (1s to 30s cap) until Postgres finishes recovery, and the HTTP server only starts after the database is reachable.
+
 ## v1.0.0-rc.6 - 2026-05-29
 
 Dependency and toolchain maintenance release candidate.

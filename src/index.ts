@@ -179,6 +179,7 @@ import {
   recommendationBatches,
   recommendations,
 } from './db/schema'
+import { waitForDatabase } from './db/wait'
 import { createApp } from './server'
 import { resolveUserPreferences } from './server/helpers/preferences'
 
@@ -200,6 +201,12 @@ if (isEncryptionEnabled()) {
 } else {
   console.log('Field-level encryption disabled (set DIGARR_ENCRYPTION_KEY to enable)')
 }
+
+// Wait for Postgres to accept connections before any DB operation. A
+// slow-starting Postgres (still in recovery) rejects with SQLSTATE 57P03;
+// without this guard the first query rejects and kills the process,
+// crash-looping the pod on kubelet until PG finishes recovery.
+await waitForDatabase(pool)
 
 // Pre-flight check: detect pending migrations and auto-backup if needed.
 await runPreFlightCheck(db)

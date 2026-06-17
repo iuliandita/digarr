@@ -43,15 +43,16 @@ Async IIFE in `src/index.ts`:
 
 1. `createJobRecorder(db)` - module-level, before the IIFE
 2. `markStuck()` - flips any in-progress jobs left over from a crashed prior run
-3. `preFlightCheck()` - auto-backup if pending migrations are detected
-4. `migrate()` - drizzle-kit migrations
-5. `autoSetup()` - first-admin bootstrap when the env vars are present
-6. Bootstrap user setup
-7. Lidarr target backfill
-8. Pipeline scheduler
-9. Subscription scheduler
-10. Playlist scheduler
-11. `startStuckDetector()` - cron every 5 min, as the last boot step
+3. `waitForDatabase()` - retry/backoff until Postgres accepts connections (survives a slow PG startup without crash-looping on kubelet); the HTTP server only binds after this succeeds
+4. `preFlightCheck()` - auto-backup if pending migrations are detected
+5. `migrate()` - drizzle-kit migrations
+6. `autoSetup()` - first-admin bootstrap when the env vars are present
+7. Bootstrap user setup
+8. Lidarr target backfill
+9. Pipeline scheduler
+10. Subscription scheduler
+11. Playlist scheduler
+12. `startStuckDetector()` - cron every 5 min, as the last boot step
 
 ## Key invariants
 
