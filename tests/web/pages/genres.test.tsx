@@ -19,6 +19,7 @@ function renderWithQuery(ui: ReactElement) {
 }
 
 vi.mock('@/web/lib/api', () => ({
+  getCurrentUser: vi.fn(),
   getGenres: vi.fn(),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
   searchGenres: vi.fn(),
@@ -34,13 +35,17 @@ vi.mock('sonner', () => ({
 }))
 
 import { toast } from 'sonner'
-import { getGenres, seedGenres } from '@/web/lib/api'
+import { getCurrentUser, getGenres, seedGenres } from '@/web/lib/api'
 import { GenresPage } from '@/web/pages/genres'
 
+const mockGetCurrentUser = vi.mocked(getCurrentUser)
 const mockGetGenres = vi.mocked(getGenres)
 const mockSeedGenres = vi.mocked(seedGenres)
 const mockToastSuccess = vi.mocked(toast.success)
 const mockToastError = vi.mocked(toast.error)
+
+const adminUser = { id: 1, username: 'admin', isAdmin: true } as never
+const regularUser = { id: 2, username: 'user', isAdmin: false } as never
 
 describe('GenresPage', () => {
   beforeEach(() => {
@@ -59,6 +64,7 @@ describe('GenresPage', () => {
       },
     })
     mockGetGenres.mockResolvedValue([])
+    mockGetCurrentUser.mockResolvedValue(adminUser)
   })
 
   it('uses translated seed toast messages in French', async () => {
@@ -91,5 +97,33 @@ describe('GenresPage', () => {
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith("Échec de l'initialisation des genres")
     })
+  })
+
+  it('shows the seed button to an admin', async () => {
+    mockGetCurrentUser.mockResolvedValue(adminUser)
+
+    renderWithQuery(<GenresPage />)
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'Initialiser les genres depuis votre bibliothèque',
+      }),
+    ).toBeTruthy()
+  })
+
+  it('hides the seed button from a non-admin', async () => {
+    mockGetCurrentUser.mockResolvedValue(regularUser)
+
+    renderWithQuery(<GenresPage />)
+
+    // Wait for the empty-state message to confirm the page rendered, then assert
+    // neither the empty-state seed button nor the mobile FAB is present.
+    await screen.findByText('Aucun genre dans votre bibliothèque pour le moment.')
+    expect(
+      screen.queryByRole('button', {
+        name: 'Initialiser les genres depuis votre bibliothèque',
+      }),
+    ).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Initialiser les genres' })).toBeNull()
   })
 })
