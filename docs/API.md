@@ -144,6 +144,12 @@ Setup validation rules:
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
 | POST | `/api/v1/pipeline/rescan` | Yes | Re-fetch images/metadata for existing recommendations |
 
+`POST /api/v1/pipeline/run` and `/api/v1/pipeline/rescan` are intentionally
+available to any authenticated user (not admin-only): "Run Scan" is a core
+regular-user action on the dashboard and discover screens. Concurrency is
+bounded by a single-flight orchestrator, so a second run while one is active
+returns `409` rather than starting a parallel run.
+
 **POST /api/v1/pipeline/quick-discover** body:
 ```json
 { "artistName": "Radiohead" }

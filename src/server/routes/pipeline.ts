@@ -44,6 +44,11 @@ const EMPTY_DISCOVERY_SNAPSHOT = {
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
+  // Intentionally NOT admin-gated: "Run Scan" is a core regular-user action,
+  // reachable from the dashboard (TodaysPick) and discover surfaces. Any
+  // authenticated user may start a run; concurrency is bounded by the
+  // orchestrator.isRunning singleton (a second run returns 409), so the blast
+  // radius is one in-flight pipeline regardless of caller. See plan 008 Part C.
   router.post('/api/v1/pipeline/run', async (c) => {
     if (deps.orchestrator.isRunning) {
       return problem(
@@ -453,6 +458,8 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   // Re-resolve existing artists to update images/metadata
+  // Non-admin by design, same rationale as /pipeline/run above: any authenticated
+  // user may re-fetch images/metadata for existing recommendations.
   router.post('/api/v1/pipeline/rescan', async (c) => {
     const settings = await deps.getSettings()
     if (!settings?.lidarrUrl || !settings?.lidarrApiKey) {
