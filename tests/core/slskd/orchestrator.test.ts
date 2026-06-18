@@ -455,4 +455,46 @@ describe('createSlskdOrchestrator', () => {
     expect(updateJobState).toHaveBeenCalledWith(4, 'completed', expect.any(Object))
     expect(updateJobState).not.toHaveBeenCalledWith(4, 'failed', expect.any(Object))
   })
+
+  it('isolates a throwing job so the rest of the queue still processes', async () => {
+    const updateJobState = vi.fn(async () => makeJob())
+    // Same targetId -> both jobs share one cached slskd client, so the single
+    // createSearch mock rejects for job 1 and resolves for job 2.
+    const slskdClient = {
+      createSearch: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('slskd unreachable'))
+        .mockResolvedValue({ id: 'search-2' }),
+      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+      enqueueResult: vi.fn(async () => ({ id: 'queue-unused' })),
+      getDownloads: vi.fn(async () => []),
+    }
+
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({ id: 1, state: 'pending' }),
+        makeJob({ id: 2, state: 'pending' }),
+      ]),
+      processPendingJobs: vi.fn(async () => {}),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+    } as never)
+
+    // Must not reject: the first job's error is isolated, not propagated.
+    await expect(orchestrator.triggerSync()).resolves.toBeUndefined()
+
+    // Job 1 was marked failed with its error...
+    expect(updateJobState).toHaveBeenCalledWith(
+      1,
+      'failed',
+      expect.objectContaining({ lastError: expect.stringContaining('slskd unreachable') }),
+    )
+    // ...and job 2 was still processed despite job 1 throwing.
+    expect(updateJobState).toHaveBeenCalledWith(
+      2,
+      'searching',
+      expect.objectContaining({ slskdSearchId: 'search-2' }),
+    )
+    expect(slskdClient.createSearch).toHaveBeenCalledTimes(2)
+  })
 })

@@ -166,13 +166,11 @@ describe('resolveTagRadioRecordings', () => {
       { recordingMbid: 'rec-2', percent: 60, source: 'artist', tagCount: 3 },
     ]
 
-    mockLookupRecording
-      .mockRejectedValueOnce(new Error('MB 503'))
-      .mockResolvedValueOnce({
-        recordingMbid: 'rec-2',
-        artistMbid: 'artist-B',
-        artistName: 'Artist B',
-      })
+    mockLookupRecording.mockRejectedValueOnce(new Error('MB 503')).mockResolvedValueOnce({
+      recordingMbid: 'rec-2',
+      artistMbid: 'artist-B',
+      artistName: 'Artist B',
+    })
 
     const result = await resolveTagRadioRecordings(recordings, mockMbClient, mockDb)
 

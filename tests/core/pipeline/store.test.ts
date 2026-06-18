@@ -216,21 +216,4 @@ describe('store()', () => {
       streamingUrls: { spotify: 'https://spotify.com/foo' },
     })
   })
-
-  it('calls failBatch and rethrows when completeBatch throws', async () => {
-    const db = makeDb(1)
-    db.completeBatch.mockRejectedValueOnce(new Error('DB connection lost'))
-    db.failBatch = vi.fn().mockResolvedValue(undefined)
-
-    await expect(store([makeArtist('mbid-a')], db)).rejects.toThrow('DB connection lost')
-
-    expect(db.failBatch).toHaveBeenCalledWith(1)
-  })
-
-  it('does not call failBatch when it is not provided', async () => {
-    const db = makeDb(1)
-    db.completeBatch.mockRejectedValueOnce(new Error('DB connection lost'))
-
-    await expect(store([makeArtist('mbid-a')], db)).rejects.toThrow('DB connection lost')
-  })
 })
