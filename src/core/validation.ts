@@ -6,6 +6,11 @@ export function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
+export function logAndSanitize(err: unknown, context: string): string {
+  console.error(`[${context}]`, err)
+  return 'An unexpected error occurred'
+}
+
 export function normalizeIp(address: string): string {
   const bare =
     address

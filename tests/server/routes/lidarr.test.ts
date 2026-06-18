@@ -182,3 +182,24 @@ describe('GET /api/v1/lidarr/approve-options (non-admin picker)', () => {
     expect(res.status).toBe(200)
   })
 })
+
+describe('Lidarr onError sanitization', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('does not leak internal error details in the response', async () => {
+    const { createLidarrClient } = await import('@/core/clients/lidarr')
+    vi.mocked(createLidarrClient).mockReturnValueOnce({
+      getArtists: vi.fn(async () => {
+        throw new Error('connect ECONNREFUSED 10.0.0.5:8686')
+      }),
+    } as never)
+
+    const app = createTestApp({ userId: 1 })
+    const res = await app.request('/api/v1/lidarr/stats')
+    expect(res.status).toBe(500)
+    const body = await res.json()
+    expect(body.error).toBe('An unexpected error occurred')
+    expect(JSON.stringify(body)).not.toContain('10.0.0.5')
+    expect(JSON.stringify(body)).not.toContain('8686')
+  })
+})

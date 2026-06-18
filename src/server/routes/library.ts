@@ -5,7 +5,7 @@ import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
 import type { HealthCheckId } from '@/core/library/types'
-import { errMsg } from '@/core/validation'
+import { errMsg, logAndSanitize } from '@/core/validation'
 import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import {
@@ -79,7 +79,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
       const progress = await deps.libraryHealth.fixCheck(checkId as HealthCheckId)
       return c.json(progress)
     } catch (err: unknown) {
-      return c.json({ error: errMsg(err) }, 400)
+      return c.json({ error: logAndSanitize(err, 'library-health-fix') }, 400)
     }
   })
 

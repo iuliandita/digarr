@@ -12,6 +12,7 @@ import {
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { isValidStatus } from '@/core/recommendations/statuses'
+import { logAndSanitize } from '@/core/validation'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { backupFileSchema } from '@/server/schemas/admin'
 import type { HonoEnv } from '@/server/types'
@@ -103,8 +104,8 @@ export function adminRoutes(deps: AdminDeps) {
     try {
       result = await restoreBackup(deps.db, backup, { force })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      return c.json({ error: `Restore failed (rolled back): ${msg}` }, 500)
+      const message = logAndSanitize(err, 'admin-restore')
+      return c.json({ error: `Restore failed (rolled back): ${message}` }, 500)
     }
 
     if (result.encryptionMismatch && !force) {

@@ -406,7 +406,7 @@ describe('POST /api/v1/library/health/:checkId/fix', () => {
     })
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toMatch(/not fixable/i)
+    expect(body.error).toBe('An unexpected error occurred')
   })
 })
 

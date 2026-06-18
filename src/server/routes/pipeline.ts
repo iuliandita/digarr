@@ -21,7 +21,7 @@ import { resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
-import { errMsg } from '@/core/validation'
+import { errMsg, logAndSanitize } from '@/core/validation'
 import { upsertArtist } from '@/db/queries/artists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
@@ -181,7 +181,7 @@ export function pipelineRoutes(deps: AppDependencies) {
 
       return c.json({ message: 'Discovery run started', jobId }, 202)
     } catch (err: unknown) {
-      return c.json({ error: errMsg(err) }, 400)
+      return c.json({ error: logAndSanitize(err, 'discovery-mode') }, 400)
     }
   })
 
