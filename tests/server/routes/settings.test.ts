@@ -95,6 +95,10 @@ vi.mock('@/core/auth/oidc', () => ({
   },
 }))
 
+vi.mock('@/core/notifications', () => ({
+  sendWebhook: vi.fn(),
+}))
+
 const mockSettings = {
   id: 1,
   lidarrUrl: 'http://lidarr:8686',
@@ -1129,5 +1133,37 @@ describe('per-user listening source connections', () => {
         lastfmApiKey: 'my-key',
       }),
     )
+  })
+})
+
+describe('POST /api/v1/settings/test-webhook error sanitization', () => {
+  it('does not leak the upstream URL or raw error in the 502 response', async () => {
+    const { sendWebhook } = await import('@/core/notifications')
+    vi.mocked(sendWebhook).mockRejectedValueOnce(
+      new Error('connect ECONNREFUSED 10.9.8.7:9000 (http://hooks.internal:9000/notify)'),
+    )
+
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              preferences: { webhookUrl: 'http://hooks.internal:9000/notify' },
+            }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/settings/test-webhook', { method: 'POST' })
+
+    expect(res.status).toBe(502)
+    const body = (await res.json()) as { detail?: string }
+    // detail must be the generic message, not the raw error from sendWebhook
+    expect(body.detail).toBe('An unexpected error occurred')
+    const serialized = JSON.stringify(body)
+    expect(serialized).not.toContain('10.9.8.7')
+    expect(serialized).not.toContain('hooks.internal')
+    expect(serialized).not.toContain('ECONNREFUSED')
   })
 })

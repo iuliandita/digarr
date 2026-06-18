@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { errMsg } from '@/core/validation'
+import { logAndSanitize } from '@/core/validation'
 import type { AppDependencies } from '@/server'
 import { adminGuard } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
@@ -41,8 +41,7 @@ export function slskdRoutes(deps: SlskdRouteDeps) {
         console.error('[slskd] manual sync failed:', error)
       })
     } catch (error) {
-      console.error('[slskd] manual sync failed:', error)
-      return c.json({ error: errMsg(error) }, 500)
+      return c.json({ error: logAndSanitize(error, 'slskd-sync') }, 500)
     }
 
     return c.body(null, 202)

@@ -5,7 +5,7 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
 import { validateAiBaseUrl } from '@/core/url-safety'
-import { errMsg } from '@/core/validation'
+import { logAndSanitize } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
 import type { Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -613,7 +613,7 @@ export function settingsRoutes(deps: AppDependencies) {
         'webhook-test-failed',
         'Webhook test failed',
         502,
-        errMsg(err),
+        logAndSanitize(err, 'webhook-test'),
         undefined,
         'common.unknownError',
       )
