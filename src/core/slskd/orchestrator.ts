@@ -564,12 +564,23 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     for (const job of jobs) {
       const slskd = getSlskdClient(job.targetId)
 
-      if (job.state === 'pending' || job.state === 'searching') {
-        await processSearchableJob(job, slskd)
-        continue
-      }
+      try {
+        if (job.state === 'pending' || job.state === 'searching') {
+          await processSearchableJob(job, slskd)
+          continue
+        }
 
-      await processTransferJob(job, slskd, targets)
+        await processTransferJob(job, slskd, targets)
+      } catch (err: unknown) {
+        console.error(`[slskd] Job ${job.id} (${job.state}) failed:`, err)
+        try {
+          await deps.updateJobState?.(job.id, 'failed', {
+            lastError: err instanceof Error ? err.message : String(err),
+          })
+        } catch (markErr) {
+          console.error(`[slskd] Failed to mark job ${job.id} as failed:`, markErr)
+        }
+      }
     }
   }
 

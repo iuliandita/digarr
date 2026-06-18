@@ -67,4 +67,18 @@ describe('enrichGenres()', () => {
     const result = await enrichGenres(artists, lookup)
     expect(result[0]?.genres).toEqual(['rock'])
   })
+
+  it('returns artist unchanged when lookup throws, without aborting the batch', async () => {
+    const lookup: MetadataLookup = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('DB connection lost'))
+      .mockResolvedValueOnce({ spotifyGenres: ['jazz'], spotifyPopularity: 70 })
+    const artists = [
+      makeArtist({ name: 'Failing Artist', genres: ['rock'] }),
+      makeArtist({ name: 'OK Artist', genres: ['pop'] }),
+    ]
+    const result = await enrichGenres(artists, lookup)
+    expect(result[0]?.genres).toEqual(['rock'])
+    expect(result[1]?.genres).toEqual(['pop', 'jazz'])
+  })
 })

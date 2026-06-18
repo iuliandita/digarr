@@ -206,5 +206,18 @@ describe('createJobRecorder', () => {
 
       expect(db._mocks.updateSet).toHaveBeenCalledWith(expect.objectContaining({ status: 'stuck' }))
     })
+
+    it('continues processing remaining types when one type throws', async () => {
+      const db = makeDb({ updatedRows: 0 })
+      // First update call throws, subsequent ones succeed
+      db._mocks.update.mockRejectedValueOnce(new Error('DB timeout'))
+      const recorder = createJobRecorder(db as never)
+
+      const count = await recorder.markStuck()
+
+      // All 6 types attempted despite first failure
+      expect(db._mocks.update).toHaveBeenCalledTimes(6)
+      expect(count).toBe(0)
+    })
   })
 })

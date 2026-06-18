@@ -15,7 +15,13 @@ export async function enrichGenres(
   return Promise.all(
     artists.map(async (artist) => {
       if (artist.genres.length > SPARSE_THRESHOLD) return artist
-      const meta = await lookup(artist.name)
+      let meta: Awaited<ReturnType<MetadataLookup>>
+      try {
+        meta = await lookup(artist.name)
+      } catch (err) {
+        console.error(`[enrich] metadata lookup failed for ${artist.name}:`, err)
+        return artist
+      }
       if (!meta?.spotifyGenres?.length) return artist
       const existing = new Set(artist.genres.map((g) => g.toLowerCase()))
       const merged = [...artist.genres]

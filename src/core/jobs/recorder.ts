@@ -71,20 +71,24 @@ export function createJobRecorder(db: Database): JobRecorder {
       let totalMarked = 0
       for (const [type, thresholdMs] of Object.entries(STUCK_THRESHOLDS_MS)) {
         const cutoff = new Date(Date.now() - thresholdMs)
-        const result = await db
-          .update(jobRuns)
-          .set({ status: 'stuck' })
-          .where(
-            and(
-              eq(jobRuns.type, type),
-              eq(jobRuns.status, 'running'),
-              lt(jobRuns.startedAt, cutoff),
-            ),
-          )
-          .returning({ id: jobRuns.id })
-        if (result.length > 0) {
-          console.warn(`[jobs] Marked ${result.length} stuck ${type} job(s)`)
-          totalMarked += result.length
+        try {
+          const result = await db
+            .update(jobRuns)
+            .set({ status: 'stuck' })
+            .where(
+              and(
+                eq(jobRuns.type, type),
+                eq(jobRuns.status, 'running'),
+                lt(jobRuns.startedAt, cutoff),
+              ),
+            )
+            .returning({ id: jobRuns.id })
+          if (result.length > 0) {
+            console.warn(`[jobs] Marked ${result.length} stuck ${type} job(s)`)
+            totalMarked += result.length
+          }
+        } catch (err) {
+          console.error(`[jobs] Failed to mark stuck ${type} jobs:`, err)
         }
       }
       return totalMarked

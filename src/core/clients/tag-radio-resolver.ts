@@ -34,7 +34,12 @@ export async function resolveTagRadioRecordings(
   // 3. Resolve misses via MB (client handles rate limiting internally)
   const resolved: (RecordingArtistCredit | null)[] = []
   for (const r of misses) {
-    resolved.push(await mbClient.lookupRecording(r.recordingMbid))
+    try {
+      resolved.push(await mbClient.lookupRecording(r.recordingMbid))
+    } catch (err) {
+      console.error(`[tag-radio] lookupRecording failed for ${r.recordingMbid}:`, err)
+      resolved.push(null)
+    }
   }
 
   // 4. Write newly resolved to cache

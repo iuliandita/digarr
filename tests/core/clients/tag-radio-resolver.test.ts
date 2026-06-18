@@ -159,4 +159,25 @@ describe('resolveTagRadioRecordings', () => {
     expect(result[1]?.score).toBe(0.6)
     expect(result[2]?.score).toBe(0.3)
   })
+
+  it('continues resolving remaining recordings when one lookup throws', async () => {
+    const recordings: TagRadioRecording[] = [
+      { recordingMbid: 'rec-1', percent: 80, source: 'artist', tagCount: 5 },
+      { recordingMbid: 'rec-2', percent: 60, source: 'artist', tagCount: 3 },
+    ]
+
+    mockLookupRecording
+      .mockRejectedValueOnce(new Error('MB 503'))
+      .mockResolvedValueOnce({
+        recordingMbid: 'rec-2',
+        artistMbid: 'artist-B',
+        artistName: 'Artist B',
+      })
+
+    const result = await resolveTagRadioRecordings(recordings, mockMbClient, mockDb)
+
+    expect(mockLookupRecording).toHaveBeenCalledTimes(2)
+    expect(result).toHaveLength(1)
+    expect(result[0]?.artistMbid).toBe('artist-B')
+  })
 })
