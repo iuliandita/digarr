@@ -42,3 +42,4 @@ entities.json
 # Compose secrets -- example files tracked, real values ignored
 deploy/docker/secrets/*
 !deploy/docker/secrets/*.example
+/plans/

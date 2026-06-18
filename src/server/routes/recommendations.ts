@@ -316,7 +316,8 @@ export function recommendationRoutes(deps: AppDependencies) {
   })
 
   router.get('/api/v1/recommendations/feedback-summary', async (c) => {
-    const history = await deps.getFeedbackHistory()
+    const userId = c.get('userId')
+    const history = await deps.getFeedbackHistory(userId)
     const summary = [...history.entries()]
       .map(([genre, { approved, total }]) => ({
         genre,

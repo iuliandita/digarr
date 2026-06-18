@@ -507,6 +507,77 @@ describe('POST /api/v1/auth/logout', () => {
     })
     expect(res.status).toBe(401)
   })
+
+  it('clears the session cookie on logout', async () => {
+    const storedHash = hashPassword('password1234')
+    const app = createApp(
+      makeDeps({
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+        getUserCount: vi.fn(async () => 1),
+      }),
+    )
+
+    // Login
+    const loginRes = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
+    })
+    const { token } = await loginRes.json()
+
+    // Logout with Bearer token
+    const logoutRes = await app.request('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(logoutRes.status).toBe(204)
+    // The response should include a Set-Cookie header clearing the session cookie
+    const setCookie = logoutRes.headers.get('set-cookie')
+    expect(setCookie).not.toBeNull()
+    expect(setCookie).toContain('digarr_session=')
+    expect(setCookie?.toLowerCase()).toContain('max-age=0')
+  })
+
+  it('deletes session from cookie when no Bearer header is present', async () => {
+    const storedHash = hashPassword('password1234')
+    const app = createApp(
+      makeDeps({
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+        getUserCount: vi.fn(async () => 1),
+      }),
+    )
+
+    // Login
+    const loginRes = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
+    })
+    const { token } = await loginRes.json()
+
+    // Logout without Bearer header, using cookie instead
+    const logoutRes = await app.request('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: { Cookie: `digarr_session=${token}` },
+    })
+    expect(logoutRes.status).toBe(204)
+
+    // Token should no longer work (session was deleted from DB)
+    const res = await app.request('/api/v1/settings', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(res.status).toBe(401)
+  })
 })
 
 describe('GET /api/v1/auth/me', () => {

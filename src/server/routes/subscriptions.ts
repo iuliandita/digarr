@@ -686,7 +686,13 @@ export function subscriptionRoutes(deps: AppDependencies) {
     if (!userId) return notAuthenticated(c)
 
     const jobs = deps.scheduler.listJobs()
-    return c.json({ jobs })
+    const subs = await deps.subscriptionQueries.getSubscriptionsByUser(userId)
+    const ownedIds = new Set(subs.map((s) => String(s.id)))
+    const filtered = jobs.filter((j) => {
+      const m = j.name.match(/^subscription-(\d+)$/)
+      return m?.[1] ? ownedIds.has(m[1]) : false
+    })
+    return c.json({ jobs: filtered })
   })
 
   router.patch(

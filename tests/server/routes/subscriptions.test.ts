@@ -634,6 +634,21 @@ describe('GET /api/v1/subscriptions/scheduler', () => {
     const res = await app.request('/api/v1/subscriptions/scheduler')
     expect(res.status).toBe(401)
   })
+
+  it('filters out jobs belonging to other users', async () => {
+    mockScheduler.listJobs.mockReturnValueOnce([
+      { name: 'subscription-1', expression: '0 9 * * *', nextRun: new Date('2026-04-01') },
+      { name: 'subscription-2', expression: '0 10 * * *', nextRun: new Date('2026-04-02') },
+      { name: 'subscription-99', expression: '0 11 * * *', nextRun: new Date('2026-04-03') },
+    ])
+    // User 42 owns subscription 1 only (mockSub.id = 1)
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request('/api/v1/subscriptions/scheduler')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.jobs).toHaveLength(1)
+    expect(body.jobs[0].name).toBe('subscription-1')
+  })
 })
 
 describe('DELETE /api/v1/subscriptions/:id', () => {

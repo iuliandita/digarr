@@ -863,4 +863,11 @@ describe('GET /api/v1/recommendations/feedback-summary', () => {
     const body = await res.json()
     expect(body.summary).toHaveLength(0)
   })
+
+  it('scopes feedback history to the current user', async () => {
+    const getFeedbackHistory = vi.fn().mockResolvedValue(new Map())
+    const app = createApp(makeDeps({ getFeedbackHistory }))
+    await authedRequest(app, '/api/v1/recommendations/feedback-summary')
+    expect(getFeedbackHistory).toHaveBeenCalledWith(1)
+  })
 })

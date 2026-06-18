@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { type Context, Hono } from 'hono'
+import { deleteCookie, getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField } from '@/core/crypto'
@@ -15,6 +16,7 @@ import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
 import { resolveRequestLocale } from '@/server/locale'
+import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
   changePasswordSchema,
   registerSchema,
@@ -177,7 +179,11 @@ export function authRoutes(deps: AppDependencies) {
     const header = c.req.header('Authorization')
     if (header?.startsWith('Bearer ')) {
       await deleteSession(header.slice(7))
+    } else {
+      const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
+      if (cookieToken) await deleteSession(cookieToken)
     }
+    deleteCookie(c, SESSION_COOKIE_NAME, { path: '/' })
     return c.body(null, 204)
   })
 

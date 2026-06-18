@@ -99,3 +99,43 @@ describe('POST /api/v1/lidarr/add', () => {
     expect(body.id).toBe(42)
   })
 })
+
+describe('GET /api/v1/lidarr/* (admin guard)', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 403 for non-admin user on /rootfolders', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/rootfolders')
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for unauthenticated caller on /rootfolders', async () => {
+    const app = createTestApp({})
+    const res = await app.request('/api/v1/lidarr/rootfolders')
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 200 for admin user on /rootfolders', async () => {
+    const app = createTestApp({ userId: 1 })
+    const res = await app.request('/api/v1/lidarr/rootfolders')
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 403 for non-admin user on /stats', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/stats')
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for non-admin user on /profiles', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/profiles')
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for non-admin user on /metadataprofiles', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/metadataprofiles')
+    expect(res.status).toBe(403)
+  })
+})

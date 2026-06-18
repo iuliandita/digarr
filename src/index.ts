@@ -268,7 +268,7 @@ const storeDb: StoreDb = {
   },
   getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
-  getFeedbackHistory: () => getGenreFeedbackHistory(db),
+  getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),
   getLibraryArtistsForUser: async (userId, options) => {
@@ -1299,7 +1299,7 @@ const app = createApp({
 
     return { success: false, message: `Unknown target type: ${type}` }
   },
-  getFeedbackHistory: () => getGenreFeedbackHistory(db),
+  getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),

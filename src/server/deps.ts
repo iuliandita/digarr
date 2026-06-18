@@ -127,7 +127,7 @@ export interface RecommendationDeps {
   listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>
   getBatch: (id: number) => Promise<BatchRow | null>
   getArtistById: (id: number) => Promise<ArtistRow | null>
-  getFeedbackHistory: () => Promise<Map<string, { approved: number; total: number }>>
+  getFeedbackHistory: (userId?: number) => Promise<Map<string, { approved: number; total: number }>>
   listArtistBlocks: (params: {
     userId: number
     limit?: number

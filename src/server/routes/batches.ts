@@ -3,11 +3,12 @@ import type { AppDependencies } from '@/server'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
 import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
+import { adminGuard } from '@/server/middleware/admin-guard'
 
 export function batchRoutes(deps: AppDependencies) {
   const router = new Hono()
 
-  router.get('/api/v1/batches', async (c) => {
+  router.get('/api/v1/batches', adminGuard(deps.getUserById), async (c) => {
     const page = readPagination(c)
     if (page === null) {
       const batches = await deps.listBatches()
@@ -22,7 +23,7 @@ export function batchRoutes(deps: AppDependencies) {
     return c.json({ data, meta: { limit: page.limit, nextCursor } })
   })
 
-  router.get('/api/v1/batches/:id', async (c) => {
+  router.get('/api/v1/batches/:id', adminGuard(deps.getUserById), async (c) => {
     const id = parsePositiveIntParam(c.req.param('id'))
     if (id == null) return c.json({ error: 'Invalid batch ID' }, 400)
     const batch = await deps.getBatch(id)

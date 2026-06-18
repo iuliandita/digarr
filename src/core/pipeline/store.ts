@@ -45,7 +45,7 @@ export interface StoreDb {
 
   getBlockedMbids: (userId: number) => Promise<Set<string>>
 
-  getFeedbackHistory: () => Promise<Map<string, { approved: number; total: number }>>
+  getFeedbackHistory: (userId?: number) => Promise<Map<string, { approved: number; total: number }>>
 
   lookupArtistMetadata?: (name: string) => Promise<{
     spotifyGenres: string[] | null

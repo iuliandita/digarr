@@ -218,9 +218,11 @@ export async function bulkUpdateStatus(db: Database, ids: number[], status: stri
 
 export async function getGenreFeedbackHistory(
   db: Database,
+  userId?: number,
 ): Promise<Map<string, { approved: number; total: number }>> {
   // Pushing the per-genre tally into SQL via unnest lets Postgres do the
   // hash-aggregate work - JS side only walks the reduced result.
+  const userFilter = userId !== undefined ? sql`AND r.user_id = ${userId}` : sql``
   const result = await db.execute(sql`
     SELECT
       genre,
@@ -231,6 +233,7 @@ export async function getGenreFeedbackHistory(
     CROSS JOIN LATERAL unnest(a.genres) AS genre
     WHERE r.acted_on_at IS NOT NULL
       AND a.genres IS NOT NULL
+      ${userFilter}
     GROUP BY genre
   `)
 

@@ -5,6 +5,7 @@ import { getArtistsByGenre, getGenreEnrichments } from '@/db/queries/artists'
 import { getGenreArtists } from '@/db/queries/recommendations'
 import type { AppDependencies } from '@/server'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
+import { adminGuard } from '@/server/middleware/admin-guard'
 import type { HonoEnv } from '@/server/types'
 
 export function genreRoutes(deps: AppDependencies) {
@@ -75,7 +76,7 @@ export function genreRoutes(deps: AppDependencies) {
     return c.json({ artists })
   })
 
-  router.post('/api/v1/genres/seed', async (c) => {
+  router.post('/api/v1/genres/seed', adminGuard(deps.getUserById), async (c) => {
     const settings = await deps.getSettings()
     if (!settings?.lidarrUrl || !settings?.lidarrApiKey) {
       return c.json({ error: 'Lidarr not configured' }, 400)

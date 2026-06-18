@@ -145,7 +145,11 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),
-    getUserById: vi.fn(async () => null),
+    getUserById: vi.fn(async () => ({
+      id: 1,
+      username: 'admin',
+      isAdmin: true,
+    })) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 0),
     updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
