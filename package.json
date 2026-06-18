@@ -65,7 +65,7 @@
     "@hono/zod-validator": "^0.8.0",
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.12.23",
+    "hono": "^4.12.26",
     "openai": "^6.39.1",
     "openid-client": "^6.8.4",
     "p-queue": "^9.3.0",
