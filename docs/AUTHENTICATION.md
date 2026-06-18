@@ -9,6 +9,11 @@ login returns a session token delivered as both an `httpOnly; SameSite=Lax`
 cookie and an `Authorization: Bearer` token for SPA fetches. Tokens are
 SHA-256 hashed before storage.
 
+Logout (`POST /api/v1/auth/logout`) deletes the session server-side (by both
+the bearer and cookie token, if present) and clears the `digarr_session`
+cookie by emitting `Set-Cookie ... Max-Age=0; Path=/`, so a stale browser
+cookie cannot be replayed after sign-out.
+
 Registration is closed by default after the first user has been created. To
 open registration in a fresh install or internal deployment, set
 `DIGARR_DISABLE_REGISTRATION=false`.

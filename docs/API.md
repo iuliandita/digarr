@@ -705,7 +705,7 @@ Settings notes:
 | GET | `/api/v1/lidarr/metadataprofiles` | Admin | Metadata profiles |
 | GET | `/api/v1/lidarr/rootfolders` | Admin | Root folders |
 | GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names and root-folder paths only (no freeSpace/structure) |
-| POST | `/api/v1/lidarr/add` | Yes | Add artist to Lidarr |
+| POST | `/api/v1/lidarr/add` | Admin | Add artist to Lidarr |
 
 ---
 
