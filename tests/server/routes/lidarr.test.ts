@@ -8,9 +8,13 @@ vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(() => ({
     addArtist: vi.fn(async () => ({ id: 42, artistName: 'Test' })),
     getArtists: vi.fn(async () => []),
-    getMetadataProfiles: vi.fn(async () => []),
-    getQualityProfiles: vi.fn(async () => []),
-    getRootFolders: vi.fn(async () => []),
+    // Carry extra fields the approve-options projection must strip: profiles
+    // gain a stray prop, root folders carry freeSpace + structure metadata.
+    getMetadataProfiles: vi.fn(async () => [{ id: 10, name: 'Standard', extra: 'leak' }]),
+    getQualityProfiles: vi.fn(async () => [{ id: 20, name: 'FLAC', extra: 'leak' }]),
+    getRootFolders: vi.fn(async () => [
+      { id: 30, path: '/music', freeSpace: 9_999_999, unmappedFolders: ['/secret'] },
+    ]),
   })),
 }))
 
@@ -137,5 +141,44 @@ describe('GET /api/v1/lidarr/* (admin guard)', () => {
     const app = createTestApp({ userId: 2 })
     const res = await app.request('/api/v1/lidarr/metadataprofiles')
     expect(res.status).toBe(403)
+  })
+})
+
+describe('GET /api/v1/lidarr/approve-options (non-admin picker)', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 200 with picker data for a non-admin user', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/approve-options')
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as {
+      qualityProfiles: Array<{ id: number; name: string }>
+      metadataProfiles: Array<{ id: number; name: string }>
+      rootFolders: Array<{ id: number; path: string }>
+    }
+    expect(body.qualityProfiles).toEqual([{ id: 20, name: 'FLAC' }])
+    expect(body.metadataProfiles).toEqual([{ id: 10, name: 'Standard' }])
+    expect(body.rootFolders).toEqual([{ id: 30, path: '/music' }])
+  })
+
+  it('projects away freeSpace and any structure metadata', async () => {
+    const app = createTestApp({ userId: 2 })
+    const res = await app.request('/api/v1/lidarr/approve-options')
+    const raw = await res.text()
+    // Regression guard for the .map projection: none of the stripped fields
+    // may leak into the serialized response.
+    expect(raw).not.toContain('freeSpace')
+    expect(raw).not.toContain('unmappedFolders')
+    expect(raw).not.toContain('extra')
+  })
+
+  // Unlike the four GETs above, this route omits adminGuard on purpose so a
+  // non-admin can populate the approve dialog. Login is still enforced, but by
+  // the app-level auth middleware (see src/server/index.ts), not here -- so
+  // there is no per-route auth assertion to make in this unit harness.
+  it('does not wrap the route in adminGuard (admin also gets 200)', async () => {
+    const app = createTestApp({ userId: 1 })
+    const res = await app.request('/api/v1/lidarr/approve-options')
+    expect(res.status).toBe(200)
   })
 })

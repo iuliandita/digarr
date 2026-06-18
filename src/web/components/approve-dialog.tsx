@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getLidarrMetadataProfiles, getLidarrProfiles, getLidarrRootFolders } from '../lib/api'
+import { getLidarrApproveOptions } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import type { MonitorOption } from './monitoring-options'
 import { Button } from './ui/button'
 
 type Profile = { id: number; name: string }
-type RootFolder = { id: number; path: string; freeSpace: number }
+type RootFolder = { id: number; path: string }
 
 type Props = {
   defaults: { qualityProfileId: number; metadataProfileId: number; rootFolderId: number }
@@ -31,11 +31,11 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    Promise.all([getLidarrProfiles(), getLidarrMetadataProfiles(), getLidarrRootFolders()])
-      .then(([p, m, r]) => {
-        setProfiles(p as Profile[])
-        setMetadataProfiles(m as Profile[])
-        setRootFolders(r as RootFolder[])
+    getLidarrApproveOptions()
+      .then((opts) => {
+        setProfiles(opts.qualityProfiles)
+        setMetadataProfiles(opts.metadataProfiles)
+        setRootFolders(opts.rootFolders)
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))

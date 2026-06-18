@@ -370,6 +370,15 @@ export const getLidarrMetadataProfiles = () =>
   fetchApi<Array<{ id: number; name: string }>>('/lidarr/metadataprofiles')
 export const getLidarrRootFolders = () =>
   fetchApi<Array<{ id: number; path: string; freeSpace?: number }>>('/lidarr/rootfolders')
+// Non-admin-safe picker data for the approve dialog: profile names + root-folder
+// paths only, no freeSpace/structure. The three fns above stay for the admin
+// settings screen, which is allowed to see the full payloads.
+export const getLidarrApproveOptions = () =>
+  fetchApi<{
+    qualityProfiles: Array<{ id: number; name: string }>
+    metadataProfiles: Array<{ id: number; name: string }>
+    rootFolders: Array<{ id: number; path: string }>
+  }>('/lidarr/approve-options')
 
 // Library Health
 export type HealthCheckItem = {

@@ -48,6 +48,26 @@ export function lidarrRoutes(deps: AppDependencies) {
     return c.json(await client.getRootFolders())
   })
 
+  // Non-admin picker for the approve dialog. The four GETs above stay
+  // admin-only because they expose library structure and free-space; this
+  // endpoint returns only the fields the picker needs. The explicit .map
+  // projection is the security boundary -- never c.json a raw client object,
+  // as RootFolder carries freeSpace (and the types may gain fields later).
+  router.get('/api/v1/lidarr/approve-options', async (c) => {
+    const client = await getClient()
+    const [qualityProfiles, metadataProfiles, rootFolders] = await Promise.all([
+      client.getQualityProfiles(),
+      client.getMetadataProfiles(),
+      client.getRootFolders(),
+    ])
+    return c.json({
+      qualityProfiles: qualityProfiles.map((p) => ({ id: p.id, name: p.name })),
+      metadataProfiles: metadataProfiles.map((p) => ({ id: p.id, name: p.name })),
+      // path is kept as the picker label; freeSpace and any other fields drop.
+      rootFolders: rootFolders.map((f) => ({ id: f.id, path: f.path })),
+    })
+  })
+
   router.post(
     '/api/v1/lidarr/add',
     adminGuard(deps.getUserById),
