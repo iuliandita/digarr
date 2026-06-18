@@ -19,11 +19,11 @@ const mockDeps = {
 
 const { targetRoutes } = await import('@/server/routes/targets')
 
-function createTestApp() {
+function createTestApp(userId = 1) {
   const app = new Hono<HonoEnv>()
   // Simulate auth middleware setting userId
   app.use('*', async (c, next) => {
-    c.set('userId', 1)
+    c.set('userId', userId)
     await next()
   })
   app.route('/', targetRoutes(mockDeps as never))
@@ -33,6 +33,12 @@ function createTestApp() {
 describe('target routes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // clearAllMocks wipes call history but not implementations; re-assert the
+    // admin default so a per-test isAdmin:false override does not leak forward
+    // into the adminGuard-protected mutation tests.
+    mockDeps.getUserById.mockResolvedValue({ isAdmin: true })
+    mockDeps.targetQueries.getAllTargets.mockResolvedValue([])
+    mockDeps.targetQueries.getTargetsByUser.mockResolvedValue([])
   })
 
   it('GET /api/v1/targets returns all targets with ownership flag', async () => {
@@ -63,6 +69,66 @@ describe('target routes', () => {
     expect(body[0].config.apiKey).toBe('***')
     expect(body[0].owned).toBe(true)
     expect(body[1].owned).toBe(false)
+  })
+
+  it('GET /api/v1/targets scopes a non-admin to their own targets only', async () => {
+    // The non-admin caller (userId 2) must never receive another user's target.
+    mockDeps.getUserById.mockResolvedValue({ isAdmin: false })
+    mockDeps.targetQueries.getTargetsByUser.mockResolvedValue([
+      {
+        id: 2,
+        type: 'lidarr',
+        name: 'My Own Lidarr',
+        enabled: true,
+        userId: 2,
+        config: { url: 'http://mine:8686', apiKey: 'mine-secret' },
+      },
+    ])
+    // If the handler ever calls getAllTargets for a non-admin, this leak payload
+    // would surface in the response and fail the regression assertions below.
+    mockDeps.targetQueries.getAllTargets.mockResolvedValue([
+      {
+        id: 99,
+        type: 'lidarr',
+        name: 'Admin Secret Lidarr',
+        enabled: true,
+        userId: 1,
+        config: { url: 'http://other-user-host:8686', apiKey: 'leak' },
+      },
+    ])
+    const app = createTestApp(2)
+    const res = await app.request('/api/v1/targets')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toHaveLength(1)
+    expect(body[0].userId).toBe(2)
+    expect(body[0].owned).toBe(true)
+    expect(mockDeps.targetQueries.getTargetsByUser).toHaveBeenCalledWith(2)
+    expect(mockDeps.targetQueries.getAllTargets).not.toHaveBeenCalled()
+    // Regression guard: no field from another user's target may serialize.
+    const raw = JSON.stringify(body)
+    expect(raw).not.toContain('other-user-host')
+    expect(raw).not.toContain('Admin Secret Lidarr')
+    expect(raw).not.toContain('leak')
+  })
+
+  it('GET /api/v1/targets masks secrets in the non-admin owned list', async () => {
+    mockDeps.getUserById.mockResolvedValue({ isAdmin: false })
+    mockDeps.targetQueries.getTargetsByUser.mockResolvedValue([
+      {
+        id: 2,
+        type: 'lidarr',
+        name: 'My Own Lidarr',
+        enabled: true,
+        userId: 2,
+        config: { url: 'http://mine:8686', apiKey: 'mine-secret' },
+      },
+    ])
+    const app = createTestApp(2)
+    const res = await app.request('/api/v1/targets')
+    const body = await res.json()
+    expect(body[0].config.apiKey).toBe('***')
+    expect(JSON.stringify(body)).not.toContain('mine-secret')
   })
 
   it('POST /api/v1/targets creates a target', async () => {

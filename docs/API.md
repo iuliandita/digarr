@@ -370,7 +370,7 @@ Discovery-mode subscription notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/targets` | Yes | List all targets (config masked for non-owners) |
+| GET | `/api/v1/targets` | Yes | List targets. Admins see all targets (config masked for non-owners); non-admins see only their own |
 | POST | `/api/v1/targets` | Admin | Create target |
 | PATCH | `/api/v1/targets/:id` | Admin | Update target |
 | DELETE | `/api/v1/targets/:id` | Admin | Delete target |

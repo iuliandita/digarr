@@ -33,17 +33,30 @@ type TargetDeps = {
 export function targetRoutes(deps: TargetDeps) {
   const router = new Hono<HonoEnv>()
 
-  // Returns all targets. Each target includes `owned: true` if it belongs to the caller.
-  // Non-owners see masked configs and cannot modify/delete.
+  // Admins see every target (with masked configs); each row carries `owned: true`
+  // when it belongs to the caller. Non-admins see ONLY their own targets -- other
+  // users' target url/host/name/userId must not leak to a non-admin caller.
   router.get('/api/v1/targets', async (c) => {
     const userId = c.get('userId')
     if (!userId) return notAuthenticated(c)
+    const user = await deps.getUserById(userId)
+    const isAdmin = !!user?.isAdmin
     const page = readPagination(c)
     const shape = (t: TargetRow) => ({
       ...t,
       config: maskConfig(t.config),
       owned: t.userId === userId,
     })
+    // Non-admins are scoped to their own targets. getTargetsByUser is unpaginated
+    // (a user owns few targets), so return the full owned set in whichever response
+    // shape the caller asked for -- a single page with no continuation cursor.
+    if (!isAdmin) {
+      const owned = await deps.targetQueries.getTargetsByUser(userId)
+      const shaped = owned.map(shape)
+      return page === null
+        ? c.json(shaped)
+        : c.json({ data: shaped, meta: { limit: page.limit, nextCursor: null } })
+    }
     if (page === null) {
       const allTargets = await deps.targetQueries.getAllTargets()
       return c.json(allTargets.map(shape))
