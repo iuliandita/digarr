@@ -24,6 +24,7 @@ const VALID_CHECK_IDS: Set<string> = new Set([
   'duplicate-artists',
   'genre-gaps',
   'image-gaps',
+  'missing-wikidata',
 ])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 

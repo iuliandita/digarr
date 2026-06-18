@@ -239,6 +239,13 @@
       "when": 1777757565263,
       "tag": "0033_job-runs-subscription-index-schema",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1781778038823,
+      "tag": "0034_marvelous_mockingbird",
+      "breakpoints": true
     }
   ]
 }

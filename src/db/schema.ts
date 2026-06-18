@@ -208,6 +208,7 @@ export const recommendationBatches = pgTable(
   },
   (table) => ({
     subscriptionIdx: index('recommendation_batches_subscription_id_idx').on(table.subscriptionId),
+    createdAtIdx: index('recommendation_batches_created_at_id_idx').on(table.createdAt, table.id),
   }),
 )
 
@@ -279,6 +280,7 @@ export const jobRuns = pgTable(
     subscriptionIdx: index('idx_job_runs_subscription')
       .on(table.subscriptionId)
       .where(sql`${table.subscriptionId} IS NOT NULL`),
+    typeStartedAtIdx: index('job_runs_type_started_at_idx').on(table.type, table.startedAt),
   }),
 )
 

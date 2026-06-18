@@ -408,6 +408,27 @@ describe('POST /api/v1/library/health/:checkId/fix', () => {
     const body = await res.json()
     expect(body.error).toBe('An unexpected error occurred')
   })
+
+  it('accepts missing-wikidata as a valid check ID', async () => {
+    const libraryHealth = {
+      ...makeMockLibraryHealth(),
+      fixCheck: vi.fn(async () => ({
+        checkId: 'missing-wikidata',
+        total: 1,
+        completed: 1,
+        failed: 0,
+        status: 'completed',
+        errors: [],
+      })),
+    } as unknown as AppDependencies['libraryHealth']
+    const app = createApp(makeDeps({ libraryHealth }))
+    const res = await authedRequest(app, '/api/v1/library/health/missing-wikidata/fix', {
+      method: 'POST',
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.checkId).toBe('missing-wikidata')
+  })
 })
 
 describe('GET /api/v1/library/stats', () => {

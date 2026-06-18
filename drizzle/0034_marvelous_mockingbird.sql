@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS "job_runs_type_started_at_idx" ON "job_runs" USING btree ("type","started_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "recommendation_batches_created_at_id_idx" ON "recommendation_batches" USING btree ("created_at","id");
