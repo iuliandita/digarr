@@ -4,6 +4,24 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.8 - 2026-06-19
+
+Authorization hardening release candidate.
+
+### Security
+
+- The target list (`GET /api/v1/targets`) no longer exposes other users' targets to non-admins. Each account now sees only its own targets; admins keep the full cross-user view. Previously a non-admin could read every user's target name, type, and connection URL/host (secrets were already masked).
+- Closed several authorization and IDOR gaps so non-admins can no longer reach admin-scoped data or actions through unguarded read endpoints.
+- Patched a CORS advisory by updating the HTTP framework (hono) to 4.12.26. Digarr did not use the vulnerable wildcard-credentials configuration, but the dependency is updated as a precaution.
+
+### Added
+
+- The approve dialog now loads its quality/metadata profiles and root folders from a dedicated non-admin endpoint that returns only the names and paths it needs, without leaking Lidarr free-space or library-structure details.
+
+### Fixed
+
+- The "Seed Genres" control is now hidden from non-admin users, matching the server-side permission (it always returned a permission error for them before).
+
 ## v1.0.0-rc.7 - 2026-06-17
 
 Startup resilience release candidate.
