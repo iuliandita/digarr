@@ -198,7 +198,7 @@ Locale notes:
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject |
-| GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20) |
+| GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20), scoped to the calling user's own feedback |
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed` (comma-separated)
@@ -296,8 +296,8 @@ Notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/batches` | Yes | List all recommendation batches |
-| GET | `/api/v1/batches/:id` | Yes | Get batch details |
+| GET | `/api/v1/batches` | Admin | List all recommendation batches |
+| GET | `/api/v1/batches/:id` | Admin | Get batch details |
 
 Path params:
 - `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
@@ -322,7 +322,7 @@ Path params:
 | GET | `/api/v1/subscriptions/import/deezer-playlists` | Yes | List user's Deezer playlists |
 | POST | `/api/v1/subscriptions/import/deezer-playlists` | Yes | Import from a Deezer playlist (202) |
 | GET | `/api/v1/subscriptions/adapter-types` | Yes | Available adapter types with config schemas |
-| GET | `/api/v1/subscriptions/scheduler` | Yes | Scheduler job status |
+| GET | `/api/v1/subscriptions/scheduler` | Yes | Scheduler job status, scoped to the calling user's own subscriptions |
 | POST | `/api/v1/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer-favorites`, `deezer-followed`, `deezer-flow`, `deezer-playlists`, `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
@@ -417,7 +417,7 @@ Discovery-mode subscription notes:
 | GET | `/api/v1/genres/search` | Yes | Search genres |
 | GET | `/api/v1/genres/:slug` | Yes | Genre detail with sub-genres and library artists |
 | GET | `/api/v1/genres/:slug/artists` | Yes | Artists by genre (view: recommended/trending/deep_cuts) |
-| POST | `/api/v1/genres/seed` | Yes | Seed genre database from Lidarr library (202) |
+| POST | `/api/v1/genres/seed` | Admin | Seed genre database from Lidarr library (202) |
 
 **GET /api/v1/genres/search** query params:
 - `q` - required search string, minimum 2 characters
@@ -700,10 +700,11 @@ Settings notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/lidarr/stats` | Yes | Artist count, monitored count |
-| GET | `/api/v1/lidarr/profiles` | Yes | Quality profiles |
-| GET | `/api/v1/lidarr/metadataprofiles` | Yes | Metadata profiles |
-| GET | `/api/v1/lidarr/rootfolders` | Yes | Root folders |
+| GET | `/api/v1/lidarr/stats` | Admin | Artist count, monitored count |
+| GET | `/api/v1/lidarr/profiles` | Admin | Quality profiles |
+| GET | `/api/v1/lidarr/metadataprofiles` | Admin | Metadata profiles |
+| GET | `/api/v1/lidarr/rootfolders` | Admin | Root folders |
+| GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names and root-folder paths only (no freeSpace/structure) |
 | POST | `/api/v1/lidarr/add` | Yes | Add artist to Lidarr |
 
 ---
