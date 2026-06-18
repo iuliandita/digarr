@@ -3,6 +3,7 @@ import { executeDiscoveryMode } from '@/core/discovery-modes/executor'
 import { prepareDiscoveryModeRequest } from '@/core/discovery-modes/prepare'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { JobRecorder } from '@/core/jobs/types'
 import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import { errMsg } from '@/core/validation'
@@ -105,7 +106,7 @@ export async function runDiscoveryMode({
     return { batchId: result.batchId, artistsFound: explicitCandidates.length }
   } catch (error: unknown) {
     if (jobId != null && jobRecorder) {
-      await jobRecorder.fail(jobId, errMsg(error)).catch(() => {})
+      await recordFailureSafely(jobRecorder, jobId, errMsg(error))
     }
     throw error
   }

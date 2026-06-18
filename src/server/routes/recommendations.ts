@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { selectPopularReleaseGroups } from '@/core/albums/popular'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -132,7 +133,7 @@ async function addArtistToTarget(
         },
       })
     } else {
-      await jobRecorder.fail(targetJobId, result.error ?? 'Target returned failure').catch(() => {})
+      await recordFailureSafely(jobRecorder, targetJobId, result.error ?? 'Target returned failure')
     }
   }
 

@@ -20,6 +20,7 @@ import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
+import { recordFailureSafely } from './core/jobs/record-failure-safely'
 import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
 import { createAlbumCoverageService } from './core/library/album-coverage'
@@ -1089,7 +1090,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
     }
   } catch (err: unknown) {
     if (jobId != null) {
-      await jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
+      await recordFailureSafely(jobRecorder, jobId, errMsg(err))
     }
     throw err
   }

@@ -12,6 +12,7 @@ import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { buildDiscoveryModeJobMetadata } from '@/core/discovery-modes/run'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
 import { filter } from '@/core/pipeline/filter'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
@@ -441,7 +442,7 @@ export function pipelineRoutes(deps: AppDependencies) {
         }
       } catch (err: unknown) {
         if (jobId != null && jobRecorder) {
-          await jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
+          await recordFailureSafely(jobRecorder, jobId, errMsg(err))
         }
         console.error('Quick discover failed:', err)
       }

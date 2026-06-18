@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { JobRecorder, JobType } from '@/core/jobs/types'
 import { errMsg } from '@/core/validation'
 import { type ReconciledAlbum, reconcileAlbumsForArtist } from './album-reconciler'
@@ -218,11 +219,7 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         // best-effort
       }
       if (jobId !== null) {
-        try {
-          await deps.recorder.fail(jobId, error)
-        } catch {
-          // best-effort
-        }
+        await recordFailureSafely(deps.recorder, jobId, error)
       }
       return { source: source.id, status: 'failed', error }
     }

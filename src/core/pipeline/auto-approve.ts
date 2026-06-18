@@ -1,3 +1,4 @@
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { DestinationTarget, TargetAddOptions } from '@/core/targets/types'
 import type { StatusUpdateExtra } from '@/db/queries/recommendations'
 
@@ -120,9 +121,11 @@ export async function autoApprove(
             },
           })
         } else {
-          await deps.jobRecorder
-            .fail(targetJobId, result.error ?? 'Target returned failure')
-            .catch(() => {})
+          await recordFailureSafely(
+            deps.jobRecorder,
+            targetJobId,
+            result.error ?? 'Target returned failure',
+          )
         }
       }
     }

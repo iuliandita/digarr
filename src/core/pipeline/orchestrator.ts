@@ -8,6 +8,7 @@ import { createMusicinfoClient } from '@/core/clients/musicinfo'
 import { decryptField } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
+import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { sendWebhook } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
@@ -489,7 +490,7 @@ export class PipelineOrchestrator extends EventEmitter {
       return { batchId }
     } catch (err: unknown) {
       if (jobId != null && deps.jobRecorder) {
-        await deps.jobRecorder.fail(jobId, errMsg(err)).catch(() => {})
+        await recordFailureSafely(deps.jobRecorder, jobId, errMsg(err))
       }
       this.emit('error', err)
       throw err
