@@ -12,19 +12,6 @@ export type BatchStats = {
   failed: number
 }
 
-export async function createBatch(
-  db: Database,
-  sourceConfig: Record<string, unknown>,
-): Promise<BatchRow> {
-  const rows = await db
-    .insert(recommendationBatches)
-    .values({ sourceConfig, status: 'running' })
-    .returning()
-  const row = rows[0]
-  if (!row) throw new Error('createBatch: no row returned')
-  return row
-}
-
 export async function completeBatch(db: Database, id: number, stats: BatchStats): Promise<void> {
   await db
     .update(recommendationBatches)
