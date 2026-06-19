@@ -6,6 +6,15 @@ export type DiscoveryConnectionSnapshot = {
   hasLibrarySync: boolean
 }
 
+/** All-false connection snapshot: the default when no provider-state resolver is wired. */
+export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
+  hasListenBrainz: false,
+  hasSpotify: false,
+  hasLastfm: false,
+  hasDiscogs: false,
+  hasLibrarySync: false,
+}
+
 export type DiscoveryAvailabilityResult = {
   enabled: boolean
   fallbackUsed: boolean

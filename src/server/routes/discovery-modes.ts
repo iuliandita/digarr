@@ -1,17 +1,12 @@
 import { Hono } from 'hono'
-import { evaluateDiscoveryModeAvailability } from '@/core/discovery-modes/availability'
+import {
+  EMPTY_DISCOVERY_SNAPSHOT,
+  evaluateDiscoveryModeAvailability,
+} from '@/core/discovery-modes/availability'
 import { createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import type { AppDependencies } from '@/server'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import type { HonoEnv } from '@/server/types'
-
-const EMPTY_DISCOVERY_SNAPSHOT = {
-  hasListenBrainz: false,
-  hasSpotify: false,
-  hasLastfm: false,
-  hasDiscogs: false,
-  hasLibrarySync: false,
-}
 
 export function discoveryModeRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()

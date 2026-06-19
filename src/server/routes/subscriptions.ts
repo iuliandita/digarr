@@ -3,6 +3,7 @@ import { createDeezerUserClient } from '@/core/clients/deezer-user'
 import { resolveDeezerToken } from '@/core/deezer-auth'
 import {
   buildDiscoveryModeExecutionContext,
+  EMPTY_DISCOVERY_SNAPSHOT,
   evaluateDiscoveryModeAvailability,
 } from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
@@ -41,14 +42,6 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return null
   }
   return value as Record<string, unknown>
-}
-
-const EMPTY_DISCOVERY_SNAPSHOT = {
-  hasListenBrainz: false,
-  hasSpotify: false,
-  hasLastfm: false,
-  hasDiscogs: false,
-  hasLibrarySync: false,
 }
 
 function normalizeDiscoveryModeSourceConfig(sourceConfig: unknown): Record<string, unknown> | null {

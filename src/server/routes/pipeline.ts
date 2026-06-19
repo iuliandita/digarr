@@ -5,6 +5,7 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import {
   buildDiscoveryModeExecutionContext,
+  EMPTY_DISCOVERY_SNAPSHOT,
   evaluateDiscoveryModeAvailability,
 } from '@/core/discovery-modes/availability'
 import { prepareDiscoveryModeRequest } from '@/core/discovery-modes/prepare'
@@ -33,14 +34,6 @@ import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pi
 import { zJson } from '@/server/schemas/validator'
 import { createPipelineSSEStream } from '@/server/sse'
 import type { HonoEnv } from '@/server/types'
-
-const EMPTY_DISCOVERY_SNAPSHOT = {
-  hasListenBrainz: false,
-  hasSpotify: false,
-  hasLastfm: false,
-  hasDiscogs: false,
-  hasLibrarySync: false,
-}
 
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
