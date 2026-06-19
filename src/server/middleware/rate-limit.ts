@@ -50,6 +50,13 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
   ensurePruneStarted()
 
   return createMiddleware<HonoEnv>(async (c, next) => {
+    // Test-only escape hatch: browser E2E suites perform many logins across
+    // specs within one window and would otherwise trip the per-IP budget. The
+    // `NODE_ENV !== 'production'` guard is inlined to `false` and tree-shaken in
+    // a production build, so this can never be enabled in prod.
+    if (process.env.NODE_ENV !== 'production' && process.env.DIGARR_DISABLE_RATE_LIMIT === '1') {
+      return next()
+    }
     // Use socket IP to prevent bypass via forged X-Forwarded-For headers.
     // Same approach as proxy-auth.ts getSocketIp().
     const ip = getSocketIp(c) ?? 'unknown'

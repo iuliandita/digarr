@@ -9,8 +9,10 @@ const webServer =
           port: 3000,
           reuseExistingServer: false,
           timeout: 30_000,
-          // Registers the test-only seed route (POST /api/v1/test/seed-recommendations).
-          env: { ...process.env, NODE_ENV: 'test' },
+          // NODE_ENV=test registers the seed route (POST /api/v1/test/seed-recommendations).
+          // DIGARR_DISABLE_RATE_LIMIT lifts the per-IP login budget so the many
+          // logins across specs in one window don't 429 the later specs.
+          env: { ...process.env, NODE_ENV: 'test', DIGARR_DISABLE_RATE_LIMIT: '1' },
         },
         {
           command: 'bun run dev:web',
