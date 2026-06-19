@@ -16,15 +16,24 @@ async function embyFetch<T>(
   path: string,
   options?: { method?: string; body?: unknown; skipTlsVerify?: boolean },
 ): Promise<T> {
-  const res = await fetch(`${baseUrl.replace(/\/+$/, '')}${path}`, {
-    method: options?.method ?? 'GET',
-    headers: {
-      'X-Emby-Token': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: options?.body ? JSON.stringify(options.body) : undefined,
-    ...(options?.skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
-  })
+  const url = `${baseUrl.replace(/\/+$/, '')}${path}`
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10_000)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: options?.method ?? 'GET',
+      headers: {
+        'X-Emby-Token': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: options?.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal,
+      ...(options?.skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
+    })
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) {
     throw new Error(`Emby API ${res.status}: ${await res.text()}`)
   }
