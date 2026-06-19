@@ -17,7 +17,3 @@ export const oauthInitiateSchema = z
       .optional(),
   })
   .passthrough()
-
-export const oauthProviderParamSchema = z.object({
-  provider: z.enum(['spotify', 'deezer']),
-})

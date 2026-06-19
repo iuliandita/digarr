@@ -13,11 +13,6 @@ export const registerSchema = z.object({
   password: passwordSchema,
 })
 
-export const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
-})
-
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: passwordSchema.refine(
@@ -31,16 +26,6 @@ export const updateLocaleSchema = z
     preferredLocale: z.string().nullable(),
   })
   .strict()
-
-// Login accepts anything truthy and lets the route handler decide how to
-// localise the "credentials required" copy. Keep non-strict so clients
-// forwarding extra analytics fields don't 400.
-export const loginBodySchema = z
-  .object({
-    username: z.string(),
-    password: z.string(),
-  })
-  .passthrough()
 
 // Partial preferences update. Unknown keys are filtered by the route handler
 // so we stay permissive here; a stricter schema would be a breaking change
