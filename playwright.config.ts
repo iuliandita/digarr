@@ -9,6 +9,8 @@ const webServer =
           port: 3000,
           reuseExistingServer: false,
           timeout: 30_000,
+          // Registers the test-only seed route (POST /api/v1/test/seed-recommendations).
+          env: { ...process.env, NODE_ENV: 'test' },
         },
         {
           command: 'bun run dev:web',

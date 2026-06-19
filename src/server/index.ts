@@ -43,6 +43,7 @@ import { setupRoutes } from './routes/setup'
 import { slskdRoutes } from './routes/slskd'
 import { subscriptionRoutes } from './routes/subscriptions'
 import { targetRoutes } from './routes/targets'
+import { testSeedRoutes } from './routes/test-seed'
 import { userRoutes } from './routes/users'
 import type { HonoEnv } from './types'
 
@@ -346,6 +347,13 @@ export function createApp(deps: AppDependencies) {
   )
   if (deps.search) {
     app.route('/', searchRoutes(deps.search))
+  }
+
+  // Test-only seed routes. The `=== 'test'` guard is inlined to `false` by Bun
+  // at production build time (Dockerfile sets NODE_ENV=production), so this
+  // branch and the imported module are tree-shaken out of the prod bundle.
+  if (process.env.NODE_ENV === 'test') {
+    app.route('/', testSeedRoutes(deps))
   }
 
   // Serve built SPA in production (dev uses Vite's dev server with proxy)
