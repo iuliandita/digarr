@@ -143,6 +143,7 @@ function makeDb() {
     getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set()),
     insertBatch: vi.fn().mockResolvedValue({ id: 42 }),
     completeBatch: vi.fn().mockResolvedValue(undefined),
+    failBatch: vi.fn().mockResolvedValue(undefined),
     upsertArtist: vi.fn().mockResolvedValue({ id: 1 }),
     insertRecommendation: vi.fn().mockResolvedValue(undefined),
     getRejectedMbids: vi.fn().mockResolvedValue(new Set()),

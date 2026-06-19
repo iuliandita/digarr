@@ -25,6 +25,7 @@ function makePipelineDeps(): Omit<
       getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
       insertBatch: vi.fn(async () => ({ id: 1 })),
       completeBatch: vi.fn(async () => undefined),
+      failBatch: vi.fn(async () => undefined),
       upsertArtist: vi.fn(async () => ({ id: 1 })),
       insertRecommendation: vi.fn(async () => undefined),
       getRejectedMbids: vi.fn(async () => new Set<string>()),

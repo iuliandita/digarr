@@ -15,6 +15,8 @@ export interface StoreDb {
     stats: { discovered: number; added: number; failed: number },
   ) => Promise<void>
 
+  failBatch: (id: number) => Promise<void>
+
   upsertArtist: (data: {
     mbid: string
     name: string
@@ -108,50 +110,58 @@ export async function store(
   let added = 0
   let failed = 0
 
-  for (const artist of artists) {
-    const artistData = {
-      mbid: artist.mbid,
-      name: artist.name,
-      disambiguation: artist.disambiguation,
-      tags: artist.tags,
-      genres: artist.genres,
-      imageUrl: artist.imageUrl,
-      logoUrl: artist.logoUrl,
-      imageFailed: artist.imageFailed,
-      streamingUrls: artist.streamingUrls,
-      beginYear: artist.beginYear,
-      endYear: artist.endYear,
-    }
-    const recData = {
-      batchId: batch.id,
-      score: artist.score,
-      sources: artist.sourceScores,
-      aiReasoning: artist.aiReasoning,
-      status: 'pending',
-      userId: options.userId,
-      recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
-      recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
-    }
-
-    try {
-      if (db.upsertArtistAndRecommendation) {
-        await db.upsertArtistAndRecommendation(artistData, recData)
-      } else {
-        const upserted = await db.upsertArtist(artistData)
-        await db.insertRecommendation({ ...recData, artistId: upserted.id })
+  try {
+    for (const artist of artists) {
+      const artistData = {
+        mbid: artist.mbid,
+        name: artist.name,
+        disambiguation: artist.disambiguation,
+        tags: artist.tags,
+        genres: artist.genres,
+        imageUrl: artist.imageUrl,
+        logoUrl: artist.logoUrl,
+        imageFailed: artist.imageFailed,
+        streamingUrls: artist.streamingUrls,
+        beginYear: artist.beginYear,
+        endYear: artist.endYear,
       }
-      added++
-    } catch (err: unknown) {
-      failed++
-      console.error(`Failed to store artist ${artist.mbid}:`, err)
+      const recData = {
+        batchId: batch.id,
+        score: artist.score,
+        sources: artist.sourceScores,
+        aiReasoning: artist.aiReasoning,
+        status: 'pending',
+        userId: options.userId,
+        recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
+        recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
+      }
+
+      try {
+        if (db.upsertArtistAndRecommendation) {
+          await db.upsertArtistAndRecommendation(artistData, recData)
+        } else {
+          const upserted = await db.upsertArtist(artistData)
+          await db.insertRecommendation({ ...recData, artistId: upserted.id })
+        }
+        added++
+      } catch (err: unknown) {
+        failed++
+        console.error(`Failed to store artist ${artist.mbid}:`, err)
+      }
     }
+
+    await db.completeBatch(batch.id, {
+      discovered: artists.length,
+      added,
+      failed,
+    })
+
+    return batch.id
+  } catch (err) {
+    // A throw here (e.g. completeBatch hitting a DB error) would otherwise
+    // strand the batch in 'running' forever. Transition it to 'failed' before
+    // re-raising so the admin jobs view and stuck-detector see the truth.
+    await db.failBatch(batch.id)
+    throw err
   }
-
-  await db.completeBatch(batch.id, {
-    discovered: artists.length,
-    added,
-    failed,
-  })
-
-  return batch.id
 }

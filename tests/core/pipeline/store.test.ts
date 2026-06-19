@@ -28,6 +28,7 @@ function makeDb(batchId = 1, artistIdCounter = { value: 100 }) {
     getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set()),
     insertBatch: vi.fn().mockImplementation(async () => ({ id: batchId })),
     completeBatch: vi.fn().mockResolvedValue(undefined),
+    failBatch: vi.fn().mockResolvedValue(undefined),
     upsertArtist: vi.fn().mockImplementation(async () => ({ id: artistIdCounter.value++ })),
     insertRecommendation: vi.fn().mockResolvedValue(undefined),
     getRejectedMbids: vi.fn().mockResolvedValue(new Set()),
@@ -141,6 +142,20 @@ describe('store()', () => {
     })
     // The failed artist should not have a recommendation inserted
     expect(db.insertRecommendation).toHaveBeenCalledTimes(2)
+  })
+
+  it('marks the batch failed and rethrows when completeBatch throws', async () => {
+    const db = makeDb(42)
+    db.completeBatch.mockRejectedValueOnce(new Error('db down'))
+
+    await expect(store([makeArtist('a')], db)).rejects.toThrow('db down')
+    expect(db.failBatch).toHaveBeenCalledWith(42)
+  })
+
+  it('does not call failBatch on the success path', async () => {
+    const db = makeDb(7)
+    await store([makeArtist('a')], db)
+    expect(db.failBatch).not.toHaveBeenCalled()
   })
 
   it('calls completeBatch with zeros for empty artist list', async () => {

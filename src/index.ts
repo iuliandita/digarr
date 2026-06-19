@@ -95,7 +95,7 @@ import {
 } from './db/queries/artist-blocks'
 import { getPopularityMap, lookupByName } from './db/queries/artist-metadata'
 import { getArtistById, upsertArtist } from './db/queries/artists'
-import { completeBatch, getBatch, listBatches } from './db/queries/batches'
+import { completeBatch, failBatch, getBatch, listBatches } from './db/queries/batches'
 import { getRecentActivity, getTopGenresForUser } from './db/queries/dashboard'
 import {
   getAllGenres,
@@ -254,6 +254,9 @@ const storeDb: StoreDb = {
   },
   completeBatch: async (id, stats) => {
     await completeBatch(db, id, { ...stats, filtered: 0 })
+  },
+  failBatch: async (id) => {
+    await failBatch(db, id)
   },
   upsertArtist: async (data) => {
     const row = await upsertArtist(db, data)
