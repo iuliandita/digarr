@@ -1,19 +1,25 @@
 import { expect, test } from '@playwright/test'
+import { ensureAdminToken, installAuthToken } from './auth'
+import { seedRecommendations } from './seed'
 
 test.describe('Pipeline Progress', () => {
-  // Needs an authenticated session with setup complete so the scan control
-  // is actually rendered. The old `if (isVisible)` guard let this test
-  // silently no-op when the harness loaded the pre-setup screen. Re-enable
-  // once the E2E harness seeds setup + authenticates before navigating.
-  test.fixme('shows progress when scan is triggered', async ({ page }) => {
+  test('shows progress when scan is triggered', async ({ page }) => {
+    const token = await ensureAdminToken(page.request, { completeSetup: true })
+    expect(token).toBeTruthy()
+    if (!token) return
+    await seedRecommendations(page.request, token)
+    await installAuthToken(page, token)
+
     await page.goto('/')
 
-    const scanButton = page.getByRole('button', { name: /scan|discover|run/i })
-    await expect(scanButton).toBeVisible()
+    const scanButton = page.getByRole('button', { name: /run scan/i }).first()
+    await expect(scanButton).toBeVisible({ timeout: 10_000 })
     await scanButton.click()
 
-    await expect(
-      page.getByText(/collecting|analyzing|discovering|resolving|scoring|filtering|storing/i),
-    ).toBeVisible({ timeout: 5_000 })
+    // The progress surface shows an elapsed-time readout ("Running for Ns")
+    // and a stage label as soon as the pipeline starts streaming.
+    await expect(page.getByText(/running for|running your first scan/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
   })
 })
