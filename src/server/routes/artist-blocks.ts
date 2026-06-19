@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import * as z from 'zod'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
+import { stripControlChars } from '@/core/text/strip-control-chars'
 import type { BlockedArtistRow, ListBlocksCursor } from '@/db/queries/artist-blocks'
 import { type Cursor, decodeCursor, encodeCursor } from '@/server/helpers/pagination-cursor'
 import { parseOptionalClampedInt, parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
@@ -30,9 +31,6 @@ export type ArtistBlocksRouteDeps = {
     reasonText?: string | null
   }) => Promise<void>
 }
-
-// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping ASCII control chars from user-supplied freeform text is the point
-const stripControlChars = (s: string) => s.replace(/[\x00-\x1f\x7f]/g, '')
 
 const createBlockSchema = z.object({
   artistId: z.number().int().positive(),

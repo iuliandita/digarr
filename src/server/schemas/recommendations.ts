@@ -1,12 +1,10 @@
 import * as z from 'zod'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
+import { stripControlChars } from '@/core/text/strip-control-chars'
 
 // MAX_BULK_IDS caps the bulk write surface so one approve-all payload cannot
 // starve the worker. 500 matches the Spotify CSV import truncation ceiling.
 const MAX_BULK_IDS = 500
-
-// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping ASCII control chars from user-supplied freeform text is the point
-const stripControlChars = (s: string) => s.replace(/[\x00-\x1f\x7f]/g, '')
 
 export const recommendationIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
