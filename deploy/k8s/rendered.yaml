@@ -238,8 +238,8 @@ spec:
         app.kubernetes.io/instance: digarr
         app.kubernetes.io/component: app
       annotations:
-        checksum/config: aa9c841f7566ef6efb3445157ce700f4b77c98bd75a87e6b601b598289133965
-        checksum/sensitive-config: 4a22a331c52a8cd587a07802815731fb63f8f7f7b39e8745abd644855f645686
+        checksum/config: e9c10ccf0d229daf59a696fe2cb44178d9d464009b13d7a374cc40a39c21b8a8
+        checksum/sensitive-config: 394d68f167ccef3d5f3fe532a90f782b1113d121d898f5a14320d4962f6aff3c
     spec:
       serviceAccountName: digarr
       automountServiceAccountToken: false
@@ -253,7 +253,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: digarr
-          image: "ghcr.io/iuliandita/digarr@sha256:9fc2859f1766bed2b973ff05788e9bbc45f0fc8b4ed06f62e4142de74a60fee2"
+          image: "ghcr.io/iuliandita/digarr@sha256:cdf4d140157fedc31d1c86543701f6037516baa6300d81ca23e5e61db9779b77"
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
