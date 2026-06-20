@@ -21,9 +21,9 @@ services:
     #   :stable -> last release promoted after >= 7 days with no follow-up patch (recommended for self-hosters)
     #   :latest -> head of the release line, may move multiple times per day
     # Pin to a specific minor or patch when you want zero surprises:
-    # image: docker.io/iuliandita/digarr:1.0.0-rc.8
+    # image: docker.io/iuliandita/digarr:1.0.0-rc.9
     # Alpine variant (smaller image, musl libc):
-    # image: docker.io/iuliandita/digarr:1.0.0-rc.8-alpine
+    # image: docker.io/iuliandita/digarr:1.0.0-rc.9-alpine
     user: "1000:1000"
     networks:
       - frontend

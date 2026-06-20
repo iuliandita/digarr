@@ -4,6 +4,25 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.9 - 2026-06-20
+
+Feature release: two new discovery modes, preview volume, smarter rejection feedback.
+
+### Added
+
+- Two new discovery modes. **Artist Relationships** discovers collaborators, band members, and aliases from the MusicBrainz relationship graph (filterable by relationship type). **Labels** discovers other artists on the same record labels as your seeds, via a connected Discogs account.
+- A volume control on the audio preview bar. Your chosen level is remembered across sessions and applies to both the global preview and per-card track previews.
+- Bulk rejection can now apply a shared reason (and an optional permanent block) to every selected recommendation at once.
+
+### Changed
+
+- Recommendation scoring now learns from why you reject. Marking artists "tried it, didn't like it" or "wrong genre or style" downweights that genre in future scans; "maybe later" stays neutral.
+
+### Fixed
+
+- A discovery scan that fails after it has started is now correctly recorded as failed instead of appearing stuck in "running".
+- Emby playlist requests now time out cleanly instead of potentially hanging on a slow server.
+
 ## v1.0.0-rc.8 - 2026-06-19
 
 Authorization hardening release candidate.
