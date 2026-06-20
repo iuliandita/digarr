@@ -1,4 +1,5 @@
 import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
+import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
@@ -219,7 +220,7 @@ export async function bulkUpdateStatus(db: Database, ids: number[], status: stri
 export async function getGenreFeedbackHistory(
   db: Database,
   userId?: number,
-): Promise<Map<string, { approved: number; total: number }>> {
+): Promise<Map<string, GenreFeedback>> {
   // Pushing the per-genre tally into SQL via unnest lets Postgres do the
   // hash-aggregate work - JS side only walks the reduced result.
   const userFilter = userId !== undefined ? sql`AND r.user_id = ${userId}` : sql``
@@ -227,7 +228,10 @@ export async function getGenreFeedbackHistory(
     SELECT
       genre,
       COUNT(*)::int AS total,
-      COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved
+      COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved,
+      COUNT(CASE WHEN r.status = 'rejected'
+                  AND r.rejection_reason IN ('tried_didnt_like', 'wrong_style')
+                 THEN 1 END)::int AS strong_negative
     FROM recommendations r
     JOIN artists a ON a.id = r.artist_id
     CROSS JOIN LATERAL unnest(a.genres) AS genre
@@ -237,9 +241,18 @@ export async function getGenreFeedbackHistory(
     GROUP BY genre
   `)
 
-  const genreMap = new Map<string, { approved: number; total: number }>()
-  for (const row of result.rows as Array<{ genre: string; total: number; approved: number }>) {
-    genreMap.set(row.genre, { approved: row.approved, total: row.total })
+  const genreMap = new Map<string, GenreFeedback>()
+  for (const row of result.rows as Array<{
+    genre: string
+    total: number
+    approved: number
+    strong_negative: number
+  }>) {
+    genreMap.set(row.genre, {
+      approved: row.approved,
+      total: row.total,
+      strongNegative: row.strong_negative,
+    })
   }
   return genreMap
 }

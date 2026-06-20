@@ -1,4 +1,5 @@
 import type { ScoredArtist } from '@/core/types'
+import type { GenreFeedback } from './score'
 
 // Minimal database interface - only what store() needs
 export interface StoreDb {
@@ -47,7 +48,7 @@ export interface StoreDb {
 
   getBlockedMbids: (userId: number) => Promise<Set<string>>
 
-  getFeedbackHistory: (userId?: number) => Promise<Map<string, { approved: number; total: number }>>
+  getFeedbackHistory: (userId?: number) => Promise<Map<string, GenreFeedback>>
 
   lookupArtistMetadata?: (name: string) => Promise<{
     spotifyGenres: string[] | null

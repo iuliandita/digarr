@@ -101,6 +101,48 @@ describe('score()', () => {
     expect(result[0]?.sourceScores.feedbackBoost).toBeCloseTo(0.6)
   })
 
+  it('feedbackBoost is unchanged when a genre has zero strong-negative rejections (parity)', () => {
+    const artist = makeArtist({ genres: ['jazz'] })
+    const withoutField = new Map([['jazz', { approved: 6, total: 10 }]])
+    const withZeroField = new Map([['jazz', { approved: 6, total: 10, strongNegative: 0 }]])
+    const a = score([artist], [], defaultWeights, withoutField)
+    const b = score([artist], [], defaultWeights, withZeroField)
+    // Both equal the plain approve rate, 0.6.
+    expect(a[0]?.sourceScores.feedbackBoost).toBeCloseTo(0.6)
+    expect(b[0]?.sourceScores.feedbackBoost).toBeCloseTo(0.6)
+  })
+
+  it('downweights a genre with strong-negative rejections below an all-neutral genre', () => {
+    const artist = makeArtist({ genres: ['jazz'] })
+    // Same 0.5 approve rate, but half of the acted-on recs were strong-negative.
+    const neutral = score(
+      [artist],
+      [],
+      defaultWeights,
+      new Map([['jazz', { approved: 5, total: 10, strongNegative: 0 }]]),
+    )
+    const disliked = score(
+      [artist],
+      [],
+      defaultWeights,
+      new Map([['jazz', { approved: 5, total: 10, strongNegative: 5 }]]),
+    )
+    expect(neutral[0]?.sourceScores.feedbackBoost).toBeCloseTo(0.5)
+    expect(disliked[0]?.sourceScores.feedbackBoost).toBeLessThan(0.5)
+  })
+
+  it('clamps feedbackBoost at 0 even when strong-negative penalty would push it lower', () => {
+    const artist = makeArtist({ genres: ['jazz'] })
+    // Every acted-on rec was a strong-negative rejection: approve rate 0, penalty applied.
+    const result = score(
+      [artist],
+      [],
+      defaultWeights,
+      new Map([['jazz', { approved: 0, total: 8, strongNegative: 8 }]]),
+    )
+    expect(result[0]?.sourceScores.feedbackBoost).toBe(0)
+  })
+
   it('computes genreOverlap correctly', () => {
     const artist = makeArtist({ genres: ['rock', 'metal', 'jazz'] })
     const libraryGenres = ['rock', 'jazz']

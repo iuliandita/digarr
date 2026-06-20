@@ -15,6 +15,7 @@ import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
 import type { SyncOrchestrator } from '@/core/library/sync'
 import type { PipelineOrchestrator } from '@/core/pipeline/orchestrator'
+import type { GenreFeedback } from '@/core/pipeline/score'
 import type { SubscriptionScheduler } from '@/core/pipeline/subscription-scheduler'
 import type { AiProviderRegistry } from '@/core/providers/registry'
 import type { ServiceTestResult } from '@/core/types'
@@ -127,7 +128,7 @@ export interface RecommendationDeps {
   listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>
   getBatch: (id: number) => Promise<BatchRow | null>
   getArtistById: (id: number) => Promise<ArtistRow | null>
-  getFeedbackHistory: (userId?: number) => Promise<Map<string, { approved: number; total: number }>>
+  getFeedbackHistory: (userId?: number) => Promise<Map<string, GenreFeedback>>
   listArtistBlocks: (params: {
     userId: number
     limit?: number
