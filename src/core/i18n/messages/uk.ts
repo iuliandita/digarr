@@ -689,6 +689,7 @@ export const uk = {
   'discoveryMode.reason.connectListeningSource': 'Спочатку підключіть джерело прослуховування.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Підключіть ListenBrainz або Last.fm, щоб користуватися цим режимом.',
+  'discoveryMode.reason.connectDiscogs': 'Підключіть Discogs, щоб використовувати цей режим.',
   'discoveryMode.reason.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',

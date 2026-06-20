@@ -688,6 +688,7 @@ export const pl = {
   'discoveryMode.reason.connectListeningSource': 'Najpierw połącz źródło odsluchu.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Połącz ListenBrainz lub Last.fm, aby użyć tego trybu.',
+  'discoveryMode.reason.connectDiscogs': 'Połącz Discogs, aby użyć tego trybu.',
   'discoveryMode.reason.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.reason.releaseRadarFallback': 'Do odkrywania wydan używane sa źródła zapasowe.',
   'discoveryMode.field.feed': 'Feed',

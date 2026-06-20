@@ -686,6 +686,7 @@ export const nl = {
   'discoveryMode.reason.connectListeningSource': 'Verbind eerst een luisterbron.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbind ListenBrainz of Last.fm om deze modus te gebruiken.',
+  'discoveryMode.reason.connectDiscogs': 'Verbind Discogs om deze modus te gebruiken.',
   'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',

@@ -634,6 +634,7 @@ export const zhCN = {
   'discoveryMode.reason.connectListeningSource': '请先连接一个听歌来源。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '连接 ListenBrainz 或 Last.fm 后才能使用此模式。',
+  'discoveryMode.reason.connectDiscogs': '连接 Discogs 以使用此模式。',
   'discoveryMode.reason.notImplementedYet': '此模式尚未实现。',
   'discoveryMode.reason.releaseRadarFallback': '正在使用后备提供方来发现新发行。',
   'discoveryMode.field.feed': '订阅源',

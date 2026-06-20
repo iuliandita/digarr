@@ -693,6 +693,7 @@ export const de = {
   'discoveryMode.reason.connectListeningSource': 'Verbinde zuerst eine Hörquelle.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.connectDiscogs': 'Verbinde Discogs, um diesen Modus zu nutzen.',
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',

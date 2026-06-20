@@ -667,6 +667,7 @@ export const ko = {
   'discoveryMode.reason.connectListeningSource': '먼저 청취 소스를 연결하세요.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '이 모드를 사용하려면 ListenBrainz 또는 Last.fm을 연결하세요.',
+  'discoveryMode.reason.connectDiscogs': '이 모드를 사용하려면 Discogs를 연결하세요.',
   'discoveryMode.reason.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
   'discoveryMode.field.feed': '피드',

@@ -683,6 +683,7 @@ export const tr = {
   'discoveryMode.reason.connectListeningSource': 'Once bir dinleme kaynagi baglayin.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Bu modu kullanmak için ListenBrainz veya Last.fm baglayin.',
+  'discoveryMode.reason.connectDiscogs': "Bu modu kullanmak için Discogs'u bağlayın.",
   'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi için yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',

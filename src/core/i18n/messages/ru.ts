@@ -694,6 +694,7 @@ export const ru = {
   'discoveryMode.reason.connectListeningSource': 'Сначала подключите источник прослушивания.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectDiscogs': 'Подключите Discogs, чтобы использовать этот режим.',
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',

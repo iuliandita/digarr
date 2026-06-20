@@ -673,6 +673,7 @@ export const ja = {
   'discoveryMode.reason.connectListeningSource': '先に再生ソースを接続してください。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'このモードを使うには ListenBrainz または Last.fm を接続してください。',
+  'discoveryMode.reason.connectDiscogs': 'このモードを使うには Discogs を接続してください。',
   'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
