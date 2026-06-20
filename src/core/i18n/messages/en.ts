@@ -1330,6 +1330,7 @@ export const en = {
   // Preview player
   'preview.playerRegion': 'Preview player',
   'preview.closePreview': 'Close preview',
+  'preview.volume': 'Volume',
   'preview.loadingPreview': 'Loading preview...',
 
   // Streaming links (compact play/stop control + Spotify embed)

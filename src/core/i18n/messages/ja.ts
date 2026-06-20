@@ -1145,6 +1145,7 @@ export const ja = {
   'settings.blocked.loadMore': 'もっと読み込む',
   'preview.playerRegion': 'プレビュープレーヤー',
   'preview.closePreview': 'プレビューを閉じる',
+  'preview.volume': '音量',
   'preview.loadingPreview': 'プレビューを読み込み中...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

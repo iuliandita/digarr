@@ -33,6 +33,8 @@ describe('PreviewPlayer', () => {
           artistName={null}
           source={null}
           onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
         />,
       ),
     )
@@ -48,6 +50,8 @@ describe('PreviewPlayer', () => {
           artistName="Radiohead"
           source={null}
           onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
         />,
       ),
     )
@@ -64,6 +68,8 @@ describe('PreviewPlayer', () => {
           artistName="Radiohead"
           source={spotifySource}
           onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
         />,
       ),
     )
@@ -80,6 +86,8 @@ describe('PreviewPlayer', () => {
           artistName="Radiohead"
           source={spotifySource}
           onStop={onStop}
+          volume={1}
+          onVolumeChange={vi.fn()}
         />,
       ),
     )

@@ -7,6 +7,8 @@ type PreviewContextValue = {
   currentMbid: string | null
   playing: boolean
   globalPlayId: number
+  volume: number
+  setVolume: (value: number) => void
 }
 
 export const PreviewContext = createContext<PreviewContextValue | null>(null)

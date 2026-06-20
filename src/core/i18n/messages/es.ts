@@ -1156,6 +1156,7 @@ export const es = {
   'settings.blocked.loadMore': 'Cargar más',
   'preview.playerRegion': 'Reproductor de vista previa',
   'preview.closePreview': 'Cerrar vista previa',
+  'preview.volume': 'Volumen',
   'preview.loadingPreview': 'Cargando vista previa...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

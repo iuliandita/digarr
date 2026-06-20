@@ -1158,6 +1158,7 @@ export const ptBR = {
   'settings.blocked.loadMore': 'Carregar mais',
   'preview.playerRegion': 'Reprodutor de prévia',
   'preview.closePreview': 'Fechar prévia',
+  'preview.volume': 'Volume',
   'preview.loadingPreview': 'Carregando prévia...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

@@ -1162,6 +1162,7 @@ export const ru = {
   'settings.blocked.loadMore': 'Загрузить ещё',
   'preview.playerRegion': 'Плеер предпросмотра',
   'preview.closePreview': 'Закрыть предпросмотр',
+  'preview.volume': 'Громкость',
   'preview.loadingPreview': 'Загрузка предпросмотра...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

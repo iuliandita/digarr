@@ -1157,6 +1157,7 @@ export const ro = {
   'settings.blocked.loadMore': 'Încarcă mai mult',
   'preview.playerRegion': 'Player previzualizare',
   'preview.closePreview': 'Închide previzualizarea',
+  'preview.volume': 'Volum',
   'preview.loadingPreview': 'Se încarcă previzualizarea...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

@@ -1152,6 +1152,7 @@ export const nl = {
   'settings.blocked.loadMore': 'Meer laden',
   'preview.playerRegion': 'Voorbeeldspeler',
   'preview.closePreview': 'Voorbeeld sluiten',
+  'preview.volume': 'Volume',
   'preview.loadingPreview': 'Voorbeeld wordt geladen...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

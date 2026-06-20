@@ -1133,6 +1133,7 @@ export const ko = {
   'settings.blocked.loadMore': '더 보기',
   'preview.playerRegion': '미리듣기 플레이어',
   'preview.closePreview': '미리듣기 닫기',
+  'preview.volume': '볼륨',
   'preview.loadingPreview': '미리듣기를 불러오는 중...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

@@ -1155,6 +1155,7 @@ export const fr = {
   'settings.blocked.loadMore': 'Charger plus',
   'preview.playerRegion': "Lecteur d'aperçu",
   'preview.closePreview': "Fermer l'aperçu",
+  'preview.volume': 'Volume',
   'preview.loadingPreview': "Chargement de l'aperçu...",
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

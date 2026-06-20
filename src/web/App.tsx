@@ -443,6 +443,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         currentMbid: preview.state.artistMbid,
         playing: preview.state.playing,
         globalPlayId: preview.globalPlayId,
+        volume: preview.volume,
+        setVolume: preview.setVolume,
       }}
     >
       <div className="min-h-screen bg-bg">
@@ -718,6 +720,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
           source={preview.state.source}
           loading={preview.state.loading}
           onStop={preview.stop}
+          volume={preview.volume}
+          onVolumeChange={preview.setVolume}
         />
         <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}

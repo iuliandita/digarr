@@ -8,6 +8,7 @@ import { getArtistTopTracks } from '../lib/api'
 import { GENRE_COLORS } from '../lib/constants'
 import { useI18n } from '../lib/i18n'
 import { usePreviewContext } from '../lib/preview-context'
+import { readStoredVolume } from '../lib/preview-volume'
 import { cn, hueFromName } from '../lib/utils'
 import { ArtistEnrichmentPanel } from './artist-enrichment-panel'
 import { ArtistThumb } from './artist-thumb'
@@ -451,6 +452,7 @@ function TopTracks({ artistId }: { artistId: number }) {
     if (token) params.set('token', token)
     const proxyUrl = `/api/v1/preview/audio?${params.toString()}`
     const audio = new Audio(proxyUrl)
+    audio.volume = readStoredVolume()
     audioRef.current = audio
     audio.onended = () => setPlayingUrl(null)
     audio.onerror = () => {

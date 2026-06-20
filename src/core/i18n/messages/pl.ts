@@ -1149,6 +1149,7 @@ export const pl = {
   'settings.blocked.loadMore': 'Załaduj więcej',
   'preview.playerRegion': 'Odtwarzacz podglądu',
   'preview.closePreview': 'Zamknij podgląd',
+  'preview.volume': 'Głośność',
   'preview.loadingPreview': 'Wczytywanie podglądu...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

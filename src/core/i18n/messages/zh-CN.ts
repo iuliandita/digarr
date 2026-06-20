@@ -1084,6 +1084,7 @@ export const zhCN = {
   'settings.blocked.loadMore': '加载更多',
   'preview.playerRegion': '预览播放器',
   'preview.closePreview': '关闭预览',
+  'preview.volume': '音量',
   'preview.loadingPreview': '正在加载预览...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

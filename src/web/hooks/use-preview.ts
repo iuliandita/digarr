@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useI18n } from '../lib/i18n'
+import { clampVolume, readStoredVolume, writeStoredVolume } from '../lib/preview-volume'
 
 export type PreviewSource = {
   type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
@@ -112,6 +113,17 @@ export function usePreview() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const globalPlayIdRef = useRef(0)
   const [globalPlayId, setGlobalPlayId] = useState(0)
+  const [volume, setVolumeState] = useState(readStoredVolume)
+  const volumeRef = useRef(volume)
+
+  // Persist the volume and apply it live to any currently-playing audio element.
+  const setVolume = useCallback((next: number) => {
+    const clamped = clampVolume(next)
+    volumeRef.current = clamped
+    setVolumeState(clamped)
+    writeStoredVolume(clamped)
+    if (audioRef.current) audioRef.current.volume = clamped
+  }, [])
 
   // Keep stateRef in sync so callbacks don't close over stale state
   const setStateAndRef = useCallback((updater: (s: PreviewState) => PreviewState) => {
@@ -191,6 +203,7 @@ export function usePreview() {
 
       if (source.type === 'deezer-audio') {
         const audio = new Audio(source.url)
+        audio.volume = volumeRef.current
         audioRef.current = audio
         audio.onended = () => setStateAndRef((s) => ({ ...s, playing: false }))
         audio.onerror = () =>
@@ -216,5 +229,5 @@ export function usePreview() {
     return Boolean(streamingUrls.spotify || streamingUrls.deezer || streamingUrls.youtube)
   }, [])
 
-  return { state, play, stop, hasPreview, globalPlayId }
+  return { state, play, stop, hasPreview, globalPlayId, volume, setVolume }
 }

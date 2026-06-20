@@ -1174,6 +1174,7 @@ export const it = {
   'settings.blocked.loadMore': 'Carica altri',
   'preview.playerRegion': 'Player anteprima',
   'preview.closePreview': 'Chiudi anteprima',
+  'preview.volume': 'Volume',
   'preview.loadingPreview': 'Caricamento anteprima...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

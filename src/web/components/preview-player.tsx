@@ -1,4 +1,4 @@
-import { Music, X } from 'lucide-react'
+import { Music, Volume2, X } from 'lucide-react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
 import { useI18n } from '../lib/i18n'
 
@@ -14,6 +14,8 @@ type Props = {
   source: PreviewSource | null
   loading: boolean
   onStop: () => void
+  volume: number
+  onVolumeChange: (value: number) => void
 }
 
 /**
@@ -21,12 +23,23 @@ type Props = {
  * On mobile it sits above the 56px bottom nav (bottom-14); on md+ it sits at
  * bottom-0. Only renders when a preview is active (loading or playing).
  */
-export function PreviewPlayer({ playing, artistName, source, loading, onStop }: Props) {
+export function PreviewPlayer({
+  playing,
+  artistName,
+  source,
+  loading,
+  onStop,
+  volume,
+  onVolumeChange,
+}: Props) {
   const { t } = useI18n()
   if (!playing && !loading) return null
 
   const sourceLabel = source ? SOURCE_LABELS[source.type] : null
   const showIframe = playing && source && source.type !== 'deezer-audio'
+  // Volume is only controllable for the HTML5 Deezer audio element; the
+  // Spotify/YouTube embeds run in cross-origin iframes with their own controls.
+  const showVolume = source?.type === 'deezer-audio'
 
   return (
     <section
@@ -54,6 +67,22 @@ export function PreviewPlayer({ playing, artistName, source, loading, onStop }: 
               </div>
             )}
           </div>
+
+          {showVolume && (
+            <div className="shrink-0 flex items-center gap-1.5">
+              <Volume2 size={14} className="text-muted" aria-hidden="true" />
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={volume}
+                onChange={(e) => onVolumeChange(Number.parseFloat(e.target.value))}
+                className="w-16 sm:w-24 accent-accent cursor-pointer"
+                aria-label={t('preview.volume')}
+              />
+            </div>
+          )}
 
           <button
             type="button"

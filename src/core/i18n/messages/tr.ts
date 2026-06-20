@@ -1150,6 +1150,7 @@ export const tr = {
   'settings.blocked.loadMore': 'Daha fazla yükle',
   'preview.playerRegion': 'Önizleme oynatıcısı',
   'preview.closePreview': 'Önizlemeyi kapat',
+  'preview.volume': 'Ses düzeyi',
   'preview.loadingPreview': 'Önizleme yükleniyor...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

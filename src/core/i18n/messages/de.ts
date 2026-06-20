@@ -1162,6 +1162,7 @@ export const de = {
   'settings.blocked.loadMore': 'Mehr laden',
   'preview.playerRegion': 'Vorschau-Player',
   'preview.closePreview': 'Vorschau schließen',
+  'preview.volume': 'Lautstärke',
   'preview.loadingPreview': 'Vorschau wird geladen...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',

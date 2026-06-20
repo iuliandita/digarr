@@ -1155,6 +1155,7 @@ export const uk = {
   'settings.blocked.loadMore': 'Завантажити ще',
   'preview.playerRegion': 'Плеєр попереднього перегляду',
   'preview.closePreview': 'Закрити попередній перегляд',
+  'preview.volume': 'Гучність',
   'preview.loadingPreview': 'Завантаження попереднього перегляду...',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
