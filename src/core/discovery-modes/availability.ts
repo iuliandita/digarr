@@ -37,7 +37,7 @@ const LISTENBRAINZ_MODE_IDS = new Set([
   'lb-tag-radio',
 ])
 
-const NOT_IMPLEMENTED_MODE_IDS = new Set(['artist-relationships', 'labels'])
+const NOT_IMPLEMENTED_MODE_IDS = new Set<string>()
 
 export function buildDiscoveryModeExecutionContext(
   availability: DiscoveryAvailabilityResult,
@@ -92,6 +92,22 @@ export function evaluateDiscoveryModeAvailability(
       providerPath: [],
       reason: 'Connect a listening source first.',
     }
+  }
+
+  if (modeId === 'artist-relationships') {
+    // MusicBrainz needs no user connection, so this mode is always available.
+    return { enabled: true, fallbackUsed: false, providerPath: ['musicbrainz'] }
+  }
+
+  if (modeId === 'labels') {
+    return snapshot.hasDiscogs
+      ? { enabled: true, fallbackUsed: true, providerPath: ['discogs'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Discogs to use this mode.',
+        }
   }
 
   if (modeId === 'similar-artist-web') {

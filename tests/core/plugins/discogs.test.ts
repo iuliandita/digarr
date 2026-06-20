@@ -23,6 +23,8 @@ describe('createDiscogsSource()', () => {
         { name: 'Massive Attack', id: 10 },
         { name: 'Tricky', id: 11 },
       ]),
+      getLabelsForArtist: vi.fn().mockResolvedValue([]),
+      getArtistsForLabel: vi.fn().mockResolvedValue([]),
       testConnection: vi.fn().mockResolvedValue({
         success: true,
         message: 'Connected to Discogs as testuser',

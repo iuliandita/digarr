@@ -112,7 +112,7 @@ describe('API routes: discovery mode pipeline runs', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'This mode is not implemented yet.' })
+    expect(await res.json()).toEqual({ error: 'Connect Discogs to use this mode.' })
   })
 
   it('returns 400 for request validation failures', async () => {

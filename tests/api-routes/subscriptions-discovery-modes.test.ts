@@ -138,7 +138,7 @@ describe('API routes: discovery mode subscriptions', () => {
     )
   })
 
-  it('rejects unshipped discovery mode subscriptions even when the mode exists in the registry', async () => {
+  it('rejects discovery mode subscriptions for a mode whose connection is missing', async () => {
     const createSubscription = vi.fn()
     const { app } = createTestApp({
       subscriptionQueries: {
@@ -168,7 +168,7 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'This mode is not implemented yet.' })
+    expect(await res.json()).toEqual({ error: 'Connect Discogs to use this mode.' })
     expect(createSubscription).not.toHaveBeenCalled()
   })
 

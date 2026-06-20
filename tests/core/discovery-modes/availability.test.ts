@@ -68,7 +68,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
     expect(result.fallbackUsed).toBe(true)
   })
 
-  it('disables unfinished modes instead of advertising fake availability', () => {
+  it('enables artist-relationships (MusicBrainz) always and labels when Discogs is connected', () => {
     const snapshot = {
       hasListenBrainz: true,
       hasSpotify: true,
@@ -78,16 +78,14 @@ describe('evaluateDiscoveryModeAvailability', () => {
     }
 
     expect(evaluateDiscoveryModeAvailability('artist-relationships', snapshot)).toMatchObject({
-      enabled: false,
+      enabled: true,
       fallbackUsed: false,
-      providerPath: [],
-      reason: 'This mode is not implemented yet.',
+      providerPath: ['musicbrainz'],
     })
     expect(evaluateDiscoveryModeAvailability('labels', snapshot)).toMatchObject({
-      enabled: false,
-      fallbackUsed: false,
-      providerPath: [],
-      reason: 'This mode is not implemented yet.',
+      enabled: true,
+      fallbackUsed: true,
+      providerPath: ['discogs'],
     })
   })
 
@@ -130,7 +128,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
     })
   })
 
-  it('reports unfinished labels mode as unavailable', () => {
+  it('reports labels mode unavailable when Discogs is not connected', () => {
     const result = evaluateDiscoveryModeAvailability('labels', {
       hasListenBrainz: false,
       hasSpotify: false,
@@ -144,6 +142,6 @@ describe('evaluateDiscoveryModeAvailability', () => {
       fallbackUsed: false,
       providerPath: [],
     })
-    expect(result.reason).toBe('This mode is not implemented yet.')
+    expect(result.reason).toBe('Connect Discogs to use this mode.')
   })
 })

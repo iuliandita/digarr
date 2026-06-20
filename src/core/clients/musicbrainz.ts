@@ -26,7 +26,10 @@ export function parseYear(dateStr?: string): number | undefined {
 
 export type MBRelation = {
   type: string
+  direction?: 'forward' | 'backward'
   url?: { resource: string }
+  // Present on artist-artist relations (inc=artist-rels): the related artist.
+  artist?: { id: string; name: string; disambiguation?: string }
 }
 
 export type MBSearchResult = {
@@ -186,6 +189,13 @@ export function createMusicBrainzClient() {
     return request<MBArtist>(`/artist/${mbid}?${params}`)
   }
 
+  // Artist-artist relations (member-of-band, collaboration, aliases, etc.) for
+  // the artist-relationships discovery mode. One request per artist.
+  function lookupArtistRelations(mbid: string): Promise<MBArtist> {
+    const params = new URLSearchParams({ inc: 'artist-rels', fmt: 'json' })
+    return request<MBArtist>(`/artist/${mbid}?${params}`)
+  }
+
   function searchArtist(query: string): Promise<MBSearchResult> {
     const params = new URLSearchParams({ query, fmt: 'json' })
     return request<MBSearchResult>(`/artist/?${params}`)
@@ -275,6 +285,7 @@ export function createMusicBrainzClient() {
 
   return {
     lookupArtist,
+    lookupArtistRelations,
     searchArtist,
     getReleaseGroups,
     getRecordings,
