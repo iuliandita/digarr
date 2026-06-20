@@ -38,6 +38,10 @@ export const bulkRecommendationSchema = z.object({
   qualityProfileId: z.number().int().optional(),
   metadataProfileId: z.number().int().optional(),
   rootFolderId: z.number().int().optional(),
+  // Reject-only: apply one shared reason (and optional permanent block) across
+  // every selected id. Omitted => the existing reason-less fast path.
+  reason: z.enum(REJECTION_REASONS).nullish(),
+  permanent: z.boolean().default(false),
 })
 
 // PATCH /api/v1/recommendations/:id/status payload (when status='rejected'):

@@ -789,6 +789,36 @@ describe('POST /api/v1/recommendations/bulk', () => {
     expect(bulkUpdateStatus).toHaveBeenCalledWith([1, 2, 3], 'rejected')
   })
 
+  it('bulk rejects with a shared reason via rejectRecommendation per id', async () => {
+    const bulkUpdateStatus = vi.fn(async () => {})
+    const rejectRecommendation = vi.fn(async () => 1)
+    const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
+    const app = createApp(makeDeps({ bulkUpdateStatus, rejectRecommendation, filterOwnedIds }))
+    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ids: [1, 2],
+        action: 'reject',
+        reason: 'wrong_style',
+        permanent: true,
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect((await res.json()).updated).toBe(2)
+    // Shared-reason path routes each id through rejectRecommendation, not the
+    // reason-less bulk fast path.
+    expect(bulkUpdateStatus).not.toHaveBeenCalled()
+    expect(rejectRecommendation).toHaveBeenCalledTimes(2)
+    expect(rejectRecommendation).toHaveBeenCalledWith({
+      recommendationId: 1,
+      userId: 1,
+      reason: 'wrong_style',
+      reasonText: null,
+      permanent: true,
+    })
+  })
+
   it('returns 400 for invalid action', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/recommendations/bulk', {

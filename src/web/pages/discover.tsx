@@ -3,6 +3,7 @@ import { Download, Filter as FilterIcon, MoreHorizontal, RefreshCw, Trash2 } fro
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
@@ -12,6 +13,7 @@ import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
 import { type Recommendation, RecommendationCard } from '../components/recommendation-card'
+import { RejectionPicker } from '../components/rejection-picker'
 import { SwipeCard } from '../components/swipe-card'
 import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
 import { Skeleton } from '../components/ui/skeleton'
@@ -454,6 +456,7 @@ export function DiscoverPage() {
   const [bulkMode, setBulkMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set())
   const [bulkActing, setBulkActing] = useState(false)
+  const [bulkRejectPickerOpen, setBulkRejectPickerOpen] = useState(false)
   const [albumPickerRecId, setAlbumPickerRecId] = useState<number | null>(null)
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
   const [activeDecades, setActiveDecades] = useState<Set<Decade>>(new Set())
@@ -851,12 +854,27 @@ export function DiscoverPage() {
     }
   }
 
-  async function handleBulkReject() {
+  function handleBulkReject() {
     if (checkedIds.size === 0) return
+    // Open the shared picker to capture one reason + optional permanent block
+    // for every selected recommendation.
+    setBulkRejectPickerOpen(true)
+  }
+
+  async function commitBulkReject(payload: {
+    reason: RejectionReason | null
+    reasonText: string | null
+    permanent: boolean
+  }) {
+    if (checkedIds.size === 0) return
+    const count = checkedIds.size
     setBulkActing(true)
     try {
-      await bulkAction([...checkedIds], 'reject')
-      toast.success(`${t('discover.rejectedCount')} ${checkedIds.size}`)
+      await bulkAction([...checkedIds], 'reject', {
+        reason: payload.reason,
+        permanent: payload.permanent,
+      })
+      toast.success(`${t('discover.rejectedCount')} ${count}`)
       setCheckedIds(new Set())
       refetch()
     } catch {
@@ -1469,6 +1487,13 @@ export function DiscoverPage() {
           onCancel={() => setShowClearAllConfirm(false)}
         />
       )}
+      <RejectionPicker
+        open={bulkRejectPickerOpen}
+        onClose={() => setBulkRejectPickerOpen(false)}
+        onSubmit={async (payload) => {
+          await commitBulkReject(payload)
+        }}
+      />
     </div>
   )
 }

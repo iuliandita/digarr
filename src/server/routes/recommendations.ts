@@ -579,14 +579,32 @@ export function recommendationRoutes(deps: AppDependencies) {
       qualityProfileId: qpOverride,
       metadataProfileId: mpOverride,
       rootFolderId: rfOverride,
+      reason,
+      permanent,
     } = c.req.valid('json')
 
     const userId = c.get('userId')
 
     if (action === 'reject') {
       const ownedIds = await deps.filterOwnedIds(ids, userId)
-      if (ownedIds.length > 0) {
-        await deps.bulkUpdateStatus(ownedIds, 'rejected')
+      // Fast path: no shared reason/permanent => a single bulk status update,
+      // preserving the prior reason-less behaviour.
+      if (!reason && !permanent) {
+        if (ownedIds.length > 0) {
+          await deps.bulkUpdateStatus(ownedIds, 'rejected')
+        }
+        return c.json({ updated: ownedIds.length })
+      }
+      // Shared-reason path: route each id through rejectRecommendation so the
+      // reason is recorded and the optional permanent block is created per artist.
+      for (const id of ownedIds) {
+        await deps.rejectRecommendation({
+          recommendationId: id,
+          userId,
+          reason: reason ?? null,
+          reasonText: null,
+          permanent,
+        })
       }
       return c.json({ updated: ownedIds.length })
     }

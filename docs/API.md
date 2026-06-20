@@ -203,7 +203,7 @@ Locale notes:
 | GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable) |
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
-| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject |
+| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20), scoped to the calling user's own feedback |
 
 **GET /api/v1/recommendations** query params:

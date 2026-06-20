@@ -28,7 +28,11 @@ const ROUTE_DECLARATION_RE = new RegExp(
 
 const MARKDOWN_TABLE_ROUTE_RE = /^\s*\|\s*(GET|POST|PATCH|DELETE|PUT)\s*\|\s*`([^`]+)`\s*\|/gim
 
-const IGNORED_ROUTES = new Set<string>()
+const IGNORED_ROUTES = new Set<string>([
+  // Test-only route, registered only when NODE_ENV==='test' and tree-shaken out
+  // of production builds. Not part of the public API surface, so not documented.
+  'POST /api/v1/test/seed-recommendations',
+])
 
 function routeKey(route: RouteDeclaration): string {
   return `${route.method} ${route.path}`

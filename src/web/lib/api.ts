@@ -233,8 +233,15 @@ export const approveRecommendation = (
     rootFolderId?: number
   },
 ) => updateRecommendation(id, { status: 'approved', ...options })
-export const bulkAction = (ids: number[], action: string) =>
-  fetchApi('/recommendations/bulk', { method: 'POST', body: JSON.stringify({ ids, action }) })
+export const bulkAction = (
+  ids: number[],
+  action: string,
+  options?: { reason?: string | null; permanent?: boolean },
+) =>
+  fetchApi('/recommendations/bulk', {
+    method: 'POST',
+    body: JSON.stringify({ ids, action, ...options }),
+  })
 
 export const getFeedbackSummary = () =>
   fetchApi<{
