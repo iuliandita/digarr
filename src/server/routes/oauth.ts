@@ -14,7 +14,7 @@ import type { HonoEnv } from '@/server/types'
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
 const SPOTIFY_SCOPES =
-  'user-top-read user-read-recently-played playlist-modify-private playlist-modify-public'
+  'user-top-read user-read-recently-played user-library-read playlist-modify-private playlist-modify-public'
 
 const DEEZER_AUTH_URL = 'https://connect.deezer.com/oauth/auth.php'
 const DEEZER_TOKEN_URL = 'https://connect.deezer.com/oauth/access_token.php'

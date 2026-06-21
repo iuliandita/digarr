@@ -4,6 +4,18 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.10 - 2026-06-21
+
+Bug fix: Spotify Liked Songs import.
+
+### Fixed
+
+- Importing Spotify Liked Songs no longer fails with a `403 forbidden` error. The Spotify connection now requests the `user-library-read` permission that the Liked Songs endpoint requires.
+
+### Upgrade note
+
+- If you connected Spotify before this release, disconnect and reconnect it under Settings > Connections so the new `user-library-read` permission is granted. The reconnect is only needed once.
+
 ## v1.0.0-rc.9 - 2026-06-20
 
 Feature release: two new discovery modes, preview volume, smarter rejection feedback.
