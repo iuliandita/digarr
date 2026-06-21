@@ -4,6 +4,15 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.11 - 2026-06-22
+
+Maintenance release: dependency and toolchain updates. No behaviour changes.
+
+### Changed
+
+- Updated runtime and build dependencies to their latest patch and minor releases, including `@anthropic-ai/sdk`, `openai`, `pg`, React 19.2.7, TanStack Query, Tailwind CSS, Vite, Vitest, Biome 2.5.0, and Playwright 1.61.
+- Bumped pinned GitHub Actions (`actions/checkout` v6, `github/codeql-action` v4).
+
 ## v1.0.0-rc.10 - 2026-06-21
 
 Bug fix: Spotify Liked Songs import.
