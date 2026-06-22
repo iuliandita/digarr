@@ -4,6 +4,20 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0-rc.12 - 2026-06-22
+
+Hardening release: API error-leak fix, worker resilience, and database query performance.
+
+### Fixed
+
+- API responses no longer expose raw internal error details (stack messages, host:port, connection errors). Failures are logged server-side and the client receives a generic message instead.
+- Background workers now isolate per-item failures. A single failing slskd job, enrichment, or tag lookup is recorded and skipped instead of aborting the entire run.
+
+### Changed
+
+- Added database indexes on `job_runs(type, started_at)` and `recommendation_batches(created_at, id)` to speed up the jobs/admin views and batch pagination.
+- Added a "missing Wikidata" check to the library health route.
+
 ## v1.0.0-rc.11 - 2026-06-22
 
 Maintenance release: dependency and toolchain updates. No behaviour changes.
