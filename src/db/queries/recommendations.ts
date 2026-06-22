@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNull, or, type SQL, sql } from 'drizzle-orm'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
@@ -398,19 +398,22 @@ export async function getGenreArtists(
   return rows.map(({ spotifyPopularity: _sp, ...r }) => r)
 }
 
+export type InsertRecommendationData = {
+  artistId: number
+  batchId: number
+  score: number
+  sources: Record<string, number>
+  aiReasoning?: string
+  status: string
+  userId?: number
+  recommendedReleaseGroupId?: string
+  recommendedReleaseGroupTitle?: string
+  kind?: 'artist' | 'album'
+}
+
 export async function insertRecommendation(
   db: DbOrTx,
-  data: {
-    artistId: number
-    batchId: number
-    score: number
-    sources: Record<string, number>
-    aiReasoning?: string
-    status: string
-    userId?: number
-    recommendedReleaseGroupId?: string
-    recommendedReleaseGroupTitle?: string
-  },
+  data: InsertRecommendationData,
 ): Promise<void> {
   await db.insert(recommendations).values({
     artistId: data.artistId,
@@ -422,5 +425,22 @@ export async function insertRecommendation(
     userId: data.userId,
     recommendedReleaseGroupId: data.recommendedReleaseGroupId,
     recommendedReleaseGroupTitle: data.recommendedReleaseGroupTitle,
+    kind: data.kind ?? 'artist',
   })
+}
+
+export async function getExistingAlbumReleaseGroupMbids(
+  db: Database,
+  userId?: number,
+): Promise<Set<string>> {
+  const conditions: SQL[] = [eq(recommendations.kind, 'album')]
+  if (userId !== undefined) {
+    // biome-ignore lint/style/noNonNullAssertion: or() with two non-null args always returns SQL, never undefined
+    conditions.push(or(eq(recommendations.userId, userId), isNull(recommendations.userId))!)
+  }
+  const rows = await db
+    .select({ rg: recommendations.recommendedReleaseGroupId })
+    .from(recommendations)
+    .where(and(...conditions))
+  return new Set(rows.map((r) => r.rg).filter((rg): rg is string => Boolean(rg)))
 }

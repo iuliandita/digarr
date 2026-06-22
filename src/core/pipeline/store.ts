@@ -4,6 +4,7 @@ import type { GenreFeedback } from './score'
 // Minimal database interface - only what store() needs
 export interface StoreDb {
   getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
+  getExistingAlbumReleaseGroupMbids?: (userId?: number) => Promise<Set<string>>
 
   insertBatch: (data: {
     status: string
@@ -42,6 +43,7 @@ export interface StoreDb {
     userId?: number
     recommendedReleaseGroupId?: string
     recommendedReleaseGroupTitle?: string
+    kind?: 'artist' | 'album'
   }) => Promise<void>
 
   getRejectedMbids: (cooldownDays: number) => Promise<Set<string>>

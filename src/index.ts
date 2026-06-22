@@ -120,6 +120,7 @@ import {
 import {
   bulkUpdateStatus,
   filterOwnedIds,
+  getExistingAlbumReleaseGroupMbids,
   getGenreFeedbackHistory,
   getRecommendation,
   getRejectedArtistMbids,
@@ -228,6 +229,7 @@ const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
 const librarySyncStore = createLibrarySyncStore(db)
 
 const storeDb: StoreDb = {
+  getExistingAlbumReleaseGroupMbids: (userId) => getExistingAlbumReleaseGroupMbids(db, userId),
   getExistingRecommendationMbids: async (userId) => {
     const base = db
       .select({ mbid: artists.mbid })
