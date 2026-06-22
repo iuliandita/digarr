@@ -28,6 +28,8 @@ export function discoveryCandidatesToDiscoveredArtists(
         suggestedAlbum: candidate.name,
         source: candidate.provenanceMode,
         sourceUrl: candidate.sourceUrl,
+        releaseGroupMbid: candidate.releaseGroupMbid,
+        releaseDate: candidate.freshnessDate,
       })
       return results
     }
