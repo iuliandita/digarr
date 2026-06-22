@@ -449,6 +449,26 @@ describe('createMusicBrainzClient', () => {
       expect(url).toContain('type=')
     })
 
+    it('defaults the type filter to album|ep|single', async () => {
+      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
+      const client = createMusicBrainzClient()
+      await client.getReleaseGroups(MOCK_ARTIST_MBID)
+
+      const [url] = mockFetch.mock.calls[0] as [string]
+      expect(decodeURIComponent(new URL(url).searchParams.get('type') ?? '')).toBe(
+        'album|ep|single',
+      )
+    })
+
+    it('narrows the type filter to album when requested', async () => {
+      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
+      const client = createMusicBrainzClient()
+      await client.getReleaseGroups(MOCK_ARTIST_MBID, ['album'])
+
+      const [url] = mockFetch.mock.calls[0] as [string]
+      expect(new URL(url).searchParams.get('type')).toBe('album')
+    })
+
     it('returns correctly shaped MBReleaseGroup array', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_RG_RESPONSE))
       const client = createMusicBrainzClient()

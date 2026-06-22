@@ -201,10 +201,13 @@ export function createMusicBrainzClient() {
     return request<MBSearchResult>(`/artist/?${params}`)
   }
 
-  async function getReleaseGroups(artistMbid: string): Promise<MBReleaseGroup[]> {
+  async function getReleaseGroups(
+    artistMbid: string,
+    types: readonly string[] = ['album', 'ep', 'single'],
+  ): Promise<MBReleaseGroup[]> {
     const params = new URLSearchParams({
       artist: artistMbid,
-      type: 'album|ep|single',
+      type: types.join('|'),
       fmt: 'json',
       limit: '100',
     })
