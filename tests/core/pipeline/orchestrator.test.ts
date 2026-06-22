@@ -711,6 +711,17 @@ describe('PipelineOrchestrator', () => {
       db,
       expect.anything(),
     )
+
+    // Load-bearing: prove the orchestrator routed the album down the bypass
+    // branch instead of through filter(). The artist-existence filter is called
+    // unconditionally (with an empty array here), so it must never see the
+    // album candidate. If Task 6's partition were reverted, the album would
+    // flow into filter() and this assertion would fail.
+    expect(mockFilter).toHaveBeenCalled()
+    const artistKindArg = mockFilter.mock.calls[0]?.[0] ?? []
+    expect(artistKindArg).not.toContainEqual(
+      expect.objectContaining({ releaseGroupMbid: 'rg-new' }),
+    )
   })
 
   it('drops a release-radar album whose release group is already recommended', async () => {
