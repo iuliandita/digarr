@@ -410,7 +410,9 @@ export function pipelineRoutes(deps: AppDependencies) {
         const blockedMbids = quickDiscoverUserId
           ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
           : new Set<string>()
-        const feedbackHistory = await deps.storeDb.getFeedbackHistory()
+        const feedbackHistory = quickDiscoverUserId
+          ? await deps.storeDb.getFeedbackHistory(quickDiscoverUserId)
+          : await deps.storeDb.getFeedbackHistory()
         const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
         const existingMbids = await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
         for (const mbid of existingMbids) libraryMbids.add(mbid)

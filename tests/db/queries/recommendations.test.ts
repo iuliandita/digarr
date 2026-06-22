@@ -81,6 +81,93 @@ describe('getGenreFeedbackHistory', () => {
     const result = await getGenreFeedbackHistory(db)
     expect(result.size).toBe(0)
   })
+
+  // Regression (per-user genre-feedback isolation): the scoring entry points
+  // must scope the feedback aggregate to the acting user. The mechanism is the
+  // conditional `AND r.user_id = $userId` filter inside the query. These cases
+  // assert that filter is emitted (and carries the user's id) when a userId is
+  // supplied, and absent when it is not (the intentional global-aggregate
+  // branch used by single-user / admin-global contexts).
+  function captureExecuteSql(): { db: Database; getSql: () => unknown } {
+    const execute = vi.fn().mockResolvedValue({ rows: [] })
+    return {
+      db: { execute } as unknown as Database,
+      getSql: () => execute.mock.calls[0]?.[0],
+    }
+  }
+
+  // Walk the drizzle `sql` object and return both the concatenated SQL text and
+  // the raw scalar values interpolated into it. The userId is interpolated as a
+  // bare number directly into the nested userFilter's queryChunks (not wrapped
+  // in a Param), so a generic collector has to gather raw scalars too.
+  function inspectSql(node: unknown): { text: string; scalars: unknown[] } {
+    const textParts: string[] = []
+    const scalars: unknown[] = []
+    const seen = new WeakSet<object>()
+
+    function visit(value: unknown): void {
+      if (value === null || value === undefined) return
+      if (typeof value === 'number' || typeof value === 'boolean') {
+        scalars.push(value)
+        return
+      }
+      if (typeof value === 'string') {
+        textParts.push(value)
+        return
+      }
+      if (Array.isArray(value)) {
+        for (const item of value) visit(item)
+        return
+      }
+      if (typeof value === 'object') {
+        if (seen.has(value)) return
+        seen.add(value)
+        const obj = value as { value?: unknown; queryChunks?: unknown }
+        if ('value' in obj) visit(obj.value)
+        if ('queryChunks' in obj) visit(obj.queryChunks)
+        return
+      }
+    }
+
+    visit(node)
+    return { text: textParts.join(''), scalars }
+  }
+
+  it('scopes the aggregate to the acting user when userId is provided', async () => {
+    const { db, getSql } = captureExecuteSql()
+    await getGenreFeedbackHistory(db, 42)
+    const { text, scalars } = inspectSql(getSql())
+    // The user_id predicate is emitted and the user's id is bound into it, so
+    // Postgres only counts this user's acted-on recommendations.
+    expect(text).toContain('r.user_id =')
+    expect(scalars).toContain(42)
+  })
+
+  it('does not scope to a user when userId is omitted (global aggregate)', async () => {
+    const { db, getSql } = captureExecuteSql()
+    await getGenreFeedbackHistory(db)
+    const { text, scalars } = inspectSql(getSql())
+    // No user predicate is emitted; the aggregate intentionally spans every
+    // user (the single-user / admin-global branch).
+    expect(text).not.toContain('r.user_id')
+    expect(scalars).not.toContain(42)
+  })
+
+  it('binds the distinct id for two different users (no cross-user bleed)', async () => {
+    const a = captureExecuteSql()
+    await getGenreFeedbackHistory(a.db, 1)
+    const aInspect = inspectSql(a.getSql())
+    expect(aInspect.text).toContain('r.user_id =')
+    expect(aInspect.scalars).toContain(1)
+    expect(aInspect.scalars).not.toContain(2)
+
+    const b = captureExecuteSql()
+    await getGenreFeedbackHistory(b.db, 2)
+    const bInspect = inspectSql(b.getSql())
+    expect(bInspect.text).toContain('r.user_id =')
+    expect(bInspect.scalars).toContain(2)
+    expect(bInspect.scalars).not.toContain(1)
+  })
 })
 
 describe('getRejectedArtistMbids', () => {
