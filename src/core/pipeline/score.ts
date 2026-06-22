@@ -44,6 +44,34 @@ export function computeWeightedScore(
   return Math.max(0, Math.min(1, raw))
 }
 
+/** Album signals carried in the recommendation `sources` jsonb (each 0..1). */
+export type AlbumScoreSignals = {
+  /** Newer release -> closer to 1 (release-radar). */
+  recency?: number
+  /** Album popularity / rating -> closer to 1. */
+  popularity?: number
+  /** Gap-fill priority (how core the missing album is) -> closer to 1. */
+  gapPriority?: number
+}
+
+/** Max total nudge an album can receive on top of its artist base score. */
+const ALBUM_MODIFIER_WEIGHT = 0.15
+
+/**
+ * Album score = artist base score + a bounded modifier from album signals.
+ * Conservative by design: the artist-similarity base stays dominant; the
+ * modifier only re-ranks albums within a similar-artist band. Clamped to [0, 1].
+ */
+export function applyAlbumModifier(baseScore: number, signals: AlbumScoreSignals): number {
+  const present = [signals.recency, signals.popularity, signals.gapPriority].filter(
+    (v): v is number => typeof v === 'number',
+  )
+  if (present.length === 0) return Math.max(0, Math.min(1, baseScore))
+  const avg = present.reduce((sum, v) => sum + v, 0) / present.length
+  const nudge = ALBUM_MODIFIER_WEIGHT * (avg - 0.5) * 2 // map 0..1 -> -weight..+weight
+  return Math.max(0, Math.min(1, baseScore + nudge))
+}
+
 export function score(
   artists: ResolvedArtist[],
   libraryGenres: string[],
