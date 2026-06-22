@@ -241,11 +241,29 @@ async function buildResolvedArtist(
     musicinfo,
   )
 
-  // Resolve suggested album from AI discoveries
-  const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
-  const suggestedAlbum = aiSuggestion
-    ? await matchSuggestedAlbum(aiSuggestion, mbArtist.id, mb)
-    : undefined
+  // Album-kind: a discovery from release-radar already knows the real
+  // release-group id -- use it directly and skip the lossy title match.
+  const albumDiscovery = discoveries.find((d) => d.releaseGroupMbid)
+  let kind: 'artist' | 'album' | undefined
+  let releaseGroupMbid: string | undefined
+  let releaseDate: string | undefined
+  let suggestedAlbum: { releaseGroupId?: string; title: string; type?: string } | undefined
+
+  if (albumDiscovery?.releaseGroupMbid) {
+    kind = 'album'
+    releaseGroupMbid = albumDiscovery.releaseGroupMbid
+    releaseDate = albumDiscovery.releaseDate
+    suggestedAlbum = {
+      releaseGroupId: albumDiscovery.releaseGroupMbid,
+      title: albumDiscovery.suggestedAlbum ?? '',
+    }
+  } else {
+    // Artist-kind: recover a release-group id from the free-text AI title.
+    const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
+    suggestedAlbum = aiSuggestion
+      ? await matchSuggestedAlbum(aiSuggestion, mbArtist.id, mb)
+      : undefined
+  }
 
   return {
     mbid: mbArtist.id,
@@ -261,6 +279,9 @@ async function buildResolvedArtist(
     discoveries,
     beginYear: parseYear(mbArtist['life-span']?.begin),
     endYear: parseYear(mbArtist['life-span']?.end),
+    kind,
+    releaseGroupMbid,
+    releaseDate,
   }
 }
 
