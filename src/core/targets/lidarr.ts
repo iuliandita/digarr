@@ -24,7 +24,7 @@ export function createLidarrTarget(
     id: `lidarr-${targetId}`,
     name: 'Lidarr',
     type: 'lidarr',
-    capabilities: ['addArtist'],
+    capabilities: ['addArtist', 'addAlbum'],
 
     async addArtist(
       artist: { mbid: string; name: string },
@@ -63,6 +63,60 @@ export function createLidarrTarget(
           targetType: 'lidarr',
           targetId,
           externalId: added.id,
+        }
+      } catch (err: unknown) {
+        return {
+          success: false,
+          targetType: 'lidarr',
+          targetId,
+          error: errMsg(err),
+        }
+      }
+    },
+
+    async addAlbum(
+      album: { artistMbid: string; artistName: string; releaseGroupMbid: string },
+      options?: TargetAddOptions,
+    ): Promise<TargetResult> {
+      try {
+        // Gap-fill safe: reuse the artist if already tracked, otherwise add it
+        // unmonitored so Lidarr does not grab the whole discography.
+        const existing = (await client.getArtists()).find(
+          (a) => a.foreignArtistId === album.artistMbid,
+        )
+        let artistId = existing?.id
+
+        if (!artistId) {
+          const added = await client.addArtist(
+            album.artistMbid,
+            album.artistName,
+            options?.qualityProfileId ?? qualityProfileId,
+            options?.metadataProfileId ?? metadataProfileId,
+            options?.rootFolderId ?? rootFolderId,
+            { monitorOption: 'none' },
+          )
+          artistId = added.id
+        }
+
+        const albums = await client.getAlbums(artistId)
+        const match = albums.find((a) => a.foreignAlbumId === album.releaseGroupMbid)
+        if (!match) {
+          return {
+            success: false,
+            targetType: 'lidarr',
+            targetId,
+            error: 'album not found in Lidarr',
+          }
+        }
+
+        await client.updateAlbum(match.id, { monitored: true })
+        await client.triggerCommand('AlbumSearch', { albumIds: [match.id] })
+
+        return {
+          success: true,
+          targetType: 'lidarr',
+          targetId,
+          externalId: match.id,
         }
       } catch (err: unknown) {
         return {

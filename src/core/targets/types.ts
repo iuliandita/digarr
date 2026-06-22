@@ -62,6 +62,11 @@ export interface DestinationTarget {
     options?: TargetAddOptions,
   ): Promise<TargetResult>
 
+  addAlbum?(
+    album: { artistMbid: string; artistName: string; releaseGroupMbid: string },
+    options?: TargetAddOptions,
+  ): Promise<TargetResult>
+
   createPlaylist?(
     name: string,
     items: PlaylistItem[],
