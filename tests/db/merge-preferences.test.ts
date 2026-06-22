@@ -74,3 +74,12 @@ describe('mergePreferences', () => {
     expect(merged.scoreThreshold).toBe(0.6)
   })
 })
+
+describe('netNewAlbumDiscovery preference', () => {
+  it('defaults to false', () => {
+    expect(DEFAULT_PREFERENCES.netNewAlbumDiscovery).toBe(false)
+  })
+  it('survives a partial merge', () => {
+    expect(mergePreferences({ netNewAlbumDiscovery: true }).netNewAlbumDiscovery).toBe(true)
+  })
+})
