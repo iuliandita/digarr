@@ -208,11 +208,14 @@ Locale notes:
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed` (comma-separated)
+- `kind` - `artist` or `album`; omit to return both. Backs the Discover kind filter and the Albums tab (`?kind=album`)
 - `batchId` - filter by batch
 - `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`
 - `decades` - era filter, comma-separated: `60s`, `70s`, `80s`, `90s`, `00s`, `10s`, `20s`
 - `limit` - 1-200 (default 20)
 - `offset` - pagination offset
+
+Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `recommendedReleaseGroupId` / `recommendedReleaseGroupTitle` identify the album (its `artistId` still points at the album's artist), and the UI renders the album as the primary unit.
 
 **PATCH /api/v1/recommendations/:id** body:
 ```json
@@ -235,6 +238,7 @@ Approval notes:
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
+- approving a `kind: "album"` recommendation routes to targets with the `addAlbum` capability: it adds the artist **unmonitored** (no whole-discography grab, and reuses the artist if already tracked), then monitors and searches only the approved album. `monitorOption` / `selectedAlbumIds` are ignored for album recs since the album is resolved from `recommendedReleaseGroupId`
 - rejected recommendations may include `reason`, `reasonText`, and `permanent`; `permanent: true` also adds the artist to the caller's blocklist
 
 ## Artist Blocks
