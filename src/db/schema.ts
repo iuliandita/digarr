@@ -568,6 +568,8 @@ export const libraryArtists = pgTable(
     matchConfidence: real('match_confidence'),
     genres: text('genres').array(),
     syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
+    // gap-fill rotation cursor: least-recently-checked artists first; null = never checked
+    lastGapCheckAt: timestamp('last_gap_check_at', { withTimezone: true }),
   },
   (table) => ({
     naturalKey: uniqueIndex('library_artists_natural_key_idx').on(
