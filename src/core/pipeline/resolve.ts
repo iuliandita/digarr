@@ -397,37 +397,79 @@ export async function fetchArtistImage(
     }
   }
 
-  // Fallback chain: Lidarr -> fanart.tv -> musicinfo.pro
+  // Fallback chain: Lidarr -> fanart.tv -> musicinfo.pro.
+  // AudioDB stays the sequential primary above; the remaining fallbacks only
+  // fire when it misses, so we run them concurrently and pick the first hit by
+  // priority order (Lidarr > fanart > musicinfo) to match the old short-circuit
+  // winner while shaving the tail latency of the miss case.
+  type Hit = { url?: string; logoUrl?: string }
+  const tasks: Array<{ priority: number; run: () => Promise<Hit | null> }> = []
+
   if (lidarr) {
-    try {
-      const results = await lidarr.lookupArtist(`lidarr:${mbid}`)
-      const artist = results[0] as { images?: ImageEntry[] } | undefined
-      if (artist?.images?.length) {
-        const extracted = extractImages(artist.images)
-        if (extracted.url) return { ...extracted, failed: false }
-      }
-    } catch (err) {
-      console.warn(`[resolve] Lidarr image lookup failed for ${mbid}:`, err)
-    }
+    tasks.push({
+      priority: 0,
+      run: async () => {
+        try {
+          const results = await lidarr.lookupArtist(`lidarr:${mbid}`)
+          const artist = results[0] as { images?: ImageEntry[] } | undefined
+          if (artist?.images?.length) {
+            const extracted = extractImages(artist.images)
+            if (extracted.url) return extracted
+          }
+          return null
+        } catch (err) {
+          console.warn(`[resolve] Lidarr image lookup failed for ${mbid}:`, err)
+          return null
+        }
+      },
+    })
   }
 
   if (fanart) {
-    try {
-      const result = await fanart.getArtistImages(mbid)
-      if (result.url) return { ...result, failed: false }
-    } catch (err) {
-      console.warn(`[resolve] fanart.tv image lookup failed for ${mbid}:`, err)
-    }
+    tasks.push({
+      priority: 1,
+      run: async () => {
+        try {
+          const result = await fanart.getArtistImages(mbid)
+          if (result.url) return result
+          return null
+        } catch (err) {
+          console.warn(`[resolve] fanart.tv image lookup failed for ${mbid}:`, err)
+          return null
+        }
+      },
+    })
   }
 
   if (musicinfo) {
-    try {
-      const result = await musicinfo.lookupArtistImages(mbid)
-      if (result.url) return { ...result, failed: false }
-    } catch (err) {
-      console.warn(`[resolve] musicinfo image lookup failed for ${mbid}:`, err)
-    }
+    tasks.push({
+      priority: 2,
+      run: async () => {
+        try {
+          const result = await musicinfo.lookupArtistImages(mbid)
+          if (result.url) return result
+          return null
+        } catch (err) {
+          console.warn(`[resolve] musicinfo image lookup failed for ${mbid}:`, err)
+          return null
+        }
+      },
+    })
   }
+
+  const settled = await Promise.allSettled(tasks.map((task) => task.run()))
+  const hit = tasks
+    .map((task, i) => {
+      const result = settled[i]
+      return {
+        priority: task.priority,
+        value: result?.status === 'fulfilled' ? result.value : null,
+      }
+    })
+    .filter((candidate) => candidate.value?.url)
+    .sort((a, b) => a.priority - b.priority)[0]
+
+  if (hit?.value) return { ...hit.value, failed: false }
 
   return { failed: Boolean(lidarr ?? fanart ?? musicinfo) }
 }
