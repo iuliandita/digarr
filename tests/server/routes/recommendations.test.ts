@@ -406,6 +406,59 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     )
   })
 
+  it('approves album-kind recs via addAlbum capability', async () => {
+    const updateRecommendationStatus = vi.fn(async () => {})
+    const albumRec = {
+      ...mockRecommendation,
+      kind: 'album',
+      recommendedReleaseGroupId: 'rg-1',
+      artist: { ...mockArtist, mbid: 'a1', name: 'Artist' },
+    }
+    const addAlbum = vi.fn().mockResolvedValue({
+      success: true,
+      targetType: 'lidarr',
+      targetId: 'lidarr-1',
+      externalId: 7,
+    })
+    const addArtist = vi.fn()
+    const mockTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr',
+      type: 'lidarr',
+      capabilities: ['addArtist', 'addAlbum'],
+      addAlbum,
+      addArtist,
+      testConnection: vi.fn(),
+    }
+
+    const app = createApp(
+      makeDeps({
+        updateRecommendationStatus,
+        getRecommendation: vi.fn(async (id: number) => (id === 1 ? albumRec : null)),
+        getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.status).toBe('added_to_lidarr')
+    expect(addAlbum).toHaveBeenCalledTimes(1)
+    expect(addAlbum).toHaveBeenCalledWith(
+      { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' },
+      expect.any(Object),
+    )
+    expect(addArtist).not.toHaveBeenCalled()
+    expect(updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.any(Object),
+    )
+  })
+
   it('approve sets add_failed when target fails', async () => {
     const updateRecommendationStatus = vi.fn(async () => {})
     const mockTarget = {
