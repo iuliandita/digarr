@@ -1,9 +1,28 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import {
   getExistingAlbumReleaseGroupMbids,
   insertRecommendation,
 } from '@/db/queries/recommendations'
+
+const { mockedEq, mockedAnd, mockedOr, mockedIsNull } = vi.hoisted(() => ({
+  mockedEq: vi.fn((left: unknown, right: unknown) => ({ op: 'eq', left, right })),
+  mockedAnd: vi.fn((...clauses: unknown[]) => ({ op: 'and', clauses })),
+  mockedOr: vi.fn((...clauses: unknown[]) => ({ op: 'or', clauses })),
+  mockedIsNull: vi.fn((col: unknown) => ({ op: 'isNull', col })),
+}))
+
+vi.mock('drizzle-orm', async (importOriginal) => {
+  const original = await importOriginal<typeof import('drizzle-orm')>()
+  return { ...original, eq: mockedEq, and: mockedAnd, or: mockedOr, isNull: mockedIsNull }
+})
+
+beforeEach(() => {
+  mockedEq.mockClear()
+  mockedAnd.mockClear()
+  mockedOr.mockClear()
+  mockedIsNull.mockClear()
+})
 
 function makeChainSelectDb(rows: unknown[]): Database {
   const chain: Record<string, unknown> = {}
@@ -71,6 +90,14 @@ describe('getExistingAlbumReleaseGroupMbids', () => {
     expect(result.has('rg-2')).toBe(true)
   })
 
+  it('applies the kind="album" filter', async () => {
+    const db = makeChainSelectDb([{ rg: 'rg-1' }])
+    await getExistingAlbumReleaseGroupMbids(db)
+    // eq(recommendations.kind, 'album') must be called; dropping this filter
+    // would cause the dedup to bleed artist-kind recs into the set
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'album')
+  })
+
   it('returns an empty Set when no album recs exist', async () => {
     const db = makeChainSelectDb([])
     const result = await getExistingAlbumReleaseGroupMbids(db)
@@ -84,9 +111,14 @@ describe('getExistingAlbumReleaseGroupMbids', () => {
     expect(result.size).toBe(0)
   })
 
-  it('accepts a userId argument without throwing', async () => {
+  it('scopes to userId when provided', async () => {
     const db = makeChainSelectDb([{ rg: 'rg-3' }])
     const result = await getExistingAlbumReleaseGroupMbids(db, 42)
     expect(result.has('rg-3')).toBe(true)
+    // Must filter by userId=42 via eq() and also include null-user recs via isNull()
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 42)
+    expect(mockedIsNull).toHaveBeenCalled()
+    // or() must combine the userId and null-userId conditions
+    expect(mockedOr).toHaveBeenCalled()
   })
 })

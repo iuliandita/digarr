@@ -435,7 +435,7 @@ export class PipelineOrchestrator extends EventEmitter {
       // these optional methods still work.
       const albumSets: AlbumFilterSets = {
         blockedArtistMbids: blockedMbids,
-        blockedAlbumKeys: (await db.getBlockedAlbumKeys?.(deps.userId ?? 0)) ?? new Set<string>(),
+        blockedAlbumKeys: (await db.getBlockedAlbumKeys?.(deps.userId)) ?? new Set<string>(),
         existingAlbumRgs:
           (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId)) ?? new Set<string>(),
       }

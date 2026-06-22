@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import {
   createAlbumBlock,
@@ -6,6 +6,21 @@ import {
   listAlbumBlocks,
   removeAlbumBlock,
 } from '@/db/queries/album-blocks'
+
+const { mockedEq, mockedAnd } = vi.hoisted(() => ({
+  mockedEq: vi.fn((left: unknown, right: unknown) => ({ op: 'eq', left, right })),
+  mockedAnd: vi.fn((...clauses: unknown[]) => ({ op: 'and', clauses })),
+}))
+
+vi.mock('drizzle-orm', async (importOriginal) => {
+  const original = await importOriginal<typeof import('drizzle-orm')>()
+  return { ...original, eq: mockedEq, and: mockedAnd }
+})
+
+beforeEach(() => {
+  mockedEq.mockClear()
+  mockedAnd.mockClear()
+})
 
 function makeChainSelectDb(rows: unknown[]): Database {
   const chain: Record<string, unknown> = {}
@@ -41,11 +56,16 @@ function makeInsertDb(): {
   }
 }
 
-function makeDeleteDb(): { db: Database; where: ReturnType<typeof vi.fn> } {
+function makeDeleteDb(): {
+  db: Database
+  del: ReturnType<typeof vi.fn>
+  where: ReturnType<typeof vi.fn>
+} {
   const where = vi.fn().mockResolvedValue(undefined)
   const del = vi.fn().mockReturnValue({ where })
   return {
     db: { delete: del } as unknown as Database,
+    del,
     where,
   }
 }
@@ -91,9 +111,30 @@ describe('createAlbumBlock', () => {
 
 describe('removeAlbumBlock', () => {
   it('calls delete().where() with the correct user and mbid', async () => {
-    const { db, where } = makeDeleteDb()
+    const { db, del, where } = makeDeleteDb()
     await removeAlbumBlock(db, { userId: 1, releaseGroupMbid: 'rg-mbid-1' })
-    expect(where).toHaveBeenCalled()
+    // Assert the delete targets the album_blocks table (not some other table).
+    // The drizzle PgTable carries its SQL name in Symbol(drizzle:Name).
+    const tableArg = del.mock.calls[0]?.[0]
+    expect(tableArg).toBeDefined()
+    const nameSymbol = Object.getOwnPropertySymbols(tableArg).find(
+      (s) => s.toString() === 'Symbol(drizzle:Name)',
+    )
+    expect(nameSymbol).toBeDefined()
+    if (nameSymbol) {
+      expect(tableArg[nameSymbol]).toBe('album_blocks')
+    }
+    // Assert where() was called with a defined predicate
+    expect(where).toHaveBeenCalledWith(expect.anything())
+    // Assert both userId and releaseGroupMbid are used in the predicate
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 1)
+    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'rg-mbid-1')
+    // Assert and() combined both conditions (no single-condition shortcut that
+    // would silently drop the releaseGroupMbid guard)
+    expect(mockedAnd).toHaveBeenCalledWith(
+      expect.objectContaining({ op: 'eq' }),
+      expect.objectContaining({ op: 'eq' }),
+    )
   })
 })
 

@@ -429,6 +429,11 @@ export async function insertRecommendation(
   })
 }
 
+/**
+ * Release-group MBIDs of existing album-kind recommendations, for album dedup.
+ * Scoped to the given user (plus global/null-user recs). If `userId` is omitted,
+ * returns the set across ALL users — only safe for global passes, NOT per-user dedup.
+ */
 export async function getExistingAlbumReleaseGroupMbids(
   db: Database,
   userId?: number,
