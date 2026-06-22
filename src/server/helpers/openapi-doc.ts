@@ -117,6 +117,11 @@ export const openapiDoc = {
         required: ['id'],
         properties: {
           id: { type: 'integer' },
+          kind: {
+            type: 'string',
+            enum: ['artist', 'album'],
+            description: 'Whether this recommendation is for an artist or a specific album.',
+          },
           status: { type: 'string' },
           score: { type: 'number' },
           artist: { type: 'object', additionalProperties: true },
@@ -325,6 +330,12 @@ export const openapiDoc = {
         parameters: [
           { name: 'status', in: 'query', schema: { type: 'string' } },
           { name: 'batchId', in: 'query', schema: { type: 'integer' } },
+          {
+            name: 'kind',
+            in: 'query',
+            schema: { type: 'string', enum: ['artist', 'album'] },
+            description: 'Filter by recommendation kind. Omit to return both artists and albums.',
+          },
           { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 200 } },
           { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
         ],

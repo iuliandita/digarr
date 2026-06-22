@@ -4,6 +4,20 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.0.0 - 2026-06-22
+
+GA release. Headline feature: album-level discovery substrate.
+
+### Added
+
+- **Album-level discovery (substrate).** Albums are now a first-class recommendation unit alongside artists. The recommendation queue can surface individual albums -- gap-fills for artists you already track, new releases, or net-new album finds. Foundation is shipped; the recommendation producers (new-release radar, library-gap fill, net-new album discovery) roll out in follow-up work.
+- `kind` discriminator on recommendations (`'artist'` | `'album'`). All recommendation objects and list responses now expose `kind`; the `GET /api/v1/recommendations?kind=artist|album` filter lets callers fetch one type at a time.
+- `album_blocks` table: a per-user, forever-block layer for albums keyed on release-group MBID, independent of the existing artist block layer. Rejection cooldown for albums is handled by the rejected recommendation row itself.
+- Album scoring modifier: album recommendations are scored as the artist-similarity base plus a bounded recency / popularity / gap-priority modifier, clamped to [0, 1].
+- Single-album Lidarr approval (`addAlbum` target capability): approving an album recommendation adds the artist to Lidarr **unmonitored** (no whole-discography grab) and monitors and searches only the approved album. If the artist is already in Lidarr, it is reused (gap-fill safe).
+- Kind filter on the Discover page (All / Artists / Albums) and a dedicated **Albums** navigation entry that deep-links to album-filtered discovery.
+- Full i18n coverage for all album-discovery UI strings across all 15 shipped locales.
+
 ## v1.0.0-rc.12 - 2026-06-22
 
 Hardening release: API error-leak fix, worker resilience, and database query performance.

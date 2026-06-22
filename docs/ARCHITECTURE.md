@@ -54,6 +54,15 @@ Async IIFE in `src/index.ts`:
 11. Playlist scheduler
 12. `startStuckDetector()` - cron every 5 min, as the last boot step
 
+## Album-level discovery
+
+Albums are a first-class recommendation unit. Key additions:
+
+- **`kind` discriminator** on the `recommendations` table (`'artist' | 'album'`, default `'artist'`). All recommendation queries and API responses include `kind`; the list endpoint accepts a `?kind=` filter.
+- **`album_blocks` table** -- per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
+- **`applyAlbumModifier`** in `src/core/pipeline/score.ts` -- computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
+- **`addAlbum` target capability** -- approving an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe).
+
 ## Key invariants
 
 - Config precedence: DB settings (single row, `id=1`) override env vars. Per-user credentials live on the `users` table; global settings are the fallback.

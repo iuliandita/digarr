@@ -14,8 +14,8 @@
 
 **Music discovery for your *arr stack.** Digarr builds a taste profile from your listening sources, asks your AI provider for candidates, scores them, and gives you a review queue. From there you can approve artists into Lidarr or playlist targets, run mood searches, save discovery subscriptions, generate playlists, and browse by genre. The UI and AI-assisted reasoning ship in 15 languages. It is self-hosted, so the data stays with you.
 
-> [!WARNING]
-> **Beta software, working toward v1.0.** You can use it today, but expect rough edges. Releases can land quickly, sometimes several in a day, so check the [releases page](https://github.com/iuliandita/digarr/releases) and [CHANGELOG.md](CHANGELOG.md) before updating. If you run into something broken, [open an issue](https://github.com/iuliandita/digarr/issues) or send over a feature idea.
+> [!NOTE]
+> **v1.0.0 is out.** See the [release notes](https://github.com/iuliandita/digarr/releases/tag/v1.0.0) and [CHANGELOG.md](CHANGELOG.md) for what's new. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
 >
 > Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
@@ -27,6 +27,9 @@
 > **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
 
 ## What Makes Digarr Different
+
+### Album-Level Discovery
+Digarr v1.0.0 ships album-level discovery as a first-class feature. The recommendation queue now surfaces individual albums alongside artists -- gap-fills for artists you already follow, new releases you may have missed, and net-new album finds. Approving an album adds the artist to Lidarr **unmonitored** (no whole-discography grab) and monitors and searches only the approved album. The Discover page adds a kind filter (All / Artists / Albums) and a dedicated Albums navigation entry. Full i18n across all 15 shipped locales. Note: this release ships the foundation; the recommendation producers (new-release radar, library-gap fill, and net-new album discovery) roll out in follow-up work.
 
 ### 7-Stage AI Pipeline
 Digarr takes signals from up to 8 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
@@ -67,6 +70,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 
 ## Features
 
+- **Album-level discovery:** discover and approve individual albums -- gap-fill, new releases, net-new finds -- without grabbing the full discography; kind filter (All / Artists / Albums) and dedicated Albums nav on Discover
 - **8 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, and Discogs
 - **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
 - **Auto-approve:** send high-scoring recommendations to your targets automatically
@@ -121,7 +125,7 @@ docker compose up -d
 
 Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
 
-The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.0.0-rc.12`) when you want the head of the release line.
+The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.0.0`) when you want the head of the release line.
 
 For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. Emby can be added during the setup wizard or later in Settings.
 

@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-06-22 | Current: v1.0.0-rc.12
+> Updated: 2026-06-22 | Current: v1.0.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and slskd. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), and Labels (co-label artists via Discogs), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Current focus is album-level discovery, download-target breadth, and UX polish around review and playback.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and slskd. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), and Labels (co-label artists via Discogs), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit with a `kind` discriminator, album blocks, an album scoring modifier, single-album Lidarr approval (`addAlbum`), a kind filter and Albums nav on Discover, and full i18n. The recommendation producers (new-release radar, library-gap fill, net-new album discovery) roll out next. Current focus is expanding those producers, download-target breadth, and UX polish around review and playback.
 
 ## v1 Goals
 
@@ -36,7 +36,7 @@ Committed direction, roughly in priority order.
 
 ### Discovery
 
-- Album-level discovery (recommend specific albums, not just artists)
+- Album discovery producers: new-release radar, library-gap fill, and net-new album discovery (build on the v1.0.0 substrate)
 
 ## Exploring
 
@@ -91,6 +91,7 @@ Low confidence. Would build only with real demand.
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
 
+- Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). Recommendation producers roll out next.
 - Discovery modes now live on their own page, ship the full set (ListenBrainz radio coverage, Release Radar, Similar Artist Web, Artist Relationships via the MusicBrainz graph, and Labels via Discogs), and can be saved as subscriptions
 - Preview volume control in the global preview bar, persisted across sessions
 - Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover
