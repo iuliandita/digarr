@@ -79,6 +79,7 @@ const mockRecommendation = {
   batchId: 1,
   score: 0.85,
   status: 'pending',
+  kind: 'artist',
   sources: null,
   aiReasoning: null,
   reasons: [],

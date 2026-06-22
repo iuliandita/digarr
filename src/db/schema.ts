@@ -227,6 +227,7 @@ export const recommendations = pgTable(
     sources: jsonb('sources').$type<Record<string, number>>(),
     aiReasoning: text('ai_reasoning'),
     status: text('status').notNull().default('pending'),
+    kind: text('kind').notNull().default('artist'),
     lidarrArtistId: integer('lidarr_artist_id'),
     lidarrError: text('lidarr_error'),
     recommendedReleaseGroupId: text('recommended_release_group_id'),
@@ -711,5 +712,31 @@ export const artistBlocks = pgTable(
     userArtistUnique: uniqueIndex('artist_blocks_user_artist_idx').on(table.userId, table.artistId),
     userIdx: index('artist_blocks_user_idx').on(table.userId),
     artistIdx: index('artist_blocks_artist_idx').on(table.artistId),
+  }),
+)
+
+export const albumBlocks = pgTable(
+  'album_blocks',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    artistId: integer('artist_id')
+      .notNull()
+      .references(() => artists.id, { onDelete: 'cascade' }),
+    releaseGroupMbid: text('release_group_mbid').notNull(),
+    reason: text('reason'),
+    reasonText: text('reason_text'),
+    source: text('source').notNull().default('rejection'),
+    blockedAt: timestamp('blocked_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userReleaseGroupUnique: uniqueIndex('album_blocks_user_release_group_idx').on(
+      table.userId,
+      table.releaseGroupMbid,
+    ),
+    userIdx: index('album_blocks_user_idx').on(table.userId),
+    artistIdx: index('album_blocks_artist_idx').on(table.artistId),
   }),
 )
