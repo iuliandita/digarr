@@ -906,6 +906,9 @@ export const ru = {
   'settings.autoApproveDescription':
     'Автоматически добавлять высокооцененные рекомендации в назначения после каждого сканирования. Работает только если настроены назначения.',
   'settings.enableAutoApprove': 'Включить автоодобрение',
+  'settings.netNewAlbumDiscovery': 'Поиск новых альбомов',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Когда включено, ИИ может рекомендовать конкретный альбом нового исполнителя, а не только исполнителя.',
   'settings.minimumScore': 'Минимальная оценка',
   'settings.monitorMode': 'Режим мониторинга',
   'settings.monitorAll': 'Все альбомы',

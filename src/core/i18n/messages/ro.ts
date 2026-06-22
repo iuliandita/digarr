@@ -897,6 +897,9 @@ export const ro = {
   'settings.autoApproveDescription':
     'Adaugă automat recomandările cu cel mai mare punctaj la destinațiile dvs. după fiecare scanare. Funcționează doar când sunt configurate destinații.',
   'settings.enableAutoApprove': 'Activați aprobarea automată',
+  'settings.netNewAlbumDiscovery': 'Descoperirea albumelor noi',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Când este activat, IA poate recomanda un album anume al unui artist nou, nu doar artistul.',
   'settings.minimumScore': 'Punctaj minim',
   'settings.monitorMode': 'Mod de monitorizare',
   'settings.monitorAll': 'Toate albumele',

@@ -895,6 +895,9 @@ export const pl = {
   'settings.autoApproveDescription':
     'Automatycznie dodawaj wysoko oceniane rekomendacje do celow po kazdym skanowaniu. Dziala tylko gdy skonfigurowano cele.',
   'settings.enableAutoApprove': 'Wlacz auto-zatwierdzanie',
+  'settings.netNewAlbumDiscovery': 'Odkrywanie zupełnie nowych albumów',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Po włączeniu AI może polecić konkretny album nowego wykonawcy zamiast samego wykonawcy.',
   'settings.minimumScore': 'Minimalna ocena',
   'settings.monitorMode': 'Tryb monitorowania',
   'settings.monitorAll': 'Wszystkie albumy',

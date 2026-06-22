@@ -895,6 +895,9 @@ export const it = {
   'settings.autoApproveDescription':
     'Aggiunge automaticamente le raccomandazioni con punteggio più alto alle tue destinazioni dopo ogni scansione. Funziona solo se le destinazioni sono configurate.',
   'settings.enableAutoApprove': 'Abilita approvazione automatica',
+  'settings.netNewAlbumDiscovery': 'Scoperta di album inediti',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Quando attivo, l’IA può consigliare un album specifico di un nuovo artista invece del solo artista.',
   'settings.minimumScore': 'Punteggio minimo',
   'settings.monitorMode': 'Modalità monitoraggio',
   'settings.monitorAll': 'Tutti gli album',

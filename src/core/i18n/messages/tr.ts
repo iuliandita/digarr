@@ -894,6 +894,9 @@ export const tr = {
   'settings.autoApproveDescription':
     'Her taramadan sonra yüksek puanli onerileri hedeflerinize otomatik ekle. Yalnizca hedefler yapilandirildiginda calisir.',
   'settings.enableAutoApprove': 'Otomatik onayi etkinlestir',
+  'settings.netNewAlbumDiscovery': 'Yepyeni albüm keşfi',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Açıkken yapay zeka, yalnızca sanatçıyı değil, yeni bir sanatçının belirli bir albümünü önerebilir.',
   'settings.minimumScore': 'Minimum puan',
   'settings.monitorMode': 'Izleme modu',
   'settings.monitorAll': 'Tum albumler',

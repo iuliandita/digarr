@@ -890,6 +890,9 @@ export const fr = {
   'settings.autoApproveDescription':
     'Ajouté automatiquement les recommandations les mieux notées à vos destinations après chaque scan. Ne fonctionne que si des destinations sont configurées.',
   'settings.enableAutoApprove': "Activer l'approbation automatique",
+  'settings.netNewAlbumDiscovery': 'Découverte de nouveaux albums',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Lorsque cette option est activée, l’IA peut recommander un album précis d’un nouvel artiste plutôt que seulement l’artiste.',
   'settings.minimumScore': 'Score minimum',
   'settings.monitorMode': 'Mode de surveillance',
   'settings.monitorAll': 'Tous les albums',

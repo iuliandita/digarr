@@ -2126,6 +2126,9 @@ function RecommendationsTabInner({
   const [autoApproveMonitorOption, setAutoApproveMonitorOption] = useState(
     (prefs.autoApproveMonitorOption as string) ?? 'all',
   )
+  const [netNewAlbumDiscovery, setNetNewAlbumDiscovery] = useState(
+    (prefs.netNewAlbumDiscovery as boolean) ?? false,
+  )
   const [fanartApiKey, setFanartApiKey] = useState(String(prefs.fanartApiKey ?? ''))
   const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
     String(prefs.metadataFallbackUrl ?? ''),
@@ -2165,6 +2168,7 @@ function RecommendationsTabInner({
         autoApproveEnabled,
         autoApproveThreshold,
         autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
+        netNewAlbumDiscovery,
         fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
         metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
@@ -2362,6 +2366,16 @@ function RecommendationsTabInner({
               step={0.05}
               onChange={setLibrarySeedRatio}
             />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={netNewAlbumDiscovery}
+                onChange={(e) => setNetNewAlbumDiscovery(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm text-text">{t('settings.netNewAlbumDiscovery')}</span>
+            </label>
+            <p className="text-xs text-muted">{t('settings.netNewAlbumDiscoveryHelp')}</p>
           </section>
 
           <section className="space-y-4">

@@ -870,6 +870,9 @@ export const ko = {
   'settings.autoApproveDescription':
     '각 스캔 후 높은 점수의 추천을 자동으로 대상에 추가합니다. 대상이 설정된 경우에만 실행됩니다.',
   'settings.enableAutoApprove': '자동 승인 활성화',
+  'settings.netNewAlbumDiscovery': '신규 앨범 발견',
+  'settings.netNewAlbumDiscoveryHelp':
+    '켜면 AI가 아티스트만이 아니라 새로운 아티스트의 특정 앨범을 추천할 수 있습니다.',
   'settings.minimumScore': '최소 점수',
   'settings.monitorMode': '모니터 모드',
   'settings.monitorAll': '모든 앨범',

@@ -781,4 +781,26 @@ describe('PipelineOrchestrator', () => {
     // It should still read from the (empty) cache
     expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalled()
   })
+
+  it('passes netNewAlbumDiscovery into resolve()', async () => {
+    const db = makeDb()
+    const settings = {
+      ...defaultSettings,
+      preferences: {
+        ...defaultSettings.preferences,
+        netNewAlbumDiscovery: true,
+      },
+    }
+
+    await orchestrator.run({
+      db,
+      settings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    const call = mockResolve.mock.calls.at(-1)
+    expect(call?.[8]).toBe(true)
+  })
 })

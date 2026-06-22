@@ -906,6 +906,9 @@ export const de = {
   'settings.autoApproveDescription':
     'Hochbewertete Empfehlungen nach jedem Scan automatisch zu deinen Zielen hinzufügen. Läuft nur, wenn Ziele konfiguriert sind.',
   'settings.enableAutoApprove': 'Auto-Genehmigung aktivieren',
+  'settings.netNewAlbumDiscovery': 'Entdeckung brandneuer Alben',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Wenn aktiviert, kann die KI ein bestimmtes Album eines neuen Künstlers empfehlen, statt nur den Künstler.',
   'settings.minimumScore': 'Mindestpunktzahl',
   'settings.monitorMode': 'Überwachungsmodus',
   'settings.monitorAll': 'Alle Alben',

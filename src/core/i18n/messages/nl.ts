@@ -897,6 +897,9 @@ export const nl = {
   'settings.autoApproveDescription':
     'Aanbevelingen met hoge score automatisch toevoegen aan je doelen na elke scan. Werkt alleen als er doelen zijn geconfigureerd.',
   'settings.enableAutoApprove': 'Automatisch goedkeuren inschakelen',
+  'settings.netNewAlbumDiscovery': 'Ontdekking van nieuwe albums',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Indien ingeschakeld kan de AI een specifiek album van een nieuwe artiest aanbevelen in plaats van alleen de artiest.',
   'settings.minimumScore': 'Minimumscore',
   'settings.monitorMode': 'Bewakingsmodus',
   'settings.monitorAll': 'Alle albums',

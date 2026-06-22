@@ -402,6 +402,7 @@ export class PipelineOrchestrator extends EventEmitter {
         musicinfoClient,
         t,
         audiodbClient,
+        prefs.netNewAlbumDiscovery ?? false,
       )
 
       // Enrich sparse genres from artist_metadata (if available)

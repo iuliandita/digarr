@@ -1010,6 +1010,9 @@ export const en = {
   'settings.autoApproveDescription':
     'Automatically add high-scoring recommendations to your targets after each scan. Only runs when targets are configured.',
   'settings.enableAutoApprove': 'Enable auto-approve',
+  'settings.netNewAlbumDiscovery': 'Net-new album discovery',
+  'settings.netNewAlbumDiscoveryHelp':
+    'When on, the AI may recommend a specific album by a new artist instead of just the artist.',
   'settings.minimumScore': 'Minimum score',
   'settings.monitorMode': 'Monitor mode',
   'settings.monitorAll': 'All albums',
