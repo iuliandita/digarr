@@ -446,7 +446,8 @@ describe('DiscoverPage', () => {
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
     renderWithQuery(<DiscoverPage />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Tout' }))
+    const allButtons = await screen.findAllByRole('button', { name: 'Tout' })
+    fireEvent.click(allButtons[0])
 
     expect(await screen.findByText('Exécuter une analyse')).toBeInTheDocument()
   })
