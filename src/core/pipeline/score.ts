@@ -72,6 +72,23 @@ export function applyAlbumModifier(baseScore: number, signals: AlbumScoreSignals
   return Math.max(0, Math.min(1, baseScore + nudge))
 }
 
+/** Months over which recency decays linearly from 1 (new) to 0 (old). */
+const RECENCY_DECAY_MONTHS = 24
+const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30.44
+
+/**
+ * Map a release date to a recency signal in [0, 1]: a just-released album is ~1,
+ * an album RECENCY_DECAY_MONTHS or older is 0, future-dated clamps to 1.
+ * Unparseable dates return a neutral 0.5 (no signal either way).
+ */
+export function computeRecency(releaseDate: string, now: Date): number {
+  const released = new Date(releaseDate)
+  if (Number.isNaN(released.getTime())) return 0.5
+  const monthsSince = (now.getTime() - released.getTime()) / MS_PER_MONTH
+  if (monthsSince <= 0) return 1
+  return Math.max(0, Math.min(1, 1 - monthsSince / RECENCY_DECAY_MONTHS))
+}
+
 export function score(
   artists: ResolvedArtist[],
   libraryGenres: string[],
