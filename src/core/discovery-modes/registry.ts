@@ -1,4 +1,5 @@
 import { createArtistRelationshipsMode } from './modes/artist-relationships'
+import { createGapFillMode } from './modes/gap-fill'
 import { createLabelsMode } from './modes/labels'
 import {
   createListenBrainzMode,
@@ -40,6 +41,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createArtistRelationshipsMode())
   registry.register(createSimilarArtistWebMode())
   registry.register(createLabelsMode())
+  registry.register(createGapFillMode())
   return registry
 }
 

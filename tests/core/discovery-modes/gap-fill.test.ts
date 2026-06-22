@@ -1,6 +1,10 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
-import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fill'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  coverageToReleaseCandidates,
+  createGapFillMode,
+} from '@/core/discovery-modes/modes/gap-fill'
+import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import type { AlbumCoverage } from '@/core/library/album-coverage'
 
 const coverage: AlbumCoverage = {
@@ -40,5 +44,46 @@ describe('coverageToReleaseCandidates', () => {
       'Radiohead',
     )
     expect(out[0]?.freshnessDate).toBeUndefined()
+  })
+})
+
+describe('createGapFillMode executor', () => {
+  it('emits candidates for missing albums and marks artists checked', async () => {
+    const getArtists = vi.fn().mockResolvedValue([
+      { id: 1, mbid: 'artist-1', name: 'Radiohead' },
+      { id: 2, mbid: 'artist-2', name: 'Portishead' },
+    ])
+    const markChecked = vi.fn().mockResolvedValue(undefined)
+    const getCoverage = vi.fn().mockImplementation(async (_userId: number, artistMbid: string) => ({
+      artistMbid,
+      ownedCount: 0,
+      totalCount: 1,
+      owned: [],
+      missing:
+        artistMbid === 'artist-1'
+          ? [{ albumMbid: 'rg-bends', title: 'The Bends', releaseYear: 1995 }]
+          : [],
+    }))
+
+    const mode = createGapFillMode({
+      getArtistsForGapFill: getArtists,
+      markArtistsGapChecked: markChecked,
+      getCoverageForArtist: getCoverage,
+      maxArtistsPerRun: 25,
+    })
+
+    const result = await mode.executor({
+      userId: 7,
+      normalizedSettings: {},
+      providerContext: {},
+    } as DiscoveryModeRequest)
+
+    expect(result.candidates).toHaveLength(1)
+    expect(result.candidates[0]).toMatchObject({
+      releaseGroupMbid: 'rg-bends',
+      artistName: 'Radiohead',
+    })
+    expect(getArtists).toHaveBeenCalledWith(expect.anything(), 7, 25)
+    expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
   })
 })
