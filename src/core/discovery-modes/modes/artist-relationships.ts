@@ -1,8 +1,6 @@
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import type { DiscoveryModeDefinition, RawDiscoveryCandidate } from '../types'
-import { getNormalizedLimit, normalizeDiscoveryName } from './runtime'
-
-type SeedArtist = { name: string; mbid?: string }
+import { getNormalizedLimit, normalizeDiscoveryName, parseSeeds } from './runtime'
 
 // Artist-artist relation types MusicBrainz exposes that are useful for
 // discovery. Used to populate the picker and bound which edges we follow.
@@ -15,25 +13,6 @@ const SUPPORTED_RELATIONSHIP_TYPES = [
   'married',
   'involved with',
 ] as const
-
-function parseSeeds(raw: unknown): SeedArtist[] {
-  const items = Array.isArray(raw)
-    ? raw
-    : typeof raw === 'string'
-      ? raw.split(',').map((s) => s.trim())
-      : []
-  const seeds: SeedArtist[] = []
-  for (const item of items) {
-    if (typeof item === 'string') {
-      if (item.trim()) seeds.push({ name: item.trim() })
-    } else if (item && typeof item === 'object' && 'name' in item) {
-      const rec = item as Record<string, unknown>
-      const name = String(rec.name ?? '').trim()
-      if (name) seeds.push({ name, mbid: typeof rec.mbid === 'string' ? rec.mbid : undefined })
-    }
-  }
-  return seeds
-}
 
 function parseRelationshipTypes(raw: unknown): Set<string> {
   const items = Array.isArray(raw)

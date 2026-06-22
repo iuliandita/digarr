@@ -1,32 +1,16 @@
 import { createDiscogsClient } from '@/core/clients/discogs'
 import type { DiscoveryModeDefinition, RawDiscoveryCandidate } from '../types'
-import { getDiscoveryModeConnections, getNormalizedLimit, normalizeDiscoveryName } from './runtime'
-
-type SeedArtist = { name: string; mbid?: string }
+import {
+  getDiscoveryModeConnections,
+  getNormalizedLimit,
+  normalizeDiscoveryName,
+  parseSeeds,
+} from './runtime'
 
 // Bounded traversal so a label fan-out stays cheap on the Discogs 60/min limit:
 // at most 3 seeds, one label per seed => ~2 search calls per seed (~6 total).
 const MAX_SEEDS = 3
 const LABELS_PER_SEED = 1
-
-function parseSeeds(raw: unknown): SeedArtist[] {
-  const items = Array.isArray(raw)
-    ? raw
-    : typeof raw === 'string'
-      ? raw.split(',').map((s) => s.trim())
-      : []
-  const seeds: SeedArtist[] = []
-  for (const item of items) {
-    if (typeof item === 'string') {
-      if (item.trim()) seeds.push({ name: item.trim() })
-    } else if (item && typeof item === 'object' && 'name' in item) {
-      const rec = item as Record<string, unknown>
-      const name = String(rec.name ?? '').trim()
-      if (name) seeds.push({ name, mbid: typeof rec.mbid === 'string' ? rec.mbid : undefined })
-    }
-  }
-  return seeds
-}
 
 export function createLabelsMode(): DiscoveryModeDefinition {
   return {
