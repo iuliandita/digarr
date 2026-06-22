@@ -792,6 +792,9 @@ export const en = {
     'Discover collaborators, aliases, and adjacent artist graph edges',
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Discover artists connected through label catalogs',
+  'discoveryMode.gap-fill.label': 'Library Gap-Fill',
+  'discoveryMode.gap-fill.description':
+    'Find studio albums you are missing from artists you already track',
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
@@ -815,6 +818,7 @@ export const en = {
   'discoveryMode.field.seedArtists': 'Seed artists',
   'discoveryMode.field.releaseWindow': 'Release window',
   'discoveryMode.field.relationships': 'Relationships',
+  'discoveryMode.field.maxArtistsPerRun': 'Artists checked per run',
   'discoveryMode.field.helpArtistSeed': 'Artist name or MBID to seed the radio',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Similar Users (Quick)',

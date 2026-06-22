@@ -677,6 +677,9 @@ export const fr = {
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description':
     'Découvrez des artistes connectés via les catalogues de labels',
+  'discoveryMode.gap-fill.label': 'Complétion de bibliothèque',
+  'discoveryMode.gap-fill.description':
+    'Trouvez les albums studio qui vous manquent parmi les artistes que vous suivez déjà',
   'discoveryMode.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
   'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
@@ -701,6 +704,7 @@ export const fr = {
   'discoveryMode.field.seedArtists': 'Artistes de départ',
   'discoveryMode.field.releaseWindow': 'Fenêtre de sortie',
   'discoveryMode.field.relationships': 'Relations',
+  'discoveryMode.field.maxArtistsPerRun': 'Artistes vérifiés par exécution',
   'discoveryMode.field.helpArtistSeed': "Nom d'artiste ou MBID pour amorcer la radio",
   'discoveryMode.option.weeklyJams': 'Sessions hebdomadaires',
   'discoveryMode.option.similarUsersQuick': 'Utilisateurs similaires (rapide)',

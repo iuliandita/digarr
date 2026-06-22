@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import { discover } from '@/core/pipeline/discover'
 import type { DiscoverySource } from '@/core/plugins/types'
-import type { TasteProfile } from '@/core/types'
+import type { DiscoveredArtist, TasteProfile } from '@/core/types'
 
 const profile: TasteProfile = {
   topArtists: [
@@ -326,5 +326,46 @@ describe('discover()', () => {
     expect(results).toEqual([])
     expect(lb.getSimilarArtists).not.toHaveBeenCalled()
     expect(ai.getRecommendations).not.toHaveBeenCalled()
+  })
+})
+
+const emptyProfile = { topArtists: [], topGenres: [] } as never
+
+function albumCandidate(rg: string): DiscoveredArtist {
+  return {
+    name: 'Radiohead',
+    mbid: 'artist-1',
+    similarityScore: 0.8,
+    source: 'gap-fill',
+    suggestedAlbum: rg,
+    releaseGroupMbid: rg,
+    releaseDate: '2007-10-10',
+  }
+}
+
+describe('discover explicit-run dedup', () => {
+  it('keeps multiple album-kind candidates that share an artist', async () => {
+    const out = await discover(
+      emptyProfile,
+      { listeningSources: [], musicbrainz: null as never, ai: null },
+      30,
+      undefined,
+      0.3,
+      { explicitRun: true, explicitCandidates: [albumCandidate('rg-a'), albumCandidate('rg-b')] },
+    )
+    expect(out).toHaveLength(2)
+    expect(out.map((d) => d.releaseGroupMbid).sort()).toEqual(['rg-a', 'rg-b'])
+  })
+
+  it('still collapses duplicate release groups for one artist', async () => {
+    const out = await discover(
+      emptyProfile,
+      { listeningSources: [], musicbrainz: null as never, ai: null },
+      30,
+      undefined,
+      0.3,
+      { explicitRun: true, explicitCandidates: [albumCandidate('rg-a'), albumCandidate('rg-a')] },
+    )
+    expect(out).toHaveLength(1)
   })
 })

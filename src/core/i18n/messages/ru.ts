@@ -692,6 +692,9 @@ export const ru = {
     'Открывайте участников коллабораций, псевдонимы и смежных исполнителей',
   'discoveryMode.labels.label': 'Лейблы',
   'discoveryMode.labels.description': 'Находите исполнителей через каталоги лейблов',
+  'discoveryMode.gap-fill.label': 'Заполнение фонотеки',
+  'discoveryMode.gap-fill.description':
+    'Находите недостающие студийные альбомы исполнителей, которых вы уже отслеживаете',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -717,6 +720,7 @@ export const ru = {
   'discoveryMode.field.seedArtists': 'Начальные исполнители',
   'discoveryMode.field.releaseWindow': 'Окно релизов',
   'discoveryMode.field.relationships': 'Связи',
+  'discoveryMode.field.maxArtistsPerRun': 'Проверяемых исполнителей за запуск',
   'discoveryMode.field.helpArtistSeed': 'Имя исполнителя или MBID для запуска радио',
   'discoveryMode.option.weeklyJams': 'Недельные хиты',
   'discoveryMode.option.similarUsersQuick': 'Похожие пользователи (быстрый)',

@@ -681,6 +681,9 @@ export const it = {
     'Scopri collaboratori, alias e connessioni adiacenti nel grafo degli artisti',
   'discoveryMode.labels.label': 'Etichette discografiche',
   'discoveryMode.labels.description': 'Scopri artisti collegati tramite cataloghi di etichette',
+  'discoveryMode.gap-fill.label': 'Completamento libreria',
+  'discoveryMode.gap-fill.description':
+    'Trova gli album in studio che ti mancano degli artisti che già segui',
   'discoveryMode.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.notShippedYet': 'Questa modalità non è ancora disponibile.',
   'discoveryMode.reason.connectListenBrainz': 'Collega ListenBrainz per usare questa modalità.',
@@ -705,6 +708,7 @@ export const it = {
   'discoveryMode.field.seedArtists': 'Artisti di partenza',
   'discoveryMode.field.releaseWindow': 'Finestra di uscita',
   'discoveryMode.field.relationships': 'Relazioni',
+  'discoveryMode.field.maxArtistsPerRun': 'Artisti controllati per esecuzione',
   'discoveryMode.field.helpArtistSeed': 'Nome artista o MBID per avviare la radio',
   'discoveryMode.option.weeklyJams': 'Session settimanali',
   'discoveryMode.option.similarUsersQuick': 'Utenti simili (rapido)',

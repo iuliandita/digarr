@@ -687,6 +687,9 @@ export const uk = {
     'Відкривайте учасників колаборацій, псевдоніми та суміжних виконавців',
   'discoveryMode.labels.label': 'Лейбли',
   'discoveryMode.labels.description': 'Знаходьте виконавців через каталоги лейблів',
+  'discoveryMode.gap-fill.label': 'Заповнення фонотеки',
+  'discoveryMode.gap-fill.description':
+    'Знаходьте студійні альбоми, яких бракує, від виконавців, яких ви вже відстежуєте',
   'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
@@ -712,6 +715,7 @@ export const uk = {
   'discoveryMode.field.seedArtists': 'Початкові виконавці',
   'discoveryMode.field.releaseWindow': 'Вікно релізів',
   'discoveryMode.field.relationships': "Зв'язки",
+  'discoveryMode.field.maxArtistsPerRun': 'Перевірених виконавців за запуск',
   'discoveryMode.field.helpArtistSeed': "Ім'я виконавця або MBID для запуску радіо",
   'discoveryMode.option.weeklyJams': 'Тижневі хіти',
   'discoveryMode.option.similarUsersQuick': 'Схожі користувачі (швидкий)',

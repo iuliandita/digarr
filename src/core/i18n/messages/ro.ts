@@ -684,6 +684,9 @@ export const ro = {
   'discoveryMode.labels.label': 'Case de discuri',
   'discoveryMode.labels.description':
     'Descoperiți artiști conectați prin cataloagele caselor de discuri',
+  'discoveryMode.gap-fill.label': 'Completare bibliotecă',
+  'discoveryMode.gap-fill.description':
+    'Găsiți albumele de studio care vă lipsesc de la artiștii pe care îi urmăriți deja',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -708,6 +711,7 @@ export const ro = {
   'discoveryMode.field.seedArtists': 'Artiști sursă',
   'discoveryMode.field.releaseWindow': 'Fereastră de lansare',
   'discoveryMode.field.relationships': 'Relații',
+  'discoveryMode.field.maxArtistsPerRun': 'Artiști verificați pe rulare',
   'discoveryMode.field.helpArtistSeed': 'Numele artistului sau MBID pentru a porni radio-ul',
   'discoveryMode.option.weeklyJams': 'Sesiuni săptămânale',
   'discoveryMode.option.similarUsersQuick': 'Utilizatori similari (rapid)',

@@ -682,6 +682,9 @@ export const tr = {
     'Isbirlikleri, takma adlar ve yakin sanatci grafigi baglantilarini kesfet',
   'discoveryMode.labels.label': 'Etiketler',
   'discoveryMode.labels.description': 'Plak sirketi kataloglari uzerinden sanatci kesfet',
+  'discoveryMode.gap-fill.label': 'Kitapligi tamamla',
+  'discoveryMode.gap-fill.description':
+    'Zaten takip ettigin sanatcilarin eksik studyo albumlerini bul',
   'discoveryMode.notImplementedYet': 'Bu mod henuz uygulanmadi.',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz baglayin.',
@@ -705,6 +708,7 @@ export const tr = {
   'discoveryMode.field.seedArtists': 'Baslangic sanatcilari',
   'discoveryMode.field.releaseWindow': 'Yayin penceresi',
   'discoveryMode.field.relationships': 'Iliskiler',
+  'discoveryMode.field.maxArtistsPerRun': 'Calisma basina denetlenen sanatcilar',
   'discoveryMode.field.helpArtistSeed': 'Radyoyu beslemek için sanatci adi veya MBID',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Benzer Kullanıcılar (Hizli)',

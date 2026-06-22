@@ -78,7 +78,12 @@ function dedupeDiscoveredArtists(candidates: DiscoveredArtist[]): DiscoveredArti
   const seen = new Set<string>()
 
   return candidates.filter((candidate) => {
-    const key = candidate.mbid?.trim().toLowerCase() || normalizeName(candidate.name)
+    // Album-kind candidates (gap-fill / release-radar) are identified by their
+    // release group, so several albums from one artist all survive. Artist-kind
+    // candidates dedup on artist mbid/name as before.
+    const key = candidate.releaseGroupMbid
+      ? `rg::${candidate.releaseGroupMbid}`
+      : candidate.mbid?.trim().toLowerCase() || normalizeName(candidate.name)
     if (seen.has(key)) {
       return false
     }

@@ -253,6 +253,13 @@
       "when": 1782124707947,
       "tag": "0035_productive_the_twelve",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1782153851189,
+      "tag": "0036_special_blonde_phantom",
+      "breakpoints": true
     }
   ]
 }

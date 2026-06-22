@@ -685,6 +685,9 @@ export const ptBR = {
     'Descubra colaboradores, aliases e conexões adjacentes no grafo de artistas',
   'discoveryMode.labels.label': 'Gravadoras',
   'discoveryMode.labels.description': 'Descubra artistas conectados por catálogos de gravadoras',
+  'discoveryMode.gap-fill.label': 'Preenchimento da biblioteca',
+  'discoveryMode.gap-fill.description':
+    'Encontre álbuns de estúdio que faltam de artistas que você já acompanha',
   'discoveryMode.notImplementedYet': 'Este modo ainda não foi implementado.',
   'discoveryMode.notShippedYet': 'Este modo ainda não está disponível.',
   'discoveryMode.reason.connectListenBrainz': 'Conecte o ListenBrainz para usar este modo.',
@@ -709,6 +712,7 @@ export const ptBR = {
   'discoveryMode.field.seedArtists': 'Artistas semente',
   'discoveryMode.field.releaseWindow': 'Janela de lançamento',
   'discoveryMode.field.relationships': 'Relações',
+  'discoveryMode.field.maxArtistsPerRun': 'Artistas verificados por execução',
   'discoveryMode.field.helpArtistSeed': 'Nome do artista ou MBID para semear o rádio',
   'discoveryMode.option.weeklyJams': 'Sessões semanais',
   'discoveryMode.option.similarUsersQuick': 'Usuários similares (rápido)',

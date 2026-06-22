@@ -4,6 +4,18 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.2.0 - 2026-06-22
+
+Second album-discovery producer: Library Gap-Fill recommends the studio albums you are missing from artists you already track.
+
+### Added
+
+- **Library Gap-Fill discovery mode (Producer A).** A new discovery mode that turns "studio albums you are missing from artists you already track" into first-class album recommendations under the Albums tab. Each run checks a rotating, bounded slice of your tracked artists (default 25, configurable), so a large library is covered over successive runs without flooding the queue.
+
+### Changed
+
+- **Release-radar now surfaces all new releases per artist in a single scan.** Previously a tracked artist that dropped several releases in one window produced only one album recommendation per run, with the rest trickling out on later runs. Album recommendations now dedup per release group instead of per artist, so every new release from an artist appears in the same scan.
+
 ## v1.1.0 - 2026-06-22
 
 First album-discovery producer: release-radar new releases now fill the Albums tab.
