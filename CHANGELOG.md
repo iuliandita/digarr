@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.3.0 - 2026-06-22
+
+Third and final album-discovery producer: net-new album discovery promotes a specific album by a new-to-you artist into a first-class album recommendation, completing the album-discovery producer trilogy.
+
+### Added
+
+- **Net-new album discovery (Producer C).** When the AI suggests a specific album by an artist you do not yet track and that title resolves to a real MusicBrainz release group, Digarr can surface it as a first-class album recommendation under the Albums tab instead of folding it into a plain artist recommendation. Gated behind a new **Net-new album discovery** toggle in Settings > Recommendations > Advanced (default off); with it off, AI discovery behaves exactly as before. Translated across all 15 shipped locales.
+
 ## v1.2.0 - 2026-06-22
 
 Second album-discovery producer: Library Gap-Fill recommends the studio albums you are missing from artists you already track.
