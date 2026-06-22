@@ -262,4 +262,35 @@ describe('score()', () => {
     const result = score([artist], ['rock'], popWeights, new Map(), popMap)
     expect(result[0]?.sourceScores.popularity).toBe(0)
   })
+
+  it('applies the album modifier and records recency for album-kind', () => {
+    const artist = makeArtist({
+      mbid: 'm1',
+      name: 'Radiohead',
+      tags: ['rock'],
+      genres: ['rock'],
+      streamingUrls: {},
+      discoveries: [{ name: 'Radiohead', similarityScore: 0.8, source: 'release-radar' }],
+      kind: 'album' as const,
+      releaseGroupMbid: 'rg-1',
+      releaseDate: '2026-06-01',
+    })
+    const [scored] = score([artist], [], defaultWeights, new Map())
+    expect(scored?.sourceScores.recency).toBeGreaterThan(0.9)
+    expect(scored?.score).toBeGreaterThanOrEqual(0)
+    expect(scored?.score).toBeLessThanOrEqual(1)
+  })
+
+  it('leaves artist-kind scores without a recency component', () => {
+    const artist = makeArtist({
+      mbid: 'm2',
+      name: 'Portishead',
+      tags: ['trip-hop'],
+      genres: ['trip-hop'],
+      streamingUrls: {},
+      discoveries: [{ name: 'Portishead', similarityScore: 0.6, source: 'ai' }],
+    })
+    const [scored] = score([artist], [], defaultWeights, new Map())
+    expect(scored?.sourceScores.recency).toBeUndefined()
+  })
 })

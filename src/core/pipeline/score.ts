@@ -144,7 +144,7 @@ export function score(
     const popularity = popularityMap?.get(artist.name.trim().toLowerCase()) ?? 0
 
     // Weighted composite score (clamped to [0, 1])
-    const finalScore = computeWeightedScore(weights, {
+    const baseScore = computeWeightedScore(weights, {
       consensus,
       similarity,
       genreOverlap,
@@ -153,20 +153,33 @@ export function score(
       popularity,
     })
 
+    const sourceScores: Record<string, number> = {
+      consensus,
+      similarity,
+      genreOverlap,
+      aiConfidence,
+      feedbackBoost,
+      popularity,
+    }
+
+    // Album-kind candidates get a bounded nudge from the recency signal on top
+    // of the artist base score; artist-kind candidates are left untouched.
+    let finalScore = baseScore
+    if (artist.kind === 'album') {
+      const recency = artist.releaseDate
+        ? computeRecency(artist.releaseDate, new Date())
+        : undefined
+      finalScore = applyAlbumModifier(baseScore, { recency, popularity })
+      if (recency !== undefined) sourceScores.recency = recency
+    }
+
     // AI reasoning from first AI discovery
     const aiDiscovery = artist.discoveries.find((d) => d.source === 'ai')
 
     return {
       ...artist,
       score: finalScore,
-      sourceScores: {
-        consensus,
-        similarity,
-        genreOverlap,
-        aiConfidence,
-        feedbackBoost,
-        popularity,
-      },
+      sourceScores,
       aiReasoning: aiDiscovery?.aiReasoning,
     }
   })
