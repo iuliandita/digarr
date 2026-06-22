@@ -364,6 +364,7 @@ describe('resolve()', () => {
         releaseGroupId: 'rg-okc',
         title: 'OK Computer',
         type: 'Album',
+        firstReleaseDate: '1997-06-16',
       })
     })
 
@@ -393,6 +394,7 @@ describe('resolve()', () => {
         releaseGroupId: 'rg-okc-deluxe',
         title: 'OK Computer (Deluxe Edition)',
         type: 'Album',
+        firstReleaseDate: '1997-06-16',
       })
     })
 
@@ -446,6 +448,43 @@ describe('resolve()', () => {
       const result = await resolve(discovered, mb)
 
       expect(result[0]?.suggestedAlbum).toEqual({ title: 'OK Computer' })
+    })
+
+    it('returns the matched release-group firstReleaseDate from matchSuggestedAlbum', async () => {
+      const mb = {
+        lookupArtist: vi.fn().mockResolvedValue({
+          id: 'artist-1',
+          name: 'Boards of Canada',
+          tags: [],
+          relations: [],
+          'life-span': {},
+        }),
+        searchArtist: vi.fn(),
+        extractStreamingUrls: vi.fn().mockReturnValue({}),
+        getReleaseGroups: vi.fn().mockResolvedValue([
+          {
+            id: 'rg-mhtrtc',
+            title: 'Music Has the Right to Children',
+            type: 'Album',
+            firstReleaseDate: '1998-04-20',
+          },
+        ]),
+      }
+      const discovered: DiscoveredArtist[] = [
+        {
+          name: 'Boards of Canada',
+          mbid: 'artist-1',
+          similarityScore: 0.7,
+          source: 'ai',
+          suggestedAlbum: 'Music Has the Right to Children',
+        },
+      ]
+      const [resolved] = await resolve(discovered, mb as never)
+      expect(resolved?.suggestedAlbum).toMatchObject({
+        releaseGroupId: 'rg-mhtrtc',
+        title: 'Music Has the Right to Children',
+        firstReleaseDate: '1998-04-20',
+      })
     })
 
     it('getReleaseGroups throws -> falls back to free text', async () => {

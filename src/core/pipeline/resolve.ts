@@ -235,7 +235,7 @@ async function matchSuggestedAlbum(
   suggestedAlbum: string,
   artistMbid: string,
   mb: MusicBrainzClient,
-): Promise<{ releaseGroupId?: string; title: string; type?: string }> {
+): Promise<{ releaseGroupId?: string; title: string; type?: string; firstReleaseDate?: string }> {
   if (!mb.getReleaseGroups) {
     return { title: suggestedAlbum }
   }
@@ -248,14 +248,24 @@ async function matchSuggestedAlbum(
       (rg) => rg.title.toLowerCase() === suggestedAlbum.toLowerCase(),
     )
     if (exact) {
-      return { releaseGroupId: exact.id, title: exact.title, type: exact.type }
+      return {
+        releaseGroupId: exact.id,
+        title: exact.title,
+        type: exact.type,
+        firstReleaseDate: exact.firstReleaseDate,
+      }
     }
 
     // Step 2: normalized match (strip parenthetical suffixes)
     const normalizedSuggestion = normalizeTitle(suggestedAlbum)
     const normalized = releaseGroups.find((rg) => normalizeTitle(rg.title) === normalizedSuggestion)
     if (normalized) {
-      return { releaseGroupId: normalized.id, title: normalized.title, type: normalized.type }
+      return {
+        releaseGroupId: normalized.id,
+        title: normalized.title,
+        type: normalized.type,
+        firstReleaseDate: normalized.firstReleaseDate,
+      }
     }
 
     // Step 3: no match - return free text without releaseGroupId
@@ -293,7 +303,9 @@ async function buildResolvedArtist(
   let kind: 'artist' | 'album' | undefined
   let releaseGroupMbid: string | undefined
   let releaseDate: string | undefined
-  let suggestedAlbum: { releaseGroupId?: string; title: string; type?: string } | undefined
+  let suggestedAlbum:
+    | { releaseGroupId?: string; title: string; type?: string; firstReleaseDate?: string }
+    | undefined
 
   if (albumDiscovery?.releaseGroupMbid) {
     kind = 'album'
