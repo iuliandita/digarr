@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import type { MBArtist } from '@/core/clients/musicbrainz'
-import { resolve } from '@/core/pipeline/resolve'
+import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import type { DiscoveredArtist } from '@/core/types'
 
 function makeMbArtist(overrides: Partial<MBArtist> = {}): MBArtist {
@@ -710,5 +710,133 @@ describe('resolve()', () => {
       expect(result[0]?.beginYear).toBeUndefined()
       expect(result[0]?.endYear).toBeUndefined()
     })
+  })
+})
+
+describe('fetchArtistImage', () => {
+  const MBID = 'mbid-image'
+
+  function makeAudiodb(images: { url?: string; logoUrl?: string } = {}) {
+    return {
+      getArtistImages: vi.fn().mockResolvedValue(images),
+      searchArtistByName: vi.fn().mockResolvedValue({}),
+    }
+  }
+
+  function makeLidarr(images: Array<{ coverType: string; remoteUrl?: string }>) {
+    return {
+      lookupArtist: vi.fn().mockResolvedValue([{ images }]),
+    }
+  }
+
+  function makeFanart(images: { url?: string; logoUrl?: string }) {
+    return { getArtistImages: vi.fn().mockResolvedValue(images) }
+  }
+
+  function makeMusicinfo(images: { url?: string; logoUrl?: string }) {
+    return { lookupArtistImages: vi.fn().mockResolvedValue(images) }
+  }
+
+  it('short-circuits on AudioDB hit and never invokes fallbacks', async () => {
+    const audiodb = makeAudiodb({ url: 'https://audiodb/img.jpg' })
+    const lidarr = makeLidarr([{ coverType: 'poster', remoteUrl: 'https://lidarr/img.jpg' }])
+    const fanart = makeFanart({ url: 'https://fanart/img.jpg' })
+    const musicinfo = makeMusicinfo({ url: 'https://musicinfo/img.jpg' })
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      fanart as never,
+      musicinfo as never,
+    )
+
+    expect(result).toEqual({ url: 'https://audiodb/img.jpg', failed: false })
+    expect(audiodb.getArtistImages).toHaveBeenCalledTimes(1)
+    expect(lidarr.lookupArtist).not.toHaveBeenCalled()
+    expect(fanart.getArtistImages).not.toHaveBeenCalled()
+    expect(musicinfo.lookupArtistImages).not.toHaveBeenCalled()
+  })
+
+  it('returns fanart image when AudioDB misses and only fanart is configured', async () => {
+    const audiodb = makeAudiodb({})
+    const fanart = makeFanart({ url: 'https://fanart/img.jpg', logoUrl: 'https://fanart/logo.png' })
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      null,
+      fanart as never,
+      null,
+    )
+
+    expect(result).toEqual({
+      url: 'https://fanart/img.jpg',
+      logoUrl: 'https://fanart/logo.png',
+      failed: false,
+    })
+    expect(fanart.getArtistImages).toHaveBeenCalledWith(MBID)
+  })
+
+  it('prefers Lidarr over fanart when both return images (priority preserved despite concurrency)', async () => {
+    const audiodb = makeAudiodb({})
+    const lidarr = makeLidarr([{ coverType: 'poster', remoteUrl: 'https://lidarr/img.jpg' }])
+    const fanart = makeFanart({ url: 'https://fanart/img.jpg' })
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      fanart as never,
+      null,
+    )
+
+    expect(result.url).toBe('https://lidarr/img.jpg')
+    expect(result.failed).toBe(false)
+  })
+
+  it('falls through to fanart without an unhandled rejection when Lidarr throws', async () => {
+    const audiodb = makeAudiodb({})
+    const lidarr = { lookupArtist: vi.fn().mockRejectedValue(new Error('lidarr down')) }
+    const fanart = makeFanart({ url: 'https://fanart/img.jpg' })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      fanart as never,
+      null,
+    )
+
+    expect(result.url).toBe('https://fanart/img.jpg')
+    expect(result.failed).toBe(false)
+    expect(warn).toHaveBeenCalledWith(
+      `[resolve] Lidarr image lookup failed for ${MBID}:`,
+      expect.any(Error),
+    )
+    warn.mockRestore()
+  })
+
+  it('reports failed when AudioDB and all configured fallbacks miss', async () => {
+    const audiodb = makeAudiodb({})
+    const lidarr = makeLidarr([])
+    const fanart = makeFanart({})
+    const musicinfo = makeMusicinfo({})
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      fanart as never,
+      musicinfo as never,
+    )
+
+    expect(result).toEqual({ failed: true })
   })
 })
