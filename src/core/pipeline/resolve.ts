@@ -45,6 +45,7 @@ export async function resolve(
   musicinfo?: MusicinfoClient | null,
   t?: Translator,
   audiodb?: AudiodbClient | null,
+  promoteSuggestedAlbums = false,
 ): Promise<ResolvedArtist[]> {
   // Album-kind discoveries (gap-fill / release-radar) carry a releaseGroupMbid and
   // must each resolve to their OWN recommendation -- one per release group, even
@@ -104,7 +105,16 @@ export async function resolve(
     try {
       const mbArtist = await mb.lookupArtist(mbid)
       resolved.push(
-        await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo, audiodb),
+        await buildResolvedArtist(
+          mbArtist,
+          discoveries,
+          mb,
+          lidarr,
+          fanart,
+          musicinfo,
+          audiodb,
+          promoteSuggestedAlbums,
+        ),
       )
     } catch {
       // Drop unresolvable
@@ -169,6 +179,7 @@ export async function resolve(
           fanart,
           musicinfo,
           audiodb,
+          promoteSuggestedAlbums,
         ),
       )
       byMbid.set(bestCandidate.id, discoveries)
@@ -198,7 +209,16 @@ export async function resolve(
         artistLookupCache.set(artistMbid, mbArtist)
       }
       resolved.push(
-        await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo, audiodb),
+        await buildResolvedArtist(
+          mbArtist,
+          discoveries,
+          mb,
+          lidarr,
+          fanart,
+          musicinfo,
+          audiodb,
+          promoteSuggestedAlbums,
+        ),
       )
     } catch {
       // Drop unresolvable
@@ -283,6 +303,7 @@ async function buildResolvedArtist(
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
   audiodb?: AudiodbClient | null,
+  promoteSuggestedAlbums = false,
 ): Promise<ResolvedArtist> {
   const tags = (mbArtist.tags ?? []).map((t) => t.name)
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
@@ -318,9 +339,17 @@ async function buildResolvedArtist(
   } else {
     // Artist-kind: recover a release-group id from the free-text AI title.
     const aiSuggestion = discoveries.find((d) => d.suggestedAlbum)?.suggestedAlbum
-    suggestedAlbum = aiSuggestion
+    const matched = aiSuggestion
       ? await matchSuggestedAlbum(aiSuggestion, mbArtist.id, mb)
       : undefined
+    suggestedAlbum = matched
+    // Producer C: when net-new album discovery is enabled and the title resolved
+    // to a real release group, promote this to a first-class album recommendation.
+    if (promoteSuggestedAlbums && matched?.releaseGroupId) {
+      kind = 'album'
+      releaseGroupMbid = matched.releaseGroupId
+      releaseDate = matched.firstReleaseDate
+    }
   }
 
   return {

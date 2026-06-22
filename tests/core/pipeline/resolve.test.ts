@@ -487,6 +487,90 @@ describe('resolve()', () => {
       })
     })
 
+    it('promotes a matched AI suggestedAlbum to album-kind when the gate is on', async () => {
+      const mb = {
+        lookupArtist: vi.fn().mockResolvedValue({
+          id: 'artist-1',
+          name: 'Boards of Canada',
+          tags: [],
+          relations: [],
+          'life-span': {},
+        }),
+        searchArtist: vi.fn(),
+        extractStreamingUrls: vi.fn().mockReturnValue({}),
+        getReleaseGroups: vi.fn().mockResolvedValue([
+          {
+            id: 'rg-mhtrtc',
+            title: 'Music Has the Right to Children',
+            type: 'Album',
+            firstReleaseDate: '1998-04-20',
+          },
+        ]),
+      }
+      const discovered: DiscoveredArtist[] = [
+        {
+          name: 'Boards of Canada',
+          mbid: 'artist-1',
+          similarityScore: 0.7,
+          source: 'ai',
+          suggestedAlbum: 'Music Has the Right to Children',
+        },
+      ]
+      const [withGate] = await resolve(
+        discovered,
+        mb as never,
+        undefined,
+        null,
+        null,
+        null,
+        undefined,
+        null,
+        true,
+      )
+      expect(withGate?.kind).toBe('album')
+      expect(withGate?.releaseGroupMbid).toBe('rg-mhtrtc')
+      expect(withGate?.releaseDate).toBe('1998-04-20')
+
+      const [withoutGate] = await resolve(discovered, mb as never)
+      expect(withoutGate?.kind).toBeUndefined()
+    })
+
+    it('falls back to artist-kind when the gate is on but no release-group matched', async () => {
+      const mb = {
+        lookupArtist: vi.fn().mockResolvedValue({
+          id: 'artist-2',
+          name: 'Obscure Act',
+          tags: [],
+          relations: [],
+          'life-span': {},
+        }),
+        searchArtist: vi.fn(),
+        extractStreamingUrls: vi.fn().mockReturnValue({}),
+        getReleaseGroups: vi.fn().mockResolvedValue([]),
+      }
+      const discovered: DiscoveredArtist[] = [
+        {
+          name: 'Obscure Act',
+          mbid: 'artist-2',
+          similarityScore: 0.7,
+          source: 'ai',
+          suggestedAlbum: 'Some Album',
+        },
+      ]
+      const [resolved] = await resolve(
+        discovered,
+        mb as never,
+        undefined,
+        null,
+        null,
+        null,
+        undefined,
+        null,
+        true,
+      )
+      expect(resolved?.kind).toBeUndefined()
+    })
+
     it('getReleaseGroups throws -> falls back to free text', async () => {
       const discovered: DiscoveredArtist[] = [
         {
