@@ -104,4 +104,29 @@ describe('createLidarrTarget().addAlbum', () => {
     expect(client.updateAlbum).not.toHaveBeenCalled()
     expect(client.triggerCommand).not.toHaveBeenCalled()
   })
+
+  it('returns success:false with "album not found in Lidarr" when the release group is absent after add', async () => {
+    const client = mockLidarrClient()
+    client.getArtists.mockResolvedValue([])
+    client.addArtist.mockResolvedValue({ id: 42 })
+    // Lidarr has the artist but not this release group yet
+    client.getAlbums.mockResolvedValue([
+      { id: 7, foreignAlbumId: 'some-other-rg', monitored: false, title: 'Other' },
+    ])
+
+    const target = createLidarrTarget(1, {
+      url: 'http://lidarr:8686',
+      apiKey: 'abc',
+    })
+
+    const result = await target.addAlbum?.(
+      { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-missing' },
+      { qualityProfileId: 1, metadataProfileId: 1, rootFolderId: 1 },
+    )
+
+    expect(result?.success).toBe(false)
+    expect(result?.error).toBe('album not found in Lidarr')
+    expect(client.updateAlbum).not.toHaveBeenCalled()
+    expect(client.triggerCommand).not.toHaveBeenCalled()
+  })
 })
