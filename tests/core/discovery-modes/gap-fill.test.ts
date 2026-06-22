@@ -86,4 +86,44 @@ describe('createGapFillMode executor', () => {
     expect(getArtists).toHaveBeenCalledWith(expect.anything(), 7, 25)
     expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
   })
+
+  it('advances the rotation cursor even when a coverage lookup throws', async () => {
+    const getArtists = vi.fn().mockResolvedValue([
+      { id: 1, mbid: 'artist-1', name: 'Radiohead' },
+      { id: 2, mbid: 'artist-2', name: 'Portishead' },
+    ])
+    const markChecked = vi.fn().mockResolvedValue(undefined)
+    const getCoverage = vi.fn().mockImplementation(async (_userId: number, artistMbid: string) => {
+      if (artistMbid === 'artist-2') {
+        throw new Error('MB timeout')
+      }
+      return {
+        artistMbid,
+        ownedCount: 0,
+        totalCount: 1,
+        owned: [],
+        missing: [{ albumMbid: 'rg-bends', title: 'The Bends', releaseYear: 1995 }],
+      }
+    })
+
+    const mode = createGapFillMode({
+      getArtistsForGapFill: getArtists,
+      markArtistsGapChecked: markChecked,
+      getCoverageForArtist: getCoverage,
+      maxArtistsPerRun: 25,
+    })
+
+    const result = await mode.executor({
+      userId: 7,
+      normalizedSettings: {},
+      providerContext: {},
+    } as DiscoveryModeRequest)
+
+    expect(result.candidates).toHaveLength(1)
+    expect(result.candidates[0]).toMatchObject({
+      releaseGroupMbid: 'rg-bends',
+      artistName: 'Radiohead',
+    })
+    expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
+  })
 })
