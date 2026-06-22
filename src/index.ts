@@ -764,7 +764,9 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
 
   const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
   const blockedMbids = sub.userId ? await storeDb.getBlockedMbids(sub.userId) : new Set<string>()
-  const feedbackHistory = await storeDb.getFeedbackHistory()
+  const feedbackHistory = sub.userId
+    ? await storeDb.getFeedbackHistory(sub.userId)
+    : await storeDb.getFeedbackHistory()
 
   const userConns = sub.userId ? await getUserConnections(db, sub.userId) : null
   const { lbUsername, lbToken, lfUsername, lfApiKey } = resolveSubscriptionSourceConnections(

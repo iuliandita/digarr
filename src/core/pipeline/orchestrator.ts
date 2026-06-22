@@ -301,7 +301,7 @@ export class PipelineOrchestrator extends EventEmitter {
 
       const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
       const blockedMbids = await db.getBlockedMbids(userIdForSync)
-      const feedbackHistory = await db.getFeedbackHistory()
+      const feedbackHistory = await db.getFeedbackHistory(userIdForSync)
 
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
