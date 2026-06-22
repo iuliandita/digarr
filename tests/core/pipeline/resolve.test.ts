@@ -492,6 +492,46 @@ describe('resolve()', () => {
       })
       expect(mb.getReleaseGroups).not.toHaveBeenCalled()
     })
+
+    it('resolves every missing album for one artist into its own album-kind rec', async () => {
+      const lookupArtist = vi
+        .fn()
+        .mockResolvedValue(makeMbArtist({ id: 'artist-1', name: 'Radiohead', tags: [] }))
+      const mb = {
+        lookupArtist,
+        searchArtist: vi.fn(),
+        extractStreamingUrls: vi.fn().mockReturnValue({}),
+        getReleaseGroups: vi.fn(),
+      }
+      const discovered: DiscoveredArtist[] = [
+        {
+          name: 'Radiohead',
+          mbid: 'artist-1',
+          similarityScore: 0.8,
+          source: 'gap-fill',
+          suggestedAlbum: 'The Bends',
+          releaseGroupMbid: 'rg-bends',
+          releaseDate: '1995-03-13',
+        },
+        {
+          name: 'Radiohead',
+          mbid: 'artist-1',
+          similarityScore: 0.8,
+          source: 'gap-fill',
+          suggestedAlbum: 'OK Computer',
+          releaseGroupMbid: 'rg-okc',
+          releaseDate: '1997-06-16',
+        },
+      ]
+
+      const resolved = await resolve(discovered, mb as never)
+
+      expect(resolved).toHaveLength(2)
+      expect(resolved.every((r) => r.kind === 'album')).toBe(true)
+      expect(resolved.map((r) => r.releaseGroupMbid).sort()).toEqual(['rg-bends', 'rg-okc'])
+      expect(resolved.every((r) => r.mbid === 'artist-1')).toBe(true) // artist identity preserved
+      expect(lookupArtist).toHaveBeenCalledTimes(1) // cached: one lookup for two albums
+    })
   })
 
   describe('life-span era data', () => {

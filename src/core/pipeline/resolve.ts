@@ -46,11 +46,17 @@ export async function resolve(
   t?: Translator,
   audiodb?: AudiodbClient | null,
 ): Promise<ResolvedArtist[]> {
-  // Group by MBID (if known) then by name, to deduplicate
+  // Album-kind discoveries (gap-fill / release-radar) carry a releaseGroupMbid and
+  // must each resolve to their OWN recommendation -- one per release group, even
+  // when several share an artist. They skip the artist-dedup grouping below.
+  const albumDiscovered = discovered.filter((d) => d.releaseGroupMbid)
+  const artistDiscovered = discovered.filter((d) => !d.releaseGroupMbid)
+
+  // Group artist-kind by MBID (if known) then by name, to deduplicate
   const byMbid = new Map<string, DiscoveredArtist[]>()
   const byName = new Map<string, DiscoveredArtist[]>()
 
-  for (const artist of discovered) {
+  for (const artist of artistDiscovered) {
     if (artist.mbid) {
       const key = artist.mbid
       const existing = byMbid.get(key) ?? []
@@ -64,7 +70,16 @@ export async function resolve(
     }
   }
 
-  const total = byMbid.size + byName.size
+  // Group album-kind by release group: one resolved rec per release group.
+  const byReleaseGroup = new Map<string, DiscoveredArtist[]>()
+  for (const d of albumDiscovered) {
+    const key = d.releaseGroupMbid as string
+    const existing = byReleaseGroup.get(key) ?? []
+    existing.push(d)
+    byReleaseGroup.set(key, existing)
+  }
+
+  const total = byMbid.size + byName.size + byReleaseGroup.size
   let current = 0
   const resolved: ResolvedArtist[] = []
 
@@ -162,6 +177,34 @@ export async function resolve(
     }
   }
 
+  // Resolve album-kind discoveries: one rec per release group, caching the artist
+  // MB lookup so N missing albums for one artist cost a single lookupArtist call.
+  const artistLookupCache = new Map<string, MBArtist>()
+  for (const [, discoveries] of byReleaseGroup) {
+    current++
+    const artistMbid = discoveries[0]?.mbid
+    const albumTitle = discoveries[0]?.suggestedAlbum ?? ''
+    onProgress?.({
+      stage: 'resolve',
+      current,
+      total,
+      message: t ? t('pipeline.message.resolvingArtist', albumTitle) : `Resolving ${albumTitle}...`,
+    })
+    if (!artistMbid) continue
+    try {
+      let mbArtist = artistLookupCache.get(artistMbid)
+      if (!mbArtist) {
+        mbArtist = await mb.lookupArtist(artistMbid)
+        artistLookupCache.set(artistMbid, mbArtist)
+      }
+      resolved.push(
+        await buildResolvedArtist(mbArtist, discoveries, mb, lidarr, fanart, musicinfo, audiodb),
+      )
+    } catch {
+      // Drop unresolvable
+    }
+  }
+
   onProgress?.({
     stage: 'resolve',
     current: total,
@@ -169,11 +212,14 @@ export async function resolve(
     message: t ? t('pipeline.message.resolutionComplete') : 'Resolution complete',
   })
 
-  // Final dedup by MBID in case search returned same MBID twice
-  const seenMbids = new Set<string>()
+  // Final dedup. Album-kind keys on (artist, release group) so distinct albums for
+  // one artist both survive; artist-kind keys on the artist mbid as before.
+  const seenKeys = new Set<string>()
   return resolved.filter((a) => {
-    if (seenMbids.has(a.mbid)) return false
-    seenMbids.add(a.mbid)
+    const key =
+      a.kind === 'album' && a.releaseGroupMbid ? `${a.mbid}::${a.releaseGroupMbid}` : a.mbid
+    if (seenKeys.has(key)) return false
+    seenKeys.add(key)
     return true
   })
 }
