@@ -38,6 +38,7 @@ export type ListRecommendationsFilters = {
   batchId?: number
   userId?: number
   decades?: string
+  kind?: 'artist' | 'album'
   sort?: 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc'
   limit?: number
   offset?: number
@@ -52,7 +53,16 @@ export async function listRecommendations(
   db: Database,
   filters: ListRecommendationsFilters = {},
 ): Promise<ListRecommendationsResult> {
-  const { status, batchId, userId, decades, sort = 'score_desc', limit = 20, offset = 0 } = filters
+  const {
+    status,
+    batchId,
+    userId,
+    decades,
+    kind,
+    sort = 'score_desc',
+    limit = 20,
+    offset = 0,
+  } = filters
 
   const conditions = []
   if (status !== undefined) {
@@ -67,6 +77,7 @@ export async function listRecommendations(
   }
   if (batchId !== undefined) conditions.push(eq(recommendations.batchId, batchId))
   if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
+  if (kind === 'artist' || kind === 'album') conditions.push(eq(recommendations.kind, kind))
 
   if (decades) {
     const ranges = parseDecades(decades)

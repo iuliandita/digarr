@@ -73,6 +73,7 @@ export const listRecommendationsQuerySchema = z.object({
   batchId: z.coerce.number().int().positive().optional(),
   status: z.string().max(200).optional(),
   decades: z.string().max(100).optional(),
+  kind: z.string().optional(),
   sort: sortSchema.optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),

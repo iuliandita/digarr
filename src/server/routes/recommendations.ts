@@ -396,6 +396,10 @@ export function recommendationRoutes(deps: AppDependencies) {
       batchId: query.batchId,
       userId,
       decades: query.decades || undefined,
+      kind:
+        query.kind === 'artist' || query.kind === 'album'
+          ? (query.kind as 'artist' | 'album')
+          : undefined,
       sort: query.sort,
       limit: query.limit,
       offset: query.offset,
