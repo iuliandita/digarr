@@ -275,7 +275,14 @@ describe('score()', () => {
       releaseGroupMbid: 'rg-1',
       releaseDate: '2026-06-01',
     })
-    const [scored] = score([artist], [], defaultWeights, new Map())
+    const [scored] = score(
+      [artist],
+      [],
+      defaultWeights,
+      new Map(),
+      undefined,
+      new Date('2026-06-22T00:00:00Z'),
+    )
     expect(scored?.sourceScores.recency).toBeGreaterThan(0.9)
     expect(scored?.score).toBeGreaterThanOrEqual(0)
     expect(scored?.score).toBeLessThanOrEqual(1)

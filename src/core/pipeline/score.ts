@@ -95,6 +95,7 @@ export function score(
   weights: Preferences['scoringWeights'],
   feedbackHistory: Map<string, GenreFeedback>,
   popularityMap?: Map<string, number>,
+  now: Date = new Date(),
 ): ScoredArtist[] {
   const libraryGenreSet = new Set(libraryGenres.map((g) => g.toLowerCase()))
 
@@ -162,13 +163,12 @@ export function score(
       popularity,
     }
 
-    // Album-kind candidates get a bounded nudge from the recency signal on top
-    // of the artist base score; artist-kind candidates are left untouched.
+    // Album-kind candidates get a bounded nudge from the recency and popularity
+    // signals on top of the artist base score; artist-kind candidates are left
+    // untouched.
     let finalScore = baseScore
     if (artist.kind === 'album') {
-      const recency = artist.releaseDate
-        ? computeRecency(artist.releaseDate, new Date())
-        : undefined
+      const recency = artist.releaseDate ? computeRecency(artist.releaseDate, now) : undefined
       finalScore = applyAlbumModifier(baseScore, { recency, popularity })
       if (recency !== undefined) sourceScores.recency = recency
     }
