@@ -57,6 +57,7 @@ function withPreview(ui: ReactElement) {
 
 const makeRec = (overrides: Partial<Recommendation> = {}): Recommendation => ({
   id: 1,
+  kind: 'artist',
   score: 0.82,
   status: 'pending',
   aiReasoning: 'Great match for your indie taste.',
@@ -104,6 +105,18 @@ describe('RecommendationCard', () => {
     )
     expect(screen.getByText('Radiohead')).toBeInTheDocument()
     expect(screen.getByText('82%')).toBeInTheDocument()
+  })
+
+  it('renders the album as the primary unit for kind=album', () => {
+    const { container } = withPreview(
+      <RecommendationCard
+        recommendation={makeRec({ kind: 'album', recommendedReleaseGroupTitle: 'Kid A' })}
+        onApprove={onApprove}
+        onReject={onReject}
+      />,
+    )
+    expect(container.querySelector('[data-testid="rec-kind-album"]')).toBeInTheDocument()
+    expect(screen.getByText('Kid A')).toBeInTheDocument()
   })
 
   it('renders genre pills', () => {

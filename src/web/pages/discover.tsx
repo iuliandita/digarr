@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, Filter as FilterIcon, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { errMsg } from '@/core/validation'
@@ -37,6 +37,7 @@ import {
 import { useI18n } from '../lib/i18n'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
+type KindFilter = 'all' | 'artist' | 'album'
 type ViewMode = 'grid' | 'list' | 'stack'
 type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
 
@@ -59,6 +60,19 @@ const STATUS_PARAM: Record<FilterTab, string | undefined> = {
   pending: 'pending',
   approved: 'added_to_lidarr,add_failed,approved',
   rejected: 'rejected',
+}
+
+// 'all' sends no kind param; artist/album scope the recommendations fetch.
+const KIND_PARAM: Record<KindFilter, string | undefined> = {
+  all: undefined,
+  artist: 'artist',
+  album: 'album',
+}
+
+const KIND_FILTERS: KindFilter[] = ['all', 'artist', 'album']
+
+function initialKindFromParam(value: string | null): KindFilter {
+  return value === 'artist' || value === 'album' ? value : 'all'
 }
 
 const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
@@ -446,7 +460,11 @@ function MoreMenu({
 export function DiscoverPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
+  const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
+    initialKindFromParam(searchParams.get('kind')),
+  )
   const [viewMode, setViewMode] = useState<ViewMode>(getStoredViewMode)
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -500,6 +518,15 @@ export function DiscoverPage() {
     }
   }
 
+  // Keep the kind filter in sync with the URL so deep-links (e.g. the Albums
+  // nav entry -> /discover?kind=album) preselect Albums even when the page is
+  // already mounted.
+  const kindParamFromUrl = searchParams.get('kind')
+  useEffect(() => {
+    setKindFilter(initialKindFromParam(kindParamFromUrl))
+    setPage(0)
+  }, [kindParamFromUrl])
+
   const decadesParam = activeDecades.size > 0 ? [...activeDecades].join(',') : undefined
 
   const queryParams: Record<string, string> = {
@@ -508,11 +535,16 @@ export function DiscoverPage() {
     offset: String(page * PAGE_SIZE),
   }
   const statusParam = STATUS_PARAM[filter]
+  const kindParam = KIND_PARAM[kindFilter]
   if (statusParam) queryParams.status = statusParam
   if (decadesParam) queryParams.decades = decadesParam
+  if (kindParam) queryParams.kind = kindParam
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['recommendations', { filter, page, decades: [...activeDecades].sort().join(',') }],
+    queryKey: [
+      'recommendations',
+      { filter, kind: kindFilter, page, decades: [...activeDecades].sort().join(',') },
+    ],
     queryFn: () => getRecommendations(queryParams),
   })
 
@@ -523,6 +555,11 @@ export function DiscoverPage() {
     pending: t('discover.pending'),
     approved: t('discover.approved'),
     rejected: t('discover.rejected'),
+  }
+  const KIND_LABELS: Record<KindFilter, string> = {
+    all: t('discover.kind.all'),
+    artist: t('discover.kind.artists'),
+    album: t('discover.kind.albums'),
   }
 
   // Warm status
@@ -998,6 +1035,28 @@ export function DiscoverPage() {
                     {counts.all}
                   </span>
                 )}
+              </button>
+            ))}
+          </div>
+
+          {/* Kind filter: All / Artists / Albums */}
+          <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1">
+            {KIND_FILTERS.map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => {
+                  setKindFilter(kind)
+                  setExpandedId(null)
+                  setSelectedId(null)
+                  setPage(0)
+                  setCheckedIds(new Set())
+                }}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  kindFilter === kind ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'
+                }`}
+              >
+                {KIND_LABELS[kind]}
               </button>
             ))}
           </div>

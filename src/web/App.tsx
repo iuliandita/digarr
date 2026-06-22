@@ -3,6 +3,7 @@ import {
   BarChart3,
   ChevronDown,
   Compass,
+  Disc3,
   HeartPulse,
   LayoutDashboard,
   ListMusic,
@@ -480,6 +481,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       end: true,
                       label: t('nav.recommendations'),
                       icon: <Compass size={14} />,
+                    },
+                    {
+                      to: '/discover?kind=album',
+                      end: true,
+                      label: t('nav.albums'),
+                      icon: <Disc3 size={14} />,
                     },
                     {
                       to: '/discover/modes',

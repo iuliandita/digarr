@@ -19,6 +19,7 @@ import { Button } from './ui/button'
 
 export type Recommendation = {
   id: number
+  kind: 'artist' | 'album'
   score: number
   status: string
   aiReasoning: string | null
@@ -700,18 +701,37 @@ export function RecommendationCard({
               size={expanded ? 14 : 10}
             />
             <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
-              <div>
-                <h3 className="text-lg font-semibold text-text leading-tight">{rec.artist.name}</h3>
-                {rec.artist.disambiguation && (
-                  <p className="text-xs text-muted mt-0.5">{rec.artist.disambiguation}</p>
-                )}
-                {rec.recommendedReleaseGroupTitle && (
-                  <p className="text-xs text-muted mt-0.5">
-                    {t('recommendation.startWith')}:{' '}
-                    <span className="italic">{rec.recommendedReleaseGroupTitle}</span>
-                  </p>
-                )}
-              </div>
+              {rec.kind === 'album' ? (
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      data-testid="rec-kind-album"
+                      className="bg-accent/15 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    >
+                      {t('recommendation.albumBadge')}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-text leading-tight mt-0.5">
+                    {rec.recommendedReleaseGroupTitle ?? rec.artist.name}
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">{rec.artist.name}</p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-text leading-tight">
+                    {rec.artist.name}
+                  </h3>
+                  {rec.artist.disambiguation && (
+                    <p className="text-xs text-muted mt-0.5">{rec.artist.disambiguation}</p>
+                  )}
+                  {rec.recommendedReleaseGroupTitle && (
+                    <p className="text-xs text-muted mt-0.5">
+                      {t('recommendation.startWith')}:{' '}
+                      <span className="italic">{rec.recommendedReleaseGroupTitle}</span>
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-1.5 shrink-0">
                 {warmStatus === 'warm' && (
                   <span

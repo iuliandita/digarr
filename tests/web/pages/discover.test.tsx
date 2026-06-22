@@ -26,7 +26,9 @@ function renderWithQuery(ui: ReactElement) {
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
+        <MemoryRouter>
+          <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
+        </MemoryRouter>
       </QueryClientProvider>
     </I18nProvider>,
   )
@@ -442,11 +444,7 @@ describe('DiscoverPage', () => {
   it('uses translated scan action copy in French', async () => {
     localStorage.setItem('digarr-locale', 'fr')
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(
-      <MemoryRouter>
-        <DiscoverPage />
-      </MemoryRouter>,
-    )
+    renderWithQuery(<DiscoverPage />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Tout' }))
 

@@ -1,4 +1,4 @@
-import { Compass, LayoutDashboard, Music, Search, Settings } from 'lucide-react'
+import { Compass, Disc3, LayoutDashboard, Music, Search, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
@@ -13,7 +13,8 @@ export function BottomNav() {
   const { t } = useI18n()
   const items = [
     { to: '/', label: t('nav.dashboard'), Icon: LayoutDashboard, exact: true },
-    { to: '/discover', label: t('nav.discover'), Icon: Compass, exact: false },
+    { to: '/discover', label: t('nav.discover'), Icon: Compass, exact: true },
+    { to: '/discover?kind=album', label: t('nav.albums'), Icon: Disc3, exact: false },
     { to: '/search', label: t('nav.search'), Icon: Search, exact: false },
     { to: '/genres', label: t('nav.genres'), Icon: Music, exact: false },
     { to: '/settings', label: t('nav.settings'), Icon: Settings, exact: false },
