@@ -457,6 +457,13 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       'added_to_lidarr',
       expect.any(Object),
     )
+    // The album external id (7) must NOT leak into lidarrArtistId, which is an
+    // artist-scoped column. The album id is retained in targetActions instead.
+    const albumExtra = (updateRecommendationStatus.mock.calls[0] as unknown[])?.[2] as
+      | Record<string, unknown>
+      | undefined
+    expect(albumExtra).not.toHaveProperty('lidarrArtistId')
+    expect(body).not.toHaveProperty('lidarrArtistId')
   })
 
   it('approve sets add_failed when target fails', async () => {

@@ -460,7 +460,7 @@ function MoreMenu({
 export function DiscoverPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
     initialKindFromParam(searchParams.get('kind')),
@@ -1051,6 +1051,21 @@ export function DiscoverPage() {
                   setSelectedId(null)
                   setPage(0)
                   setCheckedIds(new Set())
+                  // Keep the URL in sync so the chip state survives navigation
+                  // and matches the ?kind= param the URL->state effect reads.
+                  setSearchParams(
+                    (prev) => {
+                      const next = new URLSearchParams(prev)
+                      const param = KIND_PARAM[kind]
+                      if (param) {
+                        next.set('kind', param)
+                      } else {
+                        next.delete('kind')
+                      }
+                      return next
+                    },
+                    { replace: true },
+                  )
                 }}
                 className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                   kindFilter === kind ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'

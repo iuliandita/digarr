@@ -281,7 +281,12 @@ async function approveAlbumToTargets(
   }
 
   const status = anySuccess ? 'added_to_lidarr' : 'add_failed'
-  return { status, targetActions, lidarrArtistId: anySuccess ? externalId : undefined, lidarrError }
+  // Do NOT persist the album external id as lidarrArtistId: for album approvals
+  // `externalId` is the Lidarr ALBUM id, which has wrong semantics for the
+  // recommendations.lidarr_artist_id column. The album id is already retained
+  // in targetActions[target.id], and album status is driven by `anySuccess`.
+  void externalId
+  return { status, targetActions, lidarrArtistId: undefined, lidarrError }
 }
 
 async function approveWithCombinedLidarrSlskd(
@@ -554,6 +559,11 @@ export function recommendationRoutes(deps: AppDependencies) {
           }
         }
 
+        // Album recs resolve the target album via releaseGroupMbid and ignore
+        // selectedAlbumIds entirely, so skip the popular/selected resolution
+        // (which hits Spotify/MusicBrainz and can 400 when Spotify is unset).
+        const isAlbumRec = rec.kind === 'album'
+
         let addOptions: Record<string, unknown>
         try {
           addOptions = await buildAddOptions(
@@ -565,8 +575,8 @@ export function recommendationRoutes(deps: AppDependencies) {
               streamingUrls: rec.artist.streamingUrls,
             },
             {
-              monitorOption: (monitorOption ?? 'all') as MonitorOption,
-              selectedAlbumIds,
+              monitorOption: isAlbumRec ? undefined : ((monitorOption ?? 'all') as MonitorOption),
+              selectedAlbumIds: isAlbumRec ? undefined : selectedAlbumIds,
               qualityProfileId: qpOverride,
               metadataProfileId: mpOverride,
               rootFolderId: rfOverride,

@@ -19,7 +19,15 @@ import {
   Users,
 } from 'lucide-react'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useSearchParams,
+} from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
 import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
 import { errMsg } from '@/core/validation'
@@ -135,7 +143,7 @@ function NavDropdown({
 }: {
   label: string
   icon: React.ReactNode
-  items: { to: string; label: string; icon: React.ReactNode; end?: boolean }[]
+  items: { to: string; label: string; icon: React.ReactNode; end?: boolean; active?: boolean }[]
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -144,6 +152,7 @@ function NavDropdown({
   useClickOutside(ref, () => setOpen(false), open)
 
   const isActive = items.some((item) => {
+    if (item.active !== undefined) return item.active
     const path = item.to.split('?')[0]
     return item.end
       ? location.pathname === path
@@ -174,9 +183,10 @@ function NavDropdown({
               end={item.end}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className={({ isActive: active }) =>
-                `flex items-center gap-2 px-3 py-2 text-sm transition-colors ${active ? 'text-accent bg-accent/5' : 'text-text hover:bg-bg'}`
-              }
+              className={({ isActive: navActive }) => {
+                const active = item.active ?? navActive
+                return `flex items-center gap-2 px-3 py-2 text-sm transition-colors ${active ? 'text-accent bg-accent/5' : 'text-text hover:bg-bg'}`
+              }}
             >
               {item.icon} {item.label}
             </NavLink>
@@ -429,6 +439,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener('change', handler)
   }, [mode, colorTheme])
 
+  // The Discover and Albums dropdown entries share the /discover pathname and
+  // differ only by ?kind=album, so compute their active state off the search
+  // param to avoid both highlighting at once.
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const onDiscover = location.pathname === '/discover'
+  const albumsActive = onDiscover && searchParams.get('kind') === 'album'
+  const discoverActive = onDiscover && searchParams.get('kind') !== 'album'
+
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'text-text' : 'text-muted hover:text-text'
 
@@ -479,12 +498,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     {
                       to: '/discover',
                       end: true,
+                      active: discoverActive,
                       label: t('nav.recommendations'),
                       icon: <Compass size={14} />,
                     },
                     {
                       to: '/discover?kind=album',
                       end: true,
+                      active: albumsActive,
                       label: t('nav.albums'),
                       icon: <Disc3 size={14} />,
                     },
