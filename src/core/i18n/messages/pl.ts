@@ -687,6 +687,9 @@ export const pl = {
     'Odkrywaj wspolpracownikow, aliasy i sasiednie krawedzie grafu artystów',
   'discoveryMode.labels.label': 'Labele',
   'discoveryMode.labels.description': 'Odkrywaj artystów przez katalogi wytwornii',
+  'discoveryMode.gap-fill.label': 'Uzupełnianie biblioteki',
+  'discoveryMode.gap-fill.description':
+    'Znajdź brakujące albumy studyjne artystów, których już śledzisz',
   'discoveryMode.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.notShippedYet': 'Ten tryb nie jest jeszcze dostępny.',
   'discoveryMode.reason.connectListenBrainz': 'Połącz ListenBrainz, aby użyć tego trybu.',
@@ -710,6 +713,7 @@ export const pl = {
   'discoveryMode.field.seedArtists': 'Artysta bazowy',
   'discoveryMode.field.releaseWindow': 'Okno wydania',
   'discoveryMode.field.relationships': 'Relacje',
+  'discoveryMode.field.maxArtistsPerRun': 'Sprawdzani artyści na uruchomienie',
   'discoveryMode.field.helpArtistSeed': 'Nazwa artysty lub MBID do zasilenia radia',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Podobni użytkownicy (szybko)',

@@ -681,6 +681,9 @@ export const es = {
   'discoveryMode.labels.label': 'Sellos discográficos',
   'discoveryMode.labels.description':
     'Descubre artistas conectados a través de catálogos de sellos',
+  'discoveryMode.gap-fill.label': 'Relleno de biblioteca',
+  'discoveryMode.gap-fill.description':
+    'Encuentra álbumes de estudio que te faltan de artistas que ya sigues',
   'discoveryMode.notImplementedYet': 'Este modo aún no está implementado.',
   'discoveryMode.notShippedYet': 'Este modo aún no está disponible.',
   'discoveryMode.reason.connectListenBrainz': 'Conecta ListenBrainz para usar este modo.',
@@ -705,6 +708,7 @@ export const es = {
   'discoveryMode.field.seedArtists': 'Artistas de partida',
   'discoveryMode.field.releaseWindow': 'Ventana de lanzamiento',
   'discoveryMode.field.relationships': 'Relaciones',
+  'discoveryMode.field.maxArtistsPerRun': 'Artistas revisados por ejecución',
   'discoveryMode.field.helpArtistSeed': 'Nombre del artista o MBID para iniciar la radio',
   'discoveryMode.option.weeklyJams': 'Sesiones semanales',
   'discoveryMode.option.similarUsersQuick': 'Usuarios similares (rápido)',

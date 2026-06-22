@@ -691,6 +691,9 @@ export const de = {
     'Entdecke Mitarbeiter, Aliasnamen und benachbarte Künstler im Graph',
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Entdecke Künstler über Label-Kataloge',
+  'discoveryMode.gap-fill.label': 'Bibliothekslücken füllen',
+  'discoveryMode.gap-fill.description':
+    'Finde fehlende Studioalben von Künstlern, die du bereits verfolgst',
   'discoveryMode.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
@@ -716,6 +719,7 @@ export const de = {
   'discoveryMode.field.seedArtists': 'Startkünstler',
   'discoveryMode.field.releaseWindow': 'Veröffentlichungszeitraum',
   'discoveryMode.field.relationships': 'Beziehungen',
+  'discoveryMode.field.maxArtistsPerRun': 'Geprüfte Künstler pro Durchlauf',
   'discoveryMode.field.helpArtistSeed': 'Künstlername oder MBID für das Radio',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Ähnliche Nutzer (Schnell)',

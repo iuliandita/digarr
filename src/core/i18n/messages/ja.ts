@@ -671,6 +671,9 @@ export const ja = {
     'コラボレーター、別名、および隣接するアーティストグラフのノードを発見します',
   'discoveryMode.labels.label': 'レーベル',
   'discoveryMode.labels.description': 'レーベルのカタログを通じてアーティストを発見します',
+  'discoveryMode.gap-fill.label': 'ライブラリの穴埋め',
+  'discoveryMode.gap-fill.description':
+    'すでに追跡しているアーティストの不足しているスタジオアルバムを見つけます',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -696,6 +699,7 @@ export const ja = {
   'discoveryMode.field.seedArtists': '起点アーティスト',
   'discoveryMode.field.releaseWindow': 'リリース期間',
   'discoveryMode.field.relationships': '関係',
+  'discoveryMode.field.maxArtistsPerRun': '実行ごとに確認するアーティスト数',
   'discoveryMode.field.helpArtistSeed': 'ラジオの起点となるアーティスト名または MBID',
   'discoveryMode.option.weeklyJams': 'ウィークリージャム',
   'discoveryMode.option.similarUsersQuick': '類似ユーザー（クイック）',

@@ -685,6 +685,9 @@ export const nl = {
     'Ontdek medewerkers, aliassen en aangrenzende artiesten in het grafiek',
   'discoveryMode.labels.label': 'Labels',
   'discoveryMode.labels.description': 'Ontdek artiesten via labelcatalogi',
+  'discoveryMode.gap-fill.label': 'Bibliotheek aanvullen',
+  'discoveryMode.gap-fill.description':
+    'Vind studioalbums die je mist van artiesten die je al volgt',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -709,6 +712,7 @@ export const nl = {
   'discoveryMode.field.seedArtists': 'Startartiesten',
   'discoveryMode.field.releaseWindow': 'Releasevenster',
   'discoveryMode.field.relationships': 'Relaties',
+  'discoveryMode.field.maxArtistsPerRun': 'Gecontroleerde artiesten per run',
   'discoveryMode.field.helpArtistSeed': 'Artiestennaam of MBID voor de radio',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Vergelijkbare gebruikers (snel)',
