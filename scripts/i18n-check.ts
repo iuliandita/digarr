@@ -35,6 +35,10 @@ const referenceMessages = getMessages(referenceLocale)
 const SAME_AS_SOURCE_ALLOWLIST = new Set([
   // "Volume" is the standard audio term and identical in fr/it/nl/pt-BR.
   'Volume',
+  // "Album"/"Albums" are loanwords identical to English in several locales
+  // (fr/nl singular+plural; de/it/ro/pl singular).
+  'Album',
+  'Albums',
   'Spotify',
   'Deezer',
   'ListenBrainz',
