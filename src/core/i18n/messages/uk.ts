@@ -900,6 +900,9 @@ export const uk = {
   'settings.autoApproveDescription':
     'Автоматично додавати рекомендації з високою оцінкою до цілей після кожного сканування. Працює лише якщо налаштовані цілі.',
   'settings.enableAutoApprove': 'Увімкнути автосхвалення',
+  'settings.netNewAlbumDiscovery': 'Пошук нових альбомів',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Коли ввімкнено, ШІ може рекомендувати конкретний альбом нового виконавця, а не лише виконавця.',
   'settings.minimumScore': 'Мінімальна оцінка',
   'settings.monitorMode': 'Режим моніторингу',
   'settings.monitorAll': 'Усі альбоми',

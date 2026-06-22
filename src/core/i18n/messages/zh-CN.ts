@@ -828,6 +828,8 @@ export const zhCN = {
   'settings.autoApproveDescription':
     '每次扫描后自动将高分推荐添加到你的目标中。仅在配置了目标时运行。',
   'settings.enableAutoApprove': '启用自动批准',
+  'settings.netNewAlbumDiscovery': '全新专辑发现',
+  'settings.netNewAlbumDiscoveryHelp': '开启后，AI 可以推荐新晋艺人的特定专辑，而不仅仅是艺人。',
   'settings.minimumScore': '最低评分',
   'settings.monitorMode': '监控模式',
   'settings.monitorAll': '所有专辑',

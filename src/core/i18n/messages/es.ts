@@ -892,6 +892,9 @@ export const es = {
   'settings.autoApproveDescription':
     'Añade automáticamente las recomendaciones con mayor puntuación a tus destinos tras cada escaneo. Solo funciona cuando hay destinos configurados.',
   'settings.enableAutoApprove': 'Activar aprobación automática',
+  'settings.netNewAlbumDiscovery': 'Descubrimiento de álbumes nuevos',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Cuando está activado, la IA puede recomendar un álbum específico de un artista nuevo en lugar de solo el artista.',
   'settings.minimumScore': 'Puntuación mínima',
   'settings.monitorMode': 'Modo de seguimiento',
   'settings.monitorAll': 'Todos los álbumes',

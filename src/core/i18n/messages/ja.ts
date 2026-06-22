@@ -881,6 +881,9 @@ export const ja = {
   'settings.autoApproveDescription':
     '各スキャン後に高スコアのおすすめを自動でターゲットに追加します。ターゲットが設定されている場合のみ実行されます。',
   'settings.enableAutoApprove': '自動承認を有効にする',
+  'settings.netNewAlbumDiscovery': '新規アルバムの発見',
+  'settings.netNewAlbumDiscoveryHelp':
+    'オンにすると、AIはアーティストだけでなく、新しいアーティストの特定のアルバムを提案できます。',
   'settings.minimumScore': '最低スコア',
   'settings.monitorMode': '監視モード',
   'settings.monitorAll': 'すべてのアルバム',

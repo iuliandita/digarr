@@ -897,6 +897,9 @@ export const ptBR = {
   'settings.autoApproveDescription':
     'Adiciona automaticamente as recomendações com maior pontuação aos seus destinos após cada varredura. Funciona apenas quando há destinos configurados.',
   'settings.enableAutoApprove': 'Ativar aprovação automática',
+  'settings.netNewAlbumDiscovery': 'Descoberta de álbuns inéditos',
+  'settings.netNewAlbumDiscoveryHelp':
+    'Quando ativado, a IA pode recomendar um álbum específico de um novo artista em vez de apenas o artista.',
   'settings.minimumScore': 'Pontuação mínima',
   'settings.monitorMode': 'Modo de monitoramento',
   'settings.monitorAll': 'Todos os álbuns',
