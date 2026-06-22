@@ -103,6 +103,31 @@ describe('store()', () => {
     )
   })
 
+  it('persists kind=album for album-kind candidates', async () => {
+    const db = makeDb()
+    const artist = {
+      ...makeArtist('mbid-album'),
+      kind: 'album' as const,
+      releaseGroupMbid: 'rg-1',
+      suggestedAlbum: { releaseGroupId: 'rg-1', title: 'In Rainbows' },
+    }
+
+    await store([artist] as never, db)
+
+    expect(db.insertRecommendation).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'album', recommendedReleaseGroupId: 'rg-1' }),
+    )
+  })
+
+  it('defaults kind to artist when unset', async () => {
+    const db = makeDb()
+    await store([makeArtist('mbid-default')], db)
+
+    expect(db.insertRecommendation).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'artist' }),
+    )
+  })
+
   it('handles empty artists array - creates batch with no recommendations', async () => {
     const db = makeDb(5)
 

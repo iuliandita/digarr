@@ -72,12 +72,30 @@ export function applyAlbumModifier(baseScore: number, signals: AlbumScoreSignals
   return Math.max(0, Math.min(1, baseScore + nudge))
 }
 
+/** Months over which recency decays linearly from 1 (new) to 0 (old). */
+const RECENCY_DECAY_MONTHS = 24
+const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30.44
+
+/**
+ * Map a release date to a recency signal in [0, 1]: a just-released album is ~1,
+ * an album RECENCY_DECAY_MONTHS or older is 0, future-dated clamps to 1.
+ * Unparseable dates return a neutral 0.5 (no signal either way).
+ */
+export function computeRecency(releaseDate: string, now: Date): number {
+  const released = new Date(releaseDate)
+  if (Number.isNaN(released.getTime())) return 0.5
+  const monthsSince = (now.getTime() - released.getTime()) / MS_PER_MONTH
+  if (monthsSince <= 0) return 1
+  return Math.max(0, Math.min(1, 1 - monthsSince / RECENCY_DECAY_MONTHS))
+}
+
 export function score(
   artists: ResolvedArtist[],
   libraryGenres: string[],
   weights: Preferences['scoringWeights'],
   feedbackHistory: Map<string, GenreFeedback>,
   popularityMap?: Map<string, number>,
+  now: Date = new Date(),
 ): ScoredArtist[] {
   const libraryGenreSet = new Set(libraryGenres.map((g) => g.toLowerCase()))
 
@@ -127,7 +145,7 @@ export function score(
     const popularity = popularityMap?.get(artist.name.trim().toLowerCase()) ?? 0
 
     // Weighted composite score (clamped to [0, 1])
-    const finalScore = computeWeightedScore(weights, {
+    const baseScore = computeWeightedScore(weights, {
       consensus,
       similarity,
       genreOverlap,
@@ -136,20 +154,32 @@ export function score(
       popularity,
     })
 
+    const sourceScores: Record<string, number> = {
+      consensus,
+      similarity,
+      genreOverlap,
+      aiConfidence,
+      feedbackBoost,
+      popularity,
+    }
+
+    // Album-kind candidates get a bounded nudge from the recency and popularity
+    // signals on top of the artist base score; artist-kind candidates are left
+    // untouched.
+    let finalScore = baseScore
+    if (artist.kind === 'album') {
+      const recency = artist.releaseDate ? computeRecency(artist.releaseDate, now) : undefined
+      finalScore = applyAlbumModifier(baseScore, { recency, popularity })
+      if (recency !== undefined) sourceScores.recency = recency
+    }
+
     // AI reasoning from first AI discovery
     const aiDiscovery = artist.discoveries.find((d) => d.source === 'ai')
 
     return {
       ...artist,
       score: finalScore,
-      sourceScores: {
-        consensus,
-        similarity,
-        genreOverlap,
-        aiConfidence,
-        feedbackBoost,
-        popularity,
-      },
+      sourceScores,
       aiReasoning: aiDiscovery?.aiReasoning,
     }
   })

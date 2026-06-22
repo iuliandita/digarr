@@ -34,6 +34,10 @@ export type DiscoveredArtist = {
   genres?: string[]
   source: string
   sourceUrl?: string
+  /** Release-group MBID when this discovery is an album candidate (release-radar). */
+  releaseGroupMbid?: string
+  /** ISO release date (firstReleaseDate) for album candidates; feeds recency. */
+  releaseDate?: string
 }
 
 export type ResolvedArtist = {
@@ -50,6 +54,12 @@ export type ResolvedArtist = {
   discoveries: DiscoveredArtist[]
   beginYear?: number
   endYear?: number
+  /** 'album' when this resolves to a first-class album recommendation. */
+  kind?: 'artist' | 'album'
+  /** Release-group MBID for album-kind; feeds the filter-stage album dedup/block. */
+  releaseGroupMbid?: string
+  /** ISO release date for album-kind; feeds the recency signal. */
+  releaseDate?: string
 }
 
 export type ScoredArtist = ResolvedArtist & {

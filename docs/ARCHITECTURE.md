@@ -22,6 +22,12 @@ Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
 Genre enrichment from `artist_metadata` runs between resolve and score.
 
+The filter stage partitions candidates by `kind`. Artist-kind candidates run the
+full artist-existence / library / top-artist filters. Album-kind candidates
+bypass those artist-oriented filters (a new release from a tracked artist is the
+point, not a rejection cause) but still pass the album block layer, cross-batch
+dedup, and the score threshold.
+
 ## Registry patterns
 
 Four extension points, each registry-based:
@@ -62,6 +68,7 @@ Albums are a first-class recommendation unit. Key additions:
 - **`album_blocks` table** -- per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
 - **`applyAlbumModifier`** in `src/core/pipeline/score.ts` -- computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
 - **`addAlbum` target capability** -- approving an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe).
+- **Release-radar producer** -- the release-radar discovery mode is the first producer that populates the album substrate. It emits first-class `kind='album'` recommendations for new releases from artists the user already tracks, instead of collapsing them into artist rows, and these land in the Albums tab. `resolve()` groups candidates by artist MBID, so a tracked artist that drops several releases in one scan window yields only one album recommendation per run; the remaining siblings surface on later runs, each deduping independently on its release-group. Library-gap fill and net-new album discovery producers are not yet shipped.
 
 ## Key invariants
 

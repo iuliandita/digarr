@@ -429,10 +429,9 @@ export class PipelineOrchestrator extends EventEmitter {
         libraryMbids.add(mbid)
       }
 
-      // Album-aware block/dedup sets. Forward-looking: album-kind candidates do
-      // not yet flow through this stage, so this is a strict no-op for the
-      // current artist-only stream. Guarded so partial StoreDb mocks without
-      // these optional methods still work.
+      // Album-aware block/dedup sets. Album-kind candidates flow through this
+      // stage to drop blocked albums and ones already in the library. Guarded so
+      // partial StoreDb mocks without these optional methods still work.
       const albumSets: AlbumFilterSets = {
         blockedArtistMbids: blockedMbids,
         blockedAlbumKeys: (await db.getBlockedAlbumKeys?.(deps.userId)) ?? new Set<string>(),
@@ -440,12 +439,10 @@ export class PipelineOrchestrator extends EventEmitter {
           (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId)) ?? new Set<string>(),
       }
       const albumAware = scored.filter((c) => {
-        const k = (c as { kind?: string }).kind
-        const rg = (c as { releaseGroupMbid?: string }).releaseGroupMbid
         // Not an album candidate -> keep; the artist filter path handles it.
-        if (k !== 'album' || !rg) return true
+        if (c.kind !== 'album' || !c.releaseGroupMbid) return true
         return !shouldDropAlbumCandidate(
-          { artistMbid: (c as { mbid?: string }).mbid ?? '', releaseGroupMbid: rg },
+          { artistMbid: c.mbid, releaseGroupMbid: c.releaseGroupMbid },
           albumSets,
         )
       })
@@ -458,8 +455,16 @@ export class PipelineOrchestrator extends EventEmitter {
         if (artist.mbid) libraryMbids.add(artist.mbid)
       }
 
-      const filtered = filter(
-        albumAware,
+      // Album-kind candidates bypass the artist-existence filters (library /
+      // top-artists): release-radar targets artists you already track, so those
+      // filters would drop every album. They already passed the album block/dedup
+      // layer above; here they only face the score threshold. Artist-kind
+      // candidates take the full artist filter unchanged.
+      const albumKind = albumAware.filter((c) => c.kind === 'album' && c.releaseGroupMbid)
+      const artistKind = albumAware.filter((c) => !(c.kind === 'album' && c.releaseGroupMbid))
+
+      const filteredArtists = filter(
+        artistKind,
         libraryMbids,
         rejectedMbids,
         blockedMbids,
@@ -467,6 +472,8 @@ export class PipelineOrchestrator extends EventEmitter {
         prefs.scoreThreshold,
         topArtistNames,
       )
+      const filteredAlbums = albumKind.filter((c) => c.score >= prefs.scoreThreshold)
+      const filtered = [...filteredArtists, ...filteredAlbums]
 
       this.emit('progress', {
         stage: 'store',

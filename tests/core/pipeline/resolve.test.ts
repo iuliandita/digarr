@@ -465,6 +465,33 @@ describe('resolve()', () => {
 
       expect(result[0]?.suggestedAlbum).toEqual({ title: 'OK Computer' })
     })
+
+    it('emits album-kind from a release-group mbid without re-matching via MB', async () => {
+      const discovered: DiscoveredArtist[] = [
+        {
+          name: 'Radiohead',
+          mbid: 'artist-mbid',
+          similarityScore: 0.8,
+          source: 'release-radar',
+          suggestedAlbum: 'In Rainbows',
+          releaseGroupMbid: 'rg-in-rainbows',
+          releaseDate: '2007-10-10',
+        },
+      ]
+      const mb = makeMb(makeMbArtist({ id: 'artist-mbid', name: 'Radiohead' }))
+      mb.getReleaseGroups = vi.fn()
+
+      const [resolved] = await resolve(discovered, mb)
+
+      expect(resolved?.kind).toBe('album')
+      expect(resolved?.releaseGroupMbid).toBe('rg-in-rainbows')
+      expect(resolved?.releaseDate).toBe('2007-10-10')
+      expect(resolved?.suggestedAlbum).toEqual({
+        releaseGroupId: 'rg-in-rainbows',
+        title: 'In Rainbows',
+      })
+      expect(mb.getReleaseGroups).not.toHaveBeenCalled()
+    })
   })
 
   describe('life-span era data', () => {

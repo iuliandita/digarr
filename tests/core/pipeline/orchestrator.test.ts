@@ -644,6 +644,109 @@ describe('PipelineOrchestrator', () => {
     expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalledWith(1, { onlyReconciled: true })
   })
 
+  // A release-radar album for an artist already in the library must survive the
+  // artist-existence filter (which would otherwise drop every tracked-artist
+  // album) and reach store(); the same album is dropped once its release group
+  // is already recommended. Both partitions run for real inside orchestrator.run
+  // -- only filter() and store() are mocked, and album-kind candidates bypass
+  // filter() entirely, so the assertion point is what store() receives.
+  const trackedArtistLibrary = [
+    {
+      mbid: 'tracked-artist',
+      name: 'Radiohead',
+      source: 'lidarr',
+      sourceArtistId: '1',
+      genres: ['rock'],
+      matchMethod: 'mbid',
+      matchConfidence: 1.0,
+    },
+  ]
+
+  const albumScored = [
+    {
+      mbid: 'tracked-artist',
+      name: 'Radiohead',
+      tags: [],
+      genres: [],
+      streamingUrls: {},
+      discoveries: [{ name: 'Radiohead', similarityScore: 0.8, source: 'release-radar' }],
+      score: 0.9,
+      sourceScores: { recency: 0.95 },
+      kind: 'album' as const,
+      releaseGroupMbid: 'rg-new',
+      releaseDate: '2026-06-01',
+      suggestedAlbum: { releaseGroupId: 'rg-new', title: 'New One' },
+    },
+  ]
+
+  it('stores a release-radar album for an artist already in the library', async () => {
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
+      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
+      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set<string>()),
+      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
+    }
+    mockScore.mockReturnValue(albumScored as never)
+    // Pass-through the (mocked) artist filter so what reaches store() reflects
+    // the orchestrator's real album partition, not the default fixture.
+    mockFilter.mockImplementation((artists) => artists as never)
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    expect(mockStore).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'album',
+          releaseGroupMbid: 'rg-new',
+          suggestedAlbum: expect.objectContaining({ releaseGroupId: 'rg-new' }),
+        }),
+      ]),
+      db,
+      expect.anything(),
+    )
+
+    // Load-bearing: prove the orchestrator routed the album down the bypass
+    // branch instead of through filter(). The artist-existence filter is called
+    // unconditionally (with an empty array here), so it must never see the
+    // album candidate. If Task 6's partition were reverted, the album would
+    // flow into filter() and this assertion would fail.
+    expect(mockFilter).toHaveBeenCalled()
+    const artistKindArg = mockFilter.mock.calls[0]?.[0] ?? []
+    expect(artistKindArg).not.toContainEqual(
+      expect.objectContaining({ releaseGroupMbid: 'rg-new' }),
+    )
+  })
+
+  it('drops a release-radar album whose release group is already recommended', async () => {
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
+      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
+      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set(['rg-new'])),
+      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
+    }
+    mockScore.mockReturnValue(albumScored as never)
+    mockFilter.mockImplementation((artists) => artists as never)
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    // Album dropped by dedup, no artist-kind candidates survive -> store gets [].
+    expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
+  })
+
   it('fire-and-forgets first library sync when user has no prior sync state', async () => {
     const db = makeDb()
     let firstSyncResolved = false

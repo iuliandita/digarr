@@ -138,6 +138,7 @@ export async function store(
         userId: options.userId,
         recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
         recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
+        kind: artist.kind ?? 'artist',
       }
 
       try {
