@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## [Unreleased]
+
+### Added
+
+- **Release-radar album discovery (Producer B).** The release-radar discovery mode now creates first-class album recommendations for new releases from artists you already track, surfacing them under the Albums tab. This is the first producer to populate the album-discovery substrate shipped in v1.0.0; the library-gap fill and net-new album discovery producers are still to come.
+
 ## v1.0.0 - 2026-06-22
 
 GA release. Headline feature: album-level discovery substrate.
