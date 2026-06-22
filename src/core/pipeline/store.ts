@@ -5,6 +5,7 @@ import type { GenreFeedback } from './score'
 export interface StoreDb {
   getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
   getExistingAlbumReleaseGroupMbids?: (userId?: number) => Promise<Set<string>>
+  getBlockedAlbumKeys?: (userId: number) => Promise<Set<string>>
 
   insertBatch: (data: {
     status: string

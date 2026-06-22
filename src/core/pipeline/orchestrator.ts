@@ -80,6 +80,28 @@ export interface PipelineDeps {
   }
 }
 
+export type AlbumFilterSets = {
+  blockedArtistMbids: Set<string>
+  blockedAlbumKeys: Set<string>
+  existingAlbumRgs: Set<string>
+}
+
+/**
+ * Pure predicate: should an album-kind candidate be dropped from the pipeline?
+ * Drops when its artist is blocked (cascade), the album itself is blocked, or
+ * the album release group is already recommended. No IO.
+ */
+export function shouldDropAlbumCandidate(
+  candidate: { artistMbid: string; releaseGroupMbid: string },
+  sets: AlbumFilterSets,
+): boolean {
+  return (
+    sets.blockedArtistMbids.has(candidate.artistMbid) ||
+    sets.blockedAlbumKeys.has(candidate.releaseGroupMbid) ||
+    sets.existingAlbumRgs.has(candidate.releaseGroupMbid)
+  )
+}
+
 export class PipelineOrchestrator extends EventEmitter {
   private running = false
   private currentStage: string | null = null
@@ -407,6 +429,27 @@ export class PipelineOrchestrator extends EventEmitter {
         libraryMbids.add(mbid)
       }
 
+      // Album-aware block/dedup sets. Forward-looking: album-kind candidates do
+      // not yet flow through this stage, so this is a strict no-op for the
+      // current artist-only stream. Guarded so partial StoreDb mocks without
+      // these optional methods still work.
+      const albumSets: AlbumFilterSets = {
+        blockedArtistMbids: blockedMbids,
+        blockedAlbumKeys: (await db.getBlockedAlbumKeys?.(deps.userId ?? 0)) ?? new Set<string>(),
+        existingAlbumRgs:
+          (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId)) ?? new Set<string>(),
+      }
+      const albumAware = scored.filter((c) => {
+        const k = (c as { kind?: string }).kind
+        const rg = (c as { releaseGroupMbid?: string }).releaseGroupMbid
+        // Not an album candidate -> keep; the artist filter path handles it.
+        if (k !== 'album' || !rg) return true
+        return !shouldDropAlbumCandidate(
+          { artistMbid: (c as { mbid?: string }).mbid ?? '', releaseGroupMbid: rg },
+          albumSets,
+        )
+      })
+
       // Also exclude top artists from listening history - the AI prompt asks
       // models to skip these, but smaller models ignore the instruction.
       const topArtistNames = new Set<string>()
@@ -416,7 +459,7 @@ export class PipelineOrchestrator extends EventEmitter {
       }
 
       const filtered = filter(
-        scored,
+        albumAware,
         libraryMbids,
         rejectedMbids,
         blockedMbids,
