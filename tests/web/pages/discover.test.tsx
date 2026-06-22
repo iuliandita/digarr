@@ -447,7 +447,9 @@ describe('DiscoverPage', () => {
     renderWithQuery(<DiscoverPage />)
 
     const allButtons = await screen.findAllByRole('button', { name: 'Tout' })
-    fireEvent.click(allButtons[0])
+    const allButton = allButtons[0]
+    if (!allButton) throw new Error('expected at least one "Tout" button')
+    fireEvent.click(allButton)
 
     expect(await screen.findByText('Exécuter une analyse')).toBeInTheDocument()
   })
