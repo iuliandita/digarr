@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-06-19 | Current: v1.0.0-rc.9
+> Updated: 2026-06-22 | Current: v1.0.0-rc.12
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and slskd. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is nearly complete: the currently runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, and Similar Artist Web, now surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Labels and Artist Relationships remain planned and stay visible there as unavailable cards with explicit blocking reasons until they have real integrations. Manual discovery-mode runs now preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Current focus is the remaining two discovery modes, download-target breadth, and UX polish around review and playback.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and slskd. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), and Labels (co-label artists via Discogs), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Current focus is album-level discovery, download-target breadth, and UX polish around review and playback.
 
 ## v1 Goals
 
@@ -36,12 +36,7 @@ Committed direction, roughly in priority order.
 
 ### Discovery
 
-- Label-catalog discovery mode implementation
-- Artist-relationship discovery mode implementation
-
-### UX
-
-- Preview volume control
+- Album-level discovery (recommend specific albums, not just artists)
 
 ## Exploring
 
@@ -52,6 +47,7 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 - Genre extraction from listening data (for non-library installs)
 - Deeper listening-source data (Spotify saved albums, TIDAL favorites, Deezer flow)
 - Contextual discovery-mode presets
+- Charts-based discovery mode (seed from regional/global chart movement)
 - Additional graph-based discovery modes
 
 ### Integrations
@@ -69,7 +65,6 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 
 Good ideas with no timeline yet.
 
-- Album-level discovery (not just artists)
 - Taste DNA / shareable profile
 - Audition playlists ("try before you add")
 - Interactive API docs (Swagger/Scalar UI)
@@ -96,7 +91,8 @@ Low confidence. Would build only with real demand.
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
 
-- Discovery modes now live on their own page, ship ListenBrainz radio coverage plus Release Radar and Similar Artist Web, and can be saved as subscriptions
+- Discovery modes now live on their own page, ship the full set (ListenBrainz radio coverage, Release Radar, Similar Artist Web, Artist Relationships via the MusicBrainz graph, and Labels via Discogs), and can be saved as subscriptions
+- Preview volume control in the global preview bar, persisted across sessions
 - Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover
 - Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
 - Library operations now cover Lidarr, Plex, Jellyfin, Emby, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
