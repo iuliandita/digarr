@@ -17,6 +17,18 @@ export type SlskdTargetConfig = {
       name: string
     }
   }) => Promise<{ success: boolean }>
+  queueAlbum: (input: {
+    sourceType: 'standalone_approval' | 'combined_approval'
+    userId: number
+    targetId: number
+    recommendationId?: number
+    lidarrArtistId?: number
+    artist: {
+      mbid: string
+      name: string
+    }
+    releaseGroupMbid: string
+  }) => Promise<{ success: boolean }>
 }
 
 export function createSlskdTarget(targetId: number, config: SlskdTargetConfig): DestinationTarget {
@@ -24,7 +36,7 @@ export function createSlskdTarget(targetId: number, config: SlskdTargetConfig): 
     id: `slskd-${targetId}`,
     name: config.name,
     type: 'slskd',
-    capabilities: ['addArtist'],
+    capabilities: ['addArtist', 'addAlbum'],
     linkedLidarrTargetId: config.linkedLidarrTargetId,
 
     async addArtist(
@@ -48,6 +60,52 @@ export function createSlskdTarget(targetId: number, config: SlskdTargetConfig): 
           recommendationId: options.recommendationId,
           lidarrArtistId: options.lidarrArtistId,
           artist,
+        })
+
+        return queued.success
+          ? {
+              success: true,
+              targetType: 'slskd',
+              targetId,
+            }
+          : {
+              success: false,
+              targetType: 'slskd',
+              targetId,
+              error: 'No releases were queued for slskd',
+            }
+      } catch (err: unknown) {
+        return {
+          success: false,
+          targetType: 'slskd',
+          targetId,
+          error: errMsg(err),
+        }
+      }
+    },
+
+    async addAlbum(
+      album: { artistMbid: string; artistName: string; releaseGroupMbid: string },
+      options?: TargetAddOptions,
+    ): Promise<TargetResult> {
+      if (!options?.userId) {
+        return {
+          success: false,
+          targetType: 'slskd',
+          targetId,
+          error: 'slskd target requires user context',
+        }
+      }
+
+      try {
+        const queued = await config.queueAlbum({
+          sourceType: options.lidarrArtistId ? 'combined_approval' : 'standalone_approval',
+          userId: options.userId,
+          targetId,
+          recommendationId: options.recommendationId,
+          lidarrArtistId: options.lidarrArtistId,
+          artist: { mbid: album.artistMbid, name: album.artistName },
+          releaseGroupMbid: album.releaseGroupMbid,
         })
 
         return queued.success

@@ -17,6 +17,19 @@ export type SlskdRunnerQueueInput = {
   }
 }
 
+export type SlskdRunnerQueueAlbumInput = {
+  sourceType: 'standalone_approval' | 'combined_approval'
+  userId: number
+  targetId: number
+  recommendationId?: number
+  lidarrArtistId?: number
+  artist: {
+    mbid: string
+    name: string
+  }
+  releaseGroupMbid: string
+}
+
 export type SlskdRunnerDeps = {
   resolveReleaseGroups: (artistMbid: string) => Promise<SlskdRunnerReleaseGroup[]>
   findActiveJob: (workKey: string) => Promise<{ id: number } | null>
@@ -85,7 +98,38 @@ export function createSlskdRunner(deps: SlskdRunnerDeps) {
     return { success: createdOrExisting > 0 }
   }
 
+  async function queueAlbum(input: SlskdRunnerQueueAlbumInput): Promise<{ success: boolean }> {
+    const releaseGroups = await deps.resolveReleaseGroups(input.artist.mbid)
+    const match = releaseGroups.find((rg) => rg.releaseGroupMbid === input.releaseGroupMbid)
+
+    if (!match) {
+      return { success: false }
+    }
+
+    const workKey = buildSlskdWorkKey(input.targetId, input.artist.mbid, match.releaseGroupMbid)
+    const existing = await deps.findActiveJob(workKey)
+    if (existing) {
+      return { success: true }
+    }
+
+    await deps.createJob({
+      userId: input.userId,
+      targetId: input.targetId,
+      recommendationId: input.recommendationId,
+      sourceType: input.sourceType,
+      workKey,
+      artistMbid: input.artist.mbid,
+      artistName: input.artist.name,
+      releaseGroupMbid: match.releaseGroupMbid,
+      releaseTitle: match.releaseTitle,
+      lidarrArtistId: input.lidarrArtistId,
+    })
+
+    return { success: true }
+  }
+
   return {
     queueArtist,
+    queueAlbum,
   }
 }
