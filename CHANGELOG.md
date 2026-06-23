@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.10.0 - 2026-06-24
+
+Get a single periodic summary instead of a ping after every scan.
+
+### Added
+
+- **Scheduled notification digest.** Alongside the existing per-batch webhook, you can now receive one periodic roll-up of recent activity -- albums discovered, recommendations added, and discovery runs completed -- on your own schedule. Set a cron expression in the new "Digest schedule (cron)" field under Settings -> webhook (leave it empty to disable; example `0 6 * * 1` for Mondays at 6am). Changes apply immediately, no restart needed. The digest reuses your existing webhook (with the same SSRF protections) and Discord auto-formatting, derives its summary window from the schedule itself, and stays quiet when there was no activity. Translated across all 15 shipped locales. The per-batch notification is unchanged.
+
 ## v1.9.0 - 2026-06-23
 
 Your Spotify saved albums are now a discovery signal.

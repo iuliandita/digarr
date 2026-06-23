@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-06-23 | Current: v1.9.0
+> Updated: 2026-06-24 | Current: v1.10.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -57,7 +57,6 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 ### UX
 
 - Contextual / seasonal discovery presets
-- Notification digest
 
 ## Future
 
@@ -90,6 +89,7 @@ For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
 
 - Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan.
+- Scheduled notification digest: alongside the per-batch webhook, a periodic roll-up of recent activity (discovered/added/runs) on a user-set cron schedule, configured in Settings, applied at runtime without a restart, reusing the existing SSRF-protected webhook + Discord formatting, full i18n across 15 locales (v1.10.0)
 - Spotify Saved Albums is now a runnable discovery mode: the albums you saved on Spotify seed artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Spotify OAuth connection (the `user-library-read` scope was already granted for Liked Songs, so no re-consent), full i18n across 15 locales (v1.9.0)
 - Deezer Flow is now a runnable discovery mode: the personalized Deezer artist feed (previously reachable only as a standing subscription) can be fired on demand from Discover -> Discovery Modes like any other mode, needs only the existing Deezer OAuth connection, full i18n across 15 locales (v1.8.0)
 - Charts discovery mode seeds from global or regional chart movement (via Last.fm) rather than the similarity/relationship graph every other mode uses -- a distinct freshness/popularity axis, runnable and savable as a subscription like any mode, full i18n across 15 locales (v1.7.0)
