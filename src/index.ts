@@ -20,6 +20,7 @@ import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
+import { startDigestNotifier } from './core/jobs/digest-notifier'
 import { recordFailureSafely } from './core/jobs/record-failure-safely'
 import { createJobRecorder } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
@@ -35,6 +36,7 @@ import { createPlexLibrarySource } from './core/library/sources/plex'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
+import { sendWebhook } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
@@ -1131,6 +1133,7 @@ let librarySyncCron: Cron | null = null
 let libraryHealthCron: Cron | null = null
 let slskdCron: Cron | null = null
 let stuckDetectorCron: Cron | null = null
+let digestNotifierCron: Cron | null = null
 
 function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   librarySyncCron?.stop()
@@ -1535,6 +1538,14 @@ const server = serve({ fetch: app.fetch, port })
 
     // Start stuck job detector
     stuckDetectorCron = startStuckDetector(jobRecorder)
+
+    // Start scheduled notification digest (no-op until digestCron is configured)
+    digestNotifierCron = await startDigestNotifier({
+      getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
+      getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
+      getStats: (since) => jobQueries.getDigestStats(db, since),
+      sendWebhook,
+    })
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }
@@ -1588,6 +1599,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     playlistScheduler.stopAll()
     slskdCron?.stop()
     stuckDetectorCron?.stop()
+    digestNotifierCron?.stop()
     librarySyncCron?.stop()
     libraryHealthCron?.stop()
     server.close()

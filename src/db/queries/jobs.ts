@@ -1,7 +1,7 @@
-import { and, count, desc, eq, gte, isNotNull, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { JobRunRow, JobType, SourceResult } from '@/core/jobs/types'
 import type { Database } from '@/db'
-import { jobRuns } from '@/db/schema'
+import { jobRuns, recommendations } from '@/db/schema'
 
 export type ListJobsFilters = {
   type?: JobType
@@ -181,6 +181,54 @@ export async function getJobHealth(
       lastRun: lastLibrarySync?.completedAt?.toISOString() ?? null,
     },
     sources,
+  }
+}
+
+export type DigestStats = {
+  discovered: number
+  added: number
+  runs: number
+}
+
+/**
+ * Aggregate notification-digest stats for the trailing window starting at
+ * `since`. Derived from existing tables (no bookmark/migration):
+ * - `discovered`: recommendations created in the window.
+ * - `added`: recommendations approved or added to Lidarr in the window.
+ * - `runs`: discovery job runs (pipeline/subscription/quick_discover) that
+ *   completed in the window.
+ */
+export async function getDigestStats(db: Database, since: Date): Promise<DigestStats> {
+  const [discoveredRows, addedRows, runRows] = await Promise.all([
+    db
+      .select({ count: count() })
+      .from(recommendations)
+      .where(gte(recommendations.createdAt, since)),
+    db
+      .select({ count: count() })
+      .from(recommendations)
+      .where(
+        and(
+          gte(recommendations.createdAt, since),
+          inArray(recommendations.status, ['approved', 'added_to_lidarr']),
+        ),
+      ),
+    db
+      .select({ count: count() })
+      .from(jobRuns)
+      .where(
+        and(
+          eq(jobRuns.status, 'completed'),
+          gte(jobRuns.startedAt, since),
+          inArray(jobRuns.type, ['pipeline', 'subscription', 'quick_discover']),
+        ),
+      ),
+  ])
+
+  return {
+    discovered: discoveredRows[0]?.count ?? 0,
+    added: addedRows[0]?.count ?? 0,
+    runs: runRows[0]?.count ?? 0,
   }
 }
 

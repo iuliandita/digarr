@@ -8,7 +8,9 @@ vi.mock('node:dns/promises', () => ({
   lookup: lookupMock,
 }))
 
-function makePayload(overrides?: Partial<WebhookPayload>): WebhookPayload {
+type BatchCompletePayload = Extract<WebhookPayload, { event: 'batch_complete' }>
+
+function makePayload(overrides?: Partial<BatchCompletePayload>): BatchCompletePayload {
   return {
     event: 'batch_complete',
     batchId: 42,

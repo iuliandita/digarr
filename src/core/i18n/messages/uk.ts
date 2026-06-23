@@ -1223,6 +1223,10 @@ export const uk = {
   'pipeline.message.filtering': 'Фільтрація {0} оцінених виконавців...',
   'pipeline.message.saving': 'Збереження {0} рекомендацій...',
   'pipeline.message.autoApproving': 'Автозатвердження понад {0}%...',
+  'notifications.digest.message':
+    'Підсумок за період ({0}): виявлено {1}, додано {2}, за {3} сканувань.',
+  'notifications.digest.window.day': 'день',
+  'notifications.digest.window.week': 'тиждень',
   'pipeline.message.scanComplete': 'Сканування завершено: знайдено {0} нових рекомендацій.',
   'pipeline.message.done': 'Готово! Знайдено {0} нових рекомендацій.',
   'pipeline.message.startingResolution': 'Початок зіставлення',

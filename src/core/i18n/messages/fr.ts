@@ -1225,6 +1225,10 @@ export const fr = {
   'pipeline.message.filtering': 'Filtrage de {0} artistes notés...',
   'pipeline.message.saving': 'Enregistrement de {0} recommandations...',
   'pipeline.message.autoApproving': 'Approbation automatique au-dessus de {0}%...',
+  'notifications.digest.message':
+    'Récapitulatif du dernier {0} : {1} découverts, {2} ajoutés, sur {3} analyses.',
+  'notifications.digest.window.day': 'jour',
+  'notifications.digest.window.week': 'semaine',
   'pipeline.message.scanComplete': 'Scan terminé : {0} nouvelles recommandations trouvées.',
   'pipeline.message.done': 'Terminé ! {0} nouvelles recommandations trouvées.',
   'pipeline.message.startingResolution': 'Démarrage de la résolution',

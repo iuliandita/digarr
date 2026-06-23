@@ -1226,6 +1226,10 @@ export const ro = {
   'pipeline.message.filtering': 'Se filtrează {0} artiști punctați...',
   'pipeline.message.saving': 'Se salvează {0} recomandări...',
   'pipeline.message.autoApproving': 'Auto-aprobare peste {0}%...',
+  'notifications.digest.message':
+    'Rezumat pentru ultima {0}: {1} descoperite, {2} adăugate, în {3} scanări.',
+  'notifications.digest.window.day': 'zi',
+  'notifications.digest.window.week': 'săptămână',
   'pipeline.message.scanComplete': 'Scanare completă: {0} recomandări noi găsite.',
   'pipeline.message.done': 'Gata! {0} recomandări noi găsite.',
   'pipeline.message.startingResolution': 'Se începe rezolvarea',

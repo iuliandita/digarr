@@ -1231,6 +1231,10 @@ export const ru = {
   'pipeline.message.filtering': 'Фильтрация {0} оценённых исполнителей...',
   'pipeline.message.saving': 'Сохранение {0} рекомендаций...',
   'pipeline.message.autoApproving': 'Автоматическое одобрение свыше {0}%...',
+  'notifications.digest.message':
+    'Сводка за период ({0}): обнаружено {1}, добавлено {2}, за {3} сканирований.',
+  'notifications.digest.window.day': 'день',
+  'notifications.digest.window.week': 'неделя',
   'pipeline.message.scanComplete': 'Сканирование завершено: найдено {0} новых рекомендаций.',
   'pipeline.message.done': 'Готово! Найдено {0} новых рекомендаций.',
   'pipeline.message.startingResolution': 'Начало сопоставления',
