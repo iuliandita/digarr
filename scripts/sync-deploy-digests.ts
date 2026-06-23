@@ -8,7 +8,15 @@
  * Fetches the multi-arch manifest digest from ghcr.io and rewrites:
  *   - deploy/k8s/deployment.yaml      (image ref with @sha256:...)
  *   - deploy/helm/digarr/values.yaml  (digest: "sha256:...")
+ *   - deploy/k8s/rendered.yaml        (image ref with @sha256:...)
  *   - deploy/unraid/digarr.xml        (digest comment)
+ *
+ * rendered.yaml is a `helm template` snapshot, but at the digest-sync step the
+ * only line that changes is the image digest, so a targeted string replace is
+ * byte-identical to a full regen -- and needs no helm, avoiding the
+ * local-helm-version-vs-CI drift that the helm-drift job would otherwise flag.
+ * (Chart-version changes still require regenerating via scripts/k8s-sync.sh in
+ * the release commit, where the chart version actually changes.)
  *
  * Auth: tries GH_TOKEN env first; falls back to anonymous token (public images).
  */
@@ -78,6 +86,11 @@ const targets: Target[] = [
     path: 'deploy/helm/digarr/values.yaml',
     pattern: /(^image:\n(?: {2}.*\n)*? {2}digest: ")sha256:[a-f0-9]+(")/m,
     replacement: (d, _match, prefix, suffix) => `${prefix}${d}${suffix}`,
+  },
+  {
+    path: 'deploy/k8s/rendered.yaml',
+    pattern: /ghcr\.io\/iuliandita\/digarr@sha256:[a-f0-9]+/g,
+    replacement: (d) => `ghcr.io/iuliandita/digarr@${d}`,
   },
   {
     path: 'deploy/unraid/digarr.xml',
