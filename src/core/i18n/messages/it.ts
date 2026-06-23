@@ -684,6 +684,9 @@ export const it = {
   'discoveryMode.gap-fill.label': 'Completamento libreria',
   'discoveryMode.gap-fill.description':
     'Trova gli album in studio che ti mancano degli artisti che già segui',
+  'discoveryMode.charts.label': 'Classifiche',
+  'discoveryMode.charts.description':
+    'Scopri artisti in tendenza nelle classifiche globali o regionali',
   'discoveryMode.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.notShippedYet': 'Questa modalità non è ancora disponibile.',
   'discoveryMode.reason.connectListenBrainz': 'Collega ListenBrainz per usare questa modalità.',
@@ -691,6 +694,7 @@ export const it = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Collega ListenBrainz o Last.fm per usare questa modalità.',
   'discoveryMode.reason.connectDiscogs': 'Collega Discogs per usare questa modalità.',
+  'discoveryMode.reason.connectLastfm': 'Collega Last.fm per usare questa modalità.',
   'discoveryMode.reason.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.reason.releaseRadarFallback':
     'Uso di provider di fallback per la scoperta delle uscite.',
@@ -710,11 +714,20 @@ export const it = {
   'discoveryMode.field.relationships': 'Relazioni',
   'discoveryMode.field.maxArtistsPerRun': 'Artisti controllati per esecuzione',
   'discoveryMode.field.helpArtistSeed': 'Nome artista o MBID per avviare la radio',
+  'discoveryMode.field.region': 'Regione',
   'discoveryMode.option.weeklyJams': 'Session settimanali',
   'discoveryMode.option.similarUsersQuick': 'Utenti simili (rapido)',
   'discoveryMode.option.safe': 'Sicuro',
   'discoveryMode.option.medium': 'Medio',
   'discoveryMode.option.adventurous': 'Avventuroso',
+  'discoveryMode.option.global': 'Globale',
+  'discoveryMode.option.unitedStates': 'Stati Uniti',
+  'discoveryMode.option.unitedKingdom': 'Regno Unito',
+  'discoveryMode.option.germany': 'Germania',
+  'discoveryMode.option.france': 'Francia',
+  'discoveryMode.option.japan': 'Giappone',
+  'discoveryMode.option.brazil': 'Brasile',
+  'discoveryMode.option.canada': 'Canada',
   'importArtists.title': 'Importa artisti',
   'importArtists.likedSongs': 'Brani preferiti',
   'importArtists.likedSongsDescription':

@@ -674,6 +674,9 @@ export const ja = {
   'discoveryMode.gap-fill.label': 'ライブラリの穴埋め',
   'discoveryMode.gap-fill.description':
     'すでに追跡しているアーティストの不足しているスタジオアルバムを見つけます',
+  'discoveryMode.charts.label': 'チャート',
+  'discoveryMode.charts.description':
+    'グローバルまたは地域のチャートでトレンドのアーティストを発見',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -682,6 +685,7 @@ export const ja = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'このモードを使うには ListenBrainz または Last.fm を接続してください。',
   'discoveryMode.reason.connectDiscogs': 'このモードを使うには Discogs を接続してください。',
+  'discoveryMode.reason.connectLastfm': 'このモードを使うには Last.fm を接続してください。',
   'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
@@ -701,11 +705,20 @@ export const ja = {
   'discoveryMode.field.relationships': '関係',
   'discoveryMode.field.maxArtistsPerRun': '実行ごとに確認するアーティスト数',
   'discoveryMode.field.helpArtistSeed': 'ラジオの起点となるアーティスト名または MBID',
+  'discoveryMode.field.region': '地域',
   'discoveryMode.option.weeklyJams': 'ウィークリージャム',
   'discoveryMode.option.similarUsersQuick': '類似ユーザー（クイック）',
   'discoveryMode.option.safe': '安全',
   'discoveryMode.option.medium': '中程度',
   'discoveryMode.option.adventurous': '冒険的',
+  'discoveryMode.option.global': 'グローバル',
+  'discoveryMode.option.unitedStates': 'アメリカ合衆国',
+  'discoveryMode.option.unitedKingdom': 'イギリス',
+  'discoveryMode.option.germany': 'ドイツ',
+  'discoveryMode.option.france': 'フランス',
+  'discoveryMode.option.japan': '日本',
+  'discoveryMode.option.brazil': 'ブラジル',
+  'discoveryMode.option.canada': 'カナダ',
   'importArtists.title': 'アーティストのインポート',
   'importArtists.likedSongs': 'お気に入りの曲',
   'importArtists.likedSongsDescription': 'Spotify でいいねした曲のアーティストをインポートします',

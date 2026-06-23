@@ -687,6 +687,9 @@ export const ro = {
   'discoveryMode.gap-fill.label': 'Completare bibliotecă',
   'discoveryMode.gap-fill.description':
     'Găsiți albumele de studio care vă lipsesc de la artiștii pe care îi urmăriți deja',
+  'discoveryMode.charts.label': 'Topuri muzicale',
+  'discoveryMode.charts.description':
+    'Descoperiți artiști în tendințe în topurile globale sau regionale',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -694,6 +697,7 @@ export const ro = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Conectați ListenBrainz sau Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDiscogs': 'Conectează Discogs pentru a folosi acest mod.',
+  'discoveryMode.reason.connectLastfm': 'Conectează Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
@@ -713,11 +717,20 @@ export const ro = {
   'discoveryMode.field.relationships': 'Relații',
   'discoveryMode.field.maxArtistsPerRun': 'Artiști verificați pe rulare',
   'discoveryMode.field.helpArtistSeed': 'Numele artistului sau MBID pentru a porni radio-ul',
+  'discoveryMode.field.region': 'Regiune',
   'discoveryMode.option.weeklyJams': 'Sesiuni săptămânale',
   'discoveryMode.option.similarUsersQuick': 'Utilizatori similari (rapid)',
   'discoveryMode.option.safe': 'Sigur',
   'discoveryMode.option.medium': 'Mediu',
   'discoveryMode.option.adventurous': 'Aventuros',
+  'discoveryMode.option.global': 'Global',
+  'discoveryMode.option.unitedStates': 'Statele Unite',
+  'discoveryMode.option.unitedKingdom': 'Regatul Unit',
+  'discoveryMode.option.germany': 'Germania',
+  'discoveryMode.option.france': 'Franța',
+  'discoveryMode.option.japan': 'Japonia',
+  'discoveryMode.option.brazil': 'Brazilia',
+  'discoveryMode.option.canada': 'Canada',
   'importArtists.title': 'Importați artiști',
   'importArtists.likedSongs': 'Melodii apreciate',
   'importArtists.likedSongsDescription':

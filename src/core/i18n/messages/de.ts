@@ -694,6 +694,9 @@ export const de = {
   'discoveryMode.gap-fill.label': 'Bibliothekslücken füllen',
   'discoveryMode.gap-fill.description':
     'Finde fehlende Studioalben von Künstlern, die du bereits verfolgst',
+  'discoveryMode.charts.label': 'Charts',
+  'discoveryMode.charts.description':
+    'Entdecke Künstler, die gerade in globalen oder regionalen Charts aufsteigen',
   'discoveryMode.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
@@ -702,6 +705,7 @@ export const de = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDiscogs': 'Verbinde Discogs, um diesen Modus zu nutzen.',
+  'discoveryMode.reason.connectLastfm': 'Verbinde Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',
@@ -721,11 +725,20 @@ export const de = {
   'discoveryMode.field.relationships': 'Beziehungen',
   'discoveryMode.field.maxArtistsPerRun': 'Geprüfte Künstler pro Durchlauf',
   'discoveryMode.field.helpArtistSeed': 'Künstlername oder MBID für das Radio',
+  'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Ähnliche Nutzer (Schnell)',
   'discoveryMode.option.safe': 'Sicher',
   'discoveryMode.option.medium': 'Mittel',
   'discoveryMode.option.adventurous': 'Abenteuerlustig',
+  'discoveryMode.option.global': 'Global',
+  'discoveryMode.option.unitedStates': 'USA',
+  'discoveryMode.option.unitedKingdom': 'Vereinigtes Königreich',
+  'discoveryMode.option.germany': 'Deutschland',
+  'discoveryMode.option.france': 'Frankreich',
+  'discoveryMode.option.japan': 'Japan',
+  'discoveryMode.option.brazil': 'Brasilien',
+  'discoveryMode.option.canada': 'Kanada',
   'importArtists.title': 'Künstler importieren',
   'importArtists.likedSongs': 'Gelikte Songs',
   'importArtists.likedSongsDescription': 'Künstler importieren, die du auf Spotify geliked hast',

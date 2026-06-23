@@ -55,6 +55,23 @@ type LfmTagTopArtistsResponse = {
   }
 }
 
+type LfmChartTopArtistsResponse = {
+  artists: {
+    artist: Array<{ name: string; mbid: string }>
+  }
+}
+
+type LfmGeoTopArtistsResponse = {
+  topartists: {
+    artist: Array<{ name: string; mbid: string }>
+  }
+}
+
+export type LastFmChartArtist = {
+  name: string
+  mbid?: string
+}
+
 export function createLastFmClient(username: string, apiKey: string) {
   const http = createHttpClient({ baseUrl: BASE_URL })
 
@@ -145,6 +162,30 @@ export function createLastFmClient(username: string, apiKey: string) {
     }))
   }
 
+  async function getChartTopArtists(limit = 50, country?: string): Promise<LastFmChartArtist[]> {
+    if (country) {
+      const res = await get<LfmGeoTopArtistsResponse>({
+        method: 'geo.gettopartists',
+        country,
+        limit: String(limit),
+      })
+      const artists = res?.topartists?.artist ?? []
+      return artists.map((a) => ({
+        name: a.name,
+        mbid: a.mbid || undefined,
+      }))
+    }
+    const res = await get<LfmChartTopArtistsResponse>({
+      method: 'chart.gettopartists',
+      limit: String(limit),
+    })
+    const artists = res?.artists?.artist ?? []
+    return artists.map((a) => ({
+      name: a.name,
+      mbid: a.mbid || undefined,
+    }))
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const artists = await getTopArtists('7day')
@@ -164,6 +205,7 @@ export function createLastFmClient(username: string, apiKey: string) {
     getTopArtistsPaged,
     getTopArtistsByTag,
     getRecentTracks,
+    getChartTopArtists,
     testConnection,
   }
 }

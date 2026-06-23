@@ -1,4 +1,5 @@
 import { createArtistRelationshipsMode } from './modes/artist-relationships'
+import { createChartsMode } from './modes/charts'
 import { createGapFillMode } from './modes/gap-fill'
 import { createLabelsMode } from './modes/labels'
 import {
@@ -42,6 +43,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createSimilarArtistWebMode())
   registry.register(createLabelsMode())
   registry.register(createGapFillMode())
+  registry.register(createChartsMode())
   return registry
 }
 
