@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.6.0 - 2026-06-23
+
+Discovery-only installs (no Lidarr library) now score recommendations on genre fit.
+
+### Added
+
+- **Genre signal from your listening data.** Genre-overlap scoring previously contributed nothing when Digarr ran without a Lidarr library, because it compared candidates only against your library's genres. Digarr now derives a genre profile from the artists in your connected listening sources (Spotify, which already returns genre tags) and uses it as the genre reference when no library is present. Installs with a Lidarr library are unaffected: the library's genres remain the reference and scores are unchanged. Plex/Jellyfin/Emby/Last.fm/ListenBrainz are not yet genre sources (their top-artist data does not carry genres without extra lookups).
+
 ## v1.5.0 - 2026-06-23
 
 slskd download targets gain album-level acquisition, reaching parity with Lidarr.
