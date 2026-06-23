@@ -1032,6 +1032,9 @@ export const uk = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Особистий токен доступу',
   'settings.fieldWebhookUrl': 'URL вебхука',
+  'settings.fieldDigestCron': 'Розклад дайджесту (cron)',
+  'settings.digestCronHelp':
+    'Надсилати періодичну зведену інформацію про останню активність на ваш вебхук. Залиште порожнім, щоб вимкнути. Приклад: 0 6 * * 1 (щопонеділка о 6:00).',
   'settings.fieldPublicUrl': "Публічний URL (необов'язково)",
   'settings.fieldIssuerUrl': 'URL видавця',
   'settings.fieldScopes': 'Дозволи',

@@ -1038,6 +1038,9 @@ export const ru = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Персональный токен доступа',
   'settings.fieldWebhookUrl': 'URL вебхука',
+  'settings.fieldDigestCron': 'Расписание дайджеста (cron)',
+  'settings.digestCronHelp':
+    'Отправлять периодическую сводку недавней активности на ваш вебхук. Оставьте пустым, чтобы отключить. Пример: 0 6 * * 1 (по понедельникам в 6:00).',
   'settings.fieldPublicUrl': 'Публичный URL (необязательно)',
   'settings.fieldIssuerUrl': 'URL издателя',
   'settings.fieldScopes': 'Права доступа',

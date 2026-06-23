@@ -1011,6 +1011,9 @@ export const ja = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': '個人アクセストークン',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': 'ダイジェストのスケジュール（cron）',
+  'settings.digestCronHelp':
+    '最近のアクティビティの定期的なまとめを Webhook に送信します。無効にするには空のままにします。例: 0 6 * * 1（毎週月曜の午前6時）。',
   'settings.fieldPublicUrl': '公開 URL（任意）',
   'settings.fieldIssuerUrl': '発行者 URL',
   'settings.fieldScopes': 'スコープ',

@@ -1027,6 +1027,9 @@ export const pl = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Osobisty token dostepu',
   'settings.fieldWebhookUrl': 'URL webhooka',
+  'settings.fieldDigestCron': 'Harmonogram podsumowania (cron)',
+  'settings.digestCronHelp':
+    'Wysyłaj okresowe podsumowanie ostatniej aktywności na swój webhook. Pozostaw puste, aby wyłączyć. Przykład: 0 6 * * 1 (poniedziałki o 6:00).',
   'settings.fieldPublicUrl': 'Publiczny URL (opcjonalny)',
   'settings.fieldIssuerUrl': 'URL wystawcy',
   'settings.fieldScopes': 'Zakresy',

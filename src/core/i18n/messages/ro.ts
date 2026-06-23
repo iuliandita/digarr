@@ -1028,6 +1028,9 @@ export const ro = {
   'settings.fieldClientSecret': 'Secret client',
   'settings.fieldPersonalAccessToken': 'Token de acces personal',
   'settings.fieldWebhookUrl': 'URL webhook',
+  'settings.fieldDigestCron': 'Programare rezumat (cron)',
+  'settings.digestCronHelp':
+    'Trimite un rezumat periodic al activității recente către webhook-ul tău. Lasă gol pentru a dezactiva. Exemplu: 0 6 * * 1 (lunea la ora 6:00).',
   'settings.fieldPublicUrl': 'URL public (opțional)',
   'settings.fieldIssuerUrl': 'URL emitent',
   'settings.fieldScopes': 'Domenii de acces',

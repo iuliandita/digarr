@@ -1022,6 +1022,9 @@ export const fr = {
   'settings.fieldClientSecret': 'Secret client',
   'settings.fieldPersonalAccessToken': "Jeton d'accès personnel",
   'settings.fieldWebhookUrl': 'URL du webhook',
+  'settings.fieldDigestCron': 'Planification du résumé (cron)',
+  'settings.digestCronHelp':
+    'Envoie un résumé périodique de l’activité récente vers votre webhook. Laissez vide pour désactiver. Exemple : 0 6 * * 1 (lundi à 6h).',
   'settings.fieldPublicUrl': 'URL publique (optionnelle)',
   'settings.fieldIssuerUrl': "URL de l'émetteur",
   'settings.fieldScopes': 'Portées',

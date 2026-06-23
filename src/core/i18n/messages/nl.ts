@@ -1028,6 +1028,9 @@ export const nl = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Persoonlijk toegangstoken',
   'settings.fieldWebhookUrl': 'Webhook-URL',
+  'settings.fieldDigestCron': 'Samenvattingsschema (cron)',
+  'settings.digestCronHelp':
+    'Stuur een periodieke samenvatting van recente activiteit naar je webhook. Laat leeg om uit te schakelen. Voorbeeld: 0 6 * * 1 (maandag om 6:00).',
   'settings.fieldPublicUrl': 'Openbare URL (optioneel)',
   'settings.fieldIssuerUrl': 'Verlener-URL',
   'settings.fieldScopes': 'Scopes',

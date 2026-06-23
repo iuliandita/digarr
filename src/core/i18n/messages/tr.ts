@@ -1025,6 +1025,9 @@ export const tr = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Kisisel erisim belirteci',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': 'Özet zamanlaması (cron)',
+  'settings.digestCronHelp':
+    'Son etkinliklerin düzenli bir özetini webhook’unuza gönderir. Devre dışı bırakmak için boş bırakın. Örnek: 0 6 * * 1 (pazartesi 06:00).',
   'settings.fieldPublicUrl': 'Genel URL (istege bagli)',
   'settings.fieldIssuerUrl': 'Saglayici URL',
   'settings.fieldScopes': 'Kapsamlar',

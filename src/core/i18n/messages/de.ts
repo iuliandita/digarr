@@ -1037,6 +1037,9 @@ export const de = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Persönlicher Zugriffstoken',
   'settings.fieldWebhookUrl': 'Webhook-URL',
+  'settings.fieldDigestCron': 'Digest-Zeitplan (Cron)',
+  'settings.digestCronHelp':
+    'Sende eine regelmäßige Zusammenfassung der letzten Aktivitäten an deinen Webhook. Leer lassen zum Deaktivieren. Beispiel: 0 6 * * 1 (montags um 6 Uhr).',
   'settings.fieldPublicUrl': 'Öffentliche URL (optional)',
   'settings.fieldIssuerUrl': 'Aussteller-URL',
   'settings.fieldScopes': 'Scopes',

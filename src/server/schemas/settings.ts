@@ -22,6 +22,7 @@ const preferencesSchema = z
     metadataProfileId: z.number().int().optional(),
     rootFolderId: z.number().int().optional(),
     scheduleCron: z.string().optional(),
+    digestCron: z.string().optional(),
     scoreThreshold: z.number().min(0).max(1).optional(),
     scoringWeights: scoringWeightsSchema.optional(),
     rejectionCooldownDays: z.number().int().min(0).optional(),

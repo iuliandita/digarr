@@ -950,6 +950,9 @@ export const zhCN = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': '个人访问令牌',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': '摘要计划 (cron)',
+  'settings.digestCronHelp':
+    '定期将最近活动的摘要发送到你的 Webhook。留空则禁用。示例：0 6 * * 1（每周一早上 6 点）。',
   'settings.fieldPublicUrl': '公开 URL（可选）',
   'settings.fieldIssuerUrl': '颁发者 URL',
   'settings.fieldScopes': '范围',

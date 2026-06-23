@@ -998,6 +998,9 @@ export const ko = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': '개인 액세스 토큰',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': '다이제스트 일정 (cron)',
+  'settings.digestCronHelp':
+    '최근 활동의 정기 요약을 웹훅으로 전송합니다. 비활성화하려면 비워 두세요. 예: 0 6 * * 1 (월요일 오전 6시).',
   'settings.fieldPublicUrl': '공개 URL (선택)',
   'settings.fieldIssuerUrl': '발급자 URL',
   'settings.fieldScopes': '범위',

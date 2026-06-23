@@ -1150,6 +1150,20 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   })
 }
 
+function buildDigestDeps() {
+  return {
+    getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
+    getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
+    getStats: (since: Date) => jobQueries.getDigestStats(db, since),
+    sendWebhook,
+  }
+}
+
+async function restartDigestNotifier(): Promise<void> {
+  digestNotifierCron?.stop()
+  digestNotifierCron = await startDigestNotifier(buildDigestDeps())
+}
+
 // Lazy OIDC service getter - reads current settings from DB on each call,
 // reconstructs the service only when the config (issuer/client/secret/scopes) changes.
 // This ensures settings-UI changes to OIDC config take effect without a restart.
@@ -1235,6 +1249,7 @@ const app = createApp({
   },
   restartPlaylistScheduler,
   restartLibraryMaintenanceScheduler,
+  restartDigestNotifier,
   createUser: (data) => createUser(db, data),
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
@@ -1540,12 +1555,7 @@ const server = serve({ fetch: app.fetch, port })
     stuckDetectorCron = startStuckDetector(jobRecorder)
 
     // Start scheduled notification digest (no-op until digestCron is configured)
-    digestNotifierCron = await startDigestNotifier({
-      getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
-      getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
-      getStats: (since) => jobQueries.getDigestStats(db, since),
-      sendWebhook,
-    })
+    digestNotifierCron = await startDigestNotifier(buildDigestDeps())
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }

@@ -1028,6 +1028,9 @@ export const ptBR = {
   'settings.fieldClientSecret': 'Segredo do cliente',
   'settings.fieldPersonalAccessToken': 'Token de acesso pessoal',
   'settings.fieldWebhookUrl': 'URL do webhook',
+  'settings.fieldDigestCron': 'Agendamento do resumo (cron)',
+  'settings.digestCronHelp':
+    'Envie um resumo periódico da atividade recente para o seu webhook. Deixe em branco para desativar. Exemplo: 0 6 * * 1 (segundas às 6h).',
   'settings.fieldPublicUrl': 'URL pública (opcional)',
   'settings.fieldIssuerUrl': 'URL do emissor',
   'settings.fieldScopes': 'Escopos',

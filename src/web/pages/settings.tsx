@@ -260,6 +260,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   )
   const [aiBaseUrl, setAiBaseUrl] = useState(settings.aiBaseUrl ?? '')
   const [webhookUrl, setWebhookUrl] = useState(settings.preferences?.webhookUrl ?? '')
+  const [digestCron, setDigestCron] = useState(settings.preferences?.digestCron ?? '')
   const [savingWebhook, setSavingWebhook] = useState(false)
   const [testingWebhook, setTestingWebhook] = useState(false)
   const [plexUrl, setPlexUrl] = useState(settings.plexUrl ?? '')
@@ -374,7 +375,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     try {
       const prefs = settings.preferences ?? {}
       await updateSettings({
-        preferences: { ...prefs, webhookUrl: webhookUrl || undefined },
+        preferences: {
+          ...prefs,
+          webhookUrl: webhookUrl || undefined,
+          digestCron: digestCron || undefined,
+        },
       })
       toast.success(t('settings.webhookSaved'))
       onSaved()
@@ -834,6 +839,15 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 onChange={(e) => setWebhookUrl(e.target.value)}
               />
             </Field>
+            <Field label={t('settings.fieldDigestCron')} id="digest-cron">
+              <Input
+                id="digest-cron"
+                placeholder="0 6 * * 1"
+                value={digestCron}
+                onChange={(e) => setDigestCron(e.target.value)}
+              />
+            </Field>
+            <p className="text-xs text-muted">{t('settings.digestCronHelp')}</p>
             <div className="flex justify-end gap-2 pt-1">
               <Button
                 size="sm"

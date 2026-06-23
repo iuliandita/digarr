@@ -1026,6 +1026,9 @@ export const it = {
   'settings.fieldClientSecret': 'Segreto client',
   'settings.fieldPersonalAccessToken': 'Token di accesso personale',
   'settings.fieldWebhookUrl': 'URL webhook',
+  'settings.fieldDigestCron': 'Pianificazione del riepilogo (cron)',
+  'settings.digestCronHelp':
+    'Invia un riepilogo periodico dell’attività recente al tuo webhook. Lascia vuoto per disattivare. Esempio: 0 6 * * 1 (lunedì alle 6:00).',
   'settings.fieldPublicUrl': 'URL pubblico (opzionale)',
   'settings.fieldIssuerUrl': 'URL emittente',
   'settings.fieldScopes': 'Ambiti',
