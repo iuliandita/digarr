@@ -26,6 +26,7 @@ describe('createLastFmSource()', () => {
         { name: 'Portishead', mbid: 'mbid-pt', listeners: 1200000 },
         { name: 'Massive Attack', mbid: 'mbid-ma', listeners: 980000 },
       ]),
+      getChartTopArtists: vi.fn().mockResolvedValue([]),
     }
     vi.mocked(createLastFmClient).mockReturnValue(client)
     return client

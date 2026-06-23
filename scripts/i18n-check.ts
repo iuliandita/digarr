@@ -93,6 +93,13 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'Weekly Jams',
   'PLAY',
   'STOP',
+  // Country names that are identical in several locales (proper nouns / loanwords)
+  'Global',
+  'Japan',
+  'France',
+  'Canada',
+  'Charts',
+  'Region',
 ])
 
 function shouldFlagSameAsSource(value: string): boolean {

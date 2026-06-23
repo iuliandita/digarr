@@ -110,6 +110,17 @@ export function evaluateDiscoveryModeAvailability(
         }
   }
 
+  if (modeId === 'charts') {
+    return snapshot.hasLastfm
+      ? { enabled: true, fallbackUsed: true, providerPath: ['lastfm'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Last.fm to use this mode.',
+        }
+  }
+
   if (modeId === 'similar-artist-web') {
     const providerPath = [
       ...(snapshot.hasListenBrainz ? ['listenbrainz'] : []),

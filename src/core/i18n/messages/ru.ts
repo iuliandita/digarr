@@ -695,6 +695,9 @@ export const ru = {
   'discoveryMode.gap-fill.label': 'Заполнение фонотеки',
   'discoveryMode.gap-fill.description':
     'Находите недостающие студийные альбомы исполнителей, которых вы уже отслеживаете',
+  'discoveryMode.charts.label': 'Чарты',
+  'discoveryMode.charts.description':
+    'Открывайте исполнителей в тренде из глобальных или региональных чартов',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -703,6 +706,7 @@ export const ru = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDiscogs': 'Подключите Discogs, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectLastfm': 'Подключите Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',
@@ -722,11 +726,20 @@ export const ru = {
   'discoveryMode.field.relationships': 'Связи',
   'discoveryMode.field.maxArtistsPerRun': 'Проверяемых исполнителей за запуск',
   'discoveryMode.field.helpArtistSeed': 'Имя исполнителя или MBID для запуска радио',
+  'discoveryMode.field.region': 'Регион',
   'discoveryMode.option.weeklyJams': 'Недельные хиты',
   'discoveryMode.option.similarUsersQuick': 'Похожие пользователи (быстрый)',
   'discoveryMode.option.safe': 'Безопасный',
   'discoveryMode.option.medium': 'Средний',
   'discoveryMode.option.adventurous': 'Авантюрный',
+  'discoveryMode.option.global': 'Глобальный',
+  'discoveryMode.option.unitedStates': 'США',
+  'discoveryMode.option.unitedKingdom': 'Великобритания',
+  'discoveryMode.option.germany': 'Германия',
+  'discoveryMode.option.france': 'Франция',
+  'discoveryMode.option.japan': 'Япония',
+  'discoveryMode.option.brazil': 'Бразилия',
+  'discoveryMode.option.canada': 'Канада',
   'importArtists.title': 'Импорт исполнителей',
   'importArtists.likedSongs': 'Понравившиеся песни',
   'importArtists.likedSongsDescription': 'Импортировать исполнителей из понравившегося в Spotify',

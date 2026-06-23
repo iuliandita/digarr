@@ -795,6 +795,8 @@ export const en = {
   'discoveryMode.gap-fill.label': 'Library Gap-Fill',
   'discoveryMode.gap-fill.description':
     'Find studio albums you are missing from artists you already track',
+  'discoveryMode.charts.label': 'Charts',
+  'discoveryMode.charts.description': 'Discover artists trending on global or regional charts',
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
@@ -802,6 +804,7 @@ export const en = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Connect ListenBrainz or Last.fm to use this mode.',
   'discoveryMode.reason.connectDiscogs': 'Connect Discogs to use this mode.',
+  'discoveryMode.reason.connectLastfm': 'Connect Last.fm to use this mode.',
   'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.field.feed': 'Feed',
@@ -820,11 +823,20 @@ export const en = {
   'discoveryMode.field.relationships': 'Relationships',
   'discoveryMode.field.maxArtistsPerRun': 'Artists checked per run',
   'discoveryMode.field.helpArtistSeed': 'Artist name or MBID to seed the radio',
+  'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Similar Users (Quick)',
   'discoveryMode.option.safe': 'Safe',
   'discoveryMode.option.medium': 'Medium',
   'discoveryMode.option.adventurous': 'Adventurous',
+  'discoveryMode.option.global': 'Global',
+  'discoveryMode.option.unitedStates': 'United States',
+  'discoveryMode.option.unitedKingdom': 'United Kingdom',
+  'discoveryMode.option.germany': 'Germany',
+  'discoveryMode.option.france': 'France',
+  'discoveryMode.option.japan': 'Japan',
+  'discoveryMode.option.brazil': 'Brazil',
+  'discoveryMode.option.canada': 'Canada',
 
   // Import Artists
   'importArtists.title': 'Import Artists',

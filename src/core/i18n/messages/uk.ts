@@ -690,6 +690,9 @@ export const uk = {
   'discoveryMode.gap-fill.label': 'Заповнення фонотеки',
   'discoveryMode.gap-fill.description':
     'Знаходьте студійні альбоми, яких бракує, від виконавців, яких ви вже відстежуєте',
+  'discoveryMode.charts.label': 'Чарти',
+  'discoveryMode.charts.description':
+    'Відкривайте виконавців у тренді з глобальних або регіональних чартів',
   'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
@@ -698,6 +701,7 @@ export const uk = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Підключіть ListenBrainz або Last.fm, щоб користуватися цим режимом.',
   'discoveryMode.reason.connectDiscogs': 'Підключіть Discogs, щоб використовувати цей режим.',
+  'discoveryMode.reason.connectLastfm': 'Підключіть Last.fm, щоб використовувати цей режим.',
   'discoveryMode.reason.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',
@@ -717,11 +721,20 @@ export const uk = {
   'discoveryMode.field.relationships': "Зв'язки",
   'discoveryMode.field.maxArtistsPerRun': 'Перевірених виконавців за запуск',
   'discoveryMode.field.helpArtistSeed': "Ім'я виконавця або MBID для запуску радіо",
+  'discoveryMode.field.region': 'Регіон',
   'discoveryMode.option.weeklyJams': 'Тижневі хіти',
   'discoveryMode.option.similarUsersQuick': 'Схожі користувачі (швидкий)',
   'discoveryMode.option.safe': 'Безпечний',
   'discoveryMode.option.medium': 'Середній',
   'discoveryMode.option.adventurous': 'Авантюрний',
+  'discoveryMode.option.global': 'Глобальний',
+  'discoveryMode.option.unitedStates': 'США',
+  'discoveryMode.option.unitedKingdom': 'Велика Британія',
+  'discoveryMode.option.germany': 'Німеччина',
+  'discoveryMode.option.france': 'Франція',
+  'discoveryMode.option.japan': 'Японія',
+  'discoveryMode.option.brazil': 'Бразилія',
+  'discoveryMode.option.canada': 'Канада',
   'importArtists.title': 'Імпорт виконавців',
   'importArtists.likedSongs': 'Вподобані пісні',
   'importArtists.likedSongsDescription': 'Імпортувати виконавців із вподобаних у Spotify',

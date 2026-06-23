@@ -688,6 +688,9 @@ export const nl = {
   'discoveryMode.gap-fill.label': 'Bibliotheek aanvullen',
   'discoveryMode.gap-fill.description':
     'Vind studioalbums die je mist van artiesten die je al volgt',
+  'discoveryMode.charts.label': 'Hitlijsten',
+  'discoveryMode.charts.description':
+    'Ontdek artiesten die trending zijn in globale of regionale hitlijsten',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -695,6 +698,7 @@ export const nl = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbind ListenBrainz of Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDiscogs': 'Verbind Discogs om deze modus te gebruiken.',
+  'discoveryMode.reason.connectLastfm': 'Verbind Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
@@ -714,11 +718,20 @@ export const nl = {
   'discoveryMode.field.relationships': 'Relaties',
   'discoveryMode.field.maxArtistsPerRun': 'Gecontroleerde artiesten per run',
   'discoveryMode.field.helpArtistSeed': 'Artiestennaam of MBID voor de radio',
+  'discoveryMode.field.region': 'Regio',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Vergelijkbare gebruikers (snel)',
   'discoveryMode.option.safe': 'Veilig',
   'discoveryMode.option.medium': 'Gemiddeld',
   'discoveryMode.option.adventurous': 'Avontuurlijk',
+  'discoveryMode.option.global': 'Wereldwijd',
+  'discoveryMode.option.unitedStates': 'Verenigde Staten',
+  'discoveryMode.option.unitedKingdom': 'Verenigd Koninkrijk',
+  'discoveryMode.option.germany': 'Duitsland',
+  'discoveryMode.option.france': 'Frankrijk',
+  'discoveryMode.option.japan': 'Japan',
+  'discoveryMode.option.brazil': 'Brazilië',
+  'discoveryMode.option.canada': 'Canada',
   'importArtists.title': 'Artiesten importeren',
   'importArtists.likedSongs': 'Gelikte nummers',
   'importArtists.likedSongsDescription': 'Artiesten importeren die je op Spotify hebt geliked',

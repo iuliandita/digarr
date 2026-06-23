@@ -680,6 +680,9 @@ export const fr = {
   'discoveryMode.gap-fill.label': 'Complétion de bibliothèque',
   'discoveryMode.gap-fill.description':
     'Trouvez les albums studio qui vous manquent parmi les artistes que vous suivez déjà',
+  'discoveryMode.charts.label': 'Charts',
+  'discoveryMode.charts.description':
+    'Découvrez des artistes tendance dans les charts mondiaux ou régionaux',
   'discoveryMode.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
   'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
@@ -687,6 +690,7 @@ export const fr = {
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Connectez ListenBrainz ou Last.fm pour utiliser ce mode.',
   'discoveryMode.reason.connectDiscogs': 'Connectez Discogs pour utiliser ce mode.',
+  'discoveryMode.reason.connectLastfm': 'Connectez Last.fm pour utiliser ce mode.',
   'discoveryMode.reason.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.reason.releaseRadarFallback':
     'Utilisation de fournisseurs de secours pour la découverte des sorties.',
@@ -706,11 +710,20 @@ export const fr = {
   'discoveryMode.field.relationships': 'Relations',
   'discoveryMode.field.maxArtistsPerRun': 'Artistes vérifiés par exécution',
   'discoveryMode.field.helpArtistSeed': "Nom d'artiste ou MBID pour amorcer la radio",
+  'discoveryMode.field.region': 'Région',
   'discoveryMode.option.weeklyJams': 'Sessions hebdomadaires',
   'discoveryMode.option.similarUsersQuick': 'Utilisateurs similaires (rapide)',
   'discoveryMode.option.safe': 'Sûr',
   'discoveryMode.option.medium': 'Moyen',
   'discoveryMode.option.adventurous': 'Aventureux',
+  'discoveryMode.option.global': 'Mondial',
+  'discoveryMode.option.unitedStates': 'États-Unis',
+  'discoveryMode.option.unitedKingdom': 'Royaume-Uni',
+  'discoveryMode.option.germany': 'Allemagne',
+  'discoveryMode.option.france': 'France',
+  'discoveryMode.option.japan': 'Japon',
+  'discoveryMode.option.brazil': 'Brésil',
+  'discoveryMode.option.canada': 'Canada',
   'importArtists.title': 'Importer des artistes',
   'importArtists.likedSongs': 'Titres aimés',
   'importArtists.likedSongsDescription': 'Importez les artistes de vos titres aimés sur Spotify',
