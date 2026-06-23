@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.7.0 - 2026-06-23
+
+A new Charts discovery mode seeds recommendations from what is trending now, not just taste-adjacency.
+
+### Added
+
+- **Charts discovery mode.** A new discovery mode that seeds from global or regional chart movement rather than the similarity/relationship graph every other mode uses. Pick a region (Global or one of seven countries) and Digarr surfaces the artists currently trending there as recommendation candidates. Backed by Last.fm's chart endpoints, so it needs only the Last.fm API key you already configure -- no extra connection. Run it from Discover -> Discovery Modes or save it as a subscription, like any other mode. Translated across all 15 shipped locales.
+
 ## v1.6.0 - 2026-06-23
 
 Discovery-only installs (no Lidarr library) now score recommendations on genre fit.
