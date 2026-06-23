@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.9.0 - 2026-06-23
+
+Your Spotify saved albums are now a discovery signal.
+
+### Added
+
+- **Spotify Saved Albums discovery mode.** The albums you have saved on Spotify are now a first-class discovery signal. A new discovery mode reads your saved albums (`/me/albums`) and surfaces their artists as recommendation candidates, run on demand from Discover -> Discovery Modes like any other mode. It reuses the Spotify connection you already set up -- the required `user-library-read` access was already granted (it powers Liked Songs today), so there is nothing new to authorize. Translated across all 15 shipped locales.
+
 ## v1.8.0 - 2026-06-23
 
 Deezer Flow is now a runnable discovery mode, not just a background subscription source.
