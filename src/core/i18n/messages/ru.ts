@@ -701,6 +701,9 @@ export const ru = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Открывайте исполнителей из вашего персонализированного потока Deezer Flow',
+  'discoveryMode.spotify-saved-albums.label': 'Сохранённые альбомы Spotify',
+  'discoveryMode.spotify-saved-albums.description':
+    'Открывайте исполнителей из альбомов, сохранённых в Spotify',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -711,6 +714,7 @@ export const ru = {
   'discoveryMode.reason.connectDiscogs': 'Подключите Discogs, чтобы использовать этот режим.',
   'discoveryMode.reason.connectLastfm': 'Подключите Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDeezer': 'Подключите Deezer, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectSpotify': 'Подключите Spotify, чтобы использовать этот режим.',
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',

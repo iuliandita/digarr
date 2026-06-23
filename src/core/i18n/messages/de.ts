@@ -700,6 +700,9 @@ export const de = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Entdecke Künstler aus deinem personalisierten Deezer Flow-Feed',
+  'discoveryMode.spotify-saved-albums.label': 'Spotify Gespeicherte Alben',
+  'discoveryMode.spotify-saved-albums.description':
+    'Entdecke Künstler aus den Alben, die du auf Spotify gespeichert hast',
   'discoveryMode.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
@@ -710,6 +713,7 @@ export const de = {
   'discoveryMode.reason.connectDiscogs': 'Verbinde Discogs, um diesen Modus zu nutzen.',
   'discoveryMode.reason.connectLastfm': 'Verbinde Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDeezer': 'Verbinde Deezer, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.connectSpotify': 'Verbinde Spotify, um diesen Modus zu verwenden.',
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',

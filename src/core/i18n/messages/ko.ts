@@ -672,6 +672,9 @@ export const ko = {
   'discoveryMode.charts.description': '글로벌 또는 지역 차트에서 트렌드 아티스트를 발견합니다',
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description': '개인화된 Deezer Flow 피드에서 아티스트를 발견합니다',
+  'discoveryMode.spotify-saved-albums.label': 'Spotify 저장된 앨범',
+  'discoveryMode.spotify-saved-albums.description':
+    'Spotify에 저장한 앨범에서 아티스트를 발견합니다',
   'discoveryMode.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
   'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
@@ -681,6 +684,7 @@ export const ko = {
   'discoveryMode.reason.connectDiscogs': '이 모드를 사용하려면 Discogs를 연결하세요.',
   'discoveryMode.reason.connectLastfm': '이 모드를 사용하려면 Last.fm을 연결하세요.',
   'discoveryMode.reason.connectDeezer': '이 모드를 사용하려면 Deezer를 연결하세요.',
+  'discoveryMode.reason.connectSpotify': '이 모드를 사용하려면 Spotify를 연결하세요.',
   'discoveryMode.reason.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
   'discoveryMode.field.feed': '피드',

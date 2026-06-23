@@ -691,6 +691,9 @@ export const tr = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Kisisellestirilmis Deezer Flow beslemenden sanatcilar kesfet',
+  'discoveryMode.spotify-saved-albums.label': 'Spotify Kaydedilen Albümler',
+  'discoveryMode.spotify-saved-albums.description':
+    "Spotify'da kaydettiğin albümlerden sanatçılar keşfet",
   'discoveryMode.notImplementedYet': 'Bu mod henuz uygulanmadi.',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz baglayin.',
@@ -700,6 +703,7 @@ export const tr = {
   'discoveryMode.reason.connectDiscogs': "Bu modu kullanmak için Discogs'u bağlayın.",
   'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i baglayin.",
   'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı baglayin.",
+  'discoveryMode.reason.connectSpotify': "Bu modu kullanmak için Spotify'ı baglayin.",
   'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi için yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',

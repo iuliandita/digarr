@@ -30,6 +30,7 @@ describe('createSpotifySource()', () => {
       searchTracks: vi.fn().mockResolvedValue([]),
       findExactArtistByName: vi.fn().mockResolvedValue(null),
       getPopularAlbumsForArtist: vi.fn().mockResolvedValue([]),
+      getSavedAlbums: vi.fn().mockResolvedValue([]),
       testConnection: vi.fn().mockResolvedValue({
         success: true,
         message: 'Connected to Spotify as testuser',

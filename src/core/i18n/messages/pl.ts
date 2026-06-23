@@ -696,6 +696,9 @@ export const pl = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Odkrywaj artystów ze swojego spersonalizowanego kanału Deezer Flow',
+  'discoveryMode.spotify-saved-albums.label': 'Zapisane albumy Spotify',
+  'discoveryMode.spotify-saved-albums.description':
+    'Odkrywaj artystów z albumów zapisanych w Spotify',
   'discoveryMode.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.notShippedYet': 'Ten tryb nie jest jeszcze dostępny.',
   'discoveryMode.reason.connectListenBrainz': 'Połącz ListenBrainz, aby użyć tego trybu.',
@@ -705,6 +708,7 @@ export const pl = {
   'discoveryMode.reason.connectDiscogs': 'Połącz Discogs, aby użyć tego trybu.',
   'discoveryMode.reason.connectLastfm': 'Połącz Last.fm, aby użyć tego trybu.',
   'discoveryMode.reason.connectDeezer': 'Połącz Deezer, aby użyć tego trybu.',
+  'discoveryMode.reason.connectSpotify': 'Połącz Spotify, aby użyć tego trybu.',
   'discoveryMode.reason.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.reason.releaseRadarFallback': 'Do odkrywania wydan używane sa źródła zapasowe.',
   'discoveryMode.field.feed': 'Feed',

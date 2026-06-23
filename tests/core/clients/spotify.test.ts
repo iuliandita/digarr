@@ -53,6 +53,63 @@ describe('createSpotifyClient', () => {
     )
   })
 
+  it('paginates saved albums, dedupes artist names case-insensitively, and respects the limit', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/me/albums') {
+        const offset = url.searchParams.get('offset')
+        if (offset === '0') {
+          return jsonResponse({
+            items: [
+              { album: { artists: [{ name: 'Aphex Twin' }] } },
+              { album: { artists: [{ name: 'Boards of Canada' }, { name: 'aphex twin' }] } },
+            ],
+            next: 'https://spotify.test/me/albums?offset=50&limit=50',
+          })
+        }
+        if (offset === '50') {
+          return jsonResponse({
+            items: [
+              { album: { artists: [{ name: 'Boards of Canada' }] } },
+              { album: { artists: [{ name: 'Autechre' }] } },
+            ],
+            next: null,
+          })
+        }
+      }
+      throw new Error(`unexpected url: ${url}`)
+    })
+
+    const client = createSpotifyClient('token', { baseUrl: 'https://spotify.test' })
+    const artists = await client.getSavedAlbums(100)
+
+    expect(artists.map((a) => a.name)).toEqual(['Aphex Twin', 'Boards of Canada', 'Autechre'])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('stops paging once the limit of unique artist names is reached', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/me/albums') {
+        return jsonResponse({
+          items: [
+            { album: { artists: [{ name: 'A' }] } },
+            { album: { artists: [{ name: 'B' }] } },
+            { album: { artists: [{ name: 'C' }] } },
+          ],
+          next: 'https://spotify.test/me/albums?offset=50&limit=50',
+        })
+      }
+      throw new Error(`unexpected url: ${url}`)
+    })
+
+    const client = createSpotifyClient('token', { baseUrl: 'https://spotify.test' })
+    const artists = await client.getSavedAlbums(2)
+
+    expect(artists.map((a) => a.name)).toEqual(['A', 'B'])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('finds the single exact Spotify artist match by name', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({

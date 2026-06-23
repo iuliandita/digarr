@@ -102,6 +102,15 @@ type SpotifyAlbumsResponse = {
   } | null>
 }
 
+type SpotifySavedAlbumsResponse = {
+  items: Array<{
+    album: {
+      artists: Array<{ name: string }>
+    } | null
+  }>
+  next: string | null
+}
+
 export function createSpotifyClient(accessToken: string, options?: { baseUrl?: string }) {
   const http = createHttpClient({
     baseUrl: options?.baseUrl ?? BASE_URL,
@@ -220,6 +229,36 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
     return albums.sort((a, b) => b.popularity - a.popularity).slice(0, limit)
   }
 
+  async function getSavedAlbums(limit = 100): Promise<Array<{ name: string }>> {
+    const pageSize = 50
+    const names: Array<{ name: string }> = []
+    const seen = new Set<string>()
+
+    for (let offset = 0; names.length < limit; offset += pageSize) {
+      const params = new URLSearchParams({
+        limit: String(pageSize),
+        offset: String(offset),
+      })
+      const res = await get<SpotifySavedAlbumsResponse>(`/me/albums?${params}`)
+      const items = res.items ?? []
+      for (const item of items) {
+        for (const artist of item.album?.artists ?? []) {
+          const name = artist.name?.trim()
+          if (!name) continue
+          const key = name.toLowerCase()
+          if (seen.has(key)) continue
+          seen.add(key)
+          names.push({ name })
+          if (names.length >= limit) break
+        }
+        if (names.length >= limit) break
+      }
+      if (!res.next || items.length === 0) break
+    }
+
+    return names.slice(0, limit)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const profile = await get<SpotifyProfileResponse>('/me')
@@ -239,6 +278,7 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
     searchTracks,
     findExactArtistByName,
     getPopularAlbumsForArtist,
+    getSavedAlbums,
     testConnection,
   }
 }

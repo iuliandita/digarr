@@ -693,6 +693,9 @@ export const ro = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Descoperiți artiști din feed-ul dvs. personalizat Deezer Flow',
+  'discoveryMode.spotify-saved-albums.label': 'Albume salvate Spotify',
+  'discoveryMode.spotify-saved-albums.description':
+    'Descoperă artiști din albumele pe care le-ai salvat pe Spotify',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -702,6 +705,7 @@ export const ro = {
   'discoveryMode.reason.connectDiscogs': 'Conectează Discogs pentru a folosi acest mod.',
   'discoveryMode.reason.connectLastfm': 'Conectează Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDeezer': 'Conectează Deezer pentru a folosi acest mod.',
+  'discoveryMode.reason.connectSpotify': 'Conectează Spotify pentru a folosi acest mod.',
   'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
