@@ -5,6 +5,7 @@ export type TopArtistEntry = {
   mbid?: string
   playCount: number
   source: string
+  genres?: string[]
 }
 
 export type SimilarArtistEntry = {

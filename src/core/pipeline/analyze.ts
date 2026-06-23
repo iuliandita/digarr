@@ -42,10 +42,25 @@ export async function analyze(sources: DiscoverySource[]): Promise<TasteProfile>
 
   const topArtists = Array.from(byName.values()).sort((a, b) => b.playCount - a.playCount)
 
-  // Genre extraction from listening data is not yet implemented.
-  // Library genre overlap (the main genre scoring path) works via the
-  // orchestrator passing libraryGenres from Lidarr to score().
-  const topGenres: Array<{ name: string; weight: number }> = []
+  // Aggregate genres from listening sources that carry them (e.g. Spotify).
+  // Weight each genre by the sum of playCount of artists that carry it, then
+  // normalize so the highest-weight genre is 1.0. Artists with no genres are
+  // skipped. Genres are lowercased to match score()'s libraryGenreSet.
+  const genreWeights = new Map<string, number>()
+  for (const artist of topArtists) {
+    if (!artist.genres || artist.genres.length === 0) continue
+    for (const genre of artist.genres) {
+      const key = genre.toLowerCase()
+      genreWeights.set(key, (genreWeights.get(key) ?? 0) + artist.playCount)
+    }
+  }
+  const maxWeight = genreWeights.size > 0 ? Math.max(...genreWeights.values()) : 0
+  const topGenres: Array<{ name: string; weight: number }> =
+    maxWeight > 0
+      ? [...genreWeights.entries()]
+          .map(([name, weight]) => ({ name, weight: weight / maxWeight }))
+          .sort((a, b) => b.weight - a.weight)
+      : []
 
   // Determine recentTrend from listening activity
   const recentTrend = computeRecentTrend(activityData)

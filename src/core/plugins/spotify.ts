@@ -15,6 +15,7 @@ export function createSpotifySource(accessToken: string): DiscoverySource {
         name: a.name,
         playCount: a.popularity,
         source: 'spotify',
+        genres: a.genres ?? [],
       }))
     },
 
