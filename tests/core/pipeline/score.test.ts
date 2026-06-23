@@ -300,4 +300,30 @@ describe('score()', () => {
     const [scored] = score([artist], [], defaultWeights, new Map())
     expect(scored?.sourceScores.recency).toBeUndefined()
   })
+
+  it('produces identical scores when libraryGenres is passed vs listening-derived genres with same content', () => {
+    // Parity regression guard: score() is pure; what matters is the set content,
+    // not whether it came from libraryGenres or topGenres. Same genre set -> same scores.
+    const artist = makeArtist({
+      genres: ['rock', 'electronic'],
+      discoveries: [{ name: 'X', similarityScore: 0.7, source: 'listenbrainz' }],
+    })
+
+    const referenceGenres = ['rock', 'electronic']
+    const listeningDerivedGenres = ['electronic', 'rock'] // same content, different order
+
+    const fromLibrary = score([artist], referenceGenres, defaultWeights, new Map())
+    const fromListening = score([artist], listeningDerivedGenres, defaultWeights, new Map())
+
+    expect(fromLibrary[0]?.score).toBeCloseTo(fromListening[0]?.score ?? -1)
+    expect(fromLibrary[0]?.sourceScores.genreOverlap).toBeCloseTo(
+      fromListening[0]?.sourceScores.genreOverlap ?? -1,
+    )
+  })
+
+  it('genreOverlap is 0 with empty reference set and remains 0 regardless of artist genres', () => {
+    const artist = makeArtist({ genres: ['rock', 'metal'] })
+    const [result] = score([artist], [], defaultWeights, new Map())
+    expect(result?.sourceScores.genreOverlap).toBe(0)
+  })
 })

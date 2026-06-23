@@ -67,11 +67,13 @@ describe('createSpotifySource()', () => {
       name: 'Radiohead',
       playCount: 82,
       source: 'spotify',
+      genres: ['art rock', 'alternative'],
     })
     expect(artists[1]).toEqual({
       name: 'Bjork',
       playCount: 71,
       source: 'spotify',
+      genres: ['art pop', 'electronic'],
     })
   })
 

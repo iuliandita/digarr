@@ -413,9 +413,11 @@ export class PipelineOrchestrator extends EventEmitter {
         message: t('pipeline.message.scoring', String(resolved.length)),
       })
       const popularityMap = (await db.getPopularityMap?.()) ?? new Map<string, number>()
+      const referenceGenres =
+        libraryGenres.length > 0 ? libraryGenres : tasteProfile.topGenres.map((g) => g.name)
       const scored = score(
         resolved,
-        libraryGenres,
+        referenceGenres,
         prefs.scoringWeights,
         feedbackHistory,
         popularityMap,

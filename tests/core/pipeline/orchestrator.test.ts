@@ -803,4 +803,95 @@ describe('PipelineOrchestrator', () => {
     const call = mockResolve.mock.calls.at(-1)
     expect(call?.[8]).toBe(true)
   })
+
+  it('uses libraryGenres as the reference set when library artists are present (library-install parity)', async () => {
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue([
+        {
+          mbid: 'mbid-1',
+          name: 'Library Artist',
+          source: 'lidarr',
+          sourceArtistId: '1',
+          genres: ['rock', 'metal'],
+          matchMethod: 'mbid',
+          matchConfidence: 1.0,
+        },
+      ]),
+    }
+    // Taste profile with genres from listening sources
+    mockAnalyze.mockResolvedValue({
+      ...tasteProfile,
+      topGenres: [
+        { name: 'electronic', weight: 1.0 },
+        { name: 'ambient', weight: 0.5 },
+      ],
+    })
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    const scoreCall = mockScore.mock.calls[0]
+    const referenceGenres = scoreCall?.[1] as string[]
+    // Library present: must use libraryGenres, NOT listening-derived genres
+    expect(referenceGenres.sort()).toEqual(['metal', 'rock'])
+    expect(referenceGenres).not.toContain('electronic')
+  })
+
+  it('uses listening-derived topGenres as the reference set when library is empty (discovery-only mode)', async () => {
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue([]),
+    }
+    // Taste profile carries genres from Spotify
+    mockAnalyze.mockResolvedValue({
+      ...tasteProfile,
+      topGenres: [
+        { name: 'electronic', weight: 1.0 },
+        { name: 'ambient', weight: 0.5 },
+      ],
+    })
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    const scoreCall = mockScore.mock.calls[0]
+    const referenceGenres = scoreCall?.[1] as string[]
+    // No library: must fall back to listening-derived genre names
+    expect(referenceGenres.sort()).toEqual(['ambient', 'electronic'])
+  })
+
+  it('passes empty reference genres when both library and listening genres are absent', async () => {
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue([]),
+    }
+    // Taste profile with no genres (no Spotify or sources without genre data)
+    mockAnalyze.mockResolvedValue({
+      ...tasteProfile,
+      topGenres: [],
+    })
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    const scoreCall = mockScore.mock.calls[0]
+    const referenceGenres = scoreCall?.[1] as string[]
+    expect(referenceGenres).toEqual([])
+  })
 })

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { analyze } from '@/core/pipeline/analyze'
-import type { DiscoverySource } from '@/core/plugins/types'
+import type { DiscoverySource, TopArtistEntry } from '@/core/plugins/types'
 
 const lbArtists = [
   { name: 'Radiohead', mbid: 'mbid-rh', playCount: 500, source: 'listenbrainz' },
@@ -146,5 +146,85 @@ describe('analyze()', () => {
   it('returns empty topArtists when no sources provided', async () => {
     const profile = await analyze([])
     expect(profile.topArtists).toEqual([])
+  })
+})
+
+describe('analyze() genre aggregation', () => {
+  function makeSpotifyLike(artists: TopArtistEntry[]): DiscoverySource {
+    return {
+      id: 'spotify',
+      name: 'Spotify',
+      capabilities: ['topArtists'],
+      getTopArtists: vi.fn().mockResolvedValue(artists),
+      getSimilarArtists: vi.fn().mockResolvedValue([]),
+      testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
+    }
+  }
+
+  it('aggregates topGenres weighted by playCount, normalized, lowercased', async () => {
+    const source = makeSpotifyLike([
+      { name: 'Artist A', playCount: 100, source: 'spotify', genres: ['Rock', 'Electronic'] },
+      { name: 'Artist B', playCount: 200, source: 'spotify', genres: ['Electronic', 'Ambient'] },
+    ])
+    const profile = await analyze([source])
+
+    // Electronic: 100+200=300, Rock: 100, Ambient: 200 -> max=300
+    // normalized: Electronic=1.0, Ambient=0.666..., Rock=0.333...
+    const byName = Object.fromEntries(profile.topGenres.map((g) => [g.name, g.weight]))
+    expect(byName.electronic).toBeCloseTo(1.0)
+    expect(byName.ambient).toBeCloseTo(200 / 300)
+    expect(byName.rock).toBeCloseTo(100 / 300)
+    expect(byName.Electronic).toBeUndefined() // must be lowercased
+  })
+
+  it('sorts topGenres descending by weight', async () => {
+    const source = makeSpotifyLike([
+      { name: 'Artist A', playCount: 50, source: 'spotify', genres: ['jazz'] },
+      { name: 'Artist B', playCount: 200, source: 'spotify', genres: ['rock', 'jazz'] },
+    ])
+    const profile = await analyze([source])
+
+    for (let i = 1; i < profile.topGenres.length; i++) {
+      expect(profile.topGenres[i - 1]?.weight ?? 0).toBeGreaterThanOrEqual(
+        profile.topGenres[i]?.weight ?? 0,
+      )
+    }
+  })
+
+  it('returns empty topGenres when no artists carry genres', async () => {
+    const source = makeSpotifyLike([
+      { name: 'Artist A', playCount: 100, source: 'spotify' },
+      { name: 'Artist B', playCount: 200, source: 'spotify', genres: [] },
+    ])
+    const profile = await analyze([source])
+    expect(profile.topGenres).toEqual([])
+  })
+
+  it('returns empty topGenres when no sources provided', async () => {
+    const profile = await analyze([])
+    expect(profile.topGenres).toEqual([])
+  })
+
+  it('artists without genres contribute nothing to topGenres', async () => {
+    const source = makeSpotifyLike([
+      { name: 'Artist A', playCount: 999, source: 'spotify' }, // no genres field
+      { name: 'Artist B', playCount: 10, source: 'spotify', genres: ['indie'] },
+    ])
+    const profile = await analyze([source])
+
+    expect(profile.topGenres).toHaveLength(1)
+    expect(profile.topGenres[0]?.name).toBe('indie')
+    expect(profile.topGenres[0]?.weight).toBeCloseTo(1.0)
+  })
+
+  it('normalizes so the max-weight genre is exactly 1.0', async () => {
+    const source = makeSpotifyLike([
+      { name: 'X', playCount: 500, source: 'spotify', genres: ['metal'] },
+      { name: 'Y', playCount: 100, source: 'spotify', genres: ['metal', 'punk'] },
+    ])
+    const profile = await analyze([source])
+
+    const max = Math.max(...profile.topGenres.map((g) => g.weight))
+    expect(max).toBeCloseTo(1.0)
   })
 })
