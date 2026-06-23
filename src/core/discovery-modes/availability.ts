@@ -134,6 +134,17 @@ export function evaluateDiscoveryModeAvailability(
         }
   }
 
+  if (modeId === 'spotify-saved-albums') {
+    return snapshot.hasSpotify
+      ? { enabled: true, fallbackUsed: true, providerPath: ['spotify'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Spotify to use this mode.',
+        }
+  }
+
   if (modeId === 'similar-artist-web') {
     const providerPath = [
       ...(snapshot.hasListenBrainz ? ['listenbrainz'] : []),

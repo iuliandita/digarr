@@ -680,6 +680,9 @@ export const ja = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'パーソナライズされた Deezer Flow フィードからアーティストを発見',
+  'discoveryMode.spotify-saved-albums.label': 'Spotify 保存済みアルバム',
+  'discoveryMode.spotify-saved-albums.description':
+    'Spotify に保存したアルバムからアーティストを発見します',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -690,6 +693,7 @@ export const ja = {
   'discoveryMode.reason.connectDiscogs': 'このモードを使うには Discogs を接続してください。',
   'discoveryMode.reason.connectLastfm': 'このモードを使うには Last.fm を接続してください。',
   'discoveryMode.reason.connectDeezer': 'このモードを使うには Deezer を接続してください。',
+  'discoveryMode.reason.connectSpotify': 'このモードを使うには Spotify を接続してください。',
   'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',

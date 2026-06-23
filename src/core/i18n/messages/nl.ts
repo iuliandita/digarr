@@ -694,6 +694,9 @@ export const nl = {
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
     'Ontdek artiesten uit jouw gepersonaliseerde Deezer Flow-feed',
+  'discoveryMode.spotify-saved-albums.label': 'Spotify Opgeslagen Albums',
+  'discoveryMode.spotify-saved-albums.description':
+    'Ontdek artiesten uit de albums die je op Spotify hebt opgeslagen',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -703,6 +706,7 @@ export const nl = {
   'discoveryMode.reason.connectDiscogs': 'Verbind Discogs om deze modus te gebruiken.',
   'discoveryMode.reason.connectLastfm': 'Verbind Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDeezer': 'Verbind Deezer om deze modus te gebruiken.',
+  'discoveryMode.reason.connectSpotify': 'Verbind Spotify om deze modus te gebruiken.',
   'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',

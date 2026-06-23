@@ -10,6 +10,7 @@ import {
 } from './modes/listenbrainz'
 import { createReleaseRadarMode } from './modes/release-radar'
 import { createSimilarArtistWebMode } from './modes/similar-artist-web'
+import { createSpotifySavedAlbumsMode } from './modes/spotify-saved-albums'
 import type { DiscoveryModeDefinition } from './types'
 
 export class DiscoveryModeRegistry {
@@ -46,6 +47,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createGapFillMode())
   registry.register(createChartsMode())
   registry.register(createDeezerFlowMode())
+  registry.register(createSpotifySavedAlbumsMode())
   return registry
 }
 
