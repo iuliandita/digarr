@@ -41,6 +41,7 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'Albums',
   'Spotify',
   'Deezer',
+  'Deezer Flow',
   'ListenBrainz',
   'Last.fm',
   'MusicBrainz',

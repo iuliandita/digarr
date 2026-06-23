@@ -20,6 +20,18 @@ export async function getDiscoveryModeSpotifyToken(userId: number): Promise<stri
   }
 }
 
+export async function getDiscoveryModeDeezerToken(userId: number): Promise<string | null> {
+  try {
+    const [{ db }, { resolveDeezerToken }] = await Promise.all([
+      import('@/db'),
+      import('@/core/deezer-auth'),
+    ])
+    return await resolveDeezerToken(db, userId)
+  } catch {
+    return null
+  }
+}
+
 export function getNormalizedLimit(
   request: DiscoveryModeRequest,
   fallback: number,

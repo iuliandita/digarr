@@ -698,6 +698,9 @@ export const ru = {
   'discoveryMode.charts.label': 'Чарты',
   'discoveryMode.charts.description':
     'Открывайте исполнителей в тренде из глобальных или региональных чартов',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Открывайте исполнителей из вашего персонализированного потока Deezer Flow',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -707,6 +710,7 @@ export const ru = {
     'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDiscogs': 'Подключите Discogs, чтобы использовать этот режим.',
   'discoveryMode.reason.connectLastfm': 'Подключите Last.fm, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectDeezer': 'Подключите Deezer, чтобы использовать этот режим.',
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',

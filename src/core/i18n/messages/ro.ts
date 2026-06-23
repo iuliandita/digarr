@@ -690,6 +690,9 @@ export const ro = {
   'discoveryMode.charts.label': 'Topuri muzicale',
   'discoveryMode.charts.description':
     'Descoperiți artiști în tendințe în topurile globale sau regionale',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Descoperiți artiști din feed-ul dvs. personalizat Deezer Flow',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -698,6 +701,7 @@ export const ro = {
     'Conectați ListenBrainz sau Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDiscogs': 'Conectează Discogs pentru a folosi acest mod.',
   'discoveryMode.reason.connectLastfm': 'Conectează Last.fm pentru a folosi acest mod.',
+  'discoveryMode.reason.connectDeezer': 'Conectează Deezer pentru a folosi acest mod.',
   'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',

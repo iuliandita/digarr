@@ -677,6 +677,9 @@ export const ja = {
   'discoveryMode.charts.label': 'チャート',
   'discoveryMode.charts.description':
     'グローバルまたは地域のチャートでトレンドのアーティストを発見',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'パーソナライズされた Deezer Flow フィードからアーティストを発見',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -686,6 +689,7 @@ export const ja = {
     'このモードを使うには ListenBrainz または Last.fm を接続してください。',
   'discoveryMode.reason.connectDiscogs': 'このモードを使うには Discogs を接続してください。',
   'discoveryMode.reason.connectLastfm': 'このモードを使うには Last.fm を接続してください。',
+  'discoveryMode.reason.connectDeezer': 'このモードを使うには Deezer を接続してください。',
   'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',

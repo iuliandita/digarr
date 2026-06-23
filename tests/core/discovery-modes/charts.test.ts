@@ -60,6 +60,7 @@ describe('charts mode – availability', () => {
       hasSpotify: false,
       hasLastfm: true,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
     expect(result).toMatchObject({
@@ -75,6 +76,7 @@ describe('charts mode – availability', () => {
       hasSpotify: false,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
     expect(result.enabled).toBe(false)

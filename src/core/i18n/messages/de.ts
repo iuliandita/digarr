@@ -697,6 +697,9 @@ export const de = {
   'discoveryMode.charts.label': 'Charts',
   'discoveryMode.charts.description':
     'Entdecke Künstler, die gerade in globalen oder regionalen Charts aufsteigen',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Entdecke Künstler aus deinem personalisierten Deezer Flow-Feed',
   'discoveryMode.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
@@ -706,6 +709,7 @@ export const de = {
     'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDiscogs': 'Verbinde Discogs, um diesen Modus zu nutzen.',
   'discoveryMode.reason.connectLastfm': 'Verbinde Last.fm, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.connectDeezer': 'Verbinde Deezer, um diesen Modus zu verwenden.',
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',

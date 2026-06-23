@@ -167,6 +167,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       hasSpotify: false,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })),
     runDiscoveryMode: vi.fn(async () => ({ batchId: 1 })),
