@@ -85,7 +85,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint
+- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule)
 - **15 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
