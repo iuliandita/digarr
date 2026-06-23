@@ -922,9 +922,10 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       topArtistNames,
       discoveryModeRegistry,
       getDiscoveryConnectionSnapshot: async (userId) => {
-        const [userConnections, spotifyToken, hasLibrarySync] = await Promise.all([
+        const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
           getUserConnections(db, userId),
           getOAuthToken(db, userId, 'spotify'),
+          getOAuthToken(db, userId, 'deezer'),
           librarySyncStore.userHasAnySyncState(userId),
         ])
 
@@ -937,6 +938,9 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
           ),
           hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
           hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+          hasDeezer: Boolean(
+            deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
+          ),
           hasLibrarySync,
         }
       },
@@ -1318,9 +1322,10 @@ const app = createApp({
   discoveryModeRegistry,
   runDiscoveryMode: executeDiscoveryModeRun,
   getDiscoveryConnectionSnapshot: async (userId) => {
-    const [userConnections, spotifyToken, hasLibrarySync] = await Promise.all([
+    const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
       getUserConnections(db, userId),
       getOAuthToken(db, userId, 'spotify'),
+      getOAuthToken(db, userId, 'deezer'),
       librarySyncStore.userHasAnySyncState(userId),
     ])
 
@@ -1333,6 +1338,9 @@ const app = createApp({
       ),
       hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
       hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+      hasDeezer: Boolean(
+        deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
+      ),
       hasLibrarySync,
     }
   },

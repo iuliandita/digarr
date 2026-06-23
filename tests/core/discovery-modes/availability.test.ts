@@ -8,6 +8,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: true,
       hasLastfm: true,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
 
@@ -21,6 +22,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: false,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     }
 
@@ -44,6 +46,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: true,
       hasLastfm: true,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
 
@@ -61,6 +64,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: true,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
 
@@ -74,6 +78,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: true,
       hasLastfm: true,
       hasDiscogs: true,
+      hasDeezer: false,
       hasLibrarySync: true,
     }
 
@@ -95,6 +100,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: false,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     }
 
@@ -118,6 +124,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: false,
       hasLastfm: true,
       hasDiscogs: true,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
 
@@ -134,6 +141,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasSpotify: false,
       hasLastfm: false,
       hasDiscogs: false,
+      hasDeezer: false,
       hasLibrarySync: false,
     })
 

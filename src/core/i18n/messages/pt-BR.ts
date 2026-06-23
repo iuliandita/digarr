@@ -690,6 +690,9 @@ export const ptBR = {
     'Encontre álbuns de estúdio que faltam de artistas que você já acompanha',
   'discoveryMode.charts.label': 'Paradas musicais',
   'discoveryMode.charts.description': 'Descubra artistas em alta nas paradas globais ou regionais',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Descubra artistas do seu feed personalizado do Deezer Flow',
   'discoveryMode.notImplementedYet': 'Este modo ainda não foi implementado.',
   'discoveryMode.notShippedYet': 'Este modo ainda não está disponível.',
   'discoveryMode.reason.connectListenBrainz': 'Conecte o ListenBrainz para usar este modo.',
@@ -698,6 +701,7 @@ export const ptBR = {
     'Conecte o ListenBrainz ou o Last.fm para usar este modo.',
   'discoveryMode.reason.connectDiscogs': 'Conecte o Discogs para usar este modo.',
   'discoveryMode.reason.connectLastfm': 'Conecte o Last.fm para usar este modo.',
+  'discoveryMode.reason.connectDeezer': 'Conecte o Deezer para usar este modo.',
   'discoveryMode.reason.notImplementedYet': 'Este modo ainda não foi implementado.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando provedores de fallback para descobrir lançamentos.',

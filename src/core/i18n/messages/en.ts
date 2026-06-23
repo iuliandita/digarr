@@ -797,6 +797,9 @@ export const en = {
     'Find studio albums you are missing from artists you already track',
   'discoveryMode.charts.label': 'Charts',
   'discoveryMode.charts.description': 'Discover artists trending on global or regional charts',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Discover artists from your personalized Deezer Flow feed',
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
@@ -805,6 +808,7 @@ export const en = {
     'Connect ListenBrainz or Last.fm to use this mode.',
   'discoveryMode.reason.connectDiscogs': 'Connect Discogs to use this mode.',
   'discoveryMode.reason.connectLastfm': 'Connect Last.fm to use this mode.',
+  'discoveryMode.reason.connectDeezer': 'Connect Deezer to use this mode.',
   'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.field.feed': 'Feed',

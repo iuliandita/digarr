@@ -688,6 +688,9 @@ export const tr = {
   'discoveryMode.charts.label': 'Muzik listeleri',
   'discoveryMode.charts.description':
     'Global veya bolgesel listelerde trend olan sanatcilari kesfet',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Kisisellestirilmis Deezer Flow beslemenden sanatcilar kesfet',
   'discoveryMode.notImplementedYet': 'Bu mod henuz uygulanmadi.',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz baglayin.',
@@ -696,6 +699,7 @@ export const tr = {
     'Bu modu kullanmak için ListenBrainz veya Last.fm baglayin.',
   'discoveryMode.reason.connectDiscogs': "Bu modu kullanmak için Discogs'u bağlayın.",
   'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i baglayin.",
+  'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı baglayin.",
   'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi için yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',

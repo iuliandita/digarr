@@ -3,6 +3,7 @@ export type DiscoveryConnectionSnapshot = {
   hasSpotify: boolean
   hasLastfm: boolean
   hasDiscogs: boolean
+  hasDeezer: boolean
   hasLibrarySync: boolean
 }
 
@@ -12,6 +13,7 @@ export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
   hasSpotify: false,
   hasLastfm: false,
   hasDiscogs: false,
+  hasDeezer: false,
   hasLibrarySync: false,
 }
 
@@ -118,6 +120,17 @@ export function evaluateDiscoveryModeAvailability(
           fallbackUsed: false,
           providerPath: [],
           reason: 'Connect Last.fm to use this mode.',
+        }
+  }
+
+  if (modeId === 'deezer-flow') {
+    return snapshot.hasDeezer
+      ? { enabled: true, fallbackUsed: true, providerPath: ['deezer'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Deezer to use this mode.',
         }
   }
 

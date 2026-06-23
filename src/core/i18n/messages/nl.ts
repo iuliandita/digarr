@@ -691,6 +691,9 @@ export const nl = {
   'discoveryMode.charts.label': 'Hitlijsten',
   'discoveryMode.charts.description':
     'Ontdek artiesten die trending zijn in globale of regionale hitlijsten',
+  'discoveryMode.deezer-flow.label': 'Deezer Flow',
+  'discoveryMode.deezer-flow.description':
+    'Ontdek artiesten uit jouw gepersonaliseerde Deezer Flow-feed',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -699,6 +702,7 @@ export const nl = {
     'Verbind ListenBrainz of Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDiscogs': 'Verbind Discogs om deze modus te gebruiken.',
   'discoveryMode.reason.connectLastfm': 'Verbind Last.fm om deze modus te gebruiken.',
+  'discoveryMode.reason.connectDeezer': 'Verbind Deezer om deze modus te gebruiken.',
   'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
