@@ -1026,6 +1026,9 @@ export const es = {
   'settings.fieldClientSecret': 'Secreto de cliente',
   'settings.fieldPersonalAccessToken': 'Token de acceso personal',
   'settings.fieldWebhookUrl': 'URL del webhook',
+  'settings.fieldDigestCron': 'Programación del resumen (cron)',
+  'settings.digestCronHelp':
+    'Envía un resumen periódico de la actividad reciente a tu webhook. Déjalo vacío para desactivarlo. Ejemplo: 0 6 * * 1 (lunes a las 6:00).',
   'settings.fieldPublicUrl': 'URL pública (opcional)',
   'settings.fieldIssuerUrl': 'URL del emisor',
   'settings.fieldScopes': 'Ámbitos',
@@ -1226,6 +1229,10 @@ export const es = {
   'pipeline.message.filtering': 'Filtrando {0} artistas calificados...',
   'pipeline.message.saving': 'Guardando {0} recomendaciones...',
   'pipeline.message.autoApproving': 'Auto-aprobando por encima del {0}%...',
+  'notifications.digest.message':
+    'Resumen del último {0}: {1} descubiertos, {2} añadidos, en {3} escaneos.',
+  'notifications.digest.window.day': 'día',
+  'notifications.digest.window.week': 'semana',
   'pipeline.message.scanComplete': 'Escaneo completo: {0} nuevas recomendaciones encontradas.',
   'pipeline.message.done': '¡Listo! {0} nuevas recomendaciones encontradas.',
   'pipeline.message.startingResolution': 'Iniciando resolución',

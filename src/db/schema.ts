@@ -491,6 +491,7 @@ export type Preferences = {
   topArtistsLimit: number
   librarySeedRatio: number // 0-1: fraction of seed artists from Lidarr library
   webhookUrl?: string
+  digestCron?: string // cron string for the periodic digest webhook; absent/empty = disabled
   lidarrPublicUrl?: string // browser-accessible Lidarr URL (may differ from API URL)
   autoApproveEnabled?: boolean
   autoApproveThreshold?: number // 0-1: minimum score to auto-approve

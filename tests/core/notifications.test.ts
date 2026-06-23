@@ -1,13 +1,20 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { isPrivateUrl, sendWebhook, type WebhookPayload } from '@/core/notifications'
+import {
+  formatDiscordPayload,
+  isPrivateUrl,
+  sendWebhook,
+  type WebhookPayload,
+} from '@/core/notifications'
 
 // Mock DNS lookup to return a public IP for test domains
 vi.mock('node:dns/promises', () => ({
   lookup: vi.fn().mockResolvedValue({ address: '93.184.216.34', family: 4 }),
 }))
 
-function makePayload(overrides?: Partial<WebhookPayload>): WebhookPayload {
+type BatchCompletePayload = Extract<WebhookPayload, { event: 'batch_complete' }>
+
+function makePayload(overrides?: Partial<BatchCompletePayload>): BatchCompletePayload {
   return {
     event: 'batch_complete',
     batchId: 42,
@@ -186,5 +193,41 @@ describe('sendWebhook', () => {
     await promise
 
     expect(consoleSpy).toHaveBeenCalled()
+  })
+})
+
+describe('formatDiscordPayload', () => {
+  it('renders the batch_complete variant with a Scan Complete title', () => {
+    const embed = formatDiscordPayload(makePayload()) as {
+      embeds: Array<{ title: string; fields: Array<{ name: string; value: string }> }>
+    }
+    const [first] = embed.embeds
+    expect(first?.title).toBe('Scan Complete')
+    expect(first?.fields.map((f) => f.name)).toEqual(['Discovered', 'Added', 'Failed'])
+  })
+
+  it('renders the digest variant with a Digest title and digest stats fields', () => {
+    const payload: WebhookPayload = {
+      event: 'digest',
+      window: 'week',
+      stats: { discovered: 12, added: 4, runs: 7 },
+      message: 'Digest for the past week: 12 discovered, 4 added, across 7 scans.',
+      timestamp: '2025-01-01T00:00:00.000Z',
+    }
+    const embed = formatDiscordPayload(payload) as {
+      embeds: Array<{
+        title: string
+        description: string
+        fields: Array<{ name: string; value: string }>
+      }>
+    }
+    const [first] = embed.embeds
+    expect(first?.title).toBe('Digest')
+    expect(first?.description).toBe(payload.message)
+    expect(first?.fields).toEqual([
+      { name: 'Discovered', value: '12', inline: true },
+      { name: 'Added', value: '4', inline: true },
+      { name: 'Runs', value: '7', inline: true },
+    ])
   })
 })

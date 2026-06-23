@@ -1011,6 +1011,9 @@ export const ja = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': '個人アクセストークン',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': 'ダイジェストのスケジュール（cron）',
+  'settings.digestCronHelp':
+    '最近のアクティビティの定期的なまとめを Webhook に送信します。無効にするには空のままにします。例: 0 6 * * 1（毎週月曜の午前6時）。',
   'settings.fieldPublicUrl': '公開 URL（任意）',
   'settings.fieldIssuerUrl': '発行者 URL',
   'settings.fieldScopes': 'スコープ',
@@ -1215,6 +1218,10 @@ export const ja = {
   'pipeline.message.filtering': 'スコア付け済みの{0}名のアーティストをフィルタリング中...',
   'pipeline.message.saving': '{0}件の推奨を保存中...',
   'pipeline.message.autoApproving': '{0}%以上を自動承認中...',
+  'notifications.digest.message':
+    '過去{0}のダイジェスト：{1}件を発見、{2}件を追加、{3}回のスキャン。',
+  'notifications.digest.window.day': '日',
+  'notifications.digest.window.week': '週間',
   'pipeline.message.scanComplete': 'スキャン完了：{0}件の新しい推奨が見つかりました。',
   'pipeline.message.done': '完了！{0}件の新しい推奨が見つかりました。',
   'pipeline.message.startingResolution': '解決を開始しています',

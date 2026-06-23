@@ -11,17 +11,29 @@ import {
 
 export { isPrivateIp, isPrivateUrl }
 
-export type WebhookPayload = {
-  event: 'batch_complete'
-  batchId: number
-  stats: {
-    discovered: number
-    added: number
-    failed: number
-  }
-  message: string
-  timestamp: string
-}
+export type WebhookPayload =
+  | {
+      event: 'batch_complete'
+      batchId: number
+      stats: {
+        discovered: number
+        added: number
+        failed: number
+      }
+      message: string
+      timestamp: string
+    }
+  | {
+      event: 'digest'
+      window: string
+      stats: {
+        discovered: number
+        added: number
+        runs: number
+      }
+      message: string
+      timestamp: string
+    }
 
 function isDiscordWebhook(url: string): boolean {
   try {
@@ -32,14 +44,34 @@ function isDiscordWebhook(url: string): boolean {
   }
 }
 
-function formatDiscordPayload(payload: WebhookPayload): Record<string, unknown> {
+export function formatDiscordPayload(payload: WebhookPayload): Record<string, unknown> {
+  const accent = 0x7c3aed // accent purple
+  if (payload.event === 'digest') {
+    const { stats, message } = payload
+    return {
+      embeds: [
+        {
+          title: 'Digest',
+          description: message,
+          color: accent,
+          fields: [
+            { name: 'Discovered', value: String(stats.discovered), inline: true },
+            { name: 'Added', value: String(stats.added), inline: true },
+            { name: 'Runs', value: String(stats.runs), inline: true },
+          ],
+          timestamp: payload.timestamp,
+          footer: { text: 'digarr' },
+        },
+      ],
+    }
+  }
   const { stats, message } = payload
   return {
     embeds: [
       {
         title: 'Scan Complete',
         description: message,
-        color: 0x7c3aed, // accent purple
+        color: accent,
         fields: [
           { name: 'Discovered', value: String(stats.discovered), inline: true },
           { name: 'Added', value: String(stats.added), inline: true },

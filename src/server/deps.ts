@@ -93,6 +93,7 @@ export interface PipelineDeps {
   restartScheduler: (cron: string | null) => void
   restartPlaylistScheduler: () => Promise<void>
   restartLibraryMaintenanceScheduler?: (intervalHours: number) => void
+  restartDigestNotifier?: () => Promise<void>
 }
 
 export interface JobDeps {

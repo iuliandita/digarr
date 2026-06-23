@@ -1028,6 +1028,9 @@ export const ptBR = {
   'settings.fieldClientSecret': 'Segredo do cliente',
   'settings.fieldPersonalAccessToken': 'Token de acesso pessoal',
   'settings.fieldWebhookUrl': 'URL do webhook',
+  'settings.fieldDigestCron': 'Agendamento do resumo (cron)',
+  'settings.digestCronHelp':
+    'Envie um resumo periódico da atividade recente para o seu webhook. Deixe em branco para desativar. Exemplo: 0 6 * * 1 (segundas às 6h).',
   'settings.fieldPublicUrl': 'URL pública (opcional)',
   'settings.fieldIssuerUrl': 'URL do emissor',
   'settings.fieldScopes': 'Escopos',
@@ -1225,6 +1228,10 @@ export const ptBR = {
   'pipeline.message.filtering': 'Filtrando {0} artistas pontuados...',
   'pipeline.message.saving': 'Salvando {0} recomendações...',
   'pipeline.message.autoApproving': 'Aprovando automaticamente acima de {0}%...',
+  'notifications.digest.message':
+    'Resumo do último {0}: {1} descobertos, {2} adicionados, em {3} varreduras.',
+  'notifications.digest.window.day': 'dia',
+  'notifications.digest.window.week': 'semana',
   'pipeline.message.scanComplete': 'Varredura completa: {0} novas recomendações encontradas.',
   'pipeline.message.done': 'Pronto! {0} novas recomendações encontradas.',
   'pipeline.message.startingResolution': 'Iniciando resolução',

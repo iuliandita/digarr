@@ -1038,6 +1038,9 @@ export const ru = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Персональный токен доступа',
   'settings.fieldWebhookUrl': 'URL вебхука',
+  'settings.fieldDigestCron': 'Расписание дайджеста (cron)',
+  'settings.digestCronHelp':
+    'Отправлять периодическую сводку недавней активности на ваш вебхук. Оставьте пустым, чтобы отключить. Пример: 0 6 * * 1 (по понедельникам в 6:00).',
   'settings.fieldPublicUrl': 'Публичный URL (необязательно)',
   'settings.fieldIssuerUrl': 'URL издателя',
   'settings.fieldScopes': 'Права доступа',
@@ -1231,6 +1234,10 @@ export const ru = {
   'pipeline.message.filtering': 'Фильтрация {0} оценённых исполнителей...',
   'pipeline.message.saving': 'Сохранение {0} рекомендаций...',
   'pipeline.message.autoApproving': 'Автоматическое одобрение свыше {0}%...',
+  'notifications.digest.message':
+    'Сводка за период ({0}): обнаружено {1}, добавлено {2}, за {3} сканирований.',
+  'notifications.digest.window.day': 'день',
+  'notifications.digest.window.week': 'неделя',
   'pipeline.message.scanComplete': 'Сканирование завершено: найдено {0} новых рекомендаций.',
   'pipeline.message.done': 'Готово! Найдено {0} новых рекомендаций.',
   'pipeline.message.startingResolution': 'Начало сопоставления',

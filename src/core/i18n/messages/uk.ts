@@ -1032,6 +1032,9 @@ export const uk = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Особистий токен доступу',
   'settings.fieldWebhookUrl': 'URL вебхука',
+  'settings.fieldDigestCron': 'Розклад дайджесту (cron)',
+  'settings.digestCronHelp':
+    'Надсилати періодичну зведену інформацію про останню активність на ваш вебхук. Залиште порожнім, щоб вимкнути. Приклад: 0 6 * * 1 (щопонеділка о 6:00).',
   'settings.fieldPublicUrl': "Публічний URL (необов'язково)",
   'settings.fieldIssuerUrl': 'URL видавця',
   'settings.fieldScopes': 'Дозволи',
@@ -1223,6 +1226,10 @@ export const uk = {
   'pipeline.message.filtering': 'Фільтрація {0} оцінених виконавців...',
   'pipeline.message.saving': 'Збереження {0} рекомендацій...',
   'pipeline.message.autoApproving': 'Автозатвердження понад {0}%...',
+  'notifications.digest.message':
+    'Підсумок за період ({0}): виявлено {1}, додано {2}, за {3} сканувань.',
+  'notifications.digest.window.day': 'день',
+  'notifications.digest.window.week': 'тиждень',
   'pipeline.message.scanComplete': 'Сканування завершено: знайдено {0} нових рекомендацій.',
   'pipeline.message.done': 'Готово! Знайдено {0} нових рекомендацій.',
   'pipeline.message.startingResolution': 'Початок зіставлення',

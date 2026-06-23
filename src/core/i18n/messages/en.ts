@@ -1142,6 +1142,9 @@ export const en = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Personal Access Token',
   'settings.fieldWebhookUrl': 'Webhook URL',
+  'settings.fieldDigestCron': 'Digest schedule (cron)',
+  'settings.digestCronHelp':
+    'Send a periodic summary of recent activity to your webhook. Leave empty to disable. Example: 0 6 * * 1 (Mondays at 6am).',
   'settings.fieldPublicUrl': 'Public URL (optional)',
   'settings.fieldIssuerUrl': 'Issuer URL',
   'settings.fieldScopes': 'Scopes',
@@ -1440,6 +1443,10 @@ export const en = {
   'pipeline.message.filtering': 'Filtering {0} scored artists...',
   'pipeline.message.saving': 'Saving {0} recommendations...',
   'pipeline.message.autoApproving': 'Auto-approving above {0}%...',
+  'notifications.digest.message':
+    'Digest for the past {0}: {1} discovered, {2} added, across {3} scans.',
+  'notifications.digest.window.day': 'day',
+  'notifications.digest.window.week': 'week',
   'pipeline.message.scanComplete': 'Scan complete: {0} new recommendations found.',
   'pipeline.message.done': 'Done! {0} new recommendations found.',
   'pipeline.message.startingResolution': 'Starting resolution',

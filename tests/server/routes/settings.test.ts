@@ -170,6 +170,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     restartScheduler: vi.fn(),
     restartPlaylistScheduler: vi.fn(),
     restartLibraryMaintenanceScheduler: vi.fn(),
+    restartDigestNotifier: vi.fn(async () => {}),
     createUser: vi.fn(async () => ({
       id: 1,
       username: 'test',
@@ -487,6 +488,45 @@ describe('PATCH /api/v1/settings', () => {
 
     expect(res.status).toBe(200)
     expect(restartLibraryMaintenanceScheduler).toHaveBeenCalledWith(12)
+  })
+
+  it('restarts the digest notifier when digestCron is updated', async () => {
+    const restartDigestNotifier = vi.fn(async () => {})
+    const app = createApp(makeDeps({ restartDigestNotifier }))
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: { digestCron: '0 6 * * 1' } }),
+    })
+    expect(res.status).toBe(200)
+    expect(restartDigestNotifier).toHaveBeenCalledOnce()
+  })
+
+  it('returns warning when the digest cron expression is invalid', async () => {
+    const restartDigestNotifier = vi.fn(async () => {
+      throw new TypeError('Invalid cron expression')
+    })
+    const app = createApp(makeDeps({ restartDigestNotifier }))
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: { digestCron: 'not a cron' } }),
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.warning).toBe('Settings saved but cron expression is invalid')
+  })
+
+  it('does not restart the digest notifier when preferences lack digestCron', async () => {
+    const restartDigestNotifier = vi.fn(async () => {})
+    const app = createApp(makeDeps({ restartDigestNotifier }))
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: { librarySeedRatio: 0.5 } }),
+    })
+    expect(res.status).toBe(200)
+    expect(restartDigestNotifier).not.toHaveBeenCalled()
   })
 
   it('merges partial preference updates with the stored preferences blob', async () => {

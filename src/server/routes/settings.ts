@@ -336,6 +336,19 @@ export function settingsRoutes(deps: AppDependencies) {
       }
     }
 
+    if (incomingPrefs?.digestCron !== undefined) {
+      try {
+        await deps.restartDigestNotifier?.()
+      } catch (err: unknown) {
+        console.error('Failed to apply digest cron expression:', err)
+        const row = await buildSettingsResponse(deps, userId, isAdmin)
+        return c.json({
+          ...maskSecrets((row ?? {}) as Record<string, unknown>),
+          warning: 'Settings saved but cron expression is invalid',
+        })
+      }
+    }
+
     if (
       incomingPrefs?.playlistEnabled !== undefined ||
       incomingPrefs?.playlistSchedule !== undefined

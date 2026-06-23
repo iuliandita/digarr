@@ -1037,6 +1037,9 @@ export const de = {
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Persönlicher Zugriffstoken',
   'settings.fieldWebhookUrl': 'Webhook-URL',
+  'settings.fieldDigestCron': 'Digest-Zeitplan (Cron)',
+  'settings.digestCronHelp':
+    'Sende eine regelmäßige Zusammenfassung der letzten Aktivitäten an deinen Webhook. Leer lassen zum Deaktivieren. Beispiel: 0 6 * * 1 (montags um 6 Uhr).',
   'settings.fieldPublicUrl': 'Öffentliche URL (optional)',
   'settings.fieldIssuerUrl': 'Aussteller-URL',
   'settings.fieldScopes': 'Scopes',
@@ -1230,6 +1233,10 @@ export const de = {
   'pipeline.message.filtering': '{0} bewertete Künstler werden gefiltert...',
   'pipeline.message.saving': '{0} Empfehlungen werden gespeichert...',
   'pipeline.message.autoApproving': 'Auto-Genehmigung über {0}%...',
+  'notifications.digest.message':
+    'Zusammenfassung der letzten {0}: {1} entdeckt, {2} hinzugefügt, in {3} Scans.',
+  'notifications.digest.window.day': 'Tag',
+  'notifications.digest.window.week': 'Woche',
   'pipeline.message.scanComplete': 'Scan abgeschlossen: {0} neue Empfehlungen gefunden.',
   'pipeline.message.done': 'Fertig! {0} neue Empfehlungen gefunden.',
   'pipeline.message.startingResolution': 'Auflösung wird gestartet',
