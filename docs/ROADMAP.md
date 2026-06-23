@@ -44,7 +44,7 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 
 ### Discovery
 
-- Deeper listening-source data (Spotify saved albums, TIDAL favorites)
+- Deeper listening-source data (TIDAL favorites; Spotify saved albums shipped in v1.9.0)
 - Contextual discovery-mode presets
 - Additional graph-based discovery modes
 

@@ -15,7 +15,7 @@
 **Music discovery for your *arr stack.** Digarr builds a taste profile from your listening sources, asks your AI provider for candidates, scores them, and gives you a review queue. From there you can approve artists into Lidarr or playlist targets, run mood searches, save discovery subscriptions, generate playlists, and browse by genre. The UI and AI-assisted reasoning ship in 15 languages. It is self-hosted, so the data stays with you.
 
 > [!NOTE]
-> **v1.0.0 is out.** See the [release notes](https://github.com/iuliandita/digarr/releases/tag/v1.0.0) and [CHANGELOG.md](CHANGELOG.md) for what's new. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
+> **v1.10.0 is out.** Since the v1.0.0 GA, Digarr completed the album-discovery producer trilogy (Release Radar, Library Gap-Fill, net-new album finds), added four new discovery modes (Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums), gave discovery-only installs genre-fit scoring, brought slskd to album-level approval parity with Lidarr, and shipped a scheduled notification digest. See the [latest release notes](https://github.com/iuliandita/digarr/releases/latest) and [CHANGELOG.md](CHANGELOG.md) for details. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
 >
 > Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
@@ -125,7 +125,7 @@ docker compose up -d
 
 Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
 
-The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.0.0`) when you want the head of the release line.
+The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.10.0`) when you want the head of the release line.
 
 For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses a genre profile derived from your connected listening sources (currently Spotify) instead of a Lidarr library. Emby can be added during the setup wizard or later in Settings.
 

@@ -30,12 +30,13 @@ dedup, and the score threshold.
 
 ## Registry patterns
 
-Four extension points, each registry-based:
+Five extension points, each registry-based:
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
 - `SearchSource` - multi-source artist / track search (Lidarr, MusicBrainz, Deezer, ...)
 - `RecommendationProvider` - AI backends (Anthropic, OpenAI, Gemini, Ollama, ...)
+- `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, ...). A new mode is a factory plus a `registry.register` line plus an availability branch; the frontend renders modes generically, so no frontend change is needed
 
 Adding a new implementation means:
 
@@ -58,7 +59,8 @@ Async IIFE in `src/index.ts`:
 9. Pipeline scheduler
 10. Subscription scheduler
 11. Playlist scheduler
-12. `startStuckDetector()` - cron every 5 min, as the last boot step
+12. `startStuckDetector()` - cron every 5 min
+13. `startDigestNotifier()` - cron driving the scheduled notification digest; no-ops when `digestCron` is unset. `restartDigestNotifier()` re-arms it at runtime when the cron preference changes, so a settings save applies without a restart
 
 ## Album-level discovery
 
