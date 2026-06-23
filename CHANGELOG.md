@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.8.0 - 2026-06-23
+
+Deezer Flow is now a runnable discovery mode, not just a background subscription source.
+
+### Added
+
+- **Deezer Flow discovery mode.** Deezer Flow -- Deezer's personalized artist-recommendation feed -- is now a first-class discovery mode you can run on demand from Discover -> Discovery Modes, the same way you run ListenBrainz radio, Release Radar, or Charts. Previously the Flow feed was only reachable by configuring a standing Deezer subscription; now you can fire it as a one-shot discovery action. It needs a connected Deezer account (the OAuth connection you already set up in Settings) and nothing more. Translated across all 15 shipped locales.
+
 ## v1.7.0 - 2026-06-23
 
 A new Charts discovery mode seeds recommendations from what is trending now, not just taste-adjacency.
