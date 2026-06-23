@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-06-23 | Current: v1.4.0
+> Updated: 2026-06-23 | Current: v1.5.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -36,7 +36,7 @@ Committed direction, roughly in priority order.
 
 ### Download targets and UX
 
-- Broader download-target coverage and UX polish around recommendation review and playback (the album-discovery producer trilogy is complete as of v1.3.0)
+- Broader download-target coverage and UX polish around recommendation review and playback (the album-discovery producer trilogy is complete as of v1.3.0; slskd reached album-level approval parity with Lidarr in v1.5.0)
 
 ## Exploring
 
@@ -97,6 +97,7 @@ Release reminder: after publishing a new app image, update the pinned digests in
 - Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover
 - Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
 - Library operations now cover Lidarr, Plex, Jellyfin, Emby, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
+- slskd download targets reached album-level acquisition parity with Lidarr in v1.5.0: album recommendations can be approved straight to slskd (the `addAlbum` capability queues a download job for the chosen release group through the existing slskd search/match/import pipeline)
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
 - Integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
 - TheAudioDB is now the primary artist-image source ahead of the Lidarr/SkyHook + fanart.tv + musicinfo.pro chain, with a token-bucket rate limiter and an optional SSRF-guarded image proxy. Recommendation cards expose a Wikidata-sourced artist description and external-link pills (Wikipedia, official site, Discogs, MusicBrainz), cached per locale

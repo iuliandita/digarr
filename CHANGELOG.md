@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.5.0 - 2026-06-23
+
+slskd download targets gain album-level acquisition, reaching parity with Lidarr.
+
+### Added
+
+- **Queue individual albums to slskd.** Album recommendations under the Albums tab can now be approved to a slskd target, not just Lidarr. Previously an album approval to a slskd-only target silently failed; slskd now declares the `addAlbum` capability and queues a download job for the chosen release group through the existing slskd pipeline (search, match, and import all behave as they do for artist-level approvals). No new configuration is required, and the existing approve-to-target menu surfaces slskd for album recommendations automatically.
+
 ## v1.3.0 - 2026-06-22
 
 Third and final album-discovery producer: net-new album discovery promotes a specific album by a new-to-you artist into a first-class album recommendation, completing the album-discovery producer trilogy.
