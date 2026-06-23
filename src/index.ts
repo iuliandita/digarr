@@ -696,6 +696,7 @@ async function getEnabledTargetsForResolvedUser(
               : undefined,
           testConnection: () => client.testConnection(),
           queueArtist: (input) => runner.queueArtist(input),
+          queueAlbum: (input) => runner.queueAlbum(input),
         }),
       )
     }
