@@ -18,8 +18,9 @@
  *   ONLY=library-sources,settings  # restrict to specific files
  *
  * The script logs in, applies the color theme, sanitizes the DOM to remove
- * the logged-in username and the instance hostname from any visible text,
- * masks URL / token input values, and saves PNGs to OUT_DIR.
+ * the logged-in username, email addresses, and the instance hostname from any
+ * visible text, masks URL / token / password / labelled-credential input
+ * values, and saves PNGs to OUT_DIR.
  *
  * The script keeps credentials out of the repo - everything comes from env.
  */
@@ -138,45 +139,79 @@ async function sanitize() {
     ([u, pats]) => {
       const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const uRe = u ? new RegExp(`\\b${escapeRe(u)}\\b`, 'g') : null
+      // Email addresses anywhere in visible text or attributes.
+      const emailRe = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
       const patRes = (pats as string[])
         .filter(Boolean)
         .map((p) => ({ re: new RegExp(escapeRe(p), 'g'), replacement: 'example.com' }))
+      const scrubText = (input: string) => {
+        let val = input.replace(emailRe, 'user@example.com')
+        if (uRe) val = val.replace(uRe, 'user')
+        for (const { re, replacement } of patRes) val = val.replace(re, replacement)
+        return val
+      }
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
       const toReplace: [Text, string][] = []
       while (walker.nextNode()) {
         const node = walker.currentNode as Text
         if (!node.nodeValue) continue
-        let val = node.nodeValue
-        let changed = false
-        if (uRe?.test(val)) {
-          val = val.replace(uRe, 'user')
-          changed = true
-        }
-        for (const { re, replacement } of patRes) {
-          if (re.test(val)) {
-            val = val.replace(re, replacement)
-            changed = true
-          }
-        }
-        if (changed) toReplace.push([node, val])
+        const val = scrubText(node.nodeValue)
+        if (val !== node.nodeValue) toReplace.push([node, val])
       }
       for (const [node, val] of toReplace) node.nodeValue = val
-      // Mask form input values that look like URLs or tokens
+      // Resolve the effective label for an input so credential/account fields can be
+      // masked even when their value isn't obviously a URL/token (e.g. a service username).
+      const labelText = (input: HTMLInputElement) => {
+        const parts = [
+          input.getAttribute('aria-label') || '',
+          input.placeholder || '',
+          input.name,
+          input.id,
+        ]
+        if (input.id) {
+          try {
+            const l = document.querySelector(`label[for="${CSS.escape(input.id)}"]`)
+            if (l) parts.push(l.textContent || '')
+          } catch {}
+        }
+        const wrap = input.closest('div')
+        if (wrap) {
+          const l = wrap.querySelector('label')
+          if (l) parts.push(l.textContent || '')
+        }
+        return parts.join(' ').toLowerCase()
+      }
+      const sensitiveLabel = /user|account|e-?mail|client|token|secret|\bapi\b|\bkey\b|password/i
+      // Mask form input values: URLs, tokens, emails, password fields, and labelled credentials.
       for (const input of document.querySelectorAll('input')) {
-        const v = input.value || ''
-        if (!v) continue
-        const looksLikeUrl = /^https?:\/\//i.test(v) || v.includes('.local')
-        const looksLikeToken =
-          /^[A-Za-z0-9_-]{24,}$/.test(v) || (input as HTMLInputElement).type === 'password'
-        if (looksLikeUrl || looksLikeToken) {
-          ;(input as HTMLInputElement).value = ''
-          input.setAttribute('placeholder', looksLikeToken ? 'REDACTED' : 'https://example.com')
+        const el = input as HTMLInputElement
+        const v = el.value || ''
+        const isPw = el.type === 'password'
+        if (!v && !isPw) continue
+        const isUrl = el.type === 'url' || /^https?:\/\//i.test(v) || /\.local|\.lan/i.test(v)
+        const isToken = /^[A-Za-z0-9_-]{20,}$/.test(v)
+        emailRe.lastIndex = 0
+        const isEmail = emailRe.test(v)
+        if (isUrl) {
+          el.value = ''
+          el.setAttribute('placeholder', 'https://example.com')
+        } else if (isPw || isToken || isEmail) {
+          el.value = ''
+          el.setAttribute('placeholder', isEmail ? 'user@example.com' : 'REDACTED')
+        } else if (sensitiveLabel.test(labelText(el))) {
+          el.value = ''
+          el.setAttribute('placeholder', 'redacted')
         }
       }
-      // Mask any element with a `title` attribute containing the username
-      for (const el of document.querySelectorAll('[title]')) {
-        const t = el.getAttribute('title') || ''
-        if (u && t.includes(u as string)) el.setAttribute('title', 'user')
+      // Scrub username/email out of attributes that leak into tooltips.
+      for (const el of document.querySelectorAll('[title], [aria-label]')) {
+        for (const attr of ['title', 'aria-label']) {
+          const t = el.getAttribute(attr)
+          if (t) {
+            const scrubbed = scrubText(t)
+            if (scrubbed !== t) el.setAttribute(attr, scrubbed)
+          }
+        }
       }
     },
     [USERNAME, hostPatterns] as const,

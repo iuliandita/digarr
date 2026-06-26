@@ -18,7 +18,7 @@ All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screens
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
-Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. It includes ListenBrainz Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep, plus Release Radar and Similar Artist Web. Labels and Artist Relationships appear as unavailable placeholders until those modes ship, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
+Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, and Spotify Saved Albums. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
 
 ## Search
 
