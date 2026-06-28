@@ -160,6 +160,20 @@ Most day-to-day configuration lives in the web UI after initial setup: connectio
 
 Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
+### Connecting Spotify
+
+Spotify uses your own Spotify app credentials over OAuth:
+
+1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. In the app's **Redirect URIs**, add the exact callback URL for your Digarr instance:
+
+   ```text
+   <your-digarr-url>/api/v1/auth/oauth/spotify/callback
+   ```
+
+   For a default local install that is `http://localhost:3000/api/v1/auth/oauth/spotify/callback`; behind a reverse proxy use the external URL your browser opens Digarr with, e.g. `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. The value must match exactly between the Spotify app and Digarr.
+3. In Digarr, open **Settings > Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
+
 ## Backup & Restore
 
 Digarr provides application-level backup and restore through the admin UI (Settings > Administration) or API.

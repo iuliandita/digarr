@@ -1007,6 +1007,10 @@ export const ko = {
   'settings.fieldFanartApiKey': 'Fanart.tv API Key (선택)',
   'settings.fieldMetadataFallbackUrl': '메타데이터 대체 URL (선택)',
   'settings.connectWithSpotify': 'Spotify로 연결',
+  'settings.fieldRedirectUri': '리디렉션 URI',
+  'settings.redirectUriHelp':
+    '연결하기 전에 이 정확한 URL을 Spotify 앱의 리디렉션 URI에 추가하세요.',
+  'settings.copyRedirectUri': '리디렉션 URI 복사',
   'settings.saved': '저장됨',
   'settings.daily': '매일',
   'settings.weekly': '매주',

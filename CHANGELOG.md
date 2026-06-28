@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Changed
+
+- **Spotify connect form now shows the Redirect URI to register.** Connecting Spotify requires adding an exact callback URL to your Spotify app, but Digarr previously computed that URL silently and never displayed it -- so it was easy to misconfigure the Spotify app and have the connection fail. The Settings -> Connections -> Spotify form now shows the exact Redirect URI for your instance with a copy button, and the README documents the full create-app -> register-redirect-URI -> paste-credentials flow. Translated across all 15 shipped locales.
+
 ## v1.10.0 - 2026-06-24
 
 Get a single periodic summary instead of a ping after every scan.

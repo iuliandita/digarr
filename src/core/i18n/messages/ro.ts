@@ -1037,6 +1037,10 @@ export const ro = {
   'settings.fieldFanartApiKey': 'Cheie API fanart.tv (opțională)',
   'settings.fieldMetadataFallbackUrl': 'URL fallback metadate (opțional)',
   'settings.connectWithSpotify': 'Conectați cu Spotify',
+  'settings.fieldRedirectUri': 'URI de redirecționare',
+  'settings.redirectUriHelp':
+    'Adaugă această adresă URL exactă în aplicația ta Spotify la URI de redirecționare înainte de conectare.',
+  'settings.copyRedirectUri': 'Copiază URI de redirecționare',
   'settings.saved': 'salvat',
   'settings.daily': 'Zilnic',
   'settings.weekly': 'Săptămânal',

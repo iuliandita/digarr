@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Check, Copy } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -283,6 +284,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   )
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
+  const [redirectUriCopied, setRedirectUriCopied] = useState(false)
+  const spotifyRedirectUri = `${window.location.origin}/api/v1/auth/oauth/spotify/callback`
   const [importingSpotifyLikes, setImportingSpotifyLikes] = useState(false)
   const [importingPlaylist, setImportingPlaylist] = useState(false)
   const [playlistIdInput, setPlaylistIdInput] = useState('')
@@ -490,11 +493,21 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       const res = await initiateOAuth('spotify', {
         clientId: spotifyClientId,
         clientSecret: spotifyClientSecret,
-        redirectUri: `${window.location.origin}/api/v1/auth/oauth/spotify/callback`,
+        redirectUri: spotifyRedirectUri,
       })
       window.location.href = res.authUrl
     } catch {
       toast.error(t('settings.spotifyAuthorizationFailed'))
+    }
+  }
+
+  async function copySpotifyRedirectUri() {
+    try {
+      await navigator.clipboard.writeText(spotifyRedirectUri)
+      setRedirectUriCopied(true)
+      setTimeout(() => setRedirectUriCopied(false), 1500)
+    } catch {
+      toast.error(t('common.unknownError'))
     }
   }
 
@@ -1076,6 +1089,28 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </div>
           ) : (
             <>
+              <Field label={t('settings.fieldRedirectUri')} id="spotify-redirect-uri">
+                <div className="flex gap-1.5">
+                  <Input
+                    id="spotify-redirect-uri"
+                    readOnly
+                    value={spotifyRedirectUri}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="flex-1 min-w-0 font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={copySpotifyRedirectUri}
+                    aria-label={t('settings.copyRedirectUri')}
+                    title={t('settings.copyRedirectUri')}
+                  >
+                    {redirectUriCopied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted">{t('settings.redirectUriHelp')}</p>
+              </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t('settings.fieldClientId')} id="spotify-client-id">
                   <Input

@@ -1034,6 +1034,10 @@ export const tr = {
   'settings.fieldFanartApiKey': 'Fanart.tv API Key (istege bagli)',
   'settings.fieldMetadataFallbackUrl': 'Meta veri yedek URL (istege bagli)',
   'settings.connectWithSpotify': 'Spotify ile bağlan',
+  'settings.fieldRedirectUri': "Yönlendirme URI'si",
+  'settings.redirectUriHelp':
+    "Bağlanmadan önce bu tam URL'yi Spotify uygulamanızdaki Yönlendirme URI'lerine ekleyin.",
+  'settings.copyRedirectUri': "Yönlendirme URI'sini kopyala",
   'settings.saved': 'kaydedildi',
   'settings.daily': 'Günlük',
   'settings.weekly': 'Haftalik',

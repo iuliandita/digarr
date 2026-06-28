@@ -1037,6 +1037,10 @@ export const nl = {
   'settings.fieldFanartApiKey': 'Fanart.tv API Key (optioneel)',
   'settings.fieldMetadataFallbackUrl': 'Metadatafallback-URL (optioneel)',
   'settings.connectWithSpotify': 'Verbinden met Spotify',
+  'settings.fieldRedirectUri': 'Doorverwijzings-URI',
+  'settings.redirectUriHelp':
+    "Voeg deze exacte URL toe aan je Spotify-app onder doorverwijzings-URI's voordat je verbinding maakt.",
+  'settings.copyRedirectUri': 'Doorverwijzings-URI kopiëren',
   'settings.saved': 'opgeslagen',
   'settings.daily': 'Dagelijks',
   'settings.weekly': 'Wekelijks',

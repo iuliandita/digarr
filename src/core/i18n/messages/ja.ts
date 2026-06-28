@@ -1020,6 +1020,10 @@ export const ja = {
   'settings.fieldFanartApiKey': 'Fanart.tv API Key（任意）',
   'settings.fieldMetadataFallbackUrl': 'メタデータフォールバック URL（任意）',
   'settings.connectWithSpotify': 'Spotify で接続',
+  'settings.fieldRedirectUri': 'リダイレクト URI',
+  'settings.redirectUriHelp':
+    '接続する前に、この正確な URL を Spotify アプリのリダイレクト URI に追加してください。',
+  'settings.copyRedirectUri': 'リダイレクト URI をコピー',
   'settings.saved': '保存済み',
   'settings.daily': '毎日',
   'settings.weekly': '毎週',
