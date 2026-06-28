@@ -32,7 +32,7 @@ export function setupRoutes(deps: AppDependencies) {
 
     const body = c.req.valid('json') as Record<string, unknown>
     const sanitized = Object.fromEntries(
-      Object.entries(body).filter(([key]) => GLOBAL_SETUP_FIELDS.has(key)),
+      Object.entries(body).filter(([key, value]) => GLOBAL_SETUP_FIELDS.has(key) && value != null),
     )
 
     const missing: string[] = []

@@ -11,9 +11,9 @@ export const setupCompleteSchema = z
     lidarrApiKey: z.string().max(200).optional(),
     skipTlsVerify: z.boolean().optional(),
     aiProvider: z.string().max(64).optional(),
-    aiApiKey: z.string().max(500).optional(),
+    aiApiKey: z.string().max(500).nullish(),
     aiModel: z.string().max(200).optional(),
-    aiBaseUrl: z.string().max(2048).optional(),
+    aiBaseUrl: z.string().max(2048).nullish(),
     preferences: z.record(z.string(), z.unknown()).optional(),
     // Emby credentials (persisted separately on users row)
     embyUrl: z.string().max(2048).optional(),
