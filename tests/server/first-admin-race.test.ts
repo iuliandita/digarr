@@ -77,6 +77,9 @@ function userRow(overrides: Partial<Record<string, unknown>> = {}) {
     embyUserId: null,
     discogsToken: null,
     discogsUsername: null,
+    subsonicUrl: null,
+    subsonicUsername: null,
+    subsonicPassword: null,
     createdAt: new Date(),
     ...overrides,
   }

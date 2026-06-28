@@ -854,6 +854,8 @@ export const ro = {
   'settings.jellyfinUserIdHelp':
     'Numele de utilizator Jellyfin (recomandat) sau UUID. Numele de utilizator este rezolvat automat prin API-ul Jellyfin.',
   'settings.embyDescription': 'Server media cu istoric de ascultare și export liste de redare',
+  'settings.subsonicDescription':
+    'Server de muzică auto-găzduit (Navidrome, Airsonic) pentru sincronizarea bibliotecii și descoperire',
   'settings.discogsDescription': 'Colecție și listă de dorințe din Discogs.',
   'settings.yourAccount': 'contul dvs.',
   'settings.lidarrPreferences': 'Preferințele dvs. Lidarr',
@@ -1020,6 +1022,7 @@ export const ro = {
   'settings.fieldProvider': 'Furnizor',
   'settings.fieldModel': 'Model',
   'settings.fieldUsername': 'Nume utilizator',
+  'settings.fieldPassword': 'Parolă',
   'settings.fieldUserToken': 'Token utilizator',
   'settings.fieldServerUrl': 'URL server',
   'settings.fieldUserId': 'ID utilizator',
@@ -1152,6 +1155,7 @@ export const ro = {
   'integration.deezerImport': 'Favorite, Urmariti, Playlisturi',
   'integration.lastfmSubscriptions': 'Clasamente, Radio tag',
   'integration.artistsAlbums': 'Artisti, Albume',
+  'integration.topArtists': 'Artiști de top',
   'integration.yes': 'Da',
   'integration.moodDiscover': 'Descoperire dupa stare',
   'integration.playlist': 'Playlist',

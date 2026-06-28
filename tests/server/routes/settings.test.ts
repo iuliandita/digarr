@@ -27,6 +27,9 @@ const { mockGetUserConnections, mockUpdateUserConnections } = vi.hoisted(() => (
     embyUserId: null as string | null,
     discogsToken: null as string | null,
     discogsUsername: null as string | null,
+    subsonicUrl: null as string | null,
+    subsonicUsername: null as string | null,
+    subsonicPassword: null as string | null,
   })),
   mockUpdateUserConnections: vi.fn(async () => {}),
 }))
@@ -36,6 +39,15 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
     testConnection: vi.fn(async () => ({
       success: true,
       message: 'Connected to Emby',
+    })),
+  })),
+}))
+
+const { mockCreateSubsonicClient } = vi.hoisted(() => ({
+  mockCreateSubsonicClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Subsonic',
     })),
   })),
 }))
@@ -89,6 +101,10 @@ vi.mock('@/core/clients/emby', () => ({
   createEmbyClient: mockCreateEmbyClient,
 }))
 
+vi.mock('@/core/clients/subsonic', () => ({
+  createSubsonicClient: mockCreateSubsonicClient,
+}))
+
 vi.mock('@/core/auth/oidc', () => ({
   OidcService: class OidcService {
     testConnection = mockOidcTestConnection
@@ -132,6 +148,9 @@ const defaultUserConnections: UserConnections = {
   embyUserId: null,
   discogsToken: null,
   discogsUsername: null,
+  subsonicUrl: null,
+  subsonicUsername: null,
+  subsonicPassword: null,
 }
 
 function makeMockOrchestrator() {
@@ -193,6 +212,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),
@@ -218,6 +240,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
       createdAt: new Date(),
     })),
     getUserCount: vi.fn(async () => 0),
@@ -616,6 +641,9 @@ describe('PATCH /api/v1/settings', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),
@@ -680,6 +708,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),
@@ -694,6 +725,7 @@ describe('POST /api/v1/settings/test/:service', () => {
       'jellyfin',
       'emby',
       'discogs',
+      'subsonic',
       'spotify',
       'oidc',
     ]
@@ -859,6 +891,39 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(body.latencyMs).toBeGreaterThanOrEqual(0)
   })
 
+  it('tests subsonic and invokes the client with the provided credentials', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://127.0.0.1:4533',
+        username: 'admin',
+        password: 'pw',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateSubsonicClient).toHaveBeenCalledWith('http://127.0.0.1:4533', 'admin', 'pw', {
+      skipTlsVerify: false,
+    })
+    const body = await res.json()
+    expect(body.message).toBe('Connected to Subsonic')
+  })
+
+  it('returns a missing-input error when subsonic credentials are incomplete', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'http://127.0.0.1:4533', username: 'admin' }),
+    })
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.type).toBe('/problems/probe-missing-input')
+  })
+
   it('returns 400 for unknown service', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/unknown', {
@@ -908,6 +973,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),
@@ -960,6 +1028,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),
@@ -1086,6 +1157,9 @@ describe('per-user listening source connections', () => {
       embyUserId: 'user-1',
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
     })
 
     const app = createApp(
@@ -1112,6 +1186,9 @@ describe('per-user listening source connections', () => {
           embyUserId: 'user-1',
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),

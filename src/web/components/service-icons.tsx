@@ -62,6 +62,14 @@ export function EmbyIcon() {
   return <ServiceLogo src="/icons/emby.svg" alt="Emby" />
 }
 
+export function SubsonicIcon() {
+  return (
+    <span className="flex items-center justify-center w-6 h-6 rounded bg-surface text-micro font-bold text-muted">
+      S
+    </span>
+  )
+}
+
 export function WebhookIcon() {
   return (
     <span className="flex items-center justify-center w-6 h-6 text-svc-webhook">

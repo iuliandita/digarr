@@ -89,4 +89,7 @@ export const updateSettingsSchema = z.object({
   embyUserId: z.string().nullable().optional(),
   discogsToken: z.string().nullable().optional(),
   discogsUsername: z.string().nullable().optional(),
+  subsonicUrl: z.string().nullable().optional(),
+  subsonicUsername: z.string().nullable().optional(),
+  subsonicPassword: z.string().nullable().optional(),
 })

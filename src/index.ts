@@ -15,6 +15,7 @@ import { createPlexClient } from './core/clients/plex'
 import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
+import { createSubsonicClient } from './core/clients/subsonic'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
@@ -33,6 +34,7 @@ import { createEmbyLibrarySource } from './core/library/sources/emby'
 import { createJellyfinLibrarySource } from './core/library/sources/jellyfin'
 import { createLidarrLibrarySource } from './core/library/sources/lidarr'
 import { createPlexLibrarySource } from './core/library/sources/plex'
+import { createSubsonicLibrarySource } from './core/library/sources/subsonic'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
@@ -516,6 +518,14 @@ async function buildPerUserLibrarySources(userId: number) {
     sources.push(
       createEmbyLibrarySource(
         createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId),
+        userId,
+      ),
+    )
+  }
+  if (conns.subsonicUrl && conns.subsonicUsername && conns.subsonicPassword) {
+    sources.push(
+      createSubsonicLibrarySource(
+        createSubsonicClient(conns.subsonicUrl, conns.subsonicUsername, conns.subsonicPassword),
         userId,
       ),
     )

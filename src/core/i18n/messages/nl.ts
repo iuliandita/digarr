@@ -855,6 +855,8 @@ export const nl = {
   'settings.jellyfinUserIdHelp':
     'Je Jellyfin-gebruikersnaam (aanbevolen) of UUID. De gebruikersnaam wordt automatisch opgelost via de Jellyfin-API.',
   'settings.embyDescription': 'Mediaserver met luistergeschiedenis en afspeellijstexport',
+  'settings.subsonicDescription':
+    'Zelf-gehoste muziekserver (Navidrome, Airsonic) voor bibliotheeksynchronisatie en ontdekking',
   'settings.discogsDescription': 'Collectie en verlanglijst van Discogs.',
   'settings.yourAccount': 'jouw account',
   'settings.lidarrPreferences': 'Jouw Lidarr-voorkeuren',
@@ -1020,6 +1022,7 @@ export const nl = {
   'settings.fieldProvider': 'Aanbieder',
   'settings.fieldModel': 'Model',
   'settings.fieldUsername': 'Gebruikersnaam',
+  'settings.fieldPassword': 'Wachtwoord',
   'settings.fieldUserToken': 'Gebruikerstoken',
   'settings.fieldServerUrl': 'Server-URL',
   'settings.fieldUserId': 'Gebruikers-ID',
@@ -1147,6 +1150,7 @@ export const nl = {
   'integration.deezerImport': 'Favorieten, Gevolgd, Afspeellijsten',
   'integration.lastfmSubscriptions': 'Charts, Tag-radio',
   'integration.artistsAlbums': 'Artiesten, Albums',
+  'integration.topArtists': 'Topartiesten',
   'integration.yes': 'Ja',
   'integration.moodDiscover': 'Sfeerontdekking',
   'integration.playlist': 'Afspeellijst',

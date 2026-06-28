@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- **Subsonic listening and library source.** Digarr can now connect to a Subsonic-compatible server (Navidrome, Airsonic, Gonic, or plain Subsonic) as a first-class source, at parity with Plex/Jellyfin/Emby. It seeds discovery from your starred/favorite artists and syncs your library (artists and albums) for filtering and gap-fill. Matching is name-based -- Subsonic artists and albums carry no MBIDs, so the reconciler name-matches them against MusicBrainz; the source does not provide similar-artists or genre tags. Configure it under Settings -> Connections with the server URL, username, and password (token auth). Translated across all 15 shipped locales.
+
 ### Changed
 
 - **Spotify connect form now shows the Redirect URI to register.** Connecting Spotify requires adding an exact callback URL to your Spotify app, but Digarr previously computed that URL silently and never displayed it -- so it was easy to misconfigure the Spotify app and have the connection fail. The Settings -> Connections -> Spotify form now shows the exact Redirect URI for your instance with a copy button, and the README documents the full create-app -> register-redirect-URI -> paste-credentials flow. Translated across all 15 shipped locales.

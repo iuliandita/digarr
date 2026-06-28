@@ -32,7 +32,7 @@
 Digarr ships album-level discovery as a first-class feature. The recommendation queue surfaces individual albums alongside artists -- gap-fills for artists you already follow, new releases you may have missed, and net-new album finds. Approving an album adds the artist to Lidarr **unmonitored** (no whole-discography grab) and monitors and searches only the approved album. The Discover page adds a kind filter (All / Artists / Albums) and a dedicated Albums navigation entry. Full i18n across all 15 shipped locales. Three producers feed the Albums tab: Release Radar (new releases from tracked artists), Library Gap-Fill (studio albums you are missing from tracked artists), and net-new album discovery (a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle in Settings > Recommendations > Advanced).
 
 ### 7-Stage AI Pipeline
-Digarr takes signals from up to 8 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
+Digarr takes signals from up to 9 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
 
 ### Mood Discovery
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
@@ -71,7 +71,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 ## Features
 
 - **Album-level discovery:** discover and approve individual albums -- gap-fill, new releases, net-new finds -- without grabbing the full discography; kind filter (All / Artists / Albums) and dedicated Albums nav on Discover
-- **8 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, and Discogs
+- **9 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic compatible), and Discogs
 - **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
 - **Auto-approve:** send high-scoring recommendations to your targets automatically
 - **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), and Spotify Saved Albums (artists from albums you saved on Spotify)
@@ -105,6 +105,7 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Plex | - | - | Artists, Albums | Yes | - |
 | Jellyfin | - | - | Artists, Albums | Yes | - |
 | Emby | - | - | Artists, Albums | Yes | - |
+| Subsonic | Starred artists | - | Artists, Albums | Yes | - |
 | TheAudioDB | - | - | - | - | Artist images (primary) |
 | Wikidata | - | - | - | - | Bio + external links per artist |
 | AI Provider | Mood Discover | - | - | - | - |
@@ -150,7 +151,7 @@ You can run the pipeline on a schedule, by hand, through subscriptions for targe
 | Service | Required | Purpose |
 |---------|----------|---------|
 | **Lidarr** | Optional | Music library management + auto-download |
-| **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Deezer, Plex, Jellyfin, Emby, or Discogs |
+| **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Deezer, Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic), or Discogs |
 | **AI Provider** | Yes | Anthropic, OpenAI, Gemini, Ollama, or any compatible endpoint |
 | **PostgreSQL** | Yes | Data storage (included in Docker Compose) |
 
@@ -204,7 +205,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 | Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
 | Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
-| Unraid | [`deploy/unraid/`](deploy/unraid/) | Community Applications template. Requires external PostgreSQL. |
+| Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | Add-Container template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)); CA store listing pending. Requires external PostgreSQL. |
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
 

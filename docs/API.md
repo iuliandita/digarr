@@ -683,7 +683,7 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 | POST | `/api/v1/settings/test/:service` | Yes | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `discogs`, `spotify`, `oidc`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`
 
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`

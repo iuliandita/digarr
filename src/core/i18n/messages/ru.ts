@@ -863,6 +863,8 @@ export const ru = {
   'settings.jellyfinUserIdHelp':
     'Ваше имя пользователя Jellyfin (рекомендуется) или UUID. Имя автоматически определяется через Jellyfin API.',
   'settings.embyDescription': 'Медиасервер с историей прослушивания и экспортом плейлистов',
+  'settings.subsonicDescription':
+    'Самостоятельно размещённый музыкальный сервер (Navidrome, Airsonic) для синхронизации библиотеки и поиска новинок',
   'settings.discogsDescription': 'Коллекция и список желаний из Discogs.',
   'settings.yourAccount': 'ваш аккаунт',
   'settings.lidarrPreferences': 'Ваши настройки Lidarr',
@@ -1030,6 +1032,7 @@ export const ru = {
   'settings.fieldProvider': 'Провайдер',
   'settings.fieldModel': 'Модель',
   'settings.fieldUsername': 'Имя пользователя',
+  'settings.fieldPassword': 'Пароль',
   'settings.fieldUserToken': 'Токен пользователя',
   'settings.fieldServerUrl': 'URL сервера',
   'settings.fieldUserId': 'ID пользователя',
@@ -1157,6 +1160,7 @@ export const ru = {
   'integration.deezerImport': 'Избранное, Отслеживаемые, Плейлисты',
   'integration.lastfmSubscriptions': 'Чарты, Радио тегов',
   'integration.artistsAlbums': 'Исполнители, Альбомы',
+  'integration.topArtists': 'Топ-исполнители',
   'integration.yes': 'Да',
   'integration.moodDiscover': 'Открытие по настроению',
   'integration.playlist': 'Плейлист',

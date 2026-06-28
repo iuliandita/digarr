@@ -841,6 +841,8 @@ export const ja = {
   'settings.jellyfinUserIdHelp':
     'Jellyfin のユーザー名（推奨）または UUID。ユーザー名は Jellyfin API で自動解決されます。',
   'settings.embyDescription': '視聴履歴とプレイリストエクスポート機能付きメディアサーバー',
+  'settings.subsonicDescription':
+    'ライブラリ同期と発見のためのセルフホスト音楽サーバー（Navidrome、Airsonic）',
   'settings.discogsDescription': 'Discogs のコレクションとウォントリスト。',
   'settings.yourAccount': 'あなたのアカウント',
   'settings.lidarrPreferences': 'Lidarr 個人設定',
@@ -1003,6 +1005,7 @@ export const ja = {
   'settings.fieldProvider': 'プロバイダー',
   'settings.fieldModel': 'モデル',
   'settings.fieldUsername': 'ユーザー名',
+  'settings.fieldPassword': 'パスワード',
   'settings.fieldUserToken': 'ユーザートークン',
   'settings.fieldServerUrl': 'サーバー URL',
   'settings.fieldUserId': 'ユーザー ID',
@@ -1141,6 +1144,7 @@ export const ja = {
   'integration.deezerImport': 'お気に入り, フォロー中, プレイリスト',
   'integration.lastfmSubscriptions': 'チャート, タグラジオ',
   'integration.artistsAlbums': 'アーティスト, アルバム',
+  'integration.topArtists': 'トップアーティスト',
   'integration.yes': 'はい',
   'integration.moodDiscover': 'ムード発見',
   'integration.playlist': 'プレイリスト',

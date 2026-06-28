@@ -851,6 +851,8 @@ export const tr = {
   'settings.jellyfinUserIdHelp':
     "Jellyfin kullanıcı adiniz (önerilen) veya UUID. Kullanıcı adi, Jellyfin API'si araciligiyla otomatik olarak cozumlenir.",
   'settings.embyDescription': 'Dinleme geçmişi ve oynatma listesi disa aktarma ile medya sunucusu',
+  'settings.subsonicDescription':
+    'Kitaplık eşitleme ve keşif için kendi sunucunuzda barındırılan müzik sunucusu (Navidrome, Airsonic)',
   'settings.discogsDescription': "Discogs'tan koleksiyon ve istek listesi.",
   'settings.yourAccount': 'hesabiniz',
   'settings.lidarrPreferences': 'Lidarr Tercihleriniz',
@@ -1017,6 +1019,7 @@ export const tr = {
   'settings.fieldProvider': 'Saglayici',
   'settings.fieldModel': 'Model',
   'settings.fieldUsername': 'Kullanıcı adi',
+  'settings.fieldPassword': 'Şifre',
   'settings.fieldUserToken': 'Kullanıcı belirteci',
   'settings.fieldServerUrl': 'Sunucu URL',
   'settings.fieldUserId': 'Kullanıcı ID',
@@ -1145,6 +1148,7 @@ export const tr = {
   'integration.deezerImport': 'Favoriler, Takip edilenler, Calisma listeleri',
   'integration.lastfmSubscriptions': 'Listeler, Etiket radyosu',
   'integration.artistsAlbums': 'Sanatcilar, Albumler',
+  'integration.topArtists': 'En iyi sanatçılar',
   'integration.yes': 'Evet',
   'integration.moodDiscover': 'Ruh hali kesfetme',
   'integration.playlist': 'Calisma listesi',

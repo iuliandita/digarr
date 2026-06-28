@@ -66,6 +66,9 @@ function makeUser(overrides: Partial<UserPublic> = {}): UserPublic {
     embyUserId: null,
     discogsToken: null,
     discogsUsername: null,
+    subsonicUrl: null,
+    subsonicUsername: null,
+    subsonicPassword: null,
     createdAt: new Date(),
     ...overrides,
   }
