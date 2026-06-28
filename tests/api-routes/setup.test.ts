@@ -66,6 +66,33 @@ describe('API routes: setup', () => {
     expect(body.fields).toBeDefined()
   })
 
+  it('accepts null aiBaseUrl and aiApiKey (issue #290 - Gemini/OpenAI wizard)', async () => {
+    const completeSetup = vi.fn(async () => ({ success: true }))
+    const { app } = createTestApp({
+      isSetupComplete: vi.fn(async () => false),
+      getUserCount: vi.fn(async () => 0),
+      completeSetup,
+    })
+
+    const res = await app.request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aiProvider: 'gemini',
+        aiModel: 'gemini-pro',
+        aiBaseUrl: null,
+        aiApiKey: null,
+      }),
+    })
+    expect(res.status).toBe(204)
+    expect(completeSetup).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        aiBaseUrl: expect.anything(),
+        aiApiKey: expect.anything(),
+      }),
+    )
+  })
+
   it('ignores legacy listening-source fields during setup completion', async () => {
     const completeSetup = vi.fn(async () => ({ success: true }))
     const { app } = createTestApp({
