@@ -18,6 +18,7 @@ import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
 import { createPlexSource } from '@/core/plugins/plex'
 import { SourceRegistry } from '@/core/plugins/registry'
 import { createSpotifySource } from '@/core/plugins/spotify'
+import { createSubsonicSource } from '@/core/plugins/subsonic'
 import type { AiProviderRegistry } from '@/core/providers/registry'
 import type { DiscoveredArtist } from '@/core/types'
 import { errMsg } from '@/core/validation'
@@ -221,6 +222,14 @@ export class PipelineOrchestrator extends EventEmitter {
       const dcUsername = userConnections?.discogsUsername
       if (dcToken && dcUsername) {
         registry.register(createDiscogsSource(dcToken, dcUsername))
+      }
+
+      // Subsonic (Navidrome, etc.)
+      const subUrl = userConnections?.subsonicUrl
+      const subUser = userConnections?.subsonicUsername
+      const subPass = userConnections?.subsonicPassword
+      if (subUrl && subUser && subPass) {
+        registry.register(createSubsonicSource(subUrl, subUser, subPass, settings.skipTlsVerify))
       }
 
       const aiProvider =
