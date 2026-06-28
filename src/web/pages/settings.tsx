@@ -1520,7 +1520,7 @@ function LidarrPreferencesSection() {
 
   const [qualityProfileId, setQualityProfileId] = useState('1')
   const [metadataProfileId, setMetadataProfileId] = useState('1')
-  const [rootFolderId, setRootFolderId] = useState('1')
+  const [rootFolderId, setRootFolderId] = useState('')
   const [saving, setSaving] = useState(false)
 
   // Sync local state from user prefs when they load
@@ -1529,8 +1529,18 @@ function LidarrPreferencesSection() {
     const p = userPrefs as Record<string, unknown>
     setQualityProfileId(String(p.qualityProfileId ?? 1))
     setMetadataProfileId(String(p.metadataProfileId ?? 1))
-    setRootFolderId(String(p.rootFolderId ?? 1))
+    setRootFolderId(p.rootFolderId != null ? String(p.rootFolderId) : '')
   }, [userPrefs])
+
+  // Snap root folder selector to the first real folder when none is set
+  // or the stored id no longer exists among the loaded folders.
+  useEffect(() => {
+    if (!rootFolders || rootFolders.length === 0) return
+    const first = rootFolders[0]
+    if (first && !rootFolders.some((f) => String(f.id) === rootFolderId)) {
+      setRootFolderId(String(first.id))
+    }
+  }, [rootFolders, rootFolderId])
 
   async function handleSave() {
     setSaving(true)
@@ -1538,7 +1548,7 @@ function LidarrPreferencesSection() {
       await updateUserPreferences({
         qualityProfileId: parseInt(qualityProfileId, 10) || 1,
         metadataProfileId: parseInt(metadataProfileId, 10) || 1,
-        rootFolderId: parseInt(rootFolderId, 10) || 1,
+        rootFolderId: rootFolderId ? parseInt(rootFolderId, 10) : undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       toast.success(t('settings.lidarrPreferencesSaved'))

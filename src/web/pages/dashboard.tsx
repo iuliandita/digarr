@@ -715,7 +715,7 @@ export function Dashboard() {
           defaults={{
             qualityProfileId: Number(prefs.qualityProfileId ?? 1),
             metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-            rootFolderId: Number(prefs.rootFolderId ?? 1),
+            rootFolderId: Number(prefs.rootFolderId ?? 0),
           }}
           monitorOption={approveDialogState.monitorOption}
           onCancel={() => setApproveDialogState(null)}
