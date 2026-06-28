@@ -31,7 +31,7 @@ import {
 import { Toaster, toast } from 'sonner'
 import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
 import { errMsg } from '@/core/validation'
-import { VERSION } from '@/version'
+import { CHANNEL, GIT_SHA, VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
 import { BottomNav } from './components/bottom-nav'
 import { ErrorBoundary } from './components/error-boundary'
@@ -753,6 +753,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         />
         <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}
+          {CHANNEL === 'nightly' ? ` (${GIT_SHA.slice(0, 7)})` : ''}
         </footer>
       </div>
     </PreviewContext.Provider>

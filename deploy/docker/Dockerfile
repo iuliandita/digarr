@@ -15,6 +15,10 @@ FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf100
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG DIGARR_GIT_SHA=dev
+ARG DIGARR_CHANNEL=local
+ENV DIGARR_GIT_SHA=${DIGARR_GIT_SHA}
+ENV DIGARR_CHANNEL=${DIGARR_CHANNEL}
 ENV NODE_ENV=production
 RUN bun run build
 
