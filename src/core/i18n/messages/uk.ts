@@ -858,6 +858,8 @@ export const uk = {
   'settings.jellyfinUserIdHelp':
     "Ваше ім'я користувача Jellyfin (рекомендується) або UUID. Ім'я автоматично розпізнається через Jellyfin API.",
   'settings.embyDescription': 'Медіасервер з історією прослуховування та експортом плейлистів',
+  'settings.subsonicDescription':
+    'Самостійно розміщений музичний сервер (Navidrome, Airsonic) для синхронізації бібліотеки та відкриття',
   'settings.discogsDescription': 'Колекція та список бажань із Discogs.',
   'settings.yourAccount': 'ваш акаунт',
   'settings.lidarrPreferences': 'Ваші налаштування Lidarr',
@@ -1024,6 +1026,7 @@ export const uk = {
   'settings.fieldProvider': 'Провайдер',
   'settings.fieldModel': 'Модель',
   'settings.fieldUsername': "Ім'я користувача",
+  'settings.fieldPassword': 'Пароль',
   'settings.fieldUserToken': 'Токен користувача',
   'settings.fieldServerUrl': 'URL сервера',
   'settings.fieldUserId': 'ID користувача',
@@ -1150,6 +1153,7 @@ export const uk = {
   'integration.deezerImport': 'Улюблене, Відстежувані, Плейлисти',
   'integration.lastfmSubscriptions': 'Чарти, Радіо тегів',
   'integration.artistsAlbums': 'Виконавці, Альбоми',
+  'integration.topArtists': 'Топ-виконавці',
   'integration.yes': 'Так',
   'integration.moodDiscover': 'Відкриття за настроєм',
   'integration.playlist': 'Плейлист',

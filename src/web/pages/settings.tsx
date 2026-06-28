@@ -27,6 +27,7 @@ import {
   ListenBrainzIcon,
   PlexIcon,
   SpotifyIcon,
+  SubsonicIcon,
   WebhookIcon,
 } from '../components/service-icons'
 import { SystemHealthCard } from '../components/system-health-card'
@@ -98,6 +99,9 @@ type Settings = {
   embyUserId?: string
   discogsToken?: string
   discogsUsername?: string
+  subsonicUrl?: string
+  subsonicUsername?: string
+  subsonicPassword?: string
   librarySyncIntervalHours?: number
   preferences?: Partial<Preferences>
   setupComplete?: boolean
@@ -282,6 +286,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [discogsToken, setDiscogsToken] = useState(
     settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
   )
+  const [subsonicUrl, setSubsonicUrl] = useState(settings.subsonicUrl ?? '')
+  const [subsonicUsername, setSubsonicUsername] = useState(settings.subsonicUsername ?? '')
+  const [subsonicPassword, setSubsonicPassword] = useState(
+    settings.subsonicPassword === '***' ? '' : (settings.subsonicPassword ?? ''),
+  )
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
   const [redirectUriCopied, setRedirectUriCopied] = useState(false)
@@ -332,6 +341,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     jellyfin: Boolean(settings.jellyfinUrl && settings.jellyfinApiKey && settings.jellyfinUserId),
     emby: Boolean(settings.embyUrl && settings.embyApiKey && settings.embyUserId),
     discogs: Boolean(settings.discogsUsername && settings.discogsToken),
+    subsonic: Boolean(
+      settings.subsonicUrl && settings.subsonicUsername && settings.subsonicPassword,
+    ),
   }
 
   function serviceStatus(key: string): 'connected' | 'not_configured' | 'error' | 'testing' {
@@ -488,6 +500,21 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     updateSettings({ discogsUsername, discogsToken: discogsToken || undefined }),
   )
 
+  const testSubsonic = createTester('subsonic', 'Subsonic', () =>
+    testService('subsonic', {
+      url: subsonicUrl,
+      username: subsonicUsername,
+      password: subsonicPassword,
+    }),
+  )
+  const saveSubsonic = createSaver('subsonic', 'Subsonic', () =>
+    updateSettings({
+      subsonicUrl,
+      subsonicUsername,
+      subsonicPassword: subsonicPassword || undefined,
+    }),
+  )
+
   async function initiateSpotifyOAuth() {
     try {
       const res = await initiateOAuth('spotify', {
@@ -561,6 +588,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const isJellyfinConfigured = !!(jellyfinUrl || settings.jellyfinUrl)
   const isEmbyConfigured = !!(embyUrl || settings.embyUrl)
   const isDiscogsConfigured = !!(discogsUsername || settings.discogsUsername)
+  const isSubsonicConfigured = !!(subsonicUrl || settings.subsonicUrl)
 
   return (
     <div className="space-y-4">
@@ -1420,6 +1448,70 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               {saving.emby
                 ? t('settings.saving')
                 : isEmbyConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
+            </Button>
+          </div>
+        </ServiceCard>
+      </div>
+
+      {/* Subsonic */}
+      <div>
+        <ServiceCard
+          name="Subsonic"
+          description={t('settings.subsonicDescription')}
+          status={serviceStatus('subsonic')}
+          icon={<SubsonicIcon />}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label={t('settings.fieldServerUrl')} id="subsonic-url">
+              <Input
+                id="subsonic-url"
+                type="url"
+                placeholder="http://navidrome:4533"
+                value={subsonicUrl}
+                onChange={(e) => setSubsonicUrl(e.target.value)}
+              />
+            </Field>
+            <Field label={t('settings.fieldUsername')} id="subsonic-username">
+              <Input
+                id="subsonic-username"
+                placeholder={t('settings.fieldUsername')}
+                value={subsonicUsername}
+                onChange={(e) => setSubsonicUsername(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label={t('settings.fieldPassword')} id="subsonic-password">
+            <Input
+              id="subsonic-password"
+              type="password"
+              placeholder={
+                settings.subsonicPassword === '***'
+                  ? `(${t('settings.saved')})`
+                  : t('settings.fieldPassword')
+              }
+              value={subsonicPassword}
+              onChange={(e) => setSubsonicPassword(e.target.value)}
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testSubsonic}
+                disabled={tests.subsonic === 'testing'}
+              >
+                {tests.subsonic === 'testing'
+                  ? t('settings.testing')
+                  : t('settings.testConnection')}
+              </Button>
+            )}
+            <Button size="sm" onClick={saveSubsonic} disabled={saving.subsonic}>
+              {saving.subsonic
+                ? t('settings.saving')
+                : isSubsonicConfigured
                   ? t('settings.save')
                   : t('settings.configure')}
             </Button>

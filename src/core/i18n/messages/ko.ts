@@ -829,6 +829,8 @@ export const ko = {
   'settings.jellyfinUserIdHelp':
     'Jellyfin 사용자 이름(권장) 또는 UUID. 사용자 이름은 Jellyfin API를 통해 자동으로 확인됩니다.',
   'settings.embyDescription': '청취 기록과 재생목록 내보내기 기능이 있는 미디어 서버',
+  'settings.subsonicDescription':
+    '라이브러리 동기화 및 발견을 위한 셀프 호스팅 음악 서버 (Navidrome, Airsonic)',
   'settings.discogsDescription': 'Discogs의 컬렉션과 위시리스트.',
   'settings.yourAccount': '내 계정',
   'settings.lidarrPreferences': 'Lidarr 개인 설정',
@@ -990,6 +992,7 @@ export const ko = {
   'settings.fieldProvider': '제공자',
   'settings.fieldModel': '모델',
   'settings.fieldUsername': '사용자 이름',
+  'settings.fieldPassword': '비밀번호',
   'settings.fieldUserToken': '사용자 토큰',
   'settings.fieldServerUrl': '서버 URL',
   'settings.fieldUserId': '사용자 ID',
@@ -1126,6 +1129,7 @@ export const ko = {
   'integration.deezerImport': '즐겨찾기, 팔로잉, 플레이리스트',
   'integration.lastfmSubscriptions': '차트, 태그 라디오',
   'integration.artistsAlbums': '아티스트, 앨범',
+  'integration.topArtists': '인기 아티스트',
   'integration.yes': '예',
   'integration.moodDiscover': '무드 발견',
   'integration.playlist': '플레이리스트',

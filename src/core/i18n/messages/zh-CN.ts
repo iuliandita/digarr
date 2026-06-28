@@ -788,6 +788,7 @@ export const zhCN = {
   'settings.jellyfinUserIdHelp':
     '你的 Jellyfin 用户名（推荐）或 UUID。用户名会通过 Jellyfin API 自动解析。',
   'settings.embyDescription': '带收听历史和播放列表导出功能的媒体服务器',
+  'settings.subsonicDescription': '自托管音乐服务器（Navidrome、Airsonic），用于媒体库同步和发现',
   'settings.discogsDescription': '来自 Discogs 的收藏和心愿单。',
   'settings.yourAccount': '你的账户',
   'settings.lidarrPreferences': '你的 Lidarr 偏好设置',
@@ -942,6 +943,7 @@ export const zhCN = {
   'settings.fieldProvider': '提供商',
   'settings.fieldModel': '模型',
   'settings.fieldUsername': '用户名',
+  'settings.fieldPassword': '密码',
   'settings.fieldUserToken': '用户令牌',
   'settings.fieldServerUrl': '服务器 URL',
   'settings.fieldUserId': '用户 ID',
@@ -1074,6 +1076,7 @@ export const zhCN = {
   'integration.deezerImport': '收藏, 关注, 播放列表',
   'integration.lastfmSubscriptions': '排行榜, 标签电台',
   'integration.artistsAlbums': '艺术家, 专辑',
+  'integration.topArtists': '热门艺人',
   'integration.yes': '是',
   'integration.moodDiscover': '氛围发现',
   'integration.playlist': '播放列表',

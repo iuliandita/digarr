@@ -27,6 +27,7 @@ const SECRET_FIELDS = [
   'jellyfinApiKey',
   'embyApiKey',
   'discogsToken',
+  'subsonicPassword',
 ] as const
 
 type SettingsResponse = Record<string, unknown>
@@ -183,6 +184,10 @@ async function buildSettingsResponse(
       response.discogsUsername = userConns.discogsUsername ?? ''
       response.discogsToken = userConns.discogsToken
       response._discogsScope = 'user'
+      response.subsonicUrl = userConns.subsonicUrl ?? ''
+      response.subsonicUsername = userConns.subsonicUsername ?? ''
+      response.subsonicPassword = userConns.subsonicPassword
+      response._subsonicScope = 'user'
     }
   }
 

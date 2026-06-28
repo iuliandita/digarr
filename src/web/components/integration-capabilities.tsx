@@ -85,6 +85,15 @@ const INTEGRATIONS: Capability[] = [
     import_: null,
   },
   {
+    serviceKey: 'subsonic',
+    serviceLabel: 'Subsonic',
+    discovery: 'integration.topArtists',
+    subscriptions: null,
+    librarySync: 'integration.artistsAlbums',
+    playlistExport: 'integration.yes',
+    import_: null,
+  },
+  {
     serviceKey: 'ai',
     serviceLabel: '',
     discovery: 'integration.moodDiscover',

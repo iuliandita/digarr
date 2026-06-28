@@ -968,6 +968,8 @@ export const en = {
   'settings.jellyfinUserIdHelp':
     'Your Jellyfin username (recommended) or UUID. The username is resolved automatically via the Jellyfin API.',
   'settings.embyDescription': 'Media server with listening history and playlist export',
+  'settings.subsonicDescription':
+    'Self-hosted music server (Navidrome, Airsonic) for library sync and discovery',
   'settings.discogsDescription': 'Collection and wantlist from Discogs.',
   'settings.yourAccount': 'your account',
   'settings.lidarrPreferences': 'Your Lidarr Preferences',
@@ -1134,6 +1136,7 @@ export const en = {
   'settings.fieldProvider': 'Provider',
   'settings.fieldModel': 'Model',
   'settings.fieldUsername': 'Username',
+  'settings.fieldPassword': 'Password',
   'settings.fieldUserToken': 'User Token',
   'settings.fieldServerUrl': 'Server URL',
   'settings.fieldUserId': 'User ID',
@@ -1286,6 +1289,7 @@ export const en = {
   'integration.deezerImport': 'Favorites, Followed, Playlists',
   'integration.lastfmSubscriptions': 'Charts, Tag Radio',
   'integration.artistsAlbums': 'Artists, Albums',
+  'integration.topArtists': 'Top Artists',
   'integration.yes': 'Yes',
   'integration.moodDiscover': 'Mood Discover',
   'integration.playlist': 'Playlist',

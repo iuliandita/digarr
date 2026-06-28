@@ -853,6 +853,8 @@ export const ptBR = {
   'settings.jellyfinUserIdHelp':
     'Seu nome de usuário do Jellyfin (recomendado) ou UUID. O nome de usuário é resolvido automaticamente pela API do Jellyfin.',
   'settings.embyDescription': 'Servidor de mídia com histórico de escuta e exportação de playlists',
+  'settings.subsonicDescription':
+    'Servidor de música auto-hospedado (Navidrome, Airsonic) para sincronização de biblioteca e descoberta',
   'settings.discogsDescription': 'Coleção e lista de desejos do Discogs.',
   'settings.yourAccount': 'sua conta',
   'settings.lidarrPreferences': 'Suas preferências do Lidarr',
@@ -1020,6 +1022,7 @@ export const ptBR = {
   'settings.fieldProvider': 'Provedor',
   'settings.fieldModel': 'Modelo',
   'settings.fieldUsername': 'Nome de usuário',
+  'settings.fieldPassword': 'Senha',
   'settings.fieldUserToken': 'Token de usuário',
   'settings.fieldServerUrl': 'URL do servidor',
   'settings.fieldUserId': 'ID do usuário',
@@ -1152,6 +1155,7 @@ export const ptBR = {
   'integration.deezerImport': 'Favoritos, Seguidos, Playlists',
   'integration.lastfmSubscriptions': 'Charts, Radio de tag',
   'integration.artistsAlbums': 'Artistas, Albums',
+  'integration.topArtists': 'Artistas principais',
   'integration.yes': 'Sim',
   'integration.moodDiscover': 'Descoberta por humor',
   'integration.playlist': 'Playlist',
