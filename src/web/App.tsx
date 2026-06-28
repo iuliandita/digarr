@@ -753,7 +753,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         />
         <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}
-          {CHANNEL === 'nightly' ? ` (${GIT_SHA})` : ''}
+          {CHANNEL === 'nightly' ? ` (${GIT_SHA.slice(0, 7)})` : ''}
         </footer>
       </div>
     </PreviewContext.Provider>
