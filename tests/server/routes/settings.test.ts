@@ -43,6 +43,15 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
   })),
 }))
 
+const { mockCreateSubsonicClient } = vi.hoisted(() => ({
+  mockCreateSubsonicClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Subsonic',
+    })),
+  })),
+}))
+
 const { mockOidcTestConnection } = vi.hoisted(() => ({
   mockOidcTestConnection: vi.fn(async () => ({
     success: true,
@@ -90,6 +99,10 @@ vi.mock('@/core/clients/lastfm', () => ({
 
 vi.mock('@/core/clients/emby', () => ({
   createEmbyClient: mockCreateEmbyClient,
+}))
+
+vi.mock('@/core/clients/subsonic', () => ({
+  createSubsonicClient: mockCreateSubsonicClient,
 }))
 
 vi.mock('@/core/auth/oidc', () => ({
@@ -712,6 +725,7 @@ describe('POST /api/v1/settings/test/:service', () => {
       'jellyfin',
       'emby',
       'discogs',
+      'subsonic',
       'spotify',
       'oidc',
     ]
@@ -875,6 +889,39 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
     expect(body.latencyMs).toEqual(expect.any(Number))
     expect(body.latencyMs).toBeGreaterThanOrEqual(0)
+  })
+
+  it('tests subsonic and invokes the client with the provided credentials', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://127.0.0.1:4533',
+        username: 'admin',
+        password: 'pw',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateSubsonicClient).toHaveBeenCalledWith('http://127.0.0.1:4533', 'admin', 'pw', {
+      skipTlsVerify: false,
+    })
+    const body = await res.json()
+    expect(body.message).toBe('Connected to Subsonic')
+  })
+
+  it('returns a missing-input error when subsonic credentials are incomplete', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'http://127.0.0.1:4533', username: 'admin' }),
+    })
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.type).toBe('/problems/probe-missing-input')
   })
 
   it('returns 400 for unknown service', async () => {
