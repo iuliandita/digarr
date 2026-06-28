@@ -16,6 +16,10 @@ const SENSITIVE_QUERY_KEYS = new Set([
   'auth_token',
   'signature',
   'sig',
+  // Subsonic auth params: 't' is md5(password+salt), 's' is the salt.
+  // Logging both would expose an offline-brute-forceable credential.
+  't',
+  's',
 ])
 
 type HttpClientConfig = {
