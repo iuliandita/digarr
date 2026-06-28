@@ -1037,6 +1037,10 @@ export const ptBR = {
   'settings.fieldFanartApiKey': 'Chave de API do fanart.tv (opcional)',
   'settings.fieldMetadataFallbackUrl': 'URL de fallback de metadados (opcional)',
   'settings.connectWithSpotify': 'Conectar com Spotify',
+  'settings.fieldRedirectUri': 'URI de redirecionamento',
+  'settings.redirectUriHelp':
+    'Adicione esta URL exata ao seu app do Spotify em URIs de redirecionamento antes de conectar.',
+  'settings.copyRedirectUri': 'Copiar URI de redirecionamento',
   'settings.saved': 'salvo',
   'settings.daily': 'Diário',
   'settings.weekly': 'Semanal',

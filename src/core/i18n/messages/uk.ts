@@ -1041,6 +1041,10 @@ export const uk = {
   'settings.fieldFanartApiKey': "API Key fanart.tv (необов'язково)",
   'settings.fieldMetadataFallbackUrl': "Резервний URL метаданих (необов'язково)",
   'settings.connectWithSpotify': 'Підключитися через Spotify',
+  'settings.fieldRedirectUri': 'URI переспрямування',
+  'settings.redirectUriHelp':
+    'Додайте цю точну URL-адресу до URI переспрямування вашого застосунку Spotify перед підключенням.',
+  'settings.copyRedirectUri': 'Копіювати URI переспрямування',
   'settings.saved': 'збережено',
   'settings.daily': 'Щодня',
   'settings.weekly': 'Щотижня',

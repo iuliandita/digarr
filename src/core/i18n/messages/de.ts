@@ -1046,6 +1046,10 @@ export const de = {
   'settings.fieldFanartApiKey': 'Fanart.tv API Key (optional)',
   'settings.fieldMetadataFallbackUrl': 'Metadaten-Fallback-URL (optional)',
   'settings.connectWithSpotify': 'Mit Spotify verbinden',
+  'settings.fieldRedirectUri': 'Weiterleitungs-URI',
+  'settings.redirectUriHelp':
+    'Füge diese exakte URL vor dem Verbinden zu den Weiterleitungs-URIs deiner Spotify-App hinzu.',
+  'settings.copyRedirectUri': 'Weiterleitungs-URI kopieren',
   'settings.saved': 'gespeichert',
   'settings.daily': 'Täglich',
   'settings.weekly': 'Wöchentlich',
