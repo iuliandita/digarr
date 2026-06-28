@@ -50,6 +50,9 @@ const baseConnections: UserConnections = {
   embyUserId: null,
   discogsToken: null,
   discogsUsername: null,
+  subsonicUrl: null,
+  subsonicUsername: null,
+  subsonicPassword: null,
 }
 
 beforeEach(() => {

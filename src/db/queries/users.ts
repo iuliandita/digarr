@@ -137,6 +137,9 @@ export type UserConnections = {
   embyUserId: string | null
   discogsToken: string | null
   discogsUsername: string | null
+  subsonicUrl: string | null
+  subsonicUsername: string | null
+  subsonicPassword: string | null
 }
 
 export async function getUserConnections(
@@ -159,6 +162,9 @@ export async function getUserConnections(
       embyUserId: users.embyUserId,
       discogsToken: users.discogsToken,
       discogsUsername: users.discogsUsername,
+      subsonicUrl: users.subsonicUrl,
+      subsonicUsername: users.subsonicUsername,
+      subsonicPassword: users.subsonicPassword,
     })
     .from(users)
     .where(eq(users.id, userId))

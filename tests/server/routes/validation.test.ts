@@ -26,6 +26,9 @@ const adminUser = {
   embyUserId: null,
   discogsToken: null,
   discogsUsername: null,
+  subsonicUrl: null,
+  subsonicUsername: null,
+  subsonicPassword: null,
   createdAt: new Date(),
 }
 

@@ -97,6 +97,9 @@ export const users = pgTable(
     embyUserId: text('emby_user_id'),
     discogsToken: text('discogs_token'),
     discogsUsername: text('discogs_username'),
+    subsonicUrl: text('subsonic_url'),
+    subsonicUsername: text('subsonic_username'),
+    subsonicPassword: text('subsonic_password'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({

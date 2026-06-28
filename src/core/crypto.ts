@@ -155,5 +155,6 @@ export const SENSITIVE_USER_CONNECTIONS = [
   'jellyfinApiKey',
   'embyApiKey',
   'discogsToken',
+  'subsonicPassword',
 ] as const
 export const SENSITIVE_TARGET_CONFIG = ['apiKey', 'password', 'token', 'secret'] as const
