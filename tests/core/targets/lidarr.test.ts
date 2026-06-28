@@ -85,7 +85,7 @@ describe('createLidarrTarget()', () => {
       { monitorOption: 'selected', selectedAlbumIds: ['album-1'] },
     )
 
-    expect(client.addArtist).toHaveBeenCalledWith('mbid-rh', 'Radiohead', 1, 1, 1, {
+    expect(client.addArtist).toHaveBeenCalledWith('mbid-rh', 'Radiohead', 1, 1, undefined, {
       monitorOption: 'none',
     })
     expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })

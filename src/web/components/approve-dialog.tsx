@@ -30,12 +30,20 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: snap runs once against the initial default
   useEffect(() => {
     getLidarrApproveOptions()
       .then((opts) => {
         setProfiles(opts.qualityProfiles)
         setMetadataProfiles(opts.metadataProfiles)
         setRootFolders(opts.rootFolders)
+        // If the pre-filled default isn't an actual Lidarr root folder
+        // (e.g. stale id 1 after a folder was deleted/recreated), snap to
+        // the first available folder so we never send a non-existent id.
+        const firstFolder = opts.rootFolders[0]
+        if (firstFolder && !opts.rootFolders.some((f) => String(f.id) === rf)) {
+          setRf(String(firstFolder.id))
+        }
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))

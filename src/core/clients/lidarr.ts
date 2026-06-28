@@ -119,11 +119,14 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     artistName: string,
     qualityProfileId: number,
     metadataProfileId: number,
-    rootFolderId: number,
+    rootFolderId?: number | null,
     options?: AddArtistOptions,
   ): Promise<LidarrArtist> {
     const folders = await getRootFolders()
-    const folder = folders.find((f) => f.id === rootFolderId)
+    if (folders.length === 0) {
+      throw new Error('No root folders configured in Lidarr')
+    }
+    const folder = rootFolderId == null ? folders[0] : folders.find((f) => f.id === rootFolderId)
     if (!folder) {
       throw new Error(`Root folder with id ${rootFolderId} not found`)
     }

@@ -476,7 +476,7 @@ export type PlaylistStrategy = 'weekly_digest' | 'genre_focus' | 'mood_mix' | 'r
 export type Preferences = {
   qualityProfileId: number
   metadataProfileId: number
-  rootFolderId: number
+  rootFolderId?: number
   scheduleCron: string
   scoreThreshold: number
   scoringWeights: {
@@ -511,7 +511,6 @@ export type ScoringWeights = Preferences['scoringWeights']
 export const DEFAULT_PREFERENCES: Preferences = {
   qualityProfileId: 1,
   metadataProfileId: 1,
-  rootFolderId: 1,
   scheduleCron: '0 0 * * 0',
   scoreThreshold: 0.5,
   scoringWeights: {

@@ -81,7 +81,7 @@ export function lidarrRoutes(deps: AppDependencies) {
         artistName,
         qualityProfileId ?? 1,
         metadataProfileId ?? 1,
-        rootFolderId ?? 1,
+        rootFolderId,
       )
       return c.json(artist)
     },
