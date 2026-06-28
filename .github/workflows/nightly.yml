@@ -5,6 +5,9 @@ on:
     branches:
       - develop
 
+# A newer push to develop cancels an in-flight build: the moving :nightly always
+# converges on the latest commit, but a superseded commit's :nightly-<sha> tag
+# may never publish. Acceptable for a dev channel (latest-develop is the intent).
 concurrency:
   group: nightly
   cancel-in-progress: true
@@ -20,6 +23,7 @@ env:
 jobs:
   nightly:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
