@@ -28,6 +28,19 @@ describe('redactUrlForLog', () => {
     expect(result).toContain('REDACTED')
   })
 
+  it('redacts a non-empty url fragment', () => {
+    const result = redactUrlForLog('https://example.com/hook?ok=1#token=SECRET')
+    expect(result).not.toContain('SECRET')
+    expect(result).toContain('[REDACTED]')
+  })
+
+  it('redacts two sensitive params in one url', () => {
+    const result = redactUrlForLog('https://example.com/hook?token=AAA&secret=BBB')
+    expect(result).not.toContain('AAA')
+    expect(result).not.toContain('BBB')
+    expect(result).toContain('REDACTED')
+  })
+
   it('leaves non-sensitive query params intact (?user=test)', () => {
     const result = redactUrlForLog('https://example.com/hook?user=test&foo=bar')
     expect(result).toContain('user=test')

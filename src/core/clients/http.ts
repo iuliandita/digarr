@@ -215,6 +215,7 @@ export function redactUrlForLog(url: string): string {
 
     if (parsed.username) parsed.username = REDACTED_QUERY_VALUE
     if (parsed.password) parsed.password = REDACTED_QUERY_VALUE
+    if (parsed.hash) parsed.hash = REDACTED_QUERY_VALUE
 
     const redactedParams = new URLSearchParams()
 
