@@ -5,6 +5,10 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    'process.env.DIGARR_GIT_SHA': JSON.stringify(process.env.DIGARR_GIT_SHA ?? 'dev'),
+    'process.env.DIGARR_CHANNEL': JSON.stringify(process.env.DIGARR_CHANNEL ?? 'local'),
+  },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
