@@ -18,7 +18,7 @@ export function createLidarrTarget(
   const client = createLidarrClient(config.url, config.apiKey, config.skipTlsVerify)
   const qualityProfileId = config.qualityProfileId ?? 1
   const metadataProfileId = config.metadataProfileId ?? 1
-  const rootFolderId = config.rootFolderId ?? 1
+  const rootFolderId = config.rootFolderId
 
   return {
     id: `lidarr-${targetId}`,

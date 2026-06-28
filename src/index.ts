@@ -665,7 +665,7 @@ async function getEnabledTargetsForResolvedUser(
           skipTlsVerify: (row.config.skipTlsVerify as boolean) ?? false,
           qualityProfileId: Number(prefs.qualityProfileId ?? 1),
           metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-          rootFolderId: Number(prefs.rootFolderId ?? 1),
+          rootFolderId: prefs.rootFolderId != null ? Number(prefs.rootFolderId) : undefined,
         }),
       )
     }
