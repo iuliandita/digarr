@@ -5,11 +5,13 @@
  * Usage: bun scripts/sync-deploy-digests.ts <tag>
  *   <tag> may be "v0.32.3" or "0.32.3" (leading "v" stripped).
  *
- * Fetches the multi-arch manifest digest from ghcr.io and rewrites:
+ * Fetches the multi-arch manifest digest from ghcr.io and rewrites both the
+ * digest pins AND the human-readable version tags, so they cannot drift apart:
  *   - deploy/k8s/deployment.yaml      (image ref with @sha256:...)
- *   - deploy/helm/digarr/values.yaml  (digest: "sha256:...")
+ *   - deploy/helm/digarr/values.yaml  (digest: "sha256:..." + tag: "<ver>")
  *   - deploy/k8s/rendered.yaml        (image ref with @sha256:...)
- *   - deploy/unraid/digarr.xml        (digest comment)
+ *   - deploy/unraid/digarr.xml        (digest comment + <Repository> :tag,
+ *                                      <Tag>, <TagDescription>)
  *
  * rendered.yaml is a `helm template` snapshot, but at the digest-sync step the
  * only line that changes is the image digest, so a targeted string replace is
@@ -97,13 +99,36 @@ const targets: Target[] = [
     pattern: /(Digest pin \(synced via scripts\/sync-deploy-digests\.ts\): )sha256:[a-f0-9]+/,
     replacement: (d, _match, prefix) => `${prefix}${d}`,
   },
+  // Version-tag pins. These close over `tag` (not the digest) so the visible
+  // image reference stays in lockstep with the digest above. Without these the
+  // tags freeze at whatever release first wrote them while the digest advances.
+  {
+    path: 'deploy/helm/digarr/values.yaml',
+    pattern: /(^ {2}tag: ")[^"]+(")/m,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${tag}${suffix}`,
+  },
+  {
+    path: 'deploy/unraid/digarr.xml',
+    pattern: /(<Repository>docker\.io\/iuliandita\/digarr:)[^<]+(<\/Repository>)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${tag}${suffix}`,
+  },
+  {
+    path: 'deploy/unraid/digarr.xml',
+    pattern: /(<Tag>)[^<]+(<\/Tag>)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${tag}${suffix}`,
+  },
+  {
+    path: 'deploy/unraid/digarr.xml',
+    pattern: /<TagDescription>[^<]*<\/TagDescription>/,
+    replacement: () => `<TagDescription>v${tag} release</TagDescription>`,
+  },
 ]
 
 let drift = false
 for (const t of targets) {
   const content = readFileSync(t.path, 'utf8')
   if (!t.pattern.test(content)) {
-    console.error(`no digest match in ${t.path} - file format changed?`)
+    console.error(`no match in ${t.path} - file format changed?`)
     drift = true
     continue
   }
