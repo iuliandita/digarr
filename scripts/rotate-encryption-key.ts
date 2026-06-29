@@ -18,12 +18,12 @@
  */
 
 import { sql } from 'drizzle-orm'
-import { buildDatabaseUrl, envConfig } from '../src/config/env'
+import { envConfig } from '../src/config/env'
 
 // Import env/crypto via side effects before instantiating the DB pool so the
 // key derivation runs with whatever env is set at invocation.
 import { decryptField, encryptField, initEncryption } from '../src/core/crypto'
-import { db, pool } from '../src/db'
+import { closeDb, db, dbBackend } from '../src/db'
 
 initEncryption(envConfig.encryptionKey, envConfig.encryptionKeyNext)
 
@@ -31,7 +31,7 @@ if (!envConfig.encryptionKey) {
   console.error('DIGARR_ENCRYPTION_KEY must be set to rotate keys')
   process.exit(1)
 }
-console.log(`using database ${new URL(buildDatabaseUrl()).host}`)
+console.log(`using ${dbBackend} backend`)
 
 type Site = { table: string; column: string }
 
@@ -206,11 +206,11 @@ async function main(): Promise<void> {
   console.log(
     `\nrotation complete: ${totalRewritten} of ${totalScanned} encrypted values rewritten with primary key`,
   )
-  await pool.end()
+  await closeDb()
 }
 
 main().catch(async (err) => {
   console.error(err)
-  await pool.end()
+  await closeDb()
   process.exit(1)
 })

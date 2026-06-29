@@ -13,12 +13,9 @@
 
 import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import pg from 'pg'
-import { buildDatabaseUrl } from '../src/config/env'
+import { closeDb, db } from '../src/db'
 import type { ArtistMetadataInsert } from '../src/db/queries/artist-metadata'
 import { bulkUpsert, getCount } from '../src/db/queries/artist-metadata'
-import * as schema from '../src/db/schema'
 
 const BATCH_SIZE = 500
 const PROGRESS_INTERVAL = 10_000
@@ -28,9 +25,6 @@ if (!file) {
   console.error('Usage: bun scripts/import-artist-metadata.ts <csv-file>')
   process.exit(1)
 }
-
-const pool = new pg.Pool({ connectionString: buildDatabaseUrl() })
-const db = drizzle(pool, { schema })
 
 const rl = createInterface({
   input: createReadStream(file),
@@ -137,4 +131,4 @@ await flushBatch()
 const totalInDb = await getCount(db as never)
 console.log(`Done. ${imported} rows imported, ${skipped} skipped. Total in DB: ${totalInDb}`)
 
-await pool.end()
+await closeDb()
