@@ -1,0 +1,9 @@
+# Optional override: expose the Postgres base's database on host port 5432.
+# Layer it on the Postgres base for host-side tooling (psql, GUI clients):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.pgport.yml up
+# Not for the PGlite base (it has no postgres service).
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
