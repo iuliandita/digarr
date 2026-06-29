@@ -148,6 +148,14 @@ describe('GET /health', () => {
     expect(body.channel).toBe('local')
   })
 
+  it('reports the active db backend', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/health')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(['pglite', 'postgres']).toContain(body.dbBackend)
+  })
+
   it('returns 503 with status draining when shutting down', async () => {
     const app = createApp(makeDeps())
     markShuttingDown()
