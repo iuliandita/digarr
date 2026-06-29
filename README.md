@@ -128,7 +128,7 @@ The image pulls `docker.io/iuliandita/digarr:stable`, the channel that only move
 
 Digarr picks its database backend at boot. The `docker run` line above and `deploy/docker/docker-compose.pglite.yml` use the embedded PGlite database (real PostgreSQL compiled to Wasm, in-process, single data directory) -- no separate PostgreSQL container. The default `deploy/docker/docker-compose.yml` instead runs an external PostgreSQL alongside the app; set `DATABASE_URL` or `DB_HOST`/`DB_USER`/`DB_NAME`/`DB_PASS` to point Digarr at your own PostgreSQL. External PostgreSQL stays fully supported everywhere.
 
-> **Upgrade note:** existing deployments are completely unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and no existing config file changed. The startup log prints the selected backend (`[db] backend=...`).
+> **Upgrade note:** existing deployments are unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and the default backend plus your existing Postgres connection are unchanged. The startup log prints the selected backend (`[db] backend=...`).
 
 ### Docker Compose
 

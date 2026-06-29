@@ -4,8 +4,9 @@ This directory contains the Docker Compose stacks for running Digarr in
 production or local development. Two bases are provided:
 
 - `docker-compose.yml` -- the default. Runs the app plus an external
-  PostgreSQL container (single shared password secret). Unchanged from earlier
-  releases; re-pulling it never detaches an existing `pgdata` volume.
+  PostgreSQL container (single shared password secret). Still external
+  PostgreSQL against the same `pgdata` volume; re-pulling it never detaches an
+  existing database.
 - `docker-compose.pglite.yml` -- single container with the embedded PGlite
   database (real PostgreSQL compiled to Wasm, in-process). No database sidecar,
   no secret. Data lives in the `data` volume.
