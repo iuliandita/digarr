@@ -234,6 +234,7 @@ export const nlOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Niet aangemeld',
   'errors.auth.passwordIncorrect': 'Huidig wachtwoord is onjuist',
   'errors.auth.usernameTaken': 'Gebruikersnaam al in gebruik',
+  'errors.auth.emailTaken': 'E-mail al in gebruik',
   'errors.target.notFound': 'Doel niet gevonden',
   'errors.pipeline.alreadyRunning': 'Er is al een pipeline-uitvoering bezig',
   'errors.recommendation.notFound': 'Aanbeveling niet gevonden',

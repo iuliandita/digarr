@@ -933,3 +933,73 @@ describe('GET /api/v1/auth/status', () => {
     expect(body.required).toBe(true)
   })
 })
+
+describe('PATCH /api/v1/auth/me/email', () => {
+  async function emailRequest(deps: AppDependencies, body: unknown) {
+    const app = createApp(deps)
+    await createSession(1, 'session-token')
+    return app.request('/api/v1/auth/me/email', {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer session-token',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+  }
+
+  it('sets the email for a session-authenticated user', async () => {
+    const updateUser = vi.fn(async () => {})
+    const res = await emailRequest(makeDeps({ updateUser, getUserCount: vi.fn(async () => 1) }), {
+      email: 'me@example.com',
+    })
+    expect(res.status).toBe(200)
+    expect(updateUser).toHaveBeenCalledWith(1, { email: 'me@example.com' })
+  })
+
+  it('clears the email when given an empty string', async () => {
+    const updateUser = vi.fn(async () => {})
+    const res = await emailRequest(makeDeps({ updateUser, getUserCount: vi.fn(async () => 1) }), {
+      email: '',
+    })
+    expect(res.status).toBe(200)
+    expect(updateUser).toHaveBeenCalledWith(1, { email: null })
+  })
+
+  it('returns 400 for an invalid email', async () => {
+    const updateUser = vi.fn(async () => {})
+    const res = await emailRequest(makeDeps({ updateUser, getUserCount: vi.fn(async () => 1) }), {
+      email: 'not-an-email',
+    })
+    expect(res.status).toBe(400)
+    expect(updateUser).not.toHaveBeenCalled()
+  })
+
+  it('returns 409 when the email belongs to another user', async () => {
+    const updateUser = vi.fn(async () => {})
+    const res = await emailRequest(
+      makeDeps({
+        updateUser,
+        getUserByEmail: vi.fn(async () => ({ id: 2, username: 'other' })),
+        getUserCount: vi.fn(async () => 2),
+      }),
+      { email: 'taken@example.com' },
+    )
+    expect(res.status).toBe(409)
+    expect(updateUser).not.toHaveBeenCalled()
+  })
+
+  it('allows re-saving an email the user already owns', async () => {
+    const updateUser = vi.fn(async () => {})
+    const res = await emailRequest(
+      makeDeps({
+        updateUser,
+        getUserByEmail: vi.fn(async () => ({ id: 1, username: 'testuser' })),
+        getUserCount: vi.fn(async () => 1),
+      }),
+      { email: 'me@example.com' },
+    )
+    expect(res.status).toBe(200)
+    expect(updateUser).toHaveBeenCalledWith(1, { email: 'me@example.com' })
+  })
+})

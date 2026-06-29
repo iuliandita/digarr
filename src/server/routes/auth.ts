@@ -4,7 +4,7 @@ import { deleteCookie, getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField } from '@/core/crypto'
-import { isSingleAdminCollision } from '@/core/db-errors'
+import { isSingleAdminCollision, isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
@@ -20,6 +20,7 @@ import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
   changePasswordSchema,
   registerSchema,
+  updateEmailSchema,
   updateLocaleSchema,
   updatePreferencesSchema,
 } from '@/server/schemas/auth'
@@ -241,6 +242,54 @@ export function authRoutes(deps: AppDependencies) {
 
     await deps.updateUserPreferredLocale(auth.userId, preferredLocale)
     return c.json({ preferredLocale })
+  })
+
+  // Set or clear the current session user's email. Enforces uniqueness so a
+  // user cannot claim another account's address (which would let them hijack
+  // an OIDC auto-link). The partial unique index is the race backstop.
+  router.patch('/api/v1/auth/me/email', zJson(updateEmailSchema), async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+
+    const { email: rawEmail } = c.req.valid('json')
+    const email = rawEmail ? rawEmail : null
+
+    const user = await deps.getUserById(auth.userId)
+    if (!user) return c.json({ error: 'User not found' }, 404)
+
+    if (email) {
+      const existing = await deps.getUserByEmail(email)
+      if (existing && existing.id !== auth.userId) {
+        return problem(
+          c,
+          'auth-email-taken',
+          'Email already in use',
+          409,
+          undefined,
+          undefined,
+          'errors.auth.emailTaken',
+        )
+      }
+    }
+
+    try {
+      await deps.updateUser(auth.userId, { email })
+    } catch (err: unknown) {
+      if (isUniqueViolation(err, 'users_email_unique_idx')) {
+        return problem(
+          c,
+          'auth-email-taken',
+          'Email already in use',
+          409,
+          undefined,
+          undefined,
+          'errors.auth.emailTaken',
+        )
+      }
+      throw err
+    }
+
+    return c.json({ email })
   })
 
   // Change password for the current session user (requires session auth, not legacy token)

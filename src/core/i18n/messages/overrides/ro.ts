@@ -231,6 +231,7 @@ export const roOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Neautentificat',
   'errors.auth.passwordIncorrect': 'Parola actuală este incorectă',
   'errors.auth.usernameTaken': 'Numele de utilizator este deja folosit',
+  'errors.auth.emailTaken': 'E-mail deja folosit',
   'errors.target.notFound': 'Destinația nu a fost găsită',
   'errors.pipeline.alreadyRunning': 'O execuție a pipeline-ului este deja în desfășurare',
   'errors.recommendation.notFound': 'Recomandarea nu a fost găsită',

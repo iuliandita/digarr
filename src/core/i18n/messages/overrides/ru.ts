@@ -221,6 +221,7 @@ export const ruOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Не аутентифицирован',
   'errors.auth.passwordIncorrect': 'Текущий пароль неверный',
   'errors.auth.usernameTaken': 'Имя пользователя уже занято',
+  'errors.auth.emailTaken': 'Эл. почта уже используется',
   'errors.target.notFound': 'Цель не найдена',
   'errors.pipeline.alreadyRunning': 'Запуск пайплайна уже выполняется',
   'errors.recommendation.notFound': 'Рекомендация не найдена',

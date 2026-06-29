@@ -220,6 +220,7 @@ export const ukOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Не автентифіковано',
   'errors.auth.passwordIncorrect': 'Поточний пароль неправильний',
   'errors.auth.usernameTaken': 'Імʼя користувача вже зайняте',
+  'errors.auth.emailTaken': 'Електронна пошта вже використовується',
   'errors.target.notFound': 'Ціль не знайдено',
   'errors.pipeline.alreadyRunning': 'Запуск конвеєра вже триває',
   'errors.recommendation.notFound': 'Рекомендацію не знайдено',

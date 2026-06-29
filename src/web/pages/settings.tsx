@@ -63,6 +63,7 @@ import {
   testService,
   testTargetApi,
   testWebhook,
+  updateEmail,
   updateSettings,
   updateTargetApi,
   updateUserPreferences,
@@ -2706,12 +2707,36 @@ function ScheduleTab({ settings }: { settings: Settings }) {
 
 function AccountTab() {
   const { t, locale, setLocale } = useI18n()
+  const queryClient = useQueryClient()
   const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const [email, setEmail] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
   const { canInstall, showIosHint, promptInstall, dismiss } = useInstallPrompt()
+
+  useEffect(() => {
+    setEmail(user?.email ?? '')
+  }, [user?.email])
+
+  async function handleSaveEmail(e: React.FormEvent) {
+    e.preventDefault()
+    const next = email.trim()
+    if (next === (user?.email ?? '')) return
+    setSavingEmail(true)
+    try {
+      await updateEmail(next || null)
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+      toast.success(t('settings.emailSaved'))
+    } catch (err: unknown) {
+      const msg = errMsg(err)
+      toast.error(msg.includes('409') ? t('settings.emailTaken') : msg)
+    } finally {
+      setSavingEmail(false)
+    }
+  }
 
   async function handleLogout() {
     try {
@@ -2776,6 +2801,28 @@ function AccountTab() {
             {t('settings.logOut')}
           </Button>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.email')}
+        </h2>
+        <p className="text-xs text-muted">{t('settings.emailHelp')}</p>
+        <form onSubmit={handleSaveEmail} className="space-y-3">
+          <Field label={t('settings.emailAddress')} id="account-email">
+            <Input
+              id="account-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder={t('settings.emailPlaceholder')}
+            />
+          </Field>
+          <Button type="submit" disabled={savingEmail || email.trim() === (user?.email ?? '')}>
+            {savingEmail ? t('settings.saving') : t('settings.saveEmail')}
+          </Button>
+        </form>
       </section>
 
       <section className="space-y-3">

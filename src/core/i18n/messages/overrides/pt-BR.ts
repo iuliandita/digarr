@@ -226,6 +226,7 @@ export const ptBROverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Não autenticado',
   'errors.auth.passwordIncorrect': 'A senha atual está incorreta',
   'errors.auth.usernameTaken': 'Nome de usuário já em uso',
+  'errors.auth.emailTaken': 'E-mail já está em uso',
   'errors.target.notFound': 'Destino não encontrado',
   'errors.pipeline.alreadyRunning': 'Já há uma execução do pipeline em andamento',
   'errors.recommendation.notFound': 'Recomendação não encontrada',

@@ -73,6 +73,7 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 | GET | `/api/v1/auth/me` | Yes | Current user profile |
 | GET | `/api/v1/auth/validate` | Yes | Lightweight token/session validity check. Returns `204` when valid |
 | PATCH | `/api/v1/auth/me/locale` | Yes | Update the saved user locale. Session auth only. |
+| PATCH | `/api/v1/auth/me/email` | Yes | Set or clear the user's email. Session auth only. |
 | POST | `/api/v1/auth/change-password` | Yes | Change password. Invalidates all sessions. Rate limited: 5/min |
 | GET | `/api/v1/auth/me/preferences` | Yes | Get merged user preferences |
 | PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (partial merge). Session auth only. |
@@ -82,9 +83,16 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 { "preferredLocale": "fr" }
 ```
 
+**PATCH /api/v1/auth/me/email** body:
+```json
+{ "email": "you@example.com" }
+```
+
 Notes:
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
+- `email` may be a valid address, an empty string, or `null`; empty/null clears it
+- A non-empty `email` must be unique across users; a collision returns `409` (`code: errors.auth.emailTaken`). Setting an email is the prerequisite for OIDC auto-linking (see OIDC / OAuth below)
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
 - `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user

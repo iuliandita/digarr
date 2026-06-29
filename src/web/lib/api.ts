@@ -161,6 +161,7 @@ export type UserProfile = {
   username: string
   isAdmin: boolean
   preferredLocale: string | null
+  email: string | null
 }
 export async function getCurrentUser(): Promise<UserProfile | null> {
   const token = getStoredToken()
@@ -187,6 +188,11 @@ export const updatePreferredLocale = (preferredLocale: string | null) =>
   fetchApi<{ preferredLocale: string | null }>('/auth/me/locale', {
     method: 'PATCH',
     body: JSON.stringify({ preferredLocale }),
+  })
+export const updateEmail = (email: string | null) =>
+  fetchApi<{ email: string | null }>('/auth/me/email', {
+    method: 'PATCH',
+    body: JSON.stringify({ email }),
   })
 
 export const logoutUser = () => fetchApi<void>('/auth/logout', { method: 'POST' })

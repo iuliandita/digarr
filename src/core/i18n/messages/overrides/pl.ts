@@ -214,6 +214,7 @@ export const plOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Nie uwierzytelniono',
   'errors.auth.passwordIncorrect': 'Bieżące hasło jest nieprawidłowe',
   'errors.auth.usernameTaken': 'Nazwa użytkownika jest już zajęta',
+  'errors.auth.emailTaken': 'E-mail już używany',
   'errors.target.notFound': 'Nie znaleziono celu',
   'errors.pipeline.alreadyRunning': 'Uruchomienie pipeline już trwa',
   'errors.recommendation.notFound': 'Nie znaleziono rekomendacji',

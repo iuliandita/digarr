@@ -42,6 +42,11 @@ order is:
 2. Match by `email` claim when auto-link is explicitly trusted (see below).
 3. Fall through and auto-create a new local user.
 
+Step 2 only matches a local account that already has an email stored. Set
+one under **Settings -> Account -> Email** before the first OIDC sign-in so
+the IdP identity links to your existing account instead of creating a new
+one. Emails are unique per user.
+
 To enable step 2, set:
 
     OIDC_TRUST_EMAIL_VERIFIED=true
@@ -61,6 +66,11 @@ an arbitrary email and take over the matching local account.
 When the gate is closed and the OIDC subject is new, Digarr auto-creates a
 new local user instead of linking. Operators can still link manually by
 editing the `oidcSubject` column on the existing user row.
+
+> Previously, linking an OIDC identity to a pre-existing local account
+> required setting that account's email directly in the database. The
+> **Settings -> Account -> Email** field now covers that case without DB
+> access.
 
 ### OIDC preferred_username sanitization
 

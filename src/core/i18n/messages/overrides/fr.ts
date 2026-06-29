@@ -236,6 +236,7 @@ export const frOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Non authentifié',
   'errors.auth.passwordIncorrect': 'Le mot de passe actuel est incorrect',
   'errors.auth.usernameTaken': "Nom d'utilisateur déjà pris",
+  'errors.auth.emailTaken': 'E-mail déjà utilisé',
   'errors.target.notFound': 'Destination introuvable',
   'errors.pipeline.alreadyRunning': 'Une exécution du pipeline est déjà en cours',
   'errors.recommendation.notFound': 'Recommandation introuvable',

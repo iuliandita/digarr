@@ -185,7 +185,7 @@ export async function updateUserConnections(
 export async function updateUser(
   db: Database,
   id: number,
-  data: { isAdmin?: boolean; email?: string; oidcSubject?: string; authProvider?: string },
+  data: { isAdmin?: boolean; email?: string | null; oidcSubject?: string; authProvider?: string },
 ): Promise<void> {
   await db.update(users).set(data).where(eq(users.id, id))
 }

@@ -206,6 +206,7 @@ export const jaOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': '認証されていません',
   'errors.auth.passwordIncorrect': '現在のパスワードが正しくありません',
   'errors.auth.usernameTaken': 'そのユーザー名はすでに使われています',
+  'errors.auth.emailTaken': 'メールアドレスは既に使用されています',
   'errors.target.notFound': 'ターゲットが見つかりません',
   'errors.pipeline.alreadyRunning': 'パイプラインの実行はすでに進行中です',
   'errors.recommendation.notFound': 'おすすめが見つかりません',
