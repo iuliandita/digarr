@@ -17,8 +17,12 @@ services:
         required: false
     environment:
       - PORT=3000
-      # No DATABASE_URL / DB_HOST -> the app uses embedded PGlite at DB_PATH.
       - DB_PATH=/app/data
+      # Force embedded PGlite even if a populated .env (reused from the Postgres
+      # base) carries a DSN: empty values here override env_file and are falsy,
+      # so the backend resolver always picks pglite for this stack.
+      - DATABASE_URL=
+      - DB_HOST=
     ports:
       - "${PORT:-3000}:3000"
     healthcheck:
