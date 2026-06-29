@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { selectPopularReleaseGroups } from '@/core/albums/popular'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
@@ -388,6 +388,32 @@ async function buildAddOptions(
 export function recommendationRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
+  // Missing and non-owned both 404 (don't leak ownership); on failure returns the Response to return as-is.
+  const loadOwnedRecommendation = async (
+    c: Context<HonoEnv>,
+    id: number,
+  ): Promise<
+    | {
+        rec: NonNullable<Awaited<ReturnType<AppDependencies['getRecommendation']>>>
+        userId?: number
+      }
+    | Response
+  > => {
+    const rec = await deps.getRecommendation(id)
+    const userId = c.get('userId')
+    if (!rec || !isOwned(rec, userId))
+      return problem(
+        c,
+        'recommendation-not-found',
+        'Recommendation not found',
+        404,
+        undefined,
+        undefined,
+        'errors.recommendation.notFound',
+      )
+    return { rec, userId }
+  }
+
   router.get('/api/v1/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
     const userId = c.get('userId')
     const query = c.req.valid('query')
@@ -428,29 +454,9 @@ export function recommendationRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
-    const rec = await deps.getRecommendation(id)
-    if (!rec)
-      return problem(
-        c,
-        'recommendation-not-found',
-        'Recommendation not found',
-        404,
-        undefined,
-        undefined,
-        'errors.recommendation.notFound',
-      )
-    const userId = c.get('userId')
-    if (!isOwned(rec, userId))
-      return problem(
-        c,
-        'recommendation-not-found',
-        'Recommendation not found',
-        404,
-        undefined,
-        undefined,
-        'errors.recommendation.notFound',
-      )
-    return c.json(rec)
+    const loaded = await loadOwnedRecommendation(c, id)
+    if (loaded instanceof Response) return loaded
+    return c.json(loaded.rec)
   })
 
   router.patch(
@@ -475,28 +481,9 @@ export function recommendationRoutes(deps: AppDependencies) {
       const approvalMode: ApprovalMode = rawApprovalMode ?? 'single_target'
 
       if (status === 'approved') {
-        const rec = await deps.getRecommendation(id)
-        if (!rec)
-          return problem(
-            c,
-            'recommendation-not-found',
-            'Recommendation not found',
-            404,
-            undefined,
-            undefined,
-            'errors.recommendation.notFound',
-          )
-        const userId = c.get('userId')
-        if (!isOwned(rec, userId))
-          return problem(
-            c,
-            'recommendation-not-found',
-            'Recommendation not found',
-            404,
-            undefined,
-            undefined,
-            'errors.recommendation.notFound',
-          )
+        const loaded = await loadOwnedRecommendation(c, id)
+        if (loaded instanceof Response) return loaded
+        const { rec, userId } = loaded
 
         const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
         const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
@@ -630,28 +617,9 @@ export function recommendationRoutes(deps: AppDependencies) {
         })
       }
 
-      const rec = await deps.getRecommendation(id)
-      if (!rec)
-        return problem(
-          c,
-          'recommendation-not-found',
-          'Recommendation not found',
-          404,
-          undefined,
-          undefined,
-          'errors.recommendation.notFound',
-        )
-      const userId = c.get('userId')
-      if (!isOwned(rec, userId))
-        return problem(
-          c,
-          'recommendation-not-found',
-          'Recommendation not found',
-          404,
-          undefined,
-          undefined,
-          'errors.recommendation.notFound',
-        )
+      const loaded = await loadOwnedRecommendation(c, id)
+      if (loaded instanceof Response) return loaded
+      const { userId } = loaded
 
       if (status === 'rejected') {
         const validated = rejectStatusSchema.safeParse(body)
