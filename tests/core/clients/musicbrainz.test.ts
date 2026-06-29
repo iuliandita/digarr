@@ -20,13 +20,10 @@ vi.stubGlobal('fetch', mockFetch)
 // function immediately (no queuing/delay).
 vi.mock('p-queue', () => {
   const mockAdd = vi.fn((fn: () => unknown) => fn())
-  class PQueue {
-    add = mockAdd
-    static _mockAdd = mockAdd
-  }
-  const MockPQueue = vi.fn().mockImplementation(function (this: PQueue) {
+  const MockPQueue = vi.fn().mockImplementation(function (this: { add: typeof mockAdd }) {
     this.add = mockAdd
   })
+  ;(MockPQueue as unknown as { mockAdd: typeof mockAdd }).mockAdd = mockAdd
   return { default: MockPQueue }
 })
 
@@ -119,13 +116,23 @@ describe('parseYear', () => {
 
 describe('createMusicBrainzClient', () => {
   describe('p-queue rate limiter configuration', () => {
-    it('creates PQueue with concurrency:1, interval:1000, intervalCap:1', () => {
-      createMusicBrainzClient()
-      expect(PQueue).toHaveBeenCalledWith({
+    it('creates a shared PQueue with concurrency:1, interval:1000, intervalCap:1', async () => {
+      vi.resetModules()
+      const { default: FreshPQueue } = await import('p-queue')
+      await import('@/core/clients/musicbrainz')
+      expect(FreshPQueue).toHaveBeenCalledWith({
         concurrency: 1,
         interval: 1000,
         intervalCap: 1,
       })
+    })
+
+    it('shares one queue across all clients instead of one per client', () => {
+      // Queue is constructed once at module load; creating clients must not
+      // construct new queues (else concurrent runs exceed MB's 1 req/s ceiling).
+      createMusicBrainzClient()
+      createMusicBrainzClient()
+      expect(PQueue).not.toHaveBeenCalled()
     })
   })
 
@@ -363,28 +370,27 @@ describe('createMusicBrainzClient', () => {
   })
 
   describe('rate limiter - queue integration', () => {
-    it('routes lookupArtist through the p-queue', async () => {
+    const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
+
+    it('routes lookupArtist through the shared queue', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
       const client = createMusicBrainzClient()
-      const instance = vi.mocked(PQueue).mock.results[0]?.value as { add: ReturnType<typeof vi.fn> }
       await client.lookupArtist(MOCK_ARTIST_MBID)
-      expect(instance.add).toHaveBeenCalledOnce()
+      expect(sharedAdd).toHaveBeenCalledOnce()
     })
 
-    it('routes searchArtist through the p-queue', async () => {
+    it('routes searchArtist through the shared queue', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_SEARCH_RESPONSE))
       const client = createMusicBrainzClient()
-      const instance = vi.mocked(PQueue).mock.results[0]?.value as { add: ReturnType<typeof vi.fn> }
       await client.searchArtist('Radiohead')
-      expect(instance.add).toHaveBeenCalledOnce()
+      expect(sharedAdd).toHaveBeenCalledOnce()
     })
 
-    it('routes getReleaseGroups through the p-queue', async () => {
+    it('routes getReleaseGroups through the shared queue', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
       const client = createMusicBrainzClient()
-      const instance = vi.mocked(PQueue).mock.results[0]?.value as { add: ReturnType<typeof vi.fn> }
       await client.getReleaseGroups(MOCK_ARTIST_MBID)
-      expect(instance.add).toHaveBeenCalledOnce()
+      expect(sharedAdd).toHaveBeenCalledOnce()
     })
   })
 

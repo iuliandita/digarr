@@ -115,8 +115,13 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+// Single shared rate gate. MusicBrainz enforces ~1 req/s per consumer; every
+// subsystem (pipeline, library sync, discovery modes, routes) funnels through
+// this one queue so concurrent runs can't sum past the ceiling and trigger 503s.
+const sharedQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
+
 export function createMusicBrainzClient() {
-  const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
+  const queue = sharedQueue
 
   async function fetchOnce(path: string): Promise<Response> {
     const controller = new AbortController()
