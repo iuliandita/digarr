@@ -18,9 +18,10 @@ Container Manager supports compose projects natively. Use it if you want a no-SS
 2. Set the project name to `digarr`
 3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
 4. Paste the contents of the [docker-compose.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml)
-5. Create two files in the project folder before starting:
-   - `secrets/postgres_password` containing only the database password
-   - `secrets/database_url` containing `postgres://digarr:YOUR_PASSWORD@postgres:5432/digarr`
+5. Create one file in the project folder before starting:
+   - `secrets/postgres_password` containing only the database password (both
+     the app and PostgreSQL read this single file, so there is nothing to keep
+     in sync)
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
@@ -33,10 +34,8 @@ curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
 printf '%s\n' 'change-this-password' > secrets/postgres_password
-printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
 vi secrets/postgres_password
-vi secrets/database_url
 sudo docker compose up -d
 ```
 
@@ -75,15 +74,13 @@ sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/do
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 sudo mkdir -p secrets
 printf '%s\n' 'change-this-password' | sudo tee secrets/postgres_password > /dev/null
-printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' | sudo tee secrets/database_url > /dev/null
 sudo cp .env.example .env
 ```
 
-Edit both secret files with the same real password:
+Edit the secret file with a real password:
 
 ```sh
 sudo vi secrets/postgres_password
-sudo vi secrets/database_url
 ```
 
 Start both containers:

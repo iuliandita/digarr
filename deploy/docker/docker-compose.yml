@@ -6,8 +6,6 @@
 secrets:
   postgres_password:
     file: ./secrets/postgres_password
-  database_url:
-    file: ./secrets/database_url
 
 networks:
   frontend:
@@ -33,9 +31,14 @@ services:
         required: false
     environment:
       - PORT=3000
-      - DATABASE_URL_FILE=/run/secrets/database_url
+      # The app assembles DATABASE_URL from these parts and the password file,
+      # so the DB password lives in exactly one place: secrets/postgres_password.
+      - DB_HOST=postgres
+      - DB_USER=${DB_USER:-digarr}
+      - DB_NAME=${DB_NAME:-digarr}
+      - DB_PASS_FILE=/run/secrets/postgres_password
     secrets:
-      - database_url
+      - postgres_password
     ports:
       - "${PORT:-3000}:3000"
     depends_on:

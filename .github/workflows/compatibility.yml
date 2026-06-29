@@ -30,7 +30,6 @@ jobs:
         run: |
           cp deploy/docker/.env.example deploy/docker/.env
           printf '%s\n' 'testpass123' > deploy/docker/secrets/postgres_password
-          printf '%s\n' 'postgres://digarr:testpass123@postgres:5432/digarr' > deploy/docker/secrets/database_url
 
       - name: Start services
         working-directory: deploy/docker
@@ -85,7 +84,6 @@ jobs:
         run: |
           cp deploy/docker/.env.example deploy/docker/.env
           printf '%s\n' 'testpass123' > deploy/docker/secrets/postgres_password
-          printf '%s\n' 'postgres://digarr:testpass123@postgres:5432/digarr' > deploy/docker/secrets/database_url
 
       - name: Start services
         if: steps.docker.outputs.ready == 'true'
