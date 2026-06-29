@@ -34,6 +34,7 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
+    {{- if eq .Values.database.backend "postgres" }}
     # In-cluster Postgres (bundled or external in same namespace)
     - to:
         - podSelector:
@@ -43,6 +44,7 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
+    {{- end }}
     # External HTTP/HTTPS to public internet only -- excludes RFC1918/link-local/ULA
     - to:
         - ipBlock:
@@ -62,7 +64,7 @@ spec:
         - protocol: TCP
           port: 80
 {{- end }}
-{{- if and .Values.networkPolicy.enabled .Values.postgresql.enabled }}
+{{- if and .Values.networkPolicy.enabled (eq .Values.database.backend "postgres") .Values.postgresql.enabled }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

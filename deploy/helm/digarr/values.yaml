@@ -139,11 +139,19 @@ readinessProbe:
 # ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
-# Option 1: Bundled PostgreSQL (postgresql.enabled = true)
+# Three modes, selected by database.backend:
+#
+# Mode 1: Embedded PGlite (database.backend = "pglite")
+#   No separate database. The app stores data in a single file under
+#   database.pglite.path on a dedicated PVC. Single-writer: the chart
+#   forces strategy=Recreate and requires replicaCount=1. No password
+#   needed. Skips the bundled Postgres entirely.
+#
+# Mode 2: Bundled PostgreSQL (database.backend = "postgres", postgresql.enabled = true)
 #   Uses the official postgres:17-alpine image as a StatefulSet.
 #   You MUST set postgresql.auth.password -- there is no default.
 #
-# Option 2: External database (postgresql.enabled = false)
+# Mode 3: External PostgreSQL (database.backend = "postgres", postgresql.enabled = false)
 #   Point database.host at your own PostgreSQL instance, cloud RDS,
 #   CNPG cluster, etc. Or supply a pre-created Secret via
 #   database.existingSecret with a DATABASE_URL key.
@@ -175,8 +183,10 @@ postgresql:
       memory: 256Mi
       ephemeral-storage: 1Gi
 
-# External database -- used when postgresql.enabled is false
+# Database backend selection and external-database settings
 database:
+  # backend: "postgres" (default; bundled or external PG) or "pglite" (embedded, no separate DB)
+  backend: postgres
   host: ""
   port: 5432
   name: digarr
@@ -184,6 +194,14 @@ database:
   password: ""
   # Name of an existing Secret with key DATABASE_URL
   existingSecret: ""
+  # Embedded PGlite (used only when backend=pglite). Requires a PVC for the data file.
+  pglite:
+    path: /app/data
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: ""
+      accessMode: ReadWriteOnce
 
 # ---------------------------------------------------------------------------
 # Optional Namespace with Pod Security Admission labels

@@ -1,0 +1,19 @@
+{{- if and (eq .Values.database.backend "pglite") .Values.database.pglite.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "digarr.fullname" . }}-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "digarr.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  accessModes:
+    - {{ .Values.database.pglite.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.database.pglite.persistence.size }}
+  {{- with .Values.database.pglite.persistence.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+{{- end }}

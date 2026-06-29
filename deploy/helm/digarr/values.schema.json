@@ -162,14 +162,34 @@
     "database": {
       "type": "object",
       "properties": {
+        "backend": {
+          "type": "string",
+          "enum": ["postgres", "pglite"]
+        },
         "host": { "type": "string" },
         "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
         "name": { "type": "string", "minLength": 1 },
         "user": { "type": "string", "minLength": 1 },
         "password": { "type": "string" },
-        "existingSecret": { "type": "string" }
+        "existingSecret": { "type": "string" },
+        "pglite": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "size": { "type": "string", "minLength": 1 },
+                "storageClass": { "type": "string" },
+                "accessMode": { "type": "string", "minLength": 1 }
+              },
+              "required": ["enabled"]
+            }
+          }
+        }
       },
-      "required": ["port", "name", "user", "password", "existingSecret"]
+      "required": ["port", "name", "user", "existingSecret"]
     },
     "namespace": {
       "type": "object",
@@ -226,6 +246,11 @@
     {
       "if": {
         "properties": {
+          "database": {
+            "properties": {
+              "backend": { "const": "postgres" }
+            }
+          },
           "postgresql": {
             "properties": {
               "enabled": { "const": false }
