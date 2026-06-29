@@ -51,6 +51,7 @@ type RecommendationCardProps = {
   isSelected?: boolean
   expanded?: boolean
   onRetry?: (id: number) => void
+  onRetryFailed?: (id: number, failedTargetIds: string[]) => void
   bulkMode?: boolean
   isChecked?: boolean
   onToggleSelect?: (id: number) => void
@@ -127,15 +128,20 @@ function StatusBadge({
   lidarrError,
   targetActions,
   onRetry,
+  onRetryFailed,
   id,
 }: {
   status: string
   lidarrError: string | null
   targetActions?: Record<string, { status?: string; error?: string } | null> | null
   onRetry?: (id: number) => void
+  onRetryFailed?: (id: number, failedTargetIds: string[]) => void
   id: number
 }) {
   const { t } = useI18n()
+  const failedTargetIds = Object.entries(targetActions ?? {})
+    .filter(([, action]) => action?.status === 'failed')
+    .map(([targetId]) => targetId)
   const failedTargetError = Object.values(targetActions ?? {}).find(
     (action) =>
       action?.status === 'failed' && typeof action.error === 'string' && action.error.length > 0,
@@ -158,6 +164,15 @@ function StatusBadge({
           <span className="text-xs text-muted truncate max-w-[200px]" title={failedTargetError}>
             {failedTargetError}
           </span>
+        )}
+        {onRetryFailed && failedTargetIds.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onRetryFailed(id, failedTargetIds)}
+            className="text-xs text-accent underline"
+          >
+            {t('recommendation.retryFailed')}
+          </button>
         )}
       </div>
     )
@@ -555,6 +570,7 @@ export function RecommendationCard({
   isSelected = false,
   expanded = false,
   onRetry,
+  onRetryFailed,
   bulkMode = false,
   isChecked = false,
   onToggleSelect,
@@ -797,6 +813,7 @@ export function RecommendationCard({
               lidarrError={rec.lidarrError}
               targetActions={rec.targetActions}
               onRetry={onRetry}
+              onRetryFailed={onRetryFailed}
               id={rec.id}
             />
           )}
@@ -955,6 +972,7 @@ export function RecommendationCard({
                 lidarrError={rec.lidarrError}
                 targetActions={rec.targetActions}
                 onRetry={onRetry}
+                onRetryFailed={onRetryFailed}
                 id={rec.id}
               />
             )}

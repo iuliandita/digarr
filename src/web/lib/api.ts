@@ -229,8 +229,23 @@ export const getRecommendations = (params?: Record<string, string>) => {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
   return fetchApi<{ items: unknown[]; total: number }>(`/recommendations${qs}`)
 }
+export type ApprovalTargetSummary = {
+  total: number
+  succeeded: number
+  failed: number
+  failures: Array<{ id: string; name: string; error?: string | null }>
+}
+export type ApprovalResponse = {
+  status: string
+  targetActions?: Record<string, unknown>
+  targetSummary?: ApprovalTargetSummary
+  lidarrError?: string | null
+}
 export const updateRecommendation = (id: number, body: Record<string, unknown>) =>
-  fetchApi(`/recommendations/${id}`, { method: 'PATCH', body: JSON.stringify(body) })
+  fetchApi<ApprovalResponse>(`/recommendations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
 export const approveRecommendation = (
   id: number,
   options?: {
@@ -650,7 +665,7 @@ export async function approveToTarget(
     metadataProfileId?: number
     rootFolderId?: number
   },
-): Promise<{ status: string; targetActions?: Record<string, unknown> }> {
+): Promise<ApprovalResponse> {
   return fetchApi(`/recommendations/${recId}`, {
     method: 'PATCH',
     body: JSON.stringify({
