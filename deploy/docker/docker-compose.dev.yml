@@ -1,11 +1,9 @@
-# Dev override -- additive layer on top of docker-compose.yml.
+# Dev override -- additive layer (build from source). Layer on either base:
+#   Postgres:  docker compose -f docker-compose.yml         -f docker-compose.dev.yml up
+#   PGlite:    docker compose -f docker-compose.pglite.yml  -f docker-compose.dev.yml up
 # Only keys that differ from production live here.
 #
-# Usage:
-#   docker compose -f deploy/docker/docker-compose.yml \
-#                  -f deploy/docker/docker-compose.dev.yml up
-#
-# Prerequisites (one-time):
+# Prerequisites for the Postgres base (one-time):
 #   cp deploy/docker/secrets/postgres_password.example deploy/docker/secrets/postgres_password
 
 services:
