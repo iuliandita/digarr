@@ -103,11 +103,23 @@ export function shouldDropAlbumCandidate(
   )
 }
 
+interface QueuedRun {
+  userId: number | undefined
+  deps: PipelineDeps
+  enqueuedAt: Date
+}
+
+export type EnqueueResult = {
+  status: 'started' | 'queued' | 'duplicate'
+  position: number
+}
+
 export class PipelineOrchestrator extends EventEmitter {
   private running = false
   private currentStage: string | null = null
   private currentMessage: string | null = null
   private _currentUserId: number | undefined = undefined
+  private queue: QueuedRun[] = []
 
   override emit(eventName: string | symbol, ...args: unknown[]): boolean {
     if (eventName === 'progress') {
@@ -560,11 +572,51 @@ export class PipelineOrchestrator extends EventEmitter {
       this.running = false
       // Drop the userId so subsequent non-pipeline emits don't inherit a stale owner
       this._currentUserId = undefined
+      this.drainQueue()
     }
+  }
+
+  /**
+   * Start a run now, or queue it FIFO behind the in-flight one. Single-flight is
+   * preserved (one pipeline at a time, shared API/RAM budgets); a busy caller is
+   * parked instead of rejected. Deduped per userId so a double-click doesn't
+   * stack two runs.
+   */
+  enqueue(deps: PipelineDeps): EnqueueResult {
+    if (!this.running) {
+      this.startRun(deps)
+      return { status: 'started', position: 0 }
+    }
+    if (this._currentUserId === deps.userId) return { status: 'duplicate', position: 0 }
+    const existing = this.queue.findIndex((q) => q.userId === deps.userId)
+    if (existing >= 0) return { status: 'duplicate', position: existing + 1 }
+    this.queue.push({ userId: deps.userId, deps, enqueuedAt: new Date() })
+    return { status: 'queued', position: this.queue.length }
+  }
+
+  private startRun(deps: PipelineDeps): void {
+    this.run(deps).catch((err: unknown) => {
+      console.error('[orchestrator] queued run failed:', err)
+    })
+  }
+
+  private drainQueue(): void {
+    const next = this.queue.shift()
+    if (next) this.startRun(next.deps)
   }
 
   get isRunning(): boolean {
     return this.running
+  }
+
+  get queueLength(): number {
+    return this.queue.length
+  }
+
+  /** 1-based position of userId in the queue; 0 if running or not queued. */
+  queuePositionFor(userId: number | undefined): number {
+    const i = this.queue.findIndex((q) => q.userId === userId)
+    return i >= 0 ? i + 1 : 0
   }
 
   get stage(): string | null {

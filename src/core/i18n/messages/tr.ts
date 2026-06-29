@@ -305,6 +305,7 @@ export const tr = {
   'discover.retryFailed': 'Yeniden deneme başarısız oldu',
   'discover.scanAlreadyRunning': 'Tarama zaten çalışıyor',
   'discover.scanStarted': 'Tarama başlatıldı - ilerleme için Panoyu kontrol edin',
+  'discover.scanQueued': 'Tarama siraya alindi (sira {0}) - mevcut calisma bitince baslayacak',
   'discover.scanStartFailed': 'Tarama başlatılamadı',
   'discover.select': 'Seç',
   'discover.shortcutsLabel': 'Kısayollar:',

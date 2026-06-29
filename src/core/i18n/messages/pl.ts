@@ -307,6 +307,8 @@ export const pl = {
   'discover.retryFailed': 'Ponowna próba nie powiodła się',
   'discover.scanAlreadyRunning': 'Skanowanie już trwa',
   'discover.scanStarted': 'Skanowanie uruchomione - sprawdź Panel, aby zobaczyć postęp',
+  'discover.scanQueued':
+    'Skanowanie w kolejce (pozycja {0}) - rozpocznie sie po zakonczeniu biezacego',
   'discover.scanStartFailed': 'Nie udało się rozpocząć skanowania',
   'discover.select': 'Wybierz',
   'discover.shortcutsLabel': 'Skróty:',

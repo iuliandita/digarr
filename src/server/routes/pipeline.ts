@@ -40,22 +40,10 @@ export function pipelineRoutes(deps: AppDependencies) {
 
   // Intentionally NOT admin-gated: "Run Scan" is a core regular-user action,
   // reachable from the dashboard (TodaysPick) and discover surfaces. Any
-  // authenticated user may start a run; concurrency is bounded by the
-  // orchestrator.isRunning singleton (a second run returns 409), so the blast
-  // radius is one in-flight pipeline regardless of caller. See plan 008 Part C.
+  // authenticated user may start a run; single-flight is preserved by the
+  // orchestrator, so the blast radius is one in-flight pipeline regardless of
+  // caller. A run requested while one is in progress is queued, not rejected.
   router.post('/api/v1/pipeline/run', async (c) => {
-    if (deps.orchestrator.isRunning) {
-      return problem(
-        c,
-        'pipeline-already-running',
-        'A pipeline run is already in progress',
-        409,
-        undefined,
-        undefined,
-        'errors.pipeline.alreadyRunning',
-      )
-    }
-
     const settings = await deps.getSettings()
     if (!settings) {
       return c.json({ error: 'Settings not found' }, 400)
@@ -110,26 +98,30 @@ export function pipelineRoutes(deps: AppDependencies) {
         : undefined,
     }
 
-    // Fire-and-forget
-    deps.orchestrator
-      .run({
-        db: deps.storeDb,
-        settings: { ...settings, preferences: userPreferences, spotifyAccessToken },
-        userId,
-        providerRegistry: deps.providerRegistry,
-        userConnections,
-        autoApproveDeps,
-        librarySync: deps.librarySync,
-        jobRecorder: deps.jobRecorder,
-        trigger: 'manual',
-        responseLocale,
-        promptLocale: null,
-      } as unknown as PipelineDeps)
-      .catch((err: unknown) => {
-        console.error('Pipeline run failed:', err)
-      })
+    // Start now, or queue behind the in-flight run (single-flight preserved).
+    const enqueued = deps.orchestrator.enqueue({
+      db: deps.storeDb,
+      settings: { ...settings, preferences: userPreferences, spotifyAccessToken },
+      userId,
+      providerRegistry: deps.providerRegistry,
+      userConnections,
+      autoApproveDeps,
+      librarySync: deps.librarySync,
+      jobRecorder: deps.jobRecorder,
+      trigger: 'manual',
+      responseLocale,
+      promptLocale: null,
+    } as unknown as PipelineDeps)
 
-    return c.json({ message: 'Pipeline started' }, 202)
+    const queued = enqueued.status !== 'started'
+    return c.json(
+      {
+        message: queued ? 'Pipeline queued' : 'Pipeline started',
+        queued,
+        position: enqueued.position,
+      },
+      202,
+    )
   })
 
   router.post('/api/v1/discovery-modes/run', zJson(discoveryModeRunSchema), async (c) => {
@@ -187,10 +179,13 @@ export function pipelineRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/pipeline/status', async (c) => {
     const lastBatch = await deps.getLastBatch()
+    const userId = c.get('userId')
     return c.json({
       running: deps.orchestrator.isRunning,
       stage: deps.orchestrator.stage,
       message: deps.orchestrator.stageMessage,
+      queueLength: deps.orchestrator.queueLength,
+      queuePosition: userId ? deps.orchestrator.queuePositionFor(userId) : 0,
       lastRun: lastBatch
         ? {
             batchId: lastBatch.id,

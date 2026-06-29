@@ -571,7 +571,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 disabled={!!pipelineRunning}
                 onClick={() =>
                   triggerPipeline()
-                    .then(() => toast.success(t('discover.scanStarted')))
+                    .then((res) =>
+                      toast.success(
+                        res.queued
+                          ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                          : t('discover.scanStarted'),
+                      ),
+                    )
                     .catch((err) => {
                       const msg = errMsg(err)
                       toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)

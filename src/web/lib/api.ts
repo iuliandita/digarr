@@ -208,11 +208,19 @@ export const testService = (service: string, config: Record<string, unknown>) =>
 export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { method: 'POST' })
 
 // Pipeline
-export const triggerPipeline = () => fetchApi('/pipeline/run', { method: 'POST' })
+export const triggerPipeline = () =>
+  fetchApi<{ message: string; queued?: boolean; position?: number }>('/pipeline/run', {
+    method: 'POST',
+  })
 export const getPipelineStatus = () =>
-  fetchApi<{ running: boolean; stage?: string; message?: string; lastRun?: unknown }>(
-    '/pipeline/status',
-  )
+  fetchApi<{
+    running: boolean
+    stage?: string
+    message?: string
+    queueLength?: number
+    queuePosition?: number
+    lastRun?: unknown
+  }>('/pipeline/status')
 export const rescanArtists = () =>
   fetchApi<{ updated: number; total: number }>('/pipeline/rescan', { method: 'POST' })
 

@@ -138,17 +138,20 @@ Setup validation rules:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan. Returns 202. |
-| GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run) |
+| POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ queued, position }`. |
+| GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
 | POST | `/api/v1/pipeline/rescan` | Yes | Re-fetch images/metadata for existing recommendations |
 
 `POST /api/v1/pipeline/run` and `/api/v1/pipeline/rescan` are intentionally
 available to any authenticated user (not admin-only): "Run Scan" is a core
-regular-user action on the dashboard and discover screens. Concurrency is
-bounded by a single-flight orchestrator, so a second run while one is active
-returns `409` rather than starting a parallel run.
+regular-user action on the dashboard and discover screens. The orchestrator is
+single-flight (one run at a time, shared API/RAM budgets), but a run requested
+while one is active is **queued FIFO**, not rejected: the response is still 202
+with `queued: true` and the caller's 1-based `position`. A given user is deduped
+(a double-click does not stack two runs). The queue drains automatically when
+the active run finishes. The queue is in-memory and per-process.
 
 **POST /api/v1/pipeline/quick-discover** body:
 ```json

@@ -307,6 +307,8 @@ export const ro = {
   'discover.retryFailed': 'Reîncercarea a eșuat',
   'discover.scanAlreadyRunning': 'Scanarea rulează deja',
   'discover.scanStarted': 'Scanarea a început - verificați Panoul pentru progres',
+  'discover.scanQueued':
+    'Scanare in coada (pozitia {0}) - va incepe dupa ce se termina rularea curenta',
   'discover.scanStartFailed': 'Nu s-a pornit scanarea',
   'discover.select': 'Selectați',
   'discover.shortcutsLabel': 'Scurtături:',

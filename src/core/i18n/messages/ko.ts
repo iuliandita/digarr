@@ -303,6 +303,8 @@ export const ko = {
   'discover.retryFailed': '재시도 실패',
   'discover.scanAlreadyRunning': '스캔이 이미 실행 중입니다',
   'discover.scanStarted': '스캔을 시작했습니다 - 진행 상황은 대시보드에서 확인하세요',
+  'discover.scanQueued':
+    '스캔이 대기열에 추가되었습니다 (순번 {0}) - 현재 실행이 끝나면 시작됩니다',
   'discover.scanStartFailed': '스캔을 시작하지 못했습니다.',
   'discover.select': '선택',
   'discover.shortcutsLabel': '단축키:',

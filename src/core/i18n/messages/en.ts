@@ -319,6 +319,7 @@ export const en = {
   'discover.retryFailed': 'Retry failed',
   'discover.scanAlreadyRunning': 'Scan already running',
   'discover.scanStarted': 'Scan started - check Dashboard for progress',
+  'discover.scanQueued': 'Scan queued (position {0}) - it will start when the current run finishes',
   'discover.scanStartFailed': 'Failed to start scan',
   'discover.select': 'Select',
   'discover.shortcutsLabel': 'Shortcuts:',
