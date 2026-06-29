@@ -7,7 +7,6 @@
 #
 # Prerequisites (one-time):
 #   cp deploy/docker/secrets/postgres_password.example deploy/docker/secrets/postgres_password
-#   cp deploy/docker/secrets/database_url.example      deploy/docker/secrets/database_url
 
 services:
   app:

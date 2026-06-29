@@ -117,10 +117,10 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
+# Set ONE database password -- both Postgres and the app read this single file.
 printf '%s\n' 'change-this-password' > secrets/postgres_password
-printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
-# Edit both secrets files and optionally .env
+# Edit secrets/postgres_password and optionally .env
 docker compose up -d
 ```
 
