@@ -244,6 +244,19 @@ Approval notes:
 - approving a `kind: "album"` recommendation routes to targets with the `addAlbum` capability: it adds the artist **unmonitored** (no whole-discography grab, and reuses the artist if already tracked), then monitors and searches only the approved album. `monitorOption` / `selectedAlbumIds` are ignored for album recs since the album is resolved from `recommendedReleaseGroupId`
 - rejected recommendations may include `reason`, `reasonText`, and `permanent`; `permanent: true` also adds the artist to the caller's blocklist
 
+Approve response (status `approved`):
+```json
+{
+  "status": "added_to_lidarr",
+  "targetActions": { "lidarr-1": { "status": "added", "externalId": 42 } },
+  "targetSummary": { "total": 2, "succeeded": 1, "failed": 1,
+    "failures": [{ "id": "lidarr-2", "name": "Lidarr Backup", "error": "connection refused" }] }
+}
+```
+- Adds are **best-effort per target, not transactional**: a target that fails does not roll back targets that already succeeded (Digarr never deletes an artist from a target that took it).
+- `targetActions` is the full merged map persisted on the rec; `targetSummary` describes only the targets attempted by *this* request, so clients can report partial outcomes at submit time.
+- To retry just the failed targets, re-`PATCH` once per failed `targetId` (this preserves the successful targets' actions and will not regress the rec to `add_failed` if others already succeeded).
+
 ## Artist Blocks
 
 | Method | Path | Auth | Description |

@@ -34,6 +34,7 @@ import {
   triggerPipeline,
   updateRecommendation,
 } from '../lib/api'
+import { reportApprovalOutcome } from '../lib/approval'
 import { useI18n } from '../lib/i18n'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
@@ -705,11 +706,11 @@ export function DiscoverPage() {
       // 'selected' flow - album picker already ran, call API directly
       setActingIds((prev) => new Set([...prev, id]))
       try {
-        await approveRecommendation(id, {
+        const res = await approveRecommendation(id, {
           monitorOption: option,
           selectedAlbumIds,
         })
-        showUndo({ id, prevStatus })
+        if (reportApprovalOutcome(res, t)) showUndo({ id, prevStatus })
         refetch()
       } catch {
         toast.error(t('dashboard.approveFailed'))
@@ -729,15 +730,16 @@ export function DiscoverPage() {
       setActingIds((prev) => new Set([...prev, id]))
       const newStatus = filter === 'rejected' ? 'pending' : 'approved'
       try {
+        let res: Awaited<ReturnType<typeof approveToTarget>>
         if (newStatus === 'approved' && standaloneSlskdTarget) {
           const targetId = `${standaloneSlskdTarget.type}-${standaloneSlskdTarget.id}`
           const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-          await approveToTarget(id, targetId, targetOptions)
+          res = await approveToTarget(id, targetId, targetOptions)
         } else {
-          await updateRecommendation(id, { status: newStatus })
+          res = await updateRecommendation(id, { status: newStatus })
         }
         if (filter !== 'rejected') {
-          showUndo({ id, prevStatus })
+          if (reportApprovalOutcome(res, t)) showUndo({ id, prevStatus })
         } else {
           toast.success(t('discover.restoredToPending'))
         }
@@ -794,6 +796,38 @@ export function DiscoverPage() {
     try {
       await updateRecommendation(id, { status: 'approved' })
       toast.success(t('discover.queuedForRetry'))
+      refetch()
+    } catch {
+      toast.error(t('discover.retryFailed'))
+    } finally {
+      setActingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
+  // Re-approve only the targets that failed, one at a time so each attempt
+  // merges over the prior result instead of racing it.
+  async function handleRetryFailed(id: number, failedTargetIds: string[]) {
+    if (failedTargetIds.length === 0) return
+    setActingIds((prev) => new Set([...prev, id]))
+    try {
+      const stillFailed: string[] = []
+      for (const targetId of failedTargetIds) {
+        const res = await approveToTarget(
+          id,
+          targetId,
+          resolveApprovalTargetOptions(targets, targetId),
+        )
+        stillFailed.push(...(res.targetSummary?.failures ?? []).map((f) => f.name))
+      }
+      if (stillFailed.length === 0) {
+        toast.success(t('discover.retrySucceeded'))
+      } else {
+        toast.error(t('discover.approveAllFailed').replace('{0}', stillFailed.join(', ')))
+      }
       refetch()
     } catch {
       toast.error(t('discover.retryFailed'))
@@ -1267,6 +1301,7 @@ export function DiscoverPage() {
                         isSelected={!bulkMode && selectedId === rec.id}
                         expanded={!bulkMode && isExpanded}
                         onRetry={handleRetry}
+                        onRetryFailed={handleRetryFailed}
                         bulkMode={bulkMode}
                         isChecked={checkedIds.has(rec.id)}
                         onToggleSelect={handleToggleSelect}
@@ -1332,6 +1367,7 @@ export function DiscoverPage() {
                       isSelected={!bulkMode && selectedId === rec.id}
                       expanded={!bulkMode && expandedId === rec.id}
                       onRetry={handleRetry}
+                      onRetryFailed={handleRetryFailed}
                       bulkMode={bulkMode}
                       isChecked={checkedIds.has(rec.id)}
                       onToggleSelect={handleToggleSelect}
@@ -1513,16 +1549,17 @@ export function DiscoverPage() {
             setApproveDialogState(null)
             setActingIds((prev) => new Set([...prev, recId]))
             try {
+              let res: Awaited<ReturnType<typeof approveToTarget>>
               if (targetId) {
                 const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-                await approveToTarget(recId, targetId, {
+                res = await approveToTarget(recId, targetId, {
                   ...overrides,
                   ...targetOptions,
                 })
               } else {
-                await approveRecommendation(recId, overrides)
+                res = await approveRecommendation(recId, overrides)
               }
-              toast.success(t('dashboard.addedToLidarr'))
+              if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               refetch()
             } catch {
               toast.error(t('dashboard.addToLidarrFailed'))

@@ -29,6 +29,54 @@ type ApproveResult = {
   lidarrError?: string
 }
 
+type TargetActionRecord = { status?: string; error?: string } | null
+
+type TargetSummary = {
+  total: number
+  succeeded: number
+  failed: number
+  failures: Array<{ id: string; name: string; error?: string }>
+}
+
+const isTargetSuccess = (action: TargetActionRecord): boolean =>
+  action?.status === 'added' || action?.status === 'queued'
+
+/** Per-target outcome of a single approve attempt, for submit-time UI surfacing. */
+function summarizeTargetActions(
+  targetActions: Record<string, unknown>,
+  targetsById: Map<string, { name: string }>,
+): TargetSummary {
+  const entries = Object.entries(targetActions) as [string, TargetActionRecord][]
+  const failures: TargetSummary['failures'] = []
+  let succeeded = 0
+  for (const [id, action] of entries) {
+    if (isTargetSuccess(action)) {
+      succeeded++
+    } else {
+      failures.push({ id, name: targetsById.get(id)?.name ?? id, error: action?.error })
+    }
+  }
+  return { total: entries.length, succeeded, failed: failures.length, failures }
+}
+
+/**
+ * Derive the persisted recommendation status from the full merged target map
+ * (prior attempts plus this one), so retrying one failed target never regresses
+ * a rec whose other targets already succeeded.
+ */
+function deriveStatusFromActions(
+  mergedActions: Record<string, unknown>,
+  lidarrArtistId: number | string | undefined,
+): string {
+  const entries = Object.entries(mergedActions) as [string, TargetActionRecord][]
+  const anyLidarrAdded = entries.some(
+    ([id, a]) => id.startsWith('lidarr-') && a?.status === 'added',
+  )
+  const anySuccess = entries.some(([, a]) => isTargetSuccess(a))
+  if (anyLidarrAdded || lidarrArtistId) return 'added_to_lidarr'
+  return anySuccess ? 'approved' : 'add_failed'
+}
+
 type ApprovalMode = 'single_target' | 'combined_lidarr_slskd'
 type MonitorOption = 'all' | 'new' | 'none' | 'selected' | 'popular'
 type TargetActionStatus = 'added' | 'queued' | 'failed'
@@ -605,14 +653,30 @@ export function recommendationRoutes(deps: AppDependencies) {
                   id,
                 )
 
-        const extra: Record<string, unknown> = { targetActions: result.targetActions }
-        if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
+        // Merge this attempt over any prior target actions so a single-target
+        // retry preserves the outcomes of targets that already succeeded.
+        const priorActions = (rec.targetActions as Record<string, unknown> | null) ?? {}
+        const mergedActions = { ...priorActions, ...result.targetActions }
+        const lidarrArtistId = result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined
+        // Only re-derive across the merged map when retrying a rec that already
+        // had outcomes; a first approve keeps this attempt's own status (which
+        // also covers the no-actionable-targets "approved" special case).
+        const finalStatus =
+          Object.keys(priorActions).length > 0
+            ? deriveStatusFromActions(mergedActions, lidarrArtistId)
+            : result.status
+
+        const extra: Record<string, unknown> = { targetActions: mergedActions }
+        if (lidarrArtistId) extra.lidarrArtistId = lidarrArtistId
         if (result.lidarrError) extra.lidarrError = result.lidarrError
 
-        await deps.updateRecommendationStatus(id, result.status, extra)
+        await deps.updateRecommendationStatus(id, finalStatus, extra)
+
+        const targetsById = new Map(targets.map((target) => [target.id, target]))
         return c.json({
-          status: result.status,
-          targetActions: result.targetActions,
+          status: finalStatus,
+          targetActions: mergedActions,
+          targetSummary: summarizeTargetActions(result.targetActions, targetsById),
           ...(result.lidarrError ? { lidarrError: result.lidarrError } : {}),
         })
       }
