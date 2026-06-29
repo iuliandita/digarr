@@ -213,7 +213,6 @@ async function approveAlbumToTargets(
 
   const targetActions: Record<string, unknown> = {}
   let anySuccess = false
-  let externalId: number | string | undefined
   let lidarrError: string | undefined
 
   for (const target of actionableTargets) {
@@ -274,18 +273,14 @@ async function approveAlbumToTargets(
     }
     if (result.success) {
       anySuccess = true
-      if (target.type === 'lidarr' && externalId == null) externalId = result.externalId
     } else if (target.type === 'lidarr') {
       lidarrError = result.error
     }
   }
 
   const status = anySuccess ? 'added_to_lidarr' : 'add_failed'
-  // Do NOT persist the album external id as lidarrArtistId: for album approvals
-  // `externalId` is the Lidarr ALBUM id, which has wrong semantics for the
-  // recommendations.lidarr_artist_id column. The album id is already retained
-  // in targetActions[target.id], and album status is driven by `anySuccess`.
-  void externalId
+  // lidarrArtistId stays undefined: the album path returns the Lidarr ALBUM id,
+  // wrong semantics for lidarr_artist_id (it's kept in targetActions instead).
   return { status, targetActions, lidarrArtistId: undefined, lidarrError }
 }
 

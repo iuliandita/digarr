@@ -147,6 +147,8 @@ export async function discover(
   const listeningSources = sources.listeningSources ?? []
 
   // For each seed artist, query each configured listening source for similar artists
+  // Aggregate per-source failures so a dead source is logged once, not per seed.
+  const sourceFailures = new Map<string, { count: number; lastError: string }>()
   await Promise.all(
     seedArtists.map(async (artist) => {
       for (const source of listeningSources) {
@@ -160,12 +162,21 @@ export async function discover(
               source: source.id,
             })
           }
-        } catch {
-          // Isolate source failure
+        } catch (err) {
+          const prev = sourceFailures.get(source.id)
+          sourceFailures.set(source.id, {
+            count: (prev?.count ?? 0) + 1,
+            lastError: err instanceof Error ? err.message : String(err),
+          })
         }
       }
     }),
   )
+  for (const [sourceId, { count, lastError }] of sourceFailures) {
+    console.warn(
+      `[discover] source ${sourceId} failed for ${count} seed artist(s); last error: ${lastError}`,
+    )
+  }
 
   // One AI call with the full profile
   if (sources.ai != null) {
@@ -188,8 +199,10 @@ export async function discover(
           source: 'ai',
         })
       }
-    } catch {
-      // Isolate source failure
+    } catch (err) {
+      console.warn(
+        `[discover] AI source failed: ${err instanceof Error ? err.message : String(err)}`,
+      )
     }
   }
 
