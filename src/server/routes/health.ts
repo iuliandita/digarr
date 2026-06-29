@@ -21,7 +21,13 @@ export function healthRoutes(deps: HealthDeps) {
     }
     try {
       await deps.db.execute(sql`SELECT 1`)
-      return c.json({ status: 'ok', version: VERSION, gitSha: GIT_SHA, channel: CHANNEL, dbBackend })
+      return c.json({
+        status: 'ok',
+        version: VERSION,
+        gitSha: GIT_SHA,
+        channel: CHANNEL,
+        dbBackend,
+      })
     } catch (err: unknown) {
       console.error('[health] DB check failed:', errMsg(err))
       return c.json({ status: 'error', db: 'unavailable' }, 503)
