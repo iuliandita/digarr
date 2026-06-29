@@ -5,39 +5,21 @@ Digarr ships an Unraid Community Applications (CA) container template at
 pipeline keeps the image digest in that file pinned to the current release, so
 the template always tracks a verified image.
 
-Digarr **requires an external PostgreSQL database**. The template does not bundle
-one -- point `DATABASE_URL` at an existing Postgres instance, or add a Postgres
-container first (the official `postgres` image is in Community Applications).
+Digarr ships with a **built-in embedded database (PGlite)** -- no separate
+PostgreSQL container is required. New installs run as a single container that
+stores its data in a mapped appdata folder. If you would rather use your own
+PostgreSQL, that stays fully supported via the optional Database URL field (see
+[Advanced: external PostgreSQL](#advanced-external-postgresql)).
 
 ## Prerequisites
 
 - Unraid 6.9+ with the **Community Applications** plugin installed
-- A PostgreSQL 14+ instance reachable from the Digarr container (a `postgres`
-  container on the same Docker network is the simplest option)
 - An AI provider key (Anthropic, OpenAI, Gemini, Ollama, or any
   OpenAI-compatible endpoint) -- can also be set later in the web UI
 
 ---
 
-## Step 1: Set up PostgreSQL
-
-If you do not already run Postgres on Unraid:
-
-1. **Apps** (Community Applications) > search for **postgres** > install the
-   `postgresql` container (use a 14+ tag, e.g. `postgres:17-alpine`).
-2. Set these environment variables on the Postgres container:
-   - `POSTGRES_USER` = `digarr`
-   - `POSTGRES_PASSWORD` = pick a strong password
-   - `POSTGRES_DB` = `digarr`
-3. Map a path for the database data dir (e.g.
-   `/mnt/user/appdata/digarr-db` -> `/var/lib/postgresql/data`) so it persists.
-4. Put both containers on the same Docker network so Digarr can resolve the
-   Postgres container by name. The resulting connection string is
-   `postgresql://digarr:YOUR_PASSWORD@<postgres-container-name>:5432/digarr`.
-
----
-
-## Step 2: Add the Digarr template
+## Step 1: Add the Digarr template
 
 Digarr is not yet published in the Community Applications store (a CA submission
 is pending). Until it lands there, use the bundled template directly -- it is the
@@ -69,7 +51,7 @@ CA search; install it like any other app and fill in the same fields below.
 
 ---
 
-## Step 3: Configure the container
+## Step 2: Configure the container
 
 The template exposes these fields (matching
 [`deploy/unraid/digarr.xml`](../../deploy/unraid/digarr.xml)):
@@ -77,7 +59,9 @@ The template exposes these fields (matching
 | Field | Variable | Required | Notes |
 |-------|----------|----------|-------|
 | Web UI Port | host port -> `3000` | Yes | The web interface; WebUI link opens `http://<server-ip>:<port>` |
-| Database URL | `DATABASE_URL` | Yes | e.g. `postgresql://digarr:pass@host:5432/digarr` |
+| Data | path `/app/data` | Yes | Persistent storage for the embedded database. Default maps `/mnt/user/appdata/digarr/data` -> `/app/data`. Must be writable by the container user (uid 1000) |
+| Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` -- leave it matching the Data mapping |
+| Database URL | `DATABASE_URL` | No (advanced) | Leave empty to use the embedded database. Set only to use an external PostgreSQL, e.g. `postgresql://digarr:pass@host:5432/digarr` (see Advanced section) |
 | Initial Username | `DIGARR_INITIAL_USERNAME` | No | Auto-creates this admin user on first boot |
 | Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Password for the initial admin (min 8 chars) |
 | AI Provider | `AI_PROVIDER` | No | `anthropic`, `openai`, `gemini`, `ollama`, `openai-compatible` (or set in UI) |
@@ -98,29 +82,56 @@ template fields -- add them later under **Settings -> Connections** in the web U
 
 ### Recommended: persistent backups volume
 
-The template ships no path mappings, but Digarr's auto-backup writes to
-`/app/backups` before it applies database migrations (it keeps the last 14
-auto-backups). Add a path mapping in **Add Container** > **Add another
-Path** so those survive container recreation:
+The template maps the `Data` folder (`/app/data`) by default, but Digarr's
+auto-backup writes to a separate `/app/backups` directory before it applies
+database migrations (it keeps the last 14 auto-backups). Add a path mapping in
+**Add Container** > **Add another Path** so those survive container recreation:
 
 - Container path: `/app/backups`
 - Host path: e.g. `/mnt/user/appdata/digarr/backups`
 
-Your library data lives in PostgreSQL, so persisting that database (Step 1) is
-what protects your recommendations and settings across updates; the backups
-volume is the pre-migration safety net.
+With the embedded database, your library data lives in the mapped `/app/data`
+folder, so persisting that mapping is what protects your recommendations and
+settings across updates; the backups volume is the pre-migration safety net.
+(With external PostgreSQL, persisting the Postgres database serves that role
+instead.)
 
 ---
 
-## Step 4: First run
+## Step 3: First run
 
 1. Click **Apply** to create and start the container.
 2. Open the **WebUI** link (or `http://<server-ip>:3000`).
 3. If you set `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD`, log in with
    those; otherwise complete the setup wizard to create the first admin.
-4. Database migrations run automatically on every startup. If Digarr starts
+4. Database migrations run automatically on every startup. With the embedded
+   database this is self-contained; with external PostgreSQL, if Digarr starts
    before Postgres is ready it retries with backoff, so transient startup-order
    races resolve on their own.
+
+---
+
+## Advanced: external PostgreSQL
+
+Skip this section unless you want Digarr to run against your own PostgreSQL
+instead of the embedded database. You will need a PostgreSQL 14+ instance
+reachable from the Digarr container (a `postgres` container on the same Docker
+network is the simplest option).
+
+1. **Apps** (Community Applications) > search for **postgres** > install the
+   `postgresql` container (use a 14+ tag, e.g. `postgres:17-alpine`).
+2. Set these environment variables on the Postgres container:
+   - `POSTGRES_USER` = `digarr`
+   - `POSTGRES_PASSWORD` = pick a strong password
+   - `POSTGRES_DB` = `digarr`
+3. Map a path for the database data dir (e.g.
+   `/mnt/user/appdata/digarr-db` -> `/var/lib/postgresql/data`) so it persists.
+4. Put both containers on the same Docker network so Digarr can resolve the
+   Postgres container by name.
+5. In the Digarr template, set the (advanced) **Database URL** field to
+   `postgresql://digarr:YOUR_PASSWORD@<postgres-container-name>:5432/digarr`.
+   When `DATABASE_URL` is set, Digarr uses PostgreSQL and ignores the embedded
+   database; the `/app/data` mapping is then unused.
 
 ## Updating
 
@@ -136,5 +147,3 @@ moves to the newest release.
 - Behind Unraid's reverse proxy (or an external one such as SWAG/Nginx Proxy
   Manager), set `ALLOWED_ORIGIN` to the public URL.
 - The container runs as a single process and idles at roughly 80 MB of RAM.
-</content>
-</invoke>
