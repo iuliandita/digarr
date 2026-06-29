@@ -115,6 +115,7 @@ describe('discover()', () => {
     }
     const lfm = makeLfm()
     const ai = makeAi()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const results = await discover(profile, { listeningSources: [lb, lfm], ai }, 10)
 
@@ -123,16 +124,24 @@ describe('discover()', () => {
     expect(results.filter((r) => r.source === 'ai').length).toBeGreaterThan(0)
     // But no LB results
     expect(results.filter((r) => r.source === 'listenbrainz').length).toBe(0)
+    // The swallowed failure must be observable, not silent
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('[discover] source listenbrainz failed'),
+    )
+    warn.mockRestore()
   })
 
   it('isolates AI source failure - other sources still return results', async () => {
     const lb = makeLb()
     const ai = { getRecommendations: vi.fn().mockRejectedValue(new Error('AI down')) }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const results = await discover(profile, { listeningSources: [lb], ai }, 10)
 
     expect(results.filter((r) => r.source === 'listenbrainz').length).toBeGreaterThan(0)
     expect(results.filter((r) => r.source === 'ai').length).toBe(0)
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('[discover] AI source failed'))
+    warn.mockRestore()
   })
 
   it('respects topArtistsLimit - skips artists beyond the limit', async () => {
