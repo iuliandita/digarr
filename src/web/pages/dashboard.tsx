@@ -647,7 +647,13 @@ export function Dashboard() {
           onSkip={handleSkip}
           onRunScan={() => {
             triggerPipeline()
-              .then(() => toast.success(t('discover.scanStarted')))
+              .then((res) =>
+                toast.success(
+                  res.queued
+                    ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                    : t('discover.scanStarted'),
+                ),
+              )
               .catch(() => toast.error(t('discover.scanStartFailed')))
           }}
           targets={approveTargets}

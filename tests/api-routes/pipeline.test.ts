@@ -51,7 +51,7 @@ describe('API routes: pipeline', () => {
     expect(body.message).toBeDefined()
   })
 
-  it('returns 409 when pipeline is already running', async () => {
+  it('queues the run (202) when a pipeline is already running', async () => {
     const { app, deps } = createTestApp()
     // Simulate running state
     ;(deps.orchestrator as unknown as Record<string, unknown>).isRunning = true
@@ -60,7 +60,10 @@ describe('API routes: pipeline', () => {
       method: 'POST',
       headers: { Authorization: 'Bearer tok' },
     })
-    expect(runRes.status).toBe(409)
+    expect(runRes.status).toBe(202)
+    const body = await runRes.json()
+    expect(body.queued).toBe(true)
+    expect(body.position).toBe(1)
   })
 
   it('returns pipeline status', async () => {

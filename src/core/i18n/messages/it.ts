@@ -307,6 +307,8 @@ export const it = {
   'discover.retryFailed': 'Nuovo tentativo fallito',
   'discover.scanAlreadyRunning': 'Scansione già in corso',
   'discover.scanStarted': 'Scansione avviata - controlla la Dashboard per i progressi',
+  'discover.scanQueued':
+    'Scansione in coda (posizione {0}) - partira al termine della scansione corrente',
   'discover.scanStartFailed': 'Impossibile avviare la scansione',
   'discover.select': 'Seleziona',
   'discover.shortcutsLabel': 'Scorciatoie:',

@@ -306,6 +306,8 @@ export const ja = {
   'discover.retryFailed': '再試行に失敗しました',
   'discover.scanAlreadyRunning': 'スキャンはすでに実行中です',
   'discover.scanStarted': 'スキャンを開始しました - 進行状況はダッシュボードで確認してください',
+  'discover.scanQueued':
+    'スキャンを順番待ちに追加しました (順番 {0}) - 現在の実行が終わると開始します',
   'discover.scanStartFailed': 'スキャンの開始に失敗しました',
   'discover.select': '選択',
   'discover.shortcutsLabel': 'ショートカット:',

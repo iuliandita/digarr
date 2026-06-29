@@ -307,6 +307,8 @@ export const ptBR = {
   'discover.retryFailed': 'Falha na nova tentativa',
   'discover.scanAlreadyRunning': 'A varredura já está em andamento',
   'discover.scanStarted': 'Varredura iniciada - veja o Painel para acompanhar o progresso',
+  'discover.scanQueued':
+    'Varredura na fila (posicao {0}) - comecara quando a execucao atual terminar',
   'discover.scanStartFailed': 'Falha ao iniciar a verificação',
   'discover.select': 'Selecione',
   'discover.shortcutsLabel': 'Atalhos:',

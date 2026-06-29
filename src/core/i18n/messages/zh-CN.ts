@@ -290,6 +290,7 @@ export const zhCN = {
   'discover.retryFailed': '重试失败',
   'discover.scanAlreadyRunning': '扫描已在运行',
   'discover.scanStarted': '扫描已开始 - 请到仪表盘查看进度',
+  'discover.scanQueued': '扫描已加入队列（位置 {0}）- 当前运行结束后将开始',
   'discover.scanStartFailed': '无法开始扫描',
   'discover.select': '选择',
   'discover.shortcutsLabel': '快捷键：',

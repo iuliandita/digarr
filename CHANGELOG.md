@@ -12,6 +12,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Changed
 
+- **A scan started while another is running is now queued, not rejected.** Digarr runs one discovery pipeline at a time (shared external-API and memory budgets). Previously a "Run Scan" while a run was already in progress was refused outright; on a multi-user instance one person's scan blocked everyone. Now the request is queued behind the active run and starts automatically when it finishes -- the toast reports your position in the queue. Clicking twice does not stack duplicate runs. Pipeline status now also reports queue length and your position. Translated across all 15 shipped locales.
 - **Spotify connect form now shows the Redirect URI to register.** Connecting Spotify requires adding an exact callback URL to your Spotify app, but Digarr previously computed that URL silently and never displayed it -- so it was easy to misconfigure the Spotify app and have the connection fail. The Settings -> Connections -> Spotify form now shows the exact Redirect URI for your instance with a copy button, and the README documents the full create-app -> register-redirect-URI -> paste-credentials flow. Translated across all 15 shipped locales.
 
 ## v1.10.0 - 2026-06-24

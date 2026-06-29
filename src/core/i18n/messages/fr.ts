@@ -307,6 +307,7 @@ export const fr = {
   'discover.retryFailed': 'La nouvelle tentative a échoué',
   'discover.scanAlreadyRunning': 'Le scan est déjà en cours',
   'discover.scanStarted': 'Scan lance - vérifiez le tableau de bord pour la progression',
+  'discover.scanQueued': 'Scan en attente (position {0}) - demarrera a la fin du scan en cours',
   'discover.scanStartFailed': "Échec du démarrage de l'analyse",
   'discover.select': 'Sélectionner',
   'discover.shortcutsLabel': 'Raccourcis :',

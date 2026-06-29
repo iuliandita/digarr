@@ -307,6 +307,7 @@ export const nl = {
   'discover.retryFailed': 'Opnieuw proberen mislukt',
   'discover.scanAlreadyRunning': 'Scan wordt al uitgevoerd',
   'discover.scanStarted': 'Scan gestart - bekijk het Dashboard voor de voortgang',
+  'discover.scanQueued': 'Scan in wachtrij (positie {0}) - start zodra de huidige run klaar is',
   'discover.scanStartFailed': 'Kan het scannen niet starten',
   'discover.select': 'Selecteer',
   'discover.shortcutsLabel': 'Sneltoetsen:',

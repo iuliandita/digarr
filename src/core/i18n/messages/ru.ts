@@ -307,6 +307,8 @@ export const ru = {
   'discover.retryFailed': 'Повторная попытка не удалась',
   'discover.scanAlreadyRunning': 'Сканирование уже выполняется',
   'discover.scanStarted': 'Сканирование запущено - проверьте Панель для прогресса',
+  'discover.scanQueued':
+    'Сканирование в очереди (позиция {0}) - начнётся после завершения текущего',
   'discover.scanStartFailed': 'Не удалось запустить сканирование',
   'discover.select': 'Выбрать',
   'discover.shortcutsLabel': 'Горячие клавиши:',

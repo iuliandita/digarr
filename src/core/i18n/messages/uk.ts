@@ -307,6 +307,7 @@ export const uk = {
   'discover.retryFailed': 'Повторна спроба не вдалася',
   'discover.scanAlreadyRunning': 'Сканування вже виконується',
   'discover.scanStarted': 'Сканування запущено - перевірте Панель для прогресу',
+  'discover.scanQueued': 'Сканування в черзі (позиція {0}) - почнеться після завершення поточного',
   'discover.scanStartFailed': 'Не вдалося почати сканування',
   'discover.select': 'Виберіть',
   'discover.shortcutsLabel': 'Гарячі клавіші:',

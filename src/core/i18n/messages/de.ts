@@ -307,6 +307,8 @@ export const de = {
   'discover.retryFailed': 'Wiederholungsversuch fehlgeschlagen',
   'discover.scanAlreadyRunning': 'Scan läuft bereits',
   'discover.scanStarted': 'Scan gestartet - Fortschritt im Dashboard prüfen',
+  'discover.scanQueued':
+    'Scan in Warteschlange (Position {0}) - startet, sobald der aktuelle Lauf endet',
   'discover.scanStartFailed': 'Scan konnte nicht gestartet werden',
   'discover.select': 'Auswählen',
   'discover.shortcutsLabel': 'Kurzbefehle:',

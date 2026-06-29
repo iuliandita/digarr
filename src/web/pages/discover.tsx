@@ -124,7 +124,13 @@ function EmptyState({ filter }: { filter: FilterTab }) {
             type="button"
             onClick={() =>
               triggerPipeline()
-                .then(() => toast.success(t('discover.scanStarted')))
+                .then((res) =>
+                  toast.success(
+                    res.queued
+                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                      : t('discover.scanStarted'),
+                  ),
+                )
                 .catch((err) => {
                   const msg =
                     typeof err === 'object' && err !== null && 'message' in err
@@ -1461,7 +1467,13 @@ export function DiscoverPage() {
           type="button"
           onClick={() =>
             triggerPipeline()
-              .then(() => toast.success(t('discover.scanStarted')))
+              .then((res) =>
+                toast.success(
+                  res.queued
+                    ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                    : t('discover.scanStarted'),
+                ),
+              )
               .catch((err) => {
                 const msg = errMsg(err)
                 toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
