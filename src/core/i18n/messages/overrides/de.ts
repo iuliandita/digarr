@@ -243,6 +243,7 @@ export const deOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Nicht authentifiziert',
   'errors.auth.passwordIncorrect': 'Aktuelles Passwort ist falsch',
   'errors.auth.usernameTaken': 'Benutzername bereits vergeben',
+  'errors.auth.emailTaken': 'E-Mail wird bereits verwendet',
   'errors.target.notFound': 'Ziel nicht gefunden',
   'errors.pipeline.alreadyRunning': 'Eine Pipeline-Ausführung läuft bereits',
   'errors.recommendation.notFound': 'Empfehlung nicht gefunden',

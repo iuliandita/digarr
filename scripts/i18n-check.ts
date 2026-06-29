@@ -90,6 +90,8 @@ const SAME_AS_SOURCE_ALLOWLIST = new Set([
   'HTTP',
   'Digarr',
   'shoegaze',
+  // Canonical email placeholder; a format example, identical across locales.
+  'you@example.com',
   'Radiohead, Portishead, Massive Attack',
   'Weekly Jams',
   'PLAY',

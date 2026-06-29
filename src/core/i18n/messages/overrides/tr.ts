@@ -209,6 +209,7 @@ export const trOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Kimlik doğrulanmadı',
   'errors.auth.passwordIncorrect': 'Mevcut parola yanlış',
   'errors.auth.usernameTaken': 'Kullanıcı adı zaten alınmış',
+  'errors.auth.emailTaken': 'E-posta zaten kullanımda',
   'errors.target.notFound': 'Hedef bulunamadı',
   'errors.pipeline.alreadyRunning': 'Zaten bir pipeline çalışması devam ediyor',
   'errors.recommendation.notFound': 'Öneri bulunamadı',

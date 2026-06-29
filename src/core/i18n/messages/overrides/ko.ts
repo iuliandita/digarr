@@ -204,6 +204,7 @@ export const koOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': '인증되지 않았습니다',
   'errors.auth.passwordIncorrect': '현재 비밀번호가 올바르지 않습니다',
   'errors.auth.usernameTaken': '이미 사용 중인 사용자 이름입니다',
+  'errors.auth.emailTaken': '이미 사용 중인 이메일입니다',
   'errors.target.notFound': '대상을 찾을 수 없습니다',
   'errors.pipeline.alreadyRunning': '파이프라인 실행이 이미 진행 중입니다',
   'errors.recommendation.notFound': '추천을 찾을 수 없습니다',

@@ -200,6 +200,7 @@ export const zhCNOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': '未认证',
   'errors.auth.passwordIncorrect': '当前密码不正确',
   'errors.auth.usernameTaken': '用户名已被占用',
+  'errors.auth.emailTaken': '邮箱已被使用',
   'errors.target.notFound': '未找到目标',
   'errors.pipeline.alreadyRunning': '已有流水线正在运行',
   'errors.recommendation.notFound': '未找到推荐',

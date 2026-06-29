@@ -10,6 +10,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - **Subsonic listening and library source.** Digarr can now connect to a Subsonic-compatible server (Navidrome, Airsonic, Gonic, or plain Subsonic) as a first-class source, at parity with Plex/Jellyfin/Emby. It seeds discovery from your starred/favorite artists and syncs your library (artists and albums) for filtering and gap-fill. Matching is name-based -- Subsonic artists and albums carry no MBIDs, so the reconciler name-matches them against MusicBrainz; the source does not provide similar-artists or genre tags. Configure it under Settings -> Connections with the server URL, username, and password (token auth). Translated across all 15 shipped locales.
 
+### Added
+
+- **Set your account email in-app.** A new **Settings -> Account -> Email** field lets you set or clear your account's email without touching the database. This matters for OIDC/SSO: auto-linking an IdP identity to a pre-existing local account matches on email, so an account with no email could never be linked (operators previously had to edit the `email` column by hand). Emails are unique across users -- claiming one already in use is rejected. Translated across all 15 shipped locales.
+
 ### Changed
 
 - **Partial multi-target approvals are now surfaced and retryable.** Approving a recommendation can push it to several targets at once (e.g. two Lidarr instances plus slskd). Previously, if one target failed while others succeeded, the toast still read as a plain success and the half-applied state was only discoverable by inspecting the card afterwards. Now the approve toast reports the per-target outcome ("Added to 2 of 3 targets -- failed: ...") at submit time, a "Retry failed" action re-attempts only the targets that failed, and retrying no longer wipes the targets that already succeeded or regresses the recommendation to "Add Failed". Adds remain best-effort -- a failed target never rolls back ones that already took the artist. Translated across all 15 shipped locales.

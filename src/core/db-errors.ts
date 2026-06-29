@@ -20,3 +20,15 @@ export function isSingleAdminCollision(err: unknown): boolean {
   const e = err as { code?: unknown; constraint?: unknown }
   return e.code === '23505' && e.constraint === 'users_single_admin'
 }
+
+/**
+ * Detect a Postgres unique-violation (`23505`), optionally scoped to a specific
+ * constraint/index name. Used as a race backstop when an app-level pre-check
+ * (e.g. duplicate email) loses to a concurrent insert/update.
+ */
+export function isUniqueViolation(err: unknown, constraint?: string): boolean {
+  if (err === null || typeof err !== 'object') return false
+  const e = err as { code?: unknown; constraint?: unknown }
+  if (e.code !== '23505') return false
+  return constraint ? e.constraint === constraint : true
+}

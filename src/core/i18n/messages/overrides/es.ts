@@ -231,6 +231,7 @@ export const esOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'No autenticado',
   'errors.auth.passwordIncorrect': 'La contraseña actual es incorrecta',
   'errors.auth.usernameTaken': 'El nombre de usuario ya está en uso',
+  'errors.auth.emailTaken': 'El correo ya está en uso',
   'errors.target.notFound': 'Destino no encontrado',
   'errors.pipeline.alreadyRunning': 'Ya hay una ejecución del pipeline en curso',
   'errors.recommendation.notFound': 'Recomendación no encontrada',

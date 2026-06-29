@@ -230,6 +230,7 @@ export const itOverrides: Partial<MessageCatalog> = {
   'errors.auth.notAuthenticated': 'Non autenticato',
   'errors.auth.passwordIncorrect': 'La password attuale non e corretta',
   'errors.auth.usernameTaken': 'Nome utente gia in uso',
+  'errors.auth.emailTaken': 'Email già in uso',
   'errors.target.notFound': 'Destinazione non trovata',
   'errors.pipeline.alreadyRunning': 'Una esecuzione della pipeline e gia in corso',
   'errors.recommendation.notFound': 'Raccomandazione non trovata',
