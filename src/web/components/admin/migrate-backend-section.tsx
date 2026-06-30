@@ -28,6 +28,7 @@ export function MigrateBackendSection() {
   const [migrating, setMigrating] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [result, setResult] = useState<MigrateResult | null>(null)
+  const [copied, setCopied] = useState(false)
 
   function buildTarget() {
     if (backend === 'pglite') return { backend: 'pglite' as const, path }
@@ -69,6 +70,25 @@ export function MigrateBackendSection() {
         t('admin.migrateSuccess').replace('{0}', String(total)).replace('{1}', String(tables)),
       )
     } catch (err) {
+      // A 422 verify-failure carries the full report (no `error` field) — keep it so
+      // the mismatches and the targetEnvHint stay visible/copyable instead of vanishing.
+      if (
+        err instanceof ApiError &&
+        err.status === 422 &&
+        err.data &&
+        typeof err.data === 'object' &&
+        'targetEnvHint' in err.data
+      ) {
+        const report = err.data as MigrateResult
+        setResult(report)
+        toast.warning(
+          t('admin.migrateVerifyFailed').replace(
+            '{0}',
+            (report.mismatches ?? []).map((m) => m.table).join(', '),
+          ),
+        )
+        return
+      }
       const msg =
         err instanceof ApiError
           ? String((err.data as Record<string, unknown>)?.error ?? err.message)
@@ -76,6 +96,17 @@ export function MigrateBackendSection() {
       toast.error(msg || t('admin.migrateFailed'))
     } finally {
       setMigrating(false)
+    }
+  }
+
+  async function handleCopyEnvHint(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable (non-secure context / denied); the hint stays
+      // selectable in the <code> block, so no further action is needed.
     }
   }
 
@@ -216,10 +247,12 @@ export function MigrateBackendSection() {
               </code>
               <button
                 type="button"
-                onClick={() => navigator.clipboard.writeText(result.targetEnvHint)}
+                onClick={() => {
+                  void handleCopyEnvHint(result.targetEnvHint)
+                }}
                 className="text-xs px-2 py-1 rounded border border-border hover:bg-surface"
               >
-                {t('admin.migrateCopyHint')}
+                {copied ? '✓' : t('admin.migrateCopyHint')}
               </button>
             </div>
           </div>
