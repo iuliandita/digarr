@@ -35,6 +35,7 @@ function envHint(target: MigrationTargetSpec): string {
 
 function canonical(v: unknown): unknown {
   if (v instanceof Date) return v.toISOString()
+  if (typeof v === 'bigint') return v.toString() // JSON.stringify can't serialize BigInt
   if (Array.isArray(v)) return v.map(canonical)
   if (v && typeof v === 'object') {
     return Object.fromEntries(
@@ -105,6 +106,13 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
     })
 
     const restore = await restoreBackup(conn.db, backup, {})
+    if (restore.encryptionMismatch) {
+      // restoreBackup returns instead of throwing on a key mismatch; surface it as
+      // a clear, actionable error rather than letting verify report every table empty.
+      throw new Error(
+        'Cannot migrate: the source data was encrypted with a different key than the current DIGARR_ENCRYPTION_KEY. Set the same encryption key before migrating.',
+      )
+    }
 
     const targetBackup = await createBackup(conn.db, { includeCaches: true, full: true })
     const mismatches: MigrationReport['mismatches'] = []
@@ -134,7 +142,9 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
     }
 
     const verified = mismatches.length === 0
-    const contentVerified = !mismatches.some((m) => m.contentDiffers)
+    // A count mismatch leaves content unchecked, so contentVerified must require
+    // verified too — otherwise a missing table reports intact content.
+    const contentVerified = verified && !mismatches.some((m) => m.contentDiffers)
     return {
       ok: verified,
       verified,
