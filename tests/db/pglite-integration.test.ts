@@ -5,6 +5,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import { getPendingMigrations } from '@/core/ops/upgrade'
+import { applyPgliteStatementTimeout } from '@/db/backend'
 import * as schema from '@/db/schema'
 
 type DB = ReturnType<typeof drizzle<typeof schema>>
@@ -34,6 +35,13 @@ describe('pglite backend contract', () => {
     const status = await getPendingMigrations(db as never)
     expect(status.pendingCount).toBe(0)
     expect(status.targetVersion).not.toBeNull()
+  })
+
+  it('caps queries with a 30s statement_timeout, matching the Postgres path', async () => {
+    const client = new PGlite() // in-memory
+    await applyPgliteStatementTimeout(client)
+    const res = await client.query<{ statement_timeout: string }>('SHOW statement_timeout')
+    expect(res.rows[0]?.statement_timeout).toBe('30s')
   })
 
   it('round-trips a backup on pglite', async () => {

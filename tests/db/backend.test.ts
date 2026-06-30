@@ -38,3 +38,33 @@ describe('resolveDbBackend', () => {
     expect((await import('@/db/backend')).getPgliteDataDir()).toBe('/var/lib/digarr')
   })
 })
+
+describe('detectPartialPostgresConfig', () => {
+  beforeEach(clearDbEnv)
+  afterEach(clearDbEnv)
+
+  it('returns null on a clean pglite boot (no postgres vars at all)', async () => {
+    expect((await load()).detectPartialPostgresConfig()).toBeNull()
+  })
+  it('returns null when full postgres config is present', async () => {
+    process.env.DB_HOST = 'pg'
+    process.env.DB_USER = 'digarr'
+    process.env.DB_NAME = 'digarr'
+    expect((await load()).detectPartialPostgresConfig()).toBeNull()
+  })
+  it('returns null when DATABASE_URL is set', async () => {
+    process.env.DATABASE_URL = 'postgresql://u:p@h:5432/d'
+    expect((await load()).detectPartialPostgresConfig()).toBeNull()
+  })
+  it('flags a partial config: DB_HOST set but DB_NAME/DB_USER missing', async () => {
+    process.env.DB_HOST = 'pg'
+    const result = (await load()).detectPartialPostgresConfig()
+    expect(result).toEqual({ present: ['DB_HOST'], missing: ['DB_USER', 'DB_NAME'] })
+  })
+  it('flags a partial config: host+user but no name', async () => {
+    process.env.DB_HOST = 'pg'
+    process.env.DB_USER = 'digarr'
+    const result = (await load()).detectPartialPostgresConfig()
+    expect(result).toEqual({ present: ['DB_HOST', 'DB_USER'], missing: ['DB_NAME'] })
+  })
+})

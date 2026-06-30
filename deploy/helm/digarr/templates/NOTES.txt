@@ -21,6 +21,13 @@ future pod specs that weaken the securityContext are rejected at admission:
 {{- end }}
 
 2. Database migrations run automatically on startup.
+{{- if and (eq .Values.database.backend "pglite") (not .Values.backups.persistence.enabled) }}
+
+  WARNING: backend=pglite but backups.persistence.enabled=false. The pre-migration
+  auto-backup is your only rollback artifact, and it lives on an emptyDir that is
+  wiped on every pod restart. A migration that fails after a restart leaves no way
+  back. Set backups.persistence.enabled=true so rollback survives pod churn.
+{{- end }}
 
 3. Check health:
   curl http://<host>/health
