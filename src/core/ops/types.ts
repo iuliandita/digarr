@@ -28,6 +28,16 @@ export interface BackupData {
   artists?: Record<string, unknown>[]
   genres?: Record<string, unknown>[]
   artistMetadata?: Record<string, unknown>[]
+  // Optional full-fidelity tables
+  albumBlocks?: Record<string, unknown>[]
+  libraryArtists?: Record<string, unknown>[]
+  libraryAlbums?: Record<string, unknown>[]
+  librarySyncState?: Record<string, unknown>[]
+  libraryMatchOverrides?: Record<string, unknown>[]
+  libraryAlbumMatchOverrides?: Record<string, unknown>[]
+  libraryHealthState?: Record<string, unknown>[]
+  recordingArtistCache?: Record<string, unknown>[]
+  slskdJobs?: Record<string, unknown>[]
 }
 
 export interface RestoreResult {
@@ -39,6 +49,7 @@ export interface RestoreResult {
 
 export interface BackupOptions {
   includeCaches?: boolean
+  full?: boolean
 }
 
 export interface RestoreOptions {
