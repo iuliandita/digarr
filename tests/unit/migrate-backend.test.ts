@@ -1,10 +1,14 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { migrateBackend } from '@/core/ops/migrate-backend'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
+
+// PGlite WASM cold-start + migrations can exceed the 5s default under full-suite
+// parallel contention; these tests pass in isolation. Give them headroom.
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
 function tgt(name: string) {
   return join(process.env.DIGARR_MIGRATE_DATA_ROOT as string, name)

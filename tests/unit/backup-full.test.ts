@@ -1,7 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
+
+// PGlite WASM cold-start + migrations can exceed the 5s default under full-suite
+// parallel contention; these tests pass in isolation. Give them headroom.
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
 describe('backup full-fidelity', () => {
   it('selective mode (no full flag) omits albumBlocks, libraryArtists, slskdJobs', async () => {

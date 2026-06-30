@@ -2,8 +2,12 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { sql } from 'drizzle-orm'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { assertSafePglitePath, backendFingerprint, connectTarget } from '@/db/connect'
+
+// PGlite WASM cold-start + migrations can exceed the 5s default under full-suite
+// parallel contention; these tests pass in isolation. Give them headroom.
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
 describe('connectTarget', () => {
   beforeEach(() => {
