@@ -34,8 +34,8 @@ docker compose up -d
 ```
 
 Services run on an isolated internal `backend` network; only `app` is exposed
-on the host via `frontend`. Pull the image at a specific tag or swap in the
-alpine variant by editing `docker-compose.yml`.
+on the host via `frontend`. The default image is the alpine variant; pull a
+specific tag or swap in the `-debian` variant by editing `docker-compose.yml`.
 
 ## Development with compose
 

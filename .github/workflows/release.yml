@@ -53,13 +53,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - variant: debian
-            runtime-image: "oven/bun:1.3.14-slim@sha256:d56a2534ffd262e92c12fd3249d3924d296d97086da773f821d7d0477435ea04"
-            suffix: ""
-            latest: "auto"
+          # alpine is primary: owns unsuffixed :latest/:vX.Y.Z + the release/SBOM steps.
           - variant: alpine
             runtime-image: "oven/bun:1.3.14-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0"
-            suffix: "-alpine"
+            suffix: ""
+            latest: "auto"
+          - variant: debian
+            runtime-image: "oven/bun:1.3.14-slim@sha256:d56a2534ffd262e92c12fd3249d3924d296d97086da773f821d7d0477435ea04"
+            suffix: "-debian"
             latest: "false"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
@@ -118,7 +119,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}},value=${{ steps.tag.outputs.value }}
-            type=raw,value=alpine,enable=${{ matrix.variant == 'alpine' && steps.tag.outputs.prerelease != 'true' }},suffix=
+            type=raw,value=debian,enable=${{ matrix.variant == 'debian' && steps.tag.outputs.prerelease != 'true' }},suffix=
 
       - name: Build and push
         id: build
@@ -161,7 +162,7 @@ jobs:
           cosign sign --yes "${DOCKER_IMAGE}@${DIGEST}"
 
       - name: Generate SBOM (container)
-        if: matrix.variant == 'debian'
+        if: matrix.variant == 'alpine'
         env:
           IMAGE_REF: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
@@ -171,7 +172,7 @@ jobs:
           output-file: sbom-container.spdx.json
 
       - name: Generate SBOM (source)
-        if: matrix.variant == 'debian'
+        if: matrix.variant == 'alpine'
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: .
@@ -179,7 +180,7 @@ jobs:
           output-file: sbom-source.spdx.json
 
       - name: Attest SBOM (container) via cosign
-        if: matrix.variant == 'debian'
+        if: matrix.variant == 'alpine'
         env:
           GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           DOCKER_IMAGE: docker.io/iuliandita/digarr
@@ -189,7 +190,7 @@ jobs:
           cosign attest --yes --type spdxjson --predicate sbom-container.spdx.json "${DOCKER_IMAGE}@${DIGEST}"
 
       - name: Ensure release exists and upload SBOMs
-        if: matrix.variant == 'debian'
+        if: matrix.variant == 'alpine'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.tag.outputs.value }}

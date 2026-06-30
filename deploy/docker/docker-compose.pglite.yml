@@ -10,7 +10,7 @@ services:
     image: docker.io/iuliandita/digarr:stable
     # :stable -> last release promoted after >= 7 days (recommended)
     # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.10.0
-    # Alpine variant: docker.io/iuliandita/digarr:1.10.0-alpine
+    # Default is alpine; Debian/glibc variant: docker.io/iuliandita/digarr:1.10.0-debian
     user: "1000:1000"
     env_file:
       - path: .env
