@@ -38,6 +38,9 @@ function renderWithQuery(ui: ReactElement) {
 vi.mock('@/web/lib/api', () => ({
   getSettings: vi.fn(),
   updateSettings: vi.fn(),
+  getPopularAlbumsAvailability: vi
+    .fn()
+    .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
   testService: vi.fn(),
   getAuthStatus: vi.fn(),
   getLidarrProfiles: vi.fn(),

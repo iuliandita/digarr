@@ -295,6 +295,9 @@ export const en = {
   'discover.monitorSelectedDescription': 'Choose which albums to monitor',
   'discover.monitorPopular': 'Popular albums',
   'discover.monitorPopularDescription': 'Monitor the top 3 album releases',
+  'discover.monitorPopularUnavailable': 'Connect Spotify or Last.fm to monitor popular albums',
+  'discover.popularAlbumsFailed':
+    'Could not determine popular albums for this artist. Try another monitor option.',
   'discover.monitorNoneDescription': 'Add unmonitored (tracking only)',
   'discover.discoveryRunStarted': 'Discovery run started.',
   'discover.exportFailed': 'Export failed',

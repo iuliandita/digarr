@@ -1,9 +1,11 @@
 import { type Context, Hono } from 'hono'
-import { selectPopularReleaseGroups } from '@/core/albums/popular'
+import { type PopularAlbumCandidate, selectPopularReleaseGroups } from '@/core/albums/popular'
+import { createLastFmClient } from '@/core/clients/lastfm'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
+import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
@@ -95,6 +97,56 @@ function extractSpotifyArtistId(url?: string): string | null {
   return match?.[1] ? decodeURIComponent(match[1]) : null
 }
 
+/** Distinguishes "no popularity source available" from "source had no usable albums". */
+export type PopularAlbumsErrorCode = 'no_source' | 'no_match'
+
+export class PopularAlbumsError extends Error {
+  constructor(
+    readonly code: PopularAlbumsErrorCode,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'PopularAlbumsError'
+  }
+}
+
+/** Top albums by Spotify popularity; empty when Spotify is unavailable for this user/artist. */
+async function spotifyPopularCandidates(
+  deps: AppDependencies,
+  userId: number,
+  artist: ApprovalArtist,
+): Promise<PopularAlbumCandidate[]> {
+  try {
+    const accessToken = await resolveSpotifyToken(deps.db, userId)
+    const spotify = createSpotifyClient(accessToken)
+    const spotifyId =
+      extractSpotifyArtistId(artist.streamingUrls?.spotify) ??
+      (await spotify.findExactArtistByName(artist.name))?.id
+    if (!spotifyId) return []
+    return await spotify.getPopularAlbumsForArtist(spotifyId, POPULAR_ALBUM_LIMIT)
+  } catch {
+    // Spotify not connected, token expired, or lookup failed: let the next source try.
+    return []
+  }
+}
+
+/** Top albums by Last.fm global playcount; empty when no Last.fm API key is configured. */
+async function lastfmPopularCandidates(
+  deps: AppDependencies,
+  userId: number,
+  artist: ApprovalArtist,
+): Promise<PopularAlbumCandidate[]> {
+  try {
+    const connections = await getUserConnections(deps.db, userId)
+    if (!connections?.lastfmApiKey) return []
+    // Username is unused by artist.getTopAlbums (API-key only); fall back to empty.
+    const client = createLastFmClient(connections.lastfmUsername ?? '', connections.lastfmApiKey)
+    return await client.getTopAlbumsForArtist(artist.name, artist.mbid)
+  } catch {
+    return []
+  }
+}
+
 async function resolvePopularAlbumIds(
   deps: AppDependencies,
   userId: number | undefined,
@@ -107,23 +159,28 @@ async function resolvePopularAlbumIds(
     throw new Error('Popular album approval requires artist metadata')
   }
 
-  const accessToken = await resolveSpotifyToken(deps.db, userId)
-  const spotify = createSpotifyClient(accessToken)
-  const spotifyId =
-    extractSpotifyArtistId(artist.streamingUrls?.spotify) ??
-    (await spotify.findExactArtistByName(artist.name))?.id
+  // MB release groups are the matching target for whichever popularity source wins.
+  const releaseGroups = await createMusicBrainzClient().getReleaseGroups(artist.mbid)
 
-  if (!spotifyId) {
-    throw new Error(`Could not resolve Spotify artist for ${artist.name}`)
+  // Spotify gives normalized popularity; Last.fm gives global playcount. Never
+  // blend the two scales in one list - take the first source that returns albums.
+  let candidates = await spotifyPopularCandidates(deps, userId, artist)
+  if (candidates.length === 0) {
+    candidates = await lastfmPopularCandidates(deps, userId, artist)
+  }
+  if (candidates.length === 0) {
+    throw new PopularAlbumsError(
+      'no_source',
+      `No popularity source returned albums for ${artist.name}. Connect Spotify or Last.fm.`,
+    )
   }
 
-  const [spotifyAlbums, releaseGroups] = await Promise.all([
-    spotify.getPopularAlbumsForArtist(spotifyId, POPULAR_ALBUM_LIMIT),
-    createMusicBrainzClient().getReleaseGroups(artist.mbid),
-  ])
-  const selected = selectPopularReleaseGroups(spotifyAlbums, releaseGroups, POPULAR_ALBUM_LIMIT)
+  const selected = selectPopularReleaseGroups(candidates, releaseGroups, POPULAR_ALBUM_LIMIT)
   if (selected.length === 0) {
-    throw new Error(`Could not map popular Spotify albums to Lidarr albums for ${artist.name}`)
+    throw new PopularAlbumsError(
+      'no_match',
+      `Could not map popular albums to library albums for ${artist.name}.`,
+    )
   }
 
   return selected.map((album) => album.id)
@@ -500,6 +557,22 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json({ summary })
   })
 
+  // Backs the approve menu's "Popular albums" gating: true when at least one
+  // popularity source (Spotify OAuth or a Last.fm API key) is available.
+  router.get('/api/v1/recommendations/popular-albums/availability', async (c) => {
+    const userId = c.get('userId')
+    if (!userId) return c.json({ available: false, spotify: false, lastfm: false })
+    const [spotify, connections] = await Promise.all([
+      resolveSpotifyToken(deps.db, userId).then(
+        () => true,
+        () => false,
+      ),
+      getUserConnections(deps.db, userId),
+    ])
+    const lastfm = Boolean(connections?.lastfmApiKey)
+    return c.json({ available: spotify || lastfm, spotify, lastfm })
+  })
+
   router.get('/api/v1/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
     const loaded = await loadOwnedRecommendation(c, id)
@@ -615,7 +688,10 @@ export function recommendationRoutes(deps: AppDependencies) {
         } catch (err) {
           if (monitorOption !== 'popular') throw err
           return c.json(
-            { error: err instanceof Error ? err.message : 'Popular albums could not be resolved' },
+            {
+              error: err instanceof Error ? err.message : 'Popular albums could not be resolved',
+              code: err instanceof PopularAlbumsError ? err.code : undefined,
+            },
             400,
           )
         }

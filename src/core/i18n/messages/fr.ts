@@ -282,6 +282,10 @@ export const fr = {
   'discover.monitorSelectedDescription': 'Choisir les albums à surveiller',
   'discover.monitorPopular': 'Albums populaires',
   'discover.monitorPopularDescription': "Surveiller les 3 sorties d'album les plus populaires",
+  'discover.monitorPopularUnavailable':
+    'Connectez Spotify ou Last.fm pour surveiller les albums populaires',
+  'discover.popularAlbumsFailed':
+    'Impossible de déterminer les albums populaires pour cet artiste. Essayez une autre option de surveillance.',
   'discover.monitorNoneDescription': 'Ajouter sans surveillance (suivi uniquement)',
   'discover.discoveryRunStarted': "L'exécution de la découverte a démarré.",
   'discover.exportFailed': "Échec de l'exportation",

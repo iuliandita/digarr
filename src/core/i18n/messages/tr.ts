@@ -281,6 +281,10 @@ export const tr = {
   'discover.monitorSelectedDescription': 'Hangi albümlerin izleneceğini seç',
   'discover.monitorPopular': 'Popüler albümler',
   'discover.monitorPopularDescription': 'En popüler 3 albüm yayınını izle',
+  'discover.monitorPopularUnavailable':
+    'Popüler albümleri izlemek için Spotify veya Last.fm bağlayın',
+  'discover.popularAlbumsFailed':
+    'Bu sanatçı için popüler albümler belirlenemedi. Başka bir izleme seçeneği deneyin.',
   'discover.monitorNoneDescription': 'İzleme olmadan ekle (yalnızca takip)',
   'discover.discoveryRunStarted': 'Keşif çalıştırması başladı.',
   'discover.exportFailed': 'Dışa aktarma başarısız oldu',

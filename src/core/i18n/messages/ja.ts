@@ -281,6 +281,10 @@ export const ja = {
   'discover.monitorSelectedDescription': '監視するアルバムを選択',
   'discover.monitorPopular': '人気アルバム',
   'discover.monitorPopularDescription': '人気上位3件のアルバムリリースを監視',
+  'discover.monitorPopularUnavailable':
+    '人気アルバムを監視するには Spotify または Last.fm を接続してください',
+  'discover.popularAlbumsFailed':
+    'このアーティストの人気アルバムを特定できませんでした。別の監視オプションをお試しください。',
   'discover.monitorNoneDescription': '監視せずに追加（追跡のみ）',
   'discover.discoveryRunStarted': '検出の実行が開始されました。',
   'discover.exportFailed': 'エクスポートに失敗しました',

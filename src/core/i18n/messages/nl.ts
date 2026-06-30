@@ -282,6 +282,9 @@ export const nl = {
   'discover.monitorSelectedDescription': 'Kies welke albums je wilt volgen',
   'discover.monitorPopular': 'Populaire albums',
   'discover.monitorPopularDescription': 'Volg de 3 populairste albumreleases',
+  'discover.monitorPopularUnavailable': 'Verbind Spotify of Last.fm om populaire albums te volgen',
+  'discover.popularAlbumsFailed':
+    'Kon de populaire albums voor deze artiest niet bepalen. Probeer een andere monitoroptie.',
   'discover.monitorNoneDescription': 'Toevoegen zonder monitoring (alleen volgen)',
   'discover.discoveryRunStarted': 'Discovery-run gestart.',
   'discover.exportFailed': 'Exporteren is mislukt',

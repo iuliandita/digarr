@@ -282,6 +282,10 @@ export const ro = {
   'discover.monitorSelectedDescription': 'Alege ce albume să monitorizezi',
   'discover.monitorPopular': 'Albume populare',
   'discover.monitorPopularDescription': 'Monitorizează cele mai populare 3 lansări de albume',
+  'discover.monitorPopularUnavailable':
+    'Conectează Spotify sau Last.fm pentru a monitoriza albumele populare',
+  'discover.popularAlbumsFailed':
+    'Nu s-au putut determina albumele populare pentru acest artist. Încearcă altă opțiune de monitorizare.',
   'discover.monitorNoneDescription': 'Adaugă fără monitorizare (doar urmărire)',
   'discover.discoveryRunStarted': 'Executarea descoperirii a început.',
   'discover.exportFailed': 'Exportul nu a reușit',

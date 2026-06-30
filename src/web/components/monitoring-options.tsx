@@ -9,12 +9,25 @@ type Props = {
   onOpenAlbumPicker: () => void
   loading?: boolean
   fill?: boolean
+  /** When false, the "Popular albums" option is disabled (no Spotify/Last.fm source). */
+  popularAvailable?: boolean
 }
 
-export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading, fill }: Props) {
+export function MonitoringOptions({
+  onApprove,
+  onOpenAlbumPicker,
+  loading,
+  fill,
+  popularAvailable = true,
+}: Props) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
-  const options: Array<{ value: MonitorOption; label: string; description: string }> = [
+  const options: Array<{
+    value: MonitorOption
+    label: string
+    description: string
+    disabled?: boolean
+  }> = [
     {
       value: 'all',
       label: t('settings.monitorAll'),
@@ -33,7 +46,10 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading, fill 
     {
       value: 'popular',
       label: t('discover.monitorPopular'),
-      description: t('discover.monitorPopularDescription'),
+      description: popularAvailable
+        ? t('discover.monitorPopularDescription')
+        : t('discover.monitorPopularUnavailable'),
+      disabled: !popularAvailable,
     },
     {
       value: 'none',
@@ -111,11 +127,14 @@ export function MonitoringOptions({ onApprove, onOpenAlbumPicker, loading, fill 
               <button
                 key={opt.value}
                 type="button"
+                disabled={opt.disabled}
+                title={opt.disabled ? opt.description : undefined}
                 onClick={(e) => {
                   e.stopPropagation()
+                  if (opt.disabled) return
                   handleOptionClick(opt.value)
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-bg/50 transition-colors"
+                className="w-full text-left px-3 py-2 transition-colors enabled:hover:bg-bg/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="text-sm text-text font-medium">{opt.label}</div>
                 <div className="text-xs text-muted mt-0.5">{opt.description}</div>

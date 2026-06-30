@@ -282,6 +282,10 @@ export const uk = {
   'discover.monitorSelectedDescription': 'Виберіть, які альбоми відстежувати',
   'discover.monitorPopular': 'Популярні альбоми',
   'discover.monitorPopularDescription': 'Відстежувати 3 найпопулярніші релізи альбомів',
+  'discover.monitorPopularUnavailable':
+    'Підключіть Spotify або Last.fm, щоб відстежувати популярні альбоми',
+  'discover.popularAlbumsFailed':
+    'Не вдалося визначити популярні альбоми для цього виконавця. Спробуйте інший варіант відстеження.',
   'discover.monitorNoneDescription': 'Додати без моніторингу (лише відстеження)',
   'discover.discoveryRunStarted': 'Запуск виявлення розпочато.',
   'discover.exportFailed': 'Помилка експорту',

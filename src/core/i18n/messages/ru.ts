@@ -282,6 +282,10 @@ export const ru = {
   'discover.monitorSelectedDescription': 'Выберите, какие альбомы отслеживать',
   'discover.monitorPopular': 'Популярные альбомы',
   'discover.monitorPopularDescription': 'Отслеживать 3 самых популярных альбомных релиза',
+  'discover.monitorPopularUnavailable':
+    'Подключите Spotify или Last.fm, чтобы отслеживать популярные альбомы',
+  'discover.popularAlbumsFailed':
+    'Не удалось определить популярные альбомы для этого исполнителя. Попробуйте другой вариант отслеживания.',
   'discover.monitorNoneDescription': 'Добавить без мониторинга (только отслеживание)',
   'discover.discoveryRunStarted': 'Запуск исследования начался.',
   'discover.exportFailed': 'Экспорт не удался',
