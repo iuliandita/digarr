@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - **Approving an artist with selected albums now actually monitors and downloads those albums.** When you approved an artist but picked only specific albums, Digarr added the artist to Lidarr unmonitored and then tried to monitor the chosen albums immediately -- but Lidarr populates an artist's album list asynchronously, so that lookup usually ran before the albums existed and silently monitored nothing. The album never got grabbed, and the approval still reported success. Digarr now polls Lidarr until the selected albums appear, monitors them, and triggers an album search so they download. If an album genuinely never shows up, the approval now fails loudly with a clear message instead of reporting a false success. The job record also captures the monitor mode and selected album IDs so the case is debuggable from the job list.
+- **The setup wizard now tells you why it failed.** When the initial setup submission was rejected by the backend (a missing or invalid field, a validation error, or a setup-already-complete conflict), the wizard showed a single generic "Setup failed" toast and discarded the actual reason, leaving new users stuck with nothing to act on. The wizard now surfaces the backend's specific error message -- including the list of missing fields when applicable -- so the problem is fixable without reading server logs.
 
 ## v1.10.0 - 2026-06-24
 

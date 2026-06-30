@@ -6,7 +6,7 @@ import { LanguageSwitcher } from '../components/language-switcher'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
-import { completeSetup } from '../lib/api'
+import { ApiError, completeSetup } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
 type FormState = {
@@ -478,8 +478,16 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     try {
       await completeSetup(config)
       onComplete()
-    } catch {
-      toast.error(t('setup.failed'))
+    } catch (err) {
+      // Surface the backend's reason (missing field, validation, conflict)
+      // instead of an opaque generic toast. ApiError.message already carries
+      // the translated/server message; the missing-fields list adds detail.
+      if (err instanceof ApiError) {
+        const fields = (err.data as { fields?: string[] } | null)?.fields
+        toast.error(fields?.length ? `${err.message}: ${fields.join(', ')}` : err.message)
+      } else {
+        toast.error(t('setup.failed'))
+      }
       setStarting(false)
     }
   }
