@@ -1161,6 +1161,14 @@ export const tr = {
   'admin.migrateTestConnection': 'Bağlantıyı test et',
   'admin.migrateConnectionOk': '{0} ile bağlandı',
   'admin.migrateConnectionFailed': 'Bağlantı başarısız',
+  'admin.migrateErrUnreachable':
+    'Hedefe ulaşılamıyor: ana bilgisayar veya bağlantı noktası bağlantıyı reddetti',
+  'admin.migrateErrAuthFailed':
+    'Kimlik doğrulama başarısız: kullanıcı adını ve parolayı kontrol edin',
+  'admin.migrateErrTimeout': 'Bağlantı zaman aşımına uğradı',
+  'admin.migrateErrDbMissing': 'Hedefte veritabanı yok',
+  'admin.migrateErrInvalidPath': 'Geçersiz PGlite yolu',
+  'admin.migrateErrUnknown': 'Bağlantı bilinmeyen bir nedenle başarısız oldu',
   'admin.migrateOverwrite': 'Hedef zaten veri içeriyorsa üzerine yaz',
   'admin.migrateRun': 'Taşı',
   'admin.migrateConfirmTitle': 'Yeni arka uca taşınsın mı?',

@@ -6,6 +6,15 @@ import { useI18n } from '@/web/lib/i18n'
 
 type TargetBackend = 'pglite' | 'postgres'
 
+const MIGRATE_TEST_ERROR_KEYS: Record<string, string> = {
+  unreachable: 'admin.migrateErrUnreachable',
+  auth_failed: 'admin.migrateErrAuthFailed',
+  timeout: 'admin.migrateErrTimeout',
+  db_missing: 'admin.migrateErrDbMissing',
+  invalid_path: 'admin.migrateErrInvalidPath',
+  unknown: 'admin.migrateErrUnknown',
+}
+
 type MigrateResult = {
   ok: boolean
   verified: boolean
@@ -35,6 +44,11 @@ export function MigrateBackendSection() {
     return { backend: 'postgres' as const, dsn }
   }
 
+  function testErrorMessage(code?: unknown): string {
+    const key = typeof code === 'string' ? MIGRATE_TEST_ERROR_KEYS[code] : undefined
+    return key ? t(key as Parameters<typeof t>[0]) : t('admin.migrateConnectionFailed')
+  }
+
   async function handleTest() {
     setTesting(true)
     try {
@@ -44,14 +58,11 @@ export function MigrateBackendSection() {
           t('admin.migrateConnectionOk').replace('{0}', res.description ?? res.backend ?? backend),
         )
       } else {
-        toast.error(res.error ?? t('admin.migrateConnectionFailed'))
+        toast.error(testErrorMessage(res.code))
       }
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? String((err.data as Record<string, unknown>)?.error ?? err.message)
-          : t('admin.migrateConnectionFailed')
-      toast.error(msg || t('admin.migrateConnectionFailed'))
+      const code = err instanceof ApiError ? (err.data as Record<string, unknown>)?.code : undefined
+      toast.error(testErrorMessage(code))
     } finally {
       setTesting(false)
     }

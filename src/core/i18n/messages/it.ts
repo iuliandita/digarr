@@ -1182,6 +1182,13 @@ export const it = {
   'admin.migrateTestConnection': 'Testa connessione',
   'admin.migrateConnectionOk': 'Connesso a {0}',
   'admin.migrateConnectionFailed': 'Connessione non riuscita',
+  'admin.migrateErrUnreachable':
+    'Destinazione irraggiungibile: host o porta hanno rifiutato la connessione',
+  'admin.migrateErrAuthFailed': 'Autenticazione non riuscita: controlla nome utente e password',
+  'admin.migrateErrTimeout': 'Connessione scaduta',
+  'admin.migrateErrDbMissing': 'Il database non esiste sulla destinazione',
+  'admin.migrateErrInvalidPath': 'Percorso PGlite non valido',
+  'admin.migrateErrUnknown': 'Connessione non riuscita per un motivo sconosciuto',
   'admin.migrateOverwrite': 'Sovrascrivi destinazione se contiene già dati',
   'admin.migrateRun': 'Migra',
   'admin.migrateConfirmTitle': 'Migrare a un nuovo backend?',
