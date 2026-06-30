@@ -252,7 +252,8 @@ function createRestoreSpec<TTable extends BackupTable>(
 }
 
 // Topo-sort genres so parents always precede their children during restore.
-// Handles arbitrary depth and cycles (cycles are left in stable input order).
+// Handles arbitrary depth. A cycle (which real genre data never has) emits in a
+// stable order and surfaces as a clean FK error at restore, not a stack overflow.
 function sortGenresParentsFirst(rows: Record<string, unknown>[]): Record<string, unknown>[] {
   const idMap = new Map<number, Record<string, unknown>>(rows.map((r) => [r.id as number, r]))
   const result: Record<string, unknown>[] = []
@@ -261,12 +262,12 @@ function sortGenresParentsFirst(rows: Record<string, unknown>[]): Record<string,
   function visit(row: Record<string, unknown>) {
     const id = row.id as number
     if (visited.has(id)) return
+    visited.add(id) // mark before recursing so a cycle terminates instead of overflowing
     const parentId = row.parentGenreId as number | null | undefined
     if (parentId != null) {
       const parentRow = idMap.get(parentId)
       if (parentRow) visit(parentRow)
     }
-    visited.add(id)
     result.push(row)
   }
 

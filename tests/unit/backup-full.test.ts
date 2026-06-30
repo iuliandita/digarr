@@ -74,6 +74,26 @@ describe('backup full-fidelity', () => {
     }
   })
 
+  it('cyclic genres in the payload terminate instead of overflowing the stack', async () => {
+    const { db, close } = await makeTestDb()
+    try {
+      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+      // Two genres that reference each other — impossible in real data (the DB FK
+      // prevents it), but the topo-sort must terminate rather than recurse forever.
+      // The pre-fix sort marked nodes visited only after recursing, so this input
+      // stack-overflowed. With the fix it completes; the two rows insert in a single
+      // multi-row statement, so the immediate FK is satisfied at statement end.
+      backup.data.genres = [
+        { id: 1, name: 'A', slug: 'cyc-a', source: 'test', parentGenreId: 2 },
+        { id: 2, name: 'B', slug: 'cyc-b', source: 'test', parentGenreId: 1 },
+      ]
+      const result = await restoreBackup(db as never, backup, { force: true })
+      expect(result.tablesRestored.genres).toBe(2)
+    } finally {
+      await close()
+    }
+  })
+
   it('round-trip with seeded data restores all full-mode tables', async () => {
     const { db, close } = await makeTestDb()
     const { db: db2, close: close2 } = await makeTestDb()
