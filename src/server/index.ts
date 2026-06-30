@@ -256,6 +256,7 @@ export function createApp(deps: AppDependencies) {
     '/',
     adminRoutes({
       db: deps.db,
+      isPipelineRunning: () => deps.orchestrator.isRunning,
       getUserById: deps.getUserById,
       getSettings: deps.getSettings,
       generateReasoning: async (artistName, genres) => {

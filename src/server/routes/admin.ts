@@ -9,16 +9,21 @@ import {
   rebuildGenres,
   rescoreRecommendations,
 } from '@/core/ops/hygiene'
+import { migrateBackend } from '@/core/ops/migrate-backend'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { isValidStatus } from '@/core/recommendations/statuses'
 import { logAndSanitize } from '@/core/validation'
+import { assertSafePglitePath, connectTarget } from '@/db/connect'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { setMaintenance } from '@/server/maintenance'
 import { backupFileSchema } from '@/server/schemas/admin'
+import { migrateRequestSchema, migrateTargetSchema } from '@/server/schemas/migrate'
 import type { HonoEnv } from '@/server/types'
 
 export interface AdminDeps {
   db: OpsDb
+  isPipelineRunning: () => boolean
   getUserById: (
     id: number,
   ) => Promise<{ isAdmin: boolean; preferences?: Partial<Preferences> | null } | null>
@@ -198,6 +203,60 @@ export function adminRoutes(deps: AdminDeps) {
   router.post('/api/v1/admin/hygiene/purge-sessions', async (c) => {
     const result = await purgeSessions(deps.db)
     return c.json(result)
+  })
+
+  // POST /api/v1/admin/migrate-backend/test - validate target reachability.
+  // For PGlite this is NON-DESTRUCTIVE: assertSafePglitePath validates containment
+  // without creating the database file.
+  router.post('/api/v1/admin/migrate-backend/test', async (c) => {
+    const parsed = migrateTargetSchema.safeParse(await c.req.json().catch(() => null))
+    if (!parsed.success)
+      return c.json({ error: 'Invalid target', details: parsed.error.issues }, 400)
+    try {
+      if (parsed.data.backend === 'pglite') {
+        const abs = assertSafePglitePath(parsed.data.path)
+        return c.json({ ok: true, backend: 'pglite', description: `PGlite file at ${abs}` })
+      }
+      const conn = await connectTarget(parsed.data)
+      try {
+        await conn.ping()
+        return c.json({ ok: true, backend: 'postgres', description: conn.describe() })
+      } finally {
+        await conn.close()
+      }
+    } catch (err) {
+      return c.json({ ok: false, error: logAndSanitize(err, 'migrate-test') }, 502)
+    }
+  })
+
+  // POST /api/v1/admin/migrate-backend - copy all data into target backend.
+  router.post('/api/v1/admin/migrate-backend', async (c) => {
+    const parsed = migrateRequestSchema.safeParse(await c.req.json().catch(() => null))
+    if (!parsed.success)
+      return c.json({ error: 'Invalid request', details: parsed.error.issues }, 400)
+    if (deps.isPipelineRunning()) {
+      return c.json(
+        {
+          error: 'A pipeline is running. Disable schedules and retry once idle.',
+          code: 'pipeline_running' as const,
+        },
+        409,
+      )
+    }
+    setMaintenance(true)
+    try {
+      const report = await migrateBackend({
+        sourceDb: deps.db,
+        target: parsed.data.target,
+        overwrite: parsed.data.overwrite,
+        isPipelineRunning: deps.isPipelineRunning,
+      })
+      return c.json(report, report.ok ? 200 : 422)
+    } catch (err) {
+      return c.json({ error: logAndSanitize(err, 'migrate-backend') }, 500)
+    } finally {
+      setMaintenance(false)
+    }
   })
 
   return router
