@@ -36,7 +36,14 @@ import {
   targets,
   users,
 } from '@/db/schema'
-import type { BackupFile, BackupOptions, OpsDb, RestoreOptions, RestoreResult } from './types'
+import type {
+  BackupData,
+  BackupFile,
+  BackupOptions,
+  OpsDb,
+  RestoreOptions,
+  RestoreResult,
+} from './types'
 
 type BackupTable =
   | typeof albumBlocks
@@ -303,8 +310,8 @@ const RESTORE_ORDER = [
 
 // Map from backup data key to the table object for external consumers
 export const BACKUP_TABLE_BY_KEY = Object.fromEntries(
-  RESTORE_ORDER.map((spec) => [spec.key, spec.table]),
-) as Record<string, BackupTable>
+  RESTORE_ORDER.map((spec) => [spec.key as keyof BackupData, spec.table]),
+) as Partial<Record<keyof BackupData, AnyPgTable>>
 
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
   const currentFp = getKeyFingerprint()

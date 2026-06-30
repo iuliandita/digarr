@@ -125,6 +125,25 @@ describe('backup full-fidelity', () => {
         artistName: 'Test Artist',
         releaseTitle: 'Test Album',
       })
+      await db.insert(schema.libraryAlbums).values({
+        userId: user.id,
+        source: 'lidarr',
+        sourceAlbumId: 'alb-001',
+        sourceArtistId: 'src-001',
+        title: 'Test Album',
+        titleNormalized: 'test album',
+      })
+      await db.insert(schema.libraryAlbumMatchOverrides).values({
+        userId: user.id,
+        source: 'lidarr',
+        sourceAlbumId: 'alb-001',
+        correctAlbumMbid: '00000000-0000-0000-0000-000000000003',
+      })
+      await db.insert(schema.librarySyncState).values({
+        userId: user.id,
+        source: 'lidarr',
+        lastSyncStatus: 'completed',
+      })
       await db.insert(schema.recordingArtistCache).values({
         recordingMbid: '00000000-0000-0000-0000-000000000002',
         artistMbid: '00000000-0000-0000-0000-000000000001',
@@ -139,6 +158,9 @@ describe('backup full-fidelity', () => {
       expect(result.tablesRestored.libraryArtists).toBeGreaterThan(0)
       expect(result.tablesRestored.libraryMatchOverrides).toBeGreaterThan(0)
       expect(result.tablesRestored.slskdJobs).toBeGreaterThan(0)
+      expect(result.tablesRestored.libraryAlbums).toBeGreaterThan(0)
+      expect(result.tablesRestored.libraryAlbumMatchOverrides).toBeGreaterThan(0)
+      expect(result.tablesRestored.librarySyncState).toBeGreaterThan(0)
       expect(result.tablesRestored.recordingArtistCache).toBeGreaterThan(0)
       expect(result.tablesRestored.libraryHealthState).toBeGreaterThan(0)
     } finally {
