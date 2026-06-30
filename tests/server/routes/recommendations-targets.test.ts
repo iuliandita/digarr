@@ -93,6 +93,47 @@ describe('target-aware approval', () => {
     )
   })
 
+  it('partial Lidarr add (artist added, album not monitored) persists the artist link and warns, not orphaned', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    const mockTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'lidarr',
+        targetId: 1,
+        externalId: 42,
+        warning: 'artist added, but the selected album was not found in Lidarr',
+      }),
+    }
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([mockTarget])
+
+    const app = createTestApp()
+    const res = await app.request('/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+
+    const body = await res.json()
+    // The artist link must persist (no orphan -> retry reconciles, no duplicate).
+    expect(body.status).toBe('added_to_lidarr')
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.objectContaining({ lidarrArtistId: 42 }),
+    )
+    // The partial outcome is surfaced, not silent.
+    expect(body.targetSummary.warnings).toContain(
+      'artist added, but the selected album was not found in Lidarr',
+    )
+  })
+
   it('approves with failing Lidarr target - sets add_failed', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
@@ -358,6 +399,7 @@ describe('target-aware approval', () => {
       succeeded: 1,
       failed: 1,
       failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'connection refused' }],
+      warnings: [],
     })
   })
 
@@ -416,6 +458,7 @@ describe('target-aware approval', () => {
       succeeded: 0,
       failed: 1,
       failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'still down' }],
+      warnings: [],
     })
   })
 })

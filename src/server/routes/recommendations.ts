@@ -31,13 +31,14 @@ type ApproveResult = {
   lidarrError?: string
 }
 
-type TargetActionRecord = { status?: string; error?: string } | null
+type TargetActionRecord = { status?: string; error?: string; warning?: string } | null
 
 type TargetSummary = {
   total: number
   succeeded: number
   failed: number
   failures: Array<{ id: string; name: string; error?: string }>
+  warnings: string[]
 }
 
 const isTargetSuccess = (action: TargetActionRecord): boolean =>
@@ -50,15 +51,17 @@ function summarizeTargetActions(
 ): TargetSummary {
   const entries = Object.entries(targetActions) as [string, TargetActionRecord][]
   const failures: TargetSummary['failures'] = []
+  const warnings: string[] = []
   let succeeded = 0
   for (const [id, action] of entries) {
     if (isTargetSuccess(action)) {
       succeeded++
+      if (action?.warning) warnings.push(action.warning)
     } else {
       failures.push({ id, name: targetsById.get(id)?.name ?? id, error: action?.error })
     }
   }
-  return { total: entries.length, succeeded, failed: failures.length, failures }
+  return { total: entries.length, succeeded, failed: failures.length, failures, warnings }
 }
 
 /**
@@ -191,6 +194,7 @@ type TargetExecutionResult = {
     status: TargetActionStatus
     externalId?: number | string
     error?: string
+    warning?: string
   }
   success: boolean
   lidarrArtistId?: number | string
@@ -251,6 +255,7 @@ async function addArtistToTarget(
       status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
       externalId: result.externalId,
       error: result.error,
+      ...(result.warning ? { warning: result.warning } : {}),
     },
     success: result.success,
     lidarrArtistId: target.type === 'lidarr' && result.success ? result.externalId : undefined,

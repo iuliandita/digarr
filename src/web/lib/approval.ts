@@ -31,5 +31,10 @@ export function reportApprovalOutcome(res: ApprovalResponse, t: Translate): bool
     toast.error(t('dashboard.approveFailed'))
     return false
   }
+  // Full success, but a target reported a non-fatal partial outcome (e.g. the
+  // artist was added but the selected album could not be monitored yet).
+  if (summary?.warnings?.length) {
+    toast.warning(summary.warnings.join('; '))
+  }
   return true
 }

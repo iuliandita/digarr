@@ -215,6 +215,19 @@ describe('POST /api/v1/pipeline/run', () => {
     expect(body.position).toBe(1)
   })
 
+  it('reports duplicate (not queued) when the same user re-submits during their in-flight run', async () => {
+    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+    // Same-user re-submit: enqueue returns a no-op duplicate at position 0.
+    orchestrator.enqueue = vi.fn(() => ({ status: 'duplicate', position: 0 })) as never
+    const app = createApp(makeDeps({ orchestrator }))
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    // Must NOT be reported as a fresh queue at position 0 (silent no-op as success).
+    expect(body.status).toBe('duplicate')
+    expect(body.queued).toBe(false)
+  })
+
   it('returns 400 when settings are missing', async () => {
     const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
     const app = createApp(

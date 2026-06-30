@@ -67,22 +67,30 @@ export function createLidarrTarget(
 
         // Monitor (and search) the selected albums after the add. The artist
         // was added unmonitored, so without this the selected album is never
-        // grabbed.
+        // grabbed. This step is best-effort: the artist add already succeeded,
+        // so a monitoring failure must NOT fail the result (that would drop the
+        // Lidarr artist id and orphan the artist -> a retry re-adds a duplicate).
+        // Partial/failed monitoring surfaces as a warning instead.
+        let warning: string | undefined
         if (options?.monitorOption === 'selected' && options.selectedAlbumIds?.length && added.id) {
-          const matched = await findSelectedAlbums(added.id, options.selectedAlbumIds)
+          const wanted = options.selectedAlbumIds
+          const matched = await findSelectedAlbums(added.id, wanted)
           if (matched.length === 0) {
-            return {
-              success: false,
-              targetType: 'lidarr',
-              targetId,
-              externalId: added.id,
-              error: 'artist added, but the selected album was not found in Lidarr',
+            warning =
+              'artist added, but the selected album was not found in Lidarr (it may still be populating; retry to finish monitoring)'
+          } else {
+            try {
+              for (const album of matched) {
+                await client.updateAlbum(album.id, { monitored: true })
+              }
+              await client.triggerCommand('AlbumSearch', { albumIds: matched.map((a) => a.id) })
+              if (matched.length < wanted.length) {
+                warning = `artist added; ${matched.length} of ${wanted.length} selected albums monitored, the rest were not found in Lidarr`
+              }
+            } catch (monErr: unknown) {
+              warning = `artist added, but monitoring the selected album failed: ${errMsg(monErr)}`
             }
           }
-          for (const album of matched) {
-            await client.updateAlbum(album.id, { monitored: true })
-          }
-          await client.triggerCommand('AlbumSearch', { albumIds: matched.map((a) => a.id) })
         }
 
         return {
@@ -90,6 +98,7 @@ export function createLidarrTarget(
           targetType: 'lidarr',
           targetId,
           externalId: added.id,
+          ...(warning ? { warning } : {}),
         }
       } catch (err: unknown) {
         return {

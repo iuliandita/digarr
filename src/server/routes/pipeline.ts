@@ -113,11 +113,20 @@ export function pipelineRoutes(deps: AppDependencies) {
       promptLocale: null,
     } as unknown as PipelineDeps)
 
-    const queued = enqueued.status !== 'started'
+    // Surface the real enqueue outcome. A same-user re-submit during an
+    // in-flight run is a no-op 'duplicate' and must not masquerade as a fresh
+    // 'queued' run at position 0.
+    const message =
+      enqueued.status === 'started'
+        ? 'Pipeline started'
+        : enqueued.status === 'duplicate'
+          ? 'Pipeline already running'
+          : 'Pipeline queued'
     return c.json(
       {
-        message: queued ? 'Pipeline queued' : 'Pipeline started',
-        queued,
+        message,
+        status: enqueued.status,
+        queued: enqueued.status === 'queued',
         position: enqueued.position,
       },
       202,

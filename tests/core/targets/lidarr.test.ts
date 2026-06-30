@@ -123,7 +123,7 @@ describe('createLidarrTarget()', () => {
     }
   })
 
-  it('addArtist fails loudly when the selected album never appears in Lidarr', async () => {
+  it('addArtist succeeds with a warning (no orphan) when the selected album never appears', async () => {
     vi.useFakeTimers()
     try {
       const client = mockLidarrClient() // getAlbums always returns []
@@ -136,11 +136,58 @@ describe('createLidarrTarget()', () => {
       await vi.runAllTimersAsync()
       const result = await pending
 
-      expect(result?.success).toBe(false)
-      expect(result?.error).toMatch(/not found in Lidarr/)
+      // The artist WAS added; only the secondary monitoring step came up empty.
+      // Surfacing success:true keeps the Lidarr artist id persisted so a retry
+      // reconciles instead of orphaning + re-adding (duplicate).
+      expect(result?.success).toBe(true)
       expect(result?.externalId).toBe(42)
+      expect(result?.error).toBeUndefined()
+      expect(result?.warning).toMatch(/not found in Lidarr/)
       expect(client.updateAlbum).not.toHaveBeenCalled()
       expect(client.triggerCommand).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('addArtist succeeds with a warning when monitoring the selected album throws', async () => {
+    const client = mockLidarrClient()
+    client.getAlbums.mockResolvedValue([{ id: 10, foreignAlbumId: 'album-1', monitored: false }])
+    client.updateAlbum.mockRejectedValue(new Error('Lidarr 500'))
+    const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+
+    const result = await target.addArtist?.(
+      { mbid: 'mbid-rh', name: 'Radiohead' },
+      { monitorOption: 'selected', selectedAlbumIds: ['album-1'] },
+    )
+
+    // Monitoring is best-effort and must never fail the add.
+    expect(result?.success).toBe(true)
+    expect(result?.externalId).toBe(42)
+    expect(result?.warning).toMatch(/Lidarr 500/)
+  })
+
+  it('addArtist monitors found albums and warns about the ones not in Lidarr (partial)', async () => {
+    vi.useFakeTimers()
+    try {
+      const client = mockLidarrClient()
+      // album-2 never appears, so the poll runs out of attempts with a partial match.
+      client.getAlbums.mockResolvedValue([{ id: 10, foreignAlbumId: 'album-1', monitored: false }])
+      const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+
+      const pending = target.addArtist?.(
+        { mbid: 'mbid-rh', name: 'Radiohead' },
+        { monitorOption: 'selected', selectedAlbumIds: ['album-1', 'album-2'] },
+      )
+      await vi.runAllTimersAsync()
+      const result = await pending
+
+      expect(result?.success).toBe(true)
+      expect(result?.externalId).toBe(42)
+      expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
+      expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
+      // Not silently success: the user must learn album-2 was not monitored.
+      expect(result?.warning).toMatch(/1 of 2/)
     } finally {
       vi.useRealTimers()
     }

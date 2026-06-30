@@ -140,9 +140,11 @@ function EmptyState({ filter }: { filter: FilterTab }) {
               triggerPipeline()
                 .then((res) =>
                   toast.success(
-                    res.queued
-                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                      : t('discover.scanStarted'),
+                    res.status === 'duplicate'
+                      ? t('discover.scanAlreadyRunning')
+                      : res.queued
+                        ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                        : t('discover.scanStarted'),
                   ),
                 )
                 .catch((err) => {
@@ -150,7 +152,7 @@ function EmptyState({ filter }: { filter: FilterTab }) {
                     typeof err === 'object' && err !== null && 'message' in err
                       ? String(err.message)
                       : String(err)
-                  toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
+                  toast.error(msg)
                 })
             }
             className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
@@ -1521,14 +1523,15 @@ export function DiscoverPage() {
             triggerPipeline()
               .then((res) =>
                 toast.success(
-                  res.queued
-                    ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                    : t('discover.scanStarted'),
+                  res.status === 'duplicate'
+                    ? t('discover.scanAlreadyRunning')
+                    : res.queued
+                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                      : t('discover.scanStarted'),
                 ),
               )
               .catch((err) => {
-                const msg = errMsg(err)
-                toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
+                toast.error(errMsg(err))
               })
           }
           aria-label={t('app.runScan')}
