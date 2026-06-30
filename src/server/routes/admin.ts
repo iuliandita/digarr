@@ -9,7 +9,7 @@ import {
   rebuildGenres,
   rescoreRecommendations,
 } from '@/core/ops/hygiene'
-import { migrateBackend } from '@/core/ops/migrate-backend'
+import { MigrateBackendError, migrateBackend } from '@/core/ops/migrate-backend'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { isValidStatus } from '@/core/recommendations/statuses'
@@ -30,6 +30,11 @@ export interface AdminDeps {
   getSettings: () => Promise<{ preferences?: Partial<Preferences> | null } | null>
   generateReasoning?: (artistName: string, genres: string[]) => Promise<string>
 }
+
+// Single in-flight migration at a time. The route is exempt from the maintenance
+// lock (so the operator can drive it), so this flag is what blocks a second
+// concurrent migration POST. Single-process, same rationale as the rate limiters.
+let migrationInProgress = false
 
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
@@ -243,6 +248,13 @@ export function adminRoutes(deps: AdminDeps) {
         409,
       )
     }
+    if (migrationInProgress) {
+      return c.json(
+        { error: 'A migration is already in progress.', code: 'migration_in_progress' as const },
+        409,
+      )
+    }
+    migrationInProgress = true
     setMaintenance(true)
     try {
       const report = await migrateBackend({
@@ -253,9 +265,16 @@ export function adminRoutes(deps: AdminDeps) {
       })
       return c.json(report, report.ok ? 200 : 422)
     } catch (err) {
+      if (err instanceof MigrateBackendError) {
+        // Known precondition failure: tell the operator what to fix. These messages
+        // carry no credentials, so they are safe to return verbatim.
+        const status = err.code === 'encryption_mismatch' ? 422 : 409
+        return c.json({ error: err.message, code: err.code }, status)
+      }
       return c.json({ error: logAndSanitize(err, 'migrate-backend') }, 500)
     } finally {
       setMaintenance(false)
+      migrationInProgress = false
     }
   })
 

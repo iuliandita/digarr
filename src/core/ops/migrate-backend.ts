@@ -5,6 +5,24 @@ import type { Database } from '@/db'
 import { backendFingerprint, connectTarget, type MigrationTargetSpec } from '@/db/connect'
 import { BACKUP_TABLE_BY_KEY, createBackup, restoreBackup } from './backup'
 
+/** A known precondition failure (not a crash). `code` lets the HTTP layer map it
+ *  to a meaningful status. Messages never contain credentials. */
+export type MigrateErrorCode =
+  | 'pipeline_running'
+  | 'same_database'
+  | 'target_not_empty'
+  | 'encryption_mismatch'
+
+export class MigrateBackendError extends Error {
+  constructor(
+    readonly code: MigrateErrorCode,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'MigrateBackendError'
+  }
+}
+
 export interface MigrateBackendInput {
   sourceDb: Database
   target: MigrationTargetSpec
@@ -57,7 +75,8 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
   const { sourceDb, target, isPipelineRunning, overwrite = false } = input
 
   if (isPipelineRunning()) {
-    throw new Error(
+    throw new MigrateBackendError(
+      'pipeline_running',
       'Cannot migrate while a pipeline is running. Wait for it to finish and disable schedules first.',
     )
   }
@@ -71,7 +90,10 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
       backendFingerprint(conn.db),
     ])
     if (srcFp === tgtFp) {
-      throw new Error('Target is the same database as the source. Choose a different target.')
+      throw new MigrateBackendError(
+        'same_database',
+        'Target is the same database as the source. Choose a different target.',
+      )
     }
 
     const tableList = await conn.db.execute(
@@ -84,7 +106,8 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
       const cnt = await conn.db.execute(sql`select count(*)::int n from users`)
       const userCount = (cnt as unknown as { rows: { n: number }[] }).rows[0]?.n ?? 0
       if (userCount > 0 && !overwrite) {
-        throw new Error(
+        throw new MigrateBackendError(
+          'target_not_empty',
           'Target database is not empty. Re-run with overwrite=true to replace its contents.',
         )
       }
@@ -97,7 +120,10 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
     }
 
     if (isPipelineRunning()) {
-      throw new Error('A pipeline started during preflight. Aborting; the target is left empty.')
+      throw new MigrateBackendError(
+        'pipeline_running',
+        'A pipeline started during preflight. Aborting; the target is left empty.',
+      )
     }
 
     const backup = await sourceDb.transaction(async (tx) => {
@@ -109,7 +135,8 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
     if (restore.encryptionMismatch) {
       // restoreBackup returns instead of throwing on a key mismatch; surface it as
       // a clear, actionable error rather than letting verify report every table empty.
-      throw new Error(
+      throw new MigrateBackendError(
+        'encryption_mismatch',
         'Cannot migrate: the source data was encrypted with a different key than the current DIGARR_ENCRYPTION_KEY. Set the same encryption key before migrating.',
       )
     }

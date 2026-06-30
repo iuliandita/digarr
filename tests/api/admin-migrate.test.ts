@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
+import * as schema from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { createTestApp } from '../helpers/test-app'
 import { makeTestDb } from '../helpers/test-db'
@@ -166,6 +167,39 @@ describe('POST /api/v1/admin/migrate-backend', () => {
       const body = (await res.json()) as Record<string, unknown>
       expect(body.ok).toBe(true)
       expect(body.targetEnvHint as string).toContain('DB_PATH=')
+    } finally {
+      await src.close()
+    }
+  }, 30_000)
+
+  it('returns 409 target_not_empty when the target already holds data', async () => {
+    const src = await makeTestDb()
+    try {
+      // The emptiness guard keys on the users table, so the source must have a user
+      // for the first migration to leave the target non-empty.
+      await src.db.insert(schema.users).values({ username: 'seed', passwordHash: 'x' })
+      const { app } = createTestApp({ db: src.db as unknown as AppDependencies['db'] })
+      const target = { backend: 'pglite' as const, path: `${tmpDir}/reuse` }
+      const headers = {
+        Authorization: `Bearer ${SESSION_TOKEN}`,
+        'Content-Type': 'application/json',
+      }
+      const first = await app.request('/api/v1/admin/migrate-backend', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ target }),
+      })
+      expect(first.status).toBe(200)
+      // Second migration into the now-populated target without overwrite must be a
+      // typed precondition failure (409), not an opaque 500.
+      const second = await app.request('/api/v1/admin/migrate-backend', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ target }),
+      })
+      expect(second.status).toBe(409)
+      const body = (await second.json()) as Record<string, unknown>
+      expect(body.code).toBe('target_not_empty')
     } finally {
       await src.close()
     }
