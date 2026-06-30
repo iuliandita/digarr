@@ -8,6 +8,7 @@ import { envConfig } from '@/config/env'
 import { VERSION } from '@/version'
 import { openapiDoc } from './helpers/openapi-doc'
 import { problem } from './helpers/problem'
+import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
 import { apiVersionRedirect } from './middleware/api-version'
 import { authGuard } from './middleware/auth'
@@ -147,6 +148,7 @@ export function createApp(deps: AppDependencies) {
     }),
   )
   app.use('*', setupGuard(deps.isSetupComplete))
+  app.use('*', maintenanceMiddleware)
 
   // Auth status (optional auth - tells the frontend whether auth is required
   // AND whether the caller is already authenticated via session cookie / bearer
@@ -254,6 +256,7 @@ export function createApp(deps: AppDependencies) {
     '/',
     adminRoutes({
       db: deps.db,
+      isPipelineRunning: () => deps.orchestrator.isRunning,
       getUserById: deps.getUserById,
       getSettings: deps.getSettings,
       generateReasoning: async (artistName, genres) => {
