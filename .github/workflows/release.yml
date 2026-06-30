@@ -63,7 +63,16 @@ jobs:
             suffix: "-debian"
             latest: "false"
     steps:
+      # Check out the released tag itself, not the workflow trigger ref. On a
+      # workflow_dispatch run github.ref is the branch HEAD, so without this the
+      # build context and the baked git sha would come from HEAD, not the tag.
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+
+      - name: Resolve commit sha
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4
@@ -133,7 +142,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             RUNTIME_IMAGE=${{ matrix.runtime-image }}
-            DIGARR_GIT_SHA=${{ github.sha }}
+            DIGARR_GIT_SHA=${{ steps.sha.outputs.sha }}
             DIGARR_CHANNEL=${{ steps.tag.outputs.prerelease == 'true' && 'rc' || 'stable' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

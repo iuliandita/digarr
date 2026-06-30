@@ -1,5 +1,12 @@
 name: Nightly
 
+# Intentionally NOT gated on the CI workflow. `:nightly` is a throwaway,
+# bleeding-edge channel: pushes to develop are squash-merges of PRs that already
+# passed full CI (or trivial direct CI/config commits), so a broken build
+# reaching :nightly is acceptable and self-correcting (the next develop push
+# moves the tag). Bug reports against nightly cite the footer / GET /health sha.
+# A tagged release (release.yml) is the gated, signed path; nightly is not.
+
 on:
   push:
     branches:
