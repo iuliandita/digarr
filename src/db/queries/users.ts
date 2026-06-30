@@ -118,7 +118,10 @@ export async function getUserByOidcSubject(db: Database, subject: string): Promi
 }
 
 export async function getUserByEmail(db: Database, email: string): Promise<UserRow | null> {
-  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  // Emails are stored lowercased; normalize the lookup so a mixed-case address
+  // (e.g. from an OIDC claim) still matches and cannot be used to bypass the
+  // case-sensitive unique index.
+  const rows = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1)
   return rows[0] ?? null
 }
 

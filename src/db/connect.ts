@@ -7,6 +7,7 @@ import { migrate as migratePg } from 'drizzle-orm/node-postgres/migrator'
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite'
 import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator'
 import pg from 'pg'
+import { envConfig } from '@/config/env'
 import { getPgliteDataDir } from '@/db/backend'
 import * as schema from '@/db/schema'
 
@@ -116,7 +117,21 @@ export async function connectTarget(spec: MigrationTargetSpec): Promise<TargetCo
     }
   }
 
-  const pool = new pg.Pool({ connectionString: spec.dsn, max: 4 })
+  // Honor the operator's SSL policy so a full copy of user PII is never sent in
+  // plaintext, and bound the connect so a dead target fails fast instead of
+  // hanging the migration request.
+  const ssl =
+    envConfig.dbSslMode === 'require'
+      ? { rejectUnauthorized: true }
+      : envConfig.dbSslMode === 'no-verify'
+        ? { rejectUnauthorized: false }
+        : undefined
+  const pool = new pg.Pool({
+    connectionString: spec.dsn,
+    max: 4,
+    connectionTimeoutMillis: envConfig.dbConnectTimeoutMs ?? 10_000,
+    ssl,
+  })
   const db = drizzlePg(pool, { schema })
   return {
     backend: 'postgres',

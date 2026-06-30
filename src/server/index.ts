@@ -235,6 +235,9 @@ export function createApp(deps: AppDependencies) {
     '/api/v1/auth/change-password',
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'chpw' }),
   )
+  // Throttle email writes so the email-collision 409 cannot be used as a fast
+  // enumeration oracle against the user list.
+  app.use('/api/v1/auth/me/email', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'email' }))
   // Rate limit AI-consuming endpoints to prevent API budget exhaustion
   app.use('/api/v1/mood/discover', rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'mood' }))
   app.use(

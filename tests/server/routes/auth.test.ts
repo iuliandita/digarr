@@ -177,6 +177,11 @@ beforeEach(async () => {
 afterEach(async () => {
   delete process.env.DIGARR_AUTH_TOKEN
   await clearAllSessions()
+  // Reset the shared in-memory rate-limit buckets so per-IP/user counts from one
+  // test never bleed into the next (the rate-limited email/login/etc. endpoints
+  // key on a module-global store).
+  const { __shutdownRateLimiter } = await import('@/server/middleware/rate-limit')
+  __shutdownRateLimiter()
 })
 
 describe('POST /api/v1/auth/register', () => {
@@ -1001,5 +1006,33 @@ describe('PATCH /api/v1/auth/me/email', () => {
     )
     expect(res.status).toBe(200)
     expect(updateUser).toHaveBeenCalledWith(1, { email: 'me@example.com' })
+  })
+
+  it('normalizes the email to lowercase before the uniqueness check and storage', async () => {
+    const updateUser = vi.fn(async () => {})
+    const getUserByEmail = vi.fn(async () => null)
+    const res = await emailRequest(
+      makeDeps({ updateUser, getUserByEmail, getUserCount: vi.fn(async () => 1) }),
+      { email: 'Mixed@Case.COM' },
+    )
+    expect(res.status).toBe(200)
+    // Case-insensitive: storing and checking both use the lowercased form, so
+    // Mixed@Case.COM and mixed@case.com cannot become two distinct rows.
+    expect(getUserByEmail).toHaveBeenCalledWith('mixed@case.com')
+    expect(updateUser).toHaveBeenCalledWith(1, { email: 'mixed@case.com' })
+  })
+
+  it('rate-limits the email endpoint (blunts the email-collision enumeration oracle)', async () => {
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
+    await createSession(1, 'session-token')
+    const fire = () =>
+      app.request('/api/v1/auth/me/email', {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer session-token', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'probe@example.com' }),
+      })
+    // 5/min budget: the 6th attempt from the same caller is throttled.
+    for (let i = 0; i < 5; i++) expect((await fire()).status).toBe(200)
+    expect((await fire()).status).toBe(429)
   })
 })
