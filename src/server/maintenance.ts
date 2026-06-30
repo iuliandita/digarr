@@ -1,4 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
+import { problem } from '@/server/helpers/problem'
 
 let active = false
 
@@ -20,14 +21,16 @@ export const maintenanceMiddleware: MiddlewareHandler = async (c, next) => {
   if (
     active &&
     WRITE_METHODS.has(c.req.method) &&
-    !EXEMPT_PREFIXES.some((p) => c.req.path.startsWith(p))
+    !EXEMPT_PREFIXES.some((p) => c.req.path === p || c.req.path.startsWith(`${p}/`))
   ) {
-    return c.json(
-      {
-        error: 'Maintenance in progress (backend migration). Writes are temporarily disabled.',
-        code: 'maintenance' as const,
-      },
+    return problem(
+      c,
+      'maintenance',
+      'Maintenance in progress',
       503,
+      'Backend migration is active. Writes are temporarily disabled.',
+      undefined,
+      'maintenance',
     )
   }
   return next()

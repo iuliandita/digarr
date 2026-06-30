@@ -54,9 +54,10 @@ describe('maintenanceMiddleware app-level', () => {
         body: JSON.stringify({ username: 'admin', password: 'pw' }),
       })
       expect(res.status).toBe(503)
+      expect(res.headers.get('content-type')).toContain('application/problem+json')
       const body = (await res.json()) as Record<string, unknown>
       expect(body.code).toBe('maintenance')
-      expect(typeof body.error).toBe('string')
+      expect(typeof body.title).toBe('string')
     } finally {
       setMaintenance(false)
     }
