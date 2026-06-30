@@ -240,6 +240,7 @@ export type ApprovalTargetSummary = {
   succeeded: number
   failed: number
   failures: Array<{ id: string; name: string; error?: string | null }>
+  warnings?: string[]
 }
 export type ApprovalResponse = {
   status: string
