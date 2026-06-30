@@ -213,6 +213,10 @@ async function addArtistToTarget(
           artistName: artist.name,
           mbid: artist.mbid,
           action: 'add',
+          ...(addOptions.monitorOption ? { monitorOption: addOptions.monitorOption } : {}),
+          ...(Array.isArray(addOptions.selectedAlbumIds) && addOptions.selectedAlbumIds.length
+            ? { selectedAlbumIds: addOptions.selectedAlbumIds }
+            : {}),
         },
       })
     : null
