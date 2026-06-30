@@ -161,7 +161,7 @@ async function findOrphanedKeys(referenceKeys: string[]): Promise<string[]> {
   const body = files.map((f) => readFileSync(f, 'utf8')).join('\n')
 
   const confirmedDynamic = DYNAMIC_PREFIXES.filter((prefix) => {
-    const escaped = prefix.replace(/\./g, '\\.')
+    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return new RegExp(`\\b${escaped}\\$\\{`).test(body)
   })
 

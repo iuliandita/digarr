@@ -20,8 +20,8 @@ services:
     #   :latest -> head of the release line, may move multiple times per day
     # Pin to a specific minor or patch when you want zero surprises:
     # image: docker.io/iuliandita/digarr:1.10.0
-    # Alpine variant (smaller image, musl libc):
-    # image: docker.io/iuliandita/digarr:1.10.0-alpine
+    # Default image is alpine (musl libc). Debian/glibc variant:
+    # image: docker.io/iuliandita/digarr:1.10.0-debian
     user: "1000:1000"
     networks:
       - frontend
