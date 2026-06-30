@@ -143,9 +143,12 @@ Migration runs in-process with the same `DIGARR_ENCRYPTION_KEY`. Encrypted
 column values transfer verbatim and remain decryptable on the new backend because
 the key has not changed.
 
-If the source data was encrypted with a different key than the current
-`DIGARR_ENCRYPTION_KEY`, the migration refuses immediately with a clear error.
-Correct the key and retry.
+Because this migration reads from the running app and writes with the same
+process, both ends always share the current `DIGARR_ENCRYPTION_KEY`, so a key
+mismatch cannot arise here. (The key-mismatch guard exists for the separate
+file-based backup/restore path, where a backup may have been taken under a
+different key -- there the restore refuses with a clear error until the key
+matches.)
 
 ---
 
