@@ -30,15 +30,15 @@ describe('migrateBackend', () => {
   })
 
   it('refuses when the pipeline is running', async () => {
-    const src = await makeTestDb()
+    // The guard throws before sourceDb or the target is ever touched, so no real
+    // DB is needed — avoids a slow PGlite cold-start that flakes the default timeout.
     await expect(
       migrateBackend({
-        sourceDb: src.db as never,
+        sourceDb: null as never,
         target: { backend: 'pglite', path: tgt('a') },
         isPipelineRunning: () => true,
       }),
     ).rejects.toThrow(/pipeline is running/i)
-    await src.close()
   })
 
   it('copies all data and verifies counts AND content hashes', async () => {
