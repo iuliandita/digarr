@@ -136,11 +136,15 @@ export function createMusicBrainzClient() {
     }
   }
 
-  async function requestWithRetry<T>(path: string): Promise<T> {
+  // Only the network round-trip is queued; the backoff sleep happens between
+  // attempts OUTSIDE the rate-limited slot, and each attempt re-enqueues. This
+  // stops one retrying request (e.g. during a 503 storm) from holding the single
+  // concurrency slot and stalling all other MB traffic for its whole backoff.
+  async function request<T>(path: string): Promise<T> {
     let lastErr: unknown
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
       try {
-        const res = await fetchOnce(path)
+        const res = (await queue.add(() => fetchOnce(path))) as Response
 
         if (res.ok) {
           return (await res.json()) as T
@@ -183,10 +187,6 @@ export function createMusicBrainzClient() {
     }
     // Unreachable under normal flow - loop either returns or throws above.
     throw lastErr instanceof Error ? lastErr : new Error(`MusicBrainz request failed for ${path}`)
-  }
-
-  async function request<T>(path: string): Promise<T> {
-    return queue.add(() => requestWithRetry<T>(path)) as Promise<T>
   }
 
   function lookupArtist(mbid: string): Promise<MBArtist> {

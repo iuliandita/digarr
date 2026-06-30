@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 
@@ -22,6 +22,9 @@ export function MonitoringOptions({
 }: Props) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const menuId = useId()
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
   const options: Array<{
     value: MonitorOption
     label: string
@@ -67,6 +70,48 @@ export function MonitoringOptions({
     }
   }
 
+  // When the menu opens, move focus onto the first enabled item so keyboard
+  // users land inside the menu (WAI-ARIA menu-button pattern).
+  useEffect(() => {
+    if (open) itemRefs.current.find((el) => el && !el.disabled)?.focus()
+  }, [open])
+
+  function closeAndRestoreFocus() {
+    setOpen(false)
+    toggleRef.current?.focus()
+  }
+
+  function focusItemByOffset(from: number, dir: 1 | -1) {
+    const n = options.length
+    for (let step = 1; step <= n; step += 1) {
+      const idx = (from + dir * step + n) % n
+      if (!options[idx]?.disabled) {
+        itemRefs.current[idx]?.focus()
+        return
+      }
+    }
+  }
+
+  function handleMenuKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const current = itemRefs.current.indexOf(document.activeElement as HTMLButtonElement)
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeAndRestoreFocus()
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      focusItemByOffset(current < 0 ? -1 : current, 1)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      focusItemByOffset(current < 0 ? 0 : current, -1)
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      focusItemByOffset(-1, 1)
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      focusItemByOffset(0, -1)
+    }
+  }
+
   return (
     <div className={`relative inline-flex ${fill ? 'w-full' : ''}`}>
       {/* Primary approve button - defaults to 'all' */}
@@ -84,16 +129,25 @@ export function MonitoringOptions({
       </Button>
       {/* Dropdown toggle */}
       <button
+        ref={toggleRef}
         type="button"
         disabled={loading}
         onClick={(e) => {
           e.stopPropagation()
           setOpen((prev) => !prev)
         }}
+        onKeyDown={(e) => {
+          // Open with the keyboard and dive straight into the menu.
+          if (!open && (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
         className={`inline-flex items-center justify-center px-1.5 py-1.5 rounded-r-md text-xs border border-approve/40 text-approve hover:bg-approve/10 transition-colors disabled:pointer-events-none disabled:opacity-50 ${fill ? 'px-2 py-2' : ''}`}
         aria-label={t('discover.monitoringOptions')}
         aria-expanded={open}
-        aria-haspopup="true"
+        aria-haspopup="menu"
+        aria-controls={open ? menuId : undefined}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -122,11 +176,22 @@ export function MonitoringOptions({
             }}
             aria-hidden="true"
           />
-          <div className="absolute right-0 top-full mt-1 z-50 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]">
-            {options.map((opt) => (
+          <div
+            id={menuId}
+            role="menu"
+            aria-label={t('discover.monitoringOptions')}
+            onKeyDown={handleMenuKeyDown}
+            className="absolute right-0 top-full mt-1 z-50 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]"
+          >
+            {options.map((opt, i) => (
               <button
                 key={opt.value}
+                ref={(el) => {
+                  itemRefs.current[i] = el
+                }}
                 type="button"
+                role="menuitem"
+                tabIndex={-1}
                 disabled={opt.disabled}
                 title={opt.disabled ? opt.description : undefined}
                 onClick={(e) => {

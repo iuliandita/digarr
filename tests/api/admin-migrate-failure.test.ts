@@ -53,10 +53,22 @@ describe('POST /api/v1/admin/migrate-backend (verification failure)', () => {
       }),
     })
 
-    // A verification failure must NOT be reported as success.
+    // A verification failure must NOT be reported as success, and the 422 must
+    // carry the unified problem+json envelope -- never the bare MigrationReport,
+    // so a 422 can only ever hold one shape. The report rides as an extension.
     expect(res.status).toBe(422)
-    const body = (await res.json()) as MigrationReport
-    expect(body.ok).toBe(false)
-    expect(body.mismatches[0]).toMatchObject({ table: 'genres', contentDiffers: true })
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    const body = (await res.json()) as {
+      status: number
+      code: string
+      title: string
+      report: MigrationReport
+      ok?: unknown
+    }
+    expect(body.status).toBe(422)
+    expect(body.code).toBe('migration_verify_failed')
+    expect(body.ok).toBeUndefined() // top level is the problem envelope, not the report
+    expect(body.report.ok).toBe(false)
+    expect(body.report.mismatches[0]).toMatchObject({ table: 'genres', contentDiffers: true })
   })
 })

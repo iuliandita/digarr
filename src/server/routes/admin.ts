@@ -16,6 +16,7 @@ import { isValidStatus } from '@/core/recommendations/statuses'
 import { logAndSanitize } from '@/core/validation'
 import { assertSafePglitePath, classifyTargetError, connectTarget } from '@/db/connect'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { problem } from '@/server/helpers/problem'
 import { setMaintenance } from '@/server/maintenance'
 import { backupFileSchema } from '@/server/schemas/admin'
 import { migrateRequestSchema, migrateTargetSchema } from '@/server/schemas/migrate'
@@ -241,20 +242,29 @@ export function adminRoutes(deps: AdminDeps) {
   router.post('/api/v1/admin/migrate-backend', async (c) => {
     const parsed = migrateRequestSchema.safeParse(await c.req.json().catch(() => null))
     if (!parsed.success)
-      return c.json({ error: 'Invalid request', details: parsed.error.issues }, 400)
+      return problem(c, 'invalid-request', 'Invalid request', 400, undefined, {
+        issues: parsed.error.issues,
+      })
     if (deps.isPipelineRunning()) {
-      return c.json(
-        {
-          error: 'A pipeline is running. Disable schedules and retry once idle.',
-          code: 'pipeline_running' as const,
-        },
+      return problem(
+        c,
+        'migration-pipeline-running',
+        'A pipeline is running. Disable schedules and retry once idle.',
         409,
+        undefined,
+        undefined,
+        'pipeline_running',
       )
     }
     if (migrationInProgress) {
-      return c.json(
-        { error: 'A migration is already in progress.', code: 'migration_in_progress' as const },
+      return problem(
+        c,
+        'migration-in-progress',
+        'A migration is already in progress.',
         409,
+        undefined,
+        undefined,
+        'migration_in_progress',
       )
     }
     migrationInProgress = true
@@ -266,15 +276,29 @@ export function adminRoutes(deps: AdminDeps) {
         overwrite: parsed.data.overwrite,
         isPipelineRunning: deps.isPipelineRunning,
       })
-      return c.json(report, report.ok ? 200 : 422)
+      // The MigrationReport body is returned ONLY on success. A verification
+      // failure becomes a problem+json 422 carrying the report as an extension,
+      // so a 422 never holds two incompatible shapes.
+      if (!report.ok) {
+        return problem(
+          c,
+          'migration-verify-failed',
+          'Migration completed but verification failed.',
+          422,
+          'Row counts or content differ between source and target.',
+          { report },
+          'migration_verify_failed',
+        )
+      }
+      return c.json(report)
     } catch (err) {
       if (err instanceof MigrateBackendError) {
         // Known precondition failure: tell the operator what to fix. These messages
         // carry no credentials, so they are safe to return verbatim.
         const status = err.code === 'encryption_mismatch' ? 422 : 409
-        return c.json({ error: err.message, code: err.code }, status)
+        return problem(c, 'migration-failed', err.message, status, undefined, undefined, err.code)
       }
-      return c.json({ error: logAndSanitize(err, 'migrate-backend') }, 500)
+      return problem(c, 'migration-internal', logAndSanitize(err, 'migrate-backend'), 500)
     } finally {
       setMaintenance(false)
       migrationInProgress = false
