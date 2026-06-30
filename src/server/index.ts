@@ -221,7 +221,6 @@ export function createApp(deps: AppDependencies) {
     oidcRoutes({
       getOidcService: deps.getOidcService,
       getUserByOidcSubject: deps.getUserByOidcSubject,
-      getUserByEmail: deps.getUserByEmail,
       getUserByUsername: deps.getUserByUsername,
       createUser: deps.createUser,
       getUserCount: deps.getUserCount,
