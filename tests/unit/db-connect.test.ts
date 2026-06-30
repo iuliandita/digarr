@@ -10,7 +10,7 @@ describe('connectTarget', () => {
     process.env.DIGARR_MIGRATE_DATA_ROOT = mkdtempSync(join(tmpdir(), 'digarr-root-'))
   })
   afterEach(() => {
-    process.env.DIGARR_MIGRATE_DATA_ROOT = undefined
+    delete process.env.DIGARR_MIGRATE_DATA_ROOT
   })
 
   it('opens a pglite target under the allowed root, runs migrations, pings, closes', async () => {
