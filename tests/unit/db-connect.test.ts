@@ -3,7 +3,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { sql } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { assertSafePglitePath, backendFingerprint, connectTarget } from '@/db/connect'
+import {
+  assertSafePglitePath,
+  backendFingerprint,
+  classifyTargetError,
+  connectTarget,
+} from '@/db/connect'
 
 // PGlite WASM cold-start + migrations can exceed the 5s default under full-suite
 // parallel contention; these tests pass in isolation. Give them headroom.
@@ -65,5 +70,27 @@ describe('connectTarget', () => {
     expect(() =>
       assertSafePglitePath(join(process.env.DIGARR_MIGRATE_DATA_ROOT as string, '../escape')),
     ).toThrow(/outside the allowed/i)
+  })
+})
+
+describe('classifyTargetError', () => {
+  it('maps socket and pg error codes to safe categories', () => {
+    expect(classifyTargetError({ code: 'ECONNREFUSED' })).toBe('unreachable')
+    expect(classifyTargetError({ code: 'ENOTFOUND' })).toBe('unreachable')
+    expect(classifyTargetError({ code: 'ETIMEDOUT' })).toBe('timeout')
+    expect(classifyTargetError({ code: '28P01' })).toBe('auth_failed')
+    expect(classifyTargetError({ code: '3D000' })).toBe('db_missing')
+  })
+
+  it('classifies the pglite path guard before any connection code', () => {
+    expect(
+      classifyTargetError(new Error('PGlite path is outside the allowed data root (/x)')),
+    ).toBe('invalid_path')
+  })
+
+  it('falls back to timeout on message, else unknown, and never leaks the message', () => {
+    expect(classifyTargetError(new Error('connection timeout expired'))).toBe('timeout')
+    expect(classifyTargetError(new Error('postgres://u:secret@h/db boom'))).toBe('unknown')
+    expect(classifyTargetError('weird')).toBe('unknown')
   })
 })

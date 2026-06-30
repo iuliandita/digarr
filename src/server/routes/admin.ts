@@ -14,7 +14,7 @@ import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { isValidStatus } from '@/core/recommendations/statuses'
 import { logAndSanitize } from '@/core/validation'
-import { assertSafePglitePath, connectTarget } from '@/db/connect'
+import { assertSafePglitePath, classifyTargetError, connectTarget } from '@/db/connect'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { setMaintenance } from '@/server/maintenance'
 import { backupFileSchema } from '@/server/schemas/admin'
@@ -230,7 +230,10 @@ export function adminRoutes(deps: AdminDeps) {
         await conn.close()
       }
     } catch (err) {
-      return c.json({ ok: false, error: logAndSanitize(err, 'migrate-test') }, 502)
+      return c.json(
+        { ok: false, code: classifyTargetError(err), error: logAndSanitize(err, 'migrate-test') },
+        502,
+      )
     }
   })
 

@@ -1175,6 +1175,14 @@ export const de = {
   'admin.migrateTestConnection': 'Verbindung testen',
   'admin.migrateConnectionOk': 'Verbunden mit {0}',
   'admin.migrateConnectionFailed': 'Verbindung fehlgeschlagen',
+  'admin.migrateErrUnreachable':
+    'Ziel nicht erreichbar: Host oder Port hat die Verbindung abgelehnt',
+  'admin.migrateErrAuthFailed':
+    'Authentifizierung fehlgeschlagen: Benutzername und Passwort prüfen',
+  'admin.migrateErrTimeout': 'Zeitüberschreitung der Verbindung',
+  'admin.migrateErrDbMissing': 'Datenbank existiert auf dem Ziel nicht',
+  'admin.migrateErrInvalidPath': 'Ungültiger PGlite-Pfad',
+  'admin.migrateErrUnknown': 'Verbindung aus unbekanntem Grund fehlgeschlagen',
   'admin.migrateOverwrite': 'Ziel überschreiben, wenn bereits Daten vorhanden sind',
   'admin.migrateRun': 'Migrieren',
   'admin.migrateConfirmTitle': 'Auf neues Backend migrieren?',

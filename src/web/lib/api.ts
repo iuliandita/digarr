@@ -1089,7 +1089,7 @@ export const getPendingMigrations = () =>
 type MigrateTarget = { backend: 'pglite'; path: string } | { backend: 'postgres'; dsn: string }
 
 export const testMigrateTarget = (target: MigrateTarget) =>
-  fetchApi<{ ok: boolean; backend?: string; description?: string; error?: string }>(
+  fetchApi<{ ok: boolean; backend?: string; description?: string; error?: string; code?: string }>(
     '/admin/migrate-backend/test',
     { method: 'POST', body: JSON.stringify(target) },
   )

@@ -133,8 +133,8 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
 
     const restore = await restoreBackup(conn.db, backup, {})
     if (restore.encryptionMismatch) {
-      // restoreBackup returns instead of throwing on a key mismatch; surface it as
-      // a clear, actionable error rather than letting verify report every table empty.
+      // Unreachable here (same-process key fingerprint always matches); kept because
+      // restoreBackup is shared with file-based restore where a mismatch is real.
       throw new MigrateBackendError(
         'encryption_mismatch',
         'Cannot migrate: the source data was encrypted with a different key than the current DIGARR_ENCRYPTION_KEY. Set the same encryption key before migrating.',

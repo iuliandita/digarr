@@ -1166,6 +1166,13 @@ export const fr = {
   'admin.migrateTestConnection': 'Tester la connexion',
   'admin.migrateConnectionOk': 'Connecté à {0}',
   'admin.migrateConnectionFailed': 'Connexion échouée',
+  'admin.migrateErrUnreachable': 'Cible injoignable : l’hôte ou le port a refusé la connexion',
+  'admin.migrateErrAuthFailed':
+    'Échec de l’authentification : vérifiez le nom d’utilisateur et le mot de passe',
+  'admin.migrateErrTimeout': 'Délai de connexion dépassé',
+  'admin.migrateErrDbMissing': 'La base de données n’existe pas sur la cible',
+  'admin.migrateErrInvalidPath': 'Chemin PGlite non valide',
+  'admin.migrateErrUnknown': 'Échec de la connexion pour une raison inconnue',
   'admin.migrateOverwrite': 'Écraser la cible si elle contient déjà des données',
   'admin.migrateRun': 'Migrer',
   'admin.migrateConfirmTitle': 'Migrer vers un nouveau backend ?',

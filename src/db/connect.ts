@@ -46,6 +46,39 @@ export function assertSafePglitePath(p: string): string {
   return realResolved
 }
 
+// Code-only classification (never the message, which can embed the DSN).
+export type TargetConnectionErrorCode =
+  | 'unreachable'
+  | 'auth_failed'
+  | 'timeout'
+  | 'db_missing'
+  | 'invalid_path'
+  | 'unknown'
+
+export function classifyTargetError(err: unknown): TargetConnectionErrorCode {
+  const code =
+    typeof (err as { code?: unknown })?.code === 'string' ? (err as { code: string }).code : ''
+  const message = err instanceof Error ? err.message : String(err)
+  // assertSafePglitePath rejects before any connection is attempted.
+  if (/PGlite path/i.test(message)) return 'invalid_path'
+  switch (code) {
+    case 'ECONNREFUSED':
+    case 'ENOTFOUND':
+    case 'EHOSTUNREACH':
+    case 'ENETUNREACH':
+      return 'unreachable'
+    case 'ETIMEDOUT':
+      return 'timeout'
+    case '28P01': // invalid_password
+    case '28000': // invalid_authorization_specification
+      return 'auth_failed'
+    case '3D000': // invalid_catalog_name (database does not exist)
+      return 'db_missing'
+    default:
+      return /timeout/i.test(message) ? 'timeout' : 'unknown'
+  }
+}
+
 function maskDsn(dsn: string): string {
   try {
     const u = new URL(dsn)
