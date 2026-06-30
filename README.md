@@ -130,6 +130,8 @@ Digarr picks its database backend at boot. The `docker run` line above and `depl
 
 > **Upgrade note:** existing deployments are unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and the default backend plus your existing Postgres connection are unchanged. The startup log prints the selected backend (`[db] backend=...`).
 
+To switch backends after initial setup, use the in-app migration tool under Settings -> Administration -> Migrate Database Backend. It copies all stateful data to the target without modifying the source. See [Switching the Database Backend](docs/guides/switching-backends.md).
+
 ### Docker Compose
 
 Embedded PGlite (single container, no database, no secret):

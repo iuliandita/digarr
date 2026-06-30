@@ -46,6 +46,20 @@ default to external PostgreSQL; PGlite is opt-in there (Helm
 `--set database.backend=pglite`, which requires a PVC plus `replicaCount=1` and
 `Recreate`).
 
+**In-app backend migration.** Admins can switch between PGlite and external
+PostgreSQL through Settings -> Administration -> Migrate Database Backend without
+stopping the server or writing SQL. The tool (`src/core/ops/migrate-backend.ts`)
+takes a consistent read-only snapshot of the source inside a `REPEATABLE READ
+READ ONLY` transaction, runs schema migrations on the target, restores the
+snapshot atomically, then verifies every table by row count and SHA-256 content
+hash before returning a `MigrationReport`. During the copy, `maintenanceMiddleware`
+blocks all write methods (`POST/PUT/PATCH/DELETE`) on non-migration routes,
+returning `503 Maintenance in progress`; reads pass through. The routes are
+`POST /api/v1/admin/migrate-backend/test` (validate target, non-destructive) and
+`POST /api/v1/admin/migrate-backend` (run copy). See
+[`docs/guides/switching-backends.md`](../guides/switching-backends.md) for the
+operator walkthrough.
+
 ## Pipeline
 
 Seven stages:
@@ -123,6 +137,7 @@ Albums are a first-class recommendation unit. Key additions:
 - Tests run in Node.js (vitest), not Bun. `Bun.serve()`, `Bun.file()` and similar Bun-only APIs are unavailable in tests; password hashing uses `node:crypto` `scrypt`.
 - Migrations are idempotent. Drizzle generates bare DDL, so every generated migration must add `IF NOT EXISTS` / `IF EXISTS` clauses by hand.
 - Backup restore runs in a single DB transaction. Upsert conflict targets are natural keys (`mbid`, `slug`, `nameNormalized`, `token`), not serial IDs.
+- Backend migration never modifies the source database. Verification (row count + content hash) must pass before `ok: true` is returned; any mismatch surfaces in `MigrationReport.mismatches`.
 - Scoring uses the shared `computeWeightedScore()` in `src/core/pipeline/score.ts`. All callers (main pipeline + hygiene rescorer) clamp results to `[0, 1]` regardless of user weight sums.
 
 See `AGENTS.md` for the gotchas, external-API quirks, and CI notes that
