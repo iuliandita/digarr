@@ -793,6 +793,14 @@ export async function getOAuthStatus(
   return fetchApi(`/auth/oauth/${provider}/status`)
 }
 
+export async function getPopularAlbumsAvailability(): Promise<{
+  available: boolean
+  spotify: boolean
+  lastfm: boolean
+}> {
+  return fetchApi('/recommendations/popular-albums/availability')
+}
+
 // Subscriptions
 export type Subscription = {
   id: number

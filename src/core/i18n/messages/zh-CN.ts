@@ -268,6 +268,8 @@ export const zhCN = {
   'discover.monitorSelectedDescription': '选择要监控的专辑',
   'discover.monitorPopular': '热门专辑',
   'discover.monitorPopularDescription': '监控最热门的 3 张专辑发行',
+  'discover.monitorPopularUnavailable': '连接 Spotify 或 Last.fm 以监控热门专辑',
+  'discover.popularAlbumsFailed': '无法确定此艺人的热门专辑。请尝试其他监控选项。',
   'discover.monitorNoneDescription': '以不监控方式添加（仅跟踪）',
   'discover.discoveryRunStarted': '发现运行已开始。',
   'discover.exportFailed': '导出失败',

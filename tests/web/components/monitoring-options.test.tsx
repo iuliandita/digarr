@@ -34,4 +34,34 @@ describe('MonitoringOptions', () => {
     expect(screen.getByText('Nessuno')).toBeInTheDocument()
     expect(screen.getByText('Aggiungi senza monitoraggio (solo tracciamento)')).toBeInTheDocument()
   })
+
+  it('keeps all options enabled when popularAvailable defaults to true', () => {
+    render(
+      <I18nProvider>
+        <MonitoringOptions onApprove={vi.fn()} onOpenAlbumPicker={vi.fn()} />
+      </I18nProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Opzioni di monitoraggio' }))
+    const disabled = screen.getAllByRole('button').filter((b) => (b as HTMLButtonElement).disabled)
+    expect(disabled).toHaveLength(0)
+  })
+
+  it('disables the Popular option and ignores clicks when popularAvailable is false', () => {
+    const onApprove = vi.fn()
+    render(
+      <I18nProvider>
+        <MonitoringOptions
+          onApprove={onApprove}
+          onOpenAlbumPicker={vi.fn()}
+          popularAvailable={false}
+        />
+      </I18nProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Opzioni di monitoraggio' }))
+    const disabled = screen.getAllByRole('button').filter((b) => (b as HTMLButtonElement).disabled)
+    expect(disabled).toHaveLength(1)
+    // biome-ignore lint/style/noNonNullAssertion: length asserted above
+    fireEvent.click(disabled[0]!)
+    expect(onApprove).not.toHaveBeenCalled()
+  })
 })

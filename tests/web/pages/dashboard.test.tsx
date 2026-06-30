@@ -45,6 +45,9 @@ vi.mock('@/web/lib/api', () => ({
   approveRecommendation: vi.fn().mockResolvedValue({}),
   approveToTarget: vi.fn().mockResolvedValue({}),
   getPopularAlbums: vi.fn(),
+  getPopularAlbumsAvailability: vi
+    .fn()
+    .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
   deletePlaylistApi: vi.fn(),
   generatePlaylistApi: vi.fn(),
   listTargets: vi.fn().mockResolvedValue([]),

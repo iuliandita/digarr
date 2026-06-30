@@ -282,6 +282,10 @@ export const es = {
   'discover.monitorSelectedDescription': 'Elige qué álbumes supervisar',
   'discover.monitorPopular': 'Álbumes populares',
   'discover.monitorPopularDescription': 'Supervisar los 3 lanzamientos de álbum más populares',
+  'discover.monitorPopularUnavailable':
+    'Conecta Spotify o Last.fm para supervisar los álbumes populares',
+  'discover.popularAlbumsFailed':
+    'No se pudieron determinar los álbumes populares de este artista. Prueba otra opción de supervisión.',
   'discover.monitorNoneDescription': 'Añadir sin supervisión (solo seguimiento)',
   'discover.discoveryRunStarted': 'Se inició la ejecución de descubrimiento.',
   'discover.exportFailed': 'Exportación fallida',

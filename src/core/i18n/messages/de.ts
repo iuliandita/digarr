@@ -282,6 +282,10 @@ export const de = {
   'discover.monitorSelectedDescription': 'Wähle, welche Alben überwacht werden sollen',
   'discover.monitorPopular': 'Beliebte Alben',
   'discover.monitorPopularDescription': 'Die 3 beliebtesten Album-Veröffentlichungen überwachen',
+  'discover.monitorPopularUnavailable':
+    'Verbinde Spotify oder Last.fm, um beliebte Alben zu überwachen',
+  'discover.popularAlbumsFailed':
+    'Die beliebten Alben für diesen Künstler konnten nicht ermittelt werden. Versuche eine andere Überwachungsoption.',
   'discover.monitorNoneDescription': 'Ohne Überwachung hinzufügen (nur verfolgen)',
   'discover.discoveryRunStarted': 'Erkennungslauf gestartet.',
   'discover.exportFailed': 'Der Export ist fehlgeschlagen',

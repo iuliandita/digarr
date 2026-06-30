@@ -3,6 +3,7 @@ import { Download, Filter as FilterIcon, MoreHorizontal, RefreshCw, Trash2 } fro
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
@@ -19,8 +20,10 @@ import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../compo
 import { Skeleton } from '../components/ui/skeleton'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
+import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
 import {
+  ApiError,
   approveRecommendation,
   approveToTarget,
   bulkAction,
@@ -80,6 +83,16 @@ const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const PAGE_SIZE = 50
 const CLEAR_ALL_BATCH_SIZE = 200
+
+/** Surfaces why a "Popular albums" approval failed, falling back to a generic message. */
+function approveErrorMessage(
+  err: unknown,
+  fallback: string,
+  t: (key: MessageKey) => string,
+): string {
+  const code = err instanceof ApiError ? (err.data as { code?: string })?.code : undefined
+  return code === 'no_source' || code === 'no_match' ? t('discover.popularAlbumsFailed') : fallback
+}
 
 function SkeletonGrid() {
   return (
@@ -467,6 +480,7 @@ function MoreMenu({
 export function DiscoverPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const popularAvailable = usePopularAlbumsAvailability()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
@@ -712,8 +726,8 @@ export function DiscoverPage() {
         })
         if (reportApprovalOutcome(res, t)) showUndo({ id, prevStatus })
         refetch()
-      } catch {
-        toast.error(t('dashboard.approveFailed'))
+      } catch (err) {
+        toast.error(approveErrorMessage(err, t('dashboard.approveFailed'), t))
       } finally {
         setActingIds((prev) => {
           const next = new Set(prev)
@@ -1323,6 +1337,7 @@ export function DiscoverPage() {
                           !hasStandaloneSlskdTarget ? (
                             <MonitoringOptions
                               loading={isActing}
+                              popularAvailable={popularAvailable}
                               onApprove={(option) =>
                                 handleApproveWithOptions(rec.id, option, undefined, rec.status)
                               }
@@ -1385,6 +1400,7 @@ export function DiscoverPage() {
                         !hasStandaloneSlskdTarget ? (
                           <MonitoringOptions
                             loading={isActing}
+                            popularAvailable={popularAvailable}
                             onApprove={(option) =>
                               handleApproveWithOptions(rec.id, option, undefined, rec.status)
                             }
@@ -1561,8 +1577,8 @@ export function DiscoverPage() {
               }
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               refetch()
-            } catch {
-              toast.error(t('dashboard.addToLidarrFailed'))
+            } catch (err) {
+              toast.error(approveErrorMessage(err, t('dashboard.addToLidarrFailed'), t))
             } finally {
               setActingIds((prev) => {
                 const next = new Set(prev)

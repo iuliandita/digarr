@@ -19,6 +19,15 @@ vi.mock('@/core/clients/spotify', () => ({
   createSpotifyClient: vi.fn(),
 }))
 
+vi.mock('@/core/clients/lastfm', () => ({
+  createLastFmClient: vi.fn(),
+}))
+
+vi.mock('@/db/queries/users', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/db/queries/users')>()),
+  getUserConnections: vi.fn(async () => null),
+}))
+
 vi.mock('@/core/clients/musicbrainz', () => ({
   createMusicBrainzClient: vi.fn(() => ({
     getReleaseGroups: vi.fn(async () => [
@@ -39,8 +48,10 @@ vi.mock('@/core/sessions', () => ({
   setSessionStore: vi.fn(),
 }))
 
+import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createSpotifyClient } from '@/core/clients/spotify'
+import { getUserConnections } from '@/db/queries/users'
 
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
@@ -615,6 +626,91 @@ describe('PATCH /api/v1/recommendations/:id', () => {
         selectedAlbumIds: ['rg-third', 'rg-dummy', 'rg-portishead'],
       }),
     )
+  })
+
+  it('falls back to Last.fm top albums when Spotify returns none', async () => {
+    vi.mocked(createSpotifyClient).mockReturnValue({
+      findExactArtistByName: vi.fn(async () => null),
+      getPopularAlbumsForArtist: vi.fn(async () => []),
+    } as unknown as ReturnType<typeof createSpotifyClient>)
+    vi.mocked(getUserConnections).mockResolvedValueOnce({
+      lastfmUsername: 'listener',
+      lastfmApiKey: 'lfm-key',
+    } as Awaited<ReturnType<typeof getUserConnections>>)
+    vi.mocked(createLastFmClient).mockReturnValue({
+      getTopAlbumsForArtist: vi.fn(async () => [
+        { title: 'Third', popularity: 50000, mbid: 'lfm-third' },
+        { title: 'Dummy', popularity: 42000, mbid: 'lfm-dummy' },
+      ]),
+    } as unknown as ReturnType<typeof createLastFmClient>)
+
+    const mockAddArtist = vi.fn().mockResolvedValue({
+      success: true,
+      targetType: 'lidarr',
+      targetId: 1,
+      externalId: 99,
+    })
+    const app = createApp(
+      makeDeps({
+        getEnabledTargetsForUser: vi.fn().mockResolvedValue([
+          {
+            id: 'lidarr-1',
+            name: 'Lidarr',
+            type: 'lidarr',
+            capabilities: ['addArtist'],
+            addArtist: mockAddArtist,
+            testConnection: vi.fn(),
+          },
+        ]),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({ status: 'approved', monitorOption: 'popular' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockAddArtist).toHaveBeenCalledWith(
+      { mbid: 'mbid-abc-123', name: 'Test Artist' },
+      expect.objectContaining({
+        monitorOption: 'selected',
+        selectedAlbumIds: ['rg-third', 'rg-dummy'],
+      }),
+    )
+  })
+
+  it('returns 400 with code no_source when no popularity source has albums', async () => {
+    vi.mocked(createSpotifyClient).mockReturnValue({
+      findExactArtistByName: vi.fn(async () => null),
+      getPopularAlbumsForArtist: vi.fn(async () => []),
+    } as unknown as ReturnType<typeof createSpotifyClient>)
+    vi.mocked(getUserConnections).mockResolvedValueOnce(null)
+
+    const app = createApp(
+      makeDeps({
+        getEnabledTargetsForUser: vi.fn().mockResolvedValue([
+          {
+            id: 'lidarr-1',
+            name: 'Lidarr',
+            type: 'lidarr',
+            capabilities: ['addArtist'],
+            addArtist: vi.fn(),
+            testConnection: vi.fn(),
+          },
+        ]),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({ status: 'approved', monitorOption: 'popular' }),
+    })
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toMatchObject({ code: 'no_source' })
   })
 
   it('returns 400 when targetId does not match an enabled target', async () => {

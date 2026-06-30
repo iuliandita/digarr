@@ -278,6 +278,10 @@ export const ko = {
   'discover.monitorSelectedDescription': '모니터링할 앨범 선택',
   'discover.monitorPopular': '인기 앨범',
   'discover.monitorPopularDescription': '가장 인기 있는 앨범 릴리스 3개 모니터링',
+  'discover.monitorPopularUnavailable':
+    '인기 앨범을 모니터링하려면 Spotify 또는 Last.fm을 연결하세요',
+  'discover.popularAlbumsFailed':
+    '이 아티스트의 인기 앨범을 확인할 수 없습니다. 다른 모니터링 옵션을 시도해 보세요.',
   'discover.monitorNoneDescription': '모니터링 없이 추가(추적만)',
   'discover.discoveryRunStarted': '검색 실행이 시작되었습니다.',
   'discover.exportFailed': '내보내기 실패',
