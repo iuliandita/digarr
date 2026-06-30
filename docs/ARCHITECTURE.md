@@ -57,7 +57,7 @@ blocks all write methods (`POST/PUT/PATCH/DELETE`) on non-migration routes,
 returning `503 Maintenance in progress`; reads pass through. The routes are
 `POST /api/v1/admin/migrate-backend/test` (validate target, non-destructive) and
 `POST /api/v1/admin/migrate-backend` (run copy). See
-[`docs/guides/switching-backends.md`](../guides/switching-backends.md) for the
+[`docs/guides/switching-backends.md`](guides/switching-backends.md) for the
 operator walkthrough.
 
 ## Pipeline

@@ -216,6 +216,7 @@ Locale notes:
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20), scoped to the calling user's own feedback |
+| GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Which popularity sources are reachable for the caller; backs the popular-album approve option. Returns `{ available, spotify, lastfm }` (booleans). |
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed` (comma-separated)
@@ -761,6 +762,15 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 |--------|------|------|-------------|
 | GET | `/api/v1/admin/migrations/pending` | Admin | Pending migration status. |
 
+### Database Migration
+
+Copy all stateful data from the current backend (PGlite or PostgreSQL) into a different one. The source is never modified. See [Switching the Database Backend](guides/switching-backends.md).
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`, or `502 { ok: false, code, error }` on failure. |
+| POST | `/api/v1/admin/migrate-backend` | Admin | Run the copy. Body: `{ target, overwrite? }`. Returns `200` with a `MigrationReport` `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }` on success. A verification failure returns the same report with `422`. `409` when a pipeline is running (`code: pipeline_running`), a migration is already in progress (`code: migration_in_progress`), or the target is non-empty without `overwrite` (`code: target_not_empty`); `422 code: encryption_mismatch` when the source and target `DIGARR_ENCRYPTION_KEY` differ. |
+
 ### Data Hygiene
 
 | Method | Path | Auth | Description |
@@ -777,4 +787,4 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/health` | No | Liveness check (DB connectivity) |
+| GET | `/health` | No | Liveness check. On success returns `{ status: 'ok', version, gitSha, channel, dbBackend }`; `503 { status: 'draining' }` while shutting down, or `503 { status: 'error', db: 'unavailable' }` when the DB check fails. |
