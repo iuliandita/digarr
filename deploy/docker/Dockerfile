@@ -50,8 +50,9 @@ COPY --from=builder /app/drizzle ./drizzle
 COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
 RUN chmod +x /app/healthcheck.sh
 
-RUN mkdir -p /app/backups && chown bun:bun /app/backups
-VOLUME ["/app/backups"]
+RUN mkdir -p /app/backups /app/data && chown bun:bun /app/backups /app/data
+VOLUME ["/app/backups", "/app/data"]
+ENV DB_PATH=/app/data
 
 ENV NODE_ENV=production
 ENV PORT=3000

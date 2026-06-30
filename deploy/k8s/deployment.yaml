@@ -4,6 +4,13 @@
 #   kubectl create secret generic digarr-db \
 #     --from-literal=DATABASE_URL='postgresql://user:pass@host:5432/digarr' \
 #     -n digarr
+#
+# To run the embedded PGlite backend instead of external Postgres:
+#   1. Remove the DATABASE_URL env entry below.
+#   2. Add env: - name: DB_PATH value: /app/data
+#   3. Add a PVC (digarr-data, ReadWriteOnce) + volume `data` + volumeMount /app/data.
+#   4. Change strategy to: type: Recreate  (single-writer file; no surge pods).
+# See deploy/helm for a templated version of both backends.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

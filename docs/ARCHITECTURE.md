@@ -2,9 +2,49 @@
 
 ## Overview
 
-Single Bun process serving a Hono API backend + React SPA frontend. Postgres
-via Drizzle ORM. Frontend is a Vite SPA served by Hono in production, proxied
-via Vite dev server in development.
+Single Bun process serving a Hono API backend + React SPA frontend. PostgreSQL
+via Drizzle ORM -- either an external server or the embedded PGlite backend
+(see [Database backend](#database-backend)). Frontend is a Vite SPA served by
+Hono in production, proxied via Vite dev server in development.
+
+## Database backend
+
+Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen
+at boot:
+
+- **External PostgreSQL** when a DSN is present -- `DATABASE_URL`, or the
+  `DB_HOST` + `DB_USER` + `DB_NAME` triple. Uses a connection pool.
+- **Embedded PGlite** otherwise -- real PostgreSQL 18.3 compiled to Wasm,
+  running in-process, with the whole database persisted to a single directory at
+  `DB_PATH` (image default `/app/data`). No separate database server or
+  container.
+
+The DB module resolves the backend once and exposes an eager Drizzle singleton.
+On shutdown `closeDb()` flushes the PGlite data to disk (and closes the pool on
+the external path), so the data directory is consistent across restarts. The
+selected backend is surfaced at `GET /health` (`"dbBackend": "pglite" |
+"postgres"`) and printed at startup as `[db] backend=...`.
+
+Boot interaction (see [Boot order](#boot-order)): `waitForDatabase()` only runs
+for the external pool (`if (pool)`) -- PGlite is in-process and always ready --
+then the same `preFlightCheck()` -> `runMigrations()` path runs for both
+backends.
+
+**Invariants and limits.** PGlite is single-writer: the entire database lives in
+Wasm linear memory backed by one file, so exactly one replica may own it. The
+Helm/k8s opt-in pins `replicaCount=1` and forces the `Recreate` rollout strategy
+(no two pods touching the file at once). Because the working set sits in Wasm
+memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
+profile, but to scale out (multiple replicas, large datasets) switch to external
+PostgreSQL by supplying a DSN.
+
+**Per-platform defaults.** The container image and the Unraid template default
+to embedded PGlite (bare `docker run` with no DB env, or
+`deploy/docker/docker-compose.pglite.yml`). The default
+`deploy/docker/docker-compose.yml`, the Helm chart, and the raw k8s manifests
+default to external PostgreSQL; PGlite is opt-in there (Helm
+`--set database.backend=pglite`, which requires a PVC plus `replicaCount=1` and
+`Recreate`).
 
 ## Pipeline
 
@@ -50,7 +90,7 @@ Async IIFE in `src/index.ts`:
 
 1. `createJobRecorder(db)` - module-level, before the IIFE
 2. `markStuck()` - flips any in-progress jobs left over from a crashed prior run
-3. `waitForDatabase()` - retry/backoff until Postgres accepts connections (survives a slow PG startup without crash-looping on kubelet); the HTTP server only binds after this succeeds
+3. `waitForDatabase()` - external-pool only (`if (pool)`); retry/backoff until Postgres accepts connections (survives a slow PG startup without crash-looping on kubelet); the HTTP server only binds after this succeeds. PGlite is in-process, so it skips this step
 4. `preFlightCheck()` - auto-backup if pending migrations are detected
 5. `migrate()` - drizzle-kit migrations
 6. `autoSetup()` - first-admin bootstrap when the env vars are present

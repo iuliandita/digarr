@@ -55,6 +55,7 @@ export const envConfig = {
   dbUser: env('DB_USER'),
   dbPass: envOrFile('DB_PASS'),
   dbName: env('DB_NAME'),
+  dbPath: env('DB_PATH'),
   dbPoolMax: envInt('DB_POOL_MAX'),
   dbConnectTimeoutMs: envInt('DB_CONNECT_TIMEOUT_MS'),
   dbSslMode: envOneOf('DB_SSL_MODE', DB_SSL_MODES),

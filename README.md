@@ -112,6 +112,36 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 
 ## Quick Start
 
+Digarr ships with an embedded database (PGlite) -- no separate PostgreSQL required. The fastest way to run it is a single container with no database setup:
+
+```sh
+docker run -d --name digarr -p 3000:3000 \
+  -v digarr-data:/app/data -v digarr-backups:/app/backups \
+  docker.io/iuliandita/digarr:stable
+```
+
+Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Database migrations run automatically on every startup.
+
+The image pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.10.0`) when you want the head of the release line.
+
+### Database backend
+
+Digarr picks its database backend at boot. The `docker run` line above and `deploy/docker/docker-compose.pglite.yml` use the embedded PGlite database (real PostgreSQL compiled to Wasm, in-process, single data directory) -- no separate PostgreSQL container. The default `deploy/docker/docker-compose.yml` instead runs an external PostgreSQL alongside the app; set `DATABASE_URL` or `DB_HOST`/`DB_USER`/`DB_NAME`/`DB_PASS` to point Digarr at your own PostgreSQL. External PostgreSQL stays fully supported everywhere.
+
+> **Upgrade note:** existing deployments are unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and the default backend plus your existing Postgres connection are unchanged. The startup log prints the selected backend (`[db] backend=...`).
+
+### Docker Compose
+
+Embedded PGlite (single container, no database, no secret):
+
+```sh
+mkdir digarr && cd digarr
+curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+docker compose -f docker-compose.pglite.yml up -d
+```
+
+External PostgreSQL (bundled database container):
+
 ```sh
 mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
@@ -124,9 +154,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot. Database migrations run automatically on every startup.
-
-The bundled `docker-compose.yml` pulls `docker.io/iuliandita/digarr:stable`, the channel that only moves once a release has soaked for at least seven days without a follow-up patch. Track `:latest` (or pin to a specific patch like `:1.10.0`) when you want the head of the release line.
+Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot.
 
 For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses a genre profile derived from your connected listening sources (currently Spotify) instead of a Lidarr library. Emby can be added during the setup wizard or later in Settings.
 
@@ -153,7 +181,7 @@ You can run the pipeline on a schedule, by hand, through subscriptions for targe
 | **Lidarr** | Optional | Music library management + auto-download |
 | **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Deezer, Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic), or Discogs |
 | **AI Provider** | Yes | Anthropic, OpenAI, Gemini, Ollama, or any compatible endpoint |
-| **PostgreSQL** | Yes | Data storage (included in Docker Compose) |
+| **Database** | Yes | Embedded PGlite by default (no setup); or external PostgreSQL via `DATABASE_URL` / `DB_*` |
 
 ## Configuration
 
@@ -205,7 +233,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 | Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
 | Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
-| Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | Add-Container template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)); CA store listing pending. Requires external PostgreSQL. |
+| Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | Add-Container template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)); CA store listing pending. Embedded PGlite by default; external PostgreSQL optional. |
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
 

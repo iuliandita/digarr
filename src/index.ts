@@ -1,7 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { canAutoSetup, envConfig } from './config/env'
 import { hashPassword } from './core/auth'
 import { OidcService } from './core/auth/oidc'
@@ -90,7 +89,8 @@ import { createPlexPlaylistTarget } from './core/targets/plex-playlist'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
-import { db, pool } from './db'
+import { closeDb, db, pool } from './db'
+import { runMigrations } from './db/migrate'
 import { getBlockedAlbumKeys } from './db/queries/album-blocks'
 import {
   addBlock as addArtistBlockQuery,
@@ -213,14 +213,15 @@ if (isEncryptionEnabled()) {
 // slow-starting Postgres (still in recovery) rejects with SQLSTATE 57P03;
 // without this guard the first query rejects and kills the process,
 // crash-looping the pod on kubelet until PG finishes recovery.
-await waitForDatabase(pool)
+// PGlite is in-process (no pool); only Postgres needs to wait for a socket.
+if (pool) await waitForDatabase(pool)
 
 // Pre-flight check: detect pending migrations and auto-backup if needed.
 await runPreFlightCheck(db)
 
 // Run pending database migrations before anything else.
-// Uses drizzle-orm's programmatic migrator - safe to run every boot (idempotent).
-await migrate(db, { migrationsFolder: './drizzle' })
+// Idempotent; selects the migrator matching the active backend.
+await runMigrations()
 console.log('Database migrations applied')
 
 // Wire up DB-backed session store after migrations are applied.
@@ -1645,7 +1646,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         }, 25_000)
       })
     }
-    await pool.end()
+    await closeDb()
     clearTimeout(deadline)
     process.exit(0)
   })

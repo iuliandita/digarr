@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import pg from 'pg'
 
@@ -71,7 +72,12 @@ function quoteIdentifier(value: string): string {
 
 export async function resetPlaywrightDatabase(): Promise<string | undefined> {
   const databaseUrl = getPlaywrightDatabaseUrl()
-  if (!databaseUrl) return undefined
+  if (!databaseUrl) {
+    // No Postgres DSN: pin the embedded PGlite fallback to a throwaway temp dir
+    // so each run is fresh and nothing lands in the repo working tree.
+    process.env.DB_PATH = mkdtempSync(join(tmpdir(), 'digarr-e2e-'))
+    return undefined
+  }
 
   const targetUrl = new URL(databaseUrl)
   const databaseName = targetUrl.pathname.replace(/^\//, '')

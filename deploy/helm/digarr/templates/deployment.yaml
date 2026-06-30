@@ -1,3 +1,6 @@
+{{- if and (eq .Values.database.backend "pglite") (gt (int .Values.replicaCount) 1) }}
+{{- fail "database.backend=pglite requires replicaCount=1 (the embedded file has a single writer). Use an external Postgres (database.backend=postgres) to scale out." }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,10 +12,14 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
+    {{- if eq .Values.database.backend "pglite" }}
+    type: Recreate
+    {{- else }}
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+    {{- end }}
   selector:
     matchLabels:
       {{- include "digarr.selectorLabels" . | nindent 6 }}
@@ -47,11 +54,16 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           env:
+            {{- if eq .Values.database.backend "pglite" }}
+            - name: DB_PATH
+              value: {{ .Values.database.pglite.path | quote }}
+            {{- else }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ include "digarr.databaseSecretName" . }}
                   key: DATABASE_URL
+            {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -66,6 +78,10 @@ spec:
               mountPath: /tmp
             - name: backups
               mountPath: /app/backups
+            {{- if eq .Values.database.backend "pglite" }}
+            - name: data
+              mountPath: {{ .Values.database.pglite.path }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -78,3 +94,12 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- if eq .Values.database.backend "pglite" }}
+        - name: data
+          {{- if .Values.database.pglite.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "digarr.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}

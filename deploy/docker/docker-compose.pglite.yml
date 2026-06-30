@@ -1,0 +1,58 @@
+# Single-container deployment with the embedded PGlite database.
+#   docker compose -f docker-compose.pglite.yml up -d
+# No separate PostgreSQL, no secret. Data lives in the `data` volume.
+# For external PostgreSQL instead, use the default docker-compose.yml.
+#
+# Podman + SELinux enforcing: add :Z to the data/backups volume mounts.
+
+services:
+  app:
+    image: docker.io/iuliandita/digarr:stable
+    # :stable -> last release promoted after >= 7 days (recommended)
+    # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.10.0
+    # Alpine variant: docker.io/iuliandita/digarr:1.10.0-alpine
+    user: "1000:1000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PORT=3000
+      - DB_PATH=/app/data
+      # Force embedded PGlite even if a populated .env (reused from the Postgres
+      # base) carries a DSN: empty values here override env_file and are falsy,
+      # so the backend resolver always picks pglite for this stack.
+      - DATABASE_URL=
+      - DB_HOST=
+    ports:
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "/app/healthcheck.sh"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    read_only: true
+    volumes:
+      - data:/app/data
+      - backups:/app/backups
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "2.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  data:
+  backups:
