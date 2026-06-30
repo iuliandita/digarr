@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { AppDependencies } from '@/server'
 import { createTestApp } from '../helpers/test-app'
+import { makeTestDb } from '../helpers/test-db'
 
 const SESSION_TOKEN = 'admin-migrate-test-session-abc'
 let tmpDir: string
@@ -150,4 +151,23 @@ describe('POST /api/v1/admin/migrate-backend', () => {
     const body = (await res.json()) as Record<string, unknown>
     expect(body.code).toBe('pipeline_running')
   })
+
+  it('returns 200 with a DB_PATH env hint on a successful migration', async () => {
+    // Inject a real migrated source DB; the default test deps.db is a stub.
+    const src = await makeTestDb()
+    try {
+      const { app } = createTestApp({ db: src.db as unknown as AppDependencies['db'] })
+      const res = await app.request('/api/v1/admin/migrate-backend', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${SESSION_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: { backend: 'pglite', path: `${tmpDir}/migrated` } }),
+      })
+      expect(res.status).toBe(200)
+      const body = (await res.json()) as Record<string, unknown>
+      expect(body.ok).toBe(true)
+      expect(body.targetEnvHint as string).toContain('DB_PATH=')
+    } finally {
+      await src.close()
+    }
+  }, 30_000)
 })
