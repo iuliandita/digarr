@@ -215,7 +215,12 @@ export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { meth
 
 // Pipeline
 export const triggerPipeline = () =>
-  fetchApi<{ message: string; queued?: boolean; position?: number }>('/pipeline/run', {
+  fetchApi<{
+    message: string
+    status?: 'started' | 'queued' | 'duplicate'
+    queued?: boolean
+    position?: number
+  }>('/pipeline/run', {
     method: 'POST',
   })
 export const getPipelineStatus = () =>
