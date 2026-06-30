@@ -192,4 +192,232 @@ describe('backup full-fidelity', () => {
       await close2()
     }
   })
+
+  // Seed one distinctive row in every full-mode table and return the FK anchors.
+  async function seedFullTables(db: Awaited<ReturnType<typeof makeTestDb>>['db']) {
+    const [user] = await db
+      .insert(schema.users)
+      .values({ username: 'fidelity-user', passwordHash: 'x' })
+      .returning()
+    if (!user) throw new Error('user insert failed')
+    const [artist] = await db
+      .insert(schema.artists)
+      .values({ mbid: '00000000-0000-0000-0000-0000000000a1', name: 'Fidelity Artist' })
+      .returning()
+    if (!artist) throw new Error('artist insert failed')
+    const [target] = await db
+      .insert(schema.targets)
+      .values({ type: 'slskd', name: 'Fidelity Target', config: {}, userId: user.id })
+      .returning()
+    if (!target) throw new Error('target insert failed')
+
+    await db.insert(schema.albumBlocks).values({
+      userId: user.id,
+      artistId: artist.id,
+      releaseGroupMbid: '00000000-0000-0000-0000-0000000000b1',
+    })
+    await db.insert(schema.libraryArtists).values({
+      userId: user.id,
+      source: 'lidarr',
+      sourceArtistId: 'fid-art-1',
+      name: 'Fidelity Artist',
+      nameNormalized: 'fidelity artist',
+    })
+    await db.insert(schema.libraryAlbums).values({
+      userId: user.id,
+      source: 'lidarr',
+      sourceAlbumId: 'fid-alb-1',
+      sourceArtistId: 'fid-art-1',
+      title: 'Fidelity Album',
+      titleNormalized: 'fidelity album',
+    })
+    await db.insert(schema.librarySyncState).values({
+      userId: user.id,
+      source: 'lidarr',
+      lastSyncStatus: 'completed',
+    })
+    await db.insert(schema.libraryMatchOverrides).values({
+      userId: user.id,
+      source: 'lidarr',
+      sourceArtistId: 'fid-art-1',
+      correctMbid: '00000000-0000-0000-0000-0000000000a1',
+    })
+    await db.insert(schema.libraryAlbumMatchOverrides).values({
+      userId: user.id,
+      source: 'lidarr',
+      sourceAlbumId: 'fid-alb-1',
+      correctAlbumMbid: '00000000-0000-0000-0000-0000000000c1',
+    })
+    await db.insert(schema.libraryHealthState).values({
+      checks: [
+        {
+          id: 'unmonitored',
+          name: 'Unmonitored',
+          description: 'probe',
+          severity: 'info',
+          count: 0,
+          items: [],
+          fixable: false,
+        },
+      ],
+    })
+    await db.insert(schema.recordingArtistCache).values({
+      recordingMbid: '00000000-0000-0000-0000-0000000000d1',
+      artistMbid: '00000000-0000-0000-0000-0000000000a1',
+      artistName: 'Fidelity Artist',
+    })
+    await db.insert(schema.slskdJobs).values({
+      userId: user.id,
+      targetId: target.id,
+      sourceType: 'recommendation',
+      workKey: 'fid-wk-1',
+      artistMbid: '00000000-0000-0000-0000-0000000000a1',
+      artistName: 'Fidelity Artist',
+      releaseTitle: 'Fidelity Album',
+    })
+    return { user, artist, target }
+  }
+
+  it('round-trips actual row CONTENT (not just counts) for the 9 full-mode tables', async () => {
+    const { db, close } = await makeTestDb()
+    const { db: db2, close: close2 } = await makeTestDb()
+    try {
+      await seedFullTables(db)
+      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+      await restoreBackup(db2 as never, backup, { force: true })
+
+      // Select each table back out of the restored DB and assert the distinctive
+      // field survived the JSON serialize -> restore round-trip intact.
+      const [ab] = await db2.select().from(schema.albumBlocks)
+      expect(ab?.releaseGroupMbid).toBe('00000000-0000-0000-0000-0000000000b1')
+
+      const [la] = await db2.select().from(schema.libraryArtists)
+      expect(la).toMatchObject({ sourceArtistId: 'fid-art-1', name: 'Fidelity Artist' })
+
+      const [lal] = await db2.select().from(schema.libraryAlbums)
+      expect(lal).toMatchObject({ sourceAlbumId: 'fid-alb-1', title: 'Fidelity Album' })
+
+      const [lss] = await db2.select().from(schema.librarySyncState)
+      expect(lss?.lastSyncStatus).toBe('completed')
+
+      const [lmo] = await db2.select().from(schema.libraryMatchOverrides)
+      expect(lmo?.correctMbid).toBe('00000000-0000-0000-0000-0000000000a1')
+
+      const [lamo] = await db2.select().from(schema.libraryAlbumMatchOverrides)
+      expect(lamo?.correctAlbumMbid).toBe('00000000-0000-0000-0000-0000000000c1')
+
+      const [lhs] = await db2.select().from(schema.libraryHealthState)
+      expect(lhs?.checks).toHaveLength(1)
+      expect(lhs?.checks?.[0]).toMatchObject({ id: 'unmonitored', description: 'probe' })
+
+      const [rac] = await db2.select().from(schema.recordingArtistCache)
+      expect(rac).toMatchObject({
+        recordingMbid: '00000000-0000-0000-0000-0000000000d1',
+        artistName: 'Fidelity Artist',
+      })
+
+      const [job] = await db2.select().from(schema.slskdJobs)
+      expect(job).toMatchObject({ workKey: 'fid-wk-1', releaseTitle: 'Fidelity Album' })
+    } finally {
+      await close()
+      await close2()
+    }
+  })
+
+  it('restoring over a populated target overwrites natural-key conflicts and clears stale rows', async () => {
+    const { db, close } = await makeTestDb() // backup source
+    const { db: db2, close: close2 } = await makeTestDb() // populated restore target
+    try {
+      await seedFullTables(db)
+      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+
+      // Pre-populate db2 so restore must reconcile against existing data:
+      //   - a recordingArtistCache row sharing the backup's natural key (recordingMbid)
+      //     but carrying STALE content -> backup must win.
+      //   - a libraryArtists row absent from the backup -> must be cleared.
+      const [u2] = await db2
+        .insert(schema.users)
+        .values({ username: 'preexisting', passwordHash: 'x' })
+        .returning()
+      if (!u2) throw new Error('db2 user insert failed')
+      await db2.insert(schema.recordingArtistCache).values({
+        recordingMbid: '00000000-0000-0000-0000-0000000000d1', // same key as backup
+        artistMbid: '00000000-0000-0000-0000-0000000000ff',
+        artistName: 'STALE NAME',
+      })
+      await db2.insert(schema.libraryArtists).values({
+        userId: u2.id,
+        source: 'lidarr',
+        sourceArtistId: 'stale-art',
+        name: 'Stale Artist',
+        nameNormalized: 'stale artist',
+      })
+
+      await restoreBackup(db2 as never, backup, { force: true })
+
+      // Natural-key conflict: the backup row replaced the stale one (no duplicate).
+      const cache = await db2.select().from(schema.recordingArtistCache)
+      expect(cache).toHaveLength(1)
+      expect(cache[0]?.artistName).toBe('Fidelity Artist')
+
+      // Stale-row clear: the pre-existing libraryArtists row is gone; only the
+      // backup's row remains.
+      const libArtists = await db2.select().from(schema.libraryArtists)
+      expect(libArtists).toHaveLength(1)
+      expect(libArtists[0]?.sourceArtistId).toBe('fid-art-1')
+    } finally {
+      await close()
+      await close2()
+    }
+  })
+
+  it('rolls back the whole full-mode restore when a later full-table insert fails', async () => {
+    const { db, close } = await makeTestDb()
+    try {
+      // Pre-existing data that an atomic rollback must leave untouched.
+      const [survivor] = await db
+        .insert(schema.users)
+        .values({ username: 'survivor', passwordHash: 'x' })
+        .returning()
+      if (!survivor) throw new Error('survivor insert failed')
+      await db.insert(schema.libraryArtists).values({
+        userId: survivor.id,
+        source: 'lidarr',
+        sourceArtistId: 'survivor-art',
+        name: 'Survivor Artist',
+        nameNormalized: 'survivor artist',
+      })
+
+      // A full-mode backup whose slskdJobs row points at a non-existent target FK.
+      // slskdJobs restores last, so the clear + every prior insert must roll back.
+      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+      backup.data.users = [{ id: 99, username: 'from-backup', passwordHash: 'x', isAdmin: false }]
+      backup.data.libraryArtists = []
+      backup.data.slskdJobs = [
+        {
+          id: 1,
+          userId: 99,
+          targetId: 987654, // no such target -> FK violation
+          sourceType: 'recommendation',
+          workKey: 'rollback-wk',
+          artistMbid: '00000000-0000-0000-0000-0000000000a1',
+          artistName: 'X',
+          releaseTitle: 'Y',
+        },
+      ]
+
+      await expect(restoreBackup(db as never, backup, { force: true })).rejects.toThrow()
+
+      // Rollback intact: the original user + libraryArtists row survive, and the
+      // backup's user never landed.
+      const users = await db.select().from(schema.users)
+      expect(users).toHaveLength(1)
+      expect(users[0]?.username).toBe('survivor')
+      const libArtists = await db.select().from(schema.libraryArtists)
+      expect(libArtists).toHaveLength(1)
+      expect(libArtists[0]?.sourceArtistId).toBe('survivor-art')
+    } finally {
+      await close()
+    }
+  })
 })

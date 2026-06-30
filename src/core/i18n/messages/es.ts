@@ -316,7 +316,7 @@ export const es = {
   'discover.scanAlreadyRunning': 'El escaneo ya está en curso',
   'discover.scanStarted': 'Escaneo iniciado - revisa el Panel para ver el progreso',
   'discover.scanQueued':
-    'Escaneo en cola (posicion {0}) - comenzara cuando termine la ejecucion actual',
+    'Escaneo en cola (posición {0}) - comenzará cuando termine la ejecución actual',
   'discover.scanStartFailed': 'No se pudo iniciar el escaneo',
   'discover.select': 'Seleccionar',
   'discover.shortcutsLabel': 'Atajos:',

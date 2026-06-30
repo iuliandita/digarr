@@ -81,16 +81,17 @@ export function MigrateBackendSection() {
         t('admin.migrateSuccess').replace('{0}', String(total)).replace('{1}', String(tables)),
       )
     } catch (err) {
-      // A 422 verify-failure carries the full report (no `error` field) — keep it so
-      // the mismatches and the targetEnvHint stay visible/copyable instead of vanishing.
+      // A 422 verify-failure rides the unified problem+json envelope with the
+      // full report under `report` — keep it so the mismatches and targetEnvHint
+      // stay visible/copyable instead of vanishing.
       if (
         err instanceof ApiError &&
         err.status === 422 &&
         err.data &&
         typeof err.data === 'object' &&
-        'targetEnvHint' in err.data
+        'report' in err.data
       ) {
-        const report = err.data as MigrateResult
+        const report = (err.data as { report: MigrateResult }).report
         setResult(report)
         toast.warning(
           t('admin.migrateVerifyFailed').replace(

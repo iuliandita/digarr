@@ -12,11 +12,18 @@ import { fileURLToPath } from 'node:url'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
 import { getMessages } from '../src/core/i18n/messages'
 
-// Markers that indicate stripped diacritics in de/es catalogs. CI fails on
-// any match so we cannot regress to ASCII-substituted spellings.
+// Markers that indicate stripped diacritics in the accented-language catalogs.
+// CI fails on any match so we cannot regress to ASCII-substituted spellings.
+// Tokens are chosen to be unambiguous stripped forms (the un-accented spelling
+// is not itself a valid word in that language), so there are no false matches.
 const ASCII_MARKERS: Record<string, RegExp> = {
   de: /\b(Zurueck|Taeglich|Laedt|Hoerverlauf|Durchlaeufe|Kuenstler|Aehnliche|Veroeffentlichungen|Wochentliche)\b/,
-  es: /\b(Configuracion|Ultima|automatica|busqueda|suscripcion|Genero|puntuacion)\b/,
+  es: /\b(Configuracion|Ultima|automatica|busqueda|suscripcion|Genero|puntuacion|posicion|comenzara|ejecucion)\b/,
+  fr: /\b(demarrera)\b/,
+  it: /\b(partira)\b/,
+  'pt-BR': /\b(posicao|comecara|execucao)\b/,
+  ro: /\b(pozitia|incepe|dupa|curenta)\b/,
+  pl: /\b(sie|zakonczeniu|biezacego)\b/,
 }
 
 // Key prefixes accessed via template literals in app code. Treat as

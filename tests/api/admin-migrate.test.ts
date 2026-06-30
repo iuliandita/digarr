@@ -126,7 +126,9 @@ describe('POST /api/v1/admin/migrate-backend', () => {
     })
     expect(res.status).toBe(400)
     const body = (await res.json()) as Record<string, unknown>
-    expect(body.error).toBeTruthy()
+    // Unified problem+json envelope: title carries the human-readable summary.
+    expect(body.title).toBeTruthy()
+    expect(body.status).toBe(400)
   })
 
   it('returns 400 for unparseable body', async () => {

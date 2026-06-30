@@ -115,6 +115,19 @@ describe('subsonic client.getAllArtists()', () => {
 
     await expect(client.getAllArtists()).rejects.toThrow('Wrong username or password')
   })
+
+  it('throws a clean error (not a TypeError) on a non-Subsonic response body', async () => {
+    // A reverse proxy login page or captive portal returns HTML/JSON with no
+    // `subsonic-response` envelope. The old code did `body.status` on undefined.
+    const client = createSubsonicClient('http://nav:4533', 'admin', 'secret')
+
+    mockGet.mockResolvedValueOnce({ error: 'gateway', html: '<html>...' })
+
+    const err = await client.getAllArtists().catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(Error)
+    expect(err).not.toBeInstanceOf(TypeError)
+    expect((err as Error).message).toMatch(/Malformed Subsonic response/)
+  })
 })
 
 describe('subsonic client.getAlbumsForArtist()', () => {

@@ -89,7 +89,10 @@ export function createSubsonicClient(
   }
 
   function unwrap<T>(resp: SubsonicEnvelope<T>): SubsonicEnvelope<T>['subsonic-response'] {
-    const body = resp['subsonic-response']
+    const body = resp?.['subsonic-response']
+    if (!body || typeof body.status !== 'string') {
+      throw new Error('Malformed Subsonic response (missing subsonic-response envelope)')
+    }
     if (body.status === 'failed') {
       throw new Error(body.error?.message ?? 'Subsonic request failed')
     }

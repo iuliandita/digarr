@@ -316,7 +316,7 @@ export const pl = {
   'discover.scanAlreadyRunning': 'Skanowanie już trwa',
   'discover.scanStarted': 'Skanowanie uruchomione - sprawdź Panel, aby zobaczyć postęp',
   'discover.scanQueued':
-    'Skanowanie w kolejce (pozycja {0}) - rozpocznie sie po zakonczeniu biezacego',
+    'Skanowanie w kolejce (pozycja {0}) - rozpocznie się po zakończeniu bieżącego',
   'discover.scanStartFailed': 'Nie udało się rozpocząć skanowania',
   'discover.select': 'Wybierz',
   'discover.shortcutsLabel': 'Skróty:',
@@ -843,7 +843,7 @@ export const pl = {
   'settings.aiPrivacyBadgeHosted': 'Dane opuszczaja twoj serwer',
   'settings.aiPrivacyBadgeLocal': 'W pelni lokalnie',
   'settings.webhookDescription':
-    'Powiadomienia o zakonczeniu skanowania (Discord, Slack, ntfy, Gotify lub dowolny punkt HTTP)',
+    'Powiadomienia o zakończeniu skanowania (Discord, Slack, ntfy, Gotify lub dowolny punkt HTTP)',
   'settings.testWebhook': 'Testuj webhook',
   'settings.sending': 'Wysylanie...',
   'settings.connectionsTip':
