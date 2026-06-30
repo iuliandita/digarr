@@ -13,6 +13,7 @@ function mockLidarrClient() {
     addArtist: vi.fn().mockResolvedValue({ id: 42, artistName: 'Radiohead' }),
     getAlbums: vi.fn().mockResolvedValue([]),
     updateAlbum: vi.fn().mockResolvedValue({}),
+    triggerCommand: vi.fn().mockResolvedValue({}),
     testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
     getRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music' }]),
   }
@@ -80,16 +81,69 @@ describe('createLidarrTarget()', () => {
       apiKey: 'abc',
     })
 
-    await target.addArtist?.(
+    const result = await target.addArtist?.(
       { mbid: 'mbid-rh', name: 'Radiohead' },
       { monitorOption: 'selected', selectedAlbumIds: ['album-1'] },
     )
 
+    expect(result?.success).toBe(true)
     expect(client.addArtist).toHaveBeenCalledWith('mbid-rh', 'Radiohead', 1, 1, undefined, {
       monitorOption: 'none',
     })
     expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
     expect(client.updateAlbum).not.toHaveBeenCalledWith(11, expect.anything())
+    // The monitored album must also be searched, otherwise it is never grabbed.
+    expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
+  })
+
+  it('addArtist retries getAlbums until Lidarr populates the selected album', async () => {
+    vi.useFakeTimers()
+    try {
+      const client = mockLidarrClient()
+      // Lidarr returns an empty album list on the first poll (async population),
+      // then surfaces the album on the retry.
+      client.getAlbums
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ id: 10, foreignAlbumId: 'album-1', monitored: false }])
+      const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+
+      const pending = target.addArtist?.(
+        { mbid: 'mbid-rh', name: 'Radiohead' },
+        { monitorOption: 'selected', selectedAlbumIds: ['album-1'] },
+      )
+      await vi.runAllTimersAsync()
+      const result = await pending
+
+      expect(result?.success).toBe(true)
+      expect(client.getAlbums).toHaveBeenCalledTimes(2)
+      expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
+      expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('addArtist fails loudly when the selected album never appears in Lidarr', async () => {
+    vi.useFakeTimers()
+    try {
+      const client = mockLidarrClient() // getAlbums always returns []
+      const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+
+      const pending = target.addArtist?.(
+        { mbid: 'mbid-rh', name: 'Radiohead' },
+        { monitorOption: 'selected', selectedAlbumIds: ['ghost-album'] },
+      )
+      await vi.runAllTimersAsync()
+      const result = await pending
+
+      expect(result?.success).toBe(false)
+      expect(result?.error).toMatch(/not found in Lidarr/)
+      expect(result?.externalId).toBe(42)
+      expect(client.updateAlbum).not.toHaveBeenCalled()
+      expect(client.triggerCommand).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('testConnection delegates to lidarr client', async () => {
