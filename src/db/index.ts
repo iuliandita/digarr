@@ -4,7 +4,12 @@ import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite'
 import pg from 'pg'
 import { buildDatabaseUrl, envConfig } from '@/config/env'
-import { getPgliteDataDir, resolveDbBackend } from './backend'
+import {
+  applyPgliteStatementTimeout,
+  detectPartialPostgresConfig,
+  getPgliteDataDir,
+  resolveDbBackend,
+} from './backend'
 import * as schema from './schema'
 
 export const dbBackend = resolveDbBackend()
@@ -43,6 +48,8 @@ function buildPglite(): Database {
   // In tests with no configured path, stay fully in-memory to avoid touching disk.
   const inMemory = process.env.VITEST && !envConfig.dbPath
   pgliteClient = inMemory ? new PGlite() : new PGlite(getPgliteDataDir())
+  // FIFO-queued ahead of every app query, so the cap is live from the first one.
+  void applyPgliteStatementTimeout(pgliteClient)
   return drizzlePglite(pgliteClient, { schema }) as unknown as Database
 }
 
@@ -55,6 +62,19 @@ console.log(
     ? '[db] backend=postgres (DSN configured)'
     : '[db] backend=pglite (no DATABASE_URL/DB_HOST configured)',
 )
+
+// A half-set Postgres config (e.g. DB_HOST without DB_NAME) silently boots an
+// empty embedded PGlite instead. Shout so the operator does not run on the
+// wrong database without noticing.
+const partialPg = detectPartialPostgresConfig()
+if (partialPg) {
+  console.warn(
+    `[db] WARNING: partial Postgres config (set: ${partialPg.present.join(', ')}; ` +
+      `missing: ${partialPg.missing.join(', ')}) -- falling back to embedded PGlite. ` +
+      'Your Postgres database is NOT in use. Set DATABASE_URL, or all of DB_HOST, ' +
+      'DB_USER, DB_NAME, to connect to Postgres.',
+  )
+}
 
 /** The pg Pool, or null under PGlite (in-process, no socket to wait on). */
 export const pool: pg.Pool | null = pgPool

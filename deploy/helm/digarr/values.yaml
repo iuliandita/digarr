@@ -236,6 +236,9 @@ gateway:
 # ---------------------------------------------------------------------------
 # Default is emptyDir -- backups live only for the pod lifetime. Enable
 # persistence to survive pod restarts and cluster events.
+# Strongly recommended with database.backend=pglite: the pre-migration
+# auto-backup is the only rollback artifact, and an emptyDir loses it on
+# restart (the chart's NOTES.txt warns when this is left disabled in pglite mode).
 backups:
   persistence:
     enabled: false

@@ -44,7 +44,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          # WASM Postgres runs in-process, so the DB shares this budget with the
+          # app. 512M OOM-kills under migrations/large backups; 768M is the safe
+          # floor. Raise to 1G for big libraries or heavy concurrent scans.
+          memory: 768M
           cpus: "2.0"
     logging:
       driver: json-file
