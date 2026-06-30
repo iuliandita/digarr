@@ -13,6 +13,14 @@ vi.mock('@/web/lib/locale-storage', () => ({
 
 vi.mock('@/web/lib/api', () => ({
   completeSetup: vi.fn(),
+  ApiError: class ApiError extends Error {
+    constructor(
+      public status: number,
+      public data: unknown,
+    ) {
+      super('Missing required fields')
+    }
+  },
 }))
 
 vi.mock('sonner', () => ({
@@ -22,10 +30,14 @@ vi.mock('sonner', () => ({
   },
 }))
 
+import { toast } from 'sonner'
+import { ApiError, completeSetup } from '@/web/lib/api'
 import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SetupWizard } from '@/web/pages/setup'
 
 const mockGetStoredLocale = vi.mocked(getStoredLocale)
+const mockCompleteSetup = vi.mocked(completeSetup)
+const mockToastError = vi.mocked(toast.error)
 
 describe('SetupWizard', () => {
   beforeEach(() => {
@@ -143,6 +155,24 @@ describe('SetupWizard', () => {
     await screen.findByText('Fournisseur IA')
     expect(screen.getByText('Haiku 4.5 (rapide, le moins cher)')).toBeInTheDocument()
     expect(screen.getByText('Sonnet 4.6 (équilibré)')).toBeInTheDocument()
+  })
+
+  it('surfaces the backend error (and missing fields) when setup completion fails', async () => {
+    mockCompleteSetup.mockRejectedValueOnce(
+      new ApiError(400, { error: 'Missing required fields', fields: ['aiModel'] }),
+    )
+    renderSetupWizard()
+
+    fireEvent.click(screen.getByRole('button', { name: /Just discover/i }))
+    await screen.findByText('AI Provider')
+    fireEvent.change(screen.getByLabelText('Model'), { target: { value: 'test-model' } })
+    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'secret-key' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    fireEvent.click(await screen.findByRole('button', { name: /Start Digging/i }))
+
+    await vi.waitFor(() => expect(mockToastError).toHaveBeenCalled())
+    expect(mockToastError).toHaveBeenCalledWith('Missing required fields: aiModel')
   })
 
   it('uses a translated fallback model placeholder in French for openai-compatible', async () => {
