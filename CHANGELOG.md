@@ -4,7 +4,9 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
-## Unreleased
+## v1.11.0 - 2026-07-01
+
+Self-hostable with zero external database, a new Subsonic source, in-app backend migration, and a security hardening pass on account identity.
 
 ### Added
 
@@ -31,6 +33,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - **The "Approve with monitoring options" dropdown is now fully keyboard-operable.** Opening it moves focus into the menu, Up/Down arrows move between options (skipping any disabled one and wrapping at the ends), Enter/Space activates the focused option, and Escape closes the menu and returns focus to the trigger. The menu now also exposes proper `menu`/`menuitem` semantics for screen readers.
 - **Fixed stripped accents in several translations.** The "scan queued" message (and a few related strings) had lost their diacritics in Spanish, French, Italian, Romanian, Polish, and Brazilian Portuguese (e.g. Romanian "dupa" -> "după", Polish "sie" -> "się"). The locale linter now guards these languages so the regression cannot recur.
 - **Hardened a couple of external-API edge cases.** A non-Subsonic response from a misconfigured Subsonic server (e.g. a reverse-proxy login page) now surfaces a clear error instead of an uncaught type error, and a retrying MusicBrainz request during a rate-limit storm no longer holds the shared rate-limit slot for the duration of its backoff -- so one slow request can't stall all other MusicBrainz traffic.
+
+### Security
+
+- **Fixed an OIDC/SSO account-takeover path and hardened self-service email** ([GHSA-w643-583p-vm6m](https://github.com/iuliandita/digarr/security/advisories/GHSA-w643-583p-vm6m)). OIDC identities are now linked to local accounts by the issuer subject (`sub`) only -- never by email -- so an attacker who can set an arbitrary, unverified email at their IdP can no longer bind their login to an existing local account. Account emails are normalized to lowercase and uniqueness-checked case-insensitively (closing a duplicate-claim bypass), email writes are rate-limited, and the migration connection pool now enforces TLS and a statement timeout. Operators running OIDC should upgrade. No action is required beyond upgrading; existing subject-based links are unaffected.
 
 ## v1.10.0 - 2026-06-24
 
