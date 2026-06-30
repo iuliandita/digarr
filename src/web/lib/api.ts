@@ -1084,6 +1084,32 @@ export const getPendingMigrations = () =>
     lastAutoBackup: { filename: string; createdAt: string } | null
   }>('/admin/migrations/pending')
 
+// ── Admin: Migrate Backend ─────────────────────
+
+type MigrateTarget = { backend: 'pglite'; path: string } | { backend: 'postgres'; dsn: string }
+
+export const testMigrateTarget = (target: MigrateTarget) =>
+  fetchApi<{ ok: boolean; backend?: string; description?: string; error?: string }>(
+    '/admin/migrate-backend/test',
+    { method: 'POST', body: JSON.stringify(target) },
+  )
+
+export const migrateBackendApi = (target: MigrateTarget, overwrite = false) =>
+  fetchApi<{
+    ok: boolean
+    verified: boolean
+    contentVerified: boolean
+    targetBackend: string
+    targetDescription: string
+    tablesMigrated: Record<string, number>
+    excludedTables: string[]
+    mismatches: { table: string; source: number; target: number; contentDiffers?: boolean }[]
+    targetEnvHint: string
+  }>('/admin/migrate-backend', {
+    method: 'POST',
+    body: JSON.stringify({ target, overwrite }),
+  })
+
 // ── Admin: Hygiene ─────────────────────────────
 
 export const runHygieneTool = (tool: string, params?: Record<string, string>) => {
