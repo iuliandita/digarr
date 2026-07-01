@@ -19,7 +19,7 @@ single container with no database setup and no secret.
 ```sh
 docker run -d --name digarr -p 3000:3000 \
   -v digarr-data:/app/data -v digarr-backups:/app/backups \
-  docker.io/iuliandita/digarr:stable
+  docker.io/iuliandita/digarr:latest
 ```
 
 Or with compose:
