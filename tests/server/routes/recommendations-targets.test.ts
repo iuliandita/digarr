@@ -93,6 +93,47 @@ describe('target-aware approval', () => {
     )
   })
 
+  it('partial Lidarr add (artist added, album not monitored) persists the artist link and warns, not orphaned', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    const mockTarget = {
+      id: 'lidarr-1',
+      name: 'Lidarr',
+      type: 'lidarr',
+      capabilities: ['addArtist'],
+      addArtist: vi.fn().mockResolvedValue({
+        success: true,
+        targetType: 'lidarr',
+        targetId: 1,
+        externalId: 42,
+        warning: 'artist added, but the selected album was not found in Lidarr',
+      }),
+    }
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([mockTarget])
+
+    const app = createTestApp()
+    const res = await app.request('/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+
+    const body = await res.json()
+    // The artist link must persist (no orphan -> retry reconciles, no duplicate).
+    expect(body.status).toBe('added_to_lidarr')
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.objectContaining({ lidarrArtistId: 42 }),
+    )
+    // The partial outcome is surfaced, not silent.
+    expect(body.targetSummary.warnings).toContain(
+      'artist added, but the selected album was not found in Lidarr',
+    )
+  })
+
   it('approves with failing Lidarr target - sets add_failed', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,
@@ -320,5 +361,104 @@ describe('target-aware approval', () => {
     const body = await res.json()
     expect(body.results[0].status).toBe('approved')
     expect(spotifyTarget.createPlaylist).not.toHaveBeenCalled()
+  })
+
+  it('returns a per-target summary on partial failure', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([
+      {
+        id: 'lidarr-1',
+        type: 'lidarr',
+        name: 'Lidarr Primary',
+        capabilities: ['addArtist'],
+        addArtist: vi.fn().mockResolvedValue({ success: true, externalId: 42 }),
+      },
+      {
+        id: 'lidarr-2',
+        type: 'lidarr',
+        name: 'Lidarr Backup',
+        capabilities: ['addArtist'],
+        addArtist: vi.fn().mockResolvedValue({ success: false, error: 'connection refused' }),
+      },
+    ])
+
+    const app = createTestApp()
+    const res = await app.request('/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+
+    const body = await res.json()
+    expect(body.status).toBe('added_to_lidarr')
+    expect(body.targetSummary).toEqual({
+      total: 2,
+      succeeded: 1,
+      failed: 1,
+      failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'connection refused' }],
+      warnings: [],
+    })
+  })
+
+  it('retrying a failed target keeps prior successes and does not regress status', async () => {
+    // Rec already has lidarr-1 succeeded, lidarr-2 failed.
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+      lidarrArtistId: 42,
+      targetActions: {
+        'lidarr-1': { status: 'added', externalId: 42 },
+        'lidarr-2': { status: 'failed', error: 'connection refused' },
+      },
+    })
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([
+      {
+        id: 'lidarr-1',
+        type: 'lidarr',
+        name: 'Lidarr Primary',
+        capabilities: ['addArtist'],
+        addArtist: vi.fn().mockResolvedValue({ success: true, externalId: 42 }),
+      },
+      {
+        id: 'lidarr-2',
+        type: 'lidarr',
+        name: 'Lidarr Backup',
+        capabilities: ['addArtist'],
+        // Retry fails again.
+        addArtist: vi.fn().mockResolvedValue({ success: false, error: 'still down' }),
+      },
+    ])
+
+    const app = createTestApp()
+    const res = await app.request('/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', targetId: 'lidarr-2' }),
+    })
+
+    const body = await res.json()
+    // lidarr-1 still counts, so the rec is not regressed to add_failed.
+    expect(body.status).toBe('added_to_lidarr')
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.objectContaining({
+        targetActions: expect.objectContaining({
+          'lidarr-1': { status: 'added', externalId: 42 },
+          'lidarr-2': expect.objectContaining({ status: 'failed' }),
+        }),
+      }),
+    )
+    // Summary reflects only this attempt (the retried target).
+    expect(body.targetSummary).toEqual({
+      total: 1,
+      succeeded: 0,
+      failed: 1,
+      failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'still down' }],
+      warnings: [],
+    })
   })
 })

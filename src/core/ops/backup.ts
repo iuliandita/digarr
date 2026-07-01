@@ -11,37 +11,62 @@ import {
   SENSITIVE_USER_CONNECTIONS,
 } from '@/core/crypto'
 import {
+  albumBlocks,
   artistBlocks,
   artistMetadata,
   artists,
   genres,
   jobRuns,
+  libraryAlbumMatchOverrides,
+  libraryAlbums,
+  libraryArtists,
+  libraryHealthState,
+  libraryMatchOverrides,
+  librarySyncState,
   oauthTokens,
   oidcTokens,
   playlists,
   playlistTracks,
   recommendationBatches,
   recommendations,
+  recordingArtistCache,
   settings,
+  slskdJobs,
   subscriptions,
   targets,
   users,
 } from '@/db/schema'
-import type { BackupFile, BackupOptions, OpsDb, RestoreOptions, RestoreResult } from './types'
+import type {
+  BackupData,
+  BackupFile,
+  BackupOptions,
+  OpsDb,
+  RestoreOptions,
+  RestoreResult,
+} from './types'
 
 type BackupTable =
+  | typeof albumBlocks
   | typeof artistBlocks
   | typeof artistMetadata
   | typeof artists
   | typeof genres
   | typeof jobRuns
+  | typeof libraryAlbumMatchOverrides
+  | typeof libraryAlbums
+  | typeof libraryArtists
+  | typeof libraryHealthState
+  | typeof libraryMatchOverrides
+  | typeof librarySyncState
   | typeof oauthTokens
   | typeof oidcTokens
   | typeof playlists
   | typeof playlistTracks
   | typeof recommendationBatches
   | typeof recommendations
+  | typeof recordingArtistCache
   | typeof settings
+  | typeof slskdJobs
   | typeof subscriptions
   | typeof targets
   | typeof users
@@ -55,40 +80,31 @@ function getAppVersion(): string {
   }
 }
 
-async function selectAll(db: OpsDb, table: BackupTable): Promise<Record<string, unknown>[]> {
+async function selectAll(
+  db: Pick<OpsDb, 'select'>,
+  table: BackupTable,
+): Promise<Record<string, unknown>[]> {
   return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
 }
 
-export async function createBackup(db: OpsDb, options: BackupOptions = {}): Promise<BackupFile> {
-  const { includeCaches = false } = options
+export async function createBackup(
+  db: Pick<OpsDb, 'select'>,
+  options: BackupOptions = {},
+): Promise<BackupFile> {
+  const { includeCaches = false, full = false } = options
 
-  const [
-    settingsRows,
-    userRows,
-    oauthRows,
-    oidcRows,
-    targetRows,
-    subRows,
-    jobRunRows,
-    batchRows,
-    recRows,
-    playlistRows,
-    trackRows,
-    blockRows,
-  ] = await Promise.all([
-    selectAll(db, settings),
-    selectAll(db, users),
-    selectAll(db, oauthTokens),
-    selectAll(db, oidcTokens),
-    selectAll(db, targets),
-    selectAll(db, subscriptions),
-    selectAll(db, jobRuns),
-    selectAll(db, recommendationBatches),
-    selectAll(db, recommendations),
-    selectAll(db, playlists),
-    selectAll(db, playlistTracks),
-    selectAll(db, artistBlocks),
-  ])
+  const settingsRows = await selectAll(db, settings)
+  const userRows = await selectAll(db, users)
+  const oauthRows = await selectAll(db, oauthTokens)
+  const oidcRows = await selectAll(db, oidcTokens)
+  const targetRows = await selectAll(db, targets)
+  const subRows = await selectAll(db, subscriptions)
+  const jobRunRows = await selectAll(db, jobRuns)
+  const batchRows = await selectAll(db, recommendationBatches)
+  const recRows = await selectAll(db, recommendations)
+  const playlistRows = await selectAll(db, playlists)
+  const trackRows = await selectAll(db, playlistTracks)
+  const blockRows = await selectAll(db, artistBlocks)
 
   const backup: BackupFile = {
     version: 1,
@@ -113,14 +129,21 @@ export async function createBackup(db: OpsDb, options: BackupOptions = {}): Prom
   }
 
   if (includeCaches) {
-    const [artistRows, genreRows, metaRows] = await Promise.all([
-      selectAll(db, artists),
-      selectAll(db, genres),
-      selectAll(db, artistMetadata),
-    ])
-    backup.data.artists = artistRows
-    backup.data.genres = genreRows
-    backup.data.artistMetadata = metaRows
+    backup.data.artists = await selectAll(db, artists)
+    backup.data.genres = await selectAll(db, genres)
+    backup.data.artistMetadata = await selectAll(db, artistMetadata)
+  }
+
+  if (full) {
+    backup.data.albumBlocks = await selectAll(db, albumBlocks)
+    backup.data.libraryArtists = await selectAll(db, libraryArtists)
+    backup.data.libraryAlbums = await selectAll(db, libraryAlbums)
+    backup.data.librarySyncState = await selectAll(db, librarySyncState)
+    backup.data.libraryMatchOverrides = await selectAll(db, libraryMatchOverrides)
+    backup.data.libraryAlbumMatchOverrides = await selectAll(db, libraryAlbumMatchOverrides)
+    backup.data.libraryHealthState = await selectAll(db, libraryHealthState)
+    backup.data.recordingArtistCache = await selectAll(db, recordingArtistCache)
+    backup.data.slskdJobs = await selectAll(db, slskdJobs)
   }
 
   return backup
@@ -160,7 +183,7 @@ function filterToSchemaColumns<TTable extends BackupTable>(
 }
 
 function getDefaultConflictTarget<TTable extends BackupTable>(table: TTable): AnyPgColumn {
-  const columns = getTableColumns(table)
+  const columns = getTableColumns(table) as Record<string, AnyPgColumn | undefined>
   return columns.id as AnyPgColumn
 }
 
@@ -178,6 +201,7 @@ function createRestoreSpec<TTable extends BackupTable>(
   key: keyof BackupFile['data'],
   table: TTable,
   conflictTarget?: AnyPgColumn,
+  sortRows?: (rows: Record<string, unknown>[]) => Record<string, unknown>[],
 ): RestoreSpec<TTable> {
   return {
     key,
@@ -198,7 +222,8 @@ function createRestoreSpec<TTable extends BackupTable>(
         if (jsName === 'id') continue
         setClause[jsName] = sql.raw(`excluded.${col.name}`)
       }
-      const safeRows = rows.map((row) => filterToSchemaColumns(table, row))
+      const orderedRows = sortRows ? sortRows(rows) : rows
+      const safeRows = orderedRows.map((row) => filterToSchemaColumns(table, row))
       // Postgres caps bind parameters at 65535. Keep chunks well below that:
       // assume up to ~30 cols per row, so 1000 rows = ~30k params with headroom.
       const CHUNK = 1000
@@ -211,8 +236,8 @@ function createRestoreSpec<TTable extends BackupTable>(
       }
     },
     async resetSequence(tx) {
-      const columns = getTableColumns(table)
-      const idColumn = columns.id as AnyPgColumn | undefined
+      const columns = getTableColumns(table) as Record<string, AnyPgColumn | undefined>
+      const idColumn = columns.id
       if (!idColumn) return
 
       await tx.execute(sql`
@@ -226,13 +251,45 @@ function createRestoreSpec<TTable extends BackupTable>(
   }
 }
 
+// Topo-sort genres so parents always precede their children during restore.
+// Handles arbitrary depth. A cycle (which real genre data never has) emits in a
+// stable order and surfaces as a clean FK error at restore, not a stack overflow.
+function sortGenresParentsFirst(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  const idMap = new Map<number, Record<string, unknown>>(rows.map((r) => [r.id as number, r]))
+  const result: Record<string, unknown>[] = []
+  const visited = new Set<number>()
+
+  function visit(row: Record<string, unknown>) {
+    const id = row.id as number
+    if (visited.has(id)) return
+    visited.add(id) // mark before recursing so a cycle terminates instead of overflowing
+    const parentId = row.parentGenreId as number | null | undefined
+    if (parentId != null) {
+      const parentRow = idMap.get(parentId)
+      if (parentRow) visit(parentRow)
+    }
+    result.push(row)
+  }
+
+  for (const row of rows) {
+    visit(row)
+  }
+  return result
+}
+
 // Table restore order respects FK dependencies
 const RESTORE_ORDER = [
   createRestoreSpec('settings', settings, settings.id),
   createRestoreSpec('users', users),
   createRestoreSpec('artists', artists, artists.mbid),
-  createRestoreSpec('genres', genres, genres.slug),
+  createRestoreSpec('genres', genres, genres.slug, sortGenresParentsFirst),
   createRestoreSpec('artistMetadata', artistMetadata, artistMetadata.nameNormalized),
+  createRestoreSpec('libraryHealthState', libraryHealthState),
+  createRestoreSpec(
+    'recordingArtistCache',
+    recordingArtistCache,
+    recordingArtistCache.recordingMbid,
+  ),
   createRestoreSpec('oauthTokens', oauthTokens),
   createRestoreSpec('oidcTokens', oidcTokens),
   createRestoreSpec('targets', targets),
@@ -243,7 +300,19 @@ const RESTORE_ORDER = [
   createRestoreSpec('recommendations', recommendations),
   createRestoreSpec('playlistTracks', playlistTracks),
   createRestoreSpec('artistBlocks', artistBlocks),
+  createRestoreSpec('albumBlocks', albumBlocks),
+  createRestoreSpec('libraryArtists', libraryArtists),
+  createRestoreSpec('libraryAlbums', libraryAlbums),
+  createRestoreSpec('librarySyncState', librarySyncState),
+  createRestoreSpec('libraryMatchOverrides', libraryMatchOverrides),
+  createRestoreSpec('libraryAlbumMatchOverrides', libraryAlbumMatchOverrides),
+  createRestoreSpec('slskdJobs', slskdJobs),
 ] as const
+
+// Map from backup data key to the table object for external consumers
+export const BACKUP_TABLE_BY_KEY = Object.fromEntries(
+  RESTORE_ORDER.map((spec) => [spec.key as keyof BackupData, spec.table]),
+) as Partial<Record<keyof BackupData, AnyPgTable>>
 
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
   const currentFp = getKeyFingerprint()

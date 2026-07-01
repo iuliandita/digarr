@@ -2,6 +2,7 @@ import { CollapsibleSection } from '@/web/components/collapsible-section'
 import { useI18n } from '@/web/lib/i18n'
 import { BackupSection } from './backup-section'
 import { HygieneSection } from './hygiene-section'
+import { MigrateBackendSection } from './migrate-backend-section'
 import { UpgradeSection } from './upgrade-section'
 
 export function AdministrationTab() {
@@ -11,6 +12,10 @@ export function AdministrationTab() {
     <div className="space-y-4 max-w-lg">
       <CollapsibleSection title={t('admin.backupRestore')} defaultOpen>
         <BackupSection />
+      </CollapsibleSection>
+
+      <CollapsibleSection title={t('admin.migrateBackend')}>
+        <MigrateBackendSection />
       </CollapsibleSection>
 
       <CollapsibleSection title={t('admin.dataHygiene')}>

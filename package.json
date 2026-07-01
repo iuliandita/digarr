@@ -1,12 +1,12 @@
 {
   "name": "digarr",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "type": "module",
   "private": true,
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "dev:web": "vite",
-    "build": "vite build && bun build src/index.ts --outdir dist/server --target bun",
+    "build": "vite build && bun build src/index.ts --outdir dist/server --target bun --external @electric-sql/pglite",
     "start": "bun dist/server/index.js",
     "i18n:check": "bun scripts/i18n-check.ts",
     "check:api-docs": "bun scripts/check-api-docs.ts",
@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",
+    "@electric-sql/pglite": "0.5.3",
     "@hono/node-server": "^2.0.5",
     "@hono/zod-validator": "^0.8.0",
     "croner": "^10.0.1",

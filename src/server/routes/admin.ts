@@ -9,22 +9,33 @@ import {
   rebuildGenres,
   rescoreRecommendations,
 } from '@/core/ops/hygiene'
+import { MigrateBackendError, migrateBackend } from '@/core/ops/migrate-backend'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
 import { isValidStatus } from '@/core/recommendations/statuses'
 import { logAndSanitize } from '@/core/validation'
+import { assertSafePglitePath, classifyTargetError, connectTarget } from '@/db/connect'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { problem } from '@/server/helpers/problem'
+import { setMaintenance } from '@/server/maintenance'
 import { backupFileSchema } from '@/server/schemas/admin'
+import { migrateRequestSchema, migrateTargetSchema } from '@/server/schemas/migrate'
 import type { HonoEnv } from '@/server/types'
 
 export interface AdminDeps {
   db: OpsDb
+  isPipelineRunning: () => boolean
   getUserById: (
     id: number,
   ) => Promise<{ isAdmin: boolean; preferences?: Partial<Preferences> | null } | null>
   getSettings: () => Promise<{ preferences?: Partial<Preferences> | null } | null>
   generateReasoning?: (artistName: string, genres: string[]) => Promise<string>
 }
+
+// Single in-flight migration at a time. The route is exempt from the maintenance
+// lock (so the operator can drive it), so this flag is what blocks a second
+// concurrent migration POST. Single-process, same rationale as the rate limiters.
+let migrationInProgress = false
 
 export function adminRoutes(deps: AdminDeps) {
   const router = new Hono<HonoEnv>()
@@ -198,6 +209,100 @@ export function adminRoutes(deps: AdminDeps) {
   router.post('/api/v1/admin/hygiene/purge-sessions', async (c) => {
     const result = await purgeSessions(deps.db)
     return c.json(result)
+  })
+
+  // POST /api/v1/admin/migrate-backend/test - validate target reachability.
+  // For PGlite this is NON-DESTRUCTIVE: assertSafePglitePath validates containment
+  // without creating the database file.
+  router.post('/api/v1/admin/migrate-backend/test', async (c) => {
+    const parsed = migrateTargetSchema.safeParse(await c.req.json().catch(() => null))
+    if (!parsed.success)
+      return c.json({ error: 'Invalid target', details: parsed.error.issues }, 400)
+    try {
+      if (parsed.data.backend === 'pglite') {
+        const abs = assertSafePglitePath(parsed.data.path)
+        return c.json({ ok: true, backend: 'pglite', description: `PGlite file at ${abs}` })
+      }
+      const conn = await connectTarget(parsed.data)
+      try {
+        await conn.ping()
+        return c.json({ ok: true, backend: 'postgres', description: conn.describe() })
+      } finally {
+        await conn.close()
+      }
+    } catch (err) {
+      return c.json(
+        { ok: false, code: classifyTargetError(err), error: logAndSanitize(err, 'migrate-test') },
+        502,
+      )
+    }
+  })
+
+  // POST /api/v1/admin/migrate-backend - copy all data into target backend.
+  router.post('/api/v1/admin/migrate-backend', async (c) => {
+    const parsed = migrateRequestSchema.safeParse(await c.req.json().catch(() => null))
+    if (!parsed.success)
+      return problem(c, 'invalid-request', 'Invalid request', 400, undefined, {
+        issues: parsed.error.issues,
+      })
+    if (deps.isPipelineRunning()) {
+      return problem(
+        c,
+        'migration-pipeline-running',
+        'A pipeline is running. Disable schedules and retry once idle.',
+        409,
+        undefined,
+        undefined,
+        'pipeline_running',
+      )
+    }
+    if (migrationInProgress) {
+      return problem(
+        c,
+        'migration-in-progress',
+        'A migration is already in progress.',
+        409,
+        undefined,
+        undefined,
+        'migration_in_progress',
+      )
+    }
+    migrationInProgress = true
+    setMaintenance(true)
+    try {
+      const report = await migrateBackend({
+        sourceDb: deps.db,
+        target: parsed.data.target,
+        overwrite: parsed.data.overwrite,
+        isPipelineRunning: deps.isPipelineRunning,
+      })
+      // The MigrationReport body is returned ONLY on success. A verification
+      // failure becomes a problem+json 422 carrying the report as an extension,
+      // so a 422 never holds two incompatible shapes.
+      if (!report.ok) {
+        return problem(
+          c,
+          'migration-verify-failed',
+          'Migration completed but verification failed.',
+          422,
+          'Row counts or content differ between source and target.',
+          { report },
+          'migration_verify_failed',
+        )
+      }
+      return c.json(report)
+    } catch (err) {
+      if (err instanceof MigrateBackendError) {
+        // Known precondition failure: tell the operator what to fix. These messages
+        // carry no credentials, so they are safe to return verbatim.
+        const status = err.code === 'encryption_mismatch' ? 422 : 409
+        return problem(c, 'migration-failed', err.message, status, undefined, undefined, err.code)
+      }
+      return problem(c, 'migration-internal', logAndSanitize(err, 'migrate-backend'), 500)
+    } finally {
+      setMaintenance(false)
+      migrationInProgress = false
+    }
   })
 
   return router

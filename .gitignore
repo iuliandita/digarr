@@ -38,6 +38,7 @@ docs/local/
 .planning/
 mempalace.yaml
 entities.json
+/data/
 
 # Compose secrets -- example files tracked, real values ignored
 deploy/docker/secrets/*

@@ -35,6 +35,7 @@ import {
   triggerPipeline,
   updateRecommendation,
 } from '../lib/api'
+import { reportApprovalOutcome } from '../lib/approval'
 import { useI18n } from '../lib/i18n'
 
 function formatRelativeTime(locale: string, dateStr: string | Date): string {
@@ -529,14 +530,14 @@ export function Dashboard() {
   async function handleAction(id: number, status: 'approved' | 'rejected') {
     setActedIds((prev) => new Set([...prev, id]))
     try {
-      if (status === 'approved') {
-        await approveRecommendation(id)
-      } else {
-        await updateRecommendation(id, { status })
+      const res = await (status === 'approved'
+        ? approveRecommendation(id)
+        : updateRecommendation(id, { status }))
+      if (reportApprovalOutcome(res, t)) {
+        toast.success(
+          status === 'approved' ? t('dashboard.approvedSuccess') : t('dashboard.rejectedSuccess'),
+        )
       }
-      toast.success(
-        status === 'approved' ? t('dashboard.approvedSuccess') : t('dashboard.rejectedSuccess'),
-      )
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       if (status === 'approved') {
         queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
@@ -559,8 +560,8 @@ export function Dashboard() {
 
     setActedIds((prev) => new Set([...prev, recId]))
     try {
-      await approveRecommendation(recId, { monitorOption })
-      toast.success(t('dashboard.approvedSuccess'))
+      const res = await approveRecommendation(recId, { monitorOption })
+      if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
     } catch {
@@ -594,10 +595,10 @@ export function Dashboard() {
     setActedIds((prev) => new Set([...prev, recId]))
     try {
       const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-      await approveToTarget(recId, targetId, {
+      const res = await approveToTarget(recId, targetId, {
         ...targetOptions,
       })
-      toast.success(t('dashboard.sentToTarget'))
+      if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.sentToTarget'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
     } catch {
@@ -647,7 +648,15 @@ export function Dashboard() {
           onSkip={handleSkip}
           onRunScan={() => {
             triggerPipeline()
-              .then(() => toast.success(t('discover.scanStarted')))
+              .then((res) =>
+                toast.success(
+                  res.status === 'duplicate'
+                    ? t('discover.scanAlreadyRunning')
+                    : res.queued
+                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                      : t('discover.scanStarted'),
+                ),
+              )
               .catch(() => toast.error(t('discover.scanStartFailed')))
           }}
           targets={approveTargets}
@@ -715,7 +724,7 @@ export function Dashboard() {
           defaults={{
             qualityProfileId: Number(prefs.qualityProfileId ?? 1),
             metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-            rootFolderId: Number(prefs.rootFolderId ?? 1),
+            rootFolderId: Number(prefs.rootFolderId ?? 0),
           }}
           monitorOption={approveDialogState.monitorOption}
           onCancel={() => setApproveDialogState(null)}
@@ -724,16 +733,17 @@ export function Dashboard() {
             setApproveDialogState(null)
             setActedIds((prev) => new Set([...prev, recId]))
             try {
+              let res: Awaited<ReturnType<typeof approveToTarget>>
               if (targetId) {
                 const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-                await approveToTarget(recId, targetId, {
+                res = await approveToTarget(recId, targetId, {
                   ...overrides,
                   ...targetOptions,
                 })
               } else {
-                await approveRecommendation(recId, overrides)
+                res = await approveRecommendation(recId, overrides)
               }
-              toast.success(t('dashboard.addedToLidarr'))
+              if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
               queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
             } catch {
@@ -764,11 +774,11 @@ export function Dashboard() {
                 setAlbumPickerRec(null)
                 setActedIds((prev) => new Set([...prev, pickerRec.id]))
                 try {
-                  await approveRecommendation(pickerRec.id, {
+                  const res = await approveRecommendation(pickerRec.id, {
                     monitorOption: 'selected',
                     selectedAlbumIds,
                   })
-                  toast.success(t('dashboard.approvedSuccess'))
+                  if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
                   queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
                   queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
                 } catch {

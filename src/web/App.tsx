@@ -31,7 +31,7 @@ import {
 import { Toaster, toast } from 'sonner'
 import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
 import { errMsg } from '@/core/validation'
-import { VERSION } from '@/version'
+import { CHANNEL, GIT_SHA, VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
 import { BottomNav } from './components/bottom-nav'
 import { ErrorBoundary } from './components/error-boundary'
@@ -571,10 +571,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 disabled={!!pipelineRunning}
                 onClick={() =>
                   triggerPipeline()
-                    .then(() => toast.success(t('discover.scanStarted')))
+                    .then((res) =>
+                      toast.success(
+                        res.status === 'duplicate'
+                          ? t('discover.scanAlreadyRunning')
+                          : res.queued
+                            ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+                            : t('discover.scanStarted'),
+                      ),
+                    )
                     .catch((err) => {
-                      const msg = errMsg(err)
-                      toast.error(msg.includes('409') ? t('discover.scanAlreadyRunning') : msg)
+                      toast.error(errMsg(err))
                     })
                 }
                 className="flex min-h-11 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-60 sm:min-h-9 sm:px-4"
@@ -753,6 +760,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         />
         <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}
+          {CHANNEL === 'nightly' ? ` (${GIT_SHA.slice(0, 7)})` : ''}
         </footer>
       </div>
     </PreviewContext.Provider>

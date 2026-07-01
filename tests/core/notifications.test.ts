@@ -163,6 +163,49 @@ describe('sendWebhook', () => {
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('private/internal'))
   })
 
+  it('does not log Discord path token in failure messages', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 })
+
+    await sendWebhook('https://discord.com/api/webhooks/123456/SUPERSECRETTOKEN', makePayload())
+
+    expect(consoleSpy).toHaveBeenCalledOnce()
+    const loggedMessage = consoleSpy.mock.calls[0]?.[0] as string
+    expect(loggedMessage).not.toContain('SUPERSECRETTOKEN')
+    expect(loggedMessage).toContain('[REDACTED]')
+  })
+
+  it('does not log token query param values in failure messages', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 })
+
+    await sendWebhook('https://example.com/hook?token=SECRET123', makePayload())
+
+    expect(consoleSpy).toHaveBeenCalledOnce()
+    const loggedMessage = consoleSpy.mock.calls[0]?.[0] as string
+    expect(loggedMessage).not.toContain('SECRET123')
+  })
+
+  it('does not log Slack path token in failure messages', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 })
+
+    await sendWebhook('https://hooks.slack.com/services/T123/B456/SLACKSECRET', makePayload())
+
+    expect(consoleSpy).toHaveBeenCalledOnce()
+    const loggedMessage = consoleSpy.mock.calls[0]?.[0] as string
+    expect(loggedMessage).not.toContain('SLACKSECRET')
+    expect(loggedMessage).toContain('[REDACTED]')
+  })
+
+  it('does not log discordapp.com path token in failure messages', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500 })
+
+    await sendWebhook('https://discordapp.com/api/webhooks/789/APPSECRET', makePayload())
+
+    expect(consoleSpy).toHaveBeenCalledOnce()
+    const loggedMessage = consoleSpy.mock.calls[0]?.[0] as string
+    expect(loggedMessage).not.toContain('APPSECRET')
+    expect(loggedMessage).toContain('[REDACTED]')
+  })
+
   it('aborts after timeout', async () => {
     // Simulate a fetch that never resolves until abort
     fetchMock.mockImplementation((_url: string, init: RequestInit) => {

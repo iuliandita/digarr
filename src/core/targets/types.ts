@@ -31,6 +31,8 @@ export type TargetResult = {
   targetId: number
   externalId?: number | string
   error?: string
+  /** Non-fatal partial-failure note (e.g. artist added but album monitoring did not complete). */
+  warning?: string
 }
 
 export type PlaylistItem = {

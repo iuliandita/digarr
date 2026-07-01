@@ -55,6 +55,7 @@ export const envConfig = {
   dbUser: env('DB_USER'),
   dbPass: envOrFile('DB_PASS'),
   dbName: env('DB_NAME'),
+  dbPath: env('DB_PATH'),
   dbPoolMax: envInt('DB_POOL_MAX'),
   dbConnectTimeoutMs: envInt('DB_CONNECT_TIMEOUT_MS'),
   dbSslMode: envOneOf('DB_SSL_MODE', DB_SSL_MODES),
@@ -111,10 +112,6 @@ export const envConfig = {
   oidcClientId: env('OIDC_CLIENT_ID'),
   oidcClientSecret: env('OIDC_CLIENT_SECRET'),
   oidcScopes: env('OIDC_SCOPES'),
-  // Gates email-verified auto-link to existing local users. Only enable when
-  // the IdP is single-tenant and trusted; public/multi-tenant issuers can
-  // claim arbitrary emails and hijack accounts. See docs/AUTHENTICATION.md.
-  oidcTrustEmailVerified: envBool('OIDC_TRUST_EMAIL_VERIFIED'),
 
   // Deezer OAuth
   deezerAppId: env('DEEZER_APP_ID'),

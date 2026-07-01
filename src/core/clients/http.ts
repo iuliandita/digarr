@@ -4,7 +4,23 @@ import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
 import { formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
-const SENSITIVE_QUERY_KEYS = new Set(['api_key', 'apikey', 'key', 'token', 'secret', 'password'])
+const SENSITIVE_QUERY_KEYS = new Set([
+  'api_key',
+  'apikey',
+  'key',
+  'token',
+  'secret',
+  'password',
+  'auth',
+  'access_token',
+  'auth_token',
+  'signature',
+  'sig',
+  // Subsonic auth params: 't' is md5(password+salt), 's' is the salt.
+  // Logging both would expose an offline-brute-forceable credential.
+  't',
+  's',
+])
 
 type HttpClientConfig = {
   baseUrl: string
@@ -200,6 +216,11 @@ export function redactUrlForLog(url: string): string {
   try {
     const absolute = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url)
     const parsed = absolute ? new URL(url) : new URL(url, 'http://redact.invalid')
+
+    if (parsed.username) parsed.username = REDACTED_QUERY_VALUE
+    if (parsed.password) parsed.password = REDACTED_QUERY_VALUE
+    if (parsed.hash) parsed.hash = REDACTED_QUERY_VALUE
+
     const redactedParams = new URLSearchParams()
 
     for (const [key, value] of parsed.searchParams.entries()) {

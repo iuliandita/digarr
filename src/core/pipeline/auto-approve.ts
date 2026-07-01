@@ -27,7 +27,7 @@ type AutoApproveConfig = {
   monitorOption: 'all' | 'new' | 'none'
   qualityProfileId: number
   metadataProfileId: number
-  rootFolderId: number
+  rootFolderId?: number
 }
 
 export async function autoApprove(

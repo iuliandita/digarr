@@ -235,6 +235,69 @@ describe('createLidarrClient', () => {
         }),
       )
     })
+
+    it('uses first available folder when rootFolderId is undefined (id not 1)', async () => {
+      const altFolders: RootFolder[] = [
+        { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
+        { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
+      ]
+      mockGet.mockResolvedValueOnce(altFolders)
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ rootFolderPath: '/music5' }),
+      )
+    })
+
+    it('uses first available folder when rootFolderId is null', async () => {
+      const altFolders: RootFolder[] = [
+        { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
+        { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
+      ]
+      mockGet.mockResolvedValueOnce(altFolders)
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 21 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, null)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ rootFolderPath: '/music5' }),
+      )
+    })
+
+    it('uses the explicit folder path when a valid rootFolderId is provided', async () => {
+      mockGet.mockResolvedValueOnce(mockFolders)
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 22 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 2)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ rootFolderPath: '/music2' }),
+      )
+    })
+
+    it('throws with id in message when rootFolderId does not match any folder', async () => {
+      mockGet.mockResolvedValueOnce(mockFolders)
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(
+        client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 42),
+      ).rejects.toThrow('Root folder with id 42 not found')
+    })
+
+    it('throws when no root folders are configured in Lidarr', async () => {
+      mockGet.mockResolvedValueOnce([])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(
+        client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1),
+      ).rejects.toThrow('No root folders configured in Lidarr')
+    })
   })
 
   describe('getAlbums()', () => {

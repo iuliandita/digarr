@@ -3,29 +3,58 @@
 ## Prerequisites
 
 - Synology DSM 7.1+ with the **Docker** package (DSM 7.1) or **Container Manager** package (DSM 7.2+)
-- At least 512 MB free RAM (app uses ~80 MB, PostgreSQL ~30 MB)
+- At least 512 MB free RAM (the app idles around ~80 MB; an external PostgreSQL container, if you use one, adds ~30 MB)
 - Internet access for pulling images
+
+Digarr ships with an embedded database (PGlite), so the simplest setup is a
+single container with no separate PostgreSQL. The two-container PostgreSQL path
+remains available for anyone who wants it.
 
 ---
 
 ## DSM 7.2+ (Container Manager - has Project support)
 
-Container Manager supports compose projects natively. Use it if you want a no-SSH setup.
+Container Manager supports compose projects natively. Use it if you want a
+no-SSH setup. Pick one of the two paths below.
 
-### Option A: GUI
+### Option 1: Embedded PGlite (recommended, single container, no secret)
+
+GUI:
+
+1. Open **Container Manager** > **Project** > **Create**
+2. Set the project name to `digarr`
+3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
+4. Paste the contents of the [docker-compose.pglite.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml)
+5. Click **Done**
+
+There is no secret to create. The app stores its data in the project's `data`
+volume.
+
+SSH:
+
+```sh
+mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
+curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+sudo docker compose -f docker-compose.pglite.yml up -d
+```
+
+### Option 2: External PostgreSQL (two containers)
+
+GUI:
 
 1. Open **Container Manager** > **Project** > **Create**
 2. Set the project name to `digarr`
 3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
 4. Paste the contents of the [docker-compose.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml)
-5. Create two files in the project folder before starting:
-   - `secrets/postgres_password` containing only the database password
-   - `secrets/database_url` containing `postgres://digarr:YOUR_PASSWORD@postgres:5432/digarr`
+5. Create one file in the project folder before starting:
+   - `secrets/postgres_password` containing only the database password (both
+     the app and PostgreSQL read this single file, so there is nothing to keep
+     in sync)
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
 
-### Option B: SSH
+SSH:
 
 ```sh
 mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
@@ -33,10 +62,8 @@ curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
 printf '%s\n' 'change-this-password' > secrets/postgres_password
-printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' > secrets/database_url
 cp .env.example .env
 vi secrets/postgres_password
-vi secrets/database_url
 sudo docker compose up -d
 ```
 
@@ -46,6 +73,46 @@ sudo docker compose up -d
 
 The Docker package on DSM 7.1 does not support compose projects in the GUI.
 You can create containers individually with the Launch wizard.
+
+### Embedded PGlite (recommended, single container)
+
+With the embedded database there is no second container, no custom network,
+and no startup-order problem -- create one container and you are done.
+
+1. **Docker** > **Registry** > search for `iuliandita/digarr`
+2. Download `iuliandita/digarr:latest`
+3. **Image** > select `iuliandita/digarr:latest` > **Launch**
+4. Container name: `digarr`
+5. **Port Settings**: set local port `3000` -> container port `3000`
+6. Click **Advanced Settings** > **Volume** - add two folder mappings:
+   - `/volume1/docker/digarr/data` -> `/app/data` (the embedded database)
+   - `/volume1/docker/digarr/backups` -> `/app/backups` (pre-migration backups)
+7. Still in **Advanced Settings** > **Environment** - optionally add:
+   - `DIGARR_INITIAL_USERNAME` = pick an admin username
+   - `DIGARR_INITIAL_PASSWORD` = pick a password (min 8 chars)
+8. Click **Next** / **Apply** to create and start the container
+
+The mapped `data` directory must be writable by the container user (uid 1000);
+on Synology set the shared folder permissions or `chown 1000:1000` the folder
+over SSH if the container reports a permission error on first boot.
+
+Open `http://<nas-ip>:3000` in your browser.
+
+If you prefer compose over SSH, the single-container PGlite stack also works
+on DSM 7.1:
+
+```sh
+sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
+sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+sudo docker compose -f docker-compose.pglite.yml up -d
+```
+
+---
+
+## Advanced: external PostgreSQL (DSM 7.1)
+
+Use this only if you want Digarr to run against your own PostgreSQL instead of
+the embedded database. It requires two containers on a shared network.
 
 ### DSM 7.1 gotchas
 
@@ -75,15 +142,13 @@ sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/do
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 sudo mkdir -p secrets
 printf '%s\n' 'change-this-password' | sudo tee secrets/postgres_password > /dev/null
-printf '%s\n' 'postgres://digarr:change-this-password@postgres:5432/digarr' | sudo tee secrets/database_url > /dev/null
 sudo cp .env.example .env
 ```
 
-Edit both secret files with the same real password:
+Edit the secret file with a real password:
 
 ```sh
 sudo vi secrets/postgres_password
-sudo vi secrets/database_url
 ```
 
 Start both containers:
@@ -180,7 +245,10 @@ PostgreSQL does not need to be updated unless you specifically want a newer vers
 
 ## Notes
 
-- PostgreSQL data persists in a volume across restarts and updates.
+- With the embedded database, your data lives in the mapped `/app/data`
+  directory and persists across restarts and updates (keep the `/app/backups`
+  mapping too for the pre-migration safety net). With external PostgreSQL, the
+  database volume persists instead.
 - Resource usage is low enough for entry-level NAS models (1 GB RAM).
 - If using a reverse proxy (Synology's built-in or external), set
   `ALLOWED_ORIGIN` to your public URL (via environment variable or the web UI).

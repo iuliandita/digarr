@@ -8,7 +8,6 @@ import { createSession } from '@/core/sessions'
 type OidcRouteDeps = {
   getOidcService: () => Promise<OidcService | null>
   getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>
-  getUserByEmail: (email: string) => Promise<{ id: number; username: string } | null>
   getUserByUsername: (username: string) => Promise<{ id: number; username: string } | null>
   createUser: (data: {
     username: string
@@ -41,27 +40,6 @@ export function sanitizePreferredUsername(input: string): string {
   return input.replace(USERNAME_DISALLOWED, '').slice(0, USERNAME_MAX_LENGTH)
 }
 
-/**
- * Decide whether an OIDC callback is allowed to auto-link to an existing
- * local user by matching on the `email` claim.
- *
- * Gated behind OIDC_TRUST_EMAIL_VERIFIED because a multi-tenant or public
- * issuer can claim `email_verified=true` for arbitrary email strings,
- * which would let it hijack any account with that email. Single-tenant
- * IdPs with controlled domains are safe to opt in.
- *
- * Returns the email to link on success, or null to refuse.
- */
-export function maybeAutoLink(
-  claims: { email?: string; emailVerified?: boolean },
-  trustEmailVerified: boolean,
-): string | null {
-  if (!trustEmailVerified) return null
-  if (claims.emailVerified !== true) return null
-  if (!claims.email) return null
-  return claims.email
-}
-
 export function oidcRoutes(deps: OidcRouteDeps) {
   const router = new Hono()
 
@@ -90,22 +68,12 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       const callbackUrl = new URL(`${baseUrl}${reqUrl.pathname}${reqUrl.search}`)
       const result = await oidcService.handleCallback(callbackUrl)
 
-      // User matching: OIDC subject -> email -> username -> auto-create
+      // User matching is by OIDC subject only, then auto-create. Linking by the
+      // `email` claim is deliberately NOT done: a local account's email can be
+      // self-asserted (unverified), so matching on it would let an attacker
+      // pre-seed an account with a victim's email and have the victim's first
+      // OIDC login bind to it (pre-link account takeover).
       let user = await deps.getUserByOidcSubject(result.claims.sub)
-
-      if (!user) {
-        const emailToLink = maybeAutoLink(
-          { email: result.claims.email, emailVerified: result.claims.emailVerified },
-          envConfig.oidcTrustEmailVerified,
-        )
-        if (emailToLink) {
-          const emailUser = await deps.getUserByEmail(emailToLink)
-          if (emailUser) {
-            await deps.updateUser(emailUser.id, { oidcSubject: result.claims.sub })
-            user = emailUser
-          }
-        }
-      }
 
       if (!user) {
         const isFirstUser = (await deps.getUserCount()) === 0

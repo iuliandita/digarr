@@ -60,6 +60,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),
@@ -133,6 +136,24 @@ describe('GET /health', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('ok')
+  })
+
+  it('includes version, gitSha and channel in the ok body', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/health')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.version).toMatch(/^\d+\.\d+\.\d+/)
+    expect(body.gitSha).toBe('dev')
+    expect(body.channel).toBe('local')
+  })
+
+  it('reports the active db backend', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/health')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(['pglite', 'postgres']).toContain(body.dbBackend)
   })
 
   it('returns 503 with status draining when shutting down', async () => {

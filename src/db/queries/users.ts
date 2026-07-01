@@ -118,7 +118,10 @@ export async function getUserByOidcSubject(db: Database, subject: string): Promi
 }
 
 export async function getUserByEmail(db: Database, email: string): Promise<UserRow | null> {
-  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  // Emails are stored lowercased; normalize the lookup so a mixed-case address
+  // (e.g. from an OIDC claim) still matches and cannot be used to bypass the
+  // case-sensitive unique index.
+  const rows = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1)
   return rows[0] ?? null
 }
 
@@ -137,6 +140,9 @@ export type UserConnections = {
   embyUserId: string | null
   discogsToken: string | null
   discogsUsername: string | null
+  subsonicUrl: string | null
+  subsonicUsername: string | null
+  subsonicPassword: string | null
 }
 
 export async function getUserConnections(
@@ -159,6 +165,9 @@ export async function getUserConnections(
       embyUserId: users.embyUserId,
       discogsToken: users.discogsToken,
       discogsUsername: users.discogsUsername,
+      subsonicUrl: users.subsonicUrl,
+      subsonicUsername: users.subsonicUsername,
+      subsonicPassword: users.subsonicPassword,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -179,7 +188,7 @@ export async function updateUserConnections(
 export async function updateUser(
   db: Database,
   id: number,
-  data: { isAdmin?: boolean; email?: string; oidcSubject?: string; authProvider?: string },
+  data: { isAdmin?: boolean; email?: string | null; oidcSubject?: string; authProvider?: string },
 ): Promise<void> {
   await db.update(users).set(data).where(eq(users.id, id))
 }

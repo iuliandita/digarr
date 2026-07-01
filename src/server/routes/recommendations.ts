@@ -1,9 +1,11 @@
-import { Hono } from 'hono'
-import { selectPopularReleaseGroups } from '@/core/albums/popular'
+import { type Context, Hono } from 'hono'
+import { type PopularAlbumCandidate, selectPopularReleaseGroups } from '@/core/albums/popular'
+import { createLastFmClient } from '@/core/clients/lastfm'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
+import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
@@ -29,6 +31,57 @@ type ApproveResult = {
   lidarrError?: string
 }
 
+type TargetActionRecord = { status?: string; error?: string; warning?: string } | null
+
+type TargetSummary = {
+  total: number
+  succeeded: number
+  failed: number
+  failures: Array<{ id: string; name: string; error?: string }>
+  warnings: string[]
+}
+
+const isTargetSuccess = (action: TargetActionRecord): boolean =>
+  action?.status === 'added' || action?.status === 'queued'
+
+/** Per-target outcome of a single approve attempt, for submit-time UI surfacing. */
+function summarizeTargetActions(
+  targetActions: Record<string, unknown>,
+  targetsById: Map<string, { name: string }>,
+): TargetSummary {
+  const entries = Object.entries(targetActions) as [string, TargetActionRecord][]
+  const failures: TargetSummary['failures'] = []
+  const warnings: string[] = []
+  let succeeded = 0
+  for (const [id, action] of entries) {
+    if (isTargetSuccess(action)) {
+      succeeded++
+      if (action?.warning) warnings.push(action.warning)
+    } else {
+      failures.push({ id, name: targetsById.get(id)?.name ?? id, error: action?.error })
+    }
+  }
+  return { total: entries.length, succeeded, failed: failures.length, failures, warnings }
+}
+
+/**
+ * Derive the persisted recommendation status from the full merged target map
+ * (prior attempts plus this one), so retrying one failed target never regresses
+ * a rec whose other targets already succeeded.
+ */
+function deriveStatusFromActions(
+  mergedActions: Record<string, unknown>,
+  lidarrArtistId: number | string | undefined,
+): string {
+  const entries = Object.entries(mergedActions) as [string, TargetActionRecord][]
+  const anyLidarrAdded = entries.some(
+    ([id, a]) => id.startsWith('lidarr-') && a?.status === 'added',
+  )
+  const anySuccess = entries.some(([, a]) => isTargetSuccess(a))
+  if (anyLidarrAdded || lidarrArtistId) return 'added_to_lidarr'
+  return anySuccess ? 'approved' : 'add_failed'
+}
+
 type ApprovalMode = 'single_target' | 'combined_lidarr_slskd'
 type MonitorOption = 'all' | 'new' | 'none' | 'selected' | 'popular'
 type TargetActionStatus = 'added' | 'queued' | 'failed'
@@ -47,6 +100,56 @@ function extractSpotifyArtistId(url?: string): string | null {
   return match?.[1] ? decodeURIComponent(match[1]) : null
 }
 
+/** Distinguishes "no popularity source available" from "source had no usable albums". */
+export type PopularAlbumsErrorCode = 'no_source' | 'no_match'
+
+export class PopularAlbumsError extends Error {
+  constructor(
+    readonly code: PopularAlbumsErrorCode,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'PopularAlbumsError'
+  }
+}
+
+/** Top albums by Spotify popularity; empty when Spotify is unavailable for this user/artist. */
+async function spotifyPopularCandidates(
+  deps: AppDependencies,
+  userId: number,
+  artist: ApprovalArtist,
+): Promise<PopularAlbumCandidate[]> {
+  try {
+    const accessToken = await resolveSpotifyToken(deps.db, userId)
+    const spotify = createSpotifyClient(accessToken)
+    const spotifyId =
+      extractSpotifyArtistId(artist.streamingUrls?.spotify) ??
+      (await spotify.findExactArtistByName(artist.name))?.id
+    if (!spotifyId) return []
+    return await spotify.getPopularAlbumsForArtist(spotifyId, POPULAR_ALBUM_LIMIT)
+  } catch {
+    // Spotify not connected, token expired, or lookup failed: let the next source try.
+    return []
+  }
+}
+
+/** Top albums by Last.fm global playcount; empty when no Last.fm API key is configured. */
+async function lastfmPopularCandidates(
+  deps: AppDependencies,
+  userId: number,
+  artist: ApprovalArtist,
+): Promise<PopularAlbumCandidate[]> {
+  try {
+    const connections = await getUserConnections(deps.db, userId)
+    if (!connections?.lastfmApiKey) return []
+    // Username is unused by artist.getTopAlbums (API-key only); fall back to empty.
+    const client = createLastFmClient(connections.lastfmUsername ?? '', connections.lastfmApiKey)
+    return await client.getTopAlbumsForArtist(artist.name, artist.mbid)
+  } catch {
+    return []
+  }
+}
+
 async function resolvePopularAlbumIds(
   deps: AppDependencies,
   userId: number | undefined,
@@ -59,23 +162,28 @@ async function resolvePopularAlbumIds(
     throw new Error('Popular album approval requires artist metadata')
   }
 
-  const accessToken = await resolveSpotifyToken(deps.db, userId)
-  const spotify = createSpotifyClient(accessToken)
-  const spotifyId =
-    extractSpotifyArtistId(artist.streamingUrls?.spotify) ??
-    (await spotify.findExactArtistByName(artist.name))?.id
+  // MB release groups are the matching target for whichever popularity source wins.
+  const releaseGroups = await createMusicBrainzClient().getReleaseGroups(artist.mbid)
 
-  if (!spotifyId) {
-    throw new Error(`Could not resolve Spotify artist for ${artist.name}`)
+  // Spotify gives normalized popularity; Last.fm gives global playcount. Never
+  // blend the two scales in one list - take the first source that returns albums.
+  let candidates = await spotifyPopularCandidates(deps, userId, artist)
+  if (candidates.length === 0) {
+    candidates = await lastfmPopularCandidates(deps, userId, artist)
+  }
+  if (candidates.length === 0) {
+    throw new PopularAlbumsError(
+      'no_source',
+      `No popularity source returned albums for ${artist.name}. Connect Spotify or Last.fm.`,
+    )
   }
 
-  const [spotifyAlbums, releaseGroups] = await Promise.all([
-    spotify.getPopularAlbumsForArtist(spotifyId, POPULAR_ALBUM_LIMIT),
-    createMusicBrainzClient().getReleaseGroups(artist.mbid),
-  ])
-  const selected = selectPopularReleaseGroups(spotifyAlbums, releaseGroups, POPULAR_ALBUM_LIMIT)
+  const selected = selectPopularReleaseGroups(candidates, releaseGroups, POPULAR_ALBUM_LIMIT)
   if (selected.length === 0) {
-    throw new Error(`Could not map popular Spotify albums to Lidarr albums for ${artist.name}`)
+    throw new PopularAlbumsError(
+      'no_match',
+      `Could not map popular albums to library albums for ${artist.name}.`,
+    )
   }
 
   return selected.map((album) => album.id)
@@ -86,6 +194,7 @@ type TargetExecutionResult = {
     status: TargetActionStatus
     externalId?: number | string
     error?: string
+    warning?: string
   }
   success: boolean
   lidarrArtistId?: number | string
@@ -108,6 +217,10 @@ async function addArtistToTarget(
           artistName: artist.name,
           mbid: artist.mbid,
           action: 'add',
+          ...(addOptions.monitorOption ? { monitorOption: addOptions.monitorOption } : {}),
+          ...(Array.isArray(addOptions.selectedAlbumIds) && addOptions.selectedAlbumIds.length
+            ? { selectedAlbumIds: addOptions.selectedAlbumIds }
+            : {}),
         },
       })
     : null
@@ -142,6 +255,7 @@ async function addArtistToTarget(
       status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
       externalId: result.externalId,
       error: result.error,
+      ...(result.warning ? { warning: result.warning } : {}),
     },
     success: result.success,
     lidarrArtistId: target.type === 'lidarr' && result.success ? result.externalId : undefined,
@@ -213,7 +327,6 @@ async function approveAlbumToTargets(
 
   const targetActions: Record<string, unknown> = {}
   let anySuccess = false
-  let externalId: number | string | undefined
   let lidarrError: string | undefined
 
   for (const target of actionableTargets) {
@@ -274,18 +387,14 @@ async function approveAlbumToTargets(
     }
     if (result.success) {
       anySuccess = true
-      if (target.type === 'lidarr' && externalId == null) externalId = result.externalId
     } else if (target.type === 'lidarr') {
       lidarrError = result.error
     }
   }
 
   const status = anySuccess ? 'added_to_lidarr' : 'add_failed'
-  // Do NOT persist the album external id as lidarrArtistId: for album approvals
-  // `externalId` is the Lidarr ALBUM id, which has wrong semantics for the
-  // recommendations.lidarr_artist_id column. The album id is already retained
-  // in targetActions[target.id], and album status is driven by `anySuccess`.
-  void externalId
+  // lidarrArtistId stays undefined: the album path returns the Lidarr ALBUM id,
+  // wrong semantics for lidarr_artist_id (it's kept in targetActions instead).
   return { status, targetActions, lidarrArtistId: undefined, lidarrError }
 }
 
@@ -393,6 +502,32 @@ async function buildAddOptions(
 export function recommendationRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
+  // Missing and non-owned both 404 (don't leak ownership); on failure returns the Response to return as-is.
+  const loadOwnedRecommendation = async (
+    c: Context<HonoEnv>,
+    id: number,
+  ): Promise<
+    | {
+        rec: NonNullable<Awaited<ReturnType<AppDependencies['getRecommendation']>>>
+        userId?: number
+      }
+    | Response
+  > => {
+    const rec = await deps.getRecommendation(id)
+    const userId = c.get('userId')
+    if (!rec || !isOwned(rec, userId))
+      return problem(
+        c,
+        'recommendation-not-found',
+        'Recommendation not found',
+        404,
+        undefined,
+        undefined,
+        'errors.recommendation.notFound',
+      )
+    return { rec, userId }
+  }
+
   router.get('/api/v1/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
     const userId = c.get('userId')
     const query = c.req.valid('query')
@@ -431,31 +566,27 @@ export function recommendationRoutes(deps: AppDependencies) {
     return c.json({ summary })
   })
 
+  // Backs the approve menu's "Popular albums" gating: true when at least one
+  // popularity source (Spotify OAuth or a Last.fm API key) is available.
+  router.get('/api/v1/recommendations/popular-albums/availability', async (c) => {
+    const userId = c.get('userId')
+    if (!userId) return c.json({ available: false, spotify: false, lastfm: false })
+    const [spotify, connections] = await Promise.all([
+      resolveSpotifyToken(deps.db, userId).then(
+        () => true,
+        () => false,
+      ),
+      getUserConnections(deps.db, userId),
+    ])
+    const lastfm = Boolean(connections?.lastfmApiKey)
+    return c.json({ available: spotify || lastfm, spotify, lastfm })
+  })
+
   router.get('/api/v1/recommendations/:id', zParam(recommendationIdParamSchema), async (c) => {
     const { id } = c.req.valid('param')
-    const rec = await deps.getRecommendation(id)
-    if (!rec)
-      return problem(
-        c,
-        'recommendation-not-found',
-        'Recommendation not found',
-        404,
-        undefined,
-        undefined,
-        'errors.recommendation.notFound',
-      )
-    const userId = c.get('userId')
-    if (!isOwned(rec, userId))
-      return problem(
-        c,
-        'recommendation-not-found',
-        'Recommendation not found',
-        404,
-        undefined,
-        undefined,
-        'errors.recommendation.notFound',
-      )
-    return c.json(rec)
+    const loaded = await loadOwnedRecommendation(c, id)
+    if (loaded instanceof Response) return loaded
+    return c.json(loaded.rec)
   })
 
   router.patch(
@@ -480,28 +611,9 @@ export function recommendationRoutes(deps: AppDependencies) {
       const approvalMode: ApprovalMode = rawApprovalMode ?? 'single_target'
 
       if (status === 'approved') {
-        const rec = await deps.getRecommendation(id)
-        if (!rec)
-          return problem(
-            c,
-            'recommendation-not-found',
-            'Recommendation not found',
-            404,
-            undefined,
-            undefined,
-            'errors.recommendation.notFound',
-          )
-        const userId = c.get('userId')
-        if (!isOwned(rec, userId))
-          return problem(
-            c,
-            'recommendation-not-found',
-            'Recommendation not found',
-            404,
-            undefined,
-            undefined,
-            'errors.recommendation.notFound',
-          )
+        const loaded = await loadOwnedRecommendation(c, id)
+        if (loaded instanceof Response) return loaded
+        const { rec, userId } = loaded
 
         const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
         const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
@@ -585,7 +697,10 @@ export function recommendationRoutes(deps: AppDependencies) {
         } catch (err) {
           if (monitorOption !== 'popular') throw err
           return c.json(
-            { error: err instanceof Error ? err.message : 'Popular albums could not be resolved' },
+            {
+              error: err instanceof Error ? err.message : 'Popular albums could not be resolved',
+              code: err instanceof PopularAlbumsError ? err.code : undefined,
+            },
             400,
           )
         }
@@ -623,40 +738,37 @@ export function recommendationRoutes(deps: AppDependencies) {
                   id,
                 )
 
-        const extra: Record<string, unknown> = { targetActions: result.targetActions }
-        if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
+        // Merge this attempt over any prior target actions so a single-target
+        // retry preserves the outcomes of targets that already succeeded.
+        const priorActions = (rec.targetActions as Record<string, unknown> | null) ?? {}
+        const mergedActions = { ...priorActions, ...result.targetActions }
+        const lidarrArtistId = result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined
+        // Only re-derive across the merged map when retrying a rec that already
+        // had outcomes; a first approve keeps this attempt's own status (which
+        // also covers the no-actionable-targets "approved" special case).
+        const finalStatus =
+          Object.keys(priorActions).length > 0
+            ? deriveStatusFromActions(mergedActions, lidarrArtistId)
+            : result.status
+
+        const extra: Record<string, unknown> = { targetActions: mergedActions }
+        if (lidarrArtistId) extra.lidarrArtistId = lidarrArtistId
         if (result.lidarrError) extra.lidarrError = result.lidarrError
 
-        await deps.updateRecommendationStatus(id, result.status, extra)
+        await deps.updateRecommendationStatus(id, finalStatus, extra)
+
+        const targetsById = new Map(targets.map((target) => [target.id, target]))
         return c.json({
-          status: result.status,
-          targetActions: result.targetActions,
+          status: finalStatus,
+          targetActions: mergedActions,
+          targetSummary: summarizeTargetActions(result.targetActions, targetsById),
           ...(result.lidarrError ? { lidarrError: result.lidarrError } : {}),
         })
       }
 
-      const rec = await deps.getRecommendation(id)
-      if (!rec)
-        return problem(
-          c,
-          'recommendation-not-found',
-          'Recommendation not found',
-          404,
-          undefined,
-          undefined,
-          'errors.recommendation.notFound',
-        )
-      const userId = c.get('userId')
-      if (!isOwned(rec, userId))
-        return problem(
-          c,
-          'recommendation-not-found',
-          'Recommendation not found',
-          404,
-          undefined,
-          undefined,
-          'errors.recommendation.notFound',
-        )
+      const loaded = await loadOwnedRecommendation(c, id)
+      if (loaded instanceof Response) return loaded
+      const { userId } = loaded
 
       if (status === 'rejected') {
         const validated = rejectStatusSchema.safeParse(body)

@@ -161,6 +161,7 @@ export type UserProfile = {
   username: string
   isAdmin: boolean
   preferredLocale: string | null
+  email: string | null
 }
 export async function getCurrentUser(): Promise<UserProfile | null> {
   const token = getStoredToken()
@@ -188,6 +189,11 @@ export const updatePreferredLocale = (preferredLocale: string | null) =>
     method: 'PATCH',
     body: JSON.stringify({ preferredLocale }),
   })
+export const updateEmail = (email: string | null) =>
+  fetchApi<{ email: string | null }>('/auth/me/email', {
+    method: 'PATCH',
+    body: JSON.stringify({ email }),
+  })
 
 export const logoutUser = () => fetchApi<void>('/auth/logout', { method: 'POST' })
 
@@ -208,11 +214,24 @@ export const testService = (service: string, config: Record<string, unknown>) =>
 export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { method: 'POST' })
 
 // Pipeline
-export const triggerPipeline = () => fetchApi('/pipeline/run', { method: 'POST' })
+export const triggerPipeline = () =>
+  fetchApi<{
+    message: string
+    status?: 'started' | 'queued' | 'duplicate'
+    queued?: boolean
+    position?: number
+  }>('/pipeline/run', {
+    method: 'POST',
+  })
 export const getPipelineStatus = () =>
-  fetchApi<{ running: boolean; stage?: string; message?: string; lastRun?: unknown }>(
-    '/pipeline/status',
-  )
+  fetchApi<{
+    running: boolean
+    stage?: string
+    message?: string
+    queueLength?: number
+    queuePosition?: number
+    lastRun?: unknown
+  }>('/pipeline/status')
 export const rescanArtists = () =>
   fetchApi<{ updated: number; total: number }>('/pipeline/rescan', { method: 'POST' })
 
@@ -221,8 +240,24 @@ export const getRecommendations = (params?: Record<string, string>) => {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
   return fetchApi<{ items: unknown[]; total: number }>(`/recommendations${qs}`)
 }
+export type ApprovalTargetSummary = {
+  total: number
+  succeeded: number
+  failed: number
+  failures: Array<{ id: string; name: string; error?: string | null }>
+  warnings?: string[]
+}
+export type ApprovalResponse = {
+  status: string
+  targetActions?: Record<string, unknown>
+  targetSummary?: ApprovalTargetSummary
+  lidarrError?: string | null
+}
 export const updateRecommendation = (id: number, body: Record<string, unknown>) =>
-  fetchApi(`/recommendations/${id}`, { method: 'PATCH', body: JSON.stringify(body) })
+  fetchApi<ApprovalResponse>(`/recommendations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
 export const approveRecommendation = (
   id: number,
   options?: {
@@ -642,7 +677,7 @@ export async function approveToTarget(
     metadataProfileId?: number
     rootFolderId?: number
   },
-): Promise<{ status: string; targetActions?: Record<string, unknown> }> {
+): Promise<ApprovalResponse> {
   return fetchApi(`/recommendations/${recId}`, {
     method: 'PATCH',
     body: JSON.stringify({
@@ -762,6 +797,14 @@ export async function getOAuthStatus(
   provider: string,
 ): Promise<{ connected: boolean; scopes: string | null }> {
   return fetchApi(`/auth/oauth/${provider}/status`)
+}
+
+export async function getPopularAlbumsAvailability(): Promise<{
+  available: boolean
+  spotify: boolean
+  lastfm: boolean
+}> {
+  return fetchApi('/recommendations/popular-albums/availability')
 }
 
 // Subscriptions
@@ -1054,6 +1097,32 @@ export const getPendingMigrations = () =>
     pendingMigrations: string[]
     lastAutoBackup: { filename: string; createdAt: string } | null
   }>('/admin/migrations/pending')
+
+// ── Admin: Migrate Backend ─────────────────────
+
+type MigrateTarget = { backend: 'pglite'; path: string } | { backend: 'postgres'; dsn: string }
+
+export const testMigrateTarget = (target: MigrateTarget) =>
+  fetchApi<{ ok: boolean; backend?: string; description?: string; error?: string; code?: string }>(
+    '/admin/migrate-backend/test',
+    { method: 'POST', body: JSON.stringify(target) },
+  )
+
+export const migrateBackendApi = (target: MigrateTarget, overwrite = false) =>
+  fetchApi<{
+    ok: boolean
+    verified: boolean
+    contentVerified: boolean
+    targetBackend: string
+    targetDescription: string
+    tablesMigrated: Record<string, number>
+    excludedTables: string[]
+    mismatches: { table: string; source: number; target: number; contentDiffers?: boolean }[]
+    targetEnvHint: string
+  }>('/admin/migrate-backend', {
+    method: 'POST',
+    body: JSON.stringify({ target, overwrite }),
+  })
 
 // ── Admin: Hygiene ─────────────────────────────
 

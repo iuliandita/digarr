@@ -300,4 +300,61 @@ describe('createLastFmClient', () => {
       expect(result).toHaveProperty('message')
     })
   })
+
+  describe('getTopAlbumsForArtist(artist, mbid, limit)', () => {
+    it('GETs artist.getTopAlbums with api_key and maps playcount to popularity', async () => {
+      mockGet.mockResolvedValueOnce({
+        topalbums: {
+          album: [
+            { name: 'OK Computer', playcount: 12345, mbid: 'okc-mbid' },
+            { name: 'Kid A', playcount: 9876, mbid: '' },
+          ],
+        },
+      })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      const result = await client.getTopAlbumsForArtist('Radiohead')
+
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('method=artist.getTopAlbums'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('artist=Radiohead'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`api_key=${TEST_API_KEY}`))
+      expect(result).toHaveLength(2)
+      expect(result[0]).toEqual({ title: 'OK Computer', popularity: 12345, mbid: 'okc-mbid' })
+      expect(result[1]).toEqual({ title: 'Kid A', popularity: 9876, mbid: undefined })
+    })
+
+    it('passes mbid when provided (prefers it over name)', async () => {
+      mockGet.mockResolvedValueOnce({ topalbums: { album: [] } })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      await client.getTopAlbumsForArtist('Radiohead', 'a74b1b7f-71a5-4011-9441-d0b5e4122711')
+      expect(mockGet).toHaveBeenCalledWith(
+        expect.stringContaining('mbid=a74b1b7f-71a5-4011-9441-d0b5e4122711'),
+      )
+    })
+
+    it('uses a default limit and accepts a custom one', async () => {
+      mockGet.mockResolvedValueOnce({ topalbums: { album: [] } })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      await client.getTopAlbumsForArtist('Radiohead', undefined, 10)
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=10'))
+    })
+
+    it('parses string playcounts and tolerates missing values', async () => {
+      mockGet.mockResolvedValueOnce({
+        topalbums: {
+          album: [{ name: 'Amnesiac', playcount: '4567', mbid: 'amn-mbid' }, { name: 'The Bends' }],
+        },
+      })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      const result = await client.getTopAlbumsForArtist('Radiohead')
+      expect(result[0]).toEqual({ title: 'Amnesiac', popularity: 4567, mbid: 'amn-mbid' })
+      expect(result[1]).toEqual({ title: 'The Bends', popularity: 0, mbid: undefined })
+    })
+
+    it('returns empty array when topalbums is missing', async () => {
+      mockGet.mockResolvedValueOnce({})
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      const result = await client.getTopAlbumsForArtist('UnknownBand')
+      expect(result).toEqual([])
+    })
+  })
 })

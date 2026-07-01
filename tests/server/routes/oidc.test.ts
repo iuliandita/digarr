@@ -13,10 +13,6 @@ vi.mock('@/config/env', async (importOriginal) => {
     envConfig: {
       ...original.envConfig,
       allowedOrigin: 'http://localhost:3000',
-      // Opt in to email-verified auto-link for tests that assert the old
-      // behavior. Tests that need the default (refuse) override this
-      // explicitly via vi.doMock or claim shape.
-      oidcTrustEmailVerified: true,
     },
   }
 })
@@ -68,7 +64,6 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
     mockOidcService,
     getOidcService: vi.fn(async () => mockOidcService as OidcService),
     getUserByOidcSubject: vi.fn(async () => null),
-    getUserByEmail: vi.fn(async () => null),
     getUserByUsername: vi.fn(async () => null),
     createUser: vi.fn(async (data: { username: string }) => ({
       id: 1,
@@ -148,27 +143,26 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oidc_token=mock-session-token-123')
     expect(deps.createUser).not.toHaveBeenCalled()
-    expect(deps.getUserByEmail).not.toHaveBeenCalled()
     expect(createSession).toHaveBeenCalledWith(42, 'mock-session-token-123')
   })
 
-  it('matches existing user by email and links OIDC subject', async () => {
+  it('never links to a local account by email; matches strictly by OIDC subject', async () => {
+    // An attacker could seed a local account carrying the victim's email. The
+    // victim's first OIDC login must NOT auto-link into that account (pre-link
+    // account takeover) -- linking is by OIDC subject only.
     const deps = makeDeps({
-      getUserByEmail: vi.fn(async () => ({
-        id: 10,
-        username: 'email-user',
-      })),
+      getUserByEmail: vi.fn(async () => ({ id: 10, username: 'squatted-by-attacker' })),
     })
     const app = createTestApp(deps)
 
     const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
-    expect(deps.updateUser).toHaveBeenCalledWith(10, {
-      oidcSubject: 'oidc-subject-123',
-    })
-    expect(deps.createUser).not.toHaveBeenCalled()
-    expect(createSession).toHaveBeenCalledWith(10, 'mock-session-token-123')
+    // The pre-seeded account is neither linked nor logged into.
+    expect(deps.updateUser).not.toHaveBeenCalled()
+    expect(createSession).not.toHaveBeenCalledWith(10, expect.anything())
+    // A fresh account is created for this subject instead.
+    expect(deps.createUser).toHaveBeenCalled()
   })
 
   it('does not auto-link by username alone', async () => {
@@ -208,34 +202,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'malloryscriptalert1script' }),
     )
-  })
-
-  it('does not auto-link by unverified email', async () => {
-    const deps = makeDeps({
-      getUserByEmail: vi.fn(async () => ({
-        id: 10,
-        username: 'email-user',
-      })),
-    })
-    deps.mockOidcService.handleCallback.mockResolvedValue({
-      claims: {
-        sub: 'oidc-subject-123',
-        email: 'alice@example.com',
-        emailVerified: false,
-        preferredUsername: 'alice',
-      },
-      accessToken: 'at-xyz',
-      refreshToken: 'rt-xyz',
-      idToken: 'id-xyz',
-      expiresIn: 3600,
-    })
-    const app = createTestApp(deps)
-
-    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-    expect(res.status).toBe(302)
-    expect(deps.updateUser).not.toHaveBeenCalled()
-    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'alice' }))
   })
 
   it('creates non-admin user when users already exist', async () => {

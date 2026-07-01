@@ -46,6 +46,17 @@ vi.mock('@/web/lib/api', () => ({
   bulkAction: vi.fn(),
   getWarmStatuses: vi.fn(),
   getPopularAlbums: vi.fn(),
+  getPopularAlbumsAvailability: vi
+    .fn()
+    .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
+  ApiError: class ApiError extends Error {
+    constructor(
+      public status: number,
+      public data: unknown,
+    ) {
+      super('ApiError')
+    }
+  },
   rescanArtists: vi.fn(),
   triggerPipeline: vi.fn(),
   listTargets: vi.fn().mockResolvedValue([]),

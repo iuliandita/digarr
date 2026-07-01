@@ -30,29 +30,69 @@ jobs:
         run: |
           cp deploy/docker/.env.example deploy/docker/.env
           printf '%s\n' 'testpass123' > deploy/docker/secrets/postgres_password
-          printf '%s\n' 'postgres://digarr:testpass123@postgres:5432/digarr' > deploy/docker/secrets/database_url
 
-      - name: Start services
+      # Existing Postgres install + freshly-built image (upgrade-safety test).
+      # The base compose sets DB_HOST + a secret, so the app must resolve postgres.
+      - name: Start postgres stack (base compose + built image)
         working-directory: deploy/docker
         run: podman-compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
 
-      - name: Wait for healthy app
+      - name: Assert postgres backend
         run: |
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after ${i}s"
-              exit 0
+              break
             fi
             sleep 2
           done
-          echo "App failed to become healthy"
-          podman-compose -f deploy/docker/docker-compose.yml logs
-          exit 1
+          curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"postgres"'
+
+      - name: Tear down postgres stack
+        working-directory: deploy/docker
+        run: podman-compose -f docker-compose.yml -f docker-compose.compat.yml down -v
+
+      # Embedded PGlite stack. No DB sidecar and no secret; .env carries no DSN
+      # (the DB vars in .env.example are commented out), so the app must resolve
+      # pglite from DB_PATH set by the pglite compose.
+      - name: Start pglite stack
+        working-directory: deploy/docker
+        run: podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml up -d --build
+
+      - name: Assert pglite backend + persistence across restart
+        working-directory: deploy/docker
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"pglite"'
+          podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml restart
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after restart (${i}s)"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:3000/health | grep -q '"status":"ok"'
+
+      - name: Dump logs on failure
+        if: failure()
+        working-directory: deploy/docker
+        run: |
+          podman-compose -f docker-compose.yml -f docker-compose.compat.yml logs || true
+          podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs || true
 
       - name: Tear down
         if: always()
         working-directory: deploy/docker
-        run: podman-compose down -v
+        run: |
+          podman-compose -f docker-compose.yml -f docker-compose.compat.yml down -v || true
+          podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v || true
 
   docker-macos:
     name: Docker Desktop (macOS)
@@ -85,28 +125,71 @@ jobs:
         run: |
           cp deploy/docker/.env.example deploy/docker/.env
           printf '%s\n' 'testpass123' > deploy/docker/secrets/postgres_password
-          printf '%s\n' 'postgres://digarr:testpass123@postgres:5432/digarr' > deploy/docker/secrets/database_url
 
-      - name: Start services
+      # Existing Postgres install + freshly-built image (upgrade-safety test).
+      # The base compose sets DB_HOST + a secret, so the app must resolve postgres.
+      - name: Start postgres stack (base compose + built image)
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: docker compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
 
-      - name: Wait for healthy app
+      - name: Assert postgres backend
         if: steps.docker.outputs.ready == 'true'
         run: |
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after ${i}s"
-              exit 0
+              break
             fi
             sleep 2
           done
-          echo "App failed to become healthy"
-          docker compose -f deploy/docker/docker-compose.yml logs
-          exit 1
+          curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"postgres"'
+
+      - name: Tear down postgres stack
+        if: steps.docker.outputs.ready == 'true'
+        working-directory: deploy/docker
+        run: docker compose -f docker-compose.yml -f docker-compose.compat.yml down -v
+
+      # Embedded PGlite stack. No DB sidecar and no secret; .env carries no DSN
+      # (the DB vars in .env.example are commented out), so the app must resolve
+      # pglite from DB_PATH set by the pglite compose.
+      - name: Start pglite stack
+        if: steps.docker.outputs.ready == 'true'
+        working-directory: deploy/docker
+        run: docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml up -d --build
+
+      - name: Assert pglite backend + persistence across restart
+        if: steps.docker.outputs.ready == 'true'
+        working-directory: deploy/docker
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"pglite"'
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml restart
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "App is healthy after restart (${i}s)"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:3000/health | grep -q '"status":"ok"'
+
+      - name: Dump logs on failure
+        if: failure() && steps.docker.outputs.ready == 'true'
+        working-directory: deploy/docker
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml logs || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs || true
 
       - name: Tear down
         if: always() && steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
-        run: docker compose down -v 2>/dev/null || true
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v 2>/dev/null || true

@@ -73,6 +73,7 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 | GET | `/api/v1/auth/me` | Yes | Current user profile |
 | GET | `/api/v1/auth/validate` | Yes | Lightweight token/session validity check. Returns `204` when valid |
 | PATCH | `/api/v1/auth/me/locale` | Yes | Update the saved user locale. Session auth only. |
+| PATCH | `/api/v1/auth/me/email` | Yes | Set or clear the user's email. Session auth only. |
 | POST | `/api/v1/auth/change-password` | Yes | Change password. Invalidates all sessions. Rate limited: 5/min |
 | GET | `/api/v1/auth/me/preferences` | Yes | Get merged user preferences |
 | PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (partial merge). Session auth only. |
@@ -82,9 +83,16 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 { "preferredLocale": "fr" }
 ```
 
+**PATCH /api/v1/auth/me/email** body:
+```json
+{ "email": "you@example.com" }
+```
+
 Notes:
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
+- `email` may be a valid address, an empty string, or `null`; empty/null clears it
+- A non-empty `email` must be unique across users; a collision returns `409` (`code: errors.auth.emailTaken`). Setting an email is the prerequisite for OIDC auto-linking (see OIDC / OAuth below)
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
 - `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
@@ -138,17 +146,20 @@ Setup validation rules:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan. Returns 202. |
-| GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run) |
+| POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ queued, position }`. |
+| GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
 | POST | `/api/v1/pipeline/rescan` | Yes | Re-fetch images/metadata for existing recommendations |
 
 `POST /api/v1/pipeline/run` and `/api/v1/pipeline/rescan` are intentionally
 available to any authenticated user (not admin-only): "Run Scan" is a core
-regular-user action on the dashboard and discover screens. Concurrency is
-bounded by a single-flight orchestrator, so a second run while one is active
-returns `409` rather than starting a parallel run.
+regular-user action on the dashboard and discover screens. The orchestrator is
+single-flight (one run at a time, shared API/RAM budgets), but a run requested
+while one is active is **queued FIFO**, not rejected: the response is still 202
+with `queued: true` and the caller's 1-based `position`. A given user is deduped
+(a double-click does not stack two runs). The queue drains automatically when
+the active run finishes. The queue is in-memory and per-process.
 
 **POST /api/v1/pipeline/quick-discover** body:
 ```json
@@ -205,6 +216,7 @@ Locale notes:
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20), scoped to the calling user's own feedback |
+| GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Which popularity sources are reachable for the caller; backs the popular-album approve option. Returns `{ available, spotify, lastfm }` (booleans). |
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed` (comma-separated)
@@ -240,6 +252,19 @@ Approval notes:
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
 - approving a `kind: "album"` recommendation routes to targets with the `addAlbum` capability: it adds the artist **unmonitored** (no whole-discography grab, and reuses the artist if already tracked), then monitors and searches only the approved album. `monitorOption` / `selectedAlbumIds` are ignored for album recs since the album is resolved from `recommendedReleaseGroupId`
 - rejected recommendations may include `reason`, `reasonText`, and `permanent`; `permanent: true` also adds the artist to the caller's blocklist
+
+Approve response (status `approved`):
+```json
+{
+  "status": "added_to_lidarr",
+  "targetActions": { "lidarr-1": { "status": "added", "externalId": 42 } },
+  "targetSummary": { "total": 2, "succeeded": 1, "failed": 1,
+    "failures": [{ "id": "lidarr-2", "name": "Lidarr Backup", "error": "connection refused" }] }
+}
+```
+- Adds are **best-effort per target, not transactional**: a target that fails does not roll back targets that already succeeded (Digarr never deletes an artist from a target that took it).
+- `targetActions` is the full merged map persisted on the rec; `targetSummary` describes only the targets attempted by *this* request, so clients can report partial outcomes at submit time.
+- To retry just the failed targets, re-`PATCH` once per failed `targetId` (this preserves the successful targets' actions and will not regress the rec to `add_failed` if others already succeeded).
 
 ## Artist Blocks
 
@@ -683,7 +708,7 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 | POST | `/api/v1/settings/test/:service` | Yes | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `discogs`, `spotify`, `oidc`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`
 
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
@@ -737,6 +762,15 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 |--------|------|------|-------------|
 | GET | `/api/v1/admin/migrations/pending` | Admin | Pending migration status. |
 
+### Database Migration
+
+Copy all stateful data from the current backend (PGlite or PostgreSQL) into a different one. The source is never modified. See [Switching the Database Backend](guides/switching-backends.md).
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`, or `502 { ok: false, code, error }` on failure. |
+| POST | `/api/v1/admin/migrate-backend` | Admin | Run the copy. Body: `{ target, overwrite? }`. Returns the `MigrationReport` `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }` **only on `200`**. All error statuses use the `application/problem+json` envelope `{ type, title, status, code, ... }`: a verification failure is `422 code: migration_verify_failed` (the full report rides under a `report` extension); `409 code: pipeline_running` when a pipeline is running; `409 code: migration_in_progress` when a migration is already running; `409 code: target_not_empty` when the target is non-empty without `overwrite`; `422 code: encryption_mismatch` when the source and target `DIGARR_ENCRYPTION_KEY` differ. |
+
 ### Data Hygiene
 
 | Method | Path | Auth | Description |
@@ -753,4 +787,4 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/health` | No | Liveness check (DB connectivity) |
+| GET | `/health` | No | Liveness check. On success returns `{ status: 'ok', version, gitSha, channel, dbBackend }`; `503 { status: 'draining' }` while shutting down, or `503 { status: 'error', db: 'unavailable' }` when the DB check fails. |

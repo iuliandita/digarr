@@ -251,8 +251,7 @@ export async function aiReasoningAudit(
   }
   auditState = { flaggedIds: [], fixedIds: [], inProgress: true }
 
-  // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-  const recs = await (db as any)
+  const recs = await db
     .select({
       recId: recommendations.id,
       aiReasoning: recommendations.aiReasoning,
@@ -297,8 +296,7 @@ export async function aiReasoningAudit(
             rec.artistName as string,
             allGenres as string[],
           )
-          // biome-ignore lint/suspicious/noExplicitAny: drizzle dynamic query
-          await (db as any)
+          await db
             .update(recommendations)
             .set({ aiReasoning: newReasoning })
             .where(eq(recommendations.id, id))

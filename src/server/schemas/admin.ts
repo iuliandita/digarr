@@ -25,6 +25,20 @@ export const backupDataSchema = z.strictObject({
   artists: tableArray.optional(),
   genres: tableArray.optional(),
   artistMetadata: tableArray.optional(),
+  // Present in every backup since artistBlocks was added; optional for compat with older files
+  artistBlocks: tableArray.optional(),
+  // Full-fidelity tables added in the migration-tool release
+  albumBlocks: tableArray.optional(),
+  libraryArtists: tableArray.optional(),
+  libraryAlbums: tableArray.optional(),
+  librarySyncState: tableArray.optional(),
+  libraryMatchOverrides: tableArray.optional(),
+  libraryAlbumMatchOverrides: tableArray.optional(),
+  libraryHealthState: tableArray.optional(),
+  recordingArtistCache: tableArray.optional(),
+  slskdJobs: tableArray.optional(),
+  // Legacy key from pre-jobRuns schema; mapped to jobRuns during restore
+  subscriptionRuns: tableArray.optional(),
 })
 
 export const backupFileSchema = z.object({

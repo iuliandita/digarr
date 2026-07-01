@@ -479,6 +479,111 @@ describe('PipelineOrchestrator', () => {
     expect(orchestrator.isRunning).toBe(false)
   })
 
+  it('enqueue starts immediately when idle', async () => {
+    const db = makeDb()
+    const result = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+    expect(result).toEqual({ status: 'started', position: 0 })
+    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
+  })
+
+  it('queues a second run behind an in-flight one and drains on completion', async () => {
+    const db = makeDb()
+
+    // Hang the first run so it stays in flight while we enqueue more.
+    let resolveAnalyze!: () => void
+    mockAnalyze.mockReturnValue(
+      new Promise<typeof tasteProfile>((res) => {
+        resolveAnalyze = () => res(tasteProfile)
+      }),
+    )
+
+    const first = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+    expect(first.status).toBe('started')
+    expect(orchestrator.isRunning).toBe(true)
+
+    const second = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 2,
+    })
+    expect(second).toEqual({ status: 'queued', position: 1 })
+    expect(orchestrator.queueLength).toBe(1)
+    expect(orchestrator.queuePositionFor(2)).toBe(1)
+
+    // Same user again while busy is deduped, not stacked.
+    const dupe = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 2,
+    })
+    expect(dupe.status).toBe('duplicate')
+    expect(orchestrator.queueLength).toBe(1)
+
+    // Finishing the first run drains the queue and starts the second.
+    resolveAnalyze()
+    await vi.waitFor(() => expect(orchestrator.queueLength).toBe(0))
+    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
+  })
+
+  it('drains the queue and starts the next run even when the in-flight run FAILS', async () => {
+    // Regression guard: drainQueue() must stay in the `finally` block. If it ever
+    // moves into the success branch, a failed run would never release the queue
+    // and the orchestrator would wedge -- every queued run stuck forever.
+    const db = makeDb()
+    orchestrator.on('error', () => {}) // swallow A's failure
+
+    let rejectFirst!: () => void
+    const firstAnalyze = new Promise<typeof tasteProfile>((_res, rej) => {
+      rejectFirst = () => rej(new Error('run A exploded'))
+    })
+    // Run A's analyze hangs then rejects; run B's analyze (every later call) succeeds.
+    mockAnalyze.mockReturnValueOnce(firstAnalyze).mockReturnValue(Promise.resolve(tasteProfile))
+
+    const first = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+    expect(first.status).toBe('started')
+
+    const second = orchestrator.enqueue({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 2,
+    })
+    expect(second).toEqual({ status: 'queued', position: 1 })
+    expect(orchestrator.queueLength).toBe(1)
+
+    // Fail the in-flight run A. The queue must still drain and run B.
+    rejectFirst()
+
+    await vi.waitFor(() => expect(orchestrator.queueLength).toBe(0))
+    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
+    // B actually started (analyze called for A then B) and completed (store ran once).
+    expect(mockAnalyze).toHaveBeenCalledTimes(2)
+    expect(mockStore).toHaveBeenCalledTimes(1)
+  })
+
   it('skips LB source when listenbrainzUsername is null', async () => {
     const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
     const db = makeDb()

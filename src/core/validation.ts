@@ -6,8 +6,14 @@ export function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
+const CREDENTIALS_RE = /\/\/([^:/?#@\s]+):[^@/?#\s]+@/g
+function redactSecrets(s: string): string {
+  return s.replace(CREDENTIALS_RE, '//$1:***@')
+}
+
 export function logAndSanitize(err: unknown, context: string): string {
-  console.error(`[${context}]`, err)
+  const text = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+  console.error(`[${context}]`, redactSecrets(text))
   return 'An unexpected error occurred'
 }
 

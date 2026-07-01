@@ -2,6 +2,13 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { errMsg } from '@/core/validation'
 import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
 
+// Lidarr populates an artist's album list asynchronously after the add, so an
+// immediate getAlbums often returns an empty/partial list and the selected
+// album silently never gets monitored. Poll briefly until the albums appear.
+const ALBUM_POLL_ATTEMPTS = 6
+const ALBUM_POLL_DELAY_MS = 1500
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 export type LidarrTargetConfig = {
   url: string
   apiKey: string
@@ -18,7 +25,22 @@ export function createLidarrTarget(
   const client = createLidarrClient(config.url, config.apiKey, config.skipTlsVerify)
   const qualityProfileId = config.qualityProfileId ?? 1
   const metadataProfileId = config.metadataProfileId ?? 1
-  const rootFolderId = config.rootFolderId ?? 1
+  const rootFolderId = config.rootFolderId
+
+  // Poll Lidarr until the requested albums appear (or attempts run out),
+  // returning whichever of the selected albums are now present.
+  async function findSelectedAlbums(artistId: number, albumMbids: string[]) {
+    const wanted = new Set(albumMbids)
+    for (let attempt = 0; attempt < ALBUM_POLL_ATTEMPTS; attempt++) {
+      const albums = await client.getAlbums(artistId)
+      const matched = albums.filter((a) => wanted.has(a.foreignAlbumId))
+      if (matched.length === wanted.size || attempt === ALBUM_POLL_ATTEMPTS - 1) {
+        return matched
+      }
+      await sleep(ALBUM_POLL_DELAY_MS)
+    }
+    return []
+  }
 
   return {
     id: `lidarr-${targetId}`,
@@ -43,18 +65,31 @@ export function createLidarrTarget(
           { monitorOption: effectiveMonitor },
         )
 
-        // Monitor selected albums after the add
+        // Monitor (and search) the selected albums after the add. The artist
+        // was added unmonitored, so without this the selected album is never
+        // grabbed. This step is best-effort: the artist add already succeeded,
+        // so a monitoring failure must NOT fail the result (that would drop the
+        // Lidarr artist id and orphan the artist -> a retry re-adds a duplicate).
+        // Partial/failed monitoring surfaces as a warning instead.
+        let warning: string | undefined
         if (options?.monitorOption === 'selected' && options.selectedAlbumIds?.length && added.id) {
-          try {
-            const albums = await client.getAlbums(added.id)
-            for (const albumMbid of options.selectedAlbumIds) {
-              const album = albums.find((a) => a.foreignAlbumId === albumMbid)
-              if (album) {
+          const wanted = options.selectedAlbumIds
+          const matched = await findSelectedAlbums(added.id, wanted)
+          if (matched.length === 0) {
+            warning =
+              'artist added, but the selected album was not found in Lidarr (it may still be populating; retry to finish monitoring)'
+          } else {
+            try {
+              for (const album of matched) {
                 await client.updateAlbum(album.id, { monitored: true })
               }
+              await client.triggerCommand('AlbumSearch', { albumIds: matched.map((a) => a.id) })
+              if (matched.length < wanted.length) {
+                warning = `artist added; ${matched.length} of ${wanted.length} selected albums monitored, the rest were not found in Lidarr`
+              }
+            } catch (monErr: unknown) {
+              warning = `artist added, but monitoring the selected album failed: ${errMsg(monErr)}`
             }
-          } catch {
-            // Best-effort - artist was added, album monitoring is secondary
           }
         }
 
@@ -63,6 +98,7 @@ export function createLidarrTarget(
           targetType: 'lidarr',
           targetId,
           externalId: added.id,
+          ...(warning ? { warning } : {}),
         }
       } catch (err: unknown) {
         return {

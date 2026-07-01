@@ -1,7 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { canAutoSetup, envConfig } from './config/env'
 import { hashPassword } from './core/auth'
 import { OidcService } from './core/auth/oidc'
@@ -15,6 +14,7 @@ import { createPlexClient } from './core/clients/plex'
 import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
+import { createSubsonicClient } from './core/clients/subsonic'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
@@ -33,6 +33,7 @@ import { createEmbyLibrarySource } from './core/library/sources/emby'
 import { createJellyfinLibrarySource } from './core/library/sources/jellyfin'
 import { createLidarrLibrarySource } from './core/library/sources/lidarr'
 import { createPlexLibrarySource } from './core/library/sources/plex'
+import { createSubsonicLibrarySource } from './core/library/sources/subsonic'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
@@ -88,7 +89,8 @@ import { createPlexPlaylistTarget } from './core/targets/plex-playlist'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
-import { db, pool } from './db'
+import { closeDb, db, pool } from './db'
+import { runMigrations } from './db/migrate'
 import { getBlockedAlbumKeys } from './db/queries/album-blocks'
 import {
   addBlock as addArtistBlockQuery,
@@ -211,14 +213,15 @@ if (isEncryptionEnabled()) {
 // slow-starting Postgres (still in recovery) rejects with SQLSTATE 57P03;
 // without this guard the first query rejects and kills the process,
 // crash-looping the pod on kubelet until PG finishes recovery.
-await waitForDatabase(pool)
+// PGlite is in-process (no pool); only Postgres needs to wait for a socket.
+if (pool) await waitForDatabase(pool)
 
 // Pre-flight check: detect pending migrations and auto-backup if needed.
 await runPreFlightCheck(db)
 
 // Run pending database migrations before anything else.
-// Uses drizzle-orm's programmatic migrator - safe to run every boot (idempotent).
-await migrate(db, { migrationsFolder: './drizzle' })
+// Idempotent; selects the migrator matching the active backend.
+await runMigrations()
 console.log('Database migrations applied')
 
 // Wire up DB-backed session store after migrations are applied.
@@ -520,6 +523,14 @@ async function buildPerUserLibrarySources(userId: number) {
       ),
     )
   }
+  if (conns.subsonicUrl && conns.subsonicUsername && conns.subsonicPassword) {
+    sources.push(
+      createSubsonicLibrarySource(
+        createSubsonicClient(conns.subsonicUrl, conns.subsonicUsername, conns.subsonicPassword),
+        userId,
+      ),
+    )
+  }
   return sources
 }
 
@@ -665,7 +676,7 @@ async function getEnabledTargetsForResolvedUser(
           skipTlsVerify: (row.config.skipTlsVerify as boolean) ?? false,
           qualityProfileId: Number(prefs.qualityProfileId ?? 1),
           metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-          rootFolderId: Number(prefs.rootFolderId ?? 1),
+          rootFolderId: prefs.rootFolderId != null ? Number(prefs.rootFolderId) : undefined,
         }),
       )
     }
@@ -1635,7 +1646,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         }, 25_000)
       })
     }
-    await pool.end()
+    await closeDb()
     clearTimeout(deadline)
     process.exit(0)
   })

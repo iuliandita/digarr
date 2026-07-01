@@ -3,6 +3,7 @@ import { ChevronDown, Sparkles } from 'lucide-react'
 import { Fragment, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useClickOutside } from '../hooks/use-click-outside'
+import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
 import { getAlbums } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { hueFromName } from '../lib/utils'
@@ -66,6 +67,7 @@ export function TodaysPick({
   const standaloneApproveTarget = actionableTargets.length === 1 ? actionableTargets[0] : undefined
 
   useClickOutside(dropdownRef, () => setDropdownOpen(false), dropdownOpen)
+  const popularAvailable = usePopularAlbumsAvailability()
 
   const { data: albumData } = useQuery({
     queryKey: ['todays-pick-albums', rec?.artist.mbid],
@@ -320,6 +322,7 @@ export function TodaysPick({
               ) : (
                 <MonitoringOptions
                   fill
+                  popularAvailable={popularAvailable}
                   onApprove={(option) => onApproveWithOption(rec.id, option)}
                   onOpenAlbumPicker={() => onOpenAlbumPicker(rec.id)}
                 />

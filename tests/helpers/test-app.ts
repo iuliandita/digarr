@@ -19,6 +19,13 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     orchestrator: Object.assign(new EventEmitter(), {
       isRunning: false,
       run: vi.fn(async () => ({ batchId: 1 })),
+      enqueue: vi.fn(function (this: { isRunning: boolean }) {
+        return this.isRunning
+          ? { status: 'queued', position: 1 }
+          : { status: 'started', position: 0 }
+      }),
+      queueLength: 0,
+      queuePositionFor: vi.fn(() => 0),
       stage: null,
       stageMessage: null,
       currentUserId: undefined,

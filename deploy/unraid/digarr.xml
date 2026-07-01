@@ -2,9 +2,12 @@
 <Container version="2">
   <Name>Digarr</Name>
   <!-- Digest pin (synced via scripts/sync-deploy-digests.ts): sha256:a77200251d244a11b7d4638254c39adfc79c7754cbe208af8a6b46df3ce4a989 -->
-   <Repository>docker.io/iuliandita/digarr:1.0.0-rc.9</Repository>
-   <Tag>1.0.0-rc.9</Tag>
-   <TagDescription>v1.0.0-rc.9 prerelease</TagDescription>
+  <Repository>docker.io/iuliandita/digarr:1.10.0</Repository>
+  <Registry>https://hub.docker.com/r/iuliandita/digarr</Registry>
+  <Branch>
+    <Tag>1.10.0</Tag>
+    <TagDescription>v1.10.0 release</TagDescription>
+  </Branch>
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
@@ -16,25 +19,38 @@
     new artists you will actually like. Supports auto-playlists, subscription
     feeds, mood-based discovery, and genre browsing.
 
-    REQUIRES a PostgreSQL database. Point DATABASE_URL at your existing
-    postgres instance, or install a postgres container first.
+    Ships with a built-in embedded database -- no separate PostgreSQL
+    container needed. Data is stored in the mapped data folder
+    (/mnt/user/appdata/digarr/data), which must be writable by the
+    container user (uid 1000). To use an external PostgreSQL instead,
+    set the (advanced) Database URL variable.
   </Overview>
+  <Requires>
+    No separate database required -- uses a built-in embedded database by
+    default. The data folder (/mnt/user/appdata/digarr/data) must be
+    writable by the container user (uid 1000). Optionally point Database URL
+    at an external PostgreSQL instance.
+  </Requires>
   <Category>MediaApp:Music</Category>
   <WebUI>http://[IP]:[PORT:3000]</WebUI>
   <Icon>https://raw.githubusercontent.com/iuliandita/digarr/main/docs/logo.png</Icon>
-  <ExtraParams/>
-  <DonateText/>
-  <DonateLink/>
-  <DonateImg/>
 
   <!-- Required -->
   <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp"
-    Description="Port for the web interface" Type="Port" Display="always"
-    Required="true" Mask="false"/>
+    Description="Port for the web interface" Type="Port" Display="always-hide"
+    Required="true" Mask="false">3000</Config>
+
+  <Config Name="Data" Target="/app/data" Default="/mnt/user/appdata/digarr/data" Mode="rw"
+    Description="Persistent storage for the built-in embedded database. Must be writable by the container user (uid 1000)."
+    Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/digarr/data</Config>
+
+  <Config Name="Data Path" Target="DB_PATH" Default="/app/data"
+    Description="Container path for the built-in embedded database (matches the Data folder mapping)"
+    Type="Variable" Display="advanced" Required="false" Mask="false">/app/data</Config>
 
   <Config Name="Database URL" Target="DATABASE_URL" Default=""
-    Description="PostgreSQL connection string, e.g. postgresql://user:pass@host:5432/digarr"
-    Type="Variable" Display="always" Required="true" Mask="false"/>
+    Description="Leave empty to use the built-in database. Set only to use an external PostgreSQL, e.g. postgresql://user:pass@host:5432/digarr"
+    Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
   <!-- Auth (recommended) -->
   <Config Name="Initial Username" Target="DIGARR_INITIAL_USERNAME" Default=""
@@ -97,13 +113,13 @@
     Description="32+ char key for encrypting stored API tokens (auto-generated if blank)"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>
 
-  <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true"
+  <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true|false"
     Description="Set to false to allow new user registration"
-    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+    Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
-  <Config Name="Skip TLS Verify" Target="SKIP_TLS_VERIFY" Default="false"
+  <Config Name="Skip TLS Verify" Target="SKIP_TLS_VERIFY" Default="false|true"
     Description="Skip TLS certificate verification for Lidarr/Jellyfin connections"
-    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+    Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
   <Config Name="Webhook URL" Target="WEBHOOK_URL" Default=""
     Description="Discord, Slack, ntfy, or any HTTP endpoint for notifications"

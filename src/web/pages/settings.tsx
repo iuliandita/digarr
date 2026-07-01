@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Check, Copy } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -26,6 +27,7 @@ import {
   ListenBrainzIcon,
   PlexIcon,
   SpotifyIcon,
+  SubsonicIcon,
   WebhookIcon,
 } from '../components/service-icons'
 import { SystemHealthCard } from '../components/system-health-card'
@@ -61,6 +63,7 @@ import {
   testService,
   testTargetApi,
   testWebhook,
+  updateEmail,
   updateSettings,
   updateTargetApi,
   updateUserPreferences,
@@ -97,6 +100,9 @@ type Settings = {
   embyUserId?: string
   discogsToken?: string
   discogsUsername?: string
+  subsonicUrl?: string
+  subsonicUsername?: string
+  subsonicPassword?: string
   librarySyncIntervalHours?: number
   preferences?: Partial<Preferences>
   setupComplete?: boolean
@@ -281,8 +287,15 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [discogsToken, setDiscogsToken] = useState(
     settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
   )
+  const [subsonicUrl, setSubsonicUrl] = useState(settings.subsonicUrl ?? '')
+  const [subsonicUsername, setSubsonicUsername] = useState(settings.subsonicUsername ?? '')
+  const [subsonicPassword, setSubsonicPassword] = useState(
+    settings.subsonicPassword === '***' ? '' : (settings.subsonicPassword ?? ''),
+  )
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
+  const [redirectUriCopied, setRedirectUriCopied] = useState(false)
+  const spotifyRedirectUri = `${window.location.origin}/api/v1/auth/oauth/spotify/callback`
   const [importingSpotifyLikes, setImportingSpotifyLikes] = useState(false)
   const [importingPlaylist, setImportingPlaylist] = useState(false)
   const [playlistIdInput, setPlaylistIdInput] = useState('')
@@ -329,6 +342,9 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     jellyfin: Boolean(settings.jellyfinUrl && settings.jellyfinApiKey && settings.jellyfinUserId),
     emby: Boolean(settings.embyUrl && settings.embyApiKey && settings.embyUserId),
     discogs: Boolean(settings.discogsUsername && settings.discogsToken),
+    subsonic: Boolean(
+      settings.subsonicUrl && settings.subsonicUsername && settings.subsonicPassword,
+    ),
   }
 
   function serviceStatus(key: string): 'connected' | 'not_configured' | 'error' | 'testing' {
@@ -485,16 +501,41 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     updateSettings({ discogsUsername, discogsToken: discogsToken || undefined }),
   )
 
+  const testSubsonic = createTester('subsonic', 'Subsonic', () =>
+    testService('subsonic', {
+      url: subsonicUrl,
+      username: subsonicUsername,
+      password: subsonicPassword,
+    }),
+  )
+  const saveSubsonic = createSaver('subsonic', 'Subsonic', () =>
+    updateSettings({
+      subsonicUrl,
+      subsonicUsername,
+      subsonicPassword: subsonicPassword || undefined,
+    }),
+  )
+
   async function initiateSpotifyOAuth() {
     try {
       const res = await initiateOAuth('spotify', {
         clientId: spotifyClientId,
         clientSecret: spotifyClientSecret,
-        redirectUri: `${window.location.origin}/api/v1/auth/oauth/spotify/callback`,
+        redirectUri: spotifyRedirectUri,
       })
       window.location.href = res.authUrl
     } catch {
       toast.error(t('settings.spotifyAuthorizationFailed'))
+    }
+  }
+
+  async function copySpotifyRedirectUri() {
+    try {
+      await navigator.clipboard.writeText(spotifyRedirectUri)
+      setRedirectUriCopied(true)
+      setTimeout(() => setRedirectUriCopied(false), 1500)
+    } catch {
+      toast.error(t('common.unknownError'))
     }
   }
 
@@ -548,6 +589,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const isJellyfinConfigured = !!(jellyfinUrl || settings.jellyfinUrl)
   const isEmbyConfigured = !!(embyUrl || settings.embyUrl)
   const isDiscogsConfigured = !!(discogsUsername || settings.discogsUsername)
+  const isSubsonicConfigured = !!(subsonicUrl || settings.subsonicUrl)
 
   return (
     <div className="space-y-4">
@@ -1076,6 +1118,28 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </div>
           ) : (
             <>
+              <Field label={t('settings.fieldRedirectUri')} id="spotify-redirect-uri">
+                <div className="flex gap-1.5">
+                  <Input
+                    id="spotify-redirect-uri"
+                    readOnly
+                    value={spotifyRedirectUri}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="flex-1 min-w-0 font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={copySpotifyRedirectUri}
+                    aria-label={t('settings.copyRedirectUri')}
+                    title={t('settings.copyRedirectUri')}
+                  >
+                    {redirectUriCopied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted">{t('settings.redirectUriHelp')}</p>
+              </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t('settings.fieldClientId')} id="spotify-client-id">
                   <Input
@@ -1392,6 +1456,70 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         </ServiceCard>
       </div>
 
+      {/* Subsonic */}
+      <div>
+        <ServiceCard
+          name="Subsonic"
+          description={t('settings.subsonicDescription')}
+          status={serviceStatus('subsonic')}
+          icon={<SubsonicIcon />}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label={t('settings.fieldServerUrl')} id="subsonic-url">
+              <Input
+                id="subsonic-url"
+                type="url"
+                placeholder="http://navidrome:4533"
+                value={subsonicUrl}
+                onChange={(e) => setSubsonicUrl(e.target.value)}
+              />
+            </Field>
+            <Field label={t('settings.fieldUsername')} id="subsonic-username">
+              <Input
+                id="subsonic-username"
+                placeholder={t('settings.fieldUsername')}
+                value={subsonicUsername}
+                onChange={(e) => setSubsonicUsername(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label={t('settings.fieldPassword')} id="subsonic-password">
+            <Input
+              id="subsonic-password"
+              type="password"
+              placeholder={
+                settings.subsonicPassword === '***'
+                  ? `(${t('settings.saved')})`
+                  : t('settings.fieldPassword')
+              }
+              value={subsonicPassword}
+              onChange={(e) => setSubsonicPassword(e.target.value)}
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            {canTestUserConnections && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testSubsonic}
+                disabled={tests.subsonic === 'testing'}
+              >
+                {tests.subsonic === 'testing'
+                  ? t('settings.testing')
+                  : t('settings.testConnection')}
+              </Button>
+            )}
+            <Button size="sm" onClick={saveSubsonic} disabled={saving.subsonic}>
+              {saving.subsonic
+                ? t('settings.saving')
+                : isSubsonicConfigured
+                  ? t('settings.save')
+                  : t('settings.configure')}
+            </Button>
+          </div>
+        </ServiceCard>
+      </div>
+
       {/* Discogs */}
       <div>
         <ServiceCard
@@ -1485,7 +1613,7 @@ function LidarrPreferencesSection() {
 
   const [qualityProfileId, setQualityProfileId] = useState('1')
   const [metadataProfileId, setMetadataProfileId] = useState('1')
-  const [rootFolderId, setRootFolderId] = useState('1')
+  const [rootFolderId, setRootFolderId] = useState('')
   const [saving, setSaving] = useState(false)
 
   // Sync local state from user prefs when they load
@@ -1494,8 +1622,18 @@ function LidarrPreferencesSection() {
     const p = userPrefs as Record<string, unknown>
     setQualityProfileId(String(p.qualityProfileId ?? 1))
     setMetadataProfileId(String(p.metadataProfileId ?? 1))
-    setRootFolderId(String(p.rootFolderId ?? 1))
+    setRootFolderId(p.rootFolderId != null ? String(p.rootFolderId) : '')
   }, [userPrefs])
+
+  // Snap root folder selector to the first real folder when none is set
+  // or the stored id no longer exists among the loaded folders.
+  useEffect(() => {
+    if (!rootFolders || rootFolders.length === 0) return
+    const first = rootFolders[0]
+    if (first && !rootFolders.some((f) => String(f.id) === rootFolderId)) {
+      setRootFolderId(String(first.id))
+    }
+  }, [rootFolders, rootFolderId])
 
   async function handleSave() {
     setSaving(true)
@@ -1503,7 +1641,7 @@ function LidarrPreferencesSection() {
       await updateUserPreferences({
         qualityProfileId: parseInt(qualityProfileId, 10) || 1,
         metadataProfileId: parseInt(metadataProfileId, 10) || 1,
-        rootFolderId: parseInt(rootFolderId, 10) || 1,
+        rootFolderId: rootFolderId ? parseInt(rootFolderId, 10) : undefined,
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       toast.success(t('settings.lidarrPreferencesSaved'))
@@ -2569,12 +2707,36 @@ function ScheduleTab({ settings }: { settings: Settings }) {
 
 function AccountTab() {
   const { t, locale, setLocale } = useI18n()
+  const queryClient = useQueryClient()
   const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const [email, setEmail] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
   const { canInstall, showIosHint, promptInstall, dismiss } = useInstallPrompt()
+
+  useEffect(() => {
+    setEmail(user?.email ?? '')
+  }, [user?.email])
+
+  async function handleSaveEmail(e: React.FormEvent) {
+    e.preventDefault()
+    const next = email.trim()
+    if (next === (user?.email ?? '')) return
+    setSavingEmail(true)
+    try {
+      await updateEmail(next || null)
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+      toast.success(t('settings.emailSaved'))
+    } catch (err: unknown) {
+      const msg = errMsg(err)
+      toast.error(msg.includes('409') ? t('settings.emailTaken') : msg)
+    } finally {
+      setSavingEmail(false)
+    }
+  }
 
   async function handleLogout() {
     try {
@@ -2639,6 +2801,28 @@ function AccountTab() {
             {t('settings.logOut')}
           </Button>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.email')}
+        </h2>
+        <p className="text-xs text-muted">{t('settings.emailHelp')}</p>
+        <form onSubmit={handleSaveEmail} className="space-y-3">
+          <Field label={t('settings.emailAddress')} id="account-email">
+            <Input
+              id="account-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder={t('settings.emailPlaceholder')}
+            />
+          </Field>
+          <Button type="submit" disabled={savingEmail || email.trim() === (user?.email ?? '')}>
+            {savingEmail ? t('settings.saving') : t('settings.saveEmail')}
+          </Button>
+        </form>
       </section>
 
       <section className="space-y-3">

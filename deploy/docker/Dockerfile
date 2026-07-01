@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
-# Global ARG -- must be before any FROM to use in FROM instructions
-ARG RUNTIME_IMAGE=oven/bun:1.3.14-slim@sha256:d56a2534ffd262e92c12fd3249d3924d296d97086da773f821d7d0477435ea04
+# Global ARG -- must be before any FROM. Alpine default: fewer OS-package CVEs
+# than slim. Override to the slim digest for the -debian variant.
+ARG RUNTIME_IMAGE=oven/bun:1.3.14-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
 
 # Deps stage -- all deps (dev + prod) for the builder. Cache-mount accelerates rebuilds.
 FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS deps
@@ -15,6 +16,10 @@ FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf100
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG DIGARR_GIT_SHA=dev
+ARG DIGARR_CHANNEL=local
+ENV DIGARR_GIT_SHA=${DIGARR_GIT_SHA}
+ENV DIGARR_CHANNEL=${DIGARR_CHANNEL}
 ENV NODE_ENV=production
 RUN bun run build
 
@@ -25,7 +30,7 @@ COPY package.json bun.lock* ./
 RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
     bun install --frozen-lockfile --production
 
-# Runtime stage -- override RUNTIME_IMAGE for alpine variant.
+# Runtime stage -- defaults to alpine; override RUNTIME_IMAGE for the slim/debian variant.
 # checkov:skip=CKV_DOCKER_7: Default and release override runtime images are version-and-digest pinned.
 FROM ${RUNTIME_IMAGE}
 
@@ -46,8 +51,9 @@ COPY --from=builder /app/drizzle ./drizzle
 COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
 RUN chmod +x /app/healthcheck.sh
 
-RUN mkdir -p /app/backups && chown bun:bun /app/backups
-VOLUME ["/app/backups"]
+RUN mkdir -p /app/backups /app/data && chown bun:bun /app/backups /app/data
+VOLUME ["/app/backups", "/app/data"]
+ENV DB_PATH=/app/data
 
 ENV NODE_ENV=production
 ENV PORT=3000

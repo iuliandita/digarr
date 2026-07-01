@@ -36,6 +36,9 @@ const adminUser = {
   embyUserId: null,
   discogsToken: null,
   discogsUsername: null,
+  subsonicUrl: null,
+  subsonicUsername: null,
+  subsonicPassword: null,
   createdAt: new Date(),
 }
 
@@ -61,6 +64,9 @@ const regularUser = {
   embyUserId: null,
   discogsToken: null,
   discogsUsername: null,
+  subsonicUrl: null,
+  subsonicUsername: null,
+  subsonicPassword: null,
   createdAt: new Date(),
 }
 
@@ -112,6 +118,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),

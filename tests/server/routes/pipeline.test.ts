@@ -44,6 +44,11 @@ function makeMockOrchestrator(isRunning = false) {
   return Object.assign(emitter, {
     isRunning,
     run: vi.fn(async () => ({ batchId: 1 })),
+    enqueue: vi.fn(() =>
+      isRunning ? { status: 'queued', position: 1 } : { status: 'started', position: 0 },
+    ),
+    queueLength: isRunning ? 1 : 0,
+    queuePositionFor: vi.fn(() => 0),
   })
 }
 
@@ -108,6 +113,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       embyUserId: null,
       discogsToken: null,
       discogsUsername: null,
+      subsonicUrl: null,
+      subsonicUsername: null,
+      subsonicPassword: null,
       createdAt: new Date(),
     })),
     getUserByUsername: vi.fn(async () => null),
@@ -197,14 +205,27 @@ describe('POST /api/v1/pipeline/run', () => {
     expect(body.message).toBe('Pipeline started')
   })
 
-  it('returns 409 when pipeline is already running', async () => {
+  it('queues the run (202) when a pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
     const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
-    expect(res.status).toBe(409)
+    expect(res.status).toBe(202)
     const body = await res.json()
-    expect(body.title).toMatch(/already/i)
-    expect(body.code).toBe('errors.pipeline.alreadyRunning')
+    expect(body.queued).toBe(true)
+    expect(body.position).toBe(1)
+  })
+
+  it('reports duplicate (not queued) when the same user re-submits during their in-flight run', async () => {
+    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+    // Same-user re-submit: enqueue returns a no-op duplicate at position 0.
+    orchestrator.enqueue = vi.fn(() => ({ status: 'duplicate', position: 0 })) as never
+    const app = createApp(makeDeps({ orchestrator }))
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    // Must NOT be reported as a fresh queue at position 0 (silent no-op as success).
+    expect(body.status).toBe('duplicate')
+    expect(body.queued).toBe(false)
   })
 
   it('returns 400 when settings are missing', async () => {
@@ -248,6 +269,9 @@ describe('POST /api/v1/pipeline/run', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
       }),
@@ -265,7 +289,7 @@ describe('POST /api/v1/pipeline/run', () => {
     })
 
     expect(res.status).toBe(202)
-    expect(orchestrator.run).toHaveBeenCalledWith(
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(
       expect.objectContaining({
         responseLocale: 'fr',
         promptLocale: null,
@@ -279,7 +303,7 @@ describe('POST /api/v1/pipeline/run', () => {
     const app = createApp(makeDeps({ orchestrator, librarySync }))
     const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
     expect(res.status).toBe(202)
-    expect(orchestrator.run).toHaveBeenCalledWith(expect.objectContaining({ librarySync }))
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(expect.objectContaining({ librarySync }))
   })
 })
 
@@ -351,6 +375,9 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
         providerRegistry: {
@@ -436,6 +463,9 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
         providerRegistry: {
@@ -521,6 +551,9 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
           embyUserId: null,
           discogsToken: null,
           discogsUsername: null,
+          subsonicUrl: null,
+          subsonicUsername: null,
+          subsonicPassword: null,
           createdAt: new Date(),
         })),
         providerRegistry: {

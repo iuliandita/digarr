@@ -27,6 +27,15 @@ export const updateLocaleSchema = z
   })
   .strict()
 
+// Set or clear the current user's email. Empty string and null both clear it;
+// a non-empty value must be a valid address. Email is the key OIDC uses to
+// auto-link an existing local account to an IdP identity.
+export const updateEmailSchema = z
+  .object({
+    email: z.string().trim().max(254).email('Invalid email address').nullable().or(z.literal('')),
+  })
+  .strict()
+
 // Partial preferences update. Unknown keys are filtered by the route handler
 // so we stay permissive here; a stricter schema would be a breaking change
 // for in-flight client code. Individual value types are validated in-handler.

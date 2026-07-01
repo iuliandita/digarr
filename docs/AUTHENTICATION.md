@@ -32,35 +32,25 @@ come back to `/api/v1/auth/oidc/callback`. The callback uses URL fragments for
 token and error payloads so they never leak into server logs or Referer
 headers.
 
-### OIDC email-verified auto-link
+### OIDC account matching
 
-By default, OIDC sign-ins that claim a verified email are **not**
-automatically linked to an existing local user account. The user matching
-order is:
+OIDC sign-ins are matched to local accounts by the issuer-scoped subject
+(`oidcSubject`) only. The matching order is:
 
-1. Match by stored `oidcSubject` (always safe - issuer-scoped id).
-2. Match by `email` claim when auto-link is explicitly trusted (see below).
-3. Fall through and auto-create a new local user.
+1. Match by stored `oidcSubject` (issuer-scoped id; the only safe key).
+2. Fall through and auto-create a new local user (the OIDC-provided email is
+   stored on the new account).
 
-To enable step 2, set:
+Digarr deliberately does **not** auto-link an OIDC identity to an existing
+local account by matching the `email` claim. A local account's email can be
+self-asserted (set under **Settings -> Account -> Email**) and is not verified
+by Digarr, so matching on it would let an attacker pre-seed an account with a
+victim's address and have the victim's first OIDC sign-in bind to it (pre-link
+account takeover).
 
-    OIDC_TRUST_EMAIL_VERIFIED=true
-
-**Only enable this when:**
-
-- Your IdP is single-tenant (self-hosted Keycloak, one Auth0 tenant, etc.).
-- You trust the IdP's email-verification policy.
-- Email domains are controlled and not freely registrable.
-
-**Do not enable** with multi-tenant or public issuers (Google, Microsoft
-public OIDC) unless you also restrict allowed email domains in a separate
-layer. A public issuer can assert `email_verified=true` for any address, so
-without a domain allowlist any authenticated user of that issuer can claim
-an arbitrary email and take over the matching local account.
-
-When the gate is closed and the OIDC subject is new, Digarr auto-creates a
-new local user instead of linking. Operators can still link manually by
-editing the `oidcSubject` column on the existing user row.
+To link an OIDC identity to an existing local account, set that account's
+`oidcSubject` to the value the IdP sends as `sub`. A logged-in self-service
+linking flow is the planned long-term replacement.
 
 ### OIDC preferred_username sanitization
 

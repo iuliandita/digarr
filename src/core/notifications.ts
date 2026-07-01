@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
+import { redactUrlForLog } from './clients/http'
 import {
   formatUrlHostname,
   getLookupHostname,
@@ -34,6 +35,27 @@ export type WebhookPayload =
       message: string
       timestamp: string
     }
+
+function redactWebhookUrl(url: string): string {
+  const redacted = redactUrlForLog(url)
+  try {
+    const parsed = new URL(redacted)
+    const host = parsed.hostname
+    const isDiscordHost = host.endsWith('discord.com') || host.endsWith('discordapp.com')
+    const isSlackHost = host.endsWith('slack.com')
+    if (!isDiscordHost && !isSlackHost) return redacted
+    const segments = parsed.pathname.split('/')
+    for (let i = segments.length - 1; i >= 0; i--) {
+      if (segments[i] !== '') {
+        segments[i] = '[REDACTED]'
+        break
+      }
+    }
+    return parsed.origin + segments.join('/') + parsed.search + parsed.hash
+  } catch {
+    return redacted
+  }
+}
 
 function isDiscordWebhook(url: string): boolean {
   try {
@@ -114,7 +136,7 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10_000)
 
-  const safeUrl = url.replace(/:\/\/[^@]*@/, '://***@')
+  const safeUrl = redactWebhookUrl(url)
   const body = isDiscordWebhook(url) ? formatDiscordPayload(payload) : payload
   const fetchHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
   const fetchUrl = new URL(url)

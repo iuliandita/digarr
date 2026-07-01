@@ -27,6 +27,7 @@ const SECRET_FIELDS = [
   'jellyfinApiKey',
   'embyApiKey',
   'discogsToken',
+  'subsonicPassword',
 ] as const
 
 type SettingsResponse = Record<string, unknown>
@@ -183,6 +184,10 @@ async function buildSettingsResponse(
       response.discogsUsername = userConns.discogsUsername ?? ''
       response.discogsToken = userConns.discogsToken
       response._discogsScope = 'user'
+      response.subsonicUrl = userConns.subsonicUrl ?? ''
+      response.subsonicUsername = userConns.subsonicUsername ?? ''
+      response.subsonicPassword = userConns.subsonicPassword
+      response._subsonicScope = 'user'
     }
   }
 
@@ -241,6 +246,9 @@ export function settingsRoutes(deps: AppDependencies) {
     'embyUserId',
     'discogsToken',
     'discogsUsername',
+    'subsonicUrl',
+    'subsonicUsername',
+    'subsonicPassword',
   ])
 
   const ALL_MUTABLE_FIELDS = new Set([...GLOBAL_MUTABLE_FIELDS, ...USER_CONNECTION_FIELDS])
@@ -540,6 +548,18 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const { createDiscogsClient } = await import('@/core/clients/discogs')
         const client = createDiscogsClient(token, username)
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
+      }
+      case 'subsonic': {
+        const url = body.url || userConns?.subsonicUrl || ''
+        const user = body.username || userConns?.subsonicUsername || ''
+        const password = body.password || userConns?.subsonicPassword || ''
+        if (!url || !user || !password) {
+          return missingInput(`Missing ${!url ? 'URL' : !user ? 'username' : 'password'}`)
+        }
+        const { createSubsonicClient } = await import('@/core/clients/subsonic')
+        const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
+        const client = createSubsonicClient(url, user, password, { skipTlsVerify: skipTls })
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'spotify': {
