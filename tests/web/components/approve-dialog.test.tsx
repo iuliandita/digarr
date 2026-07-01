@@ -42,7 +42,7 @@ describe('ApproveDialog', () => {
     vi.clearAllMocks()
   })
 
-  it('snaps to first available folder when default id is not in the loaded list', async () => {
+  it('snaps to first available Lidarr options when defaults are not in the loaded lists', async () => {
     vi.mocked(getLidarrApproveOptions).mockResolvedValue({
       qualityProfiles: [{ id: 2, name: 'Standard' }],
       metadataProfiles: [{ id: 3, name: 'Standard' }],
@@ -69,7 +69,9 @@ describe('ApproveDialog', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /add to lidarr/i }))
 
-    expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ rootFolderId: 5 }))
+    expect(onConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ qualityProfileId: 2, metadataProfileId: 3, rootFolderId: 5 }),
+    )
   })
 
   it('keeps default id when it exists among loaded folders', async () => {

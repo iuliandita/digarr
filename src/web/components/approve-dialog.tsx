@@ -37,9 +37,19 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
         setProfiles(opts.qualityProfiles)
         setMetadataProfiles(opts.metadataProfiles)
         setRootFolders(opts.rootFolders)
-        // If the pre-filled default isn't an actual Lidarr root folder
-        // (e.g. stale id 1 after a folder was deleted/recreated), snap to
-        // the first available folder so we never send a non-existent id.
+        // If any pre-filled default isn't an actual Lidarr option (for example,
+        // stale id 1 after profiles/folders were deleted), snap to the first
+        // available option so we never send a non-existent id.
+        const firstProfile = opts.qualityProfiles[0]
+        if (firstProfile && !opts.qualityProfiles.some((p) => String(p.id) === qp)) {
+          setQp(String(firstProfile.id))
+        }
+
+        const firstMetadataProfile = opts.metadataProfiles[0]
+        if (firstMetadataProfile && !opts.metadataProfiles.some((p) => String(p.id) === mp)) {
+          setMp(String(firstMetadataProfile.id))
+        }
+
         const firstFolder = opts.rootFolders[0]
         if (firstFolder && !opts.rootFolders.some((f) => String(f.id) === rf)) {
           setRf(String(firstFolder.id))
