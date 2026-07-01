@@ -4,6 +4,14 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.11.1 - 2026-07-01
+
+Patch release for Lidarr approval profile selection.
+
+### Fixed
+
+- **Lidarr approval no longer submits stale profile id 1 when that profile does not exist.** The approve dialog now snaps stale quality-profile and metadata-profile defaults to the first real Lidarr option, matching the already-fixed root-folder behavior. This fixes cases where the browser visibly showed the only available profile (for example `Stefan`, id 3) while React state still submitted `qualityProfileId: 1` / `metadataProfileId: 1`, causing Lidarr to reject the add. Per-user Lidarr preferences now apply the same stale-id correction before saving.
+
 ## v1.11.0 - 2026-07-01
 
 Self-hostable with zero external database, a new Subsonic source, in-app backend migration, and a security hardening pass on account identity.
