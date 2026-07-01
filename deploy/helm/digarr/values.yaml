@@ -7,8 +7,8 @@ image:
   # channel for clusters where reproducibility is not a goal, set tag: "stable" and remove
   # the digest line - :stable is promoted only after a release has been live >= 7 days
   # without a follow-up patch.
-  tag: "1.10.0"
-  digest: "sha256:a77200251d244a11b7d4638254c39adfc79c7754cbe208af8a6b46df3ce4a989"
+  tag: "1.11.0"
+  digest: "sha256:0778b615cc73d834ca456a68c678bee424f4e85b06beb4f3cebf163a066270a4"
   pullPolicy: Always
 
 podSecurityContext:
