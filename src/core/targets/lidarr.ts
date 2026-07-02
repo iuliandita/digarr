@@ -53,7 +53,7 @@ export function createLidarrTarget(
       options?: TargetAddOptions,
     ): Promise<TargetResult> {
       const effectiveMonitor =
-        options?.monitorOption === 'selected' ? 'none' : (options?.monitorOption ?? 'all')
+        options?.monitorOption === 'selected' ? 'none' : (options?.monitorOption ?? 'none')
 
       try {
         const added = await client.addArtist(

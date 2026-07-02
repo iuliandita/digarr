@@ -114,7 +114,8 @@ export function MonitoringOptions({
 
   return (
     <div className={`relative inline-flex ${fill ? 'w-full' : ''}`}>
-      {/* Primary approve button - defaults to 'all' */}
+      {/* Primary approve button - safe default: add the artist unmonitored.
+          Use the dropdown for eager monitoring/searching all albums. */}
       <Button
         size="sm"
         variant="outline"
@@ -122,7 +123,7 @@ export function MonitoringOptions({
         disabled={loading}
         onClick={(e) => {
           e.stopPropagation()
-          onApprove('all')
+          onApprove('none')
         }}
       >
         {t('recommendation.approve')}
