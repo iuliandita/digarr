@@ -131,7 +131,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
       throw new Error(`Root folder with id ${rootFolderId} not found`)
     }
 
-    const monitor = options?.monitorOption ?? 'all'
+    const monitor = options?.monitorOption ?? 'none'
 
     return http.post<LidarrArtist>('/api/v1/artist', {
       foreignArtistId,

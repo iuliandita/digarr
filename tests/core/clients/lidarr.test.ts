@@ -147,7 +147,7 @@ describe('createLidarrClient', () => {
           qualityProfileId: 1,
           rootFolderPath: '/music',
           monitored: true,
-          addOptions: { monitor: 'all', searchForMissingAlbums: true },
+          addOptions: { monitor: 'none', searchForMissingAlbums: false },
         }),
       )
       expect(result).toMatchObject({ id: 10 })
@@ -173,7 +173,7 @@ describe('createLidarrClient', () => {
       expect(rootFolderGetCalls).toHaveLength(1)
     })
 
-    it('defaults to monitor:"all" and searchForMissingAlbums:true when no options provided', async () => {
+    it('defaults to monitor:"none" and searchForMissingAlbums:false when no options provided', async () => {
       mockGet.mockResolvedValueOnce(mockFolders)
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 12 })
 
@@ -183,7 +183,7 @@ describe('createLidarrClient', () => {
       expect(mockPost).toHaveBeenCalledWith(
         '/api/v1/artist',
         expect.objectContaining({
-          addOptions: { monitor: 'all', searchForMissingAlbums: true },
+          addOptions: { monitor: 'none', searchForMissingAlbums: false },
         }),
       )
     })

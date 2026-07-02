@@ -687,7 +687,7 @@ export function recommendationRoutes(deps: AppDependencies) {
               streamingUrls: rec.artist.streamingUrls,
             },
             {
-              monitorOption: isAlbumRec ? undefined : ((monitorOption ?? 'all') as MonitorOption),
+              monitorOption: isAlbumRec ? undefined : ((monitorOption ?? 'none') as MonitorOption),
               selectedAlbumIds: isAlbumRec ? undefined : selectedAlbumIds,
               qualityProfileId: qpOverride,
               metadataProfileId: mpOverride,

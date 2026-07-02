@@ -630,7 +630,7 @@ export function DiscoverPage() {
         (t) => `${t.type}-${t.id}` === targetId || String(t.id) === targetId,
       )
       if (target?.type === 'lidarr') {
-        setApproveDialogState({ recId, monitorOption: 'all', targetId })
+        setApproveDialogState({ recId, monitorOption: 'none', targetId })
         return
       }
 

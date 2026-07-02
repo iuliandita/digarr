@@ -413,6 +413,10 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('added_to_lidarr')
+    expect(mockTarget.addArtist).toHaveBeenCalledWith(
+      { mbid: 'mbid-abc-123', name: 'Test Artist' },
+      expect.objectContaining({ monitorOption: 'none' }),
+    )
     expect(updateRecommendationStatus).toHaveBeenCalledWith(
       1,
       'added_to_lidarr',
