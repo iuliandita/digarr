@@ -105,6 +105,8 @@ jobs:
 
       - name: Install Docker
         id: docker
+        timeout-minutes: 8
+        continue-on-error: true
         run: |
           brew install --cask docker
           open /Applications/Docker.app
