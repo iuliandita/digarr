@@ -275,7 +275,7 @@ describe('DiscoverPage', () => {
     await waitFor(() => {
       expect(mockApproveRecommendation).toHaveBeenCalledWith(
         1,
-        expect.objectContaining({ monitorOption: 'all' }),
+        expect.objectContaining({ monitorOption: 'none' }),
       )
     })
   })
