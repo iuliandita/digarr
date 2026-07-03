@@ -4,6 +4,7 @@ import type {
   AddArtistOptions,
   LidarrAlbum,
   LidarrArtist,
+  MetadataProfile,
   QualityProfile,
   RootFolder,
 } from '@/core/clients/lidarr'
@@ -60,6 +61,28 @@ const mockFolders: RootFolder[] = [
   { id: 1, path: '/music', freeSpace: 10_000_000_000 },
   { id: 2, path: '/music2', freeSpace: 5_000_000_000 },
 ]
+
+const mockMetadataProfiles: MetadataProfile[] = [
+  { id: 1, name: 'Standard' },
+  { id: 2, name: 'None' },
+]
+
+// addArtist() fetches root folders and both profile lists in parallel, so
+// order-based mockResolvedValueOnce chains are fragile -- dispatch by URL.
+function mockLidarrGets(overrides?: {
+  folders?: RootFolder[]
+  qualityProfiles?: QualityProfile[]
+  metadataProfiles?: MetadataProfile[]
+}) {
+  mockGet.mockImplementation((url: string) => {
+    if (url === '/api/v1/rootfolder') return Promise.resolve(overrides?.folders ?? mockFolders)
+    if (url === '/api/v1/qualityprofile')
+      return Promise.resolve(overrides?.qualityProfiles ?? mockProfiles)
+    if (url === '/api/v1/metadataprofile')
+      return Promise.resolve(overrides?.metadataProfiles ?? mockMetadataProfiles)
+    return Promise.reject(new Error(`unexpected GET ${url}`))
+  })
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -126,8 +149,7 @@ describe('createLidarrClient', () => {
 
   describe('addArtist()', () => {
     it('resolves rootFolderId to path and POSTs to /api/v1/artist', async () => {
-      // getRootFolders() call, then post
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 10 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -154,27 +176,32 @@ describe('createLidarrClient', () => {
     })
 
     it('throws if rootFolderId does not exist', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       await expect(client.addArtist('mbid-xyz', 'Unknown', 1, 1, 999)).rejects.toThrow(
         /root folder/i,
       )
     })
 
-    it('caches getRootFolders() - only calls the API once across multiple addArtist calls', async () => {
-      mockGet.mockResolvedValue(mockFolders)
+    it('caches root folder and profile lookups across multiple addArtist calls', async () => {
+      mockLidarrGets()
       mockPost.mockResolvedValue({ id: 11 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       await client.addArtist('mbid-a', 'Artist A', 1, 1, 1)
       await client.addArtist('mbid-b', 'Artist B', 1, 1, 2)
 
-      const rootFolderGetCalls = mockGet.mock.calls.filter((c) => c[0] === '/api/v1/rootfolder')
-      expect(rootFolderGetCalls).toHaveLength(1)
+      for (const url of [
+        '/api/v1/rootfolder',
+        '/api/v1/qualityprofile',
+        '/api/v1/metadataprofile',
+      ]) {
+        expect(mockGet.mock.calls.filter((c) => c[0] === url)).toHaveLength(1)
+      }
     })
 
     it('defaults to monitor:"none" and searchForMissingAlbums:false when no options provided', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 12 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -189,7 +216,7 @@ describe('createLidarrClient', () => {
     })
 
     it('uses monitorOption:"new" and sets searchForMissingAlbums:false', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 13 })
 
       const options: AddArtistOptions = { monitorOption: 'new' }
@@ -205,7 +232,7 @@ describe('createLidarrClient', () => {
     })
 
     it('uses monitorOption:"none" and sets searchForMissingAlbums:false', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 14 })
 
       const options: AddArtistOptions = { monitorOption: 'none' }
@@ -221,7 +248,7 @@ describe('createLidarrClient', () => {
     })
 
     it('uses monitorOption:"all" explicitly and sets searchForMissingAlbums:true', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 15 })
 
       const options: AddArtistOptions = { monitorOption: 'all' }
@@ -241,7 +268,7 @@ describe('createLidarrClient', () => {
         { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
         { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
       ]
-      mockGet.mockResolvedValueOnce(altFolders)
+      mockLidarrGets({ folders: altFolders })
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -258,7 +285,7 @@ describe('createLidarrClient', () => {
         { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
         { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
       ]
-      mockGet.mockResolvedValueOnce(altFolders)
+      mockLidarrGets({ folders: altFolders })
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 21 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -271,7 +298,7 @@ describe('createLidarrClient', () => {
     })
 
     it('uses the explicit folder path when a valid rootFolderId is provided', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 22 })
 
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -284,7 +311,7 @@ describe('createLidarrClient', () => {
     })
 
     it('throws with id in message when rootFolderId does not match any folder', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
+      mockLidarrGets()
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       await expect(
         client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 42),
@@ -292,11 +319,58 @@ describe('createLidarrClient', () => {
     })
 
     it('throws when no root folders are configured in Lidarr', async () => {
-      mockGet.mockResolvedValueOnce([])
+      mockLidarrGets({ folders: [] })
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       await expect(
         client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1),
       ).rejects.toThrow('No root folders configured in Lidarr')
+    })
+
+    it('snaps a stale qualityProfileId to the first available profile', async () => {
+      mockLidarrGets({ qualityProfiles: [{ id: 3, name: 'Stefan' }] })
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 23 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ qualityProfileId: 3 }),
+      )
+    })
+
+    it('snaps a stale metadataProfileId to the first available profile', async () => {
+      mockLidarrGets({ metadataProfiles: [{ id: 5, name: 'Custom' }] })
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 24 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ metadataProfileId: 5 }),
+      )
+    })
+
+    it('keeps valid profile ids untouched', async () => {
+      mockLidarrGets()
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 25 })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 2, 2, 1)
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ qualityProfileId: 2, metadataProfileId: 2 }),
+      )
+    })
+
+    it('throws when Lidarr has no quality profiles configured', async () => {
+      mockLidarrGets({ qualityProfiles: [] })
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(
+        client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1),
+      ).rejects.toThrow('No quality profiles configured in Lidarr')
     })
   })
 
