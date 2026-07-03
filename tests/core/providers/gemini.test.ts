@@ -77,6 +77,53 @@ describe('GeminiProvider', () => {
     expect(result.success).toBe(false)
   })
 
+  it('parses recommendations wrapped in markdown code fences', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: `\`\`\`json\n${JSON.stringify([
+                      {
+                        artistName: 'Autechre',
+                        reasoning: 'IDM pioneers.',
+                        confidence: 0.85,
+                        genres: ['idm'],
+                      },
+                    ])}\n\`\`\``,
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    )
+
+    const provider = new GeminiProvider('test-key')
+    const results = await provider.getRecommendations(sampleProfile)
+    expect(results).toHaveLength(1)
+    expect(results[0]?.artistName).toBe('Autechre')
+  })
+
+  it('throws a clear error on truncated JSON output', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          candidates: [
+            { content: { parts: [{ text: '[{"artistName": "Squarepusher", "reason' }] } },
+          ],
+        }),
+      ),
+    )
+
+    const provider = new GeminiProvider('test-key')
+    await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(/Malformed JSON array/)
+  })
+
   it('handles empty response from Gemini', async () => {
     fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ candidates: [] })))
 

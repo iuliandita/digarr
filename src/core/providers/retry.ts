@@ -112,10 +112,21 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/** Read an error response body as a single-line snippet, capped for logs. */
+/**
+ * Read an error response body as a single-line snippet, capped for logs.
+ * Snippets end up in thrown error messages that routes may echo to clients,
+ * so credential-shaped substrings are redacted first.
+ */
 async function errorBodySnippet(res: Response): Promise<string> {
   const text = await res.text().catch(() => '')
-  return text.replace(/\s+/g, ' ').trim().slice(0, 200)
+  return redactSecrets(text.replace(/\s+/g, ' ').trim()).slice(0, 200)
+}
+
+function redactSecrets(text: string): string {
+  return text
+    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
+    .replace(/([?&](?:api_?key|key|token)=)[^&\s"']+/gi, '$1[redacted]')
 }
 
 function isAbortError(err: unknown): boolean {

@@ -3,7 +3,7 @@ import { errMsg } from '@/core/validation'
 import {
   buildRecommendationPrompt,
   getAiRecommendationsJsonSchema,
-  validateAiRecommendations,
+  parseRecommendationResponse,
 } from './prompt'
 import { fetchWithRetry } from './retry'
 import { timeoutSecondsWithDefaultToMs } from './timeout'
@@ -97,7 +97,9 @@ export class GeminiProvider implements RecommendationProvider {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text
       if (!text) throw new Error('Empty response from Gemini')
 
-      return validateAiRecommendations(JSON.parse(text))
+      // responseSchema does not guarantee well-formed output (truncation at
+      // maxOutputTokens); the shared parser fails with a clear message instead.
+      return parseRecommendationResponse(text)
     } finally {
       clearTimeout(timer)
     }
