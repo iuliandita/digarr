@@ -301,7 +301,7 @@ const storeDb: StoreDb = {
       .from(libraryArtists)
       .where(and(...conds.filter((c): c is NonNullable<typeof c> => c !== undefined)))
   },
-  userHasAnySyncState: (userId) => librarySyncStore.userHasAnySyncState(userId),
+  userHasOwnSyncState: (userId) => librarySyncStore.userHasOwnSyncState(userId),
   tryConsumeRateLimit: (key, config) => tryConsume(db, key, config),
 }
 

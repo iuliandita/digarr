@@ -552,6 +552,20 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     expect(rows).toHaveLength(1)
   })
 
+  // Regression: a global (userId=null) sync state must not count as the user's
+  // own state, or first-sync detection in the pipeline would run a new user's
+  // slow first sync awaited instead of in the background.
+  it('userHasOwnSyncState ignores global sync states; userHasAnySyncState includes them', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.upsertLibrarySyncState(null, LIDARR_SOURCE, { lastSyncStatus: 'completed' })
+
+    expect(await store.userHasAnySyncState(userId)).toBe(true)
+    expect(await store.userHasOwnSyncState(userId)).toBe(false)
+
+    await store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'completed' })
+    expect(await store.userHasOwnSyncState(userId)).toBe(true)
+  })
+
   it('upsertOverride concurrent calls do not duplicate', async () => {
     const store = createLibrarySyncStore(db)
     await Promise.all([

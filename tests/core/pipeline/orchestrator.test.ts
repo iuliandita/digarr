@@ -160,7 +160,7 @@ function makeDb() {
         matchConfidence: 1.0,
       },
     ]),
-    userHasAnySyncState: vi.fn().mockResolvedValue(true),
+    userHasOwnSyncState: vi.fn().mockResolvedValue(true),
     // Extra methods the orchestrator needs for stale batch cleanup
     updateBatch: vi.fn().mockResolvedValue(undefined),
   }
@@ -733,7 +733,7 @@ describe('PipelineOrchestrator', () => {
           matchConfidence: 1.0,
         },
       ]),
-      userHasAnySyncState: vi.fn(async () => true),
+      userHasOwnSyncState: vi.fn(async () => true),
     }
     const syncForUser = vi.fn(async () => ({ userId: 1, results: [] })) as SyncForUser
 
@@ -858,7 +858,7 @@ describe('PipelineOrchestrator', () => {
     const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
       ...db,
       getLibraryArtistsForUser: vi.fn(async () => []),
-      userHasAnySyncState: vi.fn(async () => false), // first sync ever
+      userHasOwnSyncState: vi.fn(async () => false), // first sync ever
     }
     const syncForUser = vi.fn(
       () =>
