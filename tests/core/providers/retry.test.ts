@@ -69,4 +69,36 @@ describe('fetchWithRetry', () => {
     // 1 initial + 2 retries = 3 calls
     expect(fetchSpy).toHaveBeenCalledTimes(3)
   })
+
+  test('includes the response body snippet in 4xx errors', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response('{"error":"model \'llama3\' not found, try pulling it first"}', { status: 404 }),
+    )
+    await expect(
+      fetchWithRetry('https://example.com', {}, { minTimeout: 1, retries: 2 }),
+    ).rejects.toThrow(/client error 404: .*model 'llama3' not found/)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  test('includes the response body snippet in 5xx errors', async () => {
+    // Fresh Response per attempt - a body can only be consumed once.
+    fetchSpy.mockImplementation(async () => new Response('upstream exploded', { status: 500 }))
+    await expect(
+      fetchWithRetry('https://example.com', {}, { minTimeout: 1, retries: 1 }),
+    ).rejects.toThrow(/upstream 500: upstream exploded/)
+  })
+
+  test('collapses whitespace and truncates long error bodies', async () => {
+    const longBody = `line one\nline two   spaced\n${'x'.repeat(500)}`
+    fetchSpy.mockResolvedValueOnce(new Response(longBody, { status: 400 }))
+    const err = await fetchWithRetry(
+      'https://example.com',
+      {},
+      { minTimeout: 1, retries: 1 },
+    ).catch((e: Error) => e)
+    expect(err).toBeInstanceOf(Error)
+    const message = (err as Error).message
+    expect(message).toContain('client error 400: line one line two spaced')
+    expect(message.length).toBeLessThanOrEqual('client error 400: '.length + 200)
+  })
 })

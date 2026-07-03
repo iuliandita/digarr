@@ -29,8 +29,10 @@ export function MoodPromptBar({
     try {
       const res = await moodDiscover(query.trim())
       setResults(res.results)
-    } catch {
-      toast.error(t('discover.moodFailed'))
+    } catch (err) {
+      const detail = err instanceof Error ? err.message.trim() : ''
+      // ApiError.message falls back to "API Error <status>" - still worth showing.
+      toast.error(detail ? `${t('discover.moodFailed')}: ${detail}` : t('discover.moodFailed'))
     } finally {
       setLoading(false)
     }

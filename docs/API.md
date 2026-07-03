@@ -505,6 +505,10 @@ Locale notes:
 - `POST /api/v1/mood/discover` honors `X-Digarr-Locale`
 - The response reasoning follows the resolved UI locale, while prompt-language detection uses the submitted mood text
 
+Errors:
+- `400` when no AI provider is configured
+- `502` with `{ "error": "AI provider request failed (<provider>/<model>): <detail>" }` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` -- pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
+
 ---
 
 ## Search

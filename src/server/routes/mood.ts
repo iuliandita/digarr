@@ -4,6 +4,7 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { buildMoodPrompt } from '@/core/providers/prompt'
 import type { AiProviderRegistry } from '@/core/providers/registry'
+import { errMsg } from '@/core/validation'
 import { resolveRequestLocale } from '@/server/locale'
 import { moodDiscoverSchema } from '@/server/schemas/mood'
 import { zJson } from '@/server/schemas/validator'
@@ -53,14 +54,24 @@ export function moodRoutes(deps: MoodDeps) {
     const promptLocale = detectPromptLocale(trimmedQuery)
     const responseLocale = uiLocale
     const prompt = buildMoodPrompt(trimmedQuery, [], responseLocale)
-    const recs = await provider.getRecommendations({
-      topArtists: [],
-      topGenres: [],
-      listeningPatterns: { totalListens: 0, recentTrend: 'stable' },
-      responseLocale,
-      promptLocale,
-      _rawPrompt: prompt,
-    })
+    let recs: Awaited<ReturnType<typeof provider.getRecommendations>>
+    try {
+      recs = await provider.getRecommendations({
+        topArtists: [],
+        topGenres: [],
+        listeningPatterns: { totalListens: 0, recentTrend: 'stable' },
+        responseLocale,
+        promptLocale,
+        _rawPrompt: prompt,
+      })
+    } catch (err) {
+      const detail = errMsg(err)
+      console.error(`[mood] ${aiProvider} request failed:`, detail)
+      return c.json(
+        { error: `AI provider request failed (${aiProvider}/${aiModel}): ${detail}` },
+        502,
+      )
+    }
 
     // Check which results are already in the user's Lidarr library
     let libraryNames = new Set<string>()
