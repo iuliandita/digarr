@@ -77,6 +77,9 @@ export function oidcRoutes(deps: OidcRouteDeps) {
 
       if (!user) {
         const isFirstUser = (await deps.getUserCount()) === 0
+        // Local registration lowercases emails and the unique index is
+        // case-sensitive; store the claim lowercased so lookups keep matching.
+        const email = result.claims.email?.toLowerCase()
         const rawPreferred =
           result.claims.preferredUsername ??
           result.claims.email?.split('@')[0] ??
@@ -98,7 +101,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
             username,
             passwordHash: hashPassword(crypto.randomUUID()),
             isAdmin: isFirstUser,
-            email: result.claims.email,
+            email,
             oidcSubject: result.claims.sub,
             authProvider: 'oidc',
           })
@@ -110,7 +113,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
             username,
             passwordHash: hashPassword(crypto.randomUUID()),
             isAdmin: false,
-            email: result.claims.email,
+            email,
             oidcSubject: result.claims.sub,
             authProvider: 'oidc',
           })
