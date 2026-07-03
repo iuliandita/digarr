@@ -267,7 +267,7 @@ export class PipelineOrchestrator extends EventEmitter {
         deps.userId === undefined ||
         deps.librarySync === undefined ||
         typeof db.getLibraryArtistsForUser !== 'function' ||
-        typeof db.userHasAnySyncState !== 'function'
+        typeof db.userHasOwnSyncState !== 'function'
       ) {
         throw new Error(
           'Pipeline orchestrator requires librarySync, userId, and library StoreDb methods',
@@ -279,8 +279,11 @@ export class PipelineOrchestrator extends EventEmitter {
       this.emit('progress', { stage: 'collect', message: t('pipeline.message.loadingLibrary') })
 
       const userIdForSync = deps.userId
-      const hasAnyState = await db.userHasAnySyncState(userIdForSync)
-      if (!hasAnyState) {
+      // Own states only: a global (userId=null) sync state must not mask a
+      // user whose personal sources never synced, or their slow first sync
+      // would run awaited instead of in the background.
+      const hasOwnState = await db.userHasOwnSyncState(userIdForSync)
+      if (!hasOwnState) {
         // First-sync detection: fire-and-forget so the pipeline doesn't hang
         // for the slow MB lookups on a fresh install.
         void deps.librarySync

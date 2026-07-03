@@ -32,7 +32,7 @@ function makePipelineDeps(): Omit<
       getBlockedMbids: vi.fn(async () => new Set<string>()),
       getFeedbackHistory: vi.fn(async () => new Map()),
       getLibraryArtistsForUser: vi.fn(async () => []),
-      userHasAnySyncState: vi.fn(async () => false),
+      userHasOwnSyncState: vi.fn(async () => false),
     },
     settings: {
       lidarrUrl: null,
