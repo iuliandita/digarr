@@ -204,6 +204,30 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     )
   })
 
+  it('lowercases the email claim before creating the user', async () => {
+    // Local registration and getUserByEmail lowercase; the unique index is
+    // case-sensitive, so a raw mixed-case claim would create an account
+    // invisible to email lookups and allow same-email duplicates.
+    const deps = makeDeps()
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      claims: {
+        sub: 'oidc-subject-999',
+        email: 'Carol.MixedCase@Example.COM',
+        emailVerified: true,
+        preferredUsername: 'carol',
+      },
+      accessToken: 'at',
+      expiresIn: 3600,
+    })
+    const app = createTestApp(deps)
+
+    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
+
+    expect(deps.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({ email: 'carol.mixedcase@example.com' }),
+    )
+  })
+
   it('creates non-admin user when users already exist', async () => {
     const deps = makeDeps({
       getUserCount: vi.fn(async () => 3),
