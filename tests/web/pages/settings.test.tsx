@@ -185,6 +185,7 @@ import {
   updatePreferredLocale,
   updateSettings,
   updateTargetApi,
+  updateUserPreferences,
 } from '@/web/lib/api'
 import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SettingsPage } from '@/web/pages/settings'
@@ -206,6 +207,7 @@ const mockUpdatePreferredLocale = updatePreferredLocale as ReturnType<typeof vi.
 const mockCreateTargetApi = createTargetApi as ReturnType<typeof vi.fn>
 const mockListTargets = listTargets as ReturnType<typeof vi.fn>
 const mockUpdateTargetApi = updateTargetApi as ReturnType<typeof vi.fn>
+const mockUpdateUserPreferences = updateUserPreferences as ReturnType<typeof vi.fn>
 const mockListJobs = listJobs as ReturnType<typeof vi.fn>
 const mockGetJobHealth = getJobHealth as ReturnType<typeof vi.fn>
 
@@ -505,6 +507,34 @@ describe('SettingsPage', () => {
       expect(mockUpdateSettings).toHaveBeenCalledWith(
         expect.objectContaining({ lidarrUrl: 'http://localhost:8686' }),
       )
+    })
+  })
+
+  it('snaps stale per-user Lidarr preference ids before saving', async () => {
+    setupMocks()
+    mockGetLidarrProfiles.mockResolvedValue([{ id: 3, name: 'Stefan' }])
+    mockGetLidarrMetadataProfiles.mockResolvedValue([{ id: 4, name: 'Standard' }])
+    mockGetLidarrRootFolders.mockResolvedValue([{ id: 10, path: '/music' }])
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Stefan')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('/music')).toBeInTheDocument()
+    })
+
+    const saveButtons = screen.getAllByRole('button', { name: 'Save' })
+    const preferencesSaveButton = saveButtons.at(-1)
+    expect(preferencesSaveButton).toBeDefined()
+    if (!preferencesSaveButton) return
+    fireEvent.click(preferencesSaveButton)
+
+    await waitFor(() => {
+      expect(mockUpdateUserPreferences).toHaveBeenCalledWith({
+        qualityProfileId: 3,
+        metadataProfileId: 4,
+        rootFolderId: 10,
+      })
     })
   })
 

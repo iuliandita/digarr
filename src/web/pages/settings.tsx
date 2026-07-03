@@ -1625,6 +1625,25 @@ function LidarrPreferencesSection() {
     setRootFolderId(p.rootFolderId != null ? String(p.rootFolderId) : '')
   }, [userPrefs])
 
+  // Snap selectors to the first real Lidarr option when none is set or the
+  // stored id no longer exists among the loaded options. Otherwise the browser
+  // can visibly select the first option while React state still holds stale id 1.
+  useEffect(() => {
+    if (!qualityProfiles || qualityProfiles.length === 0) return
+    const first = qualityProfiles[0]
+    if (first && !qualityProfiles.some((p) => String(p.id) === qualityProfileId)) {
+      setQualityProfileId(String(first.id))
+    }
+  }, [qualityProfiles, qualityProfileId])
+
+  useEffect(() => {
+    if (!metadataProfiles || metadataProfiles.length === 0) return
+    const first = metadataProfiles[0]
+    if (first && !metadataProfiles.some((p) => String(p.id) === metadataProfileId)) {
+      setMetadataProfileId(String(first.id))
+    }
+  }, [metadataProfiles, metadataProfileId])
+
   // Snap root folder selector to the first real folder when none is set
   // or the stored id no longer exists among the loaded folders.
   useEffect(() => {
