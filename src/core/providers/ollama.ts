@@ -94,11 +94,23 @@ export class OllamaProvider implements RecommendationProvider {
       }
 
       const data = (await response.json()) as OllamaTagsResponse
-      const modelCount = data.models?.length ?? 0
+      const models = data.models?.map((m) => m.name) ?? []
+
+      // Ollama treats a tagless name as ":latest", so "llama3" must match a
+      // pulled "llama3:latest" - compare both the full name and the base name.
+      const available = models.some(
+        (name) => name === this.model || name.split(':')[0] === this.model,
+      )
+      if (!available) {
+        return {
+          success: false,
+          message: `Connected to Ollama, but model "${this.model}" is not available (${models.length} model(s) installed). Pull it first: ollama pull ${this.model}`,
+        }
+      }
 
       return {
         success: true,
-        message: `Connected to Ollama - ${modelCount} model(s) available`,
+        message: `Connected to Ollama - model "${this.model}" is available (${models.length} model(s) installed)`,
       }
     } catch (err: unknown) {
       return { success: false, message: errMsg(err) }

@@ -78,6 +78,36 @@ describe('POST /api/v1/mood/discover', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 502 with provider detail when the AI call fails', async () => {
+    const app = new Hono()
+    app.route(
+      '/',
+      moodRoutes(
+        makeDeps({
+          providerRegistry: {
+            create: vi.fn().mockResolvedValue({
+              getRecommendations: vi
+                .fn()
+                .mockRejectedValue(new Error('client error 404: model "gpt-4o-mini" not found')),
+              testConnection: vi.fn(),
+            }),
+          } as unknown as MoodDeps['providerRegistry'],
+        }),
+      ),
+    )
+
+    const res = await app.request('/api/v1/mood/discover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'chill vibes' }),
+    })
+
+    expect(res.status).toBe(502)
+    const body = (await res.json()) as { error: string }
+    expect(body.error).toContain('openai/gpt-4o-mini')
+    expect(body.error).toContain('client error 404')
+  })
+
   it('passes responseLocale into the AI prompt builder', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([
       {
