@@ -88,6 +88,27 @@ describe('fetchWithRetry', () => {
     ).rejects.toThrow(/upstream 500: upstream exploded/)
   })
 
+  test('redacts credential-shaped substrings from error body snippets', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        '{"error":"Invalid key sk-proj-abc123def456ghi789 for https://api.example.com/v1?api_key=topsecret123 Bearer eyJhbGciOiJIUzI1NiJ9.payload"}',
+        { status: 401 },
+      ),
+    )
+    const err = await fetchWithRetry(
+      'https://example.com',
+      {},
+      { minTimeout: 1, retries: 1 },
+    ).catch((e: Error) => e)
+    expect(err).toBeInstanceOf(Error)
+    const message = (err as Error).message
+    expect(message).toContain('client error 401')
+    expect(message).not.toContain('sk-proj-abc123def456ghi789')
+    expect(message).not.toContain('topsecret123')
+    expect(message).not.toContain('eyJhbGciOiJIUzI1NiJ9')
+    expect(message).toContain('[redacted]')
+  })
+
   test('collapses whitespace and truncates long error bodies', async () => {
     const longBody = `line one\nline two   spaced\n${'x'.repeat(500)}`
     fetchSpy.mockResolvedValueOnce(new Response(longBody, { status: 400 }))
