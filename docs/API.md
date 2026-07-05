@@ -725,6 +725,11 @@ Settings notes:
   capped at 300 chars) so the caller can see e.g. which model name the provider rejected
 - Probe fields omitted from the request body fall back to the stored settings, so an empty
   body tests exactly what is saved
+- The `plex` probe additionally returns the selected library and every music-type library on
+  the server: `{ "sectionId": "5", "sections": [{ "key": "5", "title": "Music" }] }`. Save the
+  chosen key as the per-user `plexSectionId` setting; empty/null means auto-detect (first
+  music-type library). Useful when a server has several `artist`-type libraries (e.g.
+  audiobooks next to music)
 
 ---
 

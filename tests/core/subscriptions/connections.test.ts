@@ -42,6 +42,7 @@ function makeUserConnections(overrides: Partial<UserConnections> = {}): UserConn
     lastfmApiKey: null,
     plexUrl: null,
     plexToken: null,
+    plexSectionId: null,
     jellyfinUrl: null,
     jellyfinApiKey: null,
     jellyfinUserId: null,

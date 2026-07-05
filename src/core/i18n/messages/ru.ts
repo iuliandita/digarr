@@ -1082,6 +1082,11 @@ export const ru = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Музыкальная библиотека',
+  'settings.plexLibraryAuto': 'Автоматически (первая музыкальная библиотека)',
+  'settings.plexLibrarySection': 'Раздел {0}',
+  'settings.plexLibraryHint':
+    'Если на сервере Plex несколько музыкальных библиотек (например, аудиокниги), запустите проверку подключения и выберите здесь нужную.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

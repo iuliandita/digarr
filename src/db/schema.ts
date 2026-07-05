@@ -89,6 +89,7 @@ export const users = pgTable(
     lastfmApiKey: text('lastfm_api_key'),
     plexUrl: text('plex_url'),
     plexToken: text('plex_token'),
+    plexSectionId: text('plex_section_id'),
     jellyfinUrl: text('jellyfin_url'),
     jellyfinApiKey: text('jellyfin_api_key'),
     jellyfinUserId: text('jellyfin_user_id'),

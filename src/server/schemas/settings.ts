@@ -81,6 +81,7 @@ export const updateSettingsSchema = z.object({
   lastfmApiKey: z.string().nullable().optional(),
   plexUrl: z.string().nullable().optional(),
   plexToken: z.string().nullable().optional(),
+  plexSectionId: z.string().nullable().optional(),
   jellyfinUrl: z.string().nullable().optional(),
   jellyfinApiKey: z.string().nullable().optional(),
   jellyfinUserId: z.string().nullable().optional(),

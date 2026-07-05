@@ -58,6 +58,7 @@ function makeUser(overrides: Partial<UserPublic> = {}): UserPublic {
     lastfmApiKey: null,
     plexUrl: null,
     plexToken: null,
+    plexSectionId: null,
     jellyfinUrl: null,
     jellyfinApiKey: null,
     jellyfinUserId: null,

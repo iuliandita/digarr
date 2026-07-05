@@ -80,11 +80,17 @@ function probeResult(
 ) {
   if (result.success) {
     const version = result.details?.version
+    // Whitelisted structured extras (currently the Plex library picker):
+    // never spread details wholesale, probes may stash internals there.
+    const sectionId = result.details?.sectionId
+    const sections = result.details?.sections
     return c.json(
       {
         message: result.message,
         ...(typeof version === 'string' && version.length > 0 ? { version } : {}),
         ...(typeof latencyMs === 'number' ? { latencyMs } : {}),
+        ...(typeof sectionId === 'string' ? { sectionId } : {}),
+        ...(Array.isArray(sections) ? { sections } : {}),
       },
       200,
     )
@@ -171,6 +177,7 @@ async function buildSettingsResponse(
       response._lastfmScope = 'user'
       response.plexUrl = userConns.plexUrl ?? ''
       response.plexToken = userConns.plexToken
+      response.plexSectionId = userConns.plexSectionId ?? ''
       response._plexScope = 'user'
       response.jellyfinUrl = userConns.jellyfinUrl ?? ''
       response.jellyfinApiKey = userConns.jellyfinApiKey
@@ -237,6 +244,7 @@ export function settingsRoutes(deps: AppDependencies) {
     'lastfmApiKey',
     'plexUrl',
     'plexToken',
+    'plexSectionId',
     'jellyfinUrl',
     'jellyfinApiKey',
     'jellyfinUserId',
@@ -486,11 +494,15 @@ export function settingsRoutes(deps: AppDependencies) {
       case 'plex': {
         const url = body.url || userConns?.plexUrl || ''
         const token = body.token || userConns?.plexToken || ''
+        // sectionId: '' in the body means "auto-detect" (do not fall back to
+        // the stored value, the user is explicitly clearing it in the picker).
+        const sectionId =
+          typeof body.sectionId === 'string' ? body.sectionId : (userConns?.plexSectionId ?? null)
         if (!url || !token) {
           return missingInput(`Missing ${!url ? 'URL' : 'token'}`)
         }
         const { createPlexClient } = await import('@/core/clients/plex')
-        const client = createPlexClient(url, token)
+        const client = createPlexClient(url, token, { sectionId })
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'jellyfin': {

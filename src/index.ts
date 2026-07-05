@@ -505,7 +505,12 @@ async function buildPerUserLibrarySources(userId: number) {
   if (!conns) return []
   const sources = []
   if (conns.plexUrl && conns.plexToken) {
-    sources.push(createPlexLibrarySource(createPlexClient(conns.plexUrl, conns.plexToken), userId))
+    sources.push(
+      createPlexLibrarySource(
+        createPlexClient(conns.plexUrl, conns.plexToken, { sectionId: conns.plexSectionId }),
+        userId,
+      ),
+    )
   }
   if (conns.jellyfinUrl && conns.jellyfinApiKey && conns.jellyfinUserId) {
     sources.push(

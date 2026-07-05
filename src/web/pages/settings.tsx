@@ -93,6 +93,7 @@ type Settings = {
   oidcScopes?: string
   plexUrl?: string
   plexToken?: string
+  plexSectionId?: string
   jellyfinUrl?: string
   jellyfinApiKey?: string
   jellyfinUserId?: string
@@ -274,6 +275,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [plexToken, setPlexToken] = useState(
     settings.plexToken === '***' ? '' : (settings.plexToken ?? ''),
   )
+  const [plexSectionId, setPlexSectionId] = useState(settings.plexSectionId ?? '')
+  const [plexSections, setPlexSections] = useState<Array<{ key: string; title: string }>>([])
   const [jellyfinUrl, setJellyfinUrl] = useState(settings.jellyfinUrl ?? '')
   const [jellyfinApiKey, setJellyfinApiKey] = useState(
     settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
@@ -499,11 +502,21 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     }
   }
 
-  const testPlex = createTester('plex', 'Plex', () =>
-    testService('plex', { url: plexUrl, token: plexToken }),
-  )
+  const testPlex = createTester('plex', 'Plex', async () => {
+    const res = await testService('plex', {
+      url: plexUrl,
+      token: plexToken,
+      sectionId: plexSectionId,
+    })
+    if (Array.isArray(res.sections)) setPlexSections(res.sections)
+    return res
+  })
   const savePlex = createSaver('plex', 'Plex', () =>
-    updateSettings({ plexUrl, plexToken: plexToken || undefined }),
+    updateSettings({
+      plexUrl,
+      plexToken: plexToken || undefined,
+      plexSectionId: plexSectionId || null,
+    }),
   )
 
   const testJellyfin = createTester('jellyfin', 'Jellyfin', () =>
@@ -1340,6 +1353,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               />
             </Field>
           </div>
+          <Field label={t('settings.plexLibrary')} id="plex-section">
+            <Select
+              id="plex-section"
+              value={plexSectionId}
+              onChange={(e) => setPlexSectionId(e.target.value)}
+            >
+              <option value="">{t('settings.plexLibraryAuto')}</option>
+              {plexSections.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.title}
+                </option>
+              ))}
+              {plexSectionId && !plexSections.some((s) => s.key === plexSectionId) && (
+                <option value={plexSectionId}>
+                  {t('settings.plexLibrarySection').replace('{0}', plexSectionId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.plexLibraryHint')}</p>
+          </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (
               <Button

@@ -1053,6 +1053,11 @@ export const ko = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': '음악 라이브러리',
+  'settings.plexLibraryAuto': '자동 감지 (첫 번째 음악 라이브러리)',
+  'settings.plexLibrarySection': '섹션 {0}',
+  'settings.plexLibraryHint':
+    'Plex 서버에 음악 유형 라이브러리가 여러 개 있는 경우(예: 오디오북), 연결 테스트를 실행하고 여기에서 올바른 라이브러리를 선택하세요.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
