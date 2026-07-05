@@ -276,7 +276,9 @@ A successful verify proves the image was built by this repo's `release.yml` work
 
 ## Friends
 
-Other self-hosted music discovery projects:
+Other self-hosted music discovery projects. For a deeper look at how the
+approaches differ and which tool fits which setup, see
+[Choosing a Self-Hosted Music Discovery Tool](docs/COMPARISON.md).
 
 | Project | Approach |
 |---------|----------|
@@ -288,6 +290,8 @@ Other self-hosted music discovery projects:
 | [Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr) | Last.fm discovery with optional AI assistant. Real-time UI. |
 | [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
 | [MusicSeerr](https://github.com/HabiRabbu/Musicseerr) | Overseerr-style music request and discovery built around Lidarr. |
+| [SoulSync](https://github.com/Nezreka/SoulSync) | Hands-off acquisition: watchlist monitoring, multi-source downloads, rich tagging. |
+| [Kima Hub](https://github.com/Chevron7Locked/kima-hub) | Full music platform: streaming player, embedding similarity, podcasts. |
 | [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |
 
 ## Contributing
