@@ -29,6 +29,7 @@ jobs:
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run i18n:check
+      - run: bun run check:versions
       - run: bun run test
 
   coverage:
