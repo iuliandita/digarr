@@ -38,6 +38,7 @@ import { Select } from '../components/ui/select'
 import { Skeleton } from '../components/ui/skeleton'
 import { useInstallPrompt } from '../hooks/use-install-prompt'
 import {
+  ApiError,
   AUTH_EXPIRED_EVENT,
   changePassword,
   clearStoredToken,
@@ -357,6 +358,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     return 'not_configured'
   }
 
+  function probeFailureDetail(err: unknown): string | null {
+    if (err instanceof ApiError && err.data && typeof err.data === 'object') {
+      const detail = (err.data as Record<string, unknown>).detail
+      if (typeof detail === 'string' && detail.trim()) return detail.trim()
+    }
+    return null
+  }
+
   function createTester(key: string, label: string, testFn: () => Promise<{ message: string }>) {
     return async () => {
       setTest(key, 'testing')
@@ -364,9 +373,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         await testFn()
         setTest(key, 'ok')
         toast.success(formatLabelMessage('settings.serviceConnectedToast', label))
-      } catch {
+      } catch (err) {
         setTest(key, 'error')
-        toast.error(formatLabelMessage('settings.serviceUnreachableToast', label))
+        const base = formatLabelMessage('settings.serviceUnreachableToast', label)
+        const detail = probeFailureDetail(err)
+        toast.error(detail ? `${base}: ${detail}` : base)
       }
     }
   }
@@ -456,14 +467,37 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     if (aiProvider === 'ollama' || aiProvider === 'openai-compatible') config.baseUrl = aiBaseUrl
     return testService('ai', config)
   })
-  const saveAi = createSaver('ai', aiProviderLabel, () =>
-    updateSettings({
-      aiProvider,
-      aiModel: aiModel || undefined,
-      aiApiKey: aiApiKey || undefined,
-      aiBaseUrl: aiBaseUrl || undefined,
-    }),
-  )
+  // Save, then re-probe with an empty body so the backend tests the values it
+  // just persisted. Test-without-save (or a stale saved model) otherwise passes
+  // the Test button while every real run fails against the stored row.
+  const saveAi = async () => {
+    setSave('ai', true)
+    try {
+      await updateSettings({
+        aiProvider,
+        aiModel: aiModel || undefined,
+        aiApiKey: aiApiKey || undefined,
+        aiBaseUrl: aiBaseUrl || undefined,
+      })
+      toast.success(formatLabelMessage('settings.serviceSettingsSavedToast', aiProviderLabel))
+      onSaved()
+    } catch {
+      toast.error(formatLabelMessage('settings.serviceSettingsFailedToast', aiProviderLabel))
+      return
+    } finally {
+      setSave('ai', false)
+    }
+    setTest('ai', 'testing')
+    try {
+      await testService('ai', {})
+      setTest('ai', 'ok')
+    } catch (err) {
+      setTest('ai', 'error')
+      const base = t('settings.aiSavedTestFailedToast')
+      const detail = probeFailureDetail(err)
+      toast.error(detail ? `${base}: ${detail}` : base, { duration: 10_000 })
+    }
+  }
 
   const testPlex = createTester('plex', 'Plex', () =>
     testService('plex', { url: plexUrl, token: plexToken }),

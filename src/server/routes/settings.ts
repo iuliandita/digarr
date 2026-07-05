@@ -4,6 +4,7 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { sendWebhook } from '@/core/notifications'
+import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
 import { logAndSanitize } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
@@ -67,9 +68,10 @@ type ProbeTestResult = {
   details?: Record<string, unknown>
 }
 
-// Returns a problem+json response on probe failure with the detail sanitized
-// to avoid leaking upstream error bodies. Successful probes keep message as
-// the stable UI field and include cheap optional metadata when available.
+// Returns a problem+json response on probe failure. The upstream failure
+// message is surfaced as `detail` (secrets redacted, whitespace collapsed,
+// length capped) so admins can act on it - a bare "unknown error" hides the
+// provider body that names the missing model or malformed field.
 function probeResult(
   c: Parameters<typeof problem>[0],
   result: ProbeTestResult,
@@ -87,15 +89,12 @@ function probeResult(
       200,
     )
   }
-  return problem(
-    c,
-    'probe-failed',
-    'Probe failed',
-    502,
-    fallbackMessage,
-    undefined,
-    'common.unknownError',
-  )
+  const detail =
+    redactSecrets(result.message ?? '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 300) || fallbackMessage
+  return problem(c, 'probe-failed', 'Probe failed', 502, detail, undefined, 'common.unknownError')
 }
 
 async function runProbe(

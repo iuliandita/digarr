@@ -765,13 +765,13 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
   })
 
-  it('sanitizes failed probe responses', async () => {
+  it('surfaces failed probe detail with secrets redacted', async () => {
     vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
     const providerRegistry = {
       create: vi.fn(async () => ({
         testConnection: vi.fn(async () => ({
           success: false,
-          message: 'HTTP 500 <html>probe failed from 127.0.0.1</html>',
+          message: `models/llama3 is not found for key sk-abcdefgh12345678\n${'x'.repeat(400)}`,
         })),
       })),
     }
@@ -793,9 +793,39 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(res.status).toBe(502)
     const body = await res.json()
     expect(body.type).toBe('/problems/probe-failed')
-    expect(body.detail).not.toContain('HTTP 500')
-    expect(body.detail).not.toContain('probe failed')
-    expect(body.detail).not.toContain('127.0.0.1')
+    // Upstream detail is surfaced so admins can act on it (missing model,
+    // malformed field), but credential-shaped substrings are redacted and the
+    // whole detail is capped.
+    expect(body.detail).toContain('models/llama3 is not found')
+    expect(body.detail).not.toContain('sk-abcdefgh12345678')
+    expect(body.detail).toContain('[redacted]')
+    expect(body.detail.length).toBeLessThanOrEqual(300)
+  })
+
+  it('falls back to the localized unknown-error detail when the probe message is empty', async () => {
+    vi.mocked(lookup).mockResolvedValue({ address: '127.0.0.1', family: 4 })
+    const providerRegistry = {
+      create: vi.fn(async () => ({
+        testConnection: vi.fn(async () => ({ success: false, message: '' })),
+      })),
+    }
+
+    const app = createApp(makeDeps({ providerRegistry: providerRegistry as never }))
+    const res = await authedRequest(app, '/api/v1/settings/test/ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Digarr-Locale': 'de',
+      },
+      body: JSON.stringify({
+        provider: 'ollama',
+        model: 'llama3',
+        baseUrl: 'http://127.0.0.1:11434',
+      }),
+    })
+
+    expect(res.status).toBe(502)
+    const body = await res.json()
     expect(body.detail).toBe('Unbekannter Fehler')
   })
 

@@ -122,7 +122,7 @@ async function errorBodySnippet(res: Response): Promise<string> {
   return redactSecrets(text.replace(/\s+/g, ' ').trim()).slice(0, 200)
 }
 
-function redactSecrets(text: string): string {
+export function redactSecrets(text: string): string {
   return text
     .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
     .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')

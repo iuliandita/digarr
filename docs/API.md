@@ -721,6 +721,10 @@ Settings notes:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,
   `403` for non-admin callers, and `502` when the upstream service probe fails
+- The `502` body's `detail` field carries the upstream failure message (secrets redacted,
+  capped at 300 chars) so the caller can see e.g. which model name the provider rejected
+- Probe fields omitted from the request body fall back to the stored settings, so an empty
+  body tests exactly what is saved
 
 ---
 

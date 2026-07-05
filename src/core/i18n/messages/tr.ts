@@ -1071,6 +1071,8 @@ export const tr = {
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
+  'settings.aiSavedTestFailedToast':
+    'Yapay zeka ayarları kaydedildi ancak bağlantı testi başarısız oldu',
   'settings.spotifyAuthorizationFailed': 'Failed to start Spotify authorization',
   'settings.spotifyDisconnectFailed': 'Failed to disconnect Spotify',
   'settings.spotifyLikedSongsFailed': 'Failed to start Spotify Liked Songs import',
@@ -1270,6 +1272,8 @@ export const tr = {
   'pipeline.message.buildingProfile': 'Zevk profilin oluşturuluyor...',
   'pipeline.message.profiled': '{0} öne çıkan sanatçı ve {1} tür profillendi',
   'pipeline.message.findingSimilar': 'Tüm kaynaklardan benzer sanatçılar aranıyor...',
+  'pipeline.message.aiSourceFailed':
+    'Yapay zeka sağlayıcısı başarısız oldu: {0} - yapay zeka önerileri olmadan devam ediliyor',
   'pipeline.message.discovered': '{0} aday sanatçı bulundu',
   'pipeline.message.resolving': '{0} sanatçı MusicBrainz üzerinden çözülüyor...',
   'pipeline.message.scoring': 'Çözülen {0} sanatçı puanlanıyor...',
