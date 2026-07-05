@@ -23,6 +23,18 @@
 
 [More screenshots](docs/SCREENSHOTS.md)
 
+> [!IMPORTANT]
+> **Why people pick Digarr**
+>
+> - 💿 **Album-level discovery** -- recommends and approves *individual albums* (gap-fills, new releases, net-new finds), not just artists. No whole-discography grabs.
+> - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
+> - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
+> - 🧭 **13 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums -- all runnable on demand or saved as subscriptions.
+> - 🔓 **No Lidarr required** -- full discovery-only mode with genre-aware scoring from your listening sources.
+> - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
+> - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
+> - 🛡️ **Ops-grade self-hosting** -- zero-external-database single container, backup/restore, job observability, pre-flight upgrade checks, cosign-signed images.
+
 > [!NOTE]
 > **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
 
@@ -307,3 +319,9 @@ MIT. See [LICENSE](LICENSE).
    <img alt="Star History Chart" src="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
  </picture>
 </a>
+
+---
+
+<p align="center"><sub>
+music discovery · AI music recommendations · self-hosted · lidarr companion · *arr stack · album discovery · new music finder · music curation · mood search · playlist generator · music taste profile · plex · jellyfin · emby · navidrome · subsonic · slskd · soulseek · listenbrainz · last.fm · spotify · deezer · musicbrainz · discogs · tidal · bandcamp · release radar · library gap-fill · discovery modes · music subscriptions · genre discovery · similar artists · charts · docker · kubernetes · helm · unraid · synology · homelab · multi-user · OIDC · SSO · webhooks · discord notifications · i18n · 15 languages · open source · MIT
+</sub></p>
