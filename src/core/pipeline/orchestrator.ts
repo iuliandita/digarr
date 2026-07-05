@@ -106,7 +106,6 @@ export function shouldDropAlbumCandidate(
 interface QueuedRun {
   userId: number | undefined
   deps: PipelineDeps
-  enqueuedAt: Date
 }
 
 export type EnqueueResult = {
@@ -605,7 +604,7 @@ export class PipelineOrchestrator extends EventEmitter {
     if (this._currentUserId === deps.userId) return { status: 'duplicate', position: 0 }
     const existing = this.queue.findIndex((q) => q.userId === deps.userId)
     if (existing >= 0) return { status: 'duplicate', position: existing + 1 }
-    this.queue.push({ userId: deps.userId, deps, enqueuedAt: new Date() })
+    this.queue.push({ userId: deps.userId, deps })
     return { status: 'queued', position: this.queue.length }
   }
 

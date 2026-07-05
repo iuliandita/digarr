@@ -901,22 +901,14 @@ describe('PipelineOrchestrator', () => {
 
   it('fire-and-forgets first library sync when user has no prior sync state', async () => {
     const db = makeDb()
-    let firstSyncResolved = false
     const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
       ...db,
       getLibraryArtistsForUser: vi.fn(async () => []),
       userHasOwnSyncState: vi.fn(async () => false), // first sync ever
     }
-    const syncForUser = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          // Never resolves during the test - simulates a slow first sync
-          setTimeout(() => {
-            firstSyncResolved = true
-            resolve({ userId: 1, results: [] })
-          }, 1000)
-        }),
-    ) as SyncForUser
+    // Never resolves - simulates a slow first sync without leaking a timer
+    // past the end of the test.
+    const syncForUser = vi.fn(() => new Promise(() => {})) as SyncForUser
 
     const result = await orchestrator.run({
       db: dbWithLibrary,
@@ -929,7 +921,6 @@ describe('PipelineOrchestrator', () => {
     // Pipeline must complete WITHOUT waiting for the slow first sync
     expect(result).toEqual({ batchId: 42 })
     expect(syncForUser).toHaveBeenCalled()
-    expect(firstSyncResolved).toBe(false)
     // It should still read from the (empty) cache
     expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalled()
   })
