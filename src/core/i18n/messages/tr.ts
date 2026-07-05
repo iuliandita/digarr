@@ -1072,6 +1072,11 @@ export const tr = {
   'settings.plexLibrarySection': 'Bölüm {0}',
   'settings.plexLibraryHint':
     'Plex sunucunuzda birden fazla müzik türünde kitaplık varsa (örneğin sesli kitaplar), bağlantı testini çalıştırın ve doğru olanı buradan seçin.',
+  'settings.musicLibrary': 'Muzik kitapligi',
+  'settings.musicLibraryAll': 'Tum muzik kitapliklari',
+  'settings.musicLibraryId': 'Kitaplik {0}',
+  'settings.musicLibraryHint':
+    'Sunucunuzda birden fazla muzik kitapligi varsa, "Baglantiyi test et" calistirin ve dinleme verilerini ile kitaplik senkronizasyonunu sinirlamak icin burada birini secin.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

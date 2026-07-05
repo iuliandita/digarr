@@ -80,10 +80,12 @@ function probeResult(
 ) {
   if (result.success) {
     const version = result.details?.version
-    // Whitelisted structured extras (currently the Plex library picker):
+    // Whitelisted structured extras (the media-server library pickers):
     // never spread details wholesale, probes may stash internals there.
     const sectionId = result.details?.sectionId
     const sections = result.details?.sections
+    const libraryId = result.details?.libraryId
+    const libraries = result.details?.libraries
     return c.json(
       {
         message: result.message,
@@ -91,6 +93,8 @@ function probeResult(
         ...(typeof latencyMs === 'number' ? { latencyMs } : {}),
         ...(typeof sectionId === 'string' ? { sectionId } : {}),
         ...(Array.isArray(sections) ? { sections } : {}),
+        ...(typeof libraryId === 'string' ? { libraryId } : {}),
+        ...(Array.isArray(libraries) ? { libraries } : {}),
       },
       200,
     )
@@ -182,10 +186,12 @@ async function buildSettingsResponse(
       response.jellyfinUrl = userConns.jellyfinUrl ?? ''
       response.jellyfinApiKey = userConns.jellyfinApiKey
       response.jellyfinUserId = userConns.jellyfinUserId ?? ''
+      response.jellyfinLibraryId = userConns.jellyfinLibraryId ?? ''
       response._jellyfinScope = 'user'
       response.embyUrl = userConns.embyUrl ?? ''
       response.embyApiKey = userConns.embyApiKey
       response.embyUserId = userConns.embyUserId ?? ''
+      response.embyLibraryId = userConns.embyLibraryId ?? ''
       response._embyScope = 'user'
       response.discogsUsername = userConns.discogsUsername ?? ''
       response.discogsToken = userConns.discogsToken
@@ -248,9 +254,11 @@ export function settingsRoutes(deps: AppDependencies) {
     'jellyfinUrl',
     'jellyfinApiKey',
     'jellyfinUserId',
+    'jellyfinLibraryId',
     'embyUrl',
     'embyApiKey',
     'embyUserId',
+    'embyLibraryId',
     'discogsToken',
     'discogsUsername',
     'subsonicUrl',
@@ -509,12 +517,21 @@ export function settingsRoutes(deps: AppDependencies) {
         const url = body.url || userConns?.jellyfinUrl || ''
         const apiKey = body.apiKey || userConns?.jellyfinApiKey || ''
         const jfUserId = body.userId || userConns?.jellyfinUserId || ''
+        // libraryId: '' in the body means "all libraries" (do not fall back to
+        // the stored value, the user is explicitly clearing it in the picker).
+        const jfLibraryId =
+          typeof body.libraryId === 'string'
+            ? body.libraryId
+            : (userConns?.jellyfinLibraryId ?? null)
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
         const { createJellyfinClient } = await import('@/core/clients/jellyfin')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
-        const client = createJellyfinClient(url, apiKey, jfUserId, { skipTlsVerify: skipTls })
+        const client = createJellyfinClient(url, apiKey, jfUserId, {
+          skipTlsVerify: skipTls,
+          libraryId: jfLibraryId,
+        })
         return runProbe(
           c,
           async () => {
@@ -532,12 +549,17 @@ export function settingsRoutes(deps: AppDependencies) {
         const url = body.url || userConns?.embyUrl || ''
         const apiKey = body.apiKey || userConns?.embyApiKey || ''
         const embyUserId = body.userId || userConns?.embyUserId || ''
+        const embyLibraryId =
+          typeof body.libraryId === 'string' ? body.libraryId : (userConns?.embyLibraryId ?? null)
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
         const { createEmbyClient } = await import('@/core/clients/emby')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
-        const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
+        const client = createEmbyClient(url, apiKey, embyUserId, {
+          skipTlsVerify: skipTls,
+          libraryId: embyLibraryId,
+        })
         return runProbe(
           c,
           async () => {

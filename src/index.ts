@@ -515,7 +515,9 @@ async function buildPerUserLibrarySources(userId: number) {
   if (conns.jellyfinUrl && conns.jellyfinApiKey && conns.jellyfinUserId) {
     sources.push(
       createJellyfinLibrarySource(
-        createJellyfinClient(conns.jellyfinUrl, conns.jellyfinApiKey, conns.jellyfinUserId),
+        createJellyfinClient(conns.jellyfinUrl, conns.jellyfinApiKey, conns.jellyfinUserId, {
+          libraryId: conns.jellyfinLibraryId,
+        }),
         userId,
       ),
     )
@@ -523,7 +525,9 @@ async function buildPerUserLibrarySources(userId: number) {
   if (conns.embyUrl && conns.embyApiKey && conns.embyUserId) {
     sources.push(
       createEmbyLibrarySource(
-        createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId),
+        createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId, {
+          libraryId: conns.embyLibraryId,
+        }),
         userId,
       ),
     )

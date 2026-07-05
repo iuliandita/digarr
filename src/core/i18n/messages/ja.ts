@@ -1072,6 +1072,11 @@ export const ja = {
   'settings.plexLibrarySection': 'セクション {0}',
   'settings.plexLibraryHint':
     'Plex サーバーに音楽タイプのライブラリが複数ある場合（オーディオブックなど）は、接続テストを実行してここで正しいライブラリを選択してください。',
+  'settings.musicLibrary': '音楽ライブラリ',
+  'settings.musicLibraryAll': 'すべての音楽ライブラリ',
+  'settings.musicLibraryId': 'ライブラリ {0}',
+  'settings.musicLibraryHint':
+    'サーバーに複数の音楽ライブラリがある場合は、「接続テスト」を実行してここで 1 つを選択すると、再生データとライブラリ同期の対象を絞れます。',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

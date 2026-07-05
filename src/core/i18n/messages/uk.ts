@@ -1081,6 +1081,11 @@ export const uk = {
   'settings.plexLibraryHint':
     "Якщо на сервері Plex кілька музичних бібліотек (наприклад, аудіокниги), запустіть перевірку з'єднання та виберіть тут потрібну.",
   'settings.serviceConnectedToast': '{0} connected',
+  'settings.musicLibrary': 'Музична бібліотека',
+  'settings.musicLibraryAll': 'Усі музичні бібліотеки',
+  'settings.musicLibraryId': 'Бібліотека {0}',
+  'settings.musicLibraryHint':
+    "Якщо на сервері кілька музичних бібліотек, запустіть «Перевірити з'єднання» і виберіть тут одну, щоб обмежити дані прослуховувань і синхронізацію бібліотеки.",
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',

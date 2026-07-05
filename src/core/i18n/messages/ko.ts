@@ -1058,6 +1058,11 @@ export const ko = {
   'settings.plexLibrarySection': '섹션 {0}',
   'settings.plexLibraryHint':
     'Plex 서버에 음악 유형 라이브러리가 여러 개 있는 경우(예: 오디오북), 연결 테스트를 실행하고 여기에서 올바른 라이브러리를 선택하세요.',
+  'settings.musicLibrary': '음악 라이브러리',
+  'settings.musicLibraryAll': '모든 음악 라이브러리',
+  'settings.musicLibraryId': '라이브러리 {0}',
+  'settings.musicLibraryHint':
+    '서버에 음악 라이브러리가 여러 개 있는 경우 "연결 테스트"를 실행하고 여기서 하나를 선택하면 청취 데이터와 라이브러리 동기화 범위를 제한할 수 있습니다.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

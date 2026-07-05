@@ -1083,6 +1083,11 @@ export const ptBR = {
   'settings.plexLibrarySection': 'Seção {0}',
   'settings.plexLibraryHint':
     'Se o seu servidor Plex tiver várias bibliotecas de música (como audiolivros), execute o teste de conexão e escolha a correta aqui.',
+  'settings.musicLibrary': 'Biblioteca de musica',
+  'settings.musicLibraryAll': 'Todas as bibliotecas de musica',
+  'settings.musicLibraryId': 'Biblioteca {0}',
+  'settings.musicLibraryHint':
+    'Se o seu servidor tiver varias bibliotecas de musica, execute "Testar conexao" e escolha uma aqui para restringir os dados de escuta e a sincronizacao da biblioteca.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

@@ -32,6 +32,11 @@ export type JellyfinRecentTrack = {
   datePlayed: string
 }
 
+export type JellyfinMusicLibrary = {
+  id: string
+  name: string
+}
+
 type JellyfinItemsResponse = {
   Items: Array<Record<string, unknown>>
   TotalRecordCount: number
@@ -53,9 +58,10 @@ export function createJellyfinClient(
   url: string,
   apiKey: string,
   userIdOrName: string,
-  options?: { baseUrl?: string; skipTlsVerify?: boolean },
+  options?: { baseUrl?: string; skipTlsVerify?: boolean; libraryId?: string | null },
 ) {
   const baseUrl = options?.baseUrl ?? url
+  const configuredLibraryId = options?.libraryId?.trim() || null
 
   const http = createHttpClient({
     baseUrl,
@@ -92,18 +98,51 @@ export function createJellyfinClient(
     return resolvedUserId
   }
 
+  /** Music libraries visible to the user (CollectionType 'music' views). */
+  async function getMusicLibraries(): Promise<JellyfinMusicLibrary[]> {
+    const userId = await getUserId()
+    const res = await get<{ Items?: Array<{ Id: string; Name: string; CollectionType?: string }> }>(
+      `/Users/${userId}/Views`,
+    )
+    return (res.Items ?? [])
+      .filter((v) => v.CollectionType === 'music')
+      .map((v) => ({ id: v.Id, name: v.Name }))
+  }
+
+  // MusicArtist items are server-global, so ParentId on the generic Items
+  // endpoint does not scope them - the dedicated /Artists endpoint does.
+  function scopedArtistsPath(userId: string, extra: Record<string, string>): string {
+    const params = new URLSearchParams({
+      ParentId: configuredLibraryId as string,
+      UserId: userId,
+      EnableUserData: 'true',
+      ...extra,
+    })
+    return `/Artists?${params.toString()}`
+  }
+
   async function getTopArtists(limit = 50): Promise<JellyfinArtist[]> {
     const userId = await getUserId()
-    const params = new URLSearchParams({
-      SortBy: 'PlayCount',
-      SortOrder: 'Descending',
-      IncludeItemTypes: 'MusicArtist',
-      Recursive: 'true',
-      Fields: 'UserData',
-      Limit: String(limit),
-    })
-
-    const res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
+    let res: JellyfinItemsResponse
+    if (configuredLibraryId) {
+      res = await get<JellyfinItemsResponse>(
+        scopedArtistsPath(userId, {
+          SortBy: 'PlayCount',
+          SortOrder: 'Descending',
+          Limit: String(limit),
+        }),
+      )
+    } else {
+      const params = new URLSearchParams({
+        SortBy: 'PlayCount',
+        SortOrder: 'Descending',
+        IncludeItemTypes: 'MusicArtist',
+        Recursive: 'true',
+        Fields: 'UserData',
+        Limit: String(limit),
+      })
+      res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
+    }
 
     return res.Items.filter((item) => {
       const userData = item.UserData as { PlayCount?: number } | undefined
@@ -133,6 +172,7 @@ export function createJellyfinClient(
       Fields: 'UserData',
       Limit: String(limit),
     })
+    if (configuredLibraryId) params.set('ParentId', configuredLibraryId)
 
     const res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
 
@@ -151,17 +191,28 @@ export function createJellyfinClient(
 
   async function getFavoriteArtists(limit = 50): Promise<JellyfinArtist[]> {
     const userId = await getUserId()
-    const params = new URLSearchParams({
-      SortBy: 'SortName',
-      SortOrder: 'Ascending',
-      IncludeItemTypes: 'MusicArtist',
-      Recursive: 'true',
-      IsFavorite: 'true',
-      Fields: 'UserData',
-      Limit: String(limit),
-    })
-
-    const res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
+    let res: JellyfinItemsResponse
+    if (configuredLibraryId) {
+      res = await get<JellyfinItemsResponse>(
+        scopedArtistsPath(userId, {
+          SortBy: 'SortName',
+          SortOrder: 'Ascending',
+          IsFavorite: 'true',
+          Limit: String(limit),
+        }),
+      )
+    } else {
+      const params = new URLSearchParams({
+        SortBy: 'SortName',
+        SortOrder: 'Ascending',
+        IncludeItemTypes: 'MusicArtist',
+        Recursive: 'true',
+        IsFavorite: 'true',
+        Fields: 'UserData',
+        Limit: String(limit),
+      })
+      res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
+    }
 
     return res.Items.map((item) => {
       const userData = item.UserData as {
@@ -191,13 +242,26 @@ export function createJellyfinClient(
     let total = Number.POSITIVE_INFINITY
 
     while (startIndex < total) {
-      const params = new URLSearchParams({
-        IncludeItemTypes: 'MusicArtist',
-        Recursive: 'true',
-        Fields: 'Genres,ProviderIds',
-        StartIndex: String(startIndex),
-        Limit: String(pageSize),
-      })
+      let path: string
+      if (configuredLibraryId) {
+        // SortName paging: /Artists needs an explicit sort for stable pages.
+        path = scopedArtistsPath(userId, {
+          SortBy: 'SortName',
+          SortOrder: 'Ascending',
+          Fields: 'Genres,ProviderIds',
+          StartIndex: String(startIndex),
+          Limit: String(pageSize),
+        })
+      } else {
+        const params = new URLSearchParams({
+          IncludeItemTypes: 'MusicArtist',
+          Recursive: 'true',
+          Fields: 'Genres,ProviderIds',
+          StartIndex: String(startIndex),
+          Limit: String(pageSize),
+        })
+        path = `/Users/${userId}/Items?${params}`
+      }
       const res = await get<{
         TotalRecordCount: number
         Items: Array<{
@@ -206,7 +270,7 @@ export function createJellyfinClient(
           Genres?: string[]
           ProviderIds?: { MusicBrainzArtist?: string }
         }>
-      }>(`/Users/${userId}/Items?${params}`)
+      }>(path)
 
       total = res.TotalRecordCount ?? res.Items.length
       for (const item of res.Items) {
@@ -272,23 +336,42 @@ export function createJellyfinClient(
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<JellyfinSystemInfo>('/System/Info')
+      let libraries: JellyfinMusicLibrary[] | null = null
+      let selected: JellyfinMusicLibrary | undefined
       if (userIdOrName) {
         const userId = await getUserId()
+        libraries = await getMusicLibraries()
+        if (configuredLibraryId) {
+          selected = libraries.find((l) => l.id === configuredLibraryId)
+          if (!selected) {
+            return {
+              success: false,
+              message: `Configured Jellyfin music library ${configuredLibraryId} not found - available: ${
+                libraries.map((l) => `${l.name} (${l.id})`).join(', ') || 'none'
+              }`,
+            }
+          }
+        }
         const params = new URLSearchParams({
           IncludeItemTypes: 'Audio',
           Recursive: 'true',
           Limit: '1',
         })
+        if (configuredLibraryId) params.set('ParentId', configuredLibraryId)
         await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
       }
       const artists = await getTopArtists(5)
       return {
         success: true,
-        message: `Connected to Jellyfin "${info.ServerName}" v${info.Version} - ${artists.length} top artist(s)`,
+        message:
+          `Connected to Jellyfin "${info.ServerName}" v${info.Version} - ${artists.length} top artist(s)` +
+          (selected ? ` - using library "${selected.name}"` : ''),
         details: {
           serverName: info.ServerName,
           version: info.Version,
           artistCount: artists.length,
+          ...(libraries ? { libraries } : {}),
+          ...(selected ? { libraryId: selected.id } : {}),
         },
       }
     } catch (err: unknown) {
@@ -302,6 +385,7 @@ export function createJellyfinClient(
     getAlbumsForArtist,
     getRecentlyPlayed,
     getFavoriteArtists,
+    getMusicLibraries,
     testConnection,
   }
 }

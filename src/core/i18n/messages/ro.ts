@@ -1083,6 +1083,11 @@ export const ro = {
   'settings.plexLibrarySection': 'Secțiunea {0}',
   'settings.plexLibraryHint':
     'Dacă serverul Plex are mai multe biblioteci de tip muzică (de exemplu audiobook-uri), rulează testul de conexiune și alege aici biblioteca potrivită.',
+  'settings.musicLibrary': 'Biblioteca muzicala',
+  'settings.musicLibraryAll': 'Toate bibliotecile muzicale',
+  'settings.musicLibraryId': 'Biblioteca {0}',
+  'settings.musicLibraryHint':
+    'Daca serverul tau are mai multe biblioteci muzicale, ruleaza "Testeaza conexiunea" si alege una aici pentru a restrange datele de ascultare si sincronizarea bibliotecii.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

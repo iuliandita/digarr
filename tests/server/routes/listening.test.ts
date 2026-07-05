@@ -65,9 +65,11 @@ function emptyConnections() {
     jellyfinUrl: null,
     jellyfinApiKey: null,
     jellyfinUserId: null,
+    jellyfinLibraryId: null,
     embyUrl: null,
     embyApiKey: null,
     embyUserId: null,
+    embyLibraryId: null,
     discogsToken: null,
     discogsUsername: null,
     subsonicUrl: null,
@@ -373,6 +375,7 @@ describe('GET /api/v1/listening/recent-tracks', () => {
       jellyfinUrl: 'https://jf',
       jellyfinApiKey: 'jf-key',
       jellyfinUserId: 'jf-user',
+      jellyfinLibraryId: 'lib-music-2',
     })
     mockCreateJellyfinClient.mockReturnValue({
       getRecentlyPlayed: vi.fn(async () => [
@@ -391,6 +394,10 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     const body = await res.json()
     expect(body.source).toBe('jellyfin')
     expect(body.tracks[0].artist).toBe('Cocteau Twins')
+    expect(mockCreateJellyfinClient).toHaveBeenCalledWith('https://jf', 'jf-key', 'jf-user', {
+      skipTlsVerify: false,
+      libraryId: 'lib-music-2',
+    })
   })
 
   it('falls back to Emby when only Emby is configured', async () => {
@@ -399,6 +406,7 @@ describe('GET /api/v1/listening/recent-tracks', () => {
       embyUrl: 'https://emby',
       embyApiKey: 'emby-key',
       embyUserId: 'emby-user',
+      embyLibraryId: 'lib-music',
     })
     mockCreateEmbyClient.mockReturnValue({
       getRecentlyPlayed: vi.fn(async () => [{ artistName: 'Swans', trackName: 'The Seer' }]),
@@ -411,5 +419,9 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     const body = await res.json()
     expect(body.source).toBe('emby')
     expect(body.tracks[0].artist).toBe('Swans')
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('https://emby', 'emby-key', 'emby-user', {
+      skipTlsVerify: false,
+      libraryId: 'lib-music',
+    })
   })
 })

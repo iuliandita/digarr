@@ -1075,6 +1075,11 @@ export const nl = {
   'settings.plexLibrarySection': 'Sectie {0}',
   'settings.plexLibraryHint':
     'Als je Plex-server meerdere muziekbibliotheken heeft (zoals luisterboeken), voer de verbindingstest uit en kies hier de juiste.',
+  'settings.musicLibrary': 'Muziekbibliotheek',
+  'settings.musicLibraryAll': 'Alle muziekbibliotheken',
+  'settings.musicLibraryId': 'Bibliotheek {0}',
+  'settings.musicLibraryHint':
+    'Als je server meerdere muziekbibliotheken heeft, voer dan "Verbinding testen" uit en kies er hier een om luistergegevens en bibliotheeksynchronisatie te beperken.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
