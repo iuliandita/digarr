@@ -122,7 +122,7 @@ docker run -d --name digarr -p 3000:3000 \
 
 Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Database migrations run automatically on every startup.
 
-The image pulls `docker.io/iuliandita/digarr:latest`, the newest stable release and the recommended channel for first-time home installs. Use a minor tag like `:1.11` to stay on patch fixes for that line, or pin a specific patch like `:1.11.1` when you want zero surprises. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on every change with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit.
+The image pulls `docker.io/iuliandita/digarr:latest`, the newest stable release and the recommended channel for first-time home installs. Use a minor tag like `:1.12` to stay on patch fixes for that line, or pin a specific patch like `:1.12.0` when you want zero surprises. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on every change with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit.
 
 ### Database backend
 
