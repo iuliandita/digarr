@@ -1075,6 +1075,11 @@ export const uk = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Музична бібліотека',
+  'settings.plexLibraryAuto': 'Автоматично (перша музична бібліотека)',
+  'settings.plexLibrarySection': 'Розділ {0}',
+  'settings.plexLibraryHint':
+    "Якщо на сервері Plex кілька музичних бібліотек (наприклад, аудіокниги), запустіть перевірку з'єднання та виберіть тут потрібну.",
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

@@ -1071,6 +1071,11 @@ export const fr = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Bibliothèque musicale',
+  'settings.plexLibraryAuto': 'Détection automatique (première bibliothèque musicale)',
+  'settings.plexLibrarySection': 'Section nº {0}',
+  'settings.plexLibraryHint':
+    'Si votre serveur Plex possède plusieurs bibliothèques de type musique (par exemple des livres audio), lancez le test de connexion et choisissez la bonne ici.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

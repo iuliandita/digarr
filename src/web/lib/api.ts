@@ -207,7 +207,14 @@ export const getSettings = () => fetchApi<Record<string, unknown>>('/settings')
 export const updateSettings = (partial: Record<string, unknown>) =>
   fetchApi('/settings', { method: 'PATCH', body: JSON.stringify(partial) })
 export const testService = (service: string, config: Record<string, unknown>) =>
-  fetchApi<{ message: string; version?: string; latencyMs?: number }>(`/settings/test/${service}`, {
+  fetchApi<{
+    message: string
+    version?: string
+    latencyMs?: number
+    // Plex probe extras: selected library section + all music-type sections
+    sectionId?: string
+    sections?: Array<{ key: string; title: string }>
+  }>(`/settings/test/${service}`, {
     method: 'POST',
     body: JSON.stringify(config),
   })

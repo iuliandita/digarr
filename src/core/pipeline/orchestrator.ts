@@ -210,7 +210,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const plexUrl = userConnections?.plexUrl
       const plexToken = userConnections?.plexToken
       if (plexUrl && plexToken) {
-        registry.register(createPlexSource(plexUrl, plexToken))
+        registry.register(createPlexSource(plexUrl, plexToken, userConnections?.plexSectionId))
       }
 
       // Jellyfin

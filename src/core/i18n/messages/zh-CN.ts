@@ -998,6 +998,11 @@ export const zhCN = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': '音乐库',
+  'settings.plexLibraryAuto': '自动检测（第一个音乐库）',
+  'settings.plexLibrarySection': '分区 {0}',
+  'settings.plexLibraryHint':
+    '如果你的 Plex 服务器有多个音乐类型的库（例如有声书），请运行连接测试并在此选择正确的库。',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

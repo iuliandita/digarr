@@ -1070,6 +1070,11 @@ export const nl = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Muziekbibliotheek',
+  'settings.plexLibraryAuto': 'Automatisch (eerste muziekbibliotheek)',
+  'settings.plexLibrarySection': 'Sectie {0}',
+  'settings.plexLibraryHint':
+    'Als je Plex-server meerdere muziekbibliotheken heeft (zoals luisterboeken), voer de verbindingstest uit en kies hier de juiste.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

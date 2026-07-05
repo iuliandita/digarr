@@ -1067,6 +1067,11 @@ export const tr = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Müzik kitaplığı',
+  'settings.plexLibraryAuto': 'Otomatik (ilk müzik kitaplığı)',
+  'settings.plexLibrarySection': 'Bölüm {0}',
+  'settings.plexLibraryHint':
+    'Plex sunucunuzda birden fazla müzik türünde kitaplık varsa (örneğin sesli kitaplar), bağlantı testini çalıştırın ve doğru olanı buradan seçin.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

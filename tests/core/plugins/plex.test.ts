@@ -12,6 +12,7 @@ describe('createPlexSource()', () => {
   function mockClient() {
     const client = {
       getMusicSectionId: vi.fn().mockResolvedValue('1'),
+      getMusicSections: vi.fn().mockResolvedValue([{ key: '1', title: 'Music' }]),
       getTopArtists: vi.fn().mockResolvedValue([
         { name: 'Radiohead', viewCount: 500, ratingKey: '100' },
         { name: 'Bjork', viewCount: 300, ratingKey: '101' },

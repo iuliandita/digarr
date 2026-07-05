@@ -54,6 +54,7 @@ function makeDeps(overrides: Partial<import('@/server').AppDependencies> = {}) {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,

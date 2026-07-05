@@ -132,6 +132,7 @@ export type UserConnections = {
   lastfmApiKey: string | null
   plexUrl: string | null
   plexToken: string | null
+  plexSectionId: string | null
   jellyfinUrl: string | null
   jellyfinApiKey: string | null
   jellyfinUserId: string | null
@@ -157,6 +158,7 @@ export async function getUserConnections(
       lastfmApiKey: users.lastfmApiKey,
       plexUrl: users.plexUrl,
       plexToken: users.plexToken,
+      plexSectionId: users.plexSectionId,
       jellyfinUrl: users.jellyfinUrl,
       jellyfinApiKey: users.jellyfinApiKey,
       jellyfinUserId: users.jellyfinUserId,

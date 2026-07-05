@@ -69,6 +69,7 @@ function userRow(overrides: Partial<Record<string, unknown>> = {}) {
     lastfmApiKey: null,
     plexUrl: null,
     plexToken: null,
+    plexSectionId: null,
     jellyfinUrl: null,
     jellyfinApiKey: null,
     jellyfinUserId: null,

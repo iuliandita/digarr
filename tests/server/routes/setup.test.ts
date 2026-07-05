@@ -78,6 +78,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,

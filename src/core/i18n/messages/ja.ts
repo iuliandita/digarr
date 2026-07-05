@@ -1067,6 +1067,11 @@ export const ja = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': '音楽ライブラリ',
+  'settings.plexLibraryAuto': '自動検出（最初の音楽ライブラリ）',
+  'settings.plexLibrarySection': 'セクション {0}',
+  'settings.plexLibraryHint':
+    'Plex サーバーに音楽タイプのライブラリが複数ある場合（オーディオブックなど）は、接続テストを実行してここで正しいライブラリを選択してください。',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

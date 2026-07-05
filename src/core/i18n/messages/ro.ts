@@ -1078,6 +1078,11 @@ export const ro = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Bibliotecă muzicală',
+  'settings.plexLibraryAuto': 'Detectare automată (prima bibliotecă muzicală)',
+  'settings.plexLibrarySection': 'Secțiunea {0}',
+  'settings.plexLibraryHint':
+    'Dacă serverul Plex are mai multe biblioteci de tip muzică (de exemplu audiobook-uri), rulează testul de conexiune și alege aici biblioteca potrivită.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
