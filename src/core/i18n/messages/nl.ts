@@ -1074,6 +1074,8 @@ export const nl = {
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
+  'settings.aiSavedTestFailedToast':
+    'AI-instellingen opgeslagen, maar de verbindingstest is mislukt',
   'settings.spotifyAuthorizationFailed': 'Failed to start Spotify authorization',
   'settings.spotifyDisconnectFailed': 'Failed to disconnect Spotify',
   'settings.spotifyLikedSongsFailed': 'Failed to start Spotify Liked Songs import',
@@ -1270,6 +1272,7 @@ export const nl = {
   'pipeline.message.buildingProfile': 'Je smaakprofiel wordt opgebouwd...',
   'pipeline.message.profiled': 'Geprofileerd: {0} topartiesten, {1} genres',
   'pipeline.message.findingSimilar': 'Vergelijkbare artiesten zoeken uit alle bronnen...',
+  'pipeline.message.aiSourceFailed': 'AI-provider mislukt: {0} - doorgaan zonder AI-suggesties',
   'pipeline.message.discovered': '{0} kandidaat-artiesten ontdekt',
   'pipeline.message.resolving': '{0} artiesten ophalen via MusicBrainz...',
   'pipeline.message.scoring': '{0} opgehaalde artiesten worden gescoord...',

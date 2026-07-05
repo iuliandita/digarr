@@ -66,6 +66,8 @@ export interface DiscoverSources {
 export type DiscoverOptions = {
   explicitCandidates?: Array<DiscoveredArtist | DiscoveryCandidate>
   explicitRun?: boolean
+  /** Invoked when a source fails entirely, so callers can surface the real error. */
+  onSourceFailure?: (sourceId: string, error: string) => void
 }
 
 function isDiscoveryCandidate(
@@ -176,6 +178,7 @@ export async function discover(
     console.warn(
       `[discover] source ${sourceId} failed for ${count} seed artist(s); last error: ${lastError}`,
     )
+    options.onSourceFailure?.(sourceId, lastError)
   }
 
   // One AI call with the full profile
@@ -200,9 +203,9 @@ export async function discover(
         })
       }
     } catch (err) {
-      console.warn(
-        `[discover] AI source failed: ${err instanceof Error ? err.message : String(err)}`,
-      )
+      const detail = err instanceof Error ? err.message : String(err)
+      console.warn(`[discover] AI source failed: ${detail}`)
+      options.onSourceFailure?.('ai', detail)
     }
   }
 
