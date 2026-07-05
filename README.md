@@ -23,6 +23,18 @@
 
 [More screenshots](docs/SCREENSHOTS.md)
 
+> [!IMPORTANT]
+> **Why people pick Digarr**
+>
+> - 💿 **Album-level discovery** -- recommends and approves *individual albums* (gap-fills, new releases, net-new finds), not just artists. No whole-discography grabs.
+> - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
+> - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
+> - 🧭 **13 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums -- all runnable on demand or saved as subscriptions.
+> - 🔓 **No Lidarr required** -- full discovery-only mode with genre-aware scoring from your listening sources.
+> - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
+> - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
+> - 🛡️ **Ops-grade self-hosting** -- zero-external-database single container, backup/restore, job observability, pre-flight upgrade checks, cosign-signed images.
+
 > [!NOTE]
 > **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
 
@@ -264,7 +276,9 @@ A successful verify proves the image was built by this repo's `release.yml` work
 
 ## Friends
 
-Other self-hosted music discovery projects:
+Other self-hosted music discovery projects. For a deeper look at how the
+approaches differ and which tool fits which setup, see
+[Choosing a Self-Hosted Music Discovery Tool](docs/COMPARISON.md).
 
 | Project | Approach |
 |---------|----------|
@@ -276,6 +290,8 @@ Other self-hosted music discovery projects:
 | [Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr) | Last.fm discovery with optional AI assistant. Real-time UI. |
 | [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
 | [MusicSeerr](https://github.com/HabiRabbu/Musicseerr) | Overseerr-style music request and discovery built around Lidarr. |
+| [SoulSync](https://github.com/Nezreka/SoulSync) | Hands-off acquisition: watchlist monitoring, multi-source downloads, rich tagging. |
+| [Kima Hub](https://github.com/Chevron7Locked/kima-hub) | Full music platform: streaming player, embedding similarity, podcasts. |
 | [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |
 
 ## Contributing
@@ -307,3 +323,9 @@ MIT. See [LICENSE](LICENSE).
    <img alt="Star History Chart" src="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
  </picture>
 </a>
+
+---
+
+<p align="center"><sub>
+music discovery · AI music recommendations · self-hosted · lidarr companion · *arr stack · album discovery · new music finder · music curation · mood search · playlist generator · music taste profile · plex · jellyfin · emby · navidrome · subsonic · slskd · soulseek · listenbrainz · last.fm · spotify · deezer · musicbrainz · discogs · tidal · bandcamp · release radar · library gap-fill · discovery modes · music subscriptions · genre discovery · similar artists · charts · docker · kubernetes · helm · unraid · synology · homelab · multi-user · OIDC · SSO · webhooks · discord notifications · i18n · 15 languages · open source · MIT
+</sub></p>

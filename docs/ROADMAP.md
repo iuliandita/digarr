@@ -50,6 +50,7 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 
 ### Integrations
 
+- Multiple Lidarr instances as approval targets
 - Prowlarr integration
 - Odesli / song.link resolution
 - Apple Music / iTunes metadata enrichment
