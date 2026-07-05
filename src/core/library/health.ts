@@ -28,7 +28,7 @@ type HealthServiceDeps = {
     getArtists: () => Promise<LidarrArtist[]>
     getAlbums: (artistId: number) => Promise<LidarrAlbum[]>
     lookupArtist: (term: string) => Promise<unknown[]>
-    updateArtist: (id: number, data: Partial<LidarrArtist>) => Promise<LidarrArtist>
+    setArtistsMonitored: (artistIds: number[], monitored: boolean) => Promise<LidarrArtist[]>
     triggerCommand: (name: string, body?: Record<string, unknown>) => Promise<unknown>
     getRootFolders: () => Promise<Array<{ id: number; path: string; freeSpace: number }>>
   }
@@ -425,7 +425,7 @@ export class LibraryHealthService {
         break
 
       case 'unmonitored':
-        await this.deps.lidarrClient.updateArtist(item.artistId, { monitored: true })
+        await this.deps.lidarrClient.setArtistsMonitored([item.artistId], true)
         break
 
       case 'missing-albums':

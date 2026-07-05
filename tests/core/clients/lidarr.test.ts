@@ -492,33 +492,33 @@ describe('createLidarrClient', () => {
     })
   })
 
-  describe('updateArtist()', () => {
-    it('PUTs to /api/v1/artist/:id with the provided data', async () => {
-      const updated = { ...mockArtists[0], monitored: false }
+  describe('setArtistsMonitored()', () => {
+    // Regression #393 class: monitor flips must use the bulk editor endpoint
+    // (see the rationale comment in src/core/clients/lidarr.ts).
+    it('PUTs artistIds and monitored to /api/v1/artist/editor', async () => {
+      const updated = [{ ...mockArtists[0], monitored: false }]
       mockPut.mockResolvedValueOnce(updated)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.updateArtist(1, { monitored: false })
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/1', { monitored: false })
+      const result = await client.setArtistsMonitored([1], false)
+      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/editor', {
+        artistIds: [1],
+        monitored: false,
+      })
       expect(result).toEqual(updated)
     })
 
-    it('uses the correct artist id in the URL', async () => {
-      mockPut.mockResolvedValueOnce(mockArtists[1])
+    it('sends multiple artist ids in one call', async () => {
+      mockPut.mockResolvedValueOnce(mockArtists)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.updateArtist(2, { monitored: true })
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/2', { monitored: true })
-    })
-
-    it('returns the updated artist from Lidarr', async () => {
-      const updated = { ...mockArtists[0], genres: ['rock'] }
-      mockPut.mockResolvedValueOnce(updated)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.updateArtist(1, { genres: ['rock'] })
-      expect(result.genres).toEqual(['rock'])
+      await client.setArtistsMonitored([1, 2], true)
+      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/editor', {
+        artistIds: [1, 2],
+        monitored: true,
+      })
     })
   })
 
-  describe('updateAlbum()', () => {
+  describe('setAlbumsMonitored()', () => {
     const mockAlbum: LidarrAlbum = {
       id: 101,
       title: 'OK Computer',
@@ -528,39 +528,38 @@ describe('createLidarrClient', () => {
       albumType: 'Album',
     }
 
-    it('PUTs to /api/v1/album/:id with monitored:true', async () => {
-      mockPut.mockResolvedValueOnce({ ...mockAlbum, monitored: true })
+    // Regression #393: monitor flips must use the bulk monitor endpoint
+    // (see the rationale comment in src/core/clients/lidarr.ts).
+    it('PUTs albumIds and monitored:true to /api/v1/album/monitor', async () => {
+      mockPut.mockResolvedValueOnce([{ ...mockAlbum, monitored: true }])
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.updateAlbum(101, { monitored: true })
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/101', { monitored: true })
-      expect(result.monitored).toBe(true)
+      const result = await client.setAlbumsMonitored([101], true)
+      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
+        albumIds: [101],
+        monitored: true,
+      })
+      expect(result[0]?.monitored).toBe(true)
     })
 
-    it('PUTs to /api/v1/album/:id with monitored:false', async () => {
-      mockPut.mockResolvedValueOnce({ ...mockAlbum, monitored: false })
+    it('PUTs monitored:false', async () => {
+      mockPut.mockResolvedValueOnce([{ ...mockAlbum, monitored: false }])
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.updateAlbum(101, { monitored: false })
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/101', { monitored: false })
-      expect(result.monitored).toBe(false)
+      const result = await client.setAlbumsMonitored([101], false)
+      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
+        albumIds: [101],
+        monitored: false,
+      })
+      expect(result[0]?.monitored).toBe(false)
     })
 
-    it('uses the correct album id in the URL', async () => {
-      mockPut.mockResolvedValueOnce({ ...mockAlbum, id: 202, monitored: true })
+    it('sends multiple album ids in one call', async () => {
+      mockPut.mockResolvedValueOnce([mockAlbum, { ...mockAlbum, id: 202 }])
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.updateAlbum(202, { monitored: true })
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/202', { monitored: true })
-    })
-
-    it('returns a LidarrAlbum shape', async () => {
-      mockPut.mockResolvedValueOnce(mockAlbum)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.updateAlbum(101, { monitored: true })
-      expect(result).toHaveProperty('id')
-      expect(result).toHaveProperty('title')
-      expect(result).toHaveProperty('artistId')
-      expect(result).toHaveProperty('foreignAlbumId')
-      expect(result).toHaveProperty('monitored')
-      expect(result).toHaveProperty('albumType')
+      await client.setAlbumsMonitored([101, 202], true)
+      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
+        albumIds: [101, 202],
+        monitored: true,
+      })
     })
   })
 
