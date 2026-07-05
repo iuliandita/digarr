@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Version-drift guard: block pushes when release surfaces (CHANGELOG, Helm
+# chart, roadmap, README banner) or published-image pins disagree.
+# Activate with: git config --local core.hooksPath .githooks
+# CI runs the same script in lint-typecheck-test, so this is the fast local
+# copy of that gate, not a substitute for it.
+
+cd "$(git rev-parse --show-toplevel)"
+
+if command -v bun >/dev/null 2>&1; then
+  bun scripts/check-version-drift.ts
+else
+  echo "pre-push: bun not found, skipping version-drift check (CI will enforce it)" >&2
+fi
