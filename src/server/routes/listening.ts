@@ -295,7 +295,10 @@ export function listeningRoutes(deps: AppDependencies) {
           userConns?.jellyfinUrl ?? '',
           userConns?.jellyfinApiKey ?? '',
           userConns?.jellyfinUserId ?? '',
-          { skipTlsVerify: settings.skipTlsVerify ?? false },
+          {
+            skipTlsVerify: settings.skipTlsVerify ?? false,
+            libraryId: userConns?.jellyfinLibraryId,
+          },
         )
         const recent = await jellyfin.getRecentlyPlayed(limit)
         tracks = recent.slice(0, limit).map((r) => ({
@@ -316,7 +319,10 @@ export function listeningRoutes(deps: AppDependencies) {
           userConns?.embyUrl ?? '',
           userConns?.embyApiKey ?? '',
           userConns?.embyUserId ?? '',
-          { skipTlsVerify: settings.skipTlsVerify ?? false },
+          {
+            skipTlsVerify: settings.skipTlsVerify ?? false,
+            libraryId: userConns?.embyLibraryId,
+          },
         )
         const recent = await emby.getRecentlyPlayed(limit)
         tracks = recent.slice(0, limit).map((r) => ({

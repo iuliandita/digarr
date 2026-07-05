@@ -206,6 +206,38 @@ describe('emby library selection', () => {
     expect(url).not.toContain('ParentId=')
   })
 
+  it('getAllArtists() and getFavoriteArtists() scope through the /Artists endpoint when a library is configured', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(JSON.stringify({ Items: [] }))))
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1', {
+      libraryId: 'lib-music-2',
+    })
+    await client.getAllArtists()
+    await client.getFavoriteArtists(10)
+
+    const allArtistsUrl = vi.mocked(fetch).mock.calls[0]?.[0] as string
+    expect(allArtistsUrl).toContain('/Artists?')
+    expect(allArtistsUrl).toContain('ParentId=lib-music-2')
+    expect(allArtistsUrl).toContain('Fields=Genres%2CProviderIds')
+
+    const favoritesUrl = vi.mocked(fetch).mock.calls[1]?.[0] as string
+    expect(favoritesUrl).toContain('/Artists?')
+    expect(favoritesUrl).toContain('ParentId=lib-music-2')
+    expect(favoritesUrl).toContain('IsFavorite=true')
+  })
+
+  it('getRecentlyPlayed() scopes the Audio query with ParentId when a library is configured', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(JSON.stringify({ Items: [] }))))
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1', {
+      libraryId: 'lib-music',
+    })
+    await client.getRecentlyPlayed(10)
+    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string
+    expect(url).toContain('/Users/user-1/Items?')
+    expect(url).toContain('ParentId=lib-music')
+  })
+
   it('testConnection() reports the selected library and all music libraries', async () => {
     vi.stubGlobal(
       'fetch',

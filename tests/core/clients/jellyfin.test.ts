@@ -309,6 +309,45 @@ describe('jellyfin library selection', () => {
     expect(path).not.toContain('ParentId=')
   })
 
+  it('getAllArtists() pages through the /Artists endpoint when a library is configured', async () => {
+    const client = createJellyfinClient('http://jf:8096', 'key', USER, {
+      libraryId: 'lib-music',
+    })
+    mockGet.mockResolvedValueOnce({
+      TotalRecordCount: 1,
+      Items: [
+        {
+          Id: 'jf-1',
+          Name: 'Bush',
+          Genres: ['Rock'],
+          ProviderIds: { MusicBrainzArtist: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' },
+        },
+      ],
+    })
+
+    await expect(client.getAllArtists()).resolves.toEqual([
+      { id: 'jf-1', name: 'Bush', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711', genres: ['Rock'] },
+    ])
+    const path = mockGet.mock.calls[0]?.[0] as string
+    expect(path).toContain('/Artists?')
+    expect(path).toContain('ParentId=lib-music')
+    expect(path).toContain('Fields=Genres%2CProviderIds')
+    expect(path).toContain('StartIndex=0')
+  })
+
+  it('getFavoriteArtists() scopes through the /Artists endpoint when a library is configured', async () => {
+    const client = createJellyfinClient('http://jf:8096', 'key', USER, {
+      libraryId: 'lib-music',
+    })
+    mockGet.mockResolvedValueOnce({ Items: [], TotalRecordCount: 0 })
+
+    await client.getFavoriteArtists(10)
+    const path = mockGet.mock.calls[0]?.[0] as string
+    expect(path).toContain('/Artists?')
+    expect(path).toContain('ParentId=lib-music')
+    expect(path).toContain('IsFavorite=true')
+  })
+
   it('getRecentlyPlayed() scopes the Audio query with ParentId when a library is configured', async () => {
     const client = createJellyfinClient('http://jf:8096', 'key', USER, {
       libraryId: 'lib-music',
