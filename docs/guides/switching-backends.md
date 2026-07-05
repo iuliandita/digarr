@@ -53,6 +53,13 @@ Select one:
 For PGlite, the path must be inside the configured data root. The test step
 checks this without creating any files.
 
+The data root defaults to the parent directory of the currently active PGlite
+data directory (for Docker deployments that is `/app`, since the default
+`DB_PATH` is `/app/data`). To allow migration targets elsewhere -- for example
+a second mounted volume -- set `DIGARR_MIGRATE_DATA_ROOT` to that directory
+before starting Digarr. Paths outside the root are rejected to keep the
+migration panel from writing to arbitrary container locations.
+
 ### 3. Test the connection
 
 Click **Test connection**. This validates:
@@ -94,7 +101,11 @@ The panel shows the exact environment variable(s) to set for the new backend:
 
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
   entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`). Alternatively,
-  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually.
+  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually. For TLS,
+  `DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. Note that
+  Digarr's `require` performs full certificate verification -- stricter than
+  libpq's `require`, which encrypts without verifying. Use `no-verify` for
+  self-signed certificates.
 - **Switching to PGlite**: unset `DATABASE_URL` and `DB_HOST`, then set `DB_PATH`
   to the directory path you entered (e.g. `DB_PATH=/app/data-new`).
 

@@ -254,10 +254,10 @@ export function authRoutes(deps: AppDependencies) {
     const { email: rawEmail } = c.req.valid('json')
     // Normalize to lowercase so Mixed@Case and mixed@case cannot become two
     // distinct rows (which would also widen the OIDC auto-link match surface).
-    const email = rawEmail ? rawEmail.toLowerCase() : null
+    const email = rawEmail?.toLowerCase() || null
 
     const user = await deps.getUserById(auth.userId)
-    if (!user) return c.json({ error: 'User not found' }, 404)
+    if (!user) return problem(c, 'auth-user-not-found', 'User not found', 404)
 
     if (email) {
       const existing = await deps.getUserByEmail(email)

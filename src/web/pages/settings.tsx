@@ -1511,6 +1511,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Field label={t('settings.fieldUsername')} id="subsonic-username">
               <Input
                 id="subsonic-username"
+                autoComplete="off"
                 placeholder={t('settings.fieldUsername')}
                 value={subsonicUsername}
                 onChange={(e) => setSubsonicUsername(e.target.value)}
@@ -1521,6 +1522,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Input
               id="subsonic-password"
               type="password"
+              autoComplete="new-password"
               placeholder={
                 settings.subsonicPassword === '***'
                   ? `(${t('settings.saved')})`

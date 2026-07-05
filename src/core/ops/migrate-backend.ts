@@ -116,6 +116,10 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
     await conn.runMigrations()
 
     if (overwrite) {
+      // Best-effort by design: this truncate runs outside the restore
+      // transaction below. Both tables are excluded from migration (see
+      // EXCLUDED_TABLES) and hold only ephemeral auth/rate-limit state, so a
+      // failed restore leaving them empty on the target is harmless.
       await conn.db.execute(sql`truncate table sessions, rate_limit_buckets`)
     }
 
