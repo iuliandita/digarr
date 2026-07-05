@@ -12,6 +12,9 @@
  *   - deploy/k8s/rendered.yaml        (image ref with @sha256:...)
  *   - deploy/unraid/digarr.xml        (digest comment + <Repository> :tag,
  *                                      <Tag>, <TagDescription>)
+ *   - deploy/docker/docker-compose.yml        (example pin comments)
+ *   - deploy/docker/docker-compose.pglite.yml (example pin comments)
+ *   - README.md                               (example tag pins)
  *
  * rendered.yaml is a `helm template` snapshot, but at the digest-sync step the
  * only line that changes is the image digest, so a targeted string replace is
@@ -33,6 +36,7 @@ if (!tagArg) {
   process.exit(1)
 }
 const tag = tagArg.replace(/^v/, '')
+const minor = tag.split('.').slice(0, 2).join('.')
 
 async function bearerToken(): Promise<string> {
   if (process.env.GH_TOKEN) {
@@ -121,6 +125,44 @@ const targets: Target[] = [
     path: 'deploy/unraid/digarr.xml',
     pattern: /<TagDescription>[^<]*<\/TagDescription>/,
     replacement: () => `<TagDescription>v${tag} release</TagDescription>`,
+  },
+  // Example pins in compose comments and the README. Never the active image
+  // (compose defaults to :latest), but stale examples read as the current
+  // release to anyone copying them.
+  {
+    path: 'deploy/docker/docker-compose.yml',
+    pattern: /(# {3}:)\d+\.\d+( -> current minor release line)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${minor}${suffix}`,
+  },
+  {
+    path: 'deploy/docker/docker-compose.yml',
+    pattern: /(# image: docker\.io\/iuliandita\/digarr:)\d+\.\d+\.\d+/g,
+    replacement: (_d, _match, prefix) => `${prefix}${tag}`,
+  },
+  {
+    path: 'deploy/docker/docker-compose.pglite.yml',
+    pattern: /(Track patch fixes only: docker\.io\/iuliandita\/digarr:)\d+\.\d+/,
+    replacement: (_d, _match, prefix) => `${prefix}${minor}`,
+  },
+  {
+    path: 'deploy/docker/docker-compose.pglite.yml',
+    pattern: /(surprises: docker\.io\/iuliandita\/digarr:)\d+\.\d+\.\d+/,
+    replacement: (_d, _match, prefix) => `${prefix}${tag}`,
+  },
+  {
+    path: 'deploy/docker/docker-compose.pglite.yml',
+    pattern: /(variant: docker\.io\/iuliandita\/digarr:)\d+\.\d+\.\d+(-debian)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${tag}${suffix}`,
+  },
+  {
+    path: 'README.md',
+    pattern: /(minor tag like `:)\d+\.\d+(`)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${minor}${suffix}`,
+  },
+  {
+    path: 'README.md',
+    pattern: /(specific patch like `:)\d+\.\d+\.\d+(`)/,
+    replacement: (_d, _match, prefix, suffix) => `${prefix}${tag}${suffix}`,
   },
 ]
 

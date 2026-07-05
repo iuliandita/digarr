@@ -9,9 +9,9 @@ services:
   app:
     image: docker.io/iuliandita/digarr:latest
     # :latest -> newest stable release, recommended for first-time home installs
-    # Track patch fixes only: docker.io/iuliandita/digarr:1.11
-    # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.11.1
-    # Default is alpine; Debian/glibc variant: docker.io/iuliandita/digarr:1.11.1-debian
+    # Track patch fixes only: docker.io/iuliandita/digarr:1.12
+    # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.12.0
+    # Default is alpine; Debian/glibc variant: docker.io/iuliandita/digarr:1.12.0-debian
     user: "1000:1000"
     env_file:
       - path: .env
