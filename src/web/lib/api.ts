@@ -214,6 +214,9 @@ export const testService = (service: string, config: Record<string, unknown>) =>
     // Plex probe extras: selected library section + all music-type sections
     sectionId?: string
     sections?: Array<{ key: string; title: string }>
+    // Jellyfin/Emby probe extras: selected music library + all music libraries
+    libraryId?: string
+    libraries?: Array<{ id: string; name: string }>
   }>(`/settings/test/${service}`, {
     method: 'POST',
     body: JSON.stringify(config),

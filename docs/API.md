@@ -730,6 +730,11 @@ Settings notes:
   chosen key as the per-user `plexSectionId` setting; empty/null means auto-detect (first
   music-type library). Useful when a server has several `artist`-type libraries (e.g.
   audiobooks next to music)
+- The `jellyfin` and `emby` probes likewise return the user's music libraries (and the
+  selected one when configured): `{ "libraryId": "abc", "libraries": [{ "id": "abc", "name":
+  "Music" }] }`. Save the chosen id as the per-user `jellyfinLibraryId` / `embyLibraryId`
+  setting; empty/null means all music libraries (server-wide, the default). When set, top
+  artists, favorites, recent listening, and library sync are scoped to that library
 
 ---
 

@@ -97,9 +97,11 @@ type Settings = {
   jellyfinUrl?: string
   jellyfinApiKey?: string
   jellyfinUserId?: string
+  jellyfinLibraryId?: string
   embyUrl?: string
   embyApiKey?: string
   embyUserId?: string
+  embyLibraryId?: string
   discogsToken?: string
   discogsUsername?: string
   subsonicUrl?: string
@@ -282,11 +284,17 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
   )
   const [jellyfinUserId, setJellyfinUserId] = useState(settings.jellyfinUserId ?? '')
+  const [jellyfinLibraryId, setJellyfinLibraryId] = useState(settings.jellyfinLibraryId ?? '')
+  const [jellyfinLibraries, setJellyfinLibraries] = useState<Array<{ id: string; name: string }>>(
+    [],
+  )
   const [embyUrl, setEmbyUrl] = useState(settings.embyUrl ?? '')
   const [embyApiKey, setEmbyApiKey] = useState(
     settings.embyApiKey === '***' ? '' : (settings.embyApiKey ?? ''),
   )
   const [embyUserId, setEmbyUserId] = useState(settings.embyUserId ?? '')
+  const [embyLibraryId, setEmbyLibraryId] = useState(settings.embyLibraryId ?? '')
+  const [embyLibraries, setEmbyLibraries] = useState<Array<{ id: string; name: string }>>([])
   const [discogsUsername, setDiscogsUsername] = useState(settings.discogsUsername ?? '')
   const [discogsToken, setDiscogsToken] = useState(
     settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
@@ -519,25 +527,41 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     }),
   )
 
-  const testJellyfin = createTester('jellyfin', 'Jellyfin', () =>
-    testService('jellyfin', { url: jellyfinUrl, apiKey: jellyfinApiKey, userId: jellyfinUserId }),
-  )
+  const testJellyfin = createTester('jellyfin', 'Jellyfin', async () => {
+    const res = await testService('jellyfin', {
+      url: jellyfinUrl,
+      apiKey: jellyfinApiKey,
+      userId: jellyfinUserId,
+      libraryId: jellyfinLibraryId,
+    })
+    if (Array.isArray(res.libraries)) setJellyfinLibraries(res.libraries)
+    return res
+  })
   const saveJellyfin = createSaver('jellyfin', 'Jellyfin', () =>
     updateSettings({
       jellyfinUrl,
       jellyfinApiKey: jellyfinApiKey || undefined,
       jellyfinUserId: jellyfinUserId || undefined,
+      jellyfinLibraryId: jellyfinLibraryId || null,
     }),
   )
 
-  const testEmby = createTester('emby', 'Emby', () =>
-    testService('emby', { url: embyUrl, apiKey: embyApiKey, userId: embyUserId }),
-  )
+  const testEmby = createTester('emby', 'Emby', async () => {
+    const res = await testService('emby', {
+      url: embyUrl,
+      apiKey: embyApiKey,
+      userId: embyUserId,
+      libraryId: embyLibraryId,
+    })
+    if (Array.isArray(res.libraries)) setEmbyLibraries(res.libraries)
+    return res
+  })
   const saveEmby = createSaver('emby', 'Emby', () =>
     updateSettings({
       embyUrl,
       embyApiKey: embyApiKey || undefined,
       embyUserId: embyUserId || undefined,
+      embyLibraryId: embyLibraryId || null,
     }),
   )
 
@@ -1436,6 +1460,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             />
             <p className="text-xs text-muted mt-1">{t('settings.jellyfinUserIdHelp')}</p>
           </Field>
+          <Field label={t('settings.musicLibrary')} id="jellyfin-library">
+            <Select
+              id="jellyfin-library"
+              value={jellyfinLibraryId}
+              onChange={(e) => setJellyfinLibraryId(e.target.value)}
+            >
+              <option value="">{t('settings.musicLibraryAll')}</option>
+              {jellyfinLibraries.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+              {jellyfinLibraryId && !jellyfinLibraries.some((l) => l.id === jellyfinLibraryId) && (
+                <option value={jellyfinLibraryId}>
+                  {t('settings.musicLibraryId').replace('{0}', jellyfinLibraryId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
+          </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (
               <Button
@@ -1500,6 +1544,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onChange={(e) => setEmbyUserId(e.target.value)}
             />
             <p className="text-xs text-muted mt-1">{t('settings.embyUserIdHelp')}</p>
+          </Field>
+          <Field label={t('settings.musicLibrary')} id="emby-library">
+            <Select
+              id="emby-library"
+              value={embyLibraryId}
+              onChange={(e) => setEmbyLibraryId(e.target.value)}
+            >
+              <option value="">{t('settings.musicLibraryAll')}</option>
+              {embyLibraries.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+              {embyLibraryId && !embyLibraries.some((l) => l.id === embyLibraryId) && (
+                <option value={embyLibraryId}>
+                  {t('settings.musicLibraryId').replace('{0}', embyLibraryId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (

@@ -217,7 +217,15 @@ export class PipelineOrchestrator extends EventEmitter {
       const jfApiKey = userConnections?.jellyfinApiKey
       const jfUserId = userConnections?.jellyfinUserId
       if (jfUrl && jfApiKey && jfUserId) {
-        registry.register(createJellyfinSource(jfUrl, jfApiKey, jfUserId, settings.skipTlsVerify))
+        registry.register(
+          createJellyfinSource(
+            jfUrl,
+            jfApiKey,
+            jfUserId,
+            settings.skipTlsVerify,
+            userConnections?.jellyfinLibraryId,
+          ),
+        )
       }
 
       // Emby
@@ -225,7 +233,15 @@ export class PipelineOrchestrator extends EventEmitter {
       const embyApiKey = userConnections?.embyApiKey
       const embyUserId = userConnections?.embyUserId
       if (embyUrl && embyApiKey && embyUserId) {
-        registry.register(createEmbySource(embyUrl, embyApiKey, embyUserId, settings.skipTlsVerify))
+        registry.register(
+          createEmbySource(
+            embyUrl,
+            embyApiKey,
+            embyUserId,
+            settings.skipTlsVerify,
+            userConnections?.embyLibraryId,
+          ),
+        )
       }
 
       // Discogs

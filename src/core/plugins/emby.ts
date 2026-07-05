@@ -6,8 +6,9 @@ export function createEmbySource(
   apiKey: string,
   userId: string,
   skipTlsVerify?: boolean,
+  libraryId?: string | null,
 ): DiscoverySource {
-  const client = createEmbyClient(url, apiKey, userId, { skipTlsVerify })
+  const client = createEmbyClient(url, apiKey, userId, { skipTlsVerify, libraryId })
 
   return {
     id: 'emby',

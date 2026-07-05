@@ -1003,6 +1003,11 @@ export const zhCN = {
   'settings.plexLibrarySection': '分区 {0}',
   'settings.plexLibraryHint':
     '如果你的 Plex 服务器有多个音乐类型的库（例如有声书），请运行连接测试并在此选择正确的库。',
+  'settings.musicLibrary': '音乐媒体库',
+  'settings.musicLibraryAll': '所有音乐媒体库',
+  'settings.musicLibraryId': '媒体库 {0}',
+  'settings.musicLibraryHint':
+    '如果服务器上有多个音乐媒体库，请运行“测试连接”并在此选择一个，以限定收听数据和媒体库同步的范围。',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

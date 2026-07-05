@@ -6,8 +6,9 @@ export function createJellyfinSource(
   apiKey: string,
   userId: string,
   skipTlsVerify?: boolean,
+  libraryId?: string | null,
 ): DiscoverySource {
-  const client = createJellyfinClient(url, apiKey, userId, { skipTlsVerify })
+  const client = createJellyfinClient(url, apiKey, userId, { skipTlsVerify, libraryId })
 
   return {
     id: 'jellyfin',

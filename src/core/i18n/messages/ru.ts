@@ -1087,6 +1087,11 @@ export const ru = {
   'settings.plexLibrarySection': 'Раздел {0}',
   'settings.plexLibraryHint':
     'Если на сервере Plex несколько музыкальных библиотек (например, аудиокниги), запустите проверку подключения и выберите здесь нужную.',
+  'settings.musicLibrary': 'Музыкальная библиотека',
+  'settings.musicLibraryAll': 'Все музыкальные библиотеки',
+  'settings.musicLibraryId': 'Библиотека {0}',
+  'settings.musicLibraryHint':
+    'Если на сервере несколько музыкальных библиотек, запустите «Проверить подключение» и выберите здесь одну, чтобы ограничить данные прослушиваний и синхронизацию библиотеки.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',

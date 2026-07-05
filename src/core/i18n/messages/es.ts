@@ -1081,6 +1081,11 @@ export const es = {
   'settings.plexLibrarySection': 'Sección {0}',
   'settings.plexLibraryHint':
     'Si tu servidor Plex tiene varias bibliotecas de tipo música (por ejemplo, audiolibros), ejecuta la prueba de conexión y elige aquí la correcta.',
+  'settings.musicLibrary': 'Biblioteca de musica',
+  'settings.musicLibraryAll': 'Todas las bibliotecas de musica',
+  'settings.musicLibraryId': 'Biblioteca {0}',
+  'settings.musicLibraryHint':
+    'Si tu servidor tiene varias bibliotecas de musica, ejecuta "Probar conexion" y elige una aqui para acotar los datos de escucha y la sincronizacion de la biblioteca.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
