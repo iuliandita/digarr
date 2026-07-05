@@ -49,6 +49,14 @@ describe('ipv6InCidr', () => {
   it('rejects malformed /bits', () => {
     expect(() => ipv6InCidr('fd00::1', 'fd00::/129')).toThrow()
   })
+
+  it('matches embedded dotted-quad tails', () => {
+    expect(ipv6InCidr('::ffff:10.0.0.1', '::ffff:0:0/96')).toBe(true)
+  })
+
+  it('rejects malformed embedded dotted-quad tails', () => {
+    expect(ipv6InCidr('::ffff:999.0.0.1', '::ffff:0:0/96')).toBe(false)
+  })
 })
 
 describe('ipv6InCidr zone IDs', () => {
@@ -103,7 +111,21 @@ describe('isIpTrusted', () => {
   it('returns false for empty cidr list', () => {
     expect(isIpTrusted('10.0.0.1', [])).toBe(false)
   })
+  it('matches IPv4 and IPv6 CIDRs in mixed trust lists', () => {
+    const cidrs = ['10.0.0.0/8', 'fd00::/8']
+
+    expect(isIpTrusted('fd00::1', cidrs)).toBe(true)
+    expect(isIpTrusted('10.1.2.3', cidrs)).toBe(true)
+    expect(isIpTrusted('192.168.1.5', cidrs)).toBe(false)
+  })
   it('strips IPv4-mapped IPv6 prefix before matching', () => {
     expect(isIpTrusted('::ffff:192.168.1.5', ['192.168.0.0/16'])).toBe(true)
+  })
+  it('normalizes IPv4-mapped IPv6 forms before matching IPv4 CIDRs', () => {
+    const cidrs = ['192.168.0.0/16']
+
+    expect(isIpTrusted('::ffff:c0a8:105', cidrs)).toBe(true)
+    expect(isIpTrusted('::FFFF:192.168.1.5', cidrs)).toBe(true)
+    expect(isIpTrusted('0:0:0:0:0:ffff:192.168.1.5', cidrs)).toBe(true)
   })
 })
