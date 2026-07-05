@@ -30,9 +30,17 @@ CHART_VERSION="$(awk '/^version:/ {print $2; exit}' "${CHART_DIR}/Chart.yaml")"
 # chart directly with \`helm install\`; this snapshot exists only so
 # reviewers can see raw manifest shape without running helm locally.
 HEADER
+  # Normalize across helm major versions: helm 4 emits a blank line before
+  # each `---` document separator, helm 3 does not. Drop those (and trailing
+  # blanks) so the snapshot is byte-identical regardless of the helm on PATH -
+  # otherwise CI's pinned helm and a contributor's local helm fight over
+  # whitespace-only diffs.
   helm template digarr "${CHART_DIR}" \
     --namespace digarr \
-    --set postgresql.auth.password=REPLACE_ME
+    --set postgresql.auth.password=REPLACE_ME |
+    awk 'BEGIN { blanks = 0 }
+         /^$/ { blanks++; next }
+         { if ($0 != "---") for (i = 0; i < blanks; i++) print ""; blanks = 0; print }'
 } > "${OUT_FILE}"
 
 printf 'wrote %s (chart %s)\n' "${OUT_FILE#"${REPO_ROOT}"/}" "${CHART_VERSION}"
