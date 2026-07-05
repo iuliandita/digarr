@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-06-24 | Current: v1.10.0
+> Updated: 2026-07-05 | Current: v1.12.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -86,8 +86,10 @@ Low confidence. Would build only with real demand.
 ## Shipped Highlights
 
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
-Release reminder: after publishing a new app image, update the pinned digests in `deploy/k8s/deployment.yaml`, `deploy/helm/digarr/values.yaml`, and `deploy/unraid/digarr.xml`.
+Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it rewrites the pinned digests and version tags across the k8s/Helm/Unraid deploy files plus the example pins in the compose files and README.
 
+- AI provider failures are now first-class observable (v1.12.0): a dead provider surfaces in scan progress warnings, job history records the real provider error, connection-test failures show the upstream message, and saving AI settings re-probes the persisted config. Provider hardening landed alongside: shared LLM output parsing for OpenAI/Gemini, secret redaction in error snippets, and Ollama model validation in test connection
+- Zero-external-database operation shipped in v1.11.0: embedded PGlite backend (no separate PostgreSQL container), an admin-gated in-app migration tool between PGlite and PostgreSQL with verified atomic copy, a Subsonic (Navidrome/Airsonic/Gonic) listening + library source, self-service account email, and an OIDC account-takeover fix (subject-only identity matching, GHSA-w643-583p-vm6m)
 - Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan.
 - Scheduled notification digest: alongside the per-batch webhook, a periodic roll-up of recent activity (discovered/added/runs) on a user-set cron schedule, configured in Settings, applied at runtime without a restart, reusing the existing SSRF-protected webhook + Discord formatting, full i18n across 15 locales (v1.10.0)
 - Spotify Saved Albums is now a runnable discovery mode: the albums you saved on Spotify seed artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Spotify OAuth connection (the `user-library-read` scope was already granted for Liked Songs, so no re-consent), full i18n across 15 locales (v1.9.0)

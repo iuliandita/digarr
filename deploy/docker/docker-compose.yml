@@ -16,7 +16,8 @@ services:
   app:
     image: docker.io/iuliandita/digarr:latest
     # Channels:
-    #   :latest -> newest stable release, recommended for first-time home installs
+    #   :latest -> newest tagged release, recommended for first-time home installs
+    #   :stable -> releases soaked for 7+ days with no follow-up patch
     #   :1.12 -> current minor release line, patch fixes only
     # Pin to a specific patch when you want zero surprises:
     # image: docker.io/iuliandita/digarr:1.12.0

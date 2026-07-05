@@ -94,9 +94,15 @@ jobs:
           # Multi-arch retag: imagetools create copies the manifest list under a new tag without re-uploading layers.
           docker buildx imagetools create --tag "${GHCR_IMAGE}:stable" "${GHCR_IMAGE}:${version}"
           docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable" "${DOCKER_IMAGE}:${version}"
-          # Same again for the alpine variant so both channels stay in lockstep.
-          docker buildx imagetools create --tag "${GHCR_IMAGE}:stable-alpine" "${GHCR_IMAGE}:${version}-alpine"
-          docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable-alpine" "${DOCKER_IMAGE}:${version}-alpine"
+          # Same again for the debian variant so both channels stay in lockstep.
+          # (release.yml publishes unsuffixed alpine-based tags + -debian since the
+          # alpine-default switch; the old ${version}-alpine tags no longer exist.)
+          docker buildx imagetools create --tag "${GHCR_IMAGE}:stable-debian" "${GHCR_IMAGE}:${version}-debian"
+          docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable-debian" "${DOCKER_IMAGE}:${version}-debian"
+          # Legacy alias from the alpine-suffixed era: unsuffixed images are alpine
+          # now, so keep :stable-alpine moving instead of freezing old pins.
+          docker buildx imagetools create --tag "${GHCR_IMAGE}:stable-alpine" "${GHCR_IMAGE}:${version}"
+          docker buildx imagetools create --tag "${DOCKER_IMAGE}:stable-alpine" "${DOCKER_IMAGE}:${version}"
 
       - name: Resolve promoted digest
         id: digest
