@@ -91,3 +91,6 @@ Examples:
 - `feat(pipeline): add spotify source`
 - `fix(lidarr): handle 404 on artist lookup`
 - `docs: update contributing guide`
+
+Keep commit and squash-merge titles plain ASCII and at most 72 characters;
+move detail into the body instead of the subject line.
