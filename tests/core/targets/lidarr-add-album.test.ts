@@ -106,13 +106,76 @@ describe('createLidarrTarget().addAlbum', () => {
   })
 
   it('returns success:false with "album not found in Lidarr" when the release group is absent after add', async () => {
+    vi.useFakeTimers()
+    try {
+      const client = mockLidarrClient()
+      client.getArtists.mockResolvedValue([])
+      client.addArtist.mockResolvedValue({ id: 42 })
+      // Lidarr has the artist but never surfaces this release group
+      client.getAlbums.mockResolvedValue([
+        { id: 7, foreignAlbumId: 'some-other-rg', monitored: false, title: 'Other' },
+      ])
+
+      const target = createLidarrTarget(1, {
+        url: 'http://lidarr:8686',
+        apiKey: 'abc',
+      })
+
+      const pending = target.addAlbum?.(
+        { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-missing' },
+        { qualityProfileId: 1, metadataProfileId: 1, rootFolderId: 1 },
+      )
+      await vi.runAllTimersAsync()
+      const result = await pending
+
+      expect(result?.success).toBe(false)
+      expect(result?.error).toBe('album not found in Lidarr')
+      expect(client.updateAlbum).not.toHaveBeenCalled()
+      expect(client.triggerCommand).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  // Regression: Lidarr populates a just-added artist's album list
+  // asynchronously; addAlbum must poll like addArtist does instead of failing
+  // on the first empty getAlbums response.
+  it('polls until the album appears after adding a new artist', async () => {
+    vi.useFakeTimers()
+    try {
+      const client = mockLidarrClient()
+      client.getArtists.mockResolvedValue([])
+      client.addArtist.mockResolvedValue({ id: 42 })
+      client.getAlbums
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ id: 7, foreignAlbumId: 'rg-1', monitored: false, title: 'One' }])
+
+      const target = createLidarrTarget(1, {
+        url: 'http://lidarr:8686',
+        apiKey: 'abc',
+      })
+
+      const pending = target.addAlbum?.(
+        { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' },
+        { qualityProfileId: 1, metadataProfileId: 1, rootFolderId: 1 },
+      )
+      await vi.runAllTimersAsync()
+      const result = await pending
+
+      expect(result?.success).toBe(true)
+      expect(result?.externalId).toBe(7)
+      expect(client.getAlbums).toHaveBeenCalledTimes(2)
+      expect(client.updateAlbum).toHaveBeenCalledWith(7, { monitored: true })
+      expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [7] })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not poll for an already-tracked artist with the album absent', async () => {
     const client = mockLidarrClient()
-    client.getArtists.mockResolvedValue([])
-    client.addArtist.mockResolvedValue({ id: 42 })
-    // Lidarr has the artist but not this release group yet
-    client.getAlbums.mockResolvedValue([
-      { id: 7, foreignAlbumId: 'some-other-rg', monitored: false, title: 'Other' },
-    ])
+    client.getArtists.mockResolvedValue([{ id: 99, foreignArtistId: 'a1' }])
+    client.getAlbums.mockResolvedValue([])
 
     const target = createLidarrTarget(1, {
       url: 'http://lidarr:8686',
@@ -120,13 +183,11 @@ describe('createLidarrTarget().addAlbum', () => {
     })
 
     const result = await target.addAlbum?.(
-      { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-missing' },
+      { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' },
       { qualityProfileId: 1, metadataProfileId: 1, rootFolderId: 1 },
     )
 
     expect(result?.success).toBe(false)
-    expect(result?.error).toBe('album not found in Lidarr')
-    expect(client.updateAlbum).not.toHaveBeenCalled()
-    expect(client.triggerCommand).not.toHaveBeenCalled()
+    expect(client.getAlbums).toHaveBeenCalledTimes(1)
   })
 })

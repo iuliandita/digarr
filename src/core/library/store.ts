@@ -106,6 +106,8 @@ export interface LibrarySyncStore {
 
   userHasAnySyncState(userId: number): Promise<boolean>
 
+  userHasOwnSyncState(userId: number): Promise<boolean>
+
   listSyncStateForUser(userId: number): Promise<LibrarySyncStateRow[]>
 
   listUnreconciledForUser(userId: number): Promise<LibraryArtistRow[]>
@@ -518,6 +520,18 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         .select({ id: librarySyncState.id })
         .from(librarySyncState)
         .where(or(eq(librarySyncState.userId, userId), isNull(librarySyncState.userId)))
+        .limit(1)
+      return rows.length > 0
+    },
+
+    // Unlike userHasAnySyncState this ignores global (userId=null) states:
+    // first-sync detection must ask whether THIS user's own sources ever
+    // synced, not whether any library data is visible to them.
+    async userHasOwnSyncState(userId) {
+      const rows = await database
+        .select({ id: librarySyncState.id })
+        .from(librarySyncState)
+        .where(eq(librarySyncState.userId, userId))
         .limit(1)
       return rows.length > 0
     },

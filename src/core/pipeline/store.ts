@@ -75,7 +75,7 @@ export interface StoreDb {
     }>
   >
 
-  userHasAnySyncState?: (userId: number) => Promise<boolean>
+  userHasOwnSyncState?: (userId: number) => Promise<boolean>
 
   // Optional atomic variant: wraps upsertArtist + insertRecommendation in a
   // single DB transaction so a crash between the two cannot leave an artist

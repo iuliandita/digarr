@@ -267,7 +267,7 @@ export class PipelineOrchestrator extends EventEmitter {
         deps.userId === undefined ||
         deps.librarySync === undefined ||
         typeof db.getLibraryArtistsForUser !== 'function' ||
-        typeof db.userHasAnySyncState !== 'function'
+        typeof db.userHasOwnSyncState !== 'function'
       ) {
         throw new Error(
           'Pipeline orchestrator requires librarySync, userId, and library StoreDb methods',
@@ -279,8 +279,11 @@ export class PipelineOrchestrator extends EventEmitter {
       this.emit('progress', { stage: 'collect', message: t('pipeline.message.loadingLibrary') })
 
       const userIdForSync = deps.userId
-      const hasAnyState = await db.userHasAnySyncState(userIdForSync)
-      if (!hasAnyState) {
+      // Own states only: a global (userId=null) sync state must not mask a
+      // user whose personal sources never synced, or their slow first sync
+      // would run awaited instead of in the background.
+      const hasOwnState = await db.userHasOwnSyncState(userIdForSync)
+      if (!hasOwnState) {
         // First-sync detection: fire-and-forget so the pipeline doesn't hang
         // for the slow MB lookups on a fresh install.
         void deps.librarySync
@@ -343,6 +346,7 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'discover',
         message: t('pipeline.message.findingSimilar'),
       })
+      const discoverFailures = new Map<string, string>()
       const discovered = await discover(
         tasteProfile,
         {
@@ -356,8 +360,16 @@ export class PipelineOrchestrator extends EventEmitter {
         {
           explicitCandidates: deps.explicitCandidates,
           explicitRun: deps.explicitDiscoveryMode != null,
+          onSourceFailure: (sourceId, error) => discoverFailures.set(sourceId, error),
         },
       )
+      const aiFailure = discoverFailures.get('ai')
+      if (aiFailure) {
+        this.emit('progress', {
+          stage: 'discover',
+          message: t('pipeline.message.aiSourceFailed', aiFailure),
+        })
+      }
       this.emit('progress', {
         stage: 'discover',
         message: t('pipeline.message.discovered', String(discovered.length)),
@@ -397,7 +409,10 @@ export class PipelineOrchestrator extends EventEmitter {
           sourceResults[source.id] =
             count > 0
               ? { status: 'ok', artists: count }
-              : { status: 'error', error: 'No artists returned' }
+              : {
+                  status: 'error',
+                  error: discoverFailures.get(source.id) ?? 'No artists returned',
+                }
         }
       }
       if (aiProvider) {
@@ -405,7 +420,7 @@ export class PipelineOrchestrator extends EventEmitter {
         sourceResults.ai =
           aiCount > 0
             ? { status: 'ok', artists: aiCount }
-            : { status: 'error', error: 'No artists returned' }
+            : { status: 'error', error: aiFailure ?? 'No artists returned' }
       }
 
       this.emit('progress', {

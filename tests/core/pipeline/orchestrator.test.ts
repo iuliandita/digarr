@@ -160,7 +160,7 @@ function makeDb() {
         matchConfidence: 1.0,
       },
     ]),
-    userHasAnySyncState: vi.fn().mockResolvedValue(true),
+    userHasOwnSyncState: vi.fn().mockResolvedValue(true),
     // Extra methods the orchestrator needs for stale batch cleanup
     updateBatch: vi.fn().mockResolvedValue(undefined),
   }
@@ -352,6 +352,53 @@ describe('PipelineOrchestrator', () => {
     expect(stages).toContain('filter')
     expect(stages).toContain('store')
     expect(stages).toContain('complete')
+  })
+
+  it('surfaces AI source failure in job sourceResults and progress', async () => {
+    const db = makeDb()
+    const aiError = 'client error 404: models/gemini-x is not found for API version v1beta'
+    mockDiscover.mockImplementation(
+      async (
+        _profile: unknown,
+        _sources: unknown,
+        _limit: unknown,
+        _seeds: unknown,
+        _ratio: unknown,
+        options?: { onSourceFailure?: (sourceId: string, error: string) => void },
+      ) => {
+        options?.onSourceFailure?.('ai', aiError)
+        return discovered
+      },
+    )
+    const jobRecorder = {
+      start: vi.fn().mockResolvedValue(7),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
+    }
+    const messages: string[] = []
+    orchestrator.on('progress', (event: { message?: string }) => {
+      if (event.message) messages.push(event.message)
+    })
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      jobRecorder,
+    })
+
+    expect(jobRecorder.complete).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        sourceResults: expect.objectContaining({
+          ai: { status: 'error', error: aiError },
+        }),
+      }),
+    )
+    expect(messages.some((m) => m.includes(aiError))).toBe(true)
   })
 
   it('returns batchId on success', async () => {
@@ -733,7 +780,7 @@ describe('PipelineOrchestrator', () => {
           matchConfidence: 1.0,
         },
       ]),
-      userHasAnySyncState: vi.fn(async () => true),
+      userHasOwnSyncState: vi.fn(async () => true),
     }
     const syncForUser = vi.fn(async () => ({ userId: 1, results: [] })) as SyncForUser
 
@@ -858,7 +905,7 @@ describe('PipelineOrchestrator', () => {
     const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
       ...db,
       getLibraryArtistsForUser: vi.fn(async () => []),
-      userHasAnySyncState: vi.fn(async () => false), // first sync ever
+      userHasOwnSyncState: vi.fn(async () => false), // first sync ever
     }
     const syncForUser = vi.fn(
       () =>

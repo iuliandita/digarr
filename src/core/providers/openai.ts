@@ -4,7 +4,7 @@ import { errMsg } from '@/core/validation'
 import {
   buildRecommendationPrompt,
   getAiRecommendationsJsonSchema,
-  validateAiRecommendations,
+  parseRecommendationResponse,
 } from './prompt'
 import { optionalTimeoutSecondsToMs } from './timeout'
 import type { AiUsage, RecommendationProvider } from './types'
@@ -71,7 +71,9 @@ export class OpenAIProvider implements RecommendationProvider {
       throw new Error('Empty response from OpenAI API')
     }
 
-    return validateAiRecommendations(JSON.parse(content))
+    // strict:false means the model can still emit fenced or truncated output;
+    // the shared parser extracts the array instead of crashing on bare JSON.parse.
+    return parseRecommendationResponse(content)
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {

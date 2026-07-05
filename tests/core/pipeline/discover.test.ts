@@ -116,8 +116,11 @@ describe('discover()', () => {
     const lfm = makeLfm()
     const ai = makeAi()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onSourceFailure = vi.fn()
 
-    const results = await discover(profile, { listeningSources: [lb, lfm], ai }, 10)
+    const results = await discover(profile, { listeningSources: [lb, lfm], ai }, 10, undefined, 0, {
+      onSourceFailure,
+    })
 
     // Should still get Last.fm and AI results
     expect(results.filter((r) => r.source === 'lastfm').length).toBeGreaterThan(0)
@@ -128,6 +131,7 @@ describe('discover()', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('[discover] source listenbrainz failed'),
     )
+    expect(onSourceFailure).toHaveBeenCalledWith('listenbrainz', 'LB down')
     warn.mockRestore()
   })
 
@@ -135,12 +139,16 @@ describe('discover()', () => {
     const lb = makeLb()
     const ai = { getRecommendations: vi.fn().mockRejectedValue(new Error('AI down')) }
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onSourceFailure = vi.fn()
 
-    const results = await discover(profile, { listeningSources: [lb], ai }, 10)
+    const results = await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0, {
+      onSourceFailure,
+    })
 
     expect(results.filter((r) => r.source === 'listenbrainz').length).toBeGreaterThan(0)
     expect(results.filter((r) => r.source === 'ai').length).toBe(0)
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('[discover] AI source failed'))
+    expect(onSourceFailure).toHaveBeenCalledWith('ai', 'AI down')
     warn.mockRestore()
   })
 

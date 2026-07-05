@@ -1082,6 +1082,7 @@ export const ptBR = {
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
+  'settings.aiSavedTestFailedToast': 'Configurações de IA salvas, mas o teste de conexão falhou',
   'settings.spotifyAuthorizationFailed': 'Failed to start Spotify authorization',
   'settings.spotifyDisconnectFailed': 'Failed to disconnect Spotify',
   'settings.spotifyLikedSongsFailed': 'Failed to start Spotify Liked Songs import',
@@ -1277,6 +1278,8 @@ export const ptBR = {
   'pipeline.message.buildingProfile': 'Montando seu perfil de gosto...',
   'pipeline.message.profiled': 'Perfilados {0} artistas principais, {1} gêneros',
   'pipeline.message.findingSimilar': 'Procurando artistas similares em todas as fontes...',
+  'pipeline.message.aiSourceFailed':
+    'O provedor de IA falhou: {0} - continuando sem sugestões de IA',
   'pipeline.message.discovered': '{0} artistas candidatos descobertos',
   'pipeline.message.resolving': 'Resolvendo {0} artistas via MusicBrainz...',
   'pipeline.message.scoring': 'Pontuando {0} artistas resolvidos...',

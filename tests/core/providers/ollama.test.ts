@@ -166,6 +166,29 @@ describe('OllamaProvider', () => {
       expect(result.message).toContain('2')
     })
 
+    test('fails when the configured model is not installed', async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify({ models: [{ name: 'mistral:latest' }] }), { status: 200 }),
+      )
+
+      const result = await provider.testConnection()
+
+      expect(result.success).toBe(false)
+      expect(result.message).toContain('"llama3" is not available')
+      expect(result.message).toContain('ollama pull llama3')
+    })
+
+    test('matches a tagless configured model against its tagged variant', async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify({ models: [{ name: 'llama3:latest' }] }), { status: 200 }),
+      )
+
+      const result = await provider.testConnection()
+
+      expect(result.success).toBe(true)
+      expect(result.message).toContain('"llama3" is available')
+    })
+
     test('returns failure on non-OK response', async () => {
       fetchSpy.mockResolvedValueOnce(new Response('Service unavailable', { status: 503 }))
 

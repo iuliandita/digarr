@@ -1075,6 +1075,8 @@ export const fr = {
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
   'settings.serviceSettingsFailedToast': 'Failed to save {0} settings',
+  'settings.aiSavedTestFailedToast':
+    'Paramètres IA enregistrés, mais le test de connexion a échoué',
   'settings.spotifyAuthorizationFailed': 'Failed to start Spotify authorization',
   'settings.spotifyDisconnectFailed': 'Failed to disconnect Spotify',
   'settings.spotifyLikedSongsFailed': 'Failed to start Spotify Liked Songs import',
@@ -1277,6 +1279,8 @@ export const fr = {
   'pipeline.message.buildingProfile': 'Construction de votre profil de goûts...',
   'pipeline.message.profiled': 'Profilé : {0} artistes principaux, {1} genres',
   'pipeline.message.findingSimilar': "Recherche d'artistes similaires depuis toutes les sources...",
+  'pipeline.message.aiSourceFailed':
+    'Le fournisseur IA a échoué : {0} - poursuite sans suggestions IA',
   'pipeline.message.discovered': '{0} artistes candidats découverts',
   'pipeline.message.resolving': 'Résolution de {0} artistes via MusicBrainz...',
   'pipeline.message.scoring': 'Notation de {0} artistes résolus...',

@@ -246,7 +246,7 @@ Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `re
 
 Approval notes:
 - `approvalMode` defaults to `single_target`
-- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`. `popular` resolves the artist through Spotify, ranks album releases by Spotify popularity, maps the top 3 matches back to MusicBrainz release groups, and sends them to Lidarr as selected albums.
+- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered. `popular` resolves the artist through Spotify, ranks album releases by Spotify popularity, maps the top 3 matches back to MusicBrainz release groups, and sends them to Lidarr as selected albums.
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
@@ -505,6 +505,10 @@ Locale notes:
 - `POST /api/v1/mood/discover` honors `X-Digarr-Locale`
 - The response reasoning follows the resolved UI locale, while prompt-language detection uses the submitted mood text
 
+Errors:
+- `400` when no AI provider is configured
+- `502` with `{ "error": "AI provider request failed (<provider>/<model>): <detail>" }` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` -- pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
+
 ---
 
 ## Search
@@ -717,6 +721,10 @@ Settings notes:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,
   `403` for non-admin callers, and `502` when the upstream service probe fails
+- The `502` body's `detail` field carries the upstream failure message (secrets redacted,
+  capped at 300 chars) so the caller can see e.g. which model name the provider rejected
+- Probe fields omitted from the request body fall back to the stored settings, so an empty
+  body tests exactly what is saved
 
 ---
 

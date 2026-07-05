@@ -53,7 +53,7 @@ export function createLidarrTarget(
       options?: TargetAddOptions,
     ): Promise<TargetResult> {
       const effectiveMonitor =
-        options?.monitorOption === 'selected' ? 'none' : (options?.monitorOption ?? 'all')
+        options?.monitorOption === 'selected' ? 'none' : (options?.monitorOption ?? 'none')
 
       try {
         const added = await client.addArtist(
@@ -134,7 +134,11 @@ export function createLidarrTarget(
           artistId = added.id
         }
 
-        const albums = await client.getAlbums(artistId)
+        // A just-added artist populates its album list asynchronously (see the
+        // poll note at the top); an already-tracked artist has it ready.
+        const albums = existing
+          ? await client.getAlbums(artistId)
+          : await findSelectedAlbums(artistId, [album.releaseGroupMbid])
         const match = albums.find((a) => a.foreignAlbumId === album.releaseGroupMbid)
         if (!match) {
           return {

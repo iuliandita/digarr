@@ -78,13 +78,16 @@ export async function fetchWithRetry(
       }
 
       if (res.status >= 500 && res.status <= 599) {
-        await res.arrayBuffer().catch(() => undefined)
-        throw new Error(`upstream ${res.status}`)
+        const snippet = await errorBodySnippet(res)
+        throw new Error(`upstream ${res.status}${snippet ? `: ${snippet}` : ''}`)
       }
 
       if (!res.ok) {
-        // 4xx (not 429): give up. Clone so caller can still read the body.
-        throw new AbortError(`client error ${res.status}`)
+        // 4xx (not 429): give up, but keep the body - a bare status code
+        // ("client error 404") gives users nothing to act on, while provider
+        // bodies name the missing model or malformed field.
+        const snippet = await errorBodySnippet(res)
+        throw new AbortError(`client error ${res.status}${snippet ? `: ${snippet}` : ''}`)
       }
 
       return res
@@ -107,6 +110,23 @@ function parseRetryAfter(raw: string | null): number | null {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Read an error response body as a single-line snippet, capped for logs.
+ * Snippets end up in thrown error messages that routes may echo to clients,
+ * so credential-shaped substrings are redacted first.
+ */
+async function errorBodySnippet(res: Response): Promise<string> {
+  const text = await res.text().catch(() => '')
+  return redactSecrets(text.replace(/\s+/g, ' ').trim()).slice(0, 200)
+}
+
+export function redactSecrets(text: string): string {
+  return text
+    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
+    .replace(/([?&](?:api_?key|key|token)=)[^&\s"']+/gi, '$1[redacted]')
 }
 
 function isAbortError(err: unknown): boolean {

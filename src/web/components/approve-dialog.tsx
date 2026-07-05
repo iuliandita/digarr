@@ -24,6 +24,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [metadataProfiles, setMetadataProfiles] = useState<Profile[]>([])
   const [rootFolders, setRootFolders] = useState<RootFolder[]>([])
+  const [monitor, setMonitor] = useState<MonitorOption>(monitorOption)
   const [qp, setQp] = useState(String(defaults.qualityProfileId))
   const [mp, setMp] = useState(String(defaults.metadataProfileId))
   const [rf, setRf] = useState(String(defaults.rootFolderId))
@@ -88,6 +89,25 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
           ) : (
             <div className="space-y-3">
               <label className="block">
+                <span className="text-xs text-muted">{t('discover.monitoringOptions')}</span>
+                <select
+                  value={monitor}
+                  onChange={(e) => setMonitor(e.target.value as MonitorOption)}
+                  className="mt-1 w-full bg-bg border border-border rounded text-sm text-text px-2 py-1.5"
+                >
+                  <option value="none">{t('common.none')}</option>
+                  <option value="new">{t('settings.monitorNew')}</option>
+                  <option value="all">{t('settings.monitorAll')}</option>
+                </select>
+                <span className="block text-[11px] text-muted mt-1">
+                  {monitor === 'all'
+                    ? t('discover.monitorAllDescription')
+                    : monitor === 'new'
+                      ? t('discover.monitorNewDescription')
+                      : t('discover.monitorNoneDescription')}
+                </span>
+              </label>
+              <label className="block">
                 <span className="text-xs text-muted">{t('approveDialog.qualityProfile')}</span>
                 <select
                   value={qp}
@@ -148,7 +168,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
               }
               onClick={() =>
                 onConfirm({
-                  monitorOption,
+                  monitorOption: monitor,
                   qualityProfileId: parseInt(qp, 10),
                   metadataProfileId: parseInt(mp, 10),
                   rootFolderId: parseInt(rf, 10),

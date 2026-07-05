@@ -74,8 +74,10 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     skipTlsVerify,
   })
 
-  // Cache for root folders to avoid repeated API calls within a client instance.
+  // Caches to avoid repeated API calls within a client instance.
   let rootFolderCache: RootFolder[] | null = null
+  let qualityProfileCache: QualityProfile[] | null = null
+  let metadataProfileCache: MetadataProfile[] | null = null
 
   async function getArtists(): Promise<LidarrArtist[]> {
     const raw = await http.get<Record<string, unknown>[]>('/api/v1/artist')
@@ -99,12 +101,37 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     return http.get<LidarrArtist[]>(`/api/v1/artist/lookup?${encoded}`)
   }
 
-  function getQualityProfiles(): Promise<QualityProfile[]> {
-    return http.get<QualityProfile[]>('/api/v1/qualityprofile')
+  async function getQualityProfiles(): Promise<QualityProfile[]> {
+    if (qualityProfileCache !== null) return qualityProfileCache
+    const profiles = await http.get<QualityProfile[]>('/api/v1/qualityprofile')
+    qualityProfileCache = profiles
+    return profiles
   }
 
-  function getMetadataProfiles(): Promise<MetadataProfile[]> {
-    return http.get<MetadataProfile[]>('/api/v1/metadataprofile')
+  async function getMetadataProfiles(): Promise<MetadataProfile[]> {
+    if (metadataProfileCache !== null) return metadataProfileCache
+    const profiles = await http.get<MetadataProfile[]>('/api/v1/metadataprofile')
+    metadataProfileCache = profiles
+    return profiles
+  }
+
+  // Preferences default profile ids to 1, but Lidarr never reuses id 1 once
+  // the stock profile is deleted -- non-interactive adds (auto-approve,
+  // subscriptions, bulk) would then fail with "Quality Profile does not
+  // exist". Mirror the approve dialog: snap unknown ids to the first
+  // available profile.
+  function snapProfileId(
+    requested: number,
+    profiles: { id: number; name: string }[],
+    kind: string,
+  ): number {
+    const first = profiles[0]
+    if (!first) throw new Error(`No ${kind} profiles configured in Lidarr`)
+    if (profiles.some((p) => p.id === requested)) return requested
+    console.warn(
+      `[lidarr] ${kind} profile id ${requested} not found, falling back to "${first.name}" (id ${first.id})`,
+    )
+    return first.id
   }
 
   async function getRootFolders(): Promise<RootFolder[]> {
@@ -122,7 +149,11 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     rootFolderId?: number | null,
     options?: AddArtistOptions,
   ): Promise<LidarrArtist> {
-    const folders = await getRootFolders()
+    const [folders, qualityProfiles, metadataProfiles] = await Promise.all([
+      getRootFolders(),
+      getQualityProfiles(),
+      getMetadataProfiles(),
+    ])
     if (folders.length === 0) {
       throw new Error('No root folders configured in Lidarr')
     }
@@ -131,13 +162,13 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
       throw new Error(`Root folder with id ${rootFolderId} not found`)
     }
 
-    const monitor = options?.monitorOption ?? 'all'
+    const monitor = options?.monitorOption ?? 'none'
 
     return http.post<LidarrArtist>('/api/v1/artist', {
       foreignArtistId,
       artistName,
-      qualityProfileId,
-      metadataProfileId,
+      qualityProfileId: snapProfileId(qualityProfileId, qualityProfiles, 'quality'),
+      metadataProfileId: snapProfileId(metadataProfileId, metadataProfiles, 'metadata'),
       rootFolderPath: folder.path,
       monitored: true,
       addOptions: {

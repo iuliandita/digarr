@@ -4,6 +4,24 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.12.0 - 2026-07-05
+
+AI provider problems are now visible everywhere they matter, plus a batch of Lidarr, library-sync, and OIDC fixes.
+
+### Added
+
+- **A failing AI provider is now surfaced instead of silently skipped.** Discovery runs kept completing on listening-source fallbacks when the configured AI provider was broken (for example a retired Gemini model returning 404), so the only symptom was Mood/Genre search -- the one surface without a fallback -- failing with no detail. Now the scan progress stream shows a warning when the AI source fails ("AI provider failed: ... - continuing without AI suggestions"), job history records the real provider error for the AI source instead of a generic "No artists returned", failed connection tests show the provider's actual error message, and saving AI settings immediately re-tests the saved configuration -- so a stale or tested-but-never-saved model is caught at save time instead of during the next mood search. Translated across all 15 shipped locales.
+
+### Fixed
+
+- **Mood/Genre search errors now carry the provider's actual message.** A provider failure during mood search previously showed a generic toast while the server logged only "client error 404" with no body. The upstream detail (with credential-shaped substrings redacted) now flows through the retry layer into a 502 with provider and model context, and the mood toast appends it.
+- **The Ollama connection test now verifies the configured model is actually pulled** (tag-aware match) instead of only checking that the server responds. The other providers already ping with the exact model.
+- **Fenced or truncated LLM responses no longer crash OpenAI and Gemini parsing.** Both providers now use the shared response parser (already used by Anthropic, Ollama, and OpenAI-compatible), which strips code fences and reasoning blocks and fails with a clear message instead of an opaque SyntaxError.
+- **Lidarr adds from non-interactive paths no longer fail on stale profile ids.** Auto-approve, subscriptions, bulk approve, and the album-picker flow sent the preference default profile ids straight to Lidarr, which rejects an id that no longer exists ("Quality Profile does not exist"). Profile ids are now validated against Lidarr's live profile lists inside the client and snapped to the first available profile, mirroring the approve-dialog fix shipped in v1.11.1.
+- **Approving selected albums right after adding a new artist no longer fails with "album not found in Lidarr".** Lidarr populates a just-added artist's album list asynchronously; the album add now polls until the albums appear, the same way the artist add path already did.
+- **A new user's first library sync no longer runs inside their first scan.** A shared global sync state (for example from the Lidarr source) made first-sync detection believe every user had synced before, so a brand-new user's full first sync ran awaited inside the pipeline instead of fire-and-forget in the background. Detection is now scoped to the user's own sync states.
+- **OIDC sign-in with a mixed-case email claim no longer creates a duplicate, lookup-invisible account.** The OIDC callback stored the raw email claim while local registration and email lookups lowercase theirs; the claim is now lowercased before user creation.
+
 ## v1.11.1 - 2026-07-01
 
 Patch release for Lidarr approval profile selection.

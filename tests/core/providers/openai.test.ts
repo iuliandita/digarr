@@ -116,6 +116,33 @@ describe('OpenAIProvider', () => {
       expect(result[0]?.artistName).toBe('Jon Hopkins')
     })
 
+    test('parses recommendations wrapped in markdown code fences', async () => {
+      mockChatCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: `\`\`\`json\n${JSON.stringify(sampleRecommendations)}\n\`\`\``,
+            },
+          },
+        ],
+      })
+
+      const result = await provider.getRecommendations(sampleProfile)
+
+      expect(result).toHaveLength(2)
+      expect(result[0]?.artistName).toBe('Jon Hopkins')
+    })
+
+    test('throws a clear error on truncated JSON output', async () => {
+      mockChatCreate.mockResolvedValueOnce({
+        choices: [{ message: { content: '{"recommendations": [{"artistName": "Jon' } }],
+      })
+
+      await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(
+        /Malformed JSON array/,
+      )
+    })
+
     test('sends prompt that includes top artists from profile', async () => {
       mockChatCreate.mockResolvedValueOnce({
         choices: [{ message: { content: JSON.stringify(sampleRecommendations) } }],
