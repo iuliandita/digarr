@@ -440,13 +440,10 @@ function makeLazyLidarrClient() {
     getArtists: async () => (await getClient())?.getArtists() ?? [],
     getAlbums: async (artistId: number) => (await getClient())?.getAlbums(artistId) ?? [],
     lookupArtist: async (term: string) => (await getClient())?.lookupArtist(term) ?? [],
-    updateArtist: async (
-      id: number,
-      data: Parameters<ReturnType<typeof createLidarrClient>['updateArtist']>[1],
-    ) => {
+    setArtistsMonitored: async (artistIds: number[], monitored: boolean) => {
       const client = await getClient()
       if (!client) throw new Error('Lidarr not configured')
-      return client.updateArtist(id, data)
+      return client.setArtistsMonitored(artistIds, monitored)
     },
     triggerCommand: async (name: string, body?: Record<string, unknown>) => {
       const client = await getClient()

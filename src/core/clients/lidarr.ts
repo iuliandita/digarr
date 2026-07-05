@@ -230,12 +230,16 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     }))
   }
 
-  function updateArtist(id: number, data: Partial<LidarrArtist>): Promise<LidarrArtist> {
-    return http.put<LidarrArtist>(`/api/v1/artist/${id}`, data)
+  // Lidarr's per-item PUT endpoints replace the full resource: a partial body
+  // deserializes missing fields as null and trips NOT NULL constraints
+  // (e.g. Albums.ForeignAlbumId -> HTTP 409). The bulk monitor/editor
+  // endpoints only apply the fields provided, so use them for flag flips.
+  function setAlbumsMonitored(albumIds: number[], monitored: boolean): Promise<LidarrAlbum[]> {
+    return http.put<LidarrAlbum[]>('/api/v1/album/monitor', { albumIds, monitored })
   }
 
-  function updateAlbum(id: number, data: { monitored: boolean }): Promise<LidarrAlbum> {
-    return http.put<LidarrAlbum>(`/api/v1/album/${id}`, data)
+  function setArtistsMonitored(artistIds: number[], monitored: boolean): Promise<LidarrArtist[]> {
+    return http.put<LidarrArtist[]>('/api/v1/artist/editor', { artistIds, monitored })
   }
 
   function triggerCommand(name: string, body?: Record<string, unknown>): Promise<LidarrCommand> {
@@ -261,8 +265,8 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
     addArtist,
     getAlbums,
     getWantedMissing,
-    updateArtist,
-    updateAlbum,
+    setAlbumsMonitored,
+    setArtistsMonitored,
     triggerCommand,
     getQualityProfiles,
     getMetadataProfiles,

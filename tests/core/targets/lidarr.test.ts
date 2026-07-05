@@ -12,7 +12,7 @@ function mockLidarrClient() {
   const client = {
     addArtist: vi.fn().mockResolvedValue({ id: 42, artistName: 'Radiohead' }),
     getAlbums: vi.fn().mockResolvedValue([]),
-    updateAlbum: vi.fn().mockResolvedValue({}),
+    setAlbumsMonitored: vi.fn().mockResolvedValue([]),
     triggerCommand: vi.fn().mockResolvedValue({}),
     testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
     getRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music' }]),
@@ -90,8 +90,7 @@ describe('createLidarrTarget()', () => {
     expect(client.addArtist).toHaveBeenCalledWith('mbid-rh', 'Radiohead', 1, 1, undefined, {
       monitorOption: 'none',
     })
-    expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
-    expect(client.updateAlbum).not.toHaveBeenCalledWith(11, expect.anything())
+    expect(client.setAlbumsMonitored).toHaveBeenCalledWith([10], true)
     // The monitored album must also be searched, otherwise it is never grabbed.
     expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
   })
@@ -116,7 +115,7 @@ describe('createLidarrTarget()', () => {
 
       expect(result?.success).toBe(true)
       expect(client.getAlbums).toHaveBeenCalledTimes(2)
-      expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
+      expect(client.setAlbumsMonitored).toHaveBeenCalledWith([10], true)
       expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
     } finally {
       vi.useRealTimers()
@@ -143,7 +142,7 @@ describe('createLidarrTarget()', () => {
       expect(result?.externalId).toBe(42)
       expect(result?.error).toBeUndefined()
       expect(result?.warning).toMatch(/not found in Lidarr/)
-      expect(client.updateAlbum).not.toHaveBeenCalled()
+      expect(client.setAlbumsMonitored).not.toHaveBeenCalled()
       expect(client.triggerCommand).not.toHaveBeenCalled()
     } finally {
       vi.useRealTimers()
@@ -153,7 +152,7 @@ describe('createLidarrTarget()', () => {
   it('addArtist succeeds with a warning when monitoring the selected album throws', async () => {
     const client = mockLidarrClient()
     client.getAlbums.mockResolvedValue([{ id: 10, foreignAlbumId: 'album-1', monitored: false }])
-    client.updateAlbum.mockRejectedValue(new Error('Lidarr 500'))
+    client.setAlbumsMonitored.mockRejectedValue(new Error('Lidarr 500'))
     const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
 
     const result = await target.addArtist?.(
@@ -184,7 +183,7 @@ describe('createLidarrTarget()', () => {
 
       expect(result?.success).toBe(true)
       expect(result?.externalId).toBe(42)
-      expect(client.updateAlbum).toHaveBeenCalledWith(10, { monitored: true })
+      expect(client.setAlbumsMonitored).toHaveBeenCalledWith([10], true)
       expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
       // Not silently success: the user must learn album-2 was not monitored.
       expect(result?.warning).toMatch(/1 of 2/)

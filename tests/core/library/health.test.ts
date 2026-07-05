@@ -94,7 +94,7 @@ type MockDeps = {
   getArtists: ReturnType<typeof vi.fn>
   getAlbums: ReturnType<typeof vi.fn>
   lookupArtist: ReturnType<typeof vi.fn>
-  updateArtist: ReturnType<typeof vi.fn>
+  setArtistsMonitored: ReturnType<typeof vi.fn>
   triggerCommand: ReturnType<typeof vi.fn>
   getRootFolders: ReturnType<typeof vi.fn>
   cacheGetAll: ReturnType<typeof vi.fn>
@@ -109,7 +109,7 @@ function makeMocks(): MockDeps {
     getArtists: vi.fn().mockResolvedValue([]),
     getAlbums: vi.fn().mockResolvedValue([]),
     lookupArtist: vi.fn().mockResolvedValue([]),
-    updateArtist: vi.fn().mockResolvedValue({}),
+    setArtistsMonitored: vi.fn().mockResolvedValue([]),
     triggerCommand: vi.fn().mockResolvedValue({}),
     getRootFolders: vi
       .fn()
@@ -128,10 +128,10 @@ function makeService(mocks: MockDeps): LibraryHealthService {
       getArtists: mocks.getArtists as unknown as () => Promise<LidarrArtist[]>,
       getAlbums: mocks.getAlbums as unknown as (artistId: number) => Promise<LidarrAlbum[]>,
       lookupArtist: mocks.lookupArtist as unknown as (term: string) => Promise<unknown[]>,
-      updateArtist: mocks.updateArtist as unknown as (
-        id: number,
-        data: Partial<LidarrArtist>,
-      ) => Promise<LidarrArtist>,
+      setArtistsMonitored: mocks.setArtistsMonitored as unknown as (
+        artistIds: number[],
+        monitored: boolean,
+      ) => Promise<LidarrArtist[]>,
       triggerCommand: mocks.triggerCommand as unknown as (
         name: string,
         body?: Record<string, unknown>,
@@ -574,15 +574,15 @@ describe('LibraryHealthService', () => {
       expect(progress.status).toBe('completed')
     })
 
-    it('calls updateArtist monitored:true for unmonitored', async () => {
+    it('calls setArtistsMonitored true for unmonitored', async () => {
       mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
       mocks.cacheGetAll.mockResolvedValue([])
       await service.runChecks()
-      mocks.updateArtist.mockResolvedValue({ ...ARTIST_BJORK, monitored: true })
+      mocks.setArtistsMonitored.mockResolvedValue([{ ...ARTIST_BJORK, monitored: true }])
 
       const progress = await service.fixCheck('unmonitored')
 
-      expect(mocks.updateArtist).toHaveBeenCalledWith(ARTIST_BJORK.id, { monitored: true })
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith([ARTIST_BJORK.id], true)
       expect(progress.completed).toBe(1)
       expect(progress.status).toBe('completed')
     })
@@ -671,7 +671,7 @@ describe('LibraryHealthService', () => {
       mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
       mocks.cacheGetAll.mockResolvedValue([])
       await service.runChecks()
-      mocks.updateArtist.mockRejectedValue(new Error('Lidarr down'))
+      mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
 
       const progress = await service.fixCheck('unmonitored')
 
@@ -684,7 +684,7 @@ describe('LibraryHealthService', () => {
     it('returns completed status with zero items when no cached results', async () => {
       // Don't run runChecks first - cachedResults is null
       const fresh = makeService(mocks)
-      mocks.updateArtist.mockResolvedValue({})
+      mocks.setArtistsMonitored.mockResolvedValue([])
 
       const progress = await fresh.fixCheck('unmonitored')
 
