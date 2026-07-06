@@ -126,7 +126,9 @@ describe('fetchWithRetry', () => {
 
 describe('redactSecrets', () => {
   test('redacts Google-style AIza API keys', () => {
-    const text = 'key=AIzaSyA-1234567890abcdefghijklmnopqrstu is invalid'
+    // Fixture tail is 30 chars: exercises our {30,} pattern while staying
+    // below the 35-char signature real secret scanners alert on.
+    const text = 'key=AIzaSyA-1234567890abcdefghijklmnop is invalid'
     expect(redactSecrets(text)).toBe('key=[redacted] is invalid')
   })
 
