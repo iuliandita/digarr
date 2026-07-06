@@ -16,7 +16,7 @@ import { createJellyfinSource } from '@/core/plugins/jellyfin'
 import { createLastFmSource } from '@/core/plugins/lastfm'
 import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
 import { createPlexSource } from '@/core/plugins/plex'
-import { SourceRegistry } from '@/core/plugins/registry'
+import { LISTENING_SOURCE_IDS, SourceRegistry } from '@/core/plugins/registry'
 import { createSpotifySource } from '@/core/plugins/spotify'
 import { createSubsonicSource } from '@/core/plugins/subsonic'
 import type { AiProviderRegistry } from '@/core/providers/registry'
@@ -394,16 +394,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const sourceResults: Record<string, import('@/core/jobs/types').SourceResult> = {}
 
       // Mark unconfigured sources as skipped
-      const knownSourceIds = [
-        'listenbrainz',
-        'lastfm',
-        'spotify',
-        'plex',
-        'jellyfin',
-        'emby',
-        'discogs',
-      ]
-      for (const id of knownSourceIds) {
+      for (const id of LISTENING_SOURCE_IDS) {
         if (!registry.all().some((s) => s.id === id)) {
           sourceResults[id] = { status: 'skipped', reason: 'not_configured' }
         }
