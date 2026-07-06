@@ -25,12 +25,33 @@ async function fire(cron: Cron): Promise<void> {
 }
 
 describe('windowMsFromCron', () => {
-  it('derives ~1 day for a daily cron', () => {
-    expect(windowMsFromCron('0 6 * * *')).toBe(DAY_MS)
+  it('derives ~1 day for a daily cron, fired at the scheduled time', () => {
+    // 2024-01-05 (Friday) 06:00 local, a fire of '0 6 * * *'.
+    const from = new Date(2024, 0, 5, 6, 0, 0, 0)
+    expect(windowMsFromCron('0 6 * * *', from)).toBe(DAY_MS)
   })
 
-  it('derives ~7 days for a weekly cron', () => {
-    expect(windowMsFromCron('0 6 * * 1')).toBe(7 * DAY_MS)
+  it('derives ~7 days for a weekly cron, fired at the scheduled time', () => {
+    // 2024-01-08 (Monday) 06:00 local, a fire of '0 6 * * 1'.
+    const from = new Date(2024, 0, 8, 6, 0, 0, 0)
+    expect(windowMsFromCron('0 6 * * 1', from)).toBe(7 * DAY_MS)
+  })
+
+  it('derives the actual elapsed interval for an irregular Mon+Fri cron', () => {
+    // 2024-01-05 (Friday) 08:00 local, a fire of '0 8 * * 1,5'. The
+    // previous fire was Monday 2024-01-01, so the elapsed window is 4
+    // days -- NOT the 3-day gap to the *next* fire (the following Monday),
+    // which is what the old future-gap derivation returned.
+    const from = new Date(2024, 0, 5, 8, 0, 0, 0)
+    expect(windowMsFromCron('0 8 * * 1,5', from)).toBe(4 * DAY_MS)
+  })
+
+  it('derives the elapsed interval when the tick fires seconds late', () => {
+    // Friday 08:00:05 -- the tick ran 5s after the scheduled fire, so the
+    // Friday fire itself shows up as a "previous" run and must be skipped;
+    // the window still reaches back to Monday.
+    const from = new Date(2024, 0, 5, 8, 0, 5, 0)
+    expect(windowMsFromCron('0 8 * * 1,5', from)).toBe(4 * DAY_MS + 5000)
   })
 
   it('falls back to 1 day on an invalid cron', () => {
