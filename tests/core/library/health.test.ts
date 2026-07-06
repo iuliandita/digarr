@@ -716,7 +716,7 @@ describe('LibraryHealthService', () => {
       expect(progress).toMatchObject({ total: 3, completed: 3, failed: 0, status: 'completed' })
     })
 
-    it('records a single batch error when the bulk unmonitored call fails', async () => {
+    it('falls back to per-artist calls when the bulk unmonitored call fails', async () => {
       const unmonitoredArtists = [
         { ...ARTIST_RADIOHEAD, monitored: false },
         { ...ARTIST_PORTISHEAD, monitored: false },
@@ -729,12 +729,55 @@ describe('LibraryHealthService', () => {
 
       const progress = await service.fixCheck('unmonitored')
 
-      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(1)
-      expect(progress.completed).toBe(0)
-      expect(progress.failed).toBe(3)
-      expect(progress.status).toBe('failed')
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
+        1,
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
+      expect(progress).toMatchObject({ total: 3, completed: 0, failed: 3, status: 'failed' })
+      expect(progress.errors).toHaveLength(3)
+      expect(progress.errors).toEqual([
+        `${ARTIST_RADIOHEAD.artistName}: Lidarr down`,
+        `${ARTIST_PORTISHEAD.artistName}: Lidarr down`,
+        `${ARTIST_BJORK.artistName}: Lidarr down`,
+      ])
+    })
+
+    it('recovers healthy artists and names the culprit when one item poisons the bulk call', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockImplementation((ids: number[]) => {
+        if (ids.length > 1 || ids[0] === ARTIST_PORTISHEAD.id) {
+          return Promise.reject(new Error('artist not found'))
+        }
+        return Promise.resolve([])
+      })
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
+        1,
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
+      expect(progress).toMatchObject({ total: 3, completed: 2, failed: 1, status: 'failed' })
       expect(progress.errors).toHaveLength(1)
-      expect(progress.errors[0]).toContain('Lidarr down')
+      expect(progress.errors[0]).toContain(ARTIST_PORTISHEAD.artistName)
+      expect(progress.errors[0]).toContain('artist not found')
     })
 
     it('still queues one triggerCommand call per item for missing-albums (non-bulk path unchanged)', async () => {
