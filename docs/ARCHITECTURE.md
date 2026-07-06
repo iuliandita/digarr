@@ -54,7 +54,9 @@ READ ONLY` transaction, runs schema migrations on the target, restores the
 snapshot atomically, then verifies every table by row count and SHA-256 content
 hash before returning a `MigrationReport`. During the copy, `maintenanceMiddleware`
 blocks all write methods (`POST/PUT/PATCH/DELETE`) on non-migration routes,
-returning `503 Maintenance in progress`; reads pass through. The routes are
+returning `503 Maintenance in progress`; reads pass through. Background
+schedulers check the same flag (`isMaintenance()` in `src/core/ops/maintenance.ts`)
+and skip their ticks while it is set. The routes are
 `POST /api/v1/admin/migrate-backend/test` (validate target, non-destructive) and
 `POST /api/v1/admin/migrate-backend` (run copy). See
 [`docs/guides/switching-backends.md`](guides/switching-backends.md) for the

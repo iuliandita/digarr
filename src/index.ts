@@ -39,6 +39,7 @@ import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sy
 import { markShuttingDown } from './core/lifecycle'
 import { sendWebhook } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
+import { isMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
@@ -1561,6 +1562,10 @@ const server = serve({ fetch: app.fetch, port })
     libraryHealth.startScan()
     void slskdOrchestrator.warmup()
     slskdCron = new Cron('*/10 * * * *', async () => {
+      if (isMaintenance()) {
+        console.log('[slskd-scheduler] tick skipped: maintenance in progress')
+        return
+      }
       try {
         await slskdOrchestrator.triggerSync()
       } catch (err) {
@@ -1581,6 +1586,7 @@ const server = serve({ fetch: app.fetch, port })
 // Clean up expired sessions every 6 hours
 setInterval(
   async () => {
+    if (isMaintenance()) return
     try {
       await sessionQueries(db).deleteExpired()
     } catch {
