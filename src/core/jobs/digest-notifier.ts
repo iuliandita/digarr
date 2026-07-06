@@ -19,17 +19,19 @@ export type DigestNotifierDeps = {
 /**
  * Compute the trailing window for a digest fire from the cron cadence itself,
  * so no "last sent" bookmark needs persisting. The window is the gap between
- * the next two scheduled fires of `cronExpr` (e.g. daily -> ~24h, weekly ->
- * ~7d). Falls back to 24h if the cadence cannot be derived.
+ * `from` (the current fire, e.g. daily -> ~24h, weekly -> ~7d) and the
+ * scheduled fire before it, so irregular cadences (e.g. Mon+Fri) get the
+ * actual elapsed interval instead of the gap to the *next* fire. Falls back
+ * to 24h if the cadence cannot be derived.
  */
 export function windowMsFromCron(cronExpr: string, from: Date = new Date()): number {
   const dayMs = 24 * 60 * 60 * 1000
   try {
     const probe = new Cron(cronExpr)
-    const [first, second] = probe.nextRuns(2, from)
+    const [prev] = probe.previousRuns(1, from)
     probe.stop()
-    if (first && second) {
-      const gap = second.getTime() - first.getTime()
+    if (prev) {
+      const gap = from.getTime() - prev.getTime()
       if (gap > 0) return gap
     }
   } catch {
