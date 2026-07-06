@@ -858,6 +858,8 @@ export const ja = {
   'settings.subsonicDescription':
     'ライブラリ同期と発見のためのセルフホスト音楽サーバー（Navidrome、Airsonic）',
   'settings.discogsDescription': 'Discogs のコレクションとウォントリスト。',
+  'settings.tidalDescription':
+    'TIDALのクライアントクレデンシャルアクセスを使用する実験的な検索ソースです。仕様変更の可能性がある非公開のエンドポイントを使用します。',
   'settings.yourAccount': 'あなたのアカウント',
   'settings.lidarrPreferences': 'Lidarr 個人設定',
   'settings.lidarrPreferencesDescription':

@@ -983,6 +983,8 @@ export const en = {
   'settings.subsonicDescription':
     'Self-hosted music server (Navidrome, Airsonic) for library sync and discovery',
   'settings.discogsDescription': 'Collection and wantlist from Discogs.',
+  'settings.tidalDescription':
+    'Experimental search source using TIDAL client-credentials access. Uses undocumented endpoints that may change without notice.',
   'settings.yourAccount': 'your account',
   'settings.lidarrPreferences': 'Your Lidarr Preferences',
   'settings.lidarrPreferencesDescription':

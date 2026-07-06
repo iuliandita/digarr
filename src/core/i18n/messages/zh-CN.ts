@@ -801,6 +801,8 @@ export const zhCN = {
   'settings.embyDescription': '带收听历史和播放列表导出功能的媒体服务器',
   'settings.subsonicDescription': '自托管音乐服务器（Navidrome、Airsonic），用于媒体库同步和发现',
   'settings.discogsDescription': '来自 Discogs 的收藏和心愿单。',
+  'settings.tidalDescription':
+    '实验性搜索源，使用 TIDAL 客户端凭据访问。使用未记录的接口，可能随时变更且不另行通知。',
   'settings.yourAccount': '你的账户',
   'settings.lidarrPreferences': '你的 Lidarr 偏好设置',
   'settings.lidarrPreferencesDescription':

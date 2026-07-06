@@ -65,6 +65,10 @@ export const updateSettingsSchema = z.object({
   audiodbProxyImages: z.boolean().optional(),
   wikidataEnabled: z.boolean().optional(),
 
+  // TIDAL search (global, admin-only) - client credentials for the experimental search source
+  tidalClientId: z.string().nullable().optional(),
+  tidalClientSecret: z.string().nullable().optional(),
+
   // Preferences (nested)
   preferences: preferencesSchema.optional(),
 

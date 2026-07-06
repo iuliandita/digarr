@@ -846,6 +846,8 @@ export const ko = {
   'settings.subsonicDescription':
     '라이브러리 동기화 및 발견을 위한 셀프 호스팅 음악 서버 (Navidrome, Airsonic)',
   'settings.discogsDescription': 'Discogs의 컬렉션과 위시리스트.',
+  'settings.tidalDescription':
+    'TIDAL 클라이언트 자격 증명 액세스를 사용하는 실험적 검색 소스입니다. 예고 없이 변경될 수 있는 비공식 엔드포인트를 사용합니다.',
   'settings.yourAccount': '내 계정',
   'settings.lidarrPreferences': 'Lidarr 개인 설정',
   'settings.lidarrPreferencesDescription':

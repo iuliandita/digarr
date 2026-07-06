@@ -62,6 +62,16 @@ const { mockOidcTestConnection } = vi.hoisted(() => ({
   })),
 }))
 
+const { mockCreateTidalClient } = vi.hoisted(() => ({
+  mockCreateTidalClient: vi.fn(() => ({
+    searchArtists: vi.fn(async () => []),
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to TIDAL - API responding',
+    })),
+  })),
+}))
+
 vi.mock('@/db/queries/users', async () => {
   const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
   return {
@@ -112,6 +122,10 @@ vi.mock('@/core/auth/oidc', () => ({
   OidcService: class OidcService {
     testConnection = mockOidcTestConnection
   },
+}))
+
+vi.mock('@/core/clients/tidal', () => ({
+  createTidalClient: mockCreateTidalClient,
 }))
 
 vi.mock('@/core/notifications', () => ({
@@ -349,6 +363,27 @@ describe('GET /api/v1/settings', () => {
     expect(body.aiApiKey).toBeNull()
   })
 
+  it('masks the stored TIDAL client secret', async () => {
+    mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              tidalClientId: 'tidal-id',
+              tidalClientSecret: 'tidal-secret',
+            }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/settings')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.tidalClientId).toBe('tidal-id')
+    expect(body.tidalClientSecret).toBe('***')
+  })
+
   it('preserves null secret fields instead of pretending they were saved', async () => {
     mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
     const app = createApp(makeDeps())
@@ -388,6 +423,25 @@ describe('PATCH /api/v1/settings', () => {
     expect(updateSettings).toHaveBeenCalledTimes(1)
     const body = await res.json()
     expect(body.lidarrUrl).toBe('http://new:8686')
+  })
+
+  it('accepts TIDAL client credentials through the strict schema and persists them', async () => {
+    const updateSettings = vi.fn(async () => {})
+    const app = createApp(makeDeps({ updateSettings }))
+
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tidalClientId: 'tidal-id', tidalClientSecret: 'tidal-secret' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tidalClientId: 'tidal-id',
+        tidalClientSecret: 'tidal-secret',
+      }),
+    )
   })
 
   it('restarts scheduler when cron is updated', async () => {
@@ -748,6 +802,7 @@ describe('POST /api/v1/settings/test/:service', () => {
       'subsonic',
       'spotify',
       'oidc',
+      'tidal',
     ]
 
     for (const service of services) {
@@ -968,6 +1023,62 @@ describe('POST /api/v1/settings/test/:service', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: 'http://127.0.0.1:4533', username: 'admin' }),
+    })
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.type).toBe('/problems/probe-missing-input')
+  })
+
+  it('tests tidal and invokes the client with the provided credentials', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: 'tidal-id', clientSecret: 'tidal-secret' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateTidalClient).toHaveBeenCalledWith({
+      clientId: 'tidal-id',
+      clientSecret: 'tidal-secret',
+    })
+    const body = await res.json()
+    expect(body.message).toBe('Connected to TIDAL - API responding')
+  })
+
+  it('falls back to stored TIDAL credentials when the request omits them', async () => {
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              tidalClientId: 'stored-id',
+              tidalClientSecret: 'stored-secret',
+            }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateTidalClient).toHaveBeenCalledWith({
+      clientId: 'stored-id',
+      clientSecret: 'stored-secret',
+    })
+  })
+
+  it('returns a missing-input error when tidal credentials are incomplete', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: 'tidal-id' }),
     })
 
     expect(res.status).toBe(400)

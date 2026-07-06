@@ -144,6 +144,7 @@ export const SENSITIVE_SETTINGS = [
   'aiApiKey',
   'audiodbApiKey',
   'oidcClientSecret',
+  'tidalClientSecret',
 ] as const
 export const SENSITIVE_OAUTH = ['accessToken', 'refreshToken', 'clientSecret'] as const
 // oidc_tokens shape differs from oauth_tokens: no clientSecret, plus an idToken

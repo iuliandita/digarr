@@ -53,6 +53,8 @@ export const settings = pgTable('settings', {
   skipTlsVerify: boolean('skip_tls_verify').default(false).notNull(),
   audiodbApiKey: text('audiodb_api_key'),
   audiodbProxyImages: boolean('audiodb_proxy_images').notNull().default(false),
+  tidalClientId: text('tidal_client_id'),
+  tidalClientSecret: text('tidal_client_secret'),
   wikidataEnabled: boolean('wikidata_enabled').notNull().default(true),
   preferences: jsonb('preferences').$type<Preferences>(),
   setupComplete: boolean('setup_complete').default(false).notNull(),

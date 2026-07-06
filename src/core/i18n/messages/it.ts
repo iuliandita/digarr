@@ -868,6 +868,8 @@ export const it = {
   'settings.subsonicDescription':
     'Server musicale self-hosted (Navidrome, Airsonic) per sincronizzazione libreria e scoperta',
   'settings.discogsDescription': 'Collezione e lista dei desideri da Discogs.',
+  'settings.tidalDescription':
+    "Fonte di ricerca sperimentale che utilizza l'accesso tramite credenziali client TIDAL. Utilizza endpoint non documentati che potrebbero cambiare senza preavviso.",
   'settings.yourAccount': 'il tuo account',
   'settings.lidarrPreferences': 'Le tue preferenze Lidarr',
   'settings.lidarrPreferencesDescription':

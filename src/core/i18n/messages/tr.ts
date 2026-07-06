@@ -867,6 +867,8 @@ export const tr = {
   'settings.subsonicDescription':
     'Kitaplık eşitleme ve keşif için kendi sunucunuzda barındırılan müzik sunucusu (Navidrome, Airsonic)',
   'settings.discogsDescription': "Discogs'tan koleksiyon ve istek listesi.",
+  'settings.tidalDescription':
+    'TIDAL istemci kimlik bilgileri erişimini kullanan deneysel bir arama kaynağı. Önceden haber verilmeden değişebilecek belgelenmemiş uç noktalar kullanır.',
   'settings.yourAccount': 'hesabiniz',
   'settings.lidarrPreferences': 'Lidarr Tercihleriniz',
   'settings.lidarrPreferencesDescription':

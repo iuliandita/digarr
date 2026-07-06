@@ -870,6 +870,8 @@ export const nl = {
   'settings.subsonicDescription':
     'Zelf-gehoste muziekserver (Navidrome, Airsonic) voor bibliotheeksynchronisatie en ontdekking',
   'settings.discogsDescription': 'Collectie en verlanglijst van Discogs.',
+  'settings.tidalDescription':
+    'Experimentele zoekbron die gebruikmaakt van TIDAL-clientgegevens. Gebruikt ongedocumenteerde eindpunten die zonder waarschuwing kunnen veranderen.',
   'settings.yourAccount': 'jouw account',
   'settings.lidarrPreferences': 'Jouw Lidarr-voorkeuren',
   'settings.lidarrPreferencesDescription':
