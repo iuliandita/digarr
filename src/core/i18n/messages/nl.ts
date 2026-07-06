@@ -294,6 +294,7 @@ export const nl = {
     "Tip: beschrijf in gewoon Engels waar je zin in hebt, zoals 'rainy day jazz' of 'upbeat pop uit de jaren 90'",
   'discover.navigate': 'navigeren',
   'discover.noPendingAbove': 'Geen openstaande aanbevelingen hierboven',
+  'discover.noPendingBelow': 'Geen openstaande aanbevelingen hieronder',
   'discover.noPendingToClear': 'Geen openstaande aanbevelingen om te wissen',
   'discover.notEnoughFeedback':
     'Nog niet voldoende feedbackgegevens. Meer aanbevelingen goedkeuren of afwijzen.',
@@ -303,6 +304,7 @@ export const nl = {
   'discover.refreshData': 'Gegevens vernieuwen',
   'discover.refreshingArtistData': 'Artiestengegevens vernieuwen...',
   'discover.rejectAll': 'Alles afwijzen',
+  'discover.rejectAllBelow': 'Alles hieronder afwijzen',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',

@@ -291,6 +291,7 @@ export const ko = {
     '팁: "Rainy Day Jazz" 또는 "경쾌한 90년대 팝"과 같이 평범한 영어로 당신의 기분을 설명하세요.',
   'discover.navigate': '이동',
   'discover.noPendingAbove': '위에 대기 중인 권장사항이 없습니다.',
+  'discover.noPendingBelow': '아래에 대기 중인 권장사항이 없습니다.',
   'discover.noPendingToClear': '삭제할 대기 중인 권장사항이 없습니다.',
   'discover.notEnoughFeedback':
     '피드백 데이터가 아직 충분하지 않습니다. 추가 추천을 승인하거나 거부합니다.',
@@ -300,6 +301,7 @@ export const ko = {
   'discover.refreshData': '데이터 새로 고침',
   'discover.refreshingArtistData': '아티스트 데이터를 새로 고치는 중...',
   'discover.rejectAll': '모두 거부',
+  'discover.rejectAllBelow': '아래 모두 거부',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',

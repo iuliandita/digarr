@@ -295,6 +295,7 @@ export const es = {
     'Consejo: describe lo que te apetece en un inglés sencillo, como "jazz de día lluvioso" o "pop alegre de los 90".',
   'discover.navigate': 'navegar',
   'discover.noPendingAbove': 'No hay recomendaciones pendientes arriba',
+  'discover.noPendingBelow': 'No hay recomendaciones pendientes abajo',
   'discover.noPendingToClear': 'No hay recomendaciones pendientes para borrar',
   'discover.notEnoughFeedback':
     'Aún no hay suficientes datos de retroalimentación. Aprobar o rechazar más recomendaciones.',
@@ -304,6 +305,7 @@ export const es = {
   'discover.refreshData': 'Actualizar datos',
   'discover.refreshingArtistData': 'Actualizando datos del artista...',
   'discover.rejectAll': 'Rechazar todo',
+  'discover.rejectAllBelow': 'Rechazar todo por debajo',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',

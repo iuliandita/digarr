@@ -295,6 +295,7 @@ export const ru = {
     'Совет: опишите, что у вас под настроение, на простом английском языке — например, «джаз дождливого дня» или «оптимистичная поп-музыка 90-х».',
   'discover.navigate': 'перемещение',
   'discover.noPendingAbove': 'Нет невыполненных рекомендаций выше.',
+  'discover.noPendingBelow': 'Нет ожидающих рекомендаций ниже.',
   'discover.noPendingToClear': 'Нет ожидающих рекомендаций для очистки',
   'discover.notEnoughFeedback':
     'Пока недостаточно данных обратной связи. Одобрите или отклоните дополнительные рекомендации.',
@@ -304,6 +305,7 @@ export const ru = {
   'discover.refreshData': 'Обновить данные',
   'discover.refreshingArtistData': 'Обновление данных об исполнителе...',
   'discover.rejectAll': 'Отклонить все',
+  'discover.rejectAllBelow': 'Отклонить все ниже',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',

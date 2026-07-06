@@ -295,6 +295,7 @@ export const pl = {
     'Wskazówka: opisz prostym angielskim, na co masz nastrój, na przykład „jazz na deszczowy dzień” lub „optymistyczny pop z lat 90.”',
   'discover.navigate': 'nawiguj',
   'discover.noPendingAbove': 'Brak oczekujących rekomendacji powyżej',
+  'discover.noPendingBelow': 'Brak oczekujących rekomendacji poniżej',
   'discover.noPendingToClear': 'Brak oczekujących rekomendacji do usunięcia',
   'discover.notEnoughFeedback':
     'Nie ma jeszcze wystarczającej ilości danych zwrotnych. Zatwierdź lub odrzuć więcej rekomendacji.',
@@ -304,6 +305,7 @@ export const pl = {
   'discover.refreshData': 'Odśwież dane',
   'discover.refreshingArtistData': 'Odświeżam dane wykonawcy...',
   'discover.rejectAll': 'Odrzuć wszystko',
+  'discover.rejectAllBelow': 'Odrzuć wszystko poniżej',
   'discover.rejectAllPending': 'Odrzuć wszystkie oczekujące',
   'discover.rejectAllPendingMessage':
     'Odrzucić wszystkie oczekujące rekomendacje? Tego nie można cofnąć.',

@@ -294,6 +294,7 @@ export const tr = {
     'İpucu: "yağmurlu gün cazı" veya "90\'ların neşeli popu" gibi sade bir İngilizceyle ne havasında olduğunuzu açıklayın',
   'discover.navigate': 'gez',
   'discover.noPendingAbove': 'Yukarıda bekleyen öneri yok',
+  'discover.noPendingBelow': 'Aşağıda bekleyen öneri yok',
   'discover.noPendingToClear': 'Temizlenecek bekleyen öneri yok',
   'discover.notEnoughFeedback':
     'Henüz yeterli geri bildirim verisi yok. Daha fazla öneriyi onaylayın veya reddedin.',
@@ -303,6 +304,7 @@ export const tr = {
   'discover.refreshData': 'Verileri Yenile',
   'discover.refreshingArtistData': 'Sanatçı verileri yenileniyor...',
   'discover.rejectAll': 'Tümünü Reddet',
+  'discover.rejectAllBelow': 'Aşağıdakilerin Tümünü Reddet',
   'discover.rejectAllPending': 'Bekleyenlerin tümünü reddet',
   'discover.rejectAllPendingMessage': 'Bekleyen tüm öneriler reddedilsin mi? Bu geri alınamaz.',
   'discover.rejectFailed': 'Reddedilemedi',

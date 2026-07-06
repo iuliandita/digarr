@@ -295,6 +295,7 @@ export const ptBR = {
     'Dica: descreva o que você está com vontade em inglês simples - como "jazz de dia chuvoso" ou "pop animado dos anos 90"',
   'discover.navigate': 'navegar',
   'discover.noPendingAbove': 'Nenhuma recomendação pendente acima',
+  'discover.noPendingBelow': 'Nenhuma recomendação pendente abaixo',
   'discover.noPendingToClear': 'Não há recomendações pendentes para limpar',
   'discover.notEnoughFeedback':
     'Ainda não há dados de feedback suficientes. Aprove ou rejeite mais recomendações.',
@@ -304,6 +305,7 @@ export const ptBR = {
   'discover.refreshData': 'Atualizar dados',
   'discover.refreshingArtistData': 'Atualizando dados do artista...',
   'discover.rejectAll': 'Rejeitar tudo',
+  'discover.rejectAllBelow': 'Rejeitar tudo abaixo',
   'discover.rejectAllPending': 'Rejeitar todas as pendências',
   'discover.rejectAllPendingMessage':
     'Rejeitar todas as recomendações pendentes? Isto não pode ser desfeito.',

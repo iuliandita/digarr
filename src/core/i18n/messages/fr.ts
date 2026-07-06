@@ -295,6 +295,7 @@ export const fr = {
     'Astuce : décrivez ce dont vous avez envie dans un anglais simple, comme "rainy day jazz" ou "upbeat 90s pop".',
   'discover.navigate': 'naviguer',
   'discover.noPendingAbove': 'Aucune recommandation en attente ci-dessus',
+  'discover.noPendingBelow': 'Aucune recommandation en attente ci-dessous',
   'discover.noPendingToClear': 'Aucune recommandation en attente à effacer',
   'discover.notEnoughFeedback':
     'Pas encore assez de données de feedback. Approuvez ou rejetez d’autres recommandations.',
@@ -304,6 +305,7 @@ export const fr = {
   'discover.refreshData': 'Actualiser les données',
   'discover.refreshingArtistData': 'Actualisation des données sur les artistes...',
   'discover.rejectAll': 'Tout rejeter',
+  'discover.rejectAllBelow': 'Tout rejeter en dessous',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':
     'Refuser toutes les recommandations en attente ? Cela ne peut pas être annulé.',

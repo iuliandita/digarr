@@ -876,6 +876,16 @@ export function DiscoverPage() {
     }
   }
 
+  function handleRejectBelow() {
+    const eligible = items.filter((r) => r.score * 100 < approveThreshold && r.status === 'pending')
+    if (eligible.length === 0) {
+      toast.info(`${t('discover.noPendingBelow')} ${approveThreshold}%`)
+      return
+    }
+    setCheckedIds(new Set(eligible.map((r) => r.id)))
+    setBulkRejectPickerOpen(true)
+  }
+
   async function handleClearAll() {
     try {
       let cleared = 0
@@ -1038,6 +1048,9 @@ export function DiscoverPage() {
   const pendingAboveThreshold = items.filter(
     (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
   ).length
+  const pendingBelowThreshold = items.filter(
+    (r) => r.score * 100 < approveThreshold && r.status === 'pending',
+  ).length
 
   return (
     <div
@@ -1181,6 +1194,17 @@ export function DiscoverPage() {
                   {t('discover.approveAllAbove')}
                   {pendingAboveThreshold > 0 && (
                     <span className="ml-1.5 text-xs opacity-70">({pendingAboveThreshold})</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRejectBelow}
+                  disabled={pendingBelowThreshold === 0}
+                  className="px-3 py-1.5 bg-reject/20 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('discover.rejectAllBelow')}
+                  {pendingBelowThreshold > 0 && (
+                    <span className="ml-1.5 text-xs opacity-70">({pendingBelowThreshold})</span>
                   )}
                 </button>
                 <button

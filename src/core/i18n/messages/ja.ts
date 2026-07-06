@@ -294,6 +294,7 @@ export const ja = {
     'ヒント: 「雨の日のジャズ」や「明るい 90 年代のポップ」など、自分の気分をわかりやすい英語で説明してください。',
   'discover.navigate': '移動',
   'discover.noPendingAbove': '上記に保留中の推奨事項はありません',
+  'discover.noPendingBelow': '下記に保留中の推奨事項はありません',
   'discover.noPendingToClear': 'クリアすべき保留中の推奨事項はありません',
   'discover.notEnoughFeedback':
     'まだ十分なフィードバック データがありません。さらに多くの推奨事項を承認または拒否します。',
@@ -303,6 +304,7 @@ export const ja = {
   'discover.refreshData': 'データを更新する',
   'discover.refreshingArtistData': 'アーティストデータを更新しています...',
   'discover.rejectAll': 'すべて拒否する',
+  'discover.rejectAllBelow': '下記をすべて拒否',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',
