@@ -1369,18 +1369,6 @@ export const en = {
   'errorBoundary.retry': 'Try again',
   'errorBoundary.home': 'Go home',
 
-  // Connection suggestions
-  'connectionSuggestions.title': 'Suggestions for {0}',
-  'connectionSuggestions.close': 'Close suggestions',
-  'connectionSuggestions.gotIt': 'Got it',
-  'connectionSuggestions.skipForNow': 'Skip for now',
-  'connectionSuggestions.spotifyDiscoverWeekly': 'Set up a Discover Weekly subscription',
-  'connectionSuggestions.spotifyReleaseRadar': 'Enable Release Radar subscription',
-  'connectionSuggestions.lastfmTopGenreTags': 'Subscribe to your top genre tags',
-  'connectionSuggestions.listenbrainzWeeklyJams': 'Enable Weekly Jams subscription',
-  'connectionSuggestions.listenbrainzWeeklyExploration': 'Enable Weekly Exploration',
-  'connectionSuggestions.weeklyDigestPlaylist': 'Create a weekly Digarr Digest playlist',
-
   // Keyboard shortcuts
   'keyboardShortcuts.title': 'Keyboard shortcuts',
   'keyboardShortcuts.close': 'Close shortcuts',

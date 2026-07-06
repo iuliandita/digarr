@@ -41,8 +41,6 @@ const LISTENBRAINZ_MODE_IDS = new Set([
   'lb-tag-radio',
 ])
 
-const NOT_IMPLEMENTED_MODE_IDS = new Set<string>()
-
 export function buildDiscoveryModeExecutionContext(
   availability: DiscoveryAvailabilityResult,
 ): DiscoveryModeExecutionContext {
@@ -58,15 +56,6 @@ export function evaluateDiscoveryModeAvailability(
   modeId: string,
   snapshot: DiscoveryConnectionSnapshot,
 ): DiscoveryAvailabilityResult {
-  if (NOT_IMPLEMENTED_MODE_IDS.has(modeId)) {
-    return {
-      enabled: false,
-      fallbackUsed: false,
-      providerPath: [],
-      reason: 'This mode is not implemented yet.',
-    }
-  }
-
   if (LISTENBRAINZ_MODE_IDS.has(modeId)) {
     return snapshot.hasListenBrainz
       ? { enabled: true, fallbackUsed: false, providerPath: ['listenbrainz'] }
