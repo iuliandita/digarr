@@ -46,6 +46,14 @@ describe('windowMsFromCron', () => {
     expect(windowMsFromCron('0 8 * * 1,5', from)).toBe(4 * DAY_MS)
   })
 
+  it('derives the elapsed interval when the tick fires seconds late', () => {
+    // Friday 08:00:05 -- the tick ran 5s after the scheduled fire, so the
+    // Friday fire itself shows up as a "previous" run and must be skipped;
+    // the window still reaches back to Monday.
+    const from = new Date(2024, 0, 5, 8, 0, 5, 0)
+    expect(windowMsFromCron('0 8 * * 1,5', from)).toBe(4 * DAY_MS + 5000)
+  })
+
   it('falls back to 1 day on an invalid cron', () => {
     expect(windowMsFromCron('not a cron')).toBe(DAY_MS)
   })

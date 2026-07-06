@@ -26,10 +26,14 @@ export type DigestNotifierDeps = {
  */
 export function windowMsFromCron(cronExpr: string, from: Date = new Date()): number {
   const dayMs = 24 * 60 * 60 * 1000
+  const granuleMs = 60 * 1000
   try {
     const probe = new Cron(cronExpr)
-    const [prev] = probe.previousRuns(1, from)
+    const [first, second] = probe.previousRuns(2, from)
     probe.stop()
+    // A "previous" fire within one minute of `from` is the current fire
+    // observed by a late tick (5-field crons space fires >=1min apart).
+    const prev = first && from.getTime() - first.getTime() < granuleMs ? second : first
     if (prev) {
       const gap = from.getTime() - prev.getTime()
       if (gap > 0) return gap
