@@ -702,6 +702,9 @@ export const it = {
   'discoveryMode.spotify-saved-albums.label': 'Album salvati di Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Scopri artisti dagli album che hai salvato su Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Scopri artisti simili a quelli che hai contrassegnato con una stella sul tuo server Subsonic',
   'discoveryMode.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.notShippedYet': 'Questa modalità non è ancora disponibile.',
   'discoveryMode.reason.connectListenBrainz': 'Collega ListenBrainz per usare questa modalità.',
@@ -712,6 +715,7 @@ export const it = {
   'discoveryMode.reason.connectLastfm': 'Collega Last.fm per usare questa modalità.',
   'discoveryMode.reason.connectDeezer': 'Collega Deezer per usare questa modalità.',
   'discoveryMode.reason.connectSpotify': 'Collega Spotify per usare questa modalità.',
+  'discoveryMode.reason.connectSubsonic': 'Collega Subsonic per usare questa modalità.',
   'discoveryMode.reason.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.reason.releaseRadarFallback':
     'Uso di provider di fallback per la scoperta delle uscite.',

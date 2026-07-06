@@ -714,6 +714,9 @@ export const ru = {
   'discoveryMode.spotify-saved-albums.label': 'Сохранённые альбомы Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Открывайте исполнителей из альбомов, сохранённых в Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Открывайте исполнителей, похожих на тех, кого вы отметили звёздочкой на вашем сервере Subsonic',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -725,6 +728,7 @@ export const ru = {
   'discoveryMode.reason.connectLastfm': 'Подключите Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDeezer': 'Подключите Deezer, чтобы использовать этот режим.',
   'discoveryMode.reason.connectSpotify': 'Подключите Spotify, чтобы использовать этот режим.',
+  'discoveryMode.reason.connectSubsonic': 'Подключите Subsonic, чтобы использовать этот режим.',
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',

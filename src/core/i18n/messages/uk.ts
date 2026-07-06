@@ -708,6 +708,9 @@ export const uk = {
   'discoveryMode.spotify-saved-albums.label': 'Збережені альбоми Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Відкривайте виконавців з альбомів, збережених у Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Відкривайте виконавців, схожих на тих, кого ви відзначили зірочкою на вашому сервері Subsonic',
   'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
@@ -719,6 +722,7 @@ export const uk = {
   'discoveryMode.reason.connectLastfm': 'Підключіть Last.fm, щоб використовувати цей режим.',
   'discoveryMode.reason.connectDeezer': 'Підключіть Deezer, щоб використовувати цей режим.',
   'discoveryMode.reason.connectSpotify': 'Підключіть Spotify, щоб використовувати цей режим.',
+  'discoveryMode.reason.connectSubsonic': 'Підключіть Subsonic, щоб використовувати цей режим.',
   'discoveryMode.reason.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',

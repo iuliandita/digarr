@@ -713,6 +713,9 @@ export const de = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Gespeicherte Alben',
   'discoveryMode.spotify-saved-albums.description':
     'Entdecke Künstler aus den Alben, die du auf Spotify gespeichert hast',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Entdecke Künstler, die den von dir auf deinem Subsonic-Server markierten Künstlern ähneln',
   'discoveryMode.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
@@ -724,6 +727,7 @@ export const de = {
   'discoveryMode.reason.connectLastfm': 'Verbinde Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDeezer': 'Verbinde Deezer, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectSpotify': 'Verbinde Spotify, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.connectSubsonic': 'Verbinde Subsonic, um diesen Modus zu verwenden.',
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',

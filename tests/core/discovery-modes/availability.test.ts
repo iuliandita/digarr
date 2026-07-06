@@ -10,6 +10,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
 
     expect(result.enabled).toBe(false)
@@ -24,6 +25,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     }
 
     for (const modeId of [
@@ -48,6 +50,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
 
     expect(result).toMatchObject({
@@ -66,6 +69,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
 
     expect(result.enabled).toBe(true)
@@ -80,6 +84,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: true,
       hasDeezer: false,
       hasLibrarySync: true,
+      hasSubsonic: false,
     }
 
     expect(evaluateDiscoveryModeAvailability('artist-relationships', snapshot)).toMatchObject({
@@ -102,6 +107,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     }
 
     for (const modeId of [
@@ -126,6 +132,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: true,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
 
     expect(result).toMatchObject({
@@ -143,6 +150,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
 
     expect(result).toMatchObject({

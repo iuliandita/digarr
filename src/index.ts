@@ -962,6 +962,11 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
             deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
           ),
           hasLibrarySync,
+          hasSubsonic: Boolean(
+            userConnections?.subsonicUrl &&
+              userConnections.subsonicUsername &&
+              userConnections.subsonicPassword,
+          ),
         }
       },
       pipelineOrchestrator: orchestrator,
@@ -1378,6 +1383,11 @@ const app = createApp({
         deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
       ),
       hasLibrarySync,
+      hasSubsonic: Boolean(
+        userConnections?.subsonicUrl &&
+          userConnections.subsonicUsername &&
+          userConnections.subsonicPassword,
+      ),
     }
   },
   jobRecorder,

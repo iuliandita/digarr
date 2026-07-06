@@ -177,6 +177,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })),
     runDiscoveryMode: vi.fn(async () => ({ batchId: 1 })),
     jobRecorder: {
