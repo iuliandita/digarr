@@ -190,6 +190,21 @@ export class LibraryHealthService {
       errors: [],
     }
 
+    if (checkId === 'unmonitored') {
+      const ids = items.map((i) => i.artistId).filter((id) => id > 0)
+      if (ids.length > 0) {
+        try {
+          await this.deps.lidarrClient.setArtistsMonitored(ids, true)
+          progress.completed = ids.length
+        } catch (err: unknown) {
+          progress.failed = ids.length
+          progress.errors.push(errMsg(err))
+        }
+      }
+      progress.status = progress.failed === 0 ? 'completed' : 'failed'
+      return progress
+    }
+
     const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
 
     for (const item of items) {
@@ -422,10 +437,6 @@ export class LibraryHealthService {
       case 'missing-metadata':
       case 'genre-gaps':
         await this.deps.lidarrClient.triggerCommand('RefreshArtist', { artistId: item.artistId })
-        break
-
-      case 'unmonitored':
-        await this.deps.lidarrClient.setArtistsMonitored([item.artistId], true)
         break
 
       case 'missing-albums':

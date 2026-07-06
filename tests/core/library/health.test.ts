@@ -692,6 +692,70 @@ describe('LibraryHealthService', () => {
       expect(progress.completed).toBe(0)
       expect(progress.status).toBe('completed')
     })
+
+    it('bulk-flips all unmonitored artists in a single setArtistsMonitored call', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockResolvedValue(
+        unmonitoredArtists.map((a) => ({ ...a, monitored: true })),
+      )
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(1)
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith(
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(progress).toMatchObject({ total: 3, completed: 3, failed: 0, status: 'completed' })
+    })
+
+    it('records a single batch error when the bulk unmonitored call fails', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(1)
+      expect(progress.completed).toBe(0)
+      expect(progress.failed).toBe(3)
+      expect(progress.status).toBe('failed')
+      expect(progress.errors).toHaveLength(1)
+      expect(progress.errors[0]).toContain('Lidarr down')
+    })
+
+    it('still queues one triggerCommand call per item for missing-albums (non-bulk path unchanged)', async () => {
+      mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD, ARTIST_RADIOHEAD])
+      mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.triggerCommand.mockResolvedValue({})
+
+      const progress = await service.fixCheck('missing-albums')
+
+      expect(mocks.triggerCommand).toHaveBeenCalledTimes(2)
+      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
+        artistId: ARTIST_PORTISHEAD.id,
+      })
+      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
+        artistId: ARTIST_RADIOHEAD.id,
+      })
+      expect(progress.completed).toBe(2)
+      expect(progress.status).toBe('completed')
+    })
   })
 
   // -------------------------------------------------------------------------
