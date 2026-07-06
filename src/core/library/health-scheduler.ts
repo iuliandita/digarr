@@ -1,4 +1,5 @@
 import { Cron } from 'croner'
+import { isMaintenance } from '@/core/ops/maintenance'
 
 export type LibraryHealthSchedulerDeps = {
   intervalHours: number
@@ -19,6 +20,10 @@ export function startLibraryHealthScheduler(deps: LibraryHealthSchedulerDeps): C
     `[library-health-scheduler] started, interval=${deps.intervalHours}h, pattern="${pattern}"`,
   )
   return new Cron(pattern, () => {
+    if (isMaintenance()) {
+      console.log('[library-health-scheduler] tick skipped: maintenance in progress')
+      return
+    }
     try {
       deps.libraryHealth.startScan()
     } catch (err: unknown) {

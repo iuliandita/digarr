@@ -1,4 +1,5 @@
 import { Cron } from 'croner'
+import { isMaintenance } from '@/core/ops/maintenance'
 
 type ScheduledJob = { name: string; cron: Cron; expression: string }
 
@@ -8,6 +9,10 @@ export class SubscriptionScheduler {
   schedule(name: string, cronExpression: string, fn: () => Promise<void>): void {
     this.remove(name)
     const cron = new Cron(cronExpression, async () => {
+      if (isMaintenance()) {
+        console.log('[scheduler] tick skipped: maintenance in progress')
+        return
+      }
       try {
         await fn()
       } catch (err: unknown) {

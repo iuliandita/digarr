@@ -1,4 +1,5 @@
 import { Cron } from 'croner'
+import { isMaintenance } from '@/core/ops/maintenance'
 import type { SyncOrchestrator } from './sync'
 
 export type LibrarySchedulerDeps = {
@@ -41,6 +42,10 @@ export function startLibrarySyncScheduler(deps: LibrarySchedulerDeps): Cron {
     `[library-sync-scheduler] started, interval=${deps.intervalHours}h, pattern="${pattern}"`,
   )
   const cron = new Cron(pattern, async () => {
+    if (isMaintenance()) {
+      console.log('[library-sync-scheduler] tick skipped: maintenance in progress')
+      return
+    }
     try {
       await deps.orchestrator.syncGlobal()
       const users = await deps.listUserIds()

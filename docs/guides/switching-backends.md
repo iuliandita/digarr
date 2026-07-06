@@ -29,8 +29,11 @@ point-in-time snapshots and disaster recovery, use the Backup & Restore panel
 - Aim for a low-activity window. Digarr blocks write API calls (POST / PUT /
   PATCH / DELETE) for non-migration routes while the copy runs, returning `503
   Maintenance in progress` to any writers. Read operations continue normally.
-  Scheduled scans can still start during that window if a schedule fires; disable
-  or pause them beforehand if you want to avoid that.
+  Background schedulers (pipeline subscriptions, playlists, library sync and
+  health scans, the stuck-job detector) skip their ticks while the lock is held,
+  so scheduled jobs do not write during the copy. A job already running when the
+  migration starts can still finish and write; wait for running jobs to complete
+  before migrating.
 
 ---
 
@@ -75,7 +78,8 @@ Fix any errors before proceeding.
 
 Click **Migrate**. The operation:
 
-1. Freezes writes on all non-migration routes (maintenance lock).
+1. Freezes writes on all non-migration routes and pauses background scheduler
+   ticks (maintenance lock).
 2. Takes a consistent, read-only snapshot of the source database inside a
    `REPEATABLE READ READ ONLY` transaction.
 3. Runs schema migrations on the target (creates all tables).
