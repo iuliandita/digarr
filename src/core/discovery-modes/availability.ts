@@ -5,6 +5,7 @@ export type DiscoveryConnectionSnapshot = {
   hasDiscogs: boolean
   hasDeezer: boolean
   hasLibrarySync: boolean
+  hasSubsonic: boolean
 }
 
 /** All-false connection snapshot: the default when no provider-state resolver is wired. */
@@ -15,6 +16,7 @@ export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
   hasDiscogs: false,
   hasDeezer: false,
   hasLibrarySync: false,
+  hasSubsonic: false,
 }
 
 export type DiscoveryAvailabilityResult = {
@@ -131,6 +133,17 @@ export function evaluateDiscoveryModeAvailability(
           fallbackUsed: false,
           providerPath: [],
           reason: 'Connect Deezer to use this mode.',
+        }
+  }
+
+  if (modeId === 'subsonic-starred') {
+    return snapshot.hasSubsonic
+      ? { enabled: true, fallbackUsed: true, providerPath: ['subsonic'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Subsonic to use this mode.',
         }
   }
 

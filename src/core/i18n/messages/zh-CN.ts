@@ -648,6 +648,9 @@ export const zhCN = {
   'discoveryMode.deezer-flow.description': '从您的个性化 Deezer Flow 推荐中发现艺术家',
   'discoveryMode.spotify-saved-albums.label': 'Spotify 已保存专辑',
   'discoveryMode.spotify-saved-albums.description': '从您在 Spotify 上保存的专辑中发现艺术家',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    '发现与您在 Subsonic 服务器上加星标的艺术家相似的艺术家',
   'discoveryMode.notImplementedYet': '此模式尚未实现。',
   'discoveryMode.notShippedYet': '此模式尚未上线。',
   'discoveryMode.reason.connectListenBrainz': '连接 ListenBrainz 后才能使用此模式。',
@@ -658,6 +661,7 @@ export const zhCN = {
   'discoveryMode.reason.connectLastfm': '连接 Last.fm 以使用此模式。',
   'discoveryMode.reason.connectDeezer': '连接 Deezer 以使用此模式。',
   'discoveryMode.reason.connectSpotify': '连接 Spotify 以使用此模式。',
+  'discoveryMode.reason.connectSubsonic': '连接 Subsonic 以使用此模式。',
   'discoveryMode.reason.notImplementedYet': '此模式尚未实现。',
   'discoveryMode.reason.releaseRadarFallback': '正在使用后备提供方来发现新发行。',
   'discoveryMode.field.feed': '订阅源',

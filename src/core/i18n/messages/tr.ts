@@ -703,6 +703,9 @@ export const tr = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Kaydedilen Albümler',
   'discoveryMode.spotify-saved-albums.description':
     "Spotify'da kaydettiğin albümlerden sanatçılar keşfet",
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Subsonic sunucunda yıldızladığın sanatçılara benzer sanatçıları keşfet',
   'discoveryMode.notImplementedYet': 'Bu mod henuz uygulanmadi.',
   'discoveryMode.notShippedYet': 'Bu mod henuz kullanilabilir degil.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz baglayin.',
@@ -713,6 +716,7 @@ export const tr = {
   'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i baglayin.",
   'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı baglayin.",
   'discoveryMode.reason.connectSpotify': "Bu modu kullanmak için Spotify'ı baglayin.",
+  'discoveryMode.reason.connectSubsonic': "Bu modu kullanmak için Subsonic'i bağlayın.",
   'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi için yedek saglayicilar kullaniliyor.',
   'discoveryMode.field.feed': 'Feed',

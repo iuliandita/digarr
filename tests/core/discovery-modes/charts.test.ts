@@ -62,6 +62,7 @@ describe('charts mode – availability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
     expect(result).toMatchObject({
       enabled: true,
@@ -78,6 +79,7 @@ describe('charts mode – availability', () => {
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })
     expect(result.enabled).toBe(false)
     expect(result.reason).toMatch(/last\.fm/i)

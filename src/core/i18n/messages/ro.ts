@@ -706,6 +706,9 @@ export const ro = {
   'discoveryMode.spotify-saved-albums.label': 'Albume salvate Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Descoperă artiști din albumele pe care le-ai salvat pe Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Descoperă artiști similari celor pe care i-ai marcat cu stea pe serverul tău Subsonic',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -716,6 +719,7 @@ export const ro = {
   'discoveryMode.reason.connectLastfm': 'Conectează Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDeezer': 'Conectează Deezer pentru a folosi acest mod.',
   'discoveryMode.reason.connectSpotify': 'Conectează Spotify pentru a folosi acest mod.',
+  'discoveryMode.reason.connectSubsonic': 'Conectează Subsonic pentru a folosi acest mod.',
   'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',

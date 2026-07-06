@@ -11,6 +11,7 @@ import {
 import { createReleaseRadarMode } from './modes/release-radar'
 import { createSimilarArtistWebMode } from './modes/similar-artist-web'
 import { createSpotifySavedAlbumsMode } from './modes/spotify-saved-albums'
+import { createSubsonicStarredMode } from './modes/subsonic-starred'
 import type { DiscoveryModeDefinition } from './types'
 
 export class DiscoveryModeRegistry {
@@ -48,6 +49,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createChartsMode())
   registry.register(createDeezerFlowMode())
   registry.register(createSpotifySavedAlbumsMode())
+  registry.register(createSubsonicStarredMode())
   return registry
 }
 
