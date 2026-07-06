@@ -3,6 +3,7 @@ import { envConfig } from '@/config/env'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { createTidalClient } from '@/core/clients/tidal'
 import { sendWebhook } from '@/core/notifications'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
@@ -29,6 +30,7 @@ const SECRET_FIELDS = [
   'embyApiKey',
   'discogsToken',
   'subsonicPassword',
+  'tidalClientSecret',
 ] as const
 
 type SettingsResponse = Record<string, unknown>
@@ -241,6 +243,8 @@ export function settingsRoutes(deps: AppDependencies) {
     'oidcClientId',
     'oidcClientSecret',
     'oidcScopes',
+    'tidalClientId',
+    'tidalClientSecret',
   ])
 
   const USER_CONNECTION_FIELDS = new Set([
@@ -622,6 +626,15 @@ export function settingsRoutes(deps: AppDependencies) {
           scopes: 'openid',
         })
         return runProbe(c, () => svc.testConnection(), messages['common.unknownError'])
+      }
+      case 'tidal': {
+        const clientId = body.clientId || (stored?.tidalClientId as string) || ''
+        const clientSecret = body.clientSecret || (stored?.tidalClientSecret as string) || ''
+        if (!clientId || !clientSecret) {
+          return missingInput(`Missing ${!clientId ? 'client ID' : 'client secret'}`)
+        }
+        const client = createTidalClient({ clientId, clientSecret })
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       default:
         return problem(c, 'unknown-service', `Unknown service: ${service}`, 400)

@@ -876,6 +876,8 @@ export const ru = {
   'settings.subsonicDescription':
     'Самостоятельно размещённый музыкальный сервер (Navidrome, Airsonic) для синхронизации библиотеки и поиска новинок',
   'settings.discogsDescription': 'Коллекция и список желаний из Discogs.',
+  'settings.tidalDescription':
+    'Экспериментальный источник поиска, использующий доступ по клиентским учётным данным TIDAL. Использует недокументированные конечные точки, которые могут измениться без предупреждения.',
   'settings.yourAccount': 'ваш аккаунт',
   'settings.lidarrPreferences': 'Ваши настройки Lidarr',
   'settings.lidarrPreferencesDescription':

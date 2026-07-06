@@ -870,6 +870,8 @@ export const uk = {
   'settings.subsonicDescription':
     'Самостійно розміщений музичний сервер (Navidrome, Airsonic) для синхронізації бібліотеки та відкриття',
   'settings.discogsDescription': 'Колекція та список бажань із Discogs.',
+  'settings.tidalDescription':
+    'Експериментальне джерело пошуку, що використовує доступ за клієнтськими обліковими даними TIDAL. Використовує недокументовані кінцеві точки, які можуть змінитися без попередження.',
   'settings.yourAccount': 'ваш акаунт',
   'settings.lidarrPreferences': 'Ваші налаштування Lidarr',
   'settings.lidarrPreferencesDescription':

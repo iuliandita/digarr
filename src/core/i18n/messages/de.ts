@@ -876,6 +876,8 @@ export const de = {
   'settings.subsonicDescription':
     'Selbst gehosteter Musikserver (Navidrome, Airsonic) für Bibliothekssynchronisierung und Entdeckung',
   'settings.discogsDescription': 'Sammlung und Wunschliste von Discogs.',
+  'settings.tidalDescription':
+    'Experimentelle Suchquelle mit TIDAL-Client-Credentials-Zugriff. Nutzt undokumentierte Endpunkte, die sich ohne Vorankündigung ändern können.',
   'settings.yourAccount': 'dein Konto',
   'settings.lidarrPreferences': 'Deine Lidarr-Einstellungen',
   'settings.lidarrPreferencesDescription':

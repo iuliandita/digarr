@@ -78,7 +78,7 @@ The setup wizard supports three starting points: Lidarr, Emby, or discovery-only
 In addition to approval-driven queueing, Digarr now runs a background `slskd` worker for linked Lidarr targets. It polls Lidarr wanted releases, creates deduped `slskd` jobs per target, advances them through search and transfer states, and only marks Lidarr-backed jobs complete after import verification. Admins can trigger a manual sync and inspect active `slskd` jobs from the API.
 
 ### Cross-Platform Search
-Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match.
+Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match. TIDAL is experimental and needs admin-configured client credentials (Settings -> Connections) before it becomes active.
 
 ## Features
 

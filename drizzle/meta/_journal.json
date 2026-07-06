@@ -281,6 +281,13 @@
       "when": 1783256081195,
       "tag": "0039_rainy_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1783357733815,
+      "tag": "0040_gorgeous_sasquatch",
+      "breakpoints": true
     }
   ]
 }

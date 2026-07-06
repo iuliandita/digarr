@@ -867,6 +867,8 @@ export const ro = {
   'settings.subsonicDescription':
     'Server de muzică auto-găzduit (Navidrome, Airsonic) pentru sincronizarea bibliotecii și descoperire',
   'settings.discogsDescription': 'Colecție și listă de dorințe din Discogs.',
+  'settings.tidalDescription':
+    'Sursă de căutare experimentală care utilizează acces prin credențiale de client TIDAL. Folosește puncte finale nedocumentate care se pot schimba fără notificare.',
   'settings.yourAccount': 'contul dvs.',
   'settings.lidarrPreferences': 'Preferințele dvs. Lidarr',
   'settings.lidarrPreferencesDescription':

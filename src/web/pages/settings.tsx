@@ -87,6 +87,8 @@ type Settings = {
   audiodbApiKey?: string
   audiodbProxyImages?: boolean
   wikidataEnabled?: boolean
+  tidalClientId?: string
+  tidalClientSecret?: string
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string
@@ -269,6 +271,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     settings.aiApiKey === '***' ? '' : (settings.aiApiKey ?? ''),
   )
   const [aiBaseUrl, setAiBaseUrl] = useState(settings.aiBaseUrl ?? '')
+  const [tidalClientId, setTidalClientId] = useState(settings.tidalClientId ?? '')
+  const [tidalClientSecret, setTidalClientSecret] = useState(
+    settings.tidalClientSecret === '***' ? '' : (settings.tidalClientSecret ?? ''),
+  )
   const [webhookUrl, setWebhookUrl] = useState(settings.preferences?.webhookUrl ?? '')
   const [digestCron, setDigestCron] = useState(settings.preferences?.digestCron ?? '')
   const [savingWebhook, setSavingWebhook] = useState(false)
@@ -350,6 +356,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     listenbrainz: Boolean(settings.listenbrainzUsername && settings.listenbrainzToken),
     lastfm: Boolean(settings.lastfmUsername && settings.lastfmApiKey),
     ai: Boolean(settings.aiProvider && settings.aiModel),
+    tidal: Boolean(settings.tidalClientId && settings.tidalClientSecret),
     plex: Boolean(settings.plexUrl && settings.plexToken),
     jellyfin: Boolean(settings.jellyfinUrl && settings.jellyfinApiKey && settings.jellyfinUserId),
     emby: Boolean(settings.embyUrl && settings.embyApiKey && settings.embyUserId),
@@ -510,6 +517,16 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     }
   }
 
+  const testTidal = createTester('tidal', 'TIDAL', () =>
+    testService('tidal', { clientId: tidalClientId, clientSecret: tidalClientSecret }),
+  )
+  const saveTidal = createSaver('tidal', 'TIDAL', () =>
+    updateSettings({
+      tidalClientId: tidalClientId || undefined,
+      tidalClientSecret: tidalClientSecret || undefined,
+    }),
+  )
+
   const testPlex = createTester('plex', 'Plex', async () => {
     const res = await testService('plex', {
       url: plexUrl,
@@ -656,6 +673,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const isLbConfigured = !!(lbUsername || settings.listenbrainzUsername)
   const isLfConfigured = !!(lfUsername || settings.lastfmUsername)
   const isAiConfigured = !!(aiModel || settings.aiModel)
+  const isTidalConfigured = !!(tidalClientId || settings.tidalClientId)
   const isPlexConfigured = !!(plexUrl || settings.plexUrl)
   const isJellyfinConfigured = !!(jellyfinUrl || settings.jellyfinUrl)
   const isEmbyConfigured = !!(embyUrl || settings.embyUrl)
@@ -974,6 +992,60 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 {savingWebhook
                   ? t('settings.saving')
                   : webhookUrl
+                    ? t('settings.save')
+                    : t('settings.configure')}
+              </Button>
+            </div>
+          </ServiceCard>
+
+          {/* TIDAL search */}
+          <ServiceCard
+            name="TIDAL"
+            description={
+              <span>
+                {t('settings.tidalDescription')}{' '}
+                <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                  {t('search.experimental')}
+                </span>
+              </span>
+            }
+            status={serviceStatus('tidal')}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label={t('settings.fieldClientId')} id="tidal-client-id">
+                <Input
+                  id="tidal-client-id"
+                  value={tidalClientId}
+                  onChange={(e) => setTidalClientId(e.target.value)}
+                />
+              </Field>
+              <Field label={t('settings.fieldClientSecret')} id="tidal-client-secret">
+                <Input
+                  id="tidal-client-secret"
+                  type="password"
+                  placeholder={
+                    settings.tidalClientSecret === '***'
+                      ? `(${t('settings.saved')})`
+                      : t('settings.fieldClientSecret')
+                  }
+                  value={tidalClientSecret}
+                  onChange={(e) => setTidalClientSecret(e.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testTidal}
+                disabled={tests.tidal === 'testing'}
+              >
+                {tests.tidal === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+              <Button size="sm" onClick={saveTidal} disabled={saving.tidal}>
+                {saving.tidal
+                  ? t('settings.saving')
+                  : isTidalConfigured
                     ? t('settings.save')
                     : t('settings.configure')}
               </Button>

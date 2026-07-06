@@ -15,6 +15,7 @@ import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
+import { createTidalClient } from './core/clients/tidal'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
@@ -61,6 +62,7 @@ import { createBandcampSearchSource } from './core/search/sources/bandcamp'
 import { createDeezerSearchSource } from './core/search/sources/deezer'
 import { createMusicBrainzSearchSource } from './core/search/sources/musicbrainz'
 import { createSpotifySearchSource } from './core/search/sources/spotify'
+import { createTidalSearchSource } from './core/search/sources/tidal'
 import { setSessionStore } from './core/sessions'
 import { createSlskdOrchestrator } from './core/slskd/orchestrator'
 import { createSlskdRunner } from './core/slskd/runner'
@@ -1397,9 +1399,10 @@ const app = createApp({
   search: {
     listSources: async (userId) => {
       const spotifyOAuth = userId ? await getOAuthToken(db, userId, 'spotify') : null
+      const storedSettings = await getSettings(db)
       return buildSearchSourceCatalog({
         hasSpotifyOAuth: Boolean(spotifyOAuth),
-        hasTidalSearch: false,
+        hasTidalSearch: Boolean(storedSettings?.tidalClientId && storedSettings?.tidalClientSecret),
       })
     },
     search: async (query, opts) => {
@@ -1420,8 +1423,17 @@ const app = createApp({
           )
         }
       }
-      // TIDAL search requires client credentials (not per-user OAuth). Wire it here
-      // once TIDAL client ID/secret are exposed via settings (not yet implemented).
+      const storedSettings = await getSettings(db)
+      if (storedSettings?.tidalClientId && storedSettings?.tidalClientSecret) {
+        sources.push(
+          createTidalSearchSource(
+            createTidalClient({
+              clientId: storedSettings.tidalClientId,
+              clientSecret: storedSettings.tidalClientSecret,
+            }),
+          ),
+        )
+      }
 
       const filtered = opts?.sources ? sources.filter((s) => opts.sources?.includes(s.id)) : sources
       const merged = await multiSourceSearch(query, filtered, { limit: opts?.limit })

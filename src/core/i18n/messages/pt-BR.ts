@@ -866,6 +866,8 @@ export const ptBR = {
   'settings.subsonicDescription':
     'Servidor de música auto-hospedado (Navidrome, Airsonic) para sincronização de biblioteca e descoberta',
   'settings.discogsDescription': 'Coleção e lista de desejos do Discogs.',
+  'settings.tidalDescription':
+    'Fonte de busca experimental que usa acesso por credenciais de cliente do TIDAL. Utiliza endpoints não documentados que podem mudar sem aviso prévio.',
   'settings.yourAccount': 'sua conta',
   'settings.lidarrPreferences': 'Suas preferências do Lidarr',
   'settings.lidarrPreferencesDescription':

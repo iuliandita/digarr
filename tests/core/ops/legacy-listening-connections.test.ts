@@ -15,6 +15,8 @@ function makeSettings(overrides: Partial<SettingsRow> = {}): SettingsRow {
     audiodbApiKey: null,
     audiodbProxyImages: false,
     wikidataEnabled: true,
+    tidalClientId: null,
+    tidalClientSecret: null,
     listenbrainzUsername: 'global-lb-user',
     listenbrainzToken: 'global-lb-token',
     lastfmUsername: 'global-lastfm-user',
