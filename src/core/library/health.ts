@@ -192,17 +192,19 @@ export class LibraryHealthService {
 
     if (checkId === 'unmonitored') {
       const ids = items.map((i) => i.artistId).filter((id) => id > 0)
-      if (ids.length > 0) {
-        try {
-          await this.deps.lidarrClient.setArtistsMonitored(ids, true)
-          progress.completed = ids.length
-        } catch (err: unknown) {
-          progress.failed = ids.length
-          progress.errors.push(errMsg(err))
-        }
+      if (ids.length === 0) {
+        progress.status = 'completed'
+        return progress
       }
-      progress.status = progress.failed === 0 ? 'completed' : 'failed'
-      return progress
+      try {
+        await this.deps.lidarrClient.setArtistsMonitored(ids, true)
+        progress.completed = ids.length
+        progress.status = 'completed'
+        return progress
+      } catch {
+        // bulk editor rejects the whole batch as a unit -- fall through to the
+        // per-artist queue to attribute failures and fix what still can be
+      }
     }
 
     const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
@@ -434,6 +436,10 @@ export class LibraryHealthService {
 
   private async applyFix(checkId: HealthCheckId, item: HealthCheckItem): Promise<void> {
     switch (checkId) {
+      case 'unmonitored':
+        await this.deps.lidarrClient.setArtistsMonitored([item.artistId], true)
+        break
+
       case 'missing-metadata':
       case 'genre-gaps':
         await this.deps.lidarrClient.triggerCommand('RefreshArtist', { artistId: item.artistId })
