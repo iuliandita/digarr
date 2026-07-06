@@ -307,6 +307,7 @@ export const en = {
     'Tip: describe what you are in the mood for in plain English - like "rainy day jazz" or "upbeat 90s pop"',
   'discover.navigate': 'navigate',
   'discover.noPendingAbove': 'No pending recommendations above',
+  'discover.noPendingBelow': 'No pending recommendations below',
   'discover.noPendingToClear': 'No pending recommendations to clear',
   'discover.notEnoughFeedback':
     'Not enough feedback data yet. Approve or reject more recommendations.',
@@ -316,6 +317,7 @@ export const en = {
   'discover.refreshData': 'Refresh Data',
   'discover.refreshingArtistData': 'Refreshing artist data...',
   'discover.rejectAll': 'Reject All',
+  'discover.rejectAllBelow': 'Reject All Below',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',

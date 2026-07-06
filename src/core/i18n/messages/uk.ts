@@ -295,6 +295,7 @@ export const uk = {
     'Порада: опишіть, до чого у вас настрій, простою англійською мовою, наприклад «джаз дощового дня» або «бадьорий поп 90-х».',
   'discover.navigate': 'переміщення',
   'discover.noPendingAbove': 'Вище немає рекомендацій, що очікують на розгляд',
+  'discover.noPendingBelow': 'Нижче немає рекомендацій, що очікують на розгляд',
   'discover.noPendingToClear': 'Немає незавершених рекомендацій для очищення',
   'discover.notEnoughFeedback':
     'Ще недостатньо даних для відгуків. Схвалити або відхилити інші рекомендації.',
@@ -304,6 +305,7 @@ export const uk = {
   'discover.refreshData': 'Оновити дані',
   'discover.refreshingArtistData': 'Оновлення даних виконавця...',
   'discover.rejectAll': 'Відхилити всі',
+  'discover.rejectAllBelow': 'Відхилити всі нижче',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':
     'Відхилити всі очікувані рекомендації? Це неможливо скасувати.',

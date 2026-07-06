@@ -295,6 +295,7 @@ export const de = {
     'Tipp: Beschreiben Sie in einfachem Englisch, worauf Sie Lust haben – zum Beispiel „Rainy Day Jazz“ oder „Upbeat 90s Pop“.',
   'discover.navigate': 'navigieren',
   'discover.noPendingAbove': 'Keine ausstehenden Empfehlungen oben',
+  'discover.noPendingBelow': 'Keine ausstehenden Empfehlungen unten',
   'discover.noPendingToClear': 'Keine ausstehenden Empfehlungen zum Löschen',
   'discover.notEnoughFeedback':
     'Noch nicht genügend Rückmeldungsdaten. Weitere Empfehlungen genehmigen oder ablehnen.',
@@ -304,6 +305,7 @@ export const de = {
   'discover.refreshData': 'Daten aktualisieren',
   'discover.refreshingArtistData': 'Aktualisierte Künstlerdaten...',
   'discover.rejectAll': 'Alle ablehnen',
+  'discover.rejectAllBelow': 'Alle darunter ablehnen',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',

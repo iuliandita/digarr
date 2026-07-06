@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -309,6 +309,37 @@ describe('DiscoverPage', () => {
     await waitFor(() => {
       // Only rec id=1 qualifies (85% >= 70%)
       expect(mockBulkAction).toHaveBeenCalledWith([1], 'approve')
+    })
+  })
+
+  it('bulk reject below threshold opens the picker and rejects only pending below-threshold items', async () => {
+    mockBulkAction.mockResolvedValue(undefined as unknown as never)
+    setupMockApi([
+      makeRec({ id: 1, score: 0.85, status: 'pending' }),
+      makeRec({ id: 2, score: 0.5, status: 'pending' }),
+      makeRec({ id: 3, score: 0.69, status: 'approved' }),
+      makeRec({ id: 4, score: 0.7, status: 'pending' }),
+      makeRec({ id: 5, score: 0.2, status: 'rejected' }),
+    ])
+
+    renderWithQuery(<DiscoverPage />)
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Test Artist')).toHaveLength(5)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /reject all below/i }))
+
+    expect(mockBulkAction).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Why are you rejecting?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Wrong genre or style for me' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Reject' }))
+
+    await waitFor(() => {
+      expect(mockBulkAction).toHaveBeenCalledWith([2], 'reject', {
+        reason: 'wrong_style',
+        permanent: false,
+      })
     })
   })
 

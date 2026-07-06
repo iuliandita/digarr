@@ -295,6 +295,7 @@ export const ro = {
     'Sfat: descrieți ceea ce aveți chef într-o engleză simplă - cum ar fi „jazz în zilele ploioase” sau „pop optimist din anii 90”',
   'discover.navigate': 'navigați',
   'discover.noPendingAbove': 'Nu există recomandări în așteptare mai sus',
+  'discover.noPendingBelow': 'Nu există recomandări în așteptare mai jos',
   'discover.noPendingToClear': 'Nu există recomandări în așteptare de șters',
   'discover.notEnoughFeedback':
     'Nu sunt suficiente date de feedback încă. Aprobați sau respingeți mai multe recomandări.',
@@ -304,6 +305,7 @@ export const ro = {
   'discover.refreshData': 'Actualizați datele',
   'discover.refreshingArtistData': 'Se actualizează datele despre artist...',
   'discover.rejectAll': 'Respingeți tot',
+  'discover.rejectAllBelow': 'Respingeți tot ce este mai jos',
   'discover.rejectAllPending': 'Respingeți toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':
     'Respingeți toate recomandările în așteptare? Acest lucru nu poate fi anulat.',

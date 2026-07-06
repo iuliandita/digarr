@@ -295,6 +295,7 @@ export const it = {
     'Suggerimento: descrivi di cosa hai voglia in un inglese semplice, ad esempio "rainy day jazz" o "allegro pop anni \'90"',
   'discover.navigate': 'navigare',
   'discover.noPendingAbove': 'Nessuna raccomandazione in sospeso sopra',
+  'discover.noPendingBelow': 'Nessuna raccomandazione in sospeso sotto',
   'discover.noPendingToClear': 'Nessuna raccomandazione in sospeso da cancellare',
   'discover.notEnoughFeedback':
     'Dati di feedback ancora insufficienti. Approva o rifiuta più consigli.',
@@ -304,6 +305,7 @@ export const it = {
   'discover.refreshData': 'Aggiorna dati',
   'discover.refreshingArtistData': "Aggiornamento dei dati dell'artista...",
   'discover.rejectAll': 'Rifiuta tutto',
+  'discover.rejectAllBelow': 'Rifiuta tutto sotto',
   'discover.rejectAllPending': 'Rifiuta tutto in sospeso',
   'discover.rejectAllPendingMessage':
     'Rifiutare tutti i consigli in sospeso? Questa operazione non può essere annullata.',
