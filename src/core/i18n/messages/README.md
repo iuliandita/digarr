@@ -96,9 +96,9 @@ Run locally: `bun run i18n:check`.
 ## Accented characters
 
 Accented characters (`ü`, `é`, `á`, `ñ`, `ç`, `ö`, `ł`, `ș`, `ü`, etc.)
-**are** correct inside locale catalogs. The global "no fancy
-punctuation" rule in `CLAUDE.md` applies to project prose and code, not
-to native-language content. The `i18n:check` validator enforces this
+**are** correct inside locale catalogs. The "no fancy punctuation"
+style rule applies to project prose and code, not to native-language
+content. The `i18n:check` validator enforces this
 for German and Spanish by failing on known ASCII substitutions.
 
 ## Error codes
