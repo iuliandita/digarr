@@ -174,6 +174,26 @@ describe('discover()', () => {
     warn.mockRestore()
   })
 
+  it('redacts credential-shaped substrings from an AI source failure before it reaches onSourceFailure', async () => {
+    const lb = makeLb()
+    const ai = {
+      getRecommendations: vi
+        .fn()
+        .mockRejectedValue(new Error('AI request failed: ?api_key=abc123secret')),
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onSourceFailure = vi.fn()
+
+    await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0, { onSourceFailure })
+
+    const aiCall = onSourceFailure.mock.calls.find((call) => call[0] === 'ai')
+    expect(aiCall).toBeDefined()
+    const lastError = aiCall?.[1]
+    expect(lastError).toContain('[redacted]')
+    expect(lastError).not.toContain('abc123secret')
+    warn.mockRestore()
+  })
+
   it('respects topArtistsLimit - skips artists beyond the limit', async () => {
     const lb = makeLb()
     // Limit to 1 artist, so only Radiohead's similar artists should be fetched
