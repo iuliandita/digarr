@@ -1423,6 +1423,18 @@ export const en = {
   'settings.blocked.unblock_failed': 'Failed to unblock',
   'settings.blocked.loadMore': 'Load more',
 
+  // Settings: Blocked Albums section
+  'settings.blockedAlbums.title': 'Blocked Albums',
+  'settings.blockedAlbums.count_one': '{0} album blocked',
+  'settings.blockedAlbums.count_other': '{0} albums blocked',
+  'settings.blockedAlbums.unblock': 'Unblock',
+  'settings.blockedAlbums.empty': 'No blocked albums yet.',
+  'settings.blockedAlbums.empty_hint':
+    'Reject an album recommendation and tick "Don\'t show again" to add one.',
+  'settings.blockedAlbums.error': 'Failed to load blocked albums',
+  'settings.blockedAlbums.unblock_success': 'Unblocked',
+  'settings.blockedAlbums.unblock_failed': 'Failed to unblock',
+
   // Preview player
   'preview.playerRegion': 'Preview player',
   'preview.closePreview': 'Close preview',

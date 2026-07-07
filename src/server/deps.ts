@@ -146,6 +146,10 @@ export interface RecommendationDeps {
     reason?: import('@/core/recommendations/rejection-reasons').RejectionReason | null
     reasonText?: string | null
   }) => Promise<void>
+  listAlbumBlocks: (
+    userId: number,
+  ) => Promise<import('@/db/queries/album-blocks').BlockedAlbumRow[]>
+  removeAlbumBlock: (params: { userId: number; releaseGroupMbid: string }) => Promise<void>
 }
 
 // ---- Subscriptions ----

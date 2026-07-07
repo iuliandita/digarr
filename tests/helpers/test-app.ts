@@ -53,6 +53,8 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),
+    listAlbumBlocks: vi.fn(async () => []),
+    removeAlbumBlock: vi.fn(async () => {}),
     bulkUpdateStatus: vi.fn(),
     filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     listBatches: vi.fn(async () => []),

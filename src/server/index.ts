@@ -17,6 +17,7 @@ import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
 import { setupGuard } from './middleware/setup-guard'
 import { adminRoutes } from './routes/admin'
+import { albumBlocksRoutes } from './routes/album-blocks'
 import { analyticsRoutes } from './routes/analytics'
 import { artistBlocksRoutes } from './routes/artist-blocks'
 import { artistRoutes } from './routes/artists'
@@ -308,6 +309,13 @@ export function createApp(deps: AppDependencies) {
       listArtistBlocks: deps.listArtistBlocks,
       removeArtistBlock: deps.removeArtistBlock,
       addArtistBlock: deps.addArtistBlock,
+    }),
+  )
+  app.route(
+    '/',
+    albumBlocksRoutes({
+      listAlbumBlocks: deps.listAlbumBlocks,
+      removeAlbumBlock: deps.removeAlbumBlock,
     }),
   )
   app.route(
