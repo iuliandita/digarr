@@ -1231,3 +1231,22 @@ export const createArtistBlock = (payload: {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+
+// Album Blocks (permanent album rejection list)
+
+export type BlockedAlbumApi = {
+  id: number
+  artistId: number
+  artistName: string
+  artistMbid: string | null
+  releaseGroupMbid: string
+  reason: RejectionReason | null
+  reasonText: string | null
+  blockedAt: string
+}
+
+export const listAlbumBlocks = (): Promise<{ items: BlockedAlbumApi[] }> =>
+  fetchApi('/album-blocks')
+
+export const deleteAlbumBlock = (releaseGroupMbid: string): Promise<void> =>
+  fetchApi(`/album-blocks/${releaseGroupMbid}`, { method: 'DELETE' })

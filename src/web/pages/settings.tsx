@@ -9,6 +9,7 @@ import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { AdministrationTab } from '../components/admin/administration-tab'
 import { setAudiodbProxyFlag } from '../components/artist-thumb'
+import { BlockedAlbumsTab } from '../components/blocked-albums-tab'
 import { BlockedArtistsTab } from '../components/blocked-artists-tab'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
@@ -3358,7 +3359,12 @@ export function SettingsPage() {
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}
       {tab === 'recommendations' && <RecommendationsTab />}
-      {tab === 'blocked' && <BlockedArtistsTab />}
+      {tab === 'blocked' && (
+        <div className="space-y-8">
+          <BlockedArtistsTab />
+          <BlockedAlbumsTab />
+        </div>
+      )}
       {tab === 'schedule' && <ScheduleTab settings={data} />}
       {tab === 'account' && <AccountTab />}
       {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
