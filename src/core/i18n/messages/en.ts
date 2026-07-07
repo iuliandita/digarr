@@ -829,6 +829,7 @@ export const en = {
   'discoveryMode.reason.connectSubsonic': 'Connect Subsonic to use this mode.',
   'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
+  'discoveryMode.reason.libraryRequired': 'Sync a library first to use this mode.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artist',
   'discoveryMode.field.adventurousness': 'Adventurousness',

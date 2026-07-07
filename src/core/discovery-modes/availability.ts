@@ -169,6 +169,17 @@ export function evaluateDiscoveryModeAvailability(
     }
   }
 
+  if (modeId === 'gap-fill') {
+    return snapshot.hasLibrarySync
+      ? { enabled: true, fallbackUsed: false, providerPath: ['musicbrainz'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Sync a library first to use this mode.',
+        }
+  }
+
   return {
     enabled: false,
     fallbackUsed: false,

@@ -733,6 +733,8 @@ export const de = {
   'discoveryMode.reason.notImplementedYet': 'Dieser Modus ist noch nicht implementiert.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',
+  'discoveryMode.reason.libraryRequired':
+    'Synchronisiere zuerst eine Bibliothek, um diesen Modus zu nutzen.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Künstler',
   'discoveryMode.field.adventurousness': 'Abenteuerlust',

@@ -713,6 +713,8 @@ export const ja = {
   'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
+  'discoveryMode.reason.libraryRequired':
+    'このモードを使うには、先にライブラリを同期してください。',
   'discoveryMode.field.feed': 'フィード',
   'discoveryMode.field.artist': 'アーティスト',
   'discoveryMode.field.adventurousness': '冒険度',

@@ -703,6 +703,7 @@ export const ko = {
   'discoveryMode.reason.connectSubsonic': '이 모드를 사용하려면 Subsonic을 연결하세요.',
   'discoveryMode.reason.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
+  'discoveryMode.reason.libraryRequired': '이 모드를 사용하려면 먼저 라이브러리를 동기화하세요.',
   'discoveryMode.field.feed': '피드',
   'discoveryMode.field.artist': '아티스트',
   'discoveryMode.field.adventurousness': '모험성',

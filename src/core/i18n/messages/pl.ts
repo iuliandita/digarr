@@ -727,6 +727,7 @@ export const pl = {
   'discoveryMode.reason.connectSubsonic': 'Połącz Subsonic, aby użyć tego trybu.',
   'discoveryMode.reason.notImplementedYet': 'Ten tryb nie jest jeszcze zaimplementowany.',
   'discoveryMode.reason.releaseRadarFallback': 'Do odkrywania wydan używane sa źródła zapasowe.',
+  'discoveryMode.reason.libraryRequired': 'Najpierw zsynchronizuj bibliotekę, aby użyć tego trybu.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artysta',
   'discoveryMode.field.adventurousness': 'Odwaznosc',

@@ -724,6 +724,8 @@ export const nl = {
   'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
+  'discoveryMode.reason.libraryRequired':
+    'Synchroniseer eerst een bibliotheek om deze modus te gebruiken.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artiest',
   'discoveryMode.field.adventurousness': 'Avontuurlijkheid',

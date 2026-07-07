@@ -728,6 +728,8 @@ export const uk = {
   'discoveryMode.reason.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',
+  'discoveryMode.reason.libraryRequired':
+    'Спочатку синхронізуйте бібліотеку, щоб використовувати цей режим.',
   'discoveryMode.field.feed': 'Стрічка',
   'discoveryMode.field.artist': 'Виконавець',
   'discoveryMode.field.adventurousness': 'Авантюризм',

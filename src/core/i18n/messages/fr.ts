@@ -717,6 +717,8 @@ export const fr = {
   'discoveryMode.reason.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.reason.releaseRadarFallback':
     'Utilisation de fournisseurs de secours pour la découverte des sorties.',
+  'discoveryMode.reason.libraryRequired':
+    'Synchronisez d’abord une bibliothèque pour utiliser ce mode.',
   'discoveryMode.field.feed': 'Flux',
   'discoveryMode.field.artist': 'Artiste',
   'discoveryMode.field.adventurousness': 'Aventure',

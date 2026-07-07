@@ -721,6 +721,7 @@ export const tr = {
   'discoveryMode.reason.connectSubsonic': "Bu modu kullanmak için Subsonic'i bağlayın.",
   'discoveryMode.reason.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.reason.releaseRadarFallback': 'Yayin kesfi için yedek saglayicilar kullaniliyor.',
+  'discoveryMode.reason.libraryRequired': 'Bu modu kullanmak için önce bir kütüphaneyi eşitleyin.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Sanatci',
   'discoveryMode.field.adventurousness': 'Maceraperestlik',
