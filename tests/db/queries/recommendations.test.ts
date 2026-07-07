@@ -4,6 +4,7 @@ import {
   getGenreArtists,
   getGenreFeedbackHistory,
   getRejectedArtistMbids,
+  rejectRecommendation,
 } from '@/db/queries/recommendations'
 
 // Build a mock drizzle db that returns a fixed result when awaited.
@@ -232,5 +233,131 @@ describe('getGenreArtists', () => {
 
     expect(params).toContain('approved')
     expect(params).not.toContain('added_to_lidarr')
+  })
+})
+
+describe('rejectRecommendation', () => {
+  type RejectedRow = { artistId: number; kind: string; releaseGroupMbid: string | null }
+
+  function tableName(tableArg: unknown): string | undefined {
+    const nameSymbol = Object.getOwnPropertySymbols(tableArg as object).find(
+      (s) => s.toString() === 'Symbol(drizzle:Name)',
+    )
+    return nameSymbol ? (tableArg as Record<symbol, string>)[nameSymbol] : undefined
+  }
+
+  function makeRejectTxDb(recRow: RejectedRow | undefined) {
+    const returning = vi.fn().mockResolvedValue(recRow ? [recRow] : [])
+    const updateWhere = vi.fn().mockReturnValue({ returning })
+    const set = vi.fn().mockReturnValue({ where: updateWhere })
+    const update = vi.fn().mockReturnValue({ set })
+
+    const insertCalls: Array<{ table: string | undefined; values: Record<string, unknown> }> = []
+    const onConflictDoUpdate = vi.fn().mockResolvedValue(undefined)
+    const onConflictDoNothing = vi.fn().mockResolvedValue(undefined)
+    const insert = vi.fn((table: unknown) => ({
+      values: vi.fn((vals: Record<string, unknown>) => {
+        insertCalls.push({ table: tableName(table), values: vals })
+        return { onConflictDoUpdate, onConflictDoNothing }
+      }),
+    }))
+
+    const tx: { update: typeof update; insert: typeof insert } = { update, insert }
+    const db = {
+      transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => fn(tx)),
+    } as unknown as Database
+
+    return { db, insertCalls, update, set, updateWhere, returning }
+  }
+
+  it('writes album_blocks (not artist_blocks) on permanent reject of an album-kind rec with a release group', async () => {
+    const { db, insertCalls } = makeRejectTxDb({
+      artistId: 10,
+      kind: 'album',
+      releaseGroupMbid: 'rg-mbid-1',
+    })
+
+    const artistId = await rejectRecommendation(db, {
+      recommendationId: 1,
+      userId: 5,
+      reason: 'wrong_style',
+      reasonText: 'not my style',
+      permanent: true,
+    })
+
+    expect(artistId).toBe(10)
+    expect(insertCalls).toHaveLength(1)
+    expect(insertCalls[0]?.table).toBe('album_blocks')
+    expect(insertCalls[0]?.values).toMatchObject({
+      userId: 5,
+      artistId: 10,
+      releaseGroupMbid: 'rg-mbid-1',
+      reason: 'wrong_style',
+      reasonText: 'not my style',
+      source: 'rejection',
+    })
+    expect(insertCalls.some((c) => c.table === 'artist_blocks')).toBe(false)
+  })
+
+  it('writes artist_blocks (not album_blocks) on permanent reject of an artist-kind rec', async () => {
+    const { db, insertCalls } = makeRejectTxDb({
+      artistId: 20,
+      kind: 'artist',
+      releaseGroupMbid: null,
+    })
+
+    const artistId = await rejectRecommendation(db, {
+      recommendationId: 2,
+      userId: 5,
+      reason: 'not_interested',
+      reasonText: null,
+      permanent: true,
+    })
+
+    expect(artistId).toBe(20)
+    expect(insertCalls).toHaveLength(1)
+    expect(insertCalls[0]?.table).toBe('artist_blocks')
+    expect(insertCalls[0]?.values).toMatchObject({ userId: 5, artistId: 20 })
+    expect(insertCalls.some((c) => c.table === 'album_blocks')).toBe(false)
+  })
+
+  it('falls back to artist_blocks for an album-kind rec with a null release group', async () => {
+    const { db, insertCalls } = makeRejectTxDb({
+      artistId: 30,
+      kind: 'album',
+      releaseGroupMbid: null,
+    })
+
+    const artistId = await rejectRecommendation(db, {
+      recommendationId: 3,
+      userId: 5,
+      reason: 'other',
+      reasonText: null,
+      permanent: true,
+    })
+
+    expect(artistId).toBe(30)
+    expect(insertCalls).toHaveLength(1)
+    expect(insertCalls[0]?.table).toBe('artist_blocks')
+    expect(insertCalls.some((c) => c.table === 'album_blocks')).toBe(false)
+  })
+
+  it('writes neither block table on a non-permanent album reject', async () => {
+    const { db, insertCalls } = makeRejectTxDb({
+      artistId: 40,
+      kind: 'album',
+      releaseGroupMbid: 'rg-mbid-2',
+    })
+
+    const artistId = await rejectRecommendation(db, {
+      recommendationId: 4,
+      userId: 5,
+      reason: null,
+      reasonText: null,
+      permanent: false,
+    })
+
+    expect(artistId).toBe(40)
+    expect(insertCalls).toHaveLength(0)
   })
 })
