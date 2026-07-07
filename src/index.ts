@@ -94,7 +94,11 @@ import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
 import { closeDb, db, pool } from './db'
 import { runMigrations } from './db/migrate'
-import { getBlockedAlbumKeys } from './db/queries/album-blocks'
+import {
+  getBlockedAlbumKeys,
+  listAlbumBlocks as listAlbumBlocksQuery,
+  removeAlbumBlock as removeAlbumBlockQuery,
+} from './db/queries/album-blocks'
 import {
   addBlock as addArtistBlockQuery,
   getBlockedMbids as getBlockedArtistMbids,
@@ -1258,6 +1262,8 @@ const app = createApp({
       reasonText: params.reasonText ?? null,
       source: 'manual',
     }),
+  listAlbumBlocks: (userId) => listAlbumBlocksQuery(db, userId),
+  removeAlbumBlock: (params) => removeAlbumBlockQuery(db, params),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),
