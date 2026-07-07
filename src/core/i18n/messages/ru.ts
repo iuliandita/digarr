@@ -734,6 +734,8 @@ export const ru = {
   'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',
+  'discoveryMode.reason.libraryRequired':
+    'Сначала синхронизируйте библиотеку, чтобы использовать этот режим.',
   'discoveryMode.field.feed': 'Лента',
   'discoveryMode.field.artist': 'Исполнитель',
   'discoveryMode.field.adventurousness': 'Авантюризм',

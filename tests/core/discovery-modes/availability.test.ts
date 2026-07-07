@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateDiscoveryModeAvailability } from '@/core/discovery-modes/availability'
+import {
+  EMPTY_DISCOVERY_SNAPSHOT,
+  evaluateDiscoveryModeAvailability,
+} from '@/core/discovery-modes/availability'
+import { createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 
 describe('evaluateDiscoveryModeAvailability', () => {
   it('disables strict ListenBrainz mode when the connection is missing', () => {
@@ -159,5 +163,43 @@ describe('evaluateDiscoveryModeAvailability', () => {
       providerPath: [],
     })
     expect(result.reason).toBe('Connect Discogs to use this mode.')
+  })
+
+  it('enables gap-fill (MusicBrainz) when a library has been synced', () => {
+    const result = evaluateDiscoveryModeAvailability('gap-fill', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasLibrarySync: true,
+    })
+
+    expect(result).toMatchObject({
+      enabled: true,
+      fallbackUsed: false,
+      providerPath: ['musicbrainz'],
+    })
+  })
+
+  it('reports gap-fill mode unavailable when no library has been synced', () => {
+    const result = evaluateDiscoveryModeAvailability('gap-fill', EMPTY_DISCOVERY_SNAPSHOT)
+
+    expect(result).toMatchObject({
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+      reason: 'Sync a library first to use this mode.',
+    })
+  })
+
+  it('never falls through to the not-shipped-yet reason for a registered mode', () => {
+    const allTrueSnapshot = Object.fromEntries(
+      Object.keys(EMPTY_DISCOVERY_SNAPSHOT).map((key) => [key, true]),
+    ) as typeof EMPTY_DISCOVERY_SNAPSHOT
+
+    const registry = createDefaultDiscoveryModeRegistry()
+    for (const mode of registry.list()) {
+      const result = evaluateDiscoveryModeAvailability(mode.id, allTrueSnapshot)
+      expect(result.reason, `mode '${mode.id}' fell through to the default reason`).not.toBe(
+        'This mode is not shipped yet.',
+      )
+    }
   })
 })

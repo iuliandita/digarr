@@ -722,6 +722,7 @@ export const es = {
   'discoveryMode.reason.notImplementedYet': 'Este modo aún no está implementado.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando proveedores de respaldo para descubrir lanzamientos.',
+  'discoveryMode.reason.libraryRequired': 'Sincroniza primero una biblioteca para usar este modo.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artista',
   'discoveryMode.field.adventurousness': 'Aventura',

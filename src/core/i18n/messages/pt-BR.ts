@@ -725,6 +725,7 @@ export const ptBR = {
   'discoveryMode.reason.notImplementedYet': 'Este modo ainda não foi implementado.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando provedores de fallback para descobrir lançamentos.',
+  'discoveryMode.reason.libraryRequired': 'Sincronize primeiro uma biblioteca para usar este modo.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artista',
   'discoveryMode.field.adventurousness': 'Aventura',

@@ -725,6 +725,8 @@ export const ro = {
   'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
+  'discoveryMode.reason.libraryRequired':
+    'Sincronizează mai întâi o bibliotecă pentru a folosi acest mod.',
   'discoveryMode.field.feed': 'Flux',
   'discoveryMode.field.artist': 'Artist',
   'discoveryMode.field.adventurousness': 'Aventurism',

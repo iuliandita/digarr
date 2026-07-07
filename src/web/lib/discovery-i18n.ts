@@ -38,6 +38,7 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
   'This mode is not implemented yet.': 'discoveryMode.notImplementedYet',
   'This mode is not shipped yet.': 'discoveryMode.notShippedYet',
+  'Sync a library first to use this mode.': 'discoveryMode.reason.libraryRequired',
 }
 
 function normalizeModeId(modeId: string): string {
