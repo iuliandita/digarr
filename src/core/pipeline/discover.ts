@@ -204,7 +204,7 @@ export async function discover(
         })
       }
     } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err)
+      const detail = redactSecrets(err instanceof Error ? err.message : String(err))
       console.warn(`[discover] AI source failed: ${detail}`)
       options.onSourceFailure?.('ai', detail)
     }
