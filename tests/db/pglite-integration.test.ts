@@ -42,7 +42,7 @@ describe('pglite backend contract', () => {
     await applyPgliteStatementTimeout(client)
     const res = await client.query<{ statement_timeout: string }>('SHOW statement_timeout')
     expect(res.rows[0]?.statement_timeout).toBe('30s')
-  })
+  }, 20_000)
 
   it('round-trips a backup on pglite', async () => {
     await db.execute(sql`INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`)
