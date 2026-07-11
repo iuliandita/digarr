@@ -31,6 +31,7 @@ function makeSettings(overrides: Partial<SettingsRow> = {}): SettingsRow {
     oidcScopes: null,
     preferences: null,
     librarySyncIntervalHours: 6,
+    digestLastSentAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

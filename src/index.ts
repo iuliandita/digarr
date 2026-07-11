@@ -1185,6 +1185,8 @@ function buildDigestDeps() {
     getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
     sendWebhook,
+    getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
+    setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
   }
 }
 
