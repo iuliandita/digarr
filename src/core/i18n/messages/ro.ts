@@ -306,6 +306,8 @@ export const ro = {
   'discover.refreshingArtistData': 'Se actualizează datele despre artist...',
   'discover.rejectAll': 'Respingeți tot',
   'discover.rejectAllBelow': 'Respingeți tot ce este mai jos',
+  'discover.auditionAll': 'Audiție',
+  'discover.nothingToAudition': 'Nu există elemente în așteptare cu previzualizare',
   'discover.rejectAllPending': 'Respingeți toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':
     'Respingeți toate recomandările în așteptare? Acest lucru nu poate fi anulat.',
@@ -1282,6 +1284,9 @@ export const ro = {
   'preview.closePreview': 'Închide previzualizarea',
   'preview.volume': 'Volum',
   'preview.loadingPreview': 'Se încarcă previzualizarea...',
+  'preview.queuePrevious': 'Previzualizarea anterioară',
+  'preview.queueNext': 'Previzualizarea următoare',
+  'preview.queuePosition': '{0} din {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Previzualizare Spotify',

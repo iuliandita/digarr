@@ -306,6 +306,8 @@ export const es = {
   'discover.refreshingArtistData': 'Actualizando datos del artista...',
   'discover.rejectAll': 'Rechazar todo',
   'discover.rejectAllBelow': 'Rechazar todo por debajo',
+  'discover.auditionAll': 'Preescuchar',
+  'discover.nothingToAudition': 'No hay elementos pendientes con vista previa',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',
@@ -1281,6 +1283,9 @@ export const es = {
   'preview.closePreview': 'Cerrar vista previa',
   'preview.volume': 'Volumen',
   'preview.loadingPreview': 'Cargando vista previa...',
+  'preview.queuePrevious': 'Vista previa anterior',
+  'preview.queueNext': 'Siguiente vista previa',
+  'preview.queuePosition': '{0} de {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Vista previa de Spotify',

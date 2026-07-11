@@ -302,6 +302,8 @@ export const ko = {
   'discover.refreshingArtistData': '아티스트 데이터를 새로 고치는 중...',
   'discover.rejectAll': '모두 거부',
   'discover.rejectAllBelow': '아래 모두 거부',
+  'discover.auditionAll': '연속 미리듣기',
+  'discover.nothingToAudition': '미리듣기가 있는 대기 중인 항목이 없습니다',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',
@@ -1253,6 +1255,9 @@ export const ko = {
   'preview.closePreview': '미리듣기 닫기',
   'preview.volume': '볼륨',
   'preview.loadingPreview': '미리듣기를 불러오는 중...',
+  'preview.queuePrevious': '이전 미리듣기',
+  'preview.queueNext': '다음 미리듣기',
+  'preview.queuePosition': '{1} 중 {0}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Spotify 미리듣기',

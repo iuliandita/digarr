@@ -306,6 +306,8 @@ export const pl = {
   'discover.refreshingArtistData': 'Odświeżam dane wykonawcy...',
   'discover.rejectAll': 'Odrzuć wszystko',
   'discover.rejectAllBelow': 'Odrzuć wszystko poniżej',
+  'discover.auditionAll': 'Odsłuchaj',
+  'discover.nothingToAudition': 'Brak oczekujących pozycji z podglądem',
   'discover.rejectAllPending': 'Odrzuć wszystkie oczekujące',
   'discover.rejectAllPendingMessage':
     'Odrzucić wszystkie oczekujące rekomendacje? Tego nie można cofnąć.',
@@ -1273,6 +1275,9 @@ export const pl = {
   'preview.closePreview': 'Zamknij podgląd',
   'preview.volume': 'Głośność',
   'preview.loadingPreview': 'Wczytywanie podglądu...',
+  'preview.queuePrevious': 'Poprzedni podgląd',
+  'preview.queueNext': 'Następny podgląd',
+  'preview.queuePosition': '{0} z {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Podgląd Spotify',

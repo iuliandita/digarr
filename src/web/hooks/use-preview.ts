@@ -9,6 +9,8 @@ export type PreviewSource = {
   embedUrl: string
 }
 
+export type PlayOutcome = 'started' | 'paused' | 'resumed' | 'no-source' | 'blocked'
+
 type PreviewState = {
   playing: boolean
   artistMbid: string | null
@@ -113,6 +115,7 @@ export function usePreview() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const globalPlayIdRef = useRef(0)
   const [globalPlayId, setGlobalPlayId] = useState(0)
+  const [playbackEndedCount, setPlaybackEndedCount] = useState(0)
   const [volume, setVolumeState] = useState(readStoredVolume)
   const volumeRef = useRef(volume)
 
@@ -148,7 +151,8 @@ export function usePreview() {
       mbid: string,
       artistName: string,
       streamingUrls: Record<string, string> | null,
-    ): Promise<void> => {
+      opts?: { suppressErrorToast?: boolean },
+    ): Promise<PlayOutcome> => {
       // Always increment globalPlayId so TopTracks local audio is cancelled
       // regardless of whether this is a new artist, resume, or toggle-pause
       globalPlayIdRef.current += 1
@@ -158,7 +162,7 @@ export function usePreview() {
       if (currentMbidRef.current === mbid && stateRef.current.playing) {
         audioRef.current?.pause()
         setStateAndRef((s) => ({ ...s, playing: false }))
-        return
+        return 'paused'
       }
 
       // Resume if same artist is paused
@@ -166,11 +170,11 @@ export function usePreview() {
         if (stateRef.current.source.type === 'deezer-audio' && audioRef.current) {
           await audioRef.current.play()
           setStateAndRef((s) => ({ ...s, playing: true }))
-          return
+          return 'resumed'
         }
         // For embeds, just flip playing flag - iframe handles playback
         setStateAndRef((s) => ({ ...s, playing: true }))
-        return
+        return 'resumed'
       }
 
       // New artist: stop whatever was playing
@@ -193,33 +197,40 @@ export function usePreview() {
       const source = await resolvePreviewSource(streamingUrls, artistName)
 
       // Guard: user started a different preview while we were resolving
-      if (currentMbidRef.current !== targetMbid) return
+      if (currentMbidRef.current !== targetMbid) return 'no-source'
 
       if (!source) {
         setStateAndRef(() => INITIAL_STATE)
-        toast.error(t('preview.noPreviewAvailable'))
-        return
+        if (!opts?.suppressErrorToast) toast.error(t('preview.noPreviewAvailable'))
+        return 'no-source'
       }
 
       if (source.type === 'deezer-audio') {
         const audio = new Audio(source.url)
         audio.volume = volumeRef.current
         audioRef.current = audio
-        audio.onended = () => setStateAndRef((s) => ({ ...s, playing: false }))
-        audio.onerror = () =>
+        audio.onended = () => {
+          setStateAndRef((s) => ({ ...s, playing: false }))
+          setPlaybackEndedCount((c) => c + 1)
+        }
+        audio.onerror = () => {
           setStateAndRef((s) => ({ ...s, playing: false, error: 'Audio playback failed.' }))
+          setPlaybackEndedCount((c) => c + 1)
+        }
         try {
           await audio.play()
           setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
         } catch {
           setStateAndRef(() => INITIAL_STATE)
-          toast.error(t('preview.playbackBlocked'))
+          if (!opts?.suppressErrorToast) toast.error(t('preview.playbackBlocked'))
+          return 'blocked'
         }
-        return
+        return 'started'
       }
 
       // Embed source: component renders the iframe; just expose the source
       setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
+      return 'started'
     },
     [setStateAndRef, t],
   )
@@ -229,5 +240,5 @@ export function usePreview() {
     return Boolean(streamingUrls.spotify || streamingUrls.deezer || streamingUrls.youtube)
   }, [])
 
-  return { state, play, stop, hasPreview, globalPlayId, volume, setVolume }
+  return { state, play, stop, hasPreview, globalPlayId, playbackEndedCount, volume, setVolume }
 }

@@ -306,6 +306,8 @@ export const it = {
   'discover.refreshingArtistData': "Aggiornamento dei dati dell'artista...",
   'discover.rejectAll': 'Rifiuta tutto',
   'discover.rejectAllBelow': 'Rifiuta tutto sotto',
+  'discover.auditionAll': 'Preascolto',
+  'discover.nothingToAudition': 'Nessun elemento in sospeso con anteprima',
   'discover.rejectAllPending': 'Rifiuta tutto in sospeso',
   'discover.rejectAllPendingMessage':
     'Rifiutare tutti i consigli in sospeso? Questa operazione non può essere annullata.',
@@ -1300,6 +1302,9 @@ export const it = {
   'preview.closePreview': 'Chiudi anteprima',
   'preview.volume': 'Volume',
   'preview.loadingPreview': 'Caricamento anteprima...',
+  'preview.queuePrevious': 'Anteprima precedente',
+  'preview.queueNext': 'Anteprima successiva',
+  'preview.queuePosition': '{0} di {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Anteprima Spotify',
