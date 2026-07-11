@@ -306,6 +306,8 @@ export const ru = {
   'discover.refreshingArtistData': 'Обновление данных об исполнителе...',
   'discover.rejectAll': 'Отклонить все',
   'discover.rejectAllBelow': 'Отклонить все ниже',
+  'discover.auditionAll': 'Прослушать',
+  'discover.nothingToAudition': 'Нет ожидающих элементов с предпросмотром',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',
@@ -1287,6 +1289,9 @@ export const ru = {
   'preview.closePreview': 'Закрыть предпросмотр',
   'preview.volume': 'Громкость',
   'preview.loadingPreview': 'Загрузка предпросмотра...',
+  'preview.queuePrevious': 'Предыдущий предпросмотр',
+  'preview.queueNext': 'Следующий предпросмотр',
+  'preview.queuePosition': '{0} из {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Предпросмотр Spotify',

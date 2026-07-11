@@ -38,6 +38,7 @@ import { ErrorBoundary } from './components/error-boundary'
 import { KeyboardShortcuts } from './components/keyboard-shortcuts'
 import { LanguageSwitcher } from './components/language-switcher'
 import { PreviewPlayer } from './components/preview-player'
+import { useAuditionQueue } from './hooks/use-audition-queue'
 import { useClickOutside } from './hooks/use-click-outside'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
 import { usePreview } from './hooks/use-preview'
@@ -351,6 +352,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [colorTheme, setColorThemeState] = useState<ColorTheme>(getStoredColorTheme)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const preview = usePreview()
+  const audition = useAuditionQueue(preview)
   const latestRequestedLocaleRef = useRef<SupportedLocale | null>(null)
   const submittedPendingLocaleRef = useRef<SupportedLocale | null>(null)
   const queryClient = useQueryClient()
@@ -465,6 +467,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         globalPlayId: preview.globalPlayId,
         volume: preview.volume,
         setVolume: preview.setVolume,
+        audition,
       }}
     >
       <div className="min-h-screen bg-bg">
@@ -754,9 +757,19 @@ function AppShell({ children }: { children: React.ReactNode }) {
           artistName={preview.state.artistName}
           source={preview.state.source}
           loading={preview.state.loading}
-          onStop={preview.stop}
+          onStop={audition.active ? audition.stop : preview.stop}
           volume={preview.volume}
           onVolumeChange={preview.setVolume}
+          queue={
+            audition.active
+              ? {
+                  index: audition.index,
+                  count: audition.count,
+                  onNext: audition.next,
+                  onPrevious: audition.previous,
+                }
+              : undefined
+          }
         />
         <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}

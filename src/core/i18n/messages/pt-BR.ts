@@ -306,6 +306,8 @@ export const ptBR = {
   'discover.refreshingArtistData': 'Atualizando dados do artista...',
   'discover.rejectAll': 'Rejeitar tudo',
   'discover.rejectAllBelow': 'Rejeitar tudo abaixo',
+  'discover.auditionAll': 'Ouvir prévias',
+  'discover.nothingToAudition': 'Nenhum item pendente com prévia',
   'discover.rejectAllPending': 'Rejeitar todas as pendências',
   'discover.rejectAllPendingMessage':
     'Rejeitar todas as recomendações pendentes? Isto não pode ser desfeito.',
@@ -1281,6 +1283,9 @@ export const ptBR = {
   'preview.closePreview': 'Fechar prévia',
   'preview.volume': 'Volume',
   'preview.loadingPreview': 'Carregando prévia...',
+  'preview.queuePrevious': 'Prévia anterior',
+  'preview.queueNext': 'Próxima prévia',
+  'preview.queuePosition': '{0} de {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Prévia do Spotify',

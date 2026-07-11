@@ -318,6 +318,8 @@ export const en = {
   'discover.refreshingArtistData': 'Refreshing artist data...',
   'discover.rejectAll': 'Reject All',
   'discover.rejectAllBelow': 'Reject All Below',
+  'discover.auditionAll': 'Audition',
+  'discover.nothingToAudition': 'No pending items with previews',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
@@ -1440,6 +1442,9 @@ export const en = {
   'preview.closePreview': 'Close preview',
   'preview.volume': 'Volume',
   'preview.loadingPreview': 'Loading preview...',
+  'preview.queuePrevious': 'Previous preview',
+  'preview.queueNext': 'Next preview',
+  'preview.queuePosition': '{0} of {1}',
 
   // Streaming links (compact play/stop control + Spotify embed)
   'streaming.playShort': 'PLAY',

@@ -306,6 +306,8 @@ export const uk = {
   'discover.refreshingArtistData': 'Оновлення даних виконавця...',
   'discover.rejectAll': 'Відхилити всі',
   'discover.rejectAllBelow': 'Відхилити всі нижче',
+  'discover.auditionAll': 'Прослухати',
+  'discover.nothingToAudition': 'Немає елементів в очікуванні з попереднім переглядом',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':
     'Відхилити всі очікувані рекомендації? Це неможливо скасувати.',
@@ -1279,6 +1281,9 @@ export const uk = {
   'preview.closePreview': 'Закрити попередній перегляд',
   'preview.volume': 'Гучність',
   'preview.loadingPreview': 'Завантаження попереднього перегляду...',
+  'preview.queuePrevious': 'Попереднє прослуховування',
+  'preview.queueNext': 'Наступне прослуховування',
+  'preview.queuePosition': '{0} з {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Попередній перегляд Spotify',

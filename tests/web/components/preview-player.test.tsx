@@ -95,4 +95,68 @@ describe('PreviewPlayer', () => {
     fireEvent.click(stopButton)
     expect(onStop).toHaveBeenCalledTimes(1)
   })
+
+  it('renders no queue controls without a queue prop', () => {
+    render(
+      withI18n(
+        <PreviewPlayer
+          playing={true}
+          loading={false}
+          artistName="Radiohead"
+          source={spotifySource}
+          onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
+        />,
+      ),
+    )
+    expect(screen.queryByLabelText('Next preview')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Previous preview')).not.toBeInTheDocument()
+  })
+
+  it('renders the queue position and fires the queue callbacks', () => {
+    const onNext = vi.fn()
+    const onPrevious = vi.fn()
+    render(
+      withI18n(
+        <PreviewPlayer
+          playing={true}
+          loading={false}
+          artistName="Radiohead"
+          source={spotifySource}
+          onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
+          queue={{ index: 1, count: 5, onNext, onPrevious }}
+        />,
+      ),
+    )
+    expect(screen.getByText('2 of 5')).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Next preview'))
+    expect(onNext).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByLabelText('Previous preview'))
+    expect(onPrevious).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables the previous button at the first item', () => {
+    const onPrevious = vi.fn()
+    render(
+      withI18n(
+        <PreviewPlayer
+          playing={true}
+          loading={false}
+          artistName="Radiohead"
+          source={spotifySource}
+          onStop={vi.fn()}
+          volume={1}
+          onVolumeChange={vi.fn()}
+          queue={{ index: 0, count: 3, onNext: vi.fn(), onPrevious }}
+        />,
+      ),
+    )
+    const prev = screen.getByLabelText('Previous preview')
+    expect(prev).toBeDisabled()
+    fireEvent.click(prev)
+    expect(onPrevious).not.toHaveBeenCalled()
+  })
 })

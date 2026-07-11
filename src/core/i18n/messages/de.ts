@@ -306,6 +306,8 @@ export const de = {
   'discover.refreshingArtistData': 'Aktualisierte Künstlerdaten...',
   'discover.rejectAll': 'Alle ablehnen',
   'discover.rejectAllBelow': 'Alle darunter ablehnen',
+  'discover.auditionAll': 'Probehören',
+  'discover.nothingToAudition': 'Keine ausstehenden Einträge mit Vorschau',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',
@@ -1290,6 +1292,9 @@ export const de = {
   'preview.closePreview': 'Vorschau schließen',
   'preview.volume': 'Lautstärke',
   'preview.loadingPreview': 'Vorschau wird geladen...',
+  'preview.queuePrevious': 'Vorherige Vorschau',
+  'preview.queueNext': 'Nächste Vorschau',
+  'preview.queuePosition': '{0} von {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Spotify-Vorschau',

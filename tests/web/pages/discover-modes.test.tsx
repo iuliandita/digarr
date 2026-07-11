@@ -24,6 +24,16 @@ const noopPreview = {
   globalPlayId: 0,
   volume: 1,
   setVolume: vi.fn(),
+  audition: {
+    active: false,
+    index: 0,
+    count: 0,
+    current: null,
+    start: vi.fn(),
+    next: vi.fn(),
+    previous: vi.fn(),
+    stop: vi.fn(),
+  },
 }
 
 function renderWithQuery(ui: ReactElement) {

@@ -39,6 +39,7 @@ import {
 } from '../lib/api'
 import { reportApprovalOutcome } from '../lib/approval'
 import { useI18n } from '../lib/i18n'
+import { usePreviewContext } from '../lib/preview-context'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
@@ -482,6 +483,7 @@ function MoreMenu({
 export function DiscoverPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const preview = usePreviewContext()
   const popularAvailable = usePopularAlbumsAvailability()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
@@ -876,6 +878,23 @@ export function DiscoverPage() {
     }
   }
 
+  function handleAudition() {
+    const eligible = items.filter(
+      (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
+    )
+    if (eligible.length === 0) {
+      toast.info(t('discover.nothingToAudition'))
+      return
+    }
+    preview.audition.start(
+      eligible.map((r) => ({
+        mbid: r.artist.mbid,
+        artistName: r.artist.name,
+        streamingUrls: r.artist.streamingUrls,
+      })),
+    )
+  }
+
   function handleRejectBelow() {
     const eligible = items.filter((r) => r.score * 100 < approveThreshold && r.status === 'pending')
     if (eligible.length === 0) {
@@ -1051,6 +1070,9 @@ export function DiscoverPage() {
   const pendingBelowThreshold = items.filter(
     (r) => r.score * 100 < approveThreshold && r.status === 'pending',
   ).length
+  const auditionEligible = items.filter(
+    (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
+  ).length
 
   return (
     <div
@@ -1205,6 +1227,17 @@ export function DiscoverPage() {
                   {t('discover.rejectAllBelow')}
                   {pendingBelowThreshold > 0 && (
                     <span className="ml-1.5 text-xs opacity-70">({pendingBelowThreshold})</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAudition}
+                  disabled={auditionEligible === 0}
+                  className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/40 rounded text-sm font-medium hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('discover.auditionAll')}
+                  {auditionEligible > 0 && (
+                    <span className="ml-1.5 text-xs opacity-70">({auditionEligible})</span>
                   )}
                 </button>
                 <button

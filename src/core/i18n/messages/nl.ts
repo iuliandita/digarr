@@ -305,6 +305,8 @@ export const nl = {
   'discover.refreshingArtistData': 'Artiestengegevens vernieuwen...',
   'discover.rejectAll': 'Alles afwijzen',
   'discover.rejectAllBelow': 'Alles hieronder afwijzen',
+  'discover.auditionAll': 'Beluisteren',
+  'discover.nothingToAudition': 'Geen openstaande items met voorbeeld',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',
@@ -1276,6 +1278,9 @@ export const nl = {
   'preview.closePreview': 'Voorbeeld sluiten',
   'preview.volume': 'Volume',
   'preview.loadingPreview': 'Voorbeeld wordt geladen...',
+  'preview.queuePrevious': 'Vorig voorbeeld',
+  'preview.queueNext': 'Volgend voorbeeld',
+  'preview.queuePosition': '{0} van {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Spotify-voorbeeld',

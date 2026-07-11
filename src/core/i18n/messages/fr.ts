@@ -306,6 +306,8 @@ export const fr = {
   'discover.refreshingArtistData': 'Actualisation des données sur les artistes...',
   'discover.rejectAll': 'Tout rejeter',
   'discover.rejectAllBelow': 'Tout rejeter en dessous',
+  'discover.auditionAll': 'Pré-écouter',
+  'discover.nothingToAudition': 'Aucun élément en attente avec aperçu',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':
     'Refuser toutes les recommandations en attente ? Cela ne peut pas être annulé.',
@@ -1281,6 +1283,9 @@ export const fr = {
   'preview.closePreview': "Fermer l'aperçu",
   'preview.volume': 'Volume',
   'preview.loadingPreview': "Chargement de l'aperçu...",
+  'preview.queuePrevious': 'Aperçu précédent',
+  'preview.queueNext': 'Aperçu suivant',
+  'preview.queuePosition': '{0} sur {1}',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Aperçu Spotify',

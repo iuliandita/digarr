@@ -1,4 +1,4 @@
-import { Music, Volume2, X } from 'lucide-react'
+import { Music, SkipBack, SkipForward, Volume2, X } from 'lucide-react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
 import { useI18n } from '../lib/i18n'
 
@@ -16,6 +16,12 @@ type Props = {
   onStop: () => void
   volume: number
   onVolumeChange: (value: number) => void
+  queue?: {
+    index: number
+    count: number
+    onNext: () => void
+    onPrevious: () => void
+  }
 }
 
 /**
@@ -31,6 +37,7 @@ export function PreviewPlayer({
   onStop,
   volume,
   onVolumeChange,
+  queue,
 }: Props) {
   const { t } = useI18n()
   if (!playing && !loading) return null
@@ -50,7 +57,7 @@ export function PreviewPlayer({
         <div className="flex items-center gap-3">
           <Music size={16} className="text-muted shrink-0" aria-hidden="true" />
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" aria-live="polite">
             {loading && !artistName ? (
               <span className="text-sm text-muted">{t('preview.loadingPreview')}</span>
             ) : (
@@ -67,6 +74,35 @@ export function PreviewPlayer({
               </div>
             )}
           </div>
+
+          {queue && (
+            <div className="shrink-0 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={queue.onPrevious}
+                disabled={queue.index === 0}
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-bg/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label={t('preview.queuePrevious')}
+                title={t('preview.queuePrevious')}
+              >
+                <SkipBack size={14} aria-hidden="true" />
+              </button>
+              <span className="text-xs text-muted tabular-nums whitespace-nowrap">
+                {t('preview.queuePosition')
+                  .replace('{0}', String(queue.index + 1))
+                  .replace('{1}', String(queue.count))}
+              </span>
+              <button
+                type="button"
+                onClick={queue.onNext}
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-bg/50 transition-colors"
+                aria-label={t('preview.queueNext')}
+                title={t('preview.queueNext')}
+              >
+                <SkipForward size={14} aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
           {showVolume && (
             <div className="shrink-0 flex items-center gap-1.5">

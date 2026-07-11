@@ -305,6 +305,8 @@ export const ja = {
   'discover.refreshingArtistData': 'アーティストデータを更新しています...',
   'discover.rejectAll': 'すべて拒否する',
   'discover.rejectAllBelow': '下記をすべて拒否',
+  'discover.auditionAll': '試聴',
+  'discover.nothingToAudition': 'プレビューのある保留中の項目はありません',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',
@@ -1270,6 +1272,9 @@ export const ja = {
   'preview.closePreview': 'プレビューを閉じる',
   'preview.volume': '音量',
   'preview.loadingPreview': 'プレビューを読み込み中...',
+  'preview.queuePrevious': '前のプレビュー',
+  'preview.queueNext': '次のプレビュー',
+  'preview.queuePosition': '{1} 件中 {0} 件目',
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Spotifyプレビュー',
