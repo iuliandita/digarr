@@ -18,7 +18,7 @@ const SPOTIFY_SCOPES =
 
 const DEEZER_AUTH_URL = 'https://connect.deezer.com/oauth/auth.php'
 const DEEZER_TOKEN_URL = 'https://connect.deezer.com/oauth/access_token.php'
-const DEEZER_SCOPES = 'basic_access,email,listening_history,manage_library'
+const DEEZER_SCOPES = 'basic_access,email,listening_history'
 
 export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
