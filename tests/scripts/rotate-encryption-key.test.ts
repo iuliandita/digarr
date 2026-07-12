@@ -1,14 +1,16 @@
 // @vitest-environment node
 
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it } from 'vitest'
+import { COLUMN_SITES, NESTED_SITES } from '../../scripts/rotation-sites'
 import {
   SENSITIVE_OAUTH,
   SENSITIVE_OIDC,
+  SENSITIVE_PREFERENCES,
   SENSITIVE_SETTINGS,
   SENSITIVE_USER_CONNECTIONS,
 } from '../../src/core/crypto'
@@ -19,14 +21,7 @@ function snakeCase(value: string): string {
 
 describe('encryption-key rotation coverage', () => {
   it('covers every encrypted scalar column', () => {
-    const source = readFileSync(
-      new URL('../../scripts/rotate-encryption-key.ts', import.meta.url),
-      'utf8',
-    )
-    const block = source.match(/const COLUMN_SITES: Site\[\] = \[([\s\S]*?)\n\]/)?.[1] ?? ''
-    const actual = [...block.matchAll(/\{ table: '([^']+)', column: '([^']+)' \}/g)]
-      .map((match) => `${match[1]}.${match[2]}`)
-      .sort()
+    const actual = COLUMN_SITES.map(({ table, column }) => `${table}.${column}`).sort()
     const expected = [
       ...SENSITIVE_SETTINGS.map((column) => `settings.${snakeCase(column)}`),
       ...SENSITIVE_USER_CONNECTIONS.map((column) => `users.${snakeCase(column)}`),
@@ -35,6 +30,16 @@ describe('encryption-key rotation coverage', () => {
     ].sort()
 
     expect(actual).toEqual(expected)
+  })
+
+  it('covers every encrypted preference path', () => {
+    expect(NESTED_SITES).toEqual(
+      SENSITIVE_PREFERENCES.map((key) => ({
+        table: 'settings',
+        column: 'preferences',
+        path: [key],
+      })),
+    )
   })
 
   it('exits nonzero when encrypted ciphertext cannot be rotated', async () => {
@@ -92,9 +97,11 @@ describe('encryption-key rotation coverage', () => {
       cwd: process.cwd(),
       env,
       encoding: 'utf8',
+      timeout: 15_000,
     })
     rmSync(dataDir, { recursive: true, force: true })
 
+    expect(result.error).toBeUndefined()
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('rotation incomplete: 1 encrypted values')
   }, 20_000)

@@ -25,6 +25,7 @@ import { envConfig } from '../src/config/env'
 // key derivation runs with whatever env is set at invocation.
 import { decryptField, encryptField, initEncryption } from '../src/core/crypto'
 import { closeDb, db, dbBackend } from '../src/db'
+import { COLUMN_SITES, NESTED_SITES, type RotationSite } from './rotation-sites'
 
 initEncryption(envConfig.encryptionKey, envConfig.encryptionKeyNext)
 
@@ -34,37 +35,7 @@ if (!envConfig.encryptionKey) {
 }
 console.log(`using ${dbBackend} backend`)
 
-type Site = { table: string; column: string }
 type RotationResult = { scanned: number; rewritten: number; failures: number }
-
-// Covers every column currently passed through encryptFields/encryptField in
-// the codebase. Extend when a new encrypted column lands (grep for
-// SENSITIVE_* and SENSITIVE_PREF_KEYS to confirm).
-const COLUMN_SITES: Site[] = [
-  { table: 'settings', column: 'lidarr_api_key' },
-  { table: 'settings', column: 'ai_api_key' },
-  { table: 'settings', column: 'audiodb_api_key' },
-  { table: 'settings', column: 'oidc_client_secret' },
-  { table: 'settings', column: 'tidal_client_secret' },
-  { table: 'users', column: 'listenbrainz_token' },
-  { table: 'users', column: 'lastfm_api_key' },
-  { table: 'users', column: 'plex_token' },
-  { table: 'users', column: 'jellyfin_api_key' },
-  { table: 'users', column: 'emby_api_key' },
-  { table: 'users', column: 'discogs_token' },
-  { table: 'users', column: 'subsonic_password' },
-  { table: 'oauth_tokens', column: 'access_token' },
-  { table: 'oauth_tokens', column: 'refresh_token' },
-  { table: 'oauth_tokens', column: 'client_secret' },
-  { table: 'oidc_tokens', column: 'access_token' },
-  { table: 'oidc_tokens', column: 'refresh_token' },
-  { table: 'oidc_tokens', column: 'id_token' },
-]
-
-// JSONB nested paths - these require read/mutate/write on the whole jsonb blob.
-const NESTED_SITES: Array<{ table: string; column: string; path: string[] }> = [
-  { table: 'settings', column: 'preferences', path: ['fanartApiKey'] },
-]
 
 function decryptForRotation(value: string): string {
   const plain = decryptField(value)
@@ -112,7 +83,7 @@ async function rotateTargetsConfig(): Promise<RotationResult> {
   return { scanned: rows.length, rewritten, failures }
 }
 
-async function rotateColumn(site: Site): Promise<RotationResult> {
+async function rotateColumn(site: RotationSite): Promise<RotationResult> {
   const rows = (
     await db.execute(
       sql.raw(

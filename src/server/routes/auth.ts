@@ -3,7 +3,7 @@ import { type Context, Hono } from 'hono'
 import { deleteCookie, getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
-import { encryptField } from '@/core/crypto'
+import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
 import { isSingleAdminCollision, isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
@@ -54,8 +54,6 @@ const ALLOWED_PREF_KEYS = new Set([
   'fanartApiKey',
   'metadataFallbackUrl',
 ])
-
-const SENSITIVE_PREF_KEYS = ['fanartApiKey'] as const
 
 export function authRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -349,7 +347,7 @@ export function authRoutes(deps: AppDependencies) {
     const merged = mergePreferences(user.preferences)
     // Decrypt sensitive fields, then mask for the response
     const response = { ...merged } as Record<string, unknown>
-    for (const key of SENSITIVE_PREF_KEYS) {
+    for (const key of SENSITIVE_PREFERENCES) {
       const val = response[key]
       if (typeof val === 'string' && val) {
         response[key] = '***'
@@ -394,7 +392,7 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     // Encrypt sensitive preference values before storage (skip masked placeholders)
-    for (const key of SENSITIVE_PREF_KEYS) {
+    for (const key of SENSITIVE_PREFERENCES) {
       const val = filtered[key]
       if (val === '***') {
         delete filtered[key]

@@ -7,10 +7,11 @@ bounded blast radius.
 The app supports a dual-key mode via `DIGARR_ENCRYPTION_KEY_NEXT`: when set,
 `decryptField` tries the primary key first, then falls back to the next key,
 then to the legacy SHA-256 key. Writes always use the primary. This lets
-external-PostgreSQL rotation happen with zero downtime at the cost of three
-deploys plus two script passes (rotation, then primary-key-only verification).
-Embedded PGlite requires a maintenance window because no second process may
-open the live data directory while the app owns it.
+the app read old and new ciphertext during the transition. The two script
+passes require a no-write maintenance window on both database backends. The
+rotation script updates rows after reading them and could otherwise overwrite a
+concurrent settings change. Embedded PGlite also permits only one process to
+open its live data directory.
 
 ## Encrypted sites
 
@@ -53,50 +54,112 @@ Rotation touches these columns:
    NEXT fallback. There's a window here where the DB has a mix of
    old-encrypted and new-encrypted values.
 
-4. **Run the rotation script.** Select the same backend the app uses: set
-   `DATABASE_URL` for external PostgreSQL, or leave the DSN unset and set
-   `DB_PATH` for embedded PGlite.
+4. **Stop app writes and run the rotation script.** Stop every Digarr app
+   instance. Keep external PostgreSQL running; for embedded PGlite, no other
+   process may have the data directory open. Keep the app stopped through step
+   5.
 
-   External PostgreSQL can remain online while the app continues running with
-   both keys. For embedded PGlite, stop the app/container first and keep it
-   stopped through step 5; run the script from a one-off process with the same
-   data directory mounted at `DB_PATH`.
+   Create a protected, backend-consistent backup before the first write. For
+   the bundled PostgreSQL stack:
 
    ```sh
-   DATABASE_URL=postgresql://... \
-   DIGARR_ENCRYPTION_KEY=<new> \
-   DIGARR_ENCRYPTION_KEY_NEXT=<old> \
-   bun scripts/rotate-encryption-key.ts
+   install -d -m 700 "$HOME/digarr-backups"
+   docker compose -f deploy/docker/docker-compose.yml stop app
+   docker compose -f deploy/docker/docker-compose.yml exec -T postgres \
+     sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+     > "$HOME/digarr-backups/pre-rotation.dump"
+   chmod 600 "$HOME/digarr-backups/pre-rotation.dump"
+   docker compose -f deploy/docker/docker-compose.yml exec -T postgres \
+     pg_restore --list < "$HOME/digarr-backups/pre-rotation.dump" > /dev/null
    ```
 
-   For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the
-   active data directory).
+   For embedded PGlite, stop the app before copying its data volume:
+
+   ```sh
+   install -d -m 700 "$HOME/digarr-backups"
+   docker compose -f deploy/docker/docker-compose.pglite.yml stop app
+   docker compose -f deploy/docker/docker-compose.pglite.yml run --rm --no-deps \
+     --entrypoint sh app -c 'tar -C /app/data -cf - .' \
+     > "$HOME/digarr-backups/pre-rotation.tar"
+   chmod 600 "$HOME/digarr-backups/pre-rotation.tar"
+   tar -tf "$HOME/digarr-backups/pre-rotation.tar" > /dev/null
+   ```
+
+   Keep this backup until the rotation and a normal app startup both succeed.
+   Use the backup method for your platform if you do not use the bundled
+   Compose files.
+
+   The release image contains the compiled tool at
+   `dist/scripts/rotate-encryption-key.js`. Store the keys in a mode-0600 file
+   outside the checkout so they do not appear in shell history, process
+   arguments, or an accidental Git commit:
+
+   ```sh
+   install -d -m 700 "$HOME/.config/digarr/rotation"
+   install -m 600 /dev/null "$HOME/.config/digarr/rotation/primary.env"
+   ```
+
+   Edit `$HOME/.config/digarr/rotation/primary.env` with this content:
+
+   ```dotenv
+   DIGARR_ENCRYPTION_KEY=<new>
+   DIGARR_ENCRYPTION_KEY_NEXT=<old>
+   ```
+
+   For the bundled external-PostgreSQL Compose stack:
+
+   ```sh
+   docker compose -f deploy/docker/docker-compose.yml run --rm --no-deps \
+     --env-from-file "$HOME/.config/digarr/rotation/primary.env" \
+     --entrypoint bun app \
+     dist/scripts/rotate-encryption-key.js
+   ```
+
+   For the embedded-PGlite Compose stack, use the PGlite file so the one-off
+   container mounts the same `/app/data` volume:
+
+   ```sh
+   docker compose -f deploy/docker/docker-compose.pglite.yml run --rm --no-deps \
+     --env-from-file "$HOME/.config/digarr/rotation/primary.env" \
+     --entrypoint bun app \
+     dist/scripts/rotate-encryption-key.js
+   ```
+
+   A source checkout can run `bun scripts/rotate-encryption-key.ts` instead.
+   Select the same backend as the app with `DATABASE_URL` for external
+   PostgreSQL or `DB_PATH` for embedded PGlite, and load the keys from a
+   protected environment file rather than placing them on the command line.
 
    The script reads every `enc:v1:` value, decrypts through the
    primary/next/legacy chain, and re-encrypts under the primary (new key).
-   Safe to re-run; idempotent because every write uses a fresh IV. It exits
-   nonzero if any encrypted value cannot be rewritten. Do not continue while
-   the output contains a `skip` line or reports an incomplete rotation.
+   Safe to repeat: plaintext semantics are preserved even though every pass
+   emits fresh ciphertext with a new IV. It exits nonzero if any encrypted
+   value cannot be rewritten. Do not continue while the output contains a
+   `skip` line or reports an incomplete rotation.
 
-5. **Verify every encrypted value using only the new key.** For external
-   PostgreSQL, keep the running app on the dual-key configuration from step 3.
-   For PGlite, leave the app stopped. Invoke a second one-off pass with
-   `DIGARR_ENCRYPTION_KEY_NEXT` removed from that process:
+5. **Verify every encrypted value using only the new key.** Leave every app
+   instance stopped. Create a second protected file so NEXT is explicitly
+   blank even if the Compose service's normal `.env` file defines it:
 
    ```sh
-   env -u DIGARR_ENCRYPTION_KEY_NEXT \
-   DATABASE_URL=postgresql://... \
-   DIGARR_ENCRYPTION_KEY=<new> \
-   bun scripts/rotate-encryption-key.ts
+   install -m 600 /dev/null "$HOME/.config/digarr/rotation/verify.env"
    ```
 
-   For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the
-   active data directory). This pass checks every scalar, nested preference,
-   and target-config ciphertext, not a sample. It re-encrypts values again with
-   fresh IVs and exits nonzero if any value still requires the old key.
+   Edit `$HOME/.config/digarr/rotation/verify.env` with this content:
 
-6. **Deploy a third time to drop NEXT.** For PGlite, this is when the stopped
-   app restarts after the two script passes.
+   ```dotenv
+   DIGARR_ENCRYPTION_KEY=<new>
+   DIGARR_ENCRYPTION_KEY_NEXT=
+   ```
+
+   Re-run the same Compose command from step 4 with
+   `--env-from-file "$HOME/.config/digarr/rotation/verify.env"`. This pass
+   checks every scalar, nested preference, and target-config ciphertext, not a
+   sample. It re-encrypts values again with fresh IVs and exits nonzero if any
+   value still requires the old key.
+
+6. **Deploy a third time to drop NEXT.** Restart the stopped app instances only
+   after both script passes succeed.
 
    ```sh
    DIGARR_ENCRYPTION_KEY=<new>
@@ -104,6 +167,14 @@ Rotation touches these columns:
    ```
 
    The old key is now retired only after the all-site verification pass.
+
+   Delete the temporary key files after the deployment succeeds:
+
+   ```sh
+   rm "$HOME/.config/digarr/rotation/primary.env" \
+     "$HOME/.config/digarr/rotation/verify.env"
+   rmdir "$HOME/.config/digarr/rotation"
+   ```
 
 ## Rollback
 
