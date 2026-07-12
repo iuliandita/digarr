@@ -1,5 +1,6 @@
 import type { createEmbyClient } from '@/core/clients/emby'
-import type { LibraryAlbum, LibraryArtist, LibrarySource } from './types'
+import { createJellyfinFamilyLibrarySource } from './jellyfin-family'
+import type { LibrarySource } from './types'
 
 type EmbyClient = ReturnType<typeof createEmbyClient>
 
@@ -10,37 +11,10 @@ type EmbyClient = ReturnType<typeof createEmbyClient>
  * Emby is per-user.
  */
 export function createEmbyLibrarySource(client: EmbyClient, userId: number): LibrarySource {
-  return {
+  return createJellyfinFamilyLibrarySource({
     id: 'emby',
     name: 'Emby',
-    capabilities: ['listArtists', 'listAlbums'],
+    client,
     userId,
-    mbidQuality: 'high',
-
-    async listArtists(): Promise<LibraryArtist[]> {
-      const artists = await client.getAllArtists()
-      return artists.map((a) => ({
-        sourceArtistId: a.id,
-        name: a.name,
-        mbid: a.mbid,
-        genres: a.genres,
-      }))
-    },
-
-    async listAlbums(sourceArtistId): Promise<LibraryAlbum[]> {
-      const albums = await client.getAlbumsForArtist(sourceArtistId)
-      return albums.map((album) => ({
-        sourceAlbumId: album.id,
-        sourceArtistId: album.artistId,
-        title: album.title,
-        mbid: album.mbid,
-        releaseYear: album.releaseYear,
-        primaryType: album.primaryType,
-      }))
-    },
-
-    testConnection() {
-      return client.testConnection()
-    },
-  }
+  })
 }

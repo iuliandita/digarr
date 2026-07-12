@@ -104,4 +104,76 @@ describe('createEmbyPlaylistTarget', () => {
       tls: { rejectUnauthorized: false },
     })
   })
+
+  it('skips a track when its search request fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockRejectedValueOnce(new Error('search transport failed'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ Id: 'playlist-1', Name: 'Weekly Discoveries' }),
+        }),
+    )
+
+    const target = createEmbyPlaylistTarget(9, {
+      url: 'http://emby:8096',
+      apiKey: 'key',
+      userId: 'user-1',
+    })
+
+    const result = await target.createPlaylist?.('Weekly Discoveries', [
+      { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
+    ])
+
+    expect(result).toMatchObject({ success: true, itemsAdded: 0 })
+  })
+
+  it('fails when Emby does not return a playlist ID', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ Name: 'Weekly Discoveries' }),
+      }),
+    )
+
+    const target = createEmbyPlaylistTarget(9, {
+      url: 'http://emby:8096',
+      apiKey: 'key',
+      userId: 'user-1',
+    })
+
+    const result = await target.createPlaylist?.('Weekly Discoveries', [])
+
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Emby did not return a playlist ID',
+    })
+  })
+
+  it('retains the Emby response body in API errors', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        text: async () => 'playlist database unavailable',
+      }),
+    )
+
+    const target = createEmbyPlaylistTarget(9, {
+      url: 'http://emby:8096',
+      apiKey: 'key',
+      userId: 'user-1',
+    })
+
+    const result = await target.createPlaylist?.('Weekly Discoveries', [])
+
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Emby API 500: playlist database unavailable',
+    })
+  })
 })
