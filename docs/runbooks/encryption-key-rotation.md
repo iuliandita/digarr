@@ -7,8 +7,8 @@ bounded blast radius.
 The app supports a dual-key mode via `DIGARR_ENCRYPTION_KEY_NEXT`: when set,
 `decryptField` tries the primary key first, then falls back to the next key,
 then to the legacy SHA-256 key. Writes always use the primary. This lets
-rotation happen with zero downtime at the cost of three deploys plus one
-data-migration pass.
+rotation happen with zero downtime at the cost of three deploys plus two script
+passes (rotation, then primary-key-only verification).
 
 ## Encrypted sites
 
@@ -67,48 +67,34 @@ Rotation touches these columns:
 
    The script reads every `enc:v1:` value, decrypts through the
    primary/next/legacy chain, and re-encrypts under the primary (new key).
-   Safe to re-run; idempotent because every write uses a fresh IV.
+   Safe to re-run; idempotent because every write uses a fresh IV. It exits
+   nonzero if any encrypted value cannot be rewritten. Do not continue while
+   the output contains a `skip` line or reports an incomplete rotation.
 
-5. **Deploy a third time to drop NEXT.**
+5. **Verify every encrypted value using only the new key.** Keep the running
+   app on the dual-key configuration from step 3, but invoke a second one-off
+   pass with `DIGARR_ENCRYPTION_KEY_NEXT` removed from that process:
+
+   ```sh
+   env -u DIGARR_ENCRYPTION_KEY_NEXT \
+   DATABASE_URL=postgresql://... \
+   DIGARR_ENCRYPTION_KEY=<new> \
+   bun scripts/rotate-encryption-key.ts
+   ```
+
+   For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the
+   active data directory). This pass checks every scalar, nested preference,
+   and target-config ciphertext, not a sample. It re-encrypts values again with
+   fresh IVs and exits nonzero if any value still requires the old key.
+
+6. **Deploy a third time to drop NEXT.**
 
    ```sh
    DIGARR_ENCRYPTION_KEY=<new>
    # DIGARR_ENCRYPTION_KEY_NEXT unset
    ```
 
-   The old key is now retired. If a stale encrypted value from before step 4
-   survived, decryption will now fail loudly instead of silently falling back
-   to the old key.
-
-## Verification
-
-After step 5, sample a sensitive column and confirm that decryption succeeds
-without printing the decrypted value. As in step 4, select the active backend
-with `DATABASE_URL` or `DB_PATH`:
-
-```sh
-DATABASE_URL=postgresql://... \
-DIGARR_ENCRYPTION_KEY=<new> \
-bun -e "
-  import { decryptField, initEncryption } from './src/core/crypto'
-  import { closeDb, db } from './src/db'
-  import { sql } from 'drizzle-orm'
-  initEncryption(process.env.DIGARR_ENCRYPTION_KEY)
-  const r = await db.execute(sql\`SELECT id, lastfm_api_key FROM users WHERE lastfm_api_key IS NOT NULL LIMIT 5\`)
-  for (const row of r.rows) {
-    if (decryptField(row.lastfm_api_key) == null) throw new Error('empty decrypted value')
-    console.log(row.id, 'ok')
-  }
-  await closeDb()
-"
-```
-
-For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the active
-data directory).
-
-Every row should decrypt cleanly. A `Decryption failed` throw means the
-rotation pass missed a row - re-run step 4 with NEXT still set to the old
-key, then retry step 5.
+   The old key is now retired only after the all-site verification pass.
 
 ## Rollback
 
@@ -118,5 +104,5 @@ row-by-row, so the database may contain ciphertext written by either key. Fix
 the reported rows and rerun step 4, or restore the pre-rotation backup. Do not
 remove either key until the verification step succeeds.
 
-After step 5 completes, rollback requires restoring a pre-rotation backup
+After step 6 completes, rollback requires restoring a pre-rotation backup
 (see the Backup & Restore guide).
