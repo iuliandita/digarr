@@ -85,13 +85,6 @@ export type PipelineProgress = {
   message?: string
 }
 
-export type PipelineStatus = {
-  running: boolean
-  stage?: PipelineStage
-  progress?: { current: number; total: number }
-  lastRun?: { batchId: number; completedAt: string; status: string }
-}
-
 export type ServiceTestResult = {
   success: boolean
   message: string

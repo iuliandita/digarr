@@ -11,5 +11,3 @@ export const lidarrAddSchema = z
     rootFolderId: z.number().int().positive().optional(),
   })
   .strict()
-
-export type LidarrAddInput = z.infer<typeof lidarrAddSchema>

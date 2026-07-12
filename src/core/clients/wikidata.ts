@@ -36,8 +36,6 @@ function buildQuery(mbid: string, locale: string): string {
 type SparqlBinding = Record<string, { value: string; 'xml:lang'?: string }>
 type SparqlResponse = { results?: { bindings?: SparqlBinding[] } }
 
-export type WikidataClient = ReturnType<typeof createWikidataClient>
-
 export function createWikidataClient(baseUrl: string = SPARQL_ENDPOINT) {
   const http = createHttpClient({
     baseUrl,

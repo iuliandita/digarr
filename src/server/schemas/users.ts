@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { passwordSchema, usernameSchema } from './auth'
+import { idParamSchema } from './validator'
 
 export const createUserSchema = z.object({
   username: usernameSchema,
@@ -15,6 +16,4 @@ export const updateUserSchema = z
   })
   .strict()
 
-export const userIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const userIdParamSchema = idParamSchema

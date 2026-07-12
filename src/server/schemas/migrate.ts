@@ -26,5 +26,3 @@ export const migrateRequestSchema = z.object({
   target: migrateTargetSchema,
   overwrite: z.boolean().optional(),
 })
-
-export type MigrateRequest = z.infer<typeof migrateRequestSchema>

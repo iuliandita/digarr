@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { TARGET_TYPES } from '@/core/targets/types'
+import { idParamSchema } from './validator'
 
 // URL must be http(s). Private-IP / SSRF checks live in handlers and
 // outbound HTTP clients (publicIpOnly) - schema just enforces the scheme.
@@ -35,6 +36,4 @@ export const updateTargetSchema = z
   })
   .strict()
 
-export const targetIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const targetIdParamSchema = idParamSchema

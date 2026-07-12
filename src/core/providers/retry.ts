@@ -21,12 +21,6 @@ export type RetriableFetchOptions = {
   onAbort?: () => void
 }
 
-export type RetryAttemptMetadata = {
-  attempts: number
-  lastStatus?: number
-  lastRetryAfterSeconds?: number | null
-}
-
 const DEFAULTS: Required<Pick<RetriableFetchOptions, 'retries' | 'factor' | 'minTimeout'>> = {
   retries: 3,
   factor: 2,
