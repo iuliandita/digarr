@@ -1,4 +1,9 @@
-import { createHash, randomBytes } from 'node:crypto'
+import { redactUrlForLog } from '@/core/clients/http'
+import {
+  buildSubsonicAuthParams,
+  type SubsonicEnvelope,
+  unwrapSubsonicResponse,
+} from '@/core/clients/subsonic-auth'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import type { DestinationTarget, PlaylistItem, PlaylistResult } from './types'
@@ -9,9 +14,6 @@ export type NavidromePlaylistConfig = {
   password: string
 }
 
-const SUBSONIC_API_VERSION = '1.16.1'
-const SUBSONIC_CLIENT = 'digarr'
-
 function buildSubsonicUrl(
   baseUrl: string,
   username: string,
@@ -20,19 +22,10 @@ function buildSubsonicUrl(
   extra?: Record<string, string>,
 ): string {
   const base = baseUrl.replace(/\/+$/, '')
-  const salt = randomBytes(8).toString('hex')
-  // Subsonic API spec mandates md5(password + salt) auth - no alternative
-  const token = createHash('md5') // lgtm[js/insufficient-password-hash]
-    .update(password + salt)
-    .digest('hex')
-  const params = new URLSearchParams({
-    u: username,
-    t: token,
-    s: salt,
-    v: SUBSONIC_API_VERSION,
-    c: SUBSONIC_CLIENT,
-    f: 'json',
-    ...extra,
+  const params = buildSubsonicAuthParams({
+    username,
+    password,
+    extra,
   })
   return `${base}/rest/${endpoint}?${params.toString()}`
 }
@@ -47,19 +40,10 @@ async function subsonicFetch<T>(url: string): Promise<T> {
     clearTimeout(timer)
   }
   if (!res.ok) {
-    throw new Error(`Subsonic HTTP ${res.status}: ${url}`)
+    throw new Error(`Subsonic HTTP ${res.status}: ${redactUrlForLog(url)}`)
   }
-  const data = (await res.json()) as {
-    'subsonic-response': {
-      status: string
-      error?: { code: number; message: string }
-    } & Record<string, unknown>
-  }
-  const root = data['subsonic-response']
-  if (root.status !== 'ok') {
-    const msg = root.error?.message ?? `Subsonic error code ${root.error?.code ?? 'unknown'}`
-    throw new Error(msg)
-  }
+  const data = (await res.json()) as SubsonicEnvelope<Record<string, unknown>>
+  const root = unwrapSubsonicResponse(data)
   return root as unknown as T
 }
 

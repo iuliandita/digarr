@@ -90,6 +90,30 @@ describe('createNavidromePlaylistTarget()', () => {
       expect(result.success).toBe(false)
       expect(result.message).toContain('Wrong username or password')
     })
+
+    it('redacts Subsonic auth parameters from HTTP errors', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.testConnection()
+
+      expect(result.success).toBe(false)
+      expect(result.message).not.toMatch(/[?&]t=[0-9a-f]{32}/)
+      expect(result.message).not.toMatch(/[?&]s=[0-9a-f]{16}/)
+      expect(result.message).toContain('%5BREDACTED%5D')
+    })
+
+    it('returns a clean failure for a response without a Subsonic envelope', async () => {
+      mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ error: 'gateway' })))
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.testConnection()
+
+      expect(result).toEqual({
+        success: false,
+        message: 'Malformed Subsonic response (missing subsonic-response envelope)',
+      })
+    })
   })
 
   describe('createPlaylist()', () => {
@@ -245,6 +269,17 @@ describe('createNavidromePlaylistTarget()', () => {
       const commentCall = calls.find((u) => u.includes('comment='))
       expect(commentCall).toBeDefined()
       expect(commentCall).toContain('Auto-generated')
+    })
+
+    it('uses a fresh auth salt for each target request', async () => {
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      await target.createPlaylist?.('Test', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+
+      const salts = mockFetch.mock.calls.map(([url]) => new URL(String(url)).searchParams.get('s'))
+      expect(salts).toHaveLength(3)
+      expect(new Set(salts).size).toBe(3)
     })
   })
 })

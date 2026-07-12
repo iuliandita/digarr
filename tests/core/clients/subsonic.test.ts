@@ -202,4 +202,18 @@ describe('subsonic client auth params', () => {
     expect(path).toContain(`t=${expectedToken}`)
     expect(path).not.toContain('secret')
   })
+
+  it('reuses one salt for the lifetime of a client', async () => {
+    const client = createSubsonicClient('http://nav:4533', 'admin', 'secret')
+
+    mockGet.mockResolvedValue({ 'subsonic-response': { status: 'ok' } })
+    await client.getStarredArtists()
+    await client.getAllArtists()
+
+    const salts = mockGet.mock.calls.map(([path]) =>
+      new URL(String(path), 'http://nav').searchParams.get('s'),
+    )
+    expect(salts[0]).toMatch(/^[0-9a-f]{16}$/)
+    expect(salts[1]).toBe(salts[0])
+  })
 })
