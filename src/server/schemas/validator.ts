@@ -1,5 +1,9 @@
 import { zValidator as zv } from '@hono/zod-validator'
-import type * as z from 'zod'
+import * as z from 'zod'
+
+export const idParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
 
 // Consistent 400 response shape for every Zod-validated route. Clients key on
 // `error` (stable machine code) and render per-field hints from `details`.

@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { idParamSchema } from './validator'
 
 export const jobTypeSchema = z.enum([
   'pipeline',
@@ -11,9 +12,7 @@ export const jobTypeSchema = z.enum([
 
 export const jobStatusSchema = z.enum(['running', 'completed', 'failed', 'stuck'])
 
-export const jobIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const jobIdParamSchema = idParamSchema
 
 export const listJobsQuerySchema = z.object({
   type: jobTypeSchema.optional(),

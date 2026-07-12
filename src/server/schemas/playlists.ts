@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import { cronSchema } from './subscriptions'
+import { idParamSchema } from './validator'
 
 export const playlistStrategySchema = z.enum([
   'weekly_digest',
@@ -8,12 +9,9 @@ export const playlistStrategySchema = z.enum([
   'rediscover',
 ])
 
-export const playlistIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const playlistIdParamSchema = idParamSchema
 
-export const playlistExportFormatParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
+export const playlistExportFormatParamSchema = idParamSchema.extend({
   format: z.enum(['json', 'csv', 'm3u', 'xspf']),
 })
 

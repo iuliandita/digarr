@@ -49,5 +49,3 @@ export const backupFileSchema = z.object({
   includesCaches: z.boolean(),
   data: backupDataSchema,
 })
-
-export type BackupFileInput = z.infer<typeof backupFileSchema>

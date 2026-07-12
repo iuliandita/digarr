@@ -7,7 +7,6 @@ export type JobType =
   | 'target'
   | 'playlist'
   | 'library_sync'
-export type JobStatus = 'running' | 'completed' | 'failed' | 'stuck'
 export type SourceStatus = 'ok' | 'error' | 'skipped'
 
 export type SourceResult = {

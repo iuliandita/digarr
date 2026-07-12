@@ -241,6 +241,33 @@ const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
 
 const librarySyncStore = createLibrarySyncStore(db)
 
+async function getDiscoveryConnectionSnapshot(userId: number) {
+  const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
+    getUserConnections(db, userId),
+    getOAuthToken(db, userId, 'spotify'),
+    getOAuthToken(db, userId, 'deezer'),
+    librarySyncStore.userHasAnySyncState(userId),
+  ])
+
+  return {
+    hasListenBrainz: Boolean(
+      userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
+    ),
+    hasSpotify: Boolean(
+      spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
+    ),
+    hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
+    hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+    hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),
+    hasLibrarySync,
+    hasSubsonic: Boolean(
+      userConnections?.subsonicUrl &&
+        userConnections.subsonicUsername &&
+        userConnections.subsonicPassword,
+    ),
+  }
+}
+
 const storeDb: StoreDb = {
   getExistingAlbumReleaseGroupMbids: (userId) => getExistingAlbumReleaseGroupMbids(db, userId),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
@@ -947,34 +974,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       defaultScoreThreshold: prefs.scoreThreshold,
       topArtistNames,
       discoveryModeRegistry,
-      getDiscoveryConnectionSnapshot: async (userId) => {
-        const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-          getUserConnections(db, userId),
-          getOAuthToken(db, userId, 'spotify'),
-          getOAuthToken(db, userId, 'deezer'),
-          librarySyncStore.userHasAnySyncState(userId),
-        ])
-
-        return {
-          hasListenBrainz: Boolean(
-            userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
-          ),
-          hasSpotify: Boolean(
-            spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
-          ),
-          hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
-          hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
-          hasDeezer: Boolean(
-            deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
-          ),
-          hasLibrarySync,
-          hasSubsonic: Boolean(
-            userConnections?.subsonicUrl &&
-              userConnections.subsonicUsername &&
-              userConnections.subsonicPassword,
-          ),
-        }
-      },
+      getDiscoveryConnectionSnapshot,
       pipelineOrchestrator: orchestrator,
       discoveryModePipelineDeps:
         sub.userId != null
@@ -1372,34 +1372,7 @@ const app = createApp({
   },
   discoveryModeRegistry,
   runDiscoveryMode: executeDiscoveryModeRun,
-  getDiscoveryConnectionSnapshot: async (userId) => {
-    const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-      getUserConnections(db, userId),
-      getOAuthToken(db, userId, 'spotify'),
-      getOAuthToken(db, userId, 'deezer'),
-      librarySyncStore.userHasAnySyncState(userId),
-    ])
-
-    return {
-      hasListenBrainz: Boolean(
-        userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
-      ),
-      hasSpotify: Boolean(
-        spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
-      ),
-      hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
-      hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
-      hasDeezer: Boolean(
-        deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
-      ),
-      hasLibrarySync,
-      hasSubsonic: Boolean(
-        userConnections?.subsonicUrl &&
-          userConnections.subsonicUsername &&
-          userConnections.subsonicPassword,
-      ),
-    }
-  },
+  getDiscoveryConnectionSnapshot,
   jobRecorder,
   jobQueries: {
     listJobs: (filters) => jobQueries.listJobs(db, filters),
