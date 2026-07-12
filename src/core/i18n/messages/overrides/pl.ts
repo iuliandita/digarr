@@ -1,6 +1,15 @@
 import type { MessageCatalog } from '../types'
 
 export const plOverrides: Partial<MessageCatalog> = {
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'settings.oidcDescription':
+    'Skonfiguruj OpenID Connect dla logowania jednokrotnego. Po zapisaniu użytkownicy zobaczą przycisk „Zaloguj się przez SSO” na stronie logowania.',
+  'settings.authTip':
+    'Skonfiguruj OIDC/SSO, aby użytkownicy mogli logować się przez Authentik, Authelia lub dowolnego dostawcę OpenID Connect.',
+  'settings.aiTip':
+    'Wybierz dostawcę AI do rekomendacji. Ollama działa lokalnie za darmo. Dostawcy chmurowi (Claude, GPT, Gemini) wymagają kluczy API.',
   'common.confirm': 'Potwierdź',
   'discover.filters': 'Filtry',
   'discover.filtersActive': 'Filtry ({0})',

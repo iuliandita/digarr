@@ -17,6 +17,7 @@ import { tr } from '@/core/i18n/messages/tr'
 import type { MessageCatalog } from '@/core/i18n/messages/types'
 import { uk } from '@/core/i18n/messages/uk'
 import { zhCN } from '@/core/i18n/messages/zh-CN'
+import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import { formatDate, formatDateTime, formatShortDate, formatShortDateTime } from '@/web/lib/intl'
 
 const rawCatalogs: Record<SupportedLocale, Partial<MessageCatalog>> = {
@@ -52,6 +53,15 @@ describe('message catalogs', () => {
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(getMessages(locale)).sort()).toEqual(englishKeys)
     }
+  })
+
+  it('rejection-reason messages match the live reason registry', () => {
+    const messageReasons = Object.keys(en)
+      .filter((key) => key.startsWith('rejectionReason.'))
+      .map((key) => key.slice('rejectionReason.'.length))
+      .sort()
+
+    expect(messageReasons).toEqual([...REJECTION_REASONS].sort())
   })
 })
 

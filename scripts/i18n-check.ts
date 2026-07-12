@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
 import { getMessages } from '../src/core/i18n/messages'
+import { validateTranslatedCatalog } from './i18n-machine-translate'
 
 // Markers that indicate stripped diacritics in the accented-language catalogs.
 // CI fails on any match so we cannot regress to ASCII-substituted spellings.
@@ -22,8 +23,9 @@ const ASCII_MARKERS: Record<string, RegExp> = {
   fr: /\b(demarrera)\b/,
   it: /\b(partira)\b/,
   'pt-BR': /\b(posicao|comecara|execucao)\b/,
-  ro: /\b(pozitia|incepe|dupa|curenta)\b/,
-  pl: /\b(sie|zakonczeniu|biezacego)\b/,
+  ro: /\b(pozitia|incepe|dupa|curenta|Daca|tau|ruleaza|Testeaza|restrange)\b/,
+  pl: /\b(sie|zakonczeniu|biezacego|zobacza|logowac|dostawce)\b/,
+  tr: /\b(Is Geçmişi|acma|yapilandirin|giris|dugmesini|gorecek|Kullanicilarin|saglayicisiyla)\b/,
 }
 
 // Key prefixes accessed via template literals in app code. Treat as
@@ -42,6 +44,12 @@ const referenceMessages = getMessages(referenceLocale)
 const SAME_AS_SOURCE_ALLOWLIST = new Set([
   // "Volume" is the standard audio term and identical in fr/it/nl/pt-BR.
   'Volume',
+  // "Collaboration" is the natural French term for this relationship type.
+  'Collaboration',
+  // Romanian uses the same singular noun; CJK UI labels keep brand + URL.
+  '{0} artist',
+  'Emby URL',
+  'Lidarr URL',
   // "Album"/"Albums" are loanwords identical to English in several locales
   // (fr/nl singular+plural; de/it/ro/pl singular).
   'Album',
@@ -190,13 +198,22 @@ export async function main(): Promise<void> {
     const { missing, extra, empty, sameAsSource } = findCatalogIssues(referenceMessages, messages)
     const untranslated = locale === referenceLocale ? [] : sameAsSource
     const asciiHits = findAsciiMarkers(locale, messages)
+    let qualityError: string | null = null
+    if (locale !== referenceLocale) {
+      try {
+        validateTranslatedCatalog(referenceMessages, messages)
+      } catch (error) {
+        qualityError = error instanceof Error ? error.message : String(error)
+      }
+    }
 
     if (
       missing.length === 0 &&
       extra.length === 0 &&
       empty.length === 0 &&
       untranslated.length === 0 &&
-      asciiHits.length === 0
+      asciiHits.length === 0 &&
+      qualityError == null
     ) {
       continue
     }
@@ -208,6 +225,7 @@ export async function main(): Promise<void> {
     if (empty.length > 0) console.error(`  empty: ${empty.join(', ')}`)
     if (untranslated.length > 0) console.error(`  untranslated: ${untranslated.join(', ')}`)
     if (asciiHits.length > 0) console.error(`  ascii-stripped: ${asciiHits.join('; ')}`)
+    if (qualityError) console.error(`  quality: ${qualityError}`)
   }
 
   const orphans = await findOrphanedKeys(Object.keys(referenceMessages))
@@ -222,7 +240,7 @@ export async function main(): Promise<void> {
   }
 
   console.log(
-    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no orphans or ASCII markers.`,
+    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no catalog, quality, orphan, or ASCII-marker issues.`,
   )
 }
 

@@ -10,6 +10,7 @@ const MODE_ID_ALIASES: Record<string, string> = {
 }
 
 const FIELD_KEY_ALIASES: Record<string, string> = {
+  feedType: 'feed',
   seedArtistMbid: 'artist',
   targetUsername: 'username',
   maxUsers: 'usersToSample',
@@ -27,6 +28,13 @@ const FIELD_HELP_KEY_ALIASES: Record<string, string> = {
 const OPTION_VALUE_ALIASES: Record<string, string> = {
   easy: 'safe',
   hard: 'adventurous',
+  'member of band': 'memberOfBand',
+  collaboration: 'collaboration',
+  'supporting musician': 'supportingMusician',
+  'is person': 'isPerson',
+  sibling: 'sibling',
+  married: 'married',
+  'involved with': 'involvedWith',
 }
 
 const REASON_KEY_ALIASES: Record<string, MessageKey> = {
@@ -98,6 +106,9 @@ export function translateDiscoveryOption(
   t: Translate,
   option: { value: string; label: string },
 ): string {
+  if (option.label.startsWith('discoveryMode.')) {
+    return translateKnownKey(t, option.label as MessageKey) ?? option.value
+  }
   const key = `discoveryMode.option.${normalizeOptionValue(option.value)}` as MessageKey
   return translateKnownKey(t, key) ?? option.label
 }

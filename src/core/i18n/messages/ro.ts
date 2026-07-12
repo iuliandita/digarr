@@ -724,7 +724,6 @@ export const ro = {
   'discoveryMode.reason.connectDeezer': 'Conectează Deezer pentru a folosi acest mod.',
   'discoveryMode.reason.connectSpotify': 'Conectează Spotify pentru a folosi acest mod.',
   'discoveryMode.reason.connectSubsonic': 'Conectează Subsonic pentru a folosi acest mod.',
-  'discoveryMode.reason.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
   'discoveryMode.reason.libraryRequired':
@@ -759,6 +758,13 @@ export const ro = {
   'discoveryMode.option.japan': 'Japonia',
   'discoveryMode.option.brazil': 'Brazilia',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Membru al unei formații',
+  'discoveryMode.option.collaboration': 'Colaborare',
+  'discoveryMode.option.supportingMusician': 'Muzician de acompaniament',
+  'discoveryMode.option.isPerson': 'Este o persoană',
+  'discoveryMode.option.sibling': 'Frate sau soră',
+  'discoveryMode.option.married': 'Căsătorit sau căsătorită',
+  'discoveryMode.option.involvedWith': 'Relație cu',
   'importArtists.title': 'Importați artiști',
   'importArtists.likedSongs': 'Melodii apreciate',
   'importArtists.likedSongsDescription':
@@ -1256,7 +1262,6 @@ export const ro = {
   'rejectionReason.tried_didnt_like': 'L-am ascultat și nu mi-a plăcut',
   'rejectionReason.not_right_now': 'Poate mai târziu, nu acum',
   'rejectionReason.other': 'Altul',
-  'rejectionReason.unspecified': 'Fără motiv',
   'settings.blocked.title': 'Artiști blocați',
   'settings.blocked.search': 'Caută artiști blocați',
   'settings.blocked.count_one': '{0} artist blocat',

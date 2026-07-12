@@ -1,6 +1,13 @@
 import type { MessageCatalog } from '../types'
 
 export const ukOverrides: Partial<MessageCatalog> = {
+  'discover.emptyApproved':
+    'Ви ще не схвалили жодного виконавця. Перегляньте вкладку «Очікує», щоб дізнатися, що Digarr знайшов для вас.',
+  'setup.providerAnthropic': 'Anthropic',
+  'analytics.introTip':
+    'Відстежуйте, як працює ваш конвеєр пошуку з часом. Вищий рівень схвалення означає, що Digarr добре вивчає ваш смак.',
+  'pipeline.firstScanComplete':
+    'Ваші перші рекомендації готові! Перейдіть на сторінку «Відкриття», щоб побачити, що знайшов Digarr.',
   'common.confirm': 'Підтвердити',
   'discover.filters': 'Фільтри',
   'discover.filtersActive': 'Фільтри ({0})',

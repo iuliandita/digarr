@@ -1,6 +1,24 @@
 import type { MessageCatalog } from '../types'
 
 export const ruOverrides: Partial<MessageCatalog> = {
+  'discover.emptyApproved':
+    'Вы еще не одобрили ни одного исполнителя. Откройте вкладку «Ожидают», чтобы увидеть, что Digarr нашел для вас.',
+  'setup.connectEmby': 'Подключить Emby',
+  'setup.connectLidarr': 'Подключить Lidarr',
+  'setup.embyUserIdPlaceholder': 'Идентификатор пользователя Emby',
+  'setup.embyUrl': 'URL Emby',
+  'setup.lidarrUrl': 'URL Lidarr',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
+  'dashboard.addToLidarrFailed': 'Не удалось добавить в Lidarr',
+  'dashboard.addedToLidarr': 'Добавлено в Lidarr',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'pipeline.firstScanComplete':
+    'Ваши первые рекомендации готовы! Откройте страницу «Обзор», чтобы увидеть, что Digarr нашел.',
+  'libraryHealth.fixFailed': 'Исправление не удалось — проверьте подключение к Lidarr',
+  'libraryHealth.statisticsUnavailable':
+    'Статистика библиотеки недоступна. Проверьте подключение к Lidarr в настройках.',
   'common.confirm': 'Подтвердить',
   'discover.filters': 'Фильтры',
   'discover.filtersActive': 'Фильтры ({0})',

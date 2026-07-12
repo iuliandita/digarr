@@ -1,6 +1,15 @@
 import type { MessageCatalog } from '../types'
 
 export const zhCNOverrides: Partial<MessageCatalog> = {
+  'setup.connectEmby': '连接 Emby',
+  'setup.connectLidarr': '连接 Lidarr',
+  'setup.embyUrl': 'Emby URL',
+  'setup.lidarrUrl': 'Lidarr URL',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
+  'recommendation.sourceLastfm': 'Last.fm',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': '确认',
   'discover.filters': '筛选',
   'discover.filtersActive': '筛选 ({0})',

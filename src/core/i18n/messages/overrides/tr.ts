@@ -1,6 +1,18 @@
 import type { MessageCatalog } from '../types'
 
 export const trOverrides: Partial<MessageCatalog> = {
+  'setup.embyUserIdPlaceholder': 'Emby kullanıcı kimliği',
+  'setup.embyUrl': "Emby URL'si",
+  'setup.lidarrUrl': "Lidarr URL'si",
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'settings.tabs.jobHistory': 'İş Geçmişi',
+  'settings.oidcDescription':
+    "Tek oturum açma için OpenID Connect'i yapılandırın. Kaydettikten sonra kullanıcılar giriş sayfasında “SSO ile oturum aç” düğmesini görecek.",
+  'settings.authTip':
+    "Kullanıcıların Authentik, Authelia veya herhangi bir OpenID Connect sağlayıcısıyla oturum açmasına izin vermek için OIDC/SSO'yu yapılandırın.",
+  'admin.purgeExpiredSessionsDesc': 'Süresi dolan giriş oturumlarını sil.',
   'common.confirm': 'Onayla',
   'discover.filters': 'Filtreler',
   'discover.filtersActive': 'Filtreler ({0})',

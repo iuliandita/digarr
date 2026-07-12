@@ -1,6 +1,10 @@
 import type { MessageCatalog } from '../types'
 
 export const nlOverrides: Partial<MessageCatalog> = {
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Bevestigen',
   'discover.filters': 'Filteropties',
   'discover.filtersActive': 'Filteropties ({0})',

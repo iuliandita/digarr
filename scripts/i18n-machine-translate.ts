@@ -28,8 +28,6 @@ const model = process.env.TRANSLATION_MODEL?.trim() || 'gpt-4o-mini'
 const PLACEHOLDER_PATTERN = /\$\{[^}]+\}|\{\{[^}]+\}\}|\{[A-Za-z0-9_]+\}|%[sdif]/g
 const LINE_BREAK_PATTERN = /\r\n|\n|\r/g
 const PROTECTED_TERMS = [
-  'OpenAI-compatible',
-  'OpenAI-Compatible',
   'Google Gemini',
   'OpenRouter',
   'LiteLLM',
@@ -47,12 +45,9 @@ const PROTECTED_TERMS = [
   'Deezer',
   'Digarr',
   'Groq',
-  'Gemini',
   'Ollama',
   'Emby',
   'Plex',
-  'deezer',
-  'spotify',
 ] as const
 
 const sourceMessages = getMessages(sourceLocale)
@@ -145,7 +140,10 @@ export function validateTranslatedCatalog(
 
     const sourcePlaceholders = listMatches(sourceValue, PLACEHOLDER_PATTERN)
     const translatedPlaceholders = listMatches(translatedValue, PLACEHOLDER_PATTERN)
-    if (sourcePlaceholders.join('\u0000') !== translatedPlaceholders.join('\u0000')) {
+    if (
+      [...sourcePlaceholders].sort().join('\u0000') !==
+      [...translatedPlaceholders].sort().join('\u0000')
+    ) {
       errors.push(
         `${key}: placeholder mismatch (${sourcePlaceholders.join(', ') || 'none'} vs ${translatedPlaceholders.join(', ') || 'none'})`,
       )

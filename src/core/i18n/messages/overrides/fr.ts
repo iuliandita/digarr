@@ -1,6 +1,13 @@
 import type { MessageCatalog } from '../types'
 
 export const frOverrides: Partial<MessageCatalog> = {
+  'setup.embyUrl': "URL d'Emby",
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceLastfm': 'Last.fm',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'pipeline.firstScanComplete':
+    'Vos premières recommandations sont prêtes ! Accédez à la page Découvrir pour voir ce que Digarr a trouvé.',
   'common.confirm': 'Confirmer',
   'discover.filters': 'Filtres',
   'discover.filtersActive': 'Filtres ({0})',

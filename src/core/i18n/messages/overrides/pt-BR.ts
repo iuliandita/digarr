@@ -1,6 +1,11 @@
 import type { MessageCatalog } from '../types'
 
 export const ptBROverrides: Partial<MessageCatalog> = {
+  'setup.embyUserIdPlaceholder': 'ID de usuário do Emby',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceLastfm': 'Last.fm',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Confirmar',
   'discover.filters': 'Filtros',
   'discover.filtersActive': 'Filtros ({0})',

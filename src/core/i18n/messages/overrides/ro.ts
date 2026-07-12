@@ -1,6 +1,11 @@
 import type { MessageCatalog } from '../types'
 
 export const roOverrides: Partial<MessageCatalog> = {
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'settings.musicLibraryHint':
+    'Dacă serverul tău are mai multe biblioteci muzicale, rulează „Testează conexiunea” și alege una aici pentru a restrânge datele de ascultare și sincronizarea bibliotecii.',
   'common.confirm': 'Confirmă',
   'discover.filters': 'Filtre',
   'discover.filtersActive': 'Filtre ({0})',
@@ -171,7 +176,7 @@ export const roOverrides: Partial<MessageCatalog> = {
   'searchResultCard.queuedSuccess': '{0} a fost adăugat în coada de descoperire',
   'searchResultCard.queuedFailure': '{0} nu a putut fi adăugat în coadă',
   'searchResultCard.popularity': 'Popularitate {0}{1}',
-  'genres.artistCountSingular': 'artist',
+  'genres.artistCountSingular': '{0} artist',
   'admin.restoreSummary': '{0} rânduri restaurate în {1} tabele',
   'admin.restoreSummaryForce':
     '{0} rânduri restaurate. Reintrodu credențialele pentru câmpurile criptate.',

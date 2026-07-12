@@ -1,6 +1,13 @@
 import type { MessageCatalog } from '../types'
 
 export const koOverrides: Partial<MessageCatalog> = {
+  'setup.connectEmby': 'Emby 연결',
+  'setup.embyUserIdPlaceholder': 'Emby 사용자 ID',
+  'setup.embyUrl': 'Emby URL',
+  'setup.lidarrUrl': 'Lidarr URL',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
   'common.confirm': '확인',
   'discover.filters': '필터',
   'discover.filtersActive': '필터 ({0})',

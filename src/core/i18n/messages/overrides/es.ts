@@ -1,6 +1,13 @@
 import type { MessageCatalog } from '../types'
 
 export const esOverrides: Partial<MessageCatalog> = {
+  'setup.connectLidarr': 'Conectar Lidarr',
+  'setup.embyUrl': 'URL de Emby',
+  'setup.lidarrUrl': 'URL de Lidarr',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Confirmar',
   'discover.filters': 'Filtros',
   'discover.filtersActive': 'Filtros ({0})',

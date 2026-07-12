@@ -35,6 +35,12 @@ describe('i18n machine translation helpers', () => {
     ).toThrow(/placeholder|line break/i)
   })
 
+  it('allows numbered placeholders to move for target-language grammar', () => {
+    expect(() =>
+      validateTranslatedCatalog({ sample: '{0} of {1}' }, { sample: '{1} 中的 {0}' }),
+    ).not.toThrow()
+  })
+
   it('rejects protected brand-term drift', () => {
     expect(() =>
       validateTranslatedCatalog(

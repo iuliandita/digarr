@@ -1,6 +1,10 @@
 import type { MessageCatalog } from '../types'
 
 export const itOverrides: Partial<MessageCatalog> = {
+  'setup.embyUrl': 'URL di Emby',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Conferma',
   'discover.filters': 'Filtri',
   'discover.filtersActive': 'Filtri ({0})',

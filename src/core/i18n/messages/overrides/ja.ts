@@ -1,6 +1,14 @@
 import type { MessageCatalog } from '../types'
 
 export const jaOverrides: Partial<MessageCatalog> = {
+  'setup.connectEmby': 'Emby に接続',
+  'setup.embyUrl': 'Emby URL',
+  'setup.lidarrUrl': 'Lidarr URL',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'analytics.introTip':
+    '時間の経過とともにディスカバリーパイプラインの成果を追跡します。承認率が高いほど、Digarr があなたの好みをよく学習しています。',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': '確認',
   'discover.filters': 'フィルター',
   'discover.filtersActive': 'フィルター ({0})',

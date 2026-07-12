@@ -82,6 +82,10 @@ manual review.
 - **Empty values** -- a locale ships an empty string.
 - **Untranslated values** -- locale value literally equals the English
   source (except for allowlisted proper nouns, protocol acronyms, etc.).
+- **Placeholder drift** -- a locale drops, adds, or renames a placeholder.
+  Numbered placeholders may move to fit the target language's grammar.
+- **Protected-name drift** -- product and service names such as Digarr, Lidarr,
+  Emby, OpenAI, and ListenBrainz must remain exact inside translated copy.
 - **ASCII-stripped diacritics** -- German or Spanish values that still
   use ASCII substitutions (`Kuenstler`, `Configuracion`) instead of the
   native characters (`Künstler`, `Configuración`). The regex lives in
@@ -92,6 +96,9 @@ manual review.
   prefixes (`discoveryMode.`, `pipeline.stage.`, `pipeline.description.`,
   `artist.externalLinks.`, `libraryHealth.`, and `rejectionReason.`) so the
   check doesn't flag labels that are built at runtime.
+
+Registry-derived tests add stricter coverage for dynamic discovery-mode and
+rejection-reason keys so the prefix exemptions cannot hide dead entries.
 
 Run locally: `bun run i18n:check`.
 

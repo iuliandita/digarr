@@ -709,7 +709,7 @@ export const en = {
     'Triggers an album search in Lidarr for each affected artist',
   'libraryHealth.fixHint.genreGaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
   'libraryHealth.fixHint.imageGaps':
-    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+    'Searches for artist images again and saves any result locally.',
   'libraryHealth.fixHint.missingWikidata':
     'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (fast, cheapest)',
@@ -829,7 +829,6 @@ export const en = {
   'discoveryMode.reason.connectDeezer': 'Connect Deezer to use this mode.',
   'discoveryMode.reason.connectSpotify': 'Connect Spotify to use this mode.',
   'discoveryMode.reason.connectSubsonic': 'Connect Subsonic to use this mode.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.reason.libraryRequired': 'Sync a library first to use this mode.',
   'discoveryMode.field.feed': 'Feed',
@@ -862,6 +861,13 @@ export const en = {
   'discoveryMode.option.japan': 'Japan',
   'discoveryMode.option.brazil': 'Brazil',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Member of a band',
+  'discoveryMode.option.collaboration': 'Collaboration',
+  'discoveryMode.option.supportingMusician': 'Supporting musician',
+  'discoveryMode.option.isPerson': 'Is a person',
+  'discoveryMode.option.sibling': 'Sibling',
+  'discoveryMode.option.married': 'Married',
+  'discoveryMode.option.involvedWith': 'Involved with',
 
   // Import Artists
   'importArtists.title': 'Import Artists',
@@ -1409,7 +1415,6 @@ export const en = {
   'rejectionReason.tried_didnt_like': "Tried it, didn't like it",
   'rejectionReason.not_right_now': 'Maybe later, not now',
   'rejectionReason.other': 'Other',
-  'rejectionReason.unspecified': 'No reason given',
 
   // Settings: Blocked Artists tab
   'settings.blocked.title': 'Blocked Artists',
