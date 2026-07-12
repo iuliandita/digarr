@@ -94,10 +94,10 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Multilingual UI:** 15 shipped locales, saved user language preference, localized auth/setup/high-traffic pages, and locale-aware AI reasoning
 - **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
 - **Decade filtering:** filter recommendations by era, from the 60s through the 20s+
-- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards
+- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule)
+- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window)
 - **15 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
