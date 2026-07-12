@@ -75,7 +75,9 @@ manual review.
 
 `scripts/i18n-check.ts` runs in CI. It fails on:
 
-- **Missing keys** -- present in `en.ts` but absent from a locale.
+- **Missing non-allowlisted translations** -- an absent raw locale entry falls
+  back to English and is caught indirectly as untranslated. Allowlisted proper
+  nouns may intentionally use that fallback.
 - **Extra keys** -- present in a locale but not in `en.ts` (stale).
 - **Empty values** -- a locale ships an empty string.
 - **Untranslated values** -- locale value literally equals the English

@@ -247,7 +247,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 
 | Method | Path | Notes |
 |--------|------|-------|
-| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
+| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Choose single-container PGlite or the bundled PostgreSQL stack. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
 | Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
 | Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | In the Community Applications store (search "Digarr"); bundled template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)) as manual fallback. Embedded PGlite by default; external PostgreSQL optional. |
