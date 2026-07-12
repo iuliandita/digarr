@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-07-05 | Current: v1.12.0
+> Updated: 2026-07-12 | Current: v1.12.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -91,6 +91,8 @@ Release reminder: after publishing a new app image, run `bun scripts/sync-deploy
 
 - Audition queue for continuous preview playback: an Audition button on the Discover toolbar queues the loaded pending recommendations that have previews, in score order; the global preview bar gains previous/next and position controls, and playback auto-advances when a Deezer clip ends or after a 30-second timer for Spotify/YouTube embeds. Preview-less items are skipped, and playing anything else or stopping deactivates the queue. Artist-level v1 ("try before you add"); browsers may block embed autoplay, in which case the timer still advances past silent items. Full i18n across 15 locales
 - The scheduled notification digest now persists a last-sent bookmark, so restarts or downtime no longer double-report or drop a window; delivery is at-least-once
+- Discover can reject every loaded pending recommendation below a chosen score threshold in one reviewed action, while preserving higher-scored candidates for normal review
+- Cross-provider search now includes experimental TIDAL results when an admin configures TIDAL client credentials; unconfigured installs keep the source disabled
 - AI provider failures are now first-class observable (v1.12.0): a dead provider surfaces in scan progress warnings, job history records the real provider error, connection-test failures show the upstream message, and saving AI settings re-probes the persisted config. Provider hardening landed alongside: shared LLM output parsing for OpenAI/Gemini, secret redaction in error snippets, and Ollama model validation in test connection
 - Zero-external-database operation shipped in v1.11.0: embedded PGlite backend (no separate PostgreSQL container), an admin-gated in-app migration tool between PGlite and PostgreSQL with verified atomic copy, a Subsonic (Navidrome/Airsonic/Gonic) listening + library source, self-service account email, and an OIDC account-takeover fix (subject-only identity matching, GHSA-w643-583p-vm6m)
 - Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan.
