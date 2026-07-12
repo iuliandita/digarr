@@ -21,23 +21,17 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 
 ## Step 1: Add the Digarr template
 
-Digarr is not yet published in the Community Applications store (a CA submission
-is pending), but a dedicated CA template repository exists at
-[`iuliandita/unraid-templates`](https://github.com/iuliandita/unraid-templates).
-Adding it gives you the CA install flow today, including template updates.
+Digarr is published in the Community Applications store via the Selfhosters
+repository, so a plain Apps search is all you need.
 
-### Option A: CA template repository (recommended)
+### Option A: Community Applications store (recommended)
 
-1. In the Unraid web UI go to **Apps** > **Settings** (or the CA "Manage
-   template repositories" action) and add
-   `https://github.com/iuliandita/unraid-templates` to the template
-   repositories list.
-2. Search for **Digarr** under **Apps**; it appears from your added repository.
-3. Install it like any other app and fill in the configuration (see Step 2),
-   then click **Apply**.
+1. In the Unraid web UI go to **Apps** and search for **Digarr**.
+2. Click **Install** and fill in the configuration (see Step 2), then click
+   **Apply**.
 
-This template tracks the `latest` release tag, so **Check for Updates** on the
-Docker tab picks up new releases as they publish.
+The store template tracks the `latest` release tag, so **Check for Updates** on
+the Docker tab picks up new releases as they publish.
 
 ### Option B: User template (manual copy)
 
@@ -148,7 +142,7 @@ network is the simplest option).
 
 Digarr publishes multi-arch images (amd64 + arm64). To update from the Unraid
 **Docker** tab, click the container > **Check for Updates** (or **Force Update**)
-and apply. With the CA template repository (Option A) the container tracks the
+and apply. With the CA store template (Option A) the container tracks the
 `latest` release tag, so that is all there is to it. With the bundled template
 (Option B) the image is pinned to a release digest; re-copy the template file to
 move to a newer release.
