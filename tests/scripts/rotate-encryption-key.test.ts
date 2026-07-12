@@ -1,9 +1,9 @@
 // @vitest-environment node
 
+import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { spawnSync } from 'node:child_process'
 import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it } from 'vitest'
 import {
@@ -77,7 +77,7 @@ describe('encryption-key rotation coverage', () => {
     `)
     await client.close()
 
-    const env = {
+    const env: NodeJS.ProcessEnv = {
       ...process.env,
       DB_PATH: dataDir,
       DATABASE_URL: '',
@@ -85,8 +85,8 @@ describe('encryption-key rotation coverage', () => {
       DB_USER: '',
       DB_NAME: '',
       DIGARR_ENCRYPTION_KEY: 'test-key-please-do-not-use-in-prod',
+      DIGARR_ENCRYPTION_KEY_NEXT: '',
     }
-    delete env.DIGARR_ENCRYPTION_KEY_NEXT
 
     const result = spawnSync('bun', ['scripts/rotate-encryption-key.ts'], {
       cwd: process.cwd(),

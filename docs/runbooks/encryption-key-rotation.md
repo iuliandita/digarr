@@ -7,8 +7,10 @@ bounded blast radius.
 The app supports a dual-key mode via `DIGARR_ENCRYPTION_KEY_NEXT`: when set,
 `decryptField` tries the primary key first, then falls back to the next key,
 then to the legacy SHA-256 key. Writes always use the primary. This lets
-rotation happen with zero downtime at the cost of three deploys plus two script
-passes (rotation, then primary-key-only verification).
+external-PostgreSQL rotation happen with zero downtime at the cost of three
+deploys plus two script passes (rotation, then primary-key-only verification).
+Embedded PGlite requires a maintenance window because no second process may
+open the live data directory while the app owns it.
 
 ## Encrypted sites
 
@@ -55,6 +57,11 @@ Rotation touches these columns:
    `DATABASE_URL` for external PostgreSQL, or leave the DSN unset and set
    `DB_PATH` for embedded PGlite.
 
+   External PostgreSQL can remain online while the app continues running with
+   both keys. For embedded PGlite, stop the app/container first and keep it
+   stopped through step 5; run the script from a one-off process with the same
+   data directory mounted at `DB_PATH`.
+
    ```sh
    DATABASE_URL=postgresql://... \
    DIGARR_ENCRYPTION_KEY=<new> \
@@ -71,9 +78,10 @@ Rotation touches these columns:
    nonzero if any encrypted value cannot be rewritten. Do not continue while
    the output contains a `skip` line or reports an incomplete rotation.
 
-5. **Verify every encrypted value using only the new key.** Keep the running
-   app on the dual-key configuration from step 3, but invoke a second one-off
-   pass with `DIGARR_ENCRYPTION_KEY_NEXT` removed from that process:
+5. **Verify every encrypted value using only the new key.** For external
+   PostgreSQL, keep the running app on the dual-key configuration from step 3.
+   For PGlite, leave the app stopped. Invoke a second one-off pass with
+   `DIGARR_ENCRYPTION_KEY_NEXT` removed from that process:
 
    ```sh
    env -u DIGARR_ENCRYPTION_KEY_NEXT \
@@ -87,7 +95,8 @@ Rotation touches these columns:
    and target-config ciphertext, not a sample. It re-encrypts values again with
    fresh IVs and exits nonzero if any value still requires the old key.
 
-6. **Deploy a third time to drop NEXT.**
+6. **Deploy a third time to drop NEXT.** For PGlite, this is when the stopped
+   app restarts after the two script passes.
 
    ```sh
    DIGARR_ENCRYPTION_KEY=<new>
