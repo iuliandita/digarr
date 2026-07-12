@@ -14,9 +14,9 @@ data-migration pass.
 
 Rotation touches these columns:
 
-- `settings.lidarr_api_key`, `settings.ai_api_key`, `settings.oidc_client_secret`
+- `settings.lidarr_api_key`, `settings.ai_api_key`, `settings.audiodb_api_key`, `settings.oidc_client_secret`, `settings.tidal_client_secret`
 - `settings.preferences.fanartApiKey` (nested in jsonb)
-- `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`
+- `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`, `users.subsonic_password`
 - `oauth_tokens.access_token`, `oauth_tokens.refresh_token`, `oauth_tokens.client_secret`
 - `oidc_tokens.access_token`, `oidc_tokens.refresh_token`, `oidc_tokens.id_token`
 - `targets.config` (any `enc:v1:`-prefixed string values)
@@ -82,21 +82,29 @@ Rotation touches these columns:
 
 ## Verification
 
-After step 5, sample a few sensitive columns and confirm:
+After step 5, sample a sensitive column and confirm that decryption succeeds
+without printing the decrypted value. As in step 4, select the active backend
+with `DATABASE_URL` or `DB_PATH`:
 
 ```sh
 DATABASE_URL=postgresql://... \
 DIGARR_ENCRYPTION_KEY=<new> \
 bun -e "
   import { decryptField, initEncryption } from './src/core/crypto'
-  import { db, pool } from './src/db'
+  import { closeDb, db } from './src/db'
   import { sql } from 'drizzle-orm'
   initEncryption(process.env.DIGARR_ENCRYPTION_KEY)
   const r = await db.execute(sql\`SELECT id, lastfm_api_key FROM users WHERE lastfm_api_key IS NOT NULL LIMIT 5\`)
-  for (const row of r.rows) console.log(row.id, '->', decryptField(row.lastfm_api_key))
-  await pool.end()
+  for (const row of r.rows) {
+    if (decryptField(row.lastfm_api_key) == null) throw new Error('empty decrypted value')
+    console.log(row.id, 'ok')
+  }
+  await closeDb()
 "
 ```
+
+For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the active
+data directory).
 
 Every row should decrypt cleanly. A `Decryption failed` throw means the
 rotation pass missed a row - re-run step 4 with NEXT still set to the old
@@ -104,10 +112,11 @@ key, then retry step 5.
 
 ## Rollback
 
-If any step fails before step 5, revert by re-setting
-`DIGARR_ENCRYPTION_KEY` to the old key and deleting
-`DIGARR_ENCRYPTION_KEY_NEXT`. All data remains readable because nothing is
-re-encrypted until step 4 runs successfully.
+If a deploy fails before step 4 starts, revert by restoring the old key as
+primary. If step 4 starts and then fails, keep both keys configured: rotation is
+row-by-row, so the database may contain ciphertext written by either key. Fix
+the reported rows and rerun step 4, or restore the pre-rotation backup. Do not
+remove either key until the verification step succeeds.
 
 After step 5 completes, rollback requires restoring a pre-rotation backup
 (see the Backup & Restore guide).
