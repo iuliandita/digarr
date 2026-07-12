@@ -1,10 +1,10 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { type Cursor, encodeCursor } from '@/server/helpers/pagination-cursor'
-import { problem } from '@/server/helpers/problem'
+import { notFoundProblem } from '@/server/helpers/problem'
 import { adminGuard } from '@/server/middleware/admin-guard'
 import {
   createTargetSchema,
@@ -32,6 +32,22 @@ type TargetDeps = {
 
 export function targetRoutes(deps: TargetDeps) {
   const router = new Hono<HonoEnv>()
+
+  const loadOwnedTarget = async (c: Context<HonoEnv>, id: number, userId: number) => {
+    const target = await deps.targetQueries.getTarget(id)
+    if (!target || target.userId !== userId) {
+      return {
+        ok: false as const,
+        response: notFoundProblem(
+          c,
+          'target-not-found',
+          'Target not found',
+          'errors.target.notFound',
+        ),
+      }
+    }
+    return { ok: true as const, target }
+  }
 
   // Admins see every target (with masked configs); each row carries `owned: true`
   // when it belongs to the caller. Non-admins see ONLY their own targets -- other
@@ -102,18 +118,8 @@ export function targetRoutes(deps: TargetDeps) {
       if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
-      const target = await deps.targetQueries.getTarget(id)
-      if (!target || target.userId !== userId) {
-        return problem(
-          c,
-          'target-not-found',
-          'Target not found',
-          404,
-          undefined,
-          undefined,
-          'errors.target.notFound',
-        )
-      }
+      const loaded = await loadOwnedTarget(c, id, userId)
+      if (!loaded.ok) return loaded.response
 
       const allowed: TargetUpdate = c.req.valid('json')
       await deps.targetQueries.updateTarget(id, allowed)
@@ -130,18 +136,8 @@ export function targetRoutes(deps: TargetDeps) {
       if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
-      const target = await deps.targetQueries.getTarget(id)
-      if (!target || target.userId !== userId) {
-        return problem(
-          c,
-          'target-not-found',
-          'Target not found',
-          404,
-          undefined,
-          undefined,
-          'errors.target.notFound',
-        )
-      }
+      const loaded = await loadOwnedTarget(c, id, userId)
+      if (!loaded.ok) return loaded.response
 
       await deps.targetQueries.deleteTarget(id)
       return c.body(null, 204)
@@ -153,18 +149,9 @@ export function targetRoutes(deps: TargetDeps) {
     if (!userId) return notAuthenticated(c)
 
     const { id } = c.req.valid('param')
-    const target = await deps.targetQueries.getTarget(id)
-    if (!target || target.userId !== userId) {
-      return problem(
-        c,
-        'target-not-found',
-        'Target not found',
-        404,
-        undefined,
-        undefined,
-        'errors.target.notFound',
-      )
-    }
+    const loaded = await loadOwnedTarget(c, id, userId)
+    if (!loaded.ok) return loaded.response
+    const target = loaded.target
 
     const result = await deps.testTargetConnection(target.type, target.config)
     return c.json(result)

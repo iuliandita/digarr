@@ -6,6 +6,7 @@ import type { BlockedArtistRow, ListBlocksCursor } from '@/db/queries/artist-blo
 import { type Cursor, decodeCursor, encodeCursor } from '@/server/helpers/pagination-cursor'
 import { parseOptionalClampedInt, parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { problem } from '@/server/helpers/problem'
+import { requireUser } from '@/server/helpers/require-user'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -54,18 +55,9 @@ export function artistBlocksRoutes(deps: ArtistBlocksRouteDeps) {
   const router = new Hono<HonoEnv>()
 
   router.get('/api/v1/artist-blocks', async (c) => {
-    const userId = c.get('userId')
-    if (typeof userId !== 'number') {
-      return problem(
-        c,
-        'unauthorized',
-        'Unauthorized',
-        401,
-        undefined,
-        undefined,
-        'errors.auth.unauthorized',
-      )
-    }
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    const { userId } = auth
     const limit = parseOptionalClampedInt(c.req.query('limit'), { min: 1, max: 200, default: 50 })
     if (limit == null) {
       return problem(
@@ -97,18 +89,9 @@ export function artistBlocksRoutes(deps: ArtistBlocksRouteDeps) {
   })
 
   router.delete('/api/v1/artist-blocks/:artistId', async (c) => {
-    const userId = c.get('userId')
-    if (typeof userId !== 'number') {
-      return problem(
-        c,
-        'unauthorized',
-        'Unauthorized',
-        401,
-        undefined,
-        undefined,
-        'errors.auth.unauthorized',
-      )
-    }
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    const { userId } = auth
     const artistId = parsePositiveIntParam(c.req.param('artistId'))
     if (artistId == null) {
       return problem(
@@ -126,18 +109,9 @@ export function artistBlocksRoutes(deps: ArtistBlocksRouteDeps) {
   })
 
   router.post('/api/v1/artist-blocks', zJson(createBlockSchema), async (c) => {
-    const userId = c.get('userId')
-    if (typeof userId !== 'number') {
-      return problem(
-        c,
-        'unauthorized',
-        'Unauthorized',
-        401,
-        undefined,
-        undefined,
-        'errors.auth.unauthorized',
-      )
-    }
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    const { userId } = auth
     const body = c.req.valid('json')
     await deps.addArtistBlock({
       userId,

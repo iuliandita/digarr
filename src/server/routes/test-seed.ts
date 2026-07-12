@@ -2,7 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { artists, recommendationBatches, recommendations } from '@/db/schema'
 import type { AppDependencies } from '@/server'
-import { notAuthenticated } from '@/server/helpers/auth-problems'
+import { requireUser } from '@/server/helpers/require-user'
 import type { HonoEnv } from '@/server/types'
 
 // Fixed, deterministic seed set. UUIDs are stable so re-seeding upserts the same
@@ -63,8 +63,9 @@ export function testSeedRoutes(deps: AppDependencies) {
   // Seed a fixed set of pending recommendations (and their artists) for the
   // authenticated user so browser tests have something to approve/reject.
   router.post('/api/v1/test/seed-recommendations', async (c) => {
-    const userId = c.get('userId')
-    if (typeof userId !== 'number') return notAuthenticated(c)
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    const { userId } = auth
 
     const db = deps.db
     const now = new Date()

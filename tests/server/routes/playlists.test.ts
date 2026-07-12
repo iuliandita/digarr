@@ -258,6 +258,17 @@ describe('GET /api/v1/playlists/:id', () => {
     const res = await app.request('/api/v1/playlists/9999')
     expect(res.status).toBe(404)
   })
+
+  it('returns the same hidden 404 body for missing and cross-user playlists', async () => {
+    const missing = await createTestApp(makeDeps(), USER_ID).request('/api/v1/playlists/9999')
+    const crossUser = await createTestApp(makeDeps(), 999).request('/api/v1/playlists/1')
+
+    expect(missing.status).toBe(404)
+    expect(crossUser.status).toBe(404)
+    expect(missing.headers.get('content-type')).toContain('application/problem+json')
+    expect(crossUser.headers.get('content-type')).toContain('application/problem+json')
+    expect(await crossUser.text()).toBe(await missing.text())
+  })
 })
 
 describe('GET /api/v1/playlists/:id/export/:format', () => {
