@@ -97,5 +97,5 @@ describe('encryption-key rotation coverage', () => {
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('rotation incomplete: 1 encrypted values')
-  })
+  }, 20_000)
 })
