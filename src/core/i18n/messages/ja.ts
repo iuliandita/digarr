@@ -841,7 +841,7 @@ export const ja = {
   'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
   'settings.aiPrivacyBadgeLocal': '完全にローカル',
   'settings.webhookDescription':
-    'スキャン完了通知（Discord、Slack、ntfy、Gotify、または任意の HTTP エンドポイント）',
+    'スキャン完了通知（Discord の埋め込みまたは公開 HTTPS エンドポイントへの未加工 JSON）',
   'settings.testWebhook': 'Webhook をテスト',
   'settings.sending': '送信中...',
   'settings.connectionsTip':

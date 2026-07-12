@@ -852,7 +852,7 @@ export const ptBR = {
   'settings.aiPrivacyBadgeHosted': 'Os dados saem do seu servidor',
   'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.webhookDescription':
-    'Notificações ao concluir a varredura (Discord, Slack, ntfy, Gotify ou qualquer endpoint HTTP)',
+    'Notificações ao concluir a varredura (incorporações do Discord ou JSON bruto para um endpoint HTTPS público)',
   'settings.testWebhook': 'Testar webhook',
   'settings.sending': 'Enviando...',
   'settings.connectionsTip':

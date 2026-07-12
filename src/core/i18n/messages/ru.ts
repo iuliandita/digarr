@@ -863,7 +863,7 @@ export const ru = {
   'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.webhookDescription':
-    'Уведомления о завершении сканирования (Discord, Slack, ntfy, Gotify или любой HTTP-эндпоинт)',
+    'Уведомления о завершении сканирования (встроенные сообщения Discord или необработанный JSON на общедоступную конечную точку HTTPS)',
   'settings.testWebhook': 'Тест вебхука',
   'settings.sending': 'Отправка...',
   'settings.connectionsTip':

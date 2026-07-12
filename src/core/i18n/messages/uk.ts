@@ -857,7 +857,7 @@ export const uk = {
   'settings.aiPrivacyBadgeHosted': 'Дані залишають ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Повністю локально',
   'settings.webhookDescription':
-    'Сповіщення про завершення сканування (Discord, Slack, ntfy, Gotify або будь-який HTTP-ендпоінт)',
+    'Сповіщення про завершення сканування (вбудовані повідомлення Discord або необроблений JSON на загальнодоступну кінцеву точку HTTPS)',
   'settings.testWebhook': 'Тест вебхука',
   'settings.sending': 'Надсилання...',
   'settings.connectionsTip':

@@ -786,7 +786,8 @@ export const zhCN = {
   'settings.aiPrivacyNoteLocal': '发现请求保留在你的服务器上。',
   'settings.aiPrivacyBadgeHosted': '数据离开你的服务器',
   'settings.aiPrivacyBadgeLocal': '完全本地',
-  'settings.webhookDescription': '扫描完成通知（Discord、Slack、ntfy、Gotify 或任意 HTTP 端点）',
+  'settings.webhookDescription':
+    '扫描完成通知（Discord 嵌入消息或发送到公共 HTTPS 端点的原始 JSON）',
   'settings.testWebhook': '测试 Webhook',
   'settings.sending': '发送中...',
   'settings.connectionsTip':

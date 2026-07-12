@@ -846,7 +846,7 @@ export const fr = {
   'settings.aiPrivacyBadgeHosted': 'Les données quittent ton serveur',
   'settings.aiPrivacyBadgeLocal': 'Entièrement local',
   'settings.webhookDescription':
-    'Notifications de fin de scan (Discord, Slack, ntfy, Gotify ou tout endpoint HTTP)',
+    'Notifications de fin de scan (intégrations Discord ou JSON brut vers un point de terminaison HTTPS public)',
   'settings.testWebhook': 'Tester le webhook',
   'settings.sending': 'Envoi...',
   'settings.connectionsTip':

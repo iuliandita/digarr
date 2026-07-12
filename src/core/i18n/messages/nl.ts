@@ -853,7 +853,7 @@ export const nl = {
   'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.webhookDescription':
-    'Meldingen bij voltooide scan (Discord, Slack, ntfy, Gotify of een willekeurig HTTP-eindpunt)',
+    'Meldingen bij voltooide scan (Discord-insluitingen of onbewerkte JSON naar een openbaar HTTPS-eindpunt)',
   'settings.testWebhook': 'Webhook testen',
   'settings.sending': 'Bezig met verzenden...',
   'settings.connectionsTip':

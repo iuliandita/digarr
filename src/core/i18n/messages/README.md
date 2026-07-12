@@ -22,16 +22,18 @@ At runtime `getMessages(locale)` returns:
 
 English is always the runtime base, so a missing key degrades to readable
 English instead of an empty label. That is a runtime safety net, not a shipping
-policy: `bun run i18n:check` fails when any shipped locale lacks a key or still
-equals the English source outside the proper-noun allowlist.
+policy: `bun run i18n:check` validates each resolved locale and rejects values
+that still equal the English source outside the proper-noun allowlist. A missing
+locale entry therefore normally fails as untranslated; allowlisted proper nouns
+may legitimately resolve from the English base.
 
 ## The overrides layer
 
 Catalog files (`<locale>.ts`) represent the initial translation pass for each
 locale. When a new English key is added or renamed, the per-locale override
 modules provide a focused place to carry the translated delta until it is
-folded into the base catalogs. Every locale still needs a translated value
-before the validator passes.
+folded into the base catalogs. Every resolved locale must pass the validator;
+the allowlist covers values that should remain identical across languages.
 
 Two layers means one policy: **overrides win**. An entry in
 `MESSAGE_OVERRIDES[locale]` always supersedes the base catalog for that
@@ -47,8 +49,9 @@ manual review.
 
 1. Add the key and English value to `en.ts`.
 2. Add a translation for each of the 14 non-English locales, either directly
-   in its catalog or in `overrides/<locale>.ts`.
-3. Run `bun run i18n:check`; missing, empty, orphaned, or untranslated values
+   in its catalog or in `overrides/<locale>.ts`. Proper nouns and protocol terms
+   may remain identical only when covered by the validator's allowlist.
+3. Run `bun run i18n:check`; empty, orphaned, or untranslated resolved values
    block the change.
 4. Fold stable override entries back into the base catalogs periodically.
 
@@ -84,8 +87,9 @@ manual review.
 - **Orphaned keys** -- keys present in `en.ts` but not referenced
   anywhere in `src/**/*.{ts,tsx}` outside `i18n/messages/`. Template
   literal access is recognised for a small allowlist of dynamic
-  prefixes (`discoveryMode.`, `pipeline.stage.`, `pipeline.description.`)
-  so the check doesn't flag mode labels that are built at runtime.
+  prefixes (`discoveryMode.`, `pipeline.stage.`, `pipeline.description.`,
+  `artist.externalLinks.`, `libraryHealth.`, and `rejectionReason.`) so the
+  check doesn't flag labels that are built at runtime.
 
 Run locally: `bun run i18n:check`.
 
@@ -104,4 +108,5 @@ Backend route errors emit a stable i18n key in the `code` field of
 client (`src/web/lib/api.ts`) translates the code against the active
 locale and falls back to the `title` field when no translation exists.
 Add error-code keys under the `errors.*` namespace in `en.ts` and
-provide translations in every module under `overrides/`.
+provide translations for all 14 non-English locales, either in their catalogs
+or in `overrides/<locale>.ts`.

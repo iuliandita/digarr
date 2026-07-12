@@ -77,10 +77,13 @@ The template exposes these fields (matching
 | ListenBrainz | `LISTENBRAINZ_USERNAME`, `LISTENBRAINZ_TOKEN` | No | Listening source (advanced) |
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | No | Required behind a reverse proxy, e.g. `https://digarr.example.com` |
-| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting stored credentials. If blank, encryption is disabled and the app logs a production warning; generate and persist a key before entering secrets |
+| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
-| Webhook URL | `WEBHOOK_URL` | No | Discord webhook (embed payload) or a public HTTP endpoint that accepts Digarr's raw JSON payload |
+| Webhook URL | `WEBHOOK_URL` | No | Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload |
+
+Use HTTPS for webhook delivery. Plain HTTP is accepted for compatibility but
+exposes notification data and any credential embedded in the URL while in transit.
 
 Subsonic, Plex, Jellyfin, Emby, Spotify, Deezer, and Discogs connections are not
 template fields -- add them later under **Settings -> Connections** in the web UI.

@@ -51,6 +51,8 @@ GUI:
    - `secrets/postgres_password` containing only the database password (both
      the app and PostgreSQL read this single file, so there is nothing to keep
      in sync)
+   - Restrict the `secrets` folder and password file to the DSM account that
+     owns the project
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
@@ -62,7 +64,8 @@ mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+chmod 700 secrets
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 vi secrets/postgres_password
 sudo docker compose up -d
@@ -142,6 +145,9 @@ sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 sudo mkdir -p secrets
+sudo chmod 700 secrets
+sudo touch secrets/postgres_password
+sudo chmod 600 secrets/postgres_password
 printf '%s\n' 'change-this-password' | sudo tee secrets/postgres_password > /dev/null
 sudo cp .env.example .env
 ```

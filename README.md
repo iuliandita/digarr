@@ -91,7 +91,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), Spotify Saved Albums (artists from albums you saved on Spotify), and Subsonic Starred (artists similar to your starred Subsonic artists)
 - **Subscriptions:** scheduled discovery from discovery modes, Spotify Liked Songs, playlists and charts, Deezer favorites, followed artists and Flow, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
 - **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
-- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 7 automated health checks with one-click fixes
+- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 7 automated health checks with one-click fixes for supported findings
 - **Analytics:** approval rates, genre trends, source effectiveness, score distribution, and time-to-act
 - **Multilingual UI:** 15 shipped locales, saved user language preference, localized auth/setup/high-traffic pages, and locale-aware AI reasoning
 - **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
@@ -99,8 +99,8 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications:** Discord embeds or raw JSON to a public HTTP endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window)
-- **15 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
+- **Webhook notifications:** Discord embeds or raw JSON to a public HTTPS endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). Plain HTTP is accepted for compatibility but exposes payload data and URL credentials in transit
+- **16 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
 
@@ -163,8 +163,9 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
+chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 # Edit secrets/postgres_password and optionally .env
 docker compose up -d

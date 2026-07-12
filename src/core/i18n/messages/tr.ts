@@ -848,7 +848,7 @@ export const tr = {
   'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrilir',
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
   'settings.webhookDescription':
-    'Tarama tamamlanma bildirimleri (Discord, Slack, ntfy, Gotify veya herhangi bir HTTP son noktası)',
+    'Tarama tamamlanma bildirimleri (Discord yerleştirmeleri veya genel bir HTTPS uç noktasına ham JSON)',
   'settings.testWebhook': 'Webhook test et',
   'settings.sending': 'Gonderiliyor...',
   'settings.connectionsTip':

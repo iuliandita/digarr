@@ -965,7 +965,7 @@ export const en = {
   'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
   'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.webhookDescription':
-    'Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)',
+    'Scan completion notifications (Discord embeds or raw JSON to a public HTTPS endpoint)',
   'settings.testWebhook': 'Test Webhook',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':

@@ -966,7 +966,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               <Input
                 id="webhook-url"
                 type="url"
-                placeholder="https://ntfy.sh/my-topic"
+                placeholder="https://example.com/digarr-webhook"
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
               />

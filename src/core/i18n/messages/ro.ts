@@ -854,7 +854,7 @@ export const ro = {
   'settings.aiPrivacyBadgeHosted': 'Datele părăsesc serverul tău',
   'settings.aiPrivacyBadgeLocal': 'Complet local',
   'settings.webhookDescription':
-    'Notificări la finalizarea scanării (Discord, Slack, ntfy, Gotify sau orice endpoint HTTP)',
+    'Notificări la finalizarea scanării (încorporări Discord sau JSON brut către un endpoint HTTPS public)',
   'settings.testWebhook': 'Testați webhook-ul',
   'settings.sending': 'Se trimite...',
   'settings.connectionsTip':

@@ -44,8 +44,9 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
+chmod 700 secrets
 # One database password -- both Postgres and the app read this single file.
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 ```
 

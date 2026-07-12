@@ -35,8 +35,10 @@ Wasm linear memory backed by one file, so exactly one replica may own it. The
 Helm/k8s opt-in pins `replicaCount=1` and forces the `Recreate` rollout strategy
 (no two pods touching the file at once). Because the working set sits in Wasm
 memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
-profile, but to scale out (multiple replicas, large datasets) switch to external
-PostgreSQL by supplying a DSN.
+profile. Switch to external PostgreSQL for a managed database or larger
+datasets, but keep the app at one replica: pipeline coordination, schedulers,
+rate limits, and migration locks remain process-local, so a DSN alone does not
+make horizontal scaling safe.
 
 **Per-platform defaults.** The container image and the Unraid template default
 to embedded PGlite (bare `docker run` with no DB env, or

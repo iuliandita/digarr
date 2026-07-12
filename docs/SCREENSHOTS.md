@@ -1,6 +1,10 @@
 # Screenshots
 
-All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screenshots.ts` - see the header in that file for env vars.
+The checked-in screenshots were captured from v1.10.0 and use the Youtarr
+theme. The descriptions below reflect the current `develop`/`:nightly` UI when
+later features are not visible in an image. Capture a fresh set with
+`bun scripts/capture-screenshots.ts`; see that script's header for environment
+variables.
 
 ## Dashboard (dark)
 

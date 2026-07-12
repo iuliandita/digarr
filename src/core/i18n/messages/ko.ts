@@ -828,7 +828,7 @@ export const ko = {
   'settings.aiPrivacyBadgeHosted': '데이터가 서버를 떠납니다',
   'settings.aiPrivacyBadgeLocal': '완전 로컬',
   'settings.webhookDescription':
-    '스캔 완료 알림 (Discord, Slack, ntfy, Gotify, 또는 모든 HTTP 엔드포인트)',
+    '스캔 완료 알림 (Discord 임베드 또는 공개 HTTPS 엔드포인트로 전송되는 원시 JSON)',
   'settings.testWebhook': 'Webhook 테스트',
   'settings.sending': '전송 중...',
   'settings.connectionsTip':
