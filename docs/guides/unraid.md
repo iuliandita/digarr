@@ -22,10 +22,24 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 ## Step 1: Add the Digarr template
 
 Digarr is not yet published in the Community Applications store (a CA submission
-is pending). Until it lands there, use the bundled template directly -- it is the
-reliable route and uses the same XML CA would serve.
+is pending), but a dedicated CA template repository exists at
+[`iuliandita/unraid-templates`](https://github.com/iuliandita/unraid-templates).
+Adding it gives you the CA install flow today, including template updates.
 
-### Option A: User template (recommended)
+### Option A: CA template repository (recommended)
+
+1. In the Unraid web UI go to **Apps** > **Settings** (or the CA "Manage
+   template repositories" action) and add
+   `https://github.com/iuliandita/unraid-templates` to the template
+   repositories list.
+2. Search for **Digarr** under **Apps**; it appears from your added repository.
+3. Install it like any other app and fill in the configuration (see Step 2),
+   then click **Apply**.
+
+This template tracks the `latest` release tag, so **Check for Updates** on the
+Docker tab picks up new releases as they publish.
+
+### Option B: User template (manual copy)
 
 1. Copy [`deploy/unraid/digarr.xml`](../../deploy/unraid/digarr.xml) to your
    Unraid server at
@@ -40,14 +54,11 @@ reliable route and uses the same XML CA would serve.
 2. In the Unraid web UI go to **Docker** > **Add Container**.
 3. In the **Template** dropdown pick **Digarr** (it appears under your user
    templates).
-4. Fill in the configuration (see Step 3) and click **Apply**.
+4. Fill in the configuration (see Step 2) and click **Apply**.
 
-### Option B: Private template repository
-
-If you prefer CA to manage updates to the template, add the repository under
-**Apps** > **Settings** (or the CA "Manage template repositories" action) and
-point it at `https://github.com/iuliandita/digarr`. Digarr then appears in your
-CA search; install it like any other app and fill in the same fields below.
+The bundled template pins the image to the current release digest (the release
+pipeline keeps it synced), so updates mean re-copying the file; prefer Option A
+unless you want that digest pinning.
 
 ---
 
@@ -137,8 +148,10 @@ network is the simplest option).
 
 Digarr publishes multi-arch images (amd64 + arm64). To update from the Unraid
 **Docker** tab, click the container > **Check for Updates** (or **Force Update**)
-and apply. When the template repository (Option B) refreshes, the pinned digest
-moves to the newest release.
+and apply. With the CA template repository (Option A) the container tracks the
+`latest` release tag, so that is all there is to it. With the bundled template
+(Option B) the image is pinned to a release digest; re-copy the template file to
+move to a newer release.
 
 ## Notes
 
