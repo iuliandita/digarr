@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import {
   exportPlaylistToCsv,
   exportPlaylistToJson,
@@ -21,7 +21,7 @@ import { mergePreferences, type PlaylistConfig } from '@/db/schema'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
-import { problem } from '@/server/helpers/problem'
+import { notFoundProblem } from '@/server/helpers/problem'
 import {
   createPlaylistSchema,
   playlistExportFormatParamSchema,
@@ -65,6 +65,22 @@ function sanitizeFilename(value: string): string {
 export function playlistRoutes(deps: PlaylistDeps) {
   const router = new Hono<HonoEnv>()
   const { db } = deps
+
+  const loadOwnedPlaylist = async (c: Context<HonoEnv>, id: number, userId: number) => {
+    const result = await getPlaylistWithTracks(db, id)
+    if (!result || result.playlist.userId !== userId) {
+      return {
+        ok: false as const,
+        response: notFoundProblem(
+          c,
+          'playlist-not-found',
+          'Playlist not found',
+          'errors.playlist.notFound',
+        ),
+      }
+    }
+    return { ok: true as const, result }
+  }
 
   // GET /api/v1/playlists/scheduler - must be registered before :id route
   router.get('/api/v1/playlists/scheduler', async (c) => {
@@ -144,29 +160,10 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const { id } = c.req.valid('param')
 
-    const result = await getPlaylistWithTracks(db, id)
-    if (!result)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
-    if (result.playlist.userId !== userId)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
+    const loaded = await loadOwnedPlaylist(c, id, userId)
+    if (!loaded.ok) return loaded.response
 
-    return c.json(result)
+    return c.json(loaded.result)
   })
 
   // GET /api/v1/playlists/:id/export/:format
@@ -181,27 +178,9 @@ export function playlistRoutes(deps: PlaylistDeps) {
       const exporter = PLAYLIST_EXPORTERS[format]
       const contentType = PLAYLIST_EXPORT_CONTENT_TYPES[format]
 
-      const result = await getPlaylistWithTracks(db, id)
-      if (!result)
-        return problem(
-          c,
-          'playlist-not-found',
-          'Playlist not found',
-          404,
-          undefined,
-          undefined,
-          'errors.playlist.notFound',
-        )
-      if (result.playlist.userId !== userId)
-        return problem(
-          c,
-          'playlist-not-found',
-          'Playlist not found',
-          404,
-          undefined,
-          undefined,
-          'errors.playlist.notFound',
-        )
+      const loaded = await loadOwnedPlaylist(c, id, userId)
+      if (!loaded.ok) return loaded.response
+      const result = loaded.result
 
       const tracks = result.tracks.slice().sort((a, b) => a.position - b.position)
       const filename = sanitizeFilename(result.playlist.name) || `playlist-${id}`
@@ -226,27 +205,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
       if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
-      const existing = await getPlaylistWithTracks(db, id)
-      if (!existing)
-        return problem(
-          c,
-          'playlist-not-found',
-          'Playlist not found',
-          404,
-          undefined,
-          undefined,
-          'errors.playlist.notFound',
-        )
-      if (existing.playlist.userId !== userId)
-        return problem(
-          c,
-          'playlist-not-found',
-          'Playlist not found',
-          404,
-          undefined,
-          undefined,
-          'errors.playlist.notFound',
-        )
+      const loaded = await loadOwnedPlaylist(c, id, userId)
+      if (!loaded.ok) return loaded.response
 
       const body = c.req.valid('json')
       await updatePlaylist(db, id, body as Record<string, unknown>)
@@ -262,27 +222,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const { id } = c.req.valid('param')
 
-    const result = await getPlaylistWithTracks(db, id)
-    if (!result)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
-    if (result.playlist.userId !== userId)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
+    const loaded = await loadOwnedPlaylist(c, id, userId)
+    if (!loaded.ok) return loaded.response
 
     await deletePlaylist(db, id)
     await deps.restartPlaylistScheduler()
@@ -296,27 +237,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
 
     const { id } = c.req.valid('param')
 
-    const result = await getPlaylistWithTracks(db, id)
-    if (!result)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
-    if (result.playlist.userId !== userId)
-      return problem(
-        c,
-        'playlist-not-found',
-        'Playlist not found',
-        404,
-        undefined,
-        undefined,
-        'errors.playlist.notFound',
-      )
+    const loaded = await loadOwnedPlaylist(c, id, userId)
+    if (!loaded.ok) return loaded.response
 
     // Fire-and-forget
     Promise.resolve()

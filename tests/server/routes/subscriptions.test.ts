@@ -686,6 +686,21 @@ describe('DELETE /api/v1/subscriptions/:id', () => {
     const res = await app.request('/api/v1/subscriptions/999', { method: 'DELETE' })
     expect(res.status).toBe(404)
   })
+
+  it('returns the same hidden 404 body for missing and cross-user subscriptions', async () => {
+    const missing = await createTestApp(makeDeps(), USER_ID).request('/api/v1/subscriptions/999', {
+      method: 'DELETE',
+    })
+    const crossUser = await createTestApp(makeDeps(), 99).request('/api/v1/subscriptions/1', {
+      method: 'DELETE',
+    })
+
+    expect(missing.status).toBe(404)
+    expect(crossUser.status).toBe(404)
+    expect(missing.headers.get('content-type')).toContain('application/problem+json')
+    expect(crossUser.headers.get('content-type')).toContain('application/problem+json')
+    expect(await crossUser.text()).toBe(await missing.text())
+  })
 })
 
 describe('POST /api/v1/subscriptions/:id/run', () => {

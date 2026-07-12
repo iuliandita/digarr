@@ -3,7 +3,7 @@
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { describe, expect, it } from 'vitest'
-import { problem } from '@/server/helpers/problem'
+import { notFoundProblem, problem } from '@/server/helpers/problem'
 
 describe('problem helper', () => {
   it('returns RFC 9457 envelope with application/problem+json', async () => {
@@ -40,6 +40,23 @@ describe('problem helper', () => {
     const res = await app.request('/boom')
     const body = (await res.json()) as { retryAfter?: number }
     expect(body.retryAfter).toBe(42)
+  })
+
+  it('returns a coded 404 without placeholder arguments', async () => {
+    const app = new Hono()
+    app.get('/missing', (c) =>
+      notFoundProblem(c, 'widget-not-found', 'Widget not found', 'errors.widget.notFound'),
+    )
+
+    const res = await app.request('/missing')
+    expect(res.status).toBe(404)
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    expect(await res.json()).toEqual({
+      type: '/problems/widget-not-found',
+      title: 'Widget not found',
+      status: 404,
+      code: 'errors.widget.notFound',
+    })
   })
 })
 

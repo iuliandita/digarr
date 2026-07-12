@@ -1,9 +1,12 @@
 // @vitest-environment node
 
+import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { BlockedAlbumRow } from '@/db/queries/album-blocks'
 import { createApp } from '@/server'
+import { albumBlocksRoutes } from '@/server/routes/album-blocks'
+import type { HonoEnv } from '@/server/types'
 import { makeDeps } from '../../helpers/test-app'
 
 const SESSION_TOKEN = 'album-blocks-token'
@@ -45,6 +48,21 @@ describe('GET /api/v1/album-blocks', () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/album-blocks')
     expect(res.status).toBe(401)
+  })
+
+  it('returns the canonical auth problem when mounted directly', async () => {
+    const app = new Hono<HonoEnv>()
+    app.route('/', albumBlocksRoutes(makeDeps()))
+
+    const res = await app.request('/api/v1/album-blocks')
+    expect(res.status).toBe(401)
+    expect(res.headers.get('WWW-Authenticate')).toBe('Bearer realm="digarr"')
+    expect(await res.json()).toEqual({
+      type: '/problems/not-authenticated',
+      title: 'Not authenticated',
+      status: 401,
+      code: 'errors.auth.notAuthenticated',
+    })
   })
 })
 

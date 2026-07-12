@@ -185,6 +185,21 @@ describe('target routes', () => {
     expect(res.status).toBe(404)
   })
 
+  it('returns the same hidden 404 body for missing and cross-user targets', async () => {
+    mockDeps.targetQueries.getTarget.mockImplementation(async (id: number) =>
+      id === 1 ? { id: 1, userId: 1, type: 'lidarr' } : null,
+    )
+
+    const missing = await createTestApp(1).request('/api/v1/targets/999', { method: 'DELETE' })
+    const crossUser = await createTestApp(2).request('/api/v1/targets/1', { method: 'DELETE' })
+
+    expect(missing.status).toBe(404)
+    expect(crossUser.status).toBe(404)
+    expect(missing.headers.get('content-type')).toContain('application/problem+json')
+    expect(crossUser.headers.get('content-type')).toContain('application/problem+json')
+    expect(await crossUser.text()).toBe(await missing.text())
+  })
+
   it('POST /api/v1/targets/:id/test tests connection', async () => {
     mockDeps.targetQueries.getTarget.mockResolvedValue({
       id: 1,
