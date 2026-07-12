@@ -288,6 +288,38 @@ Approve response (status `approved`):
 }
 ```
 
+## Album Blocks
+
+Album blocks are created when the caller permanently rejects an album recommendation. They
+are keyed by MusicBrainz release-group MBID and are independent of artist blocks.
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/album-blocks` | Yes | List up to 500 albums permanently blocked by the caller |
+| DELETE | `/api/v1/album-blocks/:releaseGroupMbid` | Yes | Remove an album from the caller's blocklist |
+
+**GET /api/v1/album-blocks** response:
+
+```json
+{
+  "items": [
+    {
+      "id": 42,
+      "artistId": 17,
+      "artistName": "Example Artist",
+      "artistMbid": "11111111-1111-1111-1111-111111111111",
+      "releaseGroupMbid": "00000000-0000-0000-0000-000000000000",
+      "reason": "wrong_style",
+      "reasonText": null,
+      "blockedAt": "2026-07-12T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+`:releaseGroupMbid` must be a UUID. Invalid values return `400`; a successful delete
+returns `204` even when the row is already absent.
+
 ---
 
 ## Artists

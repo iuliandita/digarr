@@ -7,8 +7,8 @@ Translations for digarr's 15 supported locales.
 - `en.ts` -- canonical English catalog. All keys originate here.
 - `<locale>.ts` (one of `de`, `es`, `fr`, `it`, `ja`, `ko`, `nl`, `pl`,
   `pt-BR`, `ro`, `ru`, `tr`, `uk`, `zh-CN`) -- full translated catalog.
-- `overrides.ts` -- per-locale deltas that track upstream English renames
-  without rewriting the full catalog.
+- `overrides/<locale>.ts` -- per-locale deltas that track English renames or
+  focused corrections without rewriting the full catalog.
 - `types.ts` -- `MessageKey` and `MessageCatalog` types derived from `en`.
 - `index.ts` -- `getMessages(locale)` resolver.
 
@@ -20,21 +20,18 @@ At runtime `getMessages(locale)` returns:
 { ...en, ...localeCatalog, ...(MESSAGE_OVERRIDES[locale] ?? {}) }
 ```
 
-English is always the base, so any missing key falls back to the English
-string. This means a locale can ship without every key and still render a
-readable UI -- it will just show English for the missing entries. The
-`bun run i18n:check` validator flags these same-as-source cases so the
-backlog stays visible.
+English is always the runtime base, so a missing key degrades to readable
+English instead of an empty label. That is a runtime safety net, not a shipping
+policy: `bun run i18n:check` fails when any shipped locale lacks a key or still
+equals the English source outside the proper-noun allowlist.
 
 ## The overrides layer
 
-Catalog files (`<locale>.ts`) represent the initial translation pass for
-each locale. When a new English key is added or an existing key is
-renamed, touching every locale catalog is expensive -- especially for
-languages we ship without native reviewers. `overrides.ts` exists so we
-can ship a string change immediately against English, add native
-translations for as many locales as we have capacity for, and let the
-rest fall through until someone translates them.
+Catalog files (`<locale>.ts`) represent the initial translation pass for each
+locale. When a new English key is added or renamed, the per-locale override
+modules provide a focused place to carry the translated delta until it is
+folded into the base catalogs. Every locale still needs a translated value
+before the validator passes.
 
 Two layers means one policy: **overrides win**. An entry in
 `MESSAGE_OVERRIDES[locale]` always supersedes the base catalog for that
@@ -49,19 +46,18 @@ manual review.
 ## Adding a key
 
 1. Add the key and English value to `en.ts`.
-2. Either:
-   - Add translations to each of the 14 locale catalog files, OR
-   - Leave the key in `en.ts` only (it falls back to English).
-3. Run `bun run i18n:check` to see which locales lack a translation.
-4. If a locale should diverge from the base catalog, add an entry to
-   that locale's block in `overrides.ts`.
+2. Add a translation for each of the 14 non-English locales, either directly
+   in its catalog or in `overrides/<locale>.ts`.
+3. Run `bun run i18n:check`; missing, empty, orphaned, or untranslated values
+   block the change.
+4. Fold stable override entries back into the base catalogs periodically.
 
 ## Renaming a key
 
 1. Rename in `en.ts`.
 2. Update callers (`t('new.key')`).
-3. Either rename in every locale, or add override mappings in
-   `overrides.ts` under each locale block.
+3. Either rename in every locale catalog or add the replacement key to each
+   locale's module under `overrides/`.
 4. Run `bun run i18n:check` to confirm nothing regressed.
 
 ## Removing a key
@@ -108,4 +104,4 @@ Backend route errors emit a stable i18n key in the `code` field of
 client (`src/web/lib/api.ts`) translates the code against the active
 locale and falls back to the `title` field when no translation exists.
 Add error-code keys under the `errors.*` namespace in `en.ts` and
-provide translations via `overrides.ts`.
+provide translations in every module under `overrides/`.

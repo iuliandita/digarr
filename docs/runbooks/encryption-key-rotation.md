@@ -7,7 +7,7 @@ bounded blast radius.
 The app supports a dual-key mode via `DIGARR_ENCRYPTION_KEY_NEXT`: when set,
 `decryptField` tries the primary key first, then falls back to the next key,
 then to the legacy SHA-256 key. Writes always use the primary. This lets
-rotation happen with zero downtime at the cost of two deploys plus one
+rotation happen with zero downtime at the cost of three deploys plus one
 data-migration pass.
 
 ## Encrypted sites
@@ -51,7 +51,9 @@ Rotation touches these columns:
    NEXT fallback. There's a window here where the DB has a mix of
    old-encrypted and new-encrypted values.
 
-4. **Run the rotation script.** (Point `DATABASE_URL` at the target DB.)
+4. **Run the rotation script.** Select the same backend the app uses: set
+   `DATABASE_URL` for external PostgreSQL, or leave the DSN unset and set
+   `DB_PATH` for embedded PGlite.
 
    ```sh
    DATABASE_URL=postgresql://... \
@@ -59,6 +61,9 @@ Rotation touches these columns:
    DIGARR_ENCRYPTION_KEY_NEXT=<old> \
    bun scripts/rotate-encryption-key.ts
    ```
+
+   For PGlite, replace `DATABASE_URL=...` with `DB_PATH=/app/data` (or the
+   active data directory).
 
    The script reads every `enc:v1:` value, decrypts through the
    primary/next/legacy chain, and re-encrypts under the primary (new key).

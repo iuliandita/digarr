@@ -110,7 +110,7 @@
     Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
   <Config Name="Encryption Key" Target="DIGARR_ENCRYPTION_KEY" Default=""
-    Description="32+ char key for encrypting stored API tokens (auto-generated if blank)"
+    Description="32+ char key for encrypting stored API tokens (blank disables encryption)"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>
 
   <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true|false"
@@ -122,6 +122,6 @@
     Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
   <Config Name="Webhook URL" Target="WEBHOOK_URL" Default=""
-    Description="Discord, Slack, ntfy, or any HTTP endpoint for notifications"
+    Description="Discord webhook or public endpoint that accepts Digarr JSON"
     Type="Variable" Display="advanced" Required="false" Mask="false"/>
 </Container>

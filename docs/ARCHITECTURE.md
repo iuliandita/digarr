@@ -134,7 +134,11 @@ Albums are a first-class recommendation unit. Key additions:
 ## Key invariants
 
 - Config precedence: DB settings (single row, `id=1`) override env vars. Per-user credentials live on the `users` table; global settings are the fallback.
-- All external HTTP goes through `createHttpClient()` in `src/core/clients/http.ts` (retry, backoff, optional TLS-skip).
+- Provider and metadata reads normally go through `createHttpClient()` in
+  `src/core/clients/http.ts` for timeout, retry/backoff, redaction, and optional
+  TLS-skip behavior. Playlist targets currently keep target-specific fetch
+  wrappers because create/mutate requests cannot inherit generic retries until
+  an idempotency or reconciliation policy exists (tracked in issue #453).
 - Field-level encryption uses AES-256-GCM with HKDF-derived keys (`src/core/crypto.ts`). Encrypted DB values are prefixed `enc:v1:`. Legacy SHA-256 decryption is retained as a read-path fallback for pre-migration values.
 - Tests run in Node.js (vitest), not Bun. `Bun.serve()`, `Bun.file()` and similar Bun-only APIs are unavailable in tests; password hashing uses `node:crypto` `scrypt`.
 - Migrations are idempotent. Drizzle generates bare DDL, so every generated migration must add `IF NOT EXISTS` / `IF EXISTS` clauses by hand.

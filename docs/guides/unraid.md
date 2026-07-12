@@ -77,10 +77,10 @@ The template exposes these fields (matching
 | ListenBrainz | `LISTENBRAINZ_USERNAME`, `LISTENBRAINZ_TOKEN` | No | Listening source (advanced) |
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | No | Required behind a reverse proxy, e.g. `https://digarr.example.com` |
-| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for stored tokens (auto-generated if blank) |
+| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting stored credentials. If blank, encryption is disabled and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
-| Webhook URL | `WEBHOOK_URL` | No | Discord, Slack, ntfy, Gotify, or any HTTP endpoint |
+| Webhook URL | `WEBHOOK_URL` | No | Discord webhook (embed payload) or a public HTTP endpoint that accepts Digarr's raw JSON payload |
 
 Subsonic, Plex, Jellyfin, Emby, Spotify, Deezer, and Discogs connections are not
 template fields -- add them later under **Settings -> Connections** in the web UI.
@@ -153,4 +153,5 @@ move to a newer release.
   shared configs.
 - Behind Unraid's reverse proxy (or an external one such as SWAG/Nginx Proxy
   Manager), set `ALLOWED_ORIGIN` to the public URL.
-- The container runs as a single process and idles at roughly 80 MB of RAM.
+- The container runs as a single process; memory use varies with library size,
+  database backend, migrations, and concurrent background work.
