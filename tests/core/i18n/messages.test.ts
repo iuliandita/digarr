@@ -1,21 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { ARTIST_EXTERNAL_LINK_KEYS } from '@/core/artists/external-links'
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/core/i18n/locales'
-import { getAuthoredMessages, getMessages, getRawMessages } from '@/core/i18n/messages'
+import { getMessages, getRawMessages } from '@/core/i18n/messages'
 import { en } from '@/core/i18n/messages/en'
-import { MESSAGE_OVERRIDES } from '@/core/i18n/messages/overrides'
-import type { MessageKey } from '@/core/i18n/messages/types'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import { formatDate, formatDateTime, formatShortDate, formatShortDateTime } from '@/web/lib/intl'
 
 describe('message catalogs', () => {
-  it('every locale catalog file only contains english keys', () => {
+  it('every raw locale catalog has every english key', () => {
     const englishKeys = Object.keys(en).sort()
 
     for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(getRawMessages(locale)).every((key) => englishKeys.includes(key))).toBe(
-        true,
-      )
+      expect(Object.keys(getRawMessages(locale)).sort(), locale).toEqual(englishKeys)
     }
   })
 
@@ -24,22 +20,6 @@ describe('message catalogs', () => {
 
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(getMessages(locale)).sort()).toEqual(englishKeys)
-    }
-  })
-
-  it('every locale authors every english key before fallback', () => {
-    const englishKeys = Object.keys(en).sort()
-
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(getAuthoredMessages(locale)).sort(), locale).toEqual(englishKeys)
-    }
-  })
-
-  it('overrides do not repeat the raw locale value', () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const [key, value] of Object.entries(MESSAGE_OVERRIDES[locale] ?? {})) {
-        expect(value, `${locale}:${key}`).not.toBe(getRawMessages(locale)[key as MessageKey])
-      }
     }
   })
 
