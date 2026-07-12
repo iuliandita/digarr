@@ -116,7 +116,7 @@ Async IIFE in `src/index.ts`:
 10. Subscription scheduler
 11. Playlist scheduler
 12. `startStuckDetector()` - cron every 5 min
-13. `startDigestNotifier()` - cron driving the scheduled notification digest; no-ops when `digestCron` is unset. `restartDigestNotifier()` re-arms it at runtime when the cron preference changes, so a settings save applies without a restart
+13. `startDigestNotifier()` - cron driving the scheduled notification digest; no-ops when `digestCron` is unset. `restartDigestNotifier()` re-arms it at runtime when the cron preference changes, so a settings save applies without a restart. Each send covers the window since a persisted last-sent bookmark (advanced only after a successful send, so delivery is at-least-once and restarts or downtime neither double-report nor drop a window); ticks are skipped during maintenance
 
 ## Album-level discovery
 
