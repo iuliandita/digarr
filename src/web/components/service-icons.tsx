@@ -5,8 +5,11 @@ function ServiceLogo({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) {
     return (
-      <span className="flex items-center justify-center w-6 h-6 rounded bg-surface text-micro font-bold text-muted">
-        {alt.charAt(0)}
+      <span
+        aria-hidden={alt ? undefined : true}
+        className="flex items-center justify-center w-6 h-6 rounded bg-surface text-micro font-bold text-muted"
+      >
+        {alt.charAt(0) || '?'}
       </span>
     )
   }
@@ -35,7 +38,7 @@ export function AiProviderIcon({ provider }: { provider?: string }) {
   const icon = provider ? icons[provider] : null
   if (icon) return <ServiceLogo src={icon.src} alt={icon.alt} />
   // Generic fallback for openai-compatible or unknown
-  return <ServiceLogo src="/icons/openai.png" alt="AI Provider" />
+  return <ServiceLogo src="/icons/openai.png" alt="" />
 }
 
 export function SpotifyIcon() {

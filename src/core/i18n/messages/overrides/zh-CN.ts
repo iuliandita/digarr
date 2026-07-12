@@ -1,6 +1,25 @@
 import type { MessageCatalog } from '../types'
 
 export const zhCNOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'discoveryMode.subsonic-starred.label': 'Subsonic 收藏',
+  'settings.fieldApiKey': 'API 密钥',
+  'streaming.playShort': '播放',
+  'streaming.stopShort': '停止',
+  'setup.baseUrl': '基础 URL',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': '留空以使用已连接的账户',
+  'discoveryMode.field.helpSimilarUsers': '用于获取热门艺术家的相似用户数量 (1-10)',
+  'discoveryMode.field.helpTags': '用于发现内容的流派或风格标签。可添加多个标签并设置权重。',
+  'discoveryMode.field.helpRawTagExpression':
+    '使用 ListenBrainz 原始语法覆盖标签构建器，例如 (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    '默认值为 25。值越大，结果越多样，但受 MusicBrainz 限速影响会更慢 (每条录音约 1 秒)。',
+  'discoveryMode.field.helpPopularityMin': '0-100。排除人气低于此值的录音。',
+  'discoveryMode.field.helpPopularityMax': '0-100。排除人气高于此值的录音。',
   'setup.connectEmby': '连接 Emby',
   'setup.connectLidarr': '连接 Lidarr',
   'setup.embyUrl': 'Emby URL',
@@ -133,7 +152,7 @@ export const zhCNOverrides: Partial<MessageCatalog> = {
   'settings.oidcSso': 'OIDC 与 SSO',
   'settings.fieldClientId': '客户端 ID',
   'settings.fieldClientSecret': '客户端密钥',
-  'settings.fieldWebhookUrl': 'Webhook 地址',
+  'settings.fieldWebhookUrl': 'Webhook URL 地址',
   'settings.aiProviderTitle': 'AI 提供商',
   'settings.webhookTitle': 'Webhook 集成',
   'settings.plexToken': 'Plex 令牌',

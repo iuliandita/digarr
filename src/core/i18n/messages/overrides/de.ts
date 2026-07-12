@@ -1,6 +1,30 @@
 import type { MessageCatalog } from '../types'
 
 export const deOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Lokal',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'discoveryMode.subsonic-starred.label': 'Subsonic-Favoriten',
+  'discoveryMode.option.weeklyJams': 'Wöchentliche Mischung',
+  'settings.fieldApiKey': 'API-Schlüssel',
+  'streaming.playShort': 'ABSPIELEN',
+  'streaming.stopShort': 'STOPPEN',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Leer lassen, um das verbundene Konto zu verwenden',
+  'discoveryMode.field.helpSimilarUsers':
+    'Anzahl ähnlicher Benutzer, deren Top-Künstler übernommen werden (1-10)',
+  'discoveryMode.field.helpTags':
+    'Genre- oder Stil-Tags für die Suche. Mehrere Tags können gewichtet werden.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Den Tag-Generator mit direkter ListenBrainz-Syntax überschreiben, zum Beispiel (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Standardwert ist 25. Höhere Werte erhöhen die Vielfalt, sind wegen der MusicBrainz-Begrenzung aber langsamer (etwa 1 Sekunde pro Aufnahme).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Aufnahmen unterhalb dieses Beliebtheitswerts ausschließen.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Aufnahmen oberhalb dieses Beliebtheitswerts ausschließen.',
   'common.confirm': 'Bestätigen',
   'discover.filters': 'Filter',
   'discover.filtersActive': 'Filter ({0})',
@@ -137,7 +161,6 @@ export const deOverrides: Partial<MessageCatalog> = {
   'discoveryMode.field.feed': 'Feed-Quelle',
   'discoveryMode.field.limit': 'Obergrenze',
   'discoveryMode.field.tags': 'Schlagwörter',
-  'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'settings.tabs.administration': 'Verwaltung',
   'settings.tabs.systemHealth': 'Systemzustand',
   'settings.name': 'Bezeichnung',
@@ -148,7 +171,6 @@ export const deOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHelp':
     'Steuert, wie oft Digarr die Bibliothekssync-Daten aktualisiert und Bibliotheksprüfungen erneut startet.',
   'settings.app': 'Anwendung',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldApiKeyOptional': 'API-Schlüssel (optional)',
   'settings.fieldClientId': 'Client-ID',
   'settings.fieldClientSecret': 'Client-Secret',

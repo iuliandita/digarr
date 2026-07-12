@@ -55,7 +55,13 @@ describe('discovery field and option translations', () => {
       translateDiscoveryModeDescription(t, mode)
       for (const field of [...mode.easyFields, ...mode.advancedFields]) {
         translateDiscoveryFieldLabel(t, field)
-        translateDiscoveryFieldHelp(t, field)
+        const help = translateDiscoveryFieldHelp((key) => {
+          used.add(key)
+          return `T:${key}`
+        }, field)
+        if (field.helpText) {
+          expect(help, `${mode.id}.${field.key}`).not.toBe(field.helpText)
+        }
         for (const option of field.options ?? []) translateDiscoveryOption(t, option)
       }
     }

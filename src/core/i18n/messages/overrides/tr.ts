@@ -1,6 +1,238 @@
 import type { MessageCatalog } from '../types'
 
 export const trOverrides: Partial<MessageCatalog> = {
+  'settings.createSpotifyApp': 'Spotify Developer Uygulaması oluştur',
+  'settings.aiDescription': 'Müzik önerileri oluşturur.',
+  'settings.targetTestSuccess': 'Hedef bağlantısı başarılı',
+  'settings.changing': 'Değiştiriliyor...',
+  'settings.loadingPreferences': 'Tercihler yükleniyor...',
+  'settings.deezerDisconnected': 'Deezer bağlantısı kesildi',
+  'settings.spotifyDisconnected': 'Spotify bağlantısı kesildi',
+  'settings.oidcTestFailed': 'OIDC bağlantısı başarısız',
+  'admin.restoring': 'Geri yükleniyor...',
+  'admin.clearImageFailures': 'Görüntü hatalarını temizle',
+  'admin.clearImageFailuresDesc':
+    'Başarısız görüntü önbelleğini sıfırla ve sonraki taramada yeniden dene.',
+  'admin.rebuildGenreCache': 'Tür önbelleğini yeniden oluştur',
+  'systemHealth.viewHistory': 'Geçmişi görüntüle',
+  'importArtists.uploading': 'Yükleniyor...',
+  'libraryReconciliation.invalidMbid': 'Geçersiz MBID (UUID bekleniyor)',
+  'settings.yourConnections': 'Bağlantılarınız',
+  'settings.testConnection': 'Bağlantıyı test et',
+  'settings.changePassword': 'Şifreyi Değiştir',
+  'settings.passwordChanged': 'Şifre değiştirildi',
+  'settings.passwordTooShort': 'Şifre en az 12 karakter olmalıdır',
+  'settings.confirmNewPassword': 'Yeni şifreyi onayla',
+  'settings.passwordsDoNotMatch': 'Yeni şifreler uyuşmuyor',
+  'admin.backupFailed': 'Yedek oluşturma başarısız',
+  'admin.upgradeInfo': 'Güncelleme bilgisi',
+  'admin.upToDate': 'Güncel',
+  'discoveryMode.artist-radio.label': 'Sanatçı Radyosu',
+  'discoveryMode.artist-radio.description':
+    'ListenBrainz radyosu aracılığıyla benzer sanatçıları keşfet',
+  'discoveryMode.user-radio.description':
+    'Bir kullanıcının en çok dinlediği sanatçıdan beslenen radyo ile keşfet',
+  'discoveryMode.similar-users-deep.description':
+    'Benzer zevklere sahip ListenBrainz kullanıcılarının en iyi sanatçılarını keşfet',
+  'discoveryMode.tag-radio.description':
+    'ListenBrainz radyosu aracılığıyla tür etiketleriyle eşleşen sanatçıları keşfet',
+  'discoveryMode.release-radar.description':
+    'Takip ettiğin sanatçılarla bağlantılı yeni yayınları keşfet',
+  'discoveryMode.similar-artist-web.label': 'Benzer Sanatçı Ağı',
+  'discoveryMode.similar-artist-web.description':
+    'Web tabanlı benzerlik grafiği aramaları ile sanatçı keşfet',
+  'discoveryMode.artist-relationships.label': 'Sanatçı İlişkileri',
+  'discoveryMode.artist-relationships.description':
+    'İşbirlikleri, takma adlar ve yakın sanatçı grafiği bağlantılarını keşfet',
+  'discoveryMode.labels.description': 'Plak şirketi katalogları üzerinden sanatçı keşfet',
+  'discoveryMode.gap-fill.label': 'Kitaplığı tamamla',
+  'discoveryMode.gap-fill.description':
+    'Zaten takip ettiğin sanatçıların eksik stüdyo albümlerini bul',
+  'discoveryMode.charts.label': 'Müzik listeleri',
+  'discoveryMode.charts.description':
+    'Global veya bölgesel listelerde trend olan sanatçıları keşfet',
+  'discoveryMode.deezer-flow.description':
+    'Kişiselleştirilmiş Deezer Flow beslemenden sanatçılar keşfet',
+  'discoveryMode.notImplementedYet': 'Bu mod henüz uygulanmadı.',
+  'discoveryMode.notShippedYet': 'Bu mod henüz kullanılamıyor.',
+  'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz bağlayın.',
+  'discoveryMode.reason.connectListeningSource': 'Önce bir dinleme kaynağı bağlayın.',
+  'discoveryMode.reason.connectListenBrainzOrLastfm':
+    'Bu modu kullanmak için ListenBrainz veya Last.fm bağlayın.',
+  'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i bağlayın.",
+  'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı bağlayın.",
+  'discoveryMode.reason.connectSpotify': "Bu modu kullanmak için Spotify'ı bağlayın.",
+  'discoveryMode.reason.releaseRadarFallback': 'Yayın keşfi için yedek sağlayıcılar kullanılıyor.',
+  'discoveryMode.field.artist': 'Sanatçı',
+  'discoveryMode.field.username': 'Kullanıcı adı',
+  'discoveryMode.field.limit': 'Sınır',
+  'discoveryMode.field.usersToSample': 'Örneklenecek kullanıcılar',
+  'discoveryMode.field.recordingsToFetch': 'Getirilecek kayıtlar',
+  'discoveryMode.field.popularityMin': 'Popülerlik min.',
+  'discoveryMode.field.popularityMax': 'Popülerlik maks.',
+  'discoveryMode.field.seedArtists': 'Başlangıç sanatçıları',
+  'discoveryMode.field.releaseWindow': 'Yayın penceresi',
+  'discoveryMode.field.relationships': 'İlişkiler',
+  'discoveryMode.field.maxArtistsPerRun': 'Çalışma başına denetlenen sanatçılar',
+  'discoveryMode.field.helpArtistSeed': 'Radyoyu beslemek için sanatçı adı veya MBID',
+  'discoveryMode.field.region': 'Bölge',
+  'discoveryMode.option.similarUsersQuick': 'Benzer Kullanıcılar (Hızlı)',
+  'discoveryMode.option.safe': 'Güvenli',
+  'discoveryMode.option.adventurous': 'Maceracı',
+  'discoveryMode.option.unitedStates': 'Amerika Birleşik Devletleri',
+  'discoveryMode.option.unitedKingdom': 'Birleşik Krallık',
+  'settings.enableAutoApprove': 'Otomatik onayı etkinleştir',
+  'settings.monitorMode': 'İzleme modu',
+  'settings.monitorAll': 'Tüm albümler',
+  'settings.monitorNew': 'Yalnızca gelecek yayınlar',
+  'settings.monitorNone': 'Hiçbiri (yalnızca takip)',
+  'settings.advancedSettings': 'Gelişmiş',
+  'settings.limits': 'Sınırlar',
+  'settings.rejectionCooldown': 'Ret bekleme süresi (gün)',
+  'settings.topArtistsLimit': 'En iyi sanatçı limiti',
+  'settings.libraryDiscovery': 'Kütüphane Keşfi',
+  'settings.libraryDiscoveryHelp':
+    'Keşfin ne kadarının mevcut Lidarr kütüphanenizden, ne kadarının dinleme geçmişinizden beslendiğini belirler. Yüksek değerler sahip olduğunuza benzer sanatçıları bulur. Düşük değerler ListenBrainz/Last.fm verilerine daha fazla güvenir.',
+  'settings.librarySeedRatio': 'Kütüphane başlangıç oranı',
+  'settings.imageSources': 'Görsel Kaynaklar',
+  'settings.imageSourcesHelp':
+    'Sanatçı görselleri öncelikle TheAudioDB kaynağından gelir; Lidarr/SkyHook, fanart.tv ve musicinfo.pro yedek olarak kullanılır.',
+  'settings.audiodb.apiKey': 'TheAudioDB premium API anahtarı (isteğe bağlı)',
+  'settings.audiodb.apiKeyPlaceholder': 'Ücretsiz ortak anahtarı kullanmak için boş bırakın',
+  'settings.audiodb.proxyImages': 'Görselleri Digarr üzerinden aktar',
+  'settings.audiodb.proxyHint':
+    'Görsel isteklerini bu sunucu üzerinden yönlendirerek IP adresinizi TheAudioDB CDN karşısında gizler.',
+  'settings.wikidata.title': 'Wikidata zenginleştirmesi',
+  'settings.wikidata.enabled':
+    'Öneri kartlarında sanatçı biyografisi ve harici bağlantıları göster',
+  'artist.noDescription': 'Açıklama mevcut değil.',
+  'libraryHealth.artistsMissingWikidata.title': 'Wikidata verisi olmayan sanatçılar',
+  'libraryHealth.artistsMissingWikidata.description':
+    'Wikidata önbelleğinde veri bulunmayan sanatçılar için açıklamalar ve harici bağlantılar al.',
+  'settings.metadataFallbackHelp':
+    "Lidarr'ın meta veri sunucusu kapalıyken kullanılır. Varsayılan api.musicinfo.pro. Kendi sunucunuzu barındırıyorsanız kendi hearring-aid örnek URL'nizi girin.",
+  'settings.recommendationsSaved': 'Öneri ayarları kaydedildi',
+  'settings.scheduleTip':
+    "Keşfetme pipeline'ını otomatik çalıştırmak için bir cron programı ayarlayın. Pazartesi günü haftalık seçim popüler bir tercihtir.",
+  'settings.presets': 'Ön ayarlar',
+  'settings.customCron': 'Özel Cron',
+  'settings.capLibrarySync': 'Kütüphane Eşleme',
+  'settings.deezerConnectHelp':
+    'Favorileri, takip edilen sanatçıları ve oynatma listesi verilerini içeri aktarmak için Deezer hesabınızı bağlayın.',
+  'search.subtitle': 'Müzik platformlarında sanatçı bul',
+  'search.placeholder': 'Sanatçı ara...',
+  'search.noResultsFor': 'Şu arama için sanatçı bulunamadı:',
+  'discoveryMode.advanced': 'Gelişmiş',
+  'discoveryMode.listenbrainz.description':
+    'ListenBrainz grafik verileri ve beslemeleri üzerinden keşfet',
+  'importArtists.title': 'Sanatçı İçeri Aktar',
+  'importArtists.likedSongsDescription': "Spotify'da beğendiğin sanatçıları içeri aktar",
+  'importArtists.spotifyPlaylistDescription':
+    'Herhangi bir Spotify oynatma listesinden sanatçı aktar',
+  'importArtists.csvDescription': 'CSV dosyasından sanatçı adları listesi yükle',
+  'importArtists.connectSpotifyFirst': "Önce {0} adresinden Spotify'ı bağla",
+  'importArtists.importingLikedSongs':
+    'Beğenilen şarkılar aktarılıyor - yeni sanatçılar kısa süre içinde Keşfet sayfasında görünecek',
+  'importArtists.importingPlaylist':
+    'Oynatma listesi sanatçıları aktarılıyor - kısa süre içinde Keşfet sayfasında görünecekler',
+  'importArtists.importingCsv':
+    '{0} sanatçı aktarılıyor - kısa süre içinde Keşfet sayfasında görünecekler',
+  'importArtists.importingCsvTruncated':
+    '{0} sanatçı aktarılıyor (500 ile sınırlı) - kısa süre içinde Keşfet sayfasında görünecekler',
+  'librarySources.title': 'Kütüphane Kaynakları',
+  'librarySources.noSources':
+    "Kütüphane kaynağı yapılandırılmamış. Ayarlar'da Lidarr, Plex, Jellyfin veya Emby ekleyin.",
+  'librarySources.mbWarning':
+    '{0} MusicBrainz sorgusu başarısız oldu. Etkilenen sanatçılar eşleşmemiş olarak kalır ve bir sonraki eşitlemede tekrar denenir.',
+  'libraryStats.free': 'boş',
+  'settings.adminOnly': 'Yalnızca yöneticiler genel ayarları değiştirebilir.',
+  'settings.yourConnectionsDescription': 'Hesabınıza bağlı kişisel dinleme kaynakları.',
+  'settings.connected': 'bağlı',
+  'settings.lidarrDescription': 'Müzik kütüphane yöneticisi - sanatçı eklemek için gerekli.',
+  'settings.lidarrPublicUrlHelp':
+    "Lidarr sanatçı sayfalarına bağlanmak için tarayıcıdan erişilebilir URL. API URL'si tarayıcıdan zaten ulaşılabiliyorsa boş bırakın.",
+  'settings.aiTip':
+    'Öneriler için bir AI sağlayıcısı seçin. Ollama yerel olarak ücretsiz çalışır. Bulut sağlayıcıları (Claude, GPT, Gemini) API anahtarı gerektirir.',
+  'settings.aiOpenAiCompatibleHelp':
+    'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile çalışır. Yerel hizmetler için API anahtarı isteğe bağlıdır.',
+  'settings.connectionsTip':
+    'Önce dinleme kaynaklarınızı bağlayın - ListenBrainz, Last.fm, Spotify veya Plex. Pipeline, benzer sanatçıları bulmak için dinleme geçmişinizi kullanır.',
+  'settings.spotifyImportDescription':
+    'Önerilerinizi başlatmak için Spotify hesabınızdan sanatçı aktarın.',
+  'settings.deezerDescription':
+    "Deezer'dan favoriler, takip edilen sanatçılar ve oynatma listeleri.",
+  'settings.deezerImportDescription':
+    'Önerilerinizi başlatmak için Deezer hesabınızdan sanatçı aktarın.',
+  'settings.jellyfinUserIdHelp':
+    "Jellyfin kullanıcı adınız (önerilen) veya UUID. Kullanıcı adı, Jellyfin API'si aracılığıyla otomatik olarak çözümlenir.",
+  'settings.recommendationsTip':
+    'Puanlama ağırlıkları önerilerin nasıl sıralandığını kontrol eder. Tür örtüşmesini, AI güvenini veya benzerliği vurgulamak için ayarlayın.',
+  'settings.popularity': 'Popülerlik',
+  'settings.popularityHelp':
+    '0 = popülerliği yok say, yüksek = popüler sanatçıları tercih et. Sanatçı meta verisi içeri aktarımı gerektirir.',
+  'settings.autoApproveDescription':
+    'Her taramadan sonra yüksek puanlı önerileri hedeflerinize otomatik ekleyin. Yalnızca hedefler yapılandırıldığında çalışır.',
+  'settings.emailPlaceholder': 'siz@örnek.com',
+  'settings.installHint': 'Hızlı erişim için ana ekranınıza ekleyin',
+  'settings.reverseProxyDescription':
+    "Etkinleştirildiğinde Digarr, yapılandırılmış bir ters proxy'den gelen HTTP başlığına güvenir ve kullanıcıları otomatik olarak ekler.",
+  'settings.proxyDisabled':
+    'Proxy kimlik doğrulaması devre dışı. Etkinleştirmek için ortamınızda PROXY_AUTH_ENABLED=true ayarlayın.',
+  'settings.deezerFollowedStarted': 'Deezer takip edilen sanatçıları içeri aktarma işlemi başladı',
+  'settings.authSaved': 'Kimlik doğrulama ayarları kaydedildi',
+  'settings.authFailed': 'Kimlik doğrulama ayarları kaydedilemedi',
+  'settings.fieldApiKeyOptional': 'API anahtarı (isteğe bağlı)',
+  'settings.fieldPublicUrl': 'Genel URL (isteğe bağlı)',
+  'settings.fieldFanartApiKey': 'Fanart.tv API anahtarı (isteğe bağlı)',
+  'settings.fieldMetadataFallbackUrl': 'Meta veri yedek URL (isteğe bağlı)',
+  'settings.musicLibrary': 'Müzik kütüphanesi',
+  'settings.musicLibraryAll': 'Tüm müzik kütüphaneleri',
+  'settings.musicLibraryHint':
+    "Sunucunuzda birden fazla müzik kütüphanesi varsa, 'Bağlantıyı test et' seçeneğini çalıştırın ve dinleme verileri ile kütüphane senkronizasyonunu sınırlamak için burada birini seçin.",
+  'search.tidalNotConfigured': 'TIDAL araması henüz yapılandırılmadı.',
+  'genres.artistCountSingular': '{0} sanatçı',
+  'genres.artistCountPlural': '{0} sanatçı',
+  'jobHistory.quickDiscoverType': 'Hızlı keşfetme',
+  'jobHistory.playlistType': 'Çalma listesi',
+  'jobHistory.playlistGeneration': 'Çalma listesi oluşturma',
+  'jobHistory.artists': 'sanatçı',
+  'recommendation.ownStudioAlbums': '{0}/{1} stüdyo albüme sahipsiniz',
+  'admin.encryptionMismatch': 'Şifreleme anahtarı uyuşmuyor',
+  'admin.rebuildGenreCacheDesc':
+    'Sanatçı etiketlerinden ve meta verilerden türleri yeniden oluştur.',
+  'admin.dedupeRepairDesc': 'Aynı sanatçı için yinelenen önerileri bul ve kaldır.',
+  'admin.aiReasoningAuditDesc':
+    'AI halüsinasyonlarından kaynaklanan sanatçı/açıklama uyumsuzluklarını tespit et.',
+  'integration.radioArtistTagUser': 'Radyo (Sanatçı, Etiket, Kullanıcı), Benzer kullanıcılar',
+  'integration.lbSubscriptions':
+    'Haftalık seçkiler, Yeni çıkışlar, Sanatçı radyosu, Etiket radyosu, Benzer kullanıcılar',
+  'integration.spotifySubscriptions': 'Beğenilenler, Listeler, Çalma listesi',
+  'integration.deezerImport': 'Favoriler, Takip edilenler, Çalma listeleri',
+  'integration.playlist': 'Çalma listesi',
+  'playlist.sourceLocal': 'Yerel',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Favorileri',
+  'discoveryMode.option.weeklyJams': 'Haftalık Seçkiler',
+  'settings.fieldApiKey': 'API anahtarı',
+  'streaming.playShort': 'OYNAT',
+  'streaming.stopShort': 'DURDUR',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Bağlı hesabınızı kullanmak için boş bırakın',
+  'discoveryMode.field.helpSimilarUsers':
+    'En çok dinlenen sanatçıların alınacağı benzer kullanıcı sayısı (1-10)',
+  'discoveryMode.field.helpTags':
+    'Keşif için tür veya stil etiketleri. Ağırlıklarıyla birlikte birden fazla etiket ekleyin.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Etiket oluşturucuyu doğrudan ListenBrainz söz dizimiyle geçersiz kılın; örneğin (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Varsayılan değer 25’tir. Daha yüksek değerler çeşitliliği artırır ancak MusicBrainz sınırı nedeniyle daha yavaştır (kayıt başına yaklaşık 1 saniye).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Popülerliği bu değerin altında olan kayıtları hariç tutar.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Popülerliği bu değerin üstünde olan kayıtları hariç tutar.',
   'setup.embyUserIdPlaceholder': 'Emby kullanıcı kimliği',
   'setup.embyUrl': "Emby URL'si",
   'setup.lidarrUrl': "Lidarr URL'si",
@@ -139,11 +371,10 @@ export const trOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHours': 'Eşitleme aralığı (saat)',
   'settings.librarySyncIntervalHelp':
     'Digarr ın kütüphane eşitleme verilerini ne sıklıkla yenileyeceğini ve denetimleri otomatik olarak yeniden çalıştıracağını belirler.',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldModel': 'Model seçimi',
   'settings.fieldClientId': 'İstemci kimliği',
   'settings.fieldClientSecret': 'İstemci gizlisi',
-  'settings.fieldWebhookUrl': 'Webhook adresi',
+  'settings.fieldWebhookUrl': "Webhook URL'si",
   'settings.aiProviderTitle': 'AI sağlayıcısı',
   'settings.webhookTitle': 'Webhook entegrasyonu',
   'settings.plexToken': 'Plex belirteci',

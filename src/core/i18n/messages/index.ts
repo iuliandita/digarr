@@ -35,12 +35,24 @@ const LOCALE_MESSAGES: Record<SupportedLocale, Partial<MessageCatalog>> = {
   'zh-CN': zhCN,
 }
 
+export function getRawMessages(locale: SupportedLocale): Partial<MessageCatalog> {
+  return LOCALE_MESSAGES[locale]
+}
+
+export function getAuthoredMessages(locale: SupportedLocale): Partial<MessageCatalog> {
+  if (locale === 'en') return en
+
+  return {
+    ...LOCALE_MESSAGES[locale],
+    ...(MESSAGE_OVERRIDES[locale] ?? {}),
+  }
+}
+
 export function getMessages(locale: SupportedLocale): MessageCatalog {
   if (locale === 'en') return en
 
   return {
     ...en,
-    ...LOCALE_MESSAGES[locale],
-    ...(MESSAGE_OVERRIDES[locale] ?? {}),
+    ...getAuthoredMessages(locale),
   }
 }

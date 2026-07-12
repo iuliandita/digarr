@@ -22,24 +22,26 @@ At runtime `getMessages(locale)` returns:
 
 English is always the runtime base, so a missing key degrades to readable
 English instead of an empty label. That is a runtime safety net, not a shipping
-policy: `bun run i18n:check` validates each resolved locale and rejects values
-that still equal the English source outside the proper-noun allowlist. A missing
-locale entry therefore normally fails as untranslated; allowlisted proper nouns
-may legitimately resolve from the English base.
+policy: `bun run i18n:check` validates the authored locale catalog plus its
+overrides before applying the English fallback. Every English key must be
+authored in each locale, including proper nouns and protocol terms. The checker
+then rejects values that still equal the English source unless the value is a
+universal technical name or the exact locale-key pair is approved.
 
 ## The overrides layer
 
 Catalog files (`<locale>.ts`) represent the initial translation pass for each
 locale. When a new English key is added or renamed, the per-locale override
 modules provide a focused place to carry the translated delta until it is
-folded into the base catalogs. Every resolved locale must pass the validator;
+folded into the base catalogs. Every authored locale must pass the validator;
 the allowlist covers values that should remain identical across languages.
 
 Two layers means one policy: **overrides win**. An entry in
 `MESSAGE_OVERRIDES[locale]` always supersedes the base catalog for that
 locale. This lets us correct a mistranslation without hunting through
 the base file, or hot-patch a string that changed upstream without
-touching 14 files.
+touching 14 files. An override that exactly repeats its raw locale value is
+rejected as dead data.
 
 The cost: overrides drift. Periodically fold the overrides back into
 the base catalogs so `<locale>.ts` stays the source of truth for
@@ -51,7 +53,7 @@ manual review.
 2. Add a translation for each of the 14 non-English locales, either directly
    in its catalog or in `overrides/<locale>.ts`. Proper nouns and protocol terms
    may remain identical only when covered by the validator's allowlist.
-3. Run `bun run i18n:check`; empty, orphaned, or untranslated resolved values
+3. Run `bun run i18n:check`; missing, empty, orphaned, or untranslated authored values
    block the change.
 4. Fold stable override entries back into the base catalogs periodically.
 
@@ -75,30 +77,35 @@ manual review.
 
 `scripts/i18n-check.ts` runs in CI. It fails on:
 
-- **Missing non-allowlisted translations** -- an absent raw locale entry falls
-  back to English and is caught indirectly as untranslated. Allowlisted proper
-  nouns may intentionally use that fallback.
+- **Missing authored translations** -- every key must exist in the raw locale
+  catalog or its override before runtime fallback is applied.
 - **Extra keys** -- present in a locale but not in `en.ts` (stale).
 - **Empty values** -- a locale ships an empty string.
-- **Untranslated values** -- locale value literally equals the English
-  source (except for allowlisted proper nouns, protocol acronyms, etc.).
+- **Untranslated values** -- locale value literally equals the English source
+  except for universal technical names and explicit locale-key exceptions.
 - **Placeholder drift** -- a locale drops, adds, or renames a placeholder.
   Numbered placeholders may move to fit the target language's grammar.
 - **Protected-name drift** -- product and service names such as Digarr, Lidarr,
-  Emby, OpenAI, and ListenBrainz must remain exact inside translated copy.
-- **ASCII-stripped diacritics** -- German or Spanish values that still
-  use ASCII substitutions (`Kuenstler`, `Configuracion`) instead of the
-  native characters (`Künstler`, `Configuración`). The regex lives in
-  `scripts/i18n-check.ts`.
+  Emby, OpenAI, and ListenBrainz, plus protocol/file acronyms, must remain exact
+  inside translated copy. The generator and CI checker share one protected-term
+  registry.
+- **ASCII-stripped diacritics** -- values that use stripped or substituted
+  spelling (`Kuenstler`, `Configuracion`, `Sanatci`) instead of native
+  characters (`Künstler`, `Configuración`, `Sanatçı`). The high-confidence
+  regression markers live in `scripts/i18n-check.ts`.
 - **Orphaned keys** -- keys present in `en.ts` but not referenced
   anywhere in `src/**/*.{ts,tsx}` outside `i18n/messages/`. Template
-  literal access is recognised for a small allowlist of dynamic
-  prefixes (`discoveryMode.`, `pipeline.stage.`, `pipeline.description.`,
-  `artist.externalLinks.`, `libraryHealth.`, and `rejectionReason.`) so the
-  check doesn't flag labels that are built at runtime.
+  literal access is resolved to exact live keys from the discovery, rejection,
+  and artist-link registries, so an arbitrary key cannot hide under a dynamic
+  prefix.
+- **Hard-coded UI copy** -- static JSX text, translatable attributes, dialog
+  strings, and toast literals must use catalog keys. Product names and format
+  examples have a narrow allowlist.
 
 Registry-derived tests add stricter coverage for dynamic discovery-mode and
-rejection-reason keys so the prefix exemptions cannot hide dead entries.
+rejection-reason keys so the prefix exemptions cannot hide dead entries. They
+also require every registry help string to route through a live catalog key.
+Catalog tests reject no-op overrides.
 
 Run locally: `bun run i18n:check`.
 
@@ -107,8 +114,8 @@ Run locally: `bun run i18n:check`.
 Accented characters (`ü`, `é`, `á`, `ñ`, `ç`, `ö`, `ł`, `ș`, `ü`, etc.)
 **are** correct inside locale catalogs. The "no fancy punctuation"
 style rule applies to project prose and code, not to native-language
-content. The `i18n:check` validator enforces this
-for German and Spanish by failing on known ASCII substitutions.
+content. The `i18n:check` validator enforces this across accented-language
+catalogs by failing on known ASCII substitutions.
 
 ## Error codes
 

@@ -1,6 +1,32 @@
 import type { MessageCatalog } from '../types'
 
 export const ruOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Локально',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Избранное в Subsonic',
+  'settings.fieldApiKey': 'Ключ API',
+  'streaming.playShort': 'ВОСПРОИЗВЕСТИ',
+  'streaming.stopShort': 'ОСТАНОВИТЬ',
+  'auth.signInWithSso': 'Войти через SSO',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount':
+    'Оставьте пустым, чтобы использовать подключённую учётную запись',
+  'discoveryMode.field.helpSimilarUsers':
+    'Количество похожих пользователей, у которых будут взяты популярные исполнители (1-10)',
+  'discoveryMode.field.helpTags':
+    'Теги жанра или стиля для поиска. Добавьте несколько тегов с весами.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Замените конструктор тегов прямым синтаксисом ListenBrainz, например (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Значение по умолчанию - 25. Большие значения повышают разнообразие, но работают медленнее из-за ограничения MusicBrainz (около 1 секунды на запись).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Исключает записи с популярностью ниже этого значения.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Исключает записи с популярностью выше этого значения.',
   'discover.emptyApproved':
     'Вы еще не одобрили ни одного исполнителя. Откройте вкладку «Ожидают», чтобы увидеть, что Digarr нашел для вас.',
   'setup.connectEmby': 'Подключить Emby',

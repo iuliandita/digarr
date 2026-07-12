@@ -3344,9 +3344,11 @@ export function SettingsPage() {
   if (error || !data) {
     return (
       <div className="p-6 max-w-6xl mx-auto text-reject">
-        <p>Failed to load settings: {error?.message ?? 'Unknown error'}</p>
+        <p>
+          {t('errorBoundary.title')}: {error?.message ?? t('common.unknownError')}
+        </p>
         <Button variant="outline" size="sm" onClick={refetch} className="mt-3">
-          Retry
+          {t('errorBoundary.retry')}
         </Button>
       </div>
     )

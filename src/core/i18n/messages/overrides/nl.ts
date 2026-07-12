@@ -1,6 +1,31 @@
 import type { MessageCatalog } from '../types'
 
 export const nlOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Lokaal',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic-favorieten',
+  'discoveryMode.option.weeklyJams': 'Wekelijkse mix',
+  'settings.fieldApiKey': 'API-sleutel',
+  'streaming.playShort': 'AFSPELEN',
+  'streaming.stopShort': 'STOPPEN',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Laat leeg om je gekoppelde account te gebruiken',
+  'discoveryMode.field.helpSimilarUsers':
+    'Aantal vergelijkbare gebruikers waarvan topartiesten worden opgehaald (1-10)',
+  'discoveryMode.field.helpTags':
+    'Genre- of stijltags om mee te ontdekken. Voeg meerdere tags met gewichten toe.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Overschrijf de tagbouwer met directe ListenBrainz-syntaxis, bijvoorbeeld (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'De standaardwaarde is 25. Hogere waarden geven meer variatie, maar zijn trager door de limiet van MusicBrainz (ongeveer 1 seconde per opname).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Sluit opnamen onder deze populariteitswaarde uit.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Sluit opnamen boven deze populariteitswaarde uit.',
   'setup.providerAnthropic': 'Anthropic',
   'setup.providerGemini': 'Google Gemini',
   'setup.providerOpenAi': 'OpenAI',
@@ -38,7 +63,6 @@ export const nlOverrides: Partial<MessageCatalog> = {
   'genres.genreSingular': 'muziekgenre',
   'jobHistory.pipeline': 'Ontdekkingsrun',
   'jobHistory.librarySync': 'Bibliotheeksynchronisatie',
-  'jobHistory.playlistType': 'Afspeellijst',
   'jobHistory.metadataLabel': 'Metagegevens:',
   'playlistForm.dialogCreate': 'Afspeellijst maken',
   'playlistForm.dialogEdit': 'Afspeellijst bewerken',
@@ -134,7 +158,6 @@ export const nlOverrides: Partial<MessageCatalog> = {
   'discoveryMode.labels.label': 'Etiketten',
   'discoveryMode.field.feed': 'Feedbron',
   'discoveryMode.field.tags': 'Trefwoorden',
-  'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'libraryStats.albums': 'Albumreleases',
   'settings.tabs.account': 'Gebruikersaccount',
   'settings.tabs.systemHealth': 'Systeemstatus',
@@ -150,7 +173,6 @@ export const nlOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHelp':
     'Bepaalt hoe vaak Digarr synchronisatiegegevens van de bibliotheek ververst en gezondheidscontroles opnieuw uitvoert.',
   'settings.app': 'Applicatie',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldModel': 'Modelkeuze',
   'settings.aiProviderTitle': 'AI-provider',
   'settings.webhookTitle': 'Webhook-koppeling',

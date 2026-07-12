@@ -1,6 +1,26 @@
 import type { MessageCatalog } from '../types'
 
 export const jaOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic のお気に入り',
+  'settings.fieldApiKey': 'API キー',
+  'streaming.playShort': '再生',
+  'streaming.stopShort': '停止',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': '接続済みのアカウントを使う場合は空欄にします',
+  'discoveryMode.field.helpSimilarUsers': '上位アーティストを取得する類似ユーザーの人数 (1-10)',
+  'discoveryMode.field.helpTags':
+    '検索に使うジャンルまたはスタイルのタグです。複数のタグと重みを追加できます。',
+  'discoveryMode.field.helpRawTagExpression':
+    'タグビルダーを ListenBrainz の直接構文で上書きします。例: (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    '既定値は 25 です。値を増やすと多様性が向上しますが、MusicBrainz の制限により遅くなります (録音 1 件あたり約 1 秒)。',
+  'discoveryMode.field.helpPopularityMin': '0-100。この人気度を下回る録音を除外します。',
+  'discoveryMode.field.helpPopularityMax': '0-100。この人気度を上回る録音を除外します。',
   'setup.connectEmby': 'Emby に接続',
   'setup.embyUrl': 'Emby URL',
   'setup.lidarrUrl': 'Lidarr URL',

@@ -1,6 +1,31 @@
 import type { MessageCatalog } from '../types'
 
 export const ukOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Локально',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Обране в Subsonic',
+  'settings.fieldApiKey': 'Ключ API',
+  'streaming.playShort': 'ВІДТВОРИТИ',
+  'streaming.stopShort': 'ЗУПИНИТИ',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount':
+    'Залиште порожнім, щоб використати підключений обліковий запис',
+  'discoveryMode.field.helpSimilarUsers':
+    'Кількість схожих користувачів, від яких буде отримано найпопулярніших виконавців (1-10)',
+  'discoveryMode.field.helpTags':
+    'Теги жанру або стилю для пошуку. Додайте кілька тегів із вагами.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Замініть конструктор тегів прямим синтаксисом ListenBrainz, наприклад (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Типове значення - 25. Більші значення збільшують різноманітність, але працюють повільніше через обмеження MusicBrainz (приблизно 1 секунда на запис).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Виключає записи з популярністю нижче цього значення.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Виключає записи з популярністю вище цього значення.',
   'discover.emptyApproved':
     'Ви ще не схвалили жодного виконавця. Перегляньте вкладку «Очікує», щоб дізнатися, що Digarr знайшов для вас.',
   'setup.providerAnthropic': 'Anthropic',
@@ -29,7 +54,7 @@ export const ukOverrides: Partial<MessageCatalog> = {
   'libraryHealth.fixHint.genreGaps': 'Оновлює метадані Lidarr, щоб отримати жанри',
   'libraryHealth.fixHint.imageGaps': 'Повторно шукає зображення артистів',
   'libraryHealth.fixHint.missingWikidata': 'Отримує біографії та посилання з Wikidata',
-  'setup.embyUrl': 'Адреса Emby',
+  'setup.embyUrl': 'URL Emby',
   'common.importing': 'Імпорт...',
   'common.current': 'Поточний',
   'common.custom': 'Власний',
@@ -147,7 +172,6 @@ export const ukOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHours': 'Інтервал синхронізації (години)',
   'settings.librarySyncIntervalHelp':
     'Визначає, як часто Digarr оновлює дані синхронізації бібліотеки та автоматично повторно запускає перевірки.',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldClientId': 'ID клієнта',
   'settings.fieldClientSecret': 'Секрет клієнта',
   'settings.aiProviderTitle': 'AI-провайдер',

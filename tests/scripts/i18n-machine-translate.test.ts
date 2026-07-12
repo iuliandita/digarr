@@ -54,6 +54,15 @@ describe('i18n machine translation helpers', () => {
     ).toThrow(/protected term/i)
   })
 
+  it('rejects protected protocol and metadata-provider drift', () => {
+    expect(() =>
+      validateTranslatedCatalog(
+        { sample: 'TheAudioDB returns JSON metadata.' },
+        { sample: 'AudioDB returns JSÖN metadata.' },
+      ),
+    ).toThrow(/protected term/i)
+  })
+
   it('accepts OpenAI-style base urls with or without /v1', () => {
     expect(buildChatCompletionsUrl('https://api.openai.com')).toBe(
       'https://api.openai.com/v1/chat/completions',

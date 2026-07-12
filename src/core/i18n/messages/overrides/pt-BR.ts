@@ -1,6 +1,28 @@
 import type { MessageCatalog } from '../types'
 
 export const ptBROverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'discoveryMode.subsonic-starred.label': 'Favoritos do Subsonic',
+  'streaming.playShort': 'REPRODUZIR',
+  'streaming.stopShort': 'PARAR',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Deixe em branco para usar sua conta conectada',
+  'discoveryMode.field.helpSimilarUsers':
+    'Quantidade de usuários semelhantes dos quais obter os artistas mais ouvidos (1-10)',
+  'discoveryMode.field.helpTags':
+    'Tags de gênero ou estilo para descobrir. Adicione várias tags com pesos.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Substitua o construtor de tags por sintaxe direta do ListenBrainz, por exemplo (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'O padrão é 25. Valores maiores aumentam a diversidade, mas são mais lentos devido ao limite do MusicBrainz (cerca de 1 segundo por gravação).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Exclui gravações com popularidade abaixo deste valor.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Exclui gravações com popularidade acima deste valor.',
   'setup.embyUserIdPlaceholder': 'ID de usuário do Emby',
   'setup.providerAnthropic': 'Anthropic',
   'setup.providerGemini': 'Google Gemini',

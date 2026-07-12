@@ -23,6 +23,13 @@ const FIELD_KEY_ALIASES: Record<string, string> = {
 
 const FIELD_HELP_KEY_ALIASES: Record<string, string> = {
   seedArtistMbid: 'helpArtistSeed',
+  targetUsername: 'helpConnectedAccount',
+  maxUsers: 'helpSimilarUsers',
+  tags: 'helpTags',
+  rawTagExpression: 'helpRawTagExpression',
+  count: 'helpRecordingCount',
+  popBegin: 'helpPopularityMin',
+  popEnd: 'helpPopularityMax',
 }
 
 const OPTION_VALUE_ALIASES: Record<string, string> = {
@@ -125,4 +132,32 @@ export function buildDiscoveryFieldRequiredMessage(
   field: DiscoveryConfigField,
 ): string {
   return t('discoveryMode.fieldRequired').replace('{0}', translateDiscoveryFieldLabel(t, field))
+}
+
+export function collectDiscoveryMessageKeys(
+  modes: Array<{
+    id: string
+    label: string
+    description: string
+    easyFields: DiscoveryConfigField[]
+    advancedFields: DiscoveryConfigField[]
+  }>,
+): Set<MessageKey> {
+  const keys = new Set<MessageKey>()
+  const collect = (key: MessageKey) => {
+    keys.add(key)
+    return key
+  }
+
+  for (const mode of modes) {
+    translateDiscoveryModeLabel(collect, mode)
+    translateDiscoveryModeDescription(collect, mode)
+    for (const field of [...mode.easyFields, ...mode.advancedFields]) {
+      translateDiscoveryFieldLabel(collect, field)
+      translateDiscoveryFieldHelp(collect, field)
+      for (const option of field.options ?? []) translateDiscoveryOption(collect, option)
+    }
+  }
+
+  return keys
 }

@@ -15,6 +15,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
 import { getMessages } from '../src/core/i18n/messages'
+import { PROTECTED_I18N_TERMS } from '../src/core/i18n/protected-terms'
 
 const args = process.argv.slice(2)
 const targetLocale = args.find((arg) => !arg.startsWith('-'))
@@ -27,29 +28,6 @@ const model = process.env.TRANSLATION_MODEL?.trim() || 'gpt-4o-mini'
 
 const PLACEHOLDER_PATTERN = /\$\{[^}]+\}|\{\{[^}]+\}\}|\{[A-Za-z0-9_]+\}|%[sdif]/g
 const LINE_BREAK_PATTERN = /\r\n|\n|\r/g
-const PROTECTED_TERMS = [
-  'Google Gemini',
-  'OpenRouter',
-  'LiteLLM',
-  'LocalAI',
-  'MusicBrainz',
-  'ListenBrainz',
-  'Last.fm',
-  'Anthropic',
-  'OpenAI',
-  'Lidarr',
-  'Jellyfin',
-  'Navidrome',
-  'Spotify',
-  'Discord',
-  'Deezer',
-  'Digarr',
-  'Groq',
-  'Ollama',
-  'Emby',
-  'Plex',
-] as const
-
 const sourceMessages = getMessages(sourceLocale)
 const expectedKeys = Object.keys(sourceMessages)
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
@@ -155,7 +133,7 @@ export function validateTranslatedCatalog(
       errors.push(`${key}: line break mismatch`)
     }
 
-    for (const term of PROTECTED_TERMS) {
+    for (const term of PROTECTED_I18N_TERMS) {
       const sourceCount = countExactMatches(sourceValue, term)
       if (sourceCount === 0) continue
       const translatedCount = countExactMatches(translatedValue, term)
