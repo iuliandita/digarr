@@ -46,6 +46,24 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
   })),
 }))
 
+const { mockCreatePlexClient } = vi.hoisted(() => ({
+  mockCreatePlexClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Plex',
+    })),
+  })),
+}))
+
+const { mockCreateJellyfinClient } = vi.hoisted(() => ({
+  mockCreateJellyfinClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Jellyfin',
+    })),
+  })),
+}))
+
 const { mockCreateSubsonicClient } = vi.hoisted(() => ({
   mockCreateSubsonicClient: vi.fn(() => ({
     testConnection: vi.fn(async () => ({
@@ -112,6 +130,14 @@ vi.mock('@/core/clients/lastfm', () => ({
 
 vi.mock('@/core/clients/emby', () => ({
   createEmbyClient: mockCreateEmbyClient,
+}))
+
+vi.mock('@/core/clients/plex', () => ({
+  createPlexClient: mockCreatePlexClient,
+}))
+
+vi.mock('@/core/clients/jellyfin', () => ({
+  createJellyfinClient: mockCreateJellyfinClient,
 }))
 
 vi.mock('@/core/clients/subsonic', () => ({
@@ -841,6 +867,96 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://127.0.0.1:8096', 'key', 'user-1', {
       skipTlsVerify: false,
       libraryId: null,
+    })
+  })
+
+  it.each([
+    ['explicit', { sectionId: 'music-1' }, 'music-1'],
+    ['empty', { sectionId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Plex library selection to the client', async (_case, selection, expected) => {
+    mockCreatePlexClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      plexSectionId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/plex', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://plex:32400',
+        token: 'plex-token',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreatePlexClient).toHaveBeenCalledWith('http://plex:32400', 'plex-token', {
+      sectionId: expected,
+    })
+  })
+
+  it.each([
+    ['explicit', { libraryId: 'music-1' }, 'music-1'],
+    ['empty', { libraryId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Jellyfin library selection to the client', async (_case, selection, expected) => {
+    mockCreateJellyfinClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      jellyfinLibraryId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://jellyfin:8096',
+        apiKey: 'jellyfin-key',
+        userId: 'user-1',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
+      'http://jellyfin:8096',
+      'jellyfin-key',
+      'user-1',
+      { skipTlsVerify: false, libraryId: expected },
+    )
+  })
+
+  it.each([
+    ['explicit', { libraryId: 'music-1' }, 'music-1'],
+    ['empty', { libraryId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Emby library selection to the client', async (_case, selection, expected) => {
+    mockCreateEmbyClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      embyLibraryId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/emby', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://emby:8096',
+        apiKey: 'emby-key',
+        userId: 'user-1',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://emby:8096', 'emby-key', 'user-1', {
+      skipTlsVerify: false,
+      libraryId: expected,
     })
   })
 
