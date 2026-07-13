@@ -312,7 +312,6 @@ export const ko = {
   'discover.noPendingToClear': '삭제할 대기 중인 권장사항이 없습니다.',
   'discover.notEnoughFeedback':
     '피드백 데이터가 아직 충분하지 않습니다. 추가 추천을 승인하거나 거부합니다.',
-  'discover.of': '의',
   'discover.queuedForRetry': '재시도 대기 중',
   'discover.rated': '등급',
   'discover.refreshData': '데이터 새로 고침',
@@ -326,6 +325,7 @@ export const ko = {
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',
   'discover.rejectFailed': '거부하지 못했습니다.',
   'discover.rejectedCount': '거부됨',
+  'discover.rescanComplete': '재검색 완료: 업데이트 {0}/{1}, 실패 {2}.',
   'discover.rescanFailed': '재검색 실패',
   'discover.restoreFailed': '복원하지 못했습니다.',
   'discover.restoredToPending': '대기 중으로 복원됨',
@@ -347,7 +347,6 @@ export const ko = {
   'discover.undo': '실행 취소',
   'discover.undoFailed': '실행취소 실패',
   'discover.undone': '실행 취소됨',
-  'discover.updatedArtists': '업데이트된 아티스트',
   'discover.viewGrid': '격자 보기',
   'discover.viewList': '목록 보기',
   'discover.viewStack': '스택 보기',

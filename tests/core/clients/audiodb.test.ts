@@ -2,6 +2,7 @@
 import * as http from 'node:http'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createAudiodbClient, RateLimitedError } from '@/core/clients/audiodb'
+import { fetchArtistImage } from '@/core/pipeline/resolve'
 
 vi.mock('node:dns/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:dns/promises')>()
@@ -47,6 +48,11 @@ beforeAll(async () => {
     }
     if (url.includes('/artist-mb.php?i=mbid-429')) {
       res.writeHead(429, { 'Content-Type': 'application/json' })
+      res.end('{}')
+      return
+    }
+    if (url.includes('/artist-mb.php?i=mbid-503')) {
+      res.writeHead(503, { 'Content-Type': 'application/json' })
       res.end('{}')
       return
     }
@@ -111,6 +117,22 @@ describe('AudioDB client', () => {
       baseUrl,
     })
     await expect(client.getArtistImages('mbid-429')).rejects.toBeInstanceOf(RateLimitedError)
+  })
+
+  it('does not turn an upstream failure into a cacheable image miss', async () => {
+    const apiKey = 'sensitive-audiodb-key'
+    const client = createAudiodbClient({
+      apiKey,
+      tryConsume: async () => true,
+      baseUrl,
+    })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    await expect(fetchArtistImage('mbid-503', 'Unavailable Artist', client)).resolves.toEqual({
+      failed: false,
+    })
+    expect(warn.mock.calls.flat().map(String).join(' ')).not.toContain(apiKey)
+    warn.mockRestore()
   })
 
   it('name search returns result on single exact match', async () => {

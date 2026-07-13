@@ -28,6 +28,7 @@ import {
   approveToTarget,
   bulkAction,
   exportRecommendations,
+  getAuthStatus,
   getFeedbackSummary,
   getRecommendations,
   getUserPreferences,
@@ -386,7 +387,7 @@ function MoreMenu({
   showClearAll,
 }: {
   filter?: string
-  onRefresh: () => void
+  onRefresh?: () => void
   onClearAll: () => void
   showClearAll: boolean
 }) {
@@ -427,19 +428,23 @@ function MoreMenu({
           role="menu"
           className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]"
         >
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              onRefresh()
-              setOpen(false)
-            }}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
-          >
-            <RefreshCw size={14} aria-hidden="true" />
-            {t('discover.refreshData')}
-          </button>
-          <div className="my-1 border-t border-border" />
+          {onRefresh && (
+            <>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  onRefresh()
+                  setOpen(false)
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
+              >
+                <RefreshCw size={14} aria-hidden="true" />
+                {t('discover.refreshData')}
+              </button>
+              <div className="my-1 border-t border-border" />
+            </>
+          )}
           {(['json', 'csv', 'm3u'] as const).map((fmt) => (
             <button
               key={fmt}
@@ -485,6 +490,8 @@ export function DiscoverPage() {
   const queryClient = useQueryClient()
   const preview = usePreviewContext()
   const popularAvailable = usePopularAlbumsAvailability()
+  const { data: authStatus } = useQuery({ queryKey: ['auth-status'], queryFn: getAuthStatus })
+  const isAdmin = authStatus?.isAdmin ?? false
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
@@ -1272,15 +1279,22 @@ export function DiscoverPage() {
                 />
                 <MoreMenu
                   filter={statusParam}
-                  onRefresh={() => {
-                    toast.promise(rescanArtists(), {
-                      loading: t('discover.refreshingArtistData'),
-                      success: (r) =>
-                        `${t('discover.updatedArtists')} ${r.updated} ${t('discover.of')} ${r.total}`,
-                      error: t('discover.rescanFailed'),
-                    })
-                    setTimeout(refetch, 3000)
-                  }}
+                  onRefresh={
+                    isAdmin
+                      ? () => {
+                          toast.promise(rescanArtists(), {
+                            loading: t('discover.refreshingArtistData'),
+                            success: (r) =>
+                              t('discover.rescanComplete')
+                                .replace('{0}', String(r.updated))
+                                .replace('{1}', String(r.attempted))
+                                .replace('{2}', String(r.failed)),
+                            error: t('discover.rescanFailed'),
+                          })
+                          setTimeout(refetch, 3000)
+                        }
+                      : undefined
+                  }
                   onClearAll={() => setShowClearAllConfirm(true)}
                   showClearAll={filter === 'pending'}
                 />

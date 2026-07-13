@@ -18,6 +18,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - **Nightly containers now report their real build identity.** The image keeps the build-time commit SHA and release channel in the runtime stage, so the web footer and `GET /health` no longer fall back to `dev` / `local` in deployed nightly images.
+- **Artist metadata rescans now survive Lidarr/SkyHook failures.** Rescans use the same AudioDB -> Lidarr/SkyHook -> fanart.tv -> musicinfo.pro image chain as normal discovery, refresh MusicBrainz disambiguation independently, safely cache complete misses from shared image providers for seven days, and report attempted, updated, and failed artist counts in both the API and UI. Artists shared by multiple recommendations are attempted once. The admin-only operation is rate limited and single-flight to protect shared metadata and upstream quotas. The result toast is translated across all 15 shipped locales.
 
 ## v1.12.0 - 2026-07-05
 

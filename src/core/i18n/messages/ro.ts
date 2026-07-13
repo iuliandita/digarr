@@ -316,7 +316,6 @@ export const ro = {
   'discover.noPendingToClear': 'Nu există recomandări în așteptare de șters',
   'discover.notEnoughFeedback':
     'Nu sunt suficiente date de feedback încă. Aprobați sau respingeți mai multe recomandări.',
-  'discover.of': 'de',
   'discover.queuedForRetry': 'În coadă pentru reîncercare',
   'discover.rated': 'evaluat',
   'discover.refreshData': 'Actualizați datele',
@@ -330,6 +329,7 @@ export const ro = {
     'Respingeți toate recomandările în așteptare? Acest lucru nu poate fi anulat.',
   'discover.rejectFailed': 'Nu s-a respins',
   'discover.rejectedCount': 'Respins',
+  'discover.rescanComplete': 'Rescanare finalizată: actualizări {0}/{1}; erori {2}.',
   'discover.rescanFailed': 'Rescanarea a eșuat',
   'discover.restoreFailed': 'Restabilirea eșuată',
   'discover.restoredToPending': 'Restabilit în așteptare',
@@ -351,7 +351,6 @@ export const ro = {
   'discover.undo': 'Anulați',
   'discover.undoFailed': 'Anularea a eșuat',
   'discover.undone': 'Anulat',
-  'discover.updatedArtists': 'Artiști actualizați',
   'discover.viewGrid': 'Vizualizare grilă',
   'discover.viewList': 'Vizualizare listă',
   'discover.viewStack': 'Vizualizare stivă',

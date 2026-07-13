@@ -316,7 +316,6 @@ export const ru = {
   'discover.noPendingToClear': 'Нет ожидающих рекомендаций для очистки',
   'discover.notEnoughFeedback':
     'Пока недостаточно данных обратной связи. Одобрите или отклоните дополнительные рекомендации.',
-  'discover.of': 'из',
   'discover.queuedForRetry': 'В очереди на повторную попытку',
   'discover.rated': 'рейтинг',
   'discover.refreshData': 'Обновить данные',
@@ -330,6 +329,7 @@ export const ru = {
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',
   'discover.rejectFailed': 'Не удалось отклонить',
   'discover.rejectedCount': 'Отклонено',
+  'discover.rescanComplete': 'Повторное сканирование завершено: обновлено {0}/{1}; ошибок: {2}.',
   'discover.rescanFailed': 'Повторное сканирование не удалось',
   'discover.restoreFailed': 'Не удалось восстановить',
   'discover.restoredToPending': 'Восстановлено в статусе ожидания',
@@ -351,7 +351,6 @@ export const ru = {
   'discover.undo': 'Отменить',
   'discover.undoFailed': 'Отменить не удалось',
   'discover.undone': 'Отменено',
-  'discover.updatedArtists': 'Обновленные исполнители',
   'discover.viewGrid': 'Сетка',
   'discover.viewList': 'Список',
   'discover.viewStack': 'Стопка',

@@ -4,12 +4,40 @@ import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSession } from '@/core/sessions'
 
+const mocks = vi.hoisted(() => ({
+  audiodbClient: { getArtistImages: vi.fn(), searchArtistByName: vi.fn() },
+  fanartClient: { getArtistImages: vi.fn() },
+  lidarrClient: { lookupArtist: vi.fn() },
+  musicBrainzClient: { lookupArtist: vi.fn(), searchArtist: vi.fn() },
+  musicinfoClient: { lookupArtistImages: vi.fn() },
+  fetchArtistImage: vi.fn(),
+  upsertArtist: vi.fn(),
+}))
+
+vi.mock('@/core/clients/audiodb', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/core/clients/audiodb')>()
+  return { ...original, createAudiodbClient: vi.fn(() => mocks.audiodbClient) }
+})
+
+vi.mock('@/core/clients/fanart', () => ({
+  createFanartClient: vi.fn(() => mocks.fanartClient),
+}))
+
+vi.mock('@/core/clients/lidarr', () => ({
+  createLidarrClient: vi.fn(() => mocks.lidarrClient),
+}))
+
 vi.mock('@/core/clients/musicbrainz', () => ({
-  createMusicBrainzClient: vi.fn(() => ({})),
+  createMusicBrainzClient: vi.fn(() => mocks.musicBrainzClient),
+}))
+
+vi.mock('@/core/clients/musicinfo', () => ({
+  createMusicinfoClient: vi.fn(() => mocks.musicinfoClient),
 }))
 
 vi.mock('@/core/pipeline/resolve', () => ({
   resolve: vi.fn(async () => []),
+  fetchArtistImage: mocks.fetchArtistImage,
 }))
 
 vi.mock('@/core/pipeline/store', () => ({
@@ -24,7 +52,12 @@ vi.mock('@/db/queries/users', async (importOriginal) => {
   }
 })
 
+vi.mock('@/db/queries/artists', () => ({
+  upsertArtist: mocks.upsertArtist,
+}))
+
 import type { SettingsRow } from '@/db/queries/settings'
+import { DEFAULT_PREFERENCES } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
@@ -627,5 +660,254 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         }),
       )
     })
+  })
+})
+
+describe('POST /api/v1/pipeline/rescan', () => {
+  const mbid = '00000000-0000-0000-0000-000000000470'
+
+  beforeEach(() => {
+    mocks.fetchArtistImage.mockReset()
+    mocks.musicBrainzClient.lookupArtist.mockReset()
+    mocks.upsertArtist.mockReset()
+  })
+
+  function rescanDeps(
+    artist: Record<string, unknown>,
+    settings: Partial<SettingsRow> = {},
+  ): AppDependencies {
+    return makeDeps({
+      storeDb: {
+        tryConsumeRateLimit: vi.fn(async () => true),
+      } as unknown as AppDependencies['storeDb'],
+      getSettings: vi.fn(
+        async () =>
+          ({
+            id: 1,
+            lidarrUrl: 'http://lidarr:8686',
+            lidarrApiKey: 'key',
+            audiodbApiKey: 'audiodb-key',
+            preferences: {
+              fanartApiKey: 'fanart-key',
+              metadataFallbackUrl: 'https://metadata.example.test',
+            },
+            ...settings,
+          }) as SettingsRow,
+      ),
+      listRecommendations: vi.fn(async () => ({
+        items: [{ artist }],
+        total: 1,
+      })) as unknown as AppDependencies['listRecommendations'],
+      getUserById: vi.fn(async () => ({ isAdmin: true, preferences: null }) as never),
+    })
+  }
+
+  it('rejects non-admin users before shared artist metadata can be changed', async () => {
+    const deps = rescanDeps({
+      mbid,
+      name: 'Shared Artist',
+      imageUrl: null,
+      imageFailedAt: null,
+    })
+    deps.getUserById = vi.fn(async () => ({ isAdmin: false }) as never)
+    const app = createApp(deps)
+
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(403)
+    expect(mocks.fetchArtistImage).not.toHaveBeenCalled()
+  })
+
+  it('rejects a concurrent rescan while one is already running', async () => {
+    let releaseLookup: (() => void) | undefined
+    const lookupGate = new Promise<void>((resolve) => {
+      releaseLookup = resolve
+    })
+    mocks.fetchArtistImage.mockImplementation(async () => {
+      await lookupGate
+      return { failed: true }
+    })
+    mocks.upsertArtist.mockResolvedValue({})
+    const app = createApp(
+      rescanDeps({
+        mbid,
+        name: 'Slow Artist',
+        imageUrl: null,
+        imageFailedAt: null,
+        disambiguation: 'already present',
+      }),
+    )
+
+    const first = authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+    await vi.waitFor(() => expect(mocks.fetchArtistImage).toHaveBeenCalledTimes(1))
+    const second = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(second.status).toBe(409)
+    releaseLookup?.()
+    expect((await first).status).toBe(200)
+  })
+
+  it('rate-limits repeated rescans from the same admin', async () => {
+    mocks.fetchArtistImage.mockResolvedValue({ failed: false })
+    const app = createApp(
+      rescanDeps({
+        mbid,
+        name: 'Repeated Rescan Artist',
+        imageUrl: null,
+        imageFailedAt: null,
+        disambiguation: 'already present',
+      }),
+    )
+
+    const first = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+    const second = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+    const third = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(first.status).toBe(200)
+    expect(second.status).toBe(200)
+    expect(third.status).toBe(429)
+  })
+
+  it('uses the configured image fallback chain and refreshes disambiguation', async () => {
+    mocks.fetchArtistImage.mockResolvedValue({
+      url: 'https://images.example.test/artist.jpg',
+      logoUrl: 'https://images.example.test/logo.png',
+      failed: false,
+    })
+    mocks.musicBrainzClient.lookupArtist.mockResolvedValue({
+      id: mbid,
+      name: 'Fallback Artist',
+      disambiguation: 'Berlin electronic duo',
+    })
+    mocks.upsertArtist.mockResolvedValue({})
+
+    const app = createApp(
+      rescanDeps({
+        mbid,
+        name: 'Fallback Artist',
+        imageUrl: null,
+        imageFailedAt: null,
+        disambiguation: null,
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(200)
+    expect(mocks.fetchArtistImage).toHaveBeenCalledWith(
+      mbid,
+      'Fallback Artist',
+      mocks.audiodbClient,
+      mocks.lidarrClient,
+      mocks.fanartClient,
+      mocks.musicinfoClient,
+    )
+    expect(mocks.upsertArtist).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        mbid,
+        imageUrl: 'https://images.example.test/artist.jpg',
+        logoUrl: 'https://images.example.test/logo.png',
+        disambiguation: 'Berlin electronic duo',
+      }),
+    )
+    expect(await res.json()).toEqual({ attempted: 1, updated: 1, failed: 0, total: 1 })
+  })
+
+  it('negative-caches a complete image miss without blocking disambiguation', async () => {
+    mocks.fetchArtistImage.mockResolvedValue({ failed: true })
+    mocks.musicBrainzClient.lookupArtist.mockResolvedValue({
+      id: mbid,
+      name: 'Missing Image',
+      disambiguation: 'Canadian post-rock band',
+    })
+    mocks.upsertArtist.mockResolvedValue({})
+
+    const app = createApp(
+      rescanDeps(
+        {
+          mbid,
+          name: 'Missing Image',
+          imageUrl: null,
+          imageFailedAt: null,
+          disambiguation: null,
+        },
+        { preferences: DEFAULT_PREFERENCES },
+      ),
+    )
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(200)
+    expect(mocks.upsertArtist).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        mbid,
+        disambiguation: 'Canadian post-rock band',
+        imageFailed: true,
+      }),
+    )
+    expect(await res.json()).toEqual({ attempted: 1, updated: 0, failed: 1, total: 1 })
+  })
+
+  it('does not share a negative cache across user-scoped provider configurations', async () => {
+    mocks.fetchArtistImage.mockResolvedValue({ failed: false })
+    const recentFailure = new Date().toISOString()
+
+    const app = createApp(
+      rescanDeps({
+        mbid,
+        name: 'User Provider Artist',
+        imageUrl: null,
+        imageFailedAt: recentFailure,
+        disambiguation: 'already present',
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(200)
+    expect(mocks.fetchArtistImage).toHaveBeenCalledTimes(1)
+    expect(mocks.upsertArtist).not.toHaveBeenCalled()
+    expect(await res.json()).toEqual({ attempted: 1, updated: 0, failed: 1, total: 1 })
+  })
+
+  it('reports unexpected per-artist failures without aborting the rescan', async () => {
+    mocks.fetchArtistImage.mockRejectedValue(new Error('unexpected image failure'))
+
+    const app = createApp(
+      rescanDeps({
+        mbid,
+        name: 'Retry Later',
+        imageUrl: null,
+        imageFailedAt: null,
+        disambiguation: 'already present',
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ attempted: 1, updated: 0, failed: 1, total: 1 })
+  })
+
+  it('attempts each artist once when multiple recommendations reference it', async () => {
+    mocks.fetchArtistImage.mockResolvedValue({ failed: true })
+    mocks.upsertArtist.mockResolvedValue({})
+    const artist = {
+      mbid,
+      name: 'Repeated Artist',
+      imageUrl: null,
+      imageFailedAt: null,
+      disambiguation: 'already present',
+    }
+    const deps = rescanDeps(artist)
+    deps.listRecommendations = vi.fn(async () => ({
+      items: [{ artist }, { artist }],
+      total: 2,
+    })) as unknown as AppDependencies['listRecommendations']
+    const app = createApp(deps)
+
+    const res = await authedRequest(app, '/api/v1/pipeline/rescan', { method: 'POST' })
+
+    expect(res.status).toBe(200)
+    expect(mocks.fetchArtistImage).toHaveBeenCalledTimes(1)
+    expect(await res.json()).toEqual({ attempted: 1, updated: 0, failed: 1, total: 1 })
   })
 })

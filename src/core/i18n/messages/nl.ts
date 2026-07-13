@@ -315,7 +315,6 @@ export const nl = {
   'discover.noPendingToClear': 'Geen openstaande aanbevelingen om te wissen',
   'discover.notEnoughFeedback':
     'Nog niet voldoende feedbackgegevens. Meer aanbevelingen goedkeuren of afwijzen.',
-  'discover.of': 'van',
   'discover.queuedForRetry': 'In wachtrij voor nieuwe poging',
   'discover.rated': 'beoordeeld',
   'discover.refreshData': 'Gegevens vernieuwen',
@@ -329,6 +328,7 @@ export const nl = {
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',
   'discover.rejectFailed': 'Het is niet gelukt om te weigeren',
   'discover.rejectedCount': 'Afgewezen',
+  'discover.rescanComplete': 'Herscan voltooid: bijgewerkt {0}/{1}; mislukt {2}.',
   'discover.rescanFailed': 'Opnieuw scannen mislukt',
   'discover.restoreFailed': 'Herstellen is mislukt',
   'discover.restoredToPending': 'Hersteld naar in behandeling',
@@ -349,7 +349,6 @@ export const nl = {
   'discover.undo': 'Ongedaan maken',
   'discover.undoFailed': 'Ongedaan maken is mislukt',
   'discover.undone': 'Ongedaan gemaakt',
-  'discover.updatedArtists': 'Bijgewerkte artiesten',
   'discover.viewGrid': 'Rasterweergave',
   'discover.viewList': 'Lijstweergave',
   'discover.viewStack': 'Stapelweergave',

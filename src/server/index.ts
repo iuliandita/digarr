@@ -244,6 +244,7 @@ export function createApp(deps: AppDependencies) {
     '/api/v1/pipeline/quick-discover',
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
   )
+  app.use('/api/v1/pipeline/rescan', rateLimiter({ windowMs: 60_000, max: 2, keyPrefix: 'rscn' }))
   app.route('/', authRoutes(deps))
   app.route('/', oauthRoutes(deps))
   app.route('/', healthRoutes({ db: deps.db }))

@@ -71,7 +71,7 @@ export function createAudiodbClient(config: AudiodbClientConfig) {
         return pickImages(data.artists[0])
       } catch (err) {
         if (err instanceof RateLimitedError) throw err
-        return {}
+        throw new Error('AudioDB image lookup failed')
       }
     },
 
@@ -83,7 +83,7 @@ export function createAudiodbClient(config: AudiodbClientConfig) {
         return pickImages(matches[0])
       } catch (err) {
         if (err instanceof RateLimitedError) throw err
-        return {}
+        throw new Error('AudioDB artist search failed')
       }
     },
   }

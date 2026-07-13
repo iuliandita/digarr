@@ -316,7 +316,6 @@ export const es = {
   'discover.noPendingToClear': 'No hay recomendaciones pendientes para borrar',
   'discover.notEnoughFeedback':
     'Aún no hay suficientes datos de retroalimentación. Aprobar o rechazar más recomendaciones.',
-  'discover.of': 'de',
   'discover.queuedForRetry': 'En cola para reintentar',
   'discover.rated': 'clasificado',
   'discover.refreshData': 'Actualizar datos',
@@ -330,6 +329,7 @@ export const es = {
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',
   'discover.rejectFailed': 'No se pudo rechazar',
   'discover.rejectedCount': 'Rechazado',
+  'discover.rescanComplete': 'Reescaneo completado: actualizaciones {0}/{1}; errores {2}.',
   'discover.rescanFailed': 'Error al volver a escanear',
   'discover.restoreFailed': 'No se pudo restaurar',
   'discover.restoredToPending': 'Restaurado a pendiente',
@@ -351,7 +351,6 @@ export const es = {
   'discover.undo': 'Deshacer',
   'discover.undoFailed': 'Error al deshacer',
   'discover.undone': 'Deshecho',
-  'discover.updatedArtists': 'Artistas actualizados',
   'discover.viewGrid': 'Vista de cuadrícula',
   'discover.viewList': 'Vista de lista',
   'discover.viewStack': 'Vista apilada',

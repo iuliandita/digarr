@@ -313,7 +313,6 @@ export const en = {
   'discover.noPendingToClear': 'No pending recommendations to clear',
   'discover.notEnoughFeedback':
     'Not enough feedback data yet. Approve or reject more recommendations.',
-  'discover.of': 'of',
   'discover.queuedForRetry': 'Queued for retry',
   'discover.rated': 'rated',
   'discover.refreshData': 'Refresh Data',
@@ -326,6 +325,7 @@ export const en = {
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
   'discover.rejectedCount': 'Rejected',
+  'discover.rescanComplete': 'Rescan complete: {0}/{1} updated; {2} failed.',
   'discover.rescanFailed': 'Rescan failed',
   'discover.restoreFailed': 'Failed to restore',
   'discover.restoredToPending': 'Restored to pending',
@@ -346,7 +346,6 @@ export const en = {
   'discover.undo': 'Undo',
   'discover.undoFailed': 'Undo failed',
   'discover.undone': 'Undone',
-  'discover.updatedArtists': 'Updated artists',
   'discover.viewGrid': 'Grid view',
   'discover.viewList': 'List view',
   'discover.viewStack': 'Stack view',

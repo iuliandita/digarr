@@ -316,7 +316,6 @@ export const ptBR = {
   'discover.noPendingToClear': 'Não há recomendações pendentes para limpar',
   'discover.notEnoughFeedback':
     'Ainda não há dados de feedback suficientes. Aprove ou rejeite mais recomendações.',
-  'discover.of': 'de',
   'discover.queuedForRetry': 'Na fila para tentar novamente',
   'discover.rated': 'avaliado',
   'discover.refreshData': 'Atualizar dados',
@@ -330,6 +329,7 @@ export const ptBR = {
     'Rejeitar todas as recomendações pendentes? Isto não pode ser desfeito.',
   'discover.rejectFailed': 'Falha ao rejeitar',
   'discover.rejectedCount': 'Rejeitado',
+  'discover.rescanComplete': 'Nova verificação concluída: atualizações {0}/{1}; falhas {2}.',
   'discover.rescanFailed': 'Falha na nova verificação',
   'discover.restoreFailed': 'Falha ao restaurar',
   'discover.restoredToPending': 'Restaurado para pendente',
@@ -351,7 +351,6 @@ export const ptBR = {
   'discover.undo': 'Desfazer',
   'discover.undoFailed': 'Falha ao desfazer',
   'discover.undone': 'Desfeito',
-  'discover.updatedArtists': 'Artistas atualizados',
   'discover.viewGrid': 'Visualização em grade',
   'discover.viewList': 'Visualização em lista',
   'discover.viewStack': 'Visualização em pilha',

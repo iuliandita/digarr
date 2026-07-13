@@ -316,7 +316,6 @@ export const pl = {
   'discover.noPendingToClear': 'Brak oczekujących rekomendacji do usunięcia',
   'discover.notEnoughFeedback':
     'Nie ma jeszcze wystarczającej ilości danych zwrotnych. Zatwierdź lub odrzuć więcej rekomendacji.',
-  'discover.of': 'z',
   'discover.queuedForRetry': 'W kolejce do ponownej próby',
   'discover.rated': 'ocenione',
   'discover.refreshData': 'Odśwież dane',
@@ -330,6 +329,7 @@ export const pl = {
     'Odrzucić wszystkie oczekujące rekomendacje? Tego nie można cofnąć.',
   'discover.rejectFailed': 'Nie udało się odrzucić',
   'discover.rejectedCount': 'Odrzucony',
+  'discover.rescanComplete': 'Ponowne skanowanie zakończone: zaktualizowano {0}/{1}; błędy: {2}.',
   'discover.rescanFailed': 'Ponowne skanowanie nie powiodło się',
   'discover.restoreFailed': 'Nie udało się przywrócić',
   'discover.restoredToPending': 'Przywrócono do stanu oczekującego',
@@ -351,7 +351,6 @@ export const pl = {
   'discover.undo': 'Cofnij',
   'discover.undoFailed': 'Cofnięcie nie powiodło się',
   'discover.undone': 'Cofnięto',
-  'discover.updatedArtists': 'Zaktualizowani artyści',
   'discover.viewGrid': 'Widok siatki',
   'discover.viewList': 'Widok listy',
   'discover.viewStack': 'Widok stosu',

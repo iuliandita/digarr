@@ -316,7 +316,6 @@ export const uk = {
   'discover.noPendingToClear': 'Немає незавершених рекомендацій для очищення',
   'discover.notEnoughFeedback':
     'Ще недостатньо даних для відгуків. Схвалити або відхилити інші рекомендації.',
-  'discover.of': 'з',
   'discover.queuedForRetry': 'Поставлено в чергу на повторну спробу',
   'discover.rated': 'оцінений',
   'discover.refreshData': 'Оновити дані',
@@ -330,6 +329,7 @@ export const uk = {
     'Відхилити всі очікувані рекомендації? Це неможливо скасувати.',
   'discover.rejectFailed': 'Не вдалося відхилити',
   'discover.rejectedCount': 'Відхилено',
+  'discover.rescanComplete': 'Повторне сканування завершено: оновлено {0}/{1}; помилок: {2}.',
   'discover.rescanFailed': 'Помилка повторного сканування',
   'discover.restoreFailed': 'Не вдалося відновити',
   'discover.restoredToPending': 'Відновлено до стану очікування',
@@ -350,7 +350,6 @@ export const uk = {
   'discover.undo': 'Скасувати',
   'discover.undoFailed': 'Не вдалося скасувати',
   'discover.undone': 'Скасовано',
-  'discover.updatedArtists': 'Оновлені виконавці',
   'discover.viewGrid': 'Сітка',
   'discover.viewList': 'Список',
   'discover.viewStack': 'Стос',

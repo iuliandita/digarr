@@ -76,6 +76,7 @@ vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(),
   getStoredToken: vi.fn(() => null),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
+  getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: false }),
   updatePlaylistApi: vi.fn(),
   updateUserPreferences: vi.fn().mockResolvedValue({}),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: false }),
