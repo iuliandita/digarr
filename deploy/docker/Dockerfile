@@ -49,7 +49,7 @@ COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
-RUN chmod +x /app/healthcheck.sh
+RUN test -s /app/dist/scripts/rotate-encryption-key.js && chmod +x /app/healthcheck.sh
 
 RUN mkdir -p /app/backups /app/data && chown bun:bun /app/backups /app/data
 VOLUME ["/app/backups", "/app/data"]

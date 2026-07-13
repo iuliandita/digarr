@@ -1,6 +1,33 @@
 import type { MessageCatalog } from '../types'
 
 export const koOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic 즐겨찾기',
+  'settings.fieldApiKey': 'API 키',
+  'streaming.playShort': '재생',
+  'streaming.stopShort': '중지',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': '연결된 계정을 사용하려면 비워 두세요',
+  'discoveryMode.field.helpSimilarUsers': '인기 아티스트를 가져올 유사 사용자의 수 (1-10)',
+  'discoveryMode.field.helpTags':
+    '검색에 사용할 장르 또는 스타일 태그입니다. 가중치와 함께 여러 태그를 추가할 수 있습니다.',
+  'discoveryMode.field.helpRawTagExpression':
+    '태그 작성기를 ListenBrainz 직접 구문으로 재정의합니다. 예: (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    '기본값은 25입니다. 값이 클수록 다양성이 높아지지만 MusicBrainz 제한으로 인해 느려집니다 (녹음당 약 1초).',
+  'discoveryMode.field.helpPopularityMin': '0-100. 인기도가 이 값보다 낮은 녹음을 제외합니다.',
+  'discoveryMode.field.helpPopularityMax': '0-100. 인기도가 이 값보다 높은 녹음을 제외합니다.',
+  'setup.connectEmby': 'Emby 연결',
+  'setup.embyUserIdPlaceholder': 'Emby 사용자 ID',
+  'setup.embyUrl': 'Emby URL',
+  'setup.lidarrUrl': 'Lidarr URL',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
   'common.confirm': '확인',
   'discover.filters': '필터',
   'discover.filtersActive': '필터 ({0})',

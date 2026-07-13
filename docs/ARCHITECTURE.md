@@ -35,8 +35,10 @@ Wasm linear memory backed by one file, so exactly one replica may own it. The
 Helm/k8s opt-in pins `replicaCount=1` and forces the `Recreate` rollout strategy
 (no two pods touching the file at once). Because the working set sits in Wasm
 memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
-profile, but to scale out (multiple replicas, large datasets) switch to external
-PostgreSQL by supplying a DSN.
+profile. Switch to external PostgreSQL for a managed database or larger
+datasets, but keep the app at one replica: pipeline coordination, schedulers,
+rate limits, and migration locks remain process-local, so a DSN alone does not
+make horizontal scaling safe.
 
 **Per-platform defaults.** The container image and the Unraid template default
 to embedded PGlite (bare `docker run` with no DB env, or
@@ -134,7 +136,11 @@ Albums are a first-class recommendation unit. Key additions:
 ## Key invariants
 
 - Config precedence: DB settings (single row, `id=1`) override env vars. Per-user credentials live on the `users` table; global settings are the fallback.
-- All external HTTP goes through `createHttpClient()` in `src/core/clients/http.ts` (retry, backoff, optional TLS-skip).
+- Provider and metadata reads normally go through `createHttpClient()` in
+  `src/core/clients/http.ts` for timeout, retry/backoff, redaction, and optional
+  TLS-skip behavior. Playlist targets currently keep target-specific fetch
+  wrappers because create/mutate requests cannot inherit generic retries until
+  an idempotency or reconciliation policy exists (tracked in issue #453).
 - Field-level encryption uses AES-256-GCM with HKDF-derived keys (`src/core/crypto.ts`). Encrypted DB values are prefixed `enc:v1:`. Legacy SHA-256 decryption is retained as a read-path fallback for pre-migration values.
 - Tests run in Node.js (vitest), not Bun. `Bun.serve()`, `Bun.file()` and similar Bun-only APIs are unavailable in tests; password hashing uses `node:crypto` `scrypt`.
 - Migrations are idempotent. Drizzle generates bare DDL, so every generated migration must add `IF NOT EXISTS` / `IF EXISTS` clauses by hand.

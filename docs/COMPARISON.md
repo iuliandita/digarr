@@ -3,7 +3,8 @@
 There are many good projects in this space, and most of them are not actually
 competing -- they solve different problems and several of them coexist happily
 in one homelab. This page maps the field so you can pick the right tool (or
-combination) for your setup. Accurate as of July 2026; these projects move
+combination) for your setup. Verified against upstream repositories on
+2026-07-12; these projects move
 fast, so check their repos for current state. Corrections welcome via
 [issues](https://github.com/iuliandita/digarr/issues).
 
@@ -17,9 +18,9 @@ Almost every tool in this space follows one of three models:
 2. **Acquisition automation** -- watch artists or feeds, find the files, and
    download them with no review step. Discovery is an input; the product is a
    growing, well-organized library. *SoulSync, Explo, and Aurral live here.*
-3. **Request fulfillment** -- the Overseerr pattern: users browse and request,
-   an admin (or auto-approval) fulfills through Lidarr. *MusicSeerr lives
-   here.*
+3. **Request fulfillment and library platforms** -- users browse and request,
+   while the app owns approval, downloading, library organization, and often
+   playback. *DroppedNeedle spans this model and acquisition automation.*
 
 None of these is "better" -- they answer different questions. "What should I
 listen to next, and do I trust it enough to add?" is a different problem from
@@ -28,30 +29,30 @@ household request music like they request movies."
 
 ## Capability matrix
 
-| | Digarr | SoulSync | Explo | Aurral | Kima Hub | MusicSeerr | MixArr | Lidify |
+| | Digarr | SoulSync | Explo | Aurral | Kima Hub | DroppedNeedle | MixArr | Lidify |
 |---|---|---|---|---|---|---|---|---|
-| Album-level recommendations (gap-fill, new releases, net-new) | Yes | Partial [^1] | -- | -- | -- | -- | -- | -- |
+| Album-level recommendations (gap-fill, new releases, net-new) | Yes | Partial [^1] | -- | -- | -- | Yes | -- | -- |
 | LLM-assisted recommendations (bring your own provider) | Yes | -- | -- | -- | -- | -- | Yes | -- |
 | Configurable scoring weights | Yes | -- | -- | -- | -- | -- | -- | -- |
 | Review-then-approve workflow | Yes | -- | -- | -- | -- | Yes | -- | -- |
 | Natural-language mood search | Yes | -- | -- | -- | -- | -- | -- | -- |
-| Works without Lidarr | Yes | Yes | Yes | -- | Yes | -- | -- | -- |
+| Works without Lidarr | Yes | Yes | Yes | -- | Yes | Yes | -- | -- |
 | Multi-user with per-user credentials | Yes | -- | -- | -- | Yes | Partial [^2] | -- | -- |
 | OIDC / SSO | Yes | -- | -- | -- | Yes | Yes | Yes | -- |
 | Localized UI (multiple languages) | Yes (15) | -- | -- | -- | -- | -- | -- | -- |
-| Scheduled discovery subscriptions | Yes | Yes | Yes | Yes | -- | -- | Yes | -- |
-| Playlist generation / export | Yes | Yes | Yes | Yes | Yes | -- | -- | -- |
-| Automated downloading (built-in) | Partial [^3] | Yes | Yes | Yes | Yes | Partial [^3] | -- | -- |
-| Media-server library sync (Plex/Jellyfin/Emby/Subsonic) | Yes | Yes | Partial | Partial | Yes | -- | -- | -- |
+| Scheduled discovery subscriptions | Yes | Yes | Yes | Yes | -- | Partial | Yes | -- |
+| Playlist generation / export | Yes | Yes | Yes | Yes | Yes | Yes | -- | -- |
+| Automated downloading (built-in) | Partial [^3] | Yes | Yes | Yes | Yes | Yes | -- | -- |
+| Media-server library sync (Plex/Jellyfin/Emby/Subsonic) | Yes | Yes | Partial | Partial | Yes | Yes | -- | -- |
 | Backup/restore, job history, upgrade pre-flight checks | Yes | -- | -- | -- | -- | -- | -- | -- |
-| Built-in music player / streaming | -- | -- | -- | -- | Yes | -- | -- | -- |
+| Built-in music player / streaming | -- | -- | -- | -- | Yes | Yes | -- | -- |
 
 [^1]: New-release detection for watchlisted artists; not a recommendation
     queue of individual albums with per-album approval.
-[^2]: Multi-user auth shipped recently; per-user service credentials are not
-    the core model.
-[^3]: Digarr and MusicSeerr queue downloads through `slskd` and/or Lidarr as
-    an *outcome of an approval*, rather than shipping their own downloader.
+[^2]: DroppedNeedle has role-based multi-user auth plus per-user listening and
+    scrobbling connections; most operator service settings remain global.
+[^3]: Digarr delegates downloads to `slskd` and/or Lidarr as an *outcome of an
+    approval*, rather than shipping its own downloader.
 
 "--" means the capability is absent or out of scope for that project's design,
 not that the project is deficient -- see the philosophy section above.
@@ -74,9 +75,13 @@ not that the project is deficient -- see the philosophy section above.
   platform: streaming player, audio-embedding similarity, 3D library
   visualization, podcasts. Closer to a Plexamp alternative than a discovery
   companion. Pick it if you want one app that plays *and* explores.
-- **[MusicSeerr](https://github.com/HabiRabbu/Musicseerr)** -- Overseerr-style
-  requests for music on top of Lidarr. Pick it if your household already knows
-  the Overseerr/Jellyseerr flow.
+- **[DroppedNeedle](https://github.com/DroppedNeedle/DroppedNeedle)** -- the
+  project formerly known as MusicSeerr now replaces Lidarr with its own music
+  library, request, download, and playback stack. It drives operator-supplied
+  slskd or Usenet/SABnzbd, supports album and track requests, multi-user roles,
+  OIDC, media-server playback, and personalized discovery. Pick it if you want
+  a full music platform rather than a companion in front of an existing
+  library manager.
 - **[MixArr](https://github.com/aquantumofdonuts/mixarr)** -- the widest
   subscription net in the space (dozens of feed types across many services)
   with local-LLM recommendation support. Pick it for feed breadth.
@@ -109,8 +114,9 @@ the loop. Its distinguishing choices:
 - **Your AI, your choice.** Hosted providers or fully local inference through
   Ollama and OpenAI-compatible endpoints, with the reasoning shown per
   recommendation -- and mood search in plain language.
-- **No Lidarr required.** Discovery-only mode builds its genre reference from
-  your listening sources instead of a library.
+- **No Lidarr required.** Discovery-only mode currently builds its genre
+  reference from Spotify artist metadata instead of a library; broader
+  non-Spotify genre backfill is the next planned scoring improvement.
 - **Built for more than one person.** Multi-user with per-user queues,
   credentials, scoring weights, and targets; OIDC/SSO; a UI and AI output
   localized in 15 languages.

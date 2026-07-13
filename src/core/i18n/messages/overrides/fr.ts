@@ -1,6 +1,35 @@
 import type { MessageCatalog } from '../types'
 
 export const frOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'discoveryMode.subsonic-starred.label': 'Favoris Subsonic',
+  'streaming.playShort': 'LIRE',
+  'streaming.stopShort': 'ARRÊTER',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount':
+    'Laissez ce champ vide pour utiliser votre compte connecté',
+  'discoveryMode.field.helpSimilarUsers':
+    "Nombre d'utilisateurs similaires dont extraire les artistes les plus écoutés (1-10)",
+  'discoveryMode.field.helpTags':
+    'Tags de genre ou de style à découvrir. Ajoutez plusieurs tags avec des pondérations.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Remplacez le générateur de tags par une syntaxe ListenBrainz brute, par exemple (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'La valeur par défaut est 25. Une valeur plus élevée améliore la diversité, mais ralentit le traitement à cause de la limite de MusicBrainz (environ 1 seconde par enregistrement).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Exclut les enregistrements dont la popularité est inférieure à cette valeur.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Exclut les enregistrements dont la popularité est supérieure à cette valeur.',
+  'setup.embyUrl': "URL d'Emby",
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceLastfm': 'Last.fm',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'pipeline.firstScanComplete':
+    'Vos premières recommandations sont prêtes ! Accédez à la page Découvrir pour voir ce que Digarr a trouvé.',
   'common.confirm': 'Confirmer',
   'discover.filters': 'Filtres',
   'discover.filtersActive': 'Filtres ({0})',
@@ -177,7 +206,6 @@ export const frOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHours': 'Intervalle de sync (heures)',
   'settings.librarySyncIntervalHelp':
     'Controle la frequence a laquelle Digarr actualise les donnees de sync bibliothèque et relance les verifications.',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.aiProviderTitle': 'Fournisseur IA',
   'settings.webhookTitle': 'Canal webhook',
   'settings.plexToken': 'Jeton Plex',

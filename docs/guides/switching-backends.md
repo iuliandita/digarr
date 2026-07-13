@@ -8,9 +8,12 @@ operation, without touching or modifying the source.
 
 ## When to use this
 
-- **Scaling out**: embedded PGlite is single-writer and holds everything in Wasm
-  memory. When your library grows large, you run multiple replicas, or you want
-  the database managed independently, switch to external PostgreSQL.
+- **Managed or larger database**: embedded PGlite is single-writer and holds
+  everything in Wasm memory. When your library grows large or you want the
+  database managed independently, switch to external PostgreSQL. Keep the app
+  at one replica: pipeline coordination, schedulers, rate limits, and migration
+  locks are process-local, so PostgreSQL alone does not make horizontal scaling
+  safe.
 - **Rolling back**: if you want to return to embedded PGlite after running on
   external PostgreSQL, the same tool runs in reverse.
 

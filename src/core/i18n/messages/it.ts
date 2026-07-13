@@ -720,7 +720,6 @@ export const it = {
   'discoveryMode.reason.connectDeezer': 'Collega Deezer per usare questa modalità.',
   'discoveryMode.reason.connectSpotify': 'Collega Spotify per usare questa modalità.',
   'discoveryMode.reason.connectSubsonic': 'Collega Subsonic per usare questa modalità.',
-  'discoveryMode.reason.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.reason.releaseRadarFallback':
     'Uso di provider di fallback per la scoperta delle uscite.',
   'discoveryMode.reason.libraryRequired':
@@ -755,6 +754,13 @@ export const it = {
   'discoveryMode.option.japan': 'Giappone',
   'discoveryMode.option.brazil': 'Brasile',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Membro di una band',
+  'discoveryMode.option.collaboration': 'Collaborazione',
+  'discoveryMode.option.supportingMusician': 'Musicista di supporto',
+  'discoveryMode.option.isPerson': 'È una persona',
+  'discoveryMode.option.sibling': 'Fratello o sorella',
+  'discoveryMode.option.married': 'Sposato o sposata',
+  'discoveryMode.option.involvedWith': 'Relazione con',
   'importArtists.title': 'Importa artisti',
   'importArtists.likedSongs': 'Brani preferiti',
   'importArtists.likedSongsDescription':
@@ -850,7 +856,7 @@ export const it = {
   'settings.aiPrivacyBadgeHosted': 'I dati lasciano il tuo server',
   'settings.aiPrivacyBadgeLocal': 'Completamente locale',
   'settings.webhookDescription':
-    'Notifiche al termine della scansione (Discord, Slack, ntfy, Gotify o qualsiasi endpoint HTTP)',
+    'Notifiche al termine della scansione (contenuti incorporati Discord o JSON non elaborato a un endpoint HTTPS pubblico)',
   'settings.testWebhook': 'Testa webhook',
   'settings.sending': 'Invio...',
   'settings.connectionsTip':
@@ -1274,7 +1280,6 @@ export const it = {
   'rejectionReason.tried_didnt_like': 'Ascoltato, non mi è piaciuto',
   'rejectionReason.not_right_now': 'Forse dopo, non ora',
   'rejectionReason.other': 'Altro',
-  'rejectionReason.unspecified': 'Nessun motivo',
   'settings.blocked.title': 'Artisti bloccati',
   'settings.blocked.search': 'Cerca artisti bloccati',
   'settings.blocked.count_one': '{0} artista bloccato',

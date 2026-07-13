@@ -966,7 +966,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               <Input
                 id="webhook-url"
                 type="url"
-                placeholder="https://ntfy.sh/my-topic"
+                placeholder="https://example.com/digarr-webhook"
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
               />
@@ -3344,9 +3344,11 @@ export function SettingsPage() {
   if (error || !data) {
     return (
       <div className="p-6 max-w-6xl mx-auto text-reject">
-        <p>Failed to load settings: {error?.message ?? 'Unknown error'}</p>
+        <p>
+          {t('errorBoundary.title')}: {error?.message ?? t('common.unknownError')}
+        </p>
         <Button variant="outline" size="sm" onClick={refetch} className="mt-3">
-          Retry
+          {t('errorBoundary.retry')}
         </Button>
       </div>
     )

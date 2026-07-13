@@ -724,7 +724,6 @@ export const ptBR = {
   'discoveryMode.reason.connectDeezer': 'Conecte o Deezer para usar este modo.',
   'discoveryMode.reason.connectSpotify': 'Conecte o Spotify para usar este modo.',
   'discoveryMode.reason.connectSubsonic': 'Conecte o Subsonic para usar este modo.',
-  'discoveryMode.reason.notImplementedYet': 'Este modo ainda não foi implementado.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando provedores de fallback para descobrir lançamentos.',
   'discoveryMode.reason.libraryRequired': 'Sincronize primeiro uma biblioteca para usar este modo.',
@@ -758,6 +757,13 @@ export const ptBR = {
   'discoveryMode.option.japan': 'Japão',
   'discoveryMode.option.brazil': 'Brasil',
   'discoveryMode.option.canada': 'Canadá',
+  'discoveryMode.option.memberOfBand': 'Integrante de banda',
+  'discoveryMode.option.collaboration': 'Colaboração',
+  'discoveryMode.option.supportingMusician': 'Músico de apoio',
+  'discoveryMode.option.isPerson': 'É uma pessoa',
+  'discoveryMode.option.sibling': 'Irmão ou irmã',
+  'discoveryMode.option.married': 'Casado ou casada',
+  'discoveryMode.option.involvedWith': 'Relacionamento com',
   'importArtists.title': 'Importar artistas',
   'importArtists.likedSongs': 'Músicas curtidas',
   'importArtists.likedSongsDescription': 'Importe artistas das músicas que você curtiu no Spotify',
@@ -852,7 +858,7 @@ export const ptBR = {
   'settings.aiPrivacyBadgeHosted': 'Os dados saem do seu servidor',
   'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.webhookDescription':
-    'Notificações ao concluir a varredura (Discord, Slack, ntfy, Gotify ou qualquer endpoint HTTP)',
+    'Notificações ao concluir a varredura (incorporações do Discord ou JSON bruto para um endpoint HTTPS público)',
   'settings.testWebhook': 'Testar webhook',
   'settings.sending': 'Enviando...',
   'settings.connectionsTip':
@@ -1255,7 +1261,6 @@ export const ptBR = {
   'rejectionReason.tried_didnt_like': 'Ouvi e não gostei',
   'rejectionReason.not_right_now': 'Talvez depois, agora não',
   'rejectionReason.other': 'Outro',
-  'rejectionReason.unspecified': 'Sem motivo',
   'settings.blocked.title': 'Artistas bloqueados',
   'settings.blocked.search': 'Buscar artistas bloqueados',
   'settings.blocked.count_one': '{0} artista bloqueado',

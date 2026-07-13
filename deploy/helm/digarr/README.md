@@ -26,7 +26,7 @@ install with `-f my-values.yaml`.
 
 | Value | Default | Purpose |
 |-------|---------|---------|
-| `replicaCount` | `1` | App pods. Keep at 1 unless you run external Postgres. |
+| `replicaCount` | `1` | App pods. Keep at 1; external Postgres alone does not make Digarr safe for multiple replicas. |
 | `image.tag` | chart appVersion | Pin a specific release. |
 | `image.digest` | set by CI | Immutable digest pinning. |
 | `ingress.enabled` | `false` | Classic Ingress resource. |
@@ -42,6 +42,11 @@ install with `-f my-values.yaml`.
 | `networkPolicy.enabled` | `true` | NetworkPolicy locking egress to public internet and in-ns Postgres. |
 
 See `values.yaml` for the full surface.
+
+Digarr currently relies on process-local pipeline coordination, schedulers,
+rate limits, and migration locks. External PostgreSQL is useful for managed
+storage and larger installations, but it is not sufficient for horizontal app
+scaling; keep `replicaCount: 1` until distributed coordination is implemented.
 
 ## Secrets
 

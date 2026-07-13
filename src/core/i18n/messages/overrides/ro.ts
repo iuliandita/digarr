@@ -1,6 +1,34 @@
 import type { MessageCatalog } from '../types'
 
 export const roOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Favorite Subsonic',
+  'streaming.playShort': 'REDĂ',
+  'streaming.stopShort': 'OPREȘTE',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Lasă necompletat pentru a folosi contul conectat',
+  'discoveryMode.field.helpSimilarUsers':
+    'Numărul de utilizatori similari de la care se preiau artiștii preferați (1-10)',
+  'discoveryMode.field.helpTags':
+    'Etichete de gen sau stil pentru descoperire. Adaugă mai multe etichete cu ponderi.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Înlocuiește constructorul de etichete cu sintaxa directă ListenBrainz, de exemplu (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Valoarea implicită este 25. Valorile mai mari cresc diversitatea, dar sunt mai lente din cauza limitei MusicBrainz (aproximativ 1 secundă per înregistrare).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Exclude înregistrările cu popularitate sub această valoare.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Exclude înregistrările cu popularitate peste această valoare.',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
+  'settings.musicLibraryHint':
+    'Dacă serverul tău are mai multe biblioteci muzicale, rulează „Testează conexiunea” și alege una aici pentru a restrânge datele de ascultare și sincronizarea bibliotecii.',
   'common.confirm': 'Confirmă',
   'discover.filters': 'Filtre',
   'discover.filtersActive': 'Filtre ({0})',
@@ -23,7 +51,7 @@ export const roOverrides: Partial<MessageCatalog> = {
   'libraryHealth.fixHint.missingWikidata': 'Preia biografii și linkuri din Wikidata',
   'app.themeGroupEditor': 'Editare',
   'app.themeGroupStreaming': 'Servicii de streaming',
-  'setup.lidarrUrl': 'Adresa Lidarr',
+  'setup.lidarrUrl': 'URL Lidarr',
   'common.importing': 'Importare...',
   'common.manual': 'manual',
   'common.current': 'Curent',
@@ -147,7 +175,6 @@ export const roOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHours': 'Interval de sincronizare (ore)',
   'settings.librarySyncIntervalHelp':
     'Controlează cât de des Digarr reîmprospătează datele de sincronizare ale bibliotecii și rerulează verificările automat.',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldModel': 'Model AI',
   'settings.aiProviderTitle': 'Furnizor AI',
   'settings.webhookTitle': 'Integrare webhook',
@@ -171,7 +198,6 @@ export const roOverrides: Partial<MessageCatalog> = {
   'searchResultCard.queuedSuccess': '{0} a fost adăugat în coada de descoperire',
   'searchResultCard.queuedFailure': '{0} nu a putut fi adăugat în coadă',
   'searchResultCard.popularity': 'Popularitate {0}{1}',
-  'genres.artistCountSingular': 'artist',
   'admin.restoreSummary': '{0} rânduri restaurate în {1} tabele',
   'admin.restoreSummaryForce':
     '{0} rânduri restaurate. Reintrodu credențialele pentru câmpurile criptate.',

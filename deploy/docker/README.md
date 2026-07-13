@@ -26,8 +26,10 @@ data in the `data` volume; `backups` holds the pre-migration auto-backups.
 
 ```
 cd deploy/docker
+mkdir -p secrets
+chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 docker compose up -d
 ```

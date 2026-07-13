@@ -723,7 +723,6 @@ export const nl = {
   'discoveryMode.reason.connectDeezer': 'Verbind Deezer om deze modus te gebruiken.',
   'discoveryMode.reason.connectSpotify': 'Verbind Spotify om deze modus te gebruiken.',
   'discoveryMode.reason.connectSubsonic': 'Verbind Subsonic om deze modus te gebruiken.',
-  'discoveryMode.reason.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
   'discoveryMode.reason.libraryRequired':
@@ -758,6 +757,13 @@ export const nl = {
   'discoveryMode.option.japan': 'Japan',
   'discoveryMode.option.brazil': 'Brazilië',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Bandlid',
+  'discoveryMode.option.collaboration': 'Samenwerking',
+  'discoveryMode.option.supportingMusician': 'Begeleidend muzikant',
+  'discoveryMode.option.isPerson': 'Is een persoon',
+  'discoveryMode.option.sibling': 'Broer of zus',
+  'discoveryMode.option.married': 'Getrouwd',
+  'discoveryMode.option.involvedWith': 'Relatie met',
   'importArtists.title': 'Artiesten importeren',
   'importArtists.likedSongs': 'Gelikte nummers',
   'importArtists.likedSongsDescription': 'Artiesten importeren die je op Spotify hebt geliked',
@@ -853,7 +859,7 @@ export const nl = {
   'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.webhookDescription':
-    'Meldingen bij voltooide scan (Discord, Slack, ntfy, Gotify of een willekeurig HTTP-eindpunt)',
+    'Meldingen bij voltooide scan (Discord-insluitingen of onbewerkte JSON naar een openbaar HTTPS-eindpunt)',
   'settings.testWebhook': 'Webhook testen',
   'settings.sending': 'Bezig met verzenden...',
   'settings.connectionsTip':
@@ -1250,7 +1256,6 @@ export const nl = {
   'rejectionReason.tried_didnt_like': 'Geprobeerd, niet leuk gevonden',
   'rejectionReason.not_right_now': 'Misschien later, nu niet',
   'rejectionReason.other': 'Anders',
-  'rejectionReason.unspecified': 'Geen reden opgegeven',
   'settings.blocked.title': 'Geblokkeerde artiesten',
   'settings.blocked.search': 'Geblokkeerde artiesten zoeken',
   'settings.blocked.count_one': '{0} artiest geblokkeerd',

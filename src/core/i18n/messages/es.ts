@@ -721,7 +721,6 @@ export const es = {
   'discoveryMode.reason.connectDeezer': 'Conecta Deezer para usar este modo.',
   'discoveryMode.reason.connectSpotify': 'Conecta Spotify para usar este modo.',
   'discoveryMode.reason.connectSubsonic': 'Conecta Subsonic para usar este modo.',
-  'discoveryMode.reason.notImplementedYet': 'Este modo aún no está implementado.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando proveedores de respaldo para descubrir lanzamientos.',
   'discoveryMode.reason.libraryRequired': 'Sincroniza primero una biblioteca para usar este modo.',
@@ -755,6 +754,13 @@ export const es = {
   'discoveryMode.option.japan': 'Japón',
   'discoveryMode.option.brazil': 'Brasil',
   'discoveryMode.option.canada': 'Canadá',
+  'discoveryMode.option.memberOfBand': 'Miembro de una banda',
+  'discoveryMode.option.collaboration': 'Colaboración',
+  'discoveryMode.option.supportingMusician': 'Músico de apoyo',
+  'discoveryMode.option.isPerson': 'Es una persona',
+  'discoveryMode.option.sibling': 'Hermano o hermana',
+  'discoveryMode.option.married': 'Casado o casada',
+  'discoveryMode.option.involvedWith': 'Relación sentimental con',
   'importArtists.title': 'Importar artistas',
   'importArtists.likedSongs': 'Canciones que te gustan',
   'importArtists.likedSongsDescription': 'Importa artistas de tus canciones guardadas en Spotify',
@@ -847,7 +853,7 @@ export const es = {
   'settings.aiPrivacyBadgeHosted': 'Los datos salen de tu servidor',
   'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.webhookDescription':
-    'Notificaciones al finalizar el escaneo (Discord, Slack, ntfy, Gotify o cualquier endpoint HTTP)',
+    'Notificaciones al finalizar el escaneo (contenido incrustado de Discord o JSON sin procesar a un endpoint HTTPS público)',
   'settings.testWebhook': 'Probar webhook',
   'settings.sending': 'Enviando...',
   'settings.connectionsTip':
@@ -1255,7 +1261,6 @@ export const es = {
   'rejectionReason.tried_didnt_like': 'Lo probé y no me gustó',
   'rejectionReason.not_right_now': 'Quizás luego, ahora no',
   'rejectionReason.other': 'Otro',
-  'rejectionReason.unspecified': 'Sin razón',
   'settings.blocked.title': 'Artistas bloqueados',
   'settings.blocked.search': 'Buscar artistas bloqueados',
   'settings.blocked.count_one': '{0} artista bloqueado',

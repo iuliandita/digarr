@@ -425,10 +425,10 @@ export const en = {
   'playlist.generateNow': 'Generate now',
   'playlist.generatingNamed': 'Playlist generation started',
   'playlist.noTracks': 'No tracks yet. Generate the playlist to populate it.',
-  'playlist.sourceDeezer': 'deezer',
-  'playlist.sourceLocal': 'local',
-  'playlist.sourceMusicbrainz': 'musicbrainz',
-  'playlist.sourceSpotify': 'spotify',
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
   'playlist.strategyGenreFocus': 'Genre Focus',
   'playlist.strategyMoodMix': 'Mood Mix',
   'playlist.strategyRediscover': 'Rediscover',
@@ -709,7 +709,7 @@ export const en = {
     'Triggers an album search in Lidarr for each affected artist',
   'libraryHealth.fixHint.genreGaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
   'libraryHealth.fixHint.imageGaps':
-    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+    'Searches for artist images again and saves any result locally.',
   'libraryHealth.fixHint.missingWikidata':
     'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (fast, cheapest)',
@@ -829,7 +829,6 @@ export const en = {
   'discoveryMode.reason.connectDeezer': 'Connect Deezer to use this mode.',
   'discoveryMode.reason.connectSpotify': 'Connect Spotify to use this mode.',
   'discoveryMode.reason.connectSubsonic': 'Connect Subsonic to use this mode.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.reason.libraryRequired': 'Sync a library first to use this mode.',
   'discoveryMode.field.feed': 'Feed',
@@ -848,6 +847,16 @@ export const en = {
   'discoveryMode.field.relationships': 'Relationships',
   'discoveryMode.field.maxArtistsPerRun': 'Artists checked per run',
   'discoveryMode.field.helpArtistSeed': 'Artist name or MBID to seed the radio',
+  'discoveryMode.field.helpConnectedAccount': 'Leave blank to use your connected account',
+  'discoveryMode.field.helpSimilarUsers': 'How many similar users to pull top artists from (1-10)',
+  'discoveryMode.field.helpTags':
+    'Genre or style tags to discover from. Add multiple tags with weights.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Override the tag builder with raw ListenBrainz syntax, for example (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Default 25. Higher values improve diversity but are slower due to MusicBrainz rate limiting (~1 second per recording).',
+  'discoveryMode.field.helpPopularityMin': '0-100. Filter out recordings below this popularity.',
+  'discoveryMode.field.helpPopularityMax': '0-100. Filter out recordings above this popularity.',
   'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Similar Users (Quick)',
@@ -862,6 +871,13 @@ export const en = {
   'discoveryMode.option.japan': 'Japan',
   'discoveryMode.option.brazil': 'Brazil',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Member of a band',
+  'discoveryMode.option.collaboration': 'Collaboration',
+  'discoveryMode.option.supportingMusician': 'Supporting musician',
+  'discoveryMode.option.isPerson': 'Is a person',
+  'discoveryMode.option.sibling': 'Sibling',
+  'discoveryMode.option.married': 'Married',
+  'discoveryMode.option.involvedWith': 'Involved with',
 
   // Import Artists
   'importArtists.title': 'Import Artists',
@@ -965,7 +981,7 @@ export const en = {
   'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
   'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.webhookDescription':
-    'Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)',
+    'Scan completion notifications (Discord embeds or raw JSON to a public HTTPS endpoint)',
   'settings.testWebhook': 'Test Webhook',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':
@@ -1409,7 +1425,6 @@ export const en = {
   'rejectionReason.tried_didnt_like': "Tried it, didn't like it",
   'rejectionReason.not_right_now': 'Maybe later, not now',
   'rejectionReason.other': 'Other',
-  'rejectionReason.unspecified': 'No reason given',
 
   // Settings: Blocked Artists tab
   'settings.blocked.title': 'Blocked Artists',

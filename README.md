@@ -17,6 +17,8 @@
 > [!NOTE]
 > **v1.12.0 is out.** Digarr now runs with zero external database (embedded PGlite backend, plus an in-app migration tool between PGlite and PostgreSQL), speaks Subsonic (Navidrome, Airsonic, Gonic) as a first-class listening and library source, and surfaces AI provider failures in scan progress, job history, and connection tests instead of degrading silently. Recent releases also hardened OIDC account linking, made partial multi-target approvals retryable, and queued concurrent scans instead of rejecting them. See the [latest release notes](https://github.com/iuliandita/digarr/releases/latest) and [CHANGELOG.md](CHANGELOG.md) for details. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
 >
+> Documentation on `develop` also covers features available in the `:nightly` image but not yet in the latest tagged release. The changelog is the source of truth for released-version availability.
+>
 > Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
@@ -30,7 +32,7 @@
 > - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
 > - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
 > - 🧭 **14 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Subsonic Starred -- all runnable on demand or saved as subscriptions.
-> - 🔓 **No Lidarr required** -- full discovery-only mode with genre-aware scoring from your listening sources.
+> - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring currently derives listening genres from Spotify when no library is connected.
 > - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
 > - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
 > - 🛡️ **Ops-grade self-hosting** -- zero-external-database single container, backup/restore, job observability, pre-flight upgrade checks, cosign-signed images.
@@ -67,7 +69,7 @@ Digarr now ships localized catalogs for 15 languages, a visible language switche
 > Translations are reviewed in-repo and checked for missing or untranslated catalog values. If you notice awkward wording or missing context, please [open an issue](https://github.com/iuliandita/digarr/issues) or send a PR with fixes.
 
 ### Flexible Setup
-The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. Approval can monitor all albums, future albums, selected albums, or the top 3 popular album releases resolved through Spotify. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and add targets later from Settings, including playlist exports. `slskd` targets are configured later in Settings > Targets and support standalone queueing or linked Lidarr handoff.
+The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. Approval can monitor all albums, future albums, selected albums, or the top 3 popular album releases resolved through Spotify with a Last.fm fallback. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and add targets later from Settings, including playlist exports. `slskd` targets are configured later in Settings > Targets and support standalone queueing or linked Lidarr handoff.
 
 ### slskd Integration
 `slskd` targets support two approval modes:
@@ -89,7 +91,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), Spotify Saved Albums (artists from albums you saved on Spotify), and Subsonic Starred (artists similar to your starred Subsonic artists)
 - **Subscriptions:** scheduled discovery from discovery modes, Spotify Liked Songs, playlists and charts, Deezer favorites, followed artists and Flow, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
 - **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
-- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 6 automated health checks with one-click fixes
+- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, unreconciled artist and album review, album coverage badges on recommendation cards, and 7 automated health checks with one-click fixes for supported findings
 - **Analytics:** approval rates, genre trends, source effectiveness, score distribution, and time-to-act
 - **Multilingual UI:** 15 shipped locales, saved user language preference, localized auth/setup/high-traffic pages, and locale-aware AI reasoning
 - **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
@@ -97,8 +99,8 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications:** Discord, Slack, ntfy, Gotify, or any HTTP endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window)
-- **15 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
+- **Webhook notifications:** Discord embeds or raw JSON to a public HTTPS endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). Plain HTTP is accepted for compatibility but exposes payload data and URL credentials in transit
+- **16 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
 
@@ -109,15 +111,15 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Service | Discovery | Subscriptions | Library Sync | Playlist Export | Import |
 |---------|-----------|--------------|-------------|----------------|--------|
 | ListenBrainz | Artist Radio, User Radio, Tag Radio, Similar Users (Quick), Similar Users (Deep) | Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users | - | - | - |
-| Spotify | - | Liked Songs, Charts, Playlists | - | Yes | Playlist |
-| Deezer | - | Favorites, Followed, Flow, Playlists | - | - | Favorites, Followed, Playlists |
-| Discogs | Collection, Wantlist | - | - | - | - |
-| Last.fm | - | Charts, Tag Radio | - | - | - |
+| Spotify | Saved Albums | Liked Songs, Charts, Playlists | - | Yes | Playlist |
+| Deezer | Flow | Favorites, Followed, Flow, Playlists | - | - | Favorites, Followed, Playlists |
+| Discogs | Collection, Wantlist, Labels | - | - | - | - |
+| Last.fm | Global and regional Charts | Charts, Tag Radio | - | - | - |
 | Lidarr | - | - | Artists, Albums | - | - |
 | Plex | - | - | Artists, Albums | Yes | - |
 | Jellyfin | - | - | Artists, Albums | Yes | - |
 | Emby | - | - | Artists, Albums | Yes | - |
-| Subsonic | Starred artists | - | Artists, Albums | Yes | - |
+| Subsonic | Starred artists | - | Artists, Albums | Yes (Navidrome target) | - |
 | TheAudioDB | - | - | - | - | Artist images (primary) |
 | Wikidata | - | - | - | - | Bio + external links per artist |
 | AI Provider | Mood Discover | - | - | - | - |
@@ -161,8 +163,9 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
+chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 # Edit secrets/postgres_password and optionally .env
 docker compose up -d
@@ -244,7 +247,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 
 | Method | Path | Notes |
 |--------|------|-------|
-| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Includes PostgreSQL. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
+| Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Choose single-container PGlite or the bundled PostgreSQL stack. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
 | Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
 | Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | In the Community Applications store (search "Digarr"); bundled template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)) as manual fallback. Embedded PGlite by default; external PostgreSQL optional. |
@@ -289,7 +292,7 @@ approaches differ and which tool fits which setup, see
 | [Brainarr](https://github.com/RicherTunes/Brainarr) | Native Lidarr plugin. Privacy-first with local AI. |
 | [Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr) | Last.fm discovery with optional AI assistant. Real-time UI. |
 | [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
-| [MusicSeerr](https://github.com/HabiRabbu/Musicseerr) | Overseerr-style music request and discovery built around Lidarr. |
+| [DroppedNeedle](https://github.com/DroppedNeedle/DroppedNeedle) | Music requests, discovery, playback, and a built-in library/download engine backed by slskd or Usenet. |
 | [SoulSync](https://github.com/Nezreka/SoulSync) | Hands-off acquisition: watchlist monitoring, multi-source downloads, rich tagging. |
 | [Kima Hub](https://github.com/Chevron7Locked/kima-hub) | Full music platform: streaming player, embedding similarity, podcasts. |
 | [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |

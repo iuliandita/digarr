@@ -1,6 +1,10 @@
 # Screenshots
 
-All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screenshots.ts` - see the header in that file for env vars.
+The checked-in screenshots were captured from v1.10.0 and use the Youtarr
+theme. The descriptions below reflect the current `develop`/`:nightly` UI when
+later features are not visible in an image. Capture a fresh set with
+`bun scripts/capture-screenshots.ts`; see that script's header for environment
+variables.
 
 ## Dashboard (dark)
 
@@ -18,7 +22,7 @@ All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screens
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
-Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, and Spotify Saved Albums. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
+Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
 
 ## Search
 
@@ -68,4 +72,4 @@ The current Settings > Targets flow also includes `slskd` target creation with a
 
 ## Settings > Blocked
 
-The screenshot capture script includes `settings-blocked.png` for the permanent artist blocklist tab added in `v0.44.0`.
+The screenshot capture script can produce `settings-blocked.png` for Settings > Blocked. That surface now includes separate permanent artist and album blocklists; no `settings-blocked.png` artifact is currently checked in.

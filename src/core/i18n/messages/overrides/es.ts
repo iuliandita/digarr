@@ -1,6 +1,35 @@
 import type { MessageCatalog } from '../types'
 
 export const esOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
+  'discoveryMode.subsonic-starred.label': 'Favoritos de Subsonic',
+  'streaming.playShort': 'REPRODUCIR',
+  'streaming.stopShort': 'DETENER',
+  'settings.metadataFallbackHelp':
+    'Se usa cuando el servidor de metadatos de Lidarr no está disponible. Por defecto es api.musicinfo.pro. Indica la URL de tu propia instancia de hearring-aid si la alojas tú mismo.',
+  'discoveryMode.field.helpConnectedAccount': 'Déjalo en blanco para usar tu cuenta conectada',
+  'discoveryMode.field.helpSimilarUsers':
+    'Número de usuarios similares de los que obtener los artistas principales (1-10)',
+  'discoveryMode.field.helpTags':
+    'Etiquetas de género o estilo para el descubrimiento. Añade varias etiquetas con pesos.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Sustituye el constructor de etiquetas por sintaxis directa de ListenBrainz, por ejemplo (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'El valor predeterminado es 25. Los valores mayores mejoran la diversidad, pero son más lentos por el límite de MusicBrainz (~1 segundo por grabación).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Excluye las grabaciones cuya popularidad sea inferior a este valor.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Excluye las grabaciones cuya popularidad sea superior a este valor.',
+  'setup.connectLidarr': 'Conectar Lidarr',
+  'setup.embyUrl': 'URL de Emby',
+  'setup.lidarrUrl': 'URL de Lidarr',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'setup.providerOpenAi': 'OpenAI',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Confirmar',
   'discover.filters': 'Filtros',
   'discover.filtersActive': 'Filtros ({0})',

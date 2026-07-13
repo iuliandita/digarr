@@ -712,7 +712,6 @@ export const ja = {
   'discoveryMode.reason.connectDeezer': 'このモードを使うには Deezer を接続してください。',
   'discoveryMode.reason.connectSpotify': 'このモードを使うには Spotify を接続してください。',
   'discoveryMode.reason.connectSubsonic': 'このモードを使うには Subsonic を接続してください。',
-  'discoveryMode.reason.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
   'discoveryMode.reason.libraryRequired':
@@ -747,6 +746,13 @@ export const ja = {
   'discoveryMode.option.japan': '日本',
   'discoveryMode.option.brazil': 'ブラジル',
   'discoveryMode.option.canada': 'カナダ',
+  'discoveryMode.option.memberOfBand': 'バンドのメンバー',
+  'discoveryMode.option.collaboration': 'コラボレーション',
+  'discoveryMode.option.supportingMusician': 'サポートミュージシャン',
+  'discoveryMode.option.isPerson': '人物',
+  'discoveryMode.option.sibling': 'きょうだい',
+  'discoveryMode.option.married': '配偶者',
+  'discoveryMode.option.involvedWith': '交際関係',
   'importArtists.title': 'アーティストのインポート',
   'importArtists.likedSongs': 'お気に入りの曲',
   'importArtists.likedSongsDescription': 'Spotify でいいねした曲のアーティストをインポートします',
@@ -841,7 +847,7 @@ export const ja = {
   'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
   'settings.aiPrivacyBadgeLocal': '完全にローカル',
   'settings.webhookDescription':
-    'スキャン完了通知（Discord、Slack、ntfy、Gotify、または任意の HTTP エンドポイント）',
+    'スキャン完了通知（Discord の埋め込みまたは公開 HTTPS エンドポイントへの未加工 JSON）',
   'settings.testWebhook': 'Webhook をテスト',
   'settings.sending': '送信中...',
   'settings.connectionsTip':
@@ -1245,7 +1251,6 @@ export const ja = {
   'rejectionReason.tried_didnt_like': '聴いてみたが好きじゃなかった',
   'rejectionReason.not_right_now': 'あとで、今ではない',
   'rejectionReason.other': 'その他',
-  'rejectionReason.unspecified': '理由なし',
   'settings.blocked.title': 'ブロック済みアーティスト',
   'settings.blocked.search': 'ブロック済みアーティストを検索',
   'settings.blocked.count_one': '{0} 件のアーティストがブロック済み',

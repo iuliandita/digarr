@@ -733,7 +733,6 @@ export const ru = {
   'discoveryMode.reason.connectDeezer': 'Подключите Deezer, чтобы использовать этот режим.',
   'discoveryMode.reason.connectSpotify': 'Подключите Spotify, чтобы использовать этот режим.',
   'discoveryMode.reason.connectSubsonic': 'Подключите Subsonic, чтобы использовать этот режим.',
-  'discoveryMode.reason.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',
   'discoveryMode.reason.libraryRequired':
@@ -768,6 +767,13 @@ export const ru = {
   'discoveryMode.option.japan': 'Япония',
   'discoveryMode.option.brazil': 'Бразилия',
   'discoveryMode.option.canada': 'Канада',
+  'discoveryMode.option.memberOfBand': 'Участник группы',
+  'discoveryMode.option.collaboration': 'Сотрудничество',
+  'discoveryMode.option.supportingMusician': 'Сессионный музыкант',
+  'discoveryMode.option.isPerson': 'Является человеком',
+  'discoveryMode.option.sibling': 'Брат или сестра',
+  'discoveryMode.option.married': 'В браке',
+  'discoveryMode.option.involvedWith': 'В отношениях с',
   'importArtists.title': 'Импорт исполнителей',
   'importArtists.likedSongs': 'Понравившиеся песни',
   'importArtists.likedSongsDescription': 'Импортировать исполнителей из понравившегося в Spotify',
@@ -863,7 +869,7 @@ export const ru = {
   'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.webhookDescription':
-    'Уведомления о завершении сканирования (Discord, Slack, ntfy, Gotify или любой HTTP-эндпоинт)',
+    'Уведомления о завершении сканирования (встроенные сообщения Discord или необработанный JSON на общедоступную конечную точку HTTPS)',
   'settings.testWebhook': 'Тест вебхука',
   'settings.sending': 'Отправка...',
   'settings.connectionsTip':
@@ -1261,7 +1267,6 @@ export const ru = {
   'rejectionReason.tried_didnt_like': 'Слушал, не понравилось',
   'rejectionReason.not_right_now': 'Может позже, не сейчас',
   'rejectionReason.other': 'Другое',
-  'rejectionReason.unspecified': 'Без причины',
   'settings.blocked.title': 'Заблокированные исполнители',
   'settings.blocked.search': 'Поиск заблокированных',
   'settings.blocked.count_one': '{0} исполнитель заблокирован',

@@ -572,9 +572,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load settings/i)).toBeInTheDocument()
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument()
     })
-    expect(screen.getByText('Retry')).toBeInTheDocument()
+    expect(screen.getByText(/Network error/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
   })
 
   it('shows Spotify import action when Spotify is connected', async () => {

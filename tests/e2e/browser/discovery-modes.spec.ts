@@ -199,7 +199,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await expect(
     page.getByRole('heading', { name: messages['discoveryMode.labels.label'] }),
   ).toBeVisible()
-  await expect(page.getByText(messages['discoveryMode.reason.notImplementedYet'])).toHaveCount(2)
+  await expect(page.getByText(messages['discoveryMode.notImplementedYet'])).toHaveCount(2)
 
   const releaseRadarCard = page
     .getByRole('heading', { name: messages['discoveryMode.release-radar.label'] })

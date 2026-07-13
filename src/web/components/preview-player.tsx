@@ -139,7 +139,7 @@ export function PreviewPlayer({
               width="100%"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-              title={`${artistName ?? 'Artist'} preview`}
+              title={artistName ?? sourceLabel ?? t('preview.loadingPreview')}
               className="rounded"
             />
           </div>

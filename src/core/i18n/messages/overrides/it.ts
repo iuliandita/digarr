@@ -1,6 +1,31 @@
 import type { MessageCatalog } from '../types'
 
 export const itOverrides: Partial<MessageCatalog> = {
+  'playlist.sourceLocal': 'Locale',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'discoveryMode.subsonic-starred.label': 'Preferiti Subsonic',
+  'streaming.playShort': 'RIPRODUCI',
+  'streaming.stopShort': 'INTERROMPI',
+  'artist.externalLinks.wikipedia': 'Wikipedia',
+  'artist.externalLinks.discogs': 'Discogs',
+  'artist.externalLinks.musicbrainz': 'MusicBrainz',
+  'discoveryMode.field.helpConnectedAccount': 'Lascia vuoto per usare il tuo account collegato',
+  'discoveryMode.field.helpSimilarUsers':
+    'Numero di utenti simili da cui recuperare gli artisti più ascoltati (1-10)',
+  'discoveryMode.field.helpTags':
+    'Tag di genere o stile da usare per la scoperta. Aggiungi più tag con pesi.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Sostituisci il generatore di tag con la sintassi diretta di ListenBrainz, ad esempio (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Il valore predefinito è 25. Valori più alti aumentano la varietà, ma sono più lenti per il limite di MusicBrainz (circa 1 secondo per registrazione).',
+  'discoveryMode.field.helpPopularityMin':
+    '0-100. Esclude le registrazioni con popolarità inferiore a questo valore.',
+  'discoveryMode.field.helpPopularityMax':
+    '0-100. Esclude le registrazioni con popolarità superiore a questo valore.',
+  'setup.embyUrl': 'URL di Emby',
+  'setup.providerAnthropic': 'Anthropic',
+  'setup.providerGemini': 'Google Gemini',
+  'recommendation.sourceListenBrainz': 'ListenBrainz',
   'common.confirm': 'Conferma',
   'discover.filters': 'Filtri',
   'discover.filtersActive': 'Filtri ({0})',
@@ -152,7 +177,6 @@ export const itOverrides: Partial<MessageCatalog> = {
   'settings.librarySyncIntervalHelp':
     'Controlla con quale frequenza Digarr aggiorna i dati di sincronizzazione della libreria e rilancia i controlli automaticamente.',
   'settings.app': 'Applicazione',
-  'settings.oidcSso': 'OIDC / SSO',
   'settings.fieldProvider': 'Fornitore',
   'settings.aiProviderTitle': 'Provider AI',
   'settings.webhookTitle': 'Integrazione webhook',

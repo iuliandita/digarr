@@ -9,8 +9,14 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ARTIST_EXTERNAL_LINK_KEYS } from '../src/core/artists/external-links'
+import { createDefaultDiscoveryModeRegistry } from '../src/core/discovery-modes/registry'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
-import { getMessages } from '../src/core/i18n/messages'
+import { getAuthoredMessages, getMessages } from '../src/core/i18n/messages'
+import { PROTECTED_I18N_TERMS } from '../src/core/i18n/protected-terms'
+import { REJECTION_REASONS } from '../src/core/recommendations/rejection-reasons'
+import { collectDiscoveryMessageKeys } from '../src/web/lib/discovery-i18n'
+import { validateTranslatedCatalog } from './i18n-machine-translate'
 
 // Markers that indicate stripped diacritics in the accented-language catalogs.
 // CI fails on any match so we cannot regress to ASCII-substituted spellings.
@@ -22,103 +28,133 @@ const ASCII_MARKERS: Record<string, RegExp> = {
   fr: /\b(demarrera)\b/,
   it: /\b(partira)\b/,
   'pt-BR': /\b(posicao|comecara|execucao)\b/,
-  ro: /\b(pozitia|incepe|dupa|curenta)\b/,
-  pl: /\b(sie|zakonczeniu|biezacego)\b/,
+  ro: /\b(pozitia|incepe|dupa|curenta|Daca|tau|ruleaza|Testeaza|restrange)\b/,
+  pl: /\b(sie|zakonczeniu|biezacego|zobacza|logowac|dostawce|feedow|najczesciej|sluchanego|gleboko|uzytkownikow|tagow|pasujacych|wydanicze|powiazane|sledzionymi|Siec|podobienstwa|wspolpracownikow|sasiednie|wytwornii|odsluchu|wydan|Odwaznosc|probkowania|wyrazenie|Popularnosc|celow|kazdym|Dziala|Wlacz|przyszle|sledzenie|istniejacych|sluchania|Wyzsze|wartosci|znajduja|Nizsze|Wspolczynnik|Zdjecia|pochodza|pelnia|uzyc|kierujac|zadania|zewnetrzne|dostepnego|Artysci|udalo|zapisac|ustawien|uruchamiac|tydzien|poniedzialek|Wlaczone|dostep|zrodel|Wlasny|podlaczona|usluga|haslo|Wlaczono|Usluga|dostepu|Haslo|hasla|miec|znakow)\b/,
+  tr: /\b(Is Geçmişi|acma|yapilandirin|giris|dugmesini|gorecek|Kullanicilarin|saglayicisiyla|Sanatci|sanatci|sanatcilar|sanatcilari|araciligiyla|kesfet|dinledigi|kullanicilarinin|eslesen|ettigin|baglantili|yayinlari|tabanli|grafigi|Iliskileri|Isbirlikleri|yakin|sirketi|kataloglari|uzerinden|Kitapligi|studyo|albumlerini|Muzik|bolgesel|Kisisellestirilmis|henuz|uygulanmadi|kullanilabilir|baglayin|Once|kaynagi|Yayin|saglayicilar|kullaniliyor|Sinir|Orneklenecek|kayitlar|Populerlik|Baslangic|Iliskiler|Calisma|basina|Bolge|Hizli|Guvenli|Birlesik|onayi|etkinlestir|Izleme|Tum|Yalnizca|yayin|Hicbiri|yalnizca|Gelismis|Sinirlar|suresi|Kutuphane|Kesfi|Kesfin|kadari|kutuphanenizden|gecmisinizden|oldugunuza|guvenir|orani|Gorsel|gorselleri|oncelikle|kaynagindan|kullanilir|anahtari|bagli|Ucretsiz|icin|bos|birakin|yonlendirerek|karsisinda|zenginlestirmesi|Oneri|kartlarinda|baglantilari|goster|Aciklama|degil|onbelleginde|aciklamalar|kapaliyken|Varsayilan|barindiriyorsaniz|ornek|ayarlari|calistirmak|programi|ayarlayin|populer|Ozel|goruntule|Yukleniyor|Gecersiz|Baglantilariniz|Baglantıyi|Sifreyi|Guncelleme|Guncel|Uygulamasi|olustur|onerileri|baglantisi|sifre|Degistiriliyor|yukleniyor|Goruntu|onbellegini|degistirildi|olmalidir|sifreyi|sifreler|uyusmuyor|olusturma)\b/,
 }
-
-// Key prefixes accessed via template literals in app code. Treat as
-// referenced so the orphan check doesn't flag every mode/stage key.
-const DYNAMIC_PREFIXES = [
-  'discoveryMode.',
-  'pipeline.stage.',
-  'pipeline.description.',
-  'artist.externalLinks.',
-  'libraryHealth.',
-  'rejectionReason.',
-]
 
 const referenceLocale = 'en'
 const referenceMessages = getMessages(referenceLocale)
-const SAME_AS_SOURCE_ALLOWLIST = new Set([
-  // "Volume" is the standard audio term and identical in fr/it/nl/pt-BR.
-  'Volume',
-  // "Album"/"Albums" are loanwords identical to English in several locales
-  // (fr/nl singular+plural; de/it/ro/pl singular).
-  'Album',
-  'Albums',
-  'Spotify',
-  'Deezer',
+const UNIVERSAL_SAME_AS_SOURCE_VALUES = new Set([
+  ...PROTECTED_I18N_TERMS,
   'Deezer Flow',
-  'Subsonic Starred',
-  'ListenBrainz',
-  'Last.fm',
-  'MusicBrainz',
-  'TheAudioDB',
-  'Wikidata',
-  'Wikipedia',
-  'Lidarr',
-  'Jellyfin',
-  'Emby',
-  'Plex',
-  'Navidrome',
-  'Discogs',
-  'OpenAI',
   'OpenAI-Compatible',
-  'OpenAI-compatible',
-  'Google Gemini',
-  'Anthropic',
-  'Ollama',
   'Ollama (local)',
-  'Groq',
-  'OpenRouter',
-  'LiteLLM',
-  'LocalAI',
-  'Discord',
-  'Slack',
-  'Gotify',
-  'ntfy',
-  'JSON',
-  'CSV',
-  'M3U',
-  'XSPF',
-  'MBID',
-  'UUID',
-  'URL',
-  'API',
-  'API Key',
   'N/A',
-  'spotify',
-  'deezer',
-  'musicbrainz',
-  'local',
-  'slskd',
-  'OIDC',
-  'SSO',
   'OIDC / SSO',
-  'HTTP',
-  'Digarr',
   'shoegaze',
   // Canonical email placeholder; a format example, identical across locales.
   'you@example.com',
   'Radiohead, Portishead, Massive Attack',
-  'Weekly Jams',
-  'PLAY',
-  'STOP',
-  // Country names that are identical in several locales (proper nouns / loanwords)
-  'Global',
-  'Japan',
-  'France',
-  'Canada',
-  'Charts',
-  'Region',
 ])
 
-function shouldFlagSameAsSource(value: string): boolean {
+// Natural-language loanwords and unchanged labels are exceptions only for the
+// locale and key where a native speaker would actually use the English form.
+const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
+  'es:discoveryMode.option.global',
+  'es:playlist.sourceLocal',
+  'fr:nav.albums',
+  'fr:discover.kind.albums',
+  'fr:recommendation.albumBadge',
+  'fr:discoveryMode.charts.label',
+  'fr:discoveryMode.option.france',
+  'fr:discoveryMode.option.canada',
+  'fr:discoveryMode.option.collaboration',
+  'fr:preview.volume',
+  'fr:playlist.sourceLocal',
+  'de:recommendation.albumBadge',
+  'de:discoveryMode.charts.label',
+  'de:discoveryMode.field.region',
+  'de:discoveryMode.option.global',
+  'de:discoveryMode.option.japan',
+  'pt-BR:discoveryMode.option.global',
+  'pt-BR:preview.volume',
+  'pt-BR:playlist.sourceLocal',
+  'it:recommendation.albumBadge',
+  'it:discoveryMode.option.canada',
+  'it:preview.volume',
+  'nl:nav.albums',
+  'nl:discover.kind.albums',
+  'nl:recommendation.albumBadge',
+  'nl:discoveryMode.option.japan',
+  'nl:discoveryMode.option.canada',
+  'nl:preview.volume',
+  'ro:recommendation.albumBadge',
+  'ro:discoveryMode.option.global',
+  'ro:discoveryMode.option.canada',
+  'ro:genres.artistCountSingular',
+  'ro:playlist.sourceLocal',
+  'pl:recommendation.albumBadge',
+  'pl:discoveryMode.field.region',
+  'tr:discoveryMode.option.global',
+  'ja:setup.embyUrl',
+  'ja:setup.lidarrUrl',
+  'ko:setup.embyUrl',
+  'ko:setup.lidarrUrl',
+  'zh-CN:setup.embyUrl',
+  'zh-CN:setup.lidarrUrl',
+])
+
+const UI_LITERAL_ALLOWLIST = new Set([
+  ...PROTECTED_I18N_TERMS,
+  'digarr',
+  'OpenAI-Compatible',
+  'j/k',
+  'openid profile email',
+])
+
+function shouldFlagUiLiteral(value: string): boolean {
+  const normalized = value
+    .replace(/\$\{[^}]*\}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!/[A-Za-z]{2}/.test(normalized)) return false
+  if (/^(?:[a-z]+:\/\/|\/)[^\s]+$/i.test(normalized)) return false
+  return !UI_LITERAL_ALLOWLIST.has(normalized)
+}
+
+export function findHardcodedUiStrings(file: string, source: string): string[] {
+  const issues: string[] = []
+  const add = (index: number, value: string) => {
+    const normalized = value.replace(/\s+/g, ' ').trim()
+    if (!shouldFlagUiLiteral(normalized)) return
+    const before = source.slice(0, index)
+    const line = before.split('\n').length
+    const lastNewline = before.lastIndexOf('\n')
+    const column = index - lastNewline
+    issues.push(`${file}:${line}:${column}: "${normalized}"`)
+  }
+
+  const patterns = [
+    /<([A-Za-z][\w.-]*)(?:\s[^>\n]*)?>([^<{]*[A-Za-z]{2}[^<{]*)<\/\1>/g,
+    /<((?:p|span|button|label|option|h[1-6]|div|a|li|td|th|strong|small|kbd))(?:\s[^>\n]*)?>\s*([A-Za-z][^<{\n]*?)\s*\{/g,
+    /<((?:p|span|button|label|option|h[1-6]|div|a|li|td|th|strong|small|kbd))(?:\s[^>\n]*)?>\s*\{[^}\n]+\}\s*([A-Za-z][^<{\n]*?)\s*<\/\1>/g,
+    /(<>)\s*([^<{]*[A-Za-z]{2}[^<{]*)<\/?>/g,
+    /\b(?:alt|aria-label|placeholder|title)\s*=\s*(["'])(.*?)\1/g,
+    /\b(?:alt|aria-label|placeholder|title)\s*=\s*\{\s*(`)([\s\S]*?)\1\s*\}/g,
+    /\b(?:toast\.(?:error|info|success|warning)|alert|confirm)\s*\(\s*(["'])(.*?)\1/g,
+    /\b(?:toast\.(?:error|info|success|warning)|alert|confirm)\s*\(\s*(`)([\s\S]*?)\1/g,
+    /\{\s*(["'])(.*?)\1\s*\}/g,
+    />\s*\{\s*(`)([\s\S]*?)\1\s*\}/g,
+  ]
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      const value = match[2]
+      if (value == null || match.index == null) continue
+      add(match.index + match[0].indexOf(value), value)
+    }
+  }
+  return issues
+}
+
+function shouldFlagSameAsSource(locale: string, key: string, value: string): boolean {
   if (!/[A-Za-z]/.test(value)) return false
-  return !SAME_AS_SOURCE_ALLOWLIST.has(value)
+  if (UNIVERSAL_SAME_AS_SOURCE_VALUES.has(value)) return false
+  return !LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST.has(`${locale}:${key}`)
 }
 
 export function findCatalogIssues(
+  locale: string,
   sourceCatalog: Record<string, string>,
   translatedCatalog: Record<string, string>,
 ) {
@@ -132,7 +168,7 @@ export function findCatalogIssues(
     const translatedValue = translatedCatalog[key]
     if (!sourceValue || !translatedValue) return false
     if (sourceValue !== translatedValue) return false
-    return shouldFlagSameAsSource(sourceValue)
+    return shouldFlagSameAsSource(locale, key, sourceValue)
   })
 
   return { missing, extra, empty, sameAsSource }
@@ -168,17 +204,15 @@ async function findOrphanedKeys(referenceKeys: string[]): Promise<string[]> {
   collectSourceFiles('src', files)
   const body = files.map((f) => readFileSync(f, 'utf8')).join('\n')
 
-  const confirmedDynamic = DYNAMIC_PREFIXES.filter((prefix) => {
-    const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(`\\b${escaped}\\$\\{`).test(body)
-  })
+  const exactDynamicKeys = new Set<string>([
+    ...ARTIST_EXTERNAL_LINK_KEYS.map((key) => `artist.externalLinks.${key}`),
+    ...REJECTION_REASONS.map((reason) => `rejectionReason.${reason}`),
+    ...collectDiscoveryMessageKeys(createDefaultDiscoveryModeRegistry().list()),
+  ])
 
   return referenceKeys.filter((key) => {
     if (body.includes(key)) return false
-    for (const prefix of confirmedDynamic) {
-      if (key.startsWith(prefix)) return false
-    }
-    return true
+    return !exactDynamicKeys.has(key)
   })
 }
 
@@ -186,17 +220,30 @@ export async function main(): Promise<void> {
   let failed = false
 
   for (const locale of SUPPORTED_LOCALES) {
-    const messages = getMessages(locale)
-    const { missing, extra, empty, sameAsSource } = findCatalogIssues(referenceMessages, messages)
+    const messages = getAuthoredMessages(locale) as Record<string, string>
+    const { missing, extra, empty, sameAsSource } = findCatalogIssues(
+      locale,
+      referenceMessages,
+      messages,
+    )
     const untranslated = locale === referenceLocale ? [] : sameAsSource
     const asciiHits = findAsciiMarkers(locale, messages)
+    let qualityError: string | null = null
+    if (locale !== referenceLocale) {
+      try {
+        validateTranslatedCatalog(referenceMessages, messages)
+      } catch (error) {
+        qualityError = error instanceof Error ? error.message : String(error)
+      }
+    }
 
     if (
       missing.length === 0 &&
       extra.length === 0 &&
       empty.length === 0 &&
       untranslated.length === 0 &&
-      asciiHits.length === 0
+      asciiHits.length === 0 &&
+      qualityError == null
     ) {
       continue
     }
@@ -208,6 +255,7 @@ export async function main(): Promise<void> {
     if (empty.length > 0) console.error(`  empty: ${empty.join(', ')}`)
     if (untranslated.length > 0) console.error(`  untranslated: ${untranslated.join(', ')}`)
     if (asciiHits.length > 0) console.error(`  ascii-stripped: ${asciiHits.join('; ')}`)
+    if (qualityError) console.error(`  quality: ${qualityError}`)
   }
 
   const orphans = await findOrphanedKeys(Object.keys(referenceMessages))
@@ -217,12 +265,23 @@ export async function main(): Promise<void> {
     for (const key of orphans) console.error(`  - ${key}`)
   }
 
+  const webFiles: string[] = []
+  collectSourceFiles('src/web', webFiles)
+  const hardcodedUi = webFiles.flatMap((file) =>
+    findHardcodedUiStrings(file, readFileSync(file, 'utf8')),
+  )
+  if (hardcodedUi.length > 0) {
+    failed = true
+    console.error('Hardcoded user-facing strings:')
+    for (const issue of hardcodedUi) console.error(`  - ${issue}`)
+  }
+
   if (failed) {
     process.exit(1)
   }
 
   console.log(
-    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no orphans or ASCII markers.`,
+    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no catalog, quality, orphan, ASCII-marker, or hardcoded-UI issues.`,
   )
 }
 
