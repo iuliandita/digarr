@@ -118,7 +118,11 @@ export function createApp(deps: AppDependencies) {
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          'https://open.spotify.com/embed/iframe-api/v1',
+          'https://embed-cdn.spotifycdn.com/_next/static/',
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
