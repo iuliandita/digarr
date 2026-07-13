@@ -316,7 +316,6 @@ export const it = {
   'discover.noPendingToClear': 'Nessuna raccomandazione in sospeso da cancellare',
   'discover.notEnoughFeedback':
     'Dati di feedback ancora insufficienti. Approva o rifiuta più consigli.',
-  'discover.of': 'di',
   'discover.queuedForRetry': 'In coda per un nuovo tentativo',
   'discover.rated': 'valutato',
   'discover.refreshData': 'Aggiorna dati',
@@ -330,6 +329,7 @@ export const it = {
     'Rifiutare tutti i consigli in sospeso? Questa operazione non può essere annullata.',
   'discover.rejectFailed': 'Impossibile rifiutare',
   'discover.rejectedCount': 'Rifiutato',
+  'discover.rescanComplete': 'Nuova scansione completata: aggiornamenti {0}/{1}; errori {2}.',
   'discover.rescanFailed': 'Nuova scansione non riuscita',
   'discover.restoreFailed': 'Impossibile ripristinare',
   'discover.restoredToPending': 'Ripristinato in sospeso',
@@ -351,7 +351,6 @@ export const it = {
   'discover.undo': 'Annulla',
   'discover.undoFailed': 'Annullamento non riuscito',
   'discover.undone': 'Annullato',
-  'discover.updatedArtists': 'Artisti aggiornati',
   'discover.viewGrid': 'Vista griglia',
   'discover.viewList': 'Vista elenco',
   'discover.viewStack': 'Vista a pila',

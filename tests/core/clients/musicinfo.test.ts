@@ -52,13 +52,11 @@ describe('createMusicinfoClient', () => {
     expect(result.logoUrl).toBeUndefined()
   })
 
-  it('returns undefined on server error', async () => {
-    fetchMock.mockResolvedValueOnce(new Response('Internal error', { status: 500 }))
+  it('propagates server errors so callers do not cache them as misses', async () => {
+    fetchMock.mockImplementation(async () => new Response('Internal error', { status: 500 }))
     const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
     const client = createMusicinfoClient('https://musicinfo.example')
-    const result = await client.lookupArtistImages('mbid-error')
-    expect(result.url).toBeUndefined()
-    expect(result.logoUrl).toBeUndefined()
+    await expect(client.lookupArtistImages('mbid-error')).rejects.toThrow('HTTP 500')
   })
 
   it('blocks redirects when using a user-configurable fallback host', async () => {
@@ -66,9 +64,7 @@ describe('createMusicinfoClient', () => {
 
     const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
     const client = createMusicinfoClient('https://musicinfo.example')
-    const result = await client.lookupArtistImages('mbid-redirect')
-
-    expect(result.url).toBeUndefined()
+    await expect(client.lookupArtistImages('mbid-redirect')).rejects.toThrow('Redirect blocked')
     expect(fetchMock).toHaveBeenCalledOnce()
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(init.redirect).toBe('manual')
@@ -77,9 +73,7 @@ describe('createMusicinfoClient', () => {
   it('rejects private fallback URLs before making a request', async () => {
     const { createMusicinfoClient } = await import('@/core/clients/musicinfo')
     const client = createMusicinfoClient('http://127.0.0.1:8787')
-    const result = await client.lookupArtistImages('mbid-private')
-
-    expect(result.url).toBeUndefined()
+    await expect(client.lookupArtistImages('mbid-private')).rejects.toThrow()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })

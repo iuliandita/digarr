@@ -380,6 +380,8 @@ export async function fetchArtistImage(
   fanart?: FanartClient | null,
   musicinfo?: MusicinfoClient | null,
 ): Promise<{ url?: string; logoUrl?: string; failed: boolean }> {
+  let audiodbCompleted = !audiodb
+
   // Primary: AudioDB (MBID first, then name search when MBID yields nothing).
   // A rate-limit error skips straight to the fallback chain (no name search).
   if (audiodb) {
@@ -390,6 +392,7 @@ export async function fetchArtistImage(
         const byName = await audiodb.searchArtistByName(name)
         if (byName.url) return { ...byName, failed: false }
       }
+      audiodbCompleted = true
     } catch (err) {
       if (!(err instanceof RateLimitedError)) {
         console.warn(`[resolve] audiodb image lookup failed for ${mbid}:`, err)
@@ -403,7 +406,8 @@ export async function fetchArtistImage(
   // priority order (Lidarr > fanart > musicinfo) to match the old short-circuit
   // winner while shaving the tail latency of the miss case.
   type Hit = { url?: string; logoUrl?: string }
-  const tasks: Array<{ priority: number; run: () => Promise<Hit | null> }> = []
+  type LookupOutcome = { hit: Hit | null; completed: boolean }
+  const tasks: Array<{ priority: number; run: () => Promise<LookupOutcome> }> = []
 
   if (lidarr) {
     tasks.push({
@@ -414,12 +418,12 @@ export async function fetchArtistImage(
           const artist = results[0] as { images?: ImageEntry[] } | undefined
           if (artist?.images?.length) {
             const extracted = extractImages(artist.images)
-            if (extracted.url) return extracted
+            if (extracted.url) return { hit: extracted, completed: true }
           }
-          return null
+          return { hit: null, completed: true }
         } catch (err) {
           console.warn(`[resolve] Lidarr image lookup failed for ${mbid}:`, err)
-          return null
+          return { hit: null, completed: false }
         }
       },
     })
@@ -431,11 +435,10 @@ export async function fetchArtistImage(
       run: async () => {
         try {
           const result = await fanart.getArtistImages(mbid)
-          if (result.url) return result
-          return null
+          return { hit: result.url ? result : null, completed: true }
         } catch (err) {
           console.warn(`[resolve] fanart.tv image lookup failed for ${mbid}:`, err)
-          return null
+          return { hit: null, completed: false }
         }
       },
     })
@@ -447,11 +450,10 @@ export async function fetchArtistImage(
       run: async () => {
         try {
           const result = await musicinfo.lookupArtistImages(mbid)
-          if (result.url) return result
-          return null
+          return { hit: result.url ? result : null, completed: true }
         } catch (err) {
           console.warn(`[resolve] musicinfo image lookup failed for ${mbid}:`, err)
-          return null
+          return { hit: null, completed: false }
         }
       },
     })
@@ -463,7 +465,7 @@ export async function fetchArtistImage(
       const result = settled[i]
       return {
         priority: task.priority,
-        value: result?.status === 'fulfilled' ? result.value : null,
+        value: result?.status === 'fulfilled' ? result.value.hit : null,
       }
     })
     .filter((candidate) => candidate.value?.url)
@@ -471,5 +473,12 @@ export async function fetchArtistImage(
 
   if (hit?.value) return { ...hit.value, failed: false }
 
-  return { failed: Boolean(lidarr ?? fanart ?? musicinfo) }
+  const hasConfiguredProvider = Boolean(audiodb ?? lidarr ?? fanart ?? musicinfo)
+  const allFallbacksCompleted = settled.every(
+    (result) => result.status === 'fulfilled' && result.value.completed,
+  )
+  const completeMiss = hasConfiguredProvider && audiodbCompleted && allFallbacksCompleted
+
+  if (!completeMiss) return { failed: false }
+  return { failed: !fanart && !musicinfo }
 }

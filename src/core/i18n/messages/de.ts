@@ -316,7 +316,6 @@ export const de = {
   'discover.noPendingToClear': 'Keine ausstehenden Empfehlungen zum Löschen',
   'discover.notEnoughFeedback':
     'Noch nicht genügend Rückmeldungsdaten. Weitere Empfehlungen genehmigen oder ablehnen.',
-  'discover.of': 'von',
   'discover.queuedForRetry': 'In der Warteschlange für einen erneuten Versuch',
   'discover.rated': 'bewertet',
   'discover.refreshData': 'Daten aktualisieren',
@@ -330,6 +329,7 @@ export const de = {
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',
   'discover.rejectFailed': 'Ablehnung fehlgeschlagen',
   'discover.rejectedCount': 'Abgelehnt',
+  'discover.rescanComplete': 'Neuscan abgeschlossen: {0}/{1} aktualisiert; {2} fehlgeschlagen.',
   'discover.rescanFailed': 'Der erneute Scan ist fehlgeschlagen',
   'discover.restoreFailed': 'Wiederherstellung fehlgeschlagen',
   'discover.restoredToPending': 'Auf „Ausstehend“ zurückgesetzt',
@@ -351,7 +351,6 @@ export const de = {
   'discover.undo': 'Rückgängig machen',
   'discover.undoFailed': 'Rückgängig machen fehlgeschlagen',
   'discover.undone': 'Rückgängig gemacht',
-  'discover.updatedArtists': 'Aktualisierte Künstler',
   'discover.viewGrid': 'Rasteransicht',
   'discover.viewList': 'Listenansicht',
   'discover.viewStack': 'Stapelansicht',

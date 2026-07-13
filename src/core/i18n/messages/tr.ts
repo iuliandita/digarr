@@ -315,7 +315,6 @@ export const tr = {
   'discover.noPendingToClear': 'Temizlenecek bekleyen öneri yok',
   'discover.notEnoughFeedback':
     'Henüz yeterli geri bildirim verisi yok. Daha fazla öneriyi onaylayın veya reddedin.',
-  'discover.of': 'arasında',
   'discover.queuedForRetry': 'Yeniden denemek için sıraya alındı',
   'discover.rated': 'derecelendirilmiş',
   'discover.refreshData': 'Verileri Yenile',
@@ -328,6 +327,7 @@ export const tr = {
   'discover.rejectAllPendingMessage': 'Bekleyen tüm öneriler reddedilsin mi? Bu geri alınamaz.',
   'discover.rejectFailed': 'Reddedilemedi',
   'discover.rejectedCount': 'Reddedildi',
+  'discover.rescanComplete': 'Yeniden tarama tamamlandı: {0}/{1} güncellendi; {2} başarısız.',
   'discover.rescanFailed': 'Yeniden tarama başarısız oldu',
   'discover.restoreFailed': 'Geri yüklenemedi',
   'discover.restoredToPending': 'Beklemede durumuna geri yüklendi',
@@ -348,7 +348,6 @@ export const tr = {
   'discover.undo': 'Geri al',
   'discover.undoFailed': 'Geri alma başarısız oldu',
   'discover.undone': 'Geri alındı',
-  'discover.updatedArtists': 'Güncellenen sanatçılar',
   'discover.viewGrid': 'Izgara görünümü',
   'discover.viewList': 'Liste görünümü',
   'discover.viewStack': 'Yığın görünümü',

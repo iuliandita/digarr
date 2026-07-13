@@ -1,11 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
-import { createAudiodbClient } from '@/core/clients/audiodb'
-import { createFanartClient } from '@/core/clients/fanart'
-import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
-import { createMusicinfoClient } from '@/core/clients/musicinfo'
-import { decryptField } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
@@ -30,6 +25,7 @@ import { discover } from './discover'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
 import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
+import { createArtistImageClients } from './image-clients'
 import { resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
@@ -162,29 +158,12 @@ export class PipelineOrchestrator extends EventEmitter {
         }
       }
 
-      const lidarrClient =
-        settings.lidarrUrl && settings.lidarrApiKey
-          ? createLidarrClient(settings.lidarrUrl, settings.lidarrApiKey, settings.skipTlsVerify)
-          : null
-
-      const audiodbApiKey = decryptField(settings.audiodbApiKey ?? null) ?? undefined
-      const audiodbClient = db.tryConsumeRateLimit
-        ? createAudiodbClient({
-            apiKey: audiodbApiKey,
-            tryConsume: () =>
-              db.tryConsumeRateLimit?.('audiodb', {
-                capacity: 30,
-                refillPerMs: 30 / 60_000,
-              }) ?? Promise.resolve(false),
-          })
-        : null
-
-      const fanartApiKey = decryptField(prefs.fanartApiKey) ?? null
-      const fanartClient = fanartApiKey ? createFanartClient(fanartApiKey) : null
-
-      const musicinfoClient = prefs.metadataFallbackUrl
-        ? createMusicinfoClient(prefs.metadataFallbackUrl)
-        : null
+      const { audiodbClient, lidarrClient, fanartClient, musicinfoClient } =
+        createArtistImageClients({
+          settings,
+          preferences: prefs,
+          tryConsumeRateLimit: db.tryConsumeRateLimit,
+        })
 
       // Listening connections are always user-scoped.
       const { userConnections } = deps

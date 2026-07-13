@@ -16,8 +16,9 @@ import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
 import { filter } from '@/core/pipeline/filter'
+import { createArtistImageClients } from '@/core/pipeline/image-clients'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
-import { resolve } from '@/core/pipeline/resolve'
+import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
 import { resolveSpotifyToken } from '@/core/spotify-auth'
@@ -30,10 +31,13 @@ import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestLocale } from '@/server/locale'
+import { adminGuard } from '@/server/middleware/admin-guard'
 import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pipeline'
 import { zJson } from '@/server/schemas/validator'
 import { createPipelineSSEStream } from '@/server/sse'
 import type { HonoEnv } from '@/server/types'
+
+let rescanRunning = false
 
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -457,90 +461,117 @@ export function pipelineRoutes(deps: AppDependencies) {
     })
   })
 
-  // Re-resolve existing artists to update images/metadata
-  // Non-admin by design, same rationale as /pipeline/run above: any authenticated
-  // user may re-fetch images/metadata for existing recommendations.
-  router.post('/api/v1/pipeline/rescan', async (c) => {
-    const settings = await deps.getSettings()
-    if (!settings?.lidarrUrl || !settings?.lidarrApiKey) {
-      return c.json({ error: 'Lidarr not configured' }, 400)
+  router.post('/api/v1/pipeline/rescan', adminGuard(deps.getUserById), async (c) => {
+    if (rescanRunning) {
+      return problem(c, 'pipeline-rescan-running', 'Artist metadata rescan already running', 409)
     }
+    rescanRunning = true
 
-    const lidarr = createLidarrClient(
-      settings.lidarrUrl as string,
-      settings.lidarrApiKey as string,
-      (settings.skipTlsVerify as boolean) ?? false,
-    )
-    const mb = createMusicBrainzClient()
-
-    const NEGATIVE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
-
-    // Get this user's artists missing images, respecting the negative cache TTL
-    const userId = c.get('userId')
-    const allRecs = await deps.listRecommendations({ limit: 200, userId })
-    const artistsToUpdate = allRecs.items.filter((r: Record<string, unknown>) => {
-      const artist = r.artist as Record<string, unknown> | undefined
-      if (!artist) return false
-      if (artist.imageUrl) return false // already has an image
-      const failedAt = artist.imageFailedAt as string | null | undefined
-      if (!failedAt) return true // never tried
-      return Date.now() - new Date(failedAt).getTime() > NEGATIVE_CACHE_TTL_MS
-    })
-
-    let updated = 0
-    for (const rec of artistsToUpdate) {
-      const artist = rec.artist as Record<string, unknown>
-      const mbid = artist.mbid as string
-      if (!mbid) continue
-
-      try {
-        // Fetch image from Lidarr lookup
-        const results = await lidarr.lookupArtist(`lidarr:${mbid}`)
-        const result = results[0] as Record<string, unknown> | undefined
-        const images = (result?.images ?? []) as Array<{ coverType: string; remoteUrl?: string }>
-        const img =
-          images.find((i) => i.coverType === 'poster' && i.remoteUrl) ??
-          images.find((i) => i.coverType === 'fanart' && i.remoteUrl) ??
-          images.find((i) => i.remoteUrl)
-
-        if (img?.remoteUrl) {
-          await upsertArtist(deps.db, {
-            mbid,
-            name: artist.name as string,
-            imageUrl: img.remoteUrl,
-          })
-          updated++
-        } else {
-          // No image found - refresh the negative cache TTL
-          await upsertArtist(deps.db, {
-            mbid,
-            name: artist.name as string,
-            imageFailed: true,
-          })
-        }
-
-        // Also update disambiguation from MB if missing
-        if (!artist.disambiguation) {
-          try {
-            const mbArtist = await mb.lookupArtist(mbid)
-            if (mbArtist.disambiguation) {
-              await upsertArtist(deps.db, {
-                mbid,
-                name: artist.name as string,
-                disambiguation: mbArtist.disambiguation,
-                imageUrl: (artist.imageUrl as string) ?? img?.remoteUrl,
-              })
-            }
-          } catch (err: unknown) {
-            console.warn('MusicBrainz disambiguation lookup failed:', errMsg(err))
-          }
-        }
-      } catch (err: unknown) {
-        console.warn('Rescan failed for artist:', errMsg(err))
+    try {
+      const settings = await deps.getSettings()
+      if (!settings) {
+        return c.json({ error: 'Settings not found' }, 400)
       }
-    }
 
-    return c.json({ updated, total: artistsToUpdate.length })
+      const userId = c.get('userId')
+      const preferences = mergePreferences(
+        await resolveUserPreferences(deps.getUserById, settings.preferences, userId),
+      )
+      const {
+        audiodbClient: audiodb,
+        lidarrClient: lidarr,
+        fanartClient: fanart,
+        musicinfoClient: musicinfo,
+      } = createArtistImageClients({
+        settings,
+        preferences,
+        tryConsumeRateLimit: deps.storeDb.tryConsumeRateLimit,
+      })
+
+      if (!audiodb && !lidarr && !fanart && !musicinfo) {
+        return c.json({ error: 'No artist image sources configured' }, 400)
+      }
+      const hasUserScopedImageSources = Boolean(fanart || musicinfo)
+
+      const mb = createMusicBrainzClient()
+
+      const NEGATIVE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+      // Get this user's artists missing images, respecting the negative cache TTL
+      const allRecs = await deps.listRecommendations({ limit: 200, userId })
+      const artistsToUpdate = new Map<string, Record<string, unknown>>()
+      for (const rec of allRecs.items) {
+        const r = rec as Record<string, unknown>
+        const artist = r.artist as Record<string, unknown> | undefined
+        if (!artist) continue
+        const mbid = artist.mbid as string | undefined
+        if (!mbid || artist.imageUrl || artistsToUpdate.has(mbid)) continue
+        const failedAt = artist.imageFailedAt as string | null | undefined
+        if (
+          !hasUserScopedImageSources &&
+          failedAt &&
+          Date.now() - new Date(failedAt).getTime() <= NEGATIVE_CACHE_TTL_MS
+        ) {
+          continue
+        }
+        artistsToUpdate.set(mbid, artist)
+      }
+
+      let attempted = 0
+      let updated = 0
+      let failed = 0
+      for (const [mbid, artist] of artistsToUpdate) {
+        attempted++
+        const name = artist.name as string
+        const [imageOutcome, metadataOutcome] = await Promise.allSettled([
+          fetchArtistImage(mbid, name, audiodb, lidarr, fanart, musicinfo),
+          artist.disambiguation ? Promise.resolve(null) : mb.lookupArtist(mbid),
+        ])
+
+        if (metadataOutcome.status === 'rejected') {
+          console.warn('MusicBrainz disambiguation lookup failed:', errMsg(metadataOutcome.reason))
+        }
+        if (imageOutcome.status === 'rejected') {
+          console.warn('Rescan image lookup failed for artist:', errMsg(imageOutcome.reason))
+        }
+
+        const image = imageOutcome.status === 'fulfilled' ? imageOutcome.value : null
+        const mbArtist = metadataOutcome.status === 'fulfilled' ? metadataOutcome.value : null
+        const disambiguation = mbArtist?.disambiguation || undefined
+
+        try {
+          if (image?.url) {
+            await upsertArtist(deps.db, {
+              mbid,
+              name,
+              imageUrl: image.url,
+              logoUrl: image.logoUrl,
+              disambiguation,
+            })
+            updated++
+            continue
+          }
+
+          failed++
+          const cacheableImageFailure = image?.failed ?? false
+          if (cacheableImageFailure || disambiguation) {
+            await upsertArtist(deps.db, {
+              mbid,
+              name,
+              disambiguation,
+              imageFailed: cacheableImageFailure || undefined,
+            })
+          }
+        } catch (err: unknown) {
+          if (image?.url) failed++
+          console.warn('Rescan update failed for artist:', errMsg(err))
+        }
+      }
+
+      return c.json({ attempted, updated, failed, total: attempted })
+    } finally {
+      rescanRunning = false
+    }
   })
 
   return router

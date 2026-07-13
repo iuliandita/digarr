@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import { RateLimitedError } from '@/core/clients/audiodb'
 import type { MBArtist } from '@/core/clients/musicbrainz'
 import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import type { DiscoveredArtist } from '@/core/types'
@@ -822,7 +823,44 @@ describe('fetchArtistImage', () => {
     warn.mockRestore()
   })
 
-  it('reports failed when AudioDB and all configured fallbacks miss', async () => {
+  it('does not cache a partial miss when another shared provider fails', async () => {
+    const audiodb = makeAudiodb({})
+    const lidarr = { lookupArtist: vi.fn().mockRejectedValue(new Error('lidarr down')) }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      null,
+      null,
+    )
+
+    expect(result).toEqual({ failed: false })
+    warn.mockRestore()
+  })
+
+  it('does not cache fallback misses when AudioDB was rate-limited', async () => {
+    const audiodb = {
+      getArtistImages: vi.fn().mockRejectedValue(new RateLimitedError()),
+      searchArtistByName: vi.fn(),
+    }
+    const lidarr = makeLidarr([])
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      audiodb as never,
+      lidarr as never,
+      null,
+      null,
+    )
+
+    expect(result).toEqual({ failed: false })
+  })
+
+  it('does not share a negative cache when a user-scoped fallback misses', async () => {
     const audiodb = makeAudiodb({})
     const lidarr = makeLidarr([])
     const fanart = makeFanart({})
@@ -837,6 +875,30 @@ describe('fetchArtistImage', () => {
       musicinfo as never,
     )
 
+    expect(result).toEqual({ failed: false })
+  })
+
+  it('reports failed when AudioDB is the only configured source and misses', async () => {
+    const audiodb = makeAudiodb({})
+
+    const result = await fetchArtistImage(MBID, 'Test Artist', audiodb as never)
+
     expect(result).toEqual({ failed: true })
+  })
+
+  it('does not create a shared negative cache from user-scoped provider misses', async () => {
+    const lidarr = makeLidarr([])
+    const fanart = makeFanart({})
+
+    const result = await fetchArtistImage(
+      MBID,
+      'Test Artist',
+      null,
+      lidarr as never,
+      fanart as never,
+      null,
+    )
+
+    expect(result).toEqual({ failed: false })
   })
 })

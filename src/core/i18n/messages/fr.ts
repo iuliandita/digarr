@@ -316,7 +316,6 @@ export const fr = {
   'discover.noPendingToClear': 'Aucune recommandation en attente à effacer',
   'discover.notEnoughFeedback':
     'Pas encore assez de données de feedback. Approuvez ou rejetez d’autres recommandations.',
-  'discover.of': 'de',
   'discover.queuedForRetry': 'En attente de nouvelle tentative',
   'discover.rated': 'noté',
   'discover.refreshData': 'Actualiser les données',
@@ -330,6 +329,7 @@ export const fr = {
     'Refuser toutes les recommandations en attente ? Cela ne peut pas être annulé.',
   'discover.rejectFailed': 'Échec du rejet',
   'discover.rejectedCount': 'Rejeté',
+  'discover.rescanComplete': 'Nouvelle analyse terminée : mises à jour {0}/{1} ; échecs {2}.',
   'discover.rescanFailed': 'Échec de la nouvelle analyse',
   'discover.restoreFailed': 'Échec de la restauration',
   'discover.restoredToPending': 'Restauré en attente',
@@ -350,7 +350,6 @@ export const fr = {
   'discover.undo': 'Annuler',
   'discover.undoFailed': "Échec de l'annulation",
   'discover.undone': 'Annulé',
-  'discover.updatedArtists': 'Artistes mis à jour',
   'discover.viewGrid': 'Vue en grille',
   'discover.viewList': 'Vue en liste',
   'discover.viewStack': 'Vue empilée',

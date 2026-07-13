@@ -315,7 +315,6 @@ export const ja = {
   'discover.noPendingToClear': 'クリアすべき保留中の推奨事項はありません',
   'discover.notEnoughFeedback':
     'まだ十分なフィードバック データがありません。さらに多くの推奨事項を承認または拒否します。',
-  'discover.of': 'の',
   'discover.queuedForRetry': '再試行のためにキューに入れられました',
   'discover.rated': '評価された',
   'discover.refreshData': 'データを更新する',
@@ -329,6 +328,7 @@ export const ja = {
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',
   'discover.rejectFailed': '拒否できませんでした',
   'discover.rejectedCount': '拒否されました',
+  'discover.rescanComplete': '再スキャン完了: 更新 {0}/{1}、失敗 {2}。',
   'discover.rescanFailed': '再スキャンに失敗しました',
   'discover.restoreFailed': '復元に失敗しました',
   'discover.restoredToPending': '保留状態に戻りました',
@@ -350,7 +350,6 @@ export const ja = {
   'discover.undo': '元に戻す',
   'discover.undoFailed': '元に戻すことができませんでした',
   'discover.undone': '元に戻す',
-  'discover.updatedArtists': 'アーティストを更新しました',
   'discover.viewGrid': 'グリッド表示',
   'discover.viewList': 'リスト表示',
   'discover.viewStack': 'スタック表示',

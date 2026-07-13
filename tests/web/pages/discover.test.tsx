@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
@@ -72,6 +73,8 @@ vi.mock('@/web/lib/api', () => ({
   listTargets: vi.fn().mockResolvedValue([]),
   exportRecommendations: vi.fn(),
   getUserPreferences: vi.fn().mockResolvedValue({}),
+  getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: true }),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: true }),
   getLidarrProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Any' }]),
   getLidarrMetadataProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Standard' }]),
   getLidarrRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music', freeSpace: 0 }]),
@@ -81,9 +84,12 @@ import {
   approveRecommendation,
   approveToTarget,
   bulkAction,
+  getAuthStatus,
+  getCurrentUser,
   getRecommendations,
   getWarmStatuses,
   listTargets,
+  rescanArtists,
   updateRecommendation,
 } from '@/web/lib/api'
 
@@ -92,7 +98,10 @@ const mockGetRecommendations = getRecommendations as ReturnType<typeof vi.fn>
 const mockUpdateRecommendation = updateRecommendation as ReturnType<typeof vi.fn>
 const mockApproveRecommendation = approveRecommendation as ReturnType<typeof vi.fn>
 const mockBulkAction = bulkAction as ReturnType<typeof vi.fn>
+const mockGetAuthStatus = getAuthStatus as ReturnType<typeof vi.fn>
+const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
 const mockListTargets = listTargets as ReturnType<typeof vi.fn>
+const mockRescanArtists = rescanArtists as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -157,6 +166,8 @@ import { DiscoverPage } from '@/web/pages/discover'
 describe('DiscoverPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
+    mockGetCurrentUser.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true })
     const storage = new Map<string, string>()
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
@@ -397,6 +408,49 @@ describe('DiscoverPage', () => {
         return p?.status === 'pending' && Number(p.limit) > 200
       }),
     ).toBe(false)
+  })
+
+  it('reports attempted, updated, and failed artist counts after a rescan', async () => {
+    setupMockApi()
+    mockRescanArtists.mockResolvedValue({ attempted: 3, updated: 2, failed: 1, total: 3 })
+    const toastPromise = vi
+      .spyOn(toast, 'promise')
+      .mockImplementation(() => ({ unwrap: async () => undefined }))
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Refresh Data' }))
+
+    expect(mockRescanArtists).toHaveBeenCalledTimes(1)
+    const options = toastPromise.mock.calls[0]?.[1] as {
+      success: (result: { attempted: number; updated: number; failed: number }) => string
+    }
+    expect(options.success({ attempted: 3, updated: 2, failed: 1 })).toBe(
+      'Rescan complete: 2/3 updated; 1 failed.',
+    )
+  })
+
+  it('hides shared metadata refresh from non-admin users', async () => {
+    setupMockApi()
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: false })
+    mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'user', isAdmin: false })
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+
+    expect(screen.queryByRole('menuitem', { name: 'Refresh Data' })).not.toBeInTheDocument()
+  })
+
+  it('shows shared metadata refresh to cookie-authenticated admins', async () => {
+    setupMockApi()
+    mockGetCurrentUser.mockResolvedValue(null)
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
+    renderWithQuery(<DiscoverPage />)
+
+    await waitFor(() => expect(mockGetAuthStatus).toHaveBeenCalled())
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+
+    expect(await screen.findByRole('menuitem', { name: 'Refresh Data' })).toBeInTheDocument()
   })
 
   it('reject button calls updateRecommendation', async () => {

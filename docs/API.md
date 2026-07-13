@@ -150,16 +150,31 @@ Setup validation rules:
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
-| POST | `/api/v1/pipeline/rescan` | Yes | Re-fetch images/metadata for existing recommendations |
+| POST | `/api/v1/pipeline/rescan` | Admin | Re-fetch images/metadata for up to 200 existing recommendations. Deduplicates artists, safely reuses shared-provider misses for seven days, and returns `{ attempted, updated, failed, total }` (`total` is a compatibility alias for `attempted`). Rate limited to 2/min; concurrent rescans return 409. |
 
-`POST /api/v1/pipeline/run` and `/api/v1/pipeline/rescan` are intentionally
-available to any authenticated user (not admin-only): "Run Scan" is a core
-regular-user action on the dashboard and discover screens. The orchestrator is
-single-flight (one run at a time, shared API/RAM budgets), but a run requested
-while one is active is **queued FIFO**, not rejected: the response is still 202
-with `queued: true` and the caller's 1-based `position`. A given user is deduped
-(a double-click does not stack two runs). The queue drains automatically when
-the active run finishes. The queue is in-memory and per-process.
+`POST /api/v1/pipeline/run` is intentionally available to any authenticated
+user: "Run Scan" is a core regular-user action on the dashboard and discover
+screens. The orchestrator is single-flight (one run at a time, shared API/RAM
+budgets), but a run requested while one is active is **queued FIFO**, not
+rejected: the response is still 202 with `queued: true` and the caller's 1-based
+`position`. A given user is deduped (a double-click does not stack two runs).
+The queue drains automatically when the active run finishes. The queue is
+in-memory and per-process.
+
+`POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
+metadata using the requesting admin's configured providers. It runs one rescan
+at a time and processes artists sequentially, bounding upstream concurrency and
+preventing overlapping calls from multiplying shared provider traffic.
+
+The rescan image policy matches normal discovery: TheAudioDB runs first. On a
+miss, the configured Lidarr/SkyHook, fanart.tv, and musicinfo.pro fallbacks run
+concurrently; results still prefer Lidarr, then fanart.tv, then musicinfo.pro.
+A failed fallback does not stop the remaining image providers or the independent
+MusicBrainz disambiguation refresh. Complete misses from the globally shared
+AudioDB/Lidarr configuration refresh the seven-day negative cache so repeated
+rescans do not immediately repeat the same work. User-scoped fanart.tv or
+musicinfo.pro configurations bypass that shared cache, and transient or
+rate-limited lookups are not cached as misses.
 
 **POST /api/v1/pipeline/quick-discover** body:
 ```json

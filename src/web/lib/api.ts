@@ -257,7 +257,10 @@ export const getPipelineStatus = () =>
     lastRun?: unknown
   }>('/pipeline/status')
 export const rescanArtists = () =>
-  fetchApi<{ updated: number; total: number }>('/pipeline/rescan', { method: 'POST' })
+  fetchApi<{ attempted: number; updated: number; failed: number; total: number }>(
+    '/pipeline/rescan',
+    { method: 'POST' },
+  )
 
 // Recommendations
 export const getRecommendations = (params?: Record<string, string>) => {

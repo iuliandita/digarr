@@ -83,10 +83,8 @@ describe('createFanartClient', () => {
     expect(result.logoUrl).toBeUndefined()
   })
 
-  it('returns undefined URLs on server error', async () => {
+  it('propagates server errors so callers do not cache them as misses', async () => {
     const client = createFanartClient('test-key', baseUrl)
-    const result = await client.getArtistImages('mbid-error')
-    expect(result.url).toBeUndefined()
-    expect(result.logoUrl).toBeUndefined()
+    await expect(client.getArtistImages('mbid-error')).rejects.toThrow('HTTP 500')
   })
 })
