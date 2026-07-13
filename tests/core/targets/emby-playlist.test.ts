@@ -3,6 +3,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmbyPlaylistTarget } from '@/core/targets/emby-playlist'
 
+function ok(body: unknown): Response {
+  return new Response(JSON.stringify(body))
+}
+
 describe('createEmbyPlaylistTarget', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -13,16 +17,10 @@ describe('createEmbyPlaylistTarget', () => {
       'fetch',
       vi
         .fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            Items: [{ Id: 'track-1', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' }],
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ Id: 'playlist-1', Name: 'Weekly Discoveries' }),
-        }),
+        .mockResolvedValueOnce(
+          ok({ Items: [{ Id: 'track-1', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' }] }),
+        )
+        .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' })),
     )
 
     const target = createEmbyPlaylistTarget(9, {
@@ -46,19 +44,15 @@ describe('createEmbyPlaylistTarget', () => {
   it('prefers an exact title+artist match instead of the first near-match', async () => {
     const fetchMock = vi.fn()
     fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      .mockResolvedValueOnce(
+        ok({
           Items: [
             { Id: 'partial', Name: 'Roygbiv (Live)', AlbumArtist: 'Boards of Canada' },
             { Id: 'exact', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' },
           ],
         }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ Id: 'playlist-1', Name: 'Weekly Discoveries' }),
-      })
+      )
+      .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
     vi.stubGlobal('fetch', fetchMock)
 
     const target = createEmbyPlaylistTarget(9, {
@@ -80,14 +74,8 @@ describe('createEmbyPlaylistTarget', () => {
   it('passes Bun TLS skip options when configured', async () => {
     const fetchMock = vi.fn()
     fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ Items: [] }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ Id: 'playlist-1', Name: 'Weekly Discoveries' }),
-      })
+      .mockResolvedValueOnce(ok({ Items: [] }))
+      .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
     vi.stubGlobal('fetch', fetchMock)
 
     const target = createEmbyPlaylistTarget(9, {
@@ -108,13 +96,12 @@ describe('createEmbyPlaylistTarget', () => {
   it('skips a track when its search request fails', async () => {
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockRejectedValueOnce(new Error('search transport failed'))
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ Id: 'playlist-1', Name: 'Weekly Discoveries' }),
-        }),
+      vi.fn().mockImplementation((url: string | URL | Request, init?: RequestInit) => {
+        if (String(url).includes('/Items') && (!init?.method || init.method === 'GET')) {
+          return Promise.reject(new Error('search transport failed'))
+        }
+        return Promise.resolve(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
+      }),
     )
 
     const target = createEmbyPlaylistTarget(9, {
@@ -131,13 +118,7 @@ describe('createEmbyPlaylistTarget', () => {
   })
 
   it('fails when Emby does not return a playlist ID', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ Name: 'Weekly Discoveries' }),
-      }),
-    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ Name: 'Weekly Discoveries' })))
 
     const target = createEmbyPlaylistTarget(9, {
       url: 'http://emby:8096',
@@ -154,14 +135,12 @@ describe('createEmbyPlaylistTarget', () => {
   })
 
   it('retains the Emby response body in API errors', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValueOnce({
-        ok: false,
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response('playlist database unavailable', {
         status: 500,
-        text: async () => 'playlist database unavailable',
       }),
     )
+    vi.stubGlobal('fetch', fetchMock)
 
     const target = createEmbyPlaylistTarget(9, {
       url: 'http://emby:8096',
@@ -174,6 +153,24 @@ describe('createEmbyPlaylistTarget', () => {
     expect(result).toMatchObject({
       success: false,
       error: 'Emby API 500: playlist database unavailable',
+    })
+    expect(fetchMock).toHaveBeenCalledOnce()
+  })
+
+  it('returns a provider-shaped error for malformed JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('not-json')))
+
+    const target = createEmbyPlaylistTarget(9, {
+      url: 'http://emby:8096',
+      apiKey: 'key',
+      userId: 'user-1',
+    })
+
+    const result = await target.createPlaylist?.('Weekly Discoveries', [])
+
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Emby API 200: Invalid JSON: not-json',
     })
   })
 })

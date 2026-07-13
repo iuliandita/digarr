@@ -1,3 +1,4 @@
+import { createHttpClient, HttpError } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { pickBestTrackMatch } from './playlist-match'
@@ -28,46 +29,44 @@ type PlexPlaylistCreateResponse = {
   }
 }
 
-async function plexFetch<T>(
-  baseUrl: string,
-  token: string,
-  path: string,
-  options?: { method?: string; body?: URLSearchParams },
-): Promise<T> {
-  const url = `${baseUrl.replace(/\/+$/, '')}${path}`
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 10_000)
-  let res: Response
-  try {
-    res = await fetch(url, {
-      method: options?.method ?? 'GET',
-      headers: {
-        'X-Plex-Token': token,
-        Accept: 'application/json',
-      },
-      body: options?.body,
-      signal: controller.signal,
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Plex API ${res.status}: ${text}`)
-  }
-  return (await res.json()) as T
-}
-
 export function createPlexPlaylistTarget(
   targetId: number,
   config: PlexPlaylistConfig,
 ): DestinationTarget {
   const { url, token } = config
+  const client = createHttpClient({
+    baseUrl: url.replace(/\/+$/, ''),
+    headers: { 'X-Plex-Token': token, Accept: 'application/json' },
+    timeout: 10_000,
+  })
+
+  function rethrowPlexError(error: unknown): never {
+    if (error instanceof HttpError) {
+      throw new Error(`Plex API ${error.status}: ${error.body.replaceAll(token, '[REDACTED]')}`)
+    }
+    throw error
+  }
+
+  async function get<T>(path: string): Promise<T> {
+    try {
+      return await client.get<T>(path)
+    } catch (error) {
+      rethrowPlexError(error)
+    }
+  }
+
+  async function postOnce<T>(path: string): Promise<T> {
+    try {
+      return await client.post<T>(path, undefined, { retries: 0 })
+    } catch (error) {
+      rethrowPlexError(error)
+    }
+  }
 
   async function getMusicMachineId(): Promise<string> {
-    const res = await plexFetch<{
+    const res = await get<{
       MediaContainer: { machineIdentifier: string }
-    }>(url, token, '/')
+    }>('/')
     return res.MediaContainer.machineIdentifier
   }
 
@@ -77,11 +76,7 @@ export function createPlexPlaylistTarget(
         query: `${artistName} ${trackName}`,
         limit: '5',
       })
-      const res = await plexFetch<PlexHubSearchResponse>(
-        url,
-        token,
-        `/hubs/search?${params.toString()}`,
-      )
+      const res = await get<PlexHubSearchResponse>(`/hubs/search?${params.toString()}`)
 
       const hubs = res.MediaContainer.Hub ?? []
       const trackHub = hubs.find((h) => h.type === 'track')
@@ -132,12 +127,7 @@ export function createPlexPlaylistTarget(
         const uriParam = uris.map((u) => `uri=${encodeURIComponent(u)}`).join('&')
         const qs = uris.length > 0 ? `${baseParams.toString()}&${uriParam}` : baseParams.toString()
 
-        const created = await plexFetch<PlexPlaylistCreateResponse>(
-          url,
-          token,
-          `/playlists?${qs}`,
-          { method: 'POST' },
-        )
+        const created = await postOnce<PlexPlaylistCreateResponse>(`/playlists?${qs}`)
 
         const playlist = created.MediaContainer.Metadata?.[0]
         if (!playlist) {
@@ -164,9 +154,9 @@ export function createPlexPlaylistTarget(
 
     async testConnection(): Promise<ServiceTestResult> {
       try {
-        const res = await plexFetch<{
+        const res = await get<{
           MediaContainer: { friendlyName?: string; version?: string; machineIdentifier: string }
-        }>(url, token, '/')
+        }>('/')
         const info = res.MediaContainer
         const label = info.friendlyName ?? info.machineIdentifier
         return {

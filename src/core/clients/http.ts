@@ -33,6 +33,10 @@ type HttpClientConfig = {
   onRequest?: (method: string, url: string) => void
 }
 
+export type HttpRequestOptions = {
+  retries?: number
+}
+
 export function createHttpClient(config: HttpClientConfig) {
   const {
     baseUrl,
@@ -45,11 +49,17 @@ export function createHttpClient(config: HttpClientConfig) {
     onRequest,
   } = config
 
-  async function send(method: string, path: string, body?: unknown): Promise<Response> {
+  async function send(
+    method: string,
+    path: string,
+    body?: unknown,
+    options: HttpRequestOptions = {},
+  ): Promise<Response> {
     const url = `${baseUrl}${path}`
+    const maxRetries = options.retries ?? retries
     onRequest?.(method, url)
 
-    for (let attempt = 0; attempt <= retries; attempt++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const controller = new AbortController()
       const timer = setTimeout(() => controller.abort(), timeout)
 
@@ -90,29 +100,34 @@ export function createHttpClient(config: HttpClientConfig) {
         if (res.status >= 400 && res.status < 500) {
           throw new HttpError(res.status, errorBody, url)
         }
-        if (attempt >= retries) {
+        if (attempt >= maxRetries) {
           throw new HttpError(res.status, errorBody, url)
         }
       } catch (err: unknown) {
         clearTimeout(timer)
         if (err instanceof HttpError) {
-          if (err.status >= 500 && attempt < retries) {
+          if (err.status >= 500 && attempt < maxRetries) {
             await sleep(2 ** attempt * 500)
             continue
           }
           throw err
         }
-        if (attempt >= retries) throw err
+        if (attempt >= maxRetries) throw err
         await sleep(2 ** attempt * 500)
       }
     }
 
-    throw new Error(`Request failed after ${retries} retries: ${method} ${redactUrlForLog(url)}`)
+    throw new Error(`Request failed after ${maxRetries} retries: ${method} ${redactUrlForLog(url)}`)
   }
 
-  async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  async function request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    options: HttpRequestOptions = {},
+  ): Promise<T> {
     const url = `${baseUrl}${path}`
-    const res = await send(method, path, body)
+    const res = await send(method, path, body, options)
     const text = await res.text()
     if (!text) {
       throw new HttpError(res.status, 'Expected JSON response body', url)
@@ -124,15 +139,24 @@ export function createHttpClient(config: HttpClientConfig) {
     }
   }
 
-  async function requestVoid(method: string, path: string, body?: unknown): Promise<void> {
-    await send(method, path, body)
+  async function requestVoid(
+    method: string,
+    path: string,
+    body?: unknown,
+    options: HttpRequestOptions = {},
+  ): Promise<void> {
+    await send(method, path, body, options)
   }
 
   return {
-    get: <T>(path: string) => request<T>('GET', path),
-    post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
-    put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
-    delete: (path: string) => requestVoid('DELETE', path),
+    get: <T>(path: string, options?: HttpRequestOptions) =>
+      request<T>('GET', path, undefined, options),
+    post: <T>(path: string, body?: unknown, options?: HttpRequestOptions) =>
+      request<T>('POST', path, body, options),
+    put: <T>(path: string, body?: unknown, options?: HttpRequestOptions) =>
+      request<T>('PUT', path, body, options),
+    delete: (path: string, options?: HttpRequestOptions) =>
+      requestVoid('DELETE', path, undefined, options),
   }
 }
 
