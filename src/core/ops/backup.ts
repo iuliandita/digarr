@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getTableColumns, getTableName, sql } from 'drizzle-orm'
@@ -73,6 +74,18 @@ type BackupTable =
   | typeof targets
   | typeof users
 
+export type DatabaseCopyMismatch = {
+  table: string
+  source: number
+  target: number
+  contentDiffers?: boolean
+}
+
+export type DatabaseCopyResult = {
+  tablesRestored: Record<string, number>
+  mismatches: DatabaseCopyMismatch[]
+}
+
 function getAppVersion(): string {
   try {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'))
@@ -87,6 +100,25 @@ async function selectAll(
   table: BackupTable,
 ): Promise<Record<string, unknown>[]> {
   return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
+}
+
+function canonical(value: unknown): unknown {
+  if (value instanceof Date) return value.toISOString()
+  if (typeof value === 'bigint') return value.toString()
+  if (Array.isArray(value)) return value.map(canonical)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value as Record<string, unknown>)
+        .sort()
+        .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+    )
+  }
+  return value
+}
+
+function tableHash(rows: Record<string, unknown>[]): string {
+  const canonicalRows = rows.map((row) => JSON.stringify(canonical(row))).sort()
+  return createHash('sha256').update(canonicalRows.join('\n')).digest('hex')
 }
 
 export async function createBackup(
@@ -320,6 +352,48 @@ const RESTORE_ORDER = [
 export const BACKUP_TABLE_BY_KEY = Object.fromEntries(
   RESTORE_ORDER.map((spec) => [spec.key as keyof BackupData, spec.table]),
 ) as Partial<Record<keyof BackupData, AnyPgTable>>
+
+export async function copyDatabaseTables(
+  source: Pick<OpsDb, 'select'>,
+  target: OpsDb,
+): Promise<DatabaseCopyResult> {
+  const tablesRestored: Record<string, number> = {}
+  const mismatches: DatabaseCopyMismatch[] = []
+
+  await target.transaction(async (tx) => {
+    for (const spec of [...RESTORE_ORDER].reverse()) {
+      await spec.clear(tx)
+    }
+
+    for (const spec of RESTORE_ORDER) {
+      const sourceRows = await selectAll(source, spec.table)
+      await spec.restore(tx, sourceRows)
+      await spec.resetSequence(tx)
+      tablesRestored[spec.key] = sourceRows.length
+
+      const countResult = await tx.execute(
+        sql`select count(*)::int n from ${sql.identifier(getTableName(spec.table))}`,
+      )
+      const targetCount = (countResult as unknown as { rows: { n: number }[] }).rows[0]?.n ?? 0
+      if (targetCount !== sourceRows.length) {
+        mismatches.push({ table: spec.key, source: sourceRows.length, target: targetCount })
+        continue
+      }
+
+      const targetRows = await selectAll(tx, spec.table)
+      if (tableHash(sourceRows) !== tableHash(targetRows)) {
+        mismatches.push({
+          table: spec.key,
+          source: sourceRows.length,
+          target: targetCount,
+          contentDiffers: true,
+        })
+      }
+    }
+  })
+
+  return { tablesRestored, mismatches }
+}
 
 function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fields: string[] } {
   const currentFp = getKeyFingerprint()

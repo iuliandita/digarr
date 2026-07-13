@@ -1,9 +1,7 @@
-import { createHash } from 'node:crypto'
-import { getTableName, sql } from 'drizzle-orm'
-import type { AnyPgTable } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { backendFingerprint, connectTarget, type MigrationTargetSpec } from '@/db/connect'
-import { BACKUP_TABLE_BY_KEY, createBackup, restoreBackup } from './backup'
+import { copyDatabaseTables } from './backup'
 
 /** A known precondition failure (not a crash). `code` lets the HTTP layer map it
  *  to a meaningful status. Messages never contain credentials. */
@@ -49,26 +47,6 @@ function envHint(target: MigrationTargetSpec): string {
     return `Unset DATABASE_URL/DB_HOST and set DB_PATH=${target.path}, then restart.`
   }
   return 'Set DATABASE_URL to the PostgreSQL connection string you entered above, then restart.'
-}
-
-function canonical(v: unknown): unknown {
-  if (v instanceof Date) return v.toISOString()
-  if (typeof v === 'bigint') return v.toString() // JSON.stringify can't serialize BigInt
-  if (Array.isArray(v)) return v.map(canonical)
-  if (v && typeof v === 'object') {
-    return Object.fromEntries(
-      Object.keys(v as Record<string, unknown>)
-        .sort()
-        .map((k) => [k, canonical((v as Record<string, unknown>)[k])]),
-    )
-  }
-  return v
-}
-
-function tableHash(rows: Record<string, unknown>[]): string {
-  const canon = rows.map((r) => JSON.stringify(canonical(r)))
-  canon.sort()
-  return createHash('sha256').update(canon.join('\n')).digest('hex')
 }
 
 export async function migrateBackend(input: MigrateBackendInput): Promise<MigrationReport> {
@@ -130,61 +108,24 @@ export async function migrateBackend(input: MigrateBackendInput): Promise<Migrat
       )
     }
 
-    const backup = await sourceDb.transaction(async (tx) => {
+    const copy = await sourceDb.transaction(async (tx) => {
       await tx.execute(sql`set transaction isolation level repeatable read read only`)
-      return createBackup(tx, { includeCaches: true, full: true })
+      return copyDatabaseTables(tx, conn.db)
     })
 
-    const restore = await restoreBackup(conn.db, backup, {})
-    if (restore.encryptionMismatch) {
-      // Unreachable here (same-process key fingerprint always matches); kept because
-      // restoreBackup is shared with file-based restore where a mismatch is real.
-      throw new MigrateBackendError(
-        'encryption_mismatch',
-        'Cannot migrate: the source data was encrypted with a different key than the current DIGARR_ENCRYPTION_KEY. Set the same encryption key before migrating.',
-      )
-    }
-
-    const targetBackup = await createBackup(conn.db, { includeCaches: true, full: true })
-    const mismatches: MigrationReport['mismatches'] = []
-    for (const [key, rows] of Object.entries(backup.data)) {
-      if (!Array.isArray(rows)) continue
-      const table = BACKUP_TABLE_BY_KEY[key as keyof typeof BACKUP_TABLE_BY_KEY]
-      if (!table) continue
-      const got = await conn.db.execute(
-        sql`select count(*)::int n from ${sql.identifier(getTableName(table as AnyPgTable))}`,
-      )
-      const targetCount = (got as unknown as { rows: { n: number }[] }).rows[0]?.n ?? 0
-      if (targetCount !== rows.length) {
-        mismatches.push({ table: key, source: rows.length, target: targetCount })
-        continue
-      }
-      const tgtRows =
-        (targetBackup.data[key as keyof typeof targetBackup.data] as Record<string, unknown>[]) ??
-        []
-      if (tableHash(rows) !== tableHash(tgtRows)) {
-        mismatches.push({
-          table: key,
-          source: rows.length,
-          target: targetCount,
-          contentDiffers: true,
-        })
-      }
-    }
-
-    const verified = mismatches.length === 0
+    const verified = copy.mismatches.length === 0
     // A count mismatch leaves content unchecked, so contentVerified must require
     // verified too — otherwise a missing table reports intact content.
-    const contentVerified = verified && !mismatches.some((m) => m.contentDiffers)
+    const contentVerified = verified && !copy.mismatches.some((m) => m.contentDiffers)
     return {
       ok: verified,
       verified,
       contentVerified,
       targetBackend: conn.backend,
       targetDescription: conn.describe(),
-      tablesMigrated: restore.tablesRestored,
+      tablesMigrated: copy.tablesRestored,
       excludedTables: [...EXCLUDED_TABLES],
-      mismatches,
+      mismatches: copy.mismatches,
       targetEnvHint: envHint(target),
     }
   } finally {

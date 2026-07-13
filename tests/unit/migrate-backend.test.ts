@@ -1,7 +1,9 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { sql } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BACKUP_TABLE_BY_KEY, copyDatabaseTables } from '@/core/ops/backup'
 import { migrateBackend } from '@/core/ops/migrate-backend'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
@@ -22,9 +24,58 @@ async function seedFullFixtures(db: TestDatabase) {
     .insert(schema.users)
     .values({ username: 'mig', passwordHash: 'x' })
     .returning()
+  if (!user) throw new Error('user insert failed')
   await db.insert(schema.settings).values({ setupComplete: true })
   await db.insert(schema.genres).values({ name: 'Synthwave', slug: 'synthwave', source: 'manual' })
-  return user
+  const [artist] = await db
+    .insert(schema.artists)
+    .values({ mbid: '00000000-0000-0000-0000-000000000001', name: 'Migration Artist' })
+    .returning()
+  if (!artist) throw new Error('artist insert failed')
+  await db.insert(schema.artistBlocks).values({ userId: user.id, artistId: artist.id })
+  const [playlist] = await db
+    .insert(schema.playlists)
+    .values({ userId: user.id, name: 'Migration Playlist', strategy: 'weekly_digest' })
+    .returning()
+  if (!playlist) throw new Error('playlist insert failed')
+  await db.insert(schema.playlistTracks).values({
+    playlistId: playlist.id,
+    artistName: artist.name,
+    trackName: 'Migration Track',
+    position: 1,
+  })
+  await db.insert(schema.libraryArtists).values({
+    userId: user.id,
+    source: 'lidarr',
+    sourceArtistId: 'migration-artist',
+    name: artist.name,
+    nameNormalized: 'migration artist',
+  })
+  await db.insert(schema.recordingArtistCache).values({
+    recordingMbid: '00000000-0000-0000-0000-000000000002',
+    artistMbid: artist.mbid,
+    artistName: artist.name,
+  })
+  return { user, artist, playlist }
+}
+
+async function installUserTrigger(db: TestDatabase, name: string, body: string) {
+  await db.execute(
+    sql.raw(`
+    CREATE FUNCTION ${name}() RETURNS trigger AS $$
+    BEGIN
+      ${body}
+    END;
+    $$ LANGUAGE plpgsql
+  `),
+  )
+  await db.execute(
+    sql.raw(`
+    CREATE TRIGGER ${name}
+    BEFORE INSERT ON users
+    FOR EACH ROW EXECUTE FUNCTION ${name}()
+  `),
+  )
 }
 
 describe('migrateBackend', () => {
@@ -59,10 +110,90 @@ describe('migrateBackend', () => {
     expect(report.verified).toBe(true)
     expect(report.contentVerified).toBe(true)
     expect(report.tablesMigrated.users).toBeGreaterThan(0)
+    expect(Object.keys(report.tablesMigrated).sort()).toEqual(
+      Object.keys(BACKUP_TABLE_BY_KEY).sort(),
+    )
     expect(report.excludedTables).toEqual(['sessions', 'rateLimitBuckets'])
     expect(report.mismatches).toEqual([])
     expect(report.targetEnvHint).toMatch(/DB_PATH=/)
     await src.close()
+  })
+
+  it('reports a row-count mismatch from the copied table', async () => {
+    const src = await makeTestDb()
+    const target = await makeTestDb()
+    try {
+      await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
+      await installUserTrigger(target.db, 'skip_migrated_user', 'RETURN NULL;')
+
+      const result = await copyDatabaseTables(src.db as never, target.db as never)
+
+      expect(result.mismatches).toContainEqual({ table: 'users', source: 1, target: 0 })
+    } finally {
+      await src.close()
+      await target.close()
+    }
+  })
+
+  it('reports a content mismatch when row counts agree', async () => {
+    const src = await makeTestDb()
+    const target = await makeTestDb()
+    try {
+      await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
+      await installUserTrigger(
+        target.db,
+        'mutate_migrated_user',
+        "NEW.username := NEW.username || '-changed'; RETURN NEW;",
+      )
+
+      const result = await copyDatabaseTables(src.db as never, target.db as never)
+
+      expect(result.mismatches).toContainEqual({
+        table: 'users',
+        source: 1,
+        target: 1,
+        contentDiffers: true,
+      })
+    } finally {
+      await src.close()
+      await target.close()
+    }
+  })
+
+  it('rolls back the target when a later table fails to restore', async () => {
+    const src = await makeTestDb()
+    const target = await makeTestDb()
+    try {
+      await src.db.insert(schema.users).values({ username: 'copied', passwordHash: 'x' })
+      await target.db.insert(schema.users).values({ username: 'survivor', passwordHash: 'x' })
+      const failingSource = {
+        select: () => ({
+          from: async (table: unknown) => {
+            if (table === schema.slskdJobs) {
+              return [
+                {
+                  id: 1,
+                  userId: 999,
+                  targetId: 999,
+                  sourceType: 'recommendation',
+                  workKey: 'invalid-job',
+                  artistMbid: '00000000-0000-0000-0000-000000000003',
+                  artistName: 'Invalid Artist',
+                  releaseTitle: 'Invalid Release',
+                },
+              ]
+            }
+            return src.db.select().from(table as never)
+          },
+        }),
+      }
+
+      await expect(copyDatabaseTables(failingSource as never, target.db as never)).rejects.toThrow()
+      expect(await target.db.select().from(schema.users)).toMatchObject([{ username: 'survivor' }])
+    } finally {
+      await src.close()
+      await target.close()
+    }
   })
 
   it('refuses a non-empty target without overwrite, succeeds with overwrite', async () => {

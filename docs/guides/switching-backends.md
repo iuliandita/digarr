@@ -83,24 +83,32 @@ Click **Migrate**. The operation:
 
 1. Freezes writes on all non-migration routes and pauses background scheduler
    ticks (maintenance lock).
-2. Takes a consistent, read-only snapshot of the source database inside a
-   `REPEATABLE READ READ ONLY` transaction.
-3. Runs schema migrations on the target (creates all tables).
-4. Restores the snapshot atomically into the target.
-5. Verifies every table by row count and SHA-256 content hash.
+2. Runs schema migrations on the target (creates all tables).
+3. Opens a consistent `REPEATABLE READ READ ONLY` transaction on the source.
+4. Copies tables in foreign-key order inside one target transaction, using
+   bounded insert chunks.
+5. Verifies each table by row count and SHA-256 content hash before loading the
+   next table.
 6. Releases the maintenance lock.
 
 The source database is **never modified**. If anything goes wrong, the target is
-left in a partial state and the source is intact; retry after fixing the
+copy transaction rolls back. Target schema migrations and, during an overwrite,
+the intentional session/rate-limit clear remain outside that transaction. A
+verification mismatch keeps the copied target for inspection but returns a
+failed report, so do not switch the application to it. Retry after fixing the
 underlying problem.
+
+The migration does not build whole-database source and target snapshots in
+application memory. Its working set follows the largest table being copied and
+verified, rather than the size of the full database.
 
 Progress is shown inline. On a large library the copy may take a minute or two.
 
 ### 5. Read the report
 
-On success, the panel shows a table of tables migrated and their row counts, plus
-a summary of what was excluded (see below). Any mismatches between source and
-target counts appear here with details.
+On success, the panel shows every migrated table and its row count, plus a
+summary of what was excluded (see below). Count and same-count content mismatches
+appear in the failed report with details.
 
 ### 6. Set the env var and restart
 
