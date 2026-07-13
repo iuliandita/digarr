@@ -949,6 +949,8 @@ export const pl = {
   'settings.tabs.administration': 'Administracja',
   'settings.tabs.jobHistory': 'Historia zadan',
   'settings.tabs.systemHealth': 'Stan systemu',
+  'settings.tabs.scrollLeft': 'Przewiń karty ustawień w lewo',
+  'settings.tabs.scrollRight': 'Przewiń karty ustawień w prawo',
   'settings.globalSettings': 'Ustawienia globalne',
   'settings.adminOnly': 'Tylko administratorzy moga modyfikowac ustawienia globalne.',
   'settings.yourConnections': 'Twoje połączenia',

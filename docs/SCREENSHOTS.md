@@ -1,9 +1,9 @@
 # Screenshots
 
 The checked-in screenshots use the Youtarr theme. Most were captured from
-v1.10.0; Analytics was refreshed from v1.12.0 after its chart rendering fix.
-The descriptions below reflect the current `develop`/`:nightly` UI when later
-features are not visible in an image. Capture a fresh set with
+v1.10.0; Analytics and Settings were refreshed from v1.12.0 after their UI
+fixes. The descriptions below reflect the current `develop`/`:nightly` UI when
+later features are not visible in an image. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
@@ -72,6 +72,8 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 ## Settings
 
 ![Settings](screenshots/settings.png)
+
+The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
 
 The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
 

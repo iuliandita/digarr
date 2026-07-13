@@ -954,6 +954,8 @@ export const uk = {
   'settings.tabs.administration': 'Адміністрування',
   'settings.tabs.jobHistory': 'Історія завдань',
   'settings.tabs.systemHealth': 'Стан системи',
+  'settings.tabs.scrollLeft': 'Прокрутити вкладки налаштувань ліворуч',
+  'settings.tabs.scrollRight': 'Прокрутити вкладки налаштувань праворуч',
   'settings.globalSettings': 'Глобальні налаштування',
   'settings.adminOnly': 'Лише адміністратори можуть змінювати глобальні налаштування.',
   'settings.yourConnections': 'Ваші підключення',

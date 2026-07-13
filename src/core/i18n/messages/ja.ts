@@ -944,6 +944,8 @@ export const ja = {
   'settings.tabs.administration': '管理',
   'settings.tabs.jobHistory': 'ジョブ履歴',
   'settings.tabs.systemHealth': 'システムの健全性',
+  'settings.tabs.scrollLeft': '設定タブを左にスクロール',
+  'settings.tabs.scrollRight': '設定タブを右にスクロール',
   'settings.globalSettings': 'グローバル設定',
   'settings.adminOnly': 'グローバル設定を変更できるのは管理者のみです。',
   'settings.yourConnections': '接続済みサービス',

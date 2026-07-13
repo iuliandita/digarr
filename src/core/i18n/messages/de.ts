@@ -960,6 +960,8 @@ export const de = {
   'settings.tabs.administration': 'Verwaltung',
   'settings.tabs.jobHistory': 'Auftragsverlauf',
   'settings.tabs.systemHealth': 'Systemzustand',
+  'settings.tabs.scrollLeft': 'Einstellungs-Tabs nach links scrollen',
+  'settings.tabs.scrollRight': 'Einstellungs-Tabs nach rechts scrollen',
   'settings.globalSettings': 'Globale Einstellungen',
   'settings.adminOnly': 'Nur Admins können globale Einstellungen ändern.',
   'settings.yourConnections': 'Deine Verbindungen',

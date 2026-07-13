@@ -930,6 +930,8 @@ export const ko = {
   'settings.tabs.administration': '관리',
   'settings.tabs.jobHistory': '작업 기록',
   'settings.tabs.systemHealth': '시스템 상태',
+  'settings.tabs.scrollLeft': '설정 탭을 왼쪽으로 스크롤',
+  'settings.tabs.scrollRight': '설정 탭을 오른쪽으로 스크롤',
   'settings.globalSettings': '전역 설정',
   'settings.adminOnly': '전역 설정은 관리자만 수정할 수 있습니다.',
   'settings.yourConnections': '내 연결',

@@ -951,6 +951,8 @@ export const fr = {
   'settings.tabs.administration': 'Gestion',
   'settings.tabs.jobHistory': 'Historique des tâches',
   'settings.tabs.systemHealth': 'Etat du systeme',
+  'settings.tabs.scrollLeft': 'Faire défiler les onglets des paramètres vers la gauche',
+  'settings.tabs.scrollRight': 'Faire défiler les onglets des paramètres vers la droite',
   'settings.globalSettings': 'Paramètres globaux',
   'settings.adminOnly': 'Seuls les administrateurs peuvent modifier les paramètres globaux.',
   'settings.yourConnections': 'Vos connexions',

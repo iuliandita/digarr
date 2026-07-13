@@ -255,6 +255,13 @@ function setupMocks(settings: Record<string, unknown> = mockSettings) {
 describe('SettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    Object.defineProperty(globalThis, 'ResizeObserver', {
+      configurable: true,
+      value: class {
+        observe = vi.fn()
+        disconnect = vi.fn()
+      },
+    })
     const storage = new Map<string, string>()
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
@@ -362,6 +369,56 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Schedule')).toBeInTheDocument()
     expect(screen.getByText('Job History')).toBeInTheDocument()
     expect(screen.getByText('System Health')).toBeInTheDocument()
+  })
+
+  it('shows directional controls only where settings tabs are hidden', async () => {
+    setupMocks()
+    renderWithQuery(<SettingsPage />)
+
+    await screen.findByText('Connections')
+    const tabStrip = screen.getByTestId('settings-tabs-scroll')
+    const scrollBy = vi.fn()
+    Object.defineProperties(tabStrip, {
+      clientWidth: { configurable: true, value: 320 },
+      scrollWidth: { configurable: true, value: 900 },
+      scrollLeft: { configurable: true, value: 0, writable: true },
+      scrollBy: { configurable: true, value: scrollBy },
+    })
+
+    fireEvent.scroll(tabStrip)
+
+    expect(tabStrip).toHaveClass('overflow-x-auto', 'scroll-px-16')
+    expect(screen.queryByRole('button', { name: 'Scroll settings tabs left' })).toBeNull()
+    const scrollRight = screen.getByRole('button', { name: 'Scroll settings tabs right' })
+    fireEvent.click(scrollRight)
+    expect(scrollBy).toHaveBeenCalledWith({ behavior: 'smooth', left: 240 })
+
+    tabStrip.scrollLeft = 300
+    fireEvent.scroll(tabStrip)
+    expect(screen.getByRole('button', { name: 'Scroll settings tabs left' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Scroll settings tabs right' })).toBeVisible()
+
+    tabStrip.scrollLeft = 580
+    fireEvent.scroll(tabStrip)
+    expect(screen.getByRole('button', { name: 'Scroll settings tabs left' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Scroll settings tabs right' })).toBeNull()
+  })
+
+  it('scrolls the active settings tab into view', async () => {
+    setupMocks()
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+
+    renderWithQuery(<SettingsPage />, ['/settings?tab=system-health'])
+
+    await screen.findByRole('button', { name: 'System Health' })
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    })
   })
 
   it('defaults to Connections tab showing Lidarr section', async () => {

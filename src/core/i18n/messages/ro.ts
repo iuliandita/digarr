@@ -956,6 +956,8 @@ export const ro = {
   'settings.tabs.administration': 'Administrare',
   'settings.tabs.jobHistory': 'Istoric sarcini',
   'settings.tabs.systemHealth': 'Starea sistemului',
+  'settings.tabs.scrollLeft': 'Derulează filele de setări spre stânga',
+  'settings.tabs.scrollRight': 'Derulează filele de setări spre dreapta',
   'settings.globalSettings': 'Setări globale',
   'settings.adminOnly': 'Doar administratorii pot modifica setările globale.',
   'settings.yourConnections': 'Conexiunile dvs.',

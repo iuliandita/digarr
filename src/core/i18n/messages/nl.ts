@@ -949,6 +949,8 @@ export const nl = {
   'settings.tabs.administration': 'Beheer',
   'settings.tabs.jobHistory': 'Taakgeschiedenis',
   'settings.tabs.systemHealth': 'Systeemstatus',
+  'settings.tabs.scrollLeft': 'Instellingentabbladen naar links scrollen',
+  'settings.tabs.scrollRight': 'Instellingentabbladen naar rechts scrollen',
   'settings.globalSettings': 'Globale instellingen',
   'settings.adminOnly': 'Alleen beheerders kunnen globale instellingen wijzigen.',
   'settings.yourConnections': 'Jouw verbindingen',

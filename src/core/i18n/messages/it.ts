@@ -955,6 +955,8 @@ export const it = {
   'settings.tabs.administration': 'Amministrazione',
   'settings.tabs.jobHistory': 'Cronologia attività',
   'settings.tabs.systemHealth': 'Stato del sistema',
+  'settings.tabs.scrollLeft': 'Scorri le schede delle impostazioni verso sinistra',
+  'settings.tabs.scrollRight': 'Scorri le schede delle impostazioni verso destra',
   'settings.globalSettings': 'Impostazioni globali',
   'settings.adminOnly': 'Solo gli amministratori possono modificare le impostazioni globali.',
   'settings.yourConnections': 'Le tue connessioni',

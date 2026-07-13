@@ -885,6 +885,8 @@ export const zhCN = {
   'settings.tabs.administration': '管理',
   'settings.tabs.jobHistory': '任务历史',
   'settings.tabs.systemHealth': '系统健康',
+  'settings.tabs.scrollLeft': '向左滚动设置标签页',
+  'settings.tabs.scrollRight': '向右滚动设置标签页',
   'settings.globalSettings': '全局设置',
   'settings.adminOnly': '仅管理员可修改全局设置。',
   'settings.yourConnections': '你的连接',
