@@ -114,6 +114,18 @@ Adding a new implementation means:
 2. Register in `src/core/<kind>/registry.ts`
 3. Add a settings schema and UI when the adapter is user-configurable
 
+## Preview playback
+
+Recommendation-card tracks and the Discover audition queue share the global
+preview context, so starting one preview stops the other audio surface. Deezer
+clips advance from the native `ended` event. Spotify audition playback uses one
+persistent iframe controller: it reports real playback start and completion,
+only completion advances the queue, and an autoplay block leaves the current
+native control usable. Controller initialization is bounded and falls back to
+the standard Spotify iframe for standalone previews; an active audition queue
+skips the unavailable item. YouTube embeds have no equivalent
+completion signal in this integration and use a bounded 30-second fallback.
+
 ## Boot order
 
 Async IIFE in `src/index.ts`:

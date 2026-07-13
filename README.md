@@ -96,7 +96,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Multilingual UI:** 15 shipped locales, saved user language preference, localized auth/setup/high-traffic pages, and locale-aware AI reasoning
 - **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
 - **Decade filtering:** filter recommendations by era, from the 60s through the 20s+
-- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar
+- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar. Spotify uses a persistent controller so autoplay-blocked previews stay on the current item with usable native controls instead of silently advancing
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
 - **Webhook notifications:** Discord embeds or raw JSON to a public HTTPS endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). Plain HTTP is accepted for compatibility but exposes payload data and URL credentials in transit

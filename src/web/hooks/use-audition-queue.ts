@@ -18,8 +18,8 @@ export type AuditionQueue = {
   stop: () => void
 }
 
-// Embed sources (Spotify/YouTube iframes) expose no ended event; walk them on
-// a fixed timer matching the 30s Deezer preview length.
+// YouTube embeds expose no ended event; walk them on a fixed timer matching
+// the 30s Deezer preview length.
 export const EMBED_ADVANCE_MS = 30_000
 
 type QueueState = { items: AuditionItem[]; index: number }
@@ -133,12 +133,12 @@ export function useAuditionQueue(preview: ReturnType<typeof usePreview>): Auditi
     if (queueRef.current) advance()
   }, [preview.playbackEndedCount, advance])
 
-  // Arm the fixed advance timer once an embed source is playing the queue's
-  // current item; cleared on any playback change, deactivation, and unmount.
+  // Arm the fixed advance timer only for YouTube. Deezer and Spotify report
+  // completion through playbackEndedCount.
   useEffect(() => {
     if (!queue) return
     const { source, playing, artistMbid } = preview.state
-    if (!playing || !source || source.type === 'deezer-audio') return
+    if (!playing || source?.type !== 'youtube-embed') return
     if (artistMbid !== queue.items[queue.index]?.mbid) return
     timerRef.current = setTimeout(advance, EMBED_ADVANCE_MS)
     return clearTimer

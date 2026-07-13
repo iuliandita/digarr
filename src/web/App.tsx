@@ -758,6 +758,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
           source={preview.state.source}
           loading={preview.state.loading}
           onStop={audition.active ? audition.stop : preview.stop}
+          spotify={{
+            command: preview.spotifyCommand,
+            onPlaybackStarted: preview.onSpotifyPlaybackStarted,
+            onPlaybackPaused: preview.onSpotifyPlaybackPaused,
+            onPlaybackUnavailable: preview.onSpotifyPlaybackUnavailable,
+            onPlaybackEnded: preview.onSpotifyPlaybackEnded,
+          }}
           volume={preview.volume}
           onVolumeChange={preview.setVolume}
           queue={

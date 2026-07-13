@@ -34,6 +34,12 @@ const deezerSource: PreviewSource = {
   embedUrl: 'https://cdn.example/p.mp3',
 }
 
+const youtubeSource: PreviewSource = {
+  type: 'youtube-embed',
+  url: 'https://youtube.com/watch?v=abc',
+  embedUrl: 'https://youtube.com/embed/abc?autoplay=1',
+}
+
 type PlayScript = { outcome: PlayOutcome; source?: PreviewSource }
 
 // Fake single-item engine: play() mutates state the way usePreview does so the
@@ -164,8 +170,8 @@ describe('useAuditionQueue', () => {
     expect(result.current.index).toBe(1)
   })
 
-  it('arms the embed timer and advances after EMBED_ADVANCE_MS', async () => {
-    const fake = createFakePreview()
+  it('arms the YouTube timer and advances after EMBED_ADVANCE_MS', async () => {
+    const fake = createFakePreview({ a: { outcome: 'started', source: youtubeSource } })
     const { result } = renderQueue(fake)
 
     await act(async () => {
@@ -190,6 +196,21 @@ describe('useAuditionQueue', () => {
         suppressErrorToast: true,
       },
     )
+  })
+
+  it('does not advance a Spotify entry before real playback completion', async () => {
+    const fake = createFakePreview()
+    const { result } = renderQueue(fake)
+
+    await act(async () => {
+      result.current.start(items)
+    })
+    await act(async () => {
+      vi.advanceTimersByTime(EMBED_ADVANCE_MS * 2)
+    })
+
+    expect(result.current.index).toBe(0)
+    expect(fake.play).toHaveBeenCalledTimes(1)
   })
 
   it('does not arm the timer for deezer sources', async () => {

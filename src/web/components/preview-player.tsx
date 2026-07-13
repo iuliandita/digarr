@@ -1,5 +1,7 @@
 import { Music, SkipBack, SkipForward, Volume2, X } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
+import { type SpotifyPlaybackCommand, useSpotifyEmbed } from '@/web/hooks/use-spotify-embed'
 import { useI18n } from '../lib/i18n'
 
 const SOURCE_LABELS: Record<PreviewSource['type'], string> = {
@@ -14,6 +16,13 @@ type Props = {
   source: PreviewSource | null
   loading: boolean
   onStop: () => void
+  spotify: {
+    command: SpotifyPlaybackCommand
+    onPlaybackStarted: () => void
+    onPlaybackPaused: () => void
+    onPlaybackUnavailable: () => void
+    onPlaybackEnded: () => void
+  }
   volume: number
   onVolumeChange: (value: number) => void
   queue?: {
@@ -35,15 +44,40 @@ export function PreviewPlayer({
   source,
   loading,
   onStop,
+  spotify,
   volume,
   onVolumeChange,
   queue,
 }: Props) {
   const { t } = useI18n()
-  if (!playing && !loading) return null
+  const spotifyUrl = source?.type === 'spotify-embed' ? source.url : null
+  const queueActive = Boolean(queue)
+  const reportedUnavailableUrlRef = useRef<string | null>(null)
+  const { hostRef: spotifyHostRef, failed: spotifyControllerFailed } = useSpotifyEmbed({
+    url: spotifyUrl,
+    keepAlive: queueActive,
+    command: spotify.command,
+    onPlaybackStarted: spotify.onPlaybackStarted,
+    onPlaybackPaused: spotify.onPlaybackPaused,
+    onPlaybackEnded: spotify.onPlaybackEnded,
+  })
+  useEffect(() => {
+    if (!spotifyControllerFailed) {
+      reportedUnavailableUrlRef.current = null
+    } else if (queueActive && spotifyUrl && reportedUnavailableUrlRef.current !== spotifyUrl) {
+      reportedUnavailableUrlRef.current = spotifyUrl
+      spotify.onPlaybackUnavailable()
+    }
+  }, [queueActive, spotifyControllerFailed, spotifyUrl, spotify.onPlaybackUnavailable])
+  if (!source && !loading && !queue) return null
 
   const sourceLabel = source ? SOURCE_LABELS[source.type] : null
-  const showIframe = playing && source && source.type !== 'deezer-audio'
+  const showYouTubeIframe = playing && source?.type === 'youtube-embed'
+  const showSpotifyHost = source?.type === 'spotify-embed' || queueActive
+  const spotifyFallbackUrl =
+    spotifyControllerFailed && !queueActive && source?.type === 'spotify-embed'
+      ? source.embedUrl
+      : null
   // Volume is only controllable for the HTML5 Deezer audio element; the
   // Spotify/YouTube embeds run in cross-origin iframes with their own controls.
   const showVolume = source?.type === 'deezer-audio'
@@ -131,7 +165,26 @@ export function PreviewPlayer({
           </button>
         </div>
 
-        {showIframe && (
+        {showSpotifyHost && (
+          <div
+            ref={spotifyHostRef}
+            className={`mt-2 rounded overflow-hidden ${spotifyUrl && !spotifyControllerFailed ? '' : 'hidden'}`}
+          />
+        )}
+
+        {spotifyFallbackUrl && (
+          <iframe
+            src={spotifyFallbackUrl}
+            height={80}
+            width="100%"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            title={artistName ?? sourceLabel ?? t('preview.loadingPreview')}
+            className="mt-2 rounded"
+          />
+        )}
+
+        {showYouTubeIframe && (
           <div className="mt-2">
             <iframe
               src={source.embedUrl}

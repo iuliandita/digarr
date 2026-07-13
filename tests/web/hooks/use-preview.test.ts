@@ -78,6 +78,14 @@ describe('resolvePreviewSource', () => {
     )
     expect(result).toBeNull()
   })
+
+  it('rejects a Spotify-shaped path on an untrusted host', async () => {
+    const result = await resolvePreviewSource(
+      { spotify: 'https://example.com/spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
+      'Radiohead',
+    )
+    expect(result).toBeNull()
+  })
 })
 
 // Engine-level coverage for the audition-queue surface: play() outcomes,
@@ -120,7 +128,7 @@ describe('usePreview play outcomes', () => {
     vi.stubGlobal('Audio', FakeAudio)
   })
 
-  it("returns 'started' for an embed source", async () => {
+  it("waits for Spotify's playback event before marking an embed as playing", async () => {
     const { result } = renderHook(() => usePreview(), { wrapper })
     let outcome: string | undefined
     await act(async () => {
@@ -129,8 +137,74 @@ describe('usePreview play outcomes', () => {
       })
     })
     expect(outcome).toBe('started')
-    expect(result.current.state.playing).toBe(true)
+    expect(result.current.state.playing).toBe(false)
     expect(result.current.state.source?.type).toBe('spotify-embed')
+    expect(result.current.spotifyCommand.action).toBe('play')
+
+    act(() => {
+      result.current.onSpotifyPlaybackStarted()
+    })
+    expect(result.current.state.playing).toBe(true)
+
+    act(() => {
+      result.current.onSpotifyPlaybackPaused()
+    })
+    expect(result.current.state.playing).toBe(false)
+
+    act(() => {
+      result.current.onSpotifyPlaybackStarted()
+    })
+
+    act(() => {
+      result.current.onSpotifyPlaybackEnded()
+    })
+    expect(result.current.state.playing).toBe(false)
+    expect(result.current.playbackEndedCount).toBe(1)
+  })
+
+  it('routes Spotify pause and resume through controller commands', async () => {
+    const { result } = renderHook(() => usePreview(), { wrapper })
+
+    await act(async () => {
+      await result.current.play('m1', 'Radiohead', {
+        spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+      })
+    })
+    act(() => {
+      result.current.onSpotifyPlaybackStarted()
+    })
+
+    let outcome: string | undefined
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Radiohead', {
+        spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+      })
+    })
+    expect(outcome).toBe('paused')
+    expect(result.current.spotifyCommand.action).toBe('pause')
+
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Radiohead', {
+        spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+      })
+    })
+    expect(outcome).toBe('resumed')
+    expect(result.current.spotifyCommand.action).toBe('play')
+    expect(result.current.state.playing).toBe(false)
+  })
+
+  it('marks an unavailable Spotify controller as completed for queue recovery', async () => {
+    const { result } = renderHook(() => usePreview(), { wrapper })
+
+    await act(async () => {
+      await result.current.play('m1', 'Radiohead', {
+        spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+      })
+    })
+    act(() => result.current.onSpotifyPlaybackUnavailable())
+
+    expect(result.current.state.playing).toBe(false)
+    expect(result.current.playbackEndedCount).toBe(1)
   })
 
   it("returns 'started', then 'paused', then 'resumed' for the same deezer artist", async () => {
