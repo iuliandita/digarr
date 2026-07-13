@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createJellyfinClient } from '@/core/clients/jellyfin'
 
 const mockGet = vi.fn()
+const queueMocks = vi.hoisted(() => {
+  const add = vi.fn((task: () => unknown) => task())
+  return { add, create: vi.fn(() => ({ add })) }
+})
 
 vi.mock('@/core/clients/http', () => ({
   createHttpClient: vi.fn(() => ({
@@ -13,8 +17,23 @@ vi.mock('@/core/clients/http', () => ({
   })),
 }))
 
+vi.mock('@/core/clients/media-server-queue', () => ({
+  createMediaServerQueue: queueMocks.create,
+}))
+
 beforeEach(() => {
   mockGet.mockReset()
+  queueMocks.add.mockClear()
+  queueMocks.create.mockClear()
+})
+
+describe('jellyfin media-server queue', () => {
+  it('creates one queue per client instance', () => {
+    createJellyfinClient('http://jf:8096', 'key', '00000000-0000-0000-0000-000000000001')
+    createJellyfinClient('http://jf:8096', 'key', '00000000-0000-0000-0000-000000000002')
+
+    expect(queueMocks.create).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('jellyfin client.getAllArtists()', () => {
