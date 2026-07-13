@@ -9,6 +9,7 @@
     "build": "vite build && bun build src/index.ts --outdir dist/server --target bun --external @electric-sql/pglite && bun build scripts/rotate-encryption-key.ts --outfile dist/scripts/rotate-encryption-key.js --target bun --external @electric-sql/pglite",
     "start": "bun dist/server/index.js",
     "i18n:check": "bun scripts/i18n-check.ts",
+    "check:docker-identity": "./scripts/check-docker-identity.sh",
     "check:versions": "bun scripts/check-version-drift.ts",
     "check:api-docs": "bun scripts/check-api-docs.ts",
     "i18n:translate": "bun scripts/i18n-machine-translate.ts",

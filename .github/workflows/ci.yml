@@ -70,6 +70,8 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - name: Verify container build identity
+        run: bun run check:docker-identity
 
   api-route-test:
     runs-on: ubuntu-24.04
