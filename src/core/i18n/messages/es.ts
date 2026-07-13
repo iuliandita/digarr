@@ -952,6 +952,8 @@ export const es = {
   'settings.tabs.administration': 'Administración',
   'settings.tabs.jobHistory': 'Historial de tareas',
   'settings.tabs.systemHealth': 'Salud del sistema',
+  'settings.tabs.scrollLeft': 'Desplazar las pestañas de configuración hacia la izquierda',
+  'settings.tabs.scrollRight': 'Desplazar las pestañas de configuración hacia la derecha',
   'settings.globalSettings': 'Ajustes globales',
   'settings.adminOnly': 'Solo los administradores pueden modificar los ajustes globales.',
   'settings.yourConnections': 'Tus conexiones',

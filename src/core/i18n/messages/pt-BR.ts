@@ -954,6 +954,8 @@ export const ptBR = {
   'settings.tabs.administration': 'Administração',
   'settings.tabs.jobHistory': 'Histórico de tarefas',
   'settings.tabs.systemHealth': 'Saúde do sistema',
+  'settings.tabs.scrollLeft': 'Rolar as abas de configurações para a esquerda',
+  'settings.tabs.scrollRight': 'Rolar as abas de configurações para a direita',
   'settings.globalSettings': 'Configurações globais',
   'settings.adminOnly': 'Somente administradores podem modificar as configurações globais.',
   'settings.yourConnections': 'Suas conexões',

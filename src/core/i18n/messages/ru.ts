@@ -959,6 +959,8 @@ export const ru = {
   'settings.tabs.administration': 'Администрирование',
   'settings.tabs.jobHistory': 'История задач',
   'settings.tabs.systemHealth': 'Состояние системы',
+  'settings.tabs.scrollLeft': 'Прокрутить вкладки настроек влево',
+  'settings.tabs.scrollRight': 'Прокрутить вкладки настроек вправо',
   'settings.globalSettings': 'Глобальные настройки',
   'settings.adminOnly': 'Только администраторы могут изменять глобальные настройки.',
   'settings.yourConnections': 'Ваши подключения',

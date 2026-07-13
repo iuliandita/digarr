@@ -955,6 +955,8 @@ export const en = {
   'settings.tabs.administration': 'Administration',
   'settings.tabs.jobHistory': 'Job History',
   'settings.tabs.systemHealth': 'System Health',
+  'settings.tabs.scrollLeft': 'Scroll settings tabs left',
+  'settings.tabs.scrollRight': 'Scroll settings tabs right',
   'settings.globalSettings': 'Global Settings',
   'settings.adminOnly': 'Only admins can modify global settings.',
   'settings.yourConnections': 'Your Connections',

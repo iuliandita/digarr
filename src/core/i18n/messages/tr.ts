@@ -943,6 +943,8 @@ export const tr = {
   'settings.tabs.administration': 'Yönetim',
   'settings.tabs.jobHistory': 'İş Geçmişi',
   'settings.tabs.systemHealth': 'Sistem durumu',
+  'settings.tabs.scrollLeft': 'Ayarlar sekmelerini sola kaydır',
+  'settings.tabs.scrollRight': 'Ayarlar sekmelerini sağa kaydır',
   'settings.globalSettings': 'Genel Ayarlar',
   'settings.adminOnly': 'Yalnızca yöneticiler genel ayarları değiştirebilir.',
   'settings.yourConnections': 'Bağlantılarınız',
