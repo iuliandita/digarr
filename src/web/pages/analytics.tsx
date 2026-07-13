@@ -163,7 +163,7 @@ function DiscoveryChart({ batches }: { batches: AnalyticsBatch[] }) {
           return (
             <div
               key={b.id}
-              className="flex-1 flex flex-col justify-end group relative"
+              className="flex-1 h-full flex flex-col justify-end group relative"
               title={`${formatAnalyticsDate(locale, b.createdAt)}: ${b.total} ${t('analytics.recommendationsShort')} (${b.approved} ${t('analytics.approvedShort')})`}
             >
               <div

@@ -1,8 +1,9 @@
 # Screenshots
 
-The checked-in screenshots were captured from v1.10.0 and use the Youtarr
-theme. The descriptions below reflect the current `develop`/`:nightly` UI when
-later features are not visible in an image. Capture a fresh set with
+The checked-in screenshots use the Youtarr theme. Most were captured from
+v1.10.0; Analytics was refreshed from v1.12.0 after its chart rendering fix.
+The descriptions below reflect the current `develop`/`:nightly` UI when later
+features are not visible in an image. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
@@ -65,6 +66,8 @@ Admin panel on the Library Health page. Shipped in `v0.17.0` and expanded in `v0
 ## Analytics
 
 ![Analytics](screenshots/analytics.png)
+
+The Discovery over time chart shows per-batch recommendation totals, with the approved portion in green.
 
 ## Settings
 
