@@ -94,7 +94,7 @@ export class AnthropicProvider implements RecommendationProvider {
     // Fallback: some proxy deployments drop tool_use support - parse any text
     // block as a JSON array the old way.
     const firstContent = response.content[0]
-    if (!firstContent || firstContent.type !== 'text') {
+    if (firstContent?.type !== 'text') {
       throw new Error('Unexpected response format from Anthropic API')
     }
     return parseRecommendationResponse(firstContent.text)

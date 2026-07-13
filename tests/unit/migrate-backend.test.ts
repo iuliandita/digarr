@@ -6,6 +6,8 @@ import { migrateBackend } from '@/core/ops/migrate-backend'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
 
+type TestDatabase = Awaited<ReturnType<typeof makeTestDb>>['db']
+
 // PGlite WASM cold-start + migrations can exceed the 5s default under full-suite
 // parallel contention; these tests pass in isolation. Give them headroom.
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
@@ -15,7 +17,7 @@ function tgt(name: string) {
 }
 
 // Seed a minimal but representative dataset (user + a couple stateful rows).
-async function seedFullFixtures(db: any) {
+async function seedFullFixtures(db: TestDatabase) {
   const [user] = await db
     .insert(schema.users)
     .values({ username: 'mig', passwordHash: 'x' })
