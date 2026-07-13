@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSubsonicClient } from '@/core/clients/subsonic'
 
 const mockGet = vi.fn()
+const queueMocks = vi.hoisted(() => {
+  const add = vi.fn((task: () => unknown) => task())
+  return { add, create: vi.fn(() => ({ add })) }
+})
 
 vi.mock('@/core/clients/http', () => ({
   createHttpClient: vi.fn(() => ({
@@ -14,8 +18,23 @@ vi.mock('@/core/clients/http', () => ({
   })),
 }))
 
+vi.mock('@/core/clients/media-server-queue', () => ({
+  createMediaServerQueue: queueMocks.create,
+}))
+
 beforeEach(() => {
   mockGet.mockReset()
+  queueMocks.add.mockClear()
+  queueMocks.create.mockClear()
+})
+
+describe('subsonic media-server queue', () => {
+  it('creates one queue per client instance', () => {
+    createSubsonicClient('http://nav:4533', 'admin', 'secret')
+    createSubsonicClient('http://nav:4533', 'listener', 'secret')
+
+    expect(queueMocks.create).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('subsonic client.getStarredArtists()', () => {

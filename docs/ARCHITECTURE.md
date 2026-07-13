@@ -154,6 +154,11 @@ Albums are a first-class recommendation unit. Key additions:
   Read-only calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
+- Emby, Jellyfin, and Subsonic source clients each own a media-server request
+  queue capped at three concurrent requests and ten starts per second. This is
+  an internal load-smoothing policy for self-hosted servers, not a claimed
+  vendor limit. It is deliberately per client instance; configurable overrides
+  and queue metrics remain deferred until an operational need is demonstrated.
 - Field-level encryption uses AES-256-GCM with HKDF-derived keys (`src/core/crypto.ts`). Encrypted DB values are prefixed `enc:v1:`. Legacy SHA-256 decryption is retained as a read-path fallback for pre-migration values.
 - Tests run in Node.js (vitest), not Bun. `Bun.serve()`, `Bun.file()` and similar Bun-only APIs are unavailable in tests; password hashing uses `node:crypto` `scrypt`.
 - Migrations are idempotent. Drizzle generates bare DDL, so every generated migration must add `IF NOT EXISTS` / `IF EXISTS` clauses by hand.

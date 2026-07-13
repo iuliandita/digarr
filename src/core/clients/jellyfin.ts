@@ -1,7 +1,7 @@
-import PQueue from 'p-queue'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import { createMediaServerQueue } from './media-server-queue'
 
 export type JellyfinArtist = {
   name: string
@@ -73,7 +73,7 @@ export function createJellyfinClient(
     skipTlsVerify: options?.skipTlsVerify,
   })
 
-  const queue = new PQueue({ concurrency: 3, interval: 1000, intervalCap: 10 })
+  const queue = createMediaServerQueue()
 
   function get<T>(path: string): Promise<T> {
     return queue.add(() => http.get<T>(path)) as Promise<T>

@@ -3,9 +3,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmbyClient } from '@/core/clients/emby'
 
+const queueMocks = vi.hoisted(() => {
+  const add = vi.fn((task: () => unknown) => task())
+  return { add, create: vi.fn(() => ({ add })) }
+})
+
+vi.mock('@/core/clients/media-server-queue', () => ({
+  createMediaServerQueue: queueMocks.create,
+}))
+
 describe('createEmbyClient', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    queueMocks.add.mockClear()
+    queueMocks.create.mockClear()
+  })
+
+  it('creates one media-server queue per client instance', () => {
+    createEmbyClient('http://emby:8096', 'key', 'user-1')
+    createEmbyClient('http://emby:8096', 'key', 'user-2')
+
+    expect(queueMocks.create).toHaveBeenCalledTimes(2)
   })
 
   it('maps top artists from the Emby items endpoint', async () => {
