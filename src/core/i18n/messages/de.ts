@@ -103,6 +103,9 @@ export const de = {
     'Noch keine Empfehlungen. Importieren Sie einige Lieblingskünstler oder führen Sie Ihren ersten Scan durch, um loszulegen.',
   'discover.emptyApproved':
     'Sie haben noch keine Künstler genehmigt. Sehen Sie auf der Registerkarte „Ausstehend“ nach, was Digarr für Sie gefunden hat.',
+  'discover.emptyAlbums': 'Keine Albumempfehlungen in dieser Ansicht.',
+  'discover.emptyAlbumsHelp':
+    'Ein normaler Scan findet Künstler. Verwenden Sie eine der folgenden Optionen, um Albumempfehlungen zu erstellen.',
   'discover.emptyPending': 'Keine ausstehenden Empfehlungen. Sie sind auf dem neuesten Stand.',
   'discover.emptyRejected': 'Keine abgelehnten Empfehlungen.',
   'genres.title': 'Musikgenres',

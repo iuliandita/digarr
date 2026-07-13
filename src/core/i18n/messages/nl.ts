@@ -103,6 +103,9 @@ export const nl = {
     'Nog geen aanbevelingen. Importeer enkele favoriete artiesten of voer uw eerste scan uit om aan de slag te gaan.',
   'discover.emptyApproved':
     'Je hebt nog geen artiesten goedgekeurd. Kijk op het tabblad In behandeling om te zien wat Digarr voor u heeft gevonden.',
+  'discover.emptyAlbums': 'Geen albumaanbevelingen in deze weergave.',
+  'discover.emptyAlbumsHelp':
+    'Een normale scan zoekt artiesten. Gebruik een van de onderstaande opties om albumaanbevelingen te maken.',
   'discover.emptyPending': 'Geen openstaande aanbevelingen. U bent helemaal bij.',
   'discover.emptyRejected': 'Geen afgewezen aanbevelingen.',
   'genres.title': 'Muziekgenres',

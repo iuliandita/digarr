@@ -36,12 +36,12 @@ const noopPreview = {
   },
 }
 
-function renderWithQuery(ui: ReactElement) {
+function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <I18nProvider>
         <QueryClientProvider client={client}>
           <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
@@ -70,6 +70,50 @@ describe('DiscoveryModesPage', () => {
       unobserve() {}
       disconnect() {}
     } as typeof ResizeObserver
+    Element.prototype.scrollIntoView = vi.fn()
+  })
+
+  it.each([
+    ['gap-fill', 'Library Gap-Fill'],
+    ['release-radar', 'Release Radar'],
+  ])('focuses and reveals the requested %s mode from a deep link', async (modeId, label) => {
+    mockGetDiscoveryModes.mockResolvedValue({
+      modes: [
+        {
+          id: 'gap-fill',
+          label: 'Library Gap-Fill',
+          description: 'Find missing albums',
+          availability: {
+            enabled: true,
+            fallbackUsed: false,
+            providerPath: ['musicbrainz'],
+          },
+          easyFields: [],
+          advancedFields: [],
+        },
+        {
+          id: 'release-radar',
+          label: 'Release Radar',
+          description: 'Find new releases',
+          availability: {
+            enabled: true,
+            fallbackUsed: false,
+            providerPath: ['musicbrainz'],
+          },
+          easyFields: [],
+          advancedFields: [],
+        },
+      ],
+    })
+
+    renderWithQuery(<DiscoveryModesPage />, [`/discover/modes?mode=${modeId}`])
+
+    const requestedHeading = await screen.findByRole('heading', { name: label })
+    const requestedCard = requestedHeading.closest('article')
+    expect(requestedCard).not.toBeNull()
+    expect(requestedCard).toHaveAttribute('id', `discovery-mode-${modeId}`)
+    await waitFor(() => expect(requestedCard).toHaveFocus())
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
   })
 
   it('renders the dedicated discovery modes page and submits the release radar payload', async () => {

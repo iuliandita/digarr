@@ -123,8 +123,39 @@ function SkeletonGrid() {
   )
 }
 
-function EmptyState({ filter }: { filter: FilterTab }) {
+function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
   const { t } = useI18n()
+  if (kind === 'album') {
+    return (
+      <div className="py-16 text-center space-y-4">
+        <div className="space-y-1">
+          <p className="text-text text-sm font-medium">{t('discover.emptyAlbums')}</p>
+          <p className="text-muted text-sm max-w-xl mx-auto">{t('discover.emptyAlbumsHelp')}</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/discover/modes?mode=gap-fill"
+            className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
+          >
+            {t('discoveryMode.gap-fill.label')}
+          </Link>
+          <Link
+            to="/discover/modes?mode=release-radar"
+            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+          >
+            {t('discoveryMode.release-radar.label')}
+          </Link>
+          <Link
+            to="/settings?tab=recommendations#net-new-album-discovery"
+            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+          >
+            {t('settings.netNewAlbumDiscovery')}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (filter === 'all') {
     return (
       <div className="py-16 text-center space-y-3">
@@ -1340,6 +1371,8 @@ export function DiscoverPage() {
             <div className="flex justify-center py-16">
               <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : items.length === 0 ? (
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <CardStack
               recommendations={items}
@@ -1358,7 +1391,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} />
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((rec) => {
@@ -1431,7 +1464,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} />
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <div className="flex flex-col gap-3">
               {items.map((rec) => {

@@ -103,6 +103,9 @@ export const ro = {
     'Încă nu există recomandări. Importați câțiva artiști preferați sau rulați prima scanare pentru a începe.',
   'discover.emptyApproved':
     'Încă nu ați aprobat niciun artist. Verificați fila În așteptare pentru a vedea ce a găsit Digarr pentru dvs.',
+  'discover.emptyAlbums': 'Nu există recomandări de albume în această vizualizare.',
+  'discover.emptyAlbumsHelp':
+    'O scanare normală caută artiști. Folosiți una dintre opțiunile de mai jos pentru a genera recomandări de albume.',
   'discover.emptyPending': 'Nicio recomandare în așteptare. Sunteți la zi.',
   'discover.emptyRejected': 'Nicio recomandare respinsă.',
   'genres.title': 'Genuri',

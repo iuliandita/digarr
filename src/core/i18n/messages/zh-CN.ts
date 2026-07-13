@@ -101,6 +101,8 @@ export const zhCN = {
   'discover.emptyAll': '还没有建议。导入一些最喜欢的艺术家或运行第一次扫描即可开始。',
   'discover.emptyApproved':
     '您尚未批准任何艺术家。检查“待处理”选项卡，查看 Digarr 为您找到的内容。',
+  'discover.emptyAlbums': '该视图中没有专辑推荐。',
+  'discover.emptyAlbumsHelp': '普通扫描会查找艺术家。使用以下任一选项生成专辑推荐。',
   'discover.emptyPending': '没有待处理的推荐。当前已全部处理完。',
   'discover.emptyRejected': '没有拒绝的建议。',
   'genres.title': '音乐流派',

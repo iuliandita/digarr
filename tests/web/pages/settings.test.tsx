@@ -15,7 +15,7 @@ vi.mock('@/web/lib/locale-storage', () => ({
   setStoredLocale: vi.fn(),
 }))
 
-function renderWithQuery(ui: ReactElement) {
+function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -23,7 +23,7 @@ function renderWithQuery(ui: ReactElement) {
     client,
     ...render(
       <I18nProvider>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>
           <QueryClientProvider client={client}>{ui}</QueryClientProvider>
         </MemoryRouter>
       </I18nProvider>,
@@ -415,6 +415,24 @@ describe('SettingsPage', () => {
       expect(screen.getByText('Score Threshold')).toBeInTheDocument()
       expect(screen.getByText('Scoring Weights')).toBeInTheDocument()
     })
+  })
+
+  it('opens and focuses net-new album discovery from its deep link', async () => {
+    setupMocks()
+    Element.prototype.scrollIntoView = vi.fn()
+
+    renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations#net-new-album-discovery'])
+
+    const setting = await screen.findByText('Net-new album discovery')
+    const settingLabel = setting.closest('label')
+    expect(settingLabel).not.toBeNull()
+    expect(settingLabel).toHaveAttribute('id', 'net-new-album-discovery')
+    expect(screen.getByRole('button', { name: 'Advanced' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    await waitFor(() => expect(settingLabel).toHaveFocus())
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
   })
 
   it('tab switching shows Schedule content', async () => {

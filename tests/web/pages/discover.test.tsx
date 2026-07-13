@@ -30,14 +30,14 @@ const noopPreview = {
   },
 }
 
-function renderWithQuery(ui: ReactElement) {
+function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>
           <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
         </MemoryRouter>
       </QueryClientProvider>
@@ -233,6 +233,48 @@ describe('DiscoverPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/No pending recommendations/i)).toBeInTheDocument()
     })
+    expect(screen.queryByRole('link', { name: 'Library Gap-Fill' })).not.toBeInTheDocument()
+  })
+
+  it('explains album producers and links to each action when the Albums view is empty', async () => {
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
+
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'A normal scan finds artists. Use one of the options below to generate album recommendations.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=gap-fill',
+    )
+    expect(screen.getByRole('link', { name: 'Release Radar' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=release-radar',
+    )
+    expect(screen.getByRole('link', { name: 'Net-new album discovery' })).toHaveAttribute(
+      'href',
+      '/settings?tab=recommendations#net-new-album-discovery',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approved' }))
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+  })
+
+  it('shows the album guidance when the saved view is the card stack', async () => {
+    localStorage.setItem('digarr:discover-view', 'stack')
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+
+    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
+
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=gap-fill',
+    )
+    expect(screen.queryByText('No more recommendations')).not.toBeInTheDocument()
   })
 
   it('filter tabs update the displayed list', async () => {

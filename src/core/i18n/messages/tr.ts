@@ -103,6 +103,9 @@ export const tr = {
     'Henüz öneri yok. Başlamak için favori sanatçılardan bazılarını içe aktarın veya ilk taramanızı çalıştırın.',
   'discover.emptyApproved':
     "Henüz hiçbir sanatçıyı onaylamadınız. Digarr'ın sizin için ne bulduğunu görmek için Beklemede sekmesini kontrol edin.",
+  'discover.emptyAlbums': 'Bu görünümde albüm önerisi yok.',
+  'discover.emptyAlbumsHelp':
+    'Normal tarama sanatçıları bulur. Albüm önerileri oluşturmak için aşağıdaki seçeneklerden birini kullanın.',
   'discover.emptyPending': 'Bekleyen öneri yok. Her şey güncel.',
   'discover.emptyRejected': 'Reddedilen öneri yok.',
   'genres.title': 'Müzik türleri',

@@ -103,6 +103,9 @@ export const ko = {
     '아직 추천사항이 없습니다. 좋아하는 아티스트를 가져오거나 첫 번째 스캔을 실행하여 시작하세요.',
   'discover.emptyApproved':
     '아직 승인한 아티스트가 없습니다. 보류 중 탭을 확인하여 Digarr가 찾은 내용을 확인하세요.',
+  'discover.emptyAlbums': '이 보기에는 앨범 추천이 없습니다.',
+  'discover.emptyAlbumsHelp':
+    '일반 스캔은 아티스트를 찾습니다. 아래 옵션 중 하나를 사용해 앨범 추천을 생성하세요.',
   'discover.emptyPending': '대기 중인 추천이 없습니다. 모두 확인한 상태입니다.',
   'discover.emptyRejected': '거부된 추천이 없습니다.',
   'genres.title': '음악 장르',

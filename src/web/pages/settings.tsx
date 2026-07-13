@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -2488,6 +2488,8 @@ function RecommendationsTabInner({
   queryClient: ReturnType<typeof useQueryClient>
 }) {
   const { t } = useI18n()
+  const { hash } = useLocation()
+  const targetsNetNewAlbumDiscovery = hash === '#net-new-album-discovery'
   const weights =
     (prefs.scoringWeights as Preferences['scoringWeights']) ?? DEFAULT_PREFERENCES.scoringWeights
 
@@ -2533,6 +2535,14 @@ function RecommendationsTabInner({
     settings.wikidataEnabled !== false,
   )
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!targetsNetNewAlbumDiscovery) return
+
+    const target = document.getElementById('net-new-album-discovery')
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target?.focus({ preventScroll: true })
+  }, [targetsNetNewAlbumDiscovery])
 
   const weightSum =
     consensus + similarity + genreOverlap + aiConfidence + feedbackBoost + popularity
@@ -2714,7 +2724,10 @@ function RecommendationsTabInner({
       </CollapsibleSection>
 
       {/* Advanced - collapsed by default */}
-      <CollapsibleSection title={t('settings.advancedSettings')}>
+      <CollapsibleSection
+        title={t('settings.advancedSettings')}
+        defaultOpen={targetsNetNewAlbumDiscovery}
+      >
         <div className="space-y-6 pt-2">
           <section className="space-y-4">
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
@@ -2756,7 +2769,11 @@ function RecommendationsTabInner({
               step={0.05}
               onChange={setLibrarySeedRatio}
             />
-            <label className="flex items-center gap-2">
+            <label
+              id="net-new-album-discovery"
+              tabIndex={-1}
+              className="scroll-mt-24 flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
               <input
                 type="checkbox"
                 checked={netNewAlbumDiscovery}

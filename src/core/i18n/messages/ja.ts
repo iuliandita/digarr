@@ -103,6 +103,9 @@ export const ja = {
     'まだ推奨事項はありません。お気に入りのアーティストをインポートするか、最初のスキャンを実行して始めてください。',
   'discover.emptyApproved':
     'まだアーティストを承認していません。 「保留中」タブをチェックして、Digarr が何を見つけたかを確認してください。',
+  'discover.emptyAlbums': 'この表示にはアルバムのおすすめがありません。',
+  'discover.emptyAlbumsHelp':
+    '通常のスキャンではアーティストを探します。以下のいずれかの方法でアルバムのおすすめを生成できます。',
   'discover.emptyPending': '保留中のおすすめはありません。すべて確認済みです。',
   'discover.emptyRejected': '拒否された推奨事項はありません。',
   'genres.title': '音楽ジャンル',
