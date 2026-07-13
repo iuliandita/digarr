@@ -103,6 +103,9 @@ export const en = {
     'No recommendations yet. Import some favorite artists or run your first scan to get started.',
   'discover.emptyApproved':
     "You haven't approved any artists yet. Check the Pending tab to see what Digarr found for you.",
+  'discover.emptyAlbums': 'No album recommendations in this view.',
+  'discover.emptyAlbumsHelp':
+    'A normal scan finds artists. Use one of the options below to generate album recommendations.',
   'discover.emptyPending': "No pending recommendations. You're all caught up.",
   'discover.emptyRejected': 'No rejected recommendations.',
   'genres.title': 'Genres',

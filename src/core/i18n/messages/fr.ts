@@ -103,6 +103,9 @@ export const fr = {
     "Aucune recommandation pour l'instant. Importez quelques artistes préférés ou lancez votre première analyse pour commencer.",
   'discover.emptyApproved':
     "Vous n'avez encore approuvé aucun artiste. Vérifiez l'onglet En attente pour voir ce que Digarr a trouvé pour vous.",
+  'discover.emptyAlbums': "Aucune recommandation d'album dans cette vue.",
+  'discover.emptyAlbumsHelp':
+    "Une analyse normale recherche des artistes. Utilisez l'une des options ci-dessous pour générer des recommandations d'albums.",
   'discover.emptyPending': 'Aucune recommandation en attente. Vous êtes tous rattrapés.',
   'discover.emptyRejected': 'Aucune recommandation rejetée.',
   'genres.title': 'Genres musicaux',

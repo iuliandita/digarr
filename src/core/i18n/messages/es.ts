@@ -103,6 +103,9 @@ export const es = {
     'Aún no hay recomendaciones. Importa algunos de tus artistas favoritos o ejecuta tu primer escaneo para comenzar.',
   'discover.emptyApproved':
     'Aún no has aprobado ningún artista. Consulte la pestaña Pendiente para ver qué encontró Digarr para usted.',
+  'discover.emptyAlbums': 'No hay recomendaciones de álbumes en esta vista.',
+  'discover.emptyAlbumsHelp':
+    'Un análisis normal encuentra artistas. Usa una de las opciones siguientes para generar recomendaciones de álbumes.',
   'discover.emptyPending': 'No hay recomendaciones pendientes. Estás al día.',
   'discover.emptyRejected': 'No hay recomendaciones rechazadas.',
   'genres.title': 'Géneros musicales',

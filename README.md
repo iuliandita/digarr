@@ -191,6 +191,8 @@ Digarr runs a 7-stage recommendation pipeline:
 
 You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or from Discover -> Discovery Modes for focused manual runs on `/discover/modes`.
 
+The normal scan finds artists. Album recommendations come from Library Gap-Fill (missing studio albums from tracked artists), Release Radar (new releases from tracked artists), or the optional net-new album discovery preference (a specific AI-suggested album from a new-to-you artist). When the Albums view is empty, it links directly to those producers and the relevant setting.
+
 ## Requirements
 
 | Service | Required | Purpose |

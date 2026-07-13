@@ -103,6 +103,9 @@ export const ptBR = {
     'Nenhuma recomendação ainda. Importe alguns artistas favoritos ou execute sua primeira digitalização para começar.',
   'discover.emptyApproved':
     'Você ainda não aprovou nenhum artista. Verifique a guia Pendente para ver o que Digarr encontrou para você.',
+  'discover.emptyAlbums': 'Não há recomendações de álbuns nesta visualização.',
+  'discover.emptyAlbumsHelp':
+    'Uma varredura normal encontra artistas. Use uma das opções abaixo para gerar recomendações de álbuns.',
   'discover.emptyPending': 'Nenhuma recomendação pendente. Você está em dia.',
   'discover.emptyRejected': 'Nenhuma recomendação rejeitada.',
   'genres.title': 'Gêneros',

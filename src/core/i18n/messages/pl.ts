@@ -103,6 +103,9 @@ export const pl = {
     'Nie ma jeszcze rekomendacji. Aby rozpocząć, zaimportuj ulubionych artystów lub uruchom pierwszy skan.',
   'discover.emptyApproved':
     'Nie zatwierdziłeś jeszcze żadnego wykonawcy. Sprawdź zakładkę Oczekujące, aby zobaczyć, co Digarr dla Ciebie znalazł.',
+  'discover.emptyAlbums': 'Brak rekomendacji albumów w tym widoku.',
+  'discover.emptyAlbumsHelp':
+    'Zwykłe skanowanie wyszukuje wykonawców. Użyj jednej z poniższych opcji, aby utworzyć rekomendacje albumów.',
   'discover.emptyPending': 'Brak oczekujących rekomendacji. Wszystko jest na bieżąco.',
   'discover.emptyRejected': 'Brak odrzuconych rekomendacji.',
   'genres.title': 'Gatunki muzyczne',

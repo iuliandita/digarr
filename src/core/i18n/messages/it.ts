@@ -103,6 +103,9 @@ export const it = {
     'Nessun consiglio ancora. Importa alcuni artisti preferiti o esegui la prima scansione per iniziare.',
   'discover.emptyApproved':
     'Non hai ancora approvato nessun artista. Controlla la scheda In sospeso per vedere cosa ha trovato Digarr per te.',
+  'discover.emptyAlbums': 'Nessun consiglio di album in questa vista.',
+  'discover.emptyAlbumsHelp':
+    'Una scansione normale trova artisti. Usa una delle opzioni seguenti per generare consigli di album.',
   'discover.emptyPending': 'Nessuna raccomandazione in sospeso. Sei in pari.',
   'discover.emptyRejected': 'Nessuna raccomandazione rifiutata.',
   'genres.title': 'Generi musicali',

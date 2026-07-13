@@ -10,9 +10,11 @@ import { DiscoveryModeInfoBox } from './discovery-mode-info-box'
 
 export function DiscoveryModeCard({
   mode,
+  requested = false,
   onRun,
 }: {
   mode: DiscoveryModeResponse
+  requested?: boolean
   onRun: (body: Record<string, unknown>) => Promise<void>
 }) {
   const { t } = useI18n()
@@ -21,7 +23,13 @@ export function DiscoveryModeCard({
   const availabilityReason = translateDiscoveryReason(t, mode.availability.reason)
 
   return (
-    <article className="space-y-4 rounded-xl border border-border bg-bg p-5 shadow-sm">
+    <article
+      id={`discovery-mode-${mode.id}`}
+      tabIndex={requested ? -1 : undefined}
+      className={`space-y-4 scroll-mt-24 rounded-xl border bg-bg p-5 shadow-sm outline-none ${
+        requested ? 'border-accent/60 ring-1 ring-accent' : 'border-border'
+      }`}
+    >
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base font-semibold text-text">{modeLabel}</h3>
