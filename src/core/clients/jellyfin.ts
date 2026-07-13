@@ -6,6 +6,8 @@ import { createHttpClient } from './http'
 export type JellyfinArtist = {
   name: string
   id: string
+  mbid?: string
+  genres: string[]
   playCount: number
   isFavorite: boolean
 }
@@ -129,6 +131,7 @@ export function createJellyfinClient(
         scopedArtistsPath(userId, {
           SortBy: 'PlayCount',
           SortOrder: 'Descending',
+          Fields: 'UserData,Genres,ProviderIds',
           Limit: String(limit),
         }),
       )
@@ -138,7 +141,7 @@ export function createJellyfinClient(
         SortOrder: 'Descending',
         IncludeItemTypes: 'MusicArtist',
         Recursive: 'true',
-        Fields: 'UserData',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
       res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
@@ -155,6 +158,8 @@ export function createJellyfinClient(
       return {
         name: item.Name as string,
         id: item.Id as string,
+        mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
+        genres: (item.Genres as string[] | undefined) ?? [],
         playCount: userData?.PlayCount ?? 0,
         isFavorite: userData?.IsFavorite ?? false,
       }
@@ -198,6 +203,7 @@ export function createJellyfinClient(
           SortBy: 'SortName',
           SortOrder: 'Ascending',
           IsFavorite: 'true',
+          Fields: 'UserData,Genres,ProviderIds',
           Limit: String(limit),
         }),
       )
@@ -208,7 +214,7 @@ export function createJellyfinClient(
         IncludeItemTypes: 'MusicArtist',
         Recursive: 'true',
         IsFavorite: 'true',
-        Fields: 'UserData',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
       res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
@@ -222,6 +228,8 @@ export function createJellyfinClient(
       return {
         name: item.Name as string,
         id: item.Id as string,
+        mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
+        genres: (item.Genres as string[] | undefined) ?? [],
         playCount: userData?.PlayCount ?? 0,
         isFavorite: userData?.IsFavorite ?? true,
       }

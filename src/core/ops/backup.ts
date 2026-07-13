@@ -13,6 +13,7 @@ import {
 import {
   albumBlocks,
   artistBlocks,
+  artistGenreAliases,
   artistMetadata,
   artists,
   genres,
@@ -48,6 +49,7 @@ import type {
 type BackupTable =
   | typeof albumBlocks
   | typeof artistBlocks
+  | typeof artistGenreAliases
   | typeof artistMetadata
   | typeof artists
   | typeof genres
@@ -130,6 +132,7 @@ export async function createBackup(
 
   if (includeCaches) {
     backup.data.artists = await selectAll(db, artists)
+    backup.data.artistGenreAliases = await selectAll(db, artistGenreAliases)
     backup.data.genres = await selectAll(db, genres)
     backup.data.artistMetadata = await selectAll(db, artistMetadata)
   }
@@ -200,7 +203,7 @@ type RestoreSpec<TTable extends BackupTable> = {
 function createRestoreSpec<TTable extends BackupTable>(
   key: keyof BackupFile['data'],
   table: TTable,
-  conflictTarget?: AnyPgColumn,
+  conflictTarget?: AnyPgColumn | AnyPgColumn[],
   sortRows?: (rows: Record<string, unknown>[]) => Record<string, unknown>[],
 ): RestoreSpec<TTable> {
   return {
@@ -282,6 +285,10 @@ const RESTORE_ORDER = [
   createRestoreSpec('settings', settings, settings.id),
   createRestoreSpec('users', users),
   createRestoreSpec('artists', artists, artists.mbid),
+  createRestoreSpec('artistGenreAliases', artistGenreAliases, [
+    artistGenreAliases.source,
+    artistGenreAliases.nameNormalized,
+  ]),
   createRestoreSpec('genres', genres, genres.slug, sortGenresParentsFirst),
   createRestoreSpec('artistMetadata', artistMetadata, artistMetadata.nameNormalized),
   createRestoreSpec('libraryHealthState', libraryHealthState),

@@ -40,9 +40,10 @@ import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sy
 import { markShuttingDown } from './core/lifecycle'
 import { sendWebhook } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
-import { isMaintenance } from './core/ops/maintenance'
+import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
+import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
@@ -106,9 +107,20 @@ import {
   removeBlock as removeArtistBlockQuery,
 } from './db/queries/artist-blocks'
 import { getPopularityMap, lookupByName } from './db/queries/artist-metadata'
-import { getArtistById, upsertArtist } from './db/queries/artists'
+import {
+  getArtistById,
+  getArtistGenreCacheByAliases,
+  getArtistGenreCacheByMbids,
+  upsertArtist,
+  upsertArtistGenreAlias,
+  upsertArtistGenres,
+} from './db/queries/artists'
 import { completeBatch, failBatch, getBatch, listBatches } from './db/queries/batches'
-import { getRecentActivity, getTopGenresForUser } from './db/queries/dashboard'
+import {
+  getLatestGenreCoverage,
+  getRecentActivity,
+  getTopGenresForUser,
+} from './db/queries/dashboard'
 import {
   getAllGenres,
   getChildGenres,
@@ -271,6 +283,10 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
 const storeDb: StoreDb = {
   getExistingAlbumReleaseGroupMbids: (userId) => getExistingAlbumReleaseGroupMbids(db, userId),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
+  getArtistGenreCacheByMbids: (mbids) => getArtistGenreCacheByMbids(db, mbids),
+  getArtistGenreCacheByAliases: (aliases) => getArtistGenreCacheByAliases(db, aliases),
+  upsertArtistGenres: (data) => upsertArtistGenres(db, data),
+  upsertArtistGenreAlias: (data) => upsertArtistGenreAlias(db, data),
   getExistingRecommendationMbids: async (userId) => {
     const base = db
       .select({ mbid: artists.mbid })
@@ -1368,6 +1384,7 @@ const app = createApp({
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
+    getLatestGenreCoverage: (userId) => getLatestGenreCoverage(db, userId),
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),
   },
   discoveryModeRegistry,
@@ -1630,6 +1647,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     // to observe draining before closing the server so
     // in-flight requests finish on the listener we still own.
     markShuttingDown()
+    setMaintenance(true)
     await new Promise((resolve) => setTimeout(resolve, 12_000))
     scheduler.stopAll()
     playlistScheduler.stopAll()
@@ -1661,6 +1679,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         }, 25_000)
       })
     }
+    await waitForGenreWarmers()
     await closeDb()
     clearTimeout(deadline)
     process.exit(0)

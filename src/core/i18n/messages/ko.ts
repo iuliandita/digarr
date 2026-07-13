@@ -242,6 +242,8 @@ export const ko = {
   'dashboard.feedbackTip':
     '추천을 승인하거나 거부해 Digarr가 취향을 더 잘 이해하도록 도와주세요. 피드백이 많을수록 앞으로의 추천이 더 정확해집니다.',
   'dashboard.foundLastRun': '마지막 실행에서 찾음',
+  'dashboard.genreCoverage': '장르 데이터 있음: {0}/{1}',
+  'dashboard.genreCoveragePending': '대기 중인 장르 데이터 업데이트: {0}',
   'dashboard.getStarted': '시작하기',
   'dashboard.listeningHistory': '청취 기록',
   'dashboard.recentPlays': '최근 재생',

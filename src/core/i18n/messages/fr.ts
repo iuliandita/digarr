@@ -246,6 +246,8 @@ export const fr = {
   'dashboard.feedbackTip':
     'Approuvez ou rejetez les recommandations pour enseigner votre goût à Digarr. Plus vous donnez de commentaires, meilleures seront vos futures recommandations.',
   'dashboard.foundLastRun': 'trouvé la dernière fois',
+  'dashboard.genreCoverage': 'Données de genre disponibles : {0}/{1}',
+  'dashboard.genreCoveragePending': 'Mises à jour des données de genre en attente : {0}',
   'dashboard.getStarted': 'Commencer',
   'dashboard.listeningHistory': "Historique d'écoute",
   'dashboard.recentPlays': 'Écoutes récentes',

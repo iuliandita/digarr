@@ -32,7 +32,7 @@
 > - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
 > - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
 > - 🧭 **14 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Subsonic Starred -- all runnable on demand or saved as subscriptions.
-> - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring currently derives listening genres from Spotify when no library is connected.
+> - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring uses native listening metadata plus a bounded MusicBrainz cache warmer when no library is connected.
 > - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
 > - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
 > - 🛡️ **Ops-grade self-hosting** -- zero-external-database single container, backup/restore, job observability, pre-flight upgrade checks, cosign-signed images.
@@ -173,7 +173,7 @@ docker compose up -d
 
 Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot.
 
-For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses a genre profile derived from your connected listening sources (currently Spotify) instead of a Lidarr library. Emby can be added during the setup wizard or later in Settings.
+For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses native genres from connected sources, synchronized library metadata, and a bounded background MusicBrainz cache warmer with optional Last.fm fallback. Cold caches improve on later scans without blocking the current scan; Dashboard and Settings show profile coverage. Emby can be added during the setup wizard or later in Settings.
 
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

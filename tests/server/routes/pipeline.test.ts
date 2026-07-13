@@ -160,6 +160,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     jobRecorder: {

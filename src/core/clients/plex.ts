@@ -7,6 +7,7 @@ export type PlexTopArtist = {
   name: string
   viewCount: number
   ratingKey: string
+  genres: string[]
 }
 
 export type PlexRecentTrack = {
@@ -24,7 +25,12 @@ type PlexSectionsResponse = {
 
 type PlexArtistsResponse = {
   MediaContainer: {
-    Metadata: Array<{ title: string; viewCount?: number; ratingKey: string }>
+    Metadata: Array<{
+      title: string
+      viewCount?: number
+      ratingKey: string
+      Genre?: Array<{ tag: string }>
+    }>
   }
 }
 
@@ -131,6 +137,7 @@ export function createPlexClient(
       name: m.title,
       viewCount: m.viewCount ?? 0,
       ratingKey: m.ratingKey,
+      genres: (m.Genre ?? []).map((genre) => genre.tag),
     }))
   }
 

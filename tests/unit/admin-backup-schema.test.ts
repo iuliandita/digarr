@@ -41,6 +41,7 @@ describe('backupFileSchema', () => {
       data: {
         ...makeBase().data,
         artists: [],
+        artistGenreAliases: [],
         genres: [],
         artistMetadata: [],
         artistBlocks: [],

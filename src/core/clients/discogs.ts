@@ -60,6 +60,11 @@ export type DiscogsArtistCount = {
   name: string
   id: number
   count: number
+  genres: string[]
+}
+
+type DiscogsArtistAccumulator = Omit<DiscogsArtistCount, 'genres'> & {
+  genreWeights: Map<string, { name: string; count: number }>
 }
 
 export function createDiscogsClient(
@@ -85,10 +90,11 @@ export function createDiscogsClient(
   }
 
   function countArtists(
-    items: Array<{ artists: DiscogsArtistRef[] }>,
-    counts: Map<string, DiscogsArtistCount>,
+    items: Array<{ artists: DiscogsArtistRef[]; genres?: string[]; styles?: string[] }>,
+    counts: Map<string, DiscogsArtistAccumulator>,
   ): void {
     for (const item of items) {
+      const releaseGenres = [...new Set([...(item.genres ?? []), ...(item.styles ?? [])])]
       for (const artist of item.artists) {
         if (artist.name === 'Various' || artist.id === 0) continue
         const key = artist.name.toLowerCase()
@@ -96,14 +102,42 @@ export function createDiscogsClient(
         if (existing) {
           existing.count++
         } else {
-          counts.set(key, { name: artist.name, id: artist.id, count: 1 })
+          counts.set(key, {
+            name: artist.name,
+            id: artist.id,
+            count: 1,
+            genreWeights: new Map(),
+          })
+        }
+        const entry = counts.get(key)
+        if (!entry) continue
+        for (const genre of releaseGenres) {
+          const genreKey = genre.toLowerCase()
+          const weighted = entry.genreWeights.get(genreKey)
+          if (weighted) weighted.count++
+          else entry.genreWeights.set(genreKey, { name: genre, count: 1 })
         }
       }
     }
   }
 
+  function finalizeArtistCounts(
+    counts: Map<string, DiscogsArtistAccumulator>,
+    limit: number,
+  ): DiscogsArtistCount[] {
+    return [...counts.values()]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit)
+      .map(({ genreWeights, ...artist }) => ({
+        ...artist,
+        genres: [...genreWeights.values()]
+          .sort((a, b) => b.count - a.count)
+          .map((genre) => genre.name),
+      }))
+  }
+
   async function getCollectionArtists(limit = 100): Promise<DiscogsArtistCount[]> {
-    const counts = new Map<string, DiscogsArtistCount>()
+    const counts = new Map<string, DiscogsArtistAccumulator>()
     const perPage = 100
 
     for (let page = 1; page <= 3; page++) {
@@ -117,11 +151,11 @@ export function createDiscogsClient(
       if (page >= res.pagination.pages) break
     }
 
-    return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, limit)
+    return finalizeArtistCounts(counts, limit)
   }
 
   async function getWantlistArtists(limit = 100): Promise<DiscogsArtistCount[]> {
-    const counts = new Map<string, DiscogsArtistCount>()
+    const counts = new Map<string, DiscogsArtistAccumulator>()
     const perPage = 100
 
     for (let page = 1; page <= 3; page++) {
@@ -135,7 +169,7 @@ export function createDiscogsClient(
       if (page >= res.pagination.pages) break
     }
 
-    return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, limit)
+    return finalizeArtistCounts(counts, limit)
   }
 
   async function searchByGenre(

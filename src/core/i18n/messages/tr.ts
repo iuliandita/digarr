@@ -245,6 +245,8 @@ export const tr = {
   'dashboard.feedbackTip':
     "Digarr'a zevkinizi öğretmek için önerileri onaylayın veya reddedin. Ne kadar çok geri bildirim verirseniz, gelecekteki önerileriniz o kadar iyi olur.",
   'dashboard.foundLastRun': 'son çalıştırmada bulundu',
+  'dashboard.genreCoverage': 'Mevcut tür verisi: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Bekleyen tür verisi güncellemeleri: {0}',
   'dashboard.getStarted': 'Başlayın',
   'dashboard.listeningHistory': 'Dinleme geçmişi',
   'dashboard.recentPlays': 'Son dinlenenler',

@@ -19,6 +19,9 @@ export function createPlexSource(
         name: a.name,
         playCount: a.viewCount,
         source: 'plex',
+        ...((a.genres ?? []).length > 0
+          ? { genres: a.genres, genreSource: 'native' as const }
+          : {}),
       }))
     },
 

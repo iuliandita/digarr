@@ -1,13 +1,24 @@
 import type { SupportedLocale } from '@/core/i18n/locales'
 
+export type GenreSource = 'native' | 'library' | 'artist-cache'
+
+export type GenreCoverage = {
+  coveredArtists: number
+  pendingArtists: number
+  totalArtists: number
+}
+
 export type TasteProfile = {
   topArtists: Array<{
     name: string
     mbid?: string
     playCount: number
     source: string
+    genres?: string[]
+    genreSource?: GenreSource
   }>
   topGenres: Array<{ name: string; weight: number }>
+  genreCoverage?: GenreCoverage
   listeningPatterns: {
     totalListens: number
     recentTrend: 'increasing' | 'stable' | 'decreasing'

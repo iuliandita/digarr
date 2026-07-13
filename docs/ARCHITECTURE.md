@@ -78,7 +78,15 @@ Seven stages:
 
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
-Genre enrichment from `artist_metadata` runs between resolve and score.
+Analyze hydrates listening-artist genres from native source payloads,
+`library_artists`, and the `artists` cache before computing the taste profile.
+After foreground pipeline work completes, a maintenance-aware warmer queues at
+most 10 stale or missing artists through the shared MusicBrainz rate gate; the
+next scan consumes the refreshed cache through an ambiguity-checked source/name
+alias when the listening source has no MBID. Listening-artist genre data in the
+artist cache uses its own freshness timestamp, so unrelated image or metadata
+refreshes cannot extend the 180-day genre TTL. Enrichment from
+`artist_metadata` still runs between resolve and score.
 
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
