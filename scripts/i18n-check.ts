@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { ARTIST_EXTERNAL_LINK_KEYS } from '../src/core/artists/external-links'
 import { createDefaultDiscoveryModeRegistry } from '../src/core/discovery-modes/registry'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
-import { getAuthoredMessages, getMessages } from '../src/core/i18n/messages'
+import { getMessages, getRawMessages } from '../src/core/i18n/messages'
 import { PROTECTED_I18N_TERMS } from '../src/core/i18n/protected-terms'
 import { REJECTION_REASONS } from '../src/core/recommendations/rejection-reasons'
 import { collectDiscoveryMessageKeys } from '../src/web/lib/discovery-i18n'
@@ -220,7 +220,7 @@ export async function main(): Promise<void> {
   let failed = false
 
   for (const locale of SUPPORTED_LOCALES) {
-    const messages = getAuthoredMessages(locale) as Record<string, string>
+    const messages = getRawMessages(locale) as Record<string, string>
     const { missing, extra, empty, sameAsSource } = findCatalogIssues(
       locale,
       referenceMessages,
