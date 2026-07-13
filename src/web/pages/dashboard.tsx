@@ -258,7 +258,7 @@ function RecentActivity({
   data: { tracks: RecentTrackEntry[]; hasSource: boolean } | undefined
 }) {
   const { t, locale } = useI18n()
-  if (!data || !data.hasSource) return null
+  if (!data?.hasSource) return null
   return (
     <div>
       <h2 className="text-sm font-semibold text-text uppercase tracking-wide mb-3">

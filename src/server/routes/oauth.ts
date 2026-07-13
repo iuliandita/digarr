@@ -115,7 +115,7 @@ export function oauthRoutes(deps: AppDependencies) {
         // Resolve userId from server-side pending token, not from the URL state param.
         // The pending token stores `pending:{userId}:{opaqueState}` and state is just the opaque part.
         const pending = await findPendingOAuthByState(deps.db, 'spotify', state)
-        if (!pending || !pending.accessToken.startsWith('pending:')) {
+        if (!pending?.accessToken.startsWith('pending:')) {
           return c.redirect('/settings?oauth_error=no_pending_auth')
         }
         const userId = pending.userId
@@ -201,7 +201,7 @@ export function oauthRoutes(deps: AppDependencies) {
       }
       case 'deezer': {
         const deezerPending = await findPendingOAuthByState(deps.db, 'deezer', state)
-        if (!deezerPending || !deezerPending.accessToken.startsWith('pending:')) {
+        if (!deezerPending?.accessToken.startsWith('pending:')) {
           return c.redirect('/settings?oauth_error=no_pending_auth')
         }
         const deezerUserId = deezerPending.userId

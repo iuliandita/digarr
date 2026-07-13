@@ -74,7 +74,7 @@ type SpotifyEmbedProps = {
 
 function extractSpotifyId(url: string): { type: string; id: string } | null {
   const match = url.match(/spotify\.com\/(artist|album|track)\/([A-Za-z0-9]+)/)
-  if (!match || !match[1] || !match[2]) return null
+  if (!match?.[1] || !match[2]) return null
   return { type: match[1], id: match[2] }
 }
 
