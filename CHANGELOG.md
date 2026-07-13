@@ -15,6 +15,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - **Database backend migration now copies and verifies one table at a time.** The admin migration tool no longer holds whole-source and whole-target backup objects in application memory. It keeps the consistent read-only source transaction and atomic target transaction, restores in bounded chunks, and reports the same count/content verification result while the working set follows the largest individual table.
 - **Playlist targets now share one safe HTTP transport policy.** Jellyfin, Emby, Plex, and Navidrome playlist requests use the shared timeout, TLS, JSON parsing, response-body error, and credential-redaction path. Read-only requests and best-effort metadata updates may retry; duplicate-producing playlist creation and song-add requests make exactly one attempt, including Subsonic's GET-shaped mutation endpoints.
 
+### Fixed
+
+- **Nightly containers now report their real build identity.** The image keeps the build-time commit SHA and release channel in the runtime stage, so the web footer and `GET /health` no longer fall back to `dev` / `local` in deployed nightly images.
+
 ## v1.12.0 - 2026-07-05
 
 AI provider problems are now visible everywhere they matter, plus a batch of Lidarr, library-sync, and OIDC fixes.

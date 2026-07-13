@@ -34,6 +34,13 @@ RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
 # checkov:skip=CKV_DOCKER_7: Default and release override runtime images are version-and-digest pinned.
 FROM ${RUNTIME_IMAGE}
 
+# The backend bundle retains custom process.env reads, so preserve the build
+# identity in the runtime image as well as the builder stage.
+ARG DIGARR_GIT_SHA=dev
+ARG DIGARR_CHANNEL=local
+ENV DIGARR_GIT_SHA=${DIGARR_GIT_SHA}
+ENV DIGARR_CHANNEL=${DIGARR_CHANNEL}
+
 LABEL org.opencontainers.image.source="https://github.com/iuliandita/digarr"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="digarr"

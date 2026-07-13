@@ -141,6 +141,8 @@ The response includes `"dbBackend"`:
 {
   "status": "ok",
   "version": "...",
+  "gitSha": "...",
+  "channel": "stable",
   "dbBackend": "postgres"
 }
 ```
