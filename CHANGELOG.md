@@ -10,6 +10,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - **Genre backfill for non-Spotify listening sources.** Discovery-only scans now use genre metadata already returned by Plex, Jellyfin, Emby, and Discogs, then fill remaining gaps from synchronized library rows and the artist cache. After the foreground scan finishes, a maintenance-aware background warmer enriches at most 10 artists through the existing MusicBrainz rate gate, with optional Last.fm top-tag fallback and 180-day negative caching. Ambiguous name-only matches are skipped. Dashboard and Settings show covered and pending listening artists, translated across all 15 shipped locales.
 
+### Changed
+
+- **Database backend migration now copies and verifies one table at a time.** The admin migration tool no longer holds whole-source and whole-target backup objects in application memory. It keeps the consistent read-only source transaction and atomic target transaction, restores in bounded chunks, and reports the same count/content verification result while the working set follows the largest individual table.
+
 ## v1.12.0 - 2026-07-05
 
 AI provider problems are now visible everywhere they matter, plus a batch of Lidarr, library-sync, and OIDC fixes.

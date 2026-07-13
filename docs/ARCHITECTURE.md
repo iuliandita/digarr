@@ -51,10 +51,14 @@ default to external PostgreSQL; PGlite is opt-in there (Helm
 **In-app backend migration.** Admins can switch between PGlite and external
 PostgreSQL through Settings -> Administration -> Migrate Database Backend without
 stopping the server or writing SQL. The tool (`src/core/ops/migrate-backend.ts`)
-takes a consistent read-only snapshot of the source inside a `REPEATABLE READ
-READ ONLY` transaction, runs schema migrations on the target, restores the
-snapshot atomically, then verifies every table by row count and SHA-256 content
-hash before returning a `MigrationReport`. During the copy, `maintenanceMiddleware`
+runs schema migrations on the target, then opens a consistent source view inside
+a `REPEATABLE READ READ ONLY` transaction and copies the restore registry in
+foreign key order inside one target transaction. Each table is selected, restored in
+chunks, and verified by row count and SHA-256 content hash before the next table
+is loaded. The process does not retain whole-source or whole-target backup
+objects, so its working set follows the largest individual table instead of the
+whole database. A write failure rolls back the target copy transaction before a
+`MigrationReport` is returned. During the copy, `maintenanceMiddleware`
 blocks all write methods (`POST/PUT/PATCH/DELETE`) on non-migration routes,
 returning `503 Maintenance in progress`; reads pass through. Background
 schedulers check the same flag (`isMaintenance()` in `src/core/ops/maintenance.ts`)
