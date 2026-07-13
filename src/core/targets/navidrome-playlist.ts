@@ -1,4 +1,4 @@
-import { redactUrlForLog } from '@/core/clients/http'
+import { createHttpClient, HttpError, type HttpRequestOptions } from '@/core/clients/http'
 import {
   buildSubsonicAuthParams,
   type SubsonicEnvelope,
@@ -14,37 +14,28 @@ export type NavidromePlaylistConfig = {
   password: string
 }
 
-function buildSubsonicUrl(
-  baseUrl: string,
+function buildSubsonicPath(
   username: string,
   password: string,
   endpoint: string,
   extra?: Record<string, string>,
 ): string {
-  const base = baseUrl.replace(/\/+$/, '')
   const params = buildSubsonicAuthParams({
     username,
     password,
     extra,
   })
-  return `${base}/rest/${endpoint}?${params.toString()}`
+  return `/rest/${endpoint}?${params.toString()}`
 }
 
-async function subsonicFetch<T>(url: string): Promise<T> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 10_000)
-  let res: Response
-  try {
-    res = await fetch(url, { signal: controller.signal })
-  } finally {
-    clearTimeout(timer)
+function redactSubsonicAuthValues(text: string, path: string): string {
+  const params = new URL(path, 'http://subsonic.invalid').searchParams
+  let redacted = text
+  for (const key of ['t', 's']) {
+    const value = params.get(key)
+    if (value) redacted = redacted.replaceAll(value, '[REDACTED]')
   }
-  if (!res.ok) {
-    throw new Error(`Subsonic HTTP ${res.status}: ${redactUrlForLog(url)}`)
-  }
-  const data = (await res.json()) as SubsonicEnvelope<Record<string, unknown>>
-  const root = unwrapSubsonicResponse(data)
-  return root as unknown as T
+  return redacted
 }
 
 export function createNavidromePlaylistTarget(
@@ -52,15 +43,32 @@ export function createNavidromePlaylistTarget(
   config: NavidromePlaylistConfig,
 ): DestinationTarget {
   const { url, username, password } = config
+  const client = createHttpClient({ baseUrl: url.replace(/\/+$/, ''), timeout: 10_000 })
 
-  function apiUrl(endpoint: string, extra?: Record<string, string>): string {
-    return buildSubsonicUrl(url, username, password, endpoint, extra)
+  function apiPath(endpoint: string, extra?: Record<string, string>): string {
+    return buildSubsonicPath(username, password, endpoint, extra)
+  }
+
+  async function subsonicFetch<T>(path: string, options?: HttpRequestOptions): Promise<T> {
+    let data: SubsonicEnvelope<Record<string, unknown>>
+    try {
+      data = await client.get<SubsonicEnvelope<Record<string, unknown>>>(path, options)
+    } catch (error) {
+      if (error instanceof HttpError) {
+        throw new Error(
+          `Subsonic HTTP ${error.status}: ${redactSubsonicAuthValues(error.body, path)}`,
+        )
+      }
+      throw error
+    }
+    const root = unwrapSubsonicResponse(data)
+    return root as unknown as T
   }
 
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
     try {
       const query = `${artistName} ${trackName}`
-      const searchUrl = apiUrl('search3', {
+      const searchPath = apiPath('search3', {
         query,
         songCount: '5',
         artistCount: '0',
@@ -68,7 +76,7 @@ export function createNavidromePlaylistTarget(
       })
       const res = await subsonicFetch<{
         searchResult3?: { song?: Array<{ id: string; title: string; artist: string }> }
-      }>(searchUrl)
+      }>(searchPath)
 
       const songs = res.searchResult3?.song ?? []
       if (songs.length === 0) return null
@@ -106,10 +114,10 @@ export function createNavidromePlaylistTarget(
         }
 
         // Create the playlist
-        const createUrl = apiUrl('createPlaylist', { name })
+        const createPath = apiPath('createPlaylist', { name })
         const created = await subsonicFetch<{
           playlist: { id: string; name: string }
-        }>(createUrl)
+        }>(createPath, { retries: 0 })
 
         const playlistId = created.playlist?.id
         if (!playlistId) {
@@ -122,16 +130,16 @@ export function createNavidromePlaylistTarget(
           songIds.forEach((id, i) => {
             updateParams[`songIdToAdd[${i}]`] = id
           })
-          const updateUrl = apiUrl('updatePlaylist', updateParams)
-          await subsonicFetch(updateUrl)
+          const updatePath = apiPath('updatePlaylist', updateParams)
+          await subsonicFetch(updatePath, { retries: 0 })
         }
 
         if (options?.description) {
-          const commentUrl = apiUrl('updatePlaylist', {
+          const commentPath = apiPath('updatePlaylist', {
             playlistId,
             comment: options.description,
           })
-          await subsonicFetch(commentUrl).catch(() => {
+          await subsonicFetch(commentPath).catch(() => {
             // Best-effort: description update is not critical
           })
         }
@@ -156,8 +164,8 @@ export function createNavidromePlaylistTarget(
 
     async testConnection(): Promise<ServiceTestResult> {
       try {
-        const pingUrl = apiUrl('ping')
-        await subsonicFetch(pingUrl)
+        const pingPath = apiPath('ping')
+        await subsonicFetch(pingPath)
         return {
           success: true,
           message: `Connected to Navidrome as ${username}`,

@@ -72,7 +72,7 @@ describe('createNavidromePlaylistTarget()', () => {
     })
 
     it('returns failure when server is unreachable', async () => {
-      mockFetch.mockImplementationOnce(() => networkError())
+      mockFetch.mockImplementation(() => networkError())
 
       const target = createNavidromePlaylistTarget(5, CONFIG)
       const result = await target.testConnection()
@@ -100,7 +100,7 @@ describe('createNavidromePlaylistTarget()', () => {
       expect(result.success).toBe(false)
       expect(result.message).not.toMatch(/[?&]t=[0-9a-f]{32}/)
       expect(result.message).not.toMatch(/[?&]s=[0-9a-f]{16}/)
-      expect(result.message).toContain('%5BREDACTED%5D')
+      expect(result.message).toBe('Subsonic HTTP 401: Unauthorized')
     })
 
     it('returns a clean failure for a response without a Subsonic envelope', async () => {
@@ -112,6 +112,30 @@ describe('createNavidromePlaylistTarget()', () => {
       expect(result).toEqual({
         success: false,
         message: 'Malformed Subsonic response (missing subsonic-response envelope)',
+      })
+    })
+
+    it('retries a read-only ping when the server recovers', async () => {
+      mockFetch
+        .mockResolvedValueOnce(new Response('temporary outage', { status: 500 }))
+        .mockResolvedValueOnce(okResponse({}))
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.testConnection()
+
+      expect(result.success).toBe(true)
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('returns a provider-shaped error for malformed JSON', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('not-json'))
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.testConnection()
+
+      expect(result).toEqual({
+        success: false,
+        message: 'Subsonic HTTP 200: Invalid JSON: not-json',
       })
     })
   })
@@ -221,6 +245,85 @@ describe('createNavidromePlaylistTarget()', () => {
 
       expect(result?.success).toBe(false)
       expect(result?.error).toContain('Requested data was not found')
+    })
+
+    it('makes one create request and redacts echoed auth values from the body', async () => {
+      let token = ''
+      let salt = ''
+      mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const parsed = new URL(String(url))
+        if (parsed.pathname.includes('/rest/createPlaylist')) {
+          token = parsed.searchParams.get('t') ?? ''
+          salt = parsed.searchParams.get('s') ?? ''
+          return new Response(`failed t=${token}&s=${salt}`, { status: 500 })
+        }
+        return okResponse({})
+      })
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.createPlaylist?.('Bad Playlist', [])
+
+      expect(result).toMatchObject({
+        success: false,
+        error: 'Subsonic HTTP 500: failed t=[REDACTED]&s=[REDACTED]',
+      })
+      expect(result?.error).not.toContain(token)
+      expect(result?.error).not.toContain(salt)
+      expect(
+        mockFetch.mock.calls.filter(([url]) => String(url).includes('/rest/createPlaylist')),
+      ).toHaveLength(1)
+    })
+
+    it('makes one song-add request when updatePlaylist returns 500', async () => {
+      mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const value = String(url)
+        if (value.includes('/rest/search3')) {
+          return okResponse({
+            searchResult3: { song: [{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }] },
+          })
+        }
+        if (value.includes('/rest/createPlaylist')) {
+          return okResponse({ playlist: { id: 'pl-42', name: 'Test' } })
+        }
+        if (value.includes('songIdToAdd')) {
+          return new Response('song update unavailable', { status: 500 })
+        }
+        return okResponse({})
+      })
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.createPlaylist?.('Test', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+
+      expect(result).toMatchObject({
+        success: false,
+        error: 'Subsonic HTTP 500: song update unavailable',
+      })
+      expect(
+        mockFetch.mock.calls.filter(([url]) => String(url).includes('songIdToAdd')),
+      ).toHaveLength(1)
+    })
+
+    it('retries a best-effort comment update', async () => {
+      let commentAttempts = 0
+      mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const value = String(url)
+        if (value.includes('/rest/createPlaylist')) {
+          return okResponse({ playlist: { id: 'pl-42', name: 'Test' } })
+        }
+        if (value.includes('comment=')) {
+          commentAttempts += 1
+          if (commentAttempts === 1) return new Response('temporary outage', { status: 500 })
+        }
+        return okResponse({})
+      })
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.createPlaylist?.('Test', [], { description: 'Description' })
+
+      expect(result?.success).toBe(true)
+      expect(commentAttempts).toBe(2)
     })
 
     it('prefers exact title+artist match over first search result', async () => {

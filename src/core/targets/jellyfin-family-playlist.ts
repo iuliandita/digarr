@@ -1,3 +1,4 @@
+import { createHttpClient, HttpError } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { pickBestTrackMatch } from './playlist-match'
@@ -15,41 +16,43 @@ type JellyfinFamilyPlaylistOptions = {
   serviceName: 'Emby' | 'Jellyfin'
 }
 
-async function jellyfinFamilyFetch<T>(
-  config: JellyfinFamilyPlaylistConfig,
-  serviceName: string,
-  path: string,
-  options?: { method?: string; body?: unknown },
-): Promise<T> {
-  const url = `${config.url.replace(/\/+$/, '')}${path}`
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 10_000)
-  let response: Response
-  try {
-    response = await fetch(url, {
-      method: options?.method ?? 'GET',
-      headers: {
-        'X-Emby-Token': config.apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: options?.body ? JSON.stringify(options.body) : undefined,
-      signal: controller.signal,
-      ...(config.skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-  if (!response.ok) {
-    throw new Error(`${serviceName} API ${response.status}: ${await response.text()}`)
-  }
-  return (await response.json()) as T
-}
-
 export function createJellyfinFamilyPlaylistTarget(
   targetId: number,
   config: JellyfinFamilyPlaylistConfig,
   { type, serviceName }: JellyfinFamilyPlaylistOptions,
 ): DestinationTarget {
+  const client = createHttpClient({
+    baseUrl: config.url.replace(/\/+$/, ''),
+    headers: { 'X-Emby-Token': config.apiKey },
+    timeout: 10_000,
+    skipTlsVerify: config.skipTlsVerify,
+  })
+
+  function rethrowProviderError(error: unknown): never {
+    if (error instanceof HttpError) {
+      throw new Error(
+        `${serviceName} API ${error.status}: ${error.body.replaceAll(config.apiKey, '[REDACTED]')}`,
+      )
+    }
+    throw error
+  }
+
+  async function get<T>(path: string): Promise<T> {
+    try {
+      return await client.get<T>(path)
+    } catch (error) {
+      rethrowProviderError(error)
+    }
+  }
+
+  async function postOnce<T>(path: string, body: unknown): Promise<T> {
+    try {
+      return await client.post<T>(path, body, { retries: 0 })
+    } catch (error) {
+      rethrowProviderError(error)
+    }
+  }
+
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
     try {
       const params = new URLSearchParams({
@@ -59,9 +62,9 @@ export function createJellyfinFamilyPlaylistTarget(
         Limit: '5',
         Fields: 'Name,AlbumArtist,Artists',
       })
-      const response = await jellyfinFamilyFetch<{
+      const response = await get<{
         Items: Array<{ Id: string; Name: string; AlbumArtist?: string; Artists?: string[] }>
-      }>(config, serviceName, `/Users/${config.userId}/Items?${params.toString()}`)
+      }>(`/Users/${config.userId}/Items?${params.toString()}`)
 
       return pickBestTrackMatch(
         (response.Items ?? []).map((item) => ({
@@ -75,7 +78,8 @@ export function createJellyfinFamilyPlaylistTarget(
         trackName,
       )
     } catch (error) {
-      console.warn(`[${type}] searchTrack transport error:`, {
+      console.warn('playlist search transport error', {
+        type,
         artistName,
         trackName,
         error: errMsg(error),
@@ -99,20 +103,12 @@ export function createJellyfinFamilyPlaylistTarget(
           if (itemId) itemIds.push(itemId)
         }
 
-        const playlist = await jellyfinFamilyFetch<{ Id?: string }>(
-          config,
-          serviceName,
-          '/Playlists',
-          {
-            method: 'POST',
-            body: {
-              Name: name,
-              UserId: config.userId,
-              MediaType: 'Audio',
-              Ids: itemIds,
-            },
-          },
-        )
+        const playlist = await postOnce<{ Id?: string }>('/Playlists', {
+          Name: name,
+          UserId: config.userId,
+          MediaType: 'Audio',
+          Ids: itemIds,
+        })
         const playlistId = playlist.Id
         if (!playlistId) {
           throw new Error(`${serviceName} did not return a playlist ID`)
@@ -138,11 +134,7 @@ export function createJellyfinFamilyPlaylistTarget(
 
     async testConnection(): Promise<ServiceTestResult> {
       try {
-        const info = await jellyfinFamilyFetch<{ ServerName: string; Version: string }>(
-          config,
-          serviceName,
-          '/System/Info',
-        )
+        const info = await get<{ ServerName: string; Version: string }>('/System/Info')
         return {
           success: true,
           message: `Connected to ${serviceName} "${info.ServerName}" v${info.Version}`,
