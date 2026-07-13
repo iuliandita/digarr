@@ -244,6 +244,8 @@ export const en = {
   'dashboard.feedbackTip':
     'Approve or reject recommendations to teach Digarr your taste. The more feedback you give, the better your future recommendations get.',
   'dashboard.foundLastRun': 'found last run',
+  'dashboard.genreCoverage': 'Genre data available: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Pending genre data updates: {0}',
   'dashboard.getStarted': 'Get started',
   'dashboard.listeningHistory': 'Listening History',
   'dashboard.recentPlays': 'Recently Played',

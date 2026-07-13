@@ -13,6 +13,7 @@ import { BlockedAlbumsTab } from '../components/blocked-albums-tab'
 import { BlockedArtistsTab } from '../components/blocked-artists-tab'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
+import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import { IntegrationCapabilities } from '../components/integration-capabilities'
 import { LanguageSwitcher } from '../components/language-switcher'
@@ -48,6 +49,7 @@ import {
   disconnectOAuth,
   getAuthMeta,
   getCurrentUser,
+  getDashboardGenreCoverage,
   getLidarrMetadataProfiles,
   getLidarrProfiles,
   getLidarrRootFolders,
@@ -251,6 +253,11 @@ function isLocalAiProvider(provider: string, baseUrl: string): boolean {
 function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
+  const { data: genreCoverage } = useQuery({
+    queryKey: ['dashboard-genre-coverage'],
+    queryFn: getDashboardGenreCoverage,
+    staleTime: 30_000,
+  })
   const isAdmin = currentUser?.isAdmin ?? false
   const prefs = settings.preferences ?? {}
   const [lidarrUrl, setLidarrUrl] = useState(settings.lidarrUrl ?? '')
@@ -1065,6 +1072,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <Hint id="settings-connections-tip" type="inline">
         {t('settings.connectionsTip')}
       </Hint>
+
+      {genreCoverage && genreCoverage.totalArtists > 0 ? (
+        <div className="rounded-lg border border-border bg-surface px-4 py-3">
+          <GenreCoverageSummary coverage={genreCoverage} />
+        </div>
+      ) : null}
 
       {/* ListenBrainz */}
       <div>

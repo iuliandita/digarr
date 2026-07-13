@@ -1,6 +1,7 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
+import { isValidMbid } from '@/core/validation'
 import type { Database, DbOrTx } from '@/db'
-import { artists, genres } from '@/db/schema'
+import { artistGenreAliases, artists, genres } from '@/db/schema'
 
 export type ArtistRow = typeof artists.$inferSelect
 
@@ -31,6 +32,7 @@ export async function upsertArtist(db: DbOrTx, artist: ArtistInsert): Promise<Ar
       ...artistData,
       imageFailedAt: imageFailedAtInsert,
       cachedAt: new Date(),
+      genresCachedAt: artist.genres !== undefined ? new Date() : undefined,
     })
     .onConflictDoUpdate({
       target: artists.mbid,
@@ -51,12 +53,99 @@ export async function upsertArtist(db: DbOrTx, artist: ArtistInsert): Promise<Ar
             ? sql`NOW()`
             : sql`${artists.imageFailedAt}`,
         cachedAt: new Date(),
+        genresCachedAt: artist.genres !== undefined ? new Date() : sql`${artists.genresCachedAt}`,
       },
     })
     .returning()
   const row = rows[0]
   if (!row) throw new Error(`upsertArtist: no row returned for mbid=${artist.mbid}`)
   return row
+}
+
+export async function getArtistGenreCacheByMbids(
+  db: Database,
+  mbids: string[],
+): Promise<Array<Pick<ArtistRow, 'mbid' | 'name' | 'genres' | 'cachedAt'>>> {
+  const validMbids = mbids.filter(isValidMbid)
+  if (validMbids.length === 0) return []
+  return db
+    .select({
+      mbid: artists.mbid,
+      name: artists.name,
+      genres: artists.genres,
+      cachedAt: artists.genresCachedAt,
+    })
+    .from(artists)
+    .where(inArray(artists.mbid, validMbids))
+}
+
+export async function getArtistGenreCacheByAliases(
+  db: Database,
+  aliases: Array<{ source: string; nameNormalized: string }>,
+): Promise<
+  Array<
+    Pick<ArtistRow, 'mbid' | 'name' | 'genres'> & {
+      source: string
+      nameNormalized: string
+      cachedAt: Date | null
+    }
+  >
+> {
+  const sources = [...new Set(aliases.map((alias) => alias.source).filter(Boolean))]
+  const normalizedNames = [...new Set(aliases.map((alias) => alias.nameNormalized).filter(Boolean))]
+  if (sources.length === 0 || normalizedNames.length === 0) return []
+  return db
+    .select({
+      source: artistGenreAliases.source,
+      nameNormalized: artistGenreAliases.nameNormalized,
+      mbid: artists.mbid,
+      name: artists.name,
+      genres: artists.genres,
+      cachedAt: artists.genresCachedAt,
+    })
+    .from(artistGenreAliases)
+    .innerJoin(artists, eq(artistGenreAliases.mbid, artists.mbid))
+    .where(
+      and(
+        inArray(artistGenreAliases.source, sources),
+        inArray(artistGenreAliases.nameNormalized, normalizedNames),
+      ),
+    )
+}
+
+export async function upsertArtistGenres(
+  db: Database,
+  data: { mbid: string; name: string; genres: string[] },
+): Promise<void> {
+  await db
+    .insert(artists)
+    .values({
+      mbid: data.mbid,
+      name: data.name,
+      genres: data.genres,
+      cachedAt: new Date(),
+      genresCachedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: artists.mbid,
+      set: {
+        genres: data.genres,
+        genresCachedAt: new Date(),
+      },
+    })
+}
+
+export async function upsertArtistGenreAlias(
+  db: Database,
+  data: { source: string; nameNormalized: string; mbid: string },
+): Promise<void> {
+  await db
+    .insert(artistGenreAliases)
+    .values({ ...data, resolvedAt: new Date() })
+    .onConflictDoUpdate({
+      target: [artistGenreAliases.source, artistGenreAliases.nameNormalized],
+      set: { mbid: data.mbid, resolvedAt: new Date() },
+    })
 }
 
 export async function getArtistById(db: Database, id: number): Promise<ArtistRow | null> {

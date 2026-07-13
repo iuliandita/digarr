@@ -58,6 +58,7 @@ export function createEmbyClient(
       path = scopedArtistsPath({
         SortBy: 'PlayCount',
         SortOrder: 'Descending',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
     } else {
@@ -66,7 +67,7 @@ export function createEmbyClient(
         SortOrder: 'Descending',
         IncludeItemTypes: 'MusicArtist',
         Recursive: 'true',
-        Fields: 'UserData',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
       path = `/Users/${userId}/Items?${params.toString()}`
@@ -75,6 +76,8 @@ export function createEmbyClient(
     return (res.Items ?? []).map((item) => ({
       id: item.Id as string,
       name: item.Name as string,
+      mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
+      genres: (item.Genres as string[] | undefined) ?? [],
       playCount: (item.UserData as { PlayCount?: number } | undefined)?.PlayCount ?? 0,
       isFavorite: (item.UserData as { IsFavorite?: boolean } | undefined)?.IsFavorite ?? false,
     }))
@@ -134,6 +137,7 @@ export function createEmbyClient(
         SortBy: 'SortName',
         SortOrder: 'Ascending',
         IsFavorite: 'true',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
     } else {
@@ -143,7 +147,7 @@ export function createEmbyClient(
         IncludeItemTypes: 'MusicArtist',
         Recursive: 'true',
         IsFavorite: 'true',
-        Fields: 'UserData',
+        Fields: 'UserData,Genres,ProviderIds',
         Limit: String(limit),
       })
       path = `/Users/${userId}/Items?${params.toString()}`
@@ -152,6 +156,8 @@ export function createEmbyClient(
     return (res.Items ?? []).map((item) => ({
       id: item.Id as string,
       name: item.Name as string,
+      mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
+      genres: (item.Genres as string[] | undefined) ?? [],
       playCount: (item.UserData as { PlayCount?: number } | undefined)?.PlayCount ?? 0,
       isFavorite: true,
     }))

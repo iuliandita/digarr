@@ -73,6 +73,7 @@ const mockArtist = {
   streamingUrls: null,
   imageFailedAt: null,
   cachedAt: new Date('2024-01-01'),
+  genresCachedAt: null,
   beginYear: null,
   endYear: null,
   topTracks: null,
@@ -209,6 +210,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     deleteUser: vi.fn(async () => {}),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     jobRecorder: {

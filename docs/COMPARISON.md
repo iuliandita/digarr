@@ -114,9 +114,9 @@ the loop. Its distinguishing choices:
 - **Your AI, your choice.** Hosted providers or fully local inference through
   Ollama and OpenAI-compatible endpoints, with the reasoning shown per
   recommendation -- and mood search in plain language.
-- **No Lidarr required.** Discovery-only mode currently builds its genre
-  reference from Spotify artist metadata instead of a library; broader
-  non-Spotify genre backfill is the next planned scoring improvement.
+- **No Lidarr required.** Discovery-only mode builds its genre reference from
+  native listening metadata and local caches, with bounded background
+  MusicBrainz enrichment and optional Last.fm fallback for missing genres.
 - **Built for more than one person.** Multi-user with per-user queues,
   credentials, scoring weights, and targets; OIDC/SSO; a UI and AI output
   localized in 15 languages.

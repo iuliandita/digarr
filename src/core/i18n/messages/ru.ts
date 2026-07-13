@@ -246,6 +246,8 @@ export const ru = {
   'dashboard.feedbackTip':
     'Одобряйте или отклоняйте рекомендации, чтобы помочь Digarr лучше понять ваш вкус. Чем больше отзывов вы дадите, тем точнее будут будущие рекомендации.',
   'dashboard.foundLastRun': 'найдено в ходе последнего запуска',
+  'dashboard.genreCoverage': 'Данные о жанрах доступны: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Ожидают обновления данных о жанрах: {0}',
   'dashboard.getStarted': 'Начать',
   'dashboard.listeningHistory': 'История прослушиваний',
   'dashboard.recentPlays': 'Недавно воспроизведённые',

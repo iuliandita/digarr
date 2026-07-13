@@ -246,6 +246,8 @@ export const ro = {
   'dashboard.feedbackTip':
     'Aprobați sau respingeți recomandările pentru a-i arăta lui Digarr gusturile dvs. Cu cât oferiți mai mult feedback, cu atât recomandările viitoare vor fi mai bune.',
   'dashboard.foundLastRun': 'găsit ultima cursă',
+  'dashboard.genreCoverage': 'Date despre gen disponibile: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Actualizări ale datelor despre gen în așteptare: {0}',
   'dashboard.getStarted': 'Începeți',
   'dashboard.listeningHistory': 'Istoric ascultare',
   'dashboard.recentPlays': 'Redate recent',

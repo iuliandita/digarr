@@ -159,6 +159,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     jobRecorder: {
@@ -218,6 +219,7 @@ describe('GET /api/v1/dashboard/taste', () => {
     const deps = makeDeps({
       dashboardQueries: {
         getTopGenresForUser: vi.fn(async () => mockResult),
+        getLatestGenreCoverage: vi.fn(async () => null),
         getRecentActivity: vi.fn(async () => []),
       },
     })
@@ -240,6 +242,43 @@ describe('GET /api/v1/dashboard/taste', () => {
   })
 })
 
+describe('GET /api/v1/dashboard/genre-coverage', () => {
+  it('returns the latest user-scoped pipeline coverage', async () => {
+    const coverage = { coveredArtists: 18, pendingArtists: 4, totalArtists: 25 }
+    const getLatestGenreCoverage = vi.fn(async () => coverage)
+    const deps = makeDeps({
+      dashboardQueries: {
+        getTopGenresForUser: vi.fn(async () => []),
+        getRecentActivity: vi.fn(async () => []),
+        getLatestGenreCoverage,
+      },
+    })
+    const app = createTestApp(deps, USER_ID)
+
+    const res = await app.request('/api/v1/dashboard/genre-coverage')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual(coverage)
+    expect(getLatestGenreCoverage).toHaveBeenCalledWith(USER_ID)
+  })
+
+  it('returns null before a pipeline has recorded coverage', async () => {
+    const deps = makeDeps({
+      dashboardQueries: {
+        getTopGenresForUser: vi.fn(async () => []),
+        getRecentActivity: vi.fn(async () => []),
+        getLatestGenreCoverage: vi.fn(async () => null),
+      },
+    })
+    const app = createTestApp(deps, USER_ID)
+
+    const res = await app.request('/api/v1/dashboard/genre-coverage')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toBeNull()
+  })
+})
+
 describe('GET /api/v1/dashboard/activity', () => {
   it('returns array of activity entries', async () => {
     const mockActivity = [
@@ -252,6 +291,7 @@ describe('GET /api/v1/dashboard/activity', () => {
     const deps = makeDeps({
       dashboardQueries: {
         getTopGenresForUser: vi.fn(async () => []),
+        getLatestGenreCoverage: vi.fn(async () => null),
         getRecentActivity: vi.fn(async () => mockActivity),
       },
     })
@@ -332,6 +372,7 @@ describe('GET /api/v1/dashboard/activity', () => {
       })) as unknown as AppDependencies['getUserById'],
       dashboardQueries: {
         getTopGenresForUser: vi.fn(async () => []),
+        getLatestGenreCoverage: vi.fn(async () => null),
         getRecentActivity,
       },
     })

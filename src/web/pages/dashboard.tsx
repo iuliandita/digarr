@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { ArtistThumb } from '../components/artist-thumb'
+import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import type { MonitorOption } from '../components/monitoring-options'
 import { PipelineProgress } from '../components/pipeline-progress'
@@ -16,7 +17,9 @@ import {
   type ActivityEntry,
   approveRecommendation,
   approveToTarget,
+  type GenreCoverage,
   getDashboardActivity,
+  getDashboardGenreCoverage,
   getDashboardTaste,
   getRecentTracks,
   getRecommendations,
@@ -292,7 +295,15 @@ function RecentActivity({
   )
 }
 
-function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; loading: boolean }) {
+function TasteProfile({
+  genres,
+  coverage,
+  loading,
+}: {
+  genres: TasteGenre[] | undefined
+  coverage: GenreCoverage | null | undefined
+  loading: boolean
+}) {
   const { t } = useI18n()
   return (
     <div>
@@ -324,6 +335,11 @@ function TasteProfile({ genres, loading }: { genres: TasteGenre[] | undefined; l
             ))}
           </div>
         )}
+        {coverage && coverage.totalArtists > 0 ? (
+          <div className="mt-4 pt-3 border-t border-border">
+            <GenreCoverageSummary coverage={coverage} />
+          </div>
+        ) : null}
       </div>
     </div>
   )
@@ -452,6 +468,12 @@ export function Dashboard() {
   const { data: tasteData, isLoading: tasteLoading } = useQuery({
     queryKey: ['dashboard-taste'],
     queryFn: getDashboardTaste,
+    staleTime: 30_000,
+  })
+
+  const { data: genreCoverageData } = useQuery({
+    queryKey: ['dashboard-genre-coverage'],
+    queryFn: getDashboardGenreCoverage,
     staleTime: 30_000,
   })
 
@@ -625,6 +647,7 @@ export function Dashboard() {
           queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+          queryClient.invalidateQueries({ queryKey: ['dashboard-genre-coverage'] })
         }}
         isFirstScan={
           (!pickData || pickData.items.length === 0) &&
@@ -708,7 +731,7 @@ export function Dashboard() {
           </Hint>
         </div>
         <div className="space-y-3">
-          <TasteProfile genres={tasteData} loading={tasteLoading} />
+          <TasteProfile genres={tasteData} coverage={genreCoverageData} loading={tasteLoading} />
           <Hint id="dashboard-taste-tip" type="inline">
             {t('dashboard.tasteTip')}
           </Hint>

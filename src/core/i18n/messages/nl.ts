@@ -246,6 +246,8 @@ export const nl = {
   'dashboard.feedbackTip':
     'Keur aanbevelingen goed of af om Digarr uw smaak bij te brengen. Hoe meer feedback u geeft, hoe beter uw toekomstige aanbevelingen worden.',
   'dashboard.foundLastRun': 'laatste run gevonden',
+  'dashboard.genreCoverage': 'Genregegevens beschikbaar: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Openstaande updates van genregegevens: {0}',
   'dashboard.getStarted': 'Aan de slag',
   'dashboard.listeningHistory': 'Luistergeschiedenis',
   'dashboard.recentPlays': 'Recent afgespeeld',

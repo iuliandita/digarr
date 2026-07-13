@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Added
+
+- **Genre backfill for non-Spotify listening sources.** Discovery-only scans now use genre metadata already returned by Plex, Jellyfin, Emby, and Discogs, then fill remaining gaps from synchronized library rows and the artist cache. After the foreground scan finishes, a maintenance-aware background warmer enriches at most 10 artists through the existing MusicBrainz rate gate, with optional Last.fm top-tag fallback and 180-day negative caching. Ambiguous name-only matches are skipped. Dashboard and Settings show covered and pending listening artists, translated across all 15 shipped locales.
+
 ## v1.12.0 - 2026-07-05
 
 AI provider problems are now visible everywhere they matter, plus a batch of Lidarr, library-sync, and OIDC fixes.

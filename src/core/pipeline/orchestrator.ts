@@ -29,6 +29,7 @@ import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { discover } from './discover'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
+import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
 import { resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
@@ -326,6 +327,22 @@ export class PipelineOrchestrator extends EventEmitter {
         .filter((a): a is typeof a & { mbid: string } => a.mbid !== null)
         .map((a) => ({ mbid: a.mbid, name: a.name }))
 
+      const genreDb: GenreBackfillDb | null =
+        db.getArtistGenreCacheByMbids &&
+        db.getArtistGenreCacheByAliases &&
+        db.upsertArtistGenres &&
+        db.upsertArtistGenreAlias
+          ? {
+              getArtistGenreCacheByMbids: db.getArtistGenreCacheByMbids,
+              getArtistGenreCacheByAliases: db.getArtistGenreCacheByAliases,
+              upsertArtistGenres: db.upsertArtistGenres,
+              upsertArtistGenreAlias: db.upsertArtistGenreAlias,
+            }
+          : null
+      const genreLibraryArtists = genreDb
+        ? await db.getLibraryArtistsForUser(userIdForSync)
+        : libraryArtists
+
       const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
       this.emit('progress', {
         stage: 'collect',
@@ -344,7 +361,15 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
-        ...(await analyze(registry.all())),
+        ...(await analyze(
+          registry.all(),
+          genreDb
+            ? {
+                genreHydrator: (artists) =>
+                  hydrateArtistGenres(artists, genreDb, genreLibraryArtists),
+              }
+            : {},
+        )),
         responseLocale: deps.responseLocale,
         promptLocale: deps.promptLocale ?? null,
       }
@@ -575,11 +600,28 @@ export class PipelineOrchestrator extends EventEmitter {
             artistsDiscovered: scored.length,
             artistsStored: filtered.length,
             artistsFiltered: scored.length - filtered.length,
+            ...(tasteProfile.genreCoverage ? { genreCoverage: tasteProfile.genreCoverage } : {}),
             ...(aiProvider?.lastUsage ? { aiUsage: aiProvider.lastUsage } : {}),
           },
           sourceResults,
           batchId,
         })
+      }
+
+      if (genreDb) {
+        const lastfm = registry.all().find((source) => source.id === 'lastfm')
+        void warmArtistGenres(tasteProfile.topArtists, {
+          db: genreDb,
+          musicbrainz: mbClient,
+          ...(lastfm?.getArtistGenres
+            ? { lastfm: { getArtistGenres: lastfm.getArtistGenres.bind(lastfm) } }
+            : {}),
+        }).catch((error: unknown) =>
+          console.error(
+            '[genre-backfill] background warm failed:',
+            error instanceof Error ? error.message : String(error),
+          ),
+        )
       }
 
       return { batchId }

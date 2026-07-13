@@ -26,6 +26,7 @@ describe('createLastFmSource()', () => {
         { name: 'Portishead', mbid: 'mbid-pt', listeners: 1200000 },
         { name: 'Massive Attack', mbid: 'mbid-ma', listeners: 980000 },
       ]),
+      getArtistTopTags: vi.fn().mockResolvedValue(['trip hop', 'electronic']),
       getTopAlbumsForArtist: vi.fn().mockResolvedValue([]),
       getChartTopArtists: vi.fn().mockResolvedValue([]),
     }
@@ -106,6 +107,17 @@ describe('createLastFmSource()', () => {
     mockClient()
     const source = createLastFmSource('user', 'key')
     expect(source.getGenreArtists).toBeDefined()
+  })
+
+  it('getArtistGenres() delegates to artist.getTopTags', async () => {
+    const client = mockClient()
+    const source = createLastFmSource('user', 'key')
+
+    await expect(source.getArtistGenres?.('Portishead', 'mbid-pt')).resolves.toEqual([
+      'trip hop',
+      'electronic',
+    ])
+    expect(client.getArtistTopTags).toHaveBeenCalledWith('Portishead', 'mbid-pt')
   })
 
   it('getGenreArtists() maps client response to GenreArtistEntry[]', async () => {

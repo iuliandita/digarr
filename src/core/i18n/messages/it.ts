@@ -246,6 +246,8 @@ export const it = {
   'dashboard.feedbackTip':
     'Approva o rifiuta i consigli per insegnare a Digarr i tuoi gusti. Più feedback fornisci, migliori saranno i tuoi consigli futuri.',
   'dashboard.foundLastRun': "trovato l'ultima esecuzione",
+  'dashboard.genreCoverage': 'Dati sui generi disponibili: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Aggiornamenti dei dati sui generi in attesa: {0}',
   'dashboard.getStarted': 'Inizia',
   'dashboard.listeningHistory': 'Cronologia di ascolto',
   'dashboard.recentPlays': 'Riprodotti di recente',

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import {
@@ -12,6 +13,7 @@ import {
 import { MigrateBackendError, migrateBackend } from '@/core/ops/migrate-backend'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations } from '@/core/ops/upgrade'
+import { waitForGenreWarmers } from '@/core/pipeline/genre-backfill'
 import { isValidStatus } from '@/core/recommendations/statuses'
 import { logAndSanitize } from '@/core/validation'
 import { assertSafePglitePath, classifyTargetError, connectTarget } from '@/db/connect'
@@ -43,7 +45,12 @@ export function adminRoutes(deps: AdminDeps) {
   // POST /api/v1/admin/backup - download backup JSON
   router.post('/api/v1/admin/backup', async (c) => {
     const includeCaches = c.req.query('includeCaches') === 'true'
-    const backup = await createBackup(deps.db, { includeCaches })
+    const backup = includeCaches
+      ? await deps.db.transaction(async (tx) => {
+          await tx.execute(sql`set transaction isolation level repeatable read read only`)
+          return createBackup(tx, { includeCaches })
+        })
+      : await createBackup(deps.db, { includeCaches })
     const json = JSON.stringify(backup, null, 2)
     const timestamp = new Date().toISOString().slice(0, 10)
     const suffix = includeCaches ? '-full' : ''
@@ -270,6 +277,7 @@ export function adminRoutes(deps: AdminDeps) {
     migrationInProgress = true
     setMaintenance(true)
     try {
+      await waitForGenreWarmers()
       const report = await migrateBackend({
         sourceDb: deps.db,
         target: parsed.data.target,

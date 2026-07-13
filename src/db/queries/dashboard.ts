@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import type { GenreCoverage } from '@/core/types'
 import type { Database } from '@/db'
 import {
   artists,
@@ -52,6 +53,46 @@ export async function getTopGenresForUser(
     count: row.count,
     percentage: total > 0 ? Math.round((row.count / total) * 100) : 0,
   }))
+}
+
+function parseGenreCoverage(value: unknown): GenreCoverage | null {
+  if (!value || typeof value !== 'object') return null
+  const candidate = value as Partial<Record<keyof GenreCoverage, unknown>>
+  if (
+    !Number.isInteger(candidate.coveredArtists) ||
+    !Number.isInteger(candidate.pendingArtists) ||
+    !Number.isInteger(candidate.totalArtists)
+  ) {
+    return null
+  }
+  const coverage = candidate as GenreCoverage
+  if (
+    coverage.coveredArtists < 0 ||
+    coverage.pendingArtists < 0 ||
+    coverage.totalArtists < 0 ||
+    coverage.coveredArtists > coverage.totalArtists ||
+    coverage.pendingArtists > coverage.totalArtists
+  ) {
+    return null
+  }
+  return coverage
+}
+
+export async function getLatestGenreCoverage(
+  db: Database,
+  userId: number | undefined,
+): Promise<GenreCoverage | null> {
+  const conditions = [eq(jobRuns.type, 'pipeline'), eq(jobRuns.status, 'completed')]
+  if (userId !== undefined) conditions.push(eq(jobRuns.userId, userId))
+
+  const [row] = await db
+    .select({ metadata: jobRuns.metadata })
+    .from(jobRuns)
+    .where(and(...conditions))
+    .orderBy(desc(jobRuns.startedAt))
+    .limit(1)
+
+  return parseGenreCoverage(row?.metadata.genreCoverage)
 }
 
 export type ActivityEntry = {

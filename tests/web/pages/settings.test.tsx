@@ -47,6 +47,11 @@ vi.mock('@/web/lib/api', () => ({
   getLidarrMetadataProfiles: vi.fn(),
   getLidarrRootFolders: vi.fn(),
   getPipelineStatus: vi.fn().mockResolvedValue({ running: false }),
+  getDashboardGenreCoverage: vi.fn().mockResolvedValue({
+    coveredArtists: 18,
+    pendingArtists: 4,
+    totalArtists: 25,
+  }),
   triggerPipeline: vi.fn(),
   getStoredToken: vi.fn(() => null),
   getSetupStatus: vi.fn().mockResolvedValue({ setupComplete: true }),
@@ -290,6 +295,14 @@ describe('SettingsPage', () => {
     mockGetPipelineStatus.mockResolvedValue({ running: false })
     mockGetStoredToken.mockReturnValue('token')
     mockUpdatePreferredLocale.mockResolvedValue({ success: true, preferredLocale: 'en' })
+  })
+
+  it('shows listening genre coverage in Connections', async () => {
+    setupMocks()
+    renderWithQuery(<SettingsPage />)
+
+    expect(await screen.findByText('Genre data available: 18/25')).toBeInTheDocument()
+    expect(screen.getByText('Pending genre data updates: 4')).toBeInTheDocument()
   })
 
   it('uses translated navigation labels', async () => {

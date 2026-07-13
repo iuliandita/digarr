@@ -16,6 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import type { HealthCheckResult } from '@/core/library/types'
+import type { GenreCoverage } from '@/core/types'
 
 export type DiscoveryModeProvenance = {
   modeId: string
@@ -32,6 +33,7 @@ export type JobMetadata = Record<string, unknown> & {
   trigger?: 'manual' | 'scheduled' | 'subscription'
   seedArtist?: string
   discoveryMode?: DiscoveryModeProvenance
+  genreCoverage?: GenreCoverage
 }
 
 export const settings = pgTable('settings', {
@@ -189,6 +191,7 @@ export const artists = pgTable('artists', {
   streamingUrls: jsonb('streaming_urls').$type<Record<string, string>>(),
   imageFailedAt: timestamp('image_failed_at', { withTimezone: true }),
   cachedAt: timestamp('cached_at', { withTimezone: true }),
+  genresCachedAt: timestamp('genres_cached_at', { withTimezone: true }),
   beginYear: integer('begin_year'),
   endYear: integer('end_year'),
   topTracks: jsonb('top_tracks').$type<TopTracksCache>(),
@@ -198,6 +201,26 @@ export const artists = pgTable('artists', {
   wikidataFetchedAt: timestamp('wikidata_fetched_at', { withTimezone: true }),
   wikidataFailedAt: timestamp('wikidata_failed_at', { withTimezone: true }),
 })
+
+export const artistGenreAliases = pgTable(
+  'artist_genre_aliases',
+  {
+    id: serial('id').primaryKey(),
+    source: text('source').notNull(),
+    nameNormalized: text('name_normalized').notNull(),
+    mbid: uuid('mbid')
+      .references(() => artists.mbid, { onDelete: 'cascade' })
+      .notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    sourceNameUnique: uniqueIndex('artist_genre_aliases_source_name_unique').on(
+      table.source,
+      table.nameNormalized,
+    ),
+    mbidIdx: index('artist_genre_aliases_mbid_idx').on(table.mbid),
+  }),
+)
 
 export const rateLimitBuckets = pgTable('rate_limit_buckets', {
   key: text('key').primaryKey(),

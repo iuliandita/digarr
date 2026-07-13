@@ -18,7 +18,7 @@ import type { PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { SubscriptionScheduler } from '@/core/pipeline/subscription-scheduler'
 import type { AiProviderRegistry } from '@/core/providers/registry'
-import type { ServiceTestResult } from '@/core/types'
+import type { GenreCoverage, ServiceTestResult } from '@/core/types'
 import type { ArtistRow } from '@/db/queries/artists'
 import type { BatchRow } from '@/db/queries/batches'
 import type { ActivityEntry, TasteGenre } from '@/db/queries/dashboard'
@@ -229,6 +229,7 @@ export interface SlskdDeps {
 export interface DashboardDeps {
   dashboardQueries: {
     getTopGenresForUser: (userId: number | undefined) => Promise<TasteGenre[]>
+    getLatestGenreCoverage: (userId: number | undefined) => Promise<GenreCoverage | null>
     getRecentActivity: (
       userId: number | undefined,
       isAdmin: boolean,
