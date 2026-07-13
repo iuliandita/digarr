@@ -14,7 +14,7 @@
     "i18n:translate": "bun scripts/i18n-machine-translate.ts",
     "test": "vitest run",
     "test:api-routes": "vitest run tests/api-routes/",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --maxWorkers=4",
     "test:watch": "vitest",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
