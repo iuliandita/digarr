@@ -83,6 +83,94 @@ describe('analyze()', () => {
     expect(radioheadCount).toBe(1)
   })
 
+  it('keeps same-name artists with different MBIDs separate', async () => {
+    const profile = await analyze([
+      makeLb(
+        [
+          {
+            name: 'Echo',
+            mbid: '00000000-0000-0000-0000-000000000041',
+            playCount: 10,
+            source: 'listenbrainz',
+          },
+          {
+            name: 'echo',
+            mbid: '00000000-0000-0000-0000-000000000042',
+            playCount: 9,
+            source: 'listenbrainz',
+          },
+        ],
+        [],
+      ),
+    ])
+
+    expect(profile.topArtists).toHaveLength(2)
+    expect(profile.topArtists.map((artist) => artist.mbid)).toEqual([
+      '00000000-0000-0000-0000-000000000041',
+      '00000000-0000-0000-0000-000000000042',
+    ])
+  })
+
+  it('deduplicates aliases that share one MBID', async () => {
+    const profile = await analyze([
+      makeLb(
+        [
+          {
+            name: 'Artist',
+            mbid: '00000000-0000-0000-0000-000000000043',
+            playCount: 10,
+            source: 'listenbrainz',
+          },
+          {
+            name: 'Artist Alias',
+            mbid: '00000000-0000-0000-0000-000000000043',
+            playCount: 9,
+            source: 'listenbrainz',
+          },
+        ],
+        [],
+      ),
+    ])
+
+    expect(profile.topArtists).toHaveLength(1)
+    expect(profile.topArtists[0]).toMatchObject({
+      name: 'Artist',
+      mbid: '00000000-0000-0000-0000-000000000043',
+    })
+  })
+
+  it('treats malformed MBIDs as name-only during identity dedupe', async () => {
+    const profile = await analyze([
+      makeLb(
+        [
+          {
+            name: 'Shared',
+            mbid: '00000000-0000-0000-0000-000000000044',
+            playCount: 10,
+            source: 'listenbrainz',
+          },
+          { name: 'shared', mbid: 'malformed', playCount: 11, source: 'lastfm' },
+        ],
+        [],
+      ),
+    ])
+
+    expect(profile.topArtists).toHaveLength(1)
+    expect(profile.topArtists[0]).toMatchObject({
+      mbid: '00000000-0000-0000-0000-000000000044',
+      playCount: 11,
+    })
+  })
+
+  it('drops a malformed MBID when no valid identity is available', async () => {
+    const profile = await analyze([
+      makeLb([{ name: 'Malformed', mbid: 'not-a-uuid', playCount: 1, source: 'lastfm' }], []),
+    ])
+
+    expect(profile.topArtists).toHaveLength(1)
+    expect(profile.topArtists[0]?.mbid).toBeUndefined()
+  })
+
   it('works with only ListenBrainz configured', async () => {
     const lb = makeLb()
     const profile = await analyze([lb])
@@ -160,6 +248,83 @@ describe('analyze() genre aggregation', () => {
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
     }
   }
+
+  it('hydrates cached genres before aggregation and exposes coverage', async () => {
+    const source = makeSpotifyLike([
+      {
+        name: 'Cached Artist',
+        mbid: '00000000-0000-0000-0000-000000000020',
+        playCount: 100,
+        source: 'listenbrainz',
+      },
+    ])
+    const genreHydrator = vi.fn(async (artists: TopArtistEntry[]) => ({
+      artists: artists.map((artist) => ({
+        ...artist,
+        genres: ['Post-Rock'],
+        genreSource: 'artist-cache' as const,
+      })),
+      coverage: { coveredArtists: 1, pendingArtists: 0, totalArtists: 1 },
+    }))
+
+    const profile = await analyze([source], { genreHydrator })
+
+    expect(genreHydrator).toHaveBeenCalledOnce()
+    expect(profile.topGenres).toEqual([{ name: 'post-rock', weight: 1 }])
+    expect(profile.topArtists[0]).toMatchObject({
+      genres: ['Post-Rock'],
+      genreSource: 'artist-cache',
+    })
+    expect(profile.genreCoverage).toEqual({
+      coveredArtists: 1,
+      pendingArtists: 0,
+      totalArtists: 1,
+    })
+  })
+
+  it('keeps genres from a lower-play duplicate while retaining the higher play count', async () => {
+    const withoutGenres = makeSpotifyLike([
+      { name: 'Shared', playCount: 100, source: 'listenbrainz' },
+    ])
+    const withGenres = makeSpotifyLike([
+      {
+        name: 'shared',
+        playCount: 50,
+        source: 'spotify',
+        genres: ['Indie'],
+        genreSource: 'native',
+      },
+    ])
+
+    const profile = await analyze([withoutGenres, withGenres])
+
+    expect(profile.topArtists).toHaveLength(1)
+    expect(profile.topArtists[0]).toMatchObject({
+      playCount: 100,
+      genres: ['Indie'],
+      genreSource: 'native',
+    })
+    expect(profile.topGenres).toEqual([{ name: 'indie', weight: 1 }])
+  })
+
+  it('counts case variants of one artist genre only once', async () => {
+    const source = makeSpotifyLike([
+      {
+        name: 'Case Mix',
+        playCount: 100,
+        source: 'spotify',
+        genres: ['Rock', 'rock', ' ROCK '],
+      },
+      { name: 'Other', playCount: 50, source: 'spotify', genres: ['jazz'] },
+    ])
+
+    const profile = await analyze([source])
+
+    expect(profile.topGenres).toEqual([
+      { name: 'rock', weight: 1 },
+      { name: 'jazz', weight: 0.5 },
+    ])
+  })
 
   it('aggregates topGenres weighted by playCount, normalized, lowercased', async () => {
     const source = makeSpotifyLike([

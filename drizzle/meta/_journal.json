@@ -295,6 +295,20 @@
       "when": 1783804882490,
       "tag": "0041_great_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1783904598923,
+      "tag": "0042_legal_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1783905239055,
+      "tag": "0043_brave_selene",
+      "breakpoints": true
     }
   ]
 }

@@ -949,6 +949,12 @@ export type TasteGenre = {
   percentage: number
 }
 
+export type GenreCoverage = {
+  coveredArtists: number
+  pendingArtists: number
+  totalArtists: number
+}
+
 export type ActivityEntry = {
   type: 'approved' | 'rejected' | 'subscription_run' | 'scan_completed'
   timestamp: string
@@ -964,6 +970,9 @@ export type ActivityEntry = {
 }
 
 export const getDashboardTaste = () => fetchApi<TasteGenre[]>('/dashboard/taste')
+
+export const getDashboardGenreCoverage = () =>
+  fetchApi<GenreCoverage | null>('/dashboard/genre-coverage')
 
 export const getDashboardActivity = (limit = 5) =>
   fetchApi<ActivityEntry[]>(`/dashboard/activity?limit=${limit}`)

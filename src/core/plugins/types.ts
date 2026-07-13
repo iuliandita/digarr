@@ -1,4 +1,4 @@
-import type { ServiceTestResult } from '@/core/types'
+import type { GenreSource, ServiceTestResult } from '@/core/types'
 
 export type TopArtistEntry = {
   name: string
@@ -6,6 +6,7 @@ export type TopArtistEntry = {
   playCount: number
   source: string
   genres?: string[]
+  genreSource?: GenreSource
 }
 
 export type SimilarArtistEntry = {
@@ -44,5 +45,6 @@ export interface DiscoverySource {
   testConnection(): Promise<ServiceTestResult>
   getListeningActivity?(): Promise<ListeningActivityEntry[]>
   getGenreArtists?(genre: string, options?: { limit?: number }): Promise<GenreArtistEntry[]>
+  getArtistGenres?(artistName: string, mbid?: string): Promise<string[]>
   getRecentListening?(limit?: number): Promise<{ name: string; track?: string; playedAt: Date }[]>
 }

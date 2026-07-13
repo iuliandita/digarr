@@ -16,11 +16,11 @@ export function createDiscogsSource(token: string, username: string): DiscoveryS
       ])
 
       // Merge: dedupe by lowercase name, add counts for overlap
-      const merged = new Map<string, { name: string; count: number }>()
+      const merged = new Map<string, { name: string; count: number; genres: string[] }>()
 
       for (const artist of collection) {
         const key = artist.name.toLowerCase()
-        merged.set(key, { name: artist.name, count: artist.count })
+        merged.set(key, { name: artist.name, count: artist.count, genres: artist.genres })
       }
 
       for (const artist of wantlist) {
@@ -28,8 +28,9 @@ export function createDiscogsSource(token: string, username: string): DiscoveryS
         const existing = merged.get(key)
         if (existing) {
           existing.count += artist.count
+          existing.genres = [...new Set([...existing.genres, ...artist.genres])]
         } else {
-          merged.set(key, { name: artist.name, count: artist.count })
+          merged.set(key, { name: artist.name, count: artist.count, genres: artist.genres })
         }
       }
 
@@ -40,6 +41,7 @@ export function createDiscogsSource(token: string, username: string): DiscoveryS
           name: a.name,
           playCount: a.count,
           source: 'discogs',
+          ...(a.genres.length > 0 ? { genres: a.genres, genreSource: 'native' as const } : {}),
         }))
     },
 

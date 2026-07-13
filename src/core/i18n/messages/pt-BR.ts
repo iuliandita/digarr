@@ -246,6 +246,8 @@ export const ptBR = {
   'dashboard.feedbackTip':
     'Aprove ou rejeite recomendações para ensinar seu gosto a Digarr. Quanto mais feedback você der, melhores serão suas recomendações futuras.',
   'dashboard.foundLastRun': 'encontrado na última execução',
+  'dashboard.genreCoverage': 'Dados de gênero disponíveis: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Atualizações de dados de gênero pendentes: {0}',
   'dashboard.getStarted': 'Começar',
   'dashboard.listeningHistory': 'Histórico de audição',
   'dashboard.recentPlays': 'Reproduzidos recentemente',

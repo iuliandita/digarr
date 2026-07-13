@@ -257,6 +257,31 @@ describe('createLastFmClient', () => {
     })
   })
 
+  describe('getArtistTopTags(artist, mbid, limit)', () => {
+    it('maps positive artist.getTopTags results and prefers an MBID', async () => {
+      mockGet.mockResolvedValueOnce({
+        toptags: {
+          tag: [
+            { name: 'trip hop', count: '100' },
+            { name: 'electronic', count: 42 },
+            { name: 'downtempo', count: '30' },
+            { name: 'seen live', count: '0' },
+          ],
+        },
+      })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+
+      await expect(client.getArtistTopTags('Portishead', 'mbid-pt', 2)).resolves.toEqual([
+        'trip hop',
+        'electronic',
+      ])
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('method=artist.getTopTags'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('artist=Portishead'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('mbid=mbid-pt'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=2'))
+    })
+  })
+
   describe('testConnection()', () => {
     it('returns success:true when getTopArtists resolves', async () => {
       mockGet.mockResolvedValueOnce({

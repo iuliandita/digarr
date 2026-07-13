@@ -690,7 +690,13 @@ Query params: `status`, `batchId`. Limit: 10,000 rows.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/dashboard/taste` | Yes | Top genres from user's library |
+| GET | `/api/v1/dashboard/genre-coverage` | Yes | Latest listening-artist genre coverage |
 | GET | `/api/v1/dashboard/activity` | Yes | Recent activity feed |
+
+`GET /api/v1/dashboard/genre-coverage` returns the latest completed pipeline
+run's user-scoped coverage as `{ coveredArtists, pendingArtists, totalArtists }`,
+or `null` before a run has recorded coverage. `pendingArtists` can overlap with
+covered artists when a populated cache entry is due for refresh.
 
 **GET /api/v1/dashboard/activity** query params:
 - `limit` - integer, clamped to 1-20 (default 5). Non-integer values return `400`

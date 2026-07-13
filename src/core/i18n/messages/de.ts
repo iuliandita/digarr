@@ -246,6 +246,8 @@ export const de = {
   'dashboard.feedbackTip':
     'Genehmigen Sie Empfehlungen oder lehnen Sie sie ab, um Digarr Ihren Geschmack beizubringen. Je mehr Feedback Sie geben, desto besser werden Ihre zukünftigen Empfehlungen.',
   'dashboard.foundLastRun': 'letzten Lauf gefunden',
+  'dashboard.genreCoverage': 'Genre-Daten verfügbar: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Ausstehende Genre-Datenaktualisierungen: {0}',
   'dashboard.getStarted': 'Loslegen',
   'dashboard.listeningHistory': 'Hörverlauf',
   'dashboard.recentPlays': 'Zuletzt gespielt',

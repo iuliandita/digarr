@@ -74,12 +74,14 @@ describe('createBackup', () => {
   it('excludes cache tables when includeCaches is false', async () => {
     const db = makeMockDb({
       artists: [{ id: 1, name: 'Artist' }],
+      artist_genre_aliases: [{ id: 1, source: 'subsonic', nameNormalized: 'artist' }],
       genres: [{ id: 1, name: 'Rock' }],
       artist_metadata: [{ id: 1, name: 'Artist' }],
     })
     const result = await createBackup(db, { includeCaches: false })
 
     expect(result.data.artists).toBeUndefined()
+    expect(result.data.artistGenreAliases).toBeUndefined()
     expect(result.data.genres).toBeUndefined()
     expect(result.data.artistMetadata).toBeUndefined()
   })
@@ -87,12 +89,14 @@ describe('createBackup', () => {
   it('includes cache tables when includeCaches is true', async () => {
     const db = makeMockDb({
       artists: [{ id: 1, name: 'Artist' }],
+      artist_genre_aliases: [{ id: 1, source: 'subsonic', nameNormalized: 'artist' }],
       genres: [{ id: 1, name: 'Rock' }],
       artist_metadata: [{ id: 1, name: 'Meta' }],
     })
     const result = await createBackup(db, { includeCaches: true })
 
     expect(result.data.artists).toHaveLength(1)
+    expect(result.data.artistGenreAliases).toHaveLength(1)
     expect(result.data.genres).toHaveLength(1)
     expect(result.data.artistMetadata).toHaveLength(1)
     expect(result.includesCaches).toBe(true)

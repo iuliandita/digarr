@@ -285,17 +285,33 @@ describe('jellyfin library selection', () => {
       libraryId: 'lib-music-2',
     })
     mockGet.mockResolvedValueOnce({
-      Items: [{ Id: 'a1', Name: 'Boards of Canada', UserData: { PlayCount: 7 } }],
+      Items: [
+        {
+          Id: 'a1',
+          Name: 'Boards of Canada',
+          Genres: ['IDM'],
+          ProviderIds: { MusicBrainzArtist: '0743b15a-3c32-48c8-ad58-cb325350befa' },
+          UserData: { PlayCount: 7 },
+        },
+      ],
       TotalRecordCount: 1,
     })
 
     await expect(client.getTopArtists(10)).resolves.toEqual([
-      { id: 'a1', name: 'Boards of Canada', playCount: 7, isFavorite: false },
+      {
+        id: 'a1',
+        name: 'Boards of Canada',
+        mbid: '0743b15a-3c32-48c8-ad58-cb325350befa',
+        genres: ['IDM'],
+        playCount: 7,
+        isFavorite: false,
+      },
     ])
     const path = mockGet.mock.calls[0]?.[0] as string
     expect(path).toContain('/Artists?')
     expect(path).toContain('ParentId=lib-music-2')
     expect(path).toContain(`UserId=${USER}`)
+    expect(path).toContain('Fields=UserData%2CGenres%2CProviderIds')
   })
 
   it('getTopArtists() keeps the unscoped Items query when no library is configured', async () => {

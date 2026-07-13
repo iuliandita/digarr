@@ -245,6 +245,8 @@ export const ja = {
   'dashboard.feedbackTip':
     'おすすめを承認または却下して、Digarr に好みを学習させましょう。フィードバックが多いほど、今後のおすすめの精度が上がります。',
   'dashboard.foundLastRun': '前回の実行で見つかりました',
+  'dashboard.genreCoverage': 'ジャンルデータあり: {0}/{1}',
+  'dashboard.genreCoveragePending': 'ジャンルデータ更新待ち: {0}',
   'dashboard.getStarted': '始めましょう',
   'dashboard.listeningHistory': '再生履歴',
   'dashboard.recentPlays': '最近の再生',

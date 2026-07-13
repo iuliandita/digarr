@@ -26,6 +26,7 @@ export interface BackupData {
   artistBlocks: Record<string, unknown>[]
   // Optional caches
   artists?: Record<string, unknown>[]
+  artistGenreAliases?: Record<string, unknown>[]
   genres?: Record<string, unknown>[]
   artistMetadata?: Record<string, unknown>[]
   // Optional full-fidelity tables

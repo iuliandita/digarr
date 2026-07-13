@@ -13,6 +13,12 @@ export function dashboardRoutes(deps: AppDependencies) {
     return c.json(taste)
   })
 
+  router.get('/api/v1/dashboard/genre-coverage', async (c) => {
+    const userId = c.get('userId')
+    const coverage = await deps.dashboardQueries.getLatestGenreCoverage(userId)
+    return c.json(coverage)
+  })
+
   router.get('/api/v1/dashboard/activity', async (c) => {
     const userId = c.get('userId')
     const limit = parseOptionalClampedInt(c.req.query('limit'), { min: 1, max: 20, default: 5 })

@@ -20,6 +20,33 @@ beforeEach(() => {
 const TEST_URL = 'http://plex.local:32400'
 const TEST_TOKEN = 'test-plex-token'
 
+describe('plex client.getTopArtists()', () => {
+  it('maps genres already present in the top-artist response', async () => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        Metadata: [
+          {
+            ratingKey: '101',
+            title: 'Portishead',
+            viewCount: 12,
+            Genre: [{ tag: 'trip hop' }, { tag: 'electronic' }],
+          },
+        ],
+      },
+    })
+
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '1' })
+    await expect(client.getTopArtists(10)).resolves.toEqual([
+      {
+        ratingKey: '101',
+        name: 'Portishead',
+        viewCount: 12,
+        genres: ['trip hop', 'electronic'],
+      },
+    ])
+  })
+})
+
 describe('plex client.getAllArtists()', () => {
   it('paginates through the music library', async () => {
     // sections lookup

@@ -235,6 +235,8 @@ export const zhCN = {
   'dashboard.feedbackTip':
     '通过批准或拒绝推荐来让 Digarr 了解您的口味。您提供的反馈越多，后续推荐就越准确。',
   'dashboard.foundLastRun': '在上次运行中找到',
+  'dashboard.genreCoverage': '可用流派数据：{0}/{1}',
+  'dashboard.genreCoveragePending': '待更新的流派数据：{0}',
   'dashboard.getStarted': '开始',
   'dashboard.listeningHistory': '聆听记录',
   'dashboard.recentPlays': '最近播放',

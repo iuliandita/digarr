@@ -84,6 +84,12 @@ type LfmArtistTopAlbumsResponse = {
   }
 }
 
+type LfmArtistTopTagsResponse = {
+  toptags?: {
+    tag?: Array<{ name: string; count?: string | number }>
+  }
+}
+
 export function createLastFmClient(username: string, apiKey: string) {
   const http = createHttpClient({ baseUrl: BASE_URL })
 
@@ -218,6 +224,21 @@ export function createLastFmClient(username: string, apiKey: string) {
     }))
   }
 
+  async function getArtistTopTags(artist: string, mbid?: string, limit = 10): Promise<string[]> {
+    const params: Record<string, string> = {
+      method: 'artist.getTopTags',
+      artist,
+      limit: String(limit),
+    }
+    if (mbid) params.mbid = mbid
+    const res = await get<LfmArtistTopTagsResponse>(params)
+    return (res.toptags?.tag ?? [])
+      .filter((tag) => Number(tag.count) > 0)
+      .map((tag) => tag.name.trim())
+      .filter(Boolean)
+      .slice(0, limit)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const artists = await getTopArtists('7day')
@@ -237,6 +258,7 @@ export function createLastFmClient(username: string, apiKey: string) {
     getTopArtistsPaged,
     getTopArtistsByTag,
     getTopAlbumsForArtist,
+    getArtistTopTags,
     getRecentTracks,
     getChartTopArtists,
     testConnection,

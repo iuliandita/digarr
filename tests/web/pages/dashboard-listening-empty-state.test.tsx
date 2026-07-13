@@ -62,6 +62,7 @@ vi.mock('@/web/lib/api', () => ({
   getSubscriptions: vi.fn(async () => []),
   getSchedulerInfo: vi.fn(async () => ({ jobs: [] })),
   getDashboardTaste: vi.fn(async () => []),
+  getDashboardGenreCoverage: vi.fn(async () => null),
   getDashboardActivity: vi.fn(async () => []),
   triggerPipeline: vi.fn(),
   rescanArtists: vi.fn().mockResolvedValue({ updated: 0, total: 0 }),

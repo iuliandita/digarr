@@ -17,7 +17,13 @@ describe('createEmbyClient', () => {
         text: async () =>
           JSON.stringify({
             Items: [
-              { Id: 'a1', Name: 'Boards of Canada', UserData: { PlayCount: 12, IsFavorite: true } },
+              {
+                Id: 'a1',
+                Name: 'Boards of Canada',
+                Genres: ['IDM', 'Ambient'],
+                ProviderIds: { MusicBrainzArtist: '0743b15a-3c32-48c8-ad58-cb325350befa' },
+                UserData: { PlayCount: 12, IsFavorite: true },
+              },
             ],
             TotalRecordCount: 1,
           }),
@@ -26,8 +32,17 @@ describe('createEmbyClient', () => {
 
     const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
     await expect(client.getTopArtists(10)).resolves.toEqual([
-      { id: 'a1', name: 'Boards of Canada', playCount: 12, isFavorite: true },
+      {
+        id: 'a1',
+        name: 'Boards of Canada',
+        mbid: '0743b15a-3c32-48c8-ad58-cb325350befa',
+        genres: ['IDM', 'Ambient'],
+        playCount: 12,
+        isFavorite: true,
+      },
     ])
+    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string
+    expect(url).toContain('Fields=UserData%2CGenres%2CProviderIds')
   })
 
   it('passes through MusicBrainz artist ids for full-library artist sync', async () => {
@@ -177,7 +192,15 @@ describe('emby library selection', () => {
       vi.fn().mockResolvedValue(
         jsonResponse(
           JSON.stringify({
-            Items: [{ Id: 'a1', Name: 'Aphex Twin', UserData: { PlayCount: 3 } }],
+            Items: [
+              {
+                Id: 'a1',
+                Name: 'Aphex Twin',
+                Genres: ['Electronic'],
+                ProviderIds: { MusicBrainzArtist: 'f229e6d8-c66f-4e9f-a972-a7b6a1f47f49' },
+                UserData: { PlayCount: 3 },
+              },
+            ],
           }),
         ),
       ),
@@ -187,12 +210,20 @@ describe('emby library selection', () => {
       libraryId: 'lib-music-2',
     })
     await expect(client.getTopArtists(10)).resolves.toEqual([
-      { id: 'a1', name: 'Aphex Twin', playCount: 3, isFavorite: false },
+      {
+        id: 'a1',
+        name: 'Aphex Twin',
+        mbid: 'f229e6d8-c66f-4e9f-a972-a7b6a1f47f49',
+        genres: ['Electronic'],
+        playCount: 3,
+        isFavorite: false,
+      },
     ])
     const url = vi.mocked(fetch).mock.calls[0]?.[0] as string
     expect(url).toContain('/Artists?')
     expect(url).toContain('ParentId=lib-music-2')
     expect(url).toContain('UserId=user-1')
+    expect(url).toContain('Fields=UserData%2CGenres%2CProviderIds')
   })
 
   it('getTopArtists() keeps the unscoped Items query when no library is configured', async () => {

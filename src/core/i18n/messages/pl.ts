@@ -246,6 +246,8 @@ export const pl = {
   'dashboard.feedbackTip':
     'Zatwierdź lub odrzuć rekomendacje, aby nauczyć Digarra swojego gustu. Im więcej informacji zwrotnych przekażesz, tym lepsze będą Twoje przyszłe rekomendacje.',
   'dashboard.foundLastRun': 'znaleziono podczas ostatniego uruchomienia',
+  'dashboard.genreCoverage': 'Dostępne dane o gatunkach: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Oczekujące aktualizacje danych o gatunkach: {0}',
   'dashboard.getStarted': 'Zacznij',
   'dashboard.listeningHistory': 'Historia słuchania',
   'dashboard.recentPlays': 'Ostatnio odtwarzane',

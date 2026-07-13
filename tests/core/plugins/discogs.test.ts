@@ -12,12 +12,12 @@ describe('createDiscogsSource()', () => {
   function mockClient() {
     const client = {
       getCollectionArtists: vi.fn().mockResolvedValue([
-        { name: 'Radiohead', id: 1, count: 5 },
-        { name: 'Bjork', id: 2, count: 3 },
+        { name: 'Radiohead', id: 1, count: 5, genres: ['Alternative Rock'] },
+        { name: 'Bjork', id: 2, count: 3, genres: ['Electronic'] },
       ]),
       getWantlistArtists: vi.fn().mockResolvedValue([
-        { name: 'Bjork', id: 2, count: 2 },
-        { name: 'Portishead', id: 3, count: 1 },
+        { name: 'Bjork', id: 2, count: 2, genres: [] },
+        { name: 'Portishead', id: 3, count: 1, genres: [] },
       ]),
       searchByGenre: vi.fn().mockResolvedValue([
         { name: 'Massive Attack', id: 10 },
@@ -62,10 +62,22 @@ describe('createDiscogsSource()', () => {
     // Bjork: 3 + 2 = 5, Radiohead: 5, Portishead: 1
     // Sort is by count desc. Bjork and Radiohead both 5, Portishead 1
     const bjork = artists.find((a) => a.name === 'Bjork')
-    expect(bjork).toEqual({ name: 'Bjork', playCount: 5, source: 'discogs' })
+    expect(bjork).toEqual({
+      name: 'Bjork',
+      playCount: 5,
+      source: 'discogs',
+      genres: ['Electronic'],
+      genreSource: 'native',
+    })
 
     const radiohead = artists.find((a) => a.name === 'Radiohead')
-    expect(radiohead).toEqual({ name: 'Radiohead', playCount: 5, source: 'discogs' })
+    expect(radiohead).toEqual({
+      name: 'Radiohead',
+      playCount: 5,
+      source: 'discogs',
+      genres: ['Alternative Rock'],
+      genreSource: 'native',
+    })
 
     const portishead = artists.find((a) => a.name === 'Portishead')
     expect(portishead).toEqual({ name: 'Portishead', playCount: 1, source: 'discogs' })

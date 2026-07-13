@@ -6,6 +6,10 @@ export interface StoreDb {
   getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
   getExistingAlbumReleaseGroupMbids?: (userId?: number) => Promise<Set<string>>
   getBlockedAlbumKeys?: (userId: number) => Promise<Set<string>>
+  getArtistGenreCacheByMbids?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByMbids']
+  getArtistGenreCacheByAliases?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByAliases']
+  upsertArtistGenres?: import('./genre-backfill').GenreBackfillDb['upsertArtistGenres']
+  upsertArtistGenreAlias?: import('./genre-backfill').GenreBackfillDb['upsertArtistGenreAlias']
 
   insertBatch: (data: {
     status: string
