@@ -8,6 +8,6 @@ it('redacts postgres credentials before logging', () => {
   logAndSanitize(new Error('connect failed: postgres://user:s3cret@host:5432/db'), 'migrate-test')
   const logged = spy.mock.calls.flat().map(String).join(' ')
   expect(logged).not.toContain('s3cret')
-  expect(logged).toContain('postgres://user:***@host')
+  expect(logged).toContain('postgres://user:[redacted]@host')
   spy.mockRestore()
 })
