@@ -65,6 +65,10 @@ export async function createSlskdJob(
   db: Database,
   data: CreateSlskdJobInput,
 ): Promise<SlskdJobRow> {
+  if (!data.artistName.trim() && !data.releaseTitle.trim()) {
+    throw new Error('slskd job requires an artist name or release title')
+  }
+
   for (let attempt = 0; attempt < 2; attempt++) {
     const [row] = await db
       .insert(slskdJobs)

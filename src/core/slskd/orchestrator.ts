@@ -373,9 +373,17 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
   async function processSearchableJob(job: SlskdPendingJob, slskd: SlskdClient) {
     if (!deps.updateJobState) return
 
+    const searchQuery = buildSearchQuery(job)
+    if (!searchQuery) {
+      await deps.updateJobState(job.id, 'failed', {
+        lastError: 'slskd job requires an artist name or release title',
+      })
+      return
+    }
+
     let searchId = job.slskdSearchId
     if (!searchId) {
-      const search = await slskd.createSearch(buildSearchQuery(job))
+      const search = await slskd.createSearch(searchQuery)
       searchId = normalizeString(search.id)
       if (!searchId) {
         throw new Error(`slskd search did not return an id for job ${job.id}`)

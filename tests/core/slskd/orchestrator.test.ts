@@ -183,6 +183,57 @@ describe('createSlskdOrchestrator', () => {
     )
   })
 
+  it('fails empty-query jobs without calling slskd', async () => {
+    const updateJobState = vi.fn(async () => makeJob())
+    const slskdClient = {
+      createSearch: vi.fn(async () => ({ id: 'must-not-run' })),
+      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+      enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
+      getDownloads: vi.fn(async () => []),
+    }
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [makeJob({ id: 8, artistName: ' ', releaseTitle: '\t' })]),
+      processPendingJobs: vi.fn(async () => {}),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+    } as never)
+
+    await orchestrator.triggerSync()
+
+    expect(slskdClient.createSearch).not.toHaveBeenCalled()
+    expect(slskdClient.getSearchResults).not.toHaveBeenCalled()
+    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
+    expect(updateJobState).toHaveBeenCalledWith(8, 'failed', {
+      lastError: 'slskd job requires an artist name or release title',
+    })
+  })
+
+  it.each([
+    { artistName: 'Burial', releaseTitle: '   ', expectedQuery: 'Burial' },
+    { artistName: '   ', releaseTitle: 'Untrue', expectedQuery: 'Untrue' },
+  ])('searches when one query field is present', async ({
+    artistName,
+    releaseTitle,
+    expectedQuery,
+  }) => {
+    const slskdClient = {
+      createSearch: vi.fn(async () => ({ id: 'search-partial' })),
+      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+      enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
+      getDownloads: vi.fn(async () => []),
+    }
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [makeJob({ artistName, releaseTitle })]),
+      processPendingJobs: vi.fn(async () => {}),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState: vi.fn(async () => makeJob()),
+    } as never)
+
+    await orchestrator.triggerSync()
+
+    expect(slskdClient.createSearch).toHaveBeenCalledWith(expectedQuery)
+  })
+
   it('moves ambiguous matches to manual review instead of auto-queueing', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const updateRecommendationAction = vi.fn(async () => {})

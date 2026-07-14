@@ -17,6 +17,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- **Malformed slskd jobs no longer send empty searches or repeat HTTP 400 errors.** New jobs must contain an artist name or release title, while legacy jobs that still need a search are retained as terminal failures before any request reaches slskd.
 - **Subsonic library syncs no longer fail when one album appears under multiple artists.** Digarr now collapses duplicate source-album rows before replacing the library snapshot and reports the underlying database cause as a short, credential-redacted error instead of dumping generated SQL.
 - **Overflowing Settings tabs now reveal and expose the hidden tabs.** Conditional left/right chevrons and edge fades show when more tabs exist in either direction, while native touch, trackpad, shift-wheel, and horizontal-wheel scrolling remain available. Selecting or deep-linking a tab brings it into view. Both controls have translated accessible labels across all 15 shipped locales.
 - **Discovery over time bars are visible again.** Each batch column now owns the full chart height, so its existing percentage segments render instead of resolving to zero. Scaling, ordering, date labels, and tooltips are unchanged.
