@@ -2,7 +2,7 @@ import PQueue from 'p-queue'
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { JobRecorder, JobType } from '@/core/jobs/types'
-import { errMsg } from '@/core/validation'
+import { conciseErrMsg } from '@/core/validation'
 import { type ReconciledAlbum, reconcileAlbumsForArtist } from './album-reconciler'
 import { type ReconciledArtist, type ReconcilerContext, reconcileArtist } from './reconciler'
 import type { LibrarySource } from './sources/types'
@@ -55,6 +55,37 @@ export type SyncOrchestratorDeps = {
   buildGlobalSources: () => Promise<LibrarySource[]>
   /** Stale threshold in hours; matches settings.librarySyncIntervalHours */
   staleHours: number
+}
+
+function deduplicateAlbums(
+  albums: ReconciledAlbum[],
+  artists: Array<{ sourceArtistId: string; mbid: string }>,
+): ReconciledAlbum[] {
+  const artistMbids = new Map(artists.map((artist) => [artist.sourceArtistId, artist.mbid]))
+  const bySourceAlbumId = new Map<string, ReconciledAlbum>()
+
+  for (const album of albums) {
+    const existing = bySourceAlbumId.get(album.sourceAlbumId)
+    if (!existing) {
+      bySourceAlbumId.set(album.sourceAlbumId, album)
+      continue
+    }
+
+    const albumMatchesSourceArtist = artistMbids.get(album.sourceArtistId) === album.artistMbid
+    const existingMatchesSourceArtist =
+      artistMbids.get(existing.sourceArtistId) === existing.artistMbid
+    if (
+      (albumMatchesSourceArtist && !existingMatchesSourceArtist) ||
+      (albumMatchesSourceArtist === existingMatchesSourceArtist &&
+        album.artistMbid.localeCompare(existing.artistMbid) < 0)
+    ) {
+      bySourceAlbumId.set(album.sourceAlbumId, album)
+    }
+  }
+
+  return [...bySourceAlbumId.values()].sort((a, b) =>
+    a.sourceAlbumId.localeCompare(b.sourceAlbumId),
+  )
 }
 
 export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
@@ -180,11 +211,13 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
           }
         }
 
+        const uniqueAlbumRows = deduplicateAlbums(albumRows, matchedArtists)
+
         writtenCounts = await deps.store.replaceLibrarySnapshot(
           userId,
           source.id,
           reconciled,
-          albumRows,
+          uniqueAlbumRows,
         )
       } else {
         writtenCounts = await deps.store.replaceLibraryArtists(userId, source.id, reconciled)
@@ -207,7 +240,7 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       await deps.recorder.complete(jobId, { metadata: { counts: merged } })
       return { source: source.id, status: 'completed', counts: merged }
     } catch (err: unknown) {
-      const error = errMsg(err)
+      const error = conciseErrMsg(err)
       // The state-update itself can fail if the DB is the source of the original error.
       // Swallow secondary failures so they don't escape doSync.
       try {

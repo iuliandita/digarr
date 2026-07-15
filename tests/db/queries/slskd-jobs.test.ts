@@ -103,6 +103,42 @@ describe('slskd job queries', () => {
     expect(db._mocks.insertReturning).toHaveBeenCalledOnce()
   })
 
+  it('rejects jobs without searchable text before inserting', async () => {
+    const db = makeDb()
+
+    await expect(
+      createSlskdJob(db as unknown as Database, {
+        targetId: 2,
+        sourceType: 'recommendation',
+        workKey: 'artist:empty',
+        artistMbid: '11111111-1111-1111-1111-111111111111',
+        artistName: '   ',
+        releaseTitle: '\t',
+      }),
+    ).rejects.toThrow('slskd job requires an artist name or release title')
+    expect(db.insert).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { artistName: 'Example Artist', releaseTitle: '   ' },
+    { artistName: '   ', releaseTitle: 'Example Release' },
+  ])('accepts a job when one searchable field is present', async ({ artistName, releaseTitle }) => {
+    const row = { id: 8, state: 'pending' }
+    const db = makeDb({ insertedRows: [row] })
+
+    await expect(
+      createSlskdJob(db as unknown as Database, {
+        targetId: 2,
+        sourceType: 'recommendation',
+        workKey: 'artist:partial',
+        artistMbid: '11111111-1111-1111-1111-111111111111',
+        artistName,
+        releaseTitle,
+      }),
+    ).resolves.toEqual(row)
+    expect(db.insert).toHaveBeenCalledOnce()
+  })
+
   it('createSlskdJob returns the active row when the insert is skipped by conflict', async () => {
     const row = { id: 9, workKey: 'artist:mbid-1', state: 'pending' }
     const db = makeDb({ insertedRows: [], selectedRows: [row] })

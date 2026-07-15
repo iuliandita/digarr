@@ -62,6 +62,7 @@ vi.mock('@/web/lib/api', () => ({
   getSubscriptions: vi.fn(async () => []),
   getSchedulerInfo: vi.fn(async () => ({ jobs: [] })),
   getDashboardTaste: vi.fn(async () => []),
+  getDashboardGenreCoverage: vi.fn(async () => null),
   getDashboardActivity: vi.fn(async () => []),
   triggerPipeline: vi.fn(),
   rescanArtists: vi.fn().mockResolvedValue({ updated: 0, total: 0 }),
@@ -70,6 +71,7 @@ vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(async () => ({ running: false })),
   getStoredToken: vi.fn(() => null),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
+  getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: false }),
   updateUserPreferences: vi.fn().mockResolvedValue({}),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'user', isAdmin: false }),
   getJobHealth: vi.fn().mockResolvedValue({

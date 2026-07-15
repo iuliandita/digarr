@@ -235,6 +235,28 @@ describe('createHttpClient', () => {
       // retries=2: initial attempt + 2 retries = 3 total
       expect(after - before).toBe(3)
     }, 20_000)
+
+    it('allows a POST to disable retries without changing the client default', async () => {
+      const path = '/flaky/post-no-retry'
+      const before = serverHits.get(path) ?? 0
+      const client = createHttpClient({ baseUrl, retries: 3 })
+
+      await client.post(`${path}?fails=99`, { name: 'once' }, { retries: 0 }).catch(() => null)
+
+      const after = serverHits.get(path) ?? 0
+      expect(after - before).toBe(1)
+    }, 20_000)
+
+    it('allows a GET-shaped mutation to disable retries', async () => {
+      const path = '/flaky/get-mutation-no-retry'
+      const before = serverHits.get(path) ?? 0
+      const client = createHttpClient({ baseUrl, retries: 3 })
+
+      await client.get(`${path}?fails=99`, { retries: 0 }).catch(() => null)
+
+      const after = serverHits.get(path) ?? 0
+      expect(after - before).toBe(1)
+    }, 20_000)
   })
 
   describe('timeout', () => {

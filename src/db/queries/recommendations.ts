@@ -10,6 +10,7 @@ import {
   recommendationBatches,
   recommendations,
 } from '@/db/schema'
+import { createAlbumBlock } from './album-blocks'
 
 type RecommendationRow = typeof recommendations.$inferSelect
 type ArtistRow = typeof artists.$inferSelect
@@ -171,8 +172,9 @@ export type RejectRecommendationParams = {
 
 /**
  * Transactional reject: marks the recommendation rejected with a structured
- * reason, and (when permanent=true) upserts a row into artist_blocks so the
- * filter stage drops this artist forever.
+ * reason, and (when permanent=true) blocks the rejected recommendation's
+ * kind forever: album_blocks for an album-kind rec with a release group,
+ * artist_blocks otherwise.
  *
  * Returns the artistId of the rejected recommendation, or null if no row matched.
  */
@@ -194,27 +196,45 @@ export async function rejectRecommendation(
         actedOnAt: new Date(),
       })
       .where(and(...conditions))
-      .returning({ artistId: recommendations.artistId })
+      .returning({
+        artistId: recommendations.artistId,
+        kind: recommendations.kind,
+        releaseGroupMbid: recommendations.recommendedReleaseGroupId,
+      })
     if (!rec) return null
 
     if (params.permanent && params.userId !== undefined) {
-      await tx
-        .insert(artistBlocks)
-        .values({
+      // Album recs without a release group (e.g. legacy rows) can't be
+      // album-blocked, so fall back to the artist block rather than silently
+      // dropping the permanent-reject intent.
+      if (rec.kind === 'album' && rec.releaseGroupMbid) {
+        await createAlbumBlock(tx, {
           userId: params.userId,
           artistId: rec.artistId,
-          reason: params.reason,
-          reasonText: params.reasonText,
+          releaseGroupMbid: rec.releaseGroupMbid,
+          reason: params.reason ?? undefined,
+          reasonText: params.reasonText ?? undefined,
           source: 'rejection',
         })
-        .onConflictDoUpdate({
-          target: [artistBlocks.userId, artistBlocks.artistId],
-          set: {
+      } else {
+        await tx
+          .insert(artistBlocks)
+          .values({
+            userId: params.userId,
+            artistId: rec.artistId,
             reason: params.reason,
             reasonText: params.reasonText,
-            blockedAt: new Date(),
-          },
-        })
+            source: 'rejection',
+          })
+          .onConflictDoUpdate({
+            target: [artistBlocks.userId, artistBlocks.artistId],
+            set: {
+              reason: params.reason,
+              reasonText: params.reasonText,
+              blockedAt: new Date(),
+            },
+          })
+      }
     }
     return rec.artistId
   })

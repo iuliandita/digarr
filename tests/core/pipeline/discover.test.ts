@@ -135,6 +135,28 @@ describe('discover()', () => {
     warn.mockRestore()
   })
 
+  it('redacts credential-shaped substrings from a source failure before it reaches onSourceFailure', async () => {
+    const lb: DiscoverySource = {
+      id: 'listenbrainz',
+      name: 'ListenBrainz',
+      capabilities: ['topArtists', 'similarArtists', 'listeningActivity'],
+      getTopArtists: vi.fn().mockResolvedValue([]),
+      getSimilarArtists: vi
+        .fn()
+        .mockRejectedValue(new Error('request failed: ?api_key=abc123secret')),
+      testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onSourceFailure = vi.fn()
+
+    await discover(profile, { listeningSources: [lb] }, 10, undefined, 0, { onSourceFailure })
+
+    const [, lastError] = onSourceFailure.mock.calls[0] ?? []
+    expect(lastError).toContain('[redacted]')
+    expect(lastError).not.toContain('abc123secret')
+    warn.mockRestore()
+  })
+
   it('isolates AI source failure - other sources still return results', async () => {
     const lb = makeLb()
     const ai = { getRecommendations: vi.fn().mockRejectedValue(new Error('AI down')) }
@@ -149,6 +171,26 @@ describe('discover()', () => {
     expect(results.filter((r) => r.source === 'ai').length).toBe(0)
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('[discover] AI source failed'))
     expect(onSourceFailure).toHaveBeenCalledWith('ai', 'AI down')
+    warn.mockRestore()
+  })
+
+  it('redacts credential-shaped substrings from an AI source failure before it reaches onSourceFailure', async () => {
+    const lb = makeLb()
+    const ai = {
+      getRecommendations: vi
+        .fn()
+        .mockRejectedValue(new Error('AI request failed: ?api_key=abc123secret')),
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onSourceFailure = vi.fn()
+
+    await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0, { onSourceFailure })
+
+    const aiCall = onSourceFailure.mock.calls.find((call) => call[0] === 'ai')
+    expect(aiCall).toBeDefined()
+    const lastError = aiCall?.[1]
+    expect(lastError).toContain('[redacted]')
+    expect(lastError).not.toContain('abc123secret')
     warn.mockRestore()
   })
 

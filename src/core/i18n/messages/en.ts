@@ -103,6 +103,9 @@ export const en = {
     'No recommendations yet. Import some favorite artists or run your first scan to get started.',
   'discover.emptyApproved':
     "You haven't approved any artists yet. Check the Pending tab to see what Digarr found for you.",
+  'discover.emptyAlbums': 'No album recommendations in this view.',
+  'discover.emptyAlbumsHelp':
+    'A normal scan finds artists. Use one of the options below to generate album recommendations.',
   'discover.emptyPending': "No pending recommendations. You're all caught up.",
   'discover.emptyRejected': 'No rejected recommendations.',
   'genres.title': 'Genres',
@@ -244,6 +247,8 @@ export const en = {
   'dashboard.feedbackTip':
     'Approve or reject recommendations to teach Digarr your taste. The more feedback you give, the better your future recommendations get.',
   'dashboard.foundLastRun': 'found last run',
+  'dashboard.genreCoverage': 'Genre data available: {0}/{1}',
+  'dashboard.genreCoveragePending': 'Pending genre data updates: {0}',
   'dashboard.getStarted': 'Get started',
   'dashboard.listeningHistory': 'Listening History',
   'dashboard.recentPlays': 'Recently Played',
@@ -307,19 +312,23 @@ export const en = {
     'Tip: describe what you are in the mood for in plain English - like "rainy day jazz" or "upbeat 90s pop"',
   'discover.navigate': 'navigate',
   'discover.noPendingAbove': 'No pending recommendations above',
+  'discover.noPendingBelow': 'No pending recommendations below',
   'discover.noPendingToClear': 'No pending recommendations to clear',
   'discover.notEnoughFeedback':
     'Not enough feedback data yet. Approve or reject more recommendations.',
-  'discover.of': 'of',
   'discover.queuedForRetry': 'Queued for retry',
   'discover.rated': 'rated',
   'discover.refreshData': 'Refresh Data',
   'discover.refreshingArtistData': 'Refreshing artist data...',
   'discover.rejectAll': 'Reject All',
+  'discover.rejectAllBelow': 'Reject All Below',
+  'discover.auditionAll': 'Audition',
+  'discover.nothingToAudition': 'No pending items with previews',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
   'discover.rejectedCount': 'Rejected',
+  'discover.rescanComplete': 'Rescan complete: {0}/{1} updated; {2} failed.',
   'discover.rescanFailed': 'Rescan failed',
   'discover.restoreFailed': 'Failed to restore',
   'discover.restoredToPending': 'Restored to pending',
@@ -340,7 +349,6 @@ export const en = {
   'discover.undo': 'Undo',
   'discover.undoFailed': 'Undo failed',
   'discover.undone': 'Undone',
-  'discover.updatedArtists': 'Updated artists',
   'discover.viewGrid': 'Grid view',
   'discover.viewList': 'List view',
   'discover.viewStack': 'Stack view',
@@ -421,10 +429,10 @@ export const en = {
   'playlist.generateNow': 'Generate now',
   'playlist.generatingNamed': 'Playlist generation started',
   'playlist.noTracks': 'No tracks yet. Generate the playlist to populate it.',
-  'playlist.sourceDeezer': 'deezer',
-  'playlist.sourceLocal': 'local',
-  'playlist.sourceMusicbrainz': 'musicbrainz',
-  'playlist.sourceSpotify': 'spotify',
+  'playlist.sourceDeezer': 'Deezer',
+  'playlist.sourceLocal': 'Local',
+  'playlist.sourceMusicbrainz': 'MusicBrainz',
+  'playlist.sourceSpotify': 'Spotify',
   'playlist.strategyGenreFocus': 'Genre Focus',
   'playlist.strategyMoodMix': 'Mood Mix',
   'playlist.strategyRediscover': 'Rediscover',
@@ -705,7 +713,7 @@ export const en = {
     'Triggers an album search in Lidarr for each affected artist',
   'libraryHealth.fixHint.genreGaps': 'Triggers a metadata refresh in Lidarr to fetch genre tags',
   'libraryHealth.fixHint.imageGaps':
-    'Looks up artist images via Lidarr and saves them locally. Some artists may not have images available on fanart.tv.',
+    'Searches for artist images again and saves any result locally.',
   'libraryHealth.fixHint.missingWikidata':
     'Fetches short descriptions and external links from Wikidata for each affected artist. Rate limited at 1 request per second.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (fast, cheapest)',
@@ -811,6 +819,9 @@ export const en = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Saved Albums',
   'discoveryMode.spotify-saved-albums.description':
     'Discover artists from the albums you saved on Spotify',
+  'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
+  'discoveryMode.subsonic-starred.description':
+    'Discover artists similar to the ones you starred on your Subsonic server',
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
@@ -821,8 +832,9 @@ export const en = {
   'discoveryMode.reason.connectLastfm': 'Connect Last.fm to use this mode.',
   'discoveryMode.reason.connectDeezer': 'Connect Deezer to use this mode.',
   'discoveryMode.reason.connectSpotify': 'Connect Spotify to use this mode.',
-  'discoveryMode.reason.notImplementedYet': 'This mode is not implemented yet.',
+  'discoveryMode.reason.connectSubsonic': 'Connect Subsonic to use this mode.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
+  'discoveryMode.reason.libraryRequired': 'Sync a library first to use this mode.',
   'discoveryMode.field.feed': 'Feed',
   'discoveryMode.field.artist': 'Artist',
   'discoveryMode.field.adventurousness': 'Adventurousness',
@@ -839,6 +851,16 @@ export const en = {
   'discoveryMode.field.relationships': 'Relationships',
   'discoveryMode.field.maxArtistsPerRun': 'Artists checked per run',
   'discoveryMode.field.helpArtistSeed': 'Artist name or MBID to seed the radio',
+  'discoveryMode.field.helpConnectedAccount': 'Leave blank to use your connected account',
+  'discoveryMode.field.helpSimilarUsers': 'How many similar users to pull top artists from (1-10)',
+  'discoveryMode.field.helpTags':
+    'Genre or style tags to discover from. Add multiple tags with weights.',
+  'discoveryMode.field.helpRawTagExpression':
+    'Override the tag builder with raw ListenBrainz syntax, for example (trip hop):2:(ambient):1',
+  'discoveryMode.field.helpRecordingCount':
+    'Default 25. Higher values improve diversity but are slower due to MusicBrainz rate limiting (~1 second per recording).',
+  'discoveryMode.field.helpPopularityMin': '0-100. Filter out recordings below this popularity.',
+  'discoveryMode.field.helpPopularityMax': '0-100. Filter out recordings above this popularity.',
   'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
   'discoveryMode.option.similarUsersQuick': 'Similar Users (Quick)',
@@ -853,6 +875,13 @@ export const en = {
   'discoveryMode.option.japan': 'Japan',
   'discoveryMode.option.brazil': 'Brazil',
   'discoveryMode.option.canada': 'Canada',
+  'discoveryMode.option.memberOfBand': 'Member of a band',
+  'discoveryMode.option.collaboration': 'Collaboration',
+  'discoveryMode.option.supportingMusician': 'Supporting musician',
+  'discoveryMode.option.isPerson': 'Is a person',
+  'discoveryMode.option.sibling': 'Sibling',
+  'discoveryMode.option.married': 'Married',
+  'discoveryMode.option.involvedWith': 'Involved with',
 
   // Import Artists
   'importArtists.title': 'Import Artists',
@@ -926,6 +955,8 @@ export const en = {
   'settings.tabs.administration': 'Administration',
   'settings.tabs.jobHistory': 'Job History',
   'settings.tabs.systemHealth': 'System Health',
+  'settings.tabs.scrollLeft': 'Scroll settings tabs left',
+  'settings.tabs.scrollRight': 'Scroll settings tabs right',
   'settings.globalSettings': 'Global Settings',
   'settings.adminOnly': 'Only admins can modify global settings.',
   'settings.yourConnections': 'Your Connections',
@@ -956,7 +987,7 @@ export const en = {
   'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
   'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.webhookDescription':
-    'Scan completion notifications (Discord, Slack, ntfy, Gotify, or any HTTP endpoint)',
+    'Scan completion notifications (Discord embeds or raw JSON to a public HTTPS endpoint)',
   'settings.testWebhook': 'Test Webhook',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':
@@ -979,6 +1010,8 @@ export const en = {
   'settings.subsonicDescription':
     'Self-hosted music server (Navidrome, Airsonic) for library sync and discovery',
   'settings.discogsDescription': 'Collection and wantlist from Discogs.',
+  'settings.tidalDescription':
+    'Experimental search source using TIDAL client-credentials access. Uses undocumented endpoints that may change without notice.',
   'settings.yourAccount': 'your account',
   'settings.lidarrPreferences': 'Your Lidarr Preferences',
   'settings.lidarrPreferencesDescription':
@@ -1183,6 +1216,16 @@ export const en = {
   'settings.aiProviderTitle': 'AI Provider',
   'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
+  'settings.plexLibrary': 'Music library',
+  'settings.plexLibraryAuto': 'Auto-detect (first music library)',
+  'settings.plexLibrarySection': 'Section {0}',
+  'settings.plexLibraryHint':
+    'If your Plex server has several music-type libraries (such as audiobooks), run Test connection and pick the right one here.',
+  'settings.musicLibrary': 'Music library',
+  'settings.musicLibraryAll': 'All music libraries',
+  'settings.musicLibraryId': 'Library {0}',
+  'settings.musicLibraryHint':
+    'If your server has several music libraries, run Test connection and pick one to scope listening data and library sync.',
   'settings.serviceConnectedToast': '{0} connected',
   'settings.serviceUnreachableToast': 'Could not reach {0}',
   'settings.serviceSettingsSavedToast': '{0} settings saved',
@@ -1353,18 +1396,6 @@ export const en = {
   'errorBoundary.retry': 'Try again',
   'errorBoundary.home': 'Go home',
 
-  // Connection suggestions
-  'connectionSuggestions.title': 'Suggestions for {0}',
-  'connectionSuggestions.close': 'Close suggestions',
-  'connectionSuggestions.gotIt': 'Got it',
-  'connectionSuggestions.skipForNow': 'Skip for now',
-  'connectionSuggestions.spotifyDiscoverWeekly': 'Set up a Discover Weekly subscription',
-  'connectionSuggestions.spotifyReleaseRadar': 'Enable Release Radar subscription',
-  'connectionSuggestions.lastfmTopGenreTags': 'Subscribe to your top genre tags',
-  'connectionSuggestions.listenbrainzWeeklyJams': 'Enable Weekly Jams subscription',
-  'connectionSuggestions.listenbrainzWeeklyExploration': 'Enable Weekly Exploration',
-  'connectionSuggestions.weeklyDigestPlaylist': 'Create a weekly Digarr Digest playlist',
-
   // Keyboard shortcuts
   'keyboardShortcuts.title': 'Keyboard shortcuts',
   'keyboardShortcuts.close': 'Close shortcuts',
@@ -1400,7 +1431,6 @@ export const en = {
   'rejectionReason.tried_didnt_like': "Tried it, didn't like it",
   'rejectionReason.not_right_now': 'Maybe later, not now',
   'rejectionReason.other': 'Other',
-  'rejectionReason.unspecified': 'No reason given',
 
   // Settings: Blocked Artists tab
   'settings.blocked.title': 'Blocked Artists',
@@ -1416,11 +1446,26 @@ export const en = {
   'settings.blocked.unblock_failed': 'Failed to unblock',
   'settings.blocked.loadMore': 'Load more',
 
+  // Settings: Blocked Albums section
+  'settings.blockedAlbums.title': 'Blocked Albums',
+  'settings.blockedAlbums.count_one': '{0} album blocked',
+  'settings.blockedAlbums.count_other': '{0} albums blocked',
+  'settings.blockedAlbums.unblock': 'Unblock',
+  'settings.blockedAlbums.empty': 'No blocked albums yet.',
+  'settings.blockedAlbums.empty_hint':
+    'Reject an album recommendation and tick "Don\'t show again" to add one.',
+  'settings.blockedAlbums.error': 'Failed to load blocked albums',
+  'settings.blockedAlbums.unblock_success': 'Unblocked',
+  'settings.blockedAlbums.unblock_failed': 'Failed to unblock',
+
   // Preview player
   'preview.playerRegion': 'Preview player',
   'preview.closePreview': 'Close preview',
   'preview.volume': 'Volume',
   'preview.loadingPreview': 'Loading preview...',
+  'preview.queuePrevious': 'Previous preview',
+  'preview.queueNext': 'Next preview',
+  'preview.queuePosition': '{0} of {1}',
 
   // Streaming links (compact play/stop control + Spotify embed)
   'streaming.playShort': 'PLAY',

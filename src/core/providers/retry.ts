@@ -1,4 +1,7 @@
 import pRetry, { AbortError } from 'p-retry'
+import { redactSecrets } from '@/core/validation'
+
+export { redactSecrets } from '@/core/validation'
 
 export type RetriableFetchOptions = {
   /** Max retry attempts on top of the initial call. */
@@ -19,12 +22,6 @@ export type RetriableFetchOptions = {
    * path is taken. Unused by current callers but keeps the API flexible.
    */
   onAbort?: () => void
-}
-
-export type RetryAttemptMetadata = {
-  attempts: number
-  lastStatus?: number
-  lastRetryAfterSeconds?: number | null
 }
 
 const DEFAULTS: Required<Pick<RetriableFetchOptions, 'retries' | 'factor' | 'minTimeout'>> = {
@@ -120,13 +117,6 @@ function delay(ms: number): Promise<void> {
 async function errorBodySnippet(res: Response): Promise<string> {
   const text = await res.text().catch(() => '')
   return redactSecrets(text.replace(/\s+/g, ' ').trim()).slice(0, 200)
-}
-
-export function redactSecrets(text: string): string {
-  return text
-    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
-    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
-    .replace(/([?&](?:api_?key|key|token)=)[^&\s"']+/gi, '$1[redacted]')
 }
 
 function isAbortError(err: unknown): boolean {

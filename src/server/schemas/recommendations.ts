@@ -1,14 +1,13 @@
 import * as z from 'zod'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import { stripControlChars } from '@/core/text/strip-control-chars'
+import { idParamSchema } from './validator'
 
 // MAX_BULK_IDS caps the bulk write surface so one approve-all payload cannot
 // starve the worker. 500 matches the Spotify CSV import truncation ceiling.
 const MAX_BULK_IDS = 500
 
-export const recommendationIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const recommendationIdParamSchema = idParamSchema
 
 export const recommendationStatusSchema = z.enum(['approved', 'rejected', 'pending'])
 export const approvalModeSchema = z.enum(['single_target', 'combined_lidarr_slskd'])

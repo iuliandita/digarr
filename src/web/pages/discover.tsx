@@ -28,6 +28,7 @@ import {
   approveToTarget,
   bulkAction,
   exportRecommendations,
+  getAuthStatus,
   getFeedbackSummary,
   getRecommendations,
   getUserPreferences,
@@ -39,6 +40,7 @@ import {
 } from '../lib/api'
 import { reportApprovalOutcome } from '../lib/approval'
 import { useI18n } from '../lib/i18n'
+import { usePreviewContext } from '../lib/preview-context'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
@@ -121,8 +123,39 @@ function SkeletonGrid() {
   )
 }
 
-function EmptyState({ filter }: { filter: FilterTab }) {
+function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
   const { t } = useI18n()
+  if (kind === 'album') {
+    return (
+      <div className="py-16 text-center space-y-4">
+        <div className="space-y-1">
+          <p className="text-text text-sm font-medium">{t('discover.emptyAlbums')}</p>
+          <p className="text-muted text-sm max-w-xl mx-auto">{t('discover.emptyAlbumsHelp')}</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/discover/modes?mode=gap-fill"
+            className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
+          >
+            {t('discoveryMode.gap-fill.label')}
+          </Link>
+          <Link
+            to="/discover/modes?mode=release-radar"
+            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+          >
+            {t('discoveryMode.release-radar.label')}
+          </Link>
+          <Link
+            to="/settings?tab=recommendations#net-new-album-discovery"
+            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+          >
+            {t('settings.netNewAlbumDiscovery')}
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (filter === 'all') {
     return (
       <div className="py-16 text-center space-y-3">
@@ -385,7 +418,7 @@ function MoreMenu({
   showClearAll,
 }: {
   filter?: string
-  onRefresh: () => void
+  onRefresh?: () => void
   onClearAll: () => void
   showClearAll: boolean
 }) {
@@ -426,19 +459,23 @@ function MoreMenu({
           role="menu"
           className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]"
         >
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              onRefresh()
-              setOpen(false)
-            }}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
-          >
-            <RefreshCw size={14} aria-hidden="true" />
-            {t('discover.refreshData')}
-          </button>
-          <div className="my-1 border-t border-border" />
+          {onRefresh && (
+            <>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  onRefresh()
+                  setOpen(false)
+                }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
+              >
+                <RefreshCw size={14} aria-hidden="true" />
+                {t('discover.refreshData')}
+              </button>
+              <div className="my-1 border-t border-border" />
+            </>
+          )}
           {(['json', 'csv', 'm3u'] as const).map((fmt) => (
             <button
               key={fmt}
@@ -482,7 +519,10 @@ function MoreMenu({
 export function DiscoverPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const preview = usePreviewContext()
   const popularAvailable = usePopularAlbumsAvailability()
+  const { data: authStatus } = useQuery({ queryKey: ['auth-status'], queryFn: getAuthStatus })
+  const isAdmin = authStatus?.isAdmin ?? false
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<FilterTab>('pending')
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
@@ -876,6 +916,33 @@ export function DiscoverPage() {
     }
   }
 
+  function handleAudition() {
+    const eligible = items.filter(
+      (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
+    )
+    if (eligible.length === 0) {
+      toast.info(t('discover.nothingToAudition'))
+      return
+    }
+    preview.audition.start(
+      eligible.map((r) => ({
+        mbid: r.artist.mbid,
+        artistName: r.artist.name,
+        streamingUrls: r.artist.streamingUrls,
+      })),
+    )
+  }
+
+  function handleRejectBelow() {
+    const eligible = items.filter((r) => r.score * 100 < approveThreshold && r.status === 'pending')
+    if (eligible.length === 0) {
+      toast.info(`${t('discover.noPendingBelow')} ${approveThreshold}%`)
+      return
+    }
+    setCheckedIds(new Set(eligible.map((r) => r.id)))
+    setBulkRejectPickerOpen(true)
+  }
+
   async function handleClearAll() {
     try {
       let cleared = 0
@@ -1038,6 +1105,12 @@ export function DiscoverPage() {
   const pendingAboveThreshold = items.filter(
     (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
   ).length
+  const pendingBelowThreshold = items.filter(
+    (r) => r.score * 100 < approveThreshold && r.status === 'pending',
+  ).length
+  const auditionEligible = items.filter(
+    (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
+  ).length
 
   return (
     <div
@@ -1185,6 +1258,28 @@ export function DiscoverPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={handleRejectBelow}
+                  disabled={pendingBelowThreshold === 0}
+                  className="px-3 py-1.5 bg-reject/20 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('discover.rejectAllBelow')}
+                  {pendingBelowThreshold > 0 && (
+                    <span className="ml-1.5 text-xs opacity-70">({pendingBelowThreshold})</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAudition}
+                  disabled={auditionEligible === 0}
+                  className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/40 rounded text-sm font-medium hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('discover.auditionAll')}
+                  {auditionEligible > 0 && (
+                    <span className="ml-1.5 text-xs opacity-70">({auditionEligible})</span>
+                  )}
+                </button>
+                <button
+                  type="button"
                   onClick={handleToggleBulkMode}
                   className={`px-3 py-1.5 border rounded text-sm font-medium transition-colors ${
                     bulkMode
@@ -1215,15 +1310,22 @@ export function DiscoverPage() {
                 />
                 <MoreMenu
                   filter={statusParam}
-                  onRefresh={() => {
-                    toast.promise(rescanArtists(), {
-                      loading: t('discover.refreshingArtistData'),
-                      success: (r) =>
-                        `${t('discover.updatedArtists')} ${r.updated} ${t('discover.of')} ${r.total}`,
-                      error: t('discover.rescanFailed'),
-                    })
-                    setTimeout(refetch, 3000)
-                  }}
+                  onRefresh={
+                    isAdmin
+                      ? () => {
+                          toast.promise(rescanArtists(), {
+                            loading: t('discover.refreshingArtistData'),
+                            success: (r) =>
+                              t('discover.rescanComplete')
+                                .replace('{0}', String(r.updated))
+                                .replace('{1}', String(r.attempted))
+                                .replace('{2}', String(r.failed)),
+                            error: t('discover.rescanFailed'),
+                          })
+                          setTimeout(refetch, 3000)
+                        }
+                      : undefined
+                  }
                   onClearAll={() => setShowClearAllConfirm(true)}
                   showClearAll={filter === 'pending'}
                 />
@@ -1269,6 +1371,8 @@ export function DiscoverPage() {
             <div className="flex justify-center py-16">
               <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : items.length === 0 ? (
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <CardStack
               recommendations={items}
@@ -1287,7 +1391,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} />
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((rec) => {
@@ -1360,7 +1464,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} />
+            <EmptyState filter={filter} kind={kindFilter} />
           ) : (
             <div className="flex flex-col gap-3">
               {items.map((rec) => {
@@ -1421,7 +1525,9 @@ export function DiscoverPage() {
       {/* Bulk action toolbar */}
       {bulkMode && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm">
-          <span className="text-muted tabular-nums">{checkedIds.size} selected</span>
+          <span className="text-muted tabular-nums">
+            {t('albumPicker.selectedCount').replace('{0}', String(checkedIds.size))}
+          </span>
           <button type="button" onClick={handleSelectAll} className="text-xs text-accent underline">
             {t('common.all')}
           </button>

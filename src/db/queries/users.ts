@@ -132,12 +132,15 @@ export type UserConnections = {
   lastfmApiKey: string | null
   plexUrl: string | null
   plexToken: string | null
+  plexSectionId: string | null
   jellyfinUrl: string | null
   jellyfinApiKey: string | null
   jellyfinUserId: string | null
+  jellyfinLibraryId: string | null
   embyUrl: string | null
   embyApiKey: string | null
   embyUserId: string | null
+  embyLibraryId: string | null
   discogsToken: string | null
   discogsUsername: string | null
   subsonicUrl: string | null
@@ -157,12 +160,15 @@ export async function getUserConnections(
       lastfmApiKey: users.lastfmApiKey,
       plexUrl: users.plexUrl,
       plexToken: users.plexToken,
+      plexSectionId: users.plexSectionId,
       jellyfinUrl: users.jellyfinUrl,
       jellyfinApiKey: users.jellyfinApiKey,
       jellyfinUserId: users.jellyfinUserId,
+      jellyfinLibraryId: users.jellyfinLibraryId,
       embyUrl: users.embyUrl,
       embyApiKey: users.embyApiKey,
       embyUserId: users.embyUserId,
+      embyLibraryId: users.embyLibraryId,
       discogsToken: users.discogsToken,
       discogsUsername: users.discogsUsername,
       subsonicUrl: users.subsonicUrl,

@@ -5,7 +5,6 @@ import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BackupSection } from '@/web/components/admin/backup-section'
-import { ConnectionSuggestions } from '@/web/components/connection-suggestions'
 import { ErrorBoundary } from '@/web/components/error-boundary'
 import { KeyboardShortcuts } from '@/web/components/keyboard-shortcuts'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -70,17 +69,6 @@ describe('shared component i18n', () => {
         }),
       },
     })
-  })
-
-  it('translates connection suggestions in french', () => {
-    localStorage.setItem('digarr-locale', 'fr')
-
-    renderWithProviders(<ConnectionSuggestions service="spotify" onClose={vi.fn()} />)
-
-    expect(screen.getByText('Suggestions pour Spotify')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Compris' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Ignorer pour le moment' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Fermer les suggestions')).toBeInTheDocument()
   })
 
   it('translates keyboard shortcuts chrome in german', () => {

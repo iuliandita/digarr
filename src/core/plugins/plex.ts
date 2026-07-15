@@ -1,8 +1,12 @@
 import { createPlexClient } from '@/core/clients/plex'
 import type { DiscoverySource } from './types'
 
-export function createPlexSource(url: string, token: string): DiscoverySource {
-  const client = createPlexClient(url, token)
+export function createPlexSource(
+  url: string,
+  token: string,
+  sectionId?: string | null,
+): DiscoverySource {
+  const client = createPlexClient(url, token, { sectionId })
 
   return {
     id: 'plex',
@@ -15,6 +19,9 @@ export function createPlexSource(url: string, token: string): DiscoverySource {
         name: a.name,
         playCount: a.viewCount,
         source: 'plex',
+        ...((a.genres ?? []).length > 0
+          ? { genres: a.genres, genreSource: 'native' as const }
+          : {}),
       }))
     },
 

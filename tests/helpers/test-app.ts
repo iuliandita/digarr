@@ -53,6 +53,8 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),
+    listAlbumBlocks: vi.fn(async () => []),
+    removeAlbumBlock: vi.fn(async () => {}),
     bulkUpdateStatus: vi.fn(),
     filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     listBatches: vi.fn(async () => []),
@@ -167,6 +169,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     discoveryModeRegistry: createDefaultDiscoveryModeRegistry(),
@@ -177,6 +180,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       hasDiscogs: false,
       hasDeezer: false,
       hasLibrarySync: false,
+      hasSubsonic: false,
     })),
     runDiscoveryMode: vi.fn(async () => ({ batchId: 1 })),
     jobRecorder: {

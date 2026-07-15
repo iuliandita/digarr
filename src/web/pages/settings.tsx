@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Copy } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Check, ChevronLeft, ChevronRight, Copy } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -9,9 +9,11 @@ import { errMsg } from '@/core/validation'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { AdministrationTab } from '../components/admin/administration-tab'
 import { setAudiodbProxyFlag } from '../components/artist-thumb'
+import { BlockedAlbumsTab } from '../components/blocked-albums-tab'
 import { BlockedArtistsTab } from '../components/blocked-artists-tab'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
+import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import { IntegrationCapabilities } from '../components/integration-capabilities'
 import { LanguageSwitcher } from '../components/language-switcher'
@@ -47,6 +49,7 @@ import {
   disconnectOAuth,
   getAuthMeta,
   getCurrentUser,
+  getDashboardGenreCoverage,
   getLidarrMetadataProfiles,
   getLidarrProfiles,
   getLidarrRootFolders,
@@ -87,18 +90,23 @@ type Settings = {
   audiodbApiKey?: string
   audiodbProxyImages?: boolean
   wikidataEnabled?: boolean
+  tidalClientId?: string
+  tidalClientSecret?: string
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string
   oidcScopes?: string
   plexUrl?: string
   plexToken?: string
+  plexSectionId?: string
   jellyfinUrl?: string
   jellyfinApiKey?: string
   jellyfinUserId?: string
+  jellyfinLibraryId?: string
   embyUrl?: string
   embyApiKey?: string
   embyUserId?: string
+  embyLibraryId?: string
   discogsToken?: string
   discogsUsername?: string
   subsonicUrl?: string
@@ -134,6 +142,9 @@ function TabBar({
   isAdmin: boolean
 }) {
   const { t } = useI18n()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
   const allTabs: { id: Tab; label: string; adminOnly?: boolean }[] = [
     { id: 'connections', label: t('settings.tabs.connections') },
     { id: 'targets', label: t('settings.tabs.targets') },
@@ -148,26 +159,113 @@ function TabBar({
     { id: 'system-health', label: t('settings.tabs.systemHealth'), adminOnly: true },
   ]
   const tabs = allTabs.filter((tab) => !tab.adminOnly || isAdmin)
+  const visibleTabLabels = tabs.map((tab) => tab.label).join('\u0000')
+  const activeTabLabel = tabs.find((tab) => tab.id === active)?.label
+
+  const updateScrollState = useCallback(() => {
+    const element = scrollRef.current
+    if (!element) return
+    const maxScrollLeft = Math.max(element.scrollWidth - element.clientWidth, 0)
+    setCanScrollLeft(element.scrollLeft > 1)
+    setCanScrollRight(maxScrollLeft - element.scrollLeft > 1)
+  }, [])
+
+  useEffect(() => {
+    const element = scrollRef.current
+    if (!element) return
+
+    window.addEventListener('resize', updateScrollState)
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateScrollState)
+    resizeObserver?.observe(element)
+
+    return () => {
+      window.removeEventListener('resize', updateScrollState)
+      resizeObserver?.disconnect()
+    }
+  }, [updateScrollState])
+
+  useEffect(() => {
+    if (visibleTabLabels) updateScrollState()
+  }, [visibleTabLabels, updateScrollState])
+
+  useEffect(() => {
+    if (!activeTabLabel) return
+    const activeTab = scrollRef.current?.querySelector<HTMLElement>(
+      `[data-settings-tab="${active}"]`,
+    )
+    activeTab?.scrollIntoView?.({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [active, activeTabLabel])
+
+  function scrollTabs(direction: -1 | 1) {
+    const element = scrollRef.current
+    if (!element) return
+    element.scrollBy({ behavior: 'smooth', left: direction * element.clientWidth * 0.75 })
+  }
+
   return (
-    <div
-      className="flex gap-1 border-b border-border mb-6 overflow-x-auto -mx-6 px-6"
-      style={{ scrollbarWidth: 'none' }}
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => onChange(tab.id)}
-          className={[
-            'px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
-            active === tab.id
-              ? 'border-accent text-text'
-              : 'border-transparent text-muted hover:text-text',
-          ].join(' ')}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="relative -mx-6 mb-6">
+      {canScrollLeft && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-bg via-bg/90 to-transparent"
+          />
+          <button
+            type="button"
+            aria-label={t('settings.tabs.scrollLeft')}
+            onClick={() => scrollTabs(-1)}
+            className="absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-bg/95 text-text shadow-sm hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </>
+      )}
+      <div
+        ref={scrollRef}
+        data-testid="settings-tabs-scroll"
+        onScroll={updateScrollState}
+        className="flex gap-1 overflow-x-auto scroll-px-16 border-b border-border px-6"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            data-settings-tab={tab.id}
+            type="button"
+            aria-current={active === tab.id ? 'page' : undefined}
+            onClick={() => onChange(tab.id)}
+            className={[
+              'px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0',
+              active === tab.id
+                ? 'border-accent text-text'
+                : 'border-transparent text-muted hover:text-text',
+            ].join(' ')}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {canScrollRight && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-bg via-bg/90 to-transparent"
+          />
+          <button
+            type="button"
+            aria-label={t('settings.tabs.scrollRight')}
+            onClick={() => scrollTabs(1)}
+            className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-bg/95 text-text shadow-sm hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <ChevronRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </>
+      )}
     </div>
   )
 }
@@ -245,6 +343,11 @@ function isLocalAiProvider(provider: string, baseUrl: string): boolean {
 function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
+  const { data: genreCoverage } = useQuery({
+    queryKey: ['dashboard-genre-coverage'],
+    queryFn: getDashboardGenreCoverage,
+    staleTime: 30_000,
+  })
   const isAdmin = currentUser?.isAdmin ?? false
   const prefs = settings.preferences ?? {}
   const [lidarrUrl, setLidarrUrl] = useState(settings.lidarrUrl ?? '')
@@ -266,6 +369,10 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     settings.aiApiKey === '***' ? '' : (settings.aiApiKey ?? ''),
   )
   const [aiBaseUrl, setAiBaseUrl] = useState(settings.aiBaseUrl ?? '')
+  const [tidalClientId, setTidalClientId] = useState(settings.tidalClientId ?? '')
+  const [tidalClientSecret, setTidalClientSecret] = useState(
+    settings.tidalClientSecret === '***' ? '' : (settings.tidalClientSecret ?? ''),
+  )
   const [webhookUrl, setWebhookUrl] = useState(settings.preferences?.webhookUrl ?? '')
   const [digestCron, setDigestCron] = useState(settings.preferences?.digestCron ?? '')
   const [savingWebhook, setSavingWebhook] = useState(false)
@@ -274,16 +381,24 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [plexToken, setPlexToken] = useState(
     settings.plexToken === '***' ? '' : (settings.plexToken ?? ''),
   )
+  const [plexSectionId, setPlexSectionId] = useState(settings.plexSectionId ?? '')
+  const [plexSections, setPlexSections] = useState<Array<{ key: string; title: string }>>([])
   const [jellyfinUrl, setJellyfinUrl] = useState(settings.jellyfinUrl ?? '')
   const [jellyfinApiKey, setJellyfinApiKey] = useState(
     settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
   )
   const [jellyfinUserId, setJellyfinUserId] = useState(settings.jellyfinUserId ?? '')
+  const [jellyfinLibraryId, setJellyfinLibraryId] = useState(settings.jellyfinLibraryId ?? '')
+  const [jellyfinLibraries, setJellyfinLibraries] = useState<Array<{ id: string; name: string }>>(
+    [],
+  )
   const [embyUrl, setEmbyUrl] = useState(settings.embyUrl ?? '')
   const [embyApiKey, setEmbyApiKey] = useState(
     settings.embyApiKey === '***' ? '' : (settings.embyApiKey ?? ''),
   )
   const [embyUserId, setEmbyUserId] = useState(settings.embyUserId ?? '')
+  const [embyLibraryId, setEmbyLibraryId] = useState(settings.embyLibraryId ?? '')
+  const [embyLibraries, setEmbyLibraries] = useState<Array<{ id: string; name: string }>>([])
   const [discogsUsername, setDiscogsUsername] = useState(settings.discogsUsername ?? '')
   const [discogsToken, setDiscogsToken] = useState(
     settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
@@ -339,6 +454,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     listenbrainz: Boolean(settings.listenbrainzUsername && settings.listenbrainzToken),
     lastfm: Boolean(settings.lastfmUsername && settings.lastfmApiKey),
     ai: Boolean(settings.aiProvider && settings.aiModel),
+    tidal: Boolean(settings.tidalClientId && settings.tidalClientSecret),
     plex: Boolean(settings.plexUrl && settings.plexToken),
     jellyfin: Boolean(settings.jellyfinUrl && settings.jellyfinApiKey && settings.jellyfinUserId),
     emby: Boolean(settings.embyUrl && settings.embyApiKey && settings.embyUserId),
@@ -499,32 +615,68 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     }
   }
 
-  const testPlex = createTester('plex', 'Plex', () =>
-    testService('plex', { url: plexUrl, token: plexToken }),
+  const testTidal = createTester('tidal', 'TIDAL', () =>
+    testService('tidal', { clientId: tidalClientId, clientSecret: tidalClientSecret }),
   )
-  const savePlex = createSaver('plex', 'Plex', () =>
-    updateSettings({ plexUrl, plexToken: plexToken || undefined }),
+  const saveTidal = createSaver('tidal', 'TIDAL', () =>
+    updateSettings({
+      tidalClientId: tidalClientId || undefined,
+      tidalClientSecret: tidalClientSecret || undefined,
+    }),
   )
 
-  const testJellyfin = createTester('jellyfin', 'Jellyfin', () =>
-    testService('jellyfin', { url: jellyfinUrl, apiKey: jellyfinApiKey, userId: jellyfinUserId }),
+  const testPlex = createTester('plex', 'Plex', async () => {
+    const res = await testService('plex', {
+      url: plexUrl,
+      token: plexToken,
+      sectionId: plexSectionId,
+    })
+    if (Array.isArray(res.sections)) setPlexSections(res.sections)
+    return res
+  })
+  const savePlex = createSaver('plex', 'Plex', () =>
+    updateSettings({
+      plexUrl,
+      plexToken: plexToken || undefined,
+      plexSectionId: plexSectionId || null,
+    }),
   )
+
+  const testJellyfin = createTester('jellyfin', 'Jellyfin', async () => {
+    const res = await testService('jellyfin', {
+      url: jellyfinUrl,
+      apiKey: jellyfinApiKey,
+      userId: jellyfinUserId,
+      libraryId: jellyfinLibraryId,
+    })
+    if (Array.isArray(res.libraries)) setJellyfinLibraries(res.libraries)
+    return res
+  })
   const saveJellyfin = createSaver('jellyfin', 'Jellyfin', () =>
     updateSettings({
       jellyfinUrl,
       jellyfinApiKey: jellyfinApiKey || undefined,
       jellyfinUserId: jellyfinUserId || undefined,
+      jellyfinLibraryId: jellyfinLibraryId || null,
     }),
   )
 
-  const testEmby = createTester('emby', 'Emby', () =>
-    testService('emby', { url: embyUrl, apiKey: embyApiKey, userId: embyUserId }),
-  )
+  const testEmby = createTester('emby', 'Emby', async () => {
+    const res = await testService('emby', {
+      url: embyUrl,
+      apiKey: embyApiKey,
+      userId: embyUserId,
+      libraryId: embyLibraryId,
+    })
+    if (Array.isArray(res.libraries)) setEmbyLibraries(res.libraries)
+    return res
+  })
   const saveEmby = createSaver('emby', 'Emby', () =>
     updateSettings({
       embyUrl,
       embyApiKey: embyApiKey || undefined,
       embyUserId: embyUserId || undefined,
+      embyLibraryId: embyLibraryId || null,
     }),
   )
 
@@ -619,6 +771,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const isLbConfigured = !!(lbUsername || settings.listenbrainzUsername)
   const isLfConfigured = !!(lfUsername || settings.lastfmUsername)
   const isAiConfigured = !!(aiModel || settings.aiModel)
+  const isTidalConfigured = !!(tidalClientId || settings.tidalClientId)
   const isPlexConfigured = !!(plexUrl || settings.plexUrl)
   const isJellyfinConfigured = !!(jellyfinUrl || settings.jellyfinUrl)
   const isEmbyConfigured = !!(embyUrl || settings.embyUrl)
@@ -910,7 +1063,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               <Input
                 id="webhook-url"
                 type="url"
-                placeholder="https://ntfy.sh/my-topic"
+                placeholder="https://example.com/digarr-webhook"
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
               />
@@ -942,6 +1095,60 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               </Button>
             </div>
           </ServiceCard>
+
+          {/* TIDAL search */}
+          <ServiceCard
+            name="TIDAL"
+            description={
+              <span>
+                {t('settings.tidalDescription')}{' '}
+                <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                  {t('search.experimental')}
+                </span>
+              </span>
+            }
+            status={serviceStatus('tidal')}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label={t('settings.fieldClientId')} id="tidal-client-id">
+                <Input
+                  id="tidal-client-id"
+                  value={tidalClientId}
+                  onChange={(e) => setTidalClientId(e.target.value)}
+                />
+              </Field>
+              <Field label={t('settings.fieldClientSecret')} id="tidal-client-secret">
+                <Input
+                  id="tidal-client-secret"
+                  type="password"
+                  placeholder={
+                    settings.tidalClientSecret === '***'
+                      ? `(${t('settings.saved')})`
+                      : t('settings.fieldClientSecret')
+                  }
+                  value={tidalClientSecret}
+                  onChange={(e) => setTidalClientSecret(e.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testTidal}
+                disabled={tests.tidal === 'testing'}
+              >
+                {tests.tidal === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+              </Button>
+              <Button size="sm" onClick={saveTidal} disabled={saving.tidal}>
+                {saving.tidal
+                  ? t('settings.saving')
+                  : isTidalConfigured
+                    ? t('settings.save')
+                    : t('settings.configure')}
+              </Button>
+            </div>
+          </ServiceCard>
         </>
       )}
 
@@ -955,6 +1162,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <Hint id="settings-connections-tip" type="inline">
         {t('settings.connectionsTip')}
       </Hint>
+
+      {genreCoverage && genreCoverage.totalArtists > 0 ? (
+        <div className="rounded-lg border border-border bg-surface px-4 py-3">
+          <GenreCoverageSummary coverage={genreCoverage} />
+        </div>
+      ) : null}
 
       {/* ListenBrainz */}
       <div>
@@ -1340,6 +1553,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               />
             </Field>
           </div>
+          <Field label={t('settings.plexLibrary')} id="plex-section">
+            <Select
+              id="plex-section"
+              value={plexSectionId}
+              onChange={(e) => setPlexSectionId(e.target.value)}
+            >
+              <option value="">{t('settings.plexLibraryAuto')}</option>
+              {plexSections.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.title}
+                </option>
+              ))}
+              {plexSectionId && !plexSections.some((s) => s.key === plexSectionId) && (
+                <option value={plexSectionId}>
+                  {t('settings.plexLibrarySection').replace('{0}', plexSectionId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.plexLibraryHint')}</p>
+          </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (
               <Button
@@ -1402,6 +1635,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
               onChange={(e) => setJellyfinUserId(e.target.value)}
             />
             <p className="text-xs text-muted mt-1">{t('settings.jellyfinUserIdHelp')}</p>
+          </Field>
+          <Field label={t('settings.musicLibrary')} id="jellyfin-library">
+            <Select
+              id="jellyfin-library"
+              value={jellyfinLibraryId}
+              onChange={(e) => setJellyfinLibraryId(e.target.value)}
+            >
+              <option value="">{t('settings.musicLibraryAll')}</option>
+              {jellyfinLibraries.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+              {jellyfinLibraryId && !jellyfinLibraries.some((l) => l.id === jellyfinLibraryId) && (
+                <option value={jellyfinLibraryId}>
+                  {t('settings.musicLibraryId').replace('{0}', jellyfinLibraryId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
           </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (
@@ -1468,6 +1721,26 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             />
             <p className="text-xs text-muted mt-1">{t('settings.embyUserIdHelp')}</p>
           </Field>
+          <Field label={t('settings.musicLibrary')} id="emby-library">
+            <Select
+              id="emby-library"
+              value={embyLibraryId}
+              onChange={(e) => setEmbyLibraryId(e.target.value)}
+            >
+              <option value="">{t('settings.musicLibraryAll')}</option>
+              {embyLibraries.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+              {embyLibraryId && !embyLibraries.some((l) => l.id === embyLibraryId) && (
+                <option value={embyLibraryId}>
+                  {t('settings.musicLibraryId').replace('{0}', embyLibraryId)}
+                </option>
+              )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
+          </Field>
           <div className="flex justify-end gap-2 pt-1">
             {canTestUserConnections && (
               <Button
@@ -1511,6 +1784,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Field label={t('settings.fieldUsername')} id="subsonic-username">
               <Input
                 id="subsonic-username"
+                autoComplete="off"
                 placeholder={t('settings.fieldUsername')}
                 value={subsonicUsername}
                 onChange={(e) => setSubsonicUsername(e.target.value)}
@@ -1521,6 +1795,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             <Input
               id="subsonic-password"
               type="password"
+              autoComplete="new-password"
               placeholder={
                 settings.subsonicPassword === '***'
                   ? `(${t('settings.saved')})`
@@ -2303,6 +2578,8 @@ function RecommendationsTabInner({
   queryClient: ReturnType<typeof useQueryClient>
 }) {
   const { t } = useI18n()
+  const { hash } = useLocation()
+  const targetsNetNewAlbumDiscovery = hash === '#net-new-album-discovery'
   const weights =
     (prefs.scoringWeights as Preferences['scoringWeights']) ?? DEFAULT_PREFERENCES.scoringWeights
 
@@ -2348,6 +2625,14 @@ function RecommendationsTabInner({
     settings.wikidataEnabled !== false,
   )
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!targetsNetNewAlbumDiscovery) return
+
+    const target = document.getElementById('net-new-album-discovery')
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target?.focus({ preventScroll: true })
+  }, [targetsNetNewAlbumDiscovery])
 
   const weightSum =
     consensus + similarity + genreOverlap + aiConfidence + feedbackBoost + popularity
@@ -2529,7 +2814,10 @@ function RecommendationsTabInner({
       </CollapsibleSection>
 
       {/* Advanced - collapsed by default */}
-      <CollapsibleSection title={t('settings.advancedSettings')}>
+      <CollapsibleSection
+        title={t('settings.advancedSettings')}
+        defaultOpen={targetsNetNewAlbumDiscovery}
+      >
         <div className="space-y-6 pt-2">
           <section className="space-y-4">
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
@@ -2571,7 +2859,11 @@ function RecommendationsTabInner({
               step={0.05}
               onChange={setLibrarySeedRatio}
             />
-            <label className="flex items-center gap-2">
+            <label
+              id="net-new-album-discovery"
+              tabIndex={-1}
+              className="scroll-mt-24 flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
               <input
                 type="checkbox"
                 checked={netNewAlbumDiscovery}
@@ -3172,9 +3464,11 @@ export function SettingsPage() {
   if (error || !data) {
     return (
       <div className="p-6 max-w-6xl mx-auto text-reject">
-        <p>Failed to load settings: {error?.message ?? 'Unknown error'}</p>
+        <p>
+          {t('errorBoundary.title')}: {error?.message ?? t('common.unknownError')}
+        </p>
         <Button variant="outline" size="sm" onClick={refetch} className="mt-3">
-          Retry
+          {t('errorBoundary.retry')}
         </Button>
       </div>
     )
@@ -3187,7 +3481,12 @@ export function SettingsPage() {
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}
       {tab === 'recommendations' && <RecommendationsTab />}
-      {tab === 'blocked' && <BlockedArtistsTab />}
+      {tab === 'blocked' && (
+        <div className="space-y-8">
+          <BlockedArtistsTab />
+          <BlockedAlbumsTab />
+        </div>
+      )}
       {tab === 'schedule' && <ScheduleTab settings={data} />}
       {tab === 'account' && <AccountTab />}
       {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}

@@ -16,13 +16,9 @@ export function createMusicinfoClient(baseUrl = 'https://api.musicinfo.pro') {
 
   return {
     async lookupArtistImages(mbid: string): Promise<ImageResult> {
-      try {
-        const data = await http.get<SkyHookArtistResponse>(`/api/v0.4/artist/${mbid}`)
-        if (!data.images?.length) return {}
-        return extractImages(data.images)
-      } catch {
-        return {}
-      }
+      const data = await http.get<SkyHookArtistResponse>(`/api/v0.4/artist/${mbid}`)
+      if (!data.images?.length) return {}
+      return extractImages(data.images)
     },
   }
 }

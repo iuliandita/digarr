@@ -19,12 +19,15 @@ const { mockGetUserConnections, mockUpdateUserConnections } = vi.hoisted(() => (
     lastfmApiKey: null as string | null,
     plexUrl: null as string | null,
     plexToken: null as string | null,
+    plexSectionId: null as string | null,
     jellyfinUrl: null as string | null,
     jellyfinApiKey: null as string | null,
     jellyfinUserId: null as string | null,
+    jellyfinLibraryId: null as string | null,
     embyUrl: null as string | null,
     embyApiKey: null as string | null,
     embyUserId: null as string | null,
+    embyLibraryId: null as string | null,
     discogsToken: null as string | null,
     discogsUsername: null as string | null,
     subsonicUrl: null as string | null,
@@ -43,6 +46,24 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
   })),
 }))
 
+const { mockCreatePlexClient } = vi.hoisted(() => ({
+  mockCreatePlexClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Plex',
+    })),
+  })),
+}))
+
+const { mockCreateJellyfinClient } = vi.hoisted(() => ({
+  mockCreateJellyfinClient: vi.fn(() => ({
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to Jellyfin',
+    })),
+  })),
+}))
+
 const { mockCreateSubsonicClient } = vi.hoisted(() => ({
   mockCreateSubsonicClient: vi.fn(() => ({
     testConnection: vi.fn(async () => ({
@@ -56,6 +77,16 @@ const { mockOidcTestConnection } = vi.hoisted(() => ({
   mockOidcTestConnection: vi.fn(async () => ({
     success: true,
     message: 'OIDC discovery successful',
+  })),
+}))
+
+const { mockCreateTidalClient } = vi.hoisted(() => ({
+  mockCreateTidalClient: vi.fn(() => ({
+    searchArtists: vi.fn(async () => []),
+    testConnection: vi.fn(async () => ({
+      success: true,
+      message: 'Connected to TIDAL - API responding',
+    })),
   })),
 }))
 
@@ -101,6 +132,14 @@ vi.mock('@/core/clients/emby', () => ({
   createEmbyClient: mockCreateEmbyClient,
 }))
 
+vi.mock('@/core/clients/plex', () => ({
+  createPlexClient: mockCreatePlexClient,
+}))
+
+vi.mock('@/core/clients/jellyfin', () => ({
+  createJellyfinClient: mockCreateJellyfinClient,
+}))
+
 vi.mock('@/core/clients/subsonic', () => ({
   createSubsonicClient: mockCreateSubsonicClient,
 }))
@@ -109,6 +148,10 @@ vi.mock('@/core/auth/oidc', () => ({
   OidcService: class OidcService {
     testConnection = mockOidcTestConnection
   },
+}))
+
+vi.mock('@/core/clients/tidal', () => ({
+  createTidalClient: mockCreateTidalClient,
 }))
 
 vi.mock('@/core/notifications', () => ({
@@ -140,12 +183,15 @@ const defaultUserConnections: UserConnections = {
   lastfmApiKey: null,
   plexUrl: null,
   plexToken: null,
+  plexSectionId: null,
   jellyfinUrl: null,
   jellyfinApiKey: null,
   jellyfinUserId: null,
+  jellyfinLibraryId: null,
   embyUrl: null,
   embyApiKey: null,
   embyUserId: null,
+  embyLibraryId: null,
   discogsToken: null,
   discogsUsername: null,
   subsonicUrl: null,
@@ -181,6 +227,8 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),
+    listAlbumBlocks: vi.fn(async () => []),
+    removeAlbumBlock: vi.fn(async () => {}),
     bulkUpdateStatus: vi.fn(async () => {}),
     filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     listBatches: vi.fn(async () => []),
@@ -204,12 +252,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      jellyfinLibraryId: null,
       embyUrl: null,
       embyApiKey: null,
       embyUserId: null,
+      embyLibraryId: null,
       discogsToken: null,
       discogsUsername: null,
       subsonicUrl: null,
@@ -232,12 +283,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      jellyfinLibraryId: null,
       embyUrl: null,
       embyApiKey: null,
       embyUserId: null,
+      embyLibraryId: null,
       discogsToken: null,
       discogsUsername: null,
       subsonicUrl: null,
@@ -280,6 +334,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     jobRecorder: {
@@ -337,6 +392,27 @@ describe('GET /api/v1/settings', () => {
     expect(body.aiApiKey).toBeNull()
   })
 
+  it('masks the stored TIDAL client secret', async () => {
+    mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              tidalClientId: 'tidal-id',
+              tidalClientSecret: 'tidal-secret',
+            }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/settings')
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.tidalClientId).toBe('tidal-id')
+    expect(body.tidalClientSecret).toBe('***')
+  })
+
   it('preserves null secret fields instead of pretending they were saved', async () => {
     mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
     const app = createApp(makeDeps())
@@ -376,6 +452,25 @@ describe('PATCH /api/v1/settings', () => {
     expect(updateSettings).toHaveBeenCalledTimes(1)
     const body = await res.json()
     expect(body.lidarrUrl).toBe('http://new:8686')
+  })
+
+  it('accepts TIDAL client credentials through the strict schema and persists them', async () => {
+    const updateSettings = vi.fn(async () => {})
+    const app = createApp(makeDeps({ updateSettings }))
+
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tidalClientId: 'tidal-id', tidalClientSecret: 'tidal-secret' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tidalClientId: 'tidal-id',
+        tidalClientSecret: 'tidal-secret',
+      }),
+    )
   })
 
   it('restarts scheduler when cron is updated', async () => {
@@ -633,12 +728,15 @@ describe('PATCH /api/v1/settings', () => {
           lastfmApiKey: null,
           plexUrl: null,
           plexToken: null,
+          plexSectionId: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
+          jellyfinLibraryId: null,
           embyUrl: null,
           embyApiKey: null,
           embyUserId: null,
+          embyLibraryId: null,
           discogsToken: null,
           discogsUsername: null,
           subsonicUrl: null,
@@ -659,6 +757,7 @@ describe('PATCH /api/v1/settings', () => {
         embyUrl: 'http://127.0.0.1:8096',
         embyApiKey: 'secret',
         embyUserId: 'user-1',
+        embyLibraryId: null,
       }),
     })
 
@@ -673,6 +772,7 @@ describe('PATCH /api/v1/settings', () => {
         embyUrl: 'http://127.0.0.1:8096',
         embyApiKey: 'secret',
         embyUserId: 'user-1',
+        embyLibraryId: null,
       }),
     )
   })
@@ -700,12 +800,15 @@ describe('POST /api/v1/settings/test/:service', () => {
           lastfmApiKey: null,
           plexUrl: null,
           plexToken: null,
+          plexSectionId: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
+          jellyfinLibraryId: null,
           embyUrl: null,
           embyApiKey: null,
           embyUserId: null,
+          embyLibraryId: null,
           discogsToken: null,
           discogsUsername: null,
           subsonicUrl: null,
@@ -728,6 +831,7 @@ describe('POST /api/v1/settings/test/:service', () => {
       'subsonic',
       'spotify',
       'oidc',
+      'tidal',
     ]
 
     for (const service of services) {
@@ -762,6 +866,97 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(res.status).toBe(200)
     expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://127.0.0.1:8096', 'key', 'user-1', {
       skipTlsVerify: false,
+      libraryId: null,
+    })
+  })
+
+  it.each([
+    ['explicit', { sectionId: 'music-1' }, 'music-1'],
+    ['empty', { sectionId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Plex library selection to the client', async (_case, selection, expected) => {
+    mockCreatePlexClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      plexSectionId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/plex', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://plex:32400',
+        token: 'plex-token',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreatePlexClient).toHaveBeenCalledWith('http://plex:32400', 'plex-token', {
+      sectionId: expected,
+    })
+  })
+
+  it.each([
+    ['explicit', { libraryId: 'music-1' }, 'music-1'],
+    ['empty', { libraryId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Jellyfin library selection to the client', async (_case, selection, expected) => {
+    mockCreateJellyfinClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      jellyfinLibraryId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://jellyfin:8096',
+        apiKey: 'jellyfin-key',
+        userId: 'user-1',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
+      'http://jellyfin:8096',
+      'jellyfin-key',
+      'user-1',
+      { skipTlsVerify: false, libraryId: expected },
+    )
+  })
+
+  it.each([
+    ['explicit', { libraryId: 'music-1' }, 'music-1'],
+    ['empty', { libraryId: '' }, ''],
+    ['omitted', {}, 'stored-music'],
+  ])('passes the %s Emby library selection to the client', async (_case, selection, expected) => {
+    mockCreateEmbyClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      embyLibraryId: 'stored-music',
+    })
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings/test/emby', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'http://emby:8096',
+        apiKey: 'emby-key',
+        userId: 'user-1',
+        ...selection,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://emby:8096', 'emby-key', 'user-1', {
+      skipTlsVerify: false,
+      libraryId: expected,
     })
   })
 
@@ -954,6 +1149,62 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(body.type).toBe('/problems/probe-missing-input')
   })
 
+  it('tests tidal and invokes the client with the provided credentials', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: 'tidal-id', clientSecret: 'tidal-secret' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateTidalClient).toHaveBeenCalledWith({
+      clientId: 'tidal-id',
+      clientSecret: 'tidal-secret',
+    })
+    const body = await res.json()
+    expect(body.message).toBe('Connected to TIDAL - API responding')
+  })
+
+  it('falls back to stored TIDAL credentials when the request omits them', async () => {
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              tidalClientId: 'stored-id',
+              tidalClientSecret: 'stored-secret',
+            }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockCreateTidalClient).toHaveBeenCalledWith({
+      clientId: 'stored-id',
+      clientSecret: 'stored-secret',
+    })
+  })
+
+  it('returns a missing-input error when tidal credentials are incomplete', async () => {
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: 'tidal-id' }),
+    })
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.type).toBe('/problems/probe-missing-input')
+  })
+
   it('returns 400 for unknown service', async () => {
     const app = createApp(makeDeps())
     const res = await authedRequest(app, '/api/v1/settings/test/unknown', {
@@ -995,12 +1246,15 @@ describe('POST /api/v1/settings/test/:service', () => {
           lastfmApiKey: null,
           plexUrl: null,
           plexToken: null,
+          plexSectionId: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
+          jellyfinLibraryId: null,
           embyUrl: null,
           embyApiKey: null,
           embyUserId: null,
+          embyLibraryId: null,
           discogsToken: null,
           discogsUsername: null,
           subsonicUrl: null,
@@ -1050,12 +1304,15 @@ describe('POST /api/v1/settings/test/:service', () => {
           lastfmApiKey: null,
           plexUrl: null,
           plexToken: null,
+          plexSectionId: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
+          jellyfinLibraryId: null,
           embyUrl: null,
           embyApiKey: null,
           embyUserId: null,
+          embyLibraryId: null,
           discogsToken: null,
           discogsUsername: null,
           subsonicUrl: null,
@@ -1179,12 +1436,15 @@ describe('per-user listening source connections', () => {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      jellyfinLibraryId: null,
       embyUrl: 'http://emby:8096',
       embyApiKey: 'secret',
       embyUserId: 'user-1',
+      embyLibraryId: null,
       discogsToken: null,
       discogsUsername: null,
       subsonicUrl: null,
@@ -1208,12 +1468,15 @@ describe('per-user listening source connections', () => {
           lastfmApiKey: null,
           plexUrl: null,
           plexToken: null,
+          plexSectionId: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
+          jellyfinLibraryId: null,
           embyUrl: 'http://emby:8096',
           embyApiKey: 'secret',
           embyUserId: 'user-1',
+          embyLibraryId: null,
           discogsToken: null,
           discogsUsername: null,
           subsonicUrl: null,

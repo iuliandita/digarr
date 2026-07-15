@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createMusicBrainzClient,
   type MBArtist,
@@ -551,26 +551,43 @@ describe('createMusicBrainzClient', () => {
   })
 
   describe('retry behavior on transient errors', () => {
+    // Fake timers so the exponential backoff sleeps resolve instantly instead
+    // of burning seconds of real wall clock per test.
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     it('retries on 503 and succeeds when upstream recovers', async () => {
       mockFetch.mockResolvedValueOnce(new Response('', { status: 503 }))
       mockFetch.mockResolvedValueOnce(new Response('', { status: 503 }))
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
 
       const client = createMusicBrainzClient()
-      const result = await client.searchArtist('flaky-artist')
+      const promise = client.searchArtist('flaky-artist')
+      await vi.runAllTimersAsync()
+      const result = await promise
 
       expect(mockFetch).toHaveBeenCalledTimes(3)
       expect(result).toEqual({ artists: [] })
-    }, 15_000)
+    })
 
     it('gives up after max retries and throws the final error', async () => {
       mockFetch.mockResolvedValue(new Response('', { status: 503 }))
 
       const client = createMusicBrainzClient()
-      await expect(client.searchArtist('always-down')).rejects.toThrow(/MusicBrainz HTTP 503/)
+      // Attach the rejection expectation before advancing timers so the
+      // rejection is never unhandled.
+      const assertion = expect(client.searchArtist('always-down')).rejects.toThrow(
+        /MusicBrainz HTTP 503/,
+      )
+      await vi.runAllTimersAsync()
+      await assertion
       // 1 initial + 3 retries = 4 total
       expect(mockFetch).toHaveBeenCalledTimes(4)
-    }, 30_000)
+    })
 
     it('does not retry on non-transient 4xx', async () => {
       mockFetch.mockResolvedValueOnce(new Response('', { status: 400 }))
@@ -587,7 +604,9 @@ describe('createMusicBrainzClient', () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
 
       const client = createMusicBrainzClient()
-      const result = await client.searchArtist('rate-limited')
+      const promise = client.searchArtist('rate-limited')
+      await vi.runAllTimersAsync()
+      const result = await promise
 
       expect(mockFetch).toHaveBeenCalledTimes(2)
       expect(result).toEqual({ artists: [] })

@@ -88,15 +88,21 @@ function translateErrorCode(code: string): string | null {
 // Fired when any fetchApi call gets 401 - AuthGate listens and shows login
 export const AUTH_EXPIRED_EVENT = 'digarr:auth-expired'
 
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'X-Digarr-Locale': getRequestLocale(),
+  }
+  const token = getStoredToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const headers: Record<string, string> = {}
-  headers['X-Digarr-Locale'] = getRequestLocale()
+  const headers = getAuthHeaders()
   // Skip Content-Type for FormData - browser sets it with the correct boundary
   if (!(options?.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }
-  const token = getStoredToken()
-  if (token) headers.Authorization = `Bearer ${token}`
 
   const { headers: extraHeaders, ...restOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
@@ -119,6 +125,14 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     return undefined as T
   }
   return res.json() as Promise<T>
+}
+
+function authedRawFetch(path: string, options?: RequestInit): Promise<Response> {
+  const { headers: extraHeaders, ...restOptions } = options ?? {}
+  return fetch(`${BASE}${path}`, {
+    ...restOptions,
+    headers: { ...getAuthHeaders(), ...(extraHeaders as Record<string, string>) },
+  })
 }
 
 // Auth
@@ -207,7 +221,17 @@ export const getSettings = () => fetchApi<Record<string, unknown>>('/settings')
 export const updateSettings = (partial: Record<string, unknown>) =>
   fetchApi('/settings', { method: 'PATCH', body: JSON.stringify(partial) })
 export const testService = (service: string, config: Record<string, unknown>) =>
-  fetchApi<{ message: string; version?: string; latencyMs?: number }>(`/settings/test/${service}`, {
+  fetchApi<{
+    message: string
+    version?: string
+    latencyMs?: number
+    // Plex probe extras: selected library section + all music-type sections
+    sectionId?: string
+    sections?: Array<{ key: string; title: string }>
+    // Jellyfin/Emby probe extras: selected music library + all music libraries
+    libraryId?: string
+    libraries?: Array<{ id: string; name: string }>
+  }>(`/settings/test/${service}`, {
     method: 'POST',
     body: JSON.stringify(config),
   })
@@ -233,7 +257,10 @@ export const getPipelineStatus = () =>
     lastRun?: unknown
   }>('/pipeline/status')
 export const rescanArtists = () =>
-  fetchApi<{ updated: number; total: number }>('/pipeline/rescan', { method: 'POST' })
+  fetchApi<{ attempted: number; updated: number; failed: number; total: number }>(
+    '/pipeline/rescan',
+    { method: 'POST' },
+  )
 
 // Recommendations
 export const getRecommendations = (params?: Record<string, string>) => {
@@ -697,13 +724,7 @@ export async function exportRecommendations(
   if (params?.status) query.set('status', params.status)
   if (params?.batchId) query.set('batchId', String(params.batchId))
   const qs = query.toString() ? `?${query}` : ''
-  const token = getStoredToken()
-  const response = await fetch(`${BASE}/exports/${format}${qs}`, {
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'X-Digarr-Locale': getRequestLocale(),
-    },
-  })
+  const response = await authedRawFetch(`/exports/${format}${qs}`)
   if (!response.ok) throw new Error('Export failed')
   await downloadResponseBlob(
     response,
@@ -882,32 +903,21 @@ export const deleteSubscriptionApi = (id: number) =>
 export const triggerSubscriptionRun = (id: number) =>
   fetchApi<{ message: string }>(`/subscriptions/${id}/run`, { method: 'POST' })
 
-export const importSpotifyLikedSongs = () =>
-  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
-    '/subscriptions/import/spotify-liked-songs',
-    { method: 'POST' },
-  )
+type SubscriptionImportResult = { message: string; subscriptionId: number; created: boolean }
+
+const postImport = (path: string) => fetchApi<SubscriptionImportResult>(path, { method: 'POST' })
+
+export const importSpotifyLikedSongs = () => postImport('/subscriptions/import/spotify-liked-songs')
 
 export const importSpotifyPlaylist = (playlistId: string) =>
-  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
-    '/subscriptions/import/spotify-playlist',
-    {
-      method: 'POST',
-      body: JSON.stringify({ playlistId }),
-    },
-  )
+  fetchApi<SubscriptionImportResult>('/subscriptions/import/spotify-playlist', {
+    method: 'POST',
+    body: JSON.stringify({ playlistId }),
+  })
 
-export const importDeezerFavorites = () =>
-  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
-    '/subscriptions/import/deezer-favorites',
-    { method: 'POST' },
-  )
+export const importDeezerFavorites = () => postImport('/subscriptions/import/deezer-favorites')
 
-export const importDeezerFollowed = () =>
-  fetchApi<{ message: string; subscriptionId: number; created: boolean }>(
-    '/subscriptions/import/deezer-followed',
-    { method: 'POST' },
-  )
+export const importDeezerFollowed = () => postImport('/subscriptions/import/deezer-followed')
 
 export const importCsvFile = async (file: File) => {
   const formData = new FormData()
@@ -942,6 +952,12 @@ export type TasteGenre = {
   percentage: number
 }
 
+export type GenreCoverage = {
+  coveredArtists: number
+  pendingArtists: number
+  totalArtists: number
+}
+
 export type ActivityEntry = {
   type: 'approved' | 'rejected' | 'subscription_run' | 'scan_completed'
   timestamp: string
@@ -957,6 +973,9 @@ export type ActivityEntry = {
 }
 
 export const getDashboardTaste = () => fetchApi<TasteGenre[]>('/dashboard/taste')
+
+export const getDashboardGenreCoverage = () =>
+  fetchApi<GenreCoverage | null>('/dashboard/genre-coverage')
 
 export const getDashboardActivity = (limit = 5) =>
   fetchApi<ActivityEntry[]>(`/dashboard/activity?limit=${limit}`)
@@ -1031,13 +1050,7 @@ export async function exportPlaylistApi(
   id: number,
   format: 'json' | 'csv' | 'm3u' | 'xspf',
 ): Promise<void> {
-  const token = getStoredToken()
-  const response = await fetch(`${BASE}/playlists/${id}/export/${format}`, {
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'X-Digarr-Locale': getRequestLocale(),
-    },
-  })
+  const response = await authedRawFetch(`/playlists/${id}/export/${format}`)
   if (!response.ok) throw new Error('Playlist export failed')
   await downloadResponseBlob(response, `playlist-${id}.${format}`)
 }
@@ -1056,15 +1069,8 @@ export const getArtistTopTracks = (artistId: number) =>
 // ── Admin: Backup & Restore ────────────────────
 
 export async function downloadBackup(includeCaches = false): Promise<void> {
-  const token = getStoredToken()
   const qs = includeCaches ? '?includeCaches=true' : ''
-  const res = await fetch(`${BASE}/admin/backup${qs}`, {
-    method: 'POST',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'X-Digarr-Locale': getRequestLocale(),
-    },
-  })
+  const res = await authedRawFetch(`/admin/backup${qs}`, { method: 'POST' })
   if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => ({})))
   await downloadResponseBlob(res, 'digarr-backup.json')
 }
@@ -1221,3 +1227,22 @@ export const createArtistBlock = (payload: {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+
+// Album Blocks (permanent album rejection list)
+
+export type BlockedAlbumApi = {
+  id: number
+  artistId: number
+  artistName: string
+  artistMbid: string | null
+  releaseGroupMbid: string
+  reason: RejectionReason | null
+  reasonText: string | null
+  blockedAt: string
+}
+
+export const listAlbumBlocks = (): Promise<{ items: BlockedAlbumApi[] }> =>
+  fetchApi('/album-blocks')
+
+export const deleteAlbumBlock = (releaseGroupMbid: string): Promise<void> =>
+  fetchApi(`/album-blocks/${releaseGroupMbid}`, { method: 'DELETE' })

@@ -8,6 +8,15 @@ export async function getDiscoveryModeConnections(userId: number) {
   return getUserConnections(db, userId)
 }
 
+export async function getDiscoveryModeSkipTlsVerify(): Promise<boolean> {
+  const [{ db }, { getSettings }] = await Promise.all([
+    import('@/db'),
+    import('@/db/queries/settings'),
+  ])
+  const settings = await getSettings(db)
+  return settings?.skipTlsVerify ?? false
+}
+
 export async function getDiscoveryModeSpotifyToken(userId: number): Promise<string | null> {
   try {
     const [{ db }, { resolveSpotifyToken }] = await Promise.all([

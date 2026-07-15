@@ -18,7 +18,7 @@ const SPOTIFY_SCOPES =
 
 const DEEZER_AUTH_URL = 'https://connect.deezer.com/oauth/auth.php'
 const DEEZER_TOKEN_URL = 'https://connect.deezer.com/oauth/access_token.php'
-const DEEZER_SCOPES = 'basic_access,email,listening_history,manage_library'
+const DEEZER_SCOPES = 'basic_access,email,listening_history'
 
 export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -115,7 +115,7 @@ export function oauthRoutes(deps: AppDependencies) {
         // Resolve userId from server-side pending token, not from the URL state param.
         // The pending token stores `pending:{userId}:{opaqueState}` and state is just the opaque part.
         const pending = await findPendingOAuthByState(deps.db, 'spotify', state)
-        if (!pending || !pending.accessToken.startsWith('pending:')) {
+        if (!pending?.accessToken.startsWith('pending:')) {
           return c.redirect('/settings?oauth_error=no_pending_auth')
         }
         const userId = pending.userId
@@ -201,7 +201,7 @@ export function oauthRoutes(deps: AppDependencies) {
       }
       case 'deezer': {
         const deezerPending = await findPendingOAuthByState(deps.db, 'deezer', state)
-        if (!deezerPending || !deezerPending.accessToken.startsWith('pending:')) {
+        if (!deezerPending?.accessToken.startsWith('pending:')) {
           return c.redirect('/settings?oauth_error=no_pending_auth')
         }
         const deezerUserId = deezerPending.userId

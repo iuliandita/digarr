@@ -96,6 +96,8 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),
+    listAlbumBlocks: vi.fn(async () => []),
+    removeAlbumBlock: vi.fn(async () => {}),
     bulkUpdateStatus: vi.fn(async () => {}),
     filterOwnedIds: vi.fn(async (ids: number[]) => ids),
     listBatches: vi.fn(async () => []),
@@ -118,12 +120,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       lastfmApiKey: null,
       plexUrl: null,
       plexToken: null,
+      plexSectionId: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
+      jellyfinLibraryId: null,
       embyUrl: null,
       embyApiKey: null,
       embyUserId: null,
+      embyLibraryId: null,
       discogsToken: null,
       discogsUsername: null,
       subsonicUrl: null,
@@ -150,12 +155,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
             lastfmApiKey: null,
             plexUrl: null,
             plexToken: null,
+            plexSectionId: null,
             jellyfinUrl: null,
             jellyfinApiKey: null,
             jellyfinUserId: null,
+            jellyfinLibraryId: null,
             embyUrl: null,
             embyApiKey: null,
             embyUserId: null,
+            embyLibraryId: null,
             discogsToken: null,
             discogsUsername: null,
             subsonicUrl: null,
@@ -193,6 +201,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getFeedbackHistory: vi.fn(async () => new Map()),
     dashboardQueries: {
       getTopGenresForUser: vi.fn(async () => []),
+      getLatestGenreCoverage: vi.fn(async () => null),
       getRecentActivity: vi.fn(async () => []),
     },
     jobRecorder: {
@@ -677,6 +686,21 @@ describe('DELETE /api/v1/subscriptions/:id', () => {
     const app = createTestApp(makeDeps(), USER_ID)
     const res = await app.request('/api/v1/subscriptions/999', { method: 'DELETE' })
     expect(res.status).toBe(404)
+  })
+
+  it('returns the same hidden 404 body for missing and cross-user subscriptions', async () => {
+    const missing = await createTestApp(makeDeps(), USER_ID).request('/api/v1/subscriptions/999', {
+      method: 'DELETE',
+    })
+    const crossUser = await createTestApp(makeDeps(), 99).request('/api/v1/subscriptions/1', {
+      method: 'DELETE',
+    })
+
+    expect(missing.status).toBe(404)
+    expect(crossUser.status).toBe(404)
+    expect(missing.headers.get('content-type')).toContain('application/problem+json')
+    expect(crossUser.headers.get('content-type')).toContain('application/problem+json')
+    expect(await crossUser.text()).toBe(await missing.text())
   })
 })
 

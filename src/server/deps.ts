@@ -18,7 +18,7 @@ import type { PipelineOrchestrator } from '@/core/pipeline/orchestrator'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { SubscriptionScheduler } from '@/core/pipeline/subscription-scheduler'
 import type { AiProviderRegistry } from '@/core/providers/registry'
-import type { ServiceTestResult } from '@/core/types'
+import type { GenreCoverage, ServiceTestResult } from '@/core/types'
 import type { ArtistRow } from '@/db/queries/artists'
 import type { BatchRow } from '@/db/queries/batches'
 import type { ActivityEntry, TasteGenre } from '@/db/queries/dashboard'
@@ -146,6 +146,10 @@ export interface RecommendationDeps {
     reason?: import('@/core/recommendations/rejection-reasons').RejectionReason | null
     reasonText?: string | null
   }) => Promise<void>
+  listAlbumBlocks: (
+    userId: number,
+  ) => Promise<import('@/db/queries/album-blocks').BlockedAlbumRow[]>
+  removeAlbumBlock: (params: { userId: number; releaseGroupMbid: string }) => Promise<void>
 }
 
 // ---- Subscriptions ----
@@ -225,6 +229,7 @@ export interface SlskdDeps {
 export interface DashboardDeps {
   dashboardQueries: {
     getTopGenresForUser: (userId: number | undefined) => Promise<TasteGenre[]>
+    getLatestGenreCoverage: (userId: number | undefined) => Promise<GenreCoverage | null>
     getRecentActivity: (
       userId: number | undefined,
       isAdmin: boolean,

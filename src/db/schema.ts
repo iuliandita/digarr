@@ -16,6 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import type { HealthCheckResult } from '@/core/library/types'
+import type { GenreCoverage } from '@/core/types'
 
 export type DiscoveryModeProvenance = {
   modeId: string
@@ -32,6 +33,7 @@ export type JobMetadata = Record<string, unknown> & {
   trigger?: 'manual' | 'scheduled' | 'subscription'
   seedArtist?: string
   discoveryMode?: DiscoveryModeProvenance
+  genreCoverage?: GenreCoverage
 }
 
 export const settings = pgTable('settings', {
@@ -53,10 +55,13 @@ export const settings = pgTable('settings', {
   skipTlsVerify: boolean('skip_tls_verify').default(false).notNull(),
   audiodbApiKey: text('audiodb_api_key'),
   audiodbProxyImages: boolean('audiodb_proxy_images').notNull().default(false),
+  tidalClientId: text('tidal_client_id'),
+  tidalClientSecret: text('tidal_client_secret'),
   wikidataEnabled: boolean('wikidata_enabled').notNull().default(true),
   preferences: jsonb('preferences').$type<Preferences>(),
   setupComplete: boolean('setup_complete').default(false).notNull(),
   librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
+  digestLastSentAt: timestamp('digest_last_sent_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
@@ -89,12 +94,15 @@ export const users = pgTable(
     lastfmApiKey: text('lastfm_api_key'),
     plexUrl: text('plex_url'),
     plexToken: text('plex_token'),
+    plexSectionId: text('plex_section_id'),
     jellyfinUrl: text('jellyfin_url'),
     jellyfinApiKey: text('jellyfin_api_key'),
     jellyfinUserId: text('jellyfin_user_id'),
+    jellyfinLibraryId: text('jellyfin_library_id'),
     embyUrl: text('emby_url'),
     embyApiKey: text('emby_api_key'),
     embyUserId: text('emby_user_id'),
+    embyLibraryId: text('emby_library_id'),
     discogsToken: text('discogs_token'),
     discogsUsername: text('discogs_username'),
     subsonicUrl: text('subsonic_url'),
@@ -183,6 +191,7 @@ export const artists = pgTable('artists', {
   streamingUrls: jsonb('streaming_urls').$type<Record<string, string>>(),
   imageFailedAt: timestamp('image_failed_at', { withTimezone: true }),
   cachedAt: timestamp('cached_at', { withTimezone: true }),
+  genresCachedAt: timestamp('genres_cached_at', { withTimezone: true }),
   beginYear: integer('begin_year'),
   endYear: integer('end_year'),
   topTracks: jsonb('top_tracks').$type<TopTracksCache>(),
@@ -192,6 +201,26 @@ export const artists = pgTable('artists', {
   wikidataFetchedAt: timestamp('wikidata_fetched_at', { withTimezone: true }),
   wikidataFailedAt: timestamp('wikidata_failed_at', { withTimezone: true }),
 })
+
+export const artistGenreAliases = pgTable(
+  'artist_genre_aliases',
+  {
+    id: serial('id').primaryKey(),
+    source: text('source').notNull(),
+    nameNormalized: text('name_normalized').notNull(),
+    mbid: uuid('mbid')
+      .references(() => artists.mbid, { onDelete: 'cascade' })
+      .notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    sourceNameUnique: uniqueIndex('artist_genre_aliases_source_name_unique').on(
+      table.source,
+      table.nameNormalized,
+    ),
+    mbidIdx: index('artist_genre_aliases_mbid_idx').on(table.mbid),
+  }),
+)
 
 export const rateLimitBuckets = pgTable('rate_limit_buckets', {
   key: text('key').primaryKey(),

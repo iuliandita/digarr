@@ -297,6 +297,96 @@ describe('createSyncOrchestrator', () => {
     })
   })
 
+  it('deduplicates shared albums and keeps the row matching the source album artist', async () => {
+    const primaryMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const collaboratorMbid = '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11'
+    const a = sourceWithAlbums(
+      'subsonic',
+      [
+        { sourceArtistId: 'primary', name: 'Primary Artist', mbid: primaryMbid },
+        { sourceArtistId: 'collaborator', name: 'Collaborator', mbid: collaboratorMbid },
+      ],
+      {
+        primary: [
+          {
+            sourceAlbumId: 'shared-album',
+            sourceArtistId: 'primary',
+            title: 'Shared Album',
+          },
+        ],
+        collaborator: [
+          {
+            sourceAlbumId: 'shared-album',
+            sourceArtistId: 'primary',
+            title: 'Shared Album',
+          },
+        ],
+      },
+    )
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    expect(summary.results[0]?.status).toBe('completed')
+    const albums = vi.mocked(store.replaceLibrarySnapshot).mock.calls[0]?.[3]
+    expect(albums).toEqual([
+      expect.objectContaining({
+        sourceAlbumId: 'shared-album',
+        sourceArtistId: 'primary',
+        artistMbid: primaryMbid,
+      }),
+    ])
+  })
+
+  it('reports a bounded nested database cause instead of the generated query', async () => {
+    const cause = Object.assign(
+      new Error(
+        `duplicate key value violates unique constraint "library_albums_natural_key_idx" at postgres://user:s3cret@db/library ${'x'.repeat(400)}`,
+      ),
+      { code: '23505' },
+    )
+    store.replaceLibrarySnapshot = vi.fn().mockRejectedValue(
+      Object.assign(new Error(`Failed query: insert into library_albums ${'$1, '.repeat(500)}`), {
+        cause,
+      }),
+    )
+    const a = sourceWithAlbums(
+      'subsonic',
+      [{ sourceArtistId: '1', name: 'Radiohead', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' }],
+      {
+        '1': [{ sourceAlbumId: 'alb-1', sourceArtistId: '1', title: 'OK Computer' }],
+      },
+    )
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+
+    const summary = await sync.syncForUser(1, { force: true })
+
+    const result = summary.results[0]
+    expect(result?.status).toBe('failed')
+    if (result?.status !== 'failed') throw new Error('expected failed sync result')
+    expect(result.error).toContain('duplicate key value violates unique constraint')
+    expect(result.error).toContain('SQLSTATE 23505')
+    expect(result.error).toContain('postgres://user:[redacted]@db/library')
+    expect(result.error).not.toContain('Failed query')
+    expect(result.error).not.toContain('s3cret')
+    expect(result.error.length).toBeLessThanOrEqual(300)
+    expect(recorder.fail).toHaveBeenCalledWith(1, result.error)
+  })
+
   it('does not call replaceLibrarySnapshot when the source has no listAlbums capability', async () => {
     const a = source('plex')
     a.listArtists = vi.fn(async () => [

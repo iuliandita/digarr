@@ -68,6 +68,7 @@ jobs:
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run i18n:check
+      - run: bun run check:versions
       - run: bun run test
 
   build:
@@ -84,6 +85,11 @@ jobs:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - name: Verify container build identity
+        run: bun run check:docker-identity
+        env:
+          # Container jobs on this runner do not expose a Docker daemon.
+          DIGARR_ALLOW_MISSING_DOCKER: "1"
 
   api-route-test:
     runs-on: docker

@@ -36,6 +36,10 @@ if (!tagArg) {
   process.exit(1)
 }
 const tag = tagArg.replace(/^v/, '')
+if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/.test(tag)) {
+  console.error(`invalid tag "${tagArg}" - expected vX.Y.Z or X.Y.Z (optionally -rc.N)`)
+  process.exit(1)
+}
 const minor = tag.split('.').slice(0, 2).join('.')
 
 async function bearerToken(): Promise<string> {

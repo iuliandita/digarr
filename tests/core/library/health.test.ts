@@ -94,7 +94,7 @@ type MockDeps = {
   getArtists: ReturnType<typeof vi.fn>
   getAlbums: ReturnType<typeof vi.fn>
   lookupArtist: ReturnType<typeof vi.fn>
-  updateArtist: ReturnType<typeof vi.fn>
+  setArtistsMonitored: ReturnType<typeof vi.fn>
   triggerCommand: ReturnType<typeof vi.fn>
   getRootFolders: ReturnType<typeof vi.fn>
   cacheGetAll: ReturnType<typeof vi.fn>
@@ -109,7 +109,7 @@ function makeMocks(): MockDeps {
     getArtists: vi.fn().mockResolvedValue([]),
     getAlbums: vi.fn().mockResolvedValue([]),
     lookupArtist: vi.fn().mockResolvedValue([]),
-    updateArtist: vi.fn().mockResolvedValue({}),
+    setArtistsMonitored: vi.fn().mockResolvedValue([]),
     triggerCommand: vi.fn().mockResolvedValue({}),
     getRootFolders: vi
       .fn()
@@ -128,10 +128,10 @@ function makeService(mocks: MockDeps): LibraryHealthService {
       getArtists: mocks.getArtists as unknown as () => Promise<LidarrArtist[]>,
       getAlbums: mocks.getAlbums as unknown as (artistId: number) => Promise<LidarrAlbum[]>,
       lookupArtist: mocks.lookupArtist as unknown as (term: string) => Promise<unknown[]>,
-      updateArtist: mocks.updateArtist as unknown as (
-        id: number,
-        data: Partial<LidarrArtist>,
-      ) => Promise<LidarrArtist>,
+      setArtistsMonitored: mocks.setArtistsMonitored as unknown as (
+        artistIds: number[],
+        monitored: boolean,
+      ) => Promise<LidarrArtist[]>,
       triggerCommand: mocks.triggerCommand as unknown as (
         name: string,
         body?: Record<string, unknown>,
@@ -574,15 +574,15 @@ describe('LibraryHealthService', () => {
       expect(progress.status).toBe('completed')
     })
 
-    it('calls updateArtist monitored:true for unmonitored', async () => {
+    it('calls setArtistsMonitored true for unmonitored', async () => {
       mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
       mocks.cacheGetAll.mockResolvedValue([])
       await service.runChecks()
-      mocks.updateArtist.mockResolvedValue({ ...ARTIST_BJORK, monitored: true })
+      mocks.setArtistsMonitored.mockResolvedValue([{ ...ARTIST_BJORK, monitored: true }])
 
       const progress = await service.fixCheck('unmonitored')
 
-      expect(mocks.updateArtist).toHaveBeenCalledWith(ARTIST_BJORK.id, { monitored: true })
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith([ARTIST_BJORK.id], true)
       expect(progress.completed).toBe(1)
       expect(progress.status).toBe('completed')
     })
@@ -671,7 +671,7 @@ describe('LibraryHealthService', () => {
       mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
       mocks.cacheGetAll.mockResolvedValue([])
       await service.runChecks()
-      mocks.updateArtist.mockRejectedValue(new Error('Lidarr down'))
+      mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
 
       const progress = await service.fixCheck('unmonitored')
 
@@ -684,12 +684,119 @@ describe('LibraryHealthService', () => {
     it('returns completed status with zero items when no cached results', async () => {
       // Don't run runChecks first - cachedResults is null
       const fresh = makeService(mocks)
-      mocks.updateArtist.mockResolvedValue({})
+      mocks.setArtistsMonitored.mockResolvedValue([])
 
       const progress = await fresh.fixCheck('unmonitored')
 
       expect(progress.total).toBe(0)
       expect(progress.completed).toBe(0)
+      expect(progress.status).toBe('completed')
+    })
+
+    it('bulk-flips all unmonitored artists in a single setArtistsMonitored call', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockResolvedValue(
+        unmonitoredArtists.map((a) => ({ ...a, monitored: true })),
+      )
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(1)
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith(
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(progress).toMatchObject({ total: 3, completed: 3, failed: 0, status: 'completed' })
+    })
+
+    it('falls back to per-artist calls when the bulk unmonitored call fails', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
+        1,
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
+      expect(progress).toMatchObject({ total: 3, completed: 0, failed: 3, status: 'failed' })
+      expect(progress.errors).toHaveLength(3)
+      expect(progress.errors).toEqual([
+        `${ARTIST_RADIOHEAD.artistName}: Lidarr down`,
+        `${ARTIST_PORTISHEAD.artistName}: Lidarr down`,
+        `${ARTIST_BJORK.artistName}: Lidarr down`,
+      ])
+    })
+
+    it('recovers healthy artists and names the culprit when one item poisons the bulk call', async () => {
+      const unmonitoredArtists = [
+        { ...ARTIST_RADIOHEAD, monitored: false },
+        { ...ARTIST_PORTISHEAD, monitored: false },
+        ARTIST_BJORK,
+      ]
+      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.setArtistsMonitored.mockImplementation((ids: number[]) => {
+        if (ids.length > 1 || ids[0] === ARTIST_PORTISHEAD.id) {
+          return Promise.reject(new Error('artist not found'))
+        }
+        return Promise.resolve([])
+      })
+
+      const progress = await service.fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
+        1,
+        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
+        true,
+      )
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
+      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
+      expect(progress).toMatchObject({ total: 3, completed: 2, failed: 1, status: 'failed' })
+      expect(progress.errors).toHaveLength(1)
+      expect(progress.errors[0]).toContain(ARTIST_PORTISHEAD.artistName)
+      expect(progress.errors[0]).toContain('artist not found')
+    })
+
+    it('still queues one triggerCommand call per item for missing-albums (non-bulk path unchanged)', async () => {
+      mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD, ARTIST_RADIOHEAD])
+      mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
+      mocks.cacheGetAll.mockResolvedValue([])
+      await service.runChecks()
+      mocks.triggerCommand.mockResolvedValue({})
+
+      const progress = await service.fixCheck('missing-albums')
+
+      expect(mocks.triggerCommand).toHaveBeenCalledTimes(2)
+      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
+        artistId: ARTIST_PORTISHEAD.id,
+      })
+      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
+        artistId: ARTIST_RADIOHEAD.id,
+      })
+      expect(progress.completed).toBe(2)
       expect(progress.status).toBe('completed')
     })
   })

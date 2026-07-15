@@ -168,7 +168,10 @@ function StatusBadge({
         {onRetryFailed && failedTargetIds.length > 0 && (
           <button
             type="button"
-            onClick={() => onRetryFailed(id, failedTargetIds)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onRetryFailed(id, failedTargetIds)
+            }}
             className="text-xs text-accent underline"
           >
             {t('recommendation.retryFailed')}
@@ -193,7 +196,10 @@ function StatusBadge({
         {onRetry && (
           <button
             type="button"
-            onClick={() => onRetry(id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onRetry(id)
+            }}
             className="text-xs text-accent underline"
           >
             {t('recommendation.retry')}

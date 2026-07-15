@@ -35,6 +35,12 @@ describe('i18n machine translation helpers', () => {
     ).toThrow(/placeholder|line break/i)
   })
 
+  it('allows numbered placeholders to move for target-language grammar', () => {
+    expect(() =>
+      validateTranslatedCatalog({ sample: '{0} of {1}' }, { sample: '{1} 中的 {0}' }),
+    ).not.toThrow()
+  })
+
   it('rejects protected brand-term drift', () => {
     expect(() =>
       validateTranslatedCatalog(
@@ -44,6 +50,15 @@ describe('i18n machine translation helpers', () => {
         {
           sample: 'Digar syncs with Lidarr and compatible AI services.',
         },
+      ),
+    ).toThrow(/protected term/i)
+  })
+
+  it('rejects protected protocol and metadata-provider drift', () => {
+    expect(() =>
+      validateTranslatedCatalog(
+        { sample: 'TheAudioDB returns JSON metadata.' },
+        { sample: 'AudioDB returns JSÖN metadata.' },
       ),
     ).toThrow(/protected term/i)
   })

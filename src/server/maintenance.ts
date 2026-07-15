@@ -1,15 +1,8 @@
 import type { MiddlewareHandler } from 'hono'
+import { isMaintenance } from '@/core/ops/maintenance'
 import { problem } from '@/server/helpers/problem'
 
-let active = false
-
-export function setMaintenance(on: boolean): void {
-  active = on
-}
-
-export function isMaintenance(): boolean {
-  return active
-}
+export { isMaintenance, setMaintenance } from '@/core/ops/maintenance'
 
 // Mutating methods blocked during migration; reads pass through. The migration
 // endpoints are exempt so the operator can drive and inspect the migration
@@ -19,7 +12,7 @@ const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 export const maintenanceMiddleware: MiddlewareHandler = async (c, next) => {
   if (
-    active &&
+    isMaintenance() &&
     WRITE_METHODS.has(c.req.method) &&
     !EXEMPT_PREFIXES.some((p) => c.req.path === p || c.req.path.startsWith(`${p}/`))
   ) {

@@ -1,6 +1,11 @@
 # Screenshots
 
-All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screenshots.ts` - see the header in that file for env vars.
+The checked-in screenshots use the Youtarr theme. Most were captured from
+v1.10.0; Analytics and Settings were refreshed from v1.12.0 after their UI
+fixes. The descriptions below reflect the current `develop`/`:nightly` UI when
+later features are not visible in an image. Capture a fresh set with
+`bun scripts/capture-screenshots.ts`; see that script's header for environment
+variables.
 
 ## Dashboard (dark)
 
@@ -14,11 +19,13 @@ All screenshots use the Youtarr theme. Capture with `bun scripts/capture-screens
 
 ![Discover](screenshots/discover.png)
 
+The normal Run Scan action is artist-focused. Album recommendations are produced by Library Gap-Fill, Release Radar, or the default-off net-new album discovery preference. If the Albums filter has no results, its empty state links to each producer and reveals the requested discovery mode or setting.
+
 ## Discovery Modes
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
-Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, and Spotify Saved Albums. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast.
+Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
 
 ## Search
 
@@ -60,12 +67,16 @@ Admin panel on the Library Health page. Shipped in `v0.17.0` and expanded in `v0
 
 ![Analytics](screenshots/analytics.png)
 
+The Discovery over time chart shows per-batch recommendation totals, with the approved portion in green.
+
 ## Settings
 
 ![Settings](screenshots/settings.png)
+
+The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
 
 The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
 
 ## Settings > Blocked
 
-The screenshot capture script includes `settings-blocked.png` for the permanent artist blocklist tab added in `v0.44.0`.
+The screenshot capture script can produce `settings-blocked.png` for Settings > Blocked. That surface now includes separate permanent artist and album blocklists; no `settings-blocked.png` artifact is currently checked in.

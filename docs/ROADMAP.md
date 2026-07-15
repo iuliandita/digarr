@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-07-05 | Current: v1.12.0
+> Updated: 2026-07-15 | Current: v1.13.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Where We Are
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, Subsonic, and slskd. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs), Charts (global/regional chart movement via Last.fm), Deezer Flow (the personalized Deezer artist feed), and Spotify Saved Albums (artists from the albums you saved on Spotify), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit with a `kind` discriminator, album blocks, an album scoring modifier, single-album Lidarr approval (`addAlbum`), a kind filter and Albums nav on Discover, and full i18n. All three producers are now live: release-radar new-release discovery (v1.1.0) emits `kind='album'` recommendations for new releases from artists you already track, Library Gap-Fill (v1.2.0) recommends the studio albums you are missing from those same tracked artists, and net-new album discovery (v1.3.0) promotes a specific album the AI suggests by a new-to-you artist into a first-class album recommendation, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. Current focus is download-target breadth and UX polish around review and playback.
+All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and Subsonic; slskd is a separate approval and acquisition target. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs), Charts (global/regional chart movement via Last.fm), Deezer Flow (the personalized Deezer artist feed), Spotify Saved Albums (artists from the albums you saved on Spotify), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit with a `kind` discriminator, album blocks, an album scoring modifier, single-album Lidarr approval (`addAlbum`), a kind filter and Albums nav on Discover, and full i18n. All three producers are now live: release-radar new-release discovery (v1.1.0) emits `kind='album'` recommendations for new releases from artists you already track, Library Gap-Fill (v1.2.0) recommends the studio albums you are missing from those same tracked artists, and net-new album discovery (v1.3.0) promotes a specific album the AI suggests by a new-to-you artist into a first-class album recommendation, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. Current focus is notification-channel expansion and product polish around review and library operations.
 
 ## v1 Goals
 
@@ -34,9 +34,9 @@ End-to-end browser test suite (Playwright) covering setup, login, scan, approve/
 
 Committed direction, roughly in priority order.
 
-### Download targets and UX
+### Recommendation quality and UX
 
-- Broader download-target coverage and UX polish around recommendation review and playback (the album-discovery producer trilogy is complete as of v1.3.0; slskd reached album-level approval parity with Lidarr in v1.5.0)
+- UX polish around recommendation review, playback, and library operations
 
 ## Exploring
 
@@ -50,20 +50,16 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 
 ### Integrations
 
-- Prowlarr integration
+- Additional notification channels beyond Discord-formatted and generic JSON webhooks
 - Odesli / song.link resolution
 - Apple Music / iTunes metadata enrichment
-
-### UX
-
-- Contextual / seasonal discovery presets
 
 ## Future
 
 Good ideas with no timeline yet.
 
 - Taste DNA / shareable profile
-- Audition playlists ("try before you add")
+- Audition playlists ("try before you add") -- the artist-level audition queue is shipped (see Shipped Highlights); a track-level playlist variant is still open
 - Interactive API docs (Swagger/Scalar UI)
 
 ## Experiments
@@ -87,15 +83,21 @@ Low confidence. Would build only with real demand.
 
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it rewrites the pinned digests and version tags across the k8s/Helm/Unraid deploy files plus the example pins in the compose files and README.
+v1.13.0 packages the current `develop`/`:nightly` highlights below.
 
+- v1.13.0 adds an Audition queue for continuous preview playback: an Audition button on the Discover toolbar queues the loaded pending recommendations that have previews, in score order; the global preview bar gains previous/next and position controls. Deezer advances when its clip ends, Spotify reuses a persistent supported iframe controller and advances only after real playback completes, and YouTube retains a bounded 30-second fallback. If a browser blocks Spotify autoplay, the queue stays on the current usable embed instead of silently advancing; once manually activated, later Spotify entries reuse the same controller. Preview-less items are skipped, and playing anything else or stopping deactivates the queue. Artist-level v1 ("try before you add"). Full i18n across 15 locales
+- The scheduled notification digest now persists a last-sent bookmark, so restarts or downtime no longer double-report or drop a window; delivery is at-least-once
+- Discover can reject every loaded pending recommendation below a chosen score threshold in one reviewed action, while preserving higher-scored candidates for normal review
+- Cross-provider search now includes experimental TIDAL results when an admin configures TIDAL client credentials; unconfigured installs keep the source disabled
 - AI provider failures are now first-class observable (v1.12.0): a dead provider surfaces in scan progress warnings, job history records the real provider error, connection-test failures show the upstream message, and saving AI settings re-probes the persisted config. Provider hardening landed alongside: shared LLM output parsing for OpenAI/Gemini, secret redaction in error snippets, and Ollama model validation in test connection
 - Zero-external-database operation shipped in v1.11.0: embedded PGlite backend (no separate PostgreSQL container), an admin-gated in-app migration tool between PGlite and PostgreSQL with verified atomic copy, a Subsonic (Navidrome/Airsonic/Gonic) listening + library source, self-service account email, and an OIDC account-takeover fix (subject-only identity matching, GHSA-w643-583p-vm6m)
-- Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan.
+- Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. The empty Albums view explains that normal scans remain artist-focused and links directly to all three album-producing paths.
 - Scheduled notification digest: alongside the per-batch webhook, a periodic roll-up of recent activity (discovered/added/runs) on a user-set cron schedule, configured in Settings, applied at runtime without a restart, reusing the existing SSRF-protected webhook + Discord formatting, full i18n across 15 locales (v1.10.0)
+- Subsonic Starred is now a runnable discovery mode: your starred Subsonic artists seed similar-artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Subsonic connection and honoring Skip TLS Verify, full i18n across 15 locales
 - Spotify Saved Albums is now a runnable discovery mode: the albums you saved on Spotify seed artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Spotify OAuth connection (the `user-library-read` scope was already granted for Liked Songs, so no re-consent), full i18n across 15 locales (v1.9.0)
 - Deezer Flow is now a runnable discovery mode: the personalized Deezer artist feed (previously reachable only as a standing subscription) can be fired on demand from Discover -> Discovery Modes like any other mode, needs only the existing Deezer OAuth connection, full i18n across 15 locales (v1.8.0)
 - Charts discovery mode seeds from global or regional chart movement (via Last.fm) rather than the similarity/relationship graph every other mode uses -- a distinct freshness/popularity axis, runnable and savable as a subscription like any mode, full i18n across 15 locales (v1.7.0)
-- Discovery-only installs (no Lidarr) now derive a genre profile from connected listening sources (Spotify) so genre-overlap scoring contributes signal instead of zero; library installs are unchanged (v1.6.0)
+- Discovery-only installs (no Lidarr) derive a genre profile from native listening-source metadata and local caches. The #403 follow-up shipped Plex/Jellyfin/Emby/Discogs mappings plus a bounded background MusicBrainz warmer with optional Last.fm fallback; library installs keep their library genre reference.
 - Discovery modes now live on their own page, ship the full set (ListenBrainz radio coverage, Release Radar, Similar Artist Web, Artist Relationships via the MusicBrainz graph, and Labels via Discogs), and can be saved as subscriptions
 - Preview volume control in the global preview bar, persisted across sessions
 - Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover

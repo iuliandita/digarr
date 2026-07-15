@@ -131,7 +131,6 @@ export interface LibrarySyncStore {
 
 export type LibraryArtistRow = typeof libraryArtists.$inferSelect
 export type LibraryAlbumRow = typeof libraryAlbums.$inferSelect
-export type LibraryAlbumOverrideRow = typeof libraryAlbumMatchOverrides.$inferSelect
 
 export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   return {

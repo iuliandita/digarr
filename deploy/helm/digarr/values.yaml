@@ -11,6 +11,11 @@ image:
   digest: "sha256:66cb49c4a35d0c12da8a3ee692f3665f281c065f6b5b27c72b1b4f6476c531c7"
   pullPolicy: Always
 
+# uid 10001 deliberately differs from the image's bundled `bun` user (uid 1000):
+# the process needs no image-file ownership, and a high uid avoids colliding
+# with host users on hostPath volumes. fsGroup 10001 is load-bearing - it is
+# what makes the data/backup volumes writable. Existing PVCs already carry
+# gid-10001 ownership, so do not change these without a chown migration.
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 10001

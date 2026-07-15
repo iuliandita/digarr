@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
@@ -17,16 +18,26 @@ const noopPreview = {
   globalPlayId: 0,
   volume: 1,
   setVolume: vi.fn(),
+  audition: {
+    active: false,
+    index: 0,
+    count: 0,
+    current: null,
+    start: vi.fn(),
+    next: vi.fn(),
+    previous: vi.fn(),
+    stop: vi.fn(),
+  },
 }
 
-function renderWithQuery(ui: ReactElement) {
+function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>
           <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
         </MemoryRouter>
       </QueryClientProvider>
@@ -62,6 +73,8 @@ vi.mock('@/web/lib/api', () => ({
   listTargets: vi.fn().mockResolvedValue([]),
   exportRecommendations: vi.fn(),
   getUserPreferences: vi.fn().mockResolvedValue({}),
+  getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: true }),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: true }),
   getLidarrProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Any' }]),
   getLidarrMetadataProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Standard' }]),
   getLidarrRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music', freeSpace: 0 }]),
@@ -71,9 +84,12 @@ import {
   approveRecommendation,
   approveToTarget,
   bulkAction,
+  getAuthStatus,
+  getCurrentUser,
   getRecommendations,
   getWarmStatuses,
   listTargets,
+  rescanArtists,
   updateRecommendation,
 } from '@/web/lib/api'
 
@@ -82,7 +98,10 @@ const mockGetRecommendations = getRecommendations as ReturnType<typeof vi.fn>
 const mockUpdateRecommendation = updateRecommendation as ReturnType<typeof vi.fn>
 const mockApproveRecommendation = approveRecommendation as ReturnType<typeof vi.fn>
 const mockBulkAction = bulkAction as ReturnType<typeof vi.fn>
+const mockGetAuthStatus = getAuthStatus as ReturnType<typeof vi.fn>
+const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
 const mockListTargets = listTargets as ReturnType<typeof vi.fn>
+const mockRescanArtists = rescanArtists as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -147,6 +166,8 @@ import { DiscoverPage } from '@/web/pages/discover'
 describe('DiscoverPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
+    mockGetCurrentUser.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true })
     const storage = new Map<string, string>()
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
@@ -212,6 +233,48 @@ describe('DiscoverPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/No pending recommendations/i)).toBeInTheDocument()
     })
+    expect(screen.queryByRole('link', { name: 'Library Gap-Fill' })).not.toBeInTheDocument()
+  })
+
+  it('explains album producers and links to each action when the Albums view is empty', async () => {
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
+
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'A normal scan finds artists. Use one of the options below to generate album recommendations.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=gap-fill',
+    )
+    expect(screen.getByRole('link', { name: 'Release Radar' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=release-radar',
+    )
+    expect(screen.getByRole('link', { name: 'Net-new album discovery' })).toHaveAttribute(
+      'href',
+      '/settings?tab=recommendations#net-new-album-discovery',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Approved' }))
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+  })
+
+  it('shows the album guidance when the saved view is the card stack', async () => {
+    localStorage.setItem('digarr:discover-view', 'stack')
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+
+    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
+
+    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
+      'href',
+      '/discover/modes?mode=gap-fill',
+    )
+    expect(screen.queryByText('No more recommendations')).not.toBeInTheDocument()
   })
 
   it('filter tabs update the displayed list', async () => {
@@ -312,6 +375,37 @@ describe('DiscoverPage', () => {
     })
   })
 
+  it('bulk reject below threshold opens the picker and rejects only pending below-threshold items', async () => {
+    mockBulkAction.mockResolvedValue(undefined as unknown as never)
+    setupMockApi([
+      makeRec({ id: 1, score: 0.85, status: 'pending' }),
+      makeRec({ id: 2, score: 0.5, status: 'pending' }),
+      makeRec({ id: 3, score: 0.69, status: 'approved' }),
+      makeRec({ id: 4, score: 0.7, status: 'pending' }),
+      makeRec({ id: 5, score: 0.2, status: 'rejected' }),
+    ])
+
+    renderWithQuery(<DiscoverPage />)
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Test Artist')).toHaveLength(5)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /reject all below/i }))
+
+    expect(mockBulkAction).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Why are you rejecting?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Wrong genre or style for me' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Reject' }))
+
+    await waitFor(() => {
+      expect(mockBulkAction).toHaveBeenCalledWith([2], 'reject', {
+        reason: 'wrong_style',
+        permanent: false,
+      })
+    })
+  })
+
   it('clears all pending recommendations in bounded batches', async () => {
     mockBulkAction.mockResolvedValue(undefined as unknown as never)
     const firstBatch = Array.from({ length: 200 }, (_, idx) => makeRec({ id: idx + 1 }))
@@ -356,6 +450,49 @@ describe('DiscoverPage', () => {
         return p?.status === 'pending' && Number(p.limit) > 200
       }),
     ).toBe(false)
+  })
+
+  it('reports attempted, updated, and failed artist counts after a rescan', async () => {
+    setupMockApi()
+    mockRescanArtists.mockResolvedValue({ attempted: 3, updated: 2, failed: 1, total: 3 })
+    const toastPromise = vi
+      .spyOn(toast, 'promise')
+      .mockImplementation(() => ({ unwrap: async () => undefined }))
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Refresh Data' }))
+
+    expect(mockRescanArtists).toHaveBeenCalledTimes(1)
+    const options = toastPromise.mock.calls[0]?.[1] as {
+      success: (result: { attempted: number; updated: number; failed: number }) => string
+    }
+    expect(options.success({ attempted: 3, updated: 2, failed: 1 })).toBe(
+      'Rescan complete: 2/3 updated; 1 failed.',
+    )
+  })
+
+  it('hides shared metadata refresh from non-admin users', async () => {
+    setupMockApi()
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: false })
+    mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'user', isAdmin: false })
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+
+    expect(screen.queryByRole('menuitem', { name: 'Refresh Data' })).not.toBeInTheDocument()
+  })
+
+  it('shows shared metadata refresh to cookie-authenticated admins', async () => {
+    setupMockApi()
+    mockGetCurrentUser.mockResolvedValue(null)
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
+    renderWithQuery(<DiscoverPage />)
+
+    await waitFor(() => expect(mockGetAuthStatus).toHaveBeenCalled())
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+
+    expect(await screen.findByRole('menuitem', { name: 'Refresh Data' })).toBeInTheDocument()
   })
 
   it('reject button calls updateRecommendation', async () => {

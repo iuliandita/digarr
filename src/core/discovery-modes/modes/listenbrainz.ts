@@ -360,7 +360,8 @@ export function createListenBrainzTagRadioMode(): DiscoveryModeDefinition {
         key: 'rawTagExpression',
         label: 'Raw tag expression',
         type: 'text',
-        helpText: 'Override tag builder with raw LB syntax, e.g. (trip hop):2:(ambient):1',
+        helpText:
+          'Override the tag builder with raw ListenBrainz syntax, for example (trip hop):2:(ambient):1',
       },
       {
         key: 'count',

@@ -42,5 +42,9 @@ export function createLastFmSource(username: string, apiKey: string): DiscoveryS
         source: 'lastfm',
       }))
     },
+
+    getArtistGenres(artistName, mbid) {
+      return client.getArtistTopTags(artistName, mbid)
+    },
   }
 }

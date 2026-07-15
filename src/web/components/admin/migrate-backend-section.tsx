@@ -131,8 +131,8 @@ export function MigrateBackendSection() {
     <div className="space-y-4">
       <p className="text-sm text-muted">{t('admin.migrateIntro')}</p>
 
-      <div className="space-y-1">
-        <span className="text-xs font-medium text-text">{t('admin.migrateTargetBackend')}</span>
+      <fieldset className="space-y-1">
+        <legend className="text-xs font-medium text-text">{t('admin.migrateTargetBackend')}</legend>
         <div className="flex gap-4">
           <label className="flex items-center gap-1.5 text-sm text-text">
             <input
@@ -155,7 +155,7 @@ export function MigrateBackendSection() {
             PostgreSQL
           </label>
         </div>
-      </div>
+      </fieldset>
 
       {backend === 'pglite' ? (
         <div className="space-y-1">

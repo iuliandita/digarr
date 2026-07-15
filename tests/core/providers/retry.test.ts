@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { fetchWithRetry } from '@/core/providers/retry'
+import { fetchWithRetry, redactSecrets } from '@/core/providers/retry'
 
 describe('fetchWithRetry', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>
@@ -121,5 +121,25 @@ describe('fetchWithRetry', () => {
     const message = (err as Error).message
     expect(message).toContain('client error 400: line one line two spaced')
     expect(message.length).toBeLessThanOrEqual('client error 400: '.length + 200)
+  })
+})
+
+describe('redactSecrets', () => {
+  test('redacts Google-style AIza API keys', () => {
+    // Fixture tail is 30 chars: exercises our {30,} pattern while staying
+    // below the 35-char signature real secret scanners alert on.
+    const text = 'key=AIzaSyA-1234567890abcdefghijklmnop is invalid'
+    expect(redactSecrets(text)).toBe('key=[redacted] is invalid')
+  })
+
+  test('redacts the password from a URL credential, keeping the username', () => {
+    const text = 'failed to connect to https://user:hunter2@host/path'
+    expect(redactSecrets(text)).toBe('failed to connect to https://user:[redacted]@host/path')
+  })
+
+  test('leaves non-secret UUIDs and git SHAs unchanged', () => {
+    const text =
+      'artist 123e4567-e89b-12d3-a456-426614174000 at commit 27b89b2225b3a1e8c0f4d5e6a7b8c9d0e1f2a3b4'
+    expect(redactSecrets(text)).toBe(text)
   })
 })

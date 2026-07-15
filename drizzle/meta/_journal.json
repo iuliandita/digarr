@@ -267,6 +267,48 @@
       "when": 1782686751125,
       "tag": "0037_whole_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1783253152001,
+      "tag": "0038_safe_slayback",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1783256081195,
+      "tag": "0039_rainy_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1783357733815,
+      "tag": "0040_gorgeous_sasquatch",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1783804882490,
+      "tag": "0041_great_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1783904598923,
+      "tag": "0042_legal_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1783905239055,
+      "tag": "0043_brave_selene",
+      "breakpoints": true
     }
   ]
 }

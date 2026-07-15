@@ -7,6 +7,7 @@ const PREFIX = 'enc:v1:'
 let derivedKey: Buffer | null = null
 let legacyKey: Buffer | null = null
 let nextKey: Buffer | null = null
+let nextLegacyKey: Buffer | null = null
 
 function deriveHkdfKey(input: string): Buffer {
   return Buffer.from(hkdfSync('sha256', input, '', 'digarr-field-encryption', 32))
@@ -28,6 +29,7 @@ export function initEncryption(
     derivedKey = null
     legacyKey = null
     nextKey = null
+    nextLegacyKey = null
     return
   }
   // HKDF-derived key (current)
@@ -37,6 +39,7 @@ export function initEncryption(
   // Optional second HKDF key for rotation. decryptField tries primary first
   // and falls back to this key on auth-tag failure.
   nextKey = nextKeyInput ? deriveHkdfKey(nextKeyInput) : null
+  nextLegacyKey = nextKeyInput ? createHash('sha256').update(nextKeyInput).digest() : null
 }
 
 export function isEncryptionEnabled(): boolean {
@@ -90,7 +93,7 @@ export function decryptField(value: string | null | undefined): typeof value {
   const [ivStr, encStr, tagStr] = value.slice(PREFIX.length).split('.')
   if (!ivStr || !encStr || !tagStr) return value // malformed
 
-  // Try primary HKDF key, then rotation NEXT key, then legacy SHA-256.
+  // Try both HKDF keys, then both legacy SHA-256 derivations.
   // AES-GCM auth-tag verification is cheap so trial decryption is fine.
   try {
     return decryptWithKey(ivStr, encStr, tagStr, derivedKey)
@@ -107,6 +110,13 @@ export function decryptField(value: string | null | undefined): typeof value {
   if (legacyKey) {
     try {
       return decryptWithKey(ivStr, encStr, tagStr, legacyKey)
+    } catch {
+      // fall through
+    }
+  }
+  if (nextLegacyKey) {
+    try {
+      return decryptWithKey(ivStr, encStr, tagStr, nextLegacyKey)
     } catch {
       // fall through
     }
@@ -144,10 +154,12 @@ export const SENSITIVE_SETTINGS = [
   'aiApiKey',
   'audiodbApiKey',
   'oidcClientSecret',
+  'tidalClientSecret',
 ] as const
 export const SENSITIVE_OAUTH = ['accessToken', 'refreshToken', 'clientSecret'] as const
 // oidc_tokens shape differs from oauth_tokens: no clientSecret, plus an idToken
 export const SENSITIVE_OIDC = ['accessToken', 'refreshToken', 'idToken'] as const
+export const SENSITIVE_PREFERENCES = ['fanartApiKey'] as const
 export const SENSITIVE_USER_CONNECTIONS = [
   'listenbrainzToken',
   'lastfmApiKey',

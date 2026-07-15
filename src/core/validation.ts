@@ -6,9 +6,46 @@ export function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
-const CREDENTIALS_RE = /\/\/([^:/?#@\s]+):[^@/?#\s]+@/g
-function redactSecrets(s: string): string {
-  return s.replace(CREDENTIALS_RE, '//$1:***@')
+const MBID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export function isValidMbid(value: unknown): value is string {
+  return typeof value === 'string' && MBID_RE.test(value)
+}
+
+export function redactSecrets(text: string): string {
+  return text
+    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
+    .replace(
+      /(\b(?:api_?key|apikey|token|secret|password|auth|access_token|auth_token|signature|sig)=)[^&\s"']+/gi,
+      '$1[redacted]',
+    )
+    .replace(/([?&](?:key|t|s)=)[^&\s"']+/gi, '$1[redacted]')
+    .replace(/\bAIza[0-9A-Za-z_-]{30,}\b/g, '[redacted]')
+    .replace(/\/\/([^/\s:@]+):([^@\s/]+)@/g, '//$1:[redacted]@')
+}
+
+const CONCISE_ERROR_MAX_LENGTH = 300
+
+export function conciseErrMsg(err: unknown): string {
+  let root = err
+  const seen = new Set<unknown>([root])
+  while (root instanceof Error && root.cause !== undefined && !seen.has(root.cause)) {
+    root = root.cause
+    seen.add(root)
+  }
+
+  const message = redactSecrets(errMsg(root)).replace(/\s+/g, ' ').trim()
+  const rawCode =
+    typeof root === 'object' && root !== null && 'code' in root && typeof root.code === 'string'
+      ? root.code
+      : null
+  const sqlState = rawCode && /^[0-9A-Z]{5}$/.test(rawCode) ? rawCode : null
+  const suffix = sqlState && !message.includes(sqlState) ? ` (SQLSTATE ${sqlState})` : ''
+
+  if (message.length + suffix.length <= CONCISE_ERROR_MAX_LENGTH) return message + suffix
+  const bodyLength = CONCISE_ERROR_MAX_LENGTH - suffix.length - 3
+  return `${message.slice(0, bodyLength)}...${suffix}`
 }
 
 export function logAndSanitize(err: unknown, context: string): string {

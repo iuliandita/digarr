@@ -3,6 +3,7 @@ import { envConfig } from '@/config/env'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { createTidalClient } from '@/core/clients/tidal'
 import { sendWebhook } from '@/core/notifications'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
@@ -29,6 +30,7 @@ const SECRET_FIELDS = [
   'embyApiKey',
   'discogsToken',
   'subsonicPassword',
+  'tidalClientSecret',
 ] as const
 
 type SettingsResponse = Record<string, unknown>
@@ -80,11 +82,21 @@ function probeResult(
 ) {
   if (result.success) {
     const version = result.details?.version
+    // Whitelisted structured extras (the media-server library pickers):
+    // never spread details wholesale, probes may stash internals there.
+    const sectionId = result.details?.sectionId
+    const sections = result.details?.sections
+    const libraryId = result.details?.libraryId
+    const libraries = result.details?.libraries
     return c.json(
       {
         message: result.message,
         ...(typeof version === 'string' && version.length > 0 ? { version } : {}),
         ...(typeof latencyMs === 'number' ? { latencyMs } : {}),
+        ...(typeof sectionId === 'string' ? { sectionId } : {}),
+        ...(Array.isArray(sections) ? { sections } : {}),
+        ...(typeof libraryId === 'string' ? { libraryId } : {}),
+        ...(Array.isArray(libraries) ? { libraries } : {}),
       },
       200,
     )
@@ -171,14 +183,17 @@ async function buildSettingsResponse(
       response._lastfmScope = 'user'
       response.plexUrl = userConns.plexUrl ?? ''
       response.plexToken = userConns.plexToken
+      response.plexSectionId = userConns.plexSectionId ?? ''
       response._plexScope = 'user'
       response.jellyfinUrl = userConns.jellyfinUrl ?? ''
       response.jellyfinApiKey = userConns.jellyfinApiKey
       response.jellyfinUserId = userConns.jellyfinUserId ?? ''
+      response.jellyfinLibraryId = userConns.jellyfinLibraryId ?? ''
       response._jellyfinScope = 'user'
       response.embyUrl = userConns.embyUrl ?? ''
       response.embyApiKey = userConns.embyApiKey
       response.embyUserId = userConns.embyUserId ?? ''
+      response.embyLibraryId = userConns.embyLibraryId ?? ''
       response._embyScope = 'user'
       response.discogsUsername = userConns.discogsUsername ?? ''
       response.discogsToken = userConns.discogsToken
@@ -228,6 +243,8 @@ export function settingsRoutes(deps: AppDependencies) {
     'oidcClientId',
     'oidcClientSecret',
     'oidcScopes',
+    'tidalClientId',
+    'tidalClientSecret',
   ])
 
   const USER_CONNECTION_FIELDS = new Set([
@@ -237,12 +254,15 @@ export function settingsRoutes(deps: AppDependencies) {
     'lastfmApiKey',
     'plexUrl',
     'plexToken',
+    'plexSectionId',
     'jellyfinUrl',
     'jellyfinApiKey',
     'jellyfinUserId',
+    'jellyfinLibraryId',
     'embyUrl',
     'embyApiKey',
     'embyUserId',
+    'embyLibraryId',
     'discogsToken',
     'discogsUsername',
     'subsonicUrl',
@@ -486,23 +506,36 @@ export function settingsRoutes(deps: AppDependencies) {
       case 'plex': {
         const url = body.url || userConns?.plexUrl || ''
         const token = body.token || userConns?.plexToken || ''
+        // sectionId: '' in the body means "auto-detect" (do not fall back to
+        // the stored value, the user is explicitly clearing it in the picker).
+        const sectionId =
+          typeof body.sectionId === 'string' ? body.sectionId : (userConns?.plexSectionId ?? null)
         if (!url || !token) {
           return missingInput(`Missing ${!url ? 'URL' : 'token'}`)
         }
         const { createPlexClient } = await import('@/core/clients/plex')
-        const client = createPlexClient(url, token)
+        const client = createPlexClient(url, token, { sectionId })
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'jellyfin': {
         const url = body.url || userConns?.jellyfinUrl || ''
         const apiKey = body.apiKey || userConns?.jellyfinApiKey || ''
         const jfUserId = body.userId || userConns?.jellyfinUserId || ''
+        // libraryId: '' in the body means "all libraries" (do not fall back to
+        // the stored value, the user is explicitly clearing it in the picker).
+        const jfLibraryId =
+          typeof body.libraryId === 'string'
+            ? body.libraryId
+            : (userConns?.jellyfinLibraryId ?? null)
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
         const { createJellyfinClient } = await import('@/core/clients/jellyfin')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
-        const client = createJellyfinClient(url, apiKey, jfUserId, { skipTlsVerify: skipTls })
+        const client = createJellyfinClient(url, apiKey, jfUserId, {
+          skipTlsVerify: skipTls,
+          libraryId: jfLibraryId,
+        })
         return runProbe(
           c,
           async () => {
@@ -520,12 +553,17 @@ export function settingsRoutes(deps: AppDependencies) {
         const url = body.url || userConns?.embyUrl || ''
         const apiKey = body.apiKey || userConns?.embyApiKey || ''
         const embyUserId = body.userId || userConns?.embyUserId || ''
+        const embyLibraryId =
+          typeof body.libraryId === 'string' ? body.libraryId : (userConns?.embyLibraryId ?? null)
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
         const { createEmbyClient } = await import('@/core/clients/emby')
         const skipTls = body.skipTlsVerify ?? (stored?.skipTlsVerify as boolean) ?? false
-        const client = createEmbyClient(url, apiKey, embyUserId, { skipTlsVerify: skipTls })
+        const client = createEmbyClient(url, apiKey, embyUserId, {
+          skipTlsVerify: skipTls,
+          libraryId: embyLibraryId,
+        })
         return runProbe(
           c,
           async () => {
@@ -588,6 +626,15 @@ export function settingsRoutes(deps: AppDependencies) {
           scopes: 'openid',
         })
         return runProbe(c, () => svc.testConnection(), messages['common.unknownError'])
+      }
+      case 'tidal': {
+        const clientId = body.clientId || (stored?.tidalClientId as string) || ''
+        const clientSecret = body.clientSecret || (stored?.tidalClientSecret as string) || ''
+        if (!clientId || !clientSecret) {
+          return missingInput(`Missing ${!clientId ? 'client ID' : 'client secret'}`)
+        }
+        const client = createTidalClient({ clientId, clientSecret })
+        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       default:
         return problem(c, 'unknown-service', `Unknown service: ${service}`, 400)

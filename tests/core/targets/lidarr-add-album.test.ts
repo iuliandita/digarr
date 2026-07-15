@@ -13,7 +13,7 @@ function mockLidarrClient() {
     getArtists: vi.fn().mockResolvedValue([]),
     addArtist: vi.fn().mockResolvedValue({ id: 42, artistName: 'Artist' }),
     getAlbums: vi.fn().mockResolvedValue([]),
-    updateAlbum: vi.fn().mockResolvedValue({}),
+    setAlbumsMonitored: vi.fn().mockResolvedValue([]),
     triggerCommand: vi.fn().mockResolvedValue({}),
     testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
     getRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music' }]),
@@ -56,7 +56,7 @@ describe('createLidarrTarget().addAlbum', () => {
       monitorOption: 'none',
     })
     expect(client.getAlbums).toHaveBeenCalledWith(42)
-    expect(client.updateAlbum).toHaveBeenCalledWith(7, { monitored: true })
+    expect(client.setAlbumsMonitored).toHaveBeenCalledWith([7], true)
     expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [7] })
   })
 
@@ -80,7 +80,7 @@ describe('createLidarrTarget().addAlbum', () => {
     expect(result?.success).toBe(true)
     expect(client.addArtist).not.toHaveBeenCalled()
     expect(client.getAlbums).toHaveBeenCalledWith(99)
-    expect(client.updateAlbum).toHaveBeenCalledWith(7, { monitored: true })
+    expect(client.setAlbumsMonitored).toHaveBeenCalledWith([7], true)
     expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [7] })
   })
 
@@ -101,7 +101,7 @@ describe('createLidarrTarget().addAlbum', () => {
 
     expect(result?.success).toBe(false)
     expect(result?.error).toBeTruthy()
-    expect(client.updateAlbum).not.toHaveBeenCalled()
+    expect(client.setAlbumsMonitored).not.toHaveBeenCalled()
     expect(client.triggerCommand).not.toHaveBeenCalled()
   })
 
@@ -130,7 +130,7 @@ describe('createLidarrTarget().addAlbum', () => {
 
       expect(result?.success).toBe(false)
       expect(result?.error).toBe('album not found in Lidarr')
-      expect(client.updateAlbum).not.toHaveBeenCalled()
+      expect(client.setAlbumsMonitored).not.toHaveBeenCalled()
       expect(client.triggerCommand).not.toHaveBeenCalled()
     } finally {
       vi.useRealTimers()
@@ -165,7 +165,7 @@ describe('createLidarrTarget().addAlbum', () => {
       expect(result?.success).toBe(true)
       expect(result?.externalId).toBe(7)
       expect(client.getAlbums).toHaveBeenCalledTimes(2)
-      expect(client.updateAlbum).toHaveBeenCalledWith(7, { monitored: true })
+      expect(client.setAlbumsMonitored).toHaveBeenCalledWith([7], true)
       expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [7] })
     } finally {
       vi.useRealTimers()

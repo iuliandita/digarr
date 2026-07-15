@@ -5,6 +5,7 @@ export type DiscoveryConnectionSnapshot = {
   hasDiscogs: boolean
   hasDeezer: boolean
   hasLibrarySync: boolean
+  hasSubsonic: boolean
 }
 
 /** All-false connection snapshot: the default when no provider-state resolver is wired. */
@@ -15,6 +16,7 @@ export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
   hasDiscogs: false,
   hasDeezer: false,
   hasLibrarySync: false,
+  hasSubsonic: false,
 }
 
 export type DiscoveryAvailabilityResult = {
@@ -39,8 +41,6 @@ const LISTENBRAINZ_MODE_IDS = new Set([
   'lb-tag-radio',
 ])
 
-const NOT_IMPLEMENTED_MODE_IDS = new Set<string>()
-
 export function buildDiscoveryModeExecutionContext(
   availability: DiscoveryAvailabilityResult,
 ): DiscoveryModeExecutionContext {
@@ -56,15 +56,6 @@ export function evaluateDiscoveryModeAvailability(
   modeId: string,
   snapshot: DiscoveryConnectionSnapshot,
 ): DiscoveryAvailabilityResult {
-  if (NOT_IMPLEMENTED_MODE_IDS.has(modeId)) {
-    return {
-      enabled: false,
-      fallbackUsed: false,
-      providerPath: [],
-      reason: 'This mode is not implemented yet.',
-    }
-  }
-
   if (LISTENBRAINZ_MODE_IDS.has(modeId)) {
     return snapshot.hasListenBrainz
       ? { enabled: true, fallbackUsed: false, providerPath: ['listenbrainz'] }
@@ -134,6 +125,17 @@ export function evaluateDiscoveryModeAvailability(
         }
   }
 
+  if (modeId === 'subsonic-starred') {
+    return snapshot.hasSubsonic
+      ? { enabled: true, fallbackUsed: true, providerPath: ['subsonic'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect Subsonic to use this mode.',
+        }
+  }
+
   if (modeId === 'spotify-saved-albums') {
     return snapshot.hasSpotify
       ? { enabled: true, fallbackUsed: true, providerPath: ['spotify'] }
@@ -165,6 +167,17 @@ export function evaluateDiscoveryModeAvailability(
       fallbackUsed: false,
       providerPath,
     }
+  }
+
+  if (modeId === 'gap-fill') {
+    return snapshot.hasLibrarySync
+      ? { enabled: true, fallbackUsed: false, providerPath: ['musicbrainz'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Sync a library first to use this mode.',
+        }
   }
 
   return {

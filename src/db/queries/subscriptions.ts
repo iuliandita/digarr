@@ -95,7 +95,7 @@ export async function getSubscriptionBatchStats(
   batchId: number,
 ): Promise<{ added: number } | null> {
   const batch = await getBatch(db, batchId)
-  if (!batch || !batch.stats || typeof batch.stats !== 'object') {
+  if (!batch?.stats || typeof batch.stats !== 'object') {
     return null
   }
 

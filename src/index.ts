@@ -15,6 +15,7 @@ import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
+import { createTidalClient } from './core/clients/tidal'
 import { initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
@@ -39,8 +40,10 @@ import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sy
 import { markShuttingDown } from './core/lifecycle'
 import { sendWebhook } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
+import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
+import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
@@ -60,6 +63,7 @@ import { createBandcampSearchSource } from './core/search/sources/bandcamp'
 import { createDeezerSearchSource } from './core/search/sources/deezer'
 import { createMusicBrainzSearchSource } from './core/search/sources/musicbrainz'
 import { createSpotifySearchSource } from './core/search/sources/spotify'
+import { createTidalSearchSource } from './core/search/sources/tidal'
 import { setSessionStore } from './core/sessions'
 import { createSlskdOrchestrator } from './core/slskd/orchestrator'
 import { createSlskdRunner } from './core/slskd/runner'
@@ -91,7 +95,11 @@ import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { errMsg } from './core/validation'
 import { closeDb, db, pool } from './db'
 import { runMigrations } from './db/migrate'
-import { getBlockedAlbumKeys } from './db/queries/album-blocks'
+import {
+  getBlockedAlbumKeys,
+  listAlbumBlocks as listAlbumBlocksQuery,
+  removeAlbumBlock as removeAlbumBlockQuery,
+} from './db/queries/album-blocks'
 import {
   addBlock as addArtistBlockQuery,
   getBlockedMbids as getBlockedArtistMbids,
@@ -99,9 +107,20 @@ import {
   removeBlock as removeArtistBlockQuery,
 } from './db/queries/artist-blocks'
 import { getPopularityMap, lookupByName } from './db/queries/artist-metadata'
-import { getArtistById, upsertArtist } from './db/queries/artists'
+import {
+  getArtistById,
+  getArtistGenreCacheByAliases,
+  getArtistGenreCacheByMbids,
+  upsertArtist,
+  upsertArtistGenreAlias,
+  upsertArtistGenres,
+} from './db/queries/artists'
 import { completeBatch, failBatch, getBatch, listBatches } from './db/queries/batches'
-import { getRecentActivity, getTopGenresForUser } from './db/queries/dashboard'
+import {
+  getLatestGenreCoverage,
+  getRecentActivity,
+  getTopGenresForUser,
+} from './db/queries/dashboard'
 import {
   getAllGenres,
   getChildGenres,
@@ -234,9 +253,40 @@ const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
 
 const librarySyncStore = createLibrarySyncStore(db)
 
+async function getDiscoveryConnectionSnapshot(userId: number) {
+  const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
+    getUserConnections(db, userId),
+    getOAuthToken(db, userId, 'spotify'),
+    getOAuthToken(db, userId, 'deezer'),
+    librarySyncStore.userHasAnySyncState(userId),
+  ])
+
+  return {
+    hasListenBrainz: Boolean(
+      userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
+    ),
+    hasSpotify: Boolean(
+      spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
+    ),
+    hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
+    hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
+    hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),
+    hasLibrarySync,
+    hasSubsonic: Boolean(
+      userConnections?.subsonicUrl &&
+        userConnections.subsonicUsername &&
+        userConnections.subsonicPassword,
+    ),
+  }
+}
+
 const storeDb: StoreDb = {
   getExistingAlbumReleaseGroupMbids: (userId) => getExistingAlbumReleaseGroupMbids(db, userId),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
+  getArtistGenreCacheByMbids: (mbids) => getArtistGenreCacheByMbids(db, mbids),
+  getArtistGenreCacheByAliases: (aliases) => getArtistGenreCacheByAliases(db, aliases),
+  upsertArtistGenres: (data) => upsertArtistGenres(db, data),
+  upsertArtistGenreAlias: (data) => upsertArtistGenreAlias(db, data),
   getExistingRecommendationMbids: async (userId) => {
     const base = db
       .select({ mbid: artists.mbid })
@@ -440,13 +490,10 @@ function makeLazyLidarrClient() {
     getArtists: async () => (await getClient())?.getArtists() ?? [],
     getAlbums: async (artistId: number) => (await getClient())?.getAlbums(artistId) ?? [],
     lookupArtist: async (term: string) => (await getClient())?.lookupArtist(term) ?? [],
-    updateArtist: async (
-      id: number,
-      data: Parameters<ReturnType<typeof createLidarrClient>['updateArtist']>[1],
-    ) => {
+    setArtistsMonitored: async (artistIds: number[], monitored: boolean) => {
       const client = await getClient()
       if (!client) throw new Error('Lidarr not configured')
-      return client.updateArtist(id, data)
+      return client.setArtistsMonitored(artistIds, monitored)
     },
     triggerCommand: async (name: string, body?: Record<string, unknown>) => {
       const client = await getClient()
@@ -505,12 +552,19 @@ async function buildPerUserLibrarySources(userId: number) {
   if (!conns) return []
   const sources = []
   if (conns.plexUrl && conns.plexToken) {
-    sources.push(createPlexLibrarySource(createPlexClient(conns.plexUrl, conns.plexToken), userId))
+    sources.push(
+      createPlexLibrarySource(
+        createPlexClient(conns.plexUrl, conns.plexToken, { sectionId: conns.plexSectionId }),
+        userId,
+      ),
+    )
   }
   if (conns.jellyfinUrl && conns.jellyfinApiKey && conns.jellyfinUserId) {
     sources.push(
       createJellyfinLibrarySource(
-        createJellyfinClient(conns.jellyfinUrl, conns.jellyfinApiKey, conns.jellyfinUserId),
+        createJellyfinClient(conns.jellyfinUrl, conns.jellyfinApiKey, conns.jellyfinUserId, {
+          libraryId: conns.jellyfinLibraryId,
+        }),
         userId,
       ),
     )
@@ -518,7 +572,9 @@ async function buildPerUserLibrarySources(userId: number) {
   if (conns.embyUrl && conns.embyApiKey && conns.embyUserId) {
     sources.push(
       createEmbyLibrarySource(
-        createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId),
+        createEmbyClient(conns.embyUrl, conns.embyApiKey, conns.embyUserId, {
+          libraryId: conns.embyLibraryId,
+        }),
         userId,
       ),
     )
@@ -934,29 +990,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       defaultScoreThreshold: prefs.scoreThreshold,
       topArtistNames,
       discoveryModeRegistry,
-      getDiscoveryConnectionSnapshot: async (userId) => {
-        const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-          getUserConnections(db, userId),
-          getOAuthToken(db, userId, 'spotify'),
-          getOAuthToken(db, userId, 'deezer'),
-          librarySyncStore.userHasAnySyncState(userId),
-        ])
-
-        return {
-          hasListenBrainz: Boolean(
-            userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
-          ),
-          hasSpotify: Boolean(
-            spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
-          ),
-          hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
-          hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
-          hasDeezer: Boolean(
-            deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
-          ),
-          hasLibrarySync,
-        }
-      },
+      getDiscoveryConnectionSnapshot,
       pipelineOrchestrator: orchestrator,
       discoveryModePipelineDeps:
         sub.userId != null
@@ -1167,6 +1201,8 @@ function buildDigestDeps() {
     getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
     sendWebhook,
+    getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
+    setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
   }
 }
 
@@ -1244,6 +1280,8 @@ const app = createApp({
       reasonText: params.reasonText ?? null,
       source: 'manual',
     }),
+  listAlbumBlocks: (userId) => listAlbumBlocksQuery(db, userId),
+  removeAlbumBlock: (params) => removeAlbumBlockQuery(db, params),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),
@@ -1346,33 +1384,12 @@ const app = createApp({
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
+    getLatestGenreCoverage: (userId) => getLatestGenreCoverage(db, userId),
     getRecentActivity: (userId, isAdmin, limit) => getRecentActivity(db, userId, isAdmin, limit),
   },
   discoveryModeRegistry,
   runDiscoveryMode: executeDiscoveryModeRun,
-  getDiscoveryConnectionSnapshot: async (userId) => {
-    const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-      getUserConnections(db, userId),
-      getOAuthToken(db, userId, 'spotify'),
-      getOAuthToken(db, userId, 'deezer'),
-      librarySyncStore.userHasAnySyncState(userId),
-    ])
-
-    return {
-      hasListenBrainz: Boolean(
-        userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
-      ),
-      hasSpotify: Boolean(
-        spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
-      ),
-      hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
-      hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
-      hasDeezer: Boolean(
-        deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:'),
-      ),
-      hasLibrarySync,
-    }
-  },
+  getDiscoveryConnectionSnapshot,
   jobRecorder,
   jobQueries: {
     listJobs: (filters) => jobQueries.listJobs(db, filters),
@@ -1390,9 +1407,10 @@ const app = createApp({
   search: {
     listSources: async (userId) => {
       const spotifyOAuth = userId ? await getOAuthToken(db, userId, 'spotify') : null
+      const storedSettings = await getSettings(db)
       return buildSearchSourceCatalog({
         hasSpotifyOAuth: Boolean(spotifyOAuth),
-        hasTidalSearch: false,
+        hasTidalSearch: Boolean(storedSettings?.tidalClientId && storedSettings?.tidalClientSecret),
       })
     },
     search: async (query, opts) => {
@@ -1413,8 +1431,17 @@ const app = createApp({
           )
         }
       }
-      // TIDAL search requires client credentials (not per-user OAuth). Wire it here
-      // once TIDAL client ID/secret are exposed via settings (not yet implemented).
+      const storedSettings = await getSettings(db)
+      if (storedSettings?.tidalClientId && storedSettings?.tidalClientSecret) {
+        sources.push(
+          createTidalSearchSource(
+            createTidalClient({
+              clientId: storedSettings.tidalClientId,
+              clientSecret: storedSettings.tidalClientSecret,
+            }),
+          ),
+        )
+      }
 
       const filtered = opts?.sources ? sources.filter((s) => opts.sources?.includes(s.id)) : sources
       const merged = await multiSourceSearch(query, filtered, { limit: opts?.limit })
@@ -1555,6 +1582,10 @@ const server = serve({ fetch: app.fetch, port })
     libraryHealth.startScan()
     void slskdOrchestrator.warmup()
     slskdCron = new Cron('*/10 * * * *', async () => {
+      if (isMaintenance()) {
+        console.log('[slskd-scheduler] tick skipped: maintenance in progress')
+        return
+      }
       try {
         await slskdOrchestrator.triggerSync()
       } catch (err) {
@@ -1575,6 +1606,7 @@ const server = serve({ fetch: app.fetch, port })
 // Clean up expired sessions every 6 hours
 setInterval(
   async () => {
+    if (isMaintenance()) return
     try {
       await sessionQueries(db).deleteExpired()
     } catch {
@@ -1615,6 +1647,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     // to observe draining before closing the server so
     // in-flight requests finish on the listener we still own.
     markShuttingDown()
+    setMaintenance(true)
     await new Promise((resolve) => setTimeout(resolve, 12_000))
     scheduler.stopAll()
     playlistScheduler.stopAll()
@@ -1646,6 +1679,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         }, 25_000)
       })
     }
+    await waitForGenreWarmers()
     await closeDb()
     clearTimeout(deadline)
     process.exit(0)

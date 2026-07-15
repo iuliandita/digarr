@@ -21,11 +21,19 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 
 ## Step 1: Add the Digarr template
 
-Digarr is not yet published in the Community Applications store (a CA submission
-is pending). Until it lands there, use the bundled template directly -- it is the
-reliable route and uses the same XML CA would serve.
+Digarr is published in the Community Applications store via the Selfhosters
+repository, so a plain Apps search is all you need.
 
-### Option A: User template (recommended)
+### Option A: Community Applications store (recommended)
+
+1. In the Unraid web UI go to **Apps** and search for **Digarr**.
+2. Click **Install** and fill in the configuration (see Step 2), then click
+   **Apply**.
+
+The store template tracks the `latest` release tag, so **Check for Updates** on
+the Docker tab picks up new releases as they publish.
+
+### Option B: User template (manual copy)
 
 1. Copy [`deploy/unraid/digarr.xml`](../../deploy/unraid/digarr.xml) to your
    Unraid server at
@@ -40,14 +48,11 @@ reliable route and uses the same XML CA would serve.
 2. In the Unraid web UI go to **Docker** > **Add Container**.
 3. In the **Template** dropdown pick **Digarr** (it appears under your user
    templates).
-4. Fill in the configuration (see Step 3) and click **Apply**.
+4. Fill in the configuration (see Step 2) and click **Apply**.
 
-### Option B: Private template repository
-
-If you prefer CA to manage updates to the template, add the repository under
-**Apps** > **Settings** (or the CA "Manage template repositories" action) and
-point it at `https://github.com/iuliandita/digarr`. Digarr then appears in your
-CA search; install it like any other app and fill in the same fields below.
+The bundled template pins the image to the current release digest (the release
+pipeline keeps it synced), so updates mean re-copying the file; prefer Option A
+unless you want that digest pinning.
 
 ---
 
@@ -72,10 +77,13 @@ The template exposes these fields (matching
 | ListenBrainz | `LISTENBRAINZ_USERNAME`, `LISTENBRAINZ_TOKEN` | No | Listening source (advanced) |
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | No | Required behind a reverse proxy, e.g. `https://digarr.example.com` |
-| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for stored tokens (auto-generated if blank) |
+| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
-| Webhook URL | `WEBHOOK_URL` | No | Discord, Slack, ntfy, Gotify, or any HTTP endpoint |
+| Webhook URL | `WEBHOOK_URL` | No | Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload |
+
+Use HTTPS for webhook delivery. Plain HTTP is accepted for compatibility but
+exposes notification data and any credential embedded in the URL while in transit.
 
 Subsonic, Plex, Jellyfin, Emby, Spotify, Deezer, and Discogs connections are not
 template fields -- add them later under **Settings -> Connections** in the web UI.
@@ -137,8 +145,10 @@ network is the simplest option).
 
 Digarr publishes multi-arch images (amd64 + arm64). To update from the Unraid
 **Docker** tab, click the container > **Check for Updates** (or **Force Update**)
-and apply. When the template repository (Option B) refreshes, the pinned digest
-moves to the newest release.
+and apply. With the CA store template (Option A) the container tracks the
+`latest` release tag, so that is all there is to it. With the bundled template
+(Option B) the image is pinned to a release digest; re-copy the template file to
+move to a newer release.
 
 ## Notes
 
@@ -146,4 +156,5 @@ moves to the newest release.
   shared configs.
 - Behind Unraid's reverse proxy (or an external one such as SWAG/Nginx Proxy
   Manager), set `ALLOWED_ORIGIN` to the public URL.
-- The container runs as a single process and idles at roughly 80 MB of RAM.
+- The container runs as a single process; memory use varies with library size,
+  database backend, migrations, and concurrent background work.

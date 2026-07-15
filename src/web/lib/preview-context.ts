@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { AuditionQueue } from '../hooks/use-audition-queue'
 
 type PreviewContextValue = {
   play: (mbid: string, artistName: string, streamingUrls: Record<string, string> | null) => void
@@ -9,6 +10,7 @@ type PreviewContextValue = {
   globalPlayId: number
   volume: number
   setVolume: (value: number) => void
+  audition: AuditionQueue
 }
 
 export const PreviewContext = createContext<PreviewContextValue | null>(null)

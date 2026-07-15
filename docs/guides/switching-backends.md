@@ -8,9 +8,12 @@ operation, without touching or modifying the source.
 
 ## When to use this
 
-- **Scaling out**: embedded PGlite is single-writer and holds everything in Wasm
-  memory. When your library grows large, you run multiple replicas, or you want
-  the database managed independently, switch to external PostgreSQL.
+- **Managed or larger database**: embedded PGlite is single-writer and holds
+  everything in Wasm memory. When your library grows large or you want the
+  database managed independently, switch to external PostgreSQL. Keep the app
+  at one replica: pipeline coordination, schedulers, rate limits, and migration
+  locks are process-local, so PostgreSQL alone does not make horizontal scaling
+  safe.
 - **Rolling back**: if you want to return to embedded PGlite after running on
   external PostgreSQL, the same tool runs in reverse.
 
@@ -29,8 +32,11 @@ point-in-time snapshots and disaster recovery, use the Backup & Restore panel
 - Aim for a low-activity window. Digarr blocks write API calls (POST / PUT /
   PATCH / DELETE) for non-migration routes while the copy runs, returning `503
   Maintenance in progress` to any writers. Read operations continue normally.
-  Scheduled scans can still start during that window if a schedule fires; disable
-  or pause them beforehand if you want to avoid that.
+  Background schedulers (pipeline subscriptions, playlists, library sync and
+  health scans, the stuck-job detector) skip their ticks while the lock is held,
+  so scheduled jobs do not write during the copy. A job already running when the
+  migration starts can still finish and write; wait for running jobs to complete
+  before migrating.
 
 ---
 
@@ -53,6 +59,13 @@ Select one:
 For PGlite, the path must be inside the configured data root. The test step
 checks this without creating any files.
 
+The data root defaults to the parent directory of the currently active PGlite
+data directory (for Docker deployments that is `/app`, since the default
+`DB_PATH` is `/app/data`). To allow migration targets elsewhere -- for example
+a second mounted volume -- set `DIGARR_MIGRATE_DATA_ROOT` to that directory
+before starting Digarr. Paths outside the root are rejected to keep the
+migration panel from writing to arbitrary container locations.
+
 ### 3. Test the connection
 
 Click **Test connection**. This validates:
@@ -68,25 +81,34 @@ Fix any errors before proceeding.
 
 Click **Migrate**. The operation:
 
-1. Freezes writes on all non-migration routes (maintenance lock).
-2. Takes a consistent, read-only snapshot of the source database inside a
-   `REPEATABLE READ READ ONLY` transaction.
-3. Runs schema migrations on the target (creates all tables).
-4. Restores the snapshot atomically into the target.
-5. Verifies every table by row count and SHA-256 content hash.
+1. Freezes writes on all non-migration routes and pauses background scheduler
+   ticks (maintenance lock).
+2. Runs schema migrations on the target (creates all tables).
+3. Opens a consistent `REPEATABLE READ READ ONLY` transaction on the source.
+4. Copies tables in foreign-key order inside one target transaction, using
+   bounded insert chunks.
+5. Verifies each table by row count and SHA-256 content hash before loading the
+   next table.
 6. Releases the maintenance lock.
 
 The source database is **never modified**. If anything goes wrong, the target is
-left in a partial state and the source is intact; retry after fixing the
+copy transaction rolls back. Target schema migrations and, during an overwrite,
+the intentional session/rate-limit clear remain outside that transaction. A
+verification mismatch keeps the copied target for inspection but returns a
+failed report, so do not switch the application to it. Retry after fixing the
 underlying problem.
+
+The migration does not build whole-database source and target snapshots in
+application memory. Its working set follows the largest table being copied and
+verified, rather than the size of the full database.
 
 Progress is shown inline. On a large library the copy may take a minute or two.
 
 ### 5. Read the report
 
-On success, the panel shows a table of tables migrated and their row counts, plus
-a summary of what was excluded (see below). Any mismatches between source and
-target counts appear here with details.
+On success, the panel shows every migrated table and its row count, plus a
+summary of what was excluded (see below). Count and same-count content mismatches
+appear in the failed report with details.
 
 ### 6. Set the env var and restart
 
@@ -94,7 +116,11 @@ The panel shows the exact environment variable(s) to set for the new backend:
 
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
   entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`). Alternatively,
-  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually.
+  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually. For TLS,
+  `DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. Note that
+  Digarr's `require` performs full certificate verification -- stricter than
+  libpq's `require`, which encrypts without verifying. Use `no-verify` for
+  self-signed certificates.
 - **Switching to PGlite**: unset `DATABASE_URL` and `DB_HOST`, then set `DB_PATH`
   to the directory path you entered (e.g. `DB_PATH=/app/data-new`).
 
@@ -115,6 +141,8 @@ The response includes `"dbBackend"`:
 {
   "status": "ok",
   "version": "...",
+  "gitSha": "...",
+  "channel": "stable",
   "dbBackend": "postgres"
 }
 ```

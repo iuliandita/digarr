@@ -20,6 +20,33 @@ beforeEach(() => {
 const TEST_URL = 'http://plex.local:32400'
 const TEST_TOKEN = 'test-plex-token'
 
+describe('plex client.getTopArtists()', () => {
+  it('maps genres already present in the top-artist response', async () => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        Metadata: [
+          {
+            ratingKey: '101',
+            title: 'Portishead',
+            viewCount: 12,
+            Genre: [{ tag: 'trip hop' }, { tag: 'electronic' }],
+          },
+        ],
+      },
+    })
+
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '1' })
+    await expect(client.getTopArtists(10)).resolves.toEqual([
+      {
+        ratingKey: '101',
+        name: 'Portishead',
+        viewCount: 12,
+        genres: ['trip hop', 'electronic'],
+      },
+    ])
+  })
+})
+
 describe('plex client.getAllArtists()', () => {
   it('paginates through the music library', async () => {
     // sections lookup
@@ -75,6 +102,82 @@ describe('plex client.getAllArtists()', () => {
     const artists = await client.getAllArtists({ pageSize: 100 })
 
     expect(artists).toEqual([])
+  })
+})
+
+describe('plex library section selection', () => {
+  const TWO_SECTIONS = {
+    MediaContainer: {
+      Directory: [
+        { key: '3', type: 'artist', title: 'Audiobooks' },
+        { key: '5', type: 'artist', title: 'Music' },
+        { key: '7', type: 'movie', title: 'Movies' },
+      ],
+    },
+  }
+
+  it('getMusicSections returns only artist-type sections', async () => {
+    mockGet.mockResolvedValueOnce(TWO_SECTIONS)
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+    const sections = await client.getMusicSections()
+    expect(sections).toEqual([
+      { key: '3', title: 'Audiobooks' },
+      { key: '5', title: 'Music' },
+    ])
+  })
+
+  it('uses the configured section without hitting /library/sections', async () => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        totalSize: 1,
+        Metadata: [{ ratingKey: '201', title: 'Radiohead', Genre: [] }],
+      },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '5' })
+    const artists = await client.getAllArtists()
+    expect(artists).toHaveLength(1)
+    expect(mockGet).toHaveBeenCalledTimes(1)
+    expect(mockGet.mock.calls[0]?.[0]).toContain('/library/sections/5/all')
+  })
+
+  it('auto-picks the first artist section when none is configured', async () => {
+    mockGet.mockResolvedValueOnce(TWO_SECTIONS)
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+    await expect(client.getMusicSectionId()).resolves.toBe('3')
+  })
+
+  it('testConnection reports the selected library and all music sections', async () => {
+    mockGet.mockResolvedValueOnce(TWO_SECTIONS)
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '5' })
+    const result = await client.testConnection()
+    expect(result.success).toBe(true)
+    expect(result.message).toContain('"Music"')
+    expect(result.details).toEqual({
+      sectionId: '5',
+      sections: [
+        { key: '3', title: 'Audiobooks' },
+        { key: '5', title: 'Music' },
+      ],
+    })
+  })
+
+  it('testConnection fails when the configured section no longer exists', async () => {
+    mockGet.mockResolvedValueOnce(TWO_SECTIONS)
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '99' })
+    const result = await client.testConnection()
+    expect(result.success).toBe(false)
+    expect(result.message).toContain('99')
+    expect(result.message).toContain('Music (5)')
+  })
+
+  it('testConnection fails when no music sections exist', async () => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: { Directory: [{ key: '7', type: 'movie', title: 'Movies' }] },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+    const result = await client.testConnection()
+    expect(result.success).toBe(false)
+    expect(result.message).toContain('No music library section')
   })
 })
 

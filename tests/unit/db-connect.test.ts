@@ -30,7 +30,7 @@ describe('connectTarget', () => {
     const r = await t.db.execute(
       sql`select count(*)::int n from information_schema.tables where table_name='users'`,
     )
-    expect((r as unknown as { rows: { n: number }[] }).rows[0]!.n).toBe(1)
+    expect((r as unknown as { rows: { n: number }[] }).rows[0]?.n).toBe(1)
     await t.close()
   })
 

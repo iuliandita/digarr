@@ -10,6 +10,7 @@ const MODE_ID_ALIASES: Record<string, string> = {
 }
 
 const FIELD_KEY_ALIASES: Record<string, string> = {
+  feedType: 'feed',
   seedArtistMbid: 'artist',
   targetUsername: 'username',
   maxUsers: 'usersToSample',
@@ -22,11 +23,25 @@ const FIELD_KEY_ALIASES: Record<string, string> = {
 
 const FIELD_HELP_KEY_ALIASES: Record<string, string> = {
   seedArtistMbid: 'helpArtistSeed',
+  targetUsername: 'helpConnectedAccount',
+  maxUsers: 'helpSimilarUsers',
+  tags: 'helpTags',
+  rawTagExpression: 'helpRawTagExpression',
+  count: 'helpRecordingCount',
+  popBegin: 'helpPopularityMin',
+  popEnd: 'helpPopularityMax',
 }
 
 const OPTION_VALUE_ALIASES: Record<string, string> = {
   easy: 'safe',
   hard: 'adventurous',
+  'member of band': 'memberOfBand',
+  collaboration: 'collaboration',
+  'supporting musician': 'supportingMusician',
+  'is person': 'isPerson',
+  sibling: 'sibling',
+  married: 'married',
+  'involved with': 'involvedWith',
 }
 
 const REASON_KEY_ALIASES: Record<string, MessageKey> = {
@@ -35,9 +50,14 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect ListenBrainz or Last.fm to use this mode.':
     'discoveryMode.reason.connectListenBrainzOrLastfm',
   'Connect Discogs to use this mode.': 'discoveryMode.reason.connectDiscogs',
+  'Connect Last.fm to use this mode.': 'discoveryMode.reason.connectLastfm',
+  'Connect Deezer to use this mode.': 'discoveryMode.reason.connectDeezer',
+  'Connect Spotify to use this mode.': 'discoveryMode.reason.connectSpotify',
+  'Connect Subsonic to use this mode.': 'discoveryMode.reason.connectSubsonic',
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
   'This mode is not implemented yet.': 'discoveryMode.notImplementedYet',
   'This mode is not shipped yet.': 'discoveryMode.notShippedYet',
+  'Sync a library first to use this mode.': 'discoveryMode.reason.libraryRequired',
 }
 
 function normalizeModeId(modeId: string): string {
@@ -93,6 +113,9 @@ export function translateDiscoveryOption(
   t: Translate,
   option: { value: string; label: string },
 ): string {
+  if (option.label.startsWith('discoveryMode.')) {
+    return translateKnownKey(t, option.label as MessageKey) ?? option.value
+  }
   const key = `discoveryMode.option.${normalizeOptionValue(option.value)}` as MessageKey
   return translateKnownKey(t, key) ?? option.label
 }
@@ -109,4 +132,32 @@ export function buildDiscoveryFieldRequiredMessage(
   field: DiscoveryConfigField,
 ): string {
   return t('discoveryMode.fieldRequired').replace('{0}', translateDiscoveryFieldLabel(t, field))
+}
+
+export function collectDiscoveryMessageKeys(
+  modes: Array<{
+    id: string
+    label: string
+    description: string
+    easyFields: DiscoveryConfigField[]
+    advancedFields: DiscoveryConfigField[]
+  }>,
+): Set<MessageKey> {
+  const keys = new Set<MessageKey>()
+  const collect = (key: MessageKey) => {
+    keys.add(key)
+    return key
+  }
+
+  for (const mode of modes) {
+    translateDiscoveryModeLabel(collect, mode)
+    translateDiscoveryModeDescription(collect, mode)
+    for (const field of [...mode.easyFields, ...mode.advancedFields]) {
+      translateDiscoveryFieldLabel(collect, field)
+      translateDiscoveryFieldHelp(collect, field)
+      for (const option of field.options ?? []) translateDiscoveryOption(collect, option)
+    }
+  }
+
+  return keys
 }

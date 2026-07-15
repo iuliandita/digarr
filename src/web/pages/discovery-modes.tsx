@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { DiscoveryModesSection } from '../components/discovery-modes-section'
 import { useI18n } from '../lib/i18n'
 
 export function DiscoveryModesPage() {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
+  const requestedModeId = searchParams.get('mode')
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 px-6 py-6">
@@ -17,7 +19,7 @@ export function DiscoveryModesPage() {
         </div>
       </div>
 
-      <DiscoveryModesSection />
+      <DiscoveryModesSection requestedModeId={requestedModeId} />
     </div>
   )
 }

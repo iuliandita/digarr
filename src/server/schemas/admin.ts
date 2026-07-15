@@ -23,6 +23,7 @@ export const backupDataSchema = z.strictObject({
   playlists: tableArray,
   playlistTracks: tableArray,
   artists: tableArray.optional(),
+  artistGenreAliases: tableArray.optional(),
   genres: tableArray.optional(),
   artistMetadata: tableArray.optional(),
   // Present in every backup since artistBlocks was added; optional for compat with older files
@@ -49,5 +50,3 @@ export const backupFileSchema = z.object({
   includesCaches: z.boolean(),
   data: backupDataSchema,
 })
-
-export type BackupFileInput = z.infer<typeof backupFileSchema>

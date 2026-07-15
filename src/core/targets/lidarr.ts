@@ -80,10 +80,9 @@ export function createLidarrTarget(
               'artist added, but the selected album was not found in Lidarr (it may still be populating; retry to finish monitoring)'
           } else {
             try {
-              for (const album of matched) {
-                await client.updateAlbum(album.id, { monitored: true })
-              }
-              await client.triggerCommand('AlbumSearch', { albumIds: matched.map((a) => a.id) })
+              const albumIds = matched.map((a) => a.id)
+              await client.setAlbumsMonitored(albumIds, true)
+              await client.triggerCommand('AlbumSearch', { albumIds })
               if (matched.length < wanted.length) {
                 warning = `artist added; ${matched.length} of ${wanted.length} selected albums monitored, the rest were not found in Lidarr`
               }
@@ -149,7 +148,7 @@ export function createLidarrTarget(
           }
         }
 
-        await client.updateAlbum(match.id, { monitored: true })
+        await client.setAlbumsMonitored([match.id], true)
         await client.triggerCommand('AlbumSearch', { albumIds: [match.id] })
 
         return {

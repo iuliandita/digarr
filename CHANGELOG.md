@@ -4,6 +4,45 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.13.0 - 2026-07-15
+
+New discovery inputs and review controls, continuous audition playback, broader genre coverage, and safer library and operations paths.
+
+### Added
+
+- **Genre backfill for non-Spotify listening sources.** Discovery-only scans now use genre metadata already returned by Plex, Jellyfin, Emby, and Discogs, then fill remaining gaps from synchronized library rows and the artist cache. After the foreground scan finishes, a maintenance-aware background warmer enriches at most 10 artists through the existing MusicBrainz rate gate, with optional Last.fm top-tag fallback and 180-day negative caching. Ambiguous name-only matches are skipped. Dashboard and Settings show covered and pending listening artists, translated across all 15 shipped locales.
+- **Subsonic Starred discovery mode.** Starred artists from a connected Subsonic-compatible server can now seed a manual discovery run or saved subscription. The mode reuses the account's existing Subsonic connection and honors the global TLS verification setting. Translated across all 15 shipped locales.
+- **Experimental TIDAL search.** Cross-provider artist search can include TIDAL when an admin configures client credentials. Unconfigured installs leave the source disabled, and connection settings and probes remain admin-managed.
+- **Continuous Audition queue.** Discover can queue the loaded pending recommendations that have playable previews, order them by score, and move through them with previous, next, and position controls in the global preview bar. Deezer advances from its native end event, Spotify uses one persistent supported controller, and YouTube retains a bounded fallback. Translated across all 15 shipped locales.
+- **Reject all below a score threshold.** Discover can select every loaded pending recommendation below a chosen score for one reviewed bulk rejection while preserving higher-scored candidates.
+
+### Changed
+
+- **Notification digests now persist their last-sent bookmark.** Restarts and downtime no longer double-report or drop an activity window; delivery remains at-least-once.
+- **Database backend migration now copies and verifies one table at a time.** The admin migration tool no longer holds whole-source and whole-target backup objects in application memory. It keeps the consistent read-only source transaction and atomic target transaction, restores in bounded chunks, and reports the same count/content verification result while the working set follows the largest individual table.
+- **Playlist targets now share one safe HTTP transport policy.** Jellyfin, Emby, Plex, and Navidrome playlist requests use the shared timeout, TLS, JSON parsing, response-body error, and credential-redaction path. Read-only requests and best-effort metadata updates may retry; duplicate-producing playlist creation and song-add requests make exactly one attempt, including Subsonic's GET-shaped mutation endpoints.
+- **Lidarr library-health repairs use the bulk editor first.** Unmonitored-artist repairs make one bulk request on compatible Lidarr versions and retain a per-artist fallback when the bulk endpoint is unavailable.
+- **Deezer OAuth requests only the permissions Digarr uses.** The unused library-management scope was removed from new authorization requests.
+
+### Fixed
+
+- **Permanent rejection of an album no longer blocks its artist.** Album recommendations now create an album-level block, preserving future recommendations for other releases by the same artist.
+- **Library Gap-Fill is runnable again.** The availability evaluator now recognizes the mode, so the UI enables it, manual runs no longer return 400, and saved subscriptions can execute.
+- **Backend migration pauses background schedulers.** Scheduled work no longer starts against a backend while the admin migration lock is active.
+- **Notification digest windows now derive from the previous successful delivery.** Irregular schedules no longer calculate the wrong activity interval, and credential-shaped values are redacted from related errors.
+- **IPv6 reverse-proxy trust checks now honor configured CIDR ranges.** Pure IPv6 clients behind an authorized proxy no longer miss the trusted-proxy match.
+- **AI source errors no longer expose credential-shaped values.** Provider failures are redacted before they reach logs, persisted job source results, or live scan-progress warnings.
+- **New discovery-mode connection reasons are translated.** Disabled-state guidance for Charts, Deezer Flow, Spotify Saved Albums, and Subsonic Starred no longer falls back to English in the other 14 shipped locales.
+- **Subsonic Starred now honors Skip TLS Verify.** Self-signed Subsonic servers behave consistently between the normal listening pipeline and the Starred discovery mode.
+- **Malformed slskd jobs no longer send empty searches or repeat HTTP 400 errors.** New jobs must contain an artist name or release title, while legacy jobs that still need a search are retained as terminal failures before any request reaches slskd.
+- **Subsonic library syncs no longer fail when one album appears under multiple artists.** Digarr now collapses duplicate source-album rows before replacing the library snapshot and reports the underlying database cause as a short, credential-redacted error instead of dumping generated SQL.
+- **Overflowing Settings tabs now reveal and expose the hidden tabs.** Conditional left/right chevrons and edge fades show when more tabs exist in either direction, while native touch, trackpad, shift-wheel, and horizontal-wheel scrolling remain available. Selecting or deep-linking a tab brings it into view. Both controls have translated accessible labels across all 15 shipped locales.
+- **Discovery over time bars are visible again.** Each batch column now owns the full chart height, so its existing percentage segments render instead of resolving to zero. Scaling, ordering, date labels, and tooltips are unchanged.
+- **Spotify audition no longer advances silently when browser autoplay is blocked.** The queue now reuses Spotify's supported iframe controller across recommendations, treats an item as playing only after the controller confirms it, and advances only after playback completes. When autoplay is blocked, the current embed remains usable so one manual play can activate the persistent controller for later entries. A controller initialization failure skips that audition item instead of parking the queue; outside a queue, it falls back to the standard usable embed. Deezer still advances from its native `ended` event, while YouTube keeps the bounded 30-second fallback.
+- **An empty Albums view now explains how album recommendations are created.** A normal scan remains artist-focused; the empty state links directly to Library Gap-Fill, Release Radar, and the net-new album discovery preference. Discovery-mode links scroll to and focus the requested mode, while the settings link opens Advanced and focuses the preference. Translated across all 15 shipped locales.
+- **Nightly containers now report their real build identity.** The image keeps the build-time commit SHA and release channel in the runtime stage, so the web footer and `GET /health` no longer fall back to `dev` / `local` in deployed nightly images.
+- **Artist metadata rescans now survive Lidarr/SkyHook failures.** Rescans use the same AudioDB -> Lidarr/SkyHook -> fanart.tv -> musicinfo.pro image chain as normal discovery, refresh MusicBrainz disambiguation independently, safely cache complete misses from shared image providers for seven days, and report attempted, updated, and failed artist counts in both the API and UI. Artists shared by multiple recommendations are attempted once. The admin-only operation is rate limited and single-flight to protect shared metadata and upstream quotas. The result toast is translated across all 15 shipped locales.
+
 ## v1.12.0 - 2026-07-05
 
 AI provider problems are now visible everywhere they matter, plus a batch of Lidarr, library-sync, and OIDC fixes.

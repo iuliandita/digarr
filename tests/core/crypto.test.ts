@@ -1,3 +1,4 @@
+import { createCipheriv, createHash, randomBytes } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   decryptField,
@@ -9,6 +10,15 @@ import {
   isEncryptionEnabled,
   SENSITIVE_OIDC,
 } from '@/core/crypto'
+
+function encryptWithLegacyKey(value: string, keyInput: string): string {
+  const key = createHash('sha256').update(keyInput).digest()
+  const iv = randomBytes(12)
+  const cipher = createCipheriv('aes-256-gcm', key, iv)
+  const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()])
+  const tag = cipher.getAuthTag()
+  return `enc:v1:${iv.toString('base64')}.${encrypted.toString('base64')}.${tag.toString('base64')}`
+}
 
 describe('crypto', () => {
   beforeEach(() => {
@@ -84,15 +94,16 @@ describe('crypto', () => {
 
   describe('legacy SHA-256 key fallback', () => {
     it('decrypts values encrypted under the legacy SHA-256 key', () => {
-      // Simulate a pre-migration value by crafting one with the legacy key path.
-      // Since the legacy path is internal, we verify behavior indirectly:
-      // encrypting under current (HKDF) key, then switching to a same-string
-      // init, should still decrypt because initEncryption sets up both keys
-      // from the same input.
+      const enc = encryptWithLegacyKey('value', 'shared-secret-v1')
       initEncryption('shared-secret-v1')
-      const enc = encryptField('value')
-      // Re-init with same input: HKDF and legacy keys recomputed identically
-      initEncryption('shared-secret-v1')
+      expect(decryptField(enc)).toBe('value')
+    })
+
+    it('decrypts legacy ciphertext through NEXT after the rotation key swap', () => {
+      const enc = encryptWithLegacyKey('value', 'old-key')
+
+      initEncryption('new-key', 'old-key')
+
       expect(decryptField(enc)).toBe('value')
     })
   })

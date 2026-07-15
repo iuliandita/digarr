@@ -28,7 +28,7 @@ type HealthServiceDeps = {
     getArtists: () => Promise<LidarrArtist[]>
     getAlbums: (artistId: number) => Promise<LidarrAlbum[]>
     lookupArtist: (term: string) => Promise<unknown[]>
-    updateArtist: (id: number, data: Partial<LidarrArtist>) => Promise<LidarrArtist>
+    setArtistsMonitored: (artistIds: number[], monitored: boolean) => Promise<LidarrArtist[]>
     triggerCommand: (name: string, body?: Record<string, unknown>) => Promise<unknown>
     getRootFolders: () => Promise<Array<{ id: number; path: string; freeSpace: number }>>
   }
@@ -188,6 +188,23 @@ export class LibraryHealthService {
       failed: 0,
       status: 'running',
       errors: [],
+    }
+
+    if (checkId === 'unmonitored') {
+      const ids = items.map((i) => i.artistId).filter((id) => id > 0)
+      if (ids.length === 0) {
+        progress.status = 'completed'
+        return progress
+      }
+      try {
+        await this.deps.lidarrClient.setArtistsMonitored(ids, true)
+        progress.completed = ids.length
+        progress.status = 'completed'
+        return progress
+      } catch {
+        // bulk editor rejects the whole batch as a unit -- fall through to the
+        // per-artist queue to attribute failures and fix what still can be
+      }
     }
 
     const queue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
@@ -419,13 +436,13 @@ export class LibraryHealthService {
 
   private async applyFix(checkId: HealthCheckId, item: HealthCheckItem): Promise<void> {
     switch (checkId) {
+      case 'unmonitored':
+        await this.deps.lidarrClient.setArtistsMonitored([item.artistId], true)
+        break
+
       case 'missing-metadata':
       case 'genre-gaps':
         await this.deps.lidarrClient.triggerCommand('RefreshArtist', { artistId: item.artistId })
-        break
-
-      case 'unmonitored':
-        await this.deps.lidarrClient.updateArtist(item.artistId, { monitored: true })
         break
 
       case 'missing-albums':

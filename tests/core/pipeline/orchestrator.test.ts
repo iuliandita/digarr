@@ -29,6 +29,11 @@ vi.mock('@/core/pipeline/store', () => ({
   store: vi.fn(),
 }))
 
+vi.mock('@/core/pipeline/genre-backfill', () => ({
+  hydrateArtistGenres: vi.fn(),
+  warmArtistGenres: vi.fn(),
+}))
+
 // ---------------------------------------------------------------------------
 // Mock client/plugin factories
 // ---------------------------------------------------------------------------
@@ -85,6 +90,7 @@ const { resolve } = await import('@/core/pipeline/resolve')
 const { score } = await import('@/core/pipeline/score')
 const { filter } = await import('@/core/pipeline/filter')
 const { store } = await import('@/core/pipeline/store')
+const { hydrateArtistGenres, warmArtistGenres } = await import('@/core/pipeline/genre-backfill')
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -178,6 +184,8 @@ describe('PipelineOrchestrator', () => {
   let mockScore: ReturnType<typeof vi.fn>
   let mockFilter: ReturnType<typeof vi.fn>
   let mockStore: ReturnType<typeof vi.fn>
+  let mockHydrateArtistGenres: ReturnType<typeof vi.fn>
+  let mockWarmArtistGenres: ReturnType<typeof vi.fn>
   let providerRegistry: ReturnType<typeof makeProviderRegistry>
   let syncForUser: SyncForUser
 
@@ -210,6 +218,8 @@ describe('PipelineOrchestrator', () => {
     mockScore = vi.mocked(score)
     mockFilter = vi.mocked(filter)
     mockStore = vi.mocked(store)
+    mockHydrateArtistGenres = vi.mocked(hydrateArtistGenres)
+    mockWarmArtistGenres = vi.mocked(warmArtistGenres)
 
     mockAnalyze.mockResolvedValue(tasteProfile)
     mockDiscover.mockResolvedValue(discovered)
@@ -217,6 +227,16 @@ describe('PipelineOrchestrator', () => {
     mockScore.mockReturnValue(scored)
     mockFilter.mockReturnValue(filtered)
     mockStore.mockResolvedValue(42)
+    mockHydrateArtistGenres.mockResolvedValue({
+      artists: tasteProfile.topArtists,
+      coverage: { coveredArtists: 0, pendingArtists: 1, totalArtists: 1 },
+    })
+    mockWarmArtistGenres.mockResolvedValue({
+      attempted: 1,
+      updated: 1,
+      failed: 0,
+      skippedAmbiguous: 0,
+    })
   }
 
   async function setupClientMocks() {
@@ -399,6 +419,67 @@ describe('PipelineOrchestrator', () => {
       }),
     )
     expect(messages.some((m) => m.includes(aiError))).toBe(true)
+  })
+
+  it('hydrates genres, records coverage, then starts the background warmer', async () => {
+    const db = {
+      ...makeDb(),
+      getArtistGenreCacheByMbids: vi.fn().mockResolvedValue([]),
+      getArtistGenreCacheByAliases: vi.fn().mockResolvedValue([]),
+      upsertArtistGenres: vi.fn().mockResolvedValue(undefined),
+      upsertArtistGenreAlias: vi.fn().mockResolvedValue(undefined),
+    }
+    const coverage = { coveredArtists: 1, pendingArtists: 1, totalArtists: 2 }
+    const hydratedArtists = [
+      {
+        ...tasteProfile.topArtists[0],
+        genres: ['post-rock'],
+        genreSource: 'artist-cache' as const,
+      },
+    ]
+    mockHydrateArtistGenres.mockResolvedValue({ artists: hydratedArtists, coverage })
+    mockAnalyze.mockImplementation(async (_sources, options) => {
+      const hydrated = await options?.genreHydrator?.(tasteProfile.topArtists)
+      return {
+        ...tasteProfile,
+        topArtists: hydrated?.artists ?? tasteProfile.topArtists,
+        genreCoverage: hydrated?.coverage,
+      }
+    })
+    const jobRecorder = {
+      start: vi.fn().mockResolvedValue(9),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
+    }
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      jobRecorder,
+    })
+
+    expect(mockHydrateArtistGenres).toHaveBeenCalledWith(
+      tasteProfile.topArtists,
+      expect.objectContaining({
+        getArtistGenreCacheByMbids: db.getArtistGenreCacheByMbids,
+        getArtistGenreCacheByAliases: db.getArtistGenreCacheByAliases,
+      }),
+      expect.any(Array),
+    )
+    expect(jobRecorder.complete).toHaveBeenCalledWith(
+      9,
+      expect.objectContaining({
+        metadata: expect.objectContaining({ genreCoverage: coverage }),
+      }),
+    )
+    await vi.waitFor(() => expect(mockWarmArtistGenres).toHaveBeenCalledOnce())
+    expect(jobRecorder.complete.mock.invocationCallOrder[0]).toBeLessThan(
+      mockWarmArtistGenres.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
+    )
   })
 
   it('returns batchId on success', async () => {
@@ -901,22 +982,14 @@ describe('PipelineOrchestrator', () => {
 
   it('fire-and-forgets first library sync when user has no prior sync state', async () => {
     const db = makeDb()
-    let firstSyncResolved = false
     const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
       ...db,
       getLibraryArtistsForUser: vi.fn(async () => []),
       userHasOwnSyncState: vi.fn(async () => false), // first sync ever
     }
-    const syncForUser = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          // Never resolves during the test - simulates a slow first sync
-          setTimeout(() => {
-            firstSyncResolved = true
-            resolve({ userId: 1, results: [] })
-          }, 1000)
-        }),
-    ) as SyncForUser
+    // Never resolves - simulates a slow first sync without leaking a timer
+    // past the end of the test.
+    const syncForUser = vi.fn(() => new Promise(() => {})) as SyncForUser
 
     const result = await orchestrator.run({
       db: dbWithLibrary,
@@ -929,7 +1002,6 @@ describe('PipelineOrchestrator', () => {
     // Pipeline must complete WITHOUT waiting for the slow first sync
     expect(result).toEqual({ batchId: 42 })
     expect(syncForUser).toHaveBeenCalled()
-    expect(firstSyncResolved).toBe(false)
     // It should still read from the (empty) cache
     expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalled()
   })

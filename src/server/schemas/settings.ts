@@ -65,6 +65,10 @@ export const updateSettingsSchema = z.object({
   audiodbProxyImages: z.boolean().optional(),
   wikidataEnabled: z.boolean().optional(),
 
+  // TIDAL search (global, admin-only) - client credentials for the experimental search source
+  tidalClientId: z.string().nullable().optional(),
+  tidalClientSecret: z.string().nullable().optional(),
+
   // Preferences (nested)
   preferences: preferencesSchema.optional(),
 
@@ -81,12 +85,15 @@ export const updateSettingsSchema = z.object({
   lastfmApiKey: z.string().nullable().optional(),
   plexUrl: z.string().nullable().optional(),
   plexToken: z.string().nullable().optional(),
+  plexSectionId: z.string().nullable().optional(),
   jellyfinUrl: z.string().nullable().optional(),
   jellyfinApiKey: z.string().nullable().optional(),
   jellyfinUserId: z.string().nullable().optional(),
+  jellyfinLibraryId: z.string().nullable().optional(),
   embyUrl: z.string().nullable().optional(),
   embyApiKey: z.string().nullable().optional(),
   embyUserId: z.string().nullable().optional(),
+  embyLibraryId: z.string().nullable().optional(),
   discogsToken: z.string().nullable().optional(),
   discogsUsername: z.string().nullable().optional(),
   subsonicUrl: z.string().nullable().optional(),

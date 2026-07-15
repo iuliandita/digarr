@@ -48,7 +48,7 @@ describe('createJellyfinPlaylistTarget()', () => {
       await target.testConnection()
 
       const opts = mockFetch.mock.calls[0]?.[1] as RequestInit
-      expect(opts.headers).toEqual(expect.objectContaining({ 'X-Emby-Token': 'jf-api-key' }))
+      expect(new Headers(opts.headers).get('X-Emby-Token')).toBe('jf-api-key')
     })
 
     it('passes Bun TLS skip options when configured', async () => {
@@ -65,7 +65,7 @@ describe('createJellyfinPlaylistTarget()', () => {
     })
 
     it('returns failure when server is unreachable', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+      mockFetch.mockRejectedValue(new Error('connect ECONNREFUSED'))
 
       const target = createJellyfinPlaylistTarget(7, CONFIG)
       const result = await target.testConnection()
@@ -185,6 +185,55 @@ describe('createJellyfinPlaylistTarget()', () => {
 
       expect(result?.success).toBe(false)
       expect(result?.error).toContain('500')
+      expect(result?.error).toContain('Error')
+      expect(
+        mockFetch.mock.calls.filter(
+          ([url, init]) =>
+            String(url).includes('/Playlists') &&
+            (init as RequestInit | undefined)?.method === 'POST',
+        ),
+      ).toHaveLength(1)
+    })
+
+    it('returns a provider-shaped error for malformed JSON', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('not-json'))
+
+      const target = createJellyfinPlaylistTarget(7, CONFIG)
+      const result = await target.createPlaylist?.('Bad JSON', [])
+
+      expect(result).toMatchObject({
+        success: false,
+        error: 'Jellyfin API 200: Invalid JSON: not-json',
+      })
+    })
+
+    it('redacts the API key if an upstream error body echoes it', async () => {
+      mockFetch.mockResolvedValueOnce(
+        new Response(`apiKey=${CONFIG.apiKey}`, {
+          status: 500,
+        }),
+      )
+
+      const target = createJellyfinPlaylistTarget(7, CONFIG)
+      const result = await target.createPlaylist?.('Echoed Credential', [])
+
+      expect(result).toMatchObject({
+        success: false,
+        error: 'Jellyfin API 500: apiKey=[REDACTED]',
+      })
+      expect(result?.error).not.toContain(CONFIG.apiKey)
+    })
+
+    it('returns a provider-shaped error for an empty JSON response', async () => {
+      mockFetch.mockResolvedValueOnce(new Response(''))
+
+      const target = createJellyfinPlaylistTarget(7, CONFIG)
+      const result = await target.createPlaylist?.('Empty Response', [])
+
+      expect(result).toMatchObject({
+        success: false,
+        error: 'Jellyfin API 200: Expected JSON response body',
+      })
     })
 
     it('prefers exact artist+title match in search results', async () => {

@@ -17,6 +17,7 @@ import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
 import { setupGuard } from './middleware/setup-guard'
 import { adminRoutes } from './routes/admin'
+import { albumBlocksRoutes } from './routes/album-blocks'
 import { analyticsRoutes } from './routes/analytics'
 import { artistBlocksRoutes } from './routes/artist-blocks'
 import { artistRoutes } from './routes/artists'
@@ -117,7 +118,11 @@ export function createApp(deps: AppDependencies) {
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          'https://open.spotify.com/embed/iframe-api/v1',
+          'https://embed-cdn.spotifycdn.com/_next/static/',
+        ],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
@@ -243,6 +248,7 @@ export function createApp(deps: AppDependencies) {
     '/api/v1/pipeline/quick-discover',
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
   )
+  app.use('/api/v1/pipeline/rescan', rateLimiter({ windowMs: 60_000, max: 2, keyPrefix: 'rscn' }))
   app.route('/', authRoutes(deps))
   app.route('/', oauthRoutes(deps))
   app.route('/', healthRoutes({ db: deps.db }))
@@ -308,6 +314,13 @@ export function createApp(deps: AppDependencies) {
       listArtistBlocks: deps.listArtistBlocks,
       removeArtistBlock: deps.removeArtistBlock,
       addArtistBlock: deps.addArtistBlock,
+    }),
+  )
+  app.route(
+    '/',
+    albumBlocksRoutes({
+      listAlbumBlocks: deps.listAlbumBlocks,
+      removeAlbumBlock: deps.removeAlbumBlock,
     }),
   )
   app.route(

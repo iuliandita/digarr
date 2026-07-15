@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import * as z from 'zod'
+import { idParamSchema } from './validator'
 
 // Cron string: any expression croner can parse. Validate by construction
 // attempt so the error surfaces at the schema boundary instead of later.
@@ -20,9 +21,7 @@ export const cronSchema = z
     { message: 'Invalid cron expression' },
   )
 
-export const subscriptionIdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-})
+export const subscriptionIdParamSchema = idParamSchema
 
 const listenerRangeSchema = z.object({
   min: z.number().int().nonnegative().optional(),

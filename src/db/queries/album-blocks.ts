@@ -48,7 +48,20 @@ export async function getBlockedAlbumKeys(db: Database, userId: number): Promise
   return new Set(rows.map((r) => r.releaseGroupMbid))
 }
 
-export async function listAlbumBlocks(db: Database, userId: number) {
+export type BlockedAlbumRow = {
+  id: number
+  artistId: number
+  artistName: string
+  artistMbid: string | null
+  releaseGroupMbid: string
+  reason: string | null
+  reasonText: string | null
+  blockedAt: Date
+}
+
+// Plain list, no cursor pagination - album blocks accumulate slowly (one per
+// permanent album rejection). The limit is just a safety cap, not a page size.
+export async function listAlbumBlocks(db: Database, userId: number): Promise<BlockedAlbumRow[]> {
   return db
     .select({
       id: albumBlocks.id,
@@ -64,4 +77,5 @@ export async function listAlbumBlocks(db: Database, userId: number) {
     .innerJoin(artists, eq(artists.id, albumBlocks.artistId))
     .where(eq(albumBlocks.userId, userId))
     .orderBy(albumBlocks.blockedAt)
+    .limit(500)
 }

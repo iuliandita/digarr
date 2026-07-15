@@ -1,11 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
-import { createAudiodbClient } from '@/core/clients/audiodb'
-import { createFanartClient } from '@/core/clients/fanart'
-import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
-import { createMusicinfoClient } from '@/core/clients/musicinfo'
-import { decryptField } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
@@ -16,7 +11,7 @@ import { createJellyfinSource } from '@/core/plugins/jellyfin'
 import { createLastFmSource } from '@/core/plugins/lastfm'
 import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
 import { createPlexSource } from '@/core/plugins/plex'
-import { SourceRegistry } from '@/core/plugins/registry'
+import { LISTENING_SOURCE_IDS, SourceRegistry } from '@/core/plugins/registry'
 import { createSpotifySource } from '@/core/plugins/spotify'
 import { createSubsonicSource } from '@/core/plugins/subsonic'
 import type { AiProviderRegistry } from '@/core/providers/registry'
@@ -29,6 +24,8 @@ import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { discover } from './discover'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
+import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
+import { createArtistImageClients } from './image-clients'
 import { resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
@@ -106,7 +103,6 @@ export function shouldDropAlbumCandidate(
 interface QueuedRun {
   userId: number | undefined
   deps: PipelineDeps
-  enqueuedAt: Date
 }
 
 export type EnqueueResult = {
@@ -162,29 +158,12 @@ export class PipelineOrchestrator extends EventEmitter {
         }
       }
 
-      const lidarrClient =
-        settings.lidarrUrl && settings.lidarrApiKey
-          ? createLidarrClient(settings.lidarrUrl, settings.lidarrApiKey, settings.skipTlsVerify)
-          : null
-
-      const audiodbApiKey = decryptField(settings.audiodbApiKey ?? null) ?? undefined
-      const audiodbClient = db.tryConsumeRateLimit
-        ? createAudiodbClient({
-            apiKey: audiodbApiKey,
-            tryConsume: () =>
-              db.tryConsumeRateLimit?.('audiodb', {
-                capacity: 30,
-                refillPerMs: 30 / 60_000,
-              }) ?? Promise.resolve(false),
-          })
-        : null
-
-      const fanartApiKey = decryptField(prefs.fanartApiKey) ?? null
-      const fanartClient = fanartApiKey ? createFanartClient(fanartApiKey) : null
-
-      const musicinfoClient = prefs.metadataFallbackUrl
-        ? createMusicinfoClient(prefs.metadataFallbackUrl)
-        : null
+      const { audiodbClient, lidarrClient, fanartClient, musicinfoClient } =
+        createArtistImageClients({
+          settings,
+          preferences: prefs,
+          tryConsumeRateLimit: db.tryConsumeRateLimit,
+        })
 
       // Listening connections are always user-scoped.
       const { userConnections } = deps
@@ -210,7 +189,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const plexUrl = userConnections?.plexUrl
       const plexToken = userConnections?.plexToken
       if (plexUrl && plexToken) {
-        registry.register(createPlexSource(plexUrl, plexToken))
+        registry.register(createPlexSource(plexUrl, plexToken, userConnections?.plexSectionId))
       }
 
       // Jellyfin
@@ -218,7 +197,15 @@ export class PipelineOrchestrator extends EventEmitter {
       const jfApiKey = userConnections?.jellyfinApiKey
       const jfUserId = userConnections?.jellyfinUserId
       if (jfUrl && jfApiKey && jfUserId) {
-        registry.register(createJellyfinSource(jfUrl, jfApiKey, jfUserId, settings.skipTlsVerify))
+        registry.register(
+          createJellyfinSource(
+            jfUrl,
+            jfApiKey,
+            jfUserId,
+            settings.skipTlsVerify,
+            userConnections?.jellyfinLibraryId,
+          ),
+        )
       }
 
       // Emby
@@ -226,7 +213,15 @@ export class PipelineOrchestrator extends EventEmitter {
       const embyApiKey = userConnections?.embyApiKey
       const embyUserId = userConnections?.embyUserId
       if (embyUrl && embyApiKey && embyUserId) {
-        registry.register(createEmbySource(embyUrl, embyApiKey, embyUserId, settings.skipTlsVerify))
+        registry.register(
+          createEmbySource(
+            embyUrl,
+            embyApiKey,
+            embyUserId,
+            settings.skipTlsVerify,
+            userConnections?.embyLibraryId,
+          ),
+        )
       }
 
       // Discogs
@@ -311,6 +306,22 @@ export class PipelineOrchestrator extends EventEmitter {
         .filter((a): a is typeof a & { mbid: string } => a.mbid !== null)
         .map((a) => ({ mbid: a.mbid, name: a.name }))
 
+      const genreDb: GenreBackfillDb | null =
+        db.getArtistGenreCacheByMbids &&
+        db.getArtistGenreCacheByAliases &&
+        db.upsertArtistGenres &&
+        db.upsertArtistGenreAlias
+          ? {
+              getArtistGenreCacheByMbids: db.getArtistGenreCacheByMbids,
+              getArtistGenreCacheByAliases: db.getArtistGenreCacheByAliases,
+              upsertArtistGenres: db.upsertArtistGenres,
+              upsertArtistGenreAlias: db.upsertArtistGenreAlias,
+            }
+          : null
+      const genreLibraryArtists = genreDb
+        ? await db.getLibraryArtistsForUser(userIdForSync)
+        : libraryArtists
+
       const sourceCount = new Set(libraryArtists.map((a) => a.source)).size
       this.emit('progress', {
         stage: 'collect',
@@ -329,7 +340,15 @@ export class PipelineOrchestrator extends EventEmitter {
 
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
-        ...(await analyze(registry.all())),
+        ...(await analyze(
+          registry.all(),
+          genreDb
+            ? {
+                genreHydrator: (artists) =>
+                  hydrateArtistGenres(artists, genreDb, genreLibraryArtists),
+              }
+            : {},
+        )),
         responseLocale: deps.responseLocale,
         promptLocale: deps.promptLocale ?? null,
       }
@@ -379,16 +398,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const sourceResults: Record<string, import('@/core/jobs/types').SourceResult> = {}
 
       // Mark unconfigured sources as skipped
-      const knownSourceIds = [
-        'listenbrainz',
-        'lastfm',
-        'spotify',
-        'plex',
-        'jellyfin',
-        'emby',
-        'discogs',
-      ]
-      for (const id of knownSourceIds) {
+      for (const id of LISTENING_SOURCE_IDS) {
         if (!registry.all().some((s) => s.id === id)) {
           sourceResults[id] = { status: 'skipped', reason: 'not_configured' }
         }
@@ -569,11 +579,28 @@ export class PipelineOrchestrator extends EventEmitter {
             artistsDiscovered: scored.length,
             artistsStored: filtered.length,
             artistsFiltered: scored.length - filtered.length,
+            ...(tasteProfile.genreCoverage ? { genreCoverage: tasteProfile.genreCoverage } : {}),
             ...(aiProvider?.lastUsage ? { aiUsage: aiProvider.lastUsage } : {}),
           },
           sourceResults,
           batchId,
         })
+      }
+
+      if (genreDb) {
+        const lastfm = registry.all().find((source) => source.id === 'lastfm')
+        void warmArtistGenres(tasteProfile.topArtists, {
+          db: genreDb,
+          musicbrainz: mbClient,
+          ...(lastfm?.getArtistGenres
+            ? { lastfm: { getArtistGenres: lastfm.getArtistGenres.bind(lastfm) } }
+            : {}),
+        }).catch((error: unknown) =>
+          console.error(
+            '[genre-backfill] background warm failed:',
+            error instanceof Error ? error.message : String(error),
+          ),
+        )
       }
 
       return { batchId }
@@ -605,7 +632,7 @@ export class PipelineOrchestrator extends EventEmitter {
     if (this._currentUserId === deps.userId) return { status: 'duplicate', position: 0 }
     const existing = this.queue.findIndex((q) => q.userId === deps.userId)
     if (existing >= 0) return { status: 'duplicate', position: existing + 1 }
-    this.queue.push({ userId: deps.userId, deps, enqueuedAt: new Date() })
+    this.queue.push({ userId: deps.userId, deps })
     return { status: 'queued', position: this.queue.length }
   }
 

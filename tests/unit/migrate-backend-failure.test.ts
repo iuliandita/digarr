@@ -1,6 +1,7 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { sql } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
@@ -9,17 +10,20 @@ import { makeTestDb } from '../helpers/test-db'
 // parallel contention; these failure paths still spin up a real target.
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
-// Keep createBackup + BACKUP_TABLE_BY_KEY real (the verification loop and the
-// source snapshot rely on them); override only restoreBackup so we can simulate
-// a target that diverges from the source after the copy, or a restore that
-// blows up mid-flight.
+const copyDatabaseTables = vi.hoisted(() => vi.fn())
+
 vi.mock('@/core/ops/backup', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/ops/backup')>()
-  return { ...actual, restoreBackup: vi.fn() }
+  return {
+    ...actual,
+    copyDatabaseTables,
+    createBackup: vi.fn(actual.createBackup),
+    restoreBackup: vi.fn(actual.restoreBackup),
+  }
 })
 
 const { migrateBackend } = await import('@/core/ops/migrate-backend')
-const { restoreBackup } = await import('@/core/ops/backup')
+const { createBackup, restoreBackup } = await import('@/core/ops/backup')
 
 function tgt(name: string) {
   return join(process.env.DIGARR_MIGRATE_DATA_ROOT as string, name)
@@ -28,27 +32,55 @@ function tgt(name: string) {
 describe('migrateBackend failure paths', () => {
   beforeEach(() => {
     process.env.DIGARR_MIGRATE_DATA_ROOT = mkdtempSync(join(tmpdir(), 'digarr-migfail-'))
-    vi.mocked(restoreBackup).mockReset()
+    copyDatabaseTables.mockReset()
+    vi.mocked(createBackup).mockClear()
+    vi.mocked(restoreBackup).mockClear()
   })
   afterEach(() => {
     delete process.env.DIGARR_MIGRATE_DATA_ROOT
   })
 
-  it('reports ok:false with mismatches when the target is missing rows after restore', async () => {
+  it('delegates the copy from a repeatable-read, read-only source transaction', async () => {
     const src = await makeTestDb()
     try {
       await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
-      await src.db
-        .insert(schema.genres)
-        .values({ name: 'Synthwave', slug: 'synthwave', source: 'manual' })
+      copyDatabaseTables.mockImplementation(async (sourceTx) => {
+        const isolation = await sourceTx.execute(sql`show transaction_isolation`)
+        const readOnly = await sourceTx.execute(sql`show transaction_read_only`)
+        expect(
+          (isolation as unknown as { rows: { transaction_isolation: string }[] }).rows[0]
+            ?.transaction_isolation,
+        ).toBe('repeatable read')
+        expect(
+          (readOnly as unknown as { rows: { transaction_read_only: string }[] }).rows[0]
+            ?.transaction_read_only,
+        ).toBe('on')
+        return { tablesRestored: { users: 1 }, mismatches: [] }
+      })
 
-      // No-op restore: the freshly created target stays empty, so the post-copy
-      // verification must detect the row-count mismatch and refuse to claim success.
-      vi.mocked(restoreBackup).mockResolvedValue({
-        tablesRestored: {},
-        warnings: [],
-        encryptionMismatch: false,
-        affectedEncryptedFields: [],
+      const report = await migrateBackend({
+        sourceDb: src.db as never,
+        target: { backend: 'pglite', path: tgt('delegated') },
+        isPipelineRunning: () => false,
+      })
+
+      expect(copyDatabaseTables).toHaveBeenCalledOnce()
+      expect(createBackup).not.toHaveBeenCalled()
+      expect(restoreBackup).not.toHaveBeenCalled()
+      expect(report.tablesMigrated).toEqual({ users: 1 })
+      expect(report.verified).toBe(true)
+    } finally {
+      await src.close()
+    }
+  })
+
+  it('reports ok:false when the table copy reports a mismatch', async () => {
+    const src = await makeTestDb()
+    try {
+      await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
+      copyDatabaseTables.mockResolvedValue({
+        tablesRestored: { users: 1 },
+        mismatches: [{ table: 'users', source: 1, target: 1, contentDiffers: true }],
       })
 
       const report = await migrateBackend({
@@ -60,19 +92,19 @@ describe('migrateBackend failure paths', () => {
       expect(report.ok).toBe(false)
       expect(report.verified).toBe(false)
       expect(report.contentVerified).toBe(false)
-      expect(report.mismatches.length).toBeGreaterThan(0)
-      const users = report.mismatches.find((m) => m.table === 'users')
-      expect(users).toMatchObject({ source: 1, target: 0 })
+      expect(report.mismatches).toEqual([
+        { table: 'users', source: 1, target: 1, contentDiffers: true },
+      ])
     } finally {
       await src.close()
     }
   })
 
-  it('rejects (no silent ok:true) when restoreBackup throws mid-restore', async () => {
+  it('rejects when the table copy throws mid-transaction', async () => {
     const src = await makeTestDb()
     try {
       await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
-      vi.mocked(restoreBackup).mockRejectedValue(new Error('constraint violation mid-restore'))
+      copyDatabaseTables.mockRejectedValue(new Error('constraint violation mid-copy'))
 
       await expect(
         migrateBackend({
@@ -80,7 +112,7 @@ describe('migrateBackend failure paths', () => {
           target: { backend: 'pglite', path: tgt('throw') },
           isPipelineRunning: () => false,
         }),
-      ).rejects.toThrow(/constraint violation mid-restore/)
+      ).rejects.toThrow(/constraint violation mid-copy/)
     } finally {
       await src.close()
     }

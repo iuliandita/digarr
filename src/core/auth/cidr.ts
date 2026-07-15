@@ -11,6 +11,16 @@ function parseIpv4(ip: string): bigint | null {
   return acc
 }
 
+// RFC 4291 section 2.2 form 3: expand a trailing dotted quad (e.g. ::ffff:10.0.0.1)
+// into two 16-bit hex groups so the main group loop can stay hex-only.
+function expandDottedQuad(groups: string[]): string[] | null {
+  const last = groups[groups.length - 1] ?? ''
+  if (!last.includes('.')) return groups
+  const v4 = parseIpv4(last)
+  if (v4 === null) return null
+  return [...groups.slice(0, -1), ((v4 >> 16n) & 0xffffn).toString(16), (v4 & 0xffffn).toString(16)]
+}
+
 function parseIpv6(ip: string): bigint | null {
   if (!ip.includes(':')) return null
   const zoneStripped = ip.split('%')[0] as string
@@ -19,8 +29,18 @@ function parseIpv6(ip: string): bigint | null {
 
   const headRaw = parts[0] ?? ''
   const tailRaw = parts.length === 2 ? (parts[1] ?? '') : ''
-  const head = headRaw === '' ? [] : headRaw.split(':')
-  const tail = parts.length === 2 ? (tailRaw === '' ? [] : tailRaw.split(':')) : []
+  let head = headRaw === '' ? [] : headRaw.split(':')
+  let tail = parts.length === 2 ? (tailRaw === '' ? [] : tailRaw.split(':')) : []
+
+  if (parts.length === 2 && tail.length > 0) {
+    const expanded = expandDottedQuad(tail)
+    if (expanded === null) return null
+    tail = expanded
+  } else if (parts.length === 1) {
+    const expanded = expandDottedQuad(head)
+    if (expanded === null) return null
+    head = expanded
+  }
 
   if (parts.length === 1 && head.length !== 8) return null
 
@@ -86,10 +106,17 @@ export function assertCidr(cidr: string): void {
   }
 }
 
+// Any textual form of an IPv4-mapped IPv6 address (::ffff:10.0.0.1, ::ffff:a00:1,
+// uppercase variants) is normalized to dotted-quad IPv4 so it matches v4 trust CIDRs.
+function unmapIpv4(ip: string): string {
+  if (!ip.includes(':')) return ip
+  const num = parseIpv6(ip)
+  if (num === null || num >> 32n !== 0xffffn) return ip
+  const v4 = num & 0xffffffffn
+  return [(v4 >> 24n) & 0xffn, (v4 >> 16n) & 0xffn, (v4 >> 8n) & 0xffn, v4 & 0xffn].join('.')
+}
+
 export function isIpTrusted(ip: string, cidrs: string[]): boolean {
-  let cleanIp = ip
-  if (cleanIp.startsWith('::ffff:')) {
-    cleanIp = cleanIp.slice(7)
-  }
+  const cleanIp = unmapIpv4(ip)
   return cidrs.some((cidr) => ipInCidr(cleanIp, cidr))
 }

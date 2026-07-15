@@ -25,6 +25,7 @@ describe('backup full-fidelity', () => {
     try {
       const backup = await createBackup(db as never, { includeCaches: true, full: true })
       expect(backup.data).toHaveProperty('albumBlocks')
+      expect(backup.data).toHaveProperty('artistGenreAliases')
       expect(backup.data).toHaveProperty('libraryArtists')
       expect(backup.data).toHaveProperty('libraryAlbums')
       expect(backup.data).toHaveProperty('librarySyncState')

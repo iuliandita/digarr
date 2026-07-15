@@ -1,5 +1,7 @@
-import { Music, Volume2, X } from 'lucide-react'
+import { Music, SkipBack, SkipForward, Volume2, X } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import type { PreviewSource } from '@/web/hooks/use-preview'
+import { type SpotifyPlaybackCommand, useSpotifyEmbed } from '@/web/hooks/use-spotify-embed'
 import { useI18n } from '../lib/i18n'
 
 const SOURCE_LABELS: Record<PreviewSource['type'], string> = {
@@ -14,8 +16,21 @@ type Props = {
   source: PreviewSource | null
   loading: boolean
   onStop: () => void
+  spotify: {
+    command: SpotifyPlaybackCommand
+    onPlaybackStarted: () => void
+    onPlaybackPaused: () => void
+    onPlaybackUnavailable: () => void
+    onPlaybackEnded: () => void
+  }
   volume: number
   onVolumeChange: (value: number) => void
+  queue?: {
+    index: number
+    count: number
+    onNext: () => void
+    onPrevious: () => void
+  }
 }
 
 /**
@@ -29,14 +44,40 @@ export function PreviewPlayer({
   source,
   loading,
   onStop,
+  spotify,
   volume,
   onVolumeChange,
+  queue,
 }: Props) {
   const { t } = useI18n()
-  if (!playing && !loading) return null
+  const spotifyUrl = source?.type === 'spotify-embed' ? source.url : null
+  const queueActive = Boolean(queue)
+  const reportedUnavailableUrlRef = useRef<string | null>(null)
+  const { hostRef: spotifyHostRef, failed: spotifyControllerFailed } = useSpotifyEmbed({
+    url: spotifyUrl,
+    keepAlive: queueActive,
+    command: spotify.command,
+    onPlaybackStarted: spotify.onPlaybackStarted,
+    onPlaybackPaused: spotify.onPlaybackPaused,
+    onPlaybackEnded: spotify.onPlaybackEnded,
+  })
+  useEffect(() => {
+    if (!spotifyControllerFailed) {
+      reportedUnavailableUrlRef.current = null
+    } else if (queueActive && spotifyUrl && reportedUnavailableUrlRef.current !== spotifyUrl) {
+      reportedUnavailableUrlRef.current = spotifyUrl
+      spotify.onPlaybackUnavailable()
+    }
+  }, [queueActive, spotifyControllerFailed, spotifyUrl, spotify.onPlaybackUnavailable])
+  if (!source && !loading && !queue) return null
 
   const sourceLabel = source ? SOURCE_LABELS[source.type] : null
-  const showIframe = playing && source && source.type !== 'deezer-audio'
+  const showYouTubeIframe = playing && source?.type === 'youtube-embed'
+  const showSpotifyHost = source?.type === 'spotify-embed' || queueActive
+  const spotifyFallbackUrl =
+    spotifyControllerFailed && !queueActive && source?.type === 'spotify-embed'
+      ? source.embedUrl
+      : null
   // Volume is only controllable for the HTML5 Deezer audio element; the
   // Spotify/YouTube embeds run in cross-origin iframes with their own controls.
   const showVolume = source?.type === 'deezer-audio'
@@ -50,7 +91,7 @@ export function PreviewPlayer({
         <div className="flex items-center gap-3">
           <Music size={16} className="text-muted shrink-0" aria-hidden="true" />
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" aria-live="polite">
             {loading && !artistName ? (
               <span className="text-sm text-muted">{t('preview.loadingPreview')}</span>
             ) : (
@@ -67,6 +108,35 @@ export function PreviewPlayer({
               </div>
             )}
           </div>
+
+          {queue && (
+            <div className="shrink-0 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={queue.onPrevious}
+                disabled={queue.index === 0}
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-bg/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label={t('preview.queuePrevious')}
+                title={t('preview.queuePrevious')}
+              >
+                <SkipBack size={14} aria-hidden="true" />
+              </button>
+              <span className="text-xs text-muted tabular-nums whitespace-nowrap">
+                {t('preview.queuePosition')
+                  .replace('{0}', String(queue.index + 1))
+                  .replace('{1}', String(queue.count))}
+              </span>
+              <button
+                type="button"
+                onClick={queue.onNext}
+                className="p-1.5 rounded text-muted hover:text-text hover:bg-bg/50 transition-colors"
+                aria-label={t('preview.queueNext')}
+                title={t('preview.queueNext')}
+              >
+                <SkipForward size={14} aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
           {showVolume && (
             <div className="shrink-0 flex items-center gap-1.5">
@@ -95,7 +165,26 @@ export function PreviewPlayer({
           </button>
         </div>
 
-        {showIframe && (
+        {showSpotifyHost && (
+          <div
+            ref={spotifyHostRef}
+            className={`mt-2 rounded overflow-hidden ${spotifyUrl && !spotifyControllerFailed ? '' : 'hidden'}`}
+          />
+        )}
+
+        {spotifyFallbackUrl && (
+          <iframe
+            src={spotifyFallbackUrl}
+            height={80}
+            width="100%"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            title={artistName ?? sourceLabel ?? t('preview.loadingPreview')}
+            className="mt-2 rounded"
+          />
+        )}
+
+        {showYouTubeIframe && (
           <div className="mt-2">
             <iframe
               src={source.embedUrl}
@@ -103,7 +192,7 @@ export function PreviewPlayer({
               width="100%"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-              title={`${artistName ?? 'Artist'} preview`}
+              title={artistName ?? sourceLabel ?? t('preview.loadingPreview')}
               className="rounded"
             />
           </div>

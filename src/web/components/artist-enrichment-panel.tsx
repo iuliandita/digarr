@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { ExternalLink } from 'lucide-react'
+import { ARTIST_EXTERNAL_LINK_KEYS } from '@/core/artists/external-links'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { getArtistEnrichment } from '../lib/api'
 import { useI18n } from '../lib/i18n'
-
-const LINK_ORDER = ['wikipedia', 'officialSite', 'discogs', 'musicbrainz'] as const
 
 export function ArtistEnrichmentPanel({ artistId, mbid }: { artistId: number; mbid: string }) {
   const { t, locale } = useI18n()
@@ -18,7 +17,7 @@ export function ArtistEnrichmentPanel({ artistId, mbid }: { artistId: number; mb
     ...(data?.externalLinks ?? {}),
     musicbrainz: `https://musicbrainz.org/artist/${mbid}`,
   }
-  const availableLinks = LINK_ORDER.filter((k) => linkMap[k])
+  const availableLinks = ARTIST_EXTERNAL_LINK_KEYS.filter((k) => linkMap[k])
 
   if (isLoading) {
     return <div className="mt-3 h-10 animate-pulse rounded bg-surface" aria-busy="true" />

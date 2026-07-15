@@ -34,6 +34,13 @@ RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
 # checkov:skip=CKV_DOCKER_7: Default and release override runtime images are version-and-digest pinned.
 FROM ${RUNTIME_IMAGE}
 
+# The backend bundle retains custom process.env reads, so preserve the build
+# identity in the runtime image as well as the builder stage.
+ARG DIGARR_GIT_SHA=dev
+ARG DIGARR_CHANNEL=local
+ENV DIGARR_GIT_SHA=${DIGARR_GIT_SHA}
+ENV DIGARR_CHANNEL=${DIGARR_CHANNEL}
+
 LABEL org.opencontainers.image.source="https://github.com/iuliandita/digarr"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="digarr"
@@ -49,7 +56,7 @@ COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
-RUN chmod +x /app/healthcheck.sh
+RUN test -s /app/dist/scripts/rotate-encryption-key.js && chmod +x /app/healthcheck.sh
 
 RUN mkdir -p /app/backups /app/data && chown bun:bun /app/backups /app/data
 VOLUME ["/app/backups", "/app/data"]

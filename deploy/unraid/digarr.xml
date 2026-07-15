@@ -50,7 +50,7 @@
 
   <Config Name="Database URL" Target="DATABASE_URL" Default=""
     Description="Leave empty to use the built-in database. Set only to use an external PostgreSQL, e.g. postgresql://user:pass@host:5432/digarr"
-    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+    Type="Variable" Display="advanced" Required="false" Mask="true"/>
 
   <!-- Auth (recommended) -->
   <Config Name="Initial Username" Target="DIGARR_INITIAL_USERNAME" Default=""
@@ -110,7 +110,7 @@
     Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
   <Config Name="Encryption Key" Target="DIGARR_ENCRYPTION_KEY" Default=""
-    Description="32+ char key for encrypting stored API tokens (auto-generated if blank)"
+    Description="32+ char key for encrypting API keys, tokens, and connection passwords (blank stores those fields unencrypted)"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>
 
   <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true|false"
@@ -122,6 +122,6 @@
     Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
   <Config Name="Webhook URL" Target="WEBHOOK_URL" Default=""
-    Description="Discord, Slack, ntfy, or any HTTP endpoint for notifications"
-    Type="Variable" Display="advanced" Required="false" Mask="false"/>
+    Description="Discord HTTPS webhook or public HTTPS endpoint that accepts Digarr JSON"
+    Type="Variable" Display="advanced" Required="false" Mask="true"/>
 </Container>

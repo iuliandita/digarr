@@ -150,16 +150,31 @@ Setup validation rules:
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
-| POST | `/api/v1/pipeline/rescan` | Yes | Re-fetch images/metadata for existing recommendations |
+| POST | `/api/v1/pipeline/rescan` | Admin | Re-fetch images/metadata for up to 200 existing recommendations. Deduplicates artists, safely reuses shared-provider misses for seven days, and returns `{ attempted, updated, failed, total }` (`total` is a compatibility alias for `attempted`). Rate limited to 2/min; concurrent rescans return 409. |
 
-`POST /api/v1/pipeline/run` and `/api/v1/pipeline/rescan` are intentionally
-available to any authenticated user (not admin-only): "Run Scan" is a core
-regular-user action on the dashboard and discover screens. The orchestrator is
-single-flight (one run at a time, shared API/RAM budgets), but a run requested
-while one is active is **queued FIFO**, not rejected: the response is still 202
-with `queued: true` and the caller's 1-based `position`. A given user is deduped
-(a double-click does not stack two runs). The queue drains automatically when
-the active run finishes. The queue is in-memory and per-process.
+`POST /api/v1/pipeline/run` is intentionally available to any authenticated
+user: "Run Scan" is a core regular-user action on the dashboard and discover
+screens. The orchestrator is single-flight (one run at a time, shared API/RAM
+budgets), but a run requested while one is active is **queued FIFO**, not
+rejected: the response is still 202 with `queued: true` and the caller's 1-based
+`position`. A given user is deduped (a double-click does not stack two runs).
+The queue drains automatically when the active run finishes. The queue is
+in-memory and per-process.
+
+`POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
+metadata using the requesting admin's configured providers. It runs one rescan
+at a time and processes artists sequentially, bounding upstream concurrency and
+preventing overlapping calls from multiplying shared provider traffic.
+
+The rescan image policy matches normal discovery: TheAudioDB runs first. On a
+miss, the configured Lidarr/SkyHook, fanart.tv, and musicinfo.pro fallbacks run
+concurrently; results still prefer Lidarr, then fanart.tv, then musicinfo.pro.
+A failed fallback does not stop the remaining image providers or the independent
+MusicBrainz disambiguation refresh. Complete misses from the globally shared
+AudioDB/Lidarr configuration refresh the seven-day negative cache so repeated
+rescans do not immediately repeat the same work. User-scoped fanart.tv or
+musicinfo.pro configurations bypass that shared cache, and transient or
+rate-limited lookups are not cached as misses.
 
 **POST /api/v1/pipeline/quick-discover** body:
 ```json
@@ -287,6 +302,38 @@ Approve response (status `approved`):
   "reasonText": null
 }
 ```
+
+## Album Blocks
+
+Album blocks are created when the caller permanently rejects an album recommendation. They
+are keyed by MusicBrainz release-group MBID and are independent of artist blocks.
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/album-blocks` | Yes | List up to 500 albums permanently blocked by the caller |
+| DELETE | `/api/v1/album-blocks/:releaseGroupMbid` | Yes | Remove an album from the caller's blocklist |
+
+**GET /api/v1/album-blocks** response:
+
+```json
+{
+  "items": [
+    {
+      "id": 42,
+      "artistId": 17,
+      "artistName": "Example Artist",
+      "artistMbid": "11111111-1111-1111-1111-111111111111",
+      "releaseGroupMbid": "00000000-0000-0000-0000-000000000000",
+      "reason": "wrong_style",
+      "reasonText": null,
+      "blockedAt": "2026-07-12T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+`:releaseGroupMbid` must be a UUID. Invalid values return `400`; a successful delete
+returns `204` even when the row is already absent.
 
 ---
 
@@ -658,7 +705,13 @@ Query params: `status`, `batchId`. Limit: 10,000 rows.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/dashboard/taste` | Yes | Top genres from user's library |
+| GET | `/api/v1/dashboard/genre-coverage` | Yes | Latest listening-artist genre coverage |
 | GET | `/api/v1/dashboard/activity` | Yes | Recent activity feed |
+
+`GET /api/v1/dashboard/genre-coverage` returns the latest completed pipeline
+run's user-scoped coverage as `{ coveredArtists, pendingArtists, totalArtists }`,
+or `null` before a run has recorded coverage. `pendingArtists` can overlap with
+covered artists when a populated cache entry is due for refresh.
 
 **GET /api/v1/dashboard/activity** query params:
 - `limit` - integer, clamped to 1-20 (default 5). Non-integer values return `400`
@@ -709,14 +762,15 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 |--------|------|------|-------------|
 | GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
-| POST | `/api/v1/settings/test/:service` | Yes | Test service connection |
+| POST | `/api/v1/settings/test/:service` | Admin | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
-- `lidarr` and `ai` test calls require admin access when user-session auth is active
+- Service probes require admin access when user-session auth is active
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,
@@ -725,6 +779,16 @@ Settings notes:
   capped at 300 chars) so the caller can see e.g. which model name the provider rejected
 - Probe fields omitted from the request body fall back to the stored settings, so an empty
   body tests exactly what is saved
+- The `plex` probe additionally returns the selected library and every music-type library on
+  the server: `{ "sectionId": "5", "sections": [{ "key": "5", "title": "Music" }] }`. Save the
+  chosen key as the per-user `plexSectionId` setting; empty/null means auto-detect (first
+  music-type library). Useful when a server has several `artist`-type libraries (e.g.
+  audiobooks next to music)
+- The `jellyfin` and `emby` probes likewise return the user's music libraries (and the
+  selected one when configured): `{ "libraryId": "abc", "libraries": [{ "id": "abc", "name":
+  "Music" }] }`. Save the chosen id as the per-user `jellyfinLibraryId` / `embyLibraryId`
+  setting; empty/null means all music libraries (server-wide, the default). When set, top
+  artists, favorites, recent listening, and library sync are scoped to that library
 
 ---
 

@@ -29,13 +29,11 @@ jobs:
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run i18n:check
+      - run: bun run check:versions
       - run: bun run test
 
   coverage:
     runs-on: ubuntu-24.04
-    # Advisory during rollout. Promote to blocking once thresholds in
-    # vite.config.ts have been ratcheted up against a stable baseline.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -48,7 +46,7 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Test with coverage
-        run: bun run test --coverage
+        run: bun run test:coverage
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -72,6 +70,8 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - run: bun run build
+      - name: Verify container build identity
+        run: bun run check:docker-identity
 
   api-route-test:
     runs-on: ubuntu-24.04

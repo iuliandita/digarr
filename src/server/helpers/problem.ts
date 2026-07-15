@@ -39,3 +39,7 @@ export function problem(
     'content-type': 'application/problem+json',
   })
 }
+
+export function notFoundProblem(c: Context, type: string, title: string, code: string) {
+  return problem(c, type, title, 404, undefined, undefined, code)
+}

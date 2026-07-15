@@ -1,6 +1,42 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { getLookupHostname, isPrivateIp } from '@/core/validation'
+import { conciseErrMsg, getLookupHostname, isPrivateIp } from '@/core/validation'
+
+describe('conciseErrMsg', () => {
+  it('redacts credentials from nested source error messages', () => {
+    const error = new Error(
+      'request failed https://media.invalid/rest?t=tok_1234567890&s=salt_123456&token=session123456 api_key=provider123456 Bearer eyJhbGciOiJIUzI1NiJ9.payload sk-proj-abc123def456',
+    )
+
+    const message = conciseErrMsg(error)
+
+    expect(message).toContain('t=[redacted]')
+    expect(message).toContain('s=[redacted]')
+    expect(message).toContain('token=[redacted]')
+    expect(message).toContain('api_key=[redacted]')
+    expect(message).toContain('Bearer [redacted]')
+    expect(message).not.toContain('tok_1234567890')
+    expect(message).not.toContain('salt_123456')
+    expect(message).not.toContain('session123456')
+    expect(message).not.toContain('provider123456')
+    expect(message).not.toContain('eyJhbGciOiJIUzI1NiJ9')
+    expect(message).not.toContain('sk-proj-abc123def456')
+  })
+
+  it('bounds arbitrary error codes without exposing credentials', () => {
+    for (const code of [
+      `postgres://user:s3cret@db/library-${'x'.repeat(400)}`,
+      'sk-abcdefghijklmno',
+    ]) {
+      const message = conciseErrMsg(Object.assign(new Error('database write failed'), { code }))
+
+      expect(message).toBe('database write failed')
+      expect(message).not.toContain('s3cret')
+      expect(message).not.toContain('sk-')
+      expect(message.length).toBeLessThanOrEqual(300)
+    }
+  })
+})
 
 describe('isPrivateIp', () => {
   it('rejects IPv4 reserved and documentation ranges', () => {

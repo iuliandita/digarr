@@ -10,11 +10,14 @@ function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  return render(
-    <I18nProvider>
-      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
-    </I18nProvider>,
-  )
+  return {
+    ...render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+      </I18nProvider>,
+    ),
+    client,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -39,6 +42,14 @@ vi.mock('sonner', () => ({
   },
 }))
 
+vi.mock('@/web/components/pipeline-progress', () => ({
+  PipelineProgress: ({ onComplete }: { onComplete?: () => void }) => (
+    <button type="button" data-testid="complete-pipeline" onClick={onComplete}>
+      Complete pipeline
+    </button>
+  ),
+}))
+
 vi.mock('@/web/lib/api', () => ({
   getRecommendations: vi.fn(),
   updateRecommendation: vi.fn(),
@@ -56,6 +67,7 @@ vi.mock('@/web/lib/api', () => ({
   getSubscriptions: vi.fn(),
   getSchedulerInfo: vi.fn(),
   getDashboardTaste: vi.fn(),
+  getDashboardGenreCoverage: vi.fn(),
   getDashboardActivity: vi.fn(),
   triggerPipeline: vi.fn(),
   rescanArtists: vi.fn().mockResolvedValue({ updated: 0, total: 0 }),
@@ -64,6 +76,7 @@ vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(),
   getStoredToken: vi.fn(() => null),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
+  getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: false }),
   updatePlaylistApi: vi.fn(),
   updateUserPreferences: vi.fn().mockResolvedValue({}),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: false }),
@@ -89,6 +102,7 @@ import {
   approveRecommendation,
   approveToTarget,
   getDashboardActivity,
+  getDashboardGenreCoverage,
   getDashboardTaste,
   getPipelineStatus,
   getRecentTracks,
@@ -108,6 +122,7 @@ const mockGetRecentTracks = vi.mocked(getRecentTracks)
 const mockGetSubscriptions = vi.mocked(getSubscriptions)
 const mockGetSchedulerInfo = vi.mocked(getSchedulerInfo)
 const mockGetDashboardTaste = vi.mocked(getDashboardTaste)
+const mockGetDashboardGenreCoverage = vi.mocked(getDashboardGenreCoverage)
 const mockGetDashboardActivity = vi.mocked(getDashboardActivity)
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
 const mockListTargets = vi.mocked(listTargets)
@@ -206,6 +221,11 @@ function setupMocks() {
     { genre: 'post-rock', count: 10, percentage: 40 },
     { genre: 'shoegaze', count: 5, percentage: 20 },
   ])
+  mockGetDashboardGenreCoverage.mockResolvedValue({
+    coveredArtists: 18,
+    pendingArtists: 4,
+    totalArtists: 25,
+  })
 
   mockGetDashboardActivity.mockResolvedValue([
     {
@@ -295,6 +315,24 @@ describe('Dashboard', () => {
       expect(screen.getByText('40%')).toBeInTheDocument()
       expect(screen.getByText('20%')).toBeInTheDocument()
     })
+  })
+
+  it('renders listening genre coverage and pending enrichment', async () => {
+    setupMocks()
+    renderWithQuery(<Dashboard />)
+
+    expect(await screen.findByText('Genre data available: 18/25')).toBeInTheDocument()
+    expect(screen.getByText('Pending genre data updates: 4')).toBeInTheDocument()
+  })
+
+  it('refreshes genre coverage when the pipeline completes', async () => {
+    setupMocks()
+    const { client } = renderWithQuery(<Dashboard />)
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+
+    fireEvent.click(screen.getByTestId('complete-pipeline'))
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['dashboard-genre-coverage'] })
   })
 
   it('renders activity feed entries', async () => {

@@ -7,6 +7,7 @@ export type PlexTopArtist = {
   name: string
   viewCount: number
   ratingKey: string
+  genres: string[]
 }
 
 export type PlexRecentTrack = {
@@ -24,7 +25,12 @@ type PlexSectionsResponse = {
 
 type PlexArtistsResponse = {
   MediaContainer: {
-    Metadata: Array<{ title: string; viewCount?: number; ratingKey: string }>
+    Metadata: Array<{
+      title: string
+      viewCount?: number
+      ratingKey: string
+      Genre?: Array<{ tag: string }>
+    }>
   }
 }
 
@@ -64,8 +70,14 @@ export type PlexLibraryAlbum = {
   primaryType?: 'Album'
 }
 
+export type PlexMusicSection = {
+  key: string
+  title: string
+}
+
 export type PlexClient = {
   getMusicSectionId: () => Promise<string>
+  getMusicSections: () => Promise<PlexMusicSection[]>
   getTopArtists: (limit?: number) => Promise<PlexTopArtist[]>
   getAllArtists: (options?: { pageSize?: number }) => Promise<PlexLibraryArtist[]>
   getAlbumsForArtist: (artistRatingKey: string) => Promise<PlexLibraryAlbum[]>
@@ -76,9 +88,10 @@ export type PlexClient = {
 export function createPlexClient(
   url: string,
   token: string,
-  options?: { baseUrl?: string },
+  options?: { baseUrl?: string; sectionId?: string | null },
 ): PlexClient {
   const baseUrl = options?.baseUrl ?? url.replace(/\/+$/, '')
+  const configuredSectionId = options?.sectionId?.trim() || null
 
   const http = createHttpClient({
     baseUrl,
@@ -94,9 +107,20 @@ export function createPlexClient(
     return queue.add(() => http.get<T>(path)) as Promise<T>
   }
 
-  async function getMusicSectionId(): Promise<string> {
+  // Plex uses type 'artist' for every music-shaped library, so a server with
+  // both a music and an audiobook library exposes two 'artist' sections.
+  async function getMusicSections(): Promise<PlexMusicSection[]> {
     const res = await get<PlexSectionsResponse>('/library/sections')
-    const section = res.MediaContainer.Directory.find((d) => d.type === 'artist')
+    return res.MediaContainer.Directory.filter((d) => d.type === 'artist').map((d) => ({
+      key: d.key,
+      title: d.title,
+    }))
+  }
+
+  async function getMusicSectionId(): Promise<string> {
+    if (configuredSectionId) return configuredSectionId
+    const sections = await getMusicSections()
+    const section = sections[0]
     if (!section) {
       throw new Error('No music library section found in Plex')
     }
@@ -113,6 +137,7 @@ export function createPlexClient(
       name: m.title,
       viewCount: m.viewCount ?? 0,
       ratingKey: m.ratingKey,
+      genres: (m.Genre ?? []).map((genre) => genre.tag),
     }))
   }
 
@@ -216,11 +241,25 @@ export function createPlexClient(
 
   async function testConnection(): Promise<ServiceTestResult> {
     try {
-      const sectionId = await getMusicSectionId()
+      const sections = await getMusicSections()
+      if (sections.length === 0) {
+        return { success: false, message: 'No music library section found in Plex' }
+      }
+      const selected = configuredSectionId
+        ? sections.find((s) => s.key === configuredSectionId)
+        : sections[0]
+      if (!selected) {
+        return {
+          success: false,
+          message: `Configured Plex library section ${configuredSectionId} not found - available: ${sections
+            .map((s) => `${s.title} (${s.key})`)
+            .join(', ')}`,
+        }
+      }
       return {
         success: true,
-        message: `Connected to Plex - music library section ${sectionId}`,
-        details: { sectionId },
+        message: `Connected to Plex - using library "${selected.title}" (section ${selected.key})`,
+        details: { sectionId: selected.key, sections },
       }
     } catch (err: unknown) {
       return { success: false, message: errMsg(err) }
@@ -229,6 +268,7 @@ export function createPlexClient(
 
   return {
     getMusicSectionId,
+    getMusicSections,
     getTopArtists,
     getAllArtists,
     getAlbumsForArtist,

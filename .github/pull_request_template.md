@@ -12,6 +12,9 @@
 - [ ] `bun run lint` passes
 - [ ] `bun run typecheck` passes
 - [ ] `bun run test` passes
+- [ ] `bun run i18n:check` passes
+- [ ] `bun run check:versions` passes
+- [ ] `bun run check:api-docs` passes (if routes or API docs changed)
 - [ ] `bun run test:e2e` passes (if UI changes)
 - [ ] Tested manually (describe below)
 

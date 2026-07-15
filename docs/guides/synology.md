@@ -3,7 +3,8 @@
 ## Prerequisites
 
 - Synology DSM 7.1+ with the **Docker** package (DSM 7.1) or **Container Manager** package (DSM 7.2+)
-- At least 512 MB free RAM (the app idles around ~80 MB; an external PostgreSQL container, if you use one, adds ~30 MB)
+- At least 1 GB free RAM; allow more for large libraries, migrations, or an
+  external PostgreSQL container
 - Internet access for pulling images
 
 Digarr ships with an embedded database (PGlite), so the simplest setup is a
@@ -50,6 +51,8 @@ GUI:
    - `secrets/postgres_password` containing only the database password (both
      the app and PostgreSQL read this single file, so there is nothing to keep
      in sync)
+   - Restrict the `secrets` folder and password file to the DSM account that
+     owns the project
 6. Click **Done**
 
 Both the app and PostgreSQL containers start together automatically.
@@ -61,7 +64,8 @@ mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+chmod 700 secrets
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 vi secrets/postgres_password
 sudo docker compose up -d
@@ -126,10 +130,10 @@ the embedded database. It requires two containers on a shared network.
 - **Create the custom network first.** The Launch wizard shows a Network
   step where you can pick a custom bridge network. Both containers must be
   on the same custom network for hostname resolution to work.
-- **Start postgres before Digarr.** There's no health-check dependency in
-  the GUI (unlike docker compose). If Digarr starts before postgres is
-  ready, it crashes and enters a restart loop. Start `digarr-db` first,
-  wait for it to go green, then start `digarr`.
+- **Start postgres before Digarr when practical.** The DSM GUI has no
+  health-check dependency. Digarr now retries the database connection with
+  backoff instead of immediately crash-looping, but starting `digarr-db` first
+  still gives the cleanest first boot.
 
 ### SSH with docker compose (recommended)
 
@@ -141,6 +145,9 @@ sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 sudo mkdir -p secrets
+sudo chmod 700 secrets
+sudo touch secrets/postgres_password
+sudo chmod 600 secrets/postgres_password
 printf '%s\n' 'change-this-password' | sudo tee secrets/postgres_password > /dev/null
 sudo cp .env.example .env
 ```
@@ -249,6 +256,7 @@ PostgreSQL does not need to be updated unless you specifically want a newer vers
   directory and persists across restarts and updates (keep the `/app/backups`
   mapping too for the pre-migration safety net). With external PostgreSQL, the
   database volume persists instead.
-- Resource usage is low enough for entry-level NAS models (1 GB RAM).
+- Resource use depends on library size and background work; keep at least 1 GB
+  free and watch the container during migrations or large syncs.
 - If using a reverse proxy (Synology's built-in or external), set
   `ALLOWED_ORIGIN` to your public URL (via environment variable or the web UI).

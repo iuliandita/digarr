@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSubsonicClient } from '@/core/clients/subsonic'
 
 const mockGet = vi.fn()
+const queueMocks = vi.hoisted(() => {
+  const add = vi.fn((task: () => unknown) => task())
+  return { add, create: vi.fn(() => ({ add })) }
+})
 
 vi.mock('@/core/clients/http', () => ({
   createHttpClient: vi.fn(() => ({
@@ -14,8 +18,23 @@ vi.mock('@/core/clients/http', () => ({
   })),
 }))
 
+vi.mock('@/core/clients/media-server-queue', () => ({
+  createMediaServerQueue: queueMocks.create,
+}))
+
 beforeEach(() => {
   mockGet.mockReset()
+  queueMocks.add.mockClear()
+  queueMocks.create.mockClear()
+})
+
+describe('subsonic media-server queue', () => {
+  it('creates one queue per client instance', () => {
+    createSubsonicClient('http://nav:4533', 'admin', 'secret')
+    createSubsonicClient('http://nav:4533', 'listener', 'secret')
+
+    expect(queueMocks.create).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('subsonic client.getStarredArtists()', () => {
@@ -201,5 +220,19 @@ describe('subsonic client auth params', () => {
     expect(path).toContain('f=json')
     expect(path).toContain(`t=${expectedToken}`)
     expect(path).not.toContain('secret')
+  })
+
+  it('reuses one salt for the lifetime of a client', async () => {
+    const client = createSubsonicClient('http://nav:4533', 'admin', 'secret')
+
+    mockGet.mockResolvedValue({ 'subsonic-response': { status: 'ok' } })
+    await client.getStarredArtists()
+    await client.getAllArtists()
+
+    const salts = mockGet.mock.calls.map(([path]) =>
+      new URL(String(path), 'http://nav').searchParams.get('s'),
+    )
+    expect(salts[0]).toMatch(/^[0-9a-f]{16}$/)
+    expect(salts[1]).toBe(salts[0])
   })
 })

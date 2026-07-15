@@ -88,9 +88,12 @@ oauth2-proxy) already authenticates users, Digarr trusts the
 Set:
 
 - `PROXY_AUTH_ENABLED=true`
-- `PROXY_AUTH_TRUSTED_PROXIES=10.0.0.0/8,192.168.0.0/16`
+- `PROXY_AUTH_TRUSTED_PROXIES=10.0.0.0/8,192.168.0.0/16,fd00::/8`
   (comma-separated IPv4 or IPv6 CIDRs; unbounded ranges like `0.0.0.0/0`
   are rejected at boot)
+
+IPv6 CIDRs are supported, and IPv4-mapped IPv6 client addresses are normalized
+to IPv4 before matching.
 
 The CIDR parser validates strictly. Misconfigured entries crash boot with a
 clear error rather than silently widening trust. Use tight ranges that match

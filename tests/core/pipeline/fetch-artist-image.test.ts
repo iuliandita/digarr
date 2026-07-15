@@ -46,6 +46,19 @@ describe('fetchArtistImage with AudioDB', () => {
     expect(result.url).toBe('lidarr://x')
   })
 
+  it('does not cache an AudioDB rate limit as a completed miss', async () => {
+    const audiodb = {
+      getArtistImages: vi.fn(async () => {
+        throw new RateLimitedError()
+      }),
+      searchArtistByName: vi.fn(),
+    }
+
+    const result = await fetchArtistImage('mbid-rate-limited', 'Name', audiodb, null, null, null)
+
+    expect(result).toEqual({ failed: false })
+  })
+
   it('cascades through Lidarr -> fanart -> musicinfo when no AudioDB', async () => {
     const lidarr = { lookupArtist: vi.fn(async () => []) }
     const fanart = { getArtistImages: vi.fn(async () => ({ url: 'fanart://y' })) }

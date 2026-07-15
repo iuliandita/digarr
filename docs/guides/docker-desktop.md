@@ -44,8 +44,9 @@ mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 mkdir -p secrets
+chmod 700 secrets
 # One database password -- both Postgres and the app read this single file.
-printf '%s\n' 'change-this-password' > secrets/postgres_password
+(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
 ```
 
@@ -95,7 +96,8 @@ docker compose up -d
 ## Troubleshooting
 
 - **Port conflict:** If port 3000 is in use, change `PORT` in `.env`.
-- **Slow startup:** First pull downloads ~200 MB. Subsequent starts are fast.
+- **Slow startup:** The first pull downloads the container images. Subsequent
+  starts reuse the local layers and are faster.
 - **Database errors (external PostgreSQL path only):** Ensure
   `secrets/postgres_password` exists, contains only the password on a single
   line, and has no quotes or UTF-8 BOM. If you changed the password after the
