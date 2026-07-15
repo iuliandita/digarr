@@ -4,7 +4,7 @@ There are many good projects in this space, and most of them are not actually
 competing -- they solve different problems and several of them coexist happily
 in one homelab. This page maps the field so you can pick the right tool (or
 combination) for your setup. Verified against upstream repositories on
-2026-07-12; these projects move
+2026-07-15; these projects move
 fast, so check their repos for current state. Corrections welcome via
 [issues](https://github.com/iuliandita/digarr/issues).
 
@@ -38,14 +38,14 @@ household request music like they request movies."
 | Natural-language mood search | Yes | -- | -- | -- | -- | -- | -- | -- |
 | Works without Lidarr | Yes | Yes | Yes | -- | Yes | Yes | -- | -- |
 | Multi-user with per-user credentials | Yes | -- | -- | -- | Yes | Partial [^2] | -- | -- |
-| OIDC / SSO | Yes | -- | -- | -- | Yes | Yes | Yes | -- |
+| OIDC / SSO | Yes | -- | -- | Partial [^4] | -- | Yes | Yes | -- |
 | Localized UI (multiple languages) | Yes (15) | -- | -- | -- | -- | -- | -- | -- |
 | Scheduled discovery subscriptions | Yes | Yes | Yes | Yes | -- | Partial | Yes | -- |
 | Playlist generation / export | Yes | Yes | Yes | Yes | Yes | Yes | -- | -- |
 | Automated downloading (built-in) | Partial [^3] | Yes | Yes | Yes | Yes | Yes | -- | -- |
 | Media-server library sync (Plex/Jellyfin/Emby/Subsonic) | Yes | Yes | Partial | Partial | Yes | Yes | -- | -- |
 | Backup/restore, job history, upgrade pre-flight checks | Yes | -- | -- | -- | -- | -- | -- | -- |
-| Built-in music player / streaming | -- | -- | -- | -- | Yes | Yes | -- | -- |
+| Built-in music player / streaming | -- | Yes | -- | -- | Yes | Yes | -- | -- |
 
 [^1]: New-release detection for watchlisted artists; not a recommendation
     queue of individual albums with per-album approval.
@@ -53,6 +53,8 @@ household request music like they request movies."
     scrobbling connections; most operator service settings remain global.
 [^3]: Digarr delegates downloads to `slskd` and/or Lidarr as an *outcome of an
     approval*, rather than shipping its own downloader.
+[^4]: Aurral supports reverse-proxy authentication for SSO setups; it does not
+    document native OIDC.
 
 "--" means the capability is absent or out of scope for that project's design,
 not that the project is deficient -- see the philosophy section above.
@@ -96,8 +98,8 @@ not that the project is deficient -- see the philosophy section above.
   plugin (no separate app) doing privacy-first AI recommendations inside
   Lidarr's own UI. Pick it if you want zero extra containers.
 - **[Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr)** -- Last.fm
-  discovery with a real-time UI and per-user auto-approve. Development is
-  currently paused.
+  discovery with a real-time UI and per-user auto-approve, maintained by
+  Dodelidoo Labs.
 
 ## Where Digarr fits
 
