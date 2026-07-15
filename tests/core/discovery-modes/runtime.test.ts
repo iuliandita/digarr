@@ -2,16 +2,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 
-const { db, mockGetUserConnections, mockResolveDeezerToken, mockResolveSpotifyToken } = vi.hoisted(
-  () => ({
-    db: { kind: 'test-db' },
-    mockGetUserConnections: vi.fn(),
-    mockResolveDeezerToken: vi.fn(),
-    mockResolveSpotifyToken: vi.fn(),
-  }),
-)
+const {
+  db,
+  mockGetSettings,
+  mockGetUserConnections,
+  mockResolveDeezerToken,
+  mockResolveSpotifyToken,
+} = vi.hoisted(() => ({
+  db: { kind: 'test-db' },
+  mockGetSettings: vi.fn(),
+  mockGetUserConnections: vi.fn(),
+  mockResolveDeezerToken: vi.fn(),
+  mockResolveSpotifyToken: vi.fn(),
+}))
 
 vi.mock('@/db', () => ({ db }))
+vi.mock('@/db/queries/settings', () => ({ getSettings: mockGetSettings }))
 vi.mock('@/db/queries/users', () => ({ getUserConnections: mockGetUserConnections }))
 vi.mock('@/core/spotify-auth', () => ({ resolveSpotifyToken: mockResolveSpotifyToken }))
 vi.mock('@/core/deezer-auth', () => ({ resolveDeezerToken: mockResolveDeezerToken }))
@@ -19,6 +25,7 @@ vi.mock('@/core/deezer-auth', () => ({ resolveDeezerToken: mockResolveDeezerToke
 import {
   getDiscoveryModeConnections,
   getDiscoveryModeDeezerToken,
+  getDiscoveryModeSkipTlsVerify,
   getDiscoveryModeSpotifyToken,
   getNormalizedLimit,
   getProviderPath,
@@ -96,6 +103,17 @@ describe('discovery mode runtime helpers', () => {
 
     await expect(getDiscoveryModeConnections(7)).resolves.toBe(connections)
     expect(mockGetUserConnections).toHaveBeenCalledWith(db, 7)
+  })
+
+  it.each([
+    [{ skipTlsVerify: true }, true],
+    [{ skipTlsVerify: false }, false],
+    [null, false],
+  ] as const)('resolves the global TLS setting from %j as %s', async (settings, expected) => {
+    mockGetSettings.mockResolvedValue(settings)
+
+    await expect(getDiscoveryModeSkipTlsVerify()).resolves.toBe(expected)
+    expect(mockGetSettings).toHaveBeenCalledWith(db)
   })
 
   it('returns resolved provider tokens', async () => {

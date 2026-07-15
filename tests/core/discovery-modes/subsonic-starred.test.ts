@@ -1,20 +1,33 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockGetStarredArtists, mockGetDiscoveryModeConnections } = vi.hoisted(() => ({
+const {
+  mockCreateSubsonicClient,
+  mockGetStarredArtists,
+  mockGetDiscoveryModeConnections,
+  mockGetDiscoveryModeSkipTlsVerify,
+} = vi.hoisted(() => ({
+  mockCreateSubsonicClient: vi.fn(() => ({
+    getStarredArtists: vi.fn(),
+  })),
   mockGetStarredArtists: vi.fn(),
   mockGetDiscoveryModeConnections: vi.fn(),
+  mockGetDiscoveryModeSkipTlsVerify: vi.fn(),
 }))
 
 vi.mock('@/core/clients/subsonic', () => ({
-  createSubsonicClient: vi.fn(() => ({
+  createSubsonicClient: mockCreateSubsonicClient.mockImplementation(() => ({
     getStarredArtists: mockGetStarredArtists,
   })),
 }))
 
 vi.mock('@/core/discovery-modes/modes/runtime', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/discovery-modes/modes/runtime')>()
-  return { ...actual, getDiscoveryModeConnections: mockGetDiscoveryModeConnections }
+  return {
+    ...actual,
+    getDiscoveryModeConnections: mockGetDiscoveryModeConnections,
+    getDiscoveryModeSkipTlsVerify: mockGetDiscoveryModeSkipTlsVerify,
+  }
 })
 
 import {
@@ -74,13 +87,16 @@ describe('subsonic-starred mode – availability', () => {
 
 describe('subsonic-starred mode – executor', () => {
   beforeEach(() => {
+    mockCreateSubsonicClient.mockClear()
     mockGetStarredArtists.mockReset()
     mockGetDiscoveryModeConnections.mockReset()
+    mockGetDiscoveryModeSkipTlsVerify.mockReset()
     mockGetDiscoveryModeConnections.mockResolvedValue({
       subsonicUrl: 'https://music.example.com',
       subsonicUsername: 'alice',
       subsonicPassword: 'secret',
     })
+    mockGetDiscoveryModeSkipTlsVerify.mockResolvedValue(false)
     mockGetStarredArtists.mockResolvedValue([
       { id: '1', name: 'Artist A' },
       { id: '2', name: 'Artist B' },
@@ -107,6 +123,20 @@ describe('subsonic-starred mode – executor', () => {
 
     const names = result.candidates.map((c) => c.name)
     expect(names).toEqual(['Artist A', 'Artist B', 'Artist C'])
+  })
+
+  it.each([true, false])('forwards skipTlsVerify=%s to the Subsonic client', async (value) => {
+    mockGetDiscoveryModeSkipTlsVerify.mockResolvedValue(value)
+
+    const mode = createSubsonicStarredMode()
+    await mode.executor(makeRequest({ limit: 10 }))
+
+    expect(mockCreateSubsonicClient).toHaveBeenCalledWith(
+      'https://music.example.com',
+      'alice',
+      'secret',
+      { skipTlsVerify: value },
+    )
   })
 
   it('clamps to the first `limit` starred artists', async () => {
