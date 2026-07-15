@@ -11,8 +11,23 @@ import type { AiUsage, RecommendationProvider } from './types'
 
 const DEFAULT_TIMEOUT_SECONDS = 60
 
+function buildChatCompletionsUrl(baseUrl: string): string {
+  const normalized = baseUrl.replace(/\/+$/, '')
+  if (normalized.endsWith('/chat/completions')) return normalized
+  if (normalized.endsWith('/v1') || normalized.endsWith('/api')) {
+    return `${normalized}/chat/completions`
+  }
+  return `${normalized}/v1/chat/completions`
+}
+
+function timeoutMessage(operation: string, timeoutMs: number): string {
+  const seconds = timeoutMs / 1000
+  return `OpenAI-Compatible ${operation} timed out after ${seconds} second${seconds === 1 ? '' : 's'}`
+}
+
 export class OpenAICompatibleProvider implements RecommendationProvider {
   private baseUrl: string
+  private chatCompletionsUrl: string
   private apiKey: string | null
   private model: string
   private timeoutMs: number
@@ -25,6 +40,7 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     timeoutSeconds?: number | null,
   ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
+    this.chatCompletionsUrl = buildChatCompletionsUrl(this.baseUrl)
     this.model = model
     this.apiKey = apiKey
     this.timeoutMs = timeoutSecondsWithDefaultToMs(timeoutSeconds, DEFAULT_TIMEOUT_SECONDS)
@@ -40,7 +56,7 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const res = await fetchWithRetry(
-        `${this.baseUrl}/v1/chat/completions`,
+        this.chatCompletionsUrl,
         {
           method: 'POST',
           headers,
@@ -72,6 +88,11 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
       const text = data.choices?.[0]?.message?.content
       if (!text) throw new Error('Empty response')
       return parseRecommendationResponse(unwrapRecommendationArrayPayload(text))
+    } catch (err: unknown) {
+      if (controller.signal.aborted) {
+        throw new Error(timeoutMessage('recommendation request', this.timeoutMs))
+      }
+      throw err
     } finally {
       clearTimeout(timer)
     }
@@ -79,12 +100,12 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 10_000)
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`
 
-      const res = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+      const res = await fetch(this.chatCompletionsUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -103,7 +124,9 @@ export class OpenAICompatibleProvider implements RecommendationProvider {
     } catch (err: unknown) {
       return {
         success: false,
-        message: errMsg(err),
+        message: controller.signal.aborted
+          ? timeoutMessage('connection test', this.timeoutMs)
+          : errMsg(err),
       }
     } finally {
       clearTimeout(timer)

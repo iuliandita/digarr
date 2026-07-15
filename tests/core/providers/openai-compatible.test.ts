@@ -46,6 +46,26 @@ describe('OpenAICompatibleProvider', () => {
     expect(url).toBe(`${TEST_BASE_URL}/v1/chat/completions`)
   })
 
+  it.each([
+    ['http://provider.example.com', 'http://provider.example.com/v1/chat/completions'],
+    ['http://provider.example.com/v1', 'http://provider.example.com/v1/chat/completions'],
+    ['http://provider.example.com/api', 'http://provider.example.com/api/chat/completions'],
+    ['http://provider.example.com/api/v1', 'http://provider.example.com/api/v1/chat/completions'],
+    [
+      'http://provider.example.com/custom/chat/completions',
+      'http://provider.example.com/custom/chat/completions',
+    ],
+  ])('resolves completion URL from %s', async (baseUrl, expectedUrl) => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ choices: [{ message: { content: '[]' } }] })),
+    )
+    const provider = new OpenAICompatibleProvider(baseUrl, 'model')
+
+    await provider.getRecommendations(sampleProfile)
+
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(expectedUrl)
+  })
+
   it('works without API key', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(
@@ -103,6 +123,48 @@ describe('OpenAICompatibleProvider', () => {
     expect(result.message).toContain('openai.example.com:8080')
   })
 
+  it('uses the configured timeout for connection tests and reports its duration', async () => {
+    vi.useFakeTimers()
+    const provider = new OpenAICompatibleProvider(TEST_BASE_URL, 'model', null, 30)
+    const startedAt = Date.now()
+    let abortedAfterMs: number | undefined
+    fetchSpy.mockImplementationOnce(
+      (_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const abortErr = new Error('aborted')
+          abortErr.name = 'AbortError'
+          init?.signal?.addEventListener('abort', () => {
+            abortedAfterMs = Date.now() - startedAt
+            reject(abortErr)
+          })
+        }),
+    )
+
+    try {
+      const pending = provider.testConnection()
+      await vi.advanceTimersByTimeAsync(30_000)
+
+      await expect(pending).resolves.toEqual({
+        success: false,
+        message: 'OpenAI-Compatible connection test timed out after 30 seconds',
+      })
+      expect(abortedAfterMs).toBe(30_000)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('tests Open WebUI through its documented completion URL', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ choices: [{ message: { content: 'pong' } }] })),
+    )
+    const provider = new OpenAICompatibleProvider('http://webui.example.com/api', 'model')
+
+    await provider.testConnection()
+
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe('http://webui.example.com/api/chat/completions')
+  })
+
   it('handles wrapped JSON object response', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(
@@ -151,10 +213,14 @@ describe('OpenAICompatibleProvider', () => {
     )
 
     try {
-      const pending = provider.getRecommendations(sampleProfile)
-      const rejection = expect(pending).rejects.toThrow(/abort/i)
+      const rejection = provider.getRecommendations(sampleProfile).catch((error: unknown) => error)
       await vi.advanceTimersByTimeAsync(1000)
-      await rejection
+      const error = await rejection
+
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toBe(
+        'OpenAI-Compatible recommendation request timed out after 1 second',
+      )
       expect(fetchSpy).toHaveBeenCalledTimes(1)
     } finally {
       vi.useRealTimers()
