@@ -1,6 +1,10 @@
 import { createSubsonicClient } from '@/core/clients/subsonic'
 import type { DiscoveryModeDefinition } from '../types'
-import { getDiscoveryModeConnections, getNormalizedLimit } from './runtime'
+import {
+  getDiscoveryModeConnections,
+  getDiscoveryModeSkipTlsVerify,
+  getNormalizedLimit,
+} from './runtime'
 
 export function createSubsonicStarredMode(): DiscoveryModeDefinition {
   return {
@@ -25,7 +29,10 @@ export function createSubsonicStarredMode(): DiscoveryModeDefinition {
       },
     ],
     executor: async (request) => {
-      const conns = await getDiscoveryModeConnections(request.userId)
+      const [conns, skipTlsVerify] = await Promise.all([
+        getDiscoveryModeConnections(request.userId),
+        getDiscoveryModeSkipTlsVerify(),
+      ])
       if (!conns?.subsonicUrl || !conns.subsonicUsername || !conns.subsonicPassword) {
         throw new Error('Connect Subsonic to use this mode.')
       }
@@ -35,6 +42,7 @@ export function createSubsonicStarredMode(): DiscoveryModeDefinition {
         conns.subsonicUrl,
         conns.subsonicUsername,
         conns.subsonicPassword,
+        { skipTlsVerify },
       )
       const starred = await client.getStarredArtists()
 
