@@ -102,17 +102,12 @@ jobs:
           INPUT_TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          if [[ ! "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
-            echo "::error::Release tag must look like v1.2.3 or v1.2.3-rc.0"
+          if [[ ! "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag must look like v1.2.3"
             exit 1
           fi
 
           echo "value=$INPUT_TAG" >> "$GITHUB_OUTPUT"
-          if [[ "$INPUT_TAG" == *-* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Extract metadata
         id: meta
@@ -128,7 +123,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag.outputs.value }}
             type=semver,pattern={{major}},value=${{ steps.tag.outputs.value }}
-            type=raw,value=debian,enable=${{ matrix.variant == 'debian' && steps.tag.outputs.prerelease != 'true' }},suffix=
+            type=raw,value=debian,enable=${{ matrix.variant == 'debian' }},suffix=
 
       - name: Build and push
         id: build
@@ -143,7 +138,7 @@ jobs:
           build-args: |
             RUNTIME_IMAGE=${{ matrix.runtime-image }}
             DIGARR_GIT_SHA=${{ steps.sha.outputs.sha }}
-            DIGARR_CHANNEL=${{ steps.tag.outputs.prerelease == 'true' && 'rc' || 'stable' }}
+            DIGARR_CHANNEL=stable
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -203,18 +198,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.tag.outputs.value }}
-          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
             echo "release $TAG already exists; skipping create"
           else
-            release_args=(gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes)
-            if [ "$PRERELEASE" = "true" ]; then
-              release_args+=(--prerelease)
-            fi
-            "${release_args[@]}"
+            gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
           fi
           gh release upload "$TAG" sbom-container.spdx.json sbom-source.spdx.json --clobber
 
