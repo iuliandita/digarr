@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- **Slow OpenAI-compatible providers no longer fail with opaque abort errors.** Connection tests now honor `DIGARR_AI_TIMEOUT_SECONDS` instead of stopping after 10 seconds, recommendation timeouts report their configured duration, and Open WebUI `/api` base URLs use its documented chat-completions route. Standard `/v1` bases and full completion URLs are normalized without duplicate path segments.
+
 ## v1.13.0 - 2026-07-15
 
 New discovery inputs and review controls, continuous audition playback, broader genre coverage, and safer library and operations paths.
