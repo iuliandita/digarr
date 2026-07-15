@@ -762,14 +762,15 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 |--------|------|------|-------------|
 | GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
-| POST | `/api/v1/settings/test/:service` | Yes | Test service connection |
+| POST | `/api/v1/settings/test/:service` | Admin | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
-- `lidarr` and `ai` test calls require admin access when user-session auth is active
+- Service probes require admin access when user-session auth is active
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,
