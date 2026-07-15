@@ -17,7 +17,7 @@
  * version bump and the digest-sync commit. They must all agree with each
  * other and never exceed class A:
  *   - deploy/helm/digarr/values.yaml   (image tag)
- *   - deploy/unraid/digarr.xml         (<Repository> tag + <Tag>)
+ *   - deploy/unraid/digarr.xml         (<Repository>, <Tag>, and <TagDescription>)
  *   - deploy/docker/docker-compose*.yml (example pin comments, incl. -debian
  *                                        and the minor-line pin)
  *   - README.md                        (example minor/patch pins)
@@ -115,6 +115,11 @@ const classBPatch: Array<{ path: string; pattern: RegExp; label: string }> = [
     path: 'deploy/unraid/digarr.xml',
     pattern: /<Tag>(\d+\.\d+\.\d+)<\/Tag>/,
     label: 'unraid Tag',
+  },
+  {
+    path: 'deploy/unraid/digarr.xml',
+    pattern: /<TagDescription>v(\d+\.\d+\.\d+) release<\/TagDescription>/,
+    label: 'unraid TagDescription',
   },
   {
     path: 'deploy/docker/docker-compose.yml',
