@@ -58,6 +58,18 @@ export type { AppDependencies } from './deps'
 
 import type { AppDependencies } from './deps'
 
+const SPOTIFY_BRIDGE_CSP = [
+  "default-src 'none'",
+  "script-src 'self' https://open.spotify.com/embed/iframe-api/v1 https://embed-cdn.spotifycdn.com/_next/static/",
+  "style-src 'unsafe-inline'",
+  'img-src data: https://i.scdn.co https://*.spotifycdn.com',
+  'connect-src https://*.spotify.com https://*.spotifycdn.com',
+  'frame-src https://open.spotify.com',
+  "frame-ancestors 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ')
+
 export function createApp(deps: AppDependencies) {
   const app = new Hono<HonoEnv>()
 
@@ -108,6 +120,11 @@ export function createApp(deps: AppDependencies) {
         envConfig.allowedOrigin ?? (process.env.NODE_ENV === 'production' ? () => undefined : '*'),
     }),
   )
+  app.use('/spotify-embed-bridge.html', async (c, next) => {
+    await next()
+    c.header('Content-Security-Policy', SPOTIFY_BRIDGE_CSP)
+    c.header('X-Frame-Options', 'SAMEORIGIN')
+  })
   app.use(
     '*',
     secureHeaders({
@@ -118,11 +135,7 @@ export function createApp(deps: AppDependencies) {
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          'https://open.spotify.com/embed/iframe-api/v1',
-          'https://embed-cdn.spotifycdn.com/_next/static/',
-        ],
+        scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
