@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { hashPassword } from '@/core/auth'
-import { clearAllSessions, createSession } from '@/core/sessions'
+import { clearAllSessions, createSession, getSession } from '@/core/sessions'
 
 // Registration is closed by default (DIGARR_DISABLE_REGISTRATION defaults to true).
 // Override to false so registration tests can create users.
@@ -20,6 +20,21 @@ import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 import { authRoutes } from '@/server/routes/auth'
 import type { HonoEnv } from '@/server/types'
+
+const APP_ORIGIN = 'http://localhost'
+
+function sessionCookieToken(response: Response): string {
+  const setCookie = response.headers.get('set-cookie')
+  const match = setCookie?.match(/(?:^|,\s*)digarr_session=([^;]+)/)
+  if (!match?.[1]) throw new Error('session cookie missing')
+  return match[1]
+}
+
+const sameOriginHeaders = {
+  'X-Digarr-CSRF': '1',
+  Origin: APP_ORIGIN,
+  'Sec-Fetch-Site': 'same-origin',
+} as const
 
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
@@ -288,6 +303,36 @@ describe('POST /api/v1/auth/register', () => {
     expect(createUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: false }))
   })
 
+  it('issues a cookie-only session when cookie mode is requested', async () => {
+    const app = createApp(makeDeps())
+    await createSession(1, 'old-browser-session')
+    await createSession(1, 'unrelated-device-session')
+
+    const res = await app.request('/api/v1/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Digarr-Auth-Mode': 'cookie',
+        Cookie: 'digarr_session=old-browser-session',
+        ...sameOriginHeaders,
+      },
+      body: JSON.stringify({ username: 'admin', password: 'password1234' }),
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toContain('HttpOnly')
+    expect(res.headers.get('set-cookie')).toContain('SameSite=Lax')
+    const body = await res.json()
+    expect(body).toEqual({ user: expect.objectContaining({ username: 'admin' }) })
+    expect(body.token).toBeUndefined()
+
+    const newToken = sessionCookieToken(res)
+    await expect(getSession(newToken)).resolves.toEqual({ userId: 1 })
+    await expect(getSession('old-browser-session')).resolves.toBeNull()
+    await expect(getSession('unrelated-device-session')).resolves.toEqual({ userId: 1 })
+  })
+
   it('returns 400 for missing username or password', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/auth/register', {
@@ -364,6 +409,47 @@ describe('POST /api/v1/auth/login', () => {
     expect(body.user.username).toBe('testuser')
     // passwordHash should not be in the response
     expect(body.user.passwordHash).toBeUndefined()
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('issues a cookie-only session and replaces only the presented browser cookie', async () => {
+    const storedHash = hashPassword('correctpassword')
+    const app = createApp(
+      makeDeps({
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+      }),
+    )
+    await createSession(1, 'old-browser-session')
+    await createSession(1, 'unrelated-device-session')
+
+    const res = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Digarr-Auth-Mode': 'cookie',
+        Cookie: 'digarr_session=old-browser-session',
+        ...sameOriginHeaders,
+      },
+      body: JSON.stringify({ username: 'testuser', password: 'correctpassword' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toContain('HttpOnly')
+    expect(res.headers.get('set-cookie')).toContain('SameSite=Lax')
+    const body = await res.json()
+    expect(body).toEqual({ user: expect.objectContaining({ username: 'testuser' }) })
+    expect(body.token).toBeUndefined()
+
+    const newToken = sessionCookieToken(res)
+    await expect(getSession(newToken)).resolves.toEqual({ userId: 1 })
+    await expect(getSession('old-browser-session')).resolves.toBeNull()
+    await expect(getSession('unrelated-device-session')).resolves.toEqual({ userId: 1 })
   })
 
   it('returns 401 for wrong password', async () => {
@@ -502,6 +588,119 @@ describe('session token authentication', () => {
   })
 })
 
+describe('POST /api/v1/auth/session/migrate', () => {
+  it('atomically rotates a verified bearer into a cookie without leaking a token', async () => {
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
+    await createSession(1, 'browser-bearer')
+    await createSession(1, 'old-browser-cookie')
+    await createSession(1, 'unrelated-device-session')
+
+    const res = await app.request('/api/v1/auth/session/migrate', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer browser-bearer',
+        Cookie: 'digarr_session=old-browser-cookie',
+      },
+    })
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(await res.text()).toBe('')
+    const newToken = sessionCookieToken(res)
+    await expect(getSession(newToken)).resolves.toEqual({ userId: 1 })
+    await expect(getSession('browser-bearer')).resolves.toBeNull()
+    await expect(getSession('old-browser-cookie')).resolves.toBeNull()
+    await expect(getSession('unrelated-device-session')).resolves.toEqual({ userId: 1 })
+
+    const replay = await app.request('/api/v1/auth/session/migrate', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer browser-bearer' },
+    })
+    expect(replay.status).toBe(401)
+  })
+
+  it('rejects the legacy bearer with a dedicated problem', async () => {
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('legacyTokenAuth', true)
+      c.set('authMethod', 'legacy-bearer')
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps()))
+
+    const res = await app.request('/api/v1/auth/session/migrate', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer legacy-token' },
+    })
+
+    expect(res.status).toBe(403)
+    expect(res.headers.get('set-cookie')).toBeNull()
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/auth-session-migration-legacy-token',
+      status: 403,
+    })
+  })
+
+  it.each([
+    'session-cookie',
+    'session-query',
+    'proxy',
+  ] as const)('rejects verified %s auth because migration requires a bearer', async (authMethod) => {
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('authMethod', authMethod)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps()))
+
+    const res = await app.request('/api/v1/auth/session/migrate', { method: 'POST' })
+
+    expect(res.status).toBe(403)
+    expect(res.headers.get('set-cookie')).toBeNull()
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/auth-session-migration-requires-bearer',
+      status: 403,
+    })
+  })
+
+  it('leaves an invalid bearer to the auth middleware', async () => {
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
+
+    const res = await app.request('/api/v1/auth/session/migrate', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer invalid-session' },
+    })
+
+    expect(res.status).toBe(401)
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('maps rotation conflicts to a stable generic 409 problem', async () => {
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('authMethod', 'session-bearer')
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps()))
+
+    const res = await app.request('/api/v1/auth/session/migrate', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer already-consumed-session' },
+    })
+
+    expect(res.status).toBe(409)
+    expect(res.headers.get('set-cookie')).toBeNull()
+    await expect(res.json()).resolves.toEqual({
+      type: '/problems/auth-session-migration-conflict',
+      title: 'Session migration conflict',
+      status: 409,
+    })
+  })
+})
+
 describe('POST /api/v1/auth/logout', () => {
   it('invalidates the session token', async () => {
     const storedHash = hashPassword('password1234')
@@ -600,7 +799,7 @@ describe('POST /api/v1/auth/logout', () => {
     // Logout without Bearer header, using cookie instead
     const logoutRes = await app.request('/api/v1/auth/logout', {
       method: 'POST',
-      headers: { Cookie: `digarr_session=${token}` },
+      headers: { Cookie: `digarr_session=${token}`, ...sameOriginHeaders },
     })
     expect(logoutRes.status).toBe(204)
 
@@ -609,6 +808,49 @@ describe('POST /api/v1/auth/logout', () => {
       headers: { Authorization: `Bearer ${token}` },
     })
     expect(res.status).toBe(401)
+  })
+
+  it('invalidates distinct bearer and cookie sessions while preserving other devices', async () => {
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
+    await createSession(1, 'bearer-session')
+    await createSession(1, 'cookie-session')
+    await createSession(1, 'unrelated-session')
+
+    const res = await app.request('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer bearer-session',
+        Cookie: 'digarr_session=cookie-session',
+      },
+    })
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toContain('digarr_session=;')
+    expect(res.headers.get('set-cookie')).toContain('Path=/')
+    expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+    await expect(getSession('bearer-session')).resolves.toBeNull()
+    await expect(getSession('cookie-session')).resolves.toBeNull()
+    await expect(getSession('unrelated-session')).resolves.toEqual({ userId: 1 })
+  })
+
+  it('does not interpret a malformed Authorization value as a session token', async () => {
+    const app = new Hono<HonoEnv>()
+    app.route('/', authRoutes(makeDeps()))
+    await createSession(1, 'opaque-header-value')
+    await createSession(1, 'cookie-session')
+
+    const res = await app.request('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: {
+        Authorization: 'opaque-header-value',
+        Cookie: 'digarr_session=cookie-session',
+      },
+    })
+
+    expect(res.status).toBe(204)
+    await expect(getSession('opaque-header-value')).resolves.toEqual({ userId: 1 })
+    await expect(getSession('cookie-session')).resolves.toBeNull()
   })
 })
 
@@ -855,6 +1097,8 @@ describe('POST /api/v1/auth/change-password', () => {
     )
 
     await createSession(1, 'session-token')
+    await createSession(1, 'second-user-session')
+    await createSession(2, 'other-account-session')
     const res = await app.request('/api/v1/auth/change-password', {
       method: 'POST',
       headers: {
@@ -872,9 +1116,123 @@ describe('POST /api/v1/auth/change-password', () => {
     expect(body.token).toEqual(expect.any(String))
     expect(body.token).not.toBe('session-token')
     expect(body.ok).toBeUndefined()
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(res.headers.get('cache-control')).toBe('no-store')
     expect(updatePassword).toHaveBeenCalledOnce()
     expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
+    await expect(getSession('session-token')).resolves.toBeNull()
+    await expect(getSession('second-user-session')).resolves.toBeNull()
+    await expect(getSession(body.token)).resolves.toEqual({ userId: 1 })
+    await expect(getSession('other-account-session')).resolves.toEqual({ userId: 2 })
   }, 10_000)
+
+  it('returns only a fresh cookie for a cookie-authenticated password change', async () => {
+    const storedHash = hashPassword('oldpassword123')
+    const updatePassword = vi.fn(async () => {})
+    const app = createApp(
+      makeDeps({
+        updatePassword,
+        getUserCount: vi.fn(async () => 1),
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+      }),
+    )
+    await createSession(1, 'cookie-session')
+    await createSession(1, 'second-user-session')
+    await createSession(2, 'other-account-session')
+
+    const res = await app.request('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: {
+        Cookie: 'digarr_session=cookie-session',
+        'Content-Type': 'application/json',
+        ...sameOriginHeaders,
+      },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(204)
+    expect(await res.text()).toBe('')
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    const newToken = sessionCookieToken(res)
+    await expect(getSession(newToken)).resolves.toEqual({ userId: 1 })
+    await expect(getSession('cookie-session')).resolves.toBeNull()
+    await expect(getSession('second-user-session')).resolves.toBeNull()
+    await expect(getSession('other-account-session')).resolves.toEqual({ userId: 2 })
+  })
+
+  it('returns only a fresh cookie for a proxy-authenticated password change', async () => {
+    const storedHash = hashPassword('oldpassword123')
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('authMethod', 'proxy')
+      c.set('proxyAuth', true)
+      await next()
+    })
+    app.route(
+      '/',
+      authRoutes(
+        makeDeps({
+          getUserByUsername: vi.fn(async () => ({
+            id: 1,
+            username: 'testuser',
+            passwordHash: storedHash,
+            isAdmin: false,
+          })),
+        }),
+      ),
+    )
+
+    const res = await app.request('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(204)
+    expect(await res.text()).toBe('')
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toContain('HttpOnly')
+  })
+
+  it('keeps query-authenticated password changes behind the CSRF rejection', async () => {
+    const updatePassword = vi.fn(async () => {})
+    const { csrfGuard } = await import('@/server/middleware/csrf')
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      c.set('authMethod', 'session-query')
+      await next()
+    })
+    app.use('*', csrfGuard)
+    app.route('/', authRoutes(makeDeps({ updatePassword })))
+
+    const res = await app.request('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...sameOriginHeaders },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/csrf-validation-failed',
+    })
+    expect(updatePassword).not.toHaveBeenCalled()
+  })
 
   it('rejects legacy read-only token auth', async () => {
     const updatePassword = vi.fn(async () => {})

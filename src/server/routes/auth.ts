@@ -1,20 +1,26 @@
 import { lookup } from 'node:dns/promises'
 import { type Context, Hono } from 'hono'
-import { deleteCookie, getCookie } from 'hono/cookie'
+import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
-import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
+import { hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
 import { isSingleAdminCollision, isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
-import { clearUserSessions, createSession, deleteSession } from '@/core/sessions'
+import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl } from '@/core/validation'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
+import {
+  clearSessionCookie,
+  cookieModeRequested,
+  issueSession,
+  resetSession,
+} from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
@@ -125,10 +131,15 @@ export function authRoutes(deps: AppDependencies) {
       user = await deps.createUser({ username, passwordHash, isAdmin: false })
     }
 
-    const token = generateSessionToken()
-    await createSession(user.id, token)
+    const cookie = cookieModeRequested(c)
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    const token = await issueSession(c, user.id, {
+      kind: 'create',
+      cookie,
+      revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
+    })
 
-    return c.json({ user, token }, 201)
+    return cookie ? c.json({ user }, 201) : c.json({ user, token }, 201)
   })
 
   // Login with username + password.
@@ -166,23 +177,70 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
-    const token = generateSessionToken()
-    await createSession(user.id, token)
+    const cookie = cookieModeRequested(c)
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    const token = await issueSession(c, user.id, {
+      kind: 'create',
+      cookie,
+      revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
+    })
 
     const { passwordHash: _, ...publicUser } = user
-    return c.json({ user: publicUser, token })
+    return cookie ? c.json({ user: publicUser }) : c.json({ user: publicUser, token })
   })
 
-  // Logout (invalidate session token)
+  router.post('/api/v1/auth/session/migrate', async (c) => {
+    const authMethod = c.get('authMethod')
+    if (authMethod === 'legacy-bearer') {
+      return problem(
+        c,
+        'auth-session-migration-legacy-token',
+        'Legacy token cannot be migrated',
+        403,
+      )
+    }
+    if (authMethod !== 'session-bearer') {
+      return problem(c, 'auth-session-migration-requires-bearer', 'Bearer session required', 403)
+    }
+
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const header = c.req.header('Authorization')
+    const bearer = header?.startsWith('Bearer ') ? header.slice(7) : ''
+    if (!bearer) {
+      return problem(c, 'auth-session-migration-requires-bearer', 'Bearer session required', 403)
+    }
+
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    try {
+      await issueSession(c, auth.userId, {
+        kind: 'rotate',
+        cookie: true,
+        requiredSourceToken: bearer,
+        revokeTokens: existingCookie && existingCookie !== bearer ? [existingCookie] : undefined,
+      })
+    } catch (error) {
+      if (error instanceof SessionRotationConflictError) {
+        return problem(c, 'auth-session-migration-conflict', 'Session migration conflict', 409)
+      }
+      throw error
+    }
+
+    return c.body(null, 204)
+  })
+
+  // Logout (invalidate all credentials presented by this request)
   router.post('/api/v1/auth/logout', async (c) => {
     const header = c.req.header('Authorization')
-    if (header?.startsWith('Bearer ')) {
-      await deleteSession(header.slice(7))
-    } else {
-      const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
-      if (cookieToken) await deleteSession(cookieToken)
+    const tokens = new Set<string>()
+    if (header?.startsWith('Bearer ') && header.length > 7) {
+      tokens.add(header.slice(7))
     }
-    deleteCookie(c, SESSION_COOKIE_NAME, { path: '/' })
+    const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
+    if (cookieToken) tokens.add(cookieToken)
+    for (const token of tokens) await deleteSession(token)
+    c.header('Cache-Control', 'no-store')
+    clearSessionCookie(c)
     return c.body(null, 204)
   })
 
@@ -321,12 +379,10 @@ export function authRoutes(deps: AppDependencies) {
     const newHash = hashPassword(newPassword)
     await deps.updatePassword(auth.userId, newHash)
 
-    // Invalidate all sessions for this user, then create a fresh one
-    await clearUserSessions(auth.userId)
-    const newToken = generateSessionToken()
-    await createSession(auth.userId, newToken)
+    const cookie = c.get('authMethod') === 'session-cookie' || c.get('authMethod') === 'proxy'
+    const newToken = await resetSession(c, auth.userId, cookie)
 
-    return c.json({ token: newToken })
+    return cookie ? c.body(null, 204) : c.json({ token: newToken })
   })
 
   // Get the authenticated user's merged preferences
