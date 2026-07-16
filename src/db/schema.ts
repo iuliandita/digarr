@@ -413,22 +413,6 @@ export const artistMetadata = pgTable('artist_metadata', {
   cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow(),
 })
 
-export const oidcTokens = pgTable('oidc_tokens', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(),
-  issuerUrl: text('issuer_url').notNull(),
-  accessToken: text('access_token').notNull(),
-  refreshToken: text('refresh_token'),
-  idToken: text('id_token'),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  nonce: text('nonce'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
-
 export const oauthTokens = pgTable(
   'oauth_tokens',
   {

@@ -76,27 +76,6 @@ beforeEach(async () => {
 })
 
 describe('backup/restore integration', () => {
-  it('omits legacy OIDC tokens from new backups', async () => {
-    if (!pgAvailable) return
-    initEncryption(undefined)
-
-    const [user] = await db
-      .insert(schema.users)
-      .values({ username: 'legacy-oidc-export', passwordHash: 'x' })
-      .returning()
-    if (!user) throw new Error('user insert failed')
-    await db.insert(schema.oidcTokens).values({
-      userId: user.id,
-      issuerUrl: 'https://issuer.example',
-      accessToken: 'legacy-access-token',
-      expiresAt: new Date('2030-01-01T00:00:00.000Z'),
-    })
-
-    const backup = await createBackup(db, {})
-
-    expect(backup.data).not.toHaveProperty('oidcTokens')
-  })
-
   it('ignores legacy OIDC token rows during restore', async () => {
     if (!pgAvailable) return
     initEncryption(undefined)
@@ -117,7 +96,7 @@ describe('backup/restore integration', () => {
     const result = await restoreBackup(db, backup, {})
 
     expect(result.warnings).toEqual(['Ignored 1 legacy OIDC token record.'])
-    expect(await db.select().from(schema.oidcTokens)).toEqual([])
+    expect(result.tablesRestored).not.toHaveProperty('oidcTokens')
   })
 
   it('round-trips data through createBackup and restoreBackup', async () => {

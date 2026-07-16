@@ -309,6 +309,13 @@
       "when": 1783905239055,
       "tag": "0043_brave_selene",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1784198214617,
+      "tag": "0044_drop_oidc_tokens",
+      "breakpoints": true
     }
   ]
 }
