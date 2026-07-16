@@ -9,9 +9,13 @@ remain the compatibility path for non-browser API clients. Only
 Cookie- or proxy-authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests
 must send `X-Digarr-CSRF: 1` plus exact same-origin browser evidence. The
 bundled UI handles this automatically. Verified bearer requests do not require
-the CSRF header. Set `ALLOWED_ORIGIN` to the exact public origin when a reverse
-proxy or TLS terminator changes the scheme or host seen by the application;
-the value controls CSRF origin checks and whether the cookie is `Secure`.
+the CSRF header. Browser-shaped public mutations, including login and
+registration, also require the header; non-browser requests without browser
+origin signals remain compatible. OpenAPI expresses protected mutations as
+`sessionCookie` + `csrfHeader`, or `bearerToken`. Set `ALLOWED_ORIGIN` to the
+exact public origin when a reverse proxy or TLS terminator changes the scheme
+or host seen by the application; the value controls CSRF origin checks and
+whether the cookie is `Secure`.
 
 Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
 
@@ -68,9 +72,9 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-OpenAPI coverage currently includes auth status/login/session migration,
-recommendations, artist blocks, jobs, and settings service probes. The
-Markdown reference remains the complete route inventory.
+OpenAPI coverage currently includes auth status/login/register/session
+migration, recommendations, artist blocks, jobs, and settings service probes.
+The Markdown reference remains the complete route inventory.
 
 ---
 
@@ -106,6 +110,9 @@ Notes:
 - Login and registration return `{ user, token }` for API clients by default.
   Send `X-Digarr-Auth-Mode: cookie` to receive an HttpOnly session cookie and a
   `{ user }` response without the raw token.
+- Registration returns `201`; closed registration returns `403`, an existing
+  username returns `409`, and the sixth request from one source within a minute
+  returns `429`.
 - `POST /api/v1/auth/session/migrate` accepts only an active per-user session
   bearer. It returns `204` after rotating that bearer into a cookie, `403` for
   the deprecated shared token or another auth method, and `409` when the source

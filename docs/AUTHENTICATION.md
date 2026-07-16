@@ -154,6 +154,7 @@ your actual reverse-proxy network.
 
 ## Legacy token auth (deprecated)
 
-`DIGARR_AUTH_TOKEN` grants read-only access as `userId=1` with no admin
-rights. Retained for backwards compatibility with older deployments; it
-will be removed in a future release. Migrate to session auth or OIDC.
+`DIGARR_AUTH_TOKEN` authenticates as `userId=1` without admin rights. It is
+retained for backwards compatibility with older deployments and will be
+removed in a future release. Migrate to a per-user bearer session, browser
+session auth, or OIDC.
