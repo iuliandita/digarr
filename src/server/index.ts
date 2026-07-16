@@ -12,6 +12,7 @@ import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
 import { apiVersionRedirect } from './middleware/api-version'
 import { authGuard } from './middleware/auth'
+import { csrfGuard } from './middleware/csrf'
 import { requestLogger } from './middleware/logger'
 import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
@@ -118,6 +119,13 @@ export function createApp(deps: AppDependencies) {
     cors({
       origin:
         envConfig.allowedOrigin ?? (process.env.NODE_ENV === 'production' ? () => undefined : '*'),
+      allowHeaders: [
+        'Authorization',
+        'Content-Type',
+        'X-Digarr-Locale',
+        'X-Digarr-CSRF',
+        'X-Digarr-Auth-Mode',
+      ],
     }),
   )
   app.use('/spotify-embed-bridge.html', async (c, next) => {
@@ -165,6 +173,7 @@ export function createApp(deps: AppDependencies) {
       isSetupComplete: deps.isSetupComplete,
     }),
   )
+  app.use('*', csrfGuard)
   app.use('*', setupGuard(deps.isSetupComplete))
   app.use('*', maintenanceMiddleware)
 
