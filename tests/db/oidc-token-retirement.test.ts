@@ -4,9 +4,12 @@ import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
 import pg from 'pg'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
+
+// PGlite cold-start and migrations need headroom under full-suite contention.
+vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
 const { Pool } = pg
 const migrationUrl = new URL('../../drizzle/0044_drop_oidc_tokens.sql', import.meta.url)
