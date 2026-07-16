@@ -240,13 +240,19 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
 
-**Downgrading across the OIDC token-storage migration:** Stop Digarr first, and never run an older image against a database that has already received the migration. Prepare a separate compatibility copy of the pre-migration backup:
+**Downgrading across the OIDC token-storage migration:** Stop Digarr first, and never run an older image against a database that has already received the migration. Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
 
 ```sh
-bun scripts/prepare-rollback-backup.ts <input> <output>
+docker compose -f docker-compose.pglite.yml stop app
+docker compose -f docker-compose.pglite.yml run --rm --no-deps app \
+  bun dist/scripts/prepare-rollback-backup.js \
+  /app/backups/<automatic-pre-migration-v1.json> \
+  /app/backups/<rollback-compatible-v1.json>
 ```
 
-Provision a fresh database with the older image so it creates the old schema, then restore the output copy. The helper writes the copy with mode `0600`, adds only an empty `data.oidcTokens` key, refuses an existing output, and never overwrites the source. It cannot recover retired provider tokens.
+For the external-PostgreSQL installation, use `docker-compose.yml` and include every override file used by that installation. From a source checkout at the same revision, the equivalent command is `bun scripts/prepare-rollback-backup.ts <input> <output>`.
+
+The input must be the automatic pre-migration backup, use backup version 1, and have no existing `data.oidcTokens` key. The output path must not exist. Provision a separate fresh database with the older image so it creates the old schema, then restore the output copy; never point the old image at the migrated database. The helper writes the copy with mode `0600`, adds only an empty `data.oidcTokens` key, refuses an existing output, and never overwrites the source. It cannot recover retired provider tokens.
 
 ### Data Hygiene
 

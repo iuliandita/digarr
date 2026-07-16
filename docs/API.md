@@ -828,6 +828,12 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 | POST | `/api/v1/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
 | GET | `/api/v1/admin/backup/last` | Admin | Last auto-backup metadata. |
 
+Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.
+Restore accepts an optional legacy `data.oidcTokens` array for compatibility:
+an absent or empty array is silent, while nonempty rows are never restored and
+add `Ignored 1 legacy OIDC token record.` or
+`Ignored N legacy OIDC token records.` to `warnings`.
+
 ### Upgrade
 
 | Method | Path | Auth | Description |
