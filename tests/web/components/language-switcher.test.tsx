@@ -17,6 +17,11 @@ vi.mock('@/web/lib/locale-storage', () => ({
   setStoredLocale: vi.fn(),
 }))
 
+const legacyAuthMocks = vi.hoisted(() => ({
+  getStoredToken: vi.fn(),
+  setStoredToken: vi.fn(),
+}))
+
 vi.mock('@/web/lib/api', () => ({
   AUTH_EXPIRED_EVENT: 'digarr:auth-expired',
   clearStoredToken: vi.fn(),
@@ -38,7 +43,7 @@ vi.mock('@/web/lib/api', () => ({
     setupComplete: true,
   }),
   getSetupStatus: vi.fn(),
-  getStoredToken: vi.fn(),
+  getStoredToken: legacyAuthMocks.getStoredToken,
   getUserPreferences: vi.fn().mockResolvedValue({
     scoreThreshold: 0.5,
     scoringWeights: {
@@ -64,7 +69,7 @@ vi.mock('@/web/lib/api', () => ({
   loginUser: vi.fn(),
   logoutUser: vi.fn(),
   registerUser: vi.fn(),
-  setStoredToken: vi.fn(),
+  setStoredToken: legacyAuthMocks.setStoredToken,
   testService: vi.fn(),
   testTargetApi: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
   testWebhook: vi.fn(),
@@ -155,7 +160,6 @@ import {
   getCurrentUser,
   getPipelineStatus,
   getSetupStatus,
-  getStoredToken,
   updatePreferredLocale,
 } from '@/web/lib/api'
 import { getStoredLocale, setStoredLocale } from '@/web/lib/locale-storage'
@@ -164,7 +168,7 @@ const mockGetAuthStatus = getAuthStatus as ReturnType<typeof vi.fn>
 const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
 const mockGetPipelineStatus = getPipelineStatus as ReturnType<typeof vi.fn>
 const mockGetSetupStatus = getSetupStatus as ReturnType<typeof vi.fn>
-const mockGetStoredToken = getStoredToken as ReturnType<typeof vi.fn>
+const mockGetStoredToken = legacyAuthMocks.getStoredToken
 const mockGetStoredLocale = getStoredLocale as ReturnType<typeof vi.fn>
 const mockUpdatePreferredLocale = updatePreferredLocale as ReturnType<typeof vi.fn>
 const mockSetStoredLocale = setStoredLocale as ReturnType<typeof vi.fn>
@@ -313,6 +317,16 @@ describe('language switcher surfaces', () => {
     expect(switcher).toHaveValue('de')
     expect(mockSetStoredLocale).toHaveBeenCalledWith('de')
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
+  })
+
+  it('reports a selected supported locale', () => {
+    const onChange = vi.fn()
+    renderWithProviders(<LanguageSwitcher value="en" onChange={onChange} />)
+
+    const switcher = screen.getByLabelText('Language')
+    fireEvent.change(switcher, { target: { value: 'de' } })
+
+    expect(onChange).toHaveBeenCalledWith('de')
   })
 
   it('translates the language switcher label for the active locale', () => {

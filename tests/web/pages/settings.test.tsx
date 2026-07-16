@@ -42,7 +42,12 @@ vi.mock('@/web/lib/api', () => ({
     .fn()
     .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
   testService: vi.fn(),
-  getAuthStatus: vi.fn(),
+  getAuthStatus: vi.fn().mockResolvedValue({
+    required: true,
+    hasUsers: true,
+    oidcEnabled: false,
+    isAdmin: true,
+  }),
   getLidarrProfiles: vi.fn(),
   getLidarrMetadataProfiles: vi.fn(),
   getLidarrRootFolders: vi.fn(),
@@ -53,7 +58,6 @@ vi.mock('@/web/lib/api', () => ({
     totalArtists: 25,
   }),
   triggerPipeline: vi.fn(),
-  getStoredToken: vi.fn(() => null),
   getSetupStatus: vi.fn().mockResolvedValue({ setupComplete: true }),
   listTargets: vi.fn().mockResolvedValue([]),
   updateTargetApi: vi.fn().mockResolvedValue(undefined),
@@ -74,12 +78,11 @@ vi.mock('@/web/lib/api', () => ({
   }),
   initiateOAuth: vi.fn().mockResolvedValue({ authUrl: '' }),
   disconnectOAuth: vi.fn().mockResolvedValue(undefined),
-  changePassword: vi.fn().mockResolvedValue({ ok: true }),
+  changePassword: vi.fn().mockResolvedValue(undefined),
   clearStoredToken: vi.fn(),
   logoutUser: vi.fn().mockResolvedValue({ ok: true }),
   loginUser: vi.fn(),
   registerUser: vi.fn(),
-  setStoredToken: vi.fn(),
   createTargetApi: vi.fn().mockResolvedValue({ id: 99 }),
   updatePreferredLocale: vi.fn().mockResolvedValue({ success: true, preferredLocale: 'en' }),
   AUTH_EXPIRED_EVENT: 'digarr:auth-expired',
@@ -131,6 +134,10 @@ vi.mock('@/web/components/bottom-nav', () => ({
   BottomNav: () => null,
 }))
 
+vi.mock('@/web/components/auth-gate', () => ({
+  AuthGate: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 vi.mock('@/web/components/error-boundary', () => ({
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => children,
 }))
@@ -172,8 +179,8 @@ vi.mock('@/web/lib/hooks', async (importOriginal) => {
 })
 
 import {
+  changePassword,
   createTargetApi,
-  getAuthStatus,
   getCurrentUser,
   getJobHealth,
   getLidarrMetadataProfiles,
@@ -182,7 +189,6 @@ import {
   getOAuthStatus,
   getPipelineStatus,
   getSettings,
-  getStoredToken,
   importSpotifyLikedSongs,
   listJobs,
   listTargets,
@@ -196,7 +202,6 @@ import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SettingsPage } from '@/web/pages/settings'
 
 const mockGetSettings = getSettings as ReturnType<typeof vi.fn>
-const mockGetAuthStatus = getAuthStatus as ReturnType<typeof vi.fn>
 const mockGetPipelineStatus = getPipelineStatus as ReturnType<typeof vi.fn>
 const mockUpdateSettings = updateSettings as ReturnType<typeof vi.fn>
 const mockTestService = testService as ReturnType<typeof vi.fn>
@@ -206,7 +211,6 @@ const mockGetLidarrRootFolders = getLidarrRootFolders as ReturnType<typeof vi.fn
 const mockGetOAuthStatus = getOAuthStatus as ReturnType<typeof vi.fn>
 const mockImportSpotifyLikedSongs = importSpotifyLikedSongs as ReturnType<typeof vi.fn>
 const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
-const mockGetStoredToken = getStoredToken as ReturnType<typeof vi.fn>
 const mockGetStoredLocale = getStoredLocale as ReturnType<typeof vi.fn>
 const mockUpdatePreferredLocale = updatePreferredLocale as ReturnType<typeof vi.fn>
 const mockCreateTargetApi = createTargetApi as ReturnType<typeof vi.fn>
@@ -215,6 +219,7 @@ const mockUpdateTargetApi = updateTargetApi as ReturnType<typeof vi.fn>
 const mockUpdateUserPreferences = updateUserPreferences as ReturnType<typeof vi.fn>
 const mockListJobs = listJobs as ReturnType<typeof vi.fn>
 const mockGetJobHealth = getJobHealth as ReturnType<typeof vi.fn>
+const mockChangePassword = changePassword as ReturnType<typeof vi.fn>
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -287,12 +292,6 @@ describe('SettingsPage', () => {
       }),
     })
     mockGetStoredLocale.mockReturnValue('en')
-    mockGetAuthStatus.mockResolvedValue({
-      required: true,
-      hasUsers: true,
-      oidcEnabled: false,
-      version: '1.0.0',
-    })
     mockGetCurrentUser.mockResolvedValue({
       id: 1,
       username: 'admin',
@@ -300,8 +299,8 @@ describe('SettingsPage', () => {
       preferredLocale: 'en',
     })
     mockGetPipelineStatus.mockResolvedValue({ running: false })
-    mockGetStoredToken.mockReturnValue('token')
     mockUpdatePreferredLocale.mockResolvedValue({ success: true, preferredLocale: 'en' })
+    mockChangePassword.mockResolvedValue(undefined)
   })
 
   it('shows listening genre coverage in Connections', async () => {
@@ -693,6 +692,28 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByText('Account'))
 
     expect(await screen.findByLabelText('Language')).toBeInTheDocument()
+  })
+
+  it('changes the password without persisting a response token', async () => {
+    setupMocks()
+    renderWithQuery(<SettingsPage />)
+
+    fireEvent.click(await screen.findByText('Account'))
+    fireEvent.change(await screen.findByLabelText(/Current password/i), {
+      target: { value: 'current-password' },
+    })
+    fireEvent.change(screen.getByLabelText(/^New password$/i), {
+      target: { value: 'new-password-123' },
+    })
+    fireEvent.change(screen.getByLabelText(/^Confirm new password$/i), {
+      target: { value: 'new-password-123' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Change Password' }))
+
+    await waitFor(() => {
+      expect(mockChangePassword).toHaveBeenCalledWith('current-password', 'new-password-123')
+    })
+    expect(localStorage.setItem).not.toHaveBeenCalled()
   })
 
   it('keeps account locale changes local when rendered without the app shell owner', async () => {
