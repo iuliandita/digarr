@@ -120,6 +120,7 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
 
     c.set('userId', user.id)
     c.set('proxyAuth', true)
+    c.set('authMethod', 'proxy')
 
     return next()
   })

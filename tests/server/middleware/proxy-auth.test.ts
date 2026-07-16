@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSession, getSession } from '@/core/sessions'
 import { proxyAuthMiddleware } from '@/server/middleware/proxy-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
+import type { HonoEnv } from '@/server/types'
 
 vi.mock('@/core/sessions', () => ({
   createSession: vi.fn(async () => {}),
@@ -24,7 +25,7 @@ describe('proxyAuthMiddleware', () => {
   const mockGetUserCount = vi.fn(async () => 0)
 
   function buildApp(trustedProxies: string[]) {
-    const app = new Hono()
+    const app = new Hono<HonoEnv>()
     app.use(
       '*',
       proxyAuthMiddleware({
@@ -36,9 +37,11 @@ describe('proxyAuthMiddleware', () => {
       }),
     )
     app.get('/test', (c) => {
-      const userId = c.get('userId' as never)
-      const proxyAuth = c.get('proxyAuth' as never)
-      return c.json({ userId, proxyAuth })
+      return c.json({
+        userId: c.get('userId'),
+        proxyAuth: c.get('proxyAuth'),
+        authMethod: c.get('authMethod'),
+      })
     })
     return app
   }
@@ -61,6 +64,11 @@ describe('proxyAuthMiddleware', () => {
     })
     expect(res.status).toBe(200)
     expect(mockCreateUser).toHaveBeenCalled()
+    await expect(res.json()).resolves.toMatchObject({
+      userId: 1,
+      proxyAuth: true,
+      authMethod: 'proxy',
+    })
   })
 
   it('reuses existing user when found', async () => {
@@ -86,6 +94,7 @@ describe('proxyAuthMiddleware', () => {
     })
     const body = await res.json()
     expect(body.proxyAuth).toBeUndefined()
+    expect(body.authMethod).toBeUndefined()
   })
 
   it('silently falls through when no X-Forwarded-User header', async () => {
@@ -93,6 +102,7 @@ describe('proxyAuthMiddleware', () => {
     const res = await app.request('/test')
     const body = await res.json()
     expect(body.proxyAuth).toBeUndefined()
+    expect(body.authMethod).toBeUndefined()
   })
 
   it('first proxy user becomes admin', async () => {

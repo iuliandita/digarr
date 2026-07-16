@@ -1,7 +1,9 @@
 // @vitest-environment node
 
 import { EventEmitter } from 'node:events'
+import { type Context, Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { HonoEnv } from '@/server/types'
 
 function makeMockOrchestrator() {
   const emitter = new EventEmitter()
@@ -153,6 +155,165 @@ describe('auth middleware', () => {
     const { createApp } = await import('@/server')
     return createApp(makeDeps(options?.overrides))
   }
+
+  async function createCredentialSourceApp(options?: {
+    legacyToken?: string
+    session?: { token: string; userId: number }
+  }) {
+    if (options?.legacyToken) process.env.DIGARR_AUTH_TOKEN = options.legacyToken
+    vi.resetModules()
+
+    const [{ createSession }, { authGuard }, { SESSION_COOKIE_NAME }] = await Promise.all([
+      import('@/core/sessions'),
+      import('@/server/middleware/auth'),
+      import('@/server/middleware/session-cookie'),
+    ])
+    if (options?.session) {
+      await createSession(options.session.userId, options.session.token)
+    }
+
+    const app = new Hono<HonoEnv>()
+    app.use(
+      '*',
+      authGuard({
+        hasUsers: async () => true,
+        isSetupComplete: async () => true,
+      }),
+    )
+    const respondWithAuthContext = (c: Context<HonoEnv>) =>
+      c.json({
+        userId: c.get('userId'),
+        authMethod: c.get('authMethod'),
+        legacyTokenAuth: c.get('legacyTokenAuth'),
+      })
+    app.get('/api/v1/test', respondWithAuthContext)
+    app.get('/api/v1/pipeline/events', respondWithAuthContext)
+    app.get('/api/v1/preview/audio', respondWithAuthContext)
+
+    return { app, sessionCookieName: SESSION_COOKIE_NAME }
+  }
+
+  describe('verified credential source', () => {
+    const SESSION_TOKEN = 'verified-session-token-12345'
+
+    it('records a verified bearer session', async () => {
+      const { app } = await createCredentialSourceApp({
+        session: { token: SESSION_TOKEN, userId: 42 },
+      })
+
+      const res = await app.request('/api/v1/test', {
+        headers: { Authorization: `Bearer ${SESSION_TOKEN}` },
+      })
+
+      expect(res.status).toBe(200)
+      await expect(res.json()).resolves.toEqual({
+        userId: 42,
+        authMethod: 'session-bearer',
+      })
+    })
+
+    it('records a verified cookie session', async () => {
+      const { app, sessionCookieName } = await createCredentialSourceApp({
+        session: { token: SESSION_TOKEN, userId: 42 },
+      })
+
+      const res = await app.request('/api/v1/test', {
+        headers: { cookie: `${sessionCookieName}=${SESSION_TOKEN}` },
+      })
+
+      expect(res.status).toBe(200)
+      await expect(res.json()).resolves.toEqual({
+        userId: 42,
+        authMethod: 'session-cookie',
+      })
+    })
+
+    it('records a query session only on an allowlisted route', async () => {
+      const { app } = await createCredentialSourceApp({
+        session: { token: SESSION_TOKEN, userId: 42 },
+      })
+
+      const allowed = await app.request(`/api/v1/pipeline/events?token=${SESSION_TOKEN}`)
+      expect(allowed.status).toBe(200)
+      await expect(allowed.json()).resolves.toEqual({
+        userId: 42,
+        authMethod: 'session-query',
+      })
+
+      const denied = await app.request(`/api/v1/test?token=${SESSION_TOKEN}`)
+      expect(denied.status).toBe(401)
+    })
+
+    it('records a legacy query token only on an allowlisted route', async () => {
+      const { app } = await createCredentialSourceApp({ legacyToken: TOKEN })
+
+      const allowed = await app.request(`/api/v1/preview/audio?token=${TOKEN}`)
+      expect(allowed.status).toBe(200)
+      await expect(allowed.json()).resolves.toEqual({
+        userId: 1,
+        authMethod: 'legacy-query',
+        legacyTokenAuth: true,
+      })
+
+      const denied = await app.request(`/api/v1/test?token=${TOKEN}`)
+      expect(denied.status).toBe(401)
+    })
+
+    it('records a verified legacy bearer token and compatibility flag', async () => {
+      const { app } = await createCredentialSourceApp({ legacyToken: TOKEN })
+
+      const res = await app.request('/api/v1/test', {
+        headers: { Authorization: `Bearer ${TOKEN}` },
+      })
+
+      expect(res.status).toBe(200)
+      await expect(res.json()).resolves.toEqual({
+        userId: 1,
+        authMethod: 'legacy-bearer',
+        legacyTokenAuth: true,
+      })
+    })
+
+    it('does not fall back to a valid cookie after an invalid bearer token', async () => {
+      const { app, sessionCookieName } = await createCredentialSourceApp({
+        session: { token: SESSION_TOKEN, userId: 42 },
+      })
+
+      const res = await app.request('/api/v1/test', {
+        headers: {
+          Authorization: 'Bearer invalid-session-token',
+          cookie: `${sessionCookieName}=${SESSION_TOKEN}`,
+        },
+      })
+
+      expect(res.status).toBe(401)
+    })
+
+    it('does not fall back to a valid cookie after a malformed Authorization header', async () => {
+      const { app, sessionCookieName } = await createCredentialSourceApp({
+        session: { token: SESSION_TOKEN, userId: 42 },
+      })
+
+      const res = await app.request('/api/v1/test', {
+        headers: {
+          Authorization: 'Basic invalid-credentials',
+          cookie: `${sessionCookieName}=${SESSION_TOKEN}`,
+        },
+      })
+
+      expect(res.status).toBe(401)
+    })
+
+    it('never accepts the legacy deployment token from a cookie', async () => {
+      const { app, sessionCookieName } = await createCredentialSourceApp({ legacyToken: TOKEN })
+
+      const res = await app.request('/api/v1/test', {
+        headers: { cookie: `${sessionCookieName}=${TOKEN}` },
+      })
+
+      expect(res.status).toBe(401)
+    })
+  })
 
   describe('when DIGARR_AUTH_TOKEN is not set', () => {
     it('reports auth as not required before setup completes', async () => {
