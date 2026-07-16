@@ -26,7 +26,6 @@ function emptyBackupData(): BackupData {
     settings: [],
     users: [],
     oauthTokens: [],
-    oidcTokens: [],
     targets: [],
     subscriptions: [],
     jobRuns: [],
@@ -71,12 +70,56 @@ beforeEach(async () => {
   await db.execute(sql`TRUNCATE
     artist_blocks, playlist_tracks, recommendations, job_runs,
     recommendation_batches, playlists, subscriptions, targets,
-    oidc_tokens, oauth_tokens, artist_metadata, genres, artists,
+    oauth_tokens, artist_metadata, genres, artists,
     users, settings
     RESTART IDENTITY CASCADE`)
 })
 
 describe('backup/restore integration', () => {
+  it('omits legacy OIDC tokens from new backups', async () => {
+    if (!pgAvailable) return
+    initEncryption(undefined)
+
+    const [user] = await db
+      .insert(schema.users)
+      .values({ username: 'legacy-oidc-export', passwordHash: 'x' })
+      .returning()
+    if (!user) throw new Error('user insert failed')
+    await db.insert(schema.oidcTokens).values({
+      userId: user.id,
+      issuerUrl: 'https://issuer.example',
+      accessToken: 'legacy-access-token',
+      expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+    })
+
+    const backup = await createBackup(db, {})
+
+    expect(backup.data).not.toHaveProperty('oidcTokens')
+  })
+
+  it('ignores legacy OIDC token rows during restore', async () => {
+    if (!pgAvailable) return
+    initEncryption(undefined)
+
+    const backup = makeBackup({
+      users: [{ id: 1, username: 'legacy-oidc-restore', passwordHash: 'x' }],
+      oidcTokens: [
+        {
+          id: 1,
+          userId: 1,
+          issuerUrl: 'https://issuer.example',
+          accessToken: 'legacy-access-token',
+          expiresAt: '2030-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+
+    const result = await restoreBackup(db, backup, {})
+
+    expect(result.warnings).toEqual(['Ignored 1 legacy OIDC token record.'])
+    expect(await db.select().from(schema.oidcTokens)).toEqual([])
+  })
+
   it('round-trips data through createBackup and restoreBackup', async () => {
     if (!pgAvailable) return
     initEncryption(undefined)

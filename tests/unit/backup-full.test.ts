@@ -34,6 +34,7 @@ describe('backup full-fidelity', () => {
       expect(backup.data).toHaveProperty('libraryHealthState')
       expect(backup.data).toHaveProperty('recordingArtistCache')
       expect(backup.data).toHaveProperty('slskdJobs')
+      expect(backup.data).not.toHaveProperty('oidcTokens')
       expect(backup.data).not.toHaveProperty('sessions')
       expect(backup.data).not.toHaveProperty('rateLimitBuckets')
     } finally {

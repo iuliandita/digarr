@@ -408,7 +408,6 @@ describe('validation: admin restore', () => {
           settings: 'not-an-array',
           users: [],
           oauthTokens: [],
-          oidcTokens: [],
           targets: [],
           subscriptions: [],
           jobRuns: [],

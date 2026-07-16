@@ -119,6 +119,36 @@ describe('migrateBackend', () => {
     await src.close()
   })
 
+  it('excludes legacy OIDC tokens from the database-copy registry', () => {
+    expect(BACKUP_TABLE_BY_KEY).not.toHaveProperty('oidcTokens')
+  })
+
+  it('does not copy legacy OIDC token rows between databases', async () => {
+    const src = await makeTestDb()
+    const target = await makeTestDb()
+    try {
+      const [user] = await src.db
+        .insert(schema.users)
+        .values({ username: 'oidc-copy-source', passwordHash: 'x' })
+        .returning()
+      if (!user) throw new Error('user insert failed')
+      await src.db.insert(schema.oidcTokens).values({
+        userId: user.id,
+        issuerUrl: 'https://issuer.example',
+        accessToken: 'legacy-access-token',
+        expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+      })
+
+      const result = await copyDatabaseTables(src.db as never, target.db as never)
+
+      expect(result.tablesRestored).not.toHaveProperty('oidcTokens')
+      expect(await target.db.select().from(schema.oidcTokens)).toEqual([])
+    } finally {
+      await src.close()
+      await target.close()
+    }
+  })
+
   it('reports a row-count mismatch from the copied table', async () => {
     const src = await makeTestDb()
     const target = await makeTestDb()

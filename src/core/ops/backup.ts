@@ -6,7 +6,6 @@ import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
 import {
   getKeyFingerprint,
   SENSITIVE_OAUTH,
-  SENSITIVE_OIDC,
   SENSITIVE_SETTINGS,
   SENSITIVE_TARGET_CONFIG,
   SENSITIVE_USER_CONNECTIONS,
@@ -26,7 +25,6 @@ import {
   libraryMatchOverrides,
   librarySyncState,
   oauthTokens,
-  oidcTokens,
   playlists,
   playlistTracks,
   recommendationBatches,
@@ -62,7 +60,6 @@ type BackupTable =
   | typeof libraryMatchOverrides
   | typeof librarySyncState
   | typeof oauthTokens
-  | typeof oidcTokens
   | typeof playlists
   | typeof playlistTracks
   | typeof recommendationBatches
@@ -130,7 +127,6 @@ export async function createBackup(
   const settingsRows = await selectAll(db, settings)
   const userRows = await selectAll(db, users)
   const oauthRows = await selectAll(db, oauthTokens)
-  const oidcRows = await selectAll(db, oidcTokens)
   const targetRows = await selectAll(db, targets)
   const subRows = await selectAll(db, subscriptions)
   const jobRunRows = await selectAll(db, jobRuns)
@@ -150,7 +146,6 @@ export async function createBackup(
       settings: settingsRows,
       users: userRows,
       oauthTokens: oauthRows,
-      oidcTokens: oidcRows,
       targets: targetRows,
       subscriptions: subRows,
       jobRuns: jobRunRows,
@@ -194,7 +189,6 @@ const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
   settings: [...SENSITIVE_SETTINGS, 'preferences.fanartApiKey'],
   users: SENSITIVE_USER_CONNECTIONS,
   oauthTokens: SENSITIVE_OAUTH,
-  oidcTokens: SENSITIVE_OIDC,
   targets: SENSITIVE_TARGET_CONFIG,
 }
 
@@ -330,7 +324,6 @@ const RESTORE_ORDER = [
     recordingArtistCache.recordingMbid,
   ),
   createRestoreSpec('oauthTokens', oauthTokens),
-  createRestoreSpec('oidcTokens', oidcTokens),
   createRestoreSpec('targets', targets),
   createRestoreSpec('subscriptions', subscriptions),
   createRestoreSpec('playlists', playlists),
@@ -424,19 +417,28 @@ export async function restoreBackup(
     throw new Error(`Unsupported backup version: ${backup.version}`)
   }
 
+  const warnings: string[] = []
+  const legacyOidcTokenCount = Array.isArray(backup.data.oidcTokens)
+    ? backup.data.oidcTokens.length
+    : 0
+  if (legacyOidcTokenCount > 0) {
+    const record = legacyOidcTokenCount === 1 ? 'record' : 'records'
+    warnings.push(`Ignored ${legacyOidcTokenCount} legacy OIDC token ${record}.`)
+  }
+
   const { mismatch, fields } = detectEncryptionMismatch(backup)
 
   if (mismatch && !options.force) {
+    warnings.push('Encryption key mismatch. Use force=true to restore anyway.')
     return {
       tablesRestored: {},
-      warnings: ['Encryption key mismatch. Use force=true to restore anyway.'],
+      warnings,
       encryptionMismatch: true,
       affectedEncryptedFields: fields,
     }
   }
 
   const tablesRestored: Record<string, number> = {}
-  const warnings: string[] = []
 
   // Backward compatibility: map old subscriptionRuns to jobRuns format
   const backupData = backup.data as unknown as Record<string, unknown[]>
