@@ -4,7 +4,7 @@ import { closeSync, fchmodSync, fsyncSync, openSync, readFileSync, writeFileSync
 import { resolve } from 'node:path'
 import { backupFileSchema } from '@/server/schemas/admin'
 
-const USAGE = 'usage: bun scripts/prepare-rollback-backup.ts <input> <output>'
+const USAGE = 'usage: prepare-rollback-backup <input> <output>'
 
 export function prepareRollbackBackup(inputPath: string, outputPath: string): void {
   const resolvedInput = resolve(inputPath)

@@ -393,9 +393,7 @@ describe('rollback backup preparation', () => {
     expect(result.error).toBeUndefined()
     expect(result.status).toBe(1)
     expect(result.stdout).toBe('')
-    expect(result.stderr.trim()).toBe(
-      'usage: bun scripts/prepare-rollback-backup.ts <input> <output>',
-    )
+    expect(result.stderr.trim()).toBe('usage: prepare-rollback-backup <input> <output>')
   })
 
   it('prints only the resolved output path after CLI success', () => {
