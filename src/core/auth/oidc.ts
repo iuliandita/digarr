@@ -55,10 +55,6 @@ export interface OidcUserClaims {
 
 export interface CallbackResult {
   claims: OidcUserClaims
-  accessToken: string
-  refreshToken?: string
-  idToken?: string
-  expiresIn?: number
 }
 
 const PENDING_AUTH_TTL_MS = 10 * 60 * 1000 // 10 minutes
@@ -161,10 +157,6 @@ export class OidcService {
         preferredUsername: idClaims.preferred_username as string | undefined,
         name: idClaims.name as string | undefined,
       },
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      idToken: tokens.id_token,
-      expiresIn: tokens.expiresIn(),
     }
   }
 

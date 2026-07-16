@@ -29,8 +29,15 @@ Enable OIDC by setting:
 
 Users click "Sign in with OIDC" on the login screen, redirect to the IdP, and
 come back to `/api/v1/auth/oidc/callback`. The callback uses URL fragments for
-token and error payloads so they never leak into server logs or Referer
-headers.
+a locally generated Digarr session token (`#oidc_token`) or a stable error code
+(`#oidc_error`) so they never leak into server logs or Referer headers. The
+fragment never carries the provider access, refresh, or ID token.
+
+After validating the authorization response, Digarr retains only the identity
+claims needed for the local account. Provider access, refresh, and ID tokens
+are not retained or refreshed, copied between database backends, or written to
+backups. OAuth tokens stored for separate provider connections such as Spotify
+or Deezer are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 

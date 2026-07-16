@@ -21,8 +21,9 @@ Rotation touches these columns:
 - `settings.preferences.fanartApiKey` (nested in jsonb)
 - `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`, `users.subsonic_password`
 - `oauth_tokens.access_token`, `oauth_tokens.refresh_token`, `oauth_tokens.client_secret`
-- `oidc_tokens.access_token`, `oidc_tokens.refresh_token`, `oidc_tokens.id_token`
 - `targets.config` (any `enc:v1:`-prefixed string values)
+
+OIDC provider tokens are not retained and therefore have no rotation site.
 
 ## Procedure
 

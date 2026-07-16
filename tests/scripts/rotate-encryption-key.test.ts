@@ -9,7 +9,6 @@ import { describe, expect, it } from 'vitest'
 import { COLUMN_SITES, NESTED_SITES } from '../../scripts/rotation-sites'
 import {
   SENSITIVE_OAUTH,
-  SENSITIVE_OIDC,
   SENSITIVE_PREFERENCES,
   SENSITIVE_SETTINGS,
   SENSITIVE_USER_CONNECTIONS,
@@ -26,10 +25,10 @@ describe('encryption-key rotation coverage', () => {
       ...SENSITIVE_SETTINGS.map((column) => `settings.${snakeCase(column)}`),
       ...SENSITIVE_USER_CONNECTIONS.map((column) => `users.${snakeCase(column)}`),
       ...SENSITIVE_OAUTH.map((column) => `oauth_tokens.${snakeCase(column)}`),
-      ...SENSITIVE_OIDC.map((column) => `oidc_tokens.${snakeCase(column)}`),
     ].sort()
 
     expect(actual).toEqual(expected)
+    expect(actual.some((site) => site.startsWith('oidc_tokens.'))).toBe(false)
   })
 
   it('covers every encrypted preference path', () => {
@@ -72,12 +71,6 @@ describe('encryption-key rotation coverage', () => {
             access_token text,
             refresh_token text,
             client_secret text
-          );
-          CREATE TABLE oidc_tokens (
-            id integer PRIMARY KEY,
-            access_token text,
-            refresh_token text,
-            id_token text
           );
           CREATE TABLE targets (id integer PRIMARY KEY, config jsonb);
           INSERT INTO settings (id, ai_api_key) VALUES (1, 'enc:v1:malformed');

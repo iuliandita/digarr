@@ -157,8 +157,6 @@ export const SENSITIVE_SETTINGS = [
   'tidalClientSecret',
 ] as const
 export const SENSITIVE_OAUTH = ['accessToken', 'refreshToken', 'clientSecret'] as const
-// oidc_tokens shape differs from oauth_tokens: no clientSecret, plus an idToken
-export const SENSITIVE_OIDC = ['accessToken', 'refreshToken', 'idToken'] as const
 export const SENSITIVE_PREFERENCES = ['fanartApiKey'] as const
 export const SENSITIVE_USER_CONNECTIONS = [
   'listenbrainzToken',

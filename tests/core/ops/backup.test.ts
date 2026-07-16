@@ -71,6 +71,16 @@ describe('createBackup', () => {
     expect(result.data.users).toHaveLength(1)
   })
 
+  it('omits legacy OIDC tokens even when the source table has rows', async () => {
+    const db = makeMockDb({
+      oidc_tokens: [{ id: 1, accessToken: 'legacy-access-token' }],
+    })
+
+    const result = await createBackup(db, { includeCaches: false })
+
+    expect(result.data).not.toHaveProperty('oidcTokens')
+  })
+
   it('excludes cache tables when includeCaches is false', async () => {
     const db = makeMockDb({
       artists: [{ id: 1, name: 'Artist' }],
@@ -125,7 +135,6 @@ function makeBackupFile(overrides: Partial<BackupFile> = {}): BackupFile {
       settings: [{ id: 1, lidarrUrl: 'http://lidarr:8686' }],
       users: [{ id: 1, username: 'admin', passwordHash: 'hash' }],
       oauthTokens: [],
-      oidcTokens: [],
       targets: [],
       subscriptions: [],
       jobRuns: [],
@@ -210,6 +219,28 @@ describe('restoreBackup', () => {
     initEncryption(undefined)
   })
 
+  it('retains the legacy-token warning when encryption keys mismatch', async () => {
+    initEncryption('different-key')
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile({ encryptionKeyHash: 'sha256:0000000000' })
+    backup.data.oidcTokens = [
+      { id: 1, accessToken: 'must-not-appear' },
+      { id: 2, accessToken: 'also-must-not-appear' },
+    ]
+
+    const result = await restoreBackup(db, backup, { force: false })
+
+    expect(result.warnings).toEqual([
+      'Ignored 2 legacy OIDC token records.',
+      'Encryption key mismatch. Use force=true to restore anyway.',
+    ])
+    expect(result.affectedEncryptedFields.some((field) => field.startsWith('oidcTokens.'))).toBe(
+      false,
+    )
+
+    initEncryption(undefined)
+  })
+
   it('restores with force despite key mismatch', async () => {
     initEncryption('different-key')
     const db = makeMockUpsertDb()
@@ -260,6 +291,42 @@ describe('restoreBackup', () => {
 
     expect(result.tablesRestored.targets).toBeUndefined()
     expect(result.warnings).toHaveLength(0)
+  })
+
+  it.each([
+    { label: 'absent', legacyRows: undefined },
+    { label: 'empty', legacyRows: [] },
+  ])('restores when legacy OIDC token data is $label without a warning', async ({ legacyRows }) => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    if (legacyRows) backup.data.oidcTokens = legacyRows
+
+    const result = await restoreBackup(db, backup)
+
+    expect(result.warnings).toEqual([])
+    expect(db.insertCalls).not.toHaveProperty('oidc_tokens')
+    expect(db.deleteCalls).not.toContain('oidc_tokens')
+  })
+
+  it.each([
+    { count: 1, warning: 'Ignored 1 legacy OIDC token record.' },
+    { count: 2, warning: 'Ignored 2 legacy OIDC token records.' },
+  ])('ignores $count legacy OIDC token record(s) with a count-only warning', async ({
+    count,
+    warning,
+  }) => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    backup.data.oidcTokens = Array.from({ length: count }, (_, index) => ({
+      id: index + 1,
+      accessToken: `must-not-appear-${index + 1}`,
+    }))
+
+    const result = await restoreBackup(db, backup)
+
+    expect(result.warnings).toEqual([warning])
+    expect(db.insertCalls).not.toHaveProperty('oidc_tokens')
+    expect(db.deleteCalls).not.toContain('oidc_tokens')
   })
 
   it('clears included tables before restoring to avoid stale rows surviving', async () => {

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "dev:web": "vite",
-    "build": "vite build && bun build src/index.ts --outdir dist/server --target bun --external @electric-sql/pglite && bun build scripts/rotate-encryption-key.ts --outfile dist/scripts/rotate-encryption-key.js --target bun --external @electric-sql/pglite",
+    "build": "vite build && bun build src/index.ts --outdir dist/server --target bun --external @electric-sql/pglite && bun build scripts/rotate-encryption-key.ts --outfile dist/scripts/rotate-encryption-key.js --target bun --external @electric-sql/pglite && bun build scripts/prepare-rollback-backup.ts --outfile dist/scripts/prepare-rollback-backup.js --target bun --external @electric-sql/pglite",
     "start": "bun dist/server/index.js",
     "i18n:check": "bun scripts/i18n-check.ts",
     "check:docker-identity": "./scripts/check-docker-identity.sh",

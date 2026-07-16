@@ -119,6 +119,10 @@ describe('migrateBackend', () => {
     await src.close()
   })
 
+  it('excludes legacy OIDC tokens from the database-copy registry', () => {
+    expect(BACKUP_TABLE_BY_KEY).not.toHaveProperty('oidcTokens')
+  })
+
   it('reports a row-count mismatch from the copied table', async () => {
     const src = await makeTestDb()
     const target = await makeTestDb()
