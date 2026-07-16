@@ -326,22 +326,6 @@ describe('AuthGate', () => {
     expect(apiMocks.clearStoredToken).not.toHaveBeenCalled()
   })
 
-  it('continues with cookie status when legacy storage cannot be read', async () => {
-    window.sessionStorage.setItem(migrationRetryKey, '1')
-    apiMocks.getLegacyStoredToken.mockImplementation(() => {
-      throw new DOMException('blocked', 'SecurityError')
-    })
-    apiMocks.getAuthStatus.mockResolvedValue(authenticatedStatus)
-
-    renderGate()
-
-    await screen.findByText('secret area')
-    expect(apiMocks.getAuthStatus).toHaveBeenCalledTimes(1)
-    expect(apiMocks.migrateLegacySession).not.toHaveBeenCalled()
-    expect(apiMocks.clearStoredToken).not.toHaveBeenCalled()
-    expect(window.sessionStorage.getItem(migrationRetryKey)).toBeNull()
-  })
-
   it('mounts children when authentication is not required', async () => {
     apiMocks.getAuthStatus.mockResolvedValue({
       required: false,

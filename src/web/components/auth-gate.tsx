@@ -115,12 +115,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     async function checkAuth() {
-      let legacyToken: string | null = null
-      try {
-        legacyToken = getLegacyStoredToken()
-      } catch {
-        legacyToken = null
-      }
+      const legacyToken = getLegacyStoredToken()
       let allowAuthenticated = !fragment.current?.oidcError
 
       if (legacyToken) {

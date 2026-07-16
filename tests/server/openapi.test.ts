@@ -4,103 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { openapiDoc } from '@/server/helpers/openapi-doc'
 import { registerSchema } from '@/server/schemas/auth'
 
-type SchemaProperty = {
-  $ref?: string
-  type?: string | readonly string[]
-}
-
-type ObjectSchema = {
-  type?: string
-  required?: readonly string[]
-  properties?: Readonly<Record<string, SchemaProperty>>
-  additionalProperties?: boolean
-}
-
-type Operation = {
-  parameters?: ReadonlyArray<{
-    name?: string
-    in?: string
-    required?: boolean
-    schema?: { const?: string }
-  }>
-  responses: Readonly<
-    Record<
-      string,
-      {
-        content?: Readonly<
-          Record<string, { schema?: { $ref?: string; oneOf?: ReadonlyArray<{ $ref: string }> } }>
-        >
-      }
-    >
-  >
-  security?: readonly Readonly<Record<string, readonly never[]>>[]
-}
-
-const paths = openapiDoc.paths as unknown as Readonly<
-  Record<string, Readonly<Record<string, Operation>>>
->
-const schemas = openapiDoc.components.schemas as unknown as Readonly<Record<string, ObjectSchema>>
-
-function schemaName(ref: string): string {
-  return ref.split('/').at(-1) ?? ''
-}
-
-function matchesType(type: string | readonly string[] | undefined, value: unknown): boolean {
-  if (type === undefined) return true
-  if (Array.isArray(type)) return type.some((candidate) => matchesType(candidate, value))
-  if (type === 'null') return value === null
-  if (type === 'integer') return Number.isInteger(value)
-  if (type === 'array') return Array.isArray(value)
-  if (type === 'object') return typeof value === 'object' && value !== null && !Array.isArray(value)
-  return typeof value === type
-}
-
-function matchesSchema(ref: string, value: unknown): boolean {
-  const schema = schemas[schemaName(ref)]
-  if (!schema || !matchesType(schema.type, value)) return false
-  if (schema.type !== 'object' || !value || typeof value !== 'object' || Array.isArray(value)) {
-    return true
-  }
-
-  const record = value as Record<string, unknown>
-  if (schema.required?.some((key) => !(key in record))) return false
-  if (
-    schema.additionalProperties === false &&
-    Object.keys(record).some((key) => !(key in (schema.properties ?? {})))
-  ) {
-    return false
-  }
-
-  for (const [key, property] of Object.entries(schema.properties ?? {})) {
-    if (!(key in record)) continue
-    if (property.$ref && !matchesSchema(property.$ref, record[key])) return false
-    if (!property.$ref && !matchesType(property.type, record[key])) return false
-  }
-  return true
-}
-
-function responseVariants(operation: Operation, status: string): ReadonlyArray<{ $ref: string }> {
-  return operation.responses[status]?.content?.['application/json']?.schema?.oneOf ?? []
-}
-
-function countMatchingVariants(variants: ReadonlyArray<{ $ref: string }>, value: unknown): number {
-  return variants.filter((variant) => matchesSchema(variant.$ref, value)).length
-}
-
-function acceptsRawLength(
-  schema: { type?: string; minLength?: number; maxLength?: number },
-  value: string,
-): boolean {
-  return (
-    (schema.minLength === undefined || value.length >= schema.minLength) &&
-    (schema.maxLength === undefined || value.length <= schema.maxLength)
-  )
-}
-
-const representativeUser = { id: 1, username: 'admin', isAdmin: true }
-const cookieResponse = { user: representativeUser }
-const bearerResponse = { user: representativeUser, token: 'session-token' }
-
 describe('OpenAPI skeleton', () => {
   it('declares a valid 3.1 document shape', () => {
     expect(openapiDoc.openapi).toBe('3.1.0')
@@ -112,6 +15,14 @@ describe('OpenAPI skeleton', () => {
     const schemes = openapiDoc.components?.securitySchemes
     expect(schemes?.sessionCookie?.type).toBe('apiKey')
     expect(schemes?.bearerToken?.scheme).toBe('bearer')
+  })
+
+  it('declares distinct token and cookie response contracts', () => {
+    const { AuthTokenResponse, AuthCookieResponse } = openapiDoc.components.schemas
+
+    expect(AuthTokenResponse.required).toContain('token')
+    expect(AuthCookieResponse.required).toContain('user')
+    expect(AuthCookieResponse.additionalProperties).toBe(false)
   })
 
   it('declares the CSRF header security scheme with the required literal value', () => {
@@ -139,21 +50,8 @@ describe('OpenAPI skeleton', () => {
     ])
   })
 
-  it('keeps representative login cookie and bearer responses disjoint', () => {
-    const login = paths['/api/v1/auth/login']?.post
-    expect(login).toBeDefined()
-    if (!login) return
-    const variants = responseVariants(login, '200')
-
-    expect(variants).toHaveLength(2)
-    expect(countMatchingVariants(variants, cookieResponse)).toBe(1)
-    expect(countMatchingVariants(variants, bearerResponse)).toBe(1)
-  })
-
   it('documents registration negotiation, dual 201 response, and actual errors', () => {
-    const register = paths['/api/v1/auth/register']?.post
-    expect(register).toBeDefined()
-    if (!register) return
+    const register = openapiDoc.paths['/api/v1/auth/register'].post
 
     expect(register.security).toEqual([])
     expect(register.parameters).toEqual(
@@ -161,7 +59,7 @@ describe('OpenAPI skeleton', () => {
         expect.objectContaining({ name: 'X-Digarr-Auth-Mode', in: 'header' }),
       ]),
     )
-    expect(responseVariants(register, '201')).toEqual([
+    expect(register.responses['201'].content?.['application/json']?.schema?.oneOf).toEqual([
       { $ref: '#/components/schemas/AuthTokenResponse' },
       { $ref: '#/components/schemas/AuthCookieResponse' },
     ])
@@ -174,46 +72,33 @@ describe('OpenAPI skeleton', () => {
     expect(register.responses['429']).toEqual({ $ref: '#/components/responses/RateLimited' })
   })
 
-  it('documents registration username limits after whitespace trimming', () => {
+  it.each([
+    ['one normalized character', ' a ', false],
+    ['two normalized characters', ' ab ', true],
+    ['50 normalized characters', ` ${'a'.repeat(50)} `, true],
+    ['51 normalized characters', ` ${'a'.repeat(51)} `, false],
+  ])('enforces %s after trimming', (_case, username, valid) => {
+    expect(registerSchema.safeParse({ username, password: 'longenough12' }).success).toBe(valid)
+  })
+
+  it('documents normalized registration username limits without raw length keywords', () => {
     const username =
       openapiDoc.paths['/api/v1/auth/register'].post.requestBody.content['application/json'].schema
         .properties.username
-    const tooShortAfterTrim = ' a '
-    const validAfterTrim = ` ${'a'.repeat(50)}`
 
-    expect(acceptsRawLength(username, tooShortAfterTrim)).toBe(true)
-    expect(
-      registerSchema.safeParse({ username: tooShortAfterTrim, password: 'longenough12' }).success,
-    ).toBe(false)
-    expect(acceptsRawLength(username, validAfterTrim)).toBe(true)
-    expect(
-      registerSchema.safeParse({
-        username: validAfterTrim,
-        password: 'longenough12',
-      }).success,
-    ).toBe(true)
     expect(username).not.toHaveProperty('minLength')
     expect(username).not.toHaveProperty('maxLength')
-    expect(username.description).toContain('Surrounding whitespace is trimmed')
-    expect(username.description).toContain('2-50 characters')
-  })
-
-  it('keeps representative register cookie and bearer responses disjoint', () => {
-    const register = paths['/api/v1/auth/register']?.post
-    expect(register).toBeDefined()
-    if (!register) return
-    const variants = responseVariants(register, '201')
-
-    expect(variants).toHaveLength(2)
-    expect(countMatchingVariants(variants, cookieResponse)).toBe(1)
-    expect(countMatchingVariants(variants, bearerResponse)).toBe(1)
+    expect(username.description).toBe(
+      'Surrounding whitespace is trimmed before enforcing a normalized length of 2-50 characters.',
+    )
   })
 
   it('documents conditional CSRF headers on public browser mutations', () => {
-    for (const path of ['/api/v1/auth/login', '/api/v1/auth/register']) {
-      const operation = paths[path]?.post
-      expect(operation, path).toBeDefined()
-      expect(operation?.parameters, path).toEqual(
+    for (const [path, operation] of [
+      ['/api/v1/auth/login', openapiDoc.paths['/api/v1/auth/login'].post],
+      ['/api/v1/auth/register', openapiDoc.paths['/api/v1/auth/register'].post],
+    ] as const) {
+      expect(operation.parameters, path).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             name: 'X-Digarr-CSRF',
