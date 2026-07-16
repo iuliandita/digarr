@@ -2,6 +2,7 @@ import { createCipheriv, createHash, randomBytes } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   decryptField,
+  decryptFields,
   encryptField,
   encryptFields,
   getKeyFingerprint,
@@ -135,6 +136,27 @@ describe('crypto', () => {
   })
 
   describe('encryptFields / decryptFields', () => {
+    it('round-trips listed fields without changing unlisted or null values', () => {
+      const row = {
+        apiKey: 'api-secret',
+        password: 'password-secret',
+        token: null,
+        label: 'public-label',
+      }
+      const fields = ['apiKey', 'password', 'token'] as const
+
+      const encrypted = encryptFields(row, fields)
+      expect(encrypted.apiKey).not.toBe(row.apiKey)
+      expect(encrypted.password).not.toBe(row.password)
+      expect(encrypted.token).toBe(null)
+      expect(encrypted.label).toBe(row.label)
+
+      const decrypted = decryptFields(encrypted, fields)
+      expect(decrypted).toEqual(row)
+      expect(decrypted.token).toBe(null)
+      expect(decrypted.label).toBe(row.label)
+    })
+
     it('is idempotent on already-encrypted rows', () => {
       const row = { accessToken: 'secret' }
       const once = encryptFields(row, ['accessToken'])
