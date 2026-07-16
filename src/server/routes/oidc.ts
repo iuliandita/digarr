@@ -1,9 +1,12 @@
 import { Hono } from 'hono'
+import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
-import { generateSessionToken, hashPassword } from '@/core/auth'
+import { hashPassword } from '@/core/auth'
 import type { OidcService } from '@/core/auth/oidc'
 import { isSingleAdminCollision } from '@/core/db-errors'
-import { createSession } from '@/core/sessions'
+import { issueSession } from '@/server/helpers/session-auth'
+import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
+import type { HonoEnv } from '@/server/types'
 
 type OidcRouteDeps = {
   getOidcService: () => Promise<OidcService | null>
@@ -41,7 +44,7 @@ export function sanitizePreferredUsername(input: string): string {
 }
 
 export function oidcRoutes(deps: OidcRouteDeps) {
-  const router = new Hono()
+  const router = new Hono<HonoEnv>()
 
   router.get('/api/v1/auth/oidc/login', async (c) => {
     const oidcService = await deps.getOidcService()
@@ -120,14 +123,15 @@ export function oidcRoutes(deps: OidcRouteDeps) {
         }
       }
 
-      const sessionToken = generateSessionToken()
-      await createSession(user.id, sessionToken)
-      // Use fragment (#) not query param (?) - fragments are never sent to
-      // the server in Referer headers or logged by reverse proxies
-      return c.redirect(`/#oidc_token=${encodeURIComponent(sessionToken)}`)
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'OIDC authentication failed'
-      console.warn('[oidc] callback failed:', message)
+      const oldCookie = getCookie(c, SESSION_COOKIE_NAME)
+      await issueSession(c, user.id, {
+        kind: 'create',
+        cookie: true,
+        revokeTokens: oldCookie ? [oldCookie] : [],
+      })
+      return c.redirect('/')
+    } catch {
+      console.warn('[oidc] callback failed')
       return c.redirect('/#oidc_error=oidc_failed')
     }
   })

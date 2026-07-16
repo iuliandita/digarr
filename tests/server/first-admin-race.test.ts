@@ -436,7 +436,14 @@ describe('first-admin race: oidc callback', () => {
     const res = await app.request('/api/v1/auth/oidc/callback?state=s&code=c')
 
     expect(res.status).toBe(302)
-    expect(res.headers.get('Location')).toContain('oidc_token=')
+    const location = res.headers.get('Location')
+    expect(location).toBe('/')
+    expect(location).not.toContain('token')
+    expect(location).not.toContain('race-test-token')
+    expect(res.headers.get('set-cookie')).toMatch(
+      /^digarr_session=race-test-token; Max-Age=2592000; Path=\/; HttpOnly; SameSite=Lax$/i,
+    )
+    expect(res.headers.get('cache-control')).toBe('no-store')
     expect(createUser).toHaveBeenCalledTimes(2)
     expect(createUser).toHaveBeenNthCalledWith(1, expect.objectContaining({ isAdmin: true }))
     expect(createUser).toHaveBeenNthCalledWith(2, expect.objectContaining({ isAdmin: false }))
