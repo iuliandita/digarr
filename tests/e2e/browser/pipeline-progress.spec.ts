@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken } from './auth'
+import { ensureAdminToken, installAuthCookie } from './auth'
 import { seedRecommendations } from './seed'
 
 test.describe('Pipeline Progress', () => {
@@ -8,7 +8,7 @@ test.describe('Pipeline Progress', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await seedRecommendations(page.request, token)
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
 
     await page.goto('/')
 

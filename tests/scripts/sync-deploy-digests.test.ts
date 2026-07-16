@@ -109,6 +109,33 @@ describe('CI workflow reliability policy', () => {
       expect(apiJob.match(/Run PostgreSQL session concurrency tests/g)).toHaveLength(1)
     }
   })
+
+  it('runs cookie-auth browser coverage consistently in both CI mirrors', () => {
+    const githubWorkflow = readFileSync('.github/workflows/ci.yml', 'utf8')
+    const githubBrowser = githubWorkflow.split('  browser-test:')[1]?.split('\n  a11y:')[0] ?? ''
+    const forgejoWorkflow = readFileSync('.forgejo/workflows/ci.yml', 'utf8')
+    const forgejoBrowser = forgejoWorkflow.split('  browser-test:')[1]?.split('\n  a11y:')[0] ?? ''
+    const playwrightConfig = readFileSync('playwright.config.ts', 'utf8')
+
+    expect(githubBrowser).toContain('playwright install --with-deps chromium firefox')
+    expect(forgejoBrowser).toContain('playwright install --with-deps chromium firefox')
+    expect(playwrightConfig).toContain("PROXY_AUTH_ENABLED: 'true'")
+    expect(playwrightConfig).toContain("ALLOWED_ORIGIN: 'http://localhost:5173'")
+    expect(playwrightConfig).toContain("PROXY_AUTH_TRUSTED_PROXIES: '127.0.0.0/8,::1/128'")
+    expect(playwrightConfig).toContain("DIGARR_DISABLE_REGISTRATION: 'false'")
+    expect(playwrightConfig).toContain('tests/e2e/browser/start-oidc-mock.ts')
+    expect(playwrightConfig).toContain("ALLOWED_ORIGIN: 'http://127.0.0.1:3011'")
+    expect(forgejoBrowser).toContain('PROXY_AUTH_ENABLED=true')
+    expect(forgejoBrowser).toContain('ALLOWED_ORIGIN=http://localhost:5173')
+    expect(forgejoBrowser).toContain('PROXY_AUTH_TRUSTED_PROXIES=127.0.0.0/8,::1/128')
+    expect(forgejoBrowser).toContain('DIGARR_DISABLE_REGISTRATION=false')
+    expect(forgejoBrowser).toContain('tests/e2e/browser/start-oidc-mock.ts')
+    expect(forgejoBrowser).toContain('ALLOWED_ORIGIN=http://127.0.0.1:3011')
+
+    const githubA11y = readFileSync('.github/workflows/ci.yml', 'utf8').split('  a11y:')[1] ?? ''
+    expect(githubA11y).toContain('playwright install --with-deps chromium')
+    expect(githubA11y).not.toContain('firefox')
+  })
 })
 
 describe('preflighted target updates', () => {

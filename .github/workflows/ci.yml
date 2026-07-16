@@ -160,7 +160,7 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Install Playwright
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium firefox
       - name: Run browser E2E tests
         run: bun run test:e2e
         env:

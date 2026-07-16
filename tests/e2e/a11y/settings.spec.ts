@@ -1,6 +1,6 @@
 import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken, installBrowserLocale } from '../browser/auth'
+import { ensureAdminToken, installAuthCookie, installBrowserLocale } from '../browser/auth'
 
 test.describe('Settings page a11y', () => {
   test('has no WCAG A/AA violations', async ({ page }) => {
@@ -8,7 +8,7 @@ test.describe('Settings page a11y', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/settings')
 
     await expect(page.getByRole('main')).toBeVisible({
@@ -32,7 +32,7 @@ test.describe('Settings page a11y', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/settings')
 
     const scrollRight = page.getByRole('button', { name: 'Scroll settings tabs right' })

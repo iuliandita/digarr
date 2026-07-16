@@ -27,7 +27,7 @@ export async function seedRecommendations(
 }
 
 /**
- * Force a specific discover view before navigation (like installAuthToken).
+ * Force a specific discover view before navigation (like installAuthCookie).
  * - 'list'/'grid' render RecommendationCard (data-testid="rec-card-button") with
  *   direct approve/reject + an expandable enrichment panel.
  * - 'stack' renders the swipe CardStack, whose reject button opens the

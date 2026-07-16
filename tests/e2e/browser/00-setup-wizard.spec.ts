@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken, installBrowserLocale } from './auth'
+import { ensureAdminToken, installAuthCookie, installBrowserLocale } from './auth'
 
 test.describe('Setup Wizard', () => {
   test('loads and shows mode selection', async ({ page }) => {
@@ -7,7 +7,7 @@ test.describe('Setup Wizard', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/')
 
     const discoverButton = page.getByRole('button', { name: /discover/i })
