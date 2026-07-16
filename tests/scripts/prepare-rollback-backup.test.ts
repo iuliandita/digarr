@@ -1,11 +1,44 @@
 // @vitest-environment node
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  closeSync,
+  existsSync,
+  fchmodSync,
+  fsyncSync,
+  linkSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as z from 'zod'
 import { prepareRollbackBackup } from '../../scripts/prepare-rollback-backup'
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    ...actual,
+    chmodSync: vi.fn(actual.chmodSync),
+    closeSync: vi.fn(actual.closeSync),
+    fchmodSync: vi.fn(actual.fchmodSync),
+    fsyncSync: vi.fn(actual.fsyncSync),
+    openSync: vi.fn(actual.openSync),
+    writeFileSync: vi.fn(actual.writeFileSync),
+  }
+})
+
+const rollbackCompatibilitySchema = z.object({
+  version: z.literal(1),
+  data: z.object({ oidcTokens: z.array(z.never()).length(0) }),
+})
 
 function completeV1Backup() {
   return {
@@ -62,6 +95,7 @@ describe('rollback backup preparation', () => {
   let testDir: string
 
   beforeEach(() => {
+    vi.clearAllMocks()
     testDir = mkdtempSync(join(tmpdir(), 'digarr-rollback-'))
   })
 
@@ -85,6 +119,42 @@ describe('rollback backup preparation', () => {
     expect(readFileSync(outputPath, 'utf8').endsWith('\n')).toBe(true)
   })
 
+  it('produces the strict version-1 rollback compatibility shape', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    writeBackup(inputPath, completeV1Backup())
+
+    prepareRollbackBackup(inputPath, outputPath)
+
+    const output = JSON.parse(readFileSync(outputPath, 'utf8'))
+    expect(rollbackCompatibilitySchema.safeParse(output).success).toBe(true)
+    expect(Object.hasOwn(output.data, 'oidcTokens')).toBe(true)
+  })
+
+  it('rejects a version-2 backup without leaking its contents', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    const sentinel = 'version-two-provider-token-sentinel'
+    const backup = completeV1Backup()
+    writeBackup(inputPath, {
+      ...backup,
+      version: 2,
+      data: { ...backup.data, oauthTokens: [{ id: 1, accessToken: sentinel }] },
+    })
+    let thrown: unknown
+
+    try {
+      prepareRollbackBackup(inputPath, outputPath)
+    } catch (error) {
+      thrown = error
+    }
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect((thrown as Error).message).toBe('input backup version must be 1')
+    expect((thrown as Error).message).not.toContain(sentinel)
+    expect(existsSync(outputPath)).toBe(false)
+  })
+
   it('creates the compatibility copy with mode 0600', () => {
     const inputPath = join(testDir, 'input.json')
     const outputPath = join(testDir, 'output.json')
@@ -93,6 +163,54 @@ describe('rollback backup preparation', () => {
     prepareRollbackBackup(inputPath, outputPath)
 
     expect(statSync(outputPath).mode & 0o777).toBe(0o600)
+  })
+
+  it('secures and persists the output through one exclusive descriptor', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    writeBackup(inputPath, completeV1Backup())
+
+    prepareRollbackBackup(inputPath, outputPath)
+
+    expect(openSync).toHaveBeenCalledWith(resolve(outputPath), 'wx', 0o600)
+    const fd = vi.mocked(openSync).mock.results[0]?.value
+    expect(fd).toEqual(expect.any(Number))
+    expect(fchmodSync).toHaveBeenCalledWith(fd, 0o600)
+    expect(writeFileSync).toHaveBeenCalledWith(fd, expect.any(String))
+    expect(fsyncSync).toHaveBeenCalledWith(fd)
+    expect(closeSync).toHaveBeenCalledWith(fd)
+    expect(chmodSync).not.toHaveBeenCalled()
+  })
+
+  it('leaves a restrictive non-retryable output when descriptor setup fails', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    const sentinel = 'descriptor-failure-provider-token-sentinel'
+    writeBackup(inputPath, completeV1Backup())
+    vi.mocked(fchmodSync).mockImplementationOnce(() => {
+      throw new Error(sentinel)
+    })
+    const stdout = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let thrown: unknown
+
+    try {
+      prepareRollbackBackup(inputPath, outputPath)
+    } catch (error) {
+      thrown = error
+    }
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect((thrown as Error).message).toBe(
+      'output may be incomplete and must be removed before retrying',
+    )
+    expect((thrown as Error).message).not.toContain(sentinel)
+    expect(stdout).not.toHaveBeenCalled()
+    expect(stderr).not.toHaveBeenCalled()
+    expect(existsSync(outputPath)).toBe(true)
+    expect(statSync(outputPath).mode & 0o077).toBe(0)
+    expect(closeSync).toHaveBeenCalled()
+    expect(() => prepareRollbackBackup(inputPath, outputPath)).toThrow('output path already exists')
   })
 
   it('leaves the source file byte-for-byte unchanged', () => {
@@ -114,6 +232,36 @@ describe('rollback backup preparation', () => {
 
     expect(() => prepareRollbackBackup(inputPath, outputPath)).toThrow('output path already exists')
     expect(readFileSync(outputPath)).toEqual(firstOutput)
+  })
+
+  it('refuses a preexisting symlink without changing its target', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    const targetPath = join(testDir, 'unrelated.json')
+    const targetContent = 'unrelated-content\n'
+    writeBackup(inputPath, completeV1Backup())
+    writeFileSync(targetPath, targetContent, { mode: 0o640 })
+    chmodSync(targetPath, 0o640)
+    symlinkSync(targetPath, outputPath)
+
+    expect(() => prepareRollbackBackup(inputPath, outputPath)).toThrow('output path already exists')
+    expect(readFileSync(targetPath, 'utf8')).toBe(targetContent)
+    expect(statSync(targetPath).mode & 0o777).toBe(0o640)
+  })
+
+  it('refuses a preexisting hardlink without changing its target', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    const targetPath = join(testDir, 'unrelated.json')
+    const targetContent = 'unrelated-content\n'
+    writeBackup(inputPath, completeV1Backup())
+    writeFileSync(targetPath, targetContent, { mode: 0o640 })
+    chmodSync(targetPath, 0o640)
+    linkSync(targetPath, outputPath)
+
+    expect(() => prepareRollbackBackup(inputPath, outputPath)).toThrow('output path already exists')
+    expect(readFileSync(targetPath, 'utf8')).toBe(targetContent)
+    expect(statSync(targetPath).mode & 0o777).toBe(0o640)
   })
 
   it('rejects the same resolved input and output path before reading', () => {
@@ -227,6 +375,56 @@ describe('rollback backup preparation', () => {
     expect(result.stdout).toBe('')
     expect(result.stderr).toContain('must not contain oidcTokens')
     expect(result.stderr).not.toContain(sentinel)
+    expect(existsSync(outputPath)).toBe(false)
+  })
+
+  it('rejects a version-2 backup safely through the CLI', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'output.json')
+    const sentinel = 'version-two-provider-token-sentinel-cli'
+    const backup = completeV1Backup()
+    writeBackup(inputPath, {
+      ...backup,
+      version: 2,
+      data: { ...backup.data, oauthTokens: [{ id: 1, refreshToken: sentinel }] },
+    })
+
+    const result = runCli([inputPath, outputPath])
+
+    expect(result.error).toBeUndefined()
+    expect(result.status).toBe(1)
+    expect(result.stdout).toBe('')
+    expect(result.stderr.trim()).toBe('input backup version must be 1')
+    expect(result.stderr).not.toContain(sentinel)
+    expect(existsSync(outputPath)).toBe(false)
+  })
+
+  it('does not expose a missing input path through the CLI', () => {
+    const inputPath = join(testDir, 'missing-provider-token-sentinel.json')
+    const outputPath = join(testDir, 'output.json')
+
+    const result = runCli([inputPath, outputPath])
+
+    expect(result.error).toBeUndefined()
+    expect(result.status).toBe(1)
+    expect(result.stdout).toBe('')
+    expect(result.stderr.trim()).toBe('could not read input backup')
+    expect(result.stderr).not.toContain('missing-provider-token-sentinel')
+    expect(existsSync(outputPath)).toBe(false)
+  })
+
+  it('does not expose an output path when creation fails through the CLI', () => {
+    const inputPath = join(testDir, 'input.json')
+    const outputPath = join(testDir, 'missing-provider-token-sentinel', 'output.json')
+    writeBackup(inputPath, completeV1Backup())
+
+    const result = runCli([inputPath, outputPath])
+
+    expect(result.error).toBeUndefined()
+    expect(result.status).toBe(1)
+    expect(result.stdout).toBe('')
+    expect(result.stderr.trim()).toBe('could not create output backup')
+    expect(result.stderr).not.toContain('missing-provider-token-sentinel')
     expect(existsSync(outputPath)).toBe(false)
   })
 })

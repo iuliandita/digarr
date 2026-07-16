@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { chmodSync, readFileSync, writeFileSync } from 'node:fs'
+import { closeSync, fchmodSync, fsyncSync, openSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { backupFileSchema } from '@/server/schemas/admin'
 
@@ -13,7 +13,12 @@ export function prepareRollbackBackup(inputPath: string, outputPath: string): vo
     throw new Error('input and output paths must differ')
   }
 
-  const source = readFileSync(resolvedInput, 'utf8')
+  let source: string
+  try {
+    source = readFileSync(resolvedInput, 'utf8')
+  } catch {
+    throw new Error('could not read input backup')
+  }
   let untrusted: unknown
   try {
     untrusted = JSON.parse(source)
@@ -26,6 +31,9 @@ export function prepareRollbackBackup(inputPath: string, outputPath: string): vo
     throw new Error('input backup does not match the supported schema')
   }
   const parsed = result.data
+  if (parsed.version !== 1) {
+    throw new Error('input backup version must be 1')
+  }
   if (Object.hasOwn(parsed.data, 'oidcTokens')) {
     throw new Error('input backup must not contain oidcTokens')
   }
@@ -34,19 +42,36 @@ export function prepareRollbackBackup(inputPath: string, outputPath: string): vo
     ...parsed,
     data: { ...parsed.data, oidcTokens: [] },
   }
+  const serialized = `${JSON.stringify(output, null, 2)}\n`
+
+  let fd: number
   try {
-    writeFileSync(resolvedOutput, `${JSON.stringify(output, null, 2)}\n`, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    })
+    fd = openSync(resolvedOutput, 'wx', 0o600)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
       throw new Error('output path already exists')
     }
-    throw error
+    throw new Error('could not create output backup')
   }
-  chmodSync(resolvedOutput, 0o600)
+
+  let closeAttempted = false
+  try {
+    fchmodSync(fd, 0o600)
+    writeFileSync(fd, serialized)
+    fsyncSync(fd)
+    closeAttempted = true
+    closeSync(fd)
+  } catch {
+    if (!closeAttempted) {
+      closeAttempted = true
+      try {
+        closeSync(fd)
+      } catch {
+        // The created object stays no broader than 0600 and must remain for manual removal.
+      }
+    }
+    throw new Error('output may be incomplete and must be removed before retrying')
+  }
 }
 
 if (import.meta.main) {
