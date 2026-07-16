@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import {
   AUTH_EXPIRED_EVENT,
   clearStoredToken,
   getAuthStatus,
-  getStoredToken,
+  getLegacyStoredToken,
   loginUser,
+  migrateLegacySession,
   registerUser,
-  setStoredToken,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { LanguageSwitcher } from './language-switcher'
@@ -16,125 +17,222 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Input } from './ui/input'
 
 type AuthState = 'loading' | 'not-required' | 'register' | 'login' | 'authenticated'
+type AuthFragment = { retiredToken: boolean; oidcError: boolean }
+type MigrationRetryState = 'fresh' | 'retry' | 'unavailable'
+
+const MIGRATION_RETRY_KEY = 'digarr-session-migration-retry'
+
+function getMigrationRetryState(): MigrationRetryState {
+  try {
+    return window.sessionStorage.getItem(MIGRATION_RETRY_KEY) === null ? 'fresh' : 'retry'
+  } catch {
+    return 'unavailable'
+  }
+}
+
+function markMigrationForRetry(): boolean {
+  try {
+    window.sessionStorage.setItem(MIGRATION_RETRY_KEY, '1')
+    return true
+  } catch {
+    return false
+  }
+}
+
+function clearMigrationRetryMarker() {
+  try {
+    window.sessionStorage.removeItem(MIGRATION_RETRY_KEY)
+  } catch {
+    // An unavailable marker store is already a fail-secure state.
+  }
+}
+
+function clearLegacyMigrationState() {
+  clearStoredToken()
+  clearMigrationRetryMarker()
+}
+
+function consumeAuthFragment(): AuthFragment {
+  const hash = window.location.hash
+  const params = new URLSearchParams(hash.slice(1))
+  const fragment = {
+    retiredToken: params.has('oidc_token'),
+    oidcError: params.has('oidc_error'),
+  }
+  if (fragment.retiredToken || fragment.oidcError) {
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${window.location.pathname}${window.location.search}`,
+    )
+  }
+  return fragment
+}
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
+  const fragment = useRef<AuthFragment | null>(null)
+  if (!fragment.current) fragment.current = consumeAuthFragment()
+
   const [state, setState] = useState<AuthState>('loading')
   const [hasUsers, setHasUsers] = useState(false)
   const [oidcEnabled, setOidcEnabled] = useState(false)
+  const [notice, setNotice] = useState<MessageKey | null>(
+    fragment.current.oidcError
+      ? 'auth.loginFailed'
+      : fragment.current.retiredToken
+        ? 'auth.legacyTokenMigrationRequired'
+        : null,
+  )
+  const authCheckStarted = useRef(false)
 
   useEffect(() => {
-    async function validateToken(token: string): Promise<boolean> {
-      const res = await fetch('/api/v1/auth/validate', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      return res.ok
+    if (authCheckStarted.current) return
+    authCheckStarted.current = true
+
+    function applyStatus(
+      status: Awaited<ReturnType<typeof getAuthStatus>>,
+      allowAuthenticated: boolean,
+    ) {
+      setHasUsers(status.hasUsers)
+      setOidcEnabled(status.oidcEnabled ?? false)
+
+      if (!status.required && allowAuthenticated) {
+        setState('not-required')
+      } else if (status.authenticated && allowAuthenticated) {
+        setState('authenticated')
+      } else {
+        setState(status.hasUsers ? 'login' : 'register')
+      }
+    }
+
+    async function requireLoginAfterMigrationFailure() {
+      try {
+        applyStatus(await getAuthStatus(), false)
+      } catch {
+        setHasUsers(true)
+        setState('login')
+      }
     }
 
     async function checkAuth() {
+      let legacyToken: string | null = null
       try {
-        // Handle OIDC callback - token or error passed in URL fragment (#)
-        // Fragments never leak to server logs or Referer headers
-        const hash = window.location.hash.slice(1) // strip leading #
-        const hashParams = new URLSearchParams(hash)
-        const oidcToken = hashParams.get('oidc_token')
-        const oidcError = hashParams.get('oidc_error')
-
-        if (oidcToken) {
-          window.history.replaceState({}, '', window.location.pathname)
-          setStoredToken(oidcToken)
-          setState('authenticated')
-          return
-        }
-
-        if (oidcError) {
-          window.history.replaceState({}, '', window.location.pathname)
-          // Fall through - show login with the error visible via state
-        }
-
-        const status = await getAuthStatus()
-        setHasUsers(status.hasUsers)
-        setOidcEnabled(status.oidcEnabled ?? false)
-        // Version moved to /api/auth/meta (auth-gated) to avoid leaking the
-        // build fingerprint to unauthenticated visitors. Login screen no
-        // longer displays it.
-
-        if (!status.required) {
-          setState('not-required')
-          return
-        }
-
-        // Cookie-backed auth (proxy-auth / OIDC callback / password login). The
-        // server already validated the session cookie on /api/auth/status, so
-        // authenticated === true means subsequent API calls will succeed.
-        if (status.authenticated) {
-          setState('authenticated')
-          return
-        }
-
-        const stored = getStoredToken()
-        if (stored) {
-          if (await validateToken(stored)) {
-            setState('authenticated')
-            return
-          }
-          clearStoredToken()
-        }
-
-        setState(status.hasUsers ? 'login' : 'register')
+        legacyToken = getLegacyStoredToken()
       } catch {
-        // Can't reach server - render children and let it fail naturally
-        setState('not-required')
+        legacyToken = null
+      }
+      let allowAuthenticated = !fragment.current?.oidcError
+
+      if (legacyToken) {
+        const retryState = getMigrationRetryState()
+        try {
+          const result = await migrateLegacySession(legacyToken)
+          clearLegacyMigrationState()
+          if (result === 'legacy-rejected') {
+            setNotice('auth.legacyTokenMigrationRequired')
+            allowAuthenticated = false
+          } else if (result === 'invalid') {
+            setNotice('auth.sessionMigrationFailed')
+            allowAuthenticated = false
+          }
+        } catch {
+          if (retryState !== 'fresh' || !markMigrationForRetry()) {
+            clearLegacyMigrationState()
+          }
+          setNotice('auth.sessionMigrationFailed')
+          await requireLoginAfterMigrationFailure()
+          return
+        }
+      } else {
+        clearMigrationRetryMarker()
+      }
+
+      try {
+        const status = await getAuthStatus()
+        applyStatus(status, allowAuthenticated)
+      } catch {
+        setNotice((current) => current ?? 'auth.loginFailed')
+        setHasUsers(true)
+        setState('login')
       }
     }
-    checkAuth()
+    void checkAuth()
   }, [])
 
   // Listen for 401s from fetchApi and return to login
   useEffect(() => {
     const handler = () => {
+      setNotice(null)
       setState(hasUsers ? 'login' : 'register')
     }
     window.addEventListener(AUTH_EXPIRED_EVENT, handler)
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
   }, [hasUsers])
 
-  function handleAuthenticated(token: string) {
-    setStoredToken(token)
-    setState('authenticated')
+  async function handleAuthenticated(fallback: 'login' | 'register') {
+    setNotice(null)
+    clearLegacyMigrationState()
+    try {
+      const status = await getAuthStatus()
+      setHasUsers(status.hasUsers)
+      setOidcEnabled(status.oidcEnabled ?? false)
+      if (!status.required) {
+        setState('not-required')
+      } else if (status.authenticated) {
+        setState('authenticated')
+      } else {
+        setNotice('auth.sessionCookieRejected')
+        setState(status.hasUsers ? 'login' : 'register')
+      }
+    } catch {
+      setNotice('auth.sessionVerificationFailed')
+      setState(fallback)
+    }
   }
 
   if (state === 'loading') return null
   if (state === 'not-required' || state === 'authenticated') return <>{children}</>
   if (state === 'register') {
     return (
-      <RegisterForm onSuccess={handleAuthenticated} onSwitchToLogin={() => setState('login')} />
+      <RegisterForm
+        notice={notice}
+        onSuccess={() => handleAuthenticated('register')}
+        onSwitchToLogin={() => {
+          setNotice(null)
+          setState('login')
+        }}
+      />
     )
   }
   return (
     <LoginForm
-      onSuccess={handleAuthenticated}
-      onSwitchToRegister={() => setState('register')}
+      notice={notice}
+      onSuccess={() => handleAuthenticated('login')}
+      onSwitchToRegister={() => {
+        setNotice(null)
+        setState('register')
+      }}
       oidcEnabled={oidcEnabled}
     />
   )
 }
 
-// Login form (username/password + legacy token fallback)
+// Login form
 
 function LoginForm({
+  notice,
   onSuccess,
   onSwitchToRegister,
   oidcEnabled,
 }: {
-  onSuccess: (token: string) => void
+  notice: MessageKey | null
+  onSuccess: () => Promise<void>
   onSwitchToRegister: () => void
   oidcEnabled?: boolean
 }) {
   const { locale, setLocale, t } = useI18n()
-  const [mode, setMode] = useState<'credentials' | 'token'>('credentials')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [token, setToken] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -147,30 +245,13 @@ function LoginForm({
     }
     setLoading(true)
     try {
-      const res = await loginUser(username.trim(), password)
-      onSuccess(res.token)
+      await loginUser(username.trim(), password)
+      await onSuccess()
     } catch (err: unknown) {
       setError(errMsg(err).includes('401') ? t('auth.invalidCredentials') : t('auth.loginFailed'))
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleTokenLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    if (!token.trim()) {
-      setError(t('auth.tokenRequired'))
-      return
-    }
-    const res = await fetch('/api/v1/auth/validate', {
-      headers: { Authorization: `Bearer ${token.trim()}` },
-    })
-    if (res.status === 401) {
-      setError(t('auth.invalidToken'))
-      return
-    }
-    onSuccess(token.trim())
   }
 
   return (
@@ -180,9 +261,7 @@ function LoginForm({
           <CardTitle>
             <span className="text-accent">digarr</span>
           </CardTitle>
-          <CardDescription>
-            {mode === 'credentials' ? t('auth.loginDescription') : t('auth.tokenDescription')}
-          </CardDescription>
+          <CardDescription>{t('auth.loginDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {oidcEnabled && (
@@ -203,76 +282,40 @@ function LoginForm({
               </div>
             </div>
           )}
-          {mode === 'credentials' ? (
-            <form onSubmit={handleCredentialLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  placeholder={t('auth.username')}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoFocus
-                  autoComplete="username"
-                />
-                <Input
-                  type="password"
-                  placeholder={t('auth.password')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-                {error && <p className="text-sm text-reject">{error}</p>}
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t('auth.signingIn') : t('auth.signIn')}
-              </Button>
-              <div className="flex items-center justify-between text-sm">
-                <button
-                  type="button"
-                  onClick={onSwitchToRegister}
-                  className="text-muted hover:text-text"
-                >
-                  {t('auth.createAccount')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('token')
-                    setError(null)
-                  }}
-                  className="text-muted hover:text-text"
-                >
-                  {t('auth.useAccessToken')}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleTokenLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  type="password"
-                  placeholder={t('auth.accessToken')}
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  autoFocus
-                />
-                {error && <p className="text-sm text-reject">{error}</p>}
-              </div>
-              <Button type="submit" className="w-full">
-                {t('auth.signIn')}
-              </Button>
+          <form onSubmit={handleCredentialLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder={t('auth.username')}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoFocus
+                autoComplete="username"
+              />
+              <Input
+                type="password"
+                placeholder={t('auth.password')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              {(error || notice) && (
+                <p className="text-sm text-reject">{error ?? (notice ? t(notice) : null)}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? t('auth.signingIn') : t('auth.signIn')}
+            </Button>
+            <div className="flex items-center justify-between text-sm">
               <button
                 type="button"
-                onClick={() => {
-                  setMode('credentials')
-                  setError(null)
-                }}
-                className="text-sm text-muted hover:text-text"
+                onClick={onSwitchToRegister}
+                className="text-muted hover:text-text"
               >
-                {t('auth.useUsernamePassword')}
+                {t('auth.createAccount')}
               </button>
-            </form>
-          )}
+            </div>
+          </form>
           <div className="mt-4 flex justify-center">
             <LanguageSwitcher value={locale} onChange={setLocale} />
           </div>
@@ -285,10 +328,12 @@ function LoginForm({
 // Registration form (first-time setup)
 
 function RegisterForm({
+  notice,
   onSuccess,
   onSwitchToLogin,
 }: {
-  onSuccess: (token: string) => void
+  notice: MessageKey | null
+  onSuccess: () => Promise<void>
   onSwitchToLogin: () => void
 }) {
   const { locale, setLocale, t } = useI18n()
@@ -310,8 +355,8 @@ function RegisterForm({
     }
     setLoading(true)
     try {
-      const res = await registerUser(username.trim(), password)
-      onSuccess(res.token)
+      await registerUser(username.trim(), password)
+      await onSuccess()
     } catch (err: unknown) {
       const msg = errMsg(err)
       if (msg.includes('409')) {
@@ -353,7 +398,9 @@ function RegisterForm({
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
               />
-              {error && <p className="text-sm text-reject">{error}</p>}
+              {(error || notice) && (
+                <p className="text-sm text-reject">{error ?? (notice ? t(notice) : null)}</p>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t('auth.creatingAccount') : t('auth.createAccount')}

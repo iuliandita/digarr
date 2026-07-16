@@ -31,14 +31,23 @@ export type DiscoveryRunResponse = {
 const BASE = '/api/v1'
 
 const AUTH_TOKEN_KEY = 'digarr-auth-token'
+const COOKIE_AUTH_MODE = 'cookie'
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 export function getLegacyStoredToken(): string | null {
-  return localStorage.getItem(AUTH_TOKEN_KEY)
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function clearStoredToken(): void {
-  localStorage.removeItem(AUTH_TOKEN_KEY)
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser contexts.
+  }
 }
 
 export class ApiError extends Error {
@@ -162,13 +171,13 @@ export type AuthResponse = {
 export const loginUser = (username: string, password: string) =>
   fetchApi<AuthResponse>('/auth/login', {
     method: 'POST',
-    headers: { 'X-Digarr-Auth-Mode': 'cookie' },
+    headers: { 'X-Digarr-Auth-Mode': COOKIE_AUTH_MODE },
     body: JSON.stringify({ username, password }),
   })
 export const registerUser = (username: string, password: string) =>
   fetchApi<AuthResponse>('/auth/register', {
     method: 'POST',
-    headers: { 'X-Digarr-Auth-Mode': 'cookie' },
+    headers: { 'X-Digarr-Auth-Mode': COOKIE_AUTH_MODE },
     body: JSON.stringify({ username, password }),
   })
 export type UserProfile = {

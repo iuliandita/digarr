@@ -79,6 +79,7 @@ function expectCookieRequest(init: RequestInit, csrf: boolean): Headers {
 }
 
 beforeEach(() => {
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
   fetchMock.mockReset()
   vi.stubGlobal('fetch', fetchMock)
@@ -108,6 +109,26 @@ describe('cookie-authenticated API transport', () => {
     clearStoredToken()
 
     expect(localStorage.getItem('digarr-auth-token')).toBeNull()
+  })
+
+  it('treats an unavailable legacy storage read as no stored session', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => {
+        throw new DOMException('blocked', 'SecurityError')
+      }),
+    })
+
+    expect(getLegacyStoredToken()).toBeNull()
+  })
+
+  it('does not throw when legacy storage removal is unavailable', () => {
+    vi.stubGlobal('localStorage', {
+      removeItem: vi.fn(() => {
+        throw new DOMException('blocked', 'SecurityError')
+      }),
+    })
+
+    expect(() => clearStoredToken()).not.toThrow()
   })
 
   it('uses cookies without Authorization and adds CSRF only to unsafe methods', async () => {

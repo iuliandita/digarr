@@ -29,7 +29,6 @@ function renderWithQuery(ui: ReactElement) {
 
 vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(),
-  getStoredToken: vi.fn(() => null),
 }))
 
 // Mock useSSE to avoid real EventSource in jsdom
