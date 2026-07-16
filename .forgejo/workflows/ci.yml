@@ -123,6 +123,14 @@ jobs:
         with:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
+      - name: Apply PostgreSQL migrations
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
+      - name: Run PostgreSQL session concurrency tests
+        run: bunx vitest run tests/db/session-queries.test.ts
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
       - name: Run API route contract tests
         run: bun run test:api-routes
         env:
