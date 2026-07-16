@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "oidc_tokens" CASCADE;
+DROP TABLE IF EXISTS "oidc_tokens";

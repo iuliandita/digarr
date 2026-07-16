@@ -54,6 +54,40 @@ describe('OIDC token table retirement', () => {
     }
   })
 
+  it('fails closed when an unexpected dependency exists', async () => {
+    const client = new PGlite()
+
+    try {
+      await client.exec(`
+        CREATE TABLE oidc_tokens (id integer PRIMARY KEY);
+        INSERT INTO oidc_tokens (id) VALUES (1);
+        CREATE VIEW oidc_token_dependency AS SELECT id FROM oidc_tokens;
+      `)
+
+      await expect(client.exec(readMigrationSql())).rejects.toThrow()
+
+      const relations = await client.query<{
+        tableRelation: string | null
+        viewRelation: string | null
+      }>(`
+        SELECT
+          to_regclass('public.oidc_tokens') AS "tableRelation",
+          to_regclass('public.oidc_token_dependency') AS "viewRelation"
+      `)
+      expect(relations.rows[0]).toEqual({
+        tableRelation: 'oidc_tokens',
+        viewRelation: 'oidc_token_dependency',
+      })
+
+      const dependentRows = await client.query<{ id: number }>(
+        'SELECT id FROM oidc_token_dependency',
+      )
+      expect(dependentRows.rows).toEqual([{ id: 1 }])
+    } finally {
+      await client.close()
+    }
+  })
+
   it.runIf(Boolean(process.env.DATABASE_URL))(
     'drops a populated legacy table idempotently in a PostgreSQL temporary schema',
     async () => {
