@@ -32,6 +32,11 @@ come back to `/api/v1/auth/oidc/callback`. The callback uses URL fragments for
 token and error payloads so they never leak into server logs or Referer
 headers.
 
+After validating the authorization response, Digarr retains only the identity
+claims needed for the local account. Provider access, refresh, and ID tokens
+are not retained or refreshed, copied between database backends, or written to
+backups.
+
 ### OIDC account matching
 
 OIDC sign-ins are matched to local accounts by the issuer-scoped subject

@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- **OIDC provider tokens are retired after sign-in validation.** Digarr now keeps only the identity claims needed for the local account, minimizing retained provider data. The unused token table, backup and backend-copy paths, and encryption-rotation coverage are removed. Restoring a legacy backup ignores an empty `oidcTokens` table and skips nonempty rows with a warning. A binary downgrade requires stopping Digarr, provisioning a fresh old-schema database, and restoring a prepared compatibility copy of the pre-migration backup; an older image must never run against the migrated database.
+
 ### Fixed
 
 - **Spotify's preview controller no longer runs inside the authenticated app.** Continuous audition now loads the supported controller in a no-same-origin sandbox and exchanges only validated commands and playback events over a private channel. Standalone previews retain the standard Spotify iframe fallback when the bridge fails.
