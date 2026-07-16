@@ -19,6 +19,7 @@ import {
   clearSessionCookie,
   cookieModeRequested,
   issueSession,
+  prepareSessionCookie,
   resetSession,
 } from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
@@ -102,6 +103,8 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const isAdmin = userCount === 0
+    const cookie = cookieModeRequested(c)
+    const preparedCookie = cookie ? prepareSessionCookie(c) : false
 
     const passwordHash = hashPassword(password)
     // Defence-in-depth against the first-admin bootstrap race: two
@@ -131,11 +134,10 @@ export function authRoutes(deps: AppDependencies) {
       user = await deps.createUser({ username, passwordHash, isAdmin: false })
     }
 
-    const cookie = cookieModeRequested(c)
     const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
     const token = await issueSession(c, user.id, {
       kind: 'create',
-      cookie,
+      cookie: preparedCookie,
       revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
     })
 
@@ -178,10 +180,11 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const cookie = cookieModeRequested(c)
+    const preparedCookie = cookie ? prepareSessionCookie(c) : false
     const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
     const token = await issueSession(c, user.id, {
       kind: 'create',
-      cookie,
+      cookie: preparedCookie,
       revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
     })
 
@@ -213,9 +216,10 @@ export function authRoutes(deps: AppDependencies) {
 
     const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
     try {
+      const cookie = prepareSessionCookie(c)
       await issueSession(c, auth.userId, {
         kind: 'rotate',
-        cookie: true,
+        cookie,
         requiredSourceToken: bearer,
         revokeTokens: existingCookie && existingCookie !== bearer ? [existingCookie] : undefined,
       })

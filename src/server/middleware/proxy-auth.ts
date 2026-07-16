@@ -4,7 +4,11 @@ import { hashPassword } from '@/core/auth'
 import { isIpTrusted } from '@/core/auth/cidr'
 import { isSingleAdminCollision } from '@/core/db-errors'
 import { getSession } from '@/core/sessions'
-import { issueSession } from '@/server/helpers/session-auth'
+import {
+  issueSession,
+  type PreparedSessionCookie,
+  prepareSessionCookie,
+} from '@/server/helpers/session-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
@@ -68,7 +72,9 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
 
     // Find or create user
     let user = await deps.getUserByUsername(forwardedUser)
+    let preparedCookie: PreparedSessionCookie | undefined
     if (!user) {
+      preparedCookie = prepareSessionCookie(c)
       const isFirstUser = (await deps.getUserCount()) === 0
       // Generate random password hash - proxy users authenticate via headers, not passwords
       const randomHash = hashPassword(crypto.randomUUID())
@@ -113,9 +119,10 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
     }
 
     if (!validCookieSession) {
+      preparedCookie ??= prepareSessionCookie(c)
       await issueSession(c, user.id, {
         kind: 'create',
-        cookie: true,
+        cookie: preparedCookie,
         revokeTokens: existingCookie ? [existingCookie] : [],
       })
     }

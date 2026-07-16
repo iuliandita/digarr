@@ -11,13 +11,17 @@ import {
 import type { HonoEnv } from '@/server/types'
 
 type IssueOptions =
-  | { kind: 'create'; cookie: boolean; revokeTokens?: string[] }
+  | { kind: 'create'; cookie: false | PreparedSessionCookie; revokeTokens?: string[] }
   | {
       kind: 'rotate'
-      cookie: boolean
+      cookie: false | PreparedSessionCookie
       requiredSourceToken: string
       revokeTokens?: string[]
     }
+
+export type PreparedSessionCookie = {
+  readonly options: SessionCookieOptions
+}
 
 export function cookieModeRequested(c: Context<HonoEnv>): boolean {
   return c.req.header('X-Digarr-Auth-Mode') === 'cookie'
@@ -31,13 +35,18 @@ function setSessionCookie(c: Context<HonoEnv>, token: string, options: SessionCo
   setCookie(c, SESSION_COOKIE_NAME, token, options)
 }
 
+export function prepareSessionCookie(c: Context<HonoEnv>): PreparedSessionCookie {
+  c.header('Cache-Control', 'no-store')
+  return { options: sessionCookieOptions(c, SESSION_TTL_MS / 1000) }
+}
+
 export async function issueSession(
   c: Context<HonoEnv>,
   userId: number,
   options: IssueOptions,
 ): Promise<string> {
   c.header('Cache-Control', 'no-store')
-  const cookieOptions = options.cookie ? sessionCookieOptions(c, SESSION_TTL_MS / 1000) : undefined
+  const cookieOptions = options.cookie ? options.cookie.options : undefined
   const token = generateSessionToken()
   if (options.kind === 'rotate') {
     await replaceSession(userId, token, options.requiredSourceToken, options.revokeTokens ?? [])
@@ -57,7 +66,7 @@ export async function resetSession(
   cookie: boolean,
 ): Promise<string> {
   c.header('Cache-Control', 'no-store')
-  const cookieOptions = cookie ? sessionCookieOptions(c, SESSION_TTL_MS / 1000) : undefined
+  const cookieOptions = cookie ? prepareSessionCookie(c).options : undefined
   const token = generateSessionToken()
   await resetUserSession(userId, token)
   if (cookieOptions) setSessionCookie(c, token, cookieOptions)

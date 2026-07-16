@@ -4,7 +4,7 @@ import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
 import type { OidcService } from '@/core/auth/oidc'
 import { isSingleAdminCollision } from '@/core/db-errors'
-import { issueSession } from '@/server/helpers/session-auth'
+import { issueSession, prepareSessionCookie } from '@/server/helpers/session-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
@@ -70,6 +70,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       const reqUrl = new URL(c.req.url)
       const callbackUrl = new URL(`${baseUrl}${reqUrl.pathname}${reqUrl.search}`)
       const result = await oidcService.handleCallback(callbackUrl)
+      const sessionCookie = prepareSessionCookie(c)
 
       // User matching is by OIDC subject only, then auto-create. Linking by the
       // `email` claim is deliberately NOT done: a local account's email can be
@@ -126,7 +127,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       const oldCookie = getCookie(c, SESSION_COOKIE_NAME)
       await issueSession(c, user.id, {
         kind: 'create',
-        cookie: true,
+        cookie: sessionCookie,
         revokeTokens: oldCookie ? [oldCookie] : [],
       })
       return c.redirect('/')

@@ -336,10 +336,26 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
+    expect(res.headers.get('cache-control')).toBe('no-store')
     expect(res.headers.get('set-cookie')).toBeNull()
     expect(res.headers.get('cache-control')).toBe('no-store')
     await expect(getSession('old-browser-session')).resolves.toEqual({ userId: 42 })
     await expect(getSession('other-device-session')).resolves.toEqual({ userId: 42 })
+    expect(warn).toHaveBeenCalled()
+  })
+
+  it('rejects invalid cookie configuration before provisioning an OIDC user', async () => {
+    envConfig.allowedOrigin = 'file:///tmp/app'
+    const deps = makeDeps()
+    const app = createTestApp(deps)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(deps.createUser).not.toHaveBeenCalled()
     expect(warn).toHaveBeenCalled()
   })
 

@@ -122,6 +122,21 @@ describe('proxyAuthMiddleware', () => {
     expect(mockCreateUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: true }))
   })
 
+  it('rejects invalid cookie configuration before provisioning a proxy user', async () => {
+    envConfig.allowedOrigin = 'file:///tmp/app'
+    const app = buildApp(['0.0.0.0/32'])
+    app.onError((_error, c) => c.body(null, 500))
+
+    const res = await app.request('/test', {
+      headers: { 'X-Forwarded-User': 'firstuser' },
+    })
+
+    expect(res.status).toBe(500)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(mockCreateUser).not.toHaveBeenCalled()
+  })
+
   it('skips all processing when disabled', async () => {
     const app = new Hono()
     app.use(

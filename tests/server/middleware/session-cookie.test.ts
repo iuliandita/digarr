@@ -14,6 +14,7 @@ import {
   clearSessionCookie,
   cookieModeRequested,
   issueSession,
+  prepareSessionCookie,
   resetSession,
 } from '@/server/helpers/session-auth'
 import {
@@ -138,7 +139,7 @@ describe('session auth helpers', () => {
     app.get('/test', async (c) => {
       const token = await issueSession(c, 7, {
         kind: 'create',
-        cookie: true,
+        cookie: prepareSessionCookie(c),
         revokeTokens: ['old-token', 'old-token', 'new-session-token'],
       })
       return c.json({ token })
@@ -169,15 +170,17 @@ describe('session auth helpers', () => {
     app.get('/test', async (c) => {
       try {
         if (mode === 'create') {
+          const cookie = prepareSessionCookie(c)
           await issueSession(c, 7, {
             kind: 'create',
-            cookie: true,
+            cookie,
             revokeTokens: ['old-token'],
           })
         } else if (mode === 'rotate') {
+          const cookie = prepareSessionCookie(c)
           await issueSession(c, 7, {
             kind: 'rotate',
-            cookie: true,
+            cookie,
             requiredSourceToken: 'source-token',
             revokeTokens: ['old-token'],
           })
@@ -223,10 +226,11 @@ describe('session auth helpers', () => {
     let capturedError: unknown
     const app = new Hono<HonoEnv>()
     app.get('/test', async (c) => {
+      const cookie = prepareSessionCookie(c)
       try {
         await issueSession(c, 7, {
           kind: 'create',
-          cookie: true,
+          cookie,
           revokeTokens: ['old-token'],
         })
       } catch (error) {
@@ -246,7 +250,7 @@ describe('session auth helpers', () => {
     envConfig.allowedOrigin = 'https://app.example.com'
     const app = new Hono<HonoEnv>()
     app.get('/test', async (c) => {
-      await issueSession(c, 7, { kind: 'create', cookie: true })
+      await issueSession(c, 7, { kind: 'create', cookie: prepareSessionCookie(c) })
       return c.body(null, 204)
     })
 
@@ -256,6 +260,22 @@ describe('session auth helpers', () => {
     expect(res.headers.get('set-cookie')).toMatch(
       /^digarr_session=new-session-token; Max-Age=2592000; Path=\/; HttpOnly; Secure; SameSite=Lax$/i,
     )
+  })
+
+  it('uses preflighted cookie options without reparsing configuration', async () => {
+    envConfig.allowedOrigin = 'https://app.example.com'
+    const app = new Hono<HonoEnv>()
+    app.get('/test', async (c) => {
+      const cookie = prepareSessionCookie(c)
+      envConfig.allowedOrigin = 'file:///tmp/app'
+      await issueSession(c, 7, { kind: 'create', cookie })
+      return c.body(null, 204)
+    })
+
+    const res = await app.request('http://internal/test')
+
+    expect(createSession).toHaveBeenCalledWith(7, 'new-session-token')
+    expect(res.headers.get('set-cookie')).toMatch(/; HttpOnly; Secure; SameSite=Lax$/i)
   })
 
   it('rotates through the mandatory source-token CAS', async () => {
@@ -287,9 +307,10 @@ describe('session auth helpers', () => {
     const app = new Hono<HonoEnv>()
     app.get('/test', async (c) => {
       try {
+        const cookie = prepareSessionCookie(c)
         await issueSession(c, 9, {
           kind: 'rotate',
-          cookie: true,
+          cookie,
           requiredSourceToken: 'source-token',
         })
       } catch (error) {

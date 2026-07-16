@@ -3,6 +3,7 @@
 import { EventEmitter } from 'node:events'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
 import { clearAllSessions, createSession, getSession } from '@/core/sessions'
 
@@ -199,6 +200,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  ;(envConfig as { allowedOrigin: string | undefined }).allowedOrigin = undefined
   delete process.env.DIGARR_AUTH_TOKEN
   await clearAllSessions()
   // Reset the shared in-memory rate-limit buckets so per-IP/user counts from one
@@ -331,6 +333,51 @@ describe('POST /api/v1/auth/register', () => {
     await expect(getSession(newToken)).resolves.toEqual({ userId: 1 })
     await expect(getSession('old-browser-session')).resolves.toBeNull()
     await expect(getSession('unrelated-device-session')).resolves.toEqual({ userId: 1 })
+  })
+
+  it('rejects invalid cookie configuration before creating the first user', async () => {
+    ;(envConfig as { allowedOrigin: string | undefined }).allowedOrigin = 'file:///tmp/app'
+    const createUser = vi.fn(makeDeps().createUser)
+    const app = createApp(makeDeps({ createUser, getUserCount: vi.fn(async () => 0) }))
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    try {
+      const res = await app.request('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Digarr-Auth-Mode': 'cookie',
+        },
+        body: JSON.stringify({ username: 'admin', password: 'password1234' }),
+      })
+
+      expect(res.status).toBe(500)
+      expect(res.headers.get('cache-control')).toBe('no-store')
+      expect(res.headers.get('set-cookie')).toBeNull()
+      expect(createUser).not.toHaveBeenCalled()
+    } finally {
+      error.mockRestore()
+    }
+  })
+
+  it('keeps bearer registration independent from cookie configuration', async () => {
+    ;(envConfig as { allowedOrigin: string | undefined }).allowedOrigin = 'file:///tmp/app'
+    const createUser = vi.fn(makeDeps().createUser)
+    const app = createApp(makeDeps({ createUser, getUserCount: vi.fn(async () => 0) }))
+
+    const res = await app.request('/api/v1/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'admin', password: 'password1234' }),
+    })
+
+    expect(res.status).toBe(201)
+    await expect(res.json()).resolves.toEqual({
+      user: expect.objectContaining({ username: 'admin' }),
+      token: expect.any(String),
+    })
+    expect(createUser).toHaveBeenCalledOnce()
+    expect(res.headers.get('set-cookie')).toBeNull()
   })
 
   it('returns 400 for missing username or password', async () => {
