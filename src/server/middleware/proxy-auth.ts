@@ -1,11 +1,11 @@
-import { getCookie, setCookie } from 'hono/cookie'
+import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
-import { generateSessionToken, hashPassword } from '@/core/auth'
+import { hashPassword } from '@/core/auth'
 import { isIpTrusted } from '@/core/auth/cidr'
 import { isSingleAdminCollision } from '@/core/db-errors'
-import { createSession, getSession } from '@/core/sessions'
-import { SESSION_TTL_MS } from '@/db/queries/sessions'
-import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/server/middleware/session-cookie'
+import { getSession } from '@/core/sessions'
+import { issueSession } from '@/server/helpers/session-auth'
+import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
 type ProxyAuthDeps = {
@@ -113,9 +113,11 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
     }
 
     if (!validCookieSession) {
-      const sessionToken = generateSessionToken()
-      await createSession(user.id, sessionToken)
-      setCookie(c, SESSION_COOKIE_NAME, sessionToken, sessionCookieOptions(SESSION_TTL_MS / 1000))
+      await issueSession(c, user.id, {
+        kind: 'create',
+        cookie: true,
+        revokeTokens: existingCookie ? [existingCookie] : [],
+      })
     }
 
     c.set('userId', user.id)

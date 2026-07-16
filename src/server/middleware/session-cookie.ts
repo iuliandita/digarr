@@ -1,11 +1,6 @@
-/**
- * Shared cookie name + options used by middleware that mints or reads session
- * cookies (proxy-auth, OIDC callback, cookie-based session resolution in the
- * auth guard).
- *
- * Cookies are httpOnly and SameSite=Lax so JS cannot read them and browsers
- * do not send them on cross-site top-level navigations.
- */
+import type { Context } from 'hono'
+import { envConfig } from '@/config/env'
+import type { HonoEnv } from '@/server/types'
 
 export const SESSION_COOKIE_NAME = 'digarr_session'
 
@@ -17,12 +12,20 @@ export type SessionCookieOptions = {
   maxAge: number
 }
 
-export function sessionCookieOptions(maxAgeSeconds: number): SessionCookieOptions {
+export function sessionCookieOptions(
+  c: Context<HonoEnv>,
+  maxAgeSeconds: number,
+): SessionCookieOptions {
+  const publicUrl = new URL(envConfig.allowedOrigin ?? c.req.url)
+  if (
+    (publicUrl.protocol !== 'http:' && publicUrl.protocol !== 'https:') ||
+    publicUrl.origin === 'null'
+  ) {
+    throw new TypeError('Session cookie URL must use HTTP or HTTPS')
+  }
   return {
     httpOnly: true,
-    // In tests (NODE_ENV=test) and local dev (http://localhost:*), `secure`
-    // must be false or the browser will drop the cookie silently.
-    secure: process.env.NODE_ENV === 'production',
+    secure: publicUrl.protocol === 'https:',
     sameSite: 'Lax',
     path: '/',
     maxAge: maxAgeSeconds,
