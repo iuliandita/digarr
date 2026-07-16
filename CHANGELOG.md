@@ -9,6 +9,11 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - **Slow OpenAI-compatible providers no longer fail with opaque abort errors.** Connection tests now honor `DIGARR_AI_TIMEOUT_SECONDS` instead of stopping after 10 seconds, recommendation timeouts report their configured duration, and Open WebUI `/api` base URLs use its documented chat-completions route. Standard `/v1` bases and full completion URLs are normalized without duplicate path segments.
+- **Release candidates can no longer bypass the nightly soak channel.** Release and digest-sync tooling now accepts stable `vX.Y.Z` tags only. Development builds continue to publish through `:nightly`; accepted builds promote through `main` to the normal version and `:latest` tags.
+- **Digest synchronization validates every deployment example before writing.** A changed file format now stops the release helper before its first write, avoiding a partially updated set of digests and example tags.
+- **Advisory macOS compatibility runs no longer pass after skipping their backend checks.** Docker installation and startup have independent time budgets, and the job fails visibly unless both PostgreSQL and PGlite assertions complete. The advisory job remains non-blocking.
+- **Contention-sensitive encryption rotation coverage has more CI headroom.** The real PGlite subprocess keeps its failure assertions while using nested timeouts with enough margin for a loaded runner, and temporary state is removed even when setup or assertions fail.
+- **Forgejo Helm setup failures are bounded and easier to distinguish from manifest drift.** Package and pinned Helm downloads now have retry and timeout limits, while checksum verification, chart linting, deterministic rendering, and the final clean-diff assertion remain strict.
 
 ## v1.13.0 - 2026-07-15
 

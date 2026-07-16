@@ -138,11 +138,36 @@ jobs:
       HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
     steps:
       - name: Install git and curl
-        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates > /dev/null && rm -rf /var/lib/apt/lists/*
-      - name: Install Helm
+        timeout-minutes: 5
         run: |
           set -euo pipefail
-          curl -fsSLo /tmp/helm.tgz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
+          apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            update -qq
+          apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            install -y -qq git curl ca-certificates > /dev/null
+          rm -rf /var/lib/apt/lists/*
+      - name: Install Helm
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 4 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            --connect-timeout 15 \
+            --max-time 120 \
+            --output /tmp/helm.tgz \
+            "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
           echo "${HELM_SHA256}  /tmp/helm.tgz" | sha256sum -c -
           tar -xzf /tmp/helm.tgz -C /tmp
           install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm
