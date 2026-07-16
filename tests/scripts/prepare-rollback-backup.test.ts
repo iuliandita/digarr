@@ -35,9 +35,42 @@ vi.mock('node:fs', async (importOriginal) => {
   }
 })
 
+const historicalTableArray = z.array(z.record(z.string(), z.unknown()))
+
 const rollbackCompatibilitySchema = z.object({
   version: z.literal(1),
-  data: z.object({ oidcTokens: z.array(z.never()).length(0) }),
+  appVersion: z.string().min(1),
+  createdAt: z.string().min(1),
+  encryptionKeyHash: z.string().nullable(),
+  includesCaches: z.boolean(),
+  data: z.strictObject({
+    settings: historicalTableArray,
+    users: historicalTableArray,
+    oauthTokens: historicalTableArray,
+    oidcTokens: historicalTableArray,
+    targets: historicalTableArray,
+    subscriptions: historicalTableArray,
+    jobRuns: historicalTableArray,
+    recommendationBatches: historicalTableArray,
+    recommendations: historicalTableArray,
+    playlists: historicalTableArray,
+    playlistTracks: historicalTableArray,
+    artists: historicalTableArray.optional(),
+    artistGenreAliases: historicalTableArray.optional(),
+    genres: historicalTableArray.optional(),
+    artistMetadata: historicalTableArray.optional(),
+    artistBlocks: historicalTableArray.optional(),
+    albumBlocks: historicalTableArray.optional(),
+    libraryArtists: historicalTableArray.optional(),
+    libraryAlbums: historicalTableArray.optional(),
+    librarySyncState: historicalTableArray.optional(),
+    libraryMatchOverrides: historicalTableArray.optional(),
+    libraryAlbumMatchOverrides: historicalTableArray.optional(),
+    libraryHealthState: historicalTableArray.optional(),
+    recordingArtistCache: historicalTableArray.optional(),
+    slskdJobs: historicalTableArray.optional(),
+    subscriptionRuns: historicalTableArray.optional(),
+  }),
 })
 
 function completeV1Backup() {
@@ -129,6 +162,26 @@ describe('rollback backup preparation', () => {
     const output = JSON.parse(readFileSync(outputPath, 'utf8'))
     expect(rollbackCompatibilitySchema.safeParse(output).success).toBe(true)
     expect(Object.hasOwn(output.data, 'oidcTokens')).toBe(true)
+  })
+
+  it('keeps the pinned rollback schema strict about required historical fields', () => {
+    const payload = {
+      ...completeV1Backup(),
+      data: { ...completeV1Backup().data, oidcTokens: [] },
+    }
+    delete (payload as Partial<typeof payload>).appVersion
+
+    expect(rollbackCompatibilitySchema.safeParse(payload).success).toBe(false)
+  })
+
+  it('keeps the pinned rollback schema strict about unknown data tables', () => {
+    const backup = completeV1Backup()
+    const payload = {
+      ...backup,
+      data: { ...backup.data, oidcTokens: [], unknownTable: [] },
+    }
+
+    expect(rollbackCompatibilitySchema.safeParse(payload).success).toBe(false)
   })
 
   it('rejects a version-2 backup without leaking its contents', () => {
