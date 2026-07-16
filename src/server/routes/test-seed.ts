@@ -18,7 +18,7 @@ const SEED_ARTISTS = [
     score: 0.92,
     wikidataId: 'Q100000001',
     description: 'Seed Artist Alpha is a fictional indie rock act used by the E2E harness.',
-    streamingUrls: { spotify: 'https://open.spotify.com/artist/seed-alpha' },
+    streamingUrls: { spotify: 'https://open.spotify.com/artist/seedalpha' },
     externalLinks: {
       wikipedia: 'https://en.wikipedia.org/wiki/Seed_Artist_Alpha',
       officialSite: 'https://example.com/seed-alpha',
@@ -32,7 +32,7 @@ const SEED_ARTISTS = [
     score: 0.81,
     wikidataId: 'Q100000002',
     description: 'Seed Artist Bravo is a fictional synthpop act used by the E2E harness.',
-    streamingUrls: { spotify: 'https://open.spotify.com/artist/seed-bravo' },
+    streamingUrls: { spotify: 'https://open.spotify.com/artist/seedbravo' },
     externalLinks: {
       wikipedia: 'https://en.wikipedia.org/wiki/Seed_Artist_Bravo',
     },
@@ -44,7 +44,7 @@ const SEED_ARTISTS = [
     score: 0.74,
     wikidataId: 'Q100000003',
     description: 'Seed Artist Charlie is a fictional folk act used by the E2E harness.',
-    streamingUrls: { spotify: 'https://open.spotify.com/artist/seed-charlie' },
+    streamingUrls: { spotify: 'https://open.spotify.com/artist/seedcharlie' },
     externalLinks: {
       wikipedia: 'https://en.wikipedia.org/wiki/Seed_Artist_Charlie',
     },

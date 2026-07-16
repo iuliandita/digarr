@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- **Spotify's preview controller no longer runs inside the authenticated app.** Continuous audition now loads the supported controller in a no-same-origin sandbox and exchanges only validated commands and playback events over a private channel. Standalone previews retain the standard Spotify iframe fallback when the bridge fails.
 - **Slow OpenAI-compatible providers no longer fail with opaque abort errors.** Connection tests now honor `DIGARR_AI_TIMEOUT_SECONDS` instead of stopping after 10 seconds, recommendation timeouts report their configured duration, and Open WebUI `/api` base URLs use its documented chat-completions route. Standard `/v1` bases and full completion URLs are normalized without duplicate path segments.
 - **Release candidates can no longer bypass the nightly soak channel.** Release and digest-sync tooling now accepts stable `vX.Y.Z` tags only. Development builds continue to publish through `:nightly`; accepted builds promote through `main` to the normal version and `:latest` tags.
 - **Digest synchronization validates every deployment example before writing.** A changed file format now stops the release helper before its first write, avoiding a partially updated set of digests and example tags.

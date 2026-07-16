@@ -1,90 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isSpotifyBridgeEvent, type SpotifyBridgeCommand } from '@/web/lib/spotify-bridge-protocol'
 
-const SPOTIFY_IFRAME_API_SRC = 'https://open.spotify.com/embed/iframe-api/v1'
-const SPOTIFY_API_TIMEOUT_MS = 10_000
+const SPOTIFY_BRIDGE_SRC = '/spotify-embed-bridge.html'
+const SPOTIFY_BRIDGE_TIMEOUT_MS = 10_000
+
+function createBridgeToken(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')
+}
 
 export type SpotifyPlaybackCommand = {
   id: number
   action: 'play' | 'pause'
 }
 
-type SpotifyPlaybackEvent = {
-  data: {
-    isPaused?: boolean
-    isBuffering?: boolean
-    duration?: number
-    position?: number
-    playingURI?: string
-  }
-}
-
-type SpotifyEmbedController = {
-  addListener: (event: string, listener: (event: SpotifyPlaybackEvent) => void) => void
-  loadEntity: (url: string) => void
-  play: () => void
-  pause: () => void
+type SpotifyBridgeController = {
+  token: string
+  post: (command: SpotifyBridgeCommand) => void
   destroy: () => void
-}
-
-type SpotifyIframeApi = {
-  createController: (
-    element: HTMLElement,
-    options: { url: string; width: string; height: number },
-    callback: (controller: SpotifyEmbedController) => void,
-  ) => void
-}
-
-declare global {
-  interface Window {
-    onSpotifyIframeApiReady?: (api: SpotifyIframeApi) => void
-  }
-}
-
-let spotifyIframeApiPromise: Promise<SpotifyIframeApi> | null = null
-
-function loadSpotifyIframeApi(): Promise<SpotifyIframeApi> {
-  if (spotifyIframeApiPromise) return spotifyIframeApiPromise
-
-  spotifyIframeApiPromise = new Promise((resolve, reject) => {
-    let settled = false
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[src="${SPOTIFY_IFRAME_API_SRC}"]`,
-    )
-    const script = existing ?? document.createElement('script')
-
-    const clearCallback = () => {
-      if (window.onSpotifyIframeApiReady === handleReady) {
-        delete window.onSpotifyIframeApiReady
-      }
-    }
-    const fail = () => {
-      if (settled) return
-      settled = true
-      clearTimeout(timeout)
-      clearCallback()
-      script.remove()
-      spotifyIframeApiPromise = null
-      reject(new Error('Spotify iframe API failed to load'))
-    }
-    const handleReady = (api: SpotifyIframeApi) => {
-      if (settled) return
-      settled = true
-      clearTimeout(timeout)
-      clearCallback()
-      resolve(api)
-    }
-    const timeout = setTimeout(fail, SPOTIFY_API_TIMEOUT_MS)
-
-    window.onSpotifyIframeApiReady = handleReady
-    script.addEventListener('error', fail, { once: true })
-    if (!existing) {
-      script.src = SPOTIFY_IFRAME_API_SRC
-      script.async = true
-      document.body.append(script)
-    }
-  })
-
-  return spotifyIframeApiPromise
 }
 
 type UseSpotifyEmbedOptions = {
@@ -105,7 +40,7 @@ export function useSpotifyEmbed({
   onPlaybackEnded,
 }: UseSpotifyEmbedOptions) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const controllerRef = useRef<SpotifyEmbedController | null>(null)
+  const controllerRef = useRef<SpotifyBridgeController | null>(null)
   const creatingRef = useRef(false)
   const attemptRef = useRef(0)
   const createTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -167,9 +102,9 @@ export function useSpotifyEmbed({
     [removeController],
   )
 
-  const loadUrl = useCallback((controller: SpotifyEmbedController, nextUrl: string) => {
+  const loadUrl = useCallback((controller: SpotifyBridgeController, nextUrl: string) => {
     if (loadedUrlRef.current === nextUrl) return
-    controller.loadEntity(nextUrl)
+    controller.post({ type: 'load', token: controller.token, url: nextUrl })
     loadedUrlRef.current = nextUrl
     startedRef.current = false
     pausedRef.current = false
@@ -177,69 +112,38 @@ export function useSpotifyEmbed({
   }, [])
 
   const applyLatest = useCallback(
-    (controller: SpotifyEmbedController) => {
+    (controller: SpotifyBridgeController) => {
       const latest = latestRef.current
       if (!latest.url) {
-        controller.pause()
+        controller.post({ type: 'pause', token: controller.token })
         if (!latest.keepAlive) destroyController()
         return
       }
       if (!readyRef.current) return
 
       loadUrl(controller, latest.url)
-      controller[latest.command.action]()
+      controller.post({ type: latest.command.action, token: controller.token })
     },
     [destroyController, loadUrl],
   )
 
-  const attachListeners = useCallback((controller: SpotifyEmbedController, attempt: number) => {
-    controller.addListener('playback_started', () => {
-      if (attemptRef.current !== attempt) return
-      startedRef.current = true
-      pausedRef.current = false
-      endedRef.current = false
-      onPlaybackStartedRef.current()
-    })
-    controller.addListener('playback_update', (event) => {
-      if (attemptRef.current !== attempt || !startedRef.current || endedRef.current) return
-
-      const duration = event.data.duration ?? 0
-      const position = event.data.position ?? 0
-      if (duration > 0 && position >= duration) {
-        endedRef.current = true
-        onPlaybackEndedRef.current()
-        return
-      }
-      if (event.data.isBuffering) return
-      if (event.data.isPaused === true && !pausedRef.current) {
-        pausedRef.current = true
-        onPlaybackPausedRef.current()
-      } else if (event.data.isPaused === false && pausedRef.current) {
-        pausedRef.current = false
-        onPlaybackStartedRef.current()
-      }
-    })
-  }, [])
-
   useEffect(() => {
-    const controller = controllerRef.current
-    if (controller) {
+    const existingController = controllerRef.current
+    if (existingController && !creatingRef.current) {
       if (!url) {
-        if (readyRef.current) controller.pause()
+        if (readyRef.current) {
+          existingController.post({ type: 'pause', token: existingController.token })
+        }
         if (!keepAlive) destroyController()
       } else if (readyRef.current) {
-        loadUrl(controller, url)
-        controller[command.action]()
+        loadUrl(existingController, url)
+        existingController.post({ type: command.action, token: existingController.token })
       }
       return
     }
 
     if (!url) {
-      if (creatingRef.current) {
-        attemptRef.current += 1
-        creatingRef.current = false
-        clearControllerTimeouts()
-      }
+      if (creatingRef.current) destroyController()
       return
     }
     if (creatingRef.current || !hostRef.current) return
@@ -248,58 +152,136 @@ export function useSpotifyEmbed({
     attemptRef.current = attempt
     creatingRef.current = true
     setFailedUrl(null)
+    resetPlaybackState()
 
-    void loadSpotifyIframeApi()
-      .then((api) => {
+    const initialUrl = url
+    const token = createBridgeToken()
+    const iframe = document.createElement('iframe')
+    const channel = new MessageChannel()
+    let destroyed = false
+    iframe.src = SPOTIFY_BRIDGE_SRC
+    iframe.setAttribute('sandbox', 'allow-scripts')
+    iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'
+    iframe.title = 'Spotify'
+    iframe.width = '100%'
+    iframe.height = '80'
+    iframe.style.border = '0'
+
+    const controller: SpotifyBridgeController = {
+      token,
+      post: (nextCommand) => {
+        if (destroyed) return
+        try {
+          channel.port1.postMessage(nextCommand)
+        } catch {
+          failAttempt(attempt)
+        }
+      },
+      destroy: () => {
+        if (destroyed) return
+        try {
+          channel.port1.postMessage({ type: 'destroy', token } satisfies SpotifyBridgeCommand)
+        } catch {
+          // A closed channel must not keep the iframe alive.
+        }
+        destroyed = true
+        try {
+          channel.port1.close()
+        } catch {
+          // The iframe still needs to be detached.
+        }
+        try {
+          channel.port2.close()
+        } catch {
+          // The transferred endpoint may already be detached.
+        }
+        iframe.remove()
+      },
+    }
+    controllerRef.current = controller
+    loadedUrlRef.current = initialUrl
+
+    channel.port1.onmessage = (event: MessageEvent<unknown>) => {
+      if (
+        attemptRef.current !== attempt ||
+        disposedRef.current ||
+        !isSpotifyBridgeEvent(event.data) ||
+        event.data.token !== token
+      ) {
+        return
+      }
+
+      if (event.data.type === 'failure') {
+        failAttempt(attempt)
+        return
+      }
+      if (event.data.type === 'ready') {
+        if (readyRef.current) return
+        if (readyTimeoutRef.current) clearTimeout(readyTimeoutRef.current)
+        readyTimeoutRef.current = null
+        creatingRef.current = false
+        readyRef.current = true
+        applyLatest(controller)
+        return
+      }
+      if (event.data.type === 'playback-started') {
+        startedRef.current = true
+        pausedRef.current = false
+        endedRef.current = false
+        onPlaybackStartedRef.current()
+        return
+      }
+      if (!startedRef.current || endedRef.current) return
+
+      if (event.data.duration > 0 && event.data.position >= event.data.duration) {
+        endedRef.current = true
+        onPlaybackEndedRef.current()
+        return
+      }
+      if (event.data.buffering) return
+      if (event.data.paused && !pausedRef.current) {
+        pausedRef.current = true
+        onPlaybackPausedRef.current()
+      } else if (!event.data.paused && pausedRef.current) {
+        pausedRef.current = false
+        onPlaybackStartedRef.current()
+      }
+    }
+    channel.port1.onmessageerror = () => failAttempt(attempt)
+    channel.port1.start()
+
+    iframe.addEventListener(
+      'load',
+      () => {
         if (attemptRef.current !== attempt || disposedRef.current) return
-
-        const host = hostRef.current
-        const initialUrl = latestRef.current.url
-        if (!host || !initialUrl) {
-          creatingRef.current = false
+        if (createTimeoutRef.current) clearTimeout(createTimeoutRef.current)
+        createTimeoutRef.current = null
+        const bridgeWindow = iframe.contentWindow
+        if (!bridgeWindow) {
+          failAttempt(attempt)
           return
         }
 
-        host.replaceChildren()
-        const target = document.createElement('div')
-        host.append(target)
-        createTimeoutRef.current = setTimeout(() => failAttempt(attempt), SPOTIFY_API_TIMEOUT_MS)
-
-        api.createController(
-          target,
-          { url: initialUrl, width: '100%', height: 80 },
-          (createdController) => {
-            if (attemptRef.current !== attempt || disposedRef.current) {
-              createdController.destroy()
-              return
-            }
-
-            if (createTimeoutRef.current) clearTimeout(createTimeoutRef.current)
-            createTimeoutRef.current = null
-            creatingRef.current = false
-            controllerRef.current = createdController
-            resetPlaybackState()
-            loadedUrlRef.current = initialUrl
-            attachListeners(createdController, attempt)
-            readyTimeoutRef.current = setTimeout(() => failAttempt(attempt), SPOTIFY_API_TIMEOUT_MS)
-            createdController.addListener('ready', () => {
-              if (attemptRef.current !== attempt || disposedRef.current) return
-              if (readyTimeoutRef.current) clearTimeout(readyTimeoutRef.current)
-              readyTimeoutRef.current = null
-              readyRef.current = true
-              applyLatest(createdController)
-            })
-          },
-        )
-      })
-      .catch(() => failAttempt(attempt))
+        readyTimeoutRef.current = setTimeout(() => failAttempt(attempt), SPOTIFY_BRIDGE_TIMEOUT_MS)
+        try {
+          // Opaque sandbox origins require "*"; the exact iframe receives a private token-bound port.
+          // nosemgrep: javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration
+          bridgeWindow.postMessage({ type: 'spotify-bridge-init', token, url: initialUrl }, '*', [
+            channel.port2,
+          ])
+        } catch {
+          failAttempt(attempt)
+        }
+      },
+      { once: true },
+    )
+    createTimeoutRef.current = setTimeout(() => failAttempt(attempt), SPOTIFY_BRIDGE_TIMEOUT_MS)
+    hostRef.current.replaceChildren(iframe)
   }, [
     url,
     keepAlive,
     command,
     applyLatest,
-    attachListeners,
-    clearControllerTimeouts,
     destroyController,
     failAttempt,
     loadUrl,

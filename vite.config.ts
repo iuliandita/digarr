@@ -17,6 +17,12 @@ export default defineConfig({
   build: {
     outDir: 'dist/web',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        app: path.resolve(__dirname, 'index.html'),
+        spotifyBridge: path.resolve(__dirname, 'spotify-embed-bridge.html'),
+      },
+    },
   },
   server: {
     proxy: {
