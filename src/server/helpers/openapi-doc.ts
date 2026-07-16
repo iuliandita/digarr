@@ -399,7 +399,11 @@ export const openapiDoc = {
                 type: 'object',
                 required: ['username', 'password'],
                 properties: {
-                  username: { type: 'string', minLength: 2, maxLength: 50 },
+                  username: {
+                    type: 'string',
+                    description:
+                      'Surrounding whitespace is trimmed before enforcing a normalized length of 2-50 characters.',
+                  },
                   password: { type: 'string', format: 'password', minLength: 12 },
                 },
               },

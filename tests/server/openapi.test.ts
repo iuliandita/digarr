@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { openapiDoc } from '@/server/helpers/openapi-doc'
+import { registerSchema } from '@/server/schemas/auth'
 
 type SchemaProperty = {
   $ref?: string
@@ -86,6 +87,16 @@ function countMatchingVariants(variants: ReadonlyArray<{ $ref: string }>, value:
   return variants.filter((variant) => matchesSchema(variant.$ref, value)).length
 }
 
+function acceptsRawLength(
+  schema: { type?: string; minLength?: number; maxLength?: number },
+  value: string,
+): boolean {
+  return (
+    (schema.minLength === undefined || value.length >= schema.minLength) &&
+    (schema.maxLength === undefined || value.length <= schema.maxLength)
+  )
+}
+
 const representativeUser = { id: 1, username: 'admin', isAdmin: true }
 const cookieResponse = { user: representativeUser }
 const bearerResponse = { user: representativeUser, token: 'session-token' }
@@ -161,6 +172,30 @@ describe('OpenAPI skeleton', () => {
       $ref: '#/components/schemas/Problem',
     })
     expect(register.responses['429']).toEqual({ $ref: '#/components/responses/RateLimited' })
+  })
+
+  it('documents registration username limits after whitespace trimming', () => {
+    const username =
+      openapiDoc.paths['/api/v1/auth/register'].post.requestBody.content['application/json'].schema
+        .properties.username
+    const tooShortAfterTrim = ' a '
+    const validAfterTrim = ` ${'a'.repeat(50)}`
+
+    expect(acceptsRawLength(username, tooShortAfterTrim)).toBe(true)
+    expect(
+      registerSchema.safeParse({ username: tooShortAfterTrim, password: 'longenough12' }).success,
+    ).toBe(false)
+    expect(acceptsRawLength(username, validAfterTrim)).toBe(true)
+    expect(
+      registerSchema.safeParse({
+        username: validAfterTrim,
+        password: 'longenough12',
+      }).success,
+    ).toBe(true)
+    expect(username).not.toHaveProperty('minLength')
+    expect(username).not.toHaveProperty('maxLength')
+    expect(username.description).toContain('Surrounding whitespace is trimmed')
+    expect(username.description).toContain('2-50 characters')
   })
 
   it('keeps representative register cookie and bearer responses disjoint', () => {
