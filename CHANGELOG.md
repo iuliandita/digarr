@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Changed
 
+- **Browser sessions now stay in HttpOnly cookies instead of JavaScript storage.** Web password and registration flows, OIDC, and trusted-proxy sign-ins use `SameSite=Lax` cookies, with `Secure` derived from the configured public origin. State-changing browser requests now require same-origin evidence plus a CSRF header. Existing per-user browser bearer sessions are rotated once into cookies and removed from storage; OIDC no longer hands a session token through the URL. Bearer login remains supported for API clients, and query-token compatibility remains limited to pipeline SSE and preview audio.
 - **OIDC provider tokens are retired after sign-in validation.** Digarr now keeps only the identity claims needed for the local account, minimizing retained provider data. The unused token table, backup and backend-copy paths, and encryption-rotation coverage are removed. Restoring a legacy backup ignores an empty `oidcTokens` table and skips nonempty rows with a warning. A binary downgrade requires stopping Digarr, provisioning a fresh old-schema database, and restoring a prepared compatibility copy of the pre-migration backup; an older image must never run against the migrated database.
 
 ### Fixed

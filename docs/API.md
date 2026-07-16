@@ -1,6 +1,17 @@
 # API Reference
 
-All endpoints require authentication via `Authorization: Bearer <token>` header unless marked as public. Only `/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept `?token=<token>` for SSE and `<audio>` clients that cannot send headers.
+All endpoints require either a `digarr_session` cookie or an
+`Authorization: Bearer <token>` header unless marked as public. Bearer sessions
+remain the compatibility path for non-browser API clients. Only
+`/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept
+`?token=<token>` for SSE and `<audio>` clients that cannot send headers.
+
+Cookie- or proxy-authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests
+must send `X-Digarr-CSRF: 1` plus exact same-origin browser evidence. The
+bundled UI handles this automatically. Verified bearer requests do not require
+the CSRF header. Set `ALLOWED_ORIGIN` to the exact public origin when a reverse
+proxy or TLS terminator changes the scheme or host seen by the application;
+the value controls CSRF origin checks and whether the cookie is `Secure`.
 
 Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
 
@@ -57,7 +68,9 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-OpenAPI coverage currently includes auth status/login, recommendations, artist blocks, jobs, and settings service probes. The Markdown reference remains the complete route inventory.
+OpenAPI coverage currently includes auth status/login/session migration,
+recommendations, artist blocks, jobs, and settings service probes. The
+Markdown reference remains the complete route inventory.
 
 ---
 
@@ -67,6 +80,7 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 |--------|------|------|-------------|
 | POST | `/api/v1/auth/register` | No | Create account. First user becomes admin. Rate limited: 5/min |
 | POST | `/api/v1/auth/login` | No | Login with username/password. Rate limited: 10/min |
+| POST | `/api/v1/auth/session/migrate` | Bearer session | Atomically replace an active bearer session with an HttpOnly cookie session |
 | POST | `/api/v1/auth/logout` | Yes | Invalidate current session |
 | GET | `/api/v1/auth/status` | No | Login-screen auth requirement and OIDC availability |
 | GET | `/api/v1/auth/meta` | Yes | Deployment metadata: version and enabled auth integrations |
@@ -89,10 +103,24 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 ```
 
 Notes:
+- Login and registration return `{ user, token }` for API clients by default.
+  Send `X-Digarr-Auth-Mode: cookie` to receive an HttpOnly session cookie and a
+  `{ user }` response without the raw token.
+- `POST /api/v1/auth/session/migrate` accepts only an active per-user session
+  bearer. It returns `204` after rotating that bearer into a cookie, `403` for
+  the deprecated shared token or another auth method, and `409` when the source
+  session was already replaced.
+- An `Authorization` header suppresses cookie fallback, including when the
+  header is malformed or its token is invalid.
+- Password changes invalidate every session for the user. Cookie callers
+  receive a replacement cookie and `204`; bearer callers receive
+  `{ "token": "..." }` for the replacement session.
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
 - `email` may be a valid address, an empty string, or `null`; empty/null clears it
-- A non-empty `email` must be unique across users; a collision returns `409` (`code: errors.auth.emailTaken`). Setting an email is the prerequisite for OIDC auto-linking (see OIDC / OAuth below)
+- A non-empty `email` must be unique across users; a collision returns `409`
+  (`code: errors.auth.emailTaken`). Digarr does not auto-link OIDC identities by
+  email; see [OIDC account matching](AUTHENTICATION.md#oidc-account-matching)
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
 - `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
@@ -103,7 +131,7 @@ Notes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var |
-| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback, creates user if needed |
+| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; creates the user if needed, sets a session cookie, then redirects to `/` |
 | POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (e.g. Spotify) |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |

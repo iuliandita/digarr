@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-07-15 | Current: v1.13.0
+> Updated: 2026-07-17 | Current: v1.13.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -85,6 +85,7 @@ For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it rewrites the pinned digests and version tags across the k8s/Helm/Unraid deploy files plus the example pins in the compose files and README.
 v1.13.0 packages the current `develop`/`:nightly` highlights below.
 
+- Browser authentication now uses HttpOnly, SameSite cookies across the web password flow, OIDC, and trusted-proxy sign-in, with same-origin CSRF enforcement for mutations. Existing browser bearer sessions migrate once without exposing the replacement token to JavaScript; bearer API clients retain their compatibility path
 - OIDC sign-in now keeps only local identity claims after authorization validation. Provider access, refresh, and ID tokens are not retained or copied through backup and backend-migration paths; legacy restores skip old token rows with a warning, and a mode-`0600` compatibility-copy helper supports rollback into a fresh old-schema database
 - v1.13.0 adds an Audition queue for continuous preview playback: an Audition button on the Discover toolbar queues the loaded pending recommendations that have previews, in score order; the global preview bar gains previous/next and position controls. Deezer advances when its clip ends, Spotify reuses a persistent supported iframe controller and advances only after real playback completes, and YouTube retains a bounded 30-second fallback. If a browser blocks Spotify autoplay, the queue stays on the current usable embed instead of silently advancing; once manually activated, later Spotify entries reuse the same controller. Preview-less items are skipped, and playing anything else or stopping deactivates the queue. Artist-level v1 ("try before you add"). Full i18n across 15 locales
 - The scheduled notification digest now persists a last-sent bookmark, so restarts or downtime no longer double-report or drop a window; delivery is at-least-once

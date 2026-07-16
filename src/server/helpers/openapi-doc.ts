@@ -32,7 +32,8 @@ export const openapiDoc = {
         type: 'apiKey',
         in: 'cookie',
         name: 'digarr_session',
-        description: 'Session cookie set by the login, OIDC, or proxy-auth flows.',
+        description:
+          'HttpOnly session cookie set by cookie-mode login, OIDC, or proxy auth. Unsafe requests also require X-Digarr-CSRF: 1 and same-origin browser evidence.',
       },
       bearerToken: {
         type: 'http',
@@ -109,6 +110,14 @@ export const openapiDoc = {
         properties: {
           user: { $ref: '#/components/schemas/User' },
           token: { type: 'string' },
+        },
+        additionalProperties: true,
+      },
+      AuthCookieResponse: {
+        type: 'object',
+        required: ['user'],
+        properties: {
+          user: { $ref: '#/components/schemas/User' },
         },
         additionalProperties: true,
       },
@@ -295,6 +304,16 @@ export const openapiDoc = {
         operationId: 'login',
         summary: 'Create a session from username and password',
         security: [],
+        parameters: [
+          {
+            name: 'X-Digarr-Auth-Mode',
+            in: 'header',
+            required: false,
+            schema: { type: 'string', enum: ['cookie'] },
+            description:
+              'Set to cookie for an HttpOnly session cookie without a token in the response body. Omit for the bearer-token API response.',
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -313,11 +332,54 @@ export const openapiDoc = {
         responses: {
           '200': {
             description: 'Authenticated session.',
-            ...jsonSchema('#/components/schemas/AuthTokenResponse'),
+            headers: {
+              'Set-Cookie': {
+                schema: { type: 'string' },
+                description: 'Present when X-Digarr-Auth-Mode is cookie.',
+              },
+            },
+            content: {
+              [json]: {
+                schema: {
+                  oneOf: [
+                    { $ref: '#/components/schemas/AuthTokenResponse' },
+                    { $ref: '#/components/schemas/AuthCookieResponse' },
+                  ],
+                },
+              },
+            },
           },
           '400': validationResponse,
           '401': unauthenticatedResponse,
           '429': { $ref: '#/components/responses/RateLimited' },
+        },
+      },
+    },
+    '/api/v1/auth/session/migrate': {
+      post: {
+        tags: ['Auth'],
+        operationId: 'migrateSessionToCookie',
+        summary: 'Rotate an active bearer session into an HttpOnly cookie',
+        security: [{ bearerToken: [] }],
+        responses: {
+          '204': {
+            description: 'Bearer session replaced; the response sets the session cookie.',
+            headers: {
+              'Set-Cookie': {
+                schema: { type: 'string' },
+                description: 'The replacement HttpOnly session cookie.',
+              },
+            },
+          },
+          '400': problemResponse,
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+          '409': {
+            description: 'The source bearer session was already replaced.',
+            content: {
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
+          },
         },
       },
     },

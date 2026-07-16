@@ -43,6 +43,12 @@ install with `-f my-values.yaml`.
 
 See `values.yaml` for the full surface.
 
+Ingress and Gateway deployments should inject `ALLOWED_ORIGIN` through
+`extraEnv`, set to the exact public origin, for example
+`https://digarr.example.com`. Browser session cookies, CSRF checks, and OIDC
+callbacks use that value. See
+[Authentication](../../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
 Digarr currently relies on process-local pipeline coordination, schedulers,
 rate limits, and migration locks. External PostgreSQL is useful for managed
 storage and larger installations, but it is not sufficient for horizontal app

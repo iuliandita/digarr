@@ -16,6 +16,29 @@ describe('OpenAPI skeleton', () => {
     expect(schemes?.bearerToken?.scheme).toBe('bearer')
   })
 
+  it('documents cookie-mode negotiation on password login', () => {
+    const login = openapiDoc.paths['/api/v1/auth/login'].post
+
+    expect(login.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'X-Digarr-Auth-Mode', in: 'header' }),
+      ]),
+    )
+    expect(login.responses['200']?.content?.['application/json']?.schema?.oneOf).toEqual([
+      { $ref: '#/components/schemas/AuthTokenResponse' },
+      { $ref: '#/components/schemas/AuthCookieResponse' },
+    ])
+  })
+
+  it('documents bearer-only session migration into a cookie', () => {
+    const migration = openapiDoc.paths['/api/v1/auth/session/migrate'].post
+
+    expect(migration.security).toEqual([{ bearerToken: [] }])
+    expect(migration.responses).toHaveProperty('204')
+    expect(migration.responses).toHaveProperty('403')
+    expect(migration.responses).toHaveProperty('409')
+  })
+
   it('declares the Problem and ValidationError schemas', () => {
     const schemas = openapiDoc.components?.schemas
     expect(schemas?.Problem?.required).toContain('status')
@@ -54,6 +77,7 @@ describe('OpenAPI skeleton', () => {
 
   it('gives each added operation security, a success response, and common errors', () => {
     const publicPaths = new Set(['/api/v1/auth/status', '/api/v1/auth/login'])
+    const bearerOnlyPaths = new Set(['/api/v1/auth/session/migrate'])
     for (const [path, item] of Object.entries(openapiDoc.paths)) {
       for (const [method, operation] of Object.entries(item)) {
         const responseStatuses = Object.keys(operation.responses)
@@ -61,7 +85,12 @@ describe('OpenAPI skeleton', () => {
           responseStatuses.some((status) => /^2\d\d$/.test(status)),
           `${method.toUpperCase()} ${path}`,
         ).toBe(true)
-        if (!publicPaths.has(path)) {
+        if (bearerOnlyPaths.has(path)) {
+          expect(operation.security, `${method.toUpperCase()} ${path}`).toEqual([
+            { bearerToken: [] },
+          ])
+          expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('401')
+        } else if (!publicPaths.has(path)) {
           expect(operation.security, `${method.toUpperCase()} ${path}`).toEqual([
             { sessionCookie: [] },
             { bearerToken: [] },

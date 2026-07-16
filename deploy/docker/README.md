@@ -38,6 +38,11 @@ Services run on an isolated internal `backend` network; only `app` is exposed
 on the host via `frontend`. The default image is the alpine variant; pull a
 specific tag or swap in the `-debian` variant by editing `docker-compose.yml`.
 
+When a reverse proxy or TLS terminator publishes Digarr on a different origin,
+set `ALLOWED_ORIGIN` in `.env` to that exact external origin. Browser session
+cookies and CSRF checks use its scheme and host. See
+[Authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
 ## Development with compose
 
 `docker-compose.dev.yml` is a base-agnostic override that only adds the app

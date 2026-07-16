@@ -7,6 +7,27 @@ via Drizzle ORM -- either an external server or the embedded PGlite backend
 (see [Database backend](#database-backend)). Frontend is a Vite SPA served by
 Hono in production, proxied via Vite dev server in development.
 
+## Authentication boundary
+
+The SPA authenticates with an `HttpOnly; SameSite=Lax` session cookie and never
+reads the raw token. The cookie's `Secure` flag, the CSRF trust origin, CORS,
+and the OIDC callback all derive from the public `ALLOWED_ORIGIN` when it is
+set; reverse-proxy deployments must therefore configure the exact external
+origin.
+
+Unsafe `/api/v1/*` requests using cookie or proxy auth require the fixed
+`X-Digarr-CSRF: 1` header plus exact same-origin browser evidence. Verified
+bearer sessions remain supported for API compatibility and bypass the
+ambient-credential CSRF check. Query-token auth remains restricted to the two
+safe GET surfaces that need it: pipeline SSE and preview audio.
+
+Password login and registration negotiate cookie mode through
+`X-Digarr-Auth-Mode: cookie`; calls without it retain the bearer-token response
+contract. The SPA rotates an old stored bearer into a cookie through an atomic,
+single-use migration endpoint. OIDC and trusted-proxy auth mint cookies
+directly, and the OIDC callback redirects without putting the session token in
+the URL.
+
 ## Database backend
 
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen
