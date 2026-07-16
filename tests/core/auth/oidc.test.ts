@@ -225,13 +225,19 @@ describe('OidcService', () => {
           expectedNonce: 'mock-nonce',
         }),
       )
-      expect(result.claims.sub).toBe('user-123')
-      expect(result.claims.email).toBe('alice@example.com')
-      expect(result.claims.preferredUsername).toBe('alice')
-      expect(result.accessToken).toBe('at-123')
-      expect(result.refreshToken).toBe('rt-456')
-      expect(result.idToken).toBe('id-tok-789')
-      expect(result.expiresIn).toBe(3600)
+      expect(result).toEqual({
+        claims: {
+          sub: 'user-123',
+          email: 'alice@example.com',
+          emailVerified: undefined,
+          preferredUsername: 'alice',
+          name: undefined,
+        },
+      })
+      expect(result).not.toHaveProperty('accessToken')
+      expect(result).not.toHaveProperty('refreshToken')
+      expect(result).not.toHaveProperty('idToken')
+      expect(result).not.toHaveProperty('expiresIn')
     })
 
     it('cleans up pending auth after successful callback', async () => {

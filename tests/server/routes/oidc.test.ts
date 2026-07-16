@@ -46,10 +46,6 @@ function makeMockOidcService() {
         preferredUsername: 'alice',
         name: 'Alice Doe',
       },
-      accessToken: 'at-xyz',
-      refreshToken: 'rt-xyz',
-      idToken: 'id-xyz',
-      expiresIn: 3600,
     })),
     resetDiscovery: vi.fn(),
   }
@@ -192,8 +188,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         emailVerified: true,
         preferredUsername: 'mallory<script>alert(1)</script>',
       },
-      accessToken: 'at',
-      expiresIn: 3600,
     })
     const app = createTestApp(deps)
 
@@ -216,8 +210,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         emailVerified: true,
         preferredUsername: 'carol',
       },
-      accessToken: 'at',
-      expiresIn: 3600,
     })
     const app = createTestApp(deps)
 
@@ -248,8 +240,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         email: 'bob@example.com',
         name: 'Bob',
       },
-      accessToken: 'at',
-      expiresIn: 3600,
     })
     const app = createTestApp(deps)
 
@@ -264,8 +254,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       claims: {
         sub: 'abcdefghijklmnop',
       },
-      accessToken: 'at',
-      expiresIn: 3600,
     })
     const app = createTestApp(deps)
 
