@@ -2,13 +2,11 @@ import { createCipheriv, createHash, randomBytes } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   decryptField,
-  decryptFields,
   encryptField,
   encryptFields,
   getKeyFingerprint,
   initEncryption,
   isEncryptionEnabled,
-  SENSITIVE_OIDC,
 } from '@/core/crypto'
 
 function encryptWithLegacyKey(value: string, keyInput: string): string {
@@ -137,37 +135,6 @@ describe('crypto', () => {
   })
 
   describe('encryptFields / decryptFields', () => {
-    it('encrypts and decrypts the named sensitive fields only', () => {
-      const row = {
-        id: 1,
-        userId: 42,
-        accessToken: 'access-abc',
-        refreshToken: 'refresh-xyz',
-        idToken: 'id-jwt-here',
-        issuerUrl: 'https://issuer.example',
-      }
-      const encrypted = encryptFields(row, SENSITIVE_OIDC)
-      expect(encrypted.accessToken).not.toBe(row.accessToken)
-      expect(encrypted.refreshToken).not.toBe(row.refreshToken)
-      expect(encrypted.idToken).not.toBe(row.idToken)
-      // Non-sensitive fields untouched
-      expect(encrypted.id).toBe(1)
-      expect(encrypted.userId).toBe(42)
-      expect(encrypted.issuerUrl).toBe('https://issuer.example')
-
-      const decrypted = decryptFields(encrypted, SENSITIVE_OIDC)
-      expect(decrypted).toEqual(row)
-    })
-
-    it('tolerates missing optional fields (null refreshToken)', () => {
-      const row = { accessToken: 'a', refreshToken: null, idToken: null }
-      const enc = encryptFields(row, SENSITIVE_OIDC)
-      expect(enc.refreshToken).toBe(null)
-      expect(enc.idToken).toBe(null)
-      expect(enc.accessToken).not.toBe('a')
-      expect(decryptFields(enc, SENSITIVE_OIDC)).toEqual(row)
-    })
-
     it('is idempotent on already-encrypted rows', () => {
       const row = { accessToken: 'secret' }
       const once = encryptFields(row, ['accessToken'])

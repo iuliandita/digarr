@@ -1,6 +1,5 @@
 import {
   SENSITIVE_OAUTH,
-  SENSITIVE_OIDC,
   SENSITIVE_PREFERENCES,
   SENSITIVE_SETTINGS,
   SENSITIVE_USER_CONNECTIONS,
@@ -20,7 +19,6 @@ export const COLUMN_SITES: RotationSite[] = [
   ...scalarSites('settings', SENSITIVE_SETTINGS),
   ...scalarSites('users', SENSITIVE_USER_CONNECTIONS),
   ...scalarSites('oauth_tokens', SENSITIVE_OAUTH),
-  ...scalarSites('oidc_tokens', SENSITIVE_OIDC),
 ]
 
 export const NESTED_SITES = SENSITIVE_PREFERENCES.map((key) => ({
