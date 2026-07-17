@@ -211,28 +211,27 @@ describe('createSlskdOrchestrator', () => {
   it.each([
     { artistName: 'Burial', releaseTitle: '   ', expectedQuery: 'Burial' },
     { artistName: '   ', releaseTitle: 'Untrue', expectedQuery: 'Untrue' },
-  ])('searches when one query field is present', async ({
-    artistName,
-    releaseTitle,
-    expectedQuery,
-  }) => {
-    const slskdClient = {
-      createSearch: vi.fn(async () => ({ id: 'search-partial' })),
-      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-      enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
-      getDownloads: vi.fn(async () => []),
-    }
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [makeJob({ artistName, releaseTitle })]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
-      updateJobState: vi.fn(async () => makeJob()),
-    } as never)
+  ])(
+    'searches when one query field is present',
+    async ({ artistName, releaseTitle, expectedQuery }) => {
+      const slskdClient = {
+        createSearch: vi.fn(async () => ({ id: 'search-partial' })),
+        getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+        enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
+        getDownloads: vi.fn(async () => []),
+      }
+      const orchestrator = createSlskdOrchestrator({
+        listPendingJobs: vi.fn(async () => [makeJob({ artistName, releaseTitle })]),
+        processPendingJobs: vi.fn(async () => {}),
+        createSlskdClient: vi.fn(() => slskdClient),
+        updateJobState: vi.fn(async () => makeJob()),
+      } as never)
 
-    await orchestrator.triggerSync()
+      await orchestrator.triggerSync()
 
-    expect(slskdClient.createSearch).toHaveBeenCalledWith(expectedQuery)
-  })
+      expect(slskdClient.createSearch).toHaveBeenCalledWith(expectedQuery)
+    },
+  )
 
   it('moves ambiguous matches to manual review instead of auto-queueing', async () => {
     const updateJobState = vi.fn(async () => makeJob())

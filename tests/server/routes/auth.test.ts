@@ -800,28 +800,27 @@ describe('POST /api/v1/auth/session/migrate', () => {
     })
   })
 
-  it.each([
-    'session-cookie',
-    'session-query',
-    'proxy',
-  ] as const)('rejects verified %s auth because migration requires a bearer', async (authMethod) => {
-    const app = new Hono<HonoEnv>()
-    app.use('*', async (c, next) => {
-      c.set('userId', 1)
-      c.set('authMethod', authMethod)
-      await next()
-    })
-    app.route('/', authRoutes(makeDeps()))
+  it.each(['session-cookie', 'session-query', 'proxy'] as const)(
+    'rejects verified %s auth because migration requires a bearer',
+    async (authMethod) => {
+      const app = new Hono<HonoEnv>()
+      app.use('*', async (c, next) => {
+        c.set('userId', 1)
+        c.set('authMethod', authMethod)
+        await next()
+      })
+      app.route('/', authRoutes(makeDeps()))
 
-    const res = await app.request('/api/v1/auth/session/migrate', { method: 'POST' })
+      const res = await app.request('/api/v1/auth/session/migrate', { method: 'POST' })
 
-    expect(res.status).toBe(403)
-    expect(res.headers.get('set-cookie')).toBeNull()
-    await expect(res.json()).resolves.toMatchObject({
-      type: '/problems/auth-session-migration-requires-bearer',
-      status: 403,
-    })
-  })
+      expect(res.status).toBe(403)
+      expect(res.headers.get('set-cookie')).toBeNull()
+      await expect(res.json()).resolves.toMatchObject({
+        type: '/problems/auth-session-migration-requires-bearer',
+        status: 403,
+      })
+    },
+  )
 
   it('leaves an invalid bearer to the auth middleware', async () => {
     const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))

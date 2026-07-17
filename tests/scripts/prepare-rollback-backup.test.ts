@@ -383,18 +383,17 @@ describe('rollback backup preparation', () => {
     expect(existsSync(outputPath)).toBe(false)
   })
 
-  it.each([
-    { args: [] },
-    { args: ['one.json'] },
-    { args: ['one.json', 'two.json', 'three.json'] },
-  ])('requires exactly input and output CLI arguments: $args', ({ args }) => {
-    const result = runCli(args)
+  it.each([{ args: [] }, { args: ['one.json'] }, { args: ['one.json', 'two.json', 'three.json'] }])(
+    'requires exactly input and output CLI arguments: $args',
+    ({ args }) => {
+      const result = runCli(args)
 
-    expect(result.error).toBeUndefined()
-    expect(result.status).toBe(1)
-    expect(result.stdout).toBe('')
-    expect(result.stderr.trim()).toBe('usage: prepare-rollback-backup <input> <output>')
-  })
+      expect(result.error).toBeUndefined()
+      expect(result.status).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr.trim()).toBe('usage: prepare-rollback-backup <input> <output>')
+    },
+  )
 
   it('prints only the resolved output path after CLI success', () => {
     const inputPath = join(testDir, 'input.json')

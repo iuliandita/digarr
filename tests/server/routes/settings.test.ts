@@ -901,33 +901,36 @@ describe('POST /api/v1/settings/test/:service', () => {
     ['explicit', { libraryId: 'music-1' }, 'music-1'],
     ['empty', { libraryId: '' }, ''],
     ['omitted', {}, 'stored-music'],
-  ])('passes the %s Jellyfin library selection to the client', async (_case, selection, expected) => {
-    mockCreateJellyfinClient.mockClear()
-    mockGetUserConnections.mockResolvedValueOnce({
-      ...defaultUserConnections,
-      jellyfinLibraryId: 'stored-music',
-    })
-    const app = createApp(makeDeps())
+  ])(
+    'passes the %s Jellyfin library selection to the client',
+    async (_case, selection, expected) => {
+      mockCreateJellyfinClient.mockClear()
+      mockGetUserConnections.mockResolvedValueOnce({
+        ...defaultUserConnections,
+        jellyfinLibraryId: 'stored-music',
+      })
+      const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://jellyfin:8096',
-        apiKey: 'jellyfin-key',
-        userId: 'user-1',
-        ...selection,
-      }),
-    })
+      const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: 'http://jellyfin:8096',
+          apiKey: 'jellyfin-key',
+          userId: 'user-1',
+          ...selection,
+        }),
+      })
 
-    expect(res.status).toBe(200)
-    expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
-      'http://jellyfin:8096',
-      'jellyfin-key',
-      'user-1',
-      { skipTlsVerify: false, libraryId: expected },
-    )
-  })
+      expect(res.status).toBe(200)
+      expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
+        'http://jellyfin:8096',
+        'jellyfin-key',
+        'user-1',
+        { skipTlsVerify: false, libraryId: expected },
+      )
+    },
+  )
 
   it.each([
     ['explicit', { libraryId: 'music-1' }, 'music-1'],

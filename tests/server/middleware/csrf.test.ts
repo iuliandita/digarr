@@ -43,29 +43,29 @@ function unsafeRequest(headers: Record<string, string> = {}, path = '/api/v1/tes
 }
 
 describe('csrf middleware policy', () => {
-  it.each<AuthMethod>([
-    'session-bearer',
-    'legacy-bearer',
-  ])('allows verified %s auth without browser headers', async (authMethod) => {
-    const res = await createGuardApp(authMethod).request(unsafeRequest())
+  it.each<AuthMethod>(['session-bearer', 'legacy-bearer'])(
+    'allows verified %s auth without browser headers',
+    async (authMethod) => {
+      const res = await createGuardApp(authMethod).request(unsafeRequest())
 
-    expect(res.status).toBe(200)
-  })
+      expect(res.status).toBe(200)
+    },
+  )
 
-  it.each<AuthMethod>([
-    'session-cookie',
-    'proxy',
-  ])('allows %s auth with the CSRF header and exact same-origin evidence', async (authMethod) => {
-    const res = await createGuardApp(authMethod).request(
-      unsafeRequest({
-        'X-Digarr-CSRF': '1',
-        Origin: APP_ORIGIN,
-        'Sec-Fetch-Site': 'same-origin',
-      }),
-    )
+  it.each<AuthMethod>(['session-cookie', 'proxy'])(
+    'allows %s auth with the CSRF header and exact same-origin evidence',
+    async (authMethod) => {
+      const res = await createGuardApp(authMethod).request(
+        unsafeRequest({
+          'X-Digarr-CSRF': '1',
+          Origin: APP_ORIGIN,
+          'Sec-Fetch-Site': 'same-origin',
+        }),
+      )
 
-    expect(res.status).toBe(200)
-  })
+      expect(res.status).toBe(200)
+    },
+  )
 
   it.each([
     ['missing header', { Origin: APP_ORIGIN, 'Sec-Fetch-Site': 'same-origin' }],
@@ -127,20 +127,20 @@ describe('csrf middleware policy', () => {
     expect(res.status).toBe(200)
   })
 
-  it.each([
-    'not a URL',
-    'null',
-  ])('rejects an explicit %s Origin even when an exact Referer is supplied', async (origin) => {
-    const res = await createGuardApp('session-cookie').request(
-      unsafeRequest({
-        'X-Digarr-CSRF': '1',
-        Origin: origin,
-        Referer: `${APP_ORIGIN}/settings`,
-      }),
-    )
+  it.each(['not a URL', 'null'])(
+    'rejects an explicit %s Origin even when an exact Referer is supplied',
+    async (origin) => {
+      const res = await createGuardApp('session-cookie').request(
+        unsafeRequest({
+          'X-Digarr-CSRF': '1',
+          Origin: origin,
+          Referer: `${APP_ORIGIN}/settings`,
+        }),
+      )
 
-    expect(res.status).toBe(403)
-  })
+      expect(res.status).toBe(403)
+    },
+  )
 
   it('accepts an exact Origin without fetch metadata', async () => {
     const res = await createGuardApp('session-cookie').request(
@@ -208,20 +208,20 @@ describe('csrf middleware policy', () => {
     }
   })
 
-  it.each<AuthMethod>([
-    'session-query',
-    'legacy-query',
-  ])('rejects unsafe %s auth even with valid browser evidence', async (authMethod) => {
-    const res = await createGuardApp(authMethod).request(
-      unsafeRequest({
-        'X-Digarr-CSRF': '1',
-        Origin: APP_ORIGIN,
-        'Sec-Fetch-Site': 'same-origin',
-      }),
-    )
+  it.each<AuthMethod>(['session-query', 'legacy-query'])(
+    'rejects unsafe %s auth even with valid browser evidence',
+    async (authMethod) => {
+      const res = await createGuardApp(authMethod).request(
+        unsafeRequest({
+          'X-Digarr-CSRF': '1',
+          Origin: APP_ORIGIN,
+          'Sec-Fetch-Site': 'same-origin',
+        }),
+      )
 
-    expect(res.status).toBe(403)
-  })
+      expect(res.status).toBe(403)
+    },
+  )
 
   it('returns the canonical non-oracular RFC 9457 problem', async () => {
     const res = await createGuardApp('session-cookie').request(unsafeRequest())
