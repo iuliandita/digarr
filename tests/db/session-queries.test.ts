@@ -295,42 +295,6 @@ describe('session queries', () => {
     expect(await store.get('conflicting-token')).toEqual({ userId: otherUserId })
   })
 
-  it('resets only the target user sessions', async () => {
-    const targetUserId = await createUser('reset-target')
-    const otherUserId = await createUser('reset-other')
-    const store = sessionQueries(db)
-    await store.create('target-old-a', targetUserId)
-    await store.create('target-old-b', targetUserId)
-    await store.create('other-token', otherUserId)
-
-    await store.resetForUser(targetUserId, 'target-fresh')
-
-    expect(await store.get('target-old-a')).toBeNull()
-    expect(await store.get('target-old-b')).toBeNull()
-    expect(await store.get('target-fresh')).toEqual({ userId: targetUserId })
-    expect(await store.get('other-token')).toEqual({ userId: otherUserId })
-  })
-
-  it('serializes concurrent resets to one session for the user', async () => {
-    const userId = await createUser('concurrent-reset-user')
-    const store = sessionQueries(db)
-    await store.create('reset-old', userId)
-
-    await Promise.all([
-      store.resetForUser(userId, 'reset-fresh-a'),
-      store.resetForUser(userId, 'reset-fresh-b'),
-    ])
-
-    const rows = await db
-      .select({ token: sessions.token })
-      .from(sessions)
-      .where(eq(sessions.userId, userId))
-    expect(rows).toHaveLength(1)
-    expect(
-      [await store.get('reset-fresh-a'), await store.get('reset-fresh-b')].filter(Boolean),
-    ).toHaveLength(1)
-  })
-
   it('atomically rotates distinct sources while revoking stale sessions across users', async () => {
     const userA = await createUser('cross-user-a')
     const userB = await createUser('cross-user-b')

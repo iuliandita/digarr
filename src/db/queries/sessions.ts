@@ -116,19 +116,6 @@ export function sessionQueries(db: Database) {
       })
     },
 
-    async resetForUser(userId: number, newToken: string): Promise<void> {
-      const token = hashSessionToken(newToken)
-      const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
-
-      await db.transaction(async (tx) => {
-        const target = await lockSessionOwners(tx, userId, [])
-        if (!target) throw new Error('Cannot reset sessions for an unknown user')
-
-        await tx.delete(sessions).where(eq(sessions.userId, userId))
-        await tx.insert(sessions).values({ token, userId, expiresAt })
-      })
-    },
-
     async createForPassword(
       userId: number,
       newToken: string,

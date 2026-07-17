@@ -77,17 +77,6 @@ export async function replaceSession(
   }
 }
 
-export async function resetUserSession(userId: number, newToken: string): Promise<void> {
-  if (dbStore) {
-    await dbStore.resetForUser(userId, newToken)
-  } else {
-    for (const [token, session] of memSessions) {
-      if (session.userId === userId) memSessions.delete(token)
-    }
-    memSessions.set(newToken, { userId, createdAt: Date.now() })
-  }
-}
-
 /** Visible for testing. */
 export async function clearAllSessions(): Promise<void> {
   if (dbStore) {

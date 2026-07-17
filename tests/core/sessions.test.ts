@@ -6,7 +6,6 @@ import {
   deleteSession,
   getSession,
   replaceSession,
-  resetUserSession,
   SessionRotationConflictError,
 } from '@/core/sessions'
 
@@ -95,16 +94,5 @@ describe('session store', () => {
     expect(await getSession('other-user-source')).toEqual({ userId: 2 })
     expect(await getSession('optional-token')).toEqual({ userId: 1 })
     expect(await getSession('replacement-token')).toBeNull()
-  })
-
-  it('resets one user without clearing another user session', async () => {
-    await createSession(1, 'user-one-old')
-    await createSession(2, 'user-two-token')
-
-    await resetUserSession(1, 'user-one-fresh')
-
-    expect(await getSession('user-one-old')).toBeNull()
-    expect(await getSession('user-one-fresh')).toEqual({ userId: 1 })
-    expect(await getSession('user-two-token')).toEqual({ userId: 2 })
   })
 })

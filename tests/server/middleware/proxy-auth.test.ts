@@ -13,7 +13,6 @@ vi.mock('@/core/sessions', () => ({
   deleteSession: vi.fn(async () => {}),
   getSession: vi.fn(async () => null),
   replaceSession: vi.fn(async () => {}),
-  resetUserSession: vi.fn(async () => {}),
   SessionRotationConflictError: class SessionRotationConflictError extends Error {},
 }))
 vi.mock('@/core/auth', () => ({
