@@ -7,6 +7,38 @@ via Drizzle ORM -- either an external server or the embedded PGlite backend
 (see [Database backend](#database-backend)). Frontend is a Vite SPA served by
 Hono in production, proxied via Vite dev server in development.
 
+## Authentication boundary
+
+The SPA authenticates with an `HttpOnly; SameSite=Lax` session cookie and never
+reads the raw token. The CSRF trust origin, CORS, and the OIDC callback all
+derive from the public `ALLOWED_ORIGIN` when it is set; reverse-proxy
+deployments must therefore configure the exact external origin, and TLS
+termination requires an `https://` value for correct CSRF and public-URL
+behavior. The cookie's `Secure` flag reads the public origin protocol only
+(never `X-Forwarded-Proto`): in production it fails closed to `Secure` even when
+the backend request arrives over HTTP, so only an explicit
+`DIGARR_ALLOW_INSECURE_COOKIES=true` on an `http:` public origin drops it. That
+override is intended for a production instance served directly over plain HTTP,
+which is vulnerable to network interception.
+
+Unsafe `/api/v1/*` requests using cookie or proxy auth require the fixed
+`X-Digarr-CSRF: 1` header plus exact same-origin browser evidence. Verified
+bearer sessions remain supported for API compatibility and bypass the
+ambient-credential CSRF check. Query-token auth remains restricted to the two
+safe GET surfaces that need it: pipeline SSE and preview audio.
+
+Password login and registration negotiate cookie mode through
+`X-Digarr-Auth-Mode: cookie`; calls without it retain the bearer-token response
+contract. The SPA rotates an old stored bearer into a cookie through an atomic,
+single-use migration endpoint. OIDC and trusted-proxy auth mint cookies
+directly, and the OIDC callback redirects without putting the session token in
+the URL. OIDC login state is browser-bound in a state-scoped `HttpOnly`
+transaction cookie that the callback consumes: one-time, 10-minute TTL,
+multi-tab safe, capacity-capped, and login-rate-limited (10/min/IP on the login
+route; the callback is not limited). Password change and session replacement
+run as one database transaction under a user-row lock, so a password verified
+before a concurrent reset cannot mint a post-reset session.
+
 ## Database backend
 
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen

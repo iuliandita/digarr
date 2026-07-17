@@ -1,12 +1,19 @@
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSession, getSession } from '@/core/sessions'
+import { createSession, deleteSession, getSession } from '@/core/sessions'
 import { proxyAuthMiddleware } from '@/server/middleware/proxy-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
+import type { HonoEnv } from '@/server/types'
 
+const envConfig = vi.hoisted(() => ({ allowedOrigin: undefined as string | undefined }))
+
+vi.mock('@/config/env', () => ({ envConfig }))
 vi.mock('@/core/sessions', () => ({
   createSession: vi.fn(async () => {}),
+  deleteSession: vi.fn(async () => {}),
   getSession: vi.fn(async () => null),
+  replaceSession: vi.fn(async () => {}),
+  SessionRotationConflictError: class SessionRotationConflictError extends Error {},
 }))
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'test-token-123'),
@@ -24,7 +31,7 @@ describe('proxyAuthMiddleware', () => {
   const mockGetUserCount = vi.fn(async () => 0)
 
   function buildApp(trustedProxies: string[]) {
-    const app = new Hono()
+    const app = new Hono<HonoEnv>()
     app.use(
       '*',
       proxyAuthMiddleware({
@@ -36,14 +43,17 @@ describe('proxyAuthMiddleware', () => {
       }),
     )
     app.get('/test', (c) => {
-      const userId = c.get('userId' as never)
-      const proxyAuth = c.get('proxyAuth' as never)
-      return c.json({ userId, proxyAuth })
+      return c.json({
+        userId: c.get('userId'),
+        proxyAuth: c.get('proxyAuth'),
+        authMethod: c.get('authMethod'),
+      })
     })
     return app
   }
 
   beforeEach(() => {
+    envConfig.allowedOrigin = undefined
     vi.clearAllMocks()
     mockGetUserByUsername.mockResolvedValue(null)
     mockGetUserCount.mockResolvedValue(0)
@@ -61,6 +71,11 @@ describe('proxyAuthMiddleware', () => {
     })
     expect(res.status).toBe(200)
     expect(mockCreateUser).toHaveBeenCalled()
+    await expect(res.json()).resolves.toMatchObject({
+      userId: 1,
+      proxyAuth: true,
+      authMethod: 'proxy',
+    })
   })
 
   it('reuses existing user when found', async () => {
@@ -86,6 +101,7 @@ describe('proxyAuthMiddleware', () => {
     })
     const body = await res.json()
     expect(body.proxyAuth).toBeUndefined()
+    expect(body.authMethod).toBeUndefined()
   })
 
   it('silently falls through when no X-Forwarded-User header', async () => {
@@ -93,6 +109,7 @@ describe('proxyAuthMiddleware', () => {
     const res = await app.request('/test')
     const body = await res.json()
     expect(body.proxyAuth).toBeUndefined()
+    expect(body.authMethod).toBeUndefined()
   })
 
   it('first proxy user becomes admin', async () => {
@@ -102,6 +119,21 @@ describe('proxyAuthMiddleware', () => {
       headers: { 'X-Forwarded-User': 'firstuser' },
     })
     expect(mockCreateUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: true }))
+  })
+
+  it('rejects invalid cookie configuration before provisioning a proxy user', async () => {
+    envConfig.allowedOrigin = 'file:///tmp/app'
+    const app = buildApp(['0.0.0.0/32'])
+    app.onError((_error, c) => c.body(null, 500))
+
+    const res = await app.request('/test', {
+      headers: { 'X-Forwarded-User': 'firstuser' },
+    })
+
+    expect(res.status).toBe(500)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(mockCreateUser).not.toHaveBeenCalled()
   })
 
   it('skips all processing when disabled', async () => {
@@ -137,6 +169,7 @@ describe('proxyAuthMiddleware', () => {
     expect(cookie).toContain(`${SESSION_COOKIE_NAME}=test-token-123`)
     expect(cookie).toContain('HttpOnly')
     expect(cookie).toMatch(/SameSite=Lax/i)
+    expect(cookie).not.toContain('Secure')
   })
 
   it('does not re-mint when the inbound cookie matches the same user', async () => {
@@ -156,6 +189,28 @@ describe('proxyAuthMiddleware', () => {
     })
     expect(res.status).toBe(200)
     expect(createSession).not.toHaveBeenCalled()
+    expect(deleteSession).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('mints a fresh session and revokes an invalid inbound cookie', async () => {
+    mockGetUserByUsername.mockResolvedValue({
+      id: 10,
+      username: 'carol',
+      passwordHash: 'h',
+      isAdmin: false,
+    })
+    const app = buildApp(['0.0.0.0/32'])
+    const res = await app.request('/test', {
+      headers: {
+        'X-Forwarded-User': 'carol',
+        cookie: `${SESSION_COOKIE_NAME}=invalid-token`,
+      },
+    })
+
+    expect(createSession).toHaveBeenCalledWith(10, 'test-token-123')
+    expect(deleteSession).toHaveBeenCalledWith('invalid-token')
+    expect(res.headers.get('set-cookie')).toContain(`${SESSION_COOKIE_NAME}=test-token-123`)
   })
 
   it('mints a fresh session when the inbound cookie belongs to a different user', async () => {
@@ -176,8 +231,26 @@ describe('proxyAuthMiddleware', () => {
       },
     })
     expect(createSession).toHaveBeenCalledWith(10, 'test-token-123')
+    expect(deleteSession).toHaveBeenCalledWith('user-99-token')
     const cookie = res.headers.get('set-cookie')
     expect(cookie).toContain(`${SESSION_COOKIE_NAME}=test-token-123`)
+  })
+
+  it('sets Secure from the configured public HTTPS URL', async () => {
+    envConfig.allowedOrigin = 'https://app.example.com'
+    mockGetUserByUsername.mockResolvedValue({
+      id: 10,
+      username: 'carol',
+      passwordHash: 'h',
+      isAdmin: false,
+    })
+    const app = buildApp(['0.0.0.0/32'])
+
+    const res = await app.request('http://internal/test', {
+      headers: { 'X-Forwarded-User': 'carol' },
+    })
+
+    expect(res.headers.get('set-cookie')).toContain('Secure')
   })
 
   it('silently falls through when X-Forwarded-User is empty after trim', async () => {

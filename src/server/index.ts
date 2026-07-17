@@ -12,6 +12,7 @@ import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
 import { apiVersionRedirect } from './middleware/api-version'
 import { authGuard } from './middleware/auth'
+import { csrfGuard } from './middleware/csrf'
 import { requestLogger } from './middleware/logger'
 import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
@@ -113,11 +114,23 @@ export function createApp(deps: AppDependencies) {
       'ALLOWED_ORIGIN is not set in production - CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
     )
   }
+  if (process.env.NODE_ENV === 'production' && envConfig.allowInsecureCookies) {
+    console.warn(
+      'DIGARR_ALLOW_INSECURE_COOKIES=true permits plaintext browser session cookies for HTTP origins.',
+    )
+  }
   app.use(
     '*',
     cors({
       origin:
         envConfig.allowedOrigin ?? (process.env.NODE_ENV === 'production' ? () => undefined : '*'),
+      allowHeaders: [
+        'Authorization',
+        'Content-Type',
+        'X-Digarr-Locale',
+        'X-Digarr-CSRF',
+        'X-Digarr-Auth-Mode',
+      ],
     }),
   )
   app.use('/spotify-embed-bridge.html', async (c, next) => {
@@ -165,6 +178,7 @@ export function createApp(deps: AppDependencies) {
       isSetupComplete: deps.isSetupComplete,
     }),
   )
+  app.use('*', csrfGuard)
   app.use('*', setupGuard(deps.isSetupComplete))
   app.use('*', maintenanceMiddleware)
 
@@ -234,6 +248,13 @@ export function createApp(deps: AppDependencies) {
       ),
   )
 
+  // Bound unauthenticated OIDC login traffic so a client cannot exhaust the
+  // pending-transaction cap (OidcService) and lock out all logins. Callback is
+  // intentionally not limited: legitimate provider redirects must get through.
+  app.use(
+    '/api/v1/auth/oidc/login',
+    rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'oidc-login' }),
+  )
   app.route(
     '/',
     oidcRoutes({

@@ -37,6 +37,7 @@ const ENV_KEYS = [
   'AI_API_KEY',
   'AI_MODEL',
   'AI_BASE_URL',
+  'DIGARR_ALLOW_INSECURE_COOKIES',
 ] as const
 
 describe('buildDatabaseUrl', () => {
@@ -141,6 +142,40 @@ describe('envSettingsOverrides', () => {
     expect(overrides.lidarrUrl).toBe('http://lidarr:8686')
     expect(overrides.aiProvider).toBe('openai')
     expect(overrides).not.toHaveProperty('lidarrApiKey')
+  })
+})
+
+describe('allowInsecureCookies', () => {
+  const saved: Record<string, string | undefined> = {}
+
+  beforeEach(() => {
+    for (const key of ENV_KEYS) saved[key] = process.env[key]
+    for (const key of ENV_KEYS) delete process.env[key]
+  })
+
+  afterEach(() => {
+    for (const [key, val] of Object.entries(saved)) {
+      if (val === undefined) delete process.env[key]
+      else process.env[key] = val
+    }
+    vi.resetModules()
+  })
+
+  it('parses DIGARR_ALLOW_INSECURE_COOKIES=true', async () => {
+    setEnv({ DIGARR_ALLOW_INSECURE_COOKIES: 'true' })
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.allowInsecureCookies).toBe(true)
+  })
+
+  it('parses DIGARR_ALLOW_INSECURE_COOKIES=false', async () => {
+    setEnv({ DIGARR_ALLOW_INSECURE_COOKIES: 'false' })
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.allowInsecureCookies).toBe(false)
+  })
+
+  it('defaults to false when unset', async () => {
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.allowInsecureCookies).toBe(false)
   })
 })
 

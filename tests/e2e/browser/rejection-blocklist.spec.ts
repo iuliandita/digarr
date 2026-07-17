@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken } from './auth'
+import { ensureAdminToken, installAuthCookie } from './auth'
 import { installDiscoverStackView, seedRecommendations } from './seed'
 
 // The reason picker (reason + permanent block) only renders in the swipe
@@ -10,7 +10,7 @@ test.describe('rejection picker + blocklist', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await seedRecommendations(page.request, token)
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await installDiscoverStackView(page)
   })
 

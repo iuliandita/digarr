@@ -63,6 +63,7 @@ export const envConfig = {
   // Server
   port: envInt('PORT') ?? 3000,
   allowedOrigin: env('ALLOWED_ORIGIN'),
+  allowInsecureCookies: envBool('DIGARR_ALLOW_INSECURE_COOKIES', false),
 
   // Lidarr
   lidarrUrl: env('LIDARR_URL'),

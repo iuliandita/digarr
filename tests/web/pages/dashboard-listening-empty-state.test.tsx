@@ -69,7 +69,6 @@ vi.mock('@/web/lib/api', () => ({
   moodDiscover: vi.fn(),
   quickDiscover: vi.fn(),
   getPipelineStatus: vi.fn(async () => ({ running: false })),
-  getStoredToken: vi.fn(() => null),
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
   getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: false }),
   updateUserPreferences: vi.fn().mockResolvedValue({}),

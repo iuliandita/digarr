@@ -192,7 +192,6 @@ import {
   getUserConnections,
   getUserCount,
   listUsers,
-  updatePassword,
   updateUser,
   updateUserConnections,
   updateUserPreferredLocale,
@@ -1303,7 +1302,6 @@ const app = createApp({
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
   getUserCount: () => getUserCount(db),
-  updatePassword: (id, hash) => updatePassword(db, id, hash),
   updateUserPreferredLocale: (id, preferredLocale) =>
     updateUserPreferredLocale(db, id, preferredLocale),
   getOidcService,

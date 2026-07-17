@@ -208,6 +208,19 @@ Most day-to-day configuration lives in the web UI after initial setup: connectio
 
 Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
+The web UI uses an HttpOnly session cookie; bearer sessions remain available
+for API clients. Behind a reverse proxy or TLS terminator, set
+`ALLOWED_ORIGIN` to the exact public `https://` origin (for example,
+`https://digarr.example.com`) so cookie security and CSRF checks use the
+browser-visible scheme and host. Production cookies stay `Secure` even when the
+proxy reaches Digarr over HTTP, so an HTTPS public origin needs no extra flag.
+An HTTPS origin is strongly preferred; if you intentionally run the production
+container directly over plain HTTP, copy the env example and set
+`DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `http://` `ALLOWED_ORIGIN`,
+accepting that direct HTTP exposes the session cookie to network interception.
+See [Authentication](docs/AUTHENTICATION.md) for the browser migration and API
+compatibility details.
+
 ### Local and OpenAI-Compatible AI
 
 For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`, such as `http://<open-webui-host>:<port>/api`. Digarr sends requests to Open WebUI's documented `/api/chat/completions` route. Other compatible servers can use their server root or a base ending in `/v1`. If a local model needs longer to load or generate, set `DIGARR_AI_TIMEOUT_SECONDS` to a suitable value, such as `180`, and restart Digarr; the override applies to both connection tests and recommendation requests.

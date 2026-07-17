@@ -1,11 +1,6 @@
-/**
- * Shared cookie name + options used by middleware that mints or reads session
- * cookies (proxy-auth, OIDC callback, cookie-based session resolution in the
- * auth guard).
- *
- * Cookies are httpOnly and SameSite=Lax so JS cannot read them and browsers
- * do not send them on cross-site top-level navigations.
- */
+import type { Context } from 'hono'
+import { envConfig } from '@/config/env'
+import type { HonoEnv } from '@/server/types'
 
 export const SESSION_COOKIE_NAME = 'digarr_session'
 
@@ -17,12 +12,31 @@ export type SessionCookieOptions = {
   maxAge: number
 }
 
-export function sessionCookieOptions(maxAgeSeconds: number): SessionCookieOptions {
+/**
+ * Decide whether browser cookies get the Secure attribute, from the public
+ * origin protocol only (never X-Forwarded-Proto). Production defaults to Secure
+ * even when the backend request arrives over HTTP (TLS-terminating proxy);
+ * only an explicit DIGARR_ALLOW_INSECURE_COOKIES=true on an http: origin drops
+ * it. Throws on an invalid or non-HTTP(S) public URL.
+ */
+export function browserCookieSecure(c: Context<HonoEnv>): boolean {
+  const publicUrl = new URL(envConfig.allowedOrigin ?? c.req.url)
+  if (!['http:', 'https:'].includes(publicUrl.protocol) || publicUrl.origin === 'null') {
+    throw new TypeError('Browser cookie URL must use HTTP or HTTPS')
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return !(envConfig.allowInsecureCookies && publicUrl.protocol === 'http:')
+  }
+  return publicUrl.protocol === 'https:'
+}
+
+export function sessionCookieOptions(
+  c: Context<HonoEnv>,
+  maxAgeSeconds: number,
+): SessionCookieOptions {
   return {
     httpOnly: true,
-    // In tests (NODE_ENV=test) and local dev (http://localhost:*), `secure`
-    // must be false or the browser will drop the cookie silently.
-    secure: process.env.NODE_ENV === 'production',
+    secure: browserCookieSecure(c),
     sameSite: 'Lax',
     path: '/',
     maxAge: maxAgeSeconds,

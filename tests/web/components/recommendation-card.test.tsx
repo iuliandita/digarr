@@ -22,7 +22,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
 })
 
 import { type Recommendation, RecommendationCard } from '@/web/components/recommendation-card'
-import { getLibraryAlbumCoverage } from '@/web/lib/api'
+import { getArtistTopTracks, getLibraryAlbumCoverage } from '@/web/lib/api'
 import { PreviewContext } from '@/web/lib/preview-context'
 
 // ---------------------------------------------------------------------------
@@ -97,6 +97,7 @@ describe('RecommendationCard', () => {
   const onReject = vi.fn()
   const onClick = vi.fn()
   const mockGetLibraryAlbumCoverage = vi.mocked(getLibraryAlbumCoverage)
+  const mockGetArtistTopTracks = vi.mocked(getArtistTopTracks)
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -107,6 +108,7 @@ describe('RecommendationCard', () => {
       owned: [{ albumMbid: 'owned-a', title: 'Owned A', releaseYear: 2001 }],
       missing: [{ albumMbid: 'missing-b', title: 'Missing B', releaseYear: 2004 }],
     })
+    mockGetArtistTopTracks.mockResolvedValue({ tracks: [] })
   })
 
   it('renders artist name and score badge', () => {
@@ -421,5 +423,42 @@ describe('RecommendationCard', () => {
 
     expect(onClick).not.toHaveBeenCalled()
     expect(screen.getByText('Owned')).toBeInTheDocument()
+  })
+
+  it('plays top tracks through the cookie-authenticated proxy without a token query', async () => {
+    const previewUrl = 'https://cdn.example.test/preview.mp3?signature=abc'
+    mockGetArtistTopTracks.mockResolvedValue({
+      tracks: [{ name: 'Everything in Its Right Place', previewUrl, durationMs: 251_000 }],
+    })
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => 'legacy-session-token'),
+      removeItem: vi.fn(),
+      setItem: vi.fn(),
+    })
+    const play = vi.fn().mockResolvedValue(undefined)
+    const pause = vi.fn()
+    const MockAudio = vi.fn(function (this: HTMLAudioElement, _src?: string) {
+      this.play = play
+      this.pause = pause
+      this.volume = 1
+    })
+    vi.stubGlobal('Audio', MockAudio)
+
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        expanded
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Play preview' }))
+
+    expect(MockAudio).toHaveBeenCalledWith(
+      `/api/v1/preview/audio?url=${encodeURIComponent(previewUrl)}`,
+    )
+    expect(String(MockAudio.mock.calls[0]?.[0])).not.toContain('token=')
+    expect(play).toHaveBeenCalledTimes(1)
   })
 })

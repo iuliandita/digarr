@@ -1,8 +1,8 @@
 import type { APIRequestContext, Page } from '@playwright/test'
 import type { SupportedLocale } from '@/core/i18n/locales'
 
-const E2E_ADMIN_USERNAME = 'setup-e2e'
-const E2E_ADMIN_PASSWORD = 'e2e-password-123'
+export const E2E_ADMIN_USERNAME = 'setup-e2e'
+export const E2E_ADMIN_PASSWORD = 'e2e-password-123'
 
 async function loginOrRegister(request: APIRequestContext): Promise<string | null> {
   const authStatusRes = await request.get('/api/v1/auth/status')
@@ -90,10 +90,22 @@ export async function ensureAdminToken(
   return token
 }
 
-export async function installAuthToken(page: Page, token: string) {
-  await page.addInitScript((value) => {
-    window.localStorage.setItem('digarr-auth-token', value)
-  }, token)
+export async function installAuthCookie(page: Page): Promise<void> {
+  const response = await page.request.post('/api/v1/auth/login', {
+    headers: {
+      'X-Digarr-Auth-Mode': 'cookie',
+      'X-Digarr-CSRF': '1',
+      'Sec-Fetch-Site': 'same-origin',
+      Origin: 'http://localhost:5173',
+    },
+    data: {
+      username: E2E_ADMIN_USERNAME,
+      password: E2E_ADMIN_PASSWORD,
+    },
+  })
+  if (!response.ok()) throw new Error(`cookie login failed: ${response.status()}`)
+  const body = (await response.json()) as Record<string, unknown>
+  if ('token' in body) throw new Error('cookie login leaked a token in the response')
 }
 
 export async function installBrowserLocale(page: Page, locale: SupportedLocale) {

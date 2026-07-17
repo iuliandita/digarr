@@ -63,7 +63,6 @@ import {
   initiateOAuth,
   listTargets,
   logoutUser,
-  setStoredToken,
   testService,
   testTargetApi,
   testWebhook,
@@ -3105,9 +3104,7 @@ function AccountTab() {
     }
     setSaving(true)
     try {
-      const res = await changePassword(currentPassword, newPassword)
-      // Server invalidated old sessions and issued a new token
-      if (res.token) setStoredToken(res.token)
+      await changePassword(currentPassword, newPassword)
       toast.success(t('settings.passwordChanged'))
       setCurrentPassword('')
       setNewPassword('')

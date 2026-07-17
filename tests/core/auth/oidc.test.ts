@@ -19,21 +19,30 @@ vi.mock('openid-client', () => ({
   calculatePKCECodeChallenge: vi.fn(async () => 'mock-code-challenge'),
 }))
 
+import { createHash } from 'node:crypto'
 import * as dns from 'node:dns/promises'
 import * as oidcClient from 'openid-client'
-import { OidcService } from '@/core/auth/oidc'
+import { OidcPendingCapacityError, OidcService, PENDING_AUTH_TTL_MS } from '@/core/auth/oidc'
+
+const config = {
+  issuerUrl: 'https://auth.example.com',
+  clientId: 'test-client',
+  clientSecret: 'test-secret',
+  scopes: 'openid profile email',
+}
+
+const TEST_BINDING = 'test-binding'
+const testBindingHash = () => createHash('sha256').update(TEST_BINDING).digest()
+
+const callbackFor = (state: string) =>
+  new URL(`http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=${state}`)
 
 describe('OidcService', () => {
   let service: OidcService
 
   beforeEach(() => {
     vi.clearAllMocks()
-    service = new OidcService({
-      issuerUrl: 'https://auth.example.com',
-      clientId: 'test-client',
-      clientSecret: 'test-secret',
-      scopes: 'openid profile email',
-    })
+    service = new OidcService(config)
   })
 
   describe('getAuthorizationUrl', () => {
@@ -210,11 +219,10 @@ describe('OidcService', () => {
         codeVerifier: 'mock-code-verifier',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
       })
 
-      const result = await service.handleCallback(
-        new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
-      )
+      const result = await service.handleCallback(callbackFor('mock-state'), TEST_BINDING)
 
       expect(oidcClient.authorizationCodeGrant).toHaveBeenCalledWith(
         expect.anything(),
@@ -261,28 +269,79 @@ describe('OidcService', () => {
         codeVerifier: 'mock-code-verifier',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
       })
 
-      await service.handleCallback(
-        new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state'),
-      )
+      await service.handleCallback(callbackFor('mock-state'), TEST_BINDING)
 
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
       expect(service['pendingAuths'].has('mock-state')).toBe(false)
     })
 
     it('rejects callback with unknown state', async () => {
-      await expect(
-        service.handleCallback(
-          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x&state=unknown'),
-        ),
-      ).rejects.toThrow('Unknown or expired OIDC state')
+      await expect(service.handleCallback(callbackFor('unknown'), TEST_BINDING)).rejects.toThrow(
+        'Unknown, expired, or invalid OIDC transaction',
+      )
     })
 
     it('rejects callback without state parameter', async () => {
       await expect(
-        service.handleCallback(new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x')),
+        service.handleCallback(
+          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x'),
+          TEST_BINDING,
+        ),
       ).rejects.toThrow('Missing state parameter')
+    })
+
+    it('requires the browser binding and consumes state before exchange', async () => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+
+      const started = await service.getAuthorizationUrl('http://localhost/callback')
+      await expect(
+        service.handleCallback(callbackFor(started.state), 'wrong-binding'),
+      ).rejects.toThrow('Unknown, expired, or invalid OIDC transaction')
+      expect(oidcClient.authorizationCodeGrant).not.toHaveBeenCalled()
+      await expect(
+        service.handleCallback(callbackFor(started.state), started.browserBinding),
+      ).rejects.toThrow('Unknown, expired, or invalid OIDC transaction')
+    })
+
+    it('rejects a callback with a missing binding', async () => {
+      // biome-ignore lint/complexity/useLiteralKeys: accessing private field
+      service['pendingAuths'].set('mock-state', {
+        nonce: 'mock-nonce',
+        codeVerifier: 'mock-code-verifier',
+        redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
+        createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
+      })
+
+      await expect(service.handleCallback(callbackFor('mock-state'))).rejects.toThrow(
+        'Unknown, expired, or invalid OIDC transaction',
+      )
+      expect(oidcClient.authorizationCodeGrant).not.toHaveBeenCalled()
+    })
+
+    it('keeps two browser-bound states independent', async () => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      let counter = 0
+      vi.mocked(oidcClient.randomState).mockImplementation(() => `state-${counter++}`)
+      const mockTokens = {
+        claims: () => ({ sub: 'user-123' }),
+        expiresIn: () => 3600,
+      }
+      vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue(mockTokens as never)
+
+      const first = await service.getAuthorizationUrl('http://localhost/callback')
+      const second = await service.getAuthorizationUrl('http://localhost/callback')
+      await service.handleCallback(callbackFor(second.state), second.browserBinding)
+      await service.handleCallback(callbackFor(first.state), first.browserBinding)
     })
 
     it('handles missing id_token claims gracefully', async () => {
@@ -300,15 +359,12 @@ describe('OidcService', () => {
         codeVerifier: 'mock-code-verifier',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
       })
 
-      await expect(
-        service.handleCallback(
-          new URL(
-            'http://localhost:3000/api/v1/auth/oidc/callback?code=auth-code&state=mock-state',
-          ),
-        ),
-      ).rejects.toThrow('No ID token claims')
+      await expect(service.handleCallback(callbackFor('mock-state'), TEST_BINDING)).rejects.toThrow(
+        'No ID token claims',
+      )
     })
 
     it('propagates token exchange errors', async () => {
@@ -321,13 +377,12 @@ describe('OidcService', () => {
         codeVerifier: 'mock-code-verifier',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
       })
 
-      await expect(
-        service.handleCallback(
-          new URL('http://localhost:3000/api/v1/auth/oidc/callback?code=x&state=mock-state'),
-        ),
-      ).rejects.toThrow('invalid_grant')
+      await expect(service.handleCallback(callbackFor('mock-state'), TEST_BINDING)).rejects.toThrow(
+        'invalid_grant',
+      )
     })
   })
 
@@ -339,6 +394,7 @@ describe('OidcService', () => {
         codeVerifier: 'cv',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now() - 20 * 60 * 1000,
+        browserBindingHash: testBindingHash(),
       })
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
       service['pendingAuths'].set('fresh-state', {
@@ -346,6 +402,7 @@ describe('OidcService', () => {
         codeVerifier: 'cv2',
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
+        browserBindingHash: testBindingHash(),
       })
 
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
@@ -362,6 +419,28 @@ describe('OidcService', () => {
       service['cleanupPendingAuths']()
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
       expect(service['pendingAuths'].size).toBe(0)
+    })
+  })
+
+  describe('pending capacity', () => {
+    it('rejects allocation at capacity after expired-prefix cleanup', async () => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      let counter = 0
+      vi.mocked(oidcClient.randomState).mockImplementation(() => `state-${counter++}`)
+
+      let now = 1_000_000
+      const callback = 'http://localhost/callback'
+      const service = new OidcService(config, { maxPendingAuths: 2, now: () => now })
+      await service.getAuthorizationUrl(callback)
+      await service.getAuthorizationUrl(callback)
+      await expect(service.getAuthorizationUrl(callback)).rejects.toBeInstanceOf(
+        OidcPendingCapacityError,
+      )
+      now += PENDING_AUTH_TTL_MS + 1
+      await expect(service.getAuthorizationUrl(callback)).resolves.toBeDefined()
     })
   })
 

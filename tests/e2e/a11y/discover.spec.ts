@@ -1,6 +1,6 @@
 import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken, installBrowserLocale } from '../browser/auth'
+import { ensureAdminToken, installAuthCookie, installBrowserLocale } from '../browser/auth'
 
 test.describe('Discover page a11y', () => {
   test('has no WCAG A/AA violations after setup', async ({ page }) => {
@@ -8,7 +8,7 @@ test.describe('Discover page a11y', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/discover')
 
     // Main content landmark should be on-screen before we scan.

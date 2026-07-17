@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test'
 
 // Dedicated Playwright config for axe-core accessibility scans. Shares the
 // dev-server boot with the browser config but targets tests/e2e/a11y/.
@@ -11,6 +11,11 @@ const webServer =
           port: 3000,
           reuseExistingServer: false,
           timeout: 30_000,
+          env: {
+            ...process.env,
+            NODE_ENV: 'test',
+            ALLOWED_ORIGIN: 'http://localhost:5173',
+          },
         },
         {
           command: 'bun run dev:web',
@@ -30,5 +35,11 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
   webServer,
 })

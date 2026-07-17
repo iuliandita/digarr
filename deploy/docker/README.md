@@ -38,6 +38,19 @@ Services run on an isolated internal `backend` network; only `app` is exposed
 on the host via `frontend`. The default image is the alpine variant; pull a
 specific tag or swap in the `-debian` variant by editing `docker-compose.yml`.
 
+When a reverse proxy or TLS terminator publishes Digarr on a different origin,
+set `ALLOWED_ORIGIN` in `.env` to that exact external `https://` origin. Browser
+session cookies and CSRF checks use its scheme and host. Production cookies stay
+`Secure` even though the proxy reaches the container over HTTP, so an HTTPS
+public origin needs no further flag. See
+[Authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
+An HTTPS public origin is strongly preferred. If you intentionally open the
+production container directly over plain HTTP, copy `.env.example` to `.env` and
+set `DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `http://`
+`ALLOWED_ORIGIN`; otherwise the browser rejects the `Secure` session cookie.
+Direct HTTP exposes the session cookie to network interception.
+
 ## Development with compose
 
 `docker-compose.dev.yml` is a base-agnostic override that only adds the app

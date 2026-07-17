@@ -3,9 +3,18 @@ import type {
   DiscoveryConnectionSnapshot,
 } from '@/core/discovery-modes/availability'
 
+export type AuthMethod =
+  | 'session-bearer'
+  | 'session-cookie'
+  | 'session-query'
+  | 'legacy-bearer'
+  | 'legacy-query'
+  | 'proxy'
+
 export type HonoEnv = {
   Variables: {
     userId?: number
+    authMethod?: AuthMethod
     proxyAuth?: boolean
     legacyTokenAuth?: boolean
     /** True when auth middleware determined no auth is configured (no users, no legacy token). */

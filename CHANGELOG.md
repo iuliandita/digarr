@@ -6,8 +6,15 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Security
+
+- **Session cookies now fail closed to `Secure` in production.** Production session and OIDC transaction cookies are marked `Secure` even when the backend request arrives over HTTP, so a TLS-terminating reverse proxy no longer emits plaintext-eligible cookies. TLS termination requires `ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior. Direct production over HTTP needs the explicit `DIGARR_ALLOW_INSECURE_COOKIES=true` opt-in (default `false`) and remains vulnerable to network interception; pair it with a matching `http://` `ALLOWED_ORIGIN`.
+- **OIDC login state is now browser-bound and single-use.** The authorization state lives in a state-scoped `HttpOnly` transaction cookie, is consumed on the callback, expires after 10 minutes, and is safe across multiple concurrent tabs. Pending transactions are capacity-capped, and `GET /api/v1/auth/oidc/login` is rate limited to 10/min per IP (the callback is not rate limited).
+- **Password change and session replacement are now one atomic transaction.** The change verifies the stored password hash and replaces every session under a single user-row lock, so a password verified before a concurrent reset can no longer mint a post-reset session.
+
 ### Changed
 
+- **Browser sessions now stay in HttpOnly cookies instead of JavaScript storage.** Web password and registration flows, OIDC, and trusted-proxy sign-ins use `SameSite=Lax` cookies. Production session and OIDC transaction cookies default to `Secure` even when the backend request arrives over HTTP (for example behind a TLS-terminating proxy); direct-HTTP production must opt in with `DIGARR_ALLOW_INSECURE_COOKIES=true`, which drops `Secure` only when the public origin is `http:`. State-changing browser requests now require same-origin evidence plus a CSRF header. Existing per-user browser bearer sessions are rotated once into cookies and removed from storage; OIDC no longer hands a session token through the URL. Bearer login remains supported for API clients, and query-token compatibility remains limited to pipeline SSE and preview audio.
 - **OIDC provider tokens are retired after sign-in validation.** Digarr now keeps only the identity claims needed for the local account, minimizing retained provider data. The unused token table, backup and backend-copy paths, and encryption-rotation coverage are removed. Restoring a legacy backup ignores an empty `oidcTokens` table and skips nonempty rows with a warning. A binary downgrade requires stopping Digarr, provisioning a fresh old-schema database, and restoring a prepared compatibility copy of the pre-migration backup; an older image must never run against the migrated database.
 
 ### Fixed

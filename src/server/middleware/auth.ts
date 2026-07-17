@@ -6,7 +6,18 @@ import { getSession } from '@/core/sessions'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { problem } from '@/server/helpers/problem'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
-import type { HonoEnv } from '@/server/types'
+import type { AuthMethod, HonoEnv } from '@/server/types'
+
+type Credential = {
+  token: string
+  source: 'bearer' | 'query' | 'cookie'
+}
+
+const SESSION_AUTH_METHODS = {
+  bearer: 'session-bearer',
+  query: 'session-query',
+  cookie: 'session-cookie',
+} as const satisfies Record<Credential['source'], AuthMethod>
 
 /** Constant-time comparison that does not leak length via early return. */
 function safeCompare(a: string, b: string): boolean {
@@ -59,35 +70,43 @@ export function authGuard(options: {
     const proxyAuthed = c.get('proxyAuth')
     if (proxyAuthed) return next()
 
-    // Extract token from Authorization header, query param (SSE fallback), or
-    // the httpOnly session cookie (set by proxy-auth / OIDC callback / login).
-    // Header wins over cookie so the SPA's localStorage flow keeps working;
-    // the cookie is the fallback for browser-only sessions.
+    // Extract one credential and retain its source through verification.
+    // Any Authorization header suppresses query/cookie fallback, including a
+    // malformed or unverified header.
     const header = c.req.header('Authorization')
-    let provided: string | undefined
-    if (header?.startsWith('Bearer ')) {
-      provided = header.slice(7)
+    let credential: Credential | undefined
+    if (header !== undefined) {
+      if (header.startsWith('Bearer ')) {
+        credential = { token: header.slice(7), source: 'bearer' }
+      }
     } else {
       const qp = c.req.query('token')
-      if (qp && QUERY_TOKEN_PATHS.has(c.req.path)) provided = qp
-      if (!provided) {
+      if (qp && QUERY_TOKEN_PATHS.has(c.req.path)) {
+        credential = { token: qp, source: 'query' }
+      } else {
         const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
-        if (cookieToken) provided = cookieToken
+        if (cookieToken) credential = { token: cookieToken, source: 'cookie' }
       }
     }
 
     // Try session token first
-    if (provided) {
-      const session = await getSession(provided)
+    if (credential?.token) {
+      const session = await getSession(credential.token)
       if (session) {
         c.set('userId', session.userId)
+        c.set('authMethod', SESSION_AUTH_METHODS[credential.source])
         return next()
       }
     }
 
     // Fall back to legacy DIGARR_AUTH_TOKEN (read-only, first user, no admin)
     const legacyToken = envConfig.authToken
-    if (legacyToken && provided && safeCompare(provided, legacyToken)) {
+    if (
+      legacyToken &&
+      credential &&
+      credential.source !== 'cookie' &&
+      safeCompare(credential.token, legacyToken)
+    ) {
       console.warn(
         `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} - no admin access, no per-user features. Migrate to user sessions.`,
       )
@@ -95,6 +114,7 @@ export function authGuard(options: {
       // instead of matching NULL userId records
       c.set('userId', 1)
       c.set('legacyTokenAuth', true)
+      c.set('authMethod', credential.source === 'bearer' ? 'legacy-bearer' : 'legacy-query')
       return next()
     }
 
