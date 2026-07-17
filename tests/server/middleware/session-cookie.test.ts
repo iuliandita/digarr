@@ -92,11 +92,14 @@ describe('sessionCookieOptions', () => {
     ['http://app.example.com', 'http://internal/test', false, true],
     ['http://app.example.com', 'http://internal/test', true, false],
     ['https://app.example.com', 'http://internal/test', true, true],
-  ] as const)('uses secure production defaults', async (allowedOrigin, requestUrl, allowInsecureCookies, secure) => {
-    process.env.NODE_ENV = 'production'
-    envConfig.allowInsecureCookies = allowInsecureCookies
-    await expect(optionsFor(allowedOrigin, requestUrl)).resolves.toMatchObject({ secure })
-  })
+  ] as const)(
+    'uses secure production defaults',
+    async (allowedOrigin, requestUrl, allowInsecureCookies, secure) => {
+      process.env.NODE_ENV = 'production'
+      envConfig.allowInsecureCookies = allowInsecureCookies
+      await expect(optionsFor(allowedOrigin, requestUrl)).resolves.toMatchObject({ secure })
+    },
+  )
 
   it('derives Secure from the public origin protocol outside production', async () => {
     process.env.NODE_ENV = 'development'
@@ -114,16 +117,14 @@ describe('sessionCookieOptions', () => {
     ).resolves.toMatchObject({ secure: false })
   })
 
-  it.each([
-    'not a URL',
-    'file:///tmp/app',
-    'data:text/plain,hello',
-    'mailto:user@example.com',
-  ])('rejects invalid or non-HTTP(S) configured origin %s', async (allowedOrigin) => {
-    await expect(optionsErrorFor(allowedOrigin, 'https://internal/test')).resolves.toBeInstanceOf(
-      TypeError,
-    )
-  })
+  it.each(['not a URL', 'file:///tmp/app', 'data:text/plain,hello', 'mailto:user@example.com'])(
+    'rejects invalid or non-HTTP(S) configured origin %s',
+    async (allowedOrigin) => {
+      await expect(optionsErrorFor(allowedOrigin, 'https://internal/test')).resolves.toBeInstanceOf(
+        TypeError,
+      )
+    },
+  )
 
   it('does not fall back to an HTTPS request URL when the configured origin is invalid', async () => {
     await expect(
@@ -166,47 +167,47 @@ describe('session auth helpers', () => {
     await expect(res.json()).resolves.toEqual({ token: 'new-session-token' })
   })
 
-  it.each([
-    'create',
-    'rotate',
-  ] as const)('validates cookie options before %s token generation or session mutation', async (mode) => {
-    envConfig.allowedOrigin = 'app.example.com'
-    let capturedError: unknown
-    const app = new Hono<HonoEnv>()
-    app.get('/test', async (c) => {
-      try {
-        if (mode === 'create') {
-          const cookie = prepareSessionCookie(c)
-          await issueSession(c, 7, {
-            kind: 'create',
-            cookie,
-            revokeTokens: ['old-token'],
-          })
-        } else {
-          const cookie = prepareSessionCookie(c)
-          await issueSession(c, 7, {
-            kind: 'rotate',
-            cookie,
-            requiredSourceToken: 'source-token',
-            revokeTokens: ['old-token'],
-          })
+  it.each(['create', 'rotate'] as const)(
+    'validates cookie options before %s token generation or session mutation',
+    async (mode) => {
+      envConfig.allowedOrigin = 'app.example.com'
+      let capturedError: unknown
+      const app = new Hono<HonoEnv>()
+      app.get('/test', async (c) => {
+        try {
+          if (mode === 'create') {
+            const cookie = prepareSessionCookie(c)
+            await issueSession(c, 7, {
+              kind: 'create',
+              cookie,
+              revokeTokens: ['old-token'],
+            })
+          } else {
+            const cookie = prepareSessionCookie(c)
+            await issueSession(c, 7, {
+              kind: 'rotate',
+              cookie,
+              requiredSourceToken: 'source-token',
+              revokeTokens: ['old-token'],
+            })
+          }
+        } catch (error) {
+          capturedError = error
         }
-      } catch (error) {
-        capturedError = error
-      }
-      return c.body(null, 204)
-    })
+        return c.body(null, 204)
+      })
 
-    const res = await app.request('https://internal/test')
+      const res = await app.request('https://internal/test')
 
-    expect(capturedError).toBeInstanceOf(TypeError)
-    expect(generateSessionToken).not.toHaveBeenCalled()
-    expect(deleteSession).not.toHaveBeenCalled()
-    expect(createSession).not.toHaveBeenCalled()
-    expect(replaceSession).not.toHaveBeenCalled()
-    expect(res.headers.get('set-cookie')).toBeNull()
-    expect(res.headers.get('cache-control')).toBe('no-store')
-  })
+      expect(capturedError).toBeInstanceOf(TypeError)
+      expect(generateSessionToken).not.toHaveBeenCalled()
+      expect(deleteSession).not.toHaveBeenCalled()
+      expect(createSession).not.toHaveBeenCalled()
+      expect(replaceSession).not.toHaveBeenCalled()
+      expect(res.headers.get('set-cookie')).toBeNull()
+      expect(res.headers.get('cache-control')).toBe('no-store')
+    },
+  )
 
   it('does not parse cookie configuration for cookie-free issuance', async () => {
     envConfig.allowedOrigin = 'app.example.com'

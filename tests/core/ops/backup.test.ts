@@ -311,23 +311,23 @@ describe('restoreBackup', () => {
   it.each([
     { count: 1, warning: 'Ignored 1 legacy OIDC token record.' },
     { count: 2, warning: 'Ignored 2 legacy OIDC token records.' },
-  ])('ignores $count legacy OIDC token record(s) with a count-only warning', async ({
-    count,
-    warning,
-  }) => {
-    const db = makeMockUpsertDb()
-    const backup = makeBackupFile()
-    backup.data.oidcTokens = Array.from({ length: count }, (_, index) => ({
-      id: index + 1,
-      accessToken: `must-not-appear-${index + 1}`,
-    }))
+  ])(
+    'ignores $count legacy OIDC token record(s) with a count-only warning',
+    async ({ count, warning }) => {
+      const db = makeMockUpsertDb()
+      const backup = makeBackupFile()
+      backup.data.oidcTokens = Array.from({ length: count }, (_, index) => ({
+        id: index + 1,
+        accessToken: `must-not-appear-${index + 1}`,
+      }))
 
-    const result = await restoreBackup(db, backup)
+      const result = await restoreBackup(db, backup)
 
-    expect(result.warnings).toEqual([warning])
-    expect(db.insertCalls).not.toHaveProperty('oidc_tokens')
-    expect(db.deleteCalls).not.toContain('oidc_tokens')
-  })
+      expect(result.warnings).toEqual([warning])
+      expect(db.insertCalls).not.toHaveProperty('oidc_tokens')
+      expect(db.deleteCalls).not.toContain('oidc_tokens')
+    },
+  )
 
   it('clears included tables before restoring to avoid stale rows surviving', async () => {
     const db = makeMockUpsertDb()
