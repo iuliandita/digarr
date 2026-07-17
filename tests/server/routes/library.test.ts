@@ -194,7 +194,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       isAdmin: true,
     })) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 0),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: {} as unknown as AppDependencies['genreService'],
     libraryHealth: makeMockLibraryHealth() as unknown as AppDependencies['libraryHealth'],

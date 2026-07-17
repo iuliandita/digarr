@@ -1,8 +1,8 @@
 import type { Context } from 'hono'
 import { deleteCookie, setCookie } from 'hono/cookie'
 import { generateSessionToken } from '@/core/auth'
-import { createSession, deleteSession, replaceSession, resetUserSession } from '@/core/sessions'
-import { SESSION_TTL_MS } from '@/db/queries/sessions'
+import { createSession, deleteSession, replaceSession } from '@/core/sessions'
+import { SESSION_TTL_MS, type SessionStore } from '@/db/queries/sessions'
 import {
   SESSION_COOKIE_NAME,
   type SessionCookieOptions,
@@ -60,15 +60,32 @@ export async function issueSession(
   return token
 }
 
-export async function resetSession(
+export async function issuePasswordSession(
   c: Context<HonoEnv>,
+  store: Pick<SessionStore, 'createForPassword'>,
   userId: number,
-  cookie: boolean,
+  expectedPasswordHash: string,
+  cookie: false | PreparedSessionCookie,
+  revokeTokens: string[] = [],
 ): Promise<string> {
   c.header('Cache-Control', 'no-store')
-  const cookieOptions = cookie ? prepareSessionCookie(c).options : undefined
   const token = generateSessionToken()
-  await resetUserSession(userId, token)
-  if (cookieOptions) setSessionCookie(c, token, cookieOptions)
+  await store.createForPassword(userId, token, expectedPasswordHash, revokeTokens)
+  if (cookie) setSessionCookie(c, token, cookie.options)
+  return token
+}
+
+export async function changePasswordSession(
+  c: Context<HonoEnv>,
+  store: Pick<SessionStore, 'changePasswordAndReset'>,
+  userId: number,
+  expectedPasswordHash: string,
+  newPasswordHash: string,
+  cookie: false | PreparedSessionCookie,
+): Promise<string> {
+  c.header('Cache-Control', 'no-store')
+  const token = generateSessionToken()
+  await store.changePasswordAndReset(userId, expectedPasswordHash, newPasswordHash, token)
+  if (cookie) setSessionCookie(c, token, cookie.options)
   return token
 }

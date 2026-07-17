@@ -5,7 +5,14 @@ import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
-import { clearAllSessions, createSession, getSession } from '@/core/sessions'
+import {
+  clearAllSessions,
+  clearUserSessions,
+  createSession,
+  deleteSession,
+  getSession,
+} from '@/core/sessions'
+import { PasswordCredentialConflictError } from '@/db/queries/sessions'
 
 // Registration is closed by default (DIGARR_DISABLE_REGISTRATION defaults to true).
 // Override to false so registration tests can create users.
@@ -137,7 +144,25 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       createdAt: new Date(),
     })),
     getUserCount: vi.fn(async () => 0),
-    updatePassword: vi.fn(async () => {}),
+    passwordSessions: {
+      createForPassword: vi.fn(
+        async (
+          userId: number,
+          newToken: string,
+          _expectedHash: string,
+          revokedTokens: string[],
+        ) => {
+          for (const token of new Set(revokedTokens)) await deleteSession(token)
+          await createSession(userId, newToken)
+        },
+      ),
+      changePasswordAndReset: vi.fn(
+        async (userId: number, _expectedHash: string, _newHash: string, newToken: string) => {
+          await clearUserSessions(userId)
+          await createSession(userId, newToken)
+        },
+      ),
+    },
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: {} as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
@@ -528,6 +553,37 @@ describe('POST /api/v1/auth/login', () => {
       body: JSON.stringify({ username: 'nobody', password: 'password1234' }),
     })
     expect(res.status).toBe(401)
+  })
+
+  it('returns generic 401 and creates no session when the verified login hash is stale', async () => {
+    const createForPassword = vi.fn(async () => {
+      throw new PasswordCredentialConflictError()
+    })
+    const storedHash = hashPassword('correct-password')
+    const app = createApp(
+      makeDeps({
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+        passwordSessions: { createForPassword, changePasswordAndReset: vi.fn() },
+      }),
+    )
+
+    const res = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'testuser', password: 'correct-password' }),
+    })
+
+    expect(res.status).toBe(401)
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/auth-invalid-credentials',
+    })
+    expect(createForPassword).toHaveBeenCalledOnce()
+    expect(res.headers.get('set-cookie')).toBeNull()
   })
 
   it('returns 400 for missing fields', async () => {
@@ -1129,10 +1185,15 @@ describe('PATCH /api/v1/auth/me/locale', () => {
 describe('POST /api/v1/auth/change-password', () => {
   it('changes the password for a session-authenticated user', async () => {
     const storedHash = hashPassword('oldpassword123')
-    const updatePassword = vi.fn(async () => {})
+    const changePasswordAndReset = vi.fn(
+      async (userId: number, _e: string, _n: string, token: string) => {
+        await clearUserSessions(userId)
+        await createSession(userId, token)
+      },
+    )
     const app = createApp(
       makeDeps({
-        updatePassword,
+        passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset },
         getUserCount: vi.fn(async () => 1),
         getUserByUsername: vi.fn(async () => ({
           id: 1,
@@ -1165,8 +1226,13 @@ describe('POST /api/v1/auth/change-password', () => {
     expect(body.ok).toBeUndefined()
     expect(res.headers.get('set-cookie')).toBeNull()
     expect(res.headers.get('cache-control')).toBe('no-store')
-    expect(updatePassword).toHaveBeenCalledOnce()
-    expect(updatePassword).toHaveBeenCalledWith(1, expect.any(String))
+    expect(changePasswordAndReset).toHaveBeenCalledOnce()
+    expect(changePasswordAndReset).toHaveBeenCalledWith(
+      1,
+      storedHash,
+      expect.any(String),
+      expect.any(String),
+    )
     await expect(getSession('session-token')).resolves.toBeNull()
     await expect(getSession('second-user-session')).resolves.toBeNull()
     await expect(getSession(body.token)).resolves.toEqual({ userId: 1 })
@@ -1175,10 +1241,8 @@ describe('POST /api/v1/auth/change-password', () => {
 
   it('returns only a fresh cookie for a cookie-authenticated password change', async () => {
     const storedHash = hashPassword('oldpassword123')
-    const updatePassword = vi.fn(async () => {})
     const app = createApp(
       makeDeps({
-        updatePassword,
         getUserCount: vi.fn(async () => 1),
         getUserByUsername: vi.fn(async () => ({
           id: 1,
@@ -1254,7 +1318,7 @@ describe('POST /api/v1/auth/change-password', () => {
   })
 
   it('keeps query-authenticated password changes behind the CSRF rejection', async () => {
-    const updatePassword = vi.fn(async () => {})
+    const changePasswordAndReset = vi.fn(async () => {})
     const { csrfGuard } = await import('@/server/middleware/csrf')
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
@@ -1263,7 +1327,12 @@ describe('POST /api/v1/auth/change-password', () => {
       await next()
     })
     app.use('*', csrfGuard)
-    app.route('/', authRoutes(makeDeps({ updatePassword })))
+    app.route(
+      '/',
+      authRoutes(
+        makeDeps({ passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset } }),
+      ),
+    )
 
     const res = await app.request('/api/v1/auth/change-password', {
       method: 'POST',
@@ -1278,18 +1347,63 @@ describe('POST /api/v1/auth/change-password', () => {
     await expect(res.json()).resolves.toMatchObject({
       type: '/problems/csrf-validation-failed',
     })
-    expect(updatePassword).not.toHaveBeenCalled()
+    expect(changePasswordAndReset).not.toHaveBeenCalled()
+  })
+
+  it('rejects a cookie-mode password change with an invalid Origin before reaching the store', async () => {
+    const changePasswordAndReset = vi.fn(async () => {})
+    const storedHash = hashPassword('oldpassword123')
+    const app = createApp(
+      makeDeps({
+        passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset },
+        getUserCount: vi.fn(async () => 1),
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+      }),
+    )
+    await createSession(1, 'cookie-session')
+
+    const res = await app.request('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: {
+        Cookie: 'digarr_session=cookie-session',
+        'Content-Type': 'application/json',
+        'X-Digarr-CSRF': '1',
+        Origin: 'http://evil.example.com',
+        'Sec-Fetch-Site': 'cross-site',
+      },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/csrf-validation-failed',
+    })
+    expect(changePasswordAndReset).not.toHaveBeenCalled()
+    await expect(getSession('cookie-session')).resolves.toEqual({ userId: 1 })
   })
 
   it('rejects legacy read-only token auth', async () => {
-    const updatePassword = vi.fn(async () => {})
+    const changePasswordAndReset = vi.fn(async () => {})
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
       c.set('userId', 1)
       c.set('legacyTokenAuth', true)
       await next()
     })
-    app.route('/', authRoutes(makeDeps({ updatePassword })))
+    app.route(
+      '/',
+      authRoutes(
+        makeDeps({ passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset } }),
+      ),
+    )
 
     const res = await app.request('/api/v1/auth/change-password', {
       method: 'POST',
@@ -1310,7 +1424,52 @@ describe('POST /api/v1/auth/change-password', () => {
       status: 403,
       code: 'errors.auth.notAuthenticated',
     })
-    expect(updatePassword).not.toHaveBeenCalled()
+    expect(changePasswordAndReset).not.toHaveBeenCalled()
+  })
+
+  it('changes neither password nor sessions when password CAS loses', async () => {
+    const storedHash = hashPassword('oldpassword123')
+    const changePasswordAndReset = vi.fn(async () => {
+      throw new PasswordCredentialConflictError()
+    })
+    const app = createApp(
+      makeDeps({
+        passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset },
+        getUserCount: vi.fn(async () => 1),
+        getUserByUsername: vi.fn(async () => ({
+          id: 1,
+          username: 'testuser',
+          passwordHash: storedHash,
+          isAdmin: false,
+        })),
+      }),
+    )
+
+    await createSession(1, 'session-token')
+    const res = await app.request('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer session-token',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: 'oldpassword123',
+        newPassword: 'newpassword123',
+      }),
+    })
+
+    expect(res.status).toBe(401)
+    await expect(res.json()).resolves.toMatchObject({
+      type: '/problems/auth-password-incorrect',
+    })
+    expect(changePasswordAndReset).toHaveBeenCalledOnce()
+    expect(changePasswordAndReset).toHaveBeenCalledWith(
+      1,
+      storedHash,
+      expect.any(String),
+      expect.any(String),
+    )
+    await expect(getSession('session-token')).resolves.toEqual({ userId: 1 })
   })
 })
 

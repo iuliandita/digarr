@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { vi } from 'vitest'
 import { createDefaultDiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import { clearUserSessions, createSession, deleteSession } from '@/core/sessions'
 import { type AppDependencies, createApp } from '@/server'
 
 export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
@@ -76,7 +77,25 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       preferredLocale: null,
     })) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 1),
-    updatePassword: vi.fn(),
+    passwordSessions: {
+      createForPassword: vi.fn(
+        async (
+          userId: number,
+          newToken: string,
+          _expectedHash: string,
+          revokedTokens: string[],
+        ) => {
+          for (const token of new Set(revokedTokens)) await deleteSession(token)
+          await createSession(userId, newToken)
+        },
+      ),
+      changePasswordAndReset: vi.fn(
+        async (userId: number, _expectedHash: string, _newHash: string, newToken: string) => {
+          await clearUserSessions(userId)
+          await createSession(userId, newToken)
+        },
+      ),
+    },
     updateUserPreferredLocale: vi.fn(),
     getOidcService: vi.fn(async () => null),
     getUserByOidcSubject: vi.fn(async () => null),

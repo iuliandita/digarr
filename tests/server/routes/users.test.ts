@@ -139,7 +139,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getUserById: vi.fn(async (id: number) => (id === 1 ? adminUser : null)),
     // Users exist so auth is required
     getUserCount: vi.fn(async () => 1),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: {} as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],

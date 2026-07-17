@@ -10,17 +10,19 @@ import { getMessages } from '@/core/i18n/messages'
 import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
 import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl } from '@/core/validation'
+import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
 import {
+  changePasswordSession,
   clearSessionCookie,
   cookieModeRequested,
+  issuePasswordSession,
   issueSession,
   prepareSessionCookie,
-  resetSession,
 } from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
@@ -64,6 +66,8 @@ const ALLOWED_PREF_KEYS = new Set([
 
 export function authRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
+
+  const passwordSessions = deps.passwordSessions ?? sessionQueries(deps.db)
 
   const getRequestMessages = (c: Context<HonoEnv>) =>
     getMessages(
@@ -182,11 +186,32 @@ export function authRoutes(deps: AppDependencies) {
     const cookie = cookieModeRequested(c)
     const preparedCookie = cookie ? prepareSessionCookie(c) : false
     const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
-    const token = await issueSession(c, user.id, {
-      kind: 'create',
-      cookie: preparedCookie,
-      revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
-    })
+    let token: string
+    try {
+      token = await issuePasswordSession(
+        c,
+        passwordSessions,
+        user.id,
+        user.passwordHash,
+        preparedCookie,
+        cookie && existingCookie ? [existingCookie] : [],
+      )
+    } catch (error) {
+      // A stale verified hash means the password changed between our read and the
+      // atomic write; treat it as invalid credentials rather than leaking the race.
+      if (error instanceof PasswordCredentialConflictError) {
+        return problem(
+          c,
+          'auth-invalid-credentials',
+          messages['auth.invalidCredentials'],
+          401,
+          undefined,
+          undefined,
+          'errors.auth.invalidCredentials',
+        )
+      }
+      throw error
+    }
 
     const { passwordHash: _, ...publicUser } = user
     return cookie ? c.json({ user: publicUser }) : c.json({ user: publicUser, token })
@@ -380,13 +405,34 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
+    const cookieRequested =
+      c.get('authMethod') === 'session-cookie' || c.get('authMethod') === 'proxy'
+    const preparedCookie = cookieRequested ? prepareSessionCookie(c) : false
     const newHash = hashPassword(newPassword)
-    await deps.updatePassword(auth.userId, newHash)
-
-    const cookie = c.get('authMethod') === 'session-cookie' || c.get('authMethod') === 'proxy'
-    const newToken = await resetSession(c, auth.userId, cookie)
-
-    return cookie ? c.body(null, 204) : c.json({ token: newToken })
+    try {
+      const newToken = await changePasswordSession(
+        c,
+        passwordSessions,
+        auth.userId,
+        fullUser.passwordHash,
+        newHash,
+        preparedCookie,
+      )
+      return cookieRequested ? c.body(null, 204) : c.json({ token: newToken })
+    } catch (error) {
+      if (error instanceof PasswordCredentialConflictError) {
+        return problem(
+          c,
+          'auth-password-incorrect',
+          'Current password is incorrect',
+          401,
+          undefined,
+          undefined,
+          'errors.auth.passwordIncorrect',
+        )
+      }
+      throw error
+    }
   })
 
   // Get the authenticated user's merged preferences

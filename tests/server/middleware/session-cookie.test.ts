@@ -7,7 +7,6 @@ import {
   createSession,
   deleteSession,
   replaceSession,
-  resetUserSession,
   SessionRotationConflictError,
 } from '@/core/sessions'
 import {
@@ -15,7 +14,6 @@ import {
   cookieModeRequested,
   issueSession,
   prepareSessionCookie,
-  resetSession,
 } from '@/server/helpers/session-auth'
 import {
   SESSION_COOKIE_NAME,
@@ -36,7 +34,6 @@ vi.mock('@/core/sessions', () => {
     createSession: vi.fn(async () => {}),
     deleteSession: vi.fn(async () => {}),
     replaceSession: vi.fn(async () => {}),
-    resetUserSession: vi.fn(async () => {}),
     SessionRotationConflictError: MockSessionRotationConflictError,
   }
 })
@@ -162,7 +159,6 @@ describe('session auth helpers', () => {
   it.each([
     'create',
     'rotate',
-    'reset',
   ] as const)('validates cookie options before %s token generation or session mutation', async (mode) => {
     envConfig.allowedOrigin = 'app.example.com'
     let capturedError: unknown
@@ -176,7 +172,7 @@ describe('session auth helpers', () => {
             cookie,
             revokeTokens: ['old-token'],
           })
-        } else if (mode === 'rotate') {
+        } else {
           const cookie = prepareSessionCookie(c)
           await issueSession(c, 7, {
             kind: 'rotate',
@@ -184,8 +180,6 @@ describe('session auth helpers', () => {
             requiredSourceToken: 'source-token',
             revokeTokens: ['old-token'],
           })
-        } else {
-          await resetSession(c, 7, true)
         }
       } catch (error) {
         capturedError = error
@@ -200,7 +194,6 @@ describe('session auth helpers', () => {
     expect(deleteSession).not.toHaveBeenCalled()
     expect(createSession).not.toHaveBeenCalled()
     expect(replaceSession).not.toHaveBeenCalled()
-    expect(resetUserSession).not.toHaveBeenCalled()
     expect(res.headers.get('set-cookie')).toBeNull()
     expect(res.headers.get('cache-control')).toBe('no-store')
   })
@@ -324,22 +317,6 @@ describe('session auth helpers', () => {
     expect(capturedError).toBe(conflict)
     expect(createSession).not.toHaveBeenCalled()
     expect(res.headers.get('set-cookie')).toBeNull()
-  })
-
-  it.each([false, true])('resets all user sessions with cookie=%s', async (cookie) => {
-    const app = new Hono<HonoEnv>()
-    app.get('/test', async (c) => {
-      const token = await resetSession(c, 11, cookie)
-      return c.json({ token })
-    })
-
-    const res = await app.request('http://app.example.com/test')
-
-    expect(resetUserSession).toHaveBeenCalledWith(11, 'new-session-token')
-    expect(createSession).not.toHaveBeenCalled()
-    expect(replaceSession).not.toHaveBeenCalled()
-    expect(res.headers.get('cache-control')).toBe('no-store')
-    expect(Boolean(res.headers.get('set-cookie'))).toBe(cookie)
   })
 
   it('requires the exact cookie-mode header value', async () => {
