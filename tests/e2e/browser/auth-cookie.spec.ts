@@ -135,13 +135,23 @@ test('password change invalidates old bearer sessions and keeps a fresh cookie',
   }
 })
 
-test('completes the real OIDC callback route with mocked provider claims', async ({ page }) => {
-  await page.goto(
-    'http://127.0.0.1:3011/api/v1/auth/oidc/callback?state=browser-test&code=mock-code',
-  )
+test('completes the full OIDC redirect flow and clears the transaction cookie', async ({
+  page,
+}) => {
+  // Start at login: the route sets the digarr_oidc_<state> transaction cookie,
+  // redirects to the mock provider, which bounces back to the real callback
+  // route. The callback reads the binding from the cookie, issues a session,
+  // and clears the transaction cookie.
+  await page.goto('http://127.0.0.1:3011/api/v1/auth/oidc/login')
   await expect(page.getByText('OIDC callback complete')).toBeVisible()
   expect(page.url()).toBe('http://127.0.0.1:3011/')
   await expectSessionCookie(page, 'http://127.0.0.1:3011')
+
+  // No URL arg: return every cookie in the context regardless of path. A
+  // path-scoped query (the callback cookie lives at /api/v1/auth/oidc/callback)
+  // would never match a `/` lookup, making the assertion vacuous.
+  const allCookies = await page.context().cookies()
+  expect(allCookies.some((item) => item.name.startsWith('digarr_oidc_'))).toBe(false)
   await expectNoBrowserCredentialLeak(page)
 })
 

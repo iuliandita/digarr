@@ -248,6 +248,13 @@ export function createApp(deps: AppDependencies) {
       ),
   )
 
+  // Bound unauthenticated OIDC login traffic so a client cannot exhaust the
+  // pending-transaction cap (OidcService) and lock out all logins. Callback is
+  // intentionally not limited: legitimate provider redirects must get through.
+  app.use(
+    '/api/v1/auth/oidc/login',
+    rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'oidc-login' }),
+  )
   app.route(
     '/',
     oidcRoutes({

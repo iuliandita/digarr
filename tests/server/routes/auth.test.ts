@@ -685,6 +685,22 @@ describe('POST /api/v1/auth/login', () => {
   }, 60_000)
 })
 
+describe('GET /api/v1/auth/oidc/login rate limiting', () => {
+  it('rate limits OIDC login before its route handles the request', async () => {
+    const { __shutdownRateLimiter } = await import('@/server/middleware/rate-limit')
+    __shutdownRateLimiter()
+    const app = createApp(makeDeps())
+    const responses = []
+    for (let i = 0; i < 11; i += 1) {
+      responses.push(await app.request('/api/v1/auth/oidc/login'))
+    }
+    expect(responses.slice(0, 10).every((response) => response.status === 400)).toBe(true)
+    expect(responses[10]?.status).toBe(429)
+    expect(responses[10]?.headers.get('retry-after')).toBeTruthy()
+    __shutdownRateLimiter()
+  })
+})
+
 describe('session token authentication', () => {
   it('session token from login grants access to protected routes', async () => {
     const storedHash = hashPassword('password1234')
