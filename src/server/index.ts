@@ -114,6 +114,11 @@ export function createApp(deps: AppDependencies) {
       'ALLOWED_ORIGIN is not set in production - CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
     )
   }
+  if (process.env.NODE_ENV === 'production' && envConfig.allowInsecureCookies) {
+    console.warn(
+      'DIGARR_ALLOW_INSECURE_COOKIES=true permits plaintext browser session cookies for HTTP origins.',
+    )
+  }
   app.use(
     '*',
     cors({

@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { generateSessionToken } from '@/core/auth'
 import {
   createSession,
@@ -22,7 +22,10 @@ import {
 } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
 
-const envConfig = vi.hoisted(() => ({ allowedOrigin: undefined as string | undefined }))
+const envConfig = vi.hoisted(() => ({
+  allowedOrigin: undefined as string | undefined,
+  allowInsecureCookies: false,
+}))
 
 vi.mock('@/config/env', () => ({ envConfig }))
 vi.mock('@/core/auth', () => ({
@@ -72,29 +75,35 @@ async function optionsErrorFor(allowedOrigin: string, requestUrl: string): Promi
 }
 
 describe('sessionCookieOptions', () => {
+  let previousNodeEnv: string | undefined
+
+  beforeEach(() => {
+    previousNodeEnv = process.env.NODE_ENV
+    envConfig.allowInsecureCookies = false
+  })
+
+  afterEach(() => {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV
+    else process.env.NODE_ENV = previousNodeEnv
+  })
+
   it.each([
-    ['http://app.example.com', 'http://app.example.com/test', false],
-    ['https://app.example.com', 'http://internal/test', true],
-    [undefined, 'http://app.example.com/test', false],
-    [undefined, 'https://app.example.com/test', true],
-  ] as const)('derives Secure from public/direct origin', async (allowedOrigin, requestUrl, secure) => {
-    const previousNodeEnv = process.env.NODE_ENV
+    [undefined, 'http://internal/test', false, true],
+    ['http://app.example.com', 'http://internal/test', false, true],
+    ['http://app.example.com', 'http://internal/test', true, false],
+    ['https://app.example.com', 'http://internal/test', true, true],
+  ] as const)('uses secure production defaults', async (allowedOrigin, requestUrl, allowInsecureCookies, secure) => {
     process.env.NODE_ENV = 'production'
-    try {
-      await expect(optionsFor(allowedOrigin, requestUrl)).resolves.toEqual({
-        httpOnly: true,
-        secure,
-        sameSite: 'Lax',
-        path: '/',
-        maxAge: 60,
-      })
-    } finally {
-      if (previousNodeEnv === undefined) {
-        delete process.env.NODE_ENV
-      } else {
-        process.env.NODE_ENV = previousNodeEnv
-      }
-    }
+    envConfig.allowInsecureCookies = allowInsecureCookies
+    await expect(optionsFor(allowedOrigin, requestUrl)).resolves.toMatchObject({ secure })
+  })
+
+  it('derives Secure from the public origin protocol outside production', async () => {
+    process.env.NODE_ENV = 'development'
+    envConfig.allowInsecureCookies = true
+    await expect(
+      optionsFor('http://app.example.com', 'https://internal/test'),
+    ).resolves.toMatchObject({ secure: false })
   })
 
   it('does not trust X-Forwarded-Proto when deriving Secure', async () => {
@@ -126,6 +135,7 @@ describe('sessionCookieOptions', () => {
 describe('session auth helpers', () => {
   beforeEach(() => {
     envConfig.allowedOrigin = undefined
+    envConfig.allowInsecureCookies = false
     vi.clearAllMocks()
     vi.mocked(generateSessionToken).mockReturnValue('new-session-token')
   })

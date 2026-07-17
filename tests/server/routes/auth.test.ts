@@ -235,6 +235,45 @@ afterEach(async () => {
   __shutdownRateLimiter()
 })
 
+describe('createApp insecure-cookie warning', () => {
+  const INSECURE_WARNING = expect.stringContaining('DIGARR_ALLOW_INSECURE_COOKIES=true')
+  let previousNodeEnv: string | undefined
+  let warnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    previousNodeEnv = process.env.NODE_ENV
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    warnSpy.mockRestore()
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV
+    else process.env.NODE_ENV = previousNodeEnv
+  })
+
+  it('warns when production explicitly permits insecure cookies', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = true
+    createApp(makeDeps())
+    expect(warnSpy).toHaveBeenCalledWith(INSECURE_WARNING)
+  })
+
+  it('does not warn when production keeps secure cookies', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    createApp(makeDeps())
+    expect(warnSpy).not.toHaveBeenCalledWith(INSECURE_WARNING)
+  })
+
+  it('does not warn outside production even when insecure cookies are allowed', () => {
+    process.env.NODE_ENV = 'test'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = true
+    createApp(makeDeps())
+    expect(warnSpy).not.toHaveBeenCalledWith(INSECURE_WARNING)
+  })
+})
+
 describe('POST /api/v1/auth/register', () => {
   it('creates the first user as admin', async () => {
     const createUser = vi.fn(async (data: { username: string; isAdmin?: boolean }) => ({
