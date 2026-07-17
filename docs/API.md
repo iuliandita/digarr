@@ -14,8 +14,13 @@ registration, also require the header; non-browser requests without browser
 origin signals remain compatible. OpenAPI expresses protected mutations as
 `sessionCookie` + `csrfHeader`, or `bearerToken`. Set `ALLOWED_ORIGIN` to the
 exact public origin when a reverse proxy or TLS terminator changes the scheme
-or host seen by the application; the value controls CSRF origin checks and
-whether the cookie is `Secure`.
+or host seen by the application; the value controls CSRF origin checks and the
+OIDC callback URL. Production session and OIDC cookies default to `Secure` even
+when the backend request arrives over HTTP behind a TLS terminator; a
+production instance served directly over plain HTTP must set
+`DIGARR_ALLOW_INSECURE_COOKIES=true` (with a matching `http://` `ALLOWED_ORIGIN`)
+and is vulnerable to network interception. See
+[Authentication](AUTHENTICATION.md#cookie-secure-policy).
 
 Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
 
@@ -121,7 +126,10 @@ Notes:
   header is malformed or its token is invalid.
 - Password changes invalidate every session for the user. Cookie callers
   receive a replacement cookie and `204`; bearer callers receive
-  `{ "token": "..." }` for the replacement session.
+  `{ "token": "..." }` for the replacement session. The password verification
+  and session replacement run in one atomic transaction under a user-row lock,
+  so a password verified before a concurrent reset cannot mint a post-reset
+  session.
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
 - `email` may be a valid address, an empty string, or `null`; empty/null clears it
@@ -137,8 +145,8 @@ Notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var |
-| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; creates the user if needed, sets a session cookie, then redirects to `/` |
+| GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
+| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
 | POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (e.g. Spotify) |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |

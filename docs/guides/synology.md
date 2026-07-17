@@ -259,4 +259,12 @@ PostgreSQL does not need to be updated unless you specifically want a newer vers
 - Resource use depends on library size and background work; keep at least 1 GB
   free and watch the container during migrations or large syncs.
 - If using a reverse proxy (Synology's built-in or external), set
-  `ALLOWED_ORIGIN` to your public URL (via environment variable or the web UI).
+  `ALLOWED_ORIGIN` to your public `https://` URL (via environment variable or
+  the web UI) and leave `DIGARR_ALLOW_INSECURE_COOKIES` at its default `false`.
+  Session cookies stay `Secure` even though the proxy reaches the container over
+  HTTP.
+- If you instead reach Digarr directly over plain HTTP (no proxy), set
+  `DIGARR_ALLOW_INSECURE_COOKIES=true` before your first login and point
+  `ALLOWED_ORIGIN` at the matching `http://` URL, otherwise the browser drops
+  the `Secure` cookie and login appears to fail. Direct HTTP exposes the
+  session cookie to network interception.

@@ -210,10 +210,16 @@ Env-var auto-setup needs initial admin credentials plus an AI provider and model
 
 The web UI uses an HttpOnly session cookie; bearer sessions remain available
 for API clients. Behind a reverse proxy or TLS terminator, set
-`ALLOWED_ORIGIN` to the exact public origin (for example,
+`ALLOWED_ORIGIN` to the exact public `https://` origin (for example,
 `https://digarr.example.com`) so cookie security and CSRF checks use the
-browser-visible scheme and host. See [Authentication](docs/AUTHENTICATION.md)
-for the browser migration and API compatibility details.
+browser-visible scheme and host. Production cookies stay `Secure` even when the
+proxy reaches Digarr over HTTP, so an HTTPS public origin needs no extra flag.
+An HTTPS origin is strongly preferred; if you intentionally run the production
+container directly over plain HTTP, copy the env example and set
+`DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `http://` `ALLOWED_ORIGIN`,
+accepting that direct HTTP exposes the session cookie to network interception.
+See [Authentication](docs/AUTHENTICATION.md) for the browser migration and API
+compatibility details.
 
 ### Local and OpenAI-Compatible AI
 

@@ -7,9 +7,11 @@ Digarr supports four authentication modes. Most deployments only need one.
 The password is hashed at rest with scrypt (`node:crypto`). The web UI
 requests cookie mode when it registers or signs in, so the server returns an
 `HttpOnly; SameSite=Lax; Path=/` `digarr_session` cookie and does not expose the
-session token to JavaScript. The cookie is `Secure` when the public URL uses
-HTTPS. Session tokens expire after 30 days and are SHA-256 hashed before
-storage.
+session token to JavaScript. In production the cookie is `Secure` by default,
+even when the backend request arrives over HTTP behind a TLS-terminating proxy;
+see [Public origin and reverse proxies](#public-origin-and-reverse-proxies) for
+the direct-HTTP override. Session tokens expire after 30 days and are SHA-256
+hashed before storage.
 
 Bearer sessions remain supported for API clients. Calling
 `POST /api/v1/auth/login` or `POST /api/v1/auth/register` without
@@ -30,6 +32,13 @@ Logout (`POST /api/v1/auth/logout`) deletes the session server-side (by both
 the bearer and cookie token, if present) and clears the `digarr_session`
 cookie by emitting `Set-Cookie ... Max-Age=0; Path=/`, so a stale browser
 cookie cannot be replayed after sign-out.
+
+Changing a password (`POST /api/v1/auth/change-password`) verifies the stored
+password hash and replaces every session for the user in a single database
+transaction, comparing and swapping the stored hash under a user-row lock. A
+password verified before a concurrent reset therefore cannot mint a post-reset
+session: the losing request sees the swapped hash and is rejected instead of
+issuing a session against the old credential.
 
 ### CSRF protection
 
@@ -52,11 +61,29 @@ reverse proxy, ingress, or TLS terminator changes the scheme or host seen by
 the application. Use only the scheme, host, and optional port, with no path or
 trailing slash, for example `https://digarr.example.com`.
 
-The value is the CORS allowlist and the trusted origin for CSRF checks. Its
-scheme also determines whether the session cookie is `Secure`, and OIDC uses
-it to build the callback URL. An incorrect value can make browser login appear
-to succeed while the browser rejects the cookie or later mutations return
-`403`.
+The value is the CORS allowlist and the trusted origin for CSRF checks, and
+OIDC uses it to build the callback URL. An incorrect value can make browser
+login appear to succeed while the browser rejects the cookie or later mutations
+return `403`. TLS termination therefore requires
+`ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior.
+
+### Cookie `Secure` policy
+
+In production, session and OIDC transaction cookies default to `Secure` even
+when the backend request arrives over HTTP, so a TLS-terminating reverse proxy
+still emits `Secure` cookies. The decision reads the public origin protocol
+(from `ALLOWED_ORIGIN`, falling back to the request URL when it is unset), never
+`X-Forwarded-Proto`.
+
+`DIGARR_ALLOW_INSECURE_COOKIES` (default `false`) is the single opt-out. Setting
+it `true` drops `Secure` **only** when the public origin is `http:`, which is
+required to sign in against a production instance served directly over plain
+HTTP. Pair it with a correctly set `http://` `ALLOWED_ORIGIN`; without
+`ALLOWED_ORIGIN` the policy falls back to the request URL's protocol. Direct
+production HTTP exposes the session cookie to network interception, so prefer an
+HTTPS public origin and leave the override at `false` whenever a proxy or
+terminator can provide TLS. Outside production the cookie is `Secure` only for
+an `https:` public origin.
 
 Registration is closed by default after the first user has been created. To
 open registration in a fresh install or internal deployment, set
@@ -77,6 +104,18 @@ sets the same `HttpOnly` session cookie as password login and redirects to `/`;
 no session token is placed in the URL. Failures still redirect with a stable
 `#oidc_error` code so provider-sourced detail does not enter the frontend URL,
 server logs, or Referer headers.
+
+### OIDC login transaction
+
+The authorization request state is browser-bound: `GET /api/v1/auth/oidc/login`
+stores the state in a state-scoped `HttpOnly` transaction cookie and the
+callback requires it. The transaction is one-time (consumed on the callback),
+expires after 10 minutes, and is safe across multiple concurrent tabs, since
+each login mints its own state-scoped entry. Pending transactions are
+capacity-capped so an unbounded stream of login redirects cannot exhaust
+memory. `GET /api/v1/auth/oidc/login` is rate limited to 10 requests per minute
+per IP; `GET /api/v1/auth/oidc/callback` is not rate limited, because it
+consumes the one-time transaction cookie the login step set.
 
 After validating the authorization response, Digarr retains only the identity
 claims needed for the local account. Provider access, refresh, and ID tokens
