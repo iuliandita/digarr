@@ -1,3 +1,4 @@
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import * as dns from 'node:dns/promises'
 import { isIP } from 'node:net'
 import type { Configuration } from 'openid-client'
@@ -43,6 +44,7 @@ interface PendingAuth {
   codeVerifier: string
   redirectUri: string
   createdAt: number
+  browserBindingHash: Buffer
 }
 
 export interface OidcUserClaims {
@@ -57,17 +59,39 @@ export interface CallbackResult {
   claims: OidcUserClaims
 }
 
-const PENDING_AUTH_TTL_MS = 10 * 60 * 1000 // 10 minutes
+export const PENDING_AUTH_TTL_MS = 10 * 60 * 1000 // 10 minutes
+const DEFAULT_MAX_PENDING_AUTHS = 1_000
+
+/** Thrown when the pending-transaction map is full, bounding login-state memory. */
+export class OidcPendingCapacityError extends Error {
+  constructor() {
+    super('OIDC login capacity reached')
+    this.name = 'OidcPendingCapacityError'
+  }
+}
+
+function bindingHash(value: string): Buffer {
+  return createHash('sha256').update(value).digest()
+}
+
+export interface OidcServiceOptions {
+  maxPendingAuths?: number
+  now?: () => number
+}
 
 export class OidcService {
   private config: OidcConfig
   private pendingAuths = new Map<string, PendingAuth>()
   private discoveryConfig: Configuration | null = null
+  private readonly maxPendingAuths: number
+  private readonly now: () => number
 
-  constructor(config: OidcConfig) {
+  constructor(config: OidcConfig, options: OidcServiceOptions = {}) {
     if (!config.issuerUrl) throw new Error('issuerUrl is required')
     if (!config.clientId) throw new Error('clientId is required')
     this.config = config
+    this.maxPendingAuths = options.maxPendingAuths ?? DEFAULT_MAX_PENDING_AUTHS
+    this.now = options.now ?? (() => Date.now())
   }
 
   private async getDiscovery(): Promise<Configuration> {
@@ -98,8 +122,11 @@ export class OidcService {
     }
   }
 
-  async getAuthorizationUrl(redirectUri: string): Promise<{ url: string; state: string }> {
+  async getAuthorizationUrl(
+    redirectUri: string,
+  ): Promise<{ url: string; state: string; browserBinding: string }> {
     this.cleanupPendingAuths()
+    if (this.pendingAuths.size >= this.maxPendingAuths) throw new OidcPendingCapacityError()
 
     const config = await this.getDiscovery()
 
@@ -107,12 +134,14 @@ export class OidcService {
     const nonce = oidcClient.randomNonce()
     const codeVerifier = oidcClient.randomPKCECodeVerifier()
     const codeChallenge = await oidcClient.calculatePKCECodeChallenge(codeVerifier)
+    const browserBinding = randomBytes(32).toString('base64url')
 
     this.pendingAuths.set(state, {
       nonce,
       codeVerifier,
       redirectUri,
-      createdAt: Date.now(),
+      createdAt: this.now(),
+      browserBindingHash: bindingHash(browserBinding),
     })
 
     const url = oidcClient.buildAuthorizationUrl(config, {
@@ -124,19 +153,28 @@ export class OidcService {
       code_challenge_method: 'S256',
     })
 
-    return { url: url.href, state }
+    return { url: url.href, state, browserBinding }
   }
 
-  async handleCallback(callbackUrl: URL): Promise<CallbackResult> {
+  async handleCallback(callbackUrl: URL, browserBinding?: string): Promise<CallbackResult> {
     this.cleanupPendingAuths()
 
     const state = callbackUrl.searchParams.get('state')
     if (!state) throw new Error('Missing state parameter')
 
+    // One-time consumption: retrieve and delete before any validation so a
+    // failed attempt (wrong/absent binding) cannot be replayed against a
+    // now-known-good binding.
     const pending = this.pendingAuths.get(state)
-    if (!pending) throw new Error('Unknown or expired OIDC state')
-
     this.pendingAuths.delete(state)
+
+    if (
+      !pending ||
+      this.now() - pending.createdAt > PENDING_AUTH_TTL_MS ||
+      !this.bindingMatches(browserBinding, pending.browserBindingHash)
+    ) {
+      throw new Error('Unknown, expired, or invalid OIDC transaction')
+    }
 
     const config = await this.getDiscovery()
 
@@ -160,11 +198,20 @@ export class OidcService {
     }
   }
 
+  private bindingMatches(binding: string | undefined, expectedHash: Buffer): boolean {
+    if (!binding) return false
+    return timingSafeEqual(bindingHash(binding), expectedHash)
+  }
+
+  // A Map preserves insertion order, so entries expire in the order they were
+  // created. Delete the expired prefix and stop at the first live entry.
   private cleanupPendingAuths(): void {
-    const now = Date.now()
+    const now = this.now()
     for (const [key, value] of this.pendingAuths) {
       if (now - value.createdAt > PENDING_AUTH_TTL_MS) {
         this.pendingAuths.delete(key)
+      } else {
+        break
       }
     }
   }

@@ -2,8 +2,15 @@ import { Hono } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
-import type { OidcService } from '@/core/auth/oidc'
+import { OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
 import { isSingleAdminCollision } from '@/core/db-errors'
+import {
+  clearOidcTransactionCookie,
+  prepareOidcTransactionCookie,
+  readOidcTransactionCookie,
+  setOidcTransactionCookie,
+} from '@/server/helpers/oidc-transaction-cookie'
+import { problem } from '@/server/helpers/problem'
 import { issueSession, prepareSessionCookie } from '@/server/helpers/session-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { HonoEnv } from '@/server/types'
@@ -52,11 +59,38 @@ export function oidcRoutes(deps: OidcRouteDeps) {
     const redirectUri = buildRedirectUri()
     if (!redirectUri)
       return c.json({ error: 'ALLOWED_ORIGIN must be set when OIDC is enabled' }, 500)
-    const { url } = await oidcService.getAuthorizationUrl(redirectUri)
-    return c.redirect(url)
+
+    // Prepare the transaction cookie (validates cookie config) BEFORE allocating
+    // any pending state, so an invalid config leaves no orphaned transaction.
+    let prepared: ReturnType<typeof prepareOidcTransactionCookie>
+    try {
+      prepared = prepareOidcTransactionCookie(c)
+    } catch {
+      return c.json({ error: 'Invalid cookie configuration' }, 500)
+    }
+
+    try {
+      const { url, state, browserBinding } = await oidcService.getAuthorizationUrl(redirectUri)
+      setOidcTransactionCookie(c, prepared, state, browserBinding)
+      return c.redirect(url)
+    } catch (err: unknown) {
+      if (err instanceof OidcPendingCapacityError) {
+        c.header('Retry-After', '60')
+        return problem(c, 'oidc-capacity', 'OIDC login capacity reached', 503)
+      }
+      throw err
+    }
   })
 
   router.get('/api/v1/auth/oidc/callback', async (c) => {
+    const reqUrl = new URL(c.req.url)
+    const state = reqUrl.searchParams.get('state') ?? ''
+    // Read the state-specific binding cookie, then delete it immediately so
+    // every later response (success or failure) clears the identified
+    // transaction and the code can be exchanged at most once.
+    const browserBinding = readOidcTransactionCookie(c, state)
+    clearOidcTransactionCookie(c, state)
+
     try {
       const oidcService = await deps.getOidcService()
       if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
@@ -67,9 +101,8 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       }
       const baseUrl = envConfig.allowedOrigin
 
-      const reqUrl = new URL(c.req.url)
       const callbackUrl = new URL(`${baseUrl}${reqUrl.pathname}${reqUrl.search}`)
-      const result = await oidcService.handleCallback(callbackUrl)
+      const result = await oidcService.handleCallback(callbackUrl, browserBinding)
       const sessionCookie = prepareSessionCookie(c)
 
       // User matching is by OIDC subject only, then auto-create. Linking by the

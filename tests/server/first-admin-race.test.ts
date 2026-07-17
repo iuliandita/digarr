@@ -439,8 +439,8 @@ describe('first-admin race: oidc callback', () => {
     expect(location).toBe('/')
     expect(location).not.toContain('token')
     expect(location).not.toContain('race-test-token')
-    expect(res.headers.get('set-cookie')).toMatch(
-      /^digarr_session=race-test-token; Max-Age=2592000; Path=\/; HttpOnly; SameSite=Lax$/i,
+    expect(res.headers.get('set-cookie')).toContain(
+      'digarr_session=race-test-token; Max-Age=2592000; Path=/; HttpOnly; SameSite=Lax',
     )
     expect(res.headers.get('cache-control')).toBe('no-store')
     expect(createUser).toHaveBeenCalledTimes(2)
