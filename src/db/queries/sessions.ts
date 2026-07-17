@@ -17,11 +17,20 @@ export class SessionRotationConflictError extends Error {
   }
 }
 
+export class PasswordCredentialConflictError extends Error {
+  constructor() {
+    super('Password credential changed during session operation')
+    this.name = 'PasswordCredentialConflictError'
+  }
+}
+
+type LockedUser = { id: number; passwordHash: string }
+
 async function lockSessionOwners(
   tx: DbOrTx,
   targetUserId: number,
   credentialHashes: string[],
-): Promise<boolean> {
+): Promise<LockedUser | null> {
   const owners =
     credentialHashes.length > 0
       ? await tx
@@ -33,12 +42,12 @@ async function lockSessionOwners(
     (a, b) => a - b,
   )
   const lockedUsers = await tx
-    .select({ id: users.id })
+    .select({ id: users.id, passwordHash: users.passwordHash })
     .from(users)
     .where(inArray(users.id, userIds))
     .orderBy(asc(users.id))
     .for('update')
-  return lockedUsers.some((user) => user.id === targetUserId)
+  return lockedUsers.find((user) => user.id === targetUserId) ?? null
 }
 
 export function sessionQueries(db: Database) {
@@ -91,8 +100,8 @@ export function sessionQueries(db: Database) {
       const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
 
       await db.transaction(async (tx) => {
-        const targetExists = await lockSessionOwners(tx, userId, credentialHashes)
-        if (!targetExists) throw new SessionRotationConflictError()
+        const target = await lockSessionOwners(tx, userId, credentialHashes)
+        if (!target) throw new SessionRotationConflictError()
 
         const deletedSource = await tx
           .delete(sessions)
@@ -112,9 +121,53 @@ export function sessionQueries(db: Database) {
       const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
 
       await db.transaction(async (tx) => {
-        const targetExists = await lockSessionOwners(tx, userId, [])
-        if (!targetExists) throw new Error('Cannot reset sessions for an unknown user')
+        const target = await lockSessionOwners(tx, userId, [])
+        if (!target) throw new Error('Cannot reset sessions for an unknown user')
 
+        await tx.delete(sessions).where(eq(sessions.userId, userId))
+        await tx.insert(sessions).values({ token, userId, expiresAt })
+      })
+    },
+
+    async createForPassword(
+      userId: number,
+      newToken: string,
+      expectedPasswordHash: string,
+      revokedTokens: string[],
+    ): Promise<void> {
+      const token = hashSessionToken(newToken)
+      const revokedHashes = [
+        ...new Set(revokedTokens.filter((value) => value !== newToken).map(hashSessionToken)),
+      ].sort()
+      const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
+
+      await db.transaction(async (tx) => {
+        const target = await lockSessionOwners(tx, userId, revokedHashes)
+        if (!target || target.passwordHash !== expectedPasswordHash) {
+          throw new PasswordCredentialConflictError()
+        }
+        if (revokedHashes.length > 0) {
+          await tx.delete(sessions).where(inArray(sessions.token, revokedHashes))
+        }
+        await tx.insert(sessions).values({ token, userId, expiresAt })
+      })
+    },
+
+    async changePasswordAndReset(
+      userId: number,
+      expectedPasswordHash: string,
+      newPasswordHash: string,
+      newToken: string,
+    ): Promise<void> {
+      const token = hashSessionToken(newToken)
+      const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
+
+      await db.transaction(async (tx) => {
+        const target = await lockSessionOwners(tx, userId, [])
+        if (!target || target.passwordHash !== expectedPasswordHash) {
+          throw new PasswordCredentialConflictError()
+        }
+        await tx.update(users).set({ passwordHash: newPasswordHash }).where(eq(users.id, userId))
         await tx.delete(sessions).where(eq(sessions.userId, userId))
         await tx.insert(sessions).values({ token, userId, expiresAt })
       })

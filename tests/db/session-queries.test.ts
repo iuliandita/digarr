@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import {
   hashSessionToken,
+  PasswordCredentialConflictError,
   SessionRotationConflictError,
   sessionQueries,
 } from '@/db/queries/sessions'
@@ -352,6 +353,44 @@ describe('session queries', () => {
     expect(await store.get('fresh-b')).toEqual({ userId: userB })
   })
 
+  it('creates a password session only while the verified hash is current', async () => {
+    const userId = await createUser('password-create')
+    const store = sessionQueries(db)
+
+    await store.createForPassword(userId, 'fresh-token', 'test-password-hash', [])
+    await expect(store.get('fresh-token')).resolves.toEqual({ userId })
+
+    await db.update(users).set({ passwordHash: 'new-hash' }).where(eq(users.id, userId))
+    await expect(
+      store.createForPassword(userId, 'stale-token', 'test-password-hash', []),
+    ).rejects.toBeInstanceOf(PasswordCredentialConflictError)
+    await expect(store.get('stale-token')).resolves.toBeNull()
+  })
+
+  it('rolls password and sessions back when replacement insertion fails', async () => {
+    const userId = await createUser('password-rollback')
+    const otherUserId = await createUser('password-rollback-other')
+    const store = sessionQueries(db)
+    await store.create('existing-session', userId)
+    await store.create('conflicting-token', otherUserId)
+
+    await expect(
+      store.changePasswordAndReset(
+        userId,
+        'test-password-hash',
+        'new-password-hash',
+        'conflicting-token',
+      ),
+    ).rejects.toBeTruthy()
+
+    const [row] = await db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, userId))
+    expect(row?.passwordHash).toBe('test-password-hash')
+    await expect(store.get('existing-session')).resolves.toEqual({ userId })
+  })
+
   it.runIf(Boolean(POSTGRES_URL))(
     'allows exactly one concurrent rotation of a source session on PostgreSQL',
     async () => {
@@ -563,6 +602,137 @@ describe('session queries', () => {
           }
         } finally {
           await Promise.all([poolA.end(), poolB.end(), observerPool.end()])
+        }
+      }
+    },
+  )
+
+  it.runIf(Boolean(POSTGRES_URL))(
+    'cannot issue from a hash verified before password reset on PostgreSQL',
+    async () => {
+      if (!POSTGRES_URL) throw new Error('DATABASE_URL is required')
+      const pool = createNamedPool(POSTGRES_URL, `session-pw-stale-${randomUUID().slice(0, 8)}`)
+      const workDb = drizzle(pool, { schema: { sessions, users } }) as unknown as Database
+      let userId: number | undefined
+
+      try {
+        const [user] = await workDb
+          .insert(users)
+          .values({
+            username: `session-pw-stale-${randomUUID()}`,
+            passwordHash: 'test-password-hash',
+          })
+          .returning({ id: users.id })
+        if (!user) throw new Error('test user was not created')
+        userId = user.id
+        const store = sessionQueries(workDb)
+
+        const [verified] = await workDb
+          .select({ passwordHash: users.passwordHash })
+          .from(users)
+          .where(eq(users.id, userId))
+        const verifiedHash = verified?.passwordHash
+        if (verifiedHash === undefined) throw new Error('test user hash was not read')
+
+        const resetToken = `reset-${randomUUID()}`
+        await store.changePasswordAndReset(userId, verifiedHash, 'new-password-hash', resetToken)
+
+        const staleLoginToken = `stale-login-${randomUUID()}`
+        await expect(
+          store.createForPassword(userId, staleLoginToken, verifiedHash, []),
+        ).rejects.toBeInstanceOf(PasswordCredentialConflictError)
+        expect(await store.get(staleLoginToken)).toBeNull()
+        expect(await store.get(resetToken)).toEqual({ userId })
+      } finally {
+        if (userId !== undefined) await workDb.delete(users).where(eq(users.id, userId))
+        await pool.end()
+      }
+    },
+  )
+
+  it.runIf(Boolean(POSTGRES_URL))(
+    'leaves only the password-change session across concurrent login/reset on PostgreSQL',
+    async () => {
+      if (!POSTGRES_URL) throw new Error('DATABASE_URL is required')
+
+      for (const loginFirst of [true, false]) {
+        const testId = randomUUID().replaceAll('-', '').slice(0, 12)
+        const loginApp = `session-pw-login-${testId}`
+        const resetApp = `session-pw-reset-${testId}`
+        const observerPool = new Pool({ connectionString: POSTGRES_URL, max: 3 })
+        const poolLogin = createNamedPool(POSTGRES_URL, loginApp)
+        const poolReset = createNamedPool(POSTGRES_URL, resetApp)
+        const observerDb = drizzle(observerPool, {
+          schema: { sessions, users },
+        }) as unknown as Database
+        const dbLogin = drizzle(poolLogin, { schema: { sessions, users } }) as unknown as Database
+        const dbReset = drizzle(poolReset, { schema: { sessions, users } }) as unknown as Database
+        let userId: number | undefined
+
+        try {
+          const [user] = await observerDb
+            .insert(users)
+            .values({
+              username: `session-pw-race-${randomUUID()}`,
+              passwordHash: 'test-password-hash',
+            })
+            .returning({ id: users.id })
+          if (!user) throw new Error('test user was not created')
+          userId = user.id
+          const raceUserId = user.id
+
+          const storeLogin = sessionQueries(dbLogin)
+          const storeReset = sessionQueries(dbReset)
+          const loginToken = `login-${randomUUID()}`
+          const resetToken = `reset-${randomUUID()}`
+          const loginOp = () =>
+            storeLogin.createForPassword(raceUserId, loginToken, 'test-password-hash', [])
+          const resetOp = () =>
+            storeReset.changePasswordAndReset(
+              raceUserId,
+              'test-password-hash',
+              'new-password-hash',
+              resetToken,
+            )
+          const operations: [() => Promise<void>, () => Promise<void>] = loginFirst
+            ? [loginOp, resetOp]
+            : [resetOp, loginOp]
+
+          const outcomes = await runRotationsBehindUserLocks(
+            observerPool,
+            [raceUserId],
+            [loginApp, resetApp],
+            operations,
+          )
+
+          const loginOutcome = outcomes[loginFirst ? 0 : 1]
+          const resetOutcome = outcomes[loginFirst ? 1 : 0]
+          expect(resetOutcome?.status).toBe('fulfilled')
+          if (loginOutcome?.status === 'rejected') {
+            expect(loginOutcome.reason).toBeInstanceOf(PasswordCredentialConflictError)
+          }
+
+          const rows = await observerDb
+            .select({ token: sessions.token })
+            .from(sessions)
+            .where(eq(sessions.userId, raceUserId))
+          expect(rows).toHaveLength(1)
+          expect(rows[0]?.token).toBe(hashSessionToken(resetToken))
+          expect(await storeLogin.get(loginToken)).toBeNull()
+
+          const [row] = await observerDb
+            .select({ passwordHash: users.passwordHash })
+            .from(users)
+            .where(eq(users.id, raceUserId))
+          expect(row?.passwordHash).toBe('new-password-hash')
+        } finally {
+          try {
+            if (userId !== undefined) {
+              await observerDb.delete(users).where(eq(users.id, userId))
+            }
+          } finally {
+            await Promise.all([poolLogin.end(), poolReset.end(), observerPool.end()])
+          }
         }
       }
     },
