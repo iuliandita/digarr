@@ -1,12 +1,18 @@
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import {
+  type MediaBrowserLibrary,
+  mapAlbum,
+  mapArtist,
+  mapLibraryArtist,
+  mapRecentTrack,
+  scopedArtistsPath,
+  toMusicLibraries,
+} from './media-browser'
 import { createMediaServerQueue } from './media-server-queue'
 
-export type EmbyMusicLibrary = {
-  id: string
-  name: string
-}
+export type EmbyMusicLibrary = MediaBrowserLibrary
 
 export function createEmbyClient(
   url: string,
@@ -35,27 +41,13 @@ export function createEmbyClient(
     const res = await get<{ Items?: Array<{ Id: string; Name: string; CollectionType?: string }> }>(
       `/Users/${userId}/Views`,
     )
-    return (res.Items ?? [])
-      .filter((v) => v.CollectionType === 'music')
-      .map((v) => ({ id: v.Id, name: v.Name }))
-  }
-
-  // MusicArtist items are server-global, so ParentId on the generic Items
-  // endpoint does not scope them - the dedicated /Artists endpoint does.
-  function scopedArtistsPath(extra: Record<string, string>): string {
-    const params = new URLSearchParams({
-      ParentId: configuredLibraryId as string,
-      UserId: userId,
-      EnableUserData: 'true',
-      ...extra,
-    })
-    return `/Artists?${params.toString()}`
+    return toMusicLibraries(res.Items)
   }
 
   async function getTopArtists(limit = 50) {
     let path: string
     if (configuredLibraryId) {
-      path = scopedArtistsPath({
+      path = scopedArtistsPath(userId, configuredLibraryId, {
         SortBy: 'PlayCount',
         SortOrder: 'Descending',
         Fields: 'UserData,Genres,ProviderIds',
@@ -73,14 +65,7 @@ export function createEmbyClient(
       path = `/Users/${userId}/Items?${params.toString()}`
     }
     const res = await get<{ Items: Array<Record<string, unknown>> }>(path)
-    return (res.Items ?? []).map((item) => ({
-      id: item.Id as string,
-      name: item.Name as string,
-      mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
-      genres: (item.Genres as string[] | undefined) ?? [],
-      playCount: (item.UserData as { PlayCount?: number } | undefined)?.PlayCount ?? 0,
-      isFavorite: (item.UserData as { IsFavorite?: boolean } | undefined)?.IsFavorite ?? false,
-    }))
+    return (res.Items ?? []).map((item) => mapArtist(item, false))
   }
 
   async function testConnection(): Promise<ServiceTestResult> {
@@ -133,7 +118,7 @@ export function createEmbyClient(
     // Items endpoint and accept the top-level IsFavorite=true form.
     let path: string
     if (configuredLibraryId) {
-      path = scopedArtistsPath({
+      path = scopedArtistsPath(userId, configuredLibraryId, {
         SortBy: 'SortName',
         SortOrder: 'Ascending',
         IsFavorite: 'true',
@@ -153,14 +138,7 @@ export function createEmbyClient(
       path = `/Users/${userId}/Items?${params.toString()}`
     }
     const res = await get<{ Items: Array<Record<string, unknown>> }>(path)
-    return (res.Items ?? []).map((item) => ({
-      id: item.Id as string,
-      name: item.Name as string,
-      mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
-      genres: (item.Genres as string[] | undefined) ?? [],
-      playCount: (item.UserData as { PlayCount?: number } | undefined)?.PlayCount ?? 0,
-      isFavorite: true,
-    }))
+    return (res.Items ?? []).map((item) => mapArtist(item, true))
   }
 
   return {
@@ -180,20 +158,12 @@ export function createEmbyClient(
       const res = await get<{ Items: Array<Record<string, unknown>> }>(
         `/Users/${userId}/Items?${params.toString()}`,
       )
-      return (res.Items ?? []).map((item) => ({
-        artistName:
-          (item.AlbumArtist as string) ||
-          ((item.Artists as string[] | undefined)?.[0] ?? 'Unknown Artist'),
-        trackName: item.Name as string,
-        datePlayed:
-          (item.UserData as { LastPlayedDate?: string } | undefined)?.LastPlayedDate ??
-          new Date().toISOString(),
-      }))
+      return (res.Items ?? []).map(mapRecentTrack)
     },
     getAllArtists: async () => {
       let path: string
       if (configuredLibraryId) {
-        path = scopedArtistsPath({
+        path = scopedArtistsPath(userId, configuredLibraryId, {
           SortBy: 'SortName',
           SortOrder: 'Ascending',
           Fields: 'Genres,ProviderIds',
@@ -209,12 +179,7 @@ export function createEmbyClient(
         path = `/Users/${userId}/Items?${params.toString()}`
       }
       const res = await get<{ Items: Array<Record<string, unknown>> }>(path)
-      return (res.Items ?? []).map((item) => ({
-        id: item.Id as string,
-        name: item.Name as string,
-        mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
-        genres: (item.Genres as string[] | undefined) ?? [],
-      }))
+      return (res.Items ?? []).map((item) => mapLibraryArtist(item, false))
     },
     getAlbumsForArtist: async (artistId: string) => {
       const params = new URLSearchParams({
@@ -227,15 +192,7 @@ export function createEmbyClient(
       const res = await get<{ Items: Array<Record<string, unknown>> }>(
         `/Users/${userId}/Items?${params.toString()}`,
       )
-      return (res.Items ?? []).map((item) => ({
-        id: item.Id as string,
-        artistId,
-        title: item.Name as string,
-        mbid: (item.ProviderIds as { MusicBrainzReleaseGroup?: string } | undefined)
-          ?.MusicBrainzReleaseGroup,
-        releaseYear: item.ProductionYear as number | undefined,
-        primaryType: 'Album' as const,
-      }))
+      return (res.Items ?? []).map((item) => mapAlbum(item, artistId, false))
     },
     testConnection,
   }

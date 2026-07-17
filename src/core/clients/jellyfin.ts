@@ -1,43 +1,26 @@
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import {
+  type MediaBrowserArtist,
+  type MediaBrowserLibrary,
+  type MediaBrowserLibraryAlbum,
+  type MediaBrowserLibraryArtist,
+  type MediaBrowserRecentTrack,
+  mapAlbum,
+  mapArtist,
+  mapLibraryArtist,
+  mapRecentTrack,
+  scopedArtistsPath,
+  toMusicLibraries,
+} from './media-browser'
 import { createMediaServerQueue } from './media-server-queue'
 
-export type JellyfinArtist = {
-  name: string
-  id: string
-  mbid?: string
-  genres: string[]
-  playCount: number
-  isFavorite: boolean
-}
-
-export type JellyfinLibraryArtist = {
-  id: string
-  name: string
-  mbid?: string
-  genres: string[]
-}
-
-export type JellyfinLibraryAlbum = {
-  id: string
-  artistId: string
-  title: string
-  mbid?: string
-  releaseYear?: number
-  primaryType?: 'Album'
-}
-
-export type JellyfinRecentTrack = {
-  artistName: string
-  trackName: string
-  datePlayed: string
-}
-
-export type JellyfinMusicLibrary = {
-  id: string
-  name: string
-}
+export type JellyfinArtist = MediaBrowserArtist
+export type JellyfinLibraryArtist = MediaBrowserLibraryArtist
+export type JellyfinLibraryAlbum = MediaBrowserLibraryAlbum
+export type JellyfinRecentTrack = MediaBrowserRecentTrack
+export type JellyfinMusicLibrary = MediaBrowserLibrary
 
 type JellyfinItemsResponse = {
   Items: Array<Record<string, unknown>>
@@ -106,21 +89,7 @@ export function createJellyfinClient(
     const res = await get<{ Items?: Array<{ Id: string; Name: string; CollectionType?: string }> }>(
       `/Users/${userId}/Views`,
     )
-    return (res.Items ?? [])
-      .filter((v) => v.CollectionType === 'music')
-      .map((v) => ({ id: v.Id, name: v.Name }))
-  }
-
-  // MusicArtist items are server-global, so ParentId on the generic Items
-  // endpoint does not scope them - the dedicated /Artists endpoint does.
-  function scopedArtistsPath(userId: string, extra: Record<string, string>): string {
-    const params = new URLSearchParams({
-      ParentId: configuredLibraryId as string,
-      UserId: userId,
-      EnableUserData: 'true',
-      ...extra,
-    })
-    return `/Artists?${params.toString()}`
+    return toMusicLibraries(res.Items)
   }
 
   async function getTopArtists(limit = 50): Promise<JellyfinArtist[]> {
@@ -128,7 +97,7 @@ export function createJellyfinClient(
     let res: JellyfinItemsResponse
     if (configuredLibraryId) {
       res = await get<JellyfinItemsResponse>(
-        scopedArtistsPath(userId, {
+        scopedArtistsPath(userId, configuredLibraryId, {
           SortBy: 'PlayCount',
           SortOrder: 'Descending',
           Fields: 'UserData,Genres,ProviderIds',
@@ -150,20 +119,7 @@ export function createJellyfinClient(
     return res.Items.filter((item) => {
       const userData = item.UserData as { PlayCount?: number } | undefined
       return (userData?.PlayCount ?? 0) > 0
-    }).map((item) => {
-      const userData = item.UserData as {
-        PlayCount?: number
-        IsFavorite?: boolean
-      }
-      return {
-        name: item.Name as string,
-        id: item.Id as string,
-        mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
-        genres: (item.Genres as string[] | undefined) ?? [],
-        playCount: userData?.PlayCount ?? 0,
-        isFavorite: userData?.IsFavorite ?? false,
-      }
-    })
+    }).map((item) => mapArtist(item, false))
   }
 
   async function getRecentlyPlayed(limit = 50): Promise<JellyfinRecentTrack[]> {
@@ -181,17 +137,7 @@ export function createJellyfinClient(
 
     const res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
 
-    return res.Items.map((item) => {
-      const artistName =
-        (item.AlbumArtist as string) ||
-        ((item.Artists as string[] | undefined)?.[0] ?? 'Unknown Artist')
-      const userData = item.UserData as { LastPlayedDate?: string } | undefined
-      return {
-        artistName,
-        trackName: item.Name as string,
-        datePlayed: userData?.LastPlayedDate ?? new Date().toISOString(),
-      }
-    })
+    return res.Items.map(mapRecentTrack)
   }
 
   async function getFavoriteArtists(limit = 50): Promise<JellyfinArtist[]> {
@@ -199,7 +145,7 @@ export function createJellyfinClient(
     let res: JellyfinItemsResponse
     if (configuredLibraryId) {
       res = await get<JellyfinItemsResponse>(
-        scopedArtistsPath(userId, {
+        scopedArtistsPath(userId, configuredLibraryId, {
           SortBy: 'SortName',
           SortOrder: 'Ascending',
           IsFavorite: 'true',
@@ -220,20 +166,7 @@ export function createJellyfinClient(
       res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
     }
 
-    return res.Items.map((item) => {
-      const userData = item.UserData as {
-        PlayCount?: number
-        IsFavorite?: boolean
-      }
-      return {
-        name: item.Name as string,
-        id: item.Id as string,
-        mbid: (item.ProviderIds as { MusicBrainzArtist?: string } | undefined)?.MusicBrainzArtist,
-        genres: (item.Genres as string[] | undefined) ?? [],
-        playCount: userData?.PlayCount ?? 0,
-        isFavorite: userData?.IsFavorite ?? true,
-      }
-    })
+    return res.Items.map((item) => mapArtist(item, true))
   }
 
   /**
@@ -253,7 +186,7 @@ export function createJellyfinClient(
       let path: string
       if (configuredLibraryId) {
         // SortName paging: /Artists needs an explicit sort for stable pages.
-        path = scopedArtistsPath(userId, {
+        path = scopedArtistsPath(userId, configuredLibraryId, {
           SortBy: 'SortName',
           SortOrder: 'Ascending',
           Fields: 'Genres,ProviderIds',
@@ -272,22 +205,12 @@ export function createJellyfinClient(
       }
       const res = await get<{
         TotalRecordCount: number
-        Items: Array<{
-          Id: string
-          Name: string
-          Genres?: string[]
-          ProviderIds?: { MusicBrainzArtist?: string }
-        }>
+        Items: Array<Record<string, unknown>>
       }>(path)
 
       total = res.TotalRecordCount ?? res.Items.length
       for (const item of res.Items) {
-        all.push({
-          id: item.Id,
-          name: item.Name,
-          mbid: item.ProviderIds?.MusicBrainzArtist?.trim() || undefined,
-          genres: item.Genres ?? [],
-        })
+        all.push(mapLibraryArtist(item, true))
       }
       if (res.Items.length === 0) break
       startIndex += res.Items.length
@@ -315,24 +238,12 @@ export function createJellyfinClient(
 
       const res = await get<{
         TotalRecordCount: number
-        Items: Array<{
-          Id: string
-          Name: string
-          ProductionYear?: number
-          ProviderIds?: { MusicBrainzReleaseGroup?: string; MusicBrainzAlbum?: string }
-        }>
+        Items: Array<Record<string, unknown>>
       }>(`/Users/${userId}/Items?${params}`)
 
       total = res.TotalRecordCount ?? res.Items.length
       for (const item of res.Items) {
-        all.push({
-          id: item.Id,
-          artistId,
-          title: item.Name,
-          mbid: item.ProviderIds?.MusicBrainzReleaseGroup?.trim() || undefined,
-          releaseYear: item.ProductionYear,
-          primaryType: 'Album',
-        })
+        all.push(mapAlbum(item, artistId, true))
       }
       if (res.Items.length === 0) break
       startIndex += res.Items.length
