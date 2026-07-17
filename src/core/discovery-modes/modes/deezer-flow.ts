@@ -1,29 +1,23 @@
 import { createDeezerUserClient } from '@/core/clients/deezer-user'
-import type { DiscoveryModeDefinition } from '../types'
+import type { DiscoveryConfigField, DiscoveryModeDefinition } from '../types'
 import { getDiscoveryModeDeezerToken, getNormalizedLimit } from './runtime'
 
 export function createDeezerFlowMode(): DiscoveryModeDefinition {
+  const fields: DiscoveryConfigField[] = [
+    {
+      key: 'limit',
+      label: 'discoveryMode.field.limit',
+      type: 'number',
+      required: false,
+    },
+  ]
   return {
     id: 'deezer-flow',
     label: 'Deezer Flow',
     description: 'Discover artists from your personalized Deezer Flow feed',
     availability: 'fallback',
-    easyFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
-    advancedFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
+    easyFields: fields,
+    advancedFields: fields,
     executor: async (request) => {
       const token = await getDiscoveryModeDeezerToken(request.userId)
       if (!token) {

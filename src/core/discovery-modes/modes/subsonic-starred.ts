@@ -1,5 +1,5 @@
 import { createSubsonicClient } from '@/core/clients/subsonic'
-import type { DiscoveryModeDefinition } from '../types'
+import type { DiscoveryConfigField, DiscoveryModeDefinition } from '../types'
 import {
   getDiscoveryModeConnections,
   getDiscoveryModeSkipTlsVerify,
@@ -7,27 +7,21 @@ import {
 } from './runtime'
 
 export function createSubsonicStarredMode(): DiscoveryModeDefinition {
+  const fields: DiscoveryConfigField[] = [
+    {
+      key: 'limit',
+      label: 'discoveryMode.field.limit',
+      type: 'number',
+      required: false,
+    },
+  ]
   return {
     id: 'subsonic-starred',
     label: 'Subsonic Starred',
     description: 'Discover artists similar to the ones you starred on your Subsonic server',
     availability: 'fallback',
-    easyFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
-    advancedFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
+    easyFields: fields,
+    advancedFields: fields,
     executor: async (request) => {
       const [conns, skipTlsVerify] = await Promise.all([
         getDiscoveryModeConnections(request.userId),
