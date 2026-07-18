@@ -982,9 +982,6 @@ export const pl = {
   'settings.aiPrivacyNoteLocal': 'Zapytania wykrywania pozostaja na twoim serwerze.',
   'settings.aiPrivacyBadgeHosted': 'Dane opuszczaja twoj serwer',
   'settings.aiPrivacyBadgeLocal': 'W pelni lokalnie',
-  'settings.webhookDescription':
-    'Powiadomienia o zakończeniu skanowania (osadzone wiadomości Discord lub surowy JSON do publicznego punktu końcowego HTTPS)',
-  'settings.testWebhook': 'Testuj webhook',
   'settings.sending': 'Wysylanie...',
   'settings.connectionsTip':
     'Najpierw połącz swoje źródła słuchania - ListenBrainz, Last.fm, Spotify lub Plex. Pipeline używa historii słuchania, aby znajdować podobnych artystów.',
@@ -1173,10 +1170,6 @@ export const pl = {
   'settings.authFailed': 'Nie udało się zapisać ustawień uwierzytelniania',
   'settings.oidcTestSuccess': 'Wykrywanie OIDC powiodło się',
   'settings.oidcTestFailed': 'Połączenie OIDC nie powiodło się',
-  'settings.webhookSaved': 'Webhook zapisany',
-  'settings.webhookFailed': 'Nie udało się zapisać webhooka',
-  'settings.webhookTestSuccess': 'Wyslano testowe powiadomienie',
-  'settings.webhookTestFailed': 'Test webhooka nie powiodl się',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'Klucz API',
   'settings.fieldApiKeyOptional': 'API Key (opcjonalny)',
@@ -1192,7 +1185,6 @@ export const pl = {
   'settings.fieldClientId': 'Identyfikator klienta',
   'settings.fieldClientSecret': 'Sekret klienta',
   'settings.fieldPersonalAccessToken': 'Osobisty token dostępu',
-  'settings.fieldWebhookUrl': 'URL webhooka',
   'settings.fieldDigestCron': 'Harmonogram podsumowania (cron)',
   'settings.digestCronHelp':
     'Wysyłaj okresowe podsumowanie ostatniej aktywności na swój webhook. Pozostaw puste, aby wyłączyć. Przykład: 0 6 * * 1 (poniedziałki o 6:00).',
@@ -1214,7 +1206,6 @@ export const pl = {
   'settings.embyUserIdHelp':
     'Znajdziesz w panelu Emby -> Użytkownicy -> (wybierz użytkownika). URL zawiera ID użytkownika.',
   'settings.aiProviderTitle': 'Dostawca AI',
-  'settings.webhookTitle': 'Integracja webhook',
   'settings.plexToken': 'Token Plex',
   'settings.plexLibrary': 'Biblioteka muzyczna',
   'settings.plexLibraryAuto': 'Automatycznie (pierwsza biblioteka muzyczna)',

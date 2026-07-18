@@ -975,9 +975,6 @@ export const tr = {
   'settings.aiPrivacyNoteLocal': 'Kesif istekleri sunucunda kalir.',
   'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrilir',
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
-  'settings.webhookDescription':
-    'Tarama tamamlanma bildirimleri (Discord yerleştirmeleri veya genel bir HTTPS uç noktasına ham JSON)',
-  'settings.testWebhook': 'Webhook test et',
   'settings.sending': 'Gonderiliyor...',
   'settings.connectionsTip':
     'Önce dinleme kaynaklarınızı bağlayın - ListenBrainz, Last.fm, Spotify veya Plex. Pipeline, benzer sanatçıları bulmak için dinleme geçmişinizi kullanır.',
@@ -1166,10 +1163,6 @@ export const tr = {
   'settings.authFailed': 'Kimlik doğrulama ayarları kaydedilemedi',
   'settings.oidcTestSuccess': 'OIDC kesfi başarılı',
   'settings.oidcTestFailed': 'OIDC bağlantısı başarısız',
-  'settings.webhookSaved': 'Webhook kaydedildi',
-  'settings.webhookFailed': 'Webhook kaydedilemedi',
-  'settings.webhookTestSuccess': 'Test bildirimi gönderildi',
-  'settings.webhookTestFailed': 'Webhook testi başarısız',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API anahtarı',
   'settings.fieldApiKeyOptional': 'API anahtarı (isteğe bağlı)',
@@ -1185,7 +1178,6 @@ export const tr = {
   'settings.fieldClientId': 'İstemci kimliği',
   'settings.fieldClientSecret': 'İstemci gizlisi',
   'settings.fieldPersonalAccessToken': 'Kisisel erisim belirteci',
-  'settings.fieldWebhookUrl': "Webhook URL'si",
   'settings.fieldDigestCron': 'Özet zamanlaması (cron)',
   'settings.digestCronHelp':
     'Son etkinliklerin düzenli bir özetini webhook’unuza gönderir. Devre dışı bırakmak için boş bırakın. Örnek: 0 6 * * 1 (pazartesi 06:00).',
@@ -1207,7 +1199,6 @@ export const tr = {
   'settings.embyUserIdHelp':
     "Emby Paneli -> Kullanıcılar -> (kullanıcı sec) altinda bulunur. URL, kullanıcı ID'sini icerir.",
   'settings.aiProviderTitle': 'AI sağlayıcısı',
-  'settings.webhookTitle': 'Webhook entegrasyonu',
   'settings.plexToken': 'Plex belirteci',
   'settings.plexLibrary': 'Müzik kitaplığı',
   'settings.plexLibraryAuto': 'Otomatik (ilk müzik kitaplığı)',

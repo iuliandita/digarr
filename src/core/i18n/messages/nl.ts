@@ -983,9 +983,6 @@ export const nl = {
   'settings.aiPrivacyNoteLocal': 'Ontdekkingsverzoeken blijven op je server.',
   'settings.aiPrivacyBadgeHosted': 'Gegevens verlaten je server',
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
-  'settings.webhookDescription':
-    'Meldingen bij voltooide scan (Discord-insluitingen of onbewerkte JSON naar een openbaar HTTPS-eindpunt)',
-  'settings.testWebhook': 'Webhook testen',
   'settings.sending': 'Bezig met verzenden...',
   'settings.connectionsTip':
     'Verbind eerst je luisterbronnen - ListenBrainz, Last.fm, Spotify of Plex. De pipeline gebruikt je luistergeschiedenis om vergelijkbare artiesten te vinden.',
@@ -1173,10 +1170,6 @@ export const nl = {
   'settings.authFailed': 'Authenticatie-instellingen konden niet worden opgeslagen',
   'settings.oidcTestSuccess': 'OIDC-detectie geslaagd',
   'settings.oidcTestFailed': 'OIDC-verbinding mislukt',
-  'settings.webhookSaved': 'Webhook opgeslagen',
-  'settings.webhookFailed': 'Webhook kon niet worden opgeslagen',
-  'settings.webhookTestSuccess': 'Testmelding verzonden',
-  'settings.webhookTestFailed': 'Webhook-test mislukt',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API-sleutel',
   'settings.fieldApiKeyOptional': 'API Key (optioneel)',
@@ -1192,7 +1185,6 @@ export const nl = {
   'settings.fieldClientId': 'Client-ID',
   'settings.fieldClientSecret': 'Clientgeheim',
   'settings.fieldPersonalAccessToken': 'Persoonlijk toegangstoken',
-  'settings.fieldWebhookUrl': 'Webhook-URL',
   'settings.fieldDigestCron': 'Samenvattingsschema (cron)',
   'settings.digestCronHelp':
     'Stuur een periodieke samenvatting van recente activiteit naar je webhook. Laat leeg om uit te schakelen. Voorbeeld: 0 6 * * 1 (maandag om 6:00).',
@@ -1214,7 +1206,6 @@ export const nl = {
   'settings.embyUserIdHelp':
     'Te vinden via Emby-dashboard -> Gebruikers -> (gebruiker selecteren). De URL bevat de gebruikers-ID.',
   'settings.aiProviderTitle': 'AI-provider',
-  'settings.webhookTitle': 'Webhook-koppeling',
   'settings.plexToken': 'Plex-token',
   'settings.plexLibrary': 'Muziekbibliotheek',
   'settings.plexLibraryAuto': 'Automatisch (eerste muziekbibliotheek)',

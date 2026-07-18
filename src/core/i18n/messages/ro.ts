@@ -990,9 +990,6 @@ export const ro = {
   'settings.aiPrivacyNoteLocal': 'Interogările de descoperire rămân pe serverul tău.',
   'settings.aiPrivacyBadgeHosted': 'Datele părăsesc serverul tău',
   'settings.aiPrivacyBadgeLocal': 'Complet local',
-  'settings.webhookDescription':
-    'Notificări la finalizarea scanării (încorporări Discord sau JSON brut către un endpoint HTTPS public)',
-  'settings.testWebhook': 'Testați webhook-ul',
   'settings.sending': 'Se trimite...',
   'settings.connectionsTip':
     'Conectați mai întâi sursele de ascultare - ListenBrainz, Last.fm, Spotify sau Plex. Pipeline-ul folosește istoricul dvs. de ascultare pentru a găsi artiști similari.',
@@ -1181,10 +1178,6 @@ export const ro = {
   'settings.authFailed': 'Imposibil de salvat setările de autentificare',
   'settings.oidcTestSuccess': 'Descoperire OIDC reușită',
   'settings.oidcTestFailed': 'Conexiune OIDC eșuată',
-  'settings.webhookSaved': 'Webhook salvat',
-  'settings.webhookFailed': 'Imposibil de salvat webhook-ul',
-  'settings.webhookTestSuccess': 'Notificare de test trimisă',
-  'settings.webhookTestFailed': 'Test webhook eșuat',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'Cheie API',
   'settings.fieldApiKeyOptional': 'Cheie API (opțională)',
@@ -1200,7 +1193,6 @@ export const ro = {
   'settings.fieldClientId': 'ID client',
   'settings.fieldClientSecret': 'Secret client',
   'settings.fieldPersonalAccessToken': 'Token de acces personal',
-  'settings.fieldWebhookUrl': 'URL webhook',
   'settings.fieldDigestCron': 'Programare rezumat (cron)',
   'settings.digestCronHelp':
     'Trimite un rezumat periodic al activității recente către webhook-ul tău. Lasă gol pentru a dezactiva. Exemplu: 0 6 * * 1 (lunea la ora 6:00).',
@@ -1222,7 +1214,6 @@ export const ro = {
   'settings.embyUserIdHelp':
     'Se găsește în Emby Dashboard -> Utilizatori -> (selectați utilizatorul). URL-ul conține ID-ul utilizatorului.',
   'settings.aiProviderTitle': 'Furnizor AI',
-  'settings.webhookTitle': 'Integrare webhook',
   'settings.plexToken': 'Token Plex',
   'settings.plexLibrary': 'Bibliotecă muzicală',
   'settings.plexLibraryAuto': 'Detectare automată (prima bibliotecă muzicală)',

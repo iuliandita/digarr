@@ -987,9 +987,6 @@ export const uk = {
   'settings.aiPrivacyNoteLocal': 'Запити пошуку залишаються на вашому сервері.',
   'settings.aiPrivacyBadgeHosted': 'Дані залишають ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Повністю локально',
-  'settings.webhookDescription':
-    'Сповіщення про завершення сканування (вбудовані повідомлення Discord або необроблений JSON на загальнодоступну кінцеву точку HTTPS)',
-  'settings.testWebhook': 'Тест вебхука',
   'settings.sending': 'Надсилання...',
   'settings.connectionsTip':
     'Спочатку підключіть джерела прослуховування - ListenBrainz, Last.fm, Spotify або Plex. Конвеєр використовує вашу історію прослуховування для пошуку схожих виконавців.',
@@ -1178,10 +1175,6 @@ export const uk = {
   'settings.authFailed': 'Не вдалося зберегти налаштування автентифікації',
   'settings.oidcTestSuccess': 'OIDC-відкриття успішне',
   'settings.oidcTestFailed': 'Помилка підключення OIDC',
-  'settings.webhookSaved': 'Вебхук збережено',
-  'settings.webhookFailed': 'Не вдалося зберегти вебхук',
-  'settings.webhookTestSuccess': 'Тестове сповіщення надіслано',
-  'settings.webhookTestFailed': 'Тест вебхука не вдався',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'Ключ API',
   'settings.fieldApiKeyOptional': "API Key (необов'язково)",
@@ -1197,7 +1190,6 @@ export const uk = {
   'settings.fieldClientId': 'ID клієнта',
   'settings.fieldClientSecret': 'Секрет клієнта',
   'settings.fieldPersonalAccessToken': 'Особистий токен доступу',
-  'settings.fieldWebhookUrl': 'URL вебхука',
   'settings.fieldDigestCron': 'Розклад дайджесту (cron)',
   'settings.digestCronHelp':
     'Надсилати періодичну зведену інформацію про останню активність на ваш вебхук. Залиште порожнім, щоб вимкнути. Приклад: 0 6 * * 1 (щопонеділка о 6:00).',
@@ -1219,7 +1211,6 @@ export const uk = {
   'settings.embyUserIdHelp':
     'Знаходиться в панелі Emby -> Користувачі -> (оберіть користувача). URL містить ID користувача.',
   'settings.aiProviderTitle': 'AI-провайдер',
-  'settings.webhookTitle': 'Webhook-інтеграція',
   'settings.plexToken': 'Токен Plex',
   'settings.plexLibrary': 'Музична бібліотека',
   'settings.plexLibraryAuto': 'Автоматично (перша музична бібліотека)',

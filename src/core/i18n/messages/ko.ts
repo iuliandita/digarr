@@ -962,9 +962,6 @@ export const ko = {
   'settings.aiPrivacyNoteLocal': '검색 프롬프트는 서버에 남아 있습니다.',
   'settings.aiPrivacyBadgeHosted': '데이터가 서버를 떠납니다',
   'settings.aiPrivacyBadgeLocal': '완전 로컬',
-  'settings.webhookDescription':
-    '스캔 완료 알림 (Discord 임베드 또는 공개 HTTPS 엔드포인트로 전송되는 원시 JSON)',
-  'settings.testWebhook': 'Webhook 테스트',
   'settings.sending': '전송 중...',
   'settings.connectionsTip':
     '먼저 청취 소스를 연결하세요 - ListenBrainz, Last.fm, Spotify, 또는 Plex. 파이프라인이 청취 기록을 활용해 유사한 아티스트를 찾습니다.',
@@ -1147,10 +1144,6 @@ export const ko = {
   'settings.authFailed': '인증 설정 저장에 실패했습니다',
   'settings.oidcTestSuccess': 'OIDC 검색에 성공했습니다',
   'settings.oidcTestFailed': 'OIDC 연결에 실패했습니다',
-  'settings.webhookSaved': 'Webhook이 저장되었습니다',
-  'settings.webhookFailed': 'Webhook 저장에 실패했습니다',
-  'settings.webhookTestSuccess': '테스트 알림이 전송되었습니다',
-  'settings.webhookTestFailed': 'Webhook 테스트에 실패했습니다',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API 키',
   'settings.fieldApiKeyOptional': 'API Key (선택)',
@@ -1166,7 +1159,6 @@ export const ko = {
   'settings.fieldClientId': '클라이언트 ID',
   'settings.fieldClientSecret': '클라이언트 시크릿',
   'settings.fieldPersonalAccessToken': '개인 액세스 토큰',
-  'settings.fieldWebhookUrl': '웹훅 URL',
   'settings.fieldDigestCron': '다이제스트 일정 (cron)',
   'settings.digestCronHelp':
     '최근 활동의 정기 요약을 웹훅으로 전송합니다. 비활성화하려면 비워 두세요. 예: 0 6 * * 1 (월요일 오전 6시).',
@@ -1188,7 +1180,6 @@ export const ko = {
   'settings.embyUserIdHelp':
     'Emby 대시보드 -> 사용자 -> (사용자 선택)에서 확인할 수 있습니다. URL에 사용자 ID가 포함되어 있습니다.',
   'settings.aiProviderTitle': 'AI 제공자',
-  'settings.webhookTitle': '웹훅',
   'settings.plexToken': 'Plex 토큰',
   'settings.plexLibrary': '음악 라이브러리',
   'settings.plexLibraryAuto': '자동 감지 (첫 번째 음악 라이브러리)',

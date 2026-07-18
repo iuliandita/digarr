@@ -977,9 +977,6 @@ export const ja = {
   'settings.aiPrivacyNoteLocal': 'ディスカバリープロンプトはサーバー内に保持されます。',
   'settings.aiPrivacyBadgeHosted': 'データがサーバーを離れます',
   'settings.aiPrivacyBadgeLocal': '完全にローカル',
-  'settings.webhookDescription':
-    'スキャン完了通知（Discord の埋め込みまたは公開 HTTPS エンドポイントへの未加工 JSON）',
-  'settings.testWebhook': 'Webhook をテスト',
   'settings.sending': '送信中...',
   'settings.connectionsTip':
     'まず視聴ソースを接続してください - ListenBrainz、Last.fm、Spotify、または Plex。パイプラインはあなたの視聴履歴を使って似たアーティストを見つけます。',
@@ -1164,10 +1161,6 @@ export const ja = {
   'settings.authFailed': '認証設定の保存に失敗しました',
   'settings.oidcTestSuccess': 'OIDC の検出に成功しました',
   'settings.oidcTestFailed': 'OIDC の接続に失敗しました',
-  'settings.webhookSaved': 'Webhook を保存しました',
-  'settings.webhookFailed': 'Webhook の保存に失敗しました',
-  'settings.webhookTestSuccess': 'テスト通知を送信しました',
-  'settings.webhookTestFailed': 'Webhook のテストに失敗しました',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API キー',
   'settings.fieldApiKeyOptional': 'API Key（任意）',
@@ -1183,7 +1176,6 @@ export const ja = {
   'settings.fieldClientId': 'クライアント ID',
   'settings.fieldClientSecret': 'クライアントシークレット',
   'settings.fieldPersonalAccessToken': '個人アクセストークン',
-  'settings.fieldWebhookUrl': 'Webhook 送信先 URL',
   'settings.fieldDigestCron': 'ダイジェストのスケジュール（cron）',
   'settings.digestCronHelp':
     '最近のアクティビティの定期的なまとめを Webhook に送信します。無効にするには空のままにします。例: 0 6 * * 1（毎週月曜の午前6時）。',
@@ -1205,7 +1197,6 @@ export const ja = {
   'settings.embyUserIdHelp':
     'Emby ダッシュボード -> ユーザー -> （ユーザーを選択）で確認できます。URL にユーザー ID が含まれています。',
   'settings.aiProviderTitle': 'AI プロバイダー',
-  'settings.webhookTitle': 'Webhook 連携',
   'settings.plexToken': 'Plex トークン',
   'settings.plexLibrary': '音楽ライブラリ',
   'settings.plexLibraryAuto': '自動検出（最初の音楽ライブラリ）',

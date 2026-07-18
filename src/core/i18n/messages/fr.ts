@@ -985,9 +985,6 @@ export const fr = {
   'settings.aiPrivacyNoteLocal': 'Les requêtes de découverte restent sur ton serveur.',
   'settings.aiPrivacyBadgeHosted': 'Les données quittent ton serveur',
   'settings.aiPrivacyBadgeLocal': 'Entièrement local',
-  'settings.webhookDescription':
-    'Notifications de fin de scan (intégrations Discord ou JSON brut vers un point de terminaison HTTPS public)',
-  'settings.testWebhook': 'Tester le webhook',
   'settings.sending': 'Envoi...',
   'settings.connectionsTip':
     "Connectez d'abord vos sources d'écoute - ListenBrainz, Last.fm, Spotify ou Plex. Le pipeline utilise votre historique d'écoute pour trouver des artistes similaires.",
@@ -1177,10 +1174,6 @@ export const fr = {
   'settings.authFailed': "Échec de l'enregistrement des paramètres d'authentification",
   'settings.oidcTestSuccess': 'Découverte OIDC réussie',
   'settings.oidcTestFailed': 'Échec de la connexion OIDC',
-  'settings.webhookSaved': 'Webhook enregistré',
-  'settings.webhookFailed': "Échec de l'enregistrement du webhook",
-  'settings.webhookTestSuccess': 'Notification de test envoyée',
-  'settings.webhookTestFailed': 'Échec du test webhook',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'Clé API',
   'settings.fieldApiKeyOptional': 'Clé API (optionnelle)',
@@ -1196,7 +1189,6 @@ export const fr = {
   'settings.fieldClientId': 'ID client',
   'settings.fieldClientSecret': 'Secret client',
   'settings.fieldPersonalAccessToken': "Jeton d'accès personnel",
-  'settings.fieldWebhookUrl': 'URL du webhook',
   'settings.fieldDigestCron': 'Planification du résumé (cron)',
   'settings.digestCronHelp':
     'Envoie un résumé périodique de l’activité récente vers votre webhook. Laissez vide pour désactiver. Exemple : 0 6 * * 1 (lundi à 6h).',
@@ -1218,7 +1210,6 @@ export const fr = {
   'settings.embyUserIdHelp':
     "Trouvable dans Emby Dashboard -> Utilisateurs -> (sélectionnez l'utilisateur). L'URL contient l'ID utilisateur.",
   'settings.aiProviderTitle': 'Fournisseur IA',
-  'settings.webhookTitle': 'Canal webhook',
   'settings.plexToken': 'Jeton Plex',
   'settings.plexLibrary': 'Bibliothèque musicale',
   'settings.plexLibraryAuto': 'Détection automatique (première bibliothèque musicale)',

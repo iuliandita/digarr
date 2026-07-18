@@ -987,9 +987,6 @@ export const en = {
   'settings.aiPrivacyNoteLocal': 'Discovery prompts stay on your server.',
   'settings.aiPrivacyBadgeHosted': 'Data leaves your server',
   'settings.aiPrivacyBadgeLocal': 'Fully local',
-  'settings.webhookDescription':
-    'Scan completion notifications (Discord embeds or raw JSON to a public HTTPS endpoint)',
-  'settings.testWebhook': 'Test Webhook',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':
     'Connect your listening sources first - ListenBrainz, Last.fm, Spotify, or Plex. The pipeline uses your listening history to find similar artists.',
@@ -1174,10 +1171,6 @@ export const en = {
   'settings.authFailed': 'Failed to save authentication settings',
   'settings.oidcTestSuccess': 'OIDC discovery successful',
   'settings.oidcTestFailed': 'OIDC connection failed',
-  'settings.webhookSaved': 'Webhook saved',
-  'settings.webhookFailed': 'Failed to save webhook',
-  'settings.webhookTestSuccess': 'Test notification sent',
-  'settings.webhookTestFailed': 'Webhook test failed',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API Key',
   'settings.fieldApiKeyOptional': 'API Key (optional)',
@@ -1193,7 +1186,6 @@ export const en = {
   'settings.fieldClientId': 'Client ID',
   'settings.fieldClientSecret': 'Client Secret',
   'settings.fieldPersonalAccessToken': 'Personal Access Token',
-  'settings.fieldWebhookUrl': 'Webhook URL',
   'settings.fieldDigestCron': 'Digest schedule (cron)',
   'settings.digestCronHelp':
     'Send a periodic summary of recent activity to your webhook. Leave empty to disable. Example: 0 6 * * 1 (Mondays at 6am).',
@@ -1215,7 +1207,6 @@ export const en = {
   'settings.embyUserIdHelp':
     'Found under Emby Dashboard -> Users -> (select user). The URL contains the user ID.',
   'settings.aiProviderTitle': 'AI Provider',
-  'settings.webhookTitle': 'Webhook',
   'settings.plexToken': 'Plex Token',
   'settings.plexLibrary': 'Music library',
   'settings.plexLibraryAuto': 'Auto-detect (first music library)',

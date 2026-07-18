@@ -914,9 +914,6 @@ export const zhCN = {
   'settings.aiPrivacyNoteLocal': '发现请求保留在你的服务器上。',
   'settings.aiPrivacyBadgeHosted': '数据离开你的服务器',
   'settings.aiPrivacyBadgeLocal': '完全本地',
-  'settings.webhookDescription':
-    '扫描完成通知（Discord 嵌入消息或发送到公共 HTTPS 端点的原始 JSON）',
-  'settings.testWebhook': '测试 Webhook',
   'settings.sending': '发送中...',
   'settings.connectionsTip':
     '请先连接你的收听来源——ListenBrainz、Last.fm、Spotify 或 Plex。流水线会根据你的收听记录寻找相似艺术家。',
@@ -1088,10 +1085,6 @@ export const zhCN = {
   'settings.authFailed': '保存认证设置失败',
   'settings.oidcTestSuccess': 'OIDC 发现成功',
   'settings.oidcTestFailed': 'OIDC 连接失败',
-  'settings.webhookSaved': 'Webhook 已保存',
-  'settings.webhookFailed': '保存 Webhook 失败',
-  'settings.webhookTestSuccess': '测试通知已发送',
-  'settings.webhookTestFailed': 'Webhook 测试失败',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'API 密钥',
   'settings.fieldApiKeyOptional': 'API Key（可选）',
@@ -1107,7 +1100,6 @@ export const zhCN = {
   'settings.fieldClientId': '客户端 ID',
   'settings.fieldClientSecret': '客户端密钥',
   'settings.fieldPersonalAccessToken': '个人访问令牌',
-  'settings.fieldWebhookUrl': 'Webhook URL 地址',
   'settings.fieldDigestCron': '摘要计划 (cron)',
   'settings.digestCronHelp':
     '定期将最近活动的摘要发送到你的 Webhook。留空则禁用。示例：0 6 * * 1（每周一早上 6 点）。',
@@ -1127,7 +1119,6 @@ export const zhCN = {
   'settings.monthly': '每月',
   'settings.embyUserIdHelp': '在 Emby 控制台 -> 用户 -> （选择用户）中查找。URL 中包含用户 ID。',
   'settings.aiProviderTitle': 'AI 提供商',
-  'settings.webhookTitle': 'Webhook 集成',
   'settings.plexToken': 'Plex 令牌',
   'settings.plexLibrary': '音乐库',
   'settings.plexLibraryAuto': '自动检测（第一个音乐库）',

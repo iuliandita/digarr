@@ -993,9 +993,6 @@ export const ru = {
   'settings.aiPrivacyNoteLocal': 'Запросы для подбора остаются на вашем сервере.',
   'settings.aiPrivacyBadgeHosted': 'Данные покидают ваш сервер',
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',
-  'settings.webhookDescription':
-    'Уведомления о завершении сканирования (встроенные сообщения Discord или необработанный JSON на общедоступную конечную точку HTTPS)',
-  'settings.testWebhook': 'Тест вебхука',
   'settings.sending': 'Отправка...',
   'settings.connectionsTip':
     'Сначала подключите источники прослушивания - ListenBrainz, Last.fm, Spotify или Plex. Конвейер использует вашу историю прослушивания для поиска похожих исполнителей.',
@@ -1185,10 +1182,6 @@ export const ru = {
   'settings.authFailed': 'Не удалось сохранить настройки аутентификации',
   'settings.oidcTestSuccess': 'OIDC-обнаружение успешно',
   'settings.oidcTestFailed': 'Ошибка подключения OIDC',
-  'settings.webhookSaved': 'Вебхук сохранён',
-  'settings.webhookFailed': 'Не удалось сохранить вебхук',
-  'settings.webhookTestSuccess': 'Тестовое уведомление отправлено',
-  'settings.webhookTestFailed': 'Тест вебхука не удался',
   'settings.fieldUrl': 'URL',
   'settings.fieldApiKey': 'Ключ API',
   'settings.fieldApiKeyOptional': 'API Key (необязательно)',
@@ -1204,7 +1197,6 @@ export const ru = {
   'settings.fieldClientId': 'ID клиента',
   'settings.fieldClientSecret': 'Секрет клиента',
   'settings.fieldPersonalAccessToken': 'Персональный токен доступа',
-  'settings.fieldWebhookUrl': 'URL вебхука',
   'settings.fieldDigestCron': 'Расписание дайджеста (cron)',
   'settings.digestCronHelp':
     'Отправлять периодическую сводку недавней активности на ваш вебхук. Оставьте пустым, чтобы отключить. Пример: 0 6 * * 1 (по понедельникам в 6:00).',
@@ -1226,7 +1218,6 @@ export const ru = {
   'settings.embyUserIdHelp':
     'Находится в панели Emby -> Пользователи -> (выберите пользователя). URL содержит ID пользователя.',
   'settings.aiProviderTitle': 'Провайдер AI',
-  'settings.webhookTitle': 'Вебхук',
   'settings.plexToken': 'Токен Plex',
   'settings.plexLibrary': 'Музыкальная библиотека',
   'settings.plexLibraryAuto': 'Автоматически (первая музыкальная библиотека)',
