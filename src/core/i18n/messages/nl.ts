@@ -1513,7 +1513,7 @@ export const nl = {
     'Stuur meldingen bij voltooiing van een scan en samenvattingen naar een of meer kanalen.',
   'settings.channels.add': 'Kanaal toevoegen',
   'settings.channels.empty': 'Nog geen kanalen geconfigureerd.',
-  'settings.channels.type': 'Type',
+  'settings.channels.type': 'Soort',
   'settings.channels.enabled': 'Ingeschakeld',
   'settings.channels.events': 'Gebeurtenissen',
   'settings.channels.eventBatch': 'Scan voltooid',
@@ -1526,7 +1526,7 @@ export const nl = {
   'settings.channels.allowPrivateWarning':
     'Staat bezorging toe naar privé/LAN-adressen. Cloud-metadata en link-local-bereiken blijven geblokkeerd.',
   'settings.channels.webhookUrl': 'Webhook-URL',
-  'settings.channels.ntfyServer': 'Server',
+  'settings.channels.ntfyServer': 'Serveradres',
   'settings.channels.ntfyTopic': 'Onderwerp',
   'settings.channels.ntfyPriority': 'Prioriteit',
   'settings.channels.ntfyToken': 'Toegangstoken',

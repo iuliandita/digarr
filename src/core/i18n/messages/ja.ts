@@ -1513,7 +1513,7 @@ export const ja = {
   'settings.channels.allowPrivate': 'プライベートネットワーク宛先を許可',
   'settings.channels.allowPrivateWarning':
     'プライベート/LAN アドレスへの配信を許可します。クラウドメタデータとリンクローカル範囲はブロックされたままです。',
-  'settings.channels.webhookUrl': 'Webhook URL',
+  'settings.channels.webhookUrl': 'Webhook の URL',
   'settings.channels.ntfyServer': 'サーバー',
   'settings.channels.ntfyTopic': 'トピック',
   'settings.channels.ntfyPriority': '優先度',
