@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { conciseErrMsg, getLookupHostname, isPrivateIp } from '@/core/validation'
+import { conciseErrMsg, getLookupHostname, isPrivateIp, isRfc1918 } from '@/core/validation'
 
 describe('conciseErrMsg', () => {
   it('redacts credentials from nested source error messages', () => {
@@ -84,5 +84,24 @@ describe('getLookupHostname', () => {
 
   it('preserves regular hostnames for DNS lookup', () => {
     expect(getLookupHostname('https://hooks.example.com/webhook')).toBe('hooks.example.com')
+  })
+})
+
+describe('isRfc1918', () => {
+  it('classifies RFC1918 ranges as waivable', () => {
+    expect(isRfc1918('10.0.0.5')).toBe(true)
+    expect(isRfc1918('172.16.3.4')).toBe(true)
+    expect(isRfc1918('172.31.255.255')).toBe(true)
+    expect(isRfc1918('192.168.1.10')).toBe(true)
+  })
+  it('does NOT classify metadata, link-local, loopback, ULA, CGNAT as waivable', () => {
+    expect(isRfc1918('169.254.169.254')).toBe(false)
+    expect(isRfc1918('169.254.1.1')).toBe(false)
+    expect(isRfc1918('127.0.0.1')).toBe(false)
+    expect(isRfc1918('100.64.0.1')).toBe(false)
+    expect(isRfc1918('fd00::1')).toBe(false)
+    expect(isRfc1918('8.8.8.8')).toBe(false)
+    expect(isRfc1918('172.15.0.1')).toBe(false)
+    expect(isRfc1918('172.32.0.1')).toBe(false)
   })
 })
