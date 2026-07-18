@@ -10,7 +10,6 @@ import { openapiDoc } from './helpers/openapi-doc'
 import { problem } from './helpers/problem'
 import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
-import { apiVersionRedirect } from './middleware/api-version'
 import { authGuard } from './middleware/auth'
 import { csrfGuard } from './middleware/csrf'
 import { requestLogger } from './middleware/logger'
@@ -103,11 +102,6 @@ export function createApp(deps: AppDependencies) {
 
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
-
-  // 308-redirect legacy /api/* to /api/v1/*. Must run before any route is
-  // mounted so a legacy request never reaches a handler mounted under
-  // /api/v1/*. Emits Deprecation + Sunset headers for RFC 9745/8594 clients.
-  app.use('*', apiVersionRedirect)
 
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
     console.warn(
