@@ -40,6 +40,10 @@ const UNIVERSAL_SAME_AS_SOURCE_VALUES = new Set([
   'Deezer Flow',
   'OpenAI-Compatible',
   'Ollama (local)',
+  // Notification-channel type labels are untranslatable product/brand names.
+  'Webhook',
+  'Telegram',
+  'Apprise',
   'N/A',
   'OIDC / SSO',
   'shoegaze',

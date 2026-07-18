@@ -132,13 +132,14 @@ dedup, and the score threshold.
 
 ## Registry patterns
 
-Five extension points, each registry-based:
+Six extension points, each registry-based:
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
 - `SearchSource` - multi-source artist / track search (Lidarr, MusicBrainz, Deezer, ...)
 - `RecommendationProvider` - AI backends (Anthropic, OpenAI, Gemini, Ollama, ...)
 - `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, ...). A new mode is a factory plus a `registry.register` line plus an availability branch; the frontend renders modes generically, so no frontend change is needed
+- `NotificationChannel` - where notifications are delivered (webhook, ntfy, Telegram, Apprise), in `src/core/notifications/`. `registry.ts` fans one event out to every enabled, subscribed channel via `Promise.allSettled` (one channel down never blocks the others); each `channels/<type>.ts` formats its payload and calls the single SSRF-guarded `transport.ts`. A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`. The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest and masked (`***`) through the settings API
 
 Adding a new implementation means:
 

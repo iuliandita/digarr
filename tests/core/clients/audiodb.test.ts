@@ -11,9 +11,8 @@ vi.mock('node:dns/promises', async (importOriginal) => {
     lookup: vi.fn(async () => ({ address: '127.0.0.1', family: 4 })),
   }
 })
-vi.mock('@/core/notifications', async () => {
-  const actual =
-    await vi.importActual<typeof import('@/core/notifications')>('@/core/notifications')
+vi.mock('@/core/validation', async () => {
+  const actual = await vi.importActual<typeof import('@/core/validation')>('@/core/validation')
   return {
     ...actual,
     isPrivateUrl: () => false,

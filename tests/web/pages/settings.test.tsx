@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -38,6 +38,7 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 vi.mock('@/web/lib/api', () => ({
   getSettings: vi.fn(),
   updateSettings: vi.fn(),
+  testNotificationChannel: vi.fn(),
   getPopularAlbumsAvailability: vi
     .fn()
     .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
@@ -192,6 +193,7 @@ import {
   importSpotifyLikedSongs,
   listJobs,
   listTargets,
+  testNotificationChannel,
   testService,
   updatePreferredLocale,
   updateSettings,
@@ -205,6 +207,7 @@ const mockGetSettings = getSettings as ReturnType<typeof vi.fn>
 const mockGetPipelineStatus = getPipelineStatus as ReturnType<typeof vi.fn>
 const mockUpdateSettings = updateSettings as ReturnType<typeof vi.fn>
 const mockTestService = testService as ReturnType<typeof vi.fn>
+const mockTestNotificationChannel = testNotificationChannel as ReturnType<typeof vi.fn>
 const mockGetLidarrProfiles = getLidarrProfiles as ReturnType<typeof vi.fn>
 const mockGetLidarrMetadataProfiles = getLidarrMetadataProfiles as ReturnType<typeof vi.fn>
 const mockGetLidarrRootFolders = getLidarrRootFolders as ReturnType<typeof vi.fn>
@@ -595,6 +598,130 @@ describe('SettingsPage', () => {
         expect.objectContaining({ lidarrUrl: 'http://localhost:8686' }),
       )
     })
+  })
+
+  it('adds a notification channel, then tests and saves it', async () => {
+    setupMocks()
+    mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
+    mockTestNotificationChannel.mockResolvedValue(undefined)
+    renderWithQuery(<SettingsPage />)
+
+    const addButton = await screen.findByText('Add channel')
+    const card = addButton.closest('.rounded-lg') as HTMLElement
+    expect(card).toBeTruthy()
+
+    // No type-specific fields until a channel is added.
+    expect(within(card).queryByLabelText('Webhook URL')).toBeNull()
+
+    fireEvent.click(addButton)
+
+    // Default type is webhook, so its URL field appears.
+    const urlInput = await within(card).findByLabelText('Webhook URL')
+    fireEvent.change(urlInput, { target: { value: 'https://example.com/hook' } })
+
+    // Enabled toggle round-trips.
+    const enabledToggle = within(card).getByLabelText('Enabled') as HTMLInputElement
+    expect(enabledToggle.checked).toBe(true)
+    fireEvent.click(enabledToggle)
+    expect(enabledToggle.checked).toBe(false)
+    fireEvent.click(enabledToggle)
+
+    // Test button hits the per-channel test endpoint with the edited channel.
+    fireEvent.click(within(card).getByText('Test'))
+    await waitFor(() => {
+      expect(mockTestNotificationChannel).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'webhook', url: 'https://example.com/hook' }),
+      )
+    })
+
+    // Save posts a channels array inside preferences.
+    fireEvent.click(within(card).getByText('Save'))
+    await waitFor(() => {
+      expect(mockUpdateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferences: expect.objectContaining({
+            channels: expect.arrayContaining([
+              expect.objectContaining({ type: 'webhook', url: 'https://example.com/hook' }),
+            ]),
+          }),
+        }),
+      )
+    })
+  })
+
+  it('round-trips an untouched channel secret as masked, sends plaintext when changed', async () => {
+    setupMocks({
+      ...mockSettings,
+      preferences: {
+        ...mockSettings.preferences,
+        channels: [
+          {
+            id: 'tg1',
+            type: 'telegram',
+            enabled: true,
+            events: ['batch_complete'],
+            botToken: '***',
+            chatId: '123',
+          },
+        ],
+      },
+    })
+    mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
+    renderWithQuery(<SettingsPage />)
+
+    const addButton = await screen.findByText('Add channel')
+    const card = addButton.closest('.rounded-lg') as HTMLElement
+
+    // The masked secret shows an empty input with a keep placeholder.
+    const botInput = within(card).getByLabelText('Bot token') as HTMLInputElement
+    expect(botInput.value).toBe('')
+    expect(botInput.placeholder).toBe('Leave blank to keep the saved value')
+
+    // Saving without touching it keeps the stored value ('***', restored server-side).
+    fireEvent.click(within(card).getByText('Save'))
+    await waitFor(() => {
+      expect(mockUpdateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferences: expect.objectContaining({
+            channels: expect.arrayContaining([
+              expect.objectContaining({ id: 'tg1', botToken: '***' }),
+            ]),
+          }),
+        }),
+      )
+    })
+
+    // Typing a new secret sends the plaintext, never appended to '***'.
+    mockUpdateSettings.mockClear()
+    fireEvent.change(botInput, { target: { value: 'new-token' } })
+    fireEvent.click(within(card).getByText('Save'))
+    await waitFor(() => {
+      expect(mockUpdateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferences: expect.objectContaining({
+            channels: expect.arrayContaining([
+              expect.objectContaining({ id: 'tg1', botToken: 'new-token' }),
+            ]),
+          }),
+        }),
+      )
+    })
+  })
+
+  it('hides the notification channels card from non-admins', async () => {
+    setupMocks()
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'viewer',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Add channel')).toBeNull()
   })
 
   it('snaps stale per-user Lidarr preference ids before saving', async () => {

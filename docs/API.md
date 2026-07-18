@@ -806,7 +806,7 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 | GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
 | POST | `/api/v1/settings/test/:service` | Admin | Test service connection |
-| POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
+| POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
 
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
@@ -832,6 +832,29 @@ Settings notes:
   "Music" }] }`. Save the chosen id as the per-user `jellyfinLibraryId` / `embyLibraryId`
   setting; empty/null means all music libraries (server-wide, the default). When set, top
   artists, favorites, recent listening, and library sync are scoped to that library
+
+Notification channels:
+- `GET /api/v1/settings` returns a `channels` array under `preferences`, and `PATCH` accepts the
+  same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
+  string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
+  "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
+  - `webhook` - `{ ..., url }` (Discord/Slack payloads auto-detected)
+  - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
+  - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
+  - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
+- Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
+  sending `***` back on `PATCH` preserves the stored ciphertext instead of overwriting it.
+- The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
+  returns `403` (same rule as other global settings).
+- `allowPrivateTarget: true` relaxes only RFC1918 ranges (`10/8`, `172.16/12`, `192.168/16`) for
+  that one channel; cloud-metadata (`169.254.169.254`), link-local, and ULA stay blocked, and
+  DNS-pinning plus `redirect: manual` stay on regardless.
+- `POST /api/v1/settings/test-webhook` sends a synthetic `batch_complete` notification to a single
+  channel and returns `204` on success. Post the channel config inline in the body (any secret
+  left as `***` is restored from the stored channel), or `{ "id": "<channelId>" }` (or `?id=`) to
+  test a stored channel; with no id it tests the first configured channel. Delivery failure returns
+  `application/problem+json` `502` with the upstream message in `detail` (secret-redacted, capped
+  at 300 chars); `400` when no channel is configured.
 
 ---
 

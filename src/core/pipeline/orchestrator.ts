@@ -1,10 +1,11 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
-import { sendWebhook } from '@/core/notifications'
+import { dispatch } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
@@ -555,17 +556,14 @@ export class PipelineOrchestrator extends EventEmitter {
         }
       }
 
-      // Fire-and-forget webhook notification
-      const webhookUrl = prefs.webhookUrl
-      if (webhookUrl) {
-        sendWebhook(webhookUrl, {
-          event: 'batch_complete',
-          batchId,
-          stats: { discovered: scored.length, added: filtered.length, failed: 0 },
-          message: t('pipeline.message.scanComplete', String(filtered.length)),
-          timestamp: new Date().toISOString(),
-        }).catch((err) => console.error('Webhook send failed:', err))
-      }
+      // Fire-and-forget notification dispatch
+      dispatch(decryptChannelSecrets(prefs.channels ?? []), 'batch_complete', {
+        event: 'batch_complete',
+        batchId,
+        stats: { discovered: scored.length, added: filtered.length, failed: 0 },
+        message: t('pipeline.message.scanComplete', String(filtered.length)),
+        timestamp: new Date().toISOString(),
+      }).catch((err) => console.error('Notification dispatch failed:', err))
 
       this.emit('progress', {
         stage: 'complete',

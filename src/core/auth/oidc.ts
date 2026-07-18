@@ -3,8 +3,13 @@ import * as dns from 'node:dns/promises'
 import { isIP } from 'node:net'
 import type { Configuration } from 'openid-client'
 import * as oidcClient from 'openid-client'
-import { isPrivateIp } from '@/core/notifications'
-import { errMsg, formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
+import {
+  errMsg,
+  formatUrlHostname,
+  getLookupHostname,
+  isPrivateIp,
+  normalizeIp,
+} from '@/core/validation'
 
 const ipPinningFetch: oidcClient.CustomFetch = async (url, options) => {
   const parsedUrl = new URL(url)

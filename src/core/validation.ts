@@ -224,6 +224,17 @@ export function isPrivateIp(address: string): boolean {
   return false
 }
 
+export function isRfc1918(address: string): boolean {
+  const ipv4 = parseIpv4(normalizeIp(address))
+  if (ipv4 === null) return false
+  const o1 = (ipv4 >>> 24) & 0xff
+  const o2 = (ipv4 >>> 16) & 0xff
+  if (o1 === 10) return true
+  if (o1 === 172 && o2 >= 16 && o2 <= 31) return true
+  if (o1 === 192 && o2 === 168) return true
+  return false
+}
+
 export function isPrivateUrl(urlString: string): boolean {
   try {
     const hostname = getLookupHostname(urlString)

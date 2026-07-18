@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { conciseErrMsg, getLookupHostname, isPrivateIp } from '@/core/validation'
+import {
+  conciseErrMsg,
+  getLookupHostname,
+  isPrivateIp,
+  isPrivateUrl,
+  isRfc1918,
+} from '@/core/validation'
 
 describe('conciseErrMsg', () => {
   it('redacts credentials from nested source error messages', () => {
@@ -84,5 +90,54 @@ describe('getLookupHostname', () => {
 
   it('preserves regular hostnames for DNS lookup', () => {
     expect(getLookupHostname('https://hooks.example.com/webhook')).toBe('hooks.example.com')
+  })
+})
+
+describe('isRfc1918', () => {
+  it('classifies RFC1918 ranges as waivable', () => {
+    expect(isRfc1918('10.0.0.5')).toBe(true)
+    expect(isRfc1918('172.16.3.4')).toBe(true)
+    expect(isRfc1918('172.31.255.255')).toBe(true)
+    expect(isRfc1918('192.168.1.10')).toBe(true)
+  })
+  it('does NOT classify metadata, link-local, loopback, ULA, CGNAT as waivable', () => {
+    expect(isRfc1918('169.254.169.254')).toBe(false)
+    expect(isRfc1918('169.254.1.1')).toBe(false)
+    expect(isRfc1918('127.0.0.1')).toBe(false)
+    expect(isRfc1918('100.64.0.1')).toBe(false)
+    expect(isRfc1918('fd00::1')).toBe(false)
+    expect(isRfc1918('8.8.8.8')).toBe(false)
+    expect(isRfc1918('172.15.0.1')).toBe(false)
+    expect(isRfc1918('172.32.0.1')).toBe(false)
+  })
+})
+
+describe('isPrivateUrl', () => {
+  it('rejects loopback, RFC1918, and localhost', () => {
+    expect(isPrivateUrl('http://127.0.0.1/hook')).toBe(true)
+    expect(isPrivateUrl('http://10.0.0.1/hook')).toBe(true)
+    expect(isPrivateUrl('http://172.16.0.1/hook')).toBe(true)
+    expect(isPrivateUrl('http://192.168.1.1/hook')).toBe(true)
+    expect(isPrivateUrl('http://localhost:3000/hook')).toBe(true)
+  })
+
+  it('rejects IPv6 loopback, IPv4-mapped, and ULA', () => {
+    expect(isPrivateUrl('http://[::1]/hook')).toBe(true)
+    expect(isPrivateUrl('http://[::ffff:127.0.0.1]/hook')).toBe(true)
+    expect(isPrivateUrl('http://[::ffff:10.0.0.5]/hook')).toBe(true)
+    expect(isPrivateUrl('http://[fc00::1]/hook')).toBe(true)
+    expect(isPrivateUrl('http://[fd12::1]/hook')).toBe(true)
+  })
+
+  it('rejects invalid URLs', () => {
+    expect(isPrivateUrl('not-a-url')).toBe(true)
+    expect(isPrivateUrl('')).toBe(true)
+  })
+
+  it('allows public URLs', () => {
+    expect(isPrivateUrl('http://172.32.0.1/hook')).toBe(false)
+    expect(isPrivateUrl('https://hooks.slack.com/services/xxx')).toBe(false)
+    expect(isPrivateUrl('https://discord.com/api/webhooks/123/abc')).toBe(false)
+    expect(isPrivateUrl('https://ntfy.sh/mytopic')).toBe(false)
   })
 })

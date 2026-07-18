@@ -71,7 +71,7 @@ vi.mock('@/web/lib/api', () => ({
   registerUser: vi.fn(),
   testService: vi.fn(),
   testTargetApi: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-  testWebhook: vi.fn(),
+  testNotificationChannel: vi.fn(),
   triggerPipeline: vi.fn(),
   updatePreferredLocale: vi.fn(),
   updateSettings: vi.fn(),

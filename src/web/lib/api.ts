@@ -3,6 +3,7 @@ import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
 import type { GenreInfo } from '../../core/genre/types'
 import { getMessages } from '../../core/i18n/messages'
 import type { MessageKey } from '../../core/i18n/messages/types'
+import type { NotificationChannel } from '../../core/notifications/types'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -269,7 +270,8 @@ export const testService = (service: string, config: Record<string, unknown>) =>
     method: 'POST',
     body: JSON.stringify(config),
   })
-export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { method: 'POST' })
+export const testNotificationChannel = (channel: NotificationChannel) =>
+  fetchApi<void>('/settings/test-webhook', { method: 'POST', body: JSON.stringify(channel) })
 
 // Pipeline
 export const triggerPipeline = () =>

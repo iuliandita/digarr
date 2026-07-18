@@ -1,7 +1,12 @@
 import * as dns from 'node:dns/promises'
 import { isIP } from 'node:net'
-import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
-import { formatUrlHostname, getLookupHostname, normalizeIp } from '@/core/validation'
+import {
+  formatUrlHostname,
+  getLookupHostname,
+  isPrivateIp,
+  isPrivateUrl,
+  normalizeIp,
+} from '@/core/validation'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set([
