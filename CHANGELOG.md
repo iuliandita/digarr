@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- **Multiple notification channels (webhook, ntfy, Telegram, Apprise).** Notifications are no longer a single webhook URL: Settings now holds a list of channels of any count and mixed type. Webhook keeps the Discord/Slack auto-formatting; ntfy takes a server, topic, and optional priority and access token; Telegram takes a bot token and chat ID (plain-text messages); Apprise posts to an Apprise API endpoint and fans a newline-separated URL list out to 80+ services. Each channel has its own enabled toggle and event subscriptions (scan complete and/or the scheduled digest). Any existing single webhook URL is migrated into a webhook channel automatically -- no action needed, nothing breaks. Channel secrets (Telegram bot token, ntfy token, Apprise URLs) are encrypted at rest and returned masked (`***`) by the settings API; sending `***` back preserves the stored value. All delivery flows through one SSRF-guarded transport (DNS-pinned resolution, no redirects, private/link-local/cloud-metadata blocked); an admin-only per-channel opt-in relaxes only RFC1918 ranges for that one channel so a self-hosted ntfy/Apprise on the LAN is reachable, while cloud-metadata (`169.254.169.254`) and link-local stay blocked regardless. The digest still fires on the existing digest cron; only the delivery target moved to channels. Translated across all 15 shipped locales.
+
 ### Security
 
 - **Session cookies now fail closed to `Secure` in production.** Production session and OIDC transaction cookies are marked `Secure` even when the backend request arrives over HTTP, so a TLS-terminating reverse proxy no longer emits plaintext-eligible cookies. TLS termination requires `ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior. Direct production over HTTP needs the explicit `DIGARR_ALLOW_INSECURE_COOKIES=true` opt-in (default `false`) and remains vulnerable to network interception; pair it with a matching `http://` `ALLOWED_ORIGIN`.
