@@ -1,9 +1,14 @@
-import type { PostResult } from '../transport'
+import { type PostResult, post } from '../transport'
 import type { TelegramChannel, WebhookPayload } from '../types'
 
 export function sendTelegramChannel(
-  _channel: TelegramChannel,
-  _payload: WebhookPayload,
+  channel: TelegramChannel,
+  payload: WebhookPayload,
 ): Promise<PostResult> {
-  return Promise.resolve({ ok: false, error: 'telegram not implemented' }) // TODO(task-3)
+  const url = `https://api.telegram.org/bot${channel.botToken}/sendMessage`
+  return post(
+    url,
+    { chat_id: channel.chatId, text: payload.message },
+    { allowPrivate: channel.allowPrivateTarget },
+  )
 }

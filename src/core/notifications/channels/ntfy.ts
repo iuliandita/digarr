@@ -1,9 +1,20 @@
-import type { PostResult } from '../transport'
+import { type PostResult, post } from '../transport'
 import type { NtfyChannel, WebhookPayload } from '../types'
 
 export function sendNtfyChannel(
-  _channel: NtfyChannel,
-  _payload: WebhookPayload,
+  channel: NtfyChannel,
+  payload: WebhookPayload,
 ): Promise<PostResult> {
-  return Promise.resolve({ ok: false, error: 'ntfy not implemented' }) // TODO(task-3)
+  const url = `${channel.server.replace(/\/+$/, '')}/${channel.topic}`
+  const headers: Record<string, string> = {
+    'Content-Type': 'text/plain',
+    Title: 'digarr notification',
+  }
+  if (channel.priority) headers.Priority = String(channel.priority)
+  if (channel.token) headers.Authorization = `Bearer ${channel.token}`
+  return post(url, undefined, {
+    allowPrivate: channel.allowPrivateTarget,
+    headers,
+    rawBody: payload.message,
+  })
 }
