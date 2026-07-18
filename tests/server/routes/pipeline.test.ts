@@ -80,6 +80,7 @@ function makeMockOrchestrator(isRunning = false) {
     enqueue: vi.fn(() =>
       isRunning ? { status: 'queued', position: 1 } : { status: 'started', position: 0 },
     ),
+    cancel: vi.fn(() => ({ cancelled: isRunning })),
     queueLength: isRunning ? 1 : 0,
     queuePositionFor: vi.fn(() => 0),
   })
@@ -199,6 +200,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       start: vi.fn().mockResolvedValue(1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     jobQueries: {
@@ -376,6 +378,27 @@ describe('GET /api/v1/pipeline/status', () => {
     expect(body.lastRun).toBeDefined()
     expect(body.lastRun.batchId).toBe(42)
     expect(body.lastRun.status).toBe('completed')
+  })
+})
+
+describe('POST /api/v1/pipeline/cancel', () => {
+  it('cancels the in-flight run and returns 202', async () => {
+    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+    const app = createApp(makeDeps({ orchestrator }))
+    const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.cancelled).toBe(true)
+    expect(orchestrator.cancel).toHaveBeenCalledOnce()
+  })
+
+  it('returns cancelled: false (202) when nothing is running', async () => {
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const app = createApp(makeDeps({ orchestrator }))
+    const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.cancelled).toBe(false)
   })
 })
 

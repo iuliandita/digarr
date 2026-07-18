@@ -62,7 +62,9 @@ export function JobRunRow({ job }: { job: JobRun }) {
         ? 'text-red-500'
         : job.status === 'stuck'
           ? 'text-amber-500'
-          : 'text-blue-500'
+          : job.status === 'cancelled'
+            ? 'text-muted'
+            : 'text-blue-500'
 
   const statsText = jobStats(job, t)
 
@@ -86,7 +88,9 @@ export function JobRunRow({ job }: { job: JobRun }) {
                 ? '!'
                 : job.status === 'stuck'
                   ? '?'
-                  : '~'}
+                  : job.status === 'cancelled'
+                    ? 'x'
+                    : '~'}
           </span>
           <span className="text-sm font-medium text-text">
             {typeLabelKey ? t(typeLabelKey) : job.type}
@@ -95,6 +99,11 @@ export function JobRunRow({ job }: { job: JobRun }) {
           {job.status === 'stuck' && (
             <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
               {t('jobHistory.stuckLabel')}
+            </span>
+          )}
+          {job.status === 'cancelled' && (
+            <span className="rounded bg-muted/20 px-1.5 py-0.5 text-xs text-muted">
+              {t('jobHistory.cancelledLabel')}
             </span>
           )}
         </div>

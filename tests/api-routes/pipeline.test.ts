@@ -66,6 +66,18 @@ describe('API routes: pipeline', () => {
     expect(body.position).toBe(1)
   })
 
+  it('cancels a scan and returns 202', async () => {
+    const { app } = createTestApp()
+
+    const cancelRes = await app.request('/api/v1/pipeline/cancel', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer tok' },
+    })
+    expect(cancelRes.status).toBe(202)
+    const body = await cancelRes.json()
+    expect(typeof body.cancelled).toBe('boolean')
+  })
+
   it('returns pipeline status', async () => {
     const { app } = createTestApp()
 

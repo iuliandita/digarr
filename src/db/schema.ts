@@ -293,7 +293,7 @@ export const jobRuns = pgTable(
   {
     id: serial('id').primaryKey(),
     type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
-    status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
+    status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck' | 'cancelled'
     userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp('completed_at', { withTimezone: true }),

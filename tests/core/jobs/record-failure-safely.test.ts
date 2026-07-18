@@ -9,6 +9,7 @@ function fakeRecorder(fail: JobRecorder['fail']): JobRecorder {
     start: vi.fn(),
     complete: vi.fn(),
     fail,
+    cancel: vi.fn().mockResolvedValue(undefined),
     markStuck: vi.fn(),
   } as unknown as JobRecorder
 }
