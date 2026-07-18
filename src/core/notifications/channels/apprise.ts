@@ -1,9 +1,18 @@
-import type { PostResult } from '../transport'
+import { type PostResult, post } from '../transport'
 import type { AppriseChannel, WebhookPayload } from '../types'
 
 export function sendAppriseChannel(
-  _channel: AppriseChannel,
-  _payload: WebhookPayload,
+  channel: AppriseChannel,
+  payload: WebhookPayload,
 ): Promise<PostResult> {
-  return Promise.resolve({ ok: false, error: 'apprise not implemented' }) // TODO(task-4)
+  const urls = channel.urls
+    .split(/[\n,]/)
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .join(',')
+  return post(
+    channel.endpoint,
+    { title: 'digarr notification', body: payload.message, urls, type: 'info' },
+    { allowPrivate: channel.allowPrivateTarget },
+  )
 }
