@@ -1,20 +1,23 @@
 import { Cron } from 'croner'
 import { createTranslator } from '@/core/i18n/translator'
+import type { DispatchResult } from '@/core/notifications/registry'
+import type { NotificationChannel, WebhookPayload } from '@/core/notifications/types'
 import { isMaintenance } from '@/core/ops/maintenance'
 import type { DigestStats } from '@/db/queries/jobs'
 
 export type DigestNotifierDeps = {
   /** Read the live digest cron expression; empty/undefined disables the job. */
   getDigestCron: () => Promise<string | undefined> | string | undefined
-  /** Read the live webhook URL; empty/undefined disables the job. */
-  getWebhookUrl: () => Promise<string | undefined> | string | undefined
+  /** Read the live notification channels; none subscribed to 'digest' disables the job. */
+  getChannels: () => Promise<NotificationChannel[] | undefined> | NotificationChannel[] | undefined
   /** Aggregate stats for the trailing window starting at `since`. */
   getStats: (since: Date) => Promise<DigestStats>
-  /** Webhook sender (injected so the job is unit-testable without network). */
-  sendWebhook: (
-    url: string,
-    payload: import('@/core/notifications').WebhookPayload,
-  ) => Promise<void>
+  /** Notification dispatcher (injected so the job is unit-testable without network). */
+  dispatch: (
+    channels: NotificationChannel[],
+    event: 'digest',
+    payload: WebhookPayload,
+  ) => Promise<DispatchResult[]>
   /** Read the persisted last-sent bookmark; null = never sent. */
   getLastSentAt: () => Promise<Date | null>
   /** Persist the bookmark after a covered window (sent OR zero-activity). */
@@ -60,8 +63,9 @@ function windowLabel(windowMs: number, t: ReturnType<typeof createTranslator>): 
 /**
  * Start the scheduled notification digest. Modeled on `startStuckDetector`:
  * one Cron, body wrapped in try/catch. Reads prefs each fire so the digest can
- * be toggled at runtime. No-ops when `digestCron` or `webhookUrl` is unset;
- * a zero-activity window sends nothing but still advances the bookmark.
+ * be toggled at runtime. No-ops when `digestCron` is unset or no channel is
+ * subscribed to `digest`; a zero-activity window sends nothing but still
+ * advances the bookmark.
  * Returns null when no cron is configured at boot (digest disabled).
  */
 export async function startDigestNotifier(deps: DigestNotifierDeps): Promise<Cron | null> {
@@ -74,8 +78,11 @@ export async function startDigestNotifier(deps: DigestNotifierDeps): Promise<Cro
       return
     }
     try {
-      const [liveCron, webhookUrl] = await Promise.all([deps.getDigestCron(), deps.getWebhookUrl()])
-      if (!liveCron || !webhookUrl) return
+      const [liveCron, channels] = await Promise.all([deps.getDigestCron(), deps.getChannels()])
+      const digestChannels = (channels ?? []).filter(
+        (c) => c.enabled && c.events.includes('digest'),
+      )
+      if (!liveCron || digestChannels.length === 0) return
 
       const now = new Date()
       const lastSentAt = await deps.getLastSentAt()
@@ -103,16 +110,20 @@ export async function startDigestNotifier(deps: DigestNotifierDeps): Promise<Cro
         String(stats.runs),
       )
 
-      await deps.sendWebhook(webhookUrl, {
+      const results = await deps.dispatch(digestChannels, 'digest', {
         event: 'digest',
         window: label,
         stats,
         message,
         timestamp: new Date().toISOString(),
       })
-      // Only after a successful send: a failed send must not advance the
-      // bookmark, so the next fire re-covers the window (at-least-once).
-      await deps.setLastSentAt(now)
+      // Advance the bookmark only when at least one channel accepted the
+      // digest. If every channel failed, leave it so the next fire re-covers
+      // the window (at-least-once). dispatch never rejects, so failures are
+      // reported as ok:false results, not thrown errors.
+      if (results.some((r) => r.ok)) {
+        await deps.setLastSentAt(now)
+      }
     } catch (err: unknown) {
       console.error('[digest-notifier] Failed:', err)
     }

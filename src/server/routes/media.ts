@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { isPrivateUrl } from '@/core/notifications'
+import { isPrivateUrl } from '@/core/validation'
 import type { AppDependencies } from '@/server'
 
 const ALLOWED_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])

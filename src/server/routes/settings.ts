@@ -4,12 +4,11 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createTidalClient } from '@/core/clients/tidal'
-import { sendWebhook } from '@/core/notifications'
+import { dispatch } from '@/core/notifications'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
-import { logAndSanitize } from '@/core/validation'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
-import type { Preferences } from '@/db/schema'
+import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
@@ -664,39 +663,43 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     const stored = await deps.getSettings()
-    const prefs = stored?.preferences
-    const url = prefs?.webhookUrl
-    if (!url) {
+    const merged = mergePreferences(stored?.preferences)
+    const channel = merged.channels?.[0]
+    if (!channel) {
       return problem(
         c,
         'webhook-not-configured',
-        'No webhook URL configured',
+        'No notification channel configured',
         400,
         undefined,
         undefined,
         'common.unknownError',
       )
     }
-    try {
-      await sendWebhook(url, {
-        event: 'batch_complete',
-        batchId: 0,
-        stats: { discovered: 3, added: 3, failed: 0 },
-        message: 'Test notification from digarr.',
-        timestamp: new Date().toISOString(),
-      })
+    const [result] = await dispatch([channel], 'batch_complete', {
+      event: 'batch_complete',
+      batchId: 0,
+      stats: { discovered: 3, added: 3, failed: 0 },
+      message: 'Test notification from digarr.',
+      timestamp: new Date().toISOString(),
+    })
+    if (result?.ok) {
       return c.body(null, 204)
-    } catch (err: unknown) {
-      return problem(
-        c,
-        'webhook-test-failed',
-        'Webhook test failed',
-        502,
-        logAndSanitize(err, 'webhook-test'),
-        undefined,
-        'common.unknownError',
-      )
     }
+    const detail =
+      redactSecrets(result?.error ?? '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 300) || 'Notification test failed'
+    return problem(
+      c,
+      'webhook-test-failed',
+      'Webhook test failed',
+      502,
+      detail,
+      undefined,
+      'common.unknownError',
+    )
   })
 
   return router

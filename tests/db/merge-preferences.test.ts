@@ -83,3 +83,41 @@ describe('netNewAlbumDiscovery preference', () => {
     expect(mergePreferences({ netNewAlbumDiscovery: true }).netNewAlbumDiscovery).toBe(true)
   })
 })
+
+describe('mergePreferences legacy webhook migration', () => {
+  it('synthesizes a webhook channel from a legacy webhookUrl', () => {
+    const merged = mergePreferences({ webhookUrl: 'https://hooks.example.com/x' })
+    expect(merged.channels).toEqual([
+      {
+        id: 'legacy-webhook',
+        type: 'webhook',
+        enabled: true,
+        events: ['batch_complete', 'digest'],
+        url: 'https://hooks.example.com/x',
+      },
+    ])
+  })
+
+  it('does not overwrite an explicit channels array', () => {
+    const explicit = partialInput({
+      webhookUrl: 'https://hooks.example.com/x',
+      channels: [
+        {
+          id: 'custom',
+          type: 'webhook',
+          enabled: true,
+          events: ['digest'],
+          url: 'https://other.example/y',
+        },
+      ],
+    })
+    const merged = mergePreferences(explicit)
+    expect(merged.channels).toHaveLength(1)
+    expect(merged.channels?.[0]?.id).toBe('custom')
+  })
+
+  it('leaves channels undefined when there is no webhookUrl', () => {
+    expect(mergePreferences({}).channels).toBeUndefined()
+    expect(mergePreferences({ scoreThreshold: 0.7 }).channels).toBeUndefined()
+  })
+})

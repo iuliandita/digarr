@@ -38,7 +38,7 @@ import { createSubsonicLibrarySource } from './core/library/sources/subsonic'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
-import { sendWebhook } from './core/notifications'
+import { dispatch } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -1197,9 +1197,9 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
 function buildDigestDeps() {
   return {
     getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
-    getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
+    getChannels: async () => mergePreferences((await getSettings(db))?.preferences).channels,
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
-    sendWebhook,
+    dispatch,
     getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
     setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
   }
