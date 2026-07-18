@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
@@ -556,7 +557,7 @@ export class PipelineOrchestrator extends EventEmitter {
       }
 
       // Fire-and-forget notification dispatch
-      dispatch(prefs.channels, 'batch_complete', {
+      dispatch(decryptChannelSecrets(prefs.channels ?? []), 'batch_complete', {
         event: 'batch_complete',
         batchId,
         stats: { discovered: scored.length, added: filtered.length, failed: 0 },

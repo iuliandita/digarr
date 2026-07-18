@@ -4,7 +4,14 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createTidalClient } from '@/core/clients/tidal'
+import {
+  decryptChannelSecrets,
+  encryptChannelSecrets,
+  maskChannelSecrets,
+  restoreMaskedChannelSecrets,
+} from '@/core/crypto'
 import { dispatch } from '@/core/notifications'
+import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
@@ -145,10 +152,12 @@ function stripForNonAdmin(settings: Record<string, unknown>): SettingsResponse {
     }
   }
 
-  // Strip webhook URL from preferences for non-admins
+  // Strip webhook URL and notification channels (secret-bearing) from
+  // preferences for non-admins - notification config is admin-only.
   if (stripped.preferences && typeof stripped.preferences === 'object') {
     const prefs = { ...(stripped.preferences as Record<string, unknown>) }
     delete prefs.webhookUrl
+    delete prefs.channels
     // Keep scheduleCron visible but not editable (frontend hides the tab)
     stripped.preferences = prefs
   }
@@ -201,6 +210,17 @@ async function buildSettingsResponse(
       response.subsonicUsername = userConns.subsonicUsername ?? ''
       response.subsonicPassword = userConns.subsonicPassword
       response._subsonicScope = 'user'
+    }
+  }
+
+  // Notification channel secrets must never leave the server (plaintext OR
+  // ciphertext). Mask them in a copied preferences object so the stored row is
+  // not mutated. Non-admins already had channels stripped above.
+  if (response.preferences && typeof response.preferences === 'object') {
+    const prefs = { ...(response.preferences as Record<string, unknown>) }
+    if (Array.isArray(prefs.channels)) {
+      prefs.channels = maskChannelSecrets(prefs.channels as NotificationChannel[])
+      response.preferences = prefs
     }
   }
 
@@ -311,6 +331,15 @@ export function settingsRoutes(deps: AppDependencies) {
       globalFields.preferences && typeof globalFields.preferences === 'object'
         ? (globalFields.preferences as Partial<Preferences>)
         : undefined
+
+    // Restore masked channel secrets from the stored (encrypted) channel of the
+    // same id, then encrypt any new plaintext secrets before persistence. Keeps
+    // channel botToken/token/urls encrypted at rest in the settings row.
+    if (incomingPrefs && Array.isArray(incomingPrefs.channels)) {
+      const byId = new Map((storedSettings?.preferences?.channels ?? []).map((ch) => [ch.id, ch]))
+      const restored = restoreMaskedChannelSecrets(incomingPrefs.channels, byId)
+      incomingPrefs.channels = encryptChannelSecrets(restored)
+    }
 
     if (incomingPrefs) {
       globalFields.preferences = mergePreferenceUpdate(storedSettings?.preferences, incomingPrefs)
@@ -664,8 +693,27 @@ export function settingsRoutes(deps: AppDependencies) {
 
     const stored = await deps.getSettings()
     const merged = mergePreferences(stored?.preferences)
-    const channel = merged.channels?.[0]
-    if (!channel) {
+    const storedChannels = merged.channels ?? []
+    const byId = new Map(storedChannels.map((ch) => [ch.id, ch]))
+
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+    const requestedId =
+      c.req.query('id') ?? (typeof body.id === 'string' ? (body.id as string) : undefined)
+
+    // Resolve the channel under test: an inline config posted from the editor
+    // (may carry '***' placeholders to restore from the stored channel), an
+    // explicit id, or the first stored channel as a fallback.
+    let resolved: NotificationChannel | undefined
+    if (typeof body.type === 'string' && typeof body.id === 'string') {
+      const [restored] = restoreMaskedChannelSecrets([body as unknown as NotificationChannel], byId)
+      resolved = restored
+    } else if (requestedId) {
+      resolved = byId.get(requestedId)
+    } else {
+      resolved = storedChannels[0]
+    }
+
+    if (!resolved) {
       return problem(
         c,
         'webhook-not-configured',
@@ -676,6 +724,14 @@ export function settingsRoutes(deps: AppDependencies) {
         'common.unknownError',
       )
     }
+
+    // Decrypt stored/restored ciphertext (plaintext inline values pass through),
+    // then force enabled + batch_complete so a Test button works even on a
+    // disabled or not-yet-subscribed channel.
+    const [decrypted] = decryptChannelSecrets([resolved])
+    const testEvents: NotificationEvent[] = ['batch_complete']
+    const channel = { ...decrypted, enabled: true, events: testEvents } as NotificationChannel
+
     const [result] = await dispatch([channel], 'batch_complete', {
       event: 'batch_complete',
       batchId: 0,

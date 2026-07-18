@@ -57,4 +57,19 @@ describe('sendTelegramChannel', () => {
     expect(body).toEqual({ chat_id: '-1001', text: makePayload().message })
     expect(body.parse_mode).toBeUndefined()
   })
+
+  it('masks the bot token in failure logs (no token leak)', async () => {
+    const failFetch = vi.fn(async () => new Response(null, { status: 500 }))
+    vi.stubGlobal('fetch', failFetch)
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const r = await sendTelegramChannel(makeChannel({ botToken: 'SECRET:token' }), makePayload())
+    expect(r.ok).toBe(false)
+
+    const logged = errSpy.mock.calls.map((args) => args.join(' ')).join('\n')
+    expect(logged).toContain('/bot[REDACTED]/')
+    expect(logged).not.toContain('SECRET:token')
+
+    errSpy.mockRestore()
+  })
 })

@@ -16,7 +16,7 @@ import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
 import { createTidalClient } from './core/clients/tidal'
-import { initEncryption, isEncryptionEnabled } from './core/crypto'
+import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
@@ -1197,7 +1197,8 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
 function buildDigestDeps() {
   return {
     getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
-    getChannels: async () => mergePreferences((await getSettings(db))?.preferences).channels,
+    getChannels: async () =>
+      decryptChannelSecrets(mergePreferences((await getSettings(db))?.preferences).channels ?? []),
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
     dispatch,
     getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
