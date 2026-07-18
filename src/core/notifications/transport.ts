@@ -95,7 +95,9 @@ export async function post(
     }
     return { ok: true, status: res.status }
   } catch (err: unknown) {
-    console.error(`POST to ${safeUrl} failed:`, err)
+    console.error(
+      `POST to ${safeUrl} failed: ${redact(err instanceof Error ? err.message : String(err))}`,
+    )
     return { ok: false, error: err instanceof Error ? err.message : 'request failed' }
   } finally {
     clearTimeout(timeout)

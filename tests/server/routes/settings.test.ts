@@ -1597,6 +1597,16 @@ describe('POST /api/v1/settings/test-webhook', () => {
     expect(body.detail).toContain('[redacted]')
   })
 
+  it('returns 400 when an inline channel body fails schema validation', async () => {
+    const res = await authedRequest(appWithWebhook(), '/api/v1/settings/test-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // Inline path (type + id present) but missing required telegram fields.
+      body: JSON.stringify({ id: 'bad', type: 'telegram' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
   it('returns 400 when no notification channel is configured', async () => {
     const app = createApp(
       makeDeps({

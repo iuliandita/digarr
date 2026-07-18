@@ -27,7 +27,7 @@ const channelBase = {
   events: z.array(notificationEvent),
   allowPrivateTarget: z.boolean().optional(),
 }
-const notificationChannel = z.discriminatedUnion('type', [
+export const notificationChannel = z.discriminatedUnion('type', [
   z.object({ ...channelBase, type: z.literal('webhook'), url: z.string().url() }),
   z.object({
     ...channelBase,

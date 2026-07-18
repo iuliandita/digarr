@@ -20,7 +20,7 @@ import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestMessages } from '@/server/locale'
 import { resolveAdmin } from '@/server/middleware/admin-guard'
-import { updateSettingsSchema } from '@/server/schemas/settings'
+import { notificationChannel, updateSettingsSchema } from '@/server/schemas/settings'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -705,7 +705,19 @@ export function settingsRoutes(deps: AppDependencies) {
     // explicit id, or the first stored channel as a fallback.
     let resolved: NotificationChannel | undefined
     if (typeof body.type === 'string' && typeof body.id === 'string') {
-      const [restored] = restoreMaskedChannelSecrets([body as unknown as NotificationChannel], byId)
+      const parsed = notificationChannel.safeParse(body)
+      if (!parsed.success) {
+        return problem(
+          c,
+          'invalid-channel',
+          'Invalid notification channel',
+          400,
+          undefined,
+          undefined,
+          'common.unknownError',
+        )
+      }
+      const [restored] = restoreMaskedChannelSecrets([parsed.data], byId)
       resolved = restored
     } else if (requestedId) {
       resolved = byId.get(requestedId)

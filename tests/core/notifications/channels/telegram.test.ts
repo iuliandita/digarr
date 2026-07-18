@@ -72,4 +72,23 @@ describe('sendTelegramChannel', () => {
 
     errSpy.mockRestore()
   })
+
+  it('masks the bot token when a fetch rejection embeds the request URL', async () => {
+    const rejFetch = vi.fn(async () => {
+      throw new Error(
+        'fetch failed for https://api.telegram.org/botSECRET:token/sendMessage: ECONNRESET',
+      )
+    })
+    vi.stubGlobal('fetch', rejFetch)
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const r = await sendTelegramChannel(makeChannel({ botToken: 'SECRET:token' }), makePayload())
+    expect(r.ok).toBe(false)
+
+    const logged = errSpy.mock.calls.map((args) => args.join(' ')).join('\n')
+    expect(logged).toContain('/bot[REDACTED]/')
+    expect(logged).not.toContain('SECRET:token')
+
+    errSpy.mockRestore()
+  })
 })
