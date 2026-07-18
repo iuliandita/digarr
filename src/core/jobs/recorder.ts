@@ -67,6 +67,18 @@ export function createJobRecorder(db: Database): JobRecorder {
         .where(eq(jobRuns.id, jobId))
     },
 
+    async cancel(jobId: number): Promise<void> {
+      const now = new Date()
+      await db
+        .update(jobRuns)
+        .set({
+          status: 'cancelled',
+          completedAt: now,
+          durationMs: sql<number>`ROUND(EXTRACT(EPOCH FROM (NOW() - ${jobRuns.startedAt})) * 1000)::integer`,
+        })
+        .where(eq(jobRuns.id, jobId))
+    },
+
     async markStuck(): Promise<number> {
       let totalMarked = 0
       for (const [type, thresholdMs] of Object.entries(STUCK_THRESHOLDS_MS)) {

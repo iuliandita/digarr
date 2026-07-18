@@ -25,6 +25,9 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
           ? { status: 'queued', position: 1 }
           : { status: 'started', position: 0 }
       }),
+      cancel: vi.fn(function (this: { isRunning: boolean }) {
+        return { cancelled: this.isRunning }
+      }),
       queueLength: 0,
       queuePositionFor: vi.fn(() => 0),
       stage: null,
@@ -206,6 +209,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       start: vi.fn(async () => 1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn(async () => 0),
     } as unknown as AppDependencies['jobRecorder'],
     jobQueries: {

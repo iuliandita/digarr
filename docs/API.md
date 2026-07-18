@@ -190,6 +190,7 @@ Setup validation rules:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ queued, position }`. |
+| POST | `/api/v1/pipeline/cancel` | Yes | Stop the in-flight run and drop the queue. Returns 202 with `{ cancelled }` (`false` when nothing was running). |
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
@@ -203,6 +204,16 @@ rejected: the response is still 202 with `queued: true` and the caller's 1-based
 `position`. A given user is deduped (a double-click does not stack two runs).
 The queue drains automatically when the active run finishes. The queue is
 in-memory and per-process.
+
+`POST /api/v1/pipeline/cancel` stops a wedged or unwanted scan without a
+restart. It is available to any authenticated user (symmetric with "Run Scan":
+single-flight means one run total). Cancellation is cooperative -- the run
+checks an abort signal at every stage boundary and inside artist resolution, so
+a stop lands within about one request timeout. The queue is cleared so nothing
+starts behind the stopped run, the job is recorded with status `cancelled`, and
+a terminal `cancelled` progress event closes the SSE stream. A run that ignores
+the signal is force-reset after a short grace window so the app is never left
+permanently "running".
 
 `POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
 metadata using the requesting admin's configured providers. It runs one rescan

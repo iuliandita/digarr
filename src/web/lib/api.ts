@@ -283,6 +283,10 @@ export const triggerPipeline = () =>
   }>('/pipeline/run', {
     method: 'POST',
   })
+export const cancelPipeline = () =>
+  fetchApi<{ cancelled: boolean; message: string }>('/pipeline/cancel', {
+    method: 'POST',
+  })
 export const getPipelineStatus = () =>
   fetchApi<{
     running: boolean

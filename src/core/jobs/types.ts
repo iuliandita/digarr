@@ -49,5 +49,6 @@ export interface JobRecorder {
   start(params: StartJobParams): Promise<number>
   complete(jobId: number, params?: CompleteJobParams): Promise<void>
   fail(jobId: number, error: string): Promise<void>
+  cancel(jobId: number): Promise<void>
   markStuck(): Promise<number>
 }

@@ -8,6 +8,7 @@ describe('startStuckDetector', () => {
       start: vi.fn(),
       complete: vi.fn(),
       fail: vi.fn(),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     }
     const cron = startStuckDetector(mockRecorder)

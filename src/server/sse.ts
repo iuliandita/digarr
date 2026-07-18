@@ -41,11 +41,12 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       progressHandler = (progress: unknown) => {
         try {
           emit((progress ?? {}) as Record<string, unknown>)
-          if (
+          const terminalStage =
             progress !== null &&
             typeof progress === 'object' &&
-            (progress as Record<string, unknown>).stage === 'complete'
-          ) {
+            ((progress as Record<string, unknown>).stage === 'complete' ||
+              (progress as Record<string, unknown>).stage === 'cancelled')
+          if (terminalStage) {
             cleanup()
             controller.close()
           }

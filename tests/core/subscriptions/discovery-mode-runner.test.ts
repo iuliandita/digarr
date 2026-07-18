@@ -45,6 +45,7 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
       start: vi.fn().mockResolvedValue(10),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     mbClient: {

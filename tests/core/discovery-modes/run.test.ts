@@ -64,6 +64,7 @@ describe('runDiscoveryMode', () => {
       start: vi.fn(async () => 11),
       complete: vi.fn(async () => undefined),
       fail: vi.fn(async () => undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn(async () => 0),
     }
 
@@ -133,6 +134,7 @@ describe('runDiscoveryMode', () => {
       }),
       complete: vi.fn(async () => undefined),
       fail: vi.fn(async () => undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn(async () => 0),
     }
     const orchestrator = {
@@ -175,6 +177,7 @@ describe('runDiscoveryMode', () => {
       start: vi.fn(async () => 22),
       complete: vi.fn(async () => undefined),
       fail: vi.fn(async () => undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn(async () => 0),
     }
     const orchestrator = {

@@ -81,6 +81,7 @@ vi.mock('@/core/providers/registry', () => ({
 // ---------------------------------------------------------------------------
 
 const { PipelineOrchestrator } = await import('@/core/pipeline/orchestrator')
+const { PipelineCancelledError } = await import('@/core/pipeline/cancel')
 type SyncForUser = NonNullable<
   import('@/core/pipeline/orchestrator').PipelineDeps['librarySync']
 >['syncForUser']
@@ -394,6 +395,7 @@ describe('PipelineOrchestrator', () => {
       start: vi.fn().mockResolvedValue(7),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     }
     const messages: string[] = []
@@ -450,6 +452,7 @@ describe('PipelineOrchestrator', () => {
       start: vi.fn().mockResolvedValue(9),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     }
 
@@ -1117,5 +1120,93 @@ describe('PipelineOrchestrator', () => {
     const scoreCall = mockScore.mock.calls[0]
     const referenceGenres = scoreCall?.[1] as string[]
     expect(referenceGenres).toEqual([])
+  })
+
+  describe('cancel', () => {
+    it('stops the in-flight run at the next checkpoint and records cancellation', async () => {
+      const db = makeDb()
+      const jobRecorder = {
+        start: vi.fn().mockResolvedValue(11),
+        complete: vi.fn().mockResolvedValue(undefined),
+        fail: vi.fn().mockResolvedValue(undefined),
+        cancel: vi.fn().mockResolvedValue(undefined),
+        markStuck: vi.fn().mockResolvedValue(0),
+      }
+      const stages: string[] = []
+      orchestrator.on('progress', (e: { stage?: string }) => {
+        if (e.stage) stages.push(e.stage)
+      })
+
+      // Request cancellation from inside discover; the checkpoint before the
+      // resolve stage then aborts the run.
+      mockDiscover.mockImplementation(async () => {
+        orchestrator.cancel()
+        return discovered
+      })
+
+      await expect(
+        orchestrator.run({
+          db,
+          settings: defaultSettings,
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        }),
+      ).rejects.toBeInstanceOf(PipelineCancelledError)
+
+      expect(mockResolve).not.toHaveBeenCalled()
+      expect(mockStore).not.toHaveBeenCalled()
+      expect(jobRecorder.cancel).toHaveBeenCalledWith(11)
+      expect(jobRecorder.complete).not.toHaveBeenCalled()
+      expect(stages).toContain('cancelled')
+      expect(orchestrator.isRunning).toBe(false)
+    })
+
+    it('clears the queue so a queued run does not start after a stop', async () => {
+      const db = makeDb()
+      // Hold the first run in discover until we release it, so a second run can
+      // queue behind it before we cancel.
+      let release: () => void = () => {}
+      const held = new Promise<void>((r) => {
+        release = r
+      })
+      mockDiscover.mockImplementation(async () => {
+        await held
+        return discovered
+      })
+
+      orchestrator.enqueue({
+        db,
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
+
+      const second = orchestrator.enqueue({
+        db,
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 2,
+      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
+      expect(second.status).toBe('queued')
+      expect(orchestrator.queueLength).toBe(1)
+
+      const result = orchestrator.cancel()
+      expect(result.cancelled).toBe(true)
+      expect(orchestrator.queueLength).toBe(0)
+
+      release()
+      // Let the aborted run settle.
+      await new Promise((r) => setTimeout(r, 0))
+      expect(orchestrator.isRunning).toBe(false)
+    })
+
+    it('reports nothing to cancel when idle', () => {
+      expect(orchestrator.isRunning).toBe(false)
+      expect(orchestrator.cancel()).toEqual({ cancelled: false })
+    })
   })
 })

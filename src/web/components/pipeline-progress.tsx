@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
-import { getPipelineStatus } from '../lib/api'
+import { cancelPipeline, getPipelineStatus } from '../lib/api'
 import { useSSE } from '../lib/hooks'
 import { useI18n } from '../lib/i18n'
 
@@ -79,10 +79,14 @@ export function PipelineProgress({
   const lastEventRef = useRef<number>(Date.now())
   const [stalled, setStalled] = useState(false)
 
+  const [cancelling, setCancelling] = useState(false)
+
   const progress = sseData as SSEProgress | null
   const isRunning = status?.running ?? false
 
   const stage = progress?.stage ?? (status?.running ? (status.stage ?? 'collect') : null)
+  const cancelled = stage === 'cancelled'
+  const isTerminal = stage === 'complete' || cancelled
   const stageIdx = stage ? stageIndex(stage) : 0
   const pct = stage ? Math.round(((stageIdx + 1) / STAGES.length) * 100) : 0
   const label = stage ? (STAGE_LABELS[stage] ? t(STAGE_LABELS[stage]) : stage) : ''
@@ -107,25 +111,25 @@ export function PipelineProgress({
 
   // Stall detection check
   useEffect(() => {
-    if (!stage || stage === 'complete') return
+    if (!stage || isTerminal) return
     const interval = setInterval(() => {
       if (Date.now() - lastEventRef.current > STALL_THRESHOLD_MS) {
         setStalled(true)
       }
     }, 5000)
     return () => clearInterval(interval)
-  }, [stage])
+  }, [stage, isTerminal])
 
-  // Clean up timer on complete or unmount
+  // Clean up timer on terminal (complete/cancelled) or unmount
   useEffect(() => {
-    if (stage === 'complete' && timerRef.current) {
+    if (isTerminal && timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [stage])
+  }, [isTerminal])
 
   // Reset timer state when pipeline stops
   useEffect(() => {
@@ -136,23 +140,35 @@ export function PipelineProgress({
     }
   }, [isRunning, progress])
 
-  // Fire onComplete exactly once when pipeline finishes
+  // Fire onComplete exactly once when the pipeline finishes or is stopped
   useEffect(() => {
-    if (stage === 'complete' && onComplete && !completeFired.current) {
+    if (isTerminal && onComplete && !completeFired.current) {
       completeFired.current = true
+      setCancelling(false)
       setTimeout(onComplete, 500)
     }
-    if (stage && stage !== 'complete') {
+    if (stage && !isTerminal) {
       completeFired.current = false
     }
-  }, [stage, onComplete])
+  }, [stage, isTerminal, onComplete])
+
+  async function handleStop() {
+    setCancelling(true)
+    try {
+      await cancelPipeline()
+    } catch {
+      // Best-effort: the SSE 'cancelled' event drives the UI; on failure the
+      // user can retry. Reset the button so it isn't stuck disabled.
+      setCancelling(false)
+    }
+  }
 
   if (!isRunning && !progress) return null
 
   return (
     <div className="bg-surface border border-border rounded-lg p-4 space-y-3">
       {/* Header */}
-      {isFirstScan && stage !== 'complete' && (
+      {isFirstScan && !isTerminal && (
         <div className="space-y-1">
           <p className="text-sm font-medium text-text">{t('pipeline.runningFirstScan')}</p>
           <p className="text-xs text-muted">{t('pipeline.firstScanDescription')}</p>
@@ -162,44 +178,62 @@ export function PipelineProgress({
       {/* Stage label + counters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {stage !== 'complete' && (
+          {!isTerminal && (
             <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse" />
           )}
-          <span className="text-sm font-medium text-text">{label}</span>
+          <span className="text-sm font-medium text-text">
+            {cancelled ? t('pipeline.cancelled') : label}
+          </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted">
-          {startedRef.current && stage !== 'complete' && (
+          {startedRef.current && !isTerminal && (
             <span>
               {t('pipeline.runningFor')} {formatElapsed(elapsed)}
             </span>
           )}
-          {current !== undefined && total !== undefined && (
+          {!cancelled && current !== undefined && total !== undefined && (
             <span>
               {current}/{total}
             </span>
           )}
-          <span>{pct}%</span>
+          {!cancelled && <span>{pct}%</span>}
+          {!isTerminal && (
+            <button
+              type="button"
+              onClick={handleStop}
+              disabled={cancelling}
+              className="rounded border border-border px-2 py-0.5 text-xs font-medium text-text hover:bg-bg disabled:opacity-50"
+            >
+              {cancelling ? t('pipeline.stopping') : t('pipeline.stop')}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Segmented progress bar */}
-      <div className="flex gap-1">
-        {STAGES.slice(0, -1).map((s, i) => (
-          <div
-            key={s}
-            className={[
-              'h-1.5 flex-1 rounded-full transition-all duration-300',
-              i < stageIdx ? 'bg-accent' : i === stageIdx ? 'bg-accent/60 animate-pulse' : 'bg-bg',
-            ].join(' ')}
-          />
-        ))}
-      </div>
+      {!cancelled && (
+        <div className="flex gap-1">
+          {STAGES.slice(0, -1).map((s, i) => (
+            <div
+              key={s}
+              className={[
+                'h-1.5 flex-1 rounded-full transition-all duration-300',
+                i < stageIdx
+                  ? 'bg-accent'
+                  : i === stageIdx
+                    ? 'bg-accent/60 animate-pulse'
+                    : 'bg-bg',
+              ].join(' ')}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Stage description */}
-      {description && <p className="text-xs text-muted">{description}</p>}
+      {!cancelled && description && <p className="text-xs text-muted">{description}</p>}
 
       {/* Stall warning */}
-      {stalled && stage !== 'complete' && (
+      {stalled && !isTerminal && (
         <p className="text-xs text-muted italic">{t('pipeline.stalled')}</p>
       )}
 
