@@ -74,7 +74,8 @@ describe('CI workflow reliability policy', () => {
 
     expect(macJob).toContain('runs-on: macos-15-intel')
     expect(macJob.match(/continue-on-error: true/g)).toHaveLength(1)
-    expect(macJob).toContain('brew install colima docker docker-compose')
+    expect(macJob).toContain('brew install colima docker docker-buildx docker-compose')
+    expect(macJob).toContain('~/.docker/cli-plugins/docker-buildx')
     expect(macJob).toContain('~/.docker/cli-plugins/docker-compose')
     expect(macJob).toContain('--arch x86_64')
     expect(macJob).toContain('--vm-type vz')
