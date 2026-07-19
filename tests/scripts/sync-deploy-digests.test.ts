@@ -68,21 +68,21 @@ describe('release workflow policy', () => {
 })
 
 describe('CI workflow reliability policy', () => {
-  it('pins a viable macOS Docker runner and requires every assertion to complete', () => {
+  it('provisions Docker through Colima on macOS and requires every assertion to complete', () => {
     const workflow = readFileSync('.github/workflows/compatibility.yml', 'utf8')
     const macJob = workflow.split('  docker-macos:')[1] ?? ''
 
     expect(macJob).toContain('runs-on: macos-15-intel')
     expect(macJob.match(/continue-on-error: true/g)).toHaveLength(1)
-    expect(macJob).toContain('--accept-license')
-    expect(macJob).toContain('--user="$USER"')
-    expect(macJob).toContain('docker desktop start --timeout 300')
-    expect(macJob).toContain('name: Diagnose Docker Desktop startup')
-    expect(macJob).toContain('docker desktop status')
-    expect(macJob).toContain('docker desktop logs --priority 2')
+    expect(macJob).toContain('brew install colima docker docker-compose')
+    expect(macJob).toContain('~/.docker/cli-plugins/docker-compose')
+    expect(macJob).toContain('--arch x86_64')
+    expect(macJob).toContain('--vm-type vz')
+    expect(macJob).toContain('--mount-type virtiofs')
+    expect(macJob).toContain('name: Diagnose Colima startup')
+    expect(macJob).toContain('colima status')
+    expect(macJob).toContain('limactl list')
     expect(macJob).toContain('sysctl -n kern.hv_support')
-    expect(macJob).toContain('/usr/bin/log show')
-    expect(macJob).toContain('Data/log/vm/init.log')
     expect(macJob).toContain('id: docker')
     expect(macJob).toContain('id: postgres_assert')
     expect(macJob).toContain('id: pglite_assert')

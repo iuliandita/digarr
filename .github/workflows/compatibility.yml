@@ -95,7 +95,7 @@ jobs:
           podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v || true
 
   docker-macos:
-    name: Docker Desktop (macOS)
+    name: Docker via Colima (macOS Intel)
     runs-on: macos-15-intel
     # Keep the macOS signal visible without blocking unrelated pull requests
     # while the hosted Intel path proves stable.
@@ -103,42 +103,38 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
-      - name: Install Docker Desktop
-        timeout-minutes: 5
+      - name: Install Colima and Docker clients
+        timeout-minutes: 10
         run: |
-          brew install --cask docker
-          sudo /Applications/Docker.app/Contents/MacOS/install \
-            --accept-license \
-            --user="$USER"
+          brew install colima docker docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn "$(brew --prefix)/opt/docker-compose/bin/docker-compose" ~/.docker/cli-plugins/docker-compose
 
-      - name: Start Docker Desktop
+      - name: Start Docker through Colima
         id: docker
-        timeout-minutes: 6
+        timeout-minutes: 10
         run: |
-          docker desktop start --timeout 300
+          colima start \
+            --cpu 4 \
+            --memory 10 \
+            --disk 30 \
+            --arch x86_64 \
+            --vm-type vz \
+            --mount-type virtiofs
           docker info
+          docker compose version
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Diagnose Docker Desktop startup
+      - name: Diagnose Colima startup
         if: failure() && steps.docker.outputs.ready != 'true'
         run: |
           sw_vers
           uname -m
           sysctl -n kern.hv_support || true
-          docker desktop status || true
-          docker desktop logs --priority 2 || true
-          DOCKER_LOG_PREDICATE='process matches ".*(ocker|vpnkit).*" || (process in {"taskgated-helper", "launchservicesd", "kernel"} && eventMessage contains[c] "docker")'
-          /usr/bin/log show \
-            --debug \
-            --info \
-            --style syslog \
-            --last 10m \
-            --predicate "$DOCKER_LOG_PREDICATE" \
-            | tail -n 200 || true
-          INIT_LOG="$HOME/Library/Containers/com.docker.docker/Data/log/vm/init.log"
-          if [ -f "$INIT_LOG" ]; then
-            tail -n 200 "$INIT_LOG"
-          fi
+          colima status || true
+          colima list || true
+          limactl list || true
+          docker info || true
 
       - name: Prepare env
         if: steps.docker.outputs.ready == 'true'
@@ -217,6 +213,7 @@ jobs:
         run: |
           docker compose -f docker-compose.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
           docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
+          colima stop || true
 
       - name: Verify compatibility assertions ran
         if: always()
