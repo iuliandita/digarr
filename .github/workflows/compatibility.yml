@@ -96,33 +96,39 @@ jobs:
 
   docker-macos:
     name: Docker Desktop (macOS)
-    runs-on: macos-15
-    # Hosted macOS runners are flaky when booting Docker Desktop; keep the
-    # signal visible in PRs and scheduled runs without blocking merges.
+    runs-on: macos-15-intel
+    # Keep the macOS signal visible without blocking unrelated pull requests
+    # while the hosted Intel path proves stable.
     continue-on-error: true
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
-      - name: Install Docker
+      - name: Install Docker Desktop
         timeout-minutes: 5
-        run: brew install --cask docker
+        run: |
+          brew install --cask docker
+          sudo /Applications/Docker.app/Contents/MacOS/install \
+            --accept-license \
+            --user="$USER"
 
       - name: Start Docker Desktop
         id: docker
         timeout-minutes: 6
         run: |
-          open /Applications/Docker.app
-          for i in $(seq 1 150); do
-            if docker info > /dev/null 2>&1; then
-              echo "Docker ready after $((i * 2))s"
-              echo "ready=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::error::Docker Desktop did not become ready within 300 seconds"
-          echo "ready=false" >> "$GITHUB_OUTPUT"
-          exit 1
+          docker desktop start --timeout 300
+          docker info
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Diagnose Docker Desktop startup
+        if: failure() && steps.docker.outputs.ready != 'true'
+        run: |
+          sw_vers
+          uname -m
+          docker desktop status || true
+          INIT_LOG="$HOME/Library/Containers/com.docker.docker/Data/log/vm/init.log"
+          if [ -f "$INIT_LOG" ]; then
+            tail -n 200 "$INIT_LOG"
+          fi
 
       - name: Prepare env
         if: steps.docker.outputs.ready == 'true'
