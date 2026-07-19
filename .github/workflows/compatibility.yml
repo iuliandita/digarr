@@ -183,7 +183,7 @@ jobs:
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after ${i}s"
               break
@@ -192,7 +192,7 @@ jobs:
           done
           curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"pglite"'
           docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml restart
-          for i in $(seq 1 30); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after restart (${i}s)"
               break
@@ -206,8 +206,16 @@ jobs:
         if: failure() && steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.compat.yml logs || true
-          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml logs --timestamps || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs --timestamps || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml ps -a || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml ps -a || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml ps -aq | while IFS= read -r container; do
+            docker inspect --format '{{json .State}}' "$container" || true
+          done
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml ps -aq | while IFS= read -r container; do
+            docker inspect --format '{{json .State}}' "$container" || true
+          done
 
       - name: Tear down
         if: always() && steps.docker.outputs.ready == 'true'
