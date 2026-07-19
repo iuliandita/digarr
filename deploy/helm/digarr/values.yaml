@@ -7,8 +7,8 @@ image:
   # channel for clusters where reproducibility is not a goal, set tag: "stable" and remove
   # the digest line - :stable is promoted only after a release has been live >= 7 days
   # without a follow-up patch.
-  tag: "1.13.0"
-  digest: "sha256:6d2fc4f088bf279e9a7d215dee04ca26316bd8264816eb3ca905346835d31571"
+  tag: "1.14.0"
+  digest: "sha256:c646ef73c7426cd38886b33fddb4042fe61a2819234a1929921208e289cace75"
   pullPolicy: Always
 
 # uid 10001 deliberately differs from the image's bundled `bun` user (uid 1000):
