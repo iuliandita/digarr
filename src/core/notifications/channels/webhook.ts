@@ -2,13 +2,17 @@ import { redactUrlForLog } from '../../clients/http'
 import { type PostResult, post } from '../transport'
 import type { WebhookChannel, WebhookPayload } from '../types'
 
+function hostMatches(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`)
+}
+
 function redactWebhookUrl(url: string): string {
   const redacted = redactUrlForLog(url)
   try {
     const parsed = new URL(redacted)
     const host = parsed.hostname
-    const isDiscordHost = host.endsWith('discord.com') || host.endsWith('discordapp.com')
-    const isSlackHost = host.endsWith('slack.com')
+    const isDiscordHost = hostMatches(host, 'discord.com') || hostMatches(host, 'discordapp.com')
+    const isSlackHost = hostMatches(host, 'slack.com')
     if (!isDiscordHost && !isSlackHost) return redacted
     const segments = parsed.pathname.split('/')
     for (let i = segments.length - 1; i >= 0; i--) {
@@ -26,7 +30,7 @@ function redactWebhookUrl(url: string): string {
 function isDiscordWebhook(url: string): boolean {
   try {
     const u = new URL(url)
-    return u.hostname.endsWith('discord.com') || u.hostname.endsWith('discordapp.com')
+    return hostMatches(u.hostname, 'discord.com') || hostMatches(u.hostname, 'discordapp.com')
   } catch {
     return false
   }

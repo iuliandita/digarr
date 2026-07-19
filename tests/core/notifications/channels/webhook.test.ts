@@ -3,9 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { formatDiscordPayload, sendWebhookChannel } from '@/core/notifications/channels/webhook'
 import type { WebhookChannel, WebhookPayload } from '@/core/notifications/types'
 
+const RESOLVABLE = new Set(['discord.com', 'generic.example', 'notdiscord.com'])
 vi.mock('node:dns/promises', () => ({
   lookup: vi.fn(async (host: string) => ({
-    address: host === 'discord.com' || host === 'generic.example' ? '93.184.216.34' : host,
+    address: RESOLVABLE.has(host) ? '93.184.216.34' : host,
     family: 4,
   })),
 }))
@@ -53,6 +54,16 @@ describe('sendWebhookChannel', () => {
     const body = JSON.parse(init.body as string) as { embeds?: unknown[] }
     expect(Array.isArray(body.embeds)).toBe(true)
     expect(body.embeds?.length).toBe(1)
+  })
+
+  it('does not treat a lookalike host as Discord (dot-boundary match)', async () => {
+    const r = await sendWebhookChannel(
+      makeChannel('https://notdiscord.com/api/webhooks/123/abc'),
+      makePayload(),
+    )
+    expect(r.ok).toBe(true)
+    const [, init] = okFetch.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual(makePayload())
   })
 })
 
