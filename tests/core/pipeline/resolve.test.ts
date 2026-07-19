@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RateLimitedError } from '@/core/clients/audiodb'
 import type { MBArtist } from '@/core/clients/musicbrainz'
+import { PipelineCancelledError } from '@/core/pipeline/cancel'
 import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import type { DiscoveredArtist } from '@/core/types'
 
@@ -64,6 +65,31 @@ describe('resolve()', () => {
     expect(result[0]?.mbid).toBe('mbid-rh')
     expect(mb.lookupArtist).toHaveBeenCalledWith('mbid-rh')
     expect(mb.searchArtist).not.toHaveBeenCalled()
+  })
+
+  it('throws PipelineCancelledError when the abort signal is already aborted', async () => {
+    const discovered: DiscoveredArtist[] = [
+      { name: 'Radiohead', mbid: 'mbid-rh', similarityScore: 0.9, source: 'listenbrainz' },
+    ]
+    const mb = makeMb(makeMbArtist({ id: 'mbid-rh', name: 'Radiohead' }))
+    const controller = new AbortController()
+    controller.abort()
+
+    await expect(
+      resolve(
+        discovered,
+        mb,
+        undefined,
+        null,
+        null,
+        null,
+        undefined,
+        null,
+        false,
+        controller.signal,
+      ),
+    ).rejects.toBeInstanceOf(PipelineCancelledError)
+    expect(mb.lookupArtist).not.toHaveBeenCalled()
   })
 
   it('searches MB for artists without MBIDs', async () => {

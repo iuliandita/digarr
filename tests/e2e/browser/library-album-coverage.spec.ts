@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken } from './auth'
+import { ensureAdminToken, installAuthCookie } from './auth'
 
 test.describe('library album coverage', () => {
   test('shows the album coverage popover from discover', async ({ page }) => {
@@ -7,7 +7,7 @@ test.describe('library album coverage', () => {
     test.skip(!token, 'Requires a working local Postgres test database')
     if (!token) return
 
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
 
     await page.route('**/api/v1/recommendations**', async (route) => {
       const url = new URL(route.request().url())

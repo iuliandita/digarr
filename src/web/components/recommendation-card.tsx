@@ -468,10 +468,7 @@ function TopTracks({ artistId }: { artistId: number }) {
     }
     // Stop global preview when playing a track
     preview.stop()
-    // Use proxy URL with token in query param (Audio element can't send headers)
-    const token = localStorage.getItem('digarr-auth-token')
     const params = new URLSearchParams({ url: previewUrl })
-    if (token) params.set('token', token)
     const proxyUrl = `/api/v1/preview/audio?${params.toString()}`
     const audio = new Audio(proxyUrl)
     audio.volume = readStoredVolume()

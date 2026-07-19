@@ -115,7 +115,6 @@ function makeDeps(overrides: Partial<SlskdAppDeps> = {}): SlskdAppDeps {
     getUserByUsername: vi.fn(async () => null),
     getUserById: async () => makeUser(),
     getUserCount: vi.fn(async () => 1),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
     getUserByOidcSubject: vi.fn(async () => null),
@@ -157,6 +156,7 @@ function makeDeps(overrides: Partial<SlskdAppDeps> = {}): SlskdAppDeps {
       start: vi.fn().mockResolvedValue(1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     jobQueries: {

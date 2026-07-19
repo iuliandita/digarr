@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken } from './auth'
+import { ensureAdminToken, installAuthCookie } from './auth'
 import { installDiscoverListView, seedRecommendations } from './seed'
 
 test.describe('Metadata enrichment', () => {
@@ -8,7 +8,7 @@ test.describe('Metadata enrichment', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await seedRecommendations(page.request, token)
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await installDiscoverListView(page)
   })
 

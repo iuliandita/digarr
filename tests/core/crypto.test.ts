@@ -8,7 +8,6 @@ import {
   getKeyFingerprint,
   initEncryption,
   isEncryptionEnabled,
-  SENSITIVE_OIDC,
 } from '@/core/crypto'
 
 function encryptWithLegacyKey(value: string, keyInput: string): string {
@@ -137,35 +136,25 @@ describe('crypto', () => {
   })
 
   describe('encryptFields / decryptFields', () => {
-    it('encrypts and decrypts the named sensitive fields only', () => {
+    it('round-trips listed fields without changing unlisted or null values', () => {
       const row = {
-        id: 1,
-        userId: 42,
-        accessToken: 'access-abc',
-        refreshToken: 'refresh-xyz',
-        idToken: 'id-jwt-here',
-        issuerUrl: 'https://issuer.example',
+        apiKey: 'api-secret',
+        password: 'password-secret',
+        token: null,
+        label: 'public-label',
       }
-      const encrypted = encryptFields(row, SENSITIVE_OIDC)
-      expect(encrypted.accessToken).not.toBe(row.accessToken)
-      expect(encrypted.refreshToken).not.toBe(row.refreshToken)
-      expect(encrypted.idToken).not.toBe(row.idToken)
-      // Non-sensitive fields untouched
-      expect(encrypted.id).toBe(1)
-      expect(encrypted.userId).toBe(42)
-      expect(encrypted.issuerUrl).toBe('https://issuer.example')
+      const fields = ['apiKey', 'password', 'token'] as const
 
-      const decrypted = decryptFields(encrypted, SENSITIVE_OIDC)
+      const encrypted = encryptFields(row, fields)
+      expect(encrypted.apiKey).not.toBe(row.apiKey)
+      expect(encrypted.password).not.toBe(row.password)
+      expect(encrypted.token).toBe(null)
+      expect(encrypted.label).toBe(row.label)
+
+      const decrypted = decryptFields(encrypted, fields)
       expect(decrypted).toEqual(row)
-    })
-
-    it('tolerates missing optional fields (null refreshToken)', () => {
-      const row = { accessToken: 'a', refreshToken: null, idToken: null }
-      const enc = encryptFields(row, SENSITIVE_OIDC)
-      expect(enc.refreshToken).toBe(null)
-      expect(enc.idToken).toBe(null)
-      expect(enc.accessToken).not.toBe('a')
-      expect(decryptFields(enc, SENSITIVE_OIDC)).toEqual(row)
+      expect(decrypted.token).toBe(null)
+      expect(decrypted.label).toBe(row.label)
     })
 
     it('is idempotent on already-encrypted rows', () => {

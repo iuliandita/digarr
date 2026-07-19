@@ -1,20 +1,28 @@
 import { lookup } from 'node:dns/promises'
 import { type Context, Hono } from 'hono'
-import { deleteCookie, getCookie } from 'hono/cookie'
+import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
-import { generateSessionToken, hashPassword, verifyPassword } from '@/core/auth'
+import { hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
 import { isSingleAdminCollision, isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
-import { isPrivateIp, isPrivateUrl } from '@/core/notifications'
-import { clearUserSessions, createSession, deleteSession } from '@/core/sessions'
-import { getLookupHostname, isHttpUrl } from '@/core/validation'
+import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
+import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
+import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
 import { updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
+import {
+  changePasswordSession,
+  clearSessionCookie,
+  cookieModeRequested,
+  issuePasswordSession,
+  issueSession,
+  prepareSessionCookie,
+} from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
@@ -58,6 +66,8 @@ const ALLOWED_PREF_KEYS = new Set([
 export function authRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
 
+  const passwordSessions = deps.passwordSessions ?? sessionQueries(deps.db)
+
   const getRequestMessages = (c: Context<HonoEnv>) =>
     getMessages(
       resolveRequestLocale({
@@ -96,6 +106,8 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const isAdmin = userCount === 0
+    const cookie = cookieModeRequested(c)
+    const preparedCookie = cookie ? prepareSessionCookie(c) : false
 
     const passwordHash = hashPassword(password)
     // Defence-in-depth against the first-admin bootstrap race: two
@@ -125,10 +137,14 @@ export function authRoutes(deps: AppDependencies) {
       user = await deps.createUser({ username, passwordHash, isAdmin: false })
     }
 
-    const token = generateSessionToken()
-    await createSession(user.id, token)
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    const token = await issueSession(c, user.id, {
+      kind: 'create',
+      cookie: preparedCookie,
+      revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
+    })
 
-    return c.json({ user, token }, 201)
+    return cookie ? c.json({ user }, 201) : c.json({ user, token }, 201)
   })
 
   // Login with username + password.
@@ -166,23 +182,93 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
-    const token = generateSessionToken()
-    await createSession(user.id, token)
+    const cookie = cookieModeRequested(c)
+    const preparedCookie = cookie ? prepareSessionCookie(c) : false
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    let token: string
+    try {
+      token = await issuePasswordSession(
+        c,
+        passwordSessions,
+        user.id,
+        user.passwordHash,
+        preparedCookie,
+        cookie && existingCookie ? [existingCookie] : [],
+      )
+    } catch (error) {
+      // A stale verified hash means the password changed between our read and the
+      // atomic write; treat it as invalid credentials rather than leaking the race.
+      if (error instanceof PasswordCredentialConflictError) {
+        return problem(
+          c,
+          'auth-invalid-credentials',
+          messages['auth.invalidCredentials'],
+          401,
+          undefined,
+          undefined,
+          'errors.auth.invalidCredentials',
+        )
+      }
+      throw error
+    }
 
     const { passwordHash: _, ...publicUser } = user
-    return c.json({ user: publicUser, token })
+    return cookie ? c.json({ user: publicUser }) : c.json({ user: publicUser, token })
   })
 
-  // Logout (invalidate session token)
+  router.post('/api/v1/auth/session/migrate', async (c) => {
+    const authMethod = c.get('authMethod')
+    if (authMethod === 'legacy-bearer') {
+      return problem(
+        c,
+        'auth-session-migration-legacy-token',
+        'Legacy token cannot be migrated',
+        403,
+      )
+    }
+    if (authMethod !== 'session-bearer') {
+      return problem(c, 'auth-session-migration-requires-bearer', 'Bearer session required', 403)
+    }
+
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const header = c.req.header('Authorization')
+    const bearer = header?.startsWith('Bearer ') ? header.slice(7) : ''
+    if (!bearer) {
+      return problem(c, 'auth-session-migration-requires-bearer', 'Bearer session required', 403)
+    }
+
+    const existingCookie = getCookie(c, SESSION_COOKIE_NAME)
+    try {
+      const cookie = prepareSessionCookie(c)
+      await issueSession(c, auth.userId, {
+        kind: 'rotate',
+        cookie,
+        requiredSourceToken: bearer,
+        revokeTokens: existingCookie && existingCookie !== bearer ? [existingCookie] : undefined,
+      })
+    } catch (error) {
+      if (error instanceof SessionRotationConflictError) {
+        return problem(c, 'auth-session-migration-conflict', 'Session migration conflict', 409)
+      }
+      throw error
+    }
+
+    return c.body(null, 204)
+  })
+
+  // Logout (invalidate all credentials presented by this request)
   router.post('/api/v1/auth/logout', async (c) => {
     const header = c.req.header('Authorization')
-    if (header?.startsWith('Bearer ')) {
-      await deleteSession(header.slice(7))
-    } else {
-      const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
-      if (cookieToken) await deleteSession(cookieToken)
+    const tokens = new Set<string>()
+    if (header?.startsWith('Bearer ') && header.length > 7) {
+      tokens.add(header.slice(7))
     }
-    deleteCookie(c, SESSION_COOKIE_NAME, { path: '/' })
+    const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
+    if (cookieToken) tokens.add(cookieToken)
+    for (const token of tokens) await deleteSession(token)
+    c.header('Cache-Control', 'no-store')
+    clearSessionCookie(c)
     return c.body(null, 204)
   })
 
@@ -318,15 +404,34 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
+    const cookieRequested =
+      c.get('authMethod') === 'session-cookie' || c.get('authMethod') === 'proxy'
+    const preparedCookie = cookieRequested ? prepareSessionCookie(c) : false
     const newHash = hashPassword(newPassword)
-    await deps.updatePassword(auth.userId, newHash)
-
-    // Invalidate all sessions for this user, then create a fresh one
-    await clearUserSessions(auth.userId)
-    const newToken = generateSessionToken()
-    await createSession(auth.userId, newToken)
-
-    return c.json({ token: newToken })
+    try {
+      const newToken = await changePasswordSession(
+        c,
+        passwordSessions,
+        auth.userId,
+        fullUser.passwordHash,
+        newHash,
+        preparedCookie,
+      )
+      return cookieRequested ? c.body(null, 204) : c.json({ token: newToken })
+    } catch (error) {
+      if (error instanceof PasswordCredentialConflictError) {
+        return problem(
+          c,
+          'auth-password-incorrect',
+          'Current password is incorrect',
+          401,
+          undefined,
+          undefined,
+          'errors.auth.passwordIncorrect',
+        )
+      }
+      throw error
+    }
   })
 
   // Get the authenticated user's merged preferences

@@ -6,16 +6,25 @@ import {
   startDigestNotifier,
   windowMsFromCron,
 } from '@/core/jobs/digest-notifier'
+import type { NotificationChannel } from '@/core/notifications/types'
 import { setMaintenance } from '@/core/ops/maintenance'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+const digestChannel: NotificationChannel = {
+  id: 'w1',
+  type: 'webhook',
+  enabled: true,
+  events: ['digest'],
+  url: 'https://hooks.example.com/webhook',
+}
+
 function makeDeps(overrides: Partial<DigestNotifierDeps> = {}): DigestNotifierDeps {
   return {
     getDigestCron: () => '0 6 * * *',
-    getWebhookUrl: () => 'https://hooks.example.com/webhook',
+    getChannels: () => [digestChannel],
     getStats: async () => ({ discovered: 0, added: 0, runs: 0 }),
-    sendWebhook: vi.fn().mockResolvedValue(undefined),
+    dispatch: vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }]),
     getLastSentAt: vi.fn().mockResolvedValue(null),
     setLastSentAt: vi.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -77,40 +86,51 @@ describe('startDigestNotifier', () => {
     const deps = makeDeps({ getDigestCron: () => undefined })
     started = await startDigestNotifier(deps)
     expect(started).toBeNull()
-    expect(deps.sendWebhook).not.toHaveBeenCalled()
+    expect(deps.dispatch).not.toHaveBeenCalled()
   })
 
-  it('does not send when webhookUrl is unset at fire time', async () => {
+  it('does not send when no channel is subscribed to digest at fire time', async () => {
     const deps = makeDeps({
-      getWebhookUrl: () => undefined,
+      getChannels: () => [{ ...digestChannel, events: ['batch_complete'] }],
       getStats: async () => ({ discovered: 5, added: 2, runs: 1 }),
     })
     started = await startDigestNotifier(deps)
     expect(started).not.toBeNull()
     if (started) await fire(started)
-    expect(deps.sendWebhook).not.toHaveBeenCalled()
+    expect(deps.dispatch).not.toHaveBeenCalled()
+  })
+
+  it('does not send when channels are empty at fire time', async () => {
+    const deps = makeDeps({
+      getChannels: () => [],
+      getStats: async () => ({ discovered: 5, added: 2, runs: 1 }),
+    })
+    started = await startDigestNotifier(deps)
+    if (started) await fire(started)
+    expect(deps.dispatch).not.toHaveBeenCalled()
   })
 
   it('does not send when the window had zero activity, but still advances the bookmark', async () => {
     const deps = makeDeps({ getStats: async () => ({ discovered: 0, added: 0, runs: 0 }) })
     started = await startDigestNotifier(deps)
     if (started) await fire(started)
-    expect(deps.sendWebhook).not.toHaveBeenCalled()
+    expect(deps.dispatch).not.toHaveBeenCalled()
     expect(deps.setLastSentAt).toHaveBeenCalledOnce()
   })
 
   it('sends a digest payload with aggregated stats when there was activity', async () => {
-    const sendWebhook = vi.fn().mockResolvedValue(undefined)
+    const dispatch = vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }])
     const deps = makeDeps({
       getStats: async () => ({ discovered: 9, added: 3, runs: 4 }),
-      sendWebhook,
+      dispatch,
     })
     started = await startDigestNotifier(deps)
     if (started) await fire(started)
 
-    expect(sendWebhook).toHaveBeenCalledOnce()
-    const [url, payload] = sendWebhook.mock.calls[0] ?? []
-    expect(url).toBe('https://hooks.example.com/webhook')
+    expect(dispatch).toHaveBeenCalledOnce()
+    const [channels, event, payload] = dispatch.mock.calls[0] ?? []
+    expect(event).toBe('digest')
+    expect(channels).toEqual([digestChannel])
     expect(payload).toMatchObject({
       event: 'digest',
       window: 'day',
@@ -123,17 +143,17 @@ describe('startDigestNotifier', () => {
 
   it('swallows errors from the stats query', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const sendWebhook = vi.fn()
+    const dispatch = vi.fn()
     const deps = makeDeps({
       getStats: async () => {
         throw new Error('db down')
       },
-      sendWebhook,
+      dispatch,
     })
     started = await startDigestNotifier(deps)
     if (started) await fire(started)
 
-    expect(sendWebhook).not.toHaveBeenCalled()
+    expect(dispatch).not.toHaveBeenCalled()
     expect(consoleSpy).toHaveBeenCalledWith('[digest-notifier] Failed:', expect.any(Error))
   })
 
@@ -151,7 +171,7 @@ describe('startDigestNotifier', () => {
 
     expect(getStats).toHaveBeenCalledOnce()
     expect(getStats.mock.calls[0]?.[0]).toEqual(bookmark)
-    expect(deps.sendWebhook).toHaveBeenCalledOnce()
+    expect(deps.dispatch).toHaveBeenCalledOnce()
   })
 
   it('falls back to the cron-derived window when the bookmark is null', async () => {
@@ -179,36 +199,53 @@ describe('startDigestNotifier', () => {
   })
 
   it('advances the bookmark only after a successful send', async () => {
-    const sendWebhook = vi.fn().mockResolvedValue(undefined)
+    const dispatch = vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }])
     const setLastSentAt = vi.fn().mockResolvedValue(undefined)
     const deps = makeDeps({
       getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
-      sendWebhook,
+      dispatch,
       setLastSentAt,
     })
     started = await startDigestNotifier(deps)
     if (started) await fire(started)
 
-    expect(sendWebhook).toHaveBeenCalledOnce()
+    expect(dispatch).toHaveBeenCalledOnce()
     expect(setLastSentAt).toHaveBeenCalledOnce()
-    const sendOrder = sendWebhook.mock.invocationCallOrder[0]
+    const sendOrder = dispatch.mock.invocationCallOrder[0]
     const bookmarkOrder = setLastSentAt.mock.invocationCallOrder[0]
     expect(bookmarkOrder).toBeGreaterThan(sendOrder ?? Number.POSITIVE_INFINITY)
   })
 
-  it('does not advance the bookmark when the send fails', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('does not advance the bookmark when every channel failed', async () => {
     const setLastSentAt = vi.fn().mockResolvedValue(undefined)
     const deps = makeDeps({
       getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
-      sendWebhook: vi.fn().mockRejectedValue(new Error('webhook down')),
+      dispatch: vi
+        .fn()
+        .mockResolvedValue([{ id: 'w1', type: 'webhook', ok: false, error: 'HTTP 500' }]),
       setLastSentAt,
     })
     started = await startDigestNotifier(deps)
     if (started) await fire(started)
 
+    expect(deps.dispatch).toHaveBeenCalledOnce()
     expect(setLastSentAt).not.toHaveBeenCalled()
-    expect(consoleSpy).toHaveBeenCalledWith('[digest-notifier] Failed:', expect.any(Error))
+  })
+
+  it('advances the bookmark when at least one channel succeeded', async () => {
+    const setLastSentAt = vi.fn().mockResolvedValue(undefined)
+    const deps = makeDeps({
+      getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
+      dispatch: vi.fn().mockResolvedValue([
+        { id: 'a', type: 'webhook', ok: false, error: 'HTTP 500' },
+        { id: 'b', type: 'ntfy', ok: true },
+      ]),
+      setLastSentAt,
+    })
+    started = await startDigestNotifier(deps)
+    if (started) await fire(started)
+
+    expect(setLastSentAt).toHaveBeenCalledOnce()
   })
 
   it('skips the tick entirely during maintenance', async () => {
@@ -222,7 +259,7 @@ describe('startDigestNotifier', () => {
     if (started) await fire(started)
 
     expect(getLastSentAt).not.toHaveBeenCalled()
-    expect(deps.sendWebhook).not.toHaveBeenCalled()
+    expect(deps.dispatch).not.toHaveBeenCalled()
     expect(deps.setLastSentAt).not.toHaveBeenCalled()
   })
 })

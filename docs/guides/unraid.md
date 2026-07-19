@@ -77,6 +77,7 @@ The template exposes these fields (matching
 | ListenBrainz | `LISTENBRAINZ_USERNAME`, `LISTENBRAINZ_TOKEN` | No | Listening source (advanced) |
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | No | Required behind a reverse proxy, e.g. `https://digarr.example.com` |
+| Allow Insecure Cookies | `DIGARR_ALLOW_INSECURE_COOKIES` | No | Defaults to `false`. Set `true` only for an intentional direct-HTTP deployment; direct HTTP exposes the session cookie to interception |
 | Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
@@ -155,6 +156,13 @@ move to a newer release.
 - Keep the AI key, encryption key, and database password out of screenshots and
   shared configs.
 - Behind Unraid's reverse proxy (or an external one such as SWAG/Nginx Proxy
-  Manager), set `ALLOWED_ORIGIN` to the public URL.
+  Manager), set `ALLOWED_ORIGIN` to the public `https://` URL and leave `Allow
+  Insecure Cookies` at `false`; session cookies stay `Secure` even though the
+  proxy reaches the container over HTTP.
+- If you deliberately open the container directly over plain HTTP (no proxy),
+  set `DIGARR_ALLOW_INSECURE_COOKIES=true` before your first login and set
+  `ALLOWED_ORIGIN` to the matching `http://` URL, otherwise the browser drops
+  the `Secure` cookie and login appears to fail. Direct HTTP exposes the
+  session cookie to network interception.
 - The container runs as a single process; memory use varies with library size,
   database backend, migrations, and concurrent background work.

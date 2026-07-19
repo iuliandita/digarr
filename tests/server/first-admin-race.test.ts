@@ -125,7 +125,6 @@ function makeRegisterDeps(overrides: Partial<AppDependencies> = {}): AppDependen
     getUserByUsername: vi.fn(async () => null),
     getUserById: vi.fn(async () => userRow()),
     getUserCount: vi.fn(async () => 0),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: {} as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
@@ -166,6 +165,7 @@ function makeRegisterDeps(overrides: Partial<AppDependencies> = {}): AppDependen
       start: vi.fn().mockResolvedValue(1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     jobQueries: {
@@ -436,7 +436,14 @@ describe('first-admin race: oidc callback', () => {
     const res = await app.request('/api/v1/auth/oidc/callback?state=s&code=c')
 
     expect(res.status).toBe(302)
-    expect(res.headers.get('Location')).toContain('oidc_token=')
+    const location = res.headers.get('Location')
+    expect(location).toBe('/')
+    expect(location).not.toContain('token')
+    expect(location).not.toContain('race-test-token')
+    expect(res.headers.get('set-cookie')).toContain(
+      'digarr_session=race-test-token; Max-Age=2592000; Path=/; HttpOnly; SameSite=Lax',
+    )
+    expect(res.headers.get('cache-control')).toBe('no-store')
     expect(createUser).toHaveBeenCalledTimes(2)
     expect(createUser).toHaveBeenNthCalledWith(1, expect.objectContaining({ isAdmin: true }))
     expect(createUser).toHaveBeenNthCalledWith(2, expect.objectContaining({ isAdmin: false }))

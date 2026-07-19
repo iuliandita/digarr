@@ -104,14 +104,15 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
 
       - name: Install Docker
+        timeout-minutes: 5
+        run: brew install --cask docker
+
+      - name: Start Docker Desktop
         id: docker
-        timeout-minutes: 8
-        continue-on-error: true
+        timeout-minutes: 6
         run: |
-          brew install --cask docker
           open /Applications/Docker.app
-          # Docker Desktop on macOS runners can take 3+ minutes to initialize
-          for i in $(seq 1 90); do
+          for i in $(seq 1 150); do
             if docker info > /dev/null 2>&1; then
               echo "Docker ready after $((i * 2))s"
               echo "ready=true" >> "$GITHUB_OUTPUT"
@@ -119,8 +120,9 @@ jobs:
             fi
             sleep 2
           done
-          echo "::warning::Docker Desktop failed to start; skipping macOS Docker compatibility check"
+          echo "::error::Docker Desktop did not become ready within 300 seconds"
           echo "ready=false" >> "$GITHUB_OUTPUT"
+          exit 1
 
       - name: Prepare env
         if: steps.docker.outputs.ready == 'true'
@@ -136,6 +138,7 @@ jobs:
         run: docker compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
 
       - name: Assert postgres backend
+        id: postgres_assert
         if: steps.docker.outputs.ready == 'true'
         run: |
           for i in $(seq 1 30); do
@@ -146,6 +149,7 @@ jobs:
             sleep 2
           done
           curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"postgres"'
+          echo "ran=true" >> "$GITHUB_OUTPUT"
 
       - name: Tear down postgres stack
         if: steps.docker.outputs.ready == 'true'
@@ -161,6 +165,7 @@ jobs:
         run: docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml up -d --build
 
       - name: Assert pglite backend + persistence across restart
+        id: pglite_assert
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: |
@@ -181,6 +186,7 @@ jobs:
             sleep 2
           done
           curl -fsS http://localhost:3000/health | grep -q '"status":"ok"'
+          echo "ran=true" >> "$GITHUB_OUTPUT"
 
       - name: Dump logs on failure
         if: failure() && steps.docker.outputs.ready == 'true'
@@ -195,3 +201,15 @@ jobs:
         run: |
           docker compose -f docker-compose.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
           docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
+
+      - name: Verify compatibility assertions ran
+        if: always()
+        env:
+          DOCKER_READY: ${{ steps.docker.outputs.ready }}
+          POSTGRES_ASSERTED: ${{ steps.postgres_assert.outputs.ran }}
+          PGLITE_ASSERTED: ${{ steps.pglite_assert.outputs.ran }}
+        run: |
+          set -eu
+          test "$DOCKER_READY" = true
+          test "$POSTGRES_ASSERTED" = true
+          test "$PGLITE_ASSERTED" = true

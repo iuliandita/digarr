@@ -174,7 +174,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
         : null,
     ),
     getUserCount: vi.fn(async () => 0),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: mockGenreService as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
@@ -208,6 +207,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       start: vi.fn().mockResolvedValue(1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     jobQueries: {

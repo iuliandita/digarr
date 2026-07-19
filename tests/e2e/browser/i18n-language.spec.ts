@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { getMessages } from '@/core/i18n/messages'
-import { ensureAdminToken, installAuthToken, installBrowserLocale } from './auth'
+import { ensureAdminToken, installAuthCookie, installBrowserLocale } from './auth'
 
 test.describe('Language switching', () => {
   test('pre-login language switcher persists the selected locale', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('Language switching', () => {
     if (!token) return
 
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/')
 
     const languageSwitcher = page.getByTestId('language-switcher')

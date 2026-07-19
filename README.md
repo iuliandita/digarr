@@ -15,7 +15,7 @@
 **Music discovery for your *arr stack.** Digarr builds a taste profile from your listening sources, asks your AI provider for candidates, scores them, and gives you a review queue. From there you can approve artists into Lidarr or playlist targets, run mood searches, save discovery subscriptions, generate playlists, and browse by genre. The UI and AI-assisted reasoning ship in 15 languages. It is self-hosted, so the data stays with you.
 
 > [!NOTE]
-> **v1.13.0 is out.** Digarr adds Subsonic Starred and experimental TIDAL search, genre backfill for non-Spotify listening sources, a continuous Audition queue, and score-threshold bulk rejection. The release also bounds database migrations, hardens playlist transport, repairs several library and scheduler edge cases, and makes Subsonic Starred honor self-signed-server settings. See the [latest release notes](https://github.com/iuliandita/digarr/releases/latest) and [CHANGELOG.md](CHANGELOG.md) for details. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
+> **v1.14.0 is out.** Digarr adds a cooperative "Stop scan" control that cancels an in-flight discovery run without restarting the container, and multiple notification channels (webhook, ntfy, Telegram, Apprise) with per-channel event subscriptions and encrypted secrets. The release also hardens web auth: browser sessions now live in HttpOnly cookies that fail closed to `Secure` in production, OIDC login state is browser-bound and single-use, and provider tokens are retired after sign-in. The sunset unversioned `/api/*` redirects now return 404, slow OpenAI-compatible providers no longer abort opaquely, and Spotify's preview controller runs sandboxed outside the authenticated app. See the [latest release notes](https://github.com/iuliandita/digarr/releases/latest) and [CHANGELOG.md](CHANGELOG.md) for details. If you run into something, [open an issue](https://github.com/iuliandita/digarr/issues).
 >
 > Documentation on `develop` also covers features available in the `:nightly` image but not yet in the latest tagged release. The changelog is the source of truth for released-version availability.
 >
@@ -99,7 +99,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar. Spotify uses a persistent controller so autoplay-blocked previews stay on the current item with usable native controls instead of silently advancing
 - **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs
 - **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Webhook notifications:** Discord embeds or raw JSON to a public HTTPS endpoint -- per-batch, plus an optional scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). Plain HTTP is accepted for compatibility but exposes payload data and URL credentials in transit
+- **Notifications:** a list of channels of any count and mixed type -- webhook (Discord embeds or raw JSON), ntfy, Telegram, and Apprise (one endpoint fans out to 80+ services). Each channel picks its own events: scan complete, and/or a scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). An existing single webhook URL is migrated into a webhook channel automatically -- no config change. Channel secrets are encrypted at rest. All delivery flows through one SSRF-guarded transport (DNS-pinned, no redirects, private/link-local/cloud-metadata targets blocked); an admin-only per-channel opt-in relaxes only RFC1918 ranges for that one channel so a self-hosted ntfy/Apprise on your LAN is reachable, while cloud-metadata and link-local stay blocked regardless
 - **16 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
 - **Export:** JSON, CSV, M3U, and XSPF
 - **Self-hosted:** a single container that runs alongside your existing *arr stack
@@ -208,6 +208,23 @@ Most day-to-day configuration lives in the web UI after initial setup: connectio
 
 Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
+The web UI uses an HttpOnly session cookie; bearer sessions remain available
+for API clients. Behind a reverse proxy or TLS terminator, set
+`ALLOWED_ORIGIN` to the exact public `https://` origin (for example,
+`https://digarr.example.com`) so cookie security and CSRF checks use the
+browser-visible scheme and host. Production cookies stay `Secure` even when the
+proxy reaches Digarr over HTTP, so an HTTPS public origin needs no extra flag.
+An HTTPS origin is strongly preferred; if you intentionally run the production
+container directly over plain HTTP, copy the env example and set
+`DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `http://` `ALLOWED_ORIGIN`,
+accepting that direct HTTP exposes the session cookie to network interception.
+See [Authentication](docs/AUTHENTICATION.md) for the browser migration and API
+compatibility details.
+
+### Local and OpenAI-Compatible AI
+
+For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`, such as `http://<open-webui-host>:<port>/api`. Digarr sends requests to Open WebUI's documented `/api/chat/completions` route. Other compatible servers can use their server root or a base ending in `/v1`. If a local model needs longer to load or generate, set `DIGARR_AI_TIMEOUT_SECONDS` to a suitable value, such as `180`, and restart Digarr; the override applies to both connection tests and recommendation requests.
+
 ### Connecting Spotify
 
 Spotify uses your own Spotify app credentials over OAuth:
@@ -230,9 +247,25 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Restore:** `POST /api/v1/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It restores a cleared database using the backup's primary keys plus stable natural keys for cache and lookup tables where IDs are instance-specific. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
 
+**Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
+
 **Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups so a self-hoster can miss roughly two weeks of releases and still roll back. Disable this with `DIGARR_AUTO_BACKUP=false`.
 
 **Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
+
+**Downgrading across the OIDC token-storage migration:** Stop Digarr first, and never run an older image against a database that has already received the migration. Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
+
+```sh
+docker compose -f docker-compose.pglite.yml stop app
+docker compose -f docker-compose.pglite.yml run --rm --no-deps app \
+  bun dist/scripts/prepare-rollback-backup.js \
+  /app/backups/<automatic-pre-migration-v1.json> \
+  /app/backups/<rollback-compatible-v1.json>
+```
+
+For the external-PostgreSQL installation, use `docker-compose.yml` and include every override file used by that installation. From a source checkout at the same revision, the equivalent command is `bun scripts/prepare-rollback-backup.ts <input> <output>`.
+
+The input must be the automatic pre-migration backup, use backup version 1, and have no existing `data.oidcTokens` key. The output path must not exist. Provision a separate fresh database with the older image so it creates the old schema, then restore the output copy; never point the old image at the migrated database. The helper writes the copy with mode `0600`, adds only an empty `data.oidcTokens` key, refuses an existing output, and never overwrites the source. It cannot recover retired provider tokens.
 
 ### Data Hygiene
 
@@ -332,5 +365,5 @@ MIT. See [LICENSE](LICENSE).
 ---
 
 <p align="center"><sub>
-music discovery · AI music recommendations · self-hosted · lidarr companion · *arr stack · album discovery · new music finder · music curation · mood search · playlist generator · music taste profile · plex · jellyfin · emby · navidrome · subsonic · slskd · soulseek · listenbrainz · last.fm · spotify · deezer · musicbrainz · discogs · tidal · bandcamp · release radar · library gap-fill · discovery modes · music subscriptions · genre discovery · similar artists · charts · docker · kubernetes · helm · unraid · synology · homelab · multi-user · OIDC · SSO · webhooks · discord notifications · i18n · 15 languages · open source · MIT
+music discovery · AI music recommendations · self-hosted · lidarr companion · *arr stack · album discovery · new music finder · music curation · mood search · playlist generator · music taste profile · plex · jellyfin · emby · navidrome · subsonic · slskd · soulseek · listenbrainz · last.fm · spotify · deezer · musicbrainz · discogs · tidal · bandcamp · release radar · library gap-fill · discovery modes · music subscriptions · genre discovery · similar artists · charts · docker · kubernetes · helm · unraid · synology · homelab · multi-user · OIDC · SSO · webhooks · discord notifications · ntfy · telegram · apprise · i18n · 15 languages · open source · MIT
 </sub></p>

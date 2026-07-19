@@ -43,6 +43,25 @@ install with `-f my-values.yaml`.
 
 See `values.yaml` for the full surface.
 
+Ingress and Gateway deployments should inject `ALLOWED_ORIGIN` through
+`extraEnv`, set to the exact public `https://` origin, for example
+`https://digarr.example.com`. Browser session cookies, CSRF checks, and OIDC
+callbacks use that value. Production cookies stay `Secure` even though the
+ingress reaches the pod over HTTP, so an HTTPS public origin needs no further
+flag. See
+[Authentication](../../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
+The chart does not expose a dedicated value for `DIGARR_ALLOW_INSECURE_COOKIES`.
+A cluster serving Digarr over plain HTTP (no TLS) can opt in through `extraEnv`,
+paired with a matching `http://` `ALLOWED_ORIGIN`, accepting that direct HTTP
+exposes the session cookie to network interception:
+
+```yaml
+extraEnv:
+  - name: DIGARR_ALLOW_INSECURE_COOKIES
+    value: "true"
+```
+
 Digarr currently relies on process-local pipeline coordination, schedulers,
 rate limits, and migration locks. External PostgreSQL is useful for managed
 storage and larger installations, but it is not sufficient for horizontal app

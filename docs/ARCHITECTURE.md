@@ -7,6 +7,38 @@ via Drizzle ORM -- either an external server or the embedded PGlite backend
 (see [Database backend](#database-backend)). Frontend is a Vite SPA served by
 Hono in production, proxied via Vite dev server in development.
 
+## Authentication boundary
+
+The SPA authenticates with an `HttpOnly; SameSite=Lax` session cookie and never
+reads the raw token. The CSRF trust origin, CORS, and the OIDC callback all
+derive from the public `ALLOWED_ORIGIN` when it is set; reverse-proxy
+deployments must therefore configure the exact external origin, and TLS
+termination requires an `https://` value for correct CSRF and public-URL
+behavior. The cookie's `Secure` flag reads the public origin protocol only
+(never `X-Forwarded-Proto`): in production it fails closed to `Secure` even when
+the backend request arrives over HTTP, so only an explicit
+`DIGARR_ALLOW_INSECURE_COOKIES=true` on an `http:` public origin drops it. That
+override is intended for a production instance served directly over plain HTTP,
+which is vulnerable to network interception.
+
+Unsafe `/api/v1/*` requests using cookie or proxy auth require the fixed
+`X-Digarr-CSRF: 1` header plus exact same-origin browser evidence. Verified
+bearer sessions remain supported for API compatibility and bypass the
+ambient-credential CSRF check. Query-token auth remains restricted to the two
+safe GET surfaces that need it: pipeline SSE and preview audio.
+
+Password login and registration negotiate cookie mode through
+`X-Digarr-Auth-Mode: cookie`; calls without it retain the bearer-token response
+contract. The SPA rotates an old stored bearer into a cookie through an atomic,
+single-use migration endpoint. OIDC and trusted-proxy auth mint cookies
+directly, and the OIDC callback redirects without putting the session token in
+the URL. OIDC login state is browser-bound in a state-scoped `HttpOnly`
+transaction cookie that the callback consumes: one-time, 10-minute TTL,
+multi-tab safe, capacity-capped, and login-rate-limited (10/min/IP on the login
+route; the callback is not limited). Password change and session replacement
+run as one database transaction under a user-row lock, so a password verified
+before a concurrent reset cannot mint a post-reset session.
+
 ## Database backend
 
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen
@@ -100,13 +132,14 @@ dedup, and the score threshold.
 
 ## Registry patterns
 
-Five extension points, each registry-based:
+Six extension points, each registry-based:
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
 - `SearchSource` - multi-source artist / track search (Lidarr, MusicBrainz, Deezer, ...)
 - `RecommendationProvider` - AI backends (Anthropic, OpenAI, Gemini, Ollama, ...)
 - `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, ...). A new mode is a factory plus a `registry.register` line plus an availability branch; the frontend renders modes generically, so no frontend change is needed
+- `NotificationChannel` - where notifications are delivered (webhook, ntfy, Telegram, Apprise), in `src/core/notifications/`. `registry.ts` fans one event out to every enabled, subscribed channel via `Promise.allSettled` (one channel down never blocks the others); each `channels/<type>.ts` formats its payload and calls the single SSRF-guarded `transport.ts`. A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`. The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest and masked (`***`) through the settings API
 
 Adding a new implementation means:
 
@@ -118,13 +151,18 @@ Adding a new implementation means:
 
 Recommendation-card tracks and the Discover audition queue share the global
 preview context, so starting one preview stops the other audio surface. Deezer
-clips advance from the native `ended` event. Spotify audition playback uses one
-persistent iframe controller: it reports real playback start and completion,
-only completion advances the queue, and an autoplay block leaves the current
-native control usable. Controller initialization is bounded and falls back to
-the standard Spotify iframe for standalone previews; an active audition queue
-skips the unavailable item. YouTube embeds have no equivalent
-completion signal in this integration and use a bounded 30-second fallback.
+clips advance from the native `ended` event. Spotify audition playback keeps one
+persistent local bridge iframe with `sandbox="allow-scripts"` and no
+same-origin capability. Spotify's controller script and embed run only inside
+that opaque-origin document; the authenticated SPA transfers a private
+`MessageChannel` and accepts exact, token-bound playback events. The narrow
+protocol carries load/play/pause/destroy commands plus ready, started, state,
+and failure events. Playback start, pause, completion deduplication, controller
+reuse, and queue advancement remain in the SPA. Bridge initialization is
+bounded and falls back to the standard Spotify iframe for standalone previews;
+an active audition queue skips the unavailable item. YouTube embeds have no
+equivalent completion signal in this integration and use a bounded 30-second
+fallback.
 
 ## Boot order
 

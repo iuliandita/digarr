@@ -155,7 +155,7 @@ vi.mock('@/core/clients/tidal', () => ({
 }))
 
 vi.mock('@/core/notifications', () => ({
-  sendWebhook: vi.fn(),
+  dispatch: vi.fn(),
 }))
 
 const mockSettings = {
@@ -300,7 +300,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       createdAt: new Date(),
     })),
     getUserCount: vi.fn(async () => 0),
-    updatePassword: vi.fn(async () => {}),
     updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: {} as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
@@ -341,6 +340,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       start: vi.fn().mockResolvedValue(1),
       complete: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
       markStuck: vi.fn().mockResolvedValue(0),
     },
     jobQueries: {
@@ -902,33 +902,36 @@ describe('POST /api/v1/settings/test/:service', () => {
     ['explicit', { libraryId: 'music-1' }, 'music-1'],
     ['empty', { libraryId: '' }, ''],
     ['omitted', {}, 'stored-music'],
-  ])('passes the %s Jellyfin library selection to the client', async (_case, selection, expected) => {
-    mockCreateJellyfinClient.mockClear()
-    mockGetUserConnections.mockResolvedValueOnce({
-      ...defaultUserConnections,
-      jellyfinLibraryId: 'stored-music',
-    })
-    const app = createApp(makeDeps())
+  ])(
+    'passes the %s Jellyfin library selection to the client',
+    async (_case, selection, expected) => {
+      mockCreateJellyfinClient.mockClear()
+      mockGetUserConnections.mockResolvedValueOnce({
+        ...defaultUserConnections,
+        jellyfinLibraryId: 'stored-music',
+      })
+      const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://jellyfin:8096',
-        apiKey: 'jellyfin-key',
-        userId: 'user-1',
-        ...selection,
-      }),
-    })
+      const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: 'http://jellyfin:8096',
+          apiKey: 'jellyfin-key',
+          userId: 'user-1',
+          ...selection,
+        }),
+      })
 
-    expect(res.status).toBe(200)
-    expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
-      'http://jellyfin:8096',
-      'jellyfin-key',
-      'user-1',
-      { skipTlsVerify: false, libraryId: expected },
-    )
-  })
+      expect(res.status).toBe(200)
+      expect(mockCreateJellyfinClient).toHaveBeenCalledWith(
+        'http://jellyfin:8096',
+        'jellyfin-key',
+        'user-1',
+        { skipTlsVerify: false, libraryId: expected },
+      )
+    },
+  )
 
   it.each([
     ['explicit', { libraryId: 'music-1' }, 'music-1'],
@@ -1546,14 +1549,9 @@ describe('per-user listening source connections', () => {
   })
 })
 
-describe('POST /api/v1/settings/test-webhook error sanitization', () => {
-  it('does not leak the upstream URL or raw error in the 502 response', async () => {
-    const { sendWebhook } = await import('@/core/notifications')
-    vi.mocked(sendWebhook).mockRejectedValueOnce(
-      new Error('connect ECONNREFUSED 10.9.8.7:9000 (http://hooks.internal:9000/notify)'),
-    )
-
-    const app = createApp(
+describe('POST /api/v1/settings/test-webhook', () => {
+  function appWithWebhook() {
+    return createApp(
       makeDeps({
         getSettings: vi.fn(
           async () =>
@@ -1564,16 +1562,61 @@ describe('POST /api/v1/settings/test-webhook error sanitization', () => {
         ),
       }),
     )
+  }
 
-    const res = await authedRequest(app, '/api/v1/settings/test-webhook', { method: 'POST' })
+  it('returns 204 when the dispatched channel succeeds', async () => {
+    const { dispatch } = await import('@/core/notifications')
+    vi.mocked(dispatch).mockResolvedValueOnce([{ id: 'legacy-webhook', type: 'webhook', ok: true }])
 
+    const res = await authedRequest(appWithWebhook(), '/api/v1/settings/test-webhook', {
+      method: 'POST',
+    })
+    expect(res.status).toBe(204)
+  })
+
+  it('returns 502 with a redacted detail when the channel fails', async () => {
+    const { dispatch } = await import('@/core/notifications')
+    // A dispatch error may carry a secret-bearing URL; the route must redact
+    // it before echoing it in the problem+json detail (defense-in-depth).
+    vi.mocked(dispatch).mockResolvedValueOnce([
+      {
+        id: 'legacy-webhook',
+        type: 'webhook',
+        ok: false,
+        error: 'POST failed: https://hooks.example.com/notify?token=SUPERSECRET123 returned 500',
+      },
+    ])
+
+    const res = await authedRequest(appWithWebhook(), '/api/v1/settings/test-webhook', {
+      method: 'POST',
+    })
     expect(res.status).toBe(502)
     const body = (await res.json()) as { detail?: string }
-    // detail must be the generic message, not the raw error from sendWebhook
-    expect(body.detail).toBe('An unexpected error occurred')
     const serialized = JSON.stringify(body)
-    expect(serialized).not.toContain('10.9.8.7')
-    expect(serialized).not.toContain('hooks.internal')
-    expect(serialized).not.toContain('ECONNREFUSED')
+    // The raw secret token must not leak into the response.
+    expect(serialized).not.toContain('SUPERSECRET123')
+    expect(body.detail).toContain('[redacted]')
+  })
+
+  it('returns 400 when an inline channel body fails schema validation', async () => {
+    const res = await authedRequest(appWithWebhook(), '/api/v1/settings/test-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // Inline path (type + id present) but missing required telegram fields.
+      body: JSON.stringify({ id: 'bad', type: 'telegram' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when no notification channel is configured', async () => {
+    const app = createApp(
+      makeDeps({
+        getSettings: vi.fn(
+          async () => ({ ...mockSettings, preferences: {} }) as unknown as SettingsRow,
+        ),
+      }),
+    )
+    const res = await authedRequest(app, '/api/v1/settings/test-webhook', { method: 'POST' })
+    expect(res.status).toBe(400)
   })
 })

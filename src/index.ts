@@ -16,7 +16,7 @@ import { createSlskdClient } from './core/clients/slskd'
 import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
 import { createTidalClient } from './core/clients/tidal'
-import { initEncryption, isEncryptionEnabled } from './core/crypto'
+import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './core/crypto'
 import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
@@ -38,7 +38,7 @@ import { createSubsonicLibrarySource } from './core/library/sources/subsonic'
 import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
-import { sendWebhook } from './core/notifications'
+import { dispatch } from './core/notifications'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -192,7 +192,6 @@ import {
   getUserConnections,
   getUserCount,
   listUsers,
-  updatePassword,
   updateUser,
   updateUserConnections,
   updateUserPreferredLocale,
@@ -1198,9 +1197,10 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
 function buildDigestDeps() {
   return {
     getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
-    getWebhookUrl: async () => mergePreferences((await getSettings(db))?.preferences).webhookUrl,
+    getChannels: async () =>
+      decryptChannelSecrets(mergePreferences((await getSettings(db))?.preferences).channels ?? []),
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
-    sendWebhook,
+    dispatch,
     getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
     setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
   }
@@ -1303,7 +1303,6 @@ const app = createApp({
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
   getUserCount: () => getUserCount(db),
-  updatePassword: (id, hash) => updatePassword(db, id, hash),
   updateUserPreferredLocale: (id, preferredLocale) =>
     updateUserPreferredLocale(db, id, preferredLocale),
   getOidcService,

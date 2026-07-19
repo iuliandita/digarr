@@ -4,6 +4,7 @@ import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import { parseYear } from '@/core/clients/musicbrainz'
 import type { Translator } from '@/core/i18n/translator'
 import type { DiscoveredArtist, PipelineProgress, ResolvedArtist } from '@/core/types'
+import { PipelineCancelledError } from './cancel'
 
 interface MusicBrainzClient {
   lookupArtist: (mbid: string) => Promise<MBArtist>
@@ -46,6 +47,7 @@ export async function resolve(
   t?: Translator,
   audiodb?: AudiodbClient | null,
   promoteSuggestedAlbums = false,
+  signal?: AbortSignal,
 ): Promise<ResolvedArtist[]> {
   // Album-kind discoveries (gap-fill / release-radar) carry a releaseGroupMbid and
   // must each resolve to their OWN recommendation -- one per release group, even
@@ -93,6 +95,7 @@ export async function resolve(
 
   // Resolve artists that already have MBIDs
   for (const [mbid, discoveries] of byMbid) {
+    if (signal?.aborted) throw new PipelineCancelledError()
     current++
     const artistName = discoveries[0]?.name ?? mbid
     onProgress?.({
@@ -123,6 +126,7 @@ export async function resolve(
 
   // Search MB for artists without MBIDs
   for (const [_nameLower, discoveries] of byName) {
+    if (signal?.aborted) throw new PipelineCancelledError()
     current++
     const firstName = discoveries[0]?.name ?? ''
     onProgress?.({
@@ -192,6 +196,7 @@ export async function resolve(
   // MB lookup so N missing albums for one artist cost a single lookupArtist call.
   const artistLookupCache = new Map<string, MBArtist>()
   for (const [, discoveries] of byReleaseGroup) {
+    if (signal?.aborted) throw new PipelineCancelledError()
     current++
     const artistMbid = discoveries[0]?.mbid
     const albumTitle = discoveries[0]?.suggestedAlbum ?? ''

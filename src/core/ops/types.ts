@@ -15,7 +15,7 @@ export interface BackupData {
   settings: Record<string, unknown>[]
   users: Record<string, unknown>[]
   oauthTokens: Record<string, unknown>[]
-  oidcTokens: Record<string, unknown>[]
+  oidcTokens?: Record<string, unknown>[]
   targets: Record<string, unknown>[]
   subscriptions: Record<string, unknown>[]
   jobRuns: Record<string, unknown>[]

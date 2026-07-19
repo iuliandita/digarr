@@ -1,6 +1,6 @@
 import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { ensureAdminToken, installAuthToken, installBrowserLocale } from '../browser/auth'
+import { ensureAdminToken, installAuthCookie, installBrowserLocale } from '../browser/auth'
 
 test.describe('Setup wizard a11y', () => {
   test('mode-selection screen has no WCAG A/AA violations', async ({ page }) => {
@@ -8,7 +8,7 @@ test.describe('Setup wizard a11y', () => {
     expect(token).toBeTruthy()
     if (!token) return
     await installBrowserLocale(page, 'en')
-    await installAuthToken(page, token)
+    await installAuthCookie(page)
     await page.goto('/')
 
     // Wait for the wizard to render before running axe so the scan doesn't

@@ -123,6 +123,14 @@ jobs:
         with:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
+      - name: Apply PostgreSQL migrations
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
+      - name: Run PostgreSQL session concurrency tests
+        run: bunx vitest run tests/db/session-queries.test.ts
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
       - name: Run API route contract tests
         run: bun run test:api-routes
         env:
@@ -138,11 +146,36 @@ jobs:
       HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
     steps:
       - name: Install git and curl
-        run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates > /dev/null && rm -rf /var/lib/apt/lists/*
-      - name: Install Helm
+        timeout-minutes: 5
         run: |
           set -euo pipefail
-          curl -fsSLo /tmp/helm.tgz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
+          apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            update -qq
+          apt-get \
+            -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            install -y -qq git curl ca-certificates > /dev/null
+          rm -rf /var/lib/apt/lists/*
+      - name: Install Helm
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 4 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            --connect-timeout 15 \
+            --max-time 120 \
+            --output /tmp/helm.tgz \
+            "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
           echo "${HELM_SHA256}  /tmp/helm.tgz" | sha256sum -c -
           tar -xzf /tmp/helm.tgz -C /tmp
           install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm
@@ -194,19 +227,20 @@ jobs:
           fetch-depth: 1
       - run: bun install --frozen-lockfile
       - name: Install Playwright
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium firefox
       - name: Start browser test servers
         run: |
           # Mirror playwright.config.ts webServer env: NODE_ENV=test registers
           # the seed route; DIGARR_DISABLE_RATE_LIMIT avoids 429s across specs.
-          NODE_ENV=test DIGARR_DISABLE_RATE_LIMIT=1 bun run tests/e2e/browser/start-backend.ts > /tmp/digarr-backend.log 2>&1 &
+          NODE_ENV=test DIGARR_DISABLE_RATE_LIMIT=1 ALLOWED_ORIGIN=http://localhost:5173 PROXY_AUTH_ENABLED=true PROXY_AUTH_TRUSTED_PROXIES=127.0.0.0/8,::1/128 DIGARR_DISABLE_REGISTRATION=false bun run tests/e2e/browser/start-backend.ts > /tmp/digarr-backend.log 2>&1 &
           # Vite runs under Node here; "localhost" resolves to ::1 first in this
           # container so it would bind IPv6-only while the readiness probe and
           # Playwright dial 127.0.0.1. Pin the dev server to IPv4.
           bun run dev:web -- --host 127.0.0.1 > /tmp/digarr-frontend.log 2>&1 &
+          NODE_ENV=test ALLOWED_ORIGIN=http://127.0.0.1:3011 bun run tests/e2e/browser/start-oidc-mock.ts > /tmp/digarr-oidc.log 2>&1 &
 
           for _ in $(seq 1 120); do
-            if bun -e "const backend = await fetch('http://127.0.0.1:3000/health').catch(() => null); const frontend = await fetch('http://127.0.0.1:5173').catch(() => null); if (backend?.ok && frontend?.ok) process.exit(0); process.exit(1);"; then
+            if bun -e "const backend = await fetch('http://127.0.0.1:3000/health').catch(() => null); const frontend = await fetch('http://127.0.0.1:5173').catch(() => null); const oidc = await fetch('http://127.0.0.1:3011').catch(() => null); if (backend?.ok && frontend?.ok && oidc?.ok) process.exit(0); process.exit(1);"; then
               exit 0
             fi
             sleep 2
@@ -214,6 +248,7 @@ jobs:
 
           cat /tmp/digarr-backend.log || true
           cat /tmp/digarr-frontend.log || true
+          cat /tmp/digarr-oidc.log || true
           exit 1
         env:
           DATABASE_URL: postgresql://test:test@postgres:5432/digarr_test
@@ -222,6 +257,7 @@ jobs:
           PLAYWRIGHT_SKIP_WEBSERVER=1 bun run test:e2e || {
             cat /tmp/digarr-backend.log || true
             cat /tmp/digarr-frontend.log || true
+            cat /tmp/digarr-oidc.log || true
             exit 1
           }
         env:

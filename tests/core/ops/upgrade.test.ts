@@ -139,7 +139,6 @@ describe('runPreFlightCheck', () => {
         settings: [],
         users: [],
         oauthTokens: [],
-        oidcTokens: [],
         targets: [],
         subscriptions: [],
         jobRuns: [],

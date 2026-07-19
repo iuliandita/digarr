@@ -4,6 +4,38 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## v1.14.0 - 2026-07-19
+
+### Added
+
+- **Stop a running scan.** The pipeline progress card now has a "Stop scan" button, and a new `POST /api/v1/pipeline/cancel` endpoint lets any authenticated user stop the in-flight discovery run without restarting the container. Cancellation is cooperative -- the run checks an abort signal at every stage boundary and inside artist resolution, so a stop lands within about one request timeout -- and it clears anything queued behind the stopped run. The run is recorded in job history with a new `cancelled` status, and a run that ignores the stop request is force-reset after a short grace window so the app is never left stuck in a permanent "running" state. Once stopped, the normal "Run Scan" button starts a fresh scan. Translated across all 15 shipped locales.
+- **Multiple notification channels (webhook, ntfy, Telegram, Apprise).** Notifications are no longer a single webhook URL: Settings now holds a list of channels of any count and mixed type. Webhook keeps the Discord/Slack auto-formatting; ntfy takes a server, topic, and optional priority and access token; Telegram takes a bot token and chat ID (plain-text messages); Apprise posts to an Apprise API endpoint and fans a newline-separated URL list out to 80+ services. Each channel has its own enabled toggle and event subscriptions (scan complete and/or the scheduled digest). Any existing single webhook URL is migrated into a webhook channel automatically -- no action needed, nothing breaks. Channel secrets (Telegram bot token, ntfy token, Apprise URLs) are encrypted at rest and returned masked (`***`) by the settings API; sending `***` back preserves the stored value. All delivery flows through one SSRF-guarded transport (DNS-pinned resolution, no redirects, private/link-local/cloud-metadata blocked); an admin-only per-channel opt-in relaxes only RFC1918 ranges for that one channel so a self-hosted ntfy/Apprise on the LAN is reachable, while cloud-metadata (`169.254.169.254`) and link-local stay blocked regardless. The digest still fires on the existing digest cron; only the delivery target moved to channels. Translated across all 15 shipped locales.
+
+### Security
+
+- **Session cookies now fail closed to `Secure` in production.** Production session and OIDC transaction cookies are marked `Secure` even when the backend request arrives over HTTP, so a TLS-terminating reverse proxy no longer emits plaintext-eligible cookies. TLS termination requires `ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior. Direct production over HTTP needs the explicit `DIGARR_ALLOW_INSECURE_COOKIES=true` opt-in (default `false`) and remains vulnerable to network interception; pair it with a matching `http://` `ALLOWED_ORIGIN`.
+- **OIDC login state is now browser-bound and single-use.** The authorization state lives in a state-scoped `HttpOnly` transaction cookie, is consumed on the callback, expires after 10 minutes, and is safe across multiple concurrent tabs. Pending transactions are capacity-capped, and `GET /api/v1/auth/oidc/login` is rate limited to 10/min per IP (the callback is not rate limited).
+- **Password change and session replacement are now one atomic transaction.** The change verifies the stored password hash and replaces every session under a single user-row lock, so a password verified before a concurrent reset can no longer mint a post-reset session.
+
+### Changed
+
+- **Browser sessions now stay in HttpOnly cookies instead of JavaScript storage.** Web password and registration flows, OIDC, and trusted-proxy sign-ins use `SameSite=Lax` cookies. Production session and OIDC transaction cookies default to `Secure` even when the backend request arrives over HTTP (for example behind a TLS-terminating proxy); direct-HTTP production must opt in with `DIGARR_ALLOW_INSECURE_COOKIES=true`, which drops `Secure` only when the public origin is `http:`. State-changing browser requests now require same-origin evidence plus a CSRF header. Existing per-user browser bearer sessions are rotated once into cookies and removed from storage; OIDC no longer hands a session token through the URL. Bearer login remains supported for API clients, and query-token compatibility remains limited to pipeline SSE and preview audio.
+- **OIDC provider tokens are retired after sign-in validation.** Digarr now keeps only the identity claims needed for the local account, minimizing retained provider data. The unused token table, backup and backend-copy paths, and encryption-rotation coverage are removed. Restoring a legacy backup ignores an empty `oidcTokens` table and skips nonempty rows with a warning. A binary downgrade requires stopping Digarr, provisioning a fresh old-schema database, and restoring a prepared compatibility copy of the pre-migration backup; an older image must never run against the migrated database.
+
+### Removed
+
+- **Unversioned API compatibility redirects have ended after their published sunset.** Requests to `/api/*` now return `404 Not Found`; clients must use the corresponding `/api/v1/*` route.
+
+### Fixed
+
+- **Spotify's preview controller no longer runs inside the authenticated app.** Continuous audition now loads the supported controller in a no-same-origin sandbox and exchanges only validated commands and playback events over a private channel. Standalone previews retain the standard Spotify iframe fallback when the bridge fails.
+- **Slow OpenAI-compatible providers no longer fail with opaque abort errors.** Connection tests now honor `DIGARR_AI_TIMEOUT_SECONDS` instead of stopping after 10 seconds, recommendation timeouts report their configured duration, and Open WebUI `/api` base URLs use its documented chat-completions route. Standard `/v1` bases and full completion URLs are normalized without duplicate path segments.
+- **Release candidates can no longer bypass the nightly soak channel.** Release and digest-sync tooling now accepts stable `vX.Y.Z` tags only. Development builds continue to publish through `:nightly`; accepted builds promote through `main` to the normal version and `:latest` tags.
+- **Digest synchronization validates every deployment example before writing.** A changed file format now stops the release helper before its first write, avoiding a partially updated set of digests and example tags.
+- **Advisory macOS compatibility runs no longer pass after skipping their backend checks.** Docker installation and startup have independent time budgets, and the job fails visibly unless both PostgreSQL and PGlite assertions complete. The advisory job remains non-blocking.
+- **Contention-sensitive encryption rotation coverage has more CI headroom.** The real PGlite subprocess keeps its failure assertions while using nested timeouts with enough margin for a loaded runner, and temporary state is removed even when setup or assertions fail.
+- **Forgejo Helm setup failures are bounded and easier to distinguish from manifest drift.** Package and pinned Helm downloads now have retry and timeout limits, while checksum verification, chart linting, deterministic rendering, and the final clean-diff assertion remain strict.
+
 ## v1.13.0 - 2026-07-15
 
 New discovery inputs and review controls, continuous audition playback, broader genre coverage, and safer library and operations paths.

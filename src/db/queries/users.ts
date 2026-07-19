@@ -100,14 +100,6 @@ export async function listUsers(
   return rows.map(toPublic)
 }
 
-export async function updatePassword(
-  db: Database,
-  id: number,
-  passwordHash: string,
-): Promise<void> {
-  await db.update(users).set({ passwordHash }).where(eq(users.id, id))
-}
-
 export async function deleteUser(db: Database, id: number): Promise<void> {
   await db.delete(users).where(eq(users.id, id))
 }

@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import type { NotificationChannel } from '@/core/notifications/types'
 
 // Inner preferences object. Enforces numeric ranges where they exist and
 // keeps every field optional so partial PATCH merges stay ergonomic. Strict
@@ -15,6 +16,42 @@ const scoringWeightsSchema = z
     popularity: z.number().min(0).max(1).optional(),
   })
   .strict()
+
+// Notification channels. Secret string fields (telegram botToken, ntfy token,
+// apprise urls) stay plain z.string() so the masked '***' placeholder round-trips
+// on save; only real URLs that are never masked get .url() validation.
+const notificationEvent = z.enum(['batch_complete', 'digest'])
+const channelBase = {
+  id: z.string().min(1),
+  enabled: z.boolean(),
+  events: z.array(notificationEvent),
+  allowPrivateTarget: z.boolean().optional(),
+}
+export const notificationChannel = z.discriminatedUnion('type', [
+  z.object({ ...channelBase, type: z.literal('webhook'), url: z.string().url() }),
+  z.object({
+    ...channelBase,
+    type: z.literal('ntfy'),
+    server: z.string().url(),
+    topic: z.string().min(1),
+    priority: z
+      .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+      .optional(),
+    token: z.string().optional(),
+  }),
+  z.object({
+    ...channelBase,
+    type: z.literal('telegram'),
+    botToken: z.string().min(1),
+    chatId: z.string().min(1),
+  }),
+  z.object({
+    ...channelBase,
+    type: z.literal('apprise'),
+    endpoint: z.string().url(),
+    urls: z.string().min(1),
+  }),
+]) satisfies z.ZodType<NotificationChannel>
 
 const preferencesSchema = z
   .object({
@@ -40,6 +77,7 @@ const preferencesSchema = z
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),
     fanartApiKey: z.string().optional(),
     metadataFallbackUrl: z.string().optional(),
+    channels: z.array(notificationChannel).optional(),
   })
   .strict()
 

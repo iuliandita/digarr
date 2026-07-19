@@ -3,6 +3,7 @@ import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
 import type { GenreInfo } from '../../core/genre/types'
 import { getMessages } from '../../core/i18n/messages'
 import type { MessageKey } from '../../core/i18n/messages/types'
+import type { NotificationChannel } from '../../core/notifications/types'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -31,20 +32,23 @@ export type DiscoveryRunResponse = {
 const BASE = '/api/v1'
 
 const AUTH_TOKEN_KEY = 'digarr-auth-token'
+const COOKIE_AUTH_MODE = 'cookie'
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
-export function getStoredToken(): string | null {
-  return localStorage.getItem(AUTH_TOKEN_KEY)
-}
-
-// SPA session tokens require client-side storage - cookies would need
-// server-side session management. Token is never logged or transmitted
-// except via Authorization header or query param (SSE/audio fallback).
-export function setStoredToken(token: string): void {
-  localStorage.setItem(AUTH_TOKEN_KEY, token) // lgtm[js/clear-text-storage-of-sensitive-data]
+export function getLegacyStoredToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function clearStoredToken(): void {
-  localStorage.removeItem(AUTH_TOKEN_KEY)
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser contexts.
+  }
 }
 
 export class ApiError extends Error {
@@ -88,29 +92,34 @@ function translateErrorCode(code: string): string | null {
 // Fired when any fetchApi call gets 401 - AuthGate listens and shows login
 export const AUTH_EXPIRED_EVENT = 'digarr:auth-expired'
 
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    'X-Digarr-Locale': getRequestLocale(),
+function getBrowserHeaders(options?: RequestInit): Headers {
+  const headers = new Headers(options?.headers)
+  headers.delete('Authorization')
+  headers.set('X-Digarr-Locale', getRequestLocale())
+
+  // Skip Content-Type for FormData - browser sets it with the correct boundary
+  if (options?.body instanceof FormData) {
+    headers.delete('Content-Type')
+  } else if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
   }
-  const token = getStoredToken()
-  if (token) headers.Authorization = `Bearer ${token}`
+
+  const method = (options?.method ?? 'GET').toUpperCase()
+  if (SAFE_METHODS.has(method)) {
+    headers.delete('X-Digarr-CSRF')
+  } else {
+    headers.set('X-Digarr-CSRF', '1')
+  }
+
   return headers
 }
 
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const headers = getAuthHeaders()
-  // Skip Content-Type for FormData - browser sets it with the correct boundary
-  if (!(options?.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  const { headers: extraHeaders, ...restOptions } = options ?? {}
+  const { headers: _extraHeaders, ...restOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
-    // Send the httpOnly session cookie on same-origin requests so proxy-auth
-    // and OIDC flows authenticate without JS having to read the token.
-    credentials: 'same-origin',
     ...restOptions,
-    headers: { ...headers, ...(extraHeaders as Record<string, string>) },
+    credentials: 'same-origin',
+    headers: getBrowserHeaders(options),
   })
   if (!res.ok) {
     if (res.status === 401) {
@@ -128,10 +137,11 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function authedRawFetch(path: string, options?: RequestInit): Promise<Response> {
-  const { headers: extraHeaders, ...restOptions } = options ?? {}
+  const { headers: _extraHeaders, ...restOptions } = options ?? {}
   return fetch(`${BASE}${path}`, {
     ...restOptions,
-    headers: { ...getAuthHeaders(), ...(extraHeaders as Record<string, string>) },
+    credentials: 'same-origin',
+    headers: getBrowserHeaders(options),
   })
 }
 
@@ -158,16 +168,17 @@ export const getAuthMeta = () => fetchApi<AuthMeta>('/auth/meta')
 
 export type AuthResponse = {
   user: { id: number; username: string; isAdmin: boolean }
-  token: string
 }
 export const loginUser = (username: string, password: string) =>
   fetchApi<AuthResponse>('/auth/login', {
     method: 'POST',
+    headers: { 'X-Digarr-Auth-Mode': COOKIE_AUTH_MODE },
     body: JSON.stringify({ username, password }),
   })
 export const registerUser = (username: string, password: string) =>
   fetchApi<AuthResponse>('/auth/register', {
     method: 'POST',
+    headers: { 'X-Digarr-Auth-Mode': COOKIE_AUTH_MODE },
     body: JSON.stringify({ username, password }),
   })
 export type UserProfile = {
@@ -178,26 +189,50 @@ export type UserProfile = {
   email: string | null
 }
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const token = getStoredToken()
-  if (!token) return null
   try {
     const res = await fetch(`${BASE}/auth/me`, {
+      credentials: 'same-origin',
       headers: {
-        Authorization: `Bearer ${token}`,
         'X-Digarr-Locale': getRequestLocale(),
       },
     })
-    if (!res.ok) return null // Legacy token users have no userId - don't trigger auth-expired
+    if (!res.ok) return null
     return res.json() as Promise<UserProfile>
   } catch {
     return null
   }
 }
 export const changePassword = (currentPassword: string, newPassword: string) =>
-  fetchApi<{ token?: string }>('/auth/change-password', {
+  fetchApi<void>('/auth/change-password', {
     method: 'POST',
     body: JSON.stringify({ currentPassword, newPassword }),
   })
+
+export type SessionMigrationResult = 'migrated' | 'legacy-rejected' | 'invalid'
+
+export async function migrateLegacySession(token: string): Promise<SessionMigrationResult> {
+  const res = await fetch(`${BASE}/auth/session/migrate`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-Digarr-CSRF': '1',
+      'X-Digarr-Auth-Mode': 'cookie',
+      'X-Digarr-Locale': getRequestLocale(),
+    },
+  })
+  if (res.status === 204) return 'migrated'
+  if (res.status === 401) return 'invalid'
+
+  const body = (await res.json().catch(() => ({ error: res.statusText }))) as {
+    type?: string
+    error?: string
+  } | null
+  if (res.status === 403 && body?.type === '/problems/auth-session-migration-legacy-token') {
+    return 'legacy-rejected'
+  }
+  throw new ApiError(res.status, body)
+}
 export const updatePreferredLocale = (preferredLocale: string | null) =>
   fetchApi<{ preferredLocale: string | null }>('/auth/me/locale', {
     method: 'PATCH',
@@ -235,7 +270,8 @@ export const testService = (service: string, config: Record<string, unknown>) =>
     method: 'POST',
     body: JSON.stringify(config),
   })
-export const testWebhook = () => fetchApi<void>('/settings/test-webhook', { method: 'POST' })
+export const testNotificationChannel = (channel: NotificationChannel) =>
+  fetchApi<void>('/settings/test-webhook', { method: 'POST', body: JSON.stringify(channel) })
 
 // Pipeline
 export const triggerPipeline = () =>
@@ -245,6 +281,10 @@ export const triggerPipeline = () =>
     queued?: boolean
     position?: number
   }>('/pipeline/run', {
+    method: 'POST',
+  })
+export const cancelPipeline = () =>
+  fetchApi<{ cancelled: boolean; message: string }>('/pipeline/cancel', {
     method: 'POST',
   })
 export const getPipelineStatus = () =>

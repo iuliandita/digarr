@@ -46,6 +46,12 @@ import type { DiscoveryConnectionSnapshot } from './types'
 export interface DbDeps {
   db: import('@/db').Database
   storeDb: import('@/core/pipeline/store').StoreDb
+  // Test-only override for the atomic password/session store. Production leaves
+  // this unset; authRoutes() constructs sessionQueries(db) instead.
+  passwordSessions?: Pick<
+    import('@/db/queries/sessions').SessionStore,
+    'createForPassword' | 'changePasswordAndReset'
+  >
 }
 
 // ---- Settings / setup ----
@@ -70,7 +76,6 @@ export interface UserDeps {
   ) => Promise<{ id: number; username: string; passwordHash: string; isAdmin: boolean } | null>
   getUserById: (id: number) => Promise<UserPublic | null>
   getUserCount: () => Promise<number>
-  updatePassword: (id: number, passwordHash: string) => Promise<void>
   updateUserPreferredLocale: (id: number, preferredLocale: SupportedLocale | null) => Promise<void>
   getOidcService: () => Promise<OidcService | null>
   getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>

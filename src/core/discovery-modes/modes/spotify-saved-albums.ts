@@ -1,29 +1,23 @@
 import { createSpotifyClient } from '@/core/clients/spotify'
-import type { DiscoveryModeDefinition } from '../types'
+import type { DiscoveryConfigField, DiscoveryModeDefinition } from '../types'
 import { getDiscoveryModeSpotifyToken, getNormalizedLimit } from './runtime'
 
 export function createSpotifySavedAlbumsMode(): DiscoveryModeDefinition {
+  const fields: DiscoveryConfigField[] = [
+    {
+      key: 'limit',
+      label: 'discoveryMode.field.limit',
+      type: 'number',
+      required: false,
+    },
+  ]
   return {
     id: 'spotify-saved-albums',
     label: 'Spotify Saved Albums',
     description: 'Discover artists from the albums you saved on Spotify',
     availability: 'fallback',
-    easyFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
-    advancedFields: [
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
+    easyFields: fields,
+    advancedFields: fields,
     executor: async (request) => {
       const token = await getDiscoveryModeSpotifyToken(request.userId)
       if (!token) {

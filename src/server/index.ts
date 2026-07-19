@@ -10,8 +10,8 @@ import { openapiDoc } from './helpers/openapi-doc'
 import { problem } from './helpers/problem'
 import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
-import { apiVersionRedirect } from './middleware/api-version'
 import { authGuard } from './middleware/auth'
+import { csrfGuard } from './middleware/csrf'
 import { requestLogger } from './middleware/logger'
 import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
@@ -58,6 +58,18 @@ export type { AppDependencies } from './deps'
 
 import type { AppDependencies } from './deps'
 
+const SPOTIFY_BRIDGE_CSP = [
+  "default-src 'none'",
+  "script-src 'self' https://open.spotify.com/embed/iframe-api/v1 https://embed-cdn.spotifycdn.com/_next/static/",
+  "style-src 'unsafe-inline'",
+  'img-src data: https://i.scdn.co https://*.spotifycdn.com',
+  'connect-src https://*.spotify.com https://*.spotifycdn.com',
+  'frame-src https://open.spotify.com',
+  "frame-ancestors 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ')
+
 export function createApp(deps: AppDependencies) {
   const app = new Hono<HonoEnv>()
 
@@ -91,14 +103,14 @@ export function createApp(deps: AppDependencies) {
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
 
-  // 308-redirect legacy /api/* to /api/v1/*. Must run before any route is
-  // mounted so a legacy request never reaches a handler mounted under
-  // /api/v1/*. Emits Deprecation + Sunset headers for RFC 9745/8594 clients.
-  app.use('*', apiVersionRedirect)
-
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
     console.warn(
       'ALLOWED_ORIGIN is not set in production - CORS will reject cross-origin requests. Set ALLOWED_ORIGIN to your app URL.',
+    )
+  }
+  if (process.env.NODE_ENV === 'production' && envConfig.allowInsecureCookies) {
+    console.warn(
+      'DIGARR_ALLOW_INSECURE_COOKIES=true permits plaintext browser session cookies for HTTP origins.',
     )
   }
   app.use(
@@ -106,8 +118,20 @@ export function createApp(deps: AppDependencies) {
     cors({
       origin:
         envConfig.allowedOrigin ?? (process.env.NODE_ENV === 'production' ? () => undefined : '*'),
+      allowHeaders: [
+        'Authorization',
+        'Content-Type',
+        'X-Digarr-Locale',
+        'X-Digarr-CSRF',
+        'X-Digarr-Auth-Mode',
+      ],
     }),
   )
+  app.use('/spotify-embed-bridge.html', async (c, next) => {
+    await next()
+    c.header('Content-Security-Policy', SPOTIFY_BRIDGE_CSP)
+    c.header('X-Frame-Options', 'SAMEORIGIN')
+  })
   app.use(
     '*',
     secureHeaders({
@@ -118,11 +142,7 @@ export function createApp(deps: AppDependencies) {
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          'https://open.spotify.com/embed/iframe-api/v1',
-          'https://embed-cdn.spotifycdn.com/_next/static/',
-        ],
+        scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
@@ -152,6 +172,7 @@ export function createApp(deps: AppDependencies) {
       isSetupComplete: deps.isSetupComplete,
     }),
   )
+  app.use('*', csrfGuard)
   app.use('*', setupGuard(deps.isSetupComplete))
   app.use('*', maintenanceMiddleware)
 
@@ -221,6 +242,13 @@ export function createApp(deps: AppDependencies) {
       ),
   )
 
+  // Bound unauthenticated OIDC login traffic so a client cannot exhaust the
+  // pending-transaction cap (OidcService) and lock out all logins. Callback is
+  // intentionally not limited: legitimate provider redirects must get through.
+  app.use(
+    '/api/v1/auth/oidc/login',
+    rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'oidc-login' }),
+  )
   app.route(
     '/',
     oidcRoutes({

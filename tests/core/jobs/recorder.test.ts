@@ -168,6 +168,21 @@ describe('createJobRecorder', () => {
     })
   })
 
+  describe('cancel()', () => {
+    it('updates status to cancelled with a completedAt timestamp', async () => {
+      const db = makeDb()
+      const recorder = createJobRecorder(db as never)
+
+      await recorder.cancel(5)
+
+      expect(db._mocks.update).toHaveBeenCalledOnce()
+      const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
+      expect(setArg).toEqual(expect.objectContaining({ status: 'cancelled' }))
+      expect(setArg.completedAt).toBeInstanceOf(Date)
+      expect(db._mocks.updateWhere).toHaveBeenCalledOnce()
+    })
+  })
+
   describe('markStuck()', () => {
     it('returns 0 when no jobs are stuck', async () => {
       const db = makeDb({ updatedRows: 0 })

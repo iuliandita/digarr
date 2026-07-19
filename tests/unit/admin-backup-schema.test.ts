@@ -12,7 +12,6 @@ function makeBase() {
       settings: [],
       users: [],
       oauthTokens: [],
-      oidcTokens: [],
       targets: [],
       subscriptions: [],
       jobRuns: [],
@@ -25,6 +24,31 @@ function makeBase() {
 }
 
 describe('backupFileSchema', () => {
+  it('accepts current backups without legacy OIDC token data', () => {
+    expect(backupFileSchema.safeParse(makeBase()).success).toBe(true)
+  })
+
+  it.each([
+    { label: 'empty', oidcTokens: [] },
+    { label: 'non-empty', oidcTokens: [{ id: 1, accessToken: 'legacy-token' }] },
+  ])('accepts legacy backups with an $label OIDC token array', ({ oidcTokens }) => {
+    const payload = {
+      ...makeBase(),
+      data: { ...makeBase().data, oidcTokens },
+    }
+
+    expect(backupFileSchema.safeParse(payload).success).toBe(true)
+  })
+
+  it('rejects a legacy OIDC token value that is not an array', () => {
+    const payload = {
+      ...makeBase(),
+      data: { ...makeBase().data, oidcTokens: 'not-an-array' },
+    }
+
+    expect(backupFileSchema.safeParse(payload).success).toBe(false)
+  })
+
   it('accepts backup containing artistBlocks (regression: was rejected by strictObject)', () => {
     const payload = {
       ...makeBase(),

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { getMessages } from '@/core/i18n/messages'
-import { ensureAdminToken, installAuthToken } from './auth'
+import { ensureAdminToken, installAuthCookie } from './auth'
 
 test('runs a discovery mode manually and saves one as a subscription', async ({ page }) => {
   const locale = 'ru'
@@ -164,7 +164,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     })
   })
 
-  await installAuthToken(page, token)
+  await installAuthCookie(page)
 
   await page.goto('/')
   await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()

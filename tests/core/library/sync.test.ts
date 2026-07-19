@@ -61,6 +61,7 @@ function makeJobRecorder() {
     start: vi.fn(async () => 1),
     complete: vi.fn(async () => {}),
     fail: vi.fn(async () => {}),
+    cancel: vi.fn().mockResolvedValue(undefined),
     markStuck: vi.fn(async () => 0),
   }
 }

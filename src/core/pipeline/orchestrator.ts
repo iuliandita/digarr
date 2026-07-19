@@ -1,10 +1,11 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
-import { sendWebhook } from '@/core/notifications'
+import { dispatch } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
@@ -21,6 +22,7 @@ import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { analyze } from './analyze'
 import { type AutoApproveDeps, autoApprove } from './auto-approve'
+import { FORCE_RESET_GRACE_MS, PipelineCancelledError } from './cancel'
 import { discover } from './discover'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
@@ -116,6 +118,9 @@ export class PipelineOrchestrator extends EventEmitter {
   private currentMessage: string | null = null
   private _currentUserId: number | undefined = undefined
   private queue: QueuedRun[] = []
+  private abort: AbortController | null = null
+  private runId = 0
+  private activeRunId: number | null = null
 
   override emit(eventName: string | symbol, ...args: unknown[]): boolean {
     if (eventName === 'progress') {
@@ -132,10 +137,20 @@ export class PipelineOrchestrator extends EventEmitter {
 
   async run(deps: PipelineDeps): Promise<{ batchId: number }> {
     if (this.running) throw new Error('Pipeline already running')
+    const myRunId = ++this.runId
     this.running = true
+    this.activeRunId = myRunId
+    this.abort = new AbortController()
+    const signal = this.abort.signal
     this.currentStage = null
     this.currentMessage = null
     this._currentUserId = deps.userId
+
+    // Cooperative-cancellation checkpoint: called at each stage boundary so a
+    // stop request lands within one request timeout instead of after the whole run.
+    const ckpt = () => {
+      if (signal.aborted) throw new PipelineCancelledError()
+    }
 
     let jobId: number | null = null
 
@@ -338,6 +353,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const blockedMbids = await db.getBlockedMbids(userIdForSync)
       const feedbackHistory = await db.getFeedbackHistory(userIdForSync)
 
+      ckpt()
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
         ...(await analyze(
@@ -361,6 +377,7 @@ export class PipelineOrchestrator extends EventEmitter {
         ),
       })
 
+      ckpt()
       this.emit('progress', {
         stage: 'discover',
         message: t('pipeline.message.findingSimilar'),
@@ -433,6 +450,7 @@ export class PipelineOrchestrator extends EventEmitter {
             : { status: 'error', error: aiFailure ?? 'No artists returned' }
       }
 
+      ckpt()
       this.emit('progress', {
         stage: 'resolve',
         message: t('pipeline.message.resolving', String(discovered.length)),
@@ -449,11 +467,13 @@ export class PipelineOrchestrator extends EventEmitter {
         t,
         audiodbClient,
         prefs.netNewAlbumDiscovery ?? false,
+        signal,
       )
 
       // Enrich sparse genres from artist_metadata (if available)
       const resolved = await enrichGenres(rawResolved, db.lookupArtistMetadata ?? null)
 
+      ckpt()
       this.emit('progress', {
         stage: 'score',
         message: t('pipeline.message.scoring', String(resolved.length)),
@@ -469,6 +489,7 @@ export class PipelineOrchestrator extends EventEmitter {
         popularityMap,
       )
 
+      ckpt()
       this.emit('progress', {
         stage: 'filter',
         message: t('pipeline.message.filtering', String(scored.length)),
@@ -524,6 +545,7 @@ export class PipelineOrchestrator extends EventEmitter {
       const filteredAlbums = albumKind.filter((c) => c.score >= prefs.scoreThreshold)
       const filtered = [...filteredArtists, ...filteredAlbums]
 
+      ckpt()
       this.emit('progress', {
         stage: 'store',
         message: t('pipeline.message.saving', String(filtered.length)),
@@ -555,17 +577,14 @@ export class PipelineOrchestrator extends EventEmitter {
         }
       }
 
-      // Fire-and-forget webhook notification
-      const webhookUrl = prefs.webhookUrl
-      if (webhookUrl) {
-        sendWebhook(webhookUrl, {
-          event: 'batch_complete',
-          batchId,
-          stats: { discovered: scored.length, added: filtered.length, failed: 0 },
-          message: t('pipeline.message.scanComplete', String(filtered.length)),
-          timestamp: new Date().toISOString(),
-        }).catch((err) => console.error('Webhook send failed:', err))
-      }
+      // Fire-and-forget notification dispatch
+      dispatch(decryptChannelSecrets(prefs.channels ?? []), 'batch_complete', {
+        event: 'batch_complete',
+        batchId,
+        stats: { discovered: scored.length, added: filtered.length, failed: 0 },
+        message: t('pipeline.message.scanComplete', String(filtered.length)),
+        timestamp: new Date().toISOString(),
+      }).catch((err) => console.error('Notification dispatch failed:', err))
 
       this.emit('progress', {
         stage: 'complete',
@@ -605,16 +624,37 @@ export class PipelineOrchestrator extends EventEmitter {
 
       return { batchId }
     } catch (err: unknown) {
+      const cancelled = err instanceof PipelineCancelledError
       if (jobId != null && deps.jobRecorder) {
-        await recordFailureSafely(deps.jobRecorder, jobId, errMsg(err))
+        if (cancelled) {
+          try {
+            await deps.jobRecorder.cancel(jobId)
+          } catch (e) {
+            console.error('[pipeline] Failed to record job cancel:', e)
+          }
+        } else {
+          await recordFailureSafely(deps.jobRecorder, jobId, errMsg(err))
+        }
+      }
+      if (cancelled) {
+        // Terminal, non-error stop: SSE closes cleanly and the UI shows "stopped".
+        this.emit('progress', { stage: 'cancelled', message: t('pipeline.message.cancelled') })
+        throw err
       }
       this.emit('error', err)
       throw err
     } finally {
-      this.running = false
-      // Drop the userId so subsequent non-pipeline emits don't inherit a stale owner
-      this._currentUserId = undefined
-      this.drainQueue()
+      // Only the run that still owns activeRunId tears down shared state. A
+      // force-reset (see cancel()) transfers ownership away, so a zombie run's
+      // finally can't clobber a freshly-started run's flags.
+      if (this.activeRunId === myRunId) {
+        this.running = false
+        this.abort = null
+        this.activeRunId = null
+        // Drop the userId so subsequent non-pipeline emits don't inherit a stale owner
+        this._currentUserId = undefined
+        this.drainQueue()
+      }
     }
   }
 
@@ -638,8 +678,38 @@ export class PipelineOrchestrator extends EventEmitter {
 
   private startRun(deps: PipelineDeps): void {
     this.run(deps).catch((err: unknown) => {
+      if (err instanceof PipelineCancelledError) return
       console.error('[orchestrator] queued run failed:', err)
     })
+  }
+
+  /**
+   * Cooperatively stop the in-flight run and drop everything queued behind it.
+   * The abort signal is polled at every stage boundary and inside resolve, so a
+   * stop lands within ~one request timeout. If the run ignores the signal (truly
+   * wedged), a grace-window backstop force-resets the running flag so the app is
+   * never permanently stuck -- run ownership (activeRunId) keeps the zombie from
+   * later clobbering a fresh run.
+   */
+  cancel(): { cancelled: boolean } {
+    // Always clear the queue so pending runs don't start after a stop.
+    this.queue = []
+    if (!this.running) return { cancelled: false }
+    const cancelledRunId = this.activeRunId
+    this.abort?.abort()
+    const timer = setTimeout(() => {
+      if (this.running && this.activeRunId === cancelledRunId) {
+        console.warn('[orchestrator] force-resetting wedged run after cancel grace window')
+        this.running = false
+        this.abort = null
+        this.activeRunId = null
+        this._currentUserId = undefined
+        this.emit('progress', { stage: 'cancelled' })
+        this.drainQueue()
+      }
+    }, FORCE_RESET_GRACE_MS)
+    timer.unref?.()
+    return { cancelled: true }
   }
 
   private drainQueue(): void {

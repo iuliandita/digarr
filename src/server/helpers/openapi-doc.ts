@@ -7,6 +7,7 @@ import { VERSION } from '@/version'
 const json = 'application/json'
 const problemJson = 'application/problem+json'
 const authSecurity = [{ sessionCookie: [] }, { bearerToken: [] }]
+const unsafeAuthSecurity = [{ sessionCookie: [], csrfHeader: [] }, { bearerToken: [] }]
 const problemResponse = { $ref: '#/components/responses/BadRequest' }
 const validationResponse = { $ref: '#/components/responses/ValidationFailed' }
 const unauthenticatedResponse = { $ref: '#/components/responses/Unauthenticated' }
@@ -15,6 +16,46 @@ const notFoundResponse = { $ref: '#/components/responses/NotFound' }
 
 function jsonSchema(ref: string) {
   return { content: { [json]: { schema: { $ref: ref } } } }
+}
+
+const authModeParameter = {
+  name: 'X-Digarr-Auth-Mode',
+  in: 'header',
+  required: false,
+  schema: { type: 'string', enum: ['cookie'] },
+  description:
+    'Set to cookie for an HttpOnly session cookie without a token in the response body. Omit for the bearer-token API response.',
+}
+
+const publicBrowserCsrfParameter = {
+  name: 'X-Digarr-CSRF',
+  in: 'header',
+  required: false,
+  schema: { type: 'string', const: '1' },
+  description:
+    'Required with value 1 for browser-shaped mutations; non-browser requests without Origin, Referer, or Sec-Fetch-Site remain compatible.',
+}
+
+function sessionResponse(description: string) {
+  return {
+    description,
+    headers: {
+      'Set-Cookie': {
+        schema: { type: 'string' },
+        description: 'Present when X-Digarr-Auth-Mode is cookie.',
+      },
+    },
+    content: {
+      [json]: {
+        schema: {
+          oneOf: [
+            { $ref: '#/components/schemas/AuthTokenResponse' },
+            { $ref: '#/components/schemas/AuthCookieResponse' },
+          ],
+        },
+      },
+    },
+  }
 }
 
 export const openapiDoc = {
@@ -32,13 +73,21 @@ export const openapiDoc = {
         type: 'apiKey',
         in: 'cookie',
         name: 'digarr_session',
-        description: 'Session cookie set by the login, OIDC, or proxy-auth flows.',
+        description:
+          'HttpOnly session cookie set by cookie-mode login, OIDC, or proxy auth. Unsafe requests also require X-Digarr-CSRF: 1 and same-origin browser evidence.',
       },
       bearerToken: {
         type: 'http',
         scheme: 'bearer',
         description:
           'Session token issued at login. Equivalent to the cookie; prefer the cookie for browser clients.',
+      },
+      csrfHeader: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'X-Digarr-CSRF',
+        description:
+          'Cookie-authenticated unsafe requests must send the literal value `1` with exact same-origin browser evidence.',
       },
     },
     schemas: {
@@ -111,6 +160,22 @@ export const openapiDoc = {
           token: { type: 'string' },
         },
         additionalProperties: true,
+      },
+      AuthCookieResponse: {
+        type: 'object',
+        required: ['user'],
+        properties: {
+          user: { $ref: '#/components/schemas/User' },
+        },
+        additionalProperties: false,
+      },
+      ErrorResponse: {
+        type: 'object',
+        required: ['error'],
+        properties: {
+          error: { type: 'string' },
+        },
+        additionalProperties: false,
       },
       Recommendation: {
         type: 'object',
@@ -295,6 +360,7 @@ export const openapiDoc = {
         operationId: 'login',
         summary: 'Create a session from username and password',
         security: [],
+        parameters: [authModeParameter, publicBrowserCsrfParameter],
         requestBody: {
           required: true,
           content: {
@@ -311,13 +377,81 @@ export const openapiDoc = {
           },
         },
         responses: {
-          '200': {
-            description: 'Authenticated session.',
-            ...jsonSchema('#/components/schemas/AuthTokenResponse'),
-          },
+          '200': sessionResponse('Authenticated session.'),
           '400': validationResponse,
           '401': unauthenticatedResponse,
           '429': { $ref: '#/components/responses/RateLimited' },
+        },
+      },
+    },
+    '/api/v1/auth/register': {
+      post: {
+        tags: ['Auth'],
+        operationId: 'register',
+        summary: 'Create a local user and session',
+        security: [],
+        parameters: [authModeParameter, publicBrowserCsrfParameter],
+        requestBody: {
+          required: true,
+          content: {
+            [json]: {
+              schema: {
+                type: 'object',
+                required: ['username', 'password'],
+                properties: {
+                  username: {
+                    type: 'string',
+                    description:
+                      'Surrounding whitespace is trimmed before enforcing a normalized length of 2-50 characters.',
+                  },
+                  password: { type: 'string', format: 'password', minLength: 12 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': sessionResponse('User and authenticated session created.'),
+          '400': validationResponse,
+          '403': {
+            description: 'Registration is disabled after the first user.',
+            ...jsonSchema('#/components/schemas/ErrorResponse'),
+          },
+          '409': {
+            description: 'Username already exists.',
+            content: {
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
+          },
+          '429': { $ref: '#/components/responses/RateLimited' },
+        },
+      },
+    },
+    '/api/v1/auth/session/migrate': {
+      post: {
+        tags: ['Auth'],
+        operationId: 'migrateSessionToCookie',
+        summary: 'Rotate an active bearer session into an HttpOnly cookie',
+        security: [{ bearerToken: [] }],
+        responses: {
+          '204': {
+            description: 'Bearer session replaced; the response sets the session cookie.',
+            headers: {
+              'Set-Cookie': {
+                schema: { type: 'string' },
+                description: 'The replacement HttpOnly session cookie.',
+              },
+            },
+          },
+          '400': problemResponse,
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+          '409': {
+            description: 'The source bearer session was already replaced.',
+            content: {
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
+          },
         },
       },
     },
@@ -370,7 +504,7 @@ export const openapiDoc = {
         tags: ['Recommendations'],
         operationId: 'updateRecommendation',
         summary: 'Approve, reject, or restore a recommendation',
-        security: authSecurity,
+        security: unsafeAuthSecurity,
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
         responses: {
@@ -408,7 +542,7 @@ export const openapiDoc = {
         tags: ['Artist blocks'],
         operationId: 'createArtistBlock',
         summary: 'Block an artist for the current user',
-        security: authSecurity,
+        security: unsafeAuthSecurity,
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
         responses: {
           '204': { description: 'Artist block created.' },
@@ -422,7 +556,7 @@ export const openapiDoc = {
         tags: ['Artist blocks'],
         operationId: 'deleteArtistBlock',
         summary: 'Remove an artist block',
-        security: authSecurity,
+        security: unsafeAuthSecurity,
         parameters: [{ name: 'artistId', in: 'path', required: true, schema: { type: 'integer' } }],
         responses: {
           '204': { description: 'Artist block removed.' },
@@ -490,7 +624,7 @@ export const openapiDoc = {
         tags: ['Settings'],
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
-        security: authSecurity,
+        security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: false, content: { [json]: { schema: { type: 'object' } } } },
         responses: {

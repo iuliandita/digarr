@@ -1,5 +1,5 @@
 import { createLastFmClient } from '@/core/clients/lastfm'
-import type { DiscoveryModeDefinition } from '../types'
+import type { DiscoveryConfigField, DiscoveryModeDefinition } from '../types'
 import { getDiscoveryModeConnections, getNormalizedLimit } from './runtime'
 
 // Country values for the region select. Last.fm geo.gettopartists uses the
@@ -22,41 +22,28 @@ function parseChartLimit(value: unknown): number {
 }
 
 export function createChartsMode(): DiscoveryModeDefinition {
+  const fields: DiscoveryConfigField[] = [
+    {
+      key: 'region',
+      label: 'discoveryMode.field.region',
+      type: 'select',
+      required: false,
+      options: REGION_OPTIONS,
+    },
+    {
+      key: 'limit',
+      label: 'discoveryMode.field.limit',
+      type: 'number',
+      required: false,
+    },
+  ]
   return {
     id: 'charts',
     label: 'Charts',
     description: 'Discover artists trending on global or regional charts',
     availability: 'fallback',
-    easyFields: [
-      {
-        key: 'region',
-        label: 'discoveryMode.field.region',
-        type: 'select',
-        required: false,
-        options: REGION_OPTIONS,
-      },
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
-    advancedFields: [
-      {
-        key: 'region',
-        label: 'discoveryMode.field.region',
-        type: 'select',
-        required: false,
-        options: REGION_OPTIONS,
-      },
-      {
-        key: 'limit',
-        label: 'discoveryMode.field.limit',
-        type: 'number',
-        required: false,
-      },
-    ],
+    easyFields: fields,
+    advancedFields: fields,
     executor: async (request) => {
       const connections = await getDiscoveryModeConnections(request.userId)
       if (!connections?.lastfmApiKey) {

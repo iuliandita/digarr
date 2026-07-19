@@ -16,6 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import type { HealthCheckResult } from '@/core/library/types'
+import type { NotificationChannel } from '@/core/notifications/types'
 import type { GenreCoverage } from '@/core/types'
 
 export type DiscoveryModeProvenance = {
@@ -292,7 +293,7 @@ export const jobRuns = pgTable(
   {
     id: serial('id').primaryKey(),
     type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
-    status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck'
+    status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck' | 'cancelled'
     userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
@@ -413,22 +414,6 @@ export const artistMetadata = pgTable('artist_metadata', {
   cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow(),
 })
 
-export const oidcTokens = pgTable('oidc_tokens', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(),
-  issuerUrl: text('issuer_url').notNull(),
-  accessToken: text('access_token').notNull(),
-  refreshToken: text('refresh_token'),
-  idToken: text('id_token'),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  nonce: text('nonce'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
-
 export const oauthTokens = pgTable(
   'oauth_tokens',
   {
@@ -523,6 +508,7 @@ export type Preferences = {
   topArtistsLimit: number
   librarySeedRatio: number // 0-1: fraction of seed artists from Lidarr library
   webhookUrl?: string
+  channels?: NotificationChannel[]
   digestCron?: string // cron string for the periodic digest webhook; absent/empty = disabled
   lidarrPublicUrl?: string // browser-accessible Lidarr URL (may differ from API URL)
   autoApproveEnabled?: boolean
@@ -574,7 +560,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
  */
 export function mergePreferences(raw: Partial<Preferences> | null | undefined): Preferences {
   const partial = raw ?? {}
-  return {
+  const merged: Preferences = {
     ...DEFAULT_PREFERENCES,
     ...partial,
     scoringWeights: {
@@ -582,6 +568,18 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
       ...partial.scoringWeights,
     },
   }
+  if ((!merged.channels || merged.channels.length === 0) && merged.webhookUrl) {
+    merged.channels = [
+      {
+        id: 'legacy-webhook',
+        type: 'webhook',
+        enabled: true,
+        events: ['batch_complete', 'digest'],
+        url: merged.webhookUrl,
+      },
+    ]
+  }
+  return merged
 }
 
 export const libraryArtists = pgTable(

@@ -109,6 +109,10 @@
     Description="CORS allowed origin, e.g. https://digarr.example.com (required for reverse proxy)"
     Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
+  <Config Name="Allow Insecure Cookies" Target="DIGARR_ALLOW_INSECURE_COOKIES" Default="false"
+    Description="Cookies default to Secure in production, even behind a TLS-terminating proxy. Set true ONLY for an intentional direct-HTTP deployment (pair with an http:// Allowed Origin); direct HTTP exposes the session cookie to interception."
+    Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
   <Config Name="Encryption Key" Target="DIGARR_ENCRYPTION_KEY" Default=""
     Description="32+ char key for encrypting API keys, tokens, and connection passwords (blank stores those fields unencrypted)"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>

@@ -209,6 +209,7 @@ describe('PreviewPlayer', () => {
       onPlaybackPaused: spotify.onPlaybackPaused,
       onPlaybackEnded: spotify.onPlaybackEnded,
     })
+    expect(screen.queryByTitle('Radiohead')).not.toBeInTheDocument()
   })
 
   it('falls back to a usable Spotify iframe when controller initialization fails', () => {

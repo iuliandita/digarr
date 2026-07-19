@@ -1,6 +1,26 @@
 # API Reference
 
-All endpoints require authentication via `Authorization: Bearer <token>` header unless marked as public. Only `/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept `?token=<token>` for SSE and `<audio>` clients that cannot send headers.
+All endpoints require either a `digarr_session` cookie or an
+`Authorization: Bearer <token>` header unless marked as public. Bearer sessions
+remain the compatibility path for non-browser API clients. Only
+`/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept
+`?token=<token>` for SSE and `<audio>` clients that cannot send headers.
+
+Cookie- or proxy-authenticated `POST`, `PUT`, `PATCH`, and `DELETE` requests
+must send `X-Digarr-CSRF: 1` plus exact same-origin browser evidence. The
+bundled UI handles this automatically. Verified bearer requests do not require
+the CSRF header. Browser-shaped public mutations, including login and
+registration, also require the header; non-browser requests without browser
+origin signals remain compatible. OpenAPI expresses protected mutations as
+`sessionCookie` + `csrfHeader`, or `bearerToken`. Set `ALLOWED_ORIGIN` to the
+exact public origin when a reverse proxy or TLS terminator changes the scheme
+or host seen by the application; the value controls CSRF origin checks and the
+OIDC callback URL. Production session and OIDC cookies default to `Secure` even
+when the backend request arrives over HTTP behind a TLS terminator; a
+production instance served directly over plain HTTP must set
+`DIGARR_ALLOW_INSECURE_COOKIES=true` (with a matching `http://` `ALLOWED_ORIGIN`)
+and is vulnerable to network interception. See
+[Authentication](AUTHENTICATION.md#cookie-secure-policy).
 
 Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
 
@@ -57,7 +77,9 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-OpenAPI coverage currently includes auth status/login, recommendations, artist blocks, jobs, and settings service probes. The Markdown reference remains the complete route inventory.
+OpenAPI coverage currently includes auth status/login/register/session
+migration, recommendations, artist blocks, jobs, and settings service probes.
+The Markdown reference remains the complete route inventory.
 
 ---
 
@@ -67,6 +89,7 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 |--------|------|------|-------------|
 | POST | `/api/v1/auth/register` | No | Create account. First user becomes admin. Rate limited: 5/min |
 | POST | `/api/v1/auth/login` | No | Login with username/password. Rate limited: 10/min |
+| POST | `/api/v1/auth/session/migrate` | Bearer session | Atomically replace an active bearer session with an HttpOnly cookie session |
 | POST | `/api/v1/auth/logout` | Yes | Invalidate current session |
 | GET | `/api/v1/auth/status` | No | Login-screen auth requirement and OIDC availability |
 | GET | `/api/v1/auth/meta` | Yes | Deployment metadata: version and enabled auth integrations |
@@ -89,10 +112,30 @@ OpenAPI coverage currently includes auth status/login, recommendations, artist b
 ```
 
 Notes:
+- Login and registration return `{ user, token }` for API clients by default.
+  Send `X-Digarr-Auth-Mode: cookie` to receive an HttpOnly session cookie and a
+  `{ user }` response without the raw token.
+- Registration returns `201`; closed registration returns `403`, an existing
+  username returns `409`, and the sixth request from one source within a minute
+  returns `429`.
+- `POST /api/v1/auth/session/migrate` accepts only an active per-user session
+  bearer. It returns `204` after rotating that bearer into a cookie, `403` for
+  the deprecated shared token or another auth method, and `409` when the source
+  session was already replaced.
+- An `Authorization` header suppresses cookie fallback, including when the
+  header is malformed or its token is invalid.
+- Password changes invalidate every session for the user. Cookie callers
+  receive a replacement cookie and `204`; bearer callers receive
+  `{ "token": "..." }` for the replacement session. The password verification
+  and session replacement run in one atomic transaction under a user-row lock,
+  so a password verified before a concurrent reset cannot mint a post-reset
+  session.
 - `preferredLocale` may be a supported locale string or `null`
 - Supported locales: `en`, `es`, `fr`, `de`, `pt-BR`, `it`, `nl`, `ro`, `pl`, `tr`, `uk`, `ru`, `ja`, `ko`, `zh-CN`
 - `email` may be a valid address, an empty string, or `null`; empty/null clears it
-- A non-empty `email` must be unique across users; a collision returns `409` (`code: errors.auth.emailTaken`). Setting an email is the prerequisite for OIDC auto-linking (see OIDC / OAuth below)
+- A non-empty `email` must be unique across users; a collision returns `409`
+  (`code: errors.auth.emailTaken`). Digarr does not auto-link OIDC identities by
+  email; see [OIDC account matching](AUTHENTICATION.md#oidc-account-matching)
 - Legacy token auth is rejected with `403`; this route requires a session-authenticated user
 - `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
@@ -102,8 +145,8 @@ Notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var |
-| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback, creates user if needed |
+| GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
+| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
 | POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (e.g. Spotify) |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
@@ -147,6 +190,7 @@ Setup validation rules:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ queued, position }`. |
+| POST | `/api/v1/pipeline/cancel` | Yes | Stop the in-flight run and drop the queue. Returns 202 with `{ cancelled }` (`false` when nothing was running). |
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
@@ -160,6 +204,16 @@ rejected: the response is still 202 with `queued: true` and the caller's 1-based
 `position`. A given user is deduped (a double-click does not stack two runs).
 The queue drains automatically when the active run finishes. The queue is
 in-memory and per-process.
+
+`POST /api/v1/pipeline/cancel` stops a wedged or unwanted scan without a
+restart. It is available to any authenticated user (symmetric with "Run Scan":
+single-flight means one run total). Cancellation is cooperative -- the run
+checks an abort signal at every stage boundary and inside artist resolution, so
+a stop lands within about one request timeout. The queue is cleared so nothing
+starts behind the stopped run, the job is recorded with status `cancelled`, and
+a terminal `cancelled` progress event closes the SSE stream. A run that ignores
+the signal is force-reset after a short grace window so the app is never left
+permanently "running".
 
 `POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
 metadata using the requesting admin's configured providers. It runs one rescan
@@ -763,7 +817,7 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 | GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
 | POST | `/api/v1/settings/test/:service` | Admin | Test service connection |
-| POST | `/api/v1/settings/test-webhook` | Admin | Send test webhook |
+| POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
 
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
@@ -789,6 +843,29 @@ Settings notes:
   "Music" }] }`. Save the chosen id as the per-user `jellyfinLibraryId` / `embyLibraryId`
   setting; empty/null means all music libraries (server-wide, the default). When set, top
   artists, favorites, recent listening, and library sync are scoped to that library
+
+Notification channels:
+- `GET /api/v1/settings` returns a `channels` array under `preferences`, and `PATCH` accepts the
+  same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
+  string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
+  "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
+  - `webhook` - `{ ..., url }` (Discord/Slack payloads auto-detected)
+  - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
+  - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
+  - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
+- Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
+  sending `***` back on `PATCH` preserves the stored ciphertext instead of overwriting it.
+- The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
+  returns `403` (same rule as other global settings).
+- `allowPrivateTarget: true` relaxes only RFC1918 ranges (`10/8`, `172.16/12`, `192.168/16`) for
+  that one channel; cloud-metadata (`169.254.169.254`), link-local, and ULA stay blocked, and
+  DNS-pinning plus `redirect: manual` stay on regardless.
+- `POST /api/v1/settings/test-webhook` sends a synthetic `batch_complete` notification to a single
+  channel and returns `204` on success. Post the channel config inline in the body (any secret
+  left as `***` is restored from the stored channel), or `{ "id": "<channelId>" }` (or `?id=`) to
+  test a stored channel; with no id it tests the first configured channel. Delivery failure returns
+  `application/problem+json` `502` with the upstream message in `detail` (secret-redacted, capped
+  at 300 chars); `400` when no channel is configured.
 
 ---
 
@@ -827,6 +904,12 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 | POST | `/api/v1/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
 | POST | `/api/v1/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
 | GET | `/api/v1/admin/backup/last` | Admin | Last auto-backup metadata. |
+
+Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.
+Restore accepts an optional legacy `data.oidcTokens` array for compatibility:
+an absent or empty array is silent, while nonempty rows are never restored and
+add `Ignored 1 legacy OIDC token record.` or
+`Ignored N legacy OIDC token records.` to `warnings`.
 
 ### Upgrade
 
