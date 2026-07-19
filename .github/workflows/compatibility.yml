@@ -125,6 +125,7 @@ jobs:
           sw_vers
           uname -m
           docker desktop status || true
+          docker desktop logs --priority 2 || true
           INIT_LOG="$HOME/Library/Containers/com.docker.docker/Data/log/vm/init.log"
           if [ -f "$INIT_LOG" ]; then
             tail -n 200 "$INIT_LOG"

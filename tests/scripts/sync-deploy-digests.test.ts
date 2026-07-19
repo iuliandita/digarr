@@ -79,6 +79,7 @@ describe('CI workflow reliability policy', () => {
     expect(macJob).toContain('docker desktop start --timeout 300')
     expect(macJob).toContain('name: Diagnose Docker Desktop startup')
     expect(macJob).toContain('docker desktop status')
+    expect(macJob).toContain('docker desktop logs --priority 2')
     expect(macJob).toContain('Data/log/vm/init.log')
     expect(macJob).toContain('id: docker')
     expect(macJob).toContain('id: postgres_assert')
