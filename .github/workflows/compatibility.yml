@@ -124,8 +124,17 @@ jobs:
         run: |
           sw_vers
           uname -m
+          sysctl -n kern.hv_support || true
           docker desktop status || true
           docker desktop logs --priority 2 || true
+          DOCKER_LOG_PREDICATE='process matches ".*(ocker|vpnkit).*" || (process in {"taskgated-helper", "launchservicesd", "kernel"} && eventMessage contains[c] "docker")'
+          /usr/bin/log show \
+            --debug \
+            --info \
+            --style syslog \
+            --last 10m \
+            --predicate "$DOCKER_LOG_PREDICATE" \
+            | tail -n 200 || true
           INIT_LOG="$HOME/Library/Containers/com.docker.docker/Data/log/vm/init.log"
           if [ -f "$INIT_LOG" ]; then
             tail -n 200 "$INIT_LOG"
