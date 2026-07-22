@@ -1,6 +1,7 @@
 import { type createMusicBrainzClient, parseYear } from '@/core/clients/musicbrainz'
 import { normalizeAlbumTitle } from './normalize'
 import type { LibraryAlbum } from './sources/types'
+import type { UnreconciledReason } from './types'
 
 type MBClient = Pick<ReturnType<typeof createMusicBrainzClient>, 'getReleaseGroups'>
 
@@ -17,6 +18,7 @@ export type ReconciledAlbum = {
   primaryType: 'Album' | 'EP' | 'Single' | 'Compilation' | 'Live' | 'Other' | null
   matchMethod: 'mbid' | 'title_exact' | 'title_year' | null
   matchConfidence: number | null
+  unreconciledReason: UnreconciledReason | null
 }
 
 function makeRow(
@@ -28,6 +30,7 @@ function makeRow(
   albumMbid: string | null,
   matchMethod: ReconciledAlbum['matchMethod'],
   matchConfidence: number | null,
+  unreconciledReason: UnreconciledReason | null = null,
 ): ReconciledAlbum {
   return {
     sourceAlbumId: album.sourceAlbumId,
@@ -40,6 +43,7 @@ function makeRow(
     primaryType,
     matchMethod,
     matchConfidence,
+    unreconciledReason,
   }
 }
 
@@ -57,9 +61,11 @@ export async function reconcileAlbumsForArtist(
   },
 ): Promise<ReconciledAlbum[]> {
   let releaseGroups: Awaited<ReturnType<MBClient['getReleaseGroups']>>
+  let releaseGroupLookupFailed = false
   try {
     releaseGroups = await deps.mbClient.getReleaseGroups(artistMbid)
   } catch (err) {
+    releaseGroupLookupFailed = true
     deps.onMbError?.(err)
     console.warn(
       `[library-reconcile] MB getReleaseGroups failed for artist ${artistMbid}; albums left unreconciled: ${err instanceof Error ? err.message : String(err)}`,
@@ -69,6 +75,21 @@ export async function reconcileAlbumsForArtist(
 
   return albums.map((album) => {
     const titleNormalized = normalizeAlbumTitle(album.title)
+
+    if (releaseGroupLookupFailed) {
+      return makeRow(
+        album,
+        titleNormalized,
+        artistMbid,
+        album.releaseYear ?? null,
+        album.primaryType ?? null,
+        null,
+        null,
+        null,
+        'lookup_failed',
+      )
+    }
+
     const direct =
       typeof album.mbid === 'string' && UUID_RE.test(album.mbid)
         ? releaseGroups.find((rg) => rg.id === album.mbid)
@@ -90,6 +111,20 @@ export async function reconcileAlbumsForArtist(
     const candidates = releaseGroups.filter(
       (rg) => normalizeAlbumTitle(rg.title) === titleNormalized,
     )
+
+    if (candidates.length === 0) {
+      return makeRow(
+        album,
+        titleNormalized,
+        artistMbid,
+        album.releaseYear ?? null,
+        album.primaryType ?? null,
+        null,
+        null,
+        null,
+        'no_candidate',
+      )
+    }
 
     if (candidates.length === 1 && candidates[0]) {
       return makeRow(
@@ -135,6 +170,7 @@ export async function reconcileAlbumsForArtist(
       null,
       null,
       null,
+      'ambiguous',
     )
   })
 }

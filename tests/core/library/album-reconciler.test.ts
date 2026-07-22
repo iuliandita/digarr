@@ -37,6 +37,7 @@ describe('reconcileAlbumsForArtist', () => {
       matchMethod: 'mbid',
       matchConfidence: 1,
       titleNormalized: 'in rainbows',
+      unreconciledReason: null,
     })
   })
 
@@ -57,6 +58,7 @@ describe('reconcileAlbumsForArtist', () => {
       matchConfidence: 0.8,
       releaseYear: 2007,
       primaryType: 'Album',
+      unreconciledReason: null,
     })
   })
 
@@ -79,6 +81,25 @@ describe('reconcileAlbumsForArtist', () => {
       matchMethod: 'title_year',
       matchConfidence: 0.7,
       releaseYear: 2021,
+      unreconciledReason: null,
+    })
+  })
+
+  it('classifies a successful lookup with no title candidates as no_candidate', async () => {
+    const mbClient = {
+      getReleaseGroups: vi.fn().mockResolvedValue([]),
+    }
+
+    const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ title: 'Missing' })], {
+      mbClient,
+    })
+
+    expect(rows[0]).toMatchObject({
+      albumMbid: null,
+      matchMethod: null,
+      matchConfidence: null,
+      titleNormalized: 'missing',
+      unreconciledReason: 'no_candidate',
     })
   })
 
@@ -102,6 +123,7 @@ describe('reconcileAlbumsForArtist', () => {
       matchConfidence: null,
       releaseYear: 2021,
       titleNormalized: 'dummy',
+      unreconciledReason: 'ambiguous',
     })
   })
 
@@ -125,6 +147,7 @@ describe('reconcileAlbumsForArtist', () => {
       matchConfidence: null,
       releaseYear: 2021,
       titleNormalized: 'dummy',
+      unreconciledReason: 'ambiguous',
     })
   })
 
@@ -145,6 +168,7 @@ describe('reconcileAlbumsForArtist', () => {
       matchMethod: null,
       matchConfidence: null,
       titleNormalized: 'dummy',
+      unreconciledReason: 'ambiguous',
     })
   })
 
@@ -158,15 +182,20 @@ describe('reconcileAlbumsForArtist', () => {
 
     const rows = await reconcileAlbumsForArtist(
       ARTIST_MBID,
-      [album({ title: 'Stranger Things', releaseYear: 2019 })],
+      [
+        album({ sourceAlbumId: 'src-1', title: 'Stranger Things', releaseYear: 2019 }),
+        album({ sourceAlbumId: 'src-2', title: 'Dummy' }),
+      ],
       { mbClient, onMbError },
     )
 
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(2)
+    expect(rows.map((row) => row.unreconciledReason)).toEqual(['lookup_failed', 'lookup_failed'])
     expect(rows[0]).toMatchObject({
       albumMbid: null,
       artistMbid: ARTIST_MBID,
       matchMethod: null,
+      matchConfidence: null,
       releaseYear: 2019,
     })
     expect(onMbError).toHaveBeenCalledOnce()

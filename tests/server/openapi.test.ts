@@ -158,6 +158,190 @@ describe('OpenAPI skeleton', () => {
     )
   })
 
+  it('documents admin reconciliation review reads and bulk ignores', () => {
+    const paths = openapiDoc.paths as Record<
+      string,
+      {
+        get?: {
+          security?: unknown
+          responses: Record<string, unknown>
+        }
+        post?: {
+          security?: unknown
+          requestBody?: {
+            required?: boolean
+            content?: Record<string, { schema?: unknown }>
+          }
+          responses: Record<string, unknown>
+        }
+      }
+    >
+    const schemas = openapiDoc.components.schemas as Record<string, Record<string, unknown>>
+
+    const artistRows = paths['/api/v1/library/unreconciled']?.get
+    const albumRows = paths['/api/v1/library/unreconciled-albums']?.get
+    const artistBulkIgnore = paths['/api/v1/library/overrides/bulk-ignore']?.post
+    const albumBulkIgnore = paths['/api/v1/library/album-overrides/bulk-ignore']?.post
+
+    expect(artistRows).toBeDefined()
+    expect(albumRows).toBeDefined()
+    expect(artistBulkIgnore).toBeDefined()
+    expect(albumBulkIgnore).toBeDefined()
+
+    for (const [operation, responseSchema] of [
+      [artistRows, '#/components/schemas/LibraryUnreconciledArtistList'],
+      [albumRows, '#/components/schemas/LibraryUnreconciledAlbumList'],
+    ] as const) {
+      expect(operation?.security).toEqual([{ sessionCookie: [] }, { bearerToken: [] }])
+      expect(operation?.responses).toEqual(
+        expect.objectContaining({
+          '200': expect.anything(),
+          '401': expect.anything(),
+          '403': expect.anything(),
+        }),
+      )
+      expect(operation?.responses['200']).toMatchObject({
+        content: { 'application/json': { schema: { $ref: responseSchema } } },
+      })
+    }
+
+    for (const [operation, requestSchema] of [
+      [artistBulkIgnore, '#/components/schemas/LibraryArtistBulkIgnoreRequest'],
+      [albumBulkIgnore, '#/components/schemas/LibraryAlbumBulkIgnoreRequest'],
+    ] as const) {
+      expect(operation?.security).toEqual([
+        { sessionCookie: [], csrfHeader: [] },
+        { bearerToken: [] },
+      ])
+      expect(operation?.responses).toEqual(
+        expect.objectContaining({
+          '204': expect.anything(),
+          '400': expect.anything(),
+          '401': expect.anything(),
+          '403': expect.anything(),
+        }),
+      )
+      expect(operation?.requestBody).toEqual({
+        required: true,
+        content: { 'application/json': { schema: { $ref: requestSchema } } },
+      })
+    }
+
+    for (const [requestSchema, identityRef] of [
+      [schemas.LibraryArtistBulkIgnoreRequest, '#/components/schemas/LibraryArtistIdentity'],
+      [schemas.LibraryAlbumBulkIgnoreRequest, '#/components/schemas/LibraryAlbumIdentity'],
+    ]) {
+      expect(requestSchema).toMatchObject({
+        type: 'object',
+        required: ['items'],
+        additionalProperties: false,
+        properties: {
+          items: {
+            type: 'array',
+            minItems: 1,
+            maxItems: 200,
+            uniqueItems: true,
+            description: 'Exact duplicate identity pairs return 400.',
+            items: { $ref: identityRef },
+          },
+        },
+      })
+    }
+  })
+
+  it('documents strict reconciliation response rows with nullable legacy reasons', () => {
+    const schemas = openapiDoc.components.schemas as Record<string, Record<string, unknown>>
+
+    for (const [identitySchema, required] of [
+      [schemas.LibraryArtistIdentity, ['source', 'sourceArtistId']],
+      [schemas.LibraryAlbumIdentity, ['source', 'sourceAlbumId']],
+    ]) {
+      expect(identitySchema).toMatchObject({
+        type: 'object',
+        required,
+        additionalProperties: false,
+      })
+    }
+
+    for (const listSchema of [
+      schemas.LibraryUnreconciledArtistList,
+      schemas.LibraryUnreconciledAlbumList,
+    ]) {
+      expect(listSchema).toMatchObject({
+        type: 'object',
+        required: ['items'],
+        additionalProperties: false,
+      })
+    }
+
+    for (const [rowSchema, required] of [
+      [
+        schemas.LibraryUnreconciledArtistRow,
+        [
+          'id',
+          'userId',
+          'source',
+          'sourceArtistId',
+          'name',
+          'nameNormalized',
+          'mbid',
+          'matchMethod',
+          'matchConfidence',
+          'unreconciledReason',
+          'genres',
+          'syncedAt',
+          'lastGapCheckAt',
+        ],
+      ],
+      [
+        schemas.LibraryUnreconciledAlbumRow,
+        [
+          'id',
+          'userId',
+          'source',
+          'sourceArtistId',
+          'sourceAlbumId',
+          'title',
+          'titleNormalized',
+          'albumMbid',
+          'artistMbid',
+          'primaryType',
+          'releaseYear',
+          'matchMethod',
+          'matchConfidence',
+          'unreconciledReason',
+          'syncedAt',
+        ],
+      ],
+    ]) {
+      expect(rowSchema).toMatchObject({
+        type: 'object',
+        required,
+        additionalProperties: false,
+        properties: {
+          unreconciledReason: {
+            oneOf: [
+              { type: 'string', enum: ['no_candidate', 'ambiguous', 'lookup_failed'] },
+              { type: 'null' },
+            ],
+          },
+        },
+      })
+    }
+
+    expect(schemas.LibraryUnreconciledArtistRow).toMatchObject({
+      properties: {
+        lastGapCheckAt: { type: ['string', 'null'], format: 'date-time' },
+      },
+    })
+    expect(schemas.LibraryUnreconciledAlbumRow).toMatchObject({
+      properties: {
+        matchMethod: { type: ['string', 'null'] },
+        matchConfidence: { type: ['number', 'null'] },
+      },
+    })
+  })
+
   it('gives each added operation security, a success response, and common errors', () => {
     const publicPaths = new Set([
       '/api/v1/auth/status',
@@ -165,6 +349,10 @@ describe('OpenAPI skeleton', () => {
       '/api/v1/auth/register',
     ])
     const bearerOnlyPaths = new Set(['/api/v1/auth/session/migrate'])
+    const noBadRequestPaths = new Set([
+      '/api/v1/library/unreconciled',
+      '/api/v1/library/unreconciled-albums',
+    ])
     for (const [path, item] of Object.entries(openapiDoc.paths)) {
       for (const [method, operation] of Object.entries(item)) {
         const responseStatuses = Object.keys(operation.responses)
@@ -192,7 +380,9 @@ describe('OpenAPI skeleton', () => {
           ])
           expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('401')
         }
-        expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('400')
+        if (!noBadRequestPaths.has(path)) {
+          expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('400')
+        }
       }
     }
   })

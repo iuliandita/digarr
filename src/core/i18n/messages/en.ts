@@ -404,15 +404,49 @@ export const en = {
     'albums could not be automatically matched to MusicBrainz.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'artists could not be automatically matched to MusicBrainz.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Could not ignore the selected items.',
+  'libraryReconciliation.clearVisible': 'Clear visible',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Selected: {0}. This selection will stay ignored until its saved overrides are removed.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Ignore selected albums?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Selected: {0}. This selection will stay ignored until its saved overrides are removed.',
+  'libraryReconciliation.confirmArtistsTitle': 'Ignore selected artists?',
   'libraryReconciliation.couldNotLoadAlbums': 'Could not load unreconciled albums.',
   'libraryReconciliation.couldNotLoadArtists': 'Could not load unreconciled artists.',
+  'libraryReconciliation.ignoreForever': 'Ignore forever',
+  'libraryReconciliation.ignoreSelected': 'Ignore selected',
+  'libraryReconciliation.invalidMbid': 'Not a valid MBID (UUID expected)',
   'libraryReconciliation.loadingAlbums': 'Loading unreconciled albums...',
   'libraryReconciliation.loadingArtists': 'Loading unreconciled artists...',
   'libraryReconciliation.noAlbums': 'No unreconciled albums.',
   'libraryReconciliation.noArtists': 'No unreconciled artists. Your library is fully matched.',
+  'libraryReconciliation.normalizedName': 'Normalized: {0}',
   'libraryReconciliation.of': 'of',
   'libraryReconciliation.page': 'Page',
+  'libraryReconciliation.pasteAlbumMbid': 'Paste album MBID (UUID)',
+  'libraryReconciliation.pasteMbid': 'Paste MBID (UUID)',
+  'libraryReconciliation.pin': 'Pin',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Multiple matches remain. Pin the correct MBID or ignore this item.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Ambiguous match',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz could not be reached. Retry the library sync later.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Lookup failed',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'The cause predates reason tracking. Rerun reconciliation or review it manually.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Needs review',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'No match was found. Pin a known MBID or ignore this item.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'No match found',
+  'libraryReconciliation.selectAlbum': 'Select album {0}',
+  'libraryReconciliation.selectArtist': 'Select artist {0}',
+  'libraryReconciliation.selectedCount': 'Selected: {0}',
+  'libraryReconciliation.selectionLimit': 'At most {0} items can be selected at once.',
+  'libraryReconciliation.selectVisible': 'Select visible',
   'libraryReconciliation.showing': 'Showing',
+  'libraryReconciliation.unknownType': 'Unknown type',
+  'libraryReconciliation.unknownYear': 'Unknown year',
   'playlist.delete': 'Delete',
   'playlist.deleteFailed': 'Failed to delete playlist',
   'playlist.deleteWarning': 'Delete this playlist? This cannot be undone.',
@@ -939,13 +973,6 @@ export const en = {
   'libraryStats.rootFolders': 'Root Folders',
   'libraryStats.free': 'free',
   'libraryStats.unknown': 'unknown',
-
-  // Library Reconciliation
-  'libraryReconciliation.pasteMbid': 'Paste MBID (UUID)',
-  'libraryReconciliation.pasteAlbumMbid': 'Paste album MBID (UUID)',
-  'libraryReconciliation.pin': 'Pin',
-  'libraryReconciliation.ignoreForever': 'Ignore forever',
-  'libraryReconciliation.invalidMbid': 'Not a valid MBID (UUID expected)',
 
   // Settings
   'settings.tabs.connections': 'Connections',

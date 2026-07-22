@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ApiError,
   AUTH_EXPIRED_EVENT,
+  bulkIgnoreLibraryAlbums,
+  bulkIgnoreLibraryArtists,
   changePassword,
   clearStoredToken,
   downloadBackup,
@@ -193,6 +195,26 @@ describe('cookie-authenticated API transport', () => {
     expect(init.method).toBe('POST')
     expectCookieRequest(init, true)
     expect(localStorage.getItem('digarr-auth-token')).toBe('legacy-session-token')
+  })
+
+  it('posts bulk library ignores with cookie credentials and CSRF', async () => {
+    const artistItems = [{ source: 'plex', sourceArtistId: 'artist-1' }]
+    const albumItems = [{ source: 'jellyfin', sourceAlbumId: 'album-1' }]
+    fetchMock.mockResolvedValueOnce(noContentResponse()).mockResolvedValueOnce(noContentResponse())
+
+    await expect(bulkIgnoreLibraryArtists(artistItems)).resolves.toBeUndefined()
+    await expect(bulkIgnoreLibraryAlbums(albumItems)).resolves.toBeUndefined()
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/v1/library/overrides/bulk-ignore',
+      '/api/v1/library/album-overrides/bulk-ignore',
+    ])
+    for (const [index, items] of [artistItems, albumItems].entries()) {
+      const init = fetchMock.mock.calls[index]?.[1] as RequestInit
+      expect(init.method).toBe('POST')
+      expect(init.body).toBe(JSON.stringify({ items }))
+      expect(expectCookieRequest(init, true).get('Content-Type')).toBe('application/json')
+    }
   })
 
   it('clears legacy storage and emits auth-expired on a general 401', async () => {

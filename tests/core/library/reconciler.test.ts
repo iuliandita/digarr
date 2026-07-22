@@ -318,7 +318,7 @@ describe('reconcileArtist - Step 5 (album-overlap disambiguation)', () => {
 })
 
 describe('reconcileArtist - MusicBrainz degradation', () => {
-  it('returns unreconciled "no_candidate" when searchArtist throws 503', async () => {
+  it('returns unreconciled "lookup_failed" when searchArtist throws 503', async () => {
     const ctx = makeCtx({
       mbClient: {
         searchArtist: vi
@@ -330,13 +330,49 @@ describe('reconcileArtist - MusicBrainz degradation', () => {
     const artist: LibraryArtist = { sourceArtistId: 'rk-1', name: 'Bush' }
     const result = await reconcileArtist(artist, 'plex', ctx)
     expect(result.mbid).toBeNull()
-    expect(result.unreconciledReason).toBe('no_candidate')
+    expect(result.unreconciledReason).toBe('lookup_failed')
     expect(ctx.counts.mbApiCallsFailed).toBe(1)
-    expect(ctx.counts.unreconciledNoCandidate).toBe(1)
+    expect(ctx.counts.unreconciledLookupFailed).toBe(1)
+    expect(ctx.counts.unreconciledNoCandidate).toBe(0)
     expect(ctx.mbClient.getReleaseGroups).not.toHaveBeenCalled()
   })
 
-  it('does not fail the reconciliation when getReleaseGroups throws during disambiguation', async () => {
+  it('does not promote a candidate when required disambiguation data fails', async () => {
+    const ctx = makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({
+          artists: [
+            { id: VALID_MBID, name: 'Bush', score: 100 },
+            { id: OTHER_MBID, name: 'Bush', score: 90 },
+          ],
+        }),
+        getReleaseGroups: vi.fn().mockImplementation((mbid: string) => {
+          if (mbid === VALID_MBID) {
+            return Promise.resolve([
+              { id: 'rg1', title: 'Sixteen Stone', type: 'Album' },
+              { id: 'rg2', title: 'Razorblade Suitcase', type: 'Album' },
+            ])
+          }
+          return Promise.reject(new Error('MusicBrainz HTTP 503'))
+        }),
+      },
+    })
+    const artist: LibraryArtist = {
+      sourceArtistId: 'rk-1',
+      name: 'Bush',
+      knownAlbumTitles: ['Sixteen Stone', 'Razorblade Suitcase'],
+    }
+    const result = await reconcileArtist(artist, 'plex', ctx)
+    expect(result.mbid).toBeNull()
+    expect(result.unreconciledReason).toBe('lookup_failed')
+    expect(ctx.counts.mbApiCallsFailed).toBe(1)
+    expect(ctx.counts.unreconciledLookupFailed).toBe(1)
+    expect(ctx.counts.matchedDisambiguated).toBe(0)
+    expect(ctx.counts.unreconciledNoCandidate).toBe(0)
+    expect(ctx.counts.unreconciledAmbiguous).toBe(0)
+  })
+
+  it('classifies release-group lookup failures once per artist', async () => {
     const ctx = makeCtx({
       mbClient: {
         searchArtist: vi.fn().mockResolvedValue({
@@ -356,9 +392,11 @@ describe('reconcileArtist - MusicBrainz degradation', () => {
       knownAlbumTitles: ['Album One', 'Album Two'],
     }
     const result = await reconcileArtist(artist, 'plex', ctx)
-    // Both candidates score zero overlap, so disambiguation fails to decide
-    // and we fall through to 'ambiguous' without throwing.
-    expect(result.unreconciledReason).toBe('ambiguous')
+    expect(result.mbid).toBeNull()
+    expect(result.unreconciledReason).toBe('lookup_failed')
     expect(ctx.counts.mbApiCallsFailed).toBe(2)
+    expect(ctx.counts.unreconciledLookupFailed).toBe(1)
+    expect(ctx.counts.unreconciledNoCandidate).toBe(0)
+    expect(ctx.counts.unreconciledAmbiguous).toBe(0)
   })
 })

@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Added
+
+- **Library reconciliation review is faster and clearer.** Unresolved artists and albums now explain whether no MusicBrainz match exists, multiple matches remain, or a lookup failed. Admins can select visible artists or the current album page and confirm one atomic "Ignore selected" action; transient lookup failures stay out of bulk selection, existing per-row MBID controls remain available, and the workflow is translated across all 15 shipped locales.
+
 ## v1.14.0 - 2026-07-19
 
 ### Added

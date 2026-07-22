@@ -23,8 +23,9 @@ vi.mock('@/web/lib/api', () => ({
           matchedNameExact: 1,
           matchedNameAnchored: 1,
           matchedDisambiguated: 0,
-          unreconciledAmbiguous: 0,
-          unreconciledNoCandidate: 0,
+          unreconciledAmbiguous: 2,
+          unreconciledNoCandidate: 3,
+          unreconciledLookupFailed: 4,
           cacheHits: 0,
           mbApiCalls: 0,
           albumsSynced: 12,
@@ -81,5 +82,19 @@ describe('LibrarySourcesPanel', () => {
     expect(await screen.findByText(/albums synced/i)).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.getByTestId('albums-bar-plex')).toBeInTheDocument()
+  })
+
+  it('counts failed lookups in the unreconciled summary', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={queryClient}>
+          <LibrarySourcesPanel />
+        </QueryClientProvider>
+      </I18nProvider>,
+    )
+
+    expect(await screen.findByText(/9 unreconciled/i)).toBeInTheDocument()
   })
 })

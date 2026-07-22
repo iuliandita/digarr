@@ -25,6 +25,32 @@ describe('pglite backend contract', () => {
     expect(res.rows.length).toBe(3)
   })
 
+  it('creates nullable text unreconciled reason columns', async () => {
+    const res = await db.execute(sql`
+      SELECT table_name, column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name IN ('library_albums', 'library_artists')
+        AND column_name = 'unreconciled_reason'
+      ORDER BY table_name
+    `)
+
+    expect(res.rows).toEqual([
+      {
+        table_name: 'library_albums',
+        column_name: 'unreconciled_reason',
+        data_type: 'text',
+        is_nullable: 'YES',
+      },
+      {
+        table_name: 'library_artists',
+        column_name: 'unreconciled_reason',
+        data_type: 'text',
+        is_nullable: 'YES',
+      },
+    ])
+  })
+
   it('db.execute returns the {rows} shape upgrade.ts/health depend on', async () => {
     const res = await db.execute(sql`SELECT 1 AS x`)
     expect(Array.isArray(res.rows)).toBe(true)

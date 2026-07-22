@@ -110,6 +110,7 @@ function makeMockLibrarySyncStore() {
     getAllOverrides: vi.fn(async () => new Map()),
     upsertOverride: vi.fn(async () => {}),
     deleteOverride: vi.fn(async () => {}),
+    bulkIgnoreArtists: vi.fn(async () => {}),
     getKnownMbidsForUser: vi.fn(async () => new Set<string>()),
     userHasAnySyncState: vi.fn(async () => false),
     userHasOwnSyncState: vi.fn(async () => false),
@@ -118,6 +119,7 @@ function makeMockLibrarySyncStore() {
     listUnreconciledAlbumsForUser: vi.fn(async () => []),
     listOwnedAlbumsForArtist: vi.fn(async () => []),
     upsertAlbumOverride: vi.fn(async () => {}),
+    bulkIgnoreAlbums: vi.fn(async () => {}),
   }
 }
 
@@ -791,6 +793,34 @@ describe('GET /api/v1/library/unreconciled', () => {
       (librarySyncStore.listUnreconciledForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
     ).toBe(42)
   })
+
+  it('normalizes override skips without changing artist row fields', async () => {
+    const item = {
+      id: 9,
+      userId: 42,
+      source: 'plex',
+      sourceArtistId: 'plex-override',
+      name: 'Skipped Artist',
+      nameNormalized: 'skipped artist',
+      mbid: null,
+      matchMethod: null,
+      matchConfidence: null,
+      unreconciledReason: 'override_skip',
+      genres: ['rock'],
+      syncedAt: new Date('2026-07-22T10:00:00.000Z'),
+      lastGapCheckAt: null,
+    }
+    const { app } = makeSyncApp(undefined, {
+      listUnreconciledForUser: vi.fn(async () => [item]),
+    })
+
+    const res = await authedRequest(app, '/api/v1/library/unreconciled')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+    })
+  })
 })
 
 describe('GET /api/v1/library/album-coverage/:artistMbid', () => {
@@ -1003,6 +1033,36 @@ describe('GET /api/v1/library/unreconciled-albums', () => {
         .calls[0]?.[0],
     ).toBe(42)
   })
+
+  it('normalizes override skips without changing album row fields', async () => {
+    const item = {
+      id: 9,
+      userId: 42,
+      source: 'plex',
+      sourceArtistId: 'artist-override',
+      sourceAlbumId: 'album-override',
+      title: 'Skipped Album',
+      titleNormalized: 'skipped album',
+      albumMbid: null,
+      artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+      primaryType: 'Album',
+      releaseYear: 1991,
+      matchMethod: null,
+      matchConfidence: null,
+      unreconciledReason: 'override_skip',
+      syncedAt: new Date('2026-07-22T10:00:00.000Z'),
+    }
+    const { app } = makeSyncApp(undefined, {
+      listUnreconciledAlbumsForUser: vi.fn(async () => [item]),
+    })
+
+    const res = await authedRequest(app, '/api/v1/library/unreconciled-albums')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+    })
+  })
 })
 
 describe('POST /api/v1/library/overrides', () => {
@@ -1142,6 +1202,111 @@ describe('POST /api/v1/library/album-overrides', () => {
 
     expect(res.status).toBe(403)
     expect(librarySyncStore.upsertAlbumOverride as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/v1/library/overrides/bulk-ignore', () => {
+  const items = [
+    { source: 'plex', sourceArtistId: 'artist-1' },
+    { source: 'jellyfin', sourceArtistId: 'artist-2' },
+  ]
+
+  it('stores artist ignores for admins without triggering sync', async () => {
+    const { app, librarySync, librarySyncStore } = makeSyncApp()
+    const res = await authedRequest(app, '/api/v1/library/overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    })
+
+    expect(res.status).toBe(204)
+    expect(await res.text()).toBe('')
+    expect(librarySyncStore.bulkIgnoreArtists as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      items,
+    )
+    expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+    expect(librarySync.syncGlobal as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+    expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('does not store artist ignores for non-admin users', async () => {
+    const { app, librarySyncStore } = makeSyncApp(undefined, undefined, { isAdmin: false })
+    const res = await authedRequest(app, '/api/v1/library/overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    })
+
+    expect(res.status).toBe(403)
+    expect(librarySyncStore.bulkIgnoreArtists as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('rejects duplicate artist identities without storing them', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await authedRequest(app, '/api/v1/library/overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [items[0], items[0]] }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(librarySyncStore.bulkIgnoreArtists as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/v1/library/album-overrides/bulk-ignore', () => {
+  const items = [
+    { source: 'plex', sourceAlbumId: 'album-1' },
+    { source: 'jellyfin', sourceAlbumId: 'album-2' },
+  ]
+
+  it('stores album ignores for admins without triggering sync', async () => {
+    const { app, librarySync, librarySyncStore } = makeSyncApp()
+    const res = await authedRequest(app, '/api/v1/library/album-overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    })
+
+    expect(res.status).toBe(204)
+    expect(await res.text()).toBe('')
+    expect(librarySyncStore.bulkIgnoreAlbums as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      42,
+      items,
+    )
+    expect(librarySync.syncForUser as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+    expect(librarySync.syncGlobal as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+    expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('does not store album ignores for non-admin users', async () => {
+    const { app, librarySyncStore } = makeSyncApp(undefined, undefined, { isAdmin: false })
+    const res = await authedRequest(app, '/api/v1/library/album-overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    })
+
+    expect(res.status).toBe(403)
+    expect(librarySyncStore.bulkIgnoreAlbums as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
+  })
+
+  it('rejects oversized album requests without storing them', async () => {
+    const { app, librarySyncStore } = makeSyncApp()
+    const res = await authedRequest(app, '/api/v1/library/album-overrides/bulk-ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: Array.from({ length: 201 }, (_, index) => ({
+          source: 'plex',
+          sourceAlbumId: `album-${index}`,
+        })),
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(librarySyncStore.bulkIgnoreAlbums as ReturnType<typeof vi.fn>).not.toHaveBeenCalled()
   })
 })
 

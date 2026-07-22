@@ -4,12 +4,14 @@ import type { LibraryHealthService } from '@/core/library/health'
 import type { SkyHookWarmer } from '@/core/library/skyhook-warmer'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
-import type { HealthCheckId } from '@/core/library/types'
+import type { HealthCheckId, UnreconciledReason } from '@/core/library/types'
 import { errMsg, logAndSanitize } from '@/core/validation'
 import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import {
+  libraryAlbumBulkIgnoreSchema,
   libraryAlbumOverrideSchema,
+  libraryBulkIgnoreSchema,
   libraryOverrideSchema,
   librarySyncSchema,
   libraryWarmSchema,
@@ -27,6 +29,7 @@ const VALID_CHECK_IDS: Set<string> = new Set([
   'missing-wikidata',
 ])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+type PublicUnreconciledReason = Exclude<UnreconciledReason, 'override_skip'> | null
 
 type LibraryRouteDeps = {
   libraryHealth: LibraryHealthService
@@ -38,6 +41,17 @@ type LibraryRouteDeps = {
     getCoverageForArtist: (userId: number, artistMbid: string) => Promise<AlbumCoverage>
   }
   getUserById: (id: number) => Promise<{ isAdmin: boolean } | null>
+}
+
+function hideInternalUnreconciledReasons<
+  T extends { unreconciledReason: UnreconciledReason | null },
+>(
+  items: T[],
+): Array<Omit<T, 'unreconciledReason'> & { unreconciledReason: PublicUnreconciledReason }> {
+  return items.map(({ unreconciledReason, ...item }) => ({
+    ...item,
+    unreconciledReason: unreconciledReason === 'override_skip' ? null : unreconciledReason,
+  }))
 }
 
 export function libraryRoutes(deps: LibraryRouteDeps) {
@@ -160,7 +174,7 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledForUser(auth.userId)
-    return c.json({ items })
+    return c.json({ items: hideInternalUnreconciledReasons(items) })
   })
 
   app.get('/api/v1/library/album-coverage/:artistMbid', async (c) => {
@@ -178,7 +192,15 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const items = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId)
-    return c.json({ items })
+    return c.json({ items: hideInternalUnreconciledReasons(items) })
+  })
+
+  app.post('/api/v1/library/overrides/bulk-ignore', zJson(libraryBulkIgnoreSchema), async (c) => {
+    const auth = await adminGate(c)
+    if (!auth.ok) return auth.response
+    const { items } = c.req.valid('json')
+    await deps.librarySyncStore.bulkIgnoreArtists(auth.userId, items)
+    return c.body(null, 204)
   })
 
   // POST /api/v1/library/overrides - create/update an MBID override
@@ -190,6 +212,18 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     await deps.librarySyncStore.upsertOverride(auth.userId, source, sourceArtistId, mbid, note)
     return c.body(null, 204)
   })
+
+  app.post(
+    '/api/v1/library/album-overrides/bulk-ignore',
+    zJson(libraryAlbumBulkIgnoreSchema),
+    async (c) => {
+      const auth = await adminGate(c)
+      if (!auth.ok) return auth.response
+      const { items } = c.req.valid('json')
+      await deps.librarySyncStore.bulkIgnoreAlbums(auth.userId, items)
+      return c.body(null, 204)
+    },
+  )
 
   app.post('/api/v1/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
     const auth = await adminGate(c)

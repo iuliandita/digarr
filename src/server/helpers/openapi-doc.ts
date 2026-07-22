@@ -2,6 +2,7 @@
 // group instead of migrating every Hono route through a generation framework in
 // one pass.
 
+import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
 import { VERSION } from '@/version'
 
 const json = 'application/json'
@@ -275,6 +276,158 @@ export const openapiDoc = {
           message: { type: 'string' },
           version: { type: 'string' },
           latencyMs: { type: 'integer', minimum: 0 },
+        },
+        additionalProperties: false,
+      },
+      LibraryArtistIdentity: {
+        type: 'object',
+        required: ['source', 'sourceArtistId'],
+        properties: {
+          source: { type: 'string', minLength: 1 },
+          sourceArtistId: { type: 'string', minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+      LibraryAlbumIdentity: {
+        type: 'object',
+        required: ['source', 'sourceAlbumId'],
+        properties: {
+          source: { type: 'string', minLength: 1 },
+          sourceAlbumId: { type: 'string', minLength: 1 },
+        },
+        additionalProperties: false,
+      },
+      LibraryArtistBulkIgnoreRequest: {
+        type: 'object',
+        required: ['items'],
+        properties: {
+          items: {
+            type: 'array',
+            minItems: 1,
+            maxItems: LIBRARY_BULK_IGNORE_LIMIT,
+            uniqueItems: true,
+            description: 'Exact duplicate identity pairs return 400.',
+            items: { $ref: '#/components/schemas/LibraryArtistIdentity' },
+          },
+        },
+        additionalProperties: false,
+      },
+      LibraryAlbumBulkIgnoreRequest: {
+        type: 'object',
+        required: ['items'],
+        properties: {
+          items: {
+            type: 'array',
+            minItems: 1,
+            maxItems: LIBRARY_BULK_IGNORE_LIMIT,
+            uniqueItems: true,
+            description: 'Exact duplicate identity pairs return 400.',
+            items: { $ref: '#/components/schemas/LibraryAlbumIdentity' },
+          },
+        },
+        additionalProperties: false,
+      },
+      LibraryUnreconciledArtistRow: {
+        type: 'object',
+        required: [
+          'id',
+          'userId',
+          'source',
+          'sourceArtistId',
+          'name',
+          'nameNormalized',
+          'mbid',
+          'matchMethod',
+          'matchConfidence',
+          'unreconciledReason',
+          'genres',
+          'syncedAt',
+          'lastGapCheckAt',
+        ],
+        properties: {
+          id: { type: 'integer' },
+          userId: { type: ['integer', 'null'] },
+          source: { type: 'string' },
+          sourceArtistId: { type: 'string' },
+          name: { type: 'string' },
+          nameNormalized: { type: 'string' },
+          mbid: { type: ['string', 'null'] },
+          matchMethod: { type: ['string', 'null'] },
+          matchConfidence: { type: ['number', 'null'] },
+          unreconciledReason: {
+            oneOf: [
+              { type: 'string', enum: ['no_candidate', 'ambiguous', 'lookup_failed'] },
+              { type: 'null' },
+            ],
+          },
+          genres: { type: ['array', 'null'], items: { type: 'string' } },
+          syncedAt: { type: 'string', format: 'date-time' },
+          lastGapCheckAt: { type: ['string', 'null'], format: 'date-time' },
+        },
+        additionalProperties: false,
+      },
+      LibraryUnreconciledAlbumRow: {
+        type: 'object',
+        required: [
+          'id',
+          'userId',
+          'source',
+          'sourceArtistId',
+          'sourceAlbumId',
+          'title',
+          'titleNormalized',
+          'albumMbid',
+          'artistMbid',
+          'primaryType',
+          'releaseYear',
+          'matchMethod',
+          'matchConfidence',
+          'unreconciledReason',
+          'syncedAt',
+        ],
+        properties: {
+          id: { type: 'integer' },
+          userId: { type: ['integer', 'null'] },
+          source: { type: 'string' },
+          sourceArtistId: { type: 'string' },
+          sourceAlbumId: { type: 'string' },
+          title: { type: 'string' },
+          titleNormalized: { type: 'string' },
+          albumMbid: { type: ['string', 'null'] },
+          artistMbid: { type: ['string', 'null'] },
+          primaryType: { type: ['string', 'null'] },
+          releaseYear: { type: ['integer', 'null'] },
+          matchMethod: { type: ['string', 'null'] },
+          matchConfidence: { type: ['number', 'null'] },
+          unreconciledReason: {
+            oneOf: [
+              { type: 'string', enum: ['no_candidate', 'ambiguous', 'lookup_failed'] },
+              { type: 'null' },
+            ],
+          },
+          syncedAt: { type: 'string', format: 'date-time' },
+        },
+        additionalProperties: false,
+      },
+      LibraryUnreconciledArtistList: {
+        type: 'object',
+        required: ['items'],
+        properties: {
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/LibraryUnreconciledArtistRow' },
+          },
+        },
+        additionalProperties: false,
+      },
+      LibraryUnreconciledAlbumList: {
+        type: 'object',
+        required: ['items'],
+        properties: {
+          items: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/LibraryUnreconciledAlbumRow' },
+          },
         },
         additionalProperties: false,
       },
@@ -614,6 +767,78 @@ export const openapiDoc = {
             ...jsonSchema('#/components/schemas/JobHealth'),
           },
           '400': problemResponse,
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+        },
+      },
+    },
+    '/api/v1/library/unreconciled': {
+      get: {
+        tags: ['Library'],
+        operationId: 'listUnreconciledLibraryArtists',
+        summary: 'List unreconciled library artists',
+        security: authSecurity,
+        responses: {
+          '200': {
+            description: 'Unreconciled artist rows.',
+            ...jsonSchema('#/components/schemas/LibraryUnreconciledArtistList'),
+          },
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+        },
+      },
+    },
+    '/api/v1/library/unreconciled-albums': {
+      get: {
+        tags: ['Library'],
+        operationId: 'listUnreconciledLibraryAlbums',
+        summary: 'List unreconciled library albums',
+        security: authSecurity,
+        responses: {
+          '200': {
+            description: 'Unreconciled album rows.',
+            ...jsonSchema('#/components/schemas/LibraryUnreconciledAlbumList'),
+          },
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+        },
+      },
+    },
+    '/api/v1/library/overrides/bulk-ignore': {
+      post: {
+        tags: ['Library'],
+        operationId: 'bulkIgnoreLibraryArtists',
+        summary: 'Ignore unreconciled library artists',
+        security: unsafeAuthSecurity,
+        requestBody: {
+          required: true,
+          content: {
+            [json]: { schema: { $ref: '#/components/schemas/LibraryArtistBulkIgnoreRequest' } },
+          },
+        },
+        responses: {
+          '204': { description: 'Artist identities ignored.' },
+          '400': validationResponse,
+          '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
+        },
+      },
+    },
+    '/api/v1/library/album-overrides/bulk-ignore': {
+      post: {
+        tags: ['Library'],
+        operationId: 'bulkIgnoreLibraryAlbums',
+        summary: 'Ignore unreconciled library albums',
+        security: unsafeAuthSecurity,
+        requestBody: {
+          required: true,
+          content: {
+            [json]: { schema: { $ref: '#/components/schemas/LibraryAlbumBulkIgnoreRequest' } },
+          },
+        },
+        responses: {
+          '204': { description: 'Album identities ignored.' },
+          '400': validationResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
         },
