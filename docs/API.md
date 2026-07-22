@@ -672,6 +672,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 **GET /api/v1/library/sources** response notes:
 - `lastSyncCounts.albumsSynced` is present for album-capable sources after a successful sync
 - Lidarr, Plex, and Jellyfin source rows now include artist sync counts plus the number of reconciled album rows written for that source snapshot
+- `lastSyncCounts.unreconciledLookupFailed` counts artist rows left unresolved because their MusicBrainz lookup failed. It is optional and may be absent from historical stored count objects; consumers treat absence as zero
 - `lastSyncCounts.mbApiCallsFailed` is the number of MusicBrainz lookups that failed after internal retries. A non-zero value means the sync completed with partial reconciliation; affected artists and albums are retried on the next sync
 
 **POST /api/v1/library/warm** body:
