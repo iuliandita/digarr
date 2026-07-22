@@ -15,6 +15,60 @@ export const librarySyncSchema = z
   })
   .strict()
 
+const libraryArtistIdentitySchema = z
+  .object({
+    source: z.string().min(1),
+    sourceArtistId: z.string().min(1),
+  })
+  .strict()
+
+const libraryAlbumIdentitySchema = z
+  .object({
+    source: z.string().min(1),
+    sourceAlbumId: z.string().min(1),
+  })
+  .strict()
+
+export const libraryBulkIgnoreSchema = z
+  .object({
+    items: z.array(libraryArtistIdentitySchema).min(1).max(200),
+  })
+  .strict()
+  .superRefine(({ items }, ctx) => {
+    const seen = new Set<string>()
+    for (const [index, item] of items.entries()) {
+      const key = JSON.stringify([item.source, item.sourceArtistId])
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['items', index],
+          message: 'Duplicate artist',
+        })
+      }
+      seen.add(key)
+    }
+  })
+
+export const libraryAlbumBulkIgnoreSchema = z
+  .object({
+    items: z.array(libraryAlbumIdentitySchema).min(1).max(200),
+  })
+  .strict()
+  .superRefine(({ items }, ctx) => {
+    const seen = new Set<string>()
+    for (const [index, item] of items.entries()) {
+      const key = JSON.stringify([item.source, item.sourceAlbumId])
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['items', index],
+          message: 'Duplicate album',
+        })
+      }
+      seen.add(key)
+    }
+  })
+
 export const libraryOverrideSchema = z
   .object({
     source: z.string().min(1),

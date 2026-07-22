@@ -9,7 +9,9 @@ import { errMsg, logAndSanitize } from '@/core/validation'
 import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import {
+  libraryAlbumBulkIgnoreSchema,
   libraryAlbumOverrideSchema,
+  libraryBulkIgnoreSchema,
   libraryOverrideSchema,
   librarySyncSchema,
   libraryWarmSchema,
@@ -181,6 +183,14 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     return c.json({ items })
   })
 
+  app.post('/api/v1/library/overrides/bulk-ignore', zJson(libraryBulkIgnoreSchema), async (c) => {
+    const auth = await adminGate(c)
+    if (!auth.ok) return auth.response
+    const { items } = c.req.valid('json')
+    await deps.librarySyncStore.bulkIgnoreArtists(auth.userId, items)
+    return c.body(null, 204)
+  })
+
   // POST /api/v1/library/overrides - create/update an MBID override
   app.post('/api/v1/library/overrides', zJson(libraryOverrideSchema), async (c) => {
     const auth = await adminGate(c)
@@ -190,6 +200,18 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
     await deps.librarySyncStore.upsertOverride(auth.userId, source, sourceArtistId, mbid, note)
     return c.body(null, 204)
   })
+
+  app.post(
+    '/api/v1/library/album-overrides/bulk-ignore',
+    zJson(libraryAlbumBulkIgnoreSchema),
+    async (c) => {
+      const auth = await adminGate(c)
+      if (!auth.ok) return auth.response
+      const { items } = c.req.valid('json')
+      await deps.librarySyncStore.bulkIgnoreAlbums(auth.userId, items)
+      return c.body(null, 204)
+    },
+  )
 
   app.post('/api/v1/library/album-overrides', zJson(libraryAlbumOverrideSchema), async (c) => {
     const auth = await adminGate(c)
