@@ -1,44 +1,39 @@
 // @vitest-environment node
 
 import { eq } from 'drizzle-orm'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReconciledAlbum } from '@/core/library/album-reconciler'
 import type { ReconciledArtist } from '@/core/library/reconciler'
 import { createLibrarySyncStore, emptyLibrarySyncCounts } from '@/core/library/store'
+import type { Database } from '@/db'
+import {
+  libraryAlbumMatchOverrides,
+  libraryAlbums,
+  libraryArtists,
+  libraryMatchOverrides,
+  librarySyncState,
+  users,
+} from '@/db/schema'
+import { makeTestDb } from '../../helpers/test-db'
 
 const TEST_USER = { username: 'libstore-test-user', passwordHash: 'x' }
 const LIDARR_SOURCE = 'lidarr-store-test'
 const PLEX_SOURCE = 'plex-store-test'
 const JELLYFIN_SOURCE = 'jellyfin-store-test'
-const SHOULD_RUN =
-  process.env.DATABASE_URL !== undefined ||
-  (process.env.DB_HOST !== undefined &&
-    process.env.DB_USER !== undefined &&
-    process.env.DB_NAME !== undefined)
-let db: import('@/db').Database
-let libraryAlbums: typeof import('@/db/schema').libraryAlbums
-let libraryAlbumMatchOverrides: typeof import('@/db/schema').libraryAlbumMatchOverrides
-let libraryArtists: typeof import('@/db/schema').libraryArtists
-let libraryMatchOverrides: typeof import('@/db/schema').libraryMatchOverrides
-let librarySyncState: typeof import('@/db/schema').librarySyncState
-let users: typeof import('@/db/schema').users
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 })
 
-if (SHOULD_RUN) {
-  ;({ db } = await import('@/db'))
-  ;({
-    libraryAlbums,
-    libraryAlbumMatchOverrides,
-    libraryArtists,
-    libraryMatchOverrides,
-    librarySyncState,
-    users,
-  } = await import('@/db/schema'))
-}
+let db: Database
+let close: () => Promise<void>
 
 let userId: number
 
+beforeAll(async () => {
+  const testDb = await makeTestDb()
+  db = testDb.db as unknown as Database
+  close = testDb.close
+})
+
 beforeEach(async () => {
-  if (!SHOULD_RUN) return
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
@@ -59,7 +54,6 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  if (!SHOULD_RUN) return
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
@@ -74,6 +68,10 @@ afterEach(async () => {
   await db.delete(librarySyncState).where(eq(librarySyncState.source, JELLYFIN_SOURCE))
   await db.delete(libraryMatchOverrides).where(eq(libraryMatchOverrides.source, PLEX_SOURCE))
   await db.delete(users).where(eq(users.id, userId))
+})
+
+afterAll(async () => {
+  await close()
 })
 
 function reconciled(
@@ -120,7 +118,7 @@ describe('emptyLibrarySyncCounts', () => {
   })
 })
 
-describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
+describe('LibrarySyncStore', () => {
   it('replaceLibraryArtists writes rows and reports counts', async () => {
     const store = createLibrarySyncStore(db)
     const counts = await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
@@ -144,6 +142,9 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
 
     const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
     expect(rows).toHaveLength(2)
+    expect(rows.find((row) => row.sourceArtistId === 'rk-2')?.unreconciledReason).toBe(
+      'no_candidate',
+    )
   })
 
   it('replaceLibraryArtists is truncate-and-replace per source/user', async () => {
@@ -186,6 +187,7 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
         albumMbid: '11111111-1111-1111-1111-111111111111',
         matchMethod: 'title_exact',
         matchConfidence: 0.8,
+        unreconciledReason: 'ambiguous',
       }),
     ])
 
@@ -194,6 +196,42 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]?.title).toBe('Dummy')
     expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
+    expect(rows[0]?.unreconciledReason).toBe('ambiguous')
+  })
+
+  it('replaceLibrarySnapshot preserves artist and album unreconciled reasons', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [
+        reconciled({
+          sourceArtistId: 'snapshot-artist',
+          name: 'No Match',
+          unreconciledReason: 'no_candidate',
+        }),
+      ],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'snapshot-album',
+          sourceArtistId: 'snapshot-artist',
+          title: 'Ambiguous Album',
+          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          unreconciledReason: 'ambiguous',
+        }),
+      ],
+    )
+
+    const [artist] = await db
+      .select()
+      .from(libraryArtists)
+      .where(eq(libraryArtists.sourceArtistId, 'snapshot-artist'))
+    const [album] = await db
+      .select()
+      .from(libraryAlbums)
+      .where(eq(libraryAlbums.sourceAlbumId, 'snapshot-album'))
+    expect(artist?.unreconciledReason).toBe('no_candidate')
+    expect(album?.unreconciledReason).toBe('ambiguous')
   })
 
   it('replaceLibraryAlbums is truncate-and-replace per source/user', async () => {
@@ -412,6 +450,54 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     expect(await store.listUnreconciledForUser(userId)).toHaveLength(0)
   })
 
+  it('bulk ignores artists and hides them from unreconciled rows', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
+      reconciled({ sourceArtistId: 'bulk-artist-1', name: 'Artist One' }),
+      reconciled({ sourceArtistId: 'bulk-artist-2', name: 'Artist Two' }),
+    ])
+
+    await store.bulkIgnoreArtists(userId, [
+      { source: PLEX_SOURCE, sourceArtistId: 'bulk-artist-1' },
+      { source: PLEX_SOURCE, sourceArtistId: 'bulk-artist-2' },
+    ])
+
+    expect(await store.getOverride(userId, PLEX_SOURCE, 'bulk-artist-1')).toEqual({
+      correctMbid: null,
+    })
+    expect(await store.getOverride(userId, PLEX_SOURCE, 'bulk-artist-2')).toEqual({
+      correctMbid: null,
+    })
+    expect(await store.listUnreconciledForUser(userId)).toEqual([])
+  })
+
+  it('bulk ignores duplicate artist identities with one null-correction override', async () => {
+    const store = createLibrarySyncStore(db)
+    const item = { source: PLEX_SOURCE, sourceArtistId: 'duplicate-artist' }
+
+    await store.bulkIgnoreArtists(userId, [item, item])
+
+    const rows = await db
+      .select()
+      .from(libraryMatchOverrides)
+      .where(eq(libraryMatchOverrides.userId, userId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.correctMbid).toBeNull()
+  })
+
+  it('bulk artist ignores roll back when one identity is invalid', async () => {
+    const store = createLibrarySyncStore(db)
+
+    await expect(
+      store.bulkIgnoreArtists(userId, [
+        { source: PLEX_SOURCE, sourceArtistId: 'atomic-artist-valid' },
+        { source: PLEX_SOURCE, sourceArtistId: null as unknown as string },
+      ]),
+    ).rejects.toThrow()
+
+    expect(await store.getOverride(userId, PLEX_SOURCE, 'atomic-artist-valid')).toBeNull()
+  })
+
   it('album override CRUD round-trips', async () => {
     const store = createLibrarySyncStore(db)
 
@@ -468,6 +554,63 @@ describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
     await store.upsertAlbumOverride(userId, 'plex', 'album-1', null, 'ignore')
 
     expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(0)
+  })
+
+  it('bulk ignores albums and hides them from unreconciled rows', async () => {
+    const store = createLibrarySyncStore(db)
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
+      reconciledAlbum({
+        sourceAlbumId: 'bulk-album-1',
+        sourceArtistId: 'bulk-artist-1',
+        title: 'Album One',
+        artistMbid,
+      }),
+      reconciledAlbum({
+        sourceAlbumId: 'bulk-album-2',
+        sourceArtistId: 'bulk-artist-2',
+        title: 'Album Two',
+        artistMbid,
+      }),
+    ])
+
+    await store.bulkIgnoreAlbums(userId, [
+      { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-1' },
+      { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-2' },
+    ])
+
+    expect(await store.listAlbumOverrides(userId)).toEqual([
+      { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-1', correctAlbumMbid: null },
+      { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-2', correctAlbumMbid: null },
+    ])
+    expect(await store.listUnreconciledAlbumsForUser(userId)).toEqual([])
+  })
+
+  it('bulk ignores duplicate album identities with one null-correction override', async () => {
+    const store = createLibrarySyncStore(db)
+    const item = { source: PLEX_SOURCE, sourceAlbumId: 'duplicate-album' }
+
+    await store.bulkIgnoreAlbums(userId, [item, item])
+
+    const rows = await db
+      .select()
+      .from(libraryAlbumMatchOverrides)
+      .where(eq(libraryAlbumMatchOverrides.userId, userId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.correctAlbumMbid).toBeNull()
+  })
+
+  it('bulk album ignores roll back when one identity is invalid', async () => {
+    const store = createLibrarySyncStore(db)
+
+    await expect(
+      store.bulkIgnoreAlbums(userId, [
+        { source: PLEX_SOURCE, sourceAlbumId: 'atomic-album-valid' },
+        { source: PLEX_SOURCE, sourceAlbumId: null as unknown as string },
+      ]),
+    ).rejects.toThrow()
+
+    expect(await store.listAlbumOverrides(userId)).toEqual([])
   })
 
   it('listOwnedAlbumsForArtist returns full album shape for user and global rows only', async () => {

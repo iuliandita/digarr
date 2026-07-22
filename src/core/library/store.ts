@@ -33,6 +33,9 @@ export type LibrarySyncStorePatch = Partial<{
   lastSyncCounts: LibrarySyncCounts | null
 }>
 
+export type LibraryArtistIdentity = { source: string; sourceArtistId: string }
+export type LibraryAlbumIdentity = { source: string; sourceAlbumId: string }
+
 export interface LibrarySyncStore {
   replaceLibrarySnapshot(
     userId: number | null,
@@ -88,6 +91,8 @@ export interface LibrarySyncStore {
 
   deleteOverride(userId: number, source: string, sourceArtistId: string): Promise<void>
 
+  bulkIgnoreArtists(userId: number, items: LibraryArtistIdentity[]): Promise<void>
+
   upsertAlbumOverride(
     userId: number,
     source: string,
@@ -97,6 +102,8 @@ export interface LibrarySyncStore {
   ): Promise<void>
 
   deleteAlbumOverride(userId: number, source: string, sourceAlbumId: string): Promise<void>
+
+  bulkIgnoreAlbums(userId: number, items: LibraryAlbumIdentity[]): Promise<void>
 
   listAlbumOverrides(
     userId: number,
@@ -131,6 +138,19 @@ export interface LibrarySyncStore {
 
 export type LibraryArtistRow = typeof libraryArtists.$inferSelect
 export type LibraryAlbumRow = typeof libraryAlbums.$inferSelect
+
+function deduplicateNaturalKeys<T>(
+  items: T[],
+  getKey: (item: T) => readonly [string, string],
+): T[] {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    const key = JSON.stringify(getKey(item))
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 export function emptyLibrarySyncCounts(): LibrarySyncCounts {
   return {
@@ -267,6 +287,7 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
               mbid: a.mbid,
               matchMethod: a.matchMethod,
               matchConfidence: a.matchConfidence,
+              unreconciledReason: a.unreconciledReason ?? null,
               genres: a.genres,
             })),
           )
@@ -289,6 +310,7 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
               primaryType: album.primaryType,
               matchMethod: album.matchMethod,
               matchConfidence: album.matchConfidence,
+              unreconciledReason: album.unreconciledReason,
             })),
           )
         }
@@ -318,6 +340,7 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
             mbid: a.mbid,
             matchMethod: a.matchMethod,
             matchConfidence: a.matchConfidence,
+            unreconciledReason: a.unreconciledReason ?? null,
             genres: a.genres,
           })),
         )
@@ -350,6 +373,7 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
             primaryType: album.primaryType,
             matchMethod: album.matchMethod,
             matchConfidence: album.matchConfidence,
+            unreconciledReason: album.unreconciledReason,
           })),
         )
       })
@@ -458,6 +482,36 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         )
     },
 
+    async bulkIgnoreArtists(userId, items) {
+      const uniqueItems = deduplicateNaturalKeys(items, (item) => [
+        item.source,
+        item.sourceArtistId,
+      ])
+      if (uniqueItems.length === 0) return
+
+      await database.transaction(async (tx) => {
+        await tx
+          .insert(libraryMatchOverrides)
+          .values(
+            uniqueItems.map((item) => ({
+              userId,
+              source: item.source,
+              sourceArtistId: item.sourceArtistId,
+              correctMbid: null,
+              note: null,
+            })),
+          )
+          .onConflictDoUpdate({
+            target: [
+              libraryMatchOverrides.userId,
+              libraryMatchOverrides.source,
+              libraryMatchOverrides.sourceArtistId,
+            ],
+            set: { correctMbid: null, note: null, updatedAt: new Date() },
+          })
+      })
+    },
+
     async upsertAlbumOverride(userId, source, sourceAlbumId, correctAlbumMbid, note) {
       await database
         .insert(libraryAlbumMatchOverrides)
@@ -488,6 +542,33 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
             eq(libraryAlbumMatchOverrides.sourceAlbumId, sourceAlbumId),
           ),
         )
+    },
+
+    async bulkIgnoreAlbums(userId, items) {
+      const uniqueItems = deduplicateNaturalKeys(items, (item) => [item.source, item.sourceAlbumId])
+      if (uniqueItems.length === 0) return
+
+      await database.transaction(async (tx) => {
+        await tx
+          .insert(libraryAlbumMatchOverrides)
+          .values(
+            uniqueItems.map((item) => ({
+              userId,
+              source: item.source,
+              sourceAlbumId: item.sourceAlbumId,
+              correctAlbumMbid: null,
+              note: null,
+            })),
+          )
+          .onConflictDoUpdate({
+            target: [
+              libraryAlbumMatchOverrides.userId,
+              libraryAlbumMatchOverrides.source,
+              libraryAlbumMatchOverrides.sourceAlbumId,
+            ],
+            set: { correctAlbumMbid: null, note: null, updatedAt: new Date() },
+          })
+      })
     },
 
     async listAlbumOverrides(userId) {
