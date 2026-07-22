@@ -15,7 +15,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
-import type { HealthCheckResult } from '@/core/library/types'
+import type { HealthCheckResult, UnreconciledReason } from '@/core/library/types'
 import type { NotificationChannel } from '@/core/notifications/types'
 import type { GenreCoverage } from '@/core/types'
 
@@ -598,6 +598,7 @@ export const libraryArtists = pgTable(
     matchMethod: text('match_method'),
     // 'mbid' | 'name_exact' | 'name_anchored' | 'name_disambiguated' | null
     matchConfidence: real('match_confidence'),
+    unreconciledReason: text('unreconciled_reason').$type<UnreconciledReason>(),
     genres: text('genres').array(),
     syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
     // gap-fill rotation cursor: least-recently-checked artists first; null = never checked
@@ -630,6 +631,7 @@ export const libraryAlbums = pgTable(
     primaryType: text('primary_type'),
     matchMethod: text('match_method'),
     matchConfidence: real('match_confidence'),
+    unreconciledReason: text('unreconciled_reason').$type<UnreconciledReason>(),
     syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
@@ -694,6 +696,7 @@ export type LibrarySyncCounts = {
   matchedDisambiguated: number
   unreconciledAmbiguous: number
   unreconciledNoCandidate: number
+  unreconciledLookupFailed?: number
   cacheHits: number
   mbApiCalls: number
   /** MB API calls that threw (5xx, timeout, network). Artists/albums degrade to unreconciled. */

@@ -9,6 +9,12 @@ export type HealthCheckId =
 
 export type HealthCheckSeverity = 'info' | 'warning' | 'error'
 
+export type UnreconciledReason =
+  | 'no_candidate'
+  | 'ambiguous'
+  | 'lookup_failed'
+  | 'override_skip'
+
 export type HealthCheckResult = {
   id: HealthCheckId
   name: string

@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ReconciledAlbum } from '@/core/library/album-reconciler'
 import type { ReconciledArtist } from '@/core/library/reconciler'
-import { createLibrarySyncStore } from '@/core/library/store'
+import { createLibrarySyncStore, emptyLibrarySyncCounts } from '@/core/library/store'
 
 const TEST_USER = { username: 'libstore-test-user', passwordHash: 'x' }
 const LIDARR_SOURCE = 'lidarr-store-test'
@@ -38,6 +38,7 @@ if (SHOULD_RUN) {
 let userId: number
 
 beforeEach(async () => {
+  if (!SHOULD_RUN) return
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
@@ -58,6 +59,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  if (!SHOULD_RUN) return
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
   await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
@@ -110,6 +112,12 @@ function reconciledAlbum(
     matchConfidence: overrides.matchConfidence ?? null,
   }
 }
+
+describe('emptyLibrarySyncCounts', () => {
+  it('initializes lookup failures at zero', () => {
+    expect(emptyLibrarySyncCounts().unreconciledLookupFailed).toBe(0)
+  })
+})
 
 describe.skipIf(!SHOULD_RUN)('LibrarySyncStore', () => {
   it('replaceLibraryArtists writes rows and reports counts', async () => {
