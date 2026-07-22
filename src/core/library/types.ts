@@ -9,6 +9,8 @@ export type HealthCheckId =
 
 export type HealthCheckSeverity = 'info' | 'warning' | 'error'
 
+export const LIBRARY_BULK_IGNORE_LIMIT = 200
+
 export type UnreconciledReason = 'no_candidate' | 'ambiguous' | 'lookup_failed' | 'override_skip'
 
 export type HealthCheckResult = {

@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -31,7 +32,7 @@ const libraryAlbumIdentitySchema = z
 
 export const libraryBulkIgnoreSchema = z
   .object({
-    items: z.array(libraryArtistIdentitySchema).min(1).max(200),
+    items: z.array(libraryArtistIdentitySchema).min(1).max(LIBRARY_BULK_IGNORE_LIMIT),
   })
   .strict()
   .superRefine(({ items }, ctx) => {
@@ -51,7 +52,7 @@ export const libraryBulkIgnoreSchema = z
 
 export const libraryAlbumBulkIgnoreSchema = z
   .object({
-    items: z.array(libraryAlbumIdentitySchema).min(1).max(200),
+    items: z.array(libraryAlbumIdentitySchema).min(1).max(LIBRARY_BULK_IGNORE_LIMIT),
   })
   .strict()
   .superRefine(({ items }, ctx) => {

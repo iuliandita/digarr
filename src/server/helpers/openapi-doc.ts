@@ -2,6 +2,7 @@
 // group instead of migrating every Hono route through a generation framework in
 // one pass.
 
+import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
 import { VERSION } from '@/version'
 
 const json = 'application/json'
@@ -303,7 +304,7 @@ export const openapiDoc = {
           items: {
             type: 'array',
             minItems: 1,
-            maxItems: 200,
+            maxItems: LIBRARY_BULK_IGNORE_LIMIT,
             uniqueItems: true,
             description: 'Exact duplicate identity pairs return 400.',
             items: { $ref: '#/components/schemas/LibraryArtistIdentity' },
@@ -318,7 +319,7 @@ export const openapiDoc = {
           items: {
             type: 'array',
             minItems: 1,
-            maxItems: 200,
+            maxItems: LIBRARY_BULK_IGNORE_LIMIT,
             uniqueItems: true,
             description: 'Exact duplicate identity pairs return 400.',
             items: { $ref: '#/components/schemas/LibraryAlbumIdentity' },

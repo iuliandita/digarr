@@ -1,10 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
 import { ConfirmDialog } from '../components/confirm-dialog'
-import {
-  BULK_SELECTION_LIMIT,
-  LibraryBulkReviewToolbar,
-} from '../components/library-bulk-review-toolbar'
+import { LibraryBulkReviewToolbar } from '../components/library-bulk-review-toolbar'
 import { isBulkIgnoreEligible } from '../components/library-reconciliation-reason'
 import { LibraryUnreconciledAlbumRowComponent } from '../components/library-unreconciled-album-row'
 import { LibraryUnreconciledRowComponent } from '../components/library-unreconciled-row'
@@ -21,6 +19,32 @@ type BulkEntity = 'artists' | 'albums'
 
 function selectionKey(source: string, id: string) {
   return JSON.stringify([source, id])
+}
+
+function addSelections<T>(previous: Set<string>, rows: readonly T[], getKey: (row: T) => string) {
+  const next = new Set(previous)
+  for (const row of rows) {
+    if (next.size >= LIBRARY_BULK_IGNORE_LIMIT) break
+    next.add(getKey(row))
+  }
+  return next.size === previous.size ? previous : next
+}
+
+function clearSelections<T>(previous: Set<string>, rows: readonly T[], getKey: (row: T) => string) {
+  const keys = new Set(rows.map(getKey))
+  const next = new Set([...previous].filter((key) => !keys.has(key)))
+  return next.size === previous.size ? previous : next
+}
+
+function toggleSelection(previous: Set<string>, key: string, selected: boolean) {
+  if (!selected) {
+    if (!previous.has(key)) return previous
+    const next = new Set(previous)
+    next.delete(key)
+    return next
+  }
+  if (previous.has(key) || previous.size >= LIBRARY_BULK_IGNORE_LIMIT) return previous
+  return new Set(previous).add(key)
 }
 
 export function LibraryReconciliationPage() {
@@ -129,71 +153,43 @@ export function LibraryReconciliationPage() {
   }, [artistSelection.size, albumSelection.size])
 
   function addVisibleArtistSelections() {
-    setArtistSelection((previous) => {
-      const next = new Set(previous)
-      for (const row of artistEligibleRows) {
-        if (next.size >= BULK_SELECTION_LIMIT) break
-        next.add(selectionKey(row.source, row.sourceArtistId))
-      }
-      return next.size === previous.size ? previous : next
-    })
+    setArtistSelection((previous) =>
+      addSelections(previous, artistEligibleRows, (row) =>
+        selectionKey(row.source, row.sourceArtistId),
+      ),
+    )
   }
 
   function addVisibleAlbumSelections() {
-    setAlbumSelection((previous) => {
-      const next = new Set(previous)
-      for (const row of albumEligibleRows) {
-        if (next.size >= BULK_SELECTION_LIMIT) break
-        next.add(selectionKey(row.source, row.sourceAlbumId))
-      }
-      return next.size === previous.size ? previous : next
-    })
+    setAlbumSelection((previous) =>
+      addSelections(previous, albumEligibleRows, (row) =>
+        selectionKey(row.source, row.sourceAlbumId),
+      ),
+    )
   }
 
   function clearVisibleArtistSelections() {
-    const visibleKeys = new Set(items.map((row) => selectionKey(row.source, row.sourceArtistId)))
-    setArtistSelection((previous) => {
-      const next = new Set([...previous].filter((key) => !visibleKeys.has(key)))
-      return next.size === previous.size ? previous : next
-    })
+    setArtistSelection((previous) =>
+      clearSelections(previous, items, (row) => selectionKey(row.source, row.sourceArtistId)),
+    )
   }
 
   function clearVisibleAlbumSelections() {
-    const visibleKeys = new Set(
-      albumPageItems.map((row) => selectionKey(row.source, row.sourceAlbumId)),
+    setAlbumSelection((previous) =>
+      clearSelections(previous, albumPageItems, (row) =>
+        selectionKey(row.source, row.sourceAlbumId),
+      ),
     )
-    setAlbumSelection((previous) => {
-      const next = new Set([...previous].filter((key) => !visibleKeys.has(key)))
-      return next.size === previous.size ? previous : next
-    })
   }
 
   function toggleArtistSelection(row: (typeof items)[number], selected: boolean) {
     const key = selectionKey(row.source, row.sourceArtistId)
-    setArtistSelection((previous) => {
-      if (!selected) {
-        if (!previous.has(key)) return previous
-        const next = new Set(previous)
-        next.delete(key)
-        return next
-      }
-      if (previous.has(key) || previous.size >= BULK_SELECTION_LIMIT) return previous
-      return new Set(previous).add(key)
-    })
+    setArtistSelection((previous) => toggleSelection(previous, key, selected))
   }
 
   function toggleAlbumSelection(row: (typeof albumItems)[number], selected: boolean) {
     const key = selectionKey(row.source, row.sourceAlbumId)
-    setAlbumSelection((previous) => {
-      if (!selected) {
-        if (!previous.has(key)) return previous
-        const next = new Set(previous)
-        next.delete(key)
-        return next
-      }
-      if (previous.has(key) || previous.size >= BULK_SELECTION_LIMIT) return previous
-      return new Set(previous).add(key)
-    })
+    setAlbumSelection((previous) => toggleSelection(previous, key, selected))
   }
 
   async function confirmBulkIgnore() {
@@ -293,7 +289,7 @@ export function LibraryReconciliationPage() {
             eligibleCount={artistEligibleRows.length}
             busy={artistBusy}
             error={artistBulkError}
-            limitReached={artistSelection.size >= BULK_SELECTION_LIMIT}
+            limitReached={artistSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
             onSelectVisible={addVisibleArtistSelections}
             onClearVisible={clearVisibleArtistSelections}
             onIgnore={() => setConfirming('artists')}
@@ -317,7 +313,7 @@ export function LibraryReconciliationPage() {
                     selectionDisabled={
                       !isBulkIgnoreEligible(row.unreconciledReason) ||
                       (!artistSelection.has(selectionKey(row.source, row.sourceArtistId)) &&
-                        artistSelection.size >= BULK_SELECTION_LIMIT)
+                        artistSelection.size >= LIBRARY_BULK_IGNORE_LIMIT)
                     }
                     onSelectionChange={(selected) => toggleArtistSelection(row, selected)}
                   />
@@ -369,7 +365,7 @@ export function LibraryReconciliationPage() {
             eligibleCount={albumEligibleRows.length}
             busy={albumBusy}
             error={albumBulkError}
-            limitReached={albumSelection.size >= BULK_SELECTION_LIMIT}
+            limitReached={albumSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
             onSelectVisible={addVisibleAlbumSelections}
             onClearVisible={clearVisibleAlbumSelections}
             onIgnore={() => setConfirming('albums')}
@@ -389,7 +385,7 @@ export function LibraryReconciliationPage() {
                   selectionDisabled={
                     !isBulkIgnoreEligible(row.unreconciledReason) ||
                     (!albumSelection.has(selectionKey(row.source, row.sourceAlbumId)) &&
-                      albumSelection.size >= BULK_SELECTION_LIMIT)
+                      albumSelection.size >= LIBRARY_BULK_IGNORE_LIMIT)
                   }
                   onSelectionChange={(selected) => toggleAlbumSelection(row, selected)}
                 />

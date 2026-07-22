@@ -1,7 +1,6 @@
+import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
 import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
-
-export const BULK_SELECTION_LIMIT = 200
 
 type Props = {
   selectedCount: number
@@ -48,7 +47,10 @@ export function LibraryBulkReviewToolbar({
         {limitReached && (
           <>
             {' '}
-            {t('libraryReconciliation.selectionLimit').replace('{0}', String(BULK_SELECTION_LIMIT))}
+            {t('libraryReconciliation.selectionLimit').replace(
+              '{0}',
+              String(LIBRARY_BULK_IGNORE_LIMIT),
+            )}
           </>
         )}
       </span>
