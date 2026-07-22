@@ -414,18 +414,54 @@ export const de = {
     'Alben konnten nicht automatisch mit MusicBrainz abgeglichen werden.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'Künstler konnten nicht automatisch mit MusicBrainz abgeglichen werden.',
+  'libraryReconciliation.bulkIgnoreFailed':
+    'Die ausgewählten Elemente konnten nicht ignoriert werden.',
+  'libraryReconciliation.clearVisible': 'Sichtbare Auswahl aufheben',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Ausgewählt: {0}. Diese Auswahl bleibt ignoriert, bis ihre gespeicherten Korrekturen entfernt werden.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Ausgewählte Alben ignorieren?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Ausgewählt: {0}. Diese Auswahl bleibt ignoriert, bis ihre gespeicherten Korrekturen entfernt werden.',
+  'libraryReconciliation.confirmArtistsTitle': 'Ausgewählte Künstler ignorieren?',
   'libraryReconciliation.couldNotLoadAlbums':
     'Nicht abgeglichene Alben konnten nicht geladen werden.',
   'libraryReconciliation.couldNotLoadArtists':
     'Nicht abgeglichene Künstler konnten nicht geladen werden.',
+  'libraryReconciliation.ignoreForever': 'Dauerhaft ignorieren',
+  'libraryReconciliation.ignoreSelected': 'Auswahl ignorieren',
+  'libraryReconciliation.invalidMbid': 'Keine gültige MBID (UUID erwartet)',
   'libraryReconciliation.loadingAlbums': 'Nicht abgeglichene Alben werden geladen...',
   'libraryReconciliation.loadingArtists': 'Nicht abgeglichene Künstler werden geladen...',
   'libraryReconciliation.noAlbums': 'Keine nicht abgeglichenen Alben.',
   'libraryReconciliation.noArtists':
     'Keine nicht abgeglichenen Künstler. Ihre Bibliothek ist vollständig zugeordnet.',
+  'libraryReconciliation.normalizedName': 'Normalisiert: {0}',
   'libraryReconciliation.of': 'von',
   'libraryReconciliation.page': 'Seite',
+  'libraryReconciliation.pasteAlbumMbid': 'Album-MBID (UUID) einfügen',
+  'libraryReconciliation.pasteMbid': 'MBID (UUID) einfügen',
+  'libraryReconciliation.pin': 'Anheften',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Es gibt mehrere Treffer. Heften Sie die richtige MBID an oder ignorieren Sie dieses Element.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Mehrdeutiger Treffer',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz war nicht erreichbar. Versuchen Sie die Bibliothekssynchronisierung später erneut.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Suche fehlgeschlagen',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'Die Ursache stammt aus der Zeit vor der Ursachenerfassung. Führen Sie den Abgleich erneut aus oder prüfen Sie den Eintrag manuell.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Prüfung erforderlich',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Kein Treffer gefunden. Heften Sie eine bekannte MBID an oder ignorieren Sie dieses Element.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Kein Treffer',
+  'libraryReconciliation.selectAlbum': 'Album {0} auswählen',
+  'libraryReconciliation.selectArtist': 'Künstler {0} auswählen',
+  'libraryReconciliation.selectedCount': 'Ausgewählt: {0}',
+  'libraryReconciliation.selectionLimit':
+    'Es können höchstens {0} Elemente gleichzeitig ausgewählt werden.',
+  'libraryReconciliation.selectVisible': 'Sichtbare auswählen',
   'libraryReconciliation.showing': 'Angezeigt',
+  'libraryReconciliation.unknownType': 'Unbekannter Typ',
+  'libraryReconciliation.unknownYear': 'Unbekanntes Jahr',
   'playlist.delete': 'Löschen',
   'playlist.deleteFailed': 'Playlist konnte nicht gelöscht werden',
   'playlist.deleteWarning': 'Diese Playlist löschen? Dies kann nicht rückgängig gemacht werden.',
@@ -949,11 +985,6 @@ export const de = {
   'libraryStats.rootFolders': 'Stammordner',
   'libraryStats.free': 'frei',
   'libraryStats.unknown': 'unbekannt',
-  'libraryReconciliation.pasteMbid': 'MBID (UUID) einfügen',
-  'libraryReconciliation.pasteAlbumMbid': 'Album-MBID (UUID) einfügen',
-  'libraryReconciliation.pin': 'Anheften',
-  'libraryReconciliation.ignoreForever': 'Dauerhaft ignorieren',
-  'libraryReconciliation.invalidMbid': 'Keine gültige MBID (UUID erwartet)',
   'settings.tabs.connections': 'Verbindungen',
   'settings.tabs.targets': 'Ziele',
   'settings.tabs.recommendations': 'Empfehlungen',
