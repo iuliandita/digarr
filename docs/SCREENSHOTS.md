@@ -1,11 +1,11 @@
 # Screenshots
 
 The checked-in screenshots use the Youtarr theme. Most were captured from
-v1.10.0; Analytics and Settings were refreshed from v1.12.0 after their UI
-fixes. The descriptions below reflect the current `develop`/`:nightly` UI when
-later features are not visible in an image. Capture a fresh set with
-`bun scripts/capture-screenshots.ts`; see that script's header for environment
-variables.
+v1.10.0; Analytics and Settings were refreshed from v1.12.0, and Library
+Reconciliation was refreshed from the current `develop`/`:nightly` UI. The
+descriptions below reflect that UI when later features are not visible in an
+image. Capture a fresh set with `bun scripts/capture-screenshots.ts`; see that
+script's header for environment variables.
 
 ## Dashboard (dark)
 
@@ -55,7 +55,7 @@ Discovery Modes lives on its own page under the Discover menu at `/discover/mode
 
 ![Library Reconciliation](screenshots/library-reconciliation.png)
 
-Shipped in `v0.17.0`: unreconciled-artist review plus manual correct/ignore override flow. Extended in `v0.19.0` with unreconciled-album review and album override persistence.
+Shipped in `v0.17.0`: unreconciled-artist review plus manual correct/ignore override flow. Extended in `v0.19.0` with unreconciled-album review and album override persistence. The current `develop`/`:nightly` view labels each artist and album as no match found, ambiguous match, or lookup failed; eligible rows can be selected, then ignored together through a confirmation dialog. Artist selection covers visible rows, album selection stays on the current page, and failed lookups remain available for retry instead of bulk ignore.
 
 ## Library Sources Panel
 

@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-07-19 | Current: v1.14.0
+> Updated: 2026-07-22 | Current: v1.14.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -29,14 +29,6 @@ Admin job tracking surface with health endpoint, run history, stuck-task detecti
 ### Critical Workflows Have Release Protection - Pass
 
 End-to-end browser test suite (Playwright) covering setup, login, scan, approve/reject, discovery modes, subscriptions, and playlists. CI gates on critical workflow failures.
-
-## Planned
-
-Committed direction, roughly in priority order.
-
-### Recommendation quality and UX
-
-- UX polish around recommendation review, playback, and library operations
 
 ## Exploring
 
@@ -82,13 +74,22 @@ Low confidence. Would build only with real demand.
 
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
 Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it rewrites the pinned digests and version tags across the k8s/Helm/Unraid deploy files plus the example pins in the compose files and README.
-v1.14.0 packages the current `develop`/`:nightly` highlights below.
+
+### Current develop / :nightly
+
+- Library reconciliation review now explains no MusicBrainz match, ambiguous matches, and failed lookups for both artists and albums. Admins can select eligible visible artists or the current album page and confirm one atomic bulk ignore; transient lookup failures remain unselected, per-row MBID correction remains available, and the complete workflow is translated across all 15 locales
+
+### v1.14.0
 
 - A cooperative "Stop scan" control cancels an in-flight discovery run without restarting the container: the pipeline progress card gains a Stop button backed by `POST /api/v1/pipeline/cancel`, cancellation checks an abort signal at every stage boundary and inside artist resolution, queued follow-on runs are cleared, the run is recorded with a `cancelled` status, and a run that ignores the request is force-reset after a grace window so the app never stays stuck in "running". Full i18n across 15 locales
 - Notifications expanded from a single webhook URL to a list of mixed-type channels: webhook (Discord/Slack auto-formatting), ntfy (server/topic/priority/token), Telegram (bot token + chat ID), and Apprise (fans one endpoint out to 80+ services). Each channel has its own enabled toggle and per-event subscriptions (scan complete and/or digest), secrets are encrypted at rest and returned masked, an existing single webhook migrates automatically, and all delivery flows through one SSRF-guarded transport with an admin-only per-channel LAN opt-in. Full i18n across 15 locales
 - Browser authentication now uses HttpOnly, SameSite cookies across the web password flow, OIDC, and trusted-proxy sign-in, with same-origin CSRF enforcement for mutations. Existing browser bearer sessions migrate once without exposing the replacement token to JavaScript; bearer API clients retain their compatibility path
 - OIDC sign-in now keeps only local identity claims after authorization validation. Provider access, refresh, and ID tokens are not retained or copied through backup and backend-migration paths; legacy restores skip old token rows with a warning, and a mode-`0600` compatibility-copy helper supports rollback into a fresh old-schema database
 - Browser cookie-session hardening (#386) is shipped: production session and OIDC transaction cookies fail closed to `Secure` even when the backend request arrives over HTTP behind a TLS terminator, with a single `DIGARR_ALLOW_INSECURE_COOKIES=true` opt-in for intentional direct-HTTP deployments. OIDC login state is browser-bound in a one-time, 10-minute, capacity-capped transaction cookie and login is rate limited (10/min/IP), while password change and session replacement run as one atomic transaction so a stale password verification cannot mint a post-reset session
+- Unversioned API compatibility redirects ended after their published 2026-07-19 sunset; requests to `/api/*` now return `404 Not Found`, and clients must use `/api/v1/*`
+
+### Earlier releases
+
 - v1.13.0 adds an Audition queue for continuous preview playback: an Audition button on the Discover toolbar queues the loaded pending recommendations that have previews, in score order; the global preview bar gains previous/next and position controls. Deezer advances when its clip ends, Spotify reuses a persistent supported iframe controller and advances only after real playback completes, and YouTube retains a bounded 30-second fallback. If a browser blocks Spotify autoplay, the queue stays on the current usable embed instead of silently advancing; once manually activated, later Spotify entries reuse the same controller. Preview-less items are skipped, and playing anything else or stopping deactivates the queue. Artist-level v1 ("try before you add"). Full i18n across 15 locales
 - The scheduled notification digest now persists a last-sent bookmark, so restarts or downtime no longer double-report or drop a window; delivery is at-least-once
 - Discover can reject every loaded pending recommendation below a chosen score threshold in one reviewed action, while preserving higher-scored candidates for normal review
@@ -96,7 +97,6 @@ v1.14.0 packages the current `develop`/`:nightly` highlights below.
 - AI provider failures are now first-class observable (v1.12.0): a dead provider surfaces in scan progress warnings, job history records the real provider error, connection-test failures show the upstream message, and saving AI settings re-probes the persisted config. Provider hardening landed alongside: shared LLM output parsing for OpenAI/Gemini, secret redaction in error snippets, and Ollama model validation in test connection
 - Zero-external-database operation shipped in v1.11.0: embedded PGlite backend (no separate PostgreSQL container), an admin-gated in-app migration tool between PGlite and PostgreSQL with verified atomic copy, a Subsonic (Navidrome/Airsonic/Gonic) listening + library source, self-service account email, and an OIDC account-takeover fix (subject-only identity matching, GHSA-w643-583p-vm6m)
 - Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. The empty Albums view explains that normal scans remain artist-focused and links directly to all three album-producing paths.
-- Notification channels shipped: Settings now holds a list of channels of any count and mixed type -- webhook (Discord/Slack-formatted or generic JSON), native ntfy and Telegram, plus Apprise (one endpoint fans out to 80+ services). Each channel selects its own events (scan complete, digest); an existing single webhook URL migrates into a webhook channel automatically with no config change. All channels share one SSRF-guarded transport, with an admin-only per-channel opt-in that relaxes only RFC1918 ranges (cloud-metadata and link-local stay blocked). Channel secrets are encrypted at rest and masked in the settings API. Full i18n across 15 locales
 - Scheduled notification digest: alongside the per-batch webhook, a periodic roll-up of recent activity (discovered/added/runs) on a user-set cron schedule, configured in Settings, applied at runtime without a restart, reusing the existing SSRF-protected webhook + Discord formatting, full i18n across 15 locales (v1.10.0)
 - Subsonic Starred is now a runnable discovery mode: your starred Subsonic artists seed similar-artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Subsonic connection and honoring Skip TLS Verify, full i18n across 15 locales
 - Spotify Saved Albums is now a runnable discovery mode: the albums you saved on Spotify seed artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Spotify OAuth connection (the `user-library-read` scope was already granted for Liked Songs, so no re-consent), full i18n across 15 locales (v1.9.0)
@@ -112,7 +112,7 @@ v1.14.0 packages the current `develop`/`:nightly` highlights below.
 - Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
 - Integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
 - TheAudioDB is now the primary artist-image source ahead of the Lidarr/SkyHook + fanart.tv + musicinfo.pro chain, with a token-bucket rate limiter and an optional SSRF-guarded image proxy. Recommendation cards expose a Wikidata-sourced artist description and external-link pills (Wikipedia, official site, Discogs, MusicBrainz), cached per locale
-- API surface migrated to `/api/v1/*` with mutation routes returning `204 No Content`, probe failures expressed as HTTP status plus `application/problem+json`, and cursor pagination on six list endpoints. The unversioned `/api/*` compatibility redirects ended after the published 2026-07-19 sunset; those paths now return `404 Not Found`
+- API surface migrated to `/api/v1/*` with mutation routes returning `204 No Content`, probe failures expressed as HTTP status plus `application/problem+json`, and cursor pagination on six list endpoints
 - Deep-audit remediation closed across 13 phases (v0.27.x through v0.40.x): auth-surface hardening and first-admin guards, full SSRF sweep including NAT64/Teredo and outbound IP pinning, pipeline isolation with atomic writes, DB index and upsert fixes, dual-key encryption rotation, Kubernetes PSS-restricted with dedicated SA and PDB, Docker hardening with BuildKit cache, cosign keyless signing plus SLSA v1.0 provenance via Sigstore OIDC, Zod validation on every write route, AI provider reliability (Anthropic prompt caching, retry/backoff, Zod-validated outputs, promptfoo eval gate), i18n completeness at 15 locales, component-test plus E2E plus a11y coverage hitting WCAG AA contrast, and a docs/architecture sweep with release-surface consolidation
 
 Release-level detail lives in [CHANGELOG.md](../CHANGELOG.md); this doc keeps

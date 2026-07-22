@@ -78,8 +78,9 @@ Offset-paginated routes:
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
 OpenAPI coverage currently includes auth status/login/register/session
-migration, recommendations, artist blocks, jobs, and settings service probes.
-The Markdown reference remains the complete route inventory.
+migration, recommendations, artist blocks, jobs, library reconciliation lists
+and bulk ignore, and settings service probes. The Markdown reference remains
+the complete route inventory.
 
 ---
 
@@ -660,6 +661,8 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 | POST | `/api/v1/library/sync` | Admin | Run a manual library sync for all sources or a specific source |
 | GET | `/api/v1/library/unreconciled` | Admin | List unreconciled library artists still needing a match |
 | GET | `/api/v1/library/unreconciled-albums` | Admin | List unreconciled library albums still needing a release-group match |
+| POST | `/api/v1/library/overrides/bulk-ignore` | Admin | Atomically save ignore overrides for 1-200 unique artist identities (204) |
+| POST | `/api/v1/library/album-overrides/bulk-ignore` | Admin | Atomically save ignore overrides for 1-200 unique album identities (204) |
 | GET | `/api/v1/library/album-coverage/:artistMbid` | Yes | Owned/missing album counts for an artist, used by the recommendation card coverage badge |
 | POST | `/api/v1/library/overrides` | Admin | Save a manual artist MBID override or an “ignore forever” decision |
 | POST | `/api/v1/library/album-overrides` | Admin | Save a manual album release-group MBID override or an ignore decision |
@@ -700,6 +703,30 @@ Notes:
 
 **GET /api/v1/library/unreconciled** response notes:
 - Returns unreconciled rows from both the current user's sources and any global sources visible to that user
+- Each row's `unreconciledReason` is `no_candidate` when MusicBrainz returned no safe match, `ambiguous` when multiple plausible matches remain, or `lookup_failed` when the lookup failed after retries. `null` remains possible for legacy or otherwise unclassified rows.
+
+**POST /api/v1/library/overrides/bulk-ignore** body:
+```json
+{
+  "items": [
+    { "source": "plex", "sourceArtistId": "artist-123" }
+  ]
+}
+```
+
+**POST /api/v1/library/album-overrides/bulk-ignore** body:
+```json
+{
+  "items": [
+    { "source": "plex", "sourceAlbumId": "album-456" }
+  ]
+}
+```
+
+Bulk-ignore notes:
+- `items` must contain 1-200 identities, and every `(source, sourceArtistId)` or `(source, sourceAlbumId)` pair must be unique. Empty, oversized, duplicate, incomplete, or extra-field payloads return `400` without writing overrides.
+- A successful request stores every ignore override in one database transaction and returns `204 No Content`. If any write fails, the transaction rolls back instead of leaving a partially ignored selection.
+- The operation does not trigger reconciliation. The web review removes the completed selection by refreshing the unreconciled lists and source summary after the `204` response.
 
 **POST /api/v1/library/overrides** body:
 ```json
@@ -737,6 +764,7 @@ Album override notes:
 
 **GET /api/v1/library/unreconciled-albums** response notes:
 - Returns unreconciled album rows from both the current user's sources and any global sources visible to that user
+- `unreconciledReason` uses the same `no_candidate`, `ambiguous`, and `lookup_failed` values as the artist route; `null` remains possible for legacy or otherwise unclassified rows.
 
 **POST /api/v1/library/reconcile** notes:
 - Triggers a forced sync for the current user and returns `202`
