@@ -194,6 +194,9 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         case null:
           if (a.unreconciledReason === 'ambiguous') counts.unreconciledAmbiguous += 1
           else if (a.unreconciledReason === 'no_candidate') counts.unreconciledNoCandidate += 1
+          else if (a.unreconciledReason === 'lookup_failed') {
+            counts.unreconciledLookupFailed = (counts.unreconciledLookupFailed ?? 0) + 1
+          }
           break
       }
     }
