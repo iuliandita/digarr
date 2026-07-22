@@ -85,7 +85,9 @@ export function LibrarySourcesPanel() {
             const counts = row.lastSyncCounts
             const unreconciled =
               counts != null
-                ? (counts.unreconciledAmbiguous ?? 0) + (counts.unreconciledNoCandidate ?? 0)
+                ? (counts.unreconciledAmbiguous ?? 0) +
+                  (counts.unreconciledNoCandidate ?? 0) +
+                  (counts.unreconciledLookupFailed ?? 0)
                 : null
 
             return (
