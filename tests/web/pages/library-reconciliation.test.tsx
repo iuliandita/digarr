@@ -59,8 +59,10 @@ const makeRow = (
   mbid: null,
   matchMethod: null,
   matchConfidence: null,
+  unreconciledReason: null,
   genres: ['rock'],
   syncedAt: '2026-04-07T12:00:00.000Z',
+  lastGapCheckAt: null,
   ...overrides,
 })
 
@@ -88,6 +90,9 @@ const makeAlbumRow = (
   artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
   releaseYear: 1999,
   primaryType: 'Album',
+  matchMethod: null,
+  matchConfidence: null,
+  unreconciledReason: null,
   syncedAt: '2026-04-07T12:00:00.000Z',
   ...overrides,
 })

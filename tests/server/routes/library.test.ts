@@ -793,6 +793,34 @@ describe('GET /api/v1/library/unreconciled', () => {
       (librarySyncStore.listUnreconciledForUser as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
     ).toBe(42)
   })
+
+  it('normalizes override skips without changing artist row fields', async () => {
+    const item = {
+      id: 9,
+      userId: 42,
+      source: 'plex',
+      sourceArtistId: 'plex-override',
+      name: 'Skipped Artist',
+      nameNormalized: 'skipped artist',
+      mbid: null,
+      matchMethod: null,
+      matchConfidence: null,
+      unreconciledReason: 'override_skip',
+      genres: ['rock'],
+      syncedAt: new Date('2026-07-22T10:00:00.000Z'),
+      lastGapCheckAt: null,
+    }
+    const { app } = makeSyncApp(undefined, {
+      listUnreconciledForUser: vi.fn(async () => [item]),
+    })
+
+    const res = await authedRequest(app, '/api/v1/library/unreconciled')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+    })
+  })
 })
 
 describe('GET /api/v1/library/album-coverage/:artistMbid', () => {
@@ -1004,6 +1032,36 @@ describe('GET /api/v1/library/unreconciled-albums', () => {
       (librarySyncStore.listUnreconciledAlbumsForUser as ReturnType<typeof vi.fn>).mock
         .calls[0]?.[0],
     ).toBe(42)
+  })
+
+  it('normalizes override skips without changing album row fields', async () => {
+    const item = {
+      id: 9,
+      userId: 42,
+      source: 'plex',
+      sourceArtistId: 'artist-override',
+      sourceAlbumId: 'album-override',
+      title: 'Skipped Album',
+      titleNormalized: 'skipped album',
+      albumMbid: null,
+      artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+      primaryType: 'Album',
+      releaseYear: 1991,
+      matchMethod: null,
+      matchConfidence: null,
+      unreconciledReason: 'override_skip',
+      syncedAt: new Date('2026-07-22T10:00:00.000Z'),
+    }
+    const { app } = makeSyncApp(undefined, {
+      listUnreconciledAlbumsForUser: vi.fn(async () => [item]),
+    })
+
+    const res = await authedRequest(app, '/api/v1/library/unreconciled-albums')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+    })
   })
 })
 
