@@ -110,6 +110,7 @@ function reconciledAlbum(
     primaryType: overrides.primaryType ?? 'Album',
     matchMethod: overrides.matchMethod ?? null,
     matchConfidence: overrides.matchConfidence ?? null,
+    unreconciledReason: overrides.unreconciledReason ?? null,
   }
 }
 

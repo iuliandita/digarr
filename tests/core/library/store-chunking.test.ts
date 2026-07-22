@@ -67,6 +67,7 @@ function makeAlbum(index: number) {
     primaryType: 'Album' as const,
     matchMethod: null,
     matchConfidence: null,
+    unreconciledReason: null,
   }
 }
 
