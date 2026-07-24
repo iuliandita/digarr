@@ -101,6 +101,18 @@ describe('POST /api/v1/auth/oauth/spotify/initiate', () => {
     expect(scope.split(' ')).toContain('user-library-read')
   })
 
+  it('requests the user-follow-read scope for followed-artists discovery', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/v1/auth/oauth/spotify/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(initiateBody),
+    })
+    const body = await res.json()
+    const scope = new URL(body.authUrl).searchParams.get('scope') ?? ''
+    expect(scope.split(' ')).toContain('user-follow-read')
+  })
+
   it('persists the requested scopes on the pending token', async () => {
     const app = createApp(makeDeps())
     await app.request('/api/v1/auth/oauth/spotify/initiate', {
