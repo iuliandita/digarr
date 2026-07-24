@@ -44,3 +44,6 @@ entities.json
 deploy/docker/secrets/*
 !deploy/docker/secrets/*.example
 /plans/
+
+# Disposable agent handoff docs
+.handoff/
