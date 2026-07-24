@@ -1,6 +1,7 @@
 export type DiscoveryConnectionSnapshot = {
   hasListenBrainz: boolean
   hasSpotify: boolean
+  spotifyScopes: string[]
   hasLastfm: boolean
   hasDiscogs: boolean
   hasDeezer: boolean
@@ -12,6 +13,7 @@ export type DiscoveryConnectionSnapshot = {
 export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
   hasListenBrainz: false,
   hasSpotify: false,
+  spotifyScopes: [],
   hasLastfm: false,
   hasDiscogs: false,
   hasDeezer: false,
@@ -145,6 +147,26 @@ export function evaluateDiscoveryModeAvailability(
           providerPath: [],
           reason: 'Connect Spotify to use this mode.',
         }
+  }
+
+  if (modeId === 'spotify-followed-artists') {
+    if (!snapshot.hasSpotify) {
+      return {
+        enabled: false,
+        fallbackUsed: false,
+        providerPath: [],
+        reason: 'Connect Spotify to use this mode.',
+      }
+    }
+    if (!snapshot.spotifyScopes.includes('user-follow-read')) {
+      return {
+        enabled: false,
+        fallbackUsed: false,
+        providerPath: [],
+        reason: 'Reconnect Spotify to grant follow access.',
+      }
+    }
+    return { enabled: true, fallbackUsed: true, providerPath: ['spotify'] }
   }
 
   if (modeId === 'similar-artist-web') {
