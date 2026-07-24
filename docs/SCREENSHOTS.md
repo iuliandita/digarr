@@ -27,6 +27,8 @@ The normal Run Scan action is artist-focused. Album recommendations are produced
 
 Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
 
+TIDAL Favorite Artists carries an "Experimental" badge on both its mode card and its Settings connect card, because its OAuth flow has not yet been validated against a live TIDAL account. No capture of the TIDAL connect card exists yet; it is pending a successful live connect.
+
 ## Search
 
 ![Search](screenshots/search.png)

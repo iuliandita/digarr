@@ -153,6 +153,28 @@ Notes:
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
 
+**POST /api/v1/auth/oauth/:provider/initiate** notes:
+- For `tidal`, the body `clientId` / `clientSecret` are ignored: the server reads the one admin-registered TIDAL app from settings, so the bundled UI sends empty strings. Returns `400` with `TIDAL app credentials are not configured on the server` when no admin app is registered.
+- For `tidal`, the body `redirectUri` is ignored whenever `ALLOWED_ORIGIN` is set; the server pins the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback`. The client-supplied value is a fallback for installs with no `ALLOWED_ORIGIN`. The registered URI at TIDAL must match whichever value applies.
+- Calling initiate on an already-connected provider replaces the stored token with a pending marker, so an abandoned re-connect leaves the provider disconnected until the flow is completed again.
+
+**GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. No UI element renders `oauth_error` yet, so the value is only visible in the browser address bar. Stages:
+
+| `oauth_error` | Meaning |
+|---------------|---------|
+| *(provider value)* | The provider returned an `error` query param; passed through verbatim |
+| `missing_code_or_state` | The provider redirected without `code` or `state` |
+| `no_pending_auth` | No pending authorization matches the `state` (never initiated, already consumed, or the row was replaced) |
+| `state_mismatch` | The `state` did not match the stored pending value |
+| `missing_credentials` | The stored client ID/secret for the provider are gone |
+| `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout). TIDAL only |
+| `token_exchange_failed` | The token endpoint answered non-2xx. The upstream error body is logged, truncated to 300 chars |
+| `token_exchange_malformed` | The token endpoint answered 2xx with a non-JSON body. TIDAL only |
+| `token_exchange_no_token` | The token endpoint answered 2xx but the body carried no `access_token`. TIDAL only |
+| `unknown_provider` | The `:provider` path segment is not a supported provider |
+
+Treat these as untrusted when rendering: the pass-through case is provider-controlled.
+
 ---
 
 ## Setup
@@ -254,6 +276,7 @@ Locale notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
 - In the web UI, these modes are exposed from Discover -> Discovery Modes
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: its TIDAL OAuth flow has not been validated against a live account. Clients should badge experimental modes rather than hide them.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -853,7 +876,8 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
 - Service probes require admin access when user-session auth is active
-- TIDAL client credentials and the TIDAL probe are global, admin-managed settings
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: the admin app authorizes each user's own account via `/api/v1/auth/oauth/tidal/initiate`
+- `GET /api/v1/settings` returns `_tidalAppConfigured` (boolean), a read-only capability flag telling non-admins whether an admin has registered a TIDAL app, so the UI can enable the Connect button without exposing the credentials. Underscore-prefixed keys are derived flags, never stored settings, and are ignored on `PATCH`
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,
