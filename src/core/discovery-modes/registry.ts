@@ -13,6 +13,7 @@ import { createSimilarArtistWebMode } from './modes/similar-artist-web'
 import { createSpotifyFollowedArtistsMode } from './modes/spotify-followed-artists'
 import { createSpotifySavedAlbumsMode } from './modes/spotify-saved-albums'
 import { createSubsonicStarredMode } from './modes/subsonic-starred'
+import { createTidalFavoriteArtistsMode } from './modes/tidal-favorite-artists'
 import type { DiscoveryModeDefinition } from './types'
 
 export class DiscoveryModeRegistry {
@@ -52,6 +53,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createSpotifySavedAlbumsMode())
   registry.register(createSpotifyFollowedArtistsMode())
   registry.register(createSubsonicStarredMode())
+  registry.register(createTidalFavoriteArtistsMode())
   return registry
 }
 

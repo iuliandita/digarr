@@ -62,6 +62,7 @@ describe('charts mode – availability', () => {
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -80,6 +81,7 @@ describe('charts mode – availability', () => {
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })

@@ -69,6 +69,10 @@ export function SubsonicIcon() {
   return <ServiceLogo src="/icons/subsonic.svg" alt="Subsonic" />
 }
 
+export function TidalIcon() {
+  return <ServiceLogo src="/icons/tidal.svg" alt="TIDAL" />
+}
+
 export function WebhookIcon() {
   return (
     <span className="flex items-center justify-center w-6 h-6 text-svc-webhook">

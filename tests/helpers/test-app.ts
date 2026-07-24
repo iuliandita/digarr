@@ -202,6 +202,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })),

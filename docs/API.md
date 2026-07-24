@@ -148,7 +148,7 @@ Notes:
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
 | GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
-| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (e.g. Spotify) |
+| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`) |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |

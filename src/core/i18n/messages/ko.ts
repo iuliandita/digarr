@@ -849,6 +849,10 @@ export const ko = {
   'discoveryMode.subsonic-starred.label': 'Subsonic 즐겨찾기',
   'discoveryMode.subsonic-starred.description':
     'Subsonic 서버에서 즐겨찾기한 아티스트와 비슷한 아티스트를 발견합니다',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL 즐겨찾기 아티스트',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL 컬렉션에 있는 아티스트를 기반으로 발견합니다',
+  'discoveryMode.reason.connectTidal': '이 모드를 사용하려면 TIDAL을 연결하세요.',
   'discoveryMode.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
   'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
@@ -1020,6 +1024,15 @@ export const ko = {
   'settings.subsonicDescription':
     '라이브러리 동기화 및 발견을 위한 셀프 호스팅 음악 서버 (Navidrome, Airsonic)',
   'settings.discogsDescription': 'Discogs의 컬렉션과 위시리스트.',
+  'settings.tidalConnectDescription': 'TIDAL 즐겨찾기 아티스트를 발견 소스로 사용합니다',
+  'settings.tidalConnectHelp':
+    'TIDAL 계정을 연결하면 즐겨찾기 아티스트를 기반으로 발견을 시작합니다.',
+  'settings.tidalAppNotConfigured': '관리자가 먼저 TIDAL 앱 자격 증명을 설정해야 합니다.',
+  'settings.connectTidal': 'TIDAL 연결',
+  'settings.tidalConnected': 'TIDAL 즐겨찾기 아티스트를 발견 소스로 사용할 수 있습니다.',
+  'settings.tidalDisconnected': 'TIDAL 연결이 해제되었습니다',
+  'settings.tidalDisconnectFailed': 'TIDAL 연결 해제에 실패했습니다',
+  'settings.tidalAuthorizationFailed': 'TIDAL 인증을 시작하지 못했습니다',
   'settings.tidalDescription':
     'TIDAL 클라이언트 자격 증명 액세스를 사용하는 실험적 검색 소스입니다. 예고 없이 변경될 수 있는 비공식 엔드포인트를 사용합니다.',
   'settings.yourAccount': '내 계정',

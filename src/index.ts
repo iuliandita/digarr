@@ -253,12 +253,14 @@ const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
 const librarySyncStore = createLibrarySyncStore(db)
 
 async function getDiscoveryConnectionSnapshot(userId: number) {
-  const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-    getUserConnections(db, userId),
-    getOAuthToken(db, userId, 'spotify'),
-    getOAuthToken(db, userId, 'deezer'),
-    librarySyncStore.userHasAnySyncState(userId),
-  ])
+  const [userConnections, spotifyToken, deezerToken, tidalToken, hasLibrarySync] =
+    await Promise.all([
+      getUserConnections(db, userId),
+      getOAuthToken(db, userId, 'spotify'),
+      getOAuthToken(db, userId, 'deezer'),
+      getOAuthToken(db, userId, 'tidal'),
+      librarySyncStore.userHasAnySyncState(userId),
+    ])
 
   return {
     hasListenBrainz: Boolean(
@@ -271,6 +273,7 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
     hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
     hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
     hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),
+    hasTidal: Boolean(tidalToken?.accessToken && !tidalToken.accessToken.startsWith('pending:')),
     hasLibrarySync,
     hasSubsonic: Boolean(
       userConnections?.subsonicUrl &&

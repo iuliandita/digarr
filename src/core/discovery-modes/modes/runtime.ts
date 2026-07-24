@@ -41,6 +41,18 @@ export async function getDiscoveryModeDeezerToken(userId: number): Promise<strin
   }
 }
 
+export async function getDiscoveryModeTidalToken(userId: number): Promise<string | null> {
+  try {
+    const [{ db }, { resolveTidalToken }] = await Promise.all([
+      import('@/db'),
+      import('@/core/tidal-auth'),
+    ])
+    return await resolveTidalToken(db, userId)
+  } catch {
+    return null
+  }
+}
+
 export function getNormalizedLimit(
   request: DiscoveryModeRequest,
   fallback: number,

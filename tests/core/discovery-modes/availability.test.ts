@@ -14,6 +14,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -30,6 +31,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     }
@@ -56,6 +58,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -76,6 +79,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -92,6 +96,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: true,
       hasDiscogs: true,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: true,
       hasSubsonic: false,
     }
@@ -116,6 +121,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     }
@@ -142,6 +148,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: true,
       hasDiscogs: true,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -161,6 +168,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -243,5 +251,28 @@ describe('spotify-followed-artists availability', () => {
     })
     expect(result.enabled).toBe(false)
     expect(result.reason).toMatch(/connect spotify/i)
+  })
+})
+
+describe('tidal-favorite-artists availability', () => {
+  it('is enabled as a fallback source when TIDAL is connected', () => {
+    const result = evaluateDiscoveryModeAvailability('tidal-favorite-artists', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasTidal: true,
+    })
+    expect(result).toMatchObject({ enabled: true, fallbackUsed: true, providerPath: ['tidal'] })
+  })
+
+  it('is disabled with a connect reason when TIDAL is not connected', () => {
+    const result = evaluateDiscoveryModeAvailability(
+      'tidal-favorite-artists',
+      EMPTY_DISCOVERY_SNAPSHOT,
+    )
+    expect(result).toMatchObject({
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+      reason: 'Connect TIDAL to use this mode.',
+    })
   })
 })

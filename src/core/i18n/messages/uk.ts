@@ -864,6 +864,10 @@ export const uk = {
   'discoveryMode.subsonic-starred.label': 'Обране в Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Відкривайте виконавців, схожих на тих, кого ви відзначили зірочкою на вашому сервері Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Улюблені виконавці TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Відкривайте нове на основі виконавців із вашої колекції TIDAL',
+  'discoveryMode.reason.connectTidal': 'Підключіть TIDAL, щоб використовувати цей режим.',
   'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
@@ -1045,6 +1049,17 @@ export const uk = {
   'settings.subsonicDescription':
     'Самостійно розміщений музичний сервер (Navidrome, Airsonic) для синхронізації бібліотеки та відкриття',
   'settings.discogsDescription': 'Колекція та список бажань із Discogs.',
+  'settings.tidalConnectDescription':
+    'Використовуйте улюблених виконавців TIDAL як джерело відкриттів',
+  'settings.tidalConnectHelp':
+    'Підключіть обліковий запис TIDAL, щоб починати відкриття з улюблених виконавців.',
+  'settings.tidalAppNotConfigured':
+    'Спочатку адміністратор має налаштувати облікові дані застосунку TIDAL.',
+  'settings.connectTidal': 'Підключити TIDAL',
+  'settings.tidalConnected': 'Улюблені виконавці TIDAL доступні як джерело відкриттів.',
+  'settings.tidalDisconnected': 'TIDAL відключено',
+  'settings.tidalDisconnectFailed': 'Не вдалося відключити TIDAL',
+  'settings.tidalAuthorizationFailed': 'Не вдалося розпочати авторизацію TIDAL',
   'settings.tidalDescription':
     'Експериментальне джерело пошуку, що використовує доступ за клієнтськими обліковими даними TIDAL. Використовує недокументовані кінцеві точки, які можуть змінитися без попередження.',
   'settings.yourAccount': 'ваш акаунт',

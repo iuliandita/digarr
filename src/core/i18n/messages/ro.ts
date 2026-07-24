@@ -869,6 +869,10 @@ export const ro = {
   'discoveryMode.subsonic-starred.label': 'Favorite Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Descoperă artiști similari celor pe care i-ai marcat cu stea pe serverul tău Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Artiști favoriți TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Descoperă pornind de la artiștii din colecția ta TIDAL',
+  'discoveryMode.reason.connectTidal': 'Conectează TIDAL pentru a folosi acest mod.',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -1048,6 +1052,18 @@ export const ro = {
   'settings.subsonicDescription':
     'Server de muzică auto-găzduit (Navidrome, Airsonic) pentru sincronizarea bibliotecii și descoperire',
   'settings.discogsDescription': 'Colecție și listă de dorințe din Discogs.',
+  'settings.tidalConnectDescription':
+    'Folosește artiștii tăi favoriți din TIDAL ca sursă de descoperire',
+  'settings.tidalConnectHelp':
+    'Conectează-ți contul TIDAL pentru a porni descoperirile de la artiștii tăi favoriți.',
+  'settings.tidalAppNotConfigured':
+    'Un administrator trebuie să configureze mai întâi datele aplicației TIDAL.',
+  'settings.connectTidal': 'Conectează TIDAL',
+  'settings.tidalConnected':
+    'Artiștii tăi favoriți din TIDAL sunt disponibili ca sursă de descoperire.',
+  'settings.tidalDisconnected': 'TIDAL deconectat',
+  'settings.tidalDisconnectFailed': 'Deconectarea TIDAL a eșuat',
+  'settings.tidalAuthorizationFailed': 'Pornirea autorizării TIDAL a eșuat',
   'settings.tidalDescription':
     'Sursă de căutare experimentală care utilizează acces prin credențiale de client TIDAL. Folosește puncte finale nedocumentate care se pot schimba fără notificare.',
   'settings.yourAccount': 'contul dvs.',

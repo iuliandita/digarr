@@ -863,6 +863,10 @@ export const nl = {
   'discoveryMode.subsonic-starred.label': 'Subsonic-favorieten',
   'discoveryMode.subsonic-starred.description':
     'Ontdek artiesten die lijken op de artiesten die je op je Subsonic-server met een ster hebt gemarkeerd',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL Favoriete Artiesten',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Ontdek op basis van de artiesten in je TIDAL-collectie',
+  'discoveryMode.reason.connectTidal': 'Verbind TIDAL om deze modus te gebruiken.',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -1042,6 +1046,15 @@ export const nl = {
   'settings.subsonicDescription':
     'Zelf-gehoste muziekserver (Navidrome, Airsonic) voor bibliotheeksynchronisatie en ontdekking',
   'settings.discogsDescription': 'Collectie en verlanglijst van Discogs.',
+  'settings.tidalConnectDescription': 'Gebruik je favoriete TIDAL-artiesten als ontdekkingsbron',
+  'settings.tidalConnectHelp':
+    'Verbind je TIDAL-account om ontdekkingen te starten vanuit je favoriete artiesten.',
+  'settings.tidalAppNotConfigured': 'Een beheerder moet eerst de TIDAL-app-gegevens instellen.',
+  'settings.connectTidal': 'TIDAL verbinden',
+  'settings.tidalConnected': 'Je favoriete TIDAL-artiesten zijn beschikbaar als ontdekkingsbron.',
+  'settings.tidalDisconnected': 'TIDAL losgekoppeld',
+  'settings.tidalDisconnectFailed': 'TIDAL loskoppelen mislukt',
+  'settings.tidalAuthorizationFailed': 'Starten van TIDAL-autorisatie mislukt',
   'settings.tidalDescription':
     'Experimentele zoekbron die gebruikmaakt van TIDAL-clientgegevens. Gebruikt ongedocumenteerde eindpunten die zonder waarschuwing kunnen veranderen.',
   'settings.yourAccount': 'jouw account',

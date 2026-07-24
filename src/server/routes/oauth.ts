@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto'
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
 import {
@@ -19,6 +20,30 @@ const SPOTIFY_SCOPES =
 const DEEZER_AUTH_URL = 'https://connect.deezer.com/oauth/auth.php'
 const DEEZER_TOKEN_URL = 'https://connect.deezer.com/oauth/access_token.php'
 const DEEZER_SCOPES = 'basic_access,email,listening_history'
+
+const TIDAL_AUTH_URL = 'https://login.tidal.com/authorize'
+const TIDAL_TOKEN_URL = 'https://auth.tidal.com/v1/oauth2/token'
+const TIDAL_SCOPES = 'user.read collection.read'
+
+/** Stash the PKCE verifier plus the exact redirect URI on the pending row (encrypted at rest). */
+type TidalPendingState = { redirectUri: string; codeVerifier: string }
+
+function parseTidalPendingState(raw: string | null): TidalPendingState | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as Partial<TidalPendingState>
+    if (!parsed.redirectUri || !parsed.codeVerifier) return null
+    return { redirectUri: parsed.redirectUri, codeVerifier: parsed.codeVerifier }
+  } catch {
+    return null
+  }
+}
+
+function createPkcePair(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(32).toString('base64url')
+  const challenge = createHash('sha256').update(verifier).digest('base64url')
+  return { verifier, challenge }
+}
 
 export function oauthRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
@@ -89,6 +114,43 @@ export function oauthRoutes(deps: AppDependencies) {
         })
 
         return c.json({ authUrl: `${DEEZER_AUTH_URL}?${params}` })
+      }
+      case 'tidal': {
+        const settings = await deps.getSettings()
+        const tidalClientId = settings?.tidalClientId
+        const tidalClientSecret = settings?.tidalClientSecret
+        if (!tidalClientId || !tidalClientSecret) {
+          return c.json({ error: 'TIDAL app credentials are not configured on the server' }, 400)
+        }
+        if (!redirectUri) {
+          return c.json({ error: 'redirectUri is required' }, 400)
+        }
+
+        const state = crypto.randomUUID()
+        const { verifier, challenge } = createPkcePair()
+
+        await upsertOAuthToken(deps.db, {
+          userId,
+          provider: 'tidal',
+          accessToken: `pending:${userId}:${state}`,
+          refreshToken: JSON.stringify({ redirectUri, codeVerifier: verifier }),
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          scopes: TIDAL_SCOPES,
+          clientId: tidalClientId,
+          clientSecret: tidalClientSecret,
+        })
+
+        const params = new URLSearchParams({
+          response_type: 'code',
+          client_id: tidalClientId,
+          scope: TIDAL_SCOPES,
+          redirect_uri: redirectUri,
+          code_challenge: challenge,
+          code_challenge_method: 'S256',
+          state,
+        })
+
+        return c.json({ authUrl: `${TIDAL_AUTH_URL}?${params}` })
       }
       default:
         return c.json({ error: `Unknown OAuth provider: ${provider}` }, 400)
@@ -276,6 +338,80 @@ export function oauthRoutes(deps: AppDependencies) {
         })
 
         return c.redirect('/settings?oauth_success=deezer')
+      }
+      case 'tidal': {
+        const tidalPending = await findPendingOAuthByState(deps.db, 'tidal', state)
+        if (!tidalPending?.accessToken.startsWith('pending:')) {
+          return c.redirect('/settings?oauth_error=no_pending_auth')
+        }
+        const tidalUserId = tidalPending.userId
+
+        if (tidalPending.accessToken !== `pending:${tidalUserId}:${state}`) {
+          return c.redirect('/settings?oauth_error=state_mismatch')
+        }
+
+        const { clientId, clientSecret } = tidalPending
+        if (!clientId || !clientSecret) {
+          return c.redirect('/settings?oauth_error=missing_credentials')
+        }
+
+        const pendingState = parseTidalPendingState(tidalPending.refreshToken)
+        if (!pendingState) {
+          return c.redirect('/settings?oauth_error=no_pending_auth')
+        }
+
+        const tidalController = new AbortController()
+        const tidalTimer = setTimeout(() => tidalController.abort(), 10_000)
+        let tidalTokenRes: Response
+        try {
+          tidalTokenRes = await fetch(TIDAL_TOKEN_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+            },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              code,
+              client_id: clientId,
+              redirect_uri: pendingState.redirectUri,
+              code_verifier: pendingState.codeVerifier,
+            }),
+            signal: tidalController.signal,
+          })
+        } finally {
+          clearTimeout(tidalTimer)
+        }
+
+        if (!tidalTokenRes.ok) {
+          console.error(`TIDAL token exchange failed: ${tidalTokenRes.status}`)
+          return c.redirect('/settings?oauth_error=token_exchange_failed')
+        }
+
+        const tidalTokenData = (await tidalTokenRes.json()) as {
+          access_token?: string
+          refresh_token?: string
+          expires_in?: number
+          scope?: string
+        }
+
+        if (!tidalTokenData.access_token) {
+          console.error('TIDAL token exchange: no access_token in response')
+          return c.redirect('/settings?oauth_error=token_exchange_failed')
+        }
+
+        await upsertOAuthToken(deps.db, {
+          userId: tidalUserId,
+          provider: 'tidal',
+          accessToken: tidalTokenData.access_token,
+          refreshToken: tidalTokenData.refresh_token ?? null,
+          expiresAt: new Date(Date.now() + (tidalTokenData.expires_in ?? 3600) * 1000),
+          scopes: tidalTokenData.scope ?? TIDAL_SCOPES,
+          clientId,
+          clientSecret,
+        })
+
+        return c.redirect('/settings?oauth_success=tidal')
       }
       default:
         return c.redirect('/settings?oauth_error=unknown_provider')
