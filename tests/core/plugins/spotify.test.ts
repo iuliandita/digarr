@@ -97,7 +97,9 @@ describe('createSpotifySource()', () => {
     client.getTopArtists.mockImplementation((range?: string) => {
       if (range === 'short_term') return Promise.reject(new Error('rate limited'))
       if (range === 'long_term')
-        return Promise.resolve([{ name: 'Bjork', id: 'sp-bj', genres: ['art pop'], popularity: 71 }])
+        return Promise.resolve([
+          { name: 'Bjork', id: 'sp-bj', genres: ['art pop'], popularity: 71 },
+        ])
       return Promise.resolve([
         { name: 'Radiohead', id: 'sp-rh', genres: ['alternative'], popularity: 82 },
       ])

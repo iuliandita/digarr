@@ -79,6 +79,8 @@ describe('spotify-followed-artists mode – executor', () => {
   it('throws "Connect Spotify to use this mode." when token resolver returns null', async () => {
     mockGetSpotifyToken.mockResolvedValue(null)
     const mode = createSpotifyFollowedArtistsMode()
-    await expect(mode.executor(makeRequest({}))).rejects.toThrow('Connect Spotify to use this mode.')
+    await expect(mode.executor(makeRequest({}))).rejects.toThrow(
+      'Connect Spotify to use this mode.',
+    )
   })
 })

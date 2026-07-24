@@ -863,8 +863,7 @@ export const it = {
   'discoveryMode.spotify-saved-albums.description':
     'Scopri artisti dagli album che hai salvato su Spotify',
   'discoveryMode.spotify-followed-artists.label': 'Artisti seguiti di Spotify',
-  'discoveryMode.spotify-followed-artists.description':
-    'Scopri dagli artisti che segui su Spotify',
+  'discoveryMode.spotify-followed-artists.description': 'Scopri dagli artisti che segui su Spotify',
   'discoveryMode.subsonic-starred.label': 'Preferiti Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Scopri artisti simili a quelli che hai contrassegnato con una stella sul tuo server Subsonic',
