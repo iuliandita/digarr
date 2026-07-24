@@ -31,7 +31,7 @@
 > - 💿 **Album-level discovery** -- recommends and approves *individual albums* (gap-fills, new releases, net-new finds), not just artists. No whole-discography grabs.
 > - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
 > - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
-> - 🧭 **14 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Subsonic Starred -- all runnable on demand or saved as subscriptions.
+> - 🧭 **15 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, Subsonic Starred -- all runnable on demand or saved as subscriptions.
 > - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring uses native listening metadata plus a bounded MusicBrainz cache warmer when no library is connected.
 > - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
 > - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
@@ -52,7 +52,7 @@ Digarr takes signals from up to 9 sources, runs them through an AI-assisted pipe
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
 
 ### Discovery Modes
-Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
+Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), Spotify Followed Artists (the artists you follow on Spotify; needs a connected Spotify account with the `user-follow-read` scope, so existing users must disconnect and reconnect Spotify once to grant it), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
 
 ### Auto-Playlists
 Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
@@ -111,7 +111,7 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Service | Discovery | Subscriptions | Library Sync | Playlist Export | Import |
 |---------|-----------|--------------|-------------|----------------|--------|
 | ListenBrainz | Artist Radio, User Radio, Tag Radio, Similar Users (Quick), Similar Users (Deep) | Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users | - | - | - |
-| Spotify | Saved Albums | Liked Songs, Charts, Playlists | - | Yes | Playlist |
+| Spotify | Saved Albums, Followed Artists | Liked Songs, Charts, Playlists | - | Yes | Playlist |
 | Deezer | Flow | Favorites, Followed, Flow, Playlists | - | - | Favorites, Followed, Playlists |
 | Discogs | Collection, Wantlist, Labels | - | - | - | - |
 | Last.fm | Global and regional Charts | Charts, Tag Radio | - | - | - |
