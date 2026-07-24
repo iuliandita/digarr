@@ -11,10 +11,20 @@ const { createSpotifySource } = await import('@/core/plugins/spotify')
 describe('createSpotifySource()', () => {
   function mockClient() {
     const client = {
-      getTopArtists: vi.fn().mockResolvedValue([
-        { name: 'Radiohead', id: 'sp-rh', genres: ['art rock', 'alternative'], popularity: 82 },
-        { name: 'Bjork', id: 'sp-bj', genres: ['art pop', 'electronic'], popularity: 71 },
-      ]),
+      getTopArtists: vi.fn((range?: string) => {
+        if (range === 'short_term')
+          return Promise.resolve([
+            { name: 'Radiohead', id: 'sp-rh', genres: ['art rock'], popularity: 90 },
+          ])
+        if (range === 'long_term')
+          return Promise.resolve([
+            { name: 'Bjork', id: 'sp-bj', genres: ['art pop'], popularity: 71 },
+          ])
+        // medium_term
+        return Promise.resolve([
+          { name: 'Radiohead', id: 'sp-rh', genres: ['alternative'], popularity: 82 },
+        ])
+      }),
       getRecentlyPlayed: vi.fn().mockResolvedValue([
         {
           name: 'Everything In Its Right Place',
@@ -59,24 +69,22 @@ describe('createSpotifySource()', () => {
     expect(source.capabilities).not.toContain('genreArtists')
   })
 
-  it('getTopArtists() maps client response to TopArtistEntry[]', async () => {
+  it('getTopArtists() merges all three windows: dedupes by name, unions genres, keeps max popularity', async () => {
     mockClient()
     const source = createSpotifySource('access-token')
-    const artists = await source.getTopArtists()
+    const artists = await source.getTopArtists(50)
 
+    const rh = artists.find((a) => a.name === 'Radiohead')
+    const bj = artists.find((a) => a.name === 'Bjork')
     expect(artists).toHaveLength(2)
-    expect(artists[0]).toEqual({
+    expect(rh).toEqual({
       name: 'Radiohead',
-      playCount: 82,
+      playCount: 90, // max(90 short, 82 medium)
       source: 'spotify',
-      genres: ['art rock', 'alternative'],
+      genres: expect.arrayContaining(['art rock', 'alternative']),
     })
-    expect(artists[1]).toEqual({
-      name: 'Bjork',
-      playCount: 71,
-      source: 'spotify',
-      genres: ['art pop', 'electronic'],
-    })
+    expect(rh?.genres).toHaveLength(2) // unioned, no dupes
+    expect(bj?.playCount).toBe(71)
   })
 
   it('getRecentListening() maps client response', async () => {
