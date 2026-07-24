@@ -137,4 +137,35 @@ describe('createTidalUserClient', () => {
     expect(artist?.url).toBe('https://tidal.com/browse/artist/7')
     expect(artist?.imageUrl).toBe('https://images.tidal.test/7.jpg')
   })
+
+  it('stops instead of looping forever when the cursor never advances', async () => {
+    const selfReferential = `${BASE}/userCollectionArtists/me/relationships/items?page%5Bcursor%5D=stuck`
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async () =>
+        jsonResponse(artistPage([{ id: '1', name: 'A' }], selfReferential)),
+      )
+
+    const client = createTidalUserClient('token', { baseUrl: BASE })
+    const artists = await client.getFavoriteArtists(50)
+
+    expect(artists.map((a) => a.id)).toEqual(['1'])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('throws when the collection has items but no sideloaded artists', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({
+        data: [{ id: '1', type: 'artists' }],
+        included: [{ id: '1', type: 'artist', attributes: { name: 'A' } }],
+        links: {},
+      }),
+    )
+
+    const client = createTidalUserClient('token', { baseUrl: BASE })
+
+    await expect(client.getFavoriteArtists(10)).rejects.toThrow(
+      /include=items response shape has changed/,
+    )
+  })
 })

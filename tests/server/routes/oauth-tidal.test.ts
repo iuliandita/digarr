@@ -193,4 +193,30 @@ describe('GET /api/v1/auth/oauth/tidal/callback', () => {
     )
     expect(res.headers.get('location')).toContain('oauth_error=token_exchange_failed')
   })
+
+  it('redirects with token_exchange_unreachable when the token request throws', async () => {
+    vi.mocked(findPendingOAuthByState).mockResolvedValue(pendingRow as never)
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('connect ETIMEDOUT'))
+
+    const res = await createApp(makeDeps(configuredSettings)).request(
+      '/api/v1/auth/oauth/tidal/callback?code=abc&state=state-123',
+    )
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toContain('oauth_error=token_exchange_unreachable')
+  })
+
+  it('redirects with token_exchange_no_token when the response omits the access token', async () => {
+    vi.mocked(findPendingOAuthByState).mockResolvedValue(pendingRow as never)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ token_type: 'Bearer' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+
+    const res = await createApp(makeDeps(configuredSettings)).request(
+      '/api/v1/auth/oauth/tidal/callback?code=abc&state=state-123',
+    )
+    expect(res.headers.get('location')).toContain('oauth_error=token_exchange_no_token')
+  })
 })
