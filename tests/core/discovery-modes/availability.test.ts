@@ -204,6 +204,7 @@ describe('evaluateDiscoveryModeAvailability', () => {
         typeof value === 'boolean' ? true : value,
       ]),
     ) as typeof EMPTY_DISCOVERY_SNAPSHOT
+    allTrueSnapshot.spotifyScopes = ['user-follow-read']
 
     const registry = createDefaultDiscoveryModeRegistry()
     for (const mode of registry.list()) {
