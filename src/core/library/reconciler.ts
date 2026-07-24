@@ -1,4 +1,5 @@
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
 import { normalizeArtistName } from './normalize'
 import type { LibraryArtist } from './sources/types'
@@ -8,8 +9,6 @@ type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
   'searchArtist' | 'getReleaseGroups'
 >
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function mbErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
@@ -52,10 +51,6 @@ export type ReconcilerContext = {
   ) => Promise<Array<{ mbid: string; name: string; source: string }>>
   /** Mutable accumulator updated as the run progresses; surfaced to UI */
   counts: LibrarySyncCounts
-}
-
-function isValidUuid(value: string | undefined): value is string {
-  return typeof value === 'string' && UUID_RE.test(value)
 }
 
 function matchedRow(
@@ -123,7 +118,7 @@ export async function reconcileArtist(
   }
 
   // Step 1: source-provided MBID
-  if (isValidUuid(artist.mbid)) {
+  if (isValidMbid(artist.mbid)) {
     ctx.counts.matchedMbid += 1
     return matchedRow(artist, nameNormalized, artist.mbid, 'mbid', 1.0)
   }

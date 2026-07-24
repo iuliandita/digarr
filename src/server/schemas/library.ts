@@ -1,7 +1,6 @@
 import * as z from 'zod'
 import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { MBID_RE } from '@/core/validation'
 
 // Keep the batch cap in lockstep with the runtime slice in library.ts.
 export const libraryWarmSchema = z
@@ -79,7 +78,7 @@ export const libraryOverrideSchema = z
       .union([
         z.literal(''),
         z.null(),
-        z.string().regex(UUID_RE, 'correctMbid must be a valid UUID'),
+        z.string().regex(MBID_RE, 'correctMbid must be a valid UUID'),
       ])
       .optional(),
     note: z.string().optional(),
@@ -94,7 +93,7 @@ export const libraryAlbumOverrideSchema = z
       .union([
         z.literal(''),
         z.null(),
-        z.string().regex(UUID_RE, 'correctAlbumMbid must be a valid UUID'),
+        z.string().regex(MBID_RE, 'correctAlbumMbid must be a valid UUID'),
       ])
       .optional(),
     note: z.string().optional(),
