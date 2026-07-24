@@ -8,7 +8,6 @@ import {
   numeric,
   pgTable,
   real,
-  serial,
   text,
   timestamp,
   unique,
@@ -38,7 +37,7 @@ export type JobMetadata = Record<string, unknown> & {
 }
 
 export const settings = pgTable('settings', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   lidarrUrl: text('lidarr_url'),
   lidarrApiKey: text('lidarr_api_key'),
   listenbrainzUsername: text('listenbrainz_username'),
@@ -68,7 +67,7 @@ export const settings = pgTable('settings', {
 })
 
 export const libraryHealthState = pgTable('library_health_state', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   checks: jsonb('checks').$type<HealthCheckResult[]>().notNull().default([]),
   lastStartedAt: timestamp('last_started_at', { withTimezone: true }),
   lastCompletedAt: timestamp('last_completed_at', { withTimezone: true }),
@@ -80,7 +79,7 @@ export const libraryHealthState = pgTable('library_health_state', {
 export const users = pgTable(
   'users',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     username: text('username').unique().notNull(),
     passwordHash: text('password_hash').notNull(),
     isAdmin: boolean('is_admin').default(false).notNull(),
@@ -124,7 +123,7 @@ export const users = pgTable(
 export const genres = pgTable(
   'genres',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     name: text('name').notNull(),
     slug: text('slug').notNull().unique(),
     source: text('source').notNull(),
@@ -140,7 +139,7 @@ export const genres = pgTable(
 export const subscriptions = pgTable(
   'subscriptions',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     name: text('name').notNull(),
     userId: integer('user_id').references(() => users.id),
     enabled: boolean('enabled').notNull().default(true),
@@ -181,7 +180,7 @@ export type TopTracksCache = {
 }
 
 export const artists = pgTable('artists', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   mbid: uuid('mbid').unique().notNull(),
   name: text('name').notNull(),
   disambiguation: text('disambiguation'),
@@ -206,7 +205,7 @@ export const artists = pgTable('artists', {
 export const artistGenreAliases = pgTable(
   'artist_genre_aliases',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     source: text('source').notNull(),
     nameNormalized: text('name_normalized').notNull(),
     mbid: uuid('mbid')
@@ -232,7 +231,7 @@ export const rateLimitBuckets = pgTable('rate_limit_buckets', {
 export const recommendationBatches = pgTable(
   'recommendation_batches',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     sourceConfig: jsonb('source_config').$type<RecommendationBatchSourceConfig | null>(),
     stats: jsonb('stats'),
@@ -248,7 +247,7 @@ export const recommendationBatches = pgTable(
 export const recommendations = pgTable(
   'recommendations',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id),
     artistId: integer('artist_id')
       .references(() => artists.id)
@@ -291,7 +290,7 @@ export const recommendations = pgTable(
 export const jobRuns = pgTable(
   'job_runs',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     type: text('type').notNull(), // 'pipeline' | 'quick_discover' | 'subscription' | 'target' | 'playlist'
     status: text('status').notNull(), // 'running' | 'completed' | 'failed' | 'stuck' | 'cancelled'
     userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
@@ -321,7 +320,7 @@ export const jobRuns = pgTable(
 export const targets = pgTable(
   'targets',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     type: text('type').notNull(),
     name: text('name').notNull(),
     config: jsonb('config').$type<Record<string, unknown>>().notNull().default({}),
@@ -347,7 +346,7 @@ export const SLSKD_ACTIVE_JOB_STATES = [
 export const slskdJobs = pgTable(
   'slskd_jobs',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     targetId: integer('target_id')
       .references(() => targets.id, { onDelete: 'cascade' })
@@ -405,7 +404,7 @@ export const sessions = pgTable(
 )
 
 export const artistMetadata = pgTable('artist_metadata', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
   name: text('name').notNull(),
   nameNormalized: text('name_normalized').notNull().unique(),
   spotifyGenres: text('spotify_genres').array(),
@@ -417,7 +416,7 @@ export const artistMetadata = pgTable('artist_metadata', {
 export const oauthTokens = pgTable(
   'oauth_tokens',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
@@ -437,7 +436,7 @@ export const oauthTokens = pgTable(
 export const playlists = pgTable(
   'playlists',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     strategy: text('strategy').notNull(),
@@ -461,7 +460,7 @@ export const playlists = pgTable(
 export const playlistTracks = pgTable(
   'playlist_tracks',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     playlistId: integer('playlist_id')
       .references(() => playlists.id, { onDelete: 'cascade' })
       .notNull(),
@@ -585,7 +584,7 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
 export const libraryArtists = pgTable(
   'library_artists',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     // null = global config (Lidarr), non-null = per-user (Plex/Jellyfin/Emby)
     source: text('source').notNull(),
@@ -618,7 +617,7 @@ export const libraryArtists = pgTable(
 export const libraryAlbums = pgTable(
   'library_albums',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     source: text('source').notNull(),
     sourceAlbumId: text('source_album_id').notNull(),
@@ -647,7 +646,7 @@ export const libraryAlbums = pgTable(
 export const libraryMatchOverrides = pgTable(
   'library_match_overrides',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     source: text('source').notNull(),
     sourceArtistId: text('source_artist_id').notNull(),
@@ -669,7 +668,7 @@ export const libraryMatchOverrides = pgTable(
 export const libraryAlbumMatchOverrides = pgTable(
   'library_album_match_overrides',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     source: text('source').notNull(),
     sourceAlbumId: text('source_album_id').notNull(),
@@ -708,7 +707,7 @@ export type LibrarySyncCounts = {
 export const librarySyncState = pgTable(
   'library_sync_state',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     source: text('source').notNull(),
     lastSyncStartedAt: timestamp('last_sync_started_at', { withTimezone: true }),
@@ -733,7 +732,7 @@ export const recordingArtistCache = pgTable('recording_artist_cache', {
 export const artistBlocks = pgTable(
   'artist_blocks',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -755,7 +754,7 @@ export const artistBlocks = pgTable(
 export const albumBlocks = pgTable(
   'album_blocks',
   {
-    id: serial('id').primaryKey(),
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     userId: integer('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
