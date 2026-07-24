@@ -70,9 +70,14 @@ describe('createSpotifySource()', () => {
   })
 
   it('getTopArtists() merges all three windows: dedupes by name, unions genres, keeps max popularity', async () => {
-    mockClient()
+    const client = mockClient()
     const source = createSpotifySource('access-token')
     const artists = await source.getTopArtists(50)
+
+    expect(client.getTopArtists).toHaveBeenCalledTimes(3)
+    expect(client.getTopArtists).toHaveBeenCalledWith('short_term', 50)
+    expect(client.getTopArtists).toHaveBeenCalledWith('medium_term', 50)
+    expect(client.getTopArtists).toHaveBeenCalledWith('long_term', 50)
 
     const rh = artists.find((a) => a.name === 'Radiohead')
     const bj = artists.find((a) => a.name === 'Bjork')
@@ -85,6 +90,35 @@ describe('createSpotifySource()', () => {
     })
     expect(rh?.genres).toHaveLength(2) // unioned, no dupes
     expect(bj?.playCount).toBe(71)
+  })
+
+  it('getTopArtists() degrades gracefully when one window fails, keeping successful windows', async () => {
+    const client = mockClient()
+    client.getTopArtists.mockImplementation((range?: string) => {
+      if (range === 'short_term') return Promise.reject(new Error('rate limited'))
+      if (range === 'long_term')
+        return Promise.resolve([{ name: 'Bjork', id: 'sp-bj', genres: ['art pop'], popularity: 71 }])
+      return Promise.resolve([
+        { name: 'Radiohead', id: 'sp-rh', genres: ['alternative'], popularity: 82 },
+      ])
+    })
+    const source = createSpotifySource('access-token')
+    const artists = await source.getTopArtists(50)
+
+    const rh = artists.find((a) => a.name === 'Radiohead')
+    const bj = artists.find((a) => a.name === 'Bjork')
+    expect(artists).toHaveLength(2)
+    expect(rh?.playCount).toBe(82) // only medium_term survived
+    expect(rh?.genres).toEqual(['alternative'])
+    expect(bj?.playCount).toBe(71)
+  })
+
+  it('getTopArtists() returns [] when all windows fail, without throwing', async () => {
+    const client = mockClient()
+    client.getTopArtists.mockRejectedValue(new Error('down'))
+    const source = createSpotifySource('access-token')
+
+    await expect(source.getTopArtists(50)).resolves.toEqual([])
   })
 
   it('getRecentListening() maps client response', async () => {

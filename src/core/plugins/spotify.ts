@@ -11,12 +11,13 @@ export function createSpotifySource(accessToken: string): DiscoverySource {
 
     async getTopArtists(limit) {
       const windows: SpotifyTimeRange[] = ['short_term', 'medium_term', 'long_term']
-      const perWindow = await Promise.all(windows.map((w) => client.getTopArtists(w, limit)))
+      const settled = await Promise.allSettled(windows.map((w) => client.getTopArtists(w, limit)))
 
       const merged = new Map<string, { name: string; playCount: number; genres: Set<string> }>()
-      for (const artists of perWindow) {
-        for (const a of artists) {
-          const key = a.name.toLowerCase()
+      for (const outcome of settled) {
+        if (outcome.status !== 'fulfilled') continue
+        for (const a of outcome.value) {
+          const key = a.name.trim().toLowerCase()
           const existing = merged.get(key)
           if (existing) {
             existing.playCount = Math.max(existing.playCount, a.popularity)
