@@ -87,6 +87,30 @@ describe('POST /api/v1/auth/oauth/tidal/initiate', () => {
     expect((url.searchParams.get('scope') ?? '').split(' ')).toContain('collection.read')
   })
 
+  it('ignores a client-supplied redirect URI when ALLOWED_ORIGIN is configured', async () => {
+    vi.resetModules()
+    vi.stubEnv('ALLOWED_ORIGIN', 'https://digarr.example')
+    const { oauthRoutes: scopedRoutes } = await import('@/server/routes/oauth')
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      return next()
+    })
+    app.route('/', scopedRoutes(makeDeps(configuredSettings) as never))
+
+    const res = await app.request('/api/v1/auth/oauth/tidal/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ redirectUri: 'https://attacker.example/steal' }),
+    })
+    const url = new URL((await res.json()).authUrl)
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      'https://digarr.example/api/v1/auth/oauth/tidal/callback',
+    )
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
   it('stashes the verifier and redirect URI on the pending row, and the challenge matches it', async () => {
     const res = await initiate(makeDeps(configuredSettings))
     const url = new URL((await res.json()).authUrl)

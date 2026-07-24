@@ -3,11 +3,8 @@
 // never `/me` collection data, so the two flows cannot share a client.
 
 import { createHttpClient } from '@/core/clients/http'
-import type { ServiceTestResult } from '@/core/types'
-import { errMsg } from '@/core/validation'
 
 const DEFAULT_BASE_URL = 'https://openapi.tidal.com/v2'
-const PAGE_SIZE_HINT = 50
 
 export type TidalUserArtist = {
   id: string
@@ -41,10 +38,6 @@ type TidalRelationshipDocument = {
   links?: { next?: string; self?: string }
 }
 
-type TidalUserDocument = {
-  data?: { id?: string; attributes?: { username?: string; country?: string } }
-}
-
 /** Pull the opaque `page[cursor]` value out of a JSON:API `links.next` URL. */
 function extractCursor(next: string | undefined): string | null {
   if (!next) return null
@@ -65,10 +58,7 @@ function extractImageUrl(attrs: TidalArtistAttributes): string | undefined {
   return attrs.imageLinks?.[0]?.href ?? undefined
 }
 
-export function createTidalUserClient(
-  accessToken: string,
-  options: { baseUrl?: string; countryCode?: string } = {},
-) {
+export function createTidalUserClient(accessToken: string, options: { baseUrl?: string } = {}) {
   const http = createHttpClient({
     baseUrl: options.baseUrl ?? DEFAULT_BASE_URL,
     headers: {
@@ -93,7 +83,6 @@ export function createTidalUserClient(
         sort: '-addedAt',
         locale: 'en-US',
       })
-      if (options.countryCode) params.set('countryCode', options.countryCode)
       if (cursor) params.set('page[cursor]', cursor)
 
       const doc: TidalRelationshipDocument = await http.get<TidalRelationshipDocument>(
@@ -129,27 +118,5 @@ export function createTidalUserClient(
     return artists.slice(0, limit)
   }
 
-  async function getMe(): Promise<{ id: string; username?: string; country?: string }> {
-    const doc = await http.get<TidalUserDocument>('/users/me')
-    return {
-      id: doc.data?.id ?? '',
-      username: doc.data?.attributes?.username,
-      country: doc.data?.attributes?.country,
-    }
-  }
-
-  async function testConnection(): Promise<ServiceTestResult> {
-    try {
-      const favorites = await getFavoriteArtists(PAGE_SIZE_HINT)
-      return {
-        success: true,
-        message: 'Connected to TIDAL',
-        details: { favoriteArtists: favorites.length },
-      }
-    } catch (err: unknown) {
-      return { success: false, message: errMsg(err) }
-    }
-  }
-
-  return { getFavoriteArtists, getMe, testConnection }
+  return { getFavoriteArtists }
 }

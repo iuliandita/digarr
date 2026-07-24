@@ -122,7 +122,13 @@ export function oauthRoutes(deps: AppDependencies) {
         if (!tidalClientId || !tidalClientSecret) {
           return c.json({ error: 'TIDAL app credentials are not configured on the server' }, 400)
         }
-        if (!redirectUri) {
+        // One shared app means one server-controlled callback: derive it from the
+        // configured public origin and only fall back to the client-supplied URI
+        // when ALLOWED_ORIGIN is unset (local dev).
+        const tidalRedirectUri = envConfig.allowedOrigin
+          ? `${envConfig.allowedOrigin}/api/v1/auth/oauth/tidal/callback`
+          : redirectUri
+        if (!tidalRedirectUri) {
           return c.json({ error: 'redirectUri is required' }, 400)
         }
 
@@ -133,7 +139,10 @@ export function oauthRoutes(deps: AppDependencies) {
           userId,
           provider: 'tidal',
           accessToken: `pending:${userId}:${state}`,
-          refreshToken: JSON.stringify({ redirectUri, codeVerifier: verifier }),
+          refreshToken: JSON.stringify({
+            redirectUri: tidalRedirectUri,
+            codeVerifier: verifier,
+          }),
           expiresAt: new Date(Date.now() + 10 * 60 * 1000),
           scopes: TIDAL_SCOPES,
           clientId: tidalClientId,
@@ -144,7 +153,7 @@ export function oauthRoutes(deps: AppDependencies) {
           response_type: 'code',
           client_id: tidalClientId,
           scope: TIDAL_SCOPES,
-          redirect_uri: redirectUri,
+          redirect_uri: tidalRedirectUri,
           code_challenge: challenge,
           code_challenge_method: 'S256',
           state,
