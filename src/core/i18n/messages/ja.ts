@@ -859,6 +859,10 @@ export const ja = {
   'discoveryMode.subsonic-starred.label': 'Subsonic のお気に入り',
   'discoveryMode.subsonic-starred.description':
     'Subsonic サーバーでスターを付けたアーティストに似たアーティストを発見します',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL のお気に入りアーティスト',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL のコレクションにいるアーティストから発見します',
+  'discoveryMode.reason.connectTidal': 'このモードを使うには TIDAL を接続してください。',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -1035,6 +1039,15 @@ export const ja = {
   'settings.subsonicDescription':
     'ライブラリ同期と発見のためのセルフホスト音楽サーバー（Navidrome、Airsonic）',
   'settings.discogsDescription': 'Discogs のコレクションとウォントリスト。',
+  'settings.tidalConnectDescription': 'TIDAL のお気に入りアーティストを発見のソースとして使います',
+  'settings.tidalConnectHelp':
+    'TIDAL アカウントを接続すると、お気に入りアーティストを起点に発見できます。',
+  'settings.tidalAppNotConfigured': '先に管理者が TIDAL アプリの認証情報を設定する必要があります。',
+  'settings.connectTidal': 'TIDAL を接続',
+  'settings.tidalConnected': 'TIDAL のお気に入りアーティストを発見のソースとして利用できます。',
+  'settings.tidalDisconnected': 'TIDAL の接続を解除しました',
+  'settings.tidalDisconnectFailed': 'TIDAL の接続解除に失敗しました',
+  'settings.tidalAuthorizationFailed': 'TIDAL の認証を開始できませんでした',
   'settings.tidalDescription':
     'TIDALのクライアントクレデンシャルアクセスを使用する実験的な検索ソースです。仕様変更の可能性がある非公開のエンドポイントを使用します。',
   'settings.yourAccount': 'あなたのアカウント',

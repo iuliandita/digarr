@@ -863,6 +863,10 @@ export const en = {
   'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
   'discoveryMode.subsonic-starred.description':
     'Discover artists similar to the ones you starred on your Subsonic server',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL Favorite Artists',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Discover from the artists in your TIDAL collection',
+  'discoveryMode.reason.connectTidal': 'Connect TIDAL to use this mode.',
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
@@ -1042,6 +1046,16 @@ export const en = {
   'settings.subsonicDescription':
     'Self-hosted music server (Navidrome, Airsonic) for library sync and discovery',
   'settings.discogsDescription': 'Collection and wantlist from Discogs.',
+  'settings.tidalConnectDescription': 'Use your TIDAL favorite artists as a discovery source',
+  'settings.tidalConnectHelp':
+    'Connect your TIDAL account to seed discovery from your favorite artists.',
+  'settings.tidalAppNotConfigured':
+    'An administrator must configure the TIDAL app credentials first.',
+  'settings.connectTidal': 'Connect TIDAL',
+  'settings.tidalConnected': 'Your TIDAL favorite artists are available as a discovery source.',
+  'settings.tidalDisconnected': 'TIDAL disconnected',
+  'settings.tidalDisconnectFailed': 'Failed to disconnect TIDAL',
+  'settings.tidalAuthorizationFailed': 'Failed to start TIDAL authorization',
   'settings.tidalDescription':
     'Experimental search source using TIDAL client-credentials access. Uses undocumented endpoints that may change without notice.',
   'settings.yourAccount': 'your account',

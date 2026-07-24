@@ -5,6 +5,7 @@ export type DiscoveryConnectionSnapshot = {
   hasLastfm: boolean
   hasDiscogs: boolean
   hasDeezer: boolean
+  hasTidal: boolean
   hasLibrarySync: boolean
   hasSubsonic: boolean
 }
@@ -17,6 +18,7 @@ export const EMPTY_DISCOVERY_SNAPSHOT: DiscoveryConnectionSnapshot = {
   hasLastfm: false,
   hasDiscogs: false,
   hasDeezer: false,
+  hasTidal: false,
   hasLibrarySync: false,
   hasSubsonic: false,
 }
@@ -124,6 +126,17 @@ export function evaluateDiscoveryModeAvailability(
           fallbackUsed: false,
           providerPath: [],
           reason: 'Connect Deezer to use this mode.',
+        }
+  }
+
+  if (modeId === 'tidal-favorite-artists') {
+    return snapshot.hasTidal
+      ? { enabled: true, fallbackUsed: true, providerPath: ['tidal'] }
+      : {
+          enabled: false,
+          fallbackUsed: false,
+          providerPath: [],
+          reason: 'Connect TIDAL to use this mode.',
         }
   }
 

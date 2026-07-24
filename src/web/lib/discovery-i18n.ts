@@ -55,6 +55,7 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect Spotify to use this mode.': 'discoveryMode.reason.connectSpotify',
   'Reconnect Spotify to grant follow access.': 'discoveryMode.reason.reconnectSpotifyFollow',
   'Connect Subsonic to use this mode.': 'discoveryMode.reason.connectSubsonic',
+  'Connect TIDAL to use this mode.': 'discoveryMode.reason.connectTidal',
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
   'This mode is not implemented yet.': 'discoveryMode.notImplementedYet',
   'This mode is not shipped yet.': 'discoveryMode.notShippedYet',

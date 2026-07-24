@@ -857,6 +857,10 @@ export const tr = {
   'discoveryMode.subsonic-starred.label': 'Subsonic Favorileri',
   'discoveryMode.subsonic-starred.description':
     'Subsonic sunucunda yıldızladığın sanatçılara benzer sanatçıları keşfet',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL Favori Sanatçılar',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL koleksiyonunuzdaki sanatçılardan keşfedin',
+  'discoveryMode.reason.connectTidal': 'Bu modu kullanmak için TIDAL bağlayın.',
   'discoveryMode.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.notShippedYet': 'Bu mod henüz kullanılamıyor.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz bağlayın.',
@@ -1034,6 +1038,16 @@ export const tr = {
   'settings.subsonicDescription':
     'Kitaplık eşitleme ve keşif için kendi sunucunuzda barındırılan müzik sunucusu (Navidrome, Airsonic)',
   'settings.discogsDescription': "Discogs'tan koleksiyon ve istek listesi.",
+  'settings.tidalConnectDescription': 'TIDAL favori sanatçılarınızı keşif kaynağı olarak kullanın',
+  'settings.tidalConnectHelp':
+    'Favori sanatçılarınızdan keşfe başlamak için TIDAL hesabınızı bağlayın.',
+  'settings.tidalAppNotConfigured':
+    'Önce bir yönetici TIDAL uygulama kimlik bilgilerini yapılandırmalıdır.',
+  'settings.connectTidal': "TIDAL'ı bağla",
+  'settings.tidalConnected': 'TIDAL favori sanatçılarınız keşif kaynağı olarak kullanılabilir.',
+  'settings.tidalDisconnected': 'TIDAL bağlantısı kesildi',
+  'settings.tidalDisconnectFailed': 'TIDAL bağlantısı kesilemedi',
+  'settings.tidalAuthorizationFailed': 'TIDAL yetkilendirmesi başlatılamadı',
   'settings.tidalDescription':
     'TIDAL istemci kimlik bilgileri erişimini kullanan deneysel bir arama kaynağı. Önceden haber verilmeden değişebilecek belgelenmemiş uç noktalar kullanır.',
   'settings.yourAccount': 'hesabiniz',

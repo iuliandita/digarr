@@ -31,7 +31,7 @@
 > - 💿 **Album-level discovery** -- recommends and approves *individual albums* (gap-fills, new releases, net-new finds), not just artists. No whole-discography grabs.
 > - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
 > - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
-> - 🧭 **15 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, Subsonic Starred -- all runnable on demand or saved as subscriptions.
+> - 🧭 **16 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, Subsonic Starred -- all runnable on demand or saved as subscriptions.
 > - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring uses native listening metadata plus a bounded MusicBrainz cache warmer when no library is connected.
 > - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
 > - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
@@ -52,7 +52,7 @@ Digarr takes signals from up to 9 sources, runs them through an AI-assisted pipe
 Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
 
 ### Discovery Modes
-Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), Spotify Followed Artists (the artists you follow on Spotify; needs a connected Spotify account with the `user-follow-read` scope, so existing users must disconnect and reconnect Spotify once to grant it), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
+Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), Spotify Followed Artists (the artists you follow on Spotify; needs a connected Spotify account with the `user-follow-read` scope, so existing users must disconnect and reconnect Spotify once to grant it), TIDAL Favorite Artists (the artists in your TIDAL collection; needs an admin-registered TIDAL app plus your own TIDAL account connected from Settings), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
 
 ### Auto-Playlists
 Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
@@ -88,7 +88,7 @@ Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Dig
 - **9 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic compatible), and Discogs
 - **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
 - **Auto-approve:** send high-scoring recommendations to your targets automatically
-- **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), Spotify Saved Albums (artists from albums you saved on Spotify), and Subsonic Starred (artists similar to your starred Subsonic artists)
+- **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), Spotify Saved Albums (artists from albums you saved on Spotify), TIDAL Favorite Artists (the artists in your TIDAL collection), and Subsonic Starred (artists similar to your starred Subsonic artists)
 - **Subscriptions:** scheduled discovery from discovery modes, Spotify Liked Songs, playlists and charts, Deezer favorites, followed artists and Flow, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
 - **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
 - **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, and unreconciled review that distinguishes no MusicBrainz match, ambiguous matches, and failed lookups; admins can confirm selected-only bulk ignore for eligible artists or the current album page, while per-row MBID correction, recommendation-card coverage badges, and 7 automated health checks remain available
@@ -120,6 +120,7 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Jellyfin | - | - | Artists, Albums | Yes | - |
 | Emby | - | - | Artists, Albums | Yes | - |
 | Subsonic | Starred artists | - | Artists, Albums | Yes (Navidrome target) | - |
+| TIDAL | Favorite Artists | - | - | - | - |
 | TheAudioDB | - | - | - | - | Artist images (primary) |
 | Wikidata | - | - | - | - | Bio + external links per artist |
 | AI Provider | Mood Discover | - | - | - | - |
@@ -238,6 +239,21 @@ Spotify uses your own Spotify app credentials over OAuth:
 
    For a default local install that is `http://localhost:3000/api/v1/auth/oauth/spotify/callback`; behind a reverse proxy use the external URL your browser opens Digarr with, e.g. `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. The value must match exactly between the Spotify app and Digarr.
 3. In Digarr, open **Settings > Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
+
+### Connecting TIDAL
+
+TIDAL uses a single app registered by an admin, which every user then authorizes with their own TIDAL account:
+
+1. An admin creates an app in the [TIDAL Developer Portal](https://developer.tidal.com/) and adds the callback URL for your Digarr instance to its **Redirect URIs**:
+
+   ```text
+   <your-digarr-url>/api/v1/auth/oauth/tidal/callback
+   ```
+
+2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL** (the same credentials that power experimental TIDAL search).
+3. Each user then opens **Settings > Your Connections > TIDAL** and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
+
+Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
 
 ## Backup & Restore
 

@@ -31,6 +31,7 @@ import {
   PlexIcon,
   SpotifyIcon,
   SubsonicIcon,
+  TidalIcon,
   WebhookIcon,
 } from '../components/service-icons'
 import { SystemHealthCard } from '../components/system-health-card'
@@ -92,6 +93,7 @@ type Settings = {
   wikidataEnabled?: boolean
   tidalClientId?: string
   tidalClientSecret?: string
+  _tidalAppConfigured?: boolean
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string
@@ -862,6 +864,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     queryFn: () => getOAuthStatus('deezer'),
   })
   const deezerConnected = deezerStatus?.connected ?? false
+
+  const { data: tidalStatus } = useQuery({
+    queryKey: ['tidal-oauth-status'],
+    queryFn: () => getOAuthStatus('tidal'),
+  })
+  const tidalConnected = tidalStatus?.connected ?? false
+  const tidalAppConfigured = settings._tidalAppConfigured ?? false
 
   function setTest(key: string, val: ServiceTestState) {
     setTests((prev) => ({ ...prev, [key]: val }))
@@ -1862,6 +1871,67 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   }}
                 >
                   {t('settings.connectDeezer')}
+                </Button>
+              </div>
+            </>
+          )}
+        </ServiceCard>
+      </div>
+
+      {/* TIDAL */}
+      <div>
+        <ServiceCard
+          name="TIDAL"
+          description={t('settings.tidalConnectDescription')}
+          status={tidalConnected ? 'connected' : 'not_configured'}
+          icon={<TidalIcon />}
+        >
+          {tidalConnected ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted">{t('settings.tidalConnected')}</p>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await disconnectOAuth('tidal')
+                      queryClient.invalidateQueries({ queryKey: ['tidal-oauth-status'] })
+                      toast.success(t('settings.tidalDisconnected'))
+                    } catch {
+                      toast.error(t('settings.tidalDisconnectFailed'))
+                    }
+                  }}
+                >
+                  {t('settings.disconnect')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                {tidalAppConfigured
+                  ? t('settings.tidalConnectHelp')
+                  : t('settings.tidalAppNotConfigured')}
+              </p>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  disabled={!tidalAppConfigured}
+                  onClick={async () => {
+                    try {
+                      const res = await initiateOAuth('tidal', {
+                        clientId: '',
+                        clientSecret: '',
+                        redirectUri: `${window.location.origin}/api/v1/auth/oauth/tidal/callback`,
+                      })
+                      window.location.href = res.authUrl
+                    } catch {
+                      toast.error(t('settings.tidalAuthorizationFailed'))
+                    }
+                  }}
+                >
+                  {t('settings.connectTidal')}
                 </Button>
               </div>
             </>

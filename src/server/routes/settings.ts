@@ -180,6 +180,10 @@ async function buildSettingsResponse(
     response = stripForNonAdmin(response)
   }
 
+  // Non-secret capability flag: the TIDAL connect button needs to know whether an
+  // admin has registered the shared app, but must never see the credentials.
+  response._tidalAppConfigured = Boolean(row.tidalClientId && row.tidalClientSecret)
+
   if (userId) {
     const userConns = await getUserConnections(deps.db, userId)
     if (userConns) {

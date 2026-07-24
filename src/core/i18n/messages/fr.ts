@@ -864,6 +864,10 @@ export const fr = {
   'discoveryMode.subsonic-starred.label': 'Favoris Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Découvrez des artistes similaires à ceux que vous avez mis en favoris sur votre serveur Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Artistes favoris TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Découvrez à partir des artistes de votre collection TIDAL',
+  'discoveryMode.reason.connectTidal': 'Connectez TIDAL pour utiliser ce mode.',
   'discoveryMode.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
   'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
@@ -1044,6 +1048,18 @@ export const fr = {
   'settings.subsonicDescription':
     'Serveur de musique auto-hébergé (Navidrome, Airsonic) pour la synchronisation de bibliothèque et la découverte',
   'settings.discogsDescription': 'Collection et liste de souhaits depuis Discogs.',
+  'settings.tidalConnectDescription':
+    'Utilisez vos artistes favoris TIDAL comme source de découverte',
+  'settings.tidalConnectHelp':
+    'Connectez votre compte TIDAL pour lancer des découvertes à partir de vos artistes favoris.',
+  'settings.tidalAppNotConfigured':
+    "Un administrateur doit d'abord configurer les identifiants de l'application TIDAL.",
+  'settings.connectTidal': 'Connecter TIDAL',
+  'settings.tidalConnected':
+    'Vos artistes favoris TIDAL sont disponibles comme source de découverte.',
+  'settings.tidalDisconnected': 'TIDAL déconnecté',
+  'settings.tidalDisconnectFailed': 'Échec de la déconnexion de TIDAL',
+  'settings.tidalAuthorizationFailed': "Échec du démarrage de l'autorisation TIDAL",
   'settings.tidalDescription':
     "Source de recherche expérimentale utilisant l'accès par identifiants client TIDAL. Utilise des points de terminaison non documentés susceptibles de changer sans préavis.",
   'settings.yourAccount': 'votre compte',
