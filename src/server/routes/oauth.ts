@@ -388,25 +388,39 @@ export function oauthRoutes(deps: AppDependencies) {
             }),
             signal: tidalController.signal,
           })
+        } catch (err) {
+          console.error('TIDAL token exchange request failed:', err)
+          return c.redirect('/settings?oauth_error=token_exchange_unreachable')
         } finally {
           clearTimeout(tidalTimer)
         }
 
         if (!tidalTokenRes.ok) {
-          console.error(`TIDAL token exchange failed: ${tidalTokenRes.status}`)
+          // The upstream error body is the only diagnosable artifact for a flow
+          // that has never been exercised against a live TIDAL account.
+          const detail = await tidalTokenRes.text().catch(() => '')
+          console.error(
+            `TIDAL token exchange failed: ${tidalTokenRes.status} ${detail.slice(0, 300)}`,
+          )
           return c.redirect('/settings?oauth_error=token_exchange_failed')
         }
 
-        const tidalTokenData = (await tidalTokenRes.json()) as {
+        let tidalTokenData: {
           access_token?: string
           refresh_token?: string
           expires_in?: number
           scope?: string
         }
+        try {
+          tidalTokenData = await tidalTokenRes.json()
+        } catch (err) {
+          console.error('TIDAL token exchange returned a non-JSON body:', err)
+          return c.redirect('/settings?oauth_error=token_exchange_malformed')
+        }
 
         if (!tidalTokenData.access_token) {
           console.error('TIDAL token exchange: no access_token in response')
-          return c.redirect('/settings?oauth_error=token_exchange_failed')
+          return c.redirect('/settings?oauth_error=token_exchange_no_token')
         }
 
         await upsertOAuthToken(deps.db, {

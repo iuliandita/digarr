@@ -67,6 +67,22 @@ login appear to succeed while the browser rejects the cookie or later mutations
 return `403`. TLS termination therefore requires
 `ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior.
 
+The TIDAL connect flow is the second consumer that builds a redirect URI from
+it: when `ALLOWED_ORIGIN` is set, the server pins the callback to
+`${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback` and ignores the URI the
+browser sends, so one shared TIDAL app controls its own callback. Two
+consequences worth knowing before debugging a failed connect:
+
+- A value that differs from the URI registered at TIDAL by so much as a scheme
+  or a trailing slash sends a mismatched `redirect_uri`, and TIDAL rejects the
+  authorization. The failure is opaque, and looks identical to the unvalidated
+  flow simply not working.
+- With `ALLOWED_ORIGIN` unset, the URI falls back to the browser's own origin,
+  which behind a reverse proxy may be a host that was never registered.
+
+Set `ALLOWED_ORIGIN` before registering the callback at TIDAL, and register
+exactly the URI it produces.
+
 ### Cookie `Secure` policy
 
 In production, session and OIDC transaction cookies default to `Secure` even
@@ -120,8 +136,8 @@ consumes the one-time transaction cookie the login step set.
 After validating the authorization response, Digarr retains only the identity
 claims needed for the local account. Provider access, refresh, and ID tokens
 are not retained or refreshed, copied between database backends, or written to
-backups. OAuth tokens stored for separate provider connections such as Spotify
-or Deezer are unrelated to the OIDC callback session token.
+backups. OAuth tokens stored for separate provider connections such as Spotify,
+Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 

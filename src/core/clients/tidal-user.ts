@@ -5,6 +5,7 @@
 import { createHttpClient } from '@/core/clients/http'
 
 const DEFAULT_BASE_URL = 'https://openapi.tidal.com/v2'
+const MAX_PAGES = 20
 
 export type TidalUserArtist = {
   id: string
@@ -75,9 +76,10 @@ export function createTidalUserClient(accessToken: string, options: { baseUrl?: 
   async function getFavoriteArtists(limit = 100): Promise<TidalUserArtist[]> {
     const artists: TidalUserArtist[] = []
     const seen = new Set<string>()
+    const seenCursors = new Set<string>()
     let cursor: string | null = null
 
-    while (artists.length < limit) {
+    for (let page = 0; page < MAX_PAGES && artists.length < limit; page++) {
       const params = new URLSearchParams({
         include: 'items',
         sort: '-addedAt',
@@ -95,6 +97,12 @@ export function createTidalUserClient(accessToken: string, options: { baseUrl?: 
       }
 
       const identifiers = doc.data ?? []
+      if (identifiers.length > 0 && byId.size === 0) {
+        throw new Error(
+          `TIDAL returned ${identifiers.length} collection items but no sideloaded "artists" resources - the include=items response shape has changed`,
+        )
+      }
+
       for (const ref of identifiers) {
         if (!ref.id || seen.has(ref.id)) continue
         const attrs = byId.get(ref.id)
@@ -113,9 +121,13 @@ export function createTidalUserClient(accessToken: string, options: { baseUrl?: 
 
       cursor = extractCursor(doc.links?.next)
       if (!cursor || identifiers.length === 0) break
+      // A repeated cursor means the upstream is not advancing; without this the
+      // loop would re-request the same page forever.
+      if (seenCursors.has(cursor)) break
+      seenCursors.add(cursor)
     }
 
-    return artists.slice(0, limit)
+    return artists
   }
 
   return { getFavoriteArtists }
