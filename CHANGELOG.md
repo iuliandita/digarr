@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Security
+
+- **Webhook notification URLs are now encrypted at rest and masked in the settings API.** Discord and Slack webhook URLs carry their secret in the URL path, so they now get the same protection as the other channel secrets: field-encrypted in the database, and returned partially masked by the settings API (the host and path structure stay visible so you can recognize the destination, while the secret tail and any query-string values become `***`). Leaving the masked value untouched on save keeps the stored URL; entering a new URL replaces it. Existing webhook URLs are encrypted on their next save.
+
 ### Added
 
 - **Library reconciliation review is faster and clearer.** Unresolved artists and albums now explain whether no MusicBrainz match exists, multiple matches remain, or a lookup failed. Admins can select visible artists or the current album page and confirm one atomic "Ignore selected" action; transient lookup failures stay out of bulk selection, existing per-row MBID controls remain available, and the workflow is translated across all 15 shipped locales.
