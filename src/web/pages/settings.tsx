@@ -1882,7 +1882,14 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       <div>
         <ServiceCard
           name="TIDAL"
-          description={t('settings.tidalConnectDescription')}
+          description={
+            <span>
+              {t('settings.tidalConnectDescription')}{' '}
+              <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                {t('search.experimental')}
+              </span>
+            </span>
+          }
           status={tidalConnected ? 'connected' : 'not_configured'}
           icon={<TidalIcon />}
         >

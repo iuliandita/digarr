@@ -20,6 +20,7 @@ export type DiscoveryModeResponse = {
   label: string
   description: string
   availability: DiscoveryAvailabilityResult
+  stability?: 'stable' | 'experimental'
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
 }

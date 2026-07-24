@@ -16,6 +16,7 @@ export function createTidalFavoriteArtistsMode(): DiscoveryModeDefinition {
     label: 'TIDAL Favorite Artists',
     description: 'Discover from the artists in your TIDAL collection',
     availability: 'fallback',
+    stability: 'experimental',
     easyFields: fields,
     advancedFields: fields,
     executor: async (request) => {

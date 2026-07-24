@@ -26,6 +26,7 @@ export function discoveryModeRoutes(deps: AppDependencies) {
       label: mode.label,
       description: mode.description,
       availability: evaluateDiscoveryModeAvailability(mode.id, snapshot),
+      stability: mode.stability ?? 'stable',
       easyFields: mode.easyFields,
       advancedFields: mode.advancedFields,
     }))
