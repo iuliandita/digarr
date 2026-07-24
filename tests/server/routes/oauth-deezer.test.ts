@@ -20,11 +20,22 @@ vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
   upsertOAuthToken: vi.fn(),
   deleteOAuthToken: vi.fn(),
-  findPendingOAuthByState: vi.fn(),
 }))
 
-const { upsertOAuthToken, findPendingOAuthByState } = await import('@/db/queries/oauth-tokens')
+vi.mock('@/db/queries/oauth-pending', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/db/queries/oauth-pending')>()),
+  createPendingOAuth: vi.fn(),
+  consumePendingOAuth: vi.fn(),
+}))
+
+const { upsertOAuthToken } = await import('@/db/queries/oauth-tokens')
+const { createPendingOAuth, consumePendingOAuth, hashOAuthValue } = await import(
+  '@/db/queries/oauth-pending'
+)
+const { oauthTransactionCookieName } = await import('@/server/helpers/oauth-transaction-cookie')
 const { oauthRoutes } = await import('@/server/routes/oauth')
+
+const BINDING = 'deezer-binding'
 
 function makeDeps() {
   return {
@@ -46,9 +57,35 @@ function createApp(deps: ReturnType<typeof makeDeps>, authed = true) {
   return app
 }
 
+function makePending(userId = 1) {
+  return {
+    userId,
+    provider: 'deezer',
+    bindingHash: hashOAuthValue(BINDING),
+    payload: {},
+    clientId: null,
+    clientSecret: null,
+    scopes: 'basic_access,email,listening_history',
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  }
+}
+
+/** Callback request carrying the transaction cookie that initiate would have set. */
+function callback(state: string, code = 'auth-code', binding: string | null = BINDING) {
+  const headers: Record<string, string> = {}
+  if (binding !== null) {
+    headers.Cookie = `${oauthTransactionCookieName('deezer', state)}=${binding}`
+  }
+  return createApp(makeDeps()).request(
+    `/api/v1/auth/oauth/deezer/callback?code=${code}&state=${state}`,
+    { headers },
+  )
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(upsertOAuthToken).mockResolvedValue({} as never)
+  vi.mocked(createPendingOAuth).mockResolvedValue(undefined)
 })
 
 // ---------------------------------------------------------------------------
@@ -119,42 +156,26 @@ describe('POST /api/v1/auth/oauth/deezer/initiate', () => {
     expect(redirectUri).toMatch(/^https:\/\/myhost\.example\.com\//)
   })
 
-  it('stores a pending token with null clientId and clientSecret', async () => {
+  it('opens a pending authorization instead of writing to oauth_tokens', async () => {
     const app = createApp(makeDeps())
-    await app.request('/api/v1/auth/oauth/deezer/initiate', {
+    const res = await app.request('/api/v1/auth/oauth/deezer/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
-    expect(upsertOAuthToken).toHaveBeenCalledWith(
+    expect(createPendingOAuth).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        provider: 'deezer',
-        accessToken: expect.stringContaining('pending:'),
-        clientId: null,
-        clientSecret: null,
-        refreshToken: null,
-      }),
+      expect.objectContaining({ provider: 'deezer', userId: 1 }),
     )
+    // A live connection must survive an abandoned flow.
+    expect(upsertOAuthToken).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).toContain('digarr_oauth_')
   })
 })
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/auth/oauth/deezer/callback
 // ---------------------------------------------------------------------------
-
-function makePendingToken(state: string, userId = 1) {
-  return {
-    userId,
-    provider: 'deezer',
-    accessToken: `pending:${userId}:${state}`,
-    refreshToken: null,
-    clientId: null,
-    clientSecret: null,
-    scopes: 'basic_access,email,listening_history,manage_library',
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-  }
-}
 
 describe('GET /api/v1/auth/oauth/deezer/callback', () => {
   it('redirects with oauth_error when error query param is present', async () => {
@@ -182,52 +203,52 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
     expect(res.headers.get('Location')).toContain('oauth_error=missing_code_or_state')
   })
 
-  it('redirects with no_pending_auth when no pending token found', async () => {
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(null)
-    const app = createApp(makeDeps())
-    const res = await app.request('/api/v1/auth/oauth/deezer/callback?code=abc&state=no-such-state')
+  it('redirects with no_pending_auth when no pending authorization matches', async () => {
+    vi.mocked(consumePendingOAuth).mockResolvedValue(null)
+    const res = await callback('no-such-state')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=no_pending_auth')
   })
 
-  it('redirects with state_mismatch when state does not match pending token', async () => {
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken('real-state') as never)
-    const app = createApp(makeDeps())
-    const res = await app.request(
-      '/api/v1/auth/oauth/deezer/callback?code=auth-code&state=wrong-state',
-    )
+  it('redirects with state_expired when the pending authorization has timed out', async () => {
+    vi.mocked(consumePendingOAuth).mockResolvedValue({
+      ...makePending(),
+      expiresAt: new Date(Date.now() - 1),
+    })
+    const res = await callback('stale-state')
     expect(res.status).toBe(302)
-    expect(res.headers.get('Location')).toContain('oauth_error=state_mismatch')
+    expect(res.headers.get('Location')).toContain('oauth_error=state_expired')
+  })
+
+  it('redirects with browser_mismatch when the transaction cookie is absent', async () => {
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
+    const res = await callback('real-state', 'auth-code', null)
+    expect(res.status).toBe(302)
+    expect(res.headers.get('Location')).toContain('oauth_error=browser_mismatch')
   })
 
   it('redirects with oauth_success=deezer on successful JSON token exchange', async () => {
-    const state = 'test-state-uuid'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: async () => JSON.stringify({ access_token: 'deezer-at-123', expires: 7776000 }),
     } as Response)
 
-    const app = createApp(makeDeps())
-    const res = await app.request(
-      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
-    )
+    const res = await callback('test-state-uuid')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe('/settings?oauth_success=deezer')
   })
 
   it('stores token with null refreshToken, clientId, clientSecret', async () => {
-    const state = 'test-state-uuid-2'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: async () => JSON.stringify({ access_token: 'deezer-at-456', expires: 7776000 }),
     } as Response)
 
-    const app = createApp(makeDeps())
-    await app.request(`/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    await callback('test-state-uuid-2')
 
     expect(upsertOAuthToken).toHaveBeenCalledWith(
       expect.anything(),
@@ -242,8 +263,7 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
   })
 
   it('treats expires=0 as 1 year expiry', async () => {
-    const state = 'test-state-uuid-3'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     const before = Date.now()
     global.fetch = vi.fn().mockResolvedValue({
@@ -251,8 +271,7 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
       text: async () => JSON.stringify({ access_token: 'deezer-at-long', expires: 0 }),
     } as Response)
 
-    const app = createApp(makeDeps())
-    await app.request(`/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`)
+    await callback('test-state-uuid-3')
 
     const call = vi.mocked(upsertOAuthToken).mock.calls[0]?.[1]
     const expiresAt = call?.expiresAt as Date
@@ -262,18 +281,14 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
   })
 
   it('falls back to form-encoded parsing when JSON parse fails', async () => {
-    const state = 'test-state-uuid-4'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: async () => 'access_token=form-encoded-token&expires=86400',
     } as Response)
 
-    const app = createApp(makeDeps())
-    const res = await app.request(
-      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
-    )
+    const res = await callback('test-state-uuid-4')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toBe('/settings?oauth_success=deezer')
     expect(upsertOAuthToken).toHaveBeenCalledWith(
@@ -283,47 +298,37 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
   })
 
   it('redirects with token_exchange_failed when fetch returns non-ok status', async () => {
-    const state = 'test-state-uuid-5'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401 } as Response)
 
-    const app = createApp(makeDeps())
-    const res = await app.request(
-      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
-    )
+    const res = await callback('test-state-uuid-5')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
   })
 
   it('redirects with token_exchange_failed when response has no access_token', async () => {
-    const state = 'test-state-uuid-6'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: async () => JSON.stringify({ error: 'OAuthException' }),
     } as Response)
 
-    const app = createApp(makeDeps())
-    const res = await app.request(
-      `/api/v1/auth/oauth/deezer/callback?code=auth-code&state=${state}`,
-    )
+    const res = await callback('test-state-uuid-6')
     expect(res.status).toBe(302)
     expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
   })
 
   it('calls Deezer token endpoint with app_id, secret, code, output=json', async () => {
-    const state = 'test-state-uuid-7'
-    vi.mocked(findPendingOAuthByState).mockResolvedValue(makePendingToken(state) as never)
+    vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: async () => JSON.stringify({ access_token: 'deezer-at', expires: 3600 }),
     } as Response)
 
-    const app = createApp(makeDeps())
-    await app.request(`/api/v1/auth/oauth/deezer/callback?code=my-code&state=${state}`)
+    await callback('test-state-uuid-7', 'my-code')
 
     const fetchCall = vi.mocked(global.fetch).mock.calls[0]
     const calledUrl = fetchCall?.[0] as string

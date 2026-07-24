@@ -433,6 +433,38 @@ export const oauthTokens = pgTable(
   (t) => [unique('oauth_tokens_user_provider').on(t.userId, t.provider)],
 )
 
+/**
+ * In-flight provider OAuth authorizations. Kept out of `oauth_tokens` so an
+ * abandoned flow can never clobber a working connection, and so the rows can be
+ * swept on expiry. `state_hash` and `binding_hash` are SHA-256 of the opaque
+ * state and of the browser-transaction cookie; the raw values never hit disk.
+ * `payload` and `client_secret` are field-encrypted but deliberately left out of
+ * key rotation and backups - the rows live ~10 minutes.
+ */
+export const oauthPendingAuths = pgTable(
+  'oauth_pending_auths',
+  {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    provider: text('provider').notNull(),
+    stateHash: text('state_hash').notNull(),
+    bindingHash: text('binding_hash').notNull(),
+    payload: text('payload'),
+    scopes: text('scopes'),
+    clientId: text('client_id'),
+    clientSecret: text('client_secret'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    unique('oauth_pending_auths_provider_state').on(t.provider, t.stateHash),
+    index('oauth_pending_auths_user_provider_idx').on(t.userId, t.provider),
+    index('oauth_pending_auths_expires_idx').on(t.expiresAt),
+  ],
+)
+
 export const playlists = pgTable(
   'playlists',
   {
