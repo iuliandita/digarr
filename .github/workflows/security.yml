@@ -3,9 +3,9 @@ on:
   schedule:
     - cron: "0 6 * * 1"
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 permissions:
   contents: read
@@ -70,8 +70,11 @@ jobs:
   trivy-image:
     name: Trivy container scan
     runs-on: ubuntu-24.04
-    # skip when DOCKERHUB secrets unavailable (fork PRs, dependabot)
-    if: github.event_name != 'pull_request' || (!github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]')
+    # Heavy (builds the image): main-only + weekly schedule, so develop PRs stay
+    # cheap. Also skip when DOCKERHUB secrets are unavailable (fork PRs, dependabot).
+    if: >-
+      (github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.base_ref == 'main') &&
+      (github.event_name != 'pull_request' || (!github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'))
     permissions:
       security-events: write
     steps:
@@ -108,6 +111,8 @@ jobs:
 
   codeql:
     runs-on: ubuntu-24.04
+    # Heavy (full analysis): main-only + weekly schedule, so develop PRs stay cheap.
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.base_ref == 'main'
     permissions:
       security-events: write
     steps:
