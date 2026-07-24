@@ -16,6 +16,7 @@ export const PROTECTED_I18N_TERMS = [
   'Navidrome',
   'Spotify',
   'Subsonic',
+  'TIDAL',
   'Discord',
   'Discogs',
   'Deezer',
