@@ -25,6 +25,8 @@ export function LibraryUnreconciledRowComponent({
       metadata={
         <>
           {row.source} -{' '}
+          {/* function replacer: user names may contain $-sequences that a string
+              replacement would expand ($&, $1, ...) */}
           {t('libraryReconciliation.normalizedName').replace('{0}', () => row.nameNormalized)}
         </>
       }

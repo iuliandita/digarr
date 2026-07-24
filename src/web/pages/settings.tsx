@@ -351,11 +351,11 @@ const CHANNEL_TYPE_LABEL: Record<ChannelType, MessageKey> = {
 }
 
 function makeChannel(type: ChannelType): NotificationChannel {
-  const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `ch_${Date.now()}_${Math.random().toString(36).slice(2)}`
-  const base = { id, enabled: true, events: ['batch_complete', 'digest'] as NotificationEvent[] }
+  const base = {
+    id: crypto.randomUUID(),
+    enabled: true,
+    events: ['batch_complete', 'digest'] as NotificationEvent[],
+  }
   switch (type) {
     case 'webhook':
       return { ...base, type, url: '' }

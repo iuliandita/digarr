@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { createDeezerClient } from '@/core/clients/deezer'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createWikidataClient } from '@/core/clients/wikidata'
+import { isValidMbid } from '@/core/validation'
 import type { TopTrack, TopTracksCache } from '@/db/schema'
 import { artists } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -187,7 +188,7 @@ export function artistRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/albums/:mbid', async (c) => {
     const mbid = c.req.param('mbid')
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mbid)) {
+    if (!isValidMbid(mbid)) {
       return c.json({ error: 'Invalid MBID format' }, 400)
     }
     const releaseGroups = await mb.getReleaseGroups(mbid)

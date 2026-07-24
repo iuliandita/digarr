@@ -1,10 +1,9 @@
 import { type ReactNode, useId, useState } from 'react'
+import { isValidMbid } from '@/core/validation'
 import type { LibraryUnreconciledReason } from '../lib/api'
 import { rerunLibraryReconciler } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { isBulkIgnoreEligible, LibraryReconciliationReason } from './library-reconciliation-reason'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type Props = {
   title: string
@@ -59,7 +58,7 @@ export function LibraryUnreconciledReviewRow({
   async function pinMbid() {
     const mbid = mbidInput.trim()
     setError(null)
-    if (!UUID_RE.test(mbid)) {
+    if (!isValidMbid(mbid)) {
       setError(t('libraryReconciliation.invalidMbid'))
       return
     }

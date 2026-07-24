@@ -22,6 +22,8 @@ export function LibraryUnreconciledAlbumRowComponent({
   const typeLabel = row.primaryType ?? t('libraryReconciliation.unknownType')
   const yearLabel = row.releaseYear ?? t('libraryReconciliation.unknownYear')
 
+  // selectionLabel uses a function replacer: user titles may contain
+  // $-sequences that a string replacement would expand ($&, $1, ...).
   return (
     <LibraryUnreconciledReviewRow
       title={row.title}

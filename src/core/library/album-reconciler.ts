@@ -1,11 +1,10 @@
 import { type createMusicBrainzClient, parseYear } from '@/core/clients/musicbrainz'
+import { isValidMbid } from '@/core/validation'
 import { normalizeAlbumTitle } from './normalize'
 import type { LibraryAlbum } from './sources/types'
 import type { UnreconciledReason } from './types'
 
 type MBClient = Pick<ReturnType<typeof createMusicBrainzClient>, 'getReleaseGroups'>
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export type ReconciledAlbum = {
   sourceAlbumId: string
@@ -90,10 +89,9 @@ export async function reconcileAlbumsForArtist(
       )
     }
 
-    const direct =
-      typeof album.mbid === 'string' && UUID_RE.test(album.mbid)
-        ? releaseGroups.find((rg) => rg.id === album.mbid)
-        : undefined
+    const direct = isValidMbid(album.mbid)
+      ? releaseGroups.find((rg) => rg.id === album.mbid)
+      : undefined
 
     if (direct) {
       return makeRow(
@@ -143,11 +141,13 @@ export async function reconcileAlbumsForArtist(
       const yearMatches = candidates.filter(
         (candidate) => parseYear(candidate.firstReleaseDate) === album.releaseYear,
       )
-      const allOtherCandidatesHaveKnownDifferentYears = candidates.every((candidate) => {
-        const candidateYear = parseYear(candidate.firstReleaseDate)
-        return candidateYear === album.releaseYear || candidateYear !== undefined
-      })
-      if (yearMatches.length === 1 && yearMatches[0] && allOtherCandidatesHaveKnownDifferentYears) {
+      // Only a confident year match when every candidate has a known year: an
+      // unknown-year candidate could share album.releaseYear, which would make
+      // the single match ambiguous rather than unique.
+      const allCandidatesHaveKnownYears = candidates.every(
+        (candidate) => parseYear(candidate.firstReleaseDate) !== undefined,
+      )
+      if (yearMatches.length === 1 && yearMatches[0] && allCandidatesHaveKnownYears) {
         return makeRow(
           album,
           titleNormalized,

@@ -1,10 +1,9 @@
 import { Hono } from 'hono'
+import { isValidMbid } from '@/core/validation'
 import type { BlockedAlbumRow } from '@/db/queries/album-blocks'
 import { problem } from '@/server/helpers/problem'
 import { requireUser } from '@/server/helpers/require-user'
 import type { HonoEnv } from '@/server/types'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export type AlbumBlocksRouteDeps = {
   listAlbumBlocks: (userId: number) => Promise<BlockedAlbumRow[]>
@@ -29,7 +28,7 @@ export function albumBlocksRoutes(deps: AlbumBlocksRouteDeps) {
     if (!auth.ok) return auth.response
     const { userId } = auth
     const releaseGroupMbid = c.req.param('releaseGroupMbid')
-    if (!UUID_RE.test(releaseGroupMbid)) {
+    if (!isValidMbid(releaseGroupMbid)) {
       return problem(
         c,
         'invalid-id',

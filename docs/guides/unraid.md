@@ -81,7 +81,11 @@ The template exposes these fields (matching
 | Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
-| Webhook URL | `WEBHOOK_URL` | No | Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload |
+| Webhook URL | `WEBHOOK_URL` | No | Optional bootstrap for a single webhook channel: a Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload. Auto-migrates into the channel list on first start |
+
+`WEBHOOK_URL` seeds one webhook channel for convenience. Notifications are
+multi-channel -- add webhook, ntfy, Telegram, or Apprise channels (each with its
+own event subscriptions) under **Settings -> Notifications** in the web UI.
 
 Use HTTPS for webhook delivery. Plain HTTP is accepted for compatibility but
 exposes notification data and any credential embedded in the URL while in transit.

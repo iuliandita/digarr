@@ -6,7 +6,7 @@ export function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
-const MBID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export const MBID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function isValidMbid(value: unknown): value is string {
   return typeof value === 'string' && MBID_RE.test(value)
