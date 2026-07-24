@@ -152,7 +152,7 @@ describe('createSpotifyClient', () => {
   })
 
   it('getFollowedArtists respects the limit cap', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = new URL(String(input))
       if (url.pathname === '/me/following') {
         return jsonResponse({
@@ -173,6 +173,7 @@ describe('createSpotifyClient', () => {
     const artists = await client.getFollowedArtists(1)
 
     expect(artists.map((a) => a.name)).toEqual(['Alpha'])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('finds the single exact Spotify artist match by name', async () => {

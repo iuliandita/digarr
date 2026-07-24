@@ -120,7 +120,6 @@ type SpotifyFollowedArtistsResponse = {
       popularity: number
     }>
     cursors: { after: string | null }
-    next: string | null
   }
 }
 
