@@ -110,6 +110,71 @@ describe('createSpotifyClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('getFollowedArtists cursor-paginates and merges followed artists in order', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/me/following') {
+        const after = url.searchParams.get('after')
+        if (!after) {
+          return jsonResponse({
+            artists: {
+              items: [
+                { name: 'Alpha', id: 'a1', genres: ['rock'], popularity: 80 },
+                { name: 'Beta', id: 'b1', genres: ['jazz'], popularity: 60 },
+              ],
+              cursors: { after: 'cur1' },
+              next: 'https://spotify.test/me/following?type=artist&limit=50&after=cur1',
+            },
+          })
+        }
+        if (after === 'cur1') {
+          return jsonResponse({
+            artists: {
+              items: [{ name: 'Gamma', id: 'g1', genres: [], popularity: 40 }],
+              cursors: { after: null },
+              next: null,
+            },
+          })
+        }
+      }
+      throw new Error(`unexpected url: ${url}`)
+    })
+
+    const client = createSpotifyClient('token', { baseUrl: 'https://spotify.test' })
+    const artists = await client.getFollowedArtists()
+
+    expect(artists).toEqual([
+      { name: 'Alpha', id: 'a1', genres: ['rock'], popularity: 80 },
+      { name: 'Beta', id: 'b1', genres: ['jazz'], popularity: 60 },
+      { name: 'Gamma', id: 'g1', genres: [], popularity: 40 },
+    ])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('getFollowedArtists respects the limit cap', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/me/following') {
+        return jsonResponse({
+          artists: {
+            items: [
+              { name: 'Alpha', id: 'a1', genres: ['rock'], popularity: 80 },
+              { name: 'Beta', id: 'b1', genres: ['jazz'], popularity: 60 },
+            ],
+            cursors: { after: 'cur1' },
+            next: 'https://spotify.test/me/following?type=artist&limit=50&after=cur1',
+          },
+        })
+      }
+      throw new Error(`unexpected url: ${url}`)
+    })
+
+    const client = createSpotifyClient('token', { baseUrl: 'https://spotify.test' })
+    const artists = await client.getFollowedArtists(1)
+
+    expect(artists.map((a) => a.name)).toEqual(['Alpha'])
+  })
+
   it('finds the single exact Spotify artist match by name', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({
