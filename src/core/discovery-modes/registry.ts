@@ -10,6 +10,7 @@ import {
 } from './modes/listenbrainz'
 import { createReleaseRadarMode } from './modes/release-radar'
 import { createSimilarArtistWebMode } from './modes/similar-artist-web'
+import { createSpotifyFollowedArtistsMode } from './modes/spotify-followed-artists'
 import { createSpotifySavedAlbumsMode } from './modes/spotify-saved-albums'
 import { createSubsonicStarredMode } from './modes/subsonic-starred'
 import type { DiscoveryModeDefinition } from './types'
@@ -49,6 +50,7 @@ export function registerDefaultDiscoveryModes(
   registry.register(createChartsMode())
   registry.register(createDeezerFlowMode())
   registry.register(createSpotifySavedAlbumsMode())
+  registry.register(createSpotifyFollowedArtistsMode())
   registry.register(createSubsonicStarredMode())
   return registry
 }

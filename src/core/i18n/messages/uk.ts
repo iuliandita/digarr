@@ -858,6 +858,9 @@ export const uk = {
   'discoveryMode.spotify-saved-albums.label': 'Збережені альбоми Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Відкривайте виконавців з альбомів, збережених у Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Відстежувані виконавці Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Відкривайте виконавців, на яких ви підписані у Spotify',
   'discoveryMode.subsonic-starred.label': 'Обране в Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Відкривайте виконавців, схожих на тих, кого ви відзначили зірочкою на вашому сервері Subsonic',
@@ -872,6 +875,8 @@ export const uk = {
   'discoveryMode.reason.connectLastfm': 'Підключіть Last.fm, щоб використовувати цей режим.',
   'discoveryMode.reason.connectDeezer': 'Підключіть Deezer, щоб використовувати цей режим.',
   'discoveryMode.reason.connectSpotify': 'Підключіть Spotify, щоб використовувати цей режим.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Повторно підключіть Spotify, щоб надати доступ до підписок.',
   'discoveryMode.reason.connectSubsonic': 'Підключіть Subsonic, щоб використовувати цей режим.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',

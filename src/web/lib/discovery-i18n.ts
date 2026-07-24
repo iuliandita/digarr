@@ -53,6 +53,7 @@ const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect Last.fm to use this mode.': 'discoveryMode.reason.connectLastfm',
   'Connect Deezer to use this mode.': 'discoveryMode.reason.connectDeezer',
   'Connect Spotify to use this mode.': 'discoveryMode.reason.connectSpotify',
+  'Reconnect Spotify to grant follow access.': 'discoveryMode.reason.reconnectSpotifyFollow',
   'Connect Subsonic to use this mode.': 'discoveryMode.reason.connectSubsonic',
   'Using fallback providers for release discovery.': 'discoveryMode.reason.releaseRadarFallback',
   'This mode is not implemented yet.': 'discoveryMode.notImplementedYet',

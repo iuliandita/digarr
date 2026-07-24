@@ -267,6 +267,7 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
     hasSpotify: Boolean(
       spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
     ),
+    spotifyScopes: spotifyToken?.scopes?.split(' ').filter(Boolean) ?? [],
     hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
     hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
     hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),

@@ -113,7 +113,7 @@ describe('translateDiscoveryReason', () => {
 
   it('reason catalog keys match reasons reachable from registered modes', () => {
     const used = new Set<string>()
-    const connectionKeys: Array<keyof DiscoveryConnectionSnapshot> = [
+    const connectionKeys: Array<Exclude<keyof DiscoveryConnectionSnapshot, 'spotifyScopes'>> = [
       'hasListenBrainz',
       'hasSpotify',
       'hasLastfm',

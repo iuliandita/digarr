@@ -853,6 +853,9 @@ export const ja = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify 保存済みアルバム',
   'discoveryMode.spotify-saved-albums.description':
     'Spotify に保存したアルバムからアーティストを発見します',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify フォロー中のアーティスト',
+  'discoveryMode.spotify-followed-artists.description':
+    'Spotify でフォローしているアーティストから発見します',
   'discoveryMode.subsonic-starred.label': 'Subsonic のお気に入り',
   'discoveryMode.subsonic-starred.description':
     'Subsonic サーバーでスターを付けたアーティストに似たアーティストを発見します',
@@ -867,6 +870,8 @@ export const ja = {
   'discoveryMode.reason.connectLastfm': 'このモードを使うには Last.fm を接続してください。',
   'discoveryMode.reason.connectDeezer': 'このモードを使うには Deezer を接続してください。',
   'discoveryMode.reason.connectSpotify': 'このモードを使うには Spotify を接続してください。',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'フォローへのアクセスを許可するには Spotify を再接続してください。',
   'discoveryMode.reason.connectSubsonic': 'このモードを使うには Subsonic を接続してください。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',

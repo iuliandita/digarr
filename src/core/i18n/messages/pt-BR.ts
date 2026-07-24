@@ -863,6 +863,9 @@ export const ptBR = {
   'discoveryMode.spotify-saved-albums.label': 'Álbuns salvos do Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Descubra artistas a partir dos álbuns que você salvou no Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Artistas seguidos do Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Descubra a partir dos artistas que você segue no Spotify',
   'discoveryMode.subsonic-starred.label': 'Favoritos do Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Descubra artistas parecidos com os que você marcou com estrela no seu servidor Subsonic',
@@ -876,6 +879,8 @@ export const ptBR = {
   'discoveryMode.reason.connectLastfm': 'Conecte o Last.fm para usar este modo.',
   'discoveryMode.reason.connectDeezer': 'Conecte o Deezer para usar este modo.',
   'discoveryMode.reason.connectSpotify': 'Conecte o Spotify para usar este modo.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Reconecte o Spotify para conceder acesso aos seguidos.',
   'discoveryMode.reason.connectSubsonic': 'Conecte o Subsonic para usar este modo.',
   'discoveryMode.reason.releaseRadarFallback':
     'Usando provedores de fallback para descobrir lançamentos.',

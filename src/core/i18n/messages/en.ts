@@ -857,6 +857,9 @@ export const en = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Saved Albums',
   'discoveryMode.spotify-saved-albums.description':
     'Discover artists from the albums you saved on Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify Followed Artists',
+  'discoveryMode.spotify-followed-artists.description':
+    'Discover from the artists you follow on Spotify',
   'discoveryMode.subsonic-starred.label': 'Subsonic Starred',
   'discoveryMode.subsonic-starred.description':
     'Discover artists similar to the ones you starred on your Subsonic server',
@@ -870,6 +873,7 @@ export const en = {
   'discoveryMode.reason.connectLastfm': 'Connect Last.fm to use this mode.',
   'discoveryMode.reason.connectDeezer': 'Connect Deezer to use this mode.',
   'discoveryMode.reason.connectSpotify': 'Connect Spotify to use this mode.',
+  'discoveryMode.reason.reconnectSpotifyFollow': 'Reconnect Spotify to grant follow access.',
   'discoveryMode.reason.connectSubsonic': 'Connect Subsonic to use this mode.',
   'discoveryMode.reason.releaseRadarFallback': 'Using fallback providers for release discovery.',
   'discoveryMode.reason.libraryRequired': 'Sync a library first to use this mode.',
