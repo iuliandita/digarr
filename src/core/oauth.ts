@@ -1,3 +1,4 @@
+import { redactSecrets } from '@/core/validation'
 import type { Database } from '@/db'
 import { getOAuthToken, upsertOAuthToken } from '@/db/queries/oauth-tokens'
 
@@ -57,7 +58,8 @@ export async function getValidToken(
   }
 
   if (!res.ok) {
-    const body = await res.text()
+    // The upstream body can echo the credentials that were just posted.
+    const body = redactSecrets(await res.text().catch(() => '')).slice(0, 300)
     console.error(`[oauth] Token refresh failed for ${provider}: ${res.status} ${body}`)
     return null
   }

@@ -330,6 +330,13 @@
       "when": 1784893524384,
       "tag": "0046_strange_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1784928654022,
+      "tag": "0047_big_miss_america",
+      "breakpoints": true
     }
   ]
 }

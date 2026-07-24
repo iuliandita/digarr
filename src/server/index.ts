@@ -277,6 +277,12 @@ export function createApp(deps: AppDependencies) {
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
   )
   app.use('/api/v1/pipeline/rescan', rateLimiter({ windowMs: 60_000, max: 2, keyPrefix: 'rscn' }))
+  // Bound OAuth initiate: it writes pending state and, for TIDAL, drives traffic
+  // against the instance-wide app any authenticated user can reach.
+  app.use(
+    '/api/v1/auth/oauth/:provider/initiate',
+    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'oauth' }),
+  )
   app.route('/', authRoutes(deps))
   app.route('/', oauthRoutes(deps))
   app.route('/', healthRoutes({ db: deps.db }))

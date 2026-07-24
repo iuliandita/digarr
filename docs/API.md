@@ -148,15 +148,16 @@ Notes:
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
 | GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
-| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`) |
-| GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
+| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
+| GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
 
 **POST /api/v1/auth/oauth/:provider/initiate** notes:
 - For `tidal`, the body `clientId` / `clientSecret` are ignored: the server reads the one admin-registered TIDAL app from settings, so the bundled UI sends empty strings. Returns `400` with `TIDAL app credentials are not configured on the server` when no admin app is registered.
-- For `tidal`, the body `redirectUri` is ignored whenever `ALLOWED_ORIGIN` is set; the server pins the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback`. The client-supplied value is a fallback for installs with no `ALLOWED_ORIGIN`. The registered URI at TIDAL must match whichever value applies.
-- Calling initiate on an already-connected provider replaces the stored token with a pending marker, so an abandoned re-connect leaves the provider disconnected until the flow is completed again.
+- For `tidal`, the body `redirectUri` is ignored whenever `ALLOWED_ORIGIN` is set; the server pins the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback`. With `ALLOWED_ORIGIN` unset, the client-supplied value is accepted only outside production and only for a loopback host; production returns `400 ALLOWED_ORIGIN must be set to connect TIDAL`. The registered URI at TIDAL must match whichever value applies.
+- In-flight authorizations live in their own table, so calling initiate on an already-connected provider no longer disturbs the stored token: an abandoned re-connect leaves the existing connection intact. Starting a new flow discards the previous unfinished one for the same user and provider.
+- Only digests of the `state` and of the browser binding are persisted, and the row expires after 10 minutes.
 
 **GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. No UI element renders `oauth_error` yet, so the value is only visible in the browser address bar. Stages:
 
@@ -164,8 +165,9 @@ Notes:
 |---------------|---------|
 | *(provider value)* | The provider returned an `error` query param; passed through verbatim |
 | `missing_code_or_state` | The provider redirected without `code` or `state` |
-| `no_pending_auth` | No pending authorization matches the `state` (never initiated, already consumed, or the row was replaced) |
-| `state_mismatch` | The `state` did not match the stored pending value |
+| `no_pending_auth` | No pending authorization matches the `state` (never initiated, already consumed, or superseded by a newer flow) |
+| `state_expired` | The pending authorization matched but is older than its 10-minute TTL |
+| `browser_mismatch` | The transaction cookie is missing or does not match the browser that started the flow |
 | `missing_credentials` | The stored client ID/secret for the provider are gone |
 | `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout). TIDAL only |
 | `token_exchange_failed` | The token endpoint answered non-2xx. The upstream error body is logged, truncated to 300 chars |

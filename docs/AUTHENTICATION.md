@@ -77,11 +77,29 @@ consequences worth knowing before debugging a failed connect:
   or a trailing slash sends a mismatched `redirect_uri`, and TIDAL rejects the
   authorization. The failure is opaque, and looks identical to the unvalidated
   flow simply not working.
-- With `ALLOWED_ORIGIN` unset, the URI falls back to the browser's own origin,
-  which behind a reverse proxy may be a host that was never registered.
+- With `ALLOWED_ORIGIN` unset, the client-supplied URI is accepted only outside
+  production, and only when it points at a loopback host. A production install
+  with no `ALLOWED_ORIGIN` refuses to start the TIDAL flow rather than sending a
+  header-derived callback.
 
 Set `ALLOWED_ORIGIN` before registering the callback at TIDAL, and register
 exactly the URI it produces.
+
+### Provider OAuth transaction state
+
+Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a
+dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row, so
+an abandoned or failed connect cannot drop a working connection. Each pending
+row stores only SHA-256 digests of the opaque `state` and of a browser binding,
+expires after 10 minutes, and is deleted the moment its `state` is redeemed -
+successful exchange or not. Starting a new flow replaces any earlier unfinished
+one for the same user and provider, and expired rows are swept every 6 hours.
+
+Initiate also sets an `HttpOnly`, `SameSite=Lax` transaction cookie scoped to
+that provider's callback path, mirroring the OIDC login flow. A callback whose
+cookie is missing or does not match the pending row is refused, so a leaked
+`state` alone cannot be redeemed from another browser. Finishing a connect in a
+different browser than the one that started it therefore fails by design.
 
 ### Cookie `Secure` policy
 

@@ -1,4 +1,4 @@
-import { and, eq, like } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { decryptField, encryptField } from '@/core/crypto'
 import type { Database } from '@/db'
 import { oauthTokens } from '@/db/schema'
@@ -35,15 +35,9 @@ export async function upsertOAuthToken(
   db: Database,
   data: OAuthTokenInsert,
 ): Promise<OAuthTokenRow> {
-  // accessToken stays plaintext when it's a pending marker so the LIKE-prefix
-  // lookup in findPendingOAuthByState can match. refreshToken and clientSecret
-  // are never searched by prefix, so they must always be encrypted.
-  const isPending = data.accessToken.startsWith('pending:')
   const values = {
     ...data,
-    accessToken: isPending
-      ? data.accessToken
-      : (encryptField(data.accessToken) ?? data.accessToken),
+    accessToken: encryptField(data.accessToken) ?? data.accessToken,
     refreshToken: encryptField(data.refreshToken) ?? data.refreshToken,
     clientSecret: encryptField(data.clientSecret) ?? data.clientSecret,
   }
@@ -65,31 +59,6 @@ export async function upsertOAuthToken(
     .returning()
   if (!row) throw new Error('upsertOAuthToken: no row returned')
   return decryptOAuthRow(row)
-}
-
-function escapeLikePattern(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
-}
-
-/** Find a pending OAuth token by provider and opaque state (stored as `pending:{userId}:{state}`). */
-export async function findPendingOAuthByState(
-  db: Database,
-  provider: string,
-  state: string,
-): Promise<OAuthTokenRow | null> {
-  // Use SQL suffix match to avoid loading all pending tokens into memory.
-  // The accessToken format is `pending:{userId}:{state}`. Escape LIKE wildcards
-  // so attacker-supplied `%` or `_` in state can't broaden the match.
-  const pattern = `%:${escapeLikePattern(state)}`
-  const rows = await db
-    .select()
-    .from(oauthTokens)
-    .where(and(eq(oauthTokens.provider, provider), like(oauthTokens.accessToken, pattern)))
-  // Verify the match is actually a pending token (not a coincidental suffix)
-  const match = rows.find(
-    (r) => r.accessToken.startsWith('pending:') && r.accessToken.endsWith(`:${state}`),
-  )
-  return match ? decryptOAuthRow(match) : null
 }
 
 export async function deleteOAuthToken(

@@ -134,6 +134,7 @@ import {
   markLibraryHealthScanStarted,
   saveLibraryHealthState,
 } from './db/queries/library-health'
+import { deleteExpiredPendingOAuth } from './db/queries/oauth-pending'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
   getEnabledPlaylists,
@@ -1606,12 +1607,14 @@ const server = serve({ fetch: app.fetch, port })
   }
 })()
 
-// Clean up expired sessions every 6 hours
+// Clean up expired sessions and abandoned OAuth authorizations every 6 hours.
+// Both are already rejected on read; this only stops the rows accumulating.
 setInterval(
   async () => {
     if (isMaintenance()) return
     try {
       await sessionQueries(db).deleteExpired()
+      await deleteExpiredPendingOAuth(db)
     } catch {
       /* best-effort cleanup */
     }
