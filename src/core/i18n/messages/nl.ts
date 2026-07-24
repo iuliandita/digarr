@@ -857,6 +857,9 @@ export const nl = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Opgeslagen Albums',
   'discoveryMode.spotify-saved-albums.description':
     'Ontdek artiesten uit de albums die je op Spotify hebt opgeslagen',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify Gevolgde Artiesten',
+  'discoveryMode.spotify-followed-artists.description':
+    'Ontdek uit de artiesten die je op Spotify volgt',
   'discoveryMode.subsonic-starred.label': 'Subsonic-favorieten',
   'discoveryMode.subsonic-starred.description':
     'Ontdek artiesten die lijken op de artiesten die je op je Subsonic-server met een ster hebt gemarkeerd',
@@ -870,6 +873,8 @@ export const nl = {
   'discoveryMode.reason.connectLastfm': 'Verbind Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDeezer': 'Verbind Deezer om deze modus te gebruiken.',
   'discoveryMode.reason.connectSpotify': 'Verbind Spotify om deze modus te gebruiken.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Verbind Spotify opnieuw om toegang tot gevolgde artiesten te verlenen.',
   'discoveryMode.reason.connectSubsonic': 'Verbind Subsonic om deze modus te gebruiken.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',

@@ -868,6 +868,9 @@ export const de = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Gespeicherte Alben',
   'discoveryMode.spotify-saved-albums.description':
     'Entdecke Künstler aus den Alben, die du auf Spotify gespeichert hast',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify Gefolgte Künstler',
+  'discoveryMode.spotify-followed-artists.description':
+    'Entdecke aus den Künstlern, denen du auf Spotify folgst',
   'discoveryMode.subsonic-starred.label': 'Subsonic-Favoriten',
   'discoveryMode.subsonic-starred.description':
     'Entdecke Künstler, die den von dir auf deinem Subsonic-Server markierten Künstlern ähneln',
@@ -882,6 +885,8 @@ export const de = {
   'discoveryMode.reason.connectLastfm': 'Verbinde Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDeezer': 'Verbinde Deezer, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectSpotify': 'Verbinde Spotify, um diesen Modus zu verwenden.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Verbinde Spotify erneut, um den Zugriff auf Gefolgte zu gewähren.',
   'discoveryMode.reason.connectSubsonic': 'Verbinde Subsonic, um diesen Modus zu verwenden.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallback-Anbieter werden für die Release-Entdeckung verwendet.',

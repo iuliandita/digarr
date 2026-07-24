@@ -851,6 +851,9 @@ export const tr = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Kaydedilen Albümler',
   'discoveryMode.spotify-saved-albums.description':
     "Spotify'da kaydettiğin albümlerden sanatçılar keşfet",
+  'discoveryMode.spotify-followed-artists.label': "Spotify'da Takip Edilen Sanatçılar",
+  'discoveryMode.spotify-followed-artists.description':
+    "Spotify'da takip ettiğin sanatçılardan keşfet",
   'discoveryMode.subsonic-starred.label': 'Subsonic Favorileri',
   'discoveryMode.subsonic-starred.description':
     'Subsonic sunucunda yıldızladığın sanatçılara benzer sanatçıları keşfet',
@@ -864,6 +867,8 @@ export const tr = {
   'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i bağlayın.",
   'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı bağlayın.",
   'discoveryMode.reason.connectSpotify': "Bu modu kullanmak için Spotify'ı bağlayın.",
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    "Takip erişimi vermek için Spotify'ı yeniden bağlayın.",
   'discoveryMode.reason.connectSubsonic': "Bu modu kullanmak için Subsonic'i bağlayın.",
   'discoveryMode.reason.releaseRadarFallback': 'Yayın keşfi için yedek sağlayıcılar kullanılıyor.',
   'discoveryMode.reason.libraryRequired': 'Bu modu kullanmak için önce bir kütüphaneyi eşitleyin.',

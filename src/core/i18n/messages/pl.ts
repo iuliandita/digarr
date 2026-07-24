@@ -860,6 +860,9 @@ export const pl = {
   'discoveryMode.spotify-saved-albums.label': 'Zapisane albumy Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Odkrywaj artystów z albumów zapisanych w Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Obserwowani artyści Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Odkrywaj na podstawie artystów, których obserwujesz w Spotify',
   'discoveryMode.subsonic-starred.label': 'Ulubione w Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Odkrywaj artystów podobnych do tych oznaczonych gwiazdką na Twoim serwerze Subsonic',
@@ -873,6 +876,8 @@ export const pl = {
   'discoveryMode.reason.connectLastfm': 'Połącz Last.fm, aby użyć tego trybu.',
   'discoveryMode.reason.connectDeezer': 'Połącz Deezer, aby użyć tego trybu.',
   'discoveryMode.reason.connectSpotify': 'Połącz Spotify, aby użyć tego trybu.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Połącz ponownie Spotify, aby przyznać dostęp do obserwowanych.',
   'discoveryMode.reason.connectSubsonic': 'Połącz Subsonic, aby użyć tego trybu.',
   'discoveryMode.reason.releaseRadarFallback': 'Do odkrywania wydań używane są źródła zapasowe.',
   'discoveryMode.reason.libraryRequired': 'Najpierw zsynchronizuj bibliotekę, aby użyć tego trybu.',
