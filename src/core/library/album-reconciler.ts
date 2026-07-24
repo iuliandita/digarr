@@ -20,29 +20,33 @@ export type ReconciledAlbum = {
   unreconciledReason: UnreconciledReason | null
 }
 
+type MakeRowFields = {
+  releaseYear?: number | null
+  primaryType?: ReconciledAlbum['primaryType']
+  albumMbid?: string | null
+  matchMethod?: ReconciledAlbum['matchMethod']
+  matchConfidence?: number | null
+  unreconciledReason?: UnreconciledReason | null
+}
+
 function makeRow(
   album: LibraryAlbum,
   titleNormalized: string,
   artistMbid: string,
-  releaseYear: number | null,
-  primaryType: ReconciledAlbum['primaryType'],
-  albumMbid: string | null,
-  matchMethod: ReconciledAlbum['matchMethod'],
-  matchConfidence: number | null,
-  unreconciledReason: UnreconciledReason | null = null,
+  fields: MakeRowFields = {},
 ): ReconciledAlbum {
   return {
     sourceAlbumId: album.sourceAlbumId,
     sourceArtistId: album.sourceArtistId,
     title: album.title,
     titleNormalized,
-    albumMbid,
+    albumMbid: fields.albumMbid ?? null,
     artistMbid,
-    releaseYear,
-    primaryType,
-    matchMethod,
-    matchConfidence,
-    unreconciledReason,
+    releaseYear: fields.releaseYear ?? null,
+    primaryType: fields.primaryType ?? null,
+    matchMethod: fields.matchMethod ?? null,
+    matchConfidence: fields.matchConfidence ?? null,
+    unreconciledReason: fields.unreconciledReason ?? null,
   }
 }
 
@@ -76,17 +80,11 @@ export async function reconcileAlbumsForArtist(
     const titleNormalized = normalizeAlbumTitle(album.title)
 
     if (releaseGroupLookupFailed) {
-      return makeRow(
-        album,
-        titleNormalized,
-        artistMbid,
-        album.releaseYear ?? null,
-        album.primaryType ?? null,
-        null,
-        null,
-        null,
-        'lookup_failed',
-      )
+      return makeRow(album, titleNormalized, artistMbid, {
+        releaseYear: album.releaseYear ?? null,
+        primaryType: album.primaryType ?? null,
+        unreconciledReason: 'lookup_failed',
+      })
     }
 
     const direct = isValidMbid(album.mbid)
@@ -94,16 +92,13 @@ export async function reconcileAlbumsForArtist(
       : undefined
 
     if (direct) {
-      return makeRow(
-        album,
-        titleNormalized,
-        artistMbid,
-        parseYear(direct.firstReleaseDate) ?? album.releaseYear ?? null,
-        (direct.type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
-        direct.id,
-        'mbid',
-        1,
-      )
+      return makeRow(album, titleNormalized, artistMbid, {
+        releaseYear: parseYear(direct.firstReleaseDate) ?? album.releaseYear ?? null,
+        primaryType: (direct.type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
+        albumMbid: direct.id,
+        matchMethod: 'mbid',
+        matchConfidence: 1,
+      })
     }
 
     const candidates = releaseGroups.filter(
@@ -111,30 +106,22 @@ export async function reconcileAlbumsForArtist(
     )
 
     if (candidates.length === 0) {
-      return makeRow(
-        album,
-        titleNormalized,
-        artistMbid,
-        album.releaseYear ?? null,
-        album.primaryType ?? null,
-        null,
-        null,
-        null,
-        'no_candidate',
-      )
+      return makeRow(album, titleNormalized, artistMbid, {
+        releaseYear: album.releaseYear ?? null,
+        primaryType: album.primaryType ?? null,
+        unreconciledReason: 'no_candidate',
+      })
     }
 
     if (candidates.length === 1 && candidates[0]) {
-      return makeRow(
-        album,
-        titleNormalized,
-        artistMbid,
-        parseYear(candidates[0].firstReleaseDate) ?? album.releaseYear ?? null,
-        (candidates[0].type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
-        candidates[0].id,
-        'title_exact',
-        0.8,
-      )
+      return makeRow(album, titleNormalized, artistMbid, {
+        releaseYear: parseYear(candidates[0].firstReleaseDate) ?? album.releaseYear ?? null,
+        primaryType:
+          (candidates[0].type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
+        albumMbid: candidates[0].id,
+        matchMethod: 'title_exact',
+        matchConfidence: 0.8,
+      })
     }
 
     if (album.releaseYear != null) {
@@ -148,29 +135,21 @@ export async function reconcileAlbumsForArtist(
         (candidate) => parseYear(candidate.firstReleaseDate) !== undefined,
       )
       if (yearMatches.length === 1 && yearMatches[0] && allCandidatesHaveKnownYears) {
-        return makeRow(
-          album,
-          titleNormalized,
-          artistMbid,
-          album.releaseYear,
-          (yearMatches[0].type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
-          yearMatches[0].id,
-          'title_year',
-          0.7,
-        )
+        return makeRow(album, titleNormalized, artistMbid, {
+          releaseYear: album.releaseYear,
+          primaryType:
+            (yearMatches[0].type as ReconciledAlbum['primaryType']) ?? album.primaryType ?? null,
+          albumMbid: yearMatches[0].id,
+          matchMethod: 'title_year',
+          matchConfidence: 0.7,
+        })
       }
     }
 
-    return makeRow(
-      album,
-      titleNormalized,
-      artistMbid,
-      album.releaseYear ?? null,
-      album.primaryType ?? null,
-      null,
-      null,
-      null,
-      'ambiguous',
-    )
+    return makeRow(album, titleNormalized, artistMbid, {
+      releaseYear: album.releaseYear ?? null,
+      primaryType: album.primaryType ?? null,
+      unreconciledReason: 'ambiguous',
+    })
   })
 }
