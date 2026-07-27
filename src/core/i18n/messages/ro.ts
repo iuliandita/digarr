@@ -1298,6 +1298,30 @@ export const ro = {
   'service.notConfigured': 'Neconfigurat',
   'service.error': 'Eroare',
   'service.testing': 'Testare...',
+  'oauth.connectedTitle': 'Conectat',
+  'oauth.connectedBody': '{0} este acum conectat.',
+  'oauth.failedTitle': 'Conectare eșuată',
+  'oauth.error.codeLabel': 'Cod furnizor',
+  'oauth.error.generic': 'Conectarea nu a putut fi finalizată. Pornește conectarea din nou.',
+  'oauth.error.missingCodeOrState':
+    'Furnizorul nu a trimis înapoi un cod de autorizare. Pornește conectarea din nou.',
+  'oauth.error.noPendingAuth':
+    'Nicio conectare în așteptare nu corespunde acestui răspuns, de obicei din cauza unei file expirate. Pornește conectarea din nou.',
+  'oauth.error.stateExpired':
+    'Încercarea de conectare a durat peste 10 minute și a expirat. Pornește-o din nou.',
+  'oauth.error.browserMismatch':
+    'Finalizează conectarea în același browser în care ai pornit-o, apoi încearcă din nou.',
+  'oauth.error.missingCredentials':
+    'Lipsește ID-ul de client sau secretul salvat. Introdu din nou datele furnizorului și încearcă iar.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Furnizorul nu a putut fi contactat. Verifică accesul de rețea spre exterior și încearcă din nou.',
+  'oauth.error.tokenExchangeFailed':
+    'Furnizorul a respins conectarea. Verifică datele de client și URI-ul de redirecționare înregistrat.',
+  'oauth.error.tokenExchangeMalformed':
+    'Furnizorul a returnat un răspuns ilizibil. Încearcă din nou și verifică starea furnizorului dacă se repetă.',
+  'oauth.error.tokenExchangeNoToken':
+    'Furnizorul nu a returnat niciun token de acces. Verifică dacă aplicația are permisiunile necesare și încearcă din nou.',
+  'oauth.error.unknownProvider': 'Acest furnizor nu este acceptat.',
   'search.spotifyNotConnected': 'Conecteaza Spotify in Setari pentru a activa cautarea.',
   'search.tidalNotConfigured': 'Cautarea TIDAL nu este inca configurata.',
   'discover.moodPlaceholder': 'jazz pentru zile ploioase, pop energic din anii 90, dark ambient...',

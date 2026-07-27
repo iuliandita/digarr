@@ -1289,6 +1289,30 @@ export const pl = {
   'service.notConfigured': 'Nie skonfigurowany',
   'service.error': 'Błąd',
   'service.testing': 'Testowanie...',
+  'oauth.connectedTitle': 'Połączono',
+  'oauth.connectedBody': '{0} jest teraz połączony.',
+  'oauth.failedTitle': 'Połączenie nieudane',
+  'oauth.error.codeLabel': 'Kod dostawcy',
+  'oauth.error.generic': 'Nie udało się ukończyć połączenia. Rozpocznij połączenie ponownie.',
+  'oauth.error.missingCodeOrState':
+    'Dostawca nie odesłał kodu autoryzacji. Rozpocznij połączenie ponownie.',
+  'oauth.error.noPendingAuth':
+    'Żadne oczekujące połączenie nie pasuje do tej odpowiedzi, zwykle z powodu nieaktualnej karty. Rozpocznij połączenie ponownie.',
+  'oauth.error.stateExpired':
+    'Próba połączenia trwała dłużej niż 10 minut i wygasła. Rozpocznij ją ponownie.',
+  'oauth.error.browserMismatch':
+    'Dokończ połączenie w tej samej przeglądarce, w której je rozpocząłeś, i spróbuj ponownie.',
+  'oauth.error.missingCredentials':
+    'Brakuje zapisanego identyfikatora klienta lub sekretu. Wprowadź ponownie dane dostawcy i spróbuj jeszcze raz.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Nie udało się połączyć z dostawcą. Sprawdź wychodzący dostęp sieciowy i spróbuj ponownie.',
+  'oauth.error.tokenExchangeFailed':
+    'Dostawca odrzucił połączenie. Sprawdź dane klienta i zarejestrowany URI przekierowania.',
+  'oauth.error.tokenExchangeMalformed':
+    'Dostawca zwrócił nieczytelną odpowiedź. Spróbuj ponownie, a jeśli się powtórzy, sprawdź stan dostawcy.',
+  'oauth.error.tokenExchangeNoToken':
+    'Dostawca nie zwrócił tokenu dostępu. Sprawdź, czy aplikacja ma wymagane uprawnienia, i spróbuj ponownie.',
+  'oauth.error.unknownProvider': 'Ten dostawca nie jest obsługiwany.',
   'search.spotifyNotConnected': 'Połącz Spotify w Ustawieniach, aby włączyć wyszukiwanie.',
   'search.tidalNotConfigured': 'Wyszukiwanie TIDAL nie jest jeszcze skonfigurowane.',
   'discover.moodPlaceholder': 'jazz na deszczowy dzien, radosny pop lat 90, dark ambient...',

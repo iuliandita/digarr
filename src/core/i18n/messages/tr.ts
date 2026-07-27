@@ -1282,6 +1282,30 @@ export const tr = {
   'service.notConfigured': 'Yapilandirilmamis',
   'service.error': 'Hata',
   'service.testing': 'Test ediliyor...',
+  'oauth.connectedTitle': 'Bağlandı',
+  'oauth.connectedBody': '{0} artık bağlı.',
+  'oauth.failedTitle': 'Bağlantı başarısız',
+  'oauth.error.codeLabel': 'Sağlayıcı kodu',
+  'oauth.error.generic': 'Bağlantı tamamlanamadı. Bağlantıyı yeniden başlatın.',
+  'oauth.error.missingCodeOrState':
+    'Sağlayıcı bir yetkilendirme kodu döndürmedi. Bağlantıyı yeniden başlatın.',
+  'oauth.error.noPendingAuth':
+    'Bu yanıtla eşleşen bekleyen bir bağlantı yok, genellikle sekme eskidiği için. Bağlantıyı yeniden başlatın.',
+  'oauth.error.stateExpired':
+    'Bağlantı denemesi 10 dakikayı aştı ve süresi doldu. Yeniden başlatın.',
+  'oauth.error.browserMismatch':
+    'Bağlantıyı başlattığınız tarayıcıda tamamlayın, sonra yeniden deneyin.',
+  'oauth.error.missingCredentials':
+    'Kayıtlı istemci kimliği veya gizli anahtarı eksik. Sağlayıcı kimlik bilgilerini yeniden girip tekrar deneyin.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Sağlayıcıya ulaşılamadı. Dışa giden ağ erişimini kontrol edip yeniden deneyin.',
+  'oauth.error.tokenExchangeFailed':
+    'Sağlayıcı bağlantıyı reddetti. İstemci kimlik bilgilerini ve kayıtlı yönlendirme URI değerini kontrol edin.',
+  'oauth.error.tokenExchangeMalformed':
+    'Sağlayıcı okunamayan bir yanıt döndürdü. Yeniden deneyin, tekrarlarsa sağlayıcının durumunu kontrol edin.',
+  'oauth.error.tokenExchangeNoToken':
+    'Sağlayıcı erişim jetonu döndürmedi. Uygulamanın gerekli izinlere sahip olduğunu doğrulayıp yeniden deneyin.',
+  'oauth.error.unknownProvider': 'Bu sağlayıcı desteklenmiyor.',
   'search.spotifyNotConnected': "Aramayi etkinlestirmek için Ayarlar'dan Spotify'i baglayIn.",
   'search.tidalNotConfigured': 'TIDAL araması henüz yapılandırılmadı.',
   'discover.moodPlaceholder': "yagmurlu gün cazi, nese dolu 90'lar pop, dark ambient...",

@@ -18,6 +18,7 @@ import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import { IntegrationCapabilities } from '../components/integration-capabilities'
 import { LanguageSwitcher } from '../components/language-switcher'
+import { OAuthCallbackNotice } from '../components/oauth-callback-notice'
 import { ServiceCard } from '../components/service-card'
 import {
   AiProviderIcon,
@@ -3900,6 +3901,7 @@ export function SettingsPage() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+      <OAuthCallbackNotice />
       <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}

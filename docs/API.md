@@ -159,7 +159,7 @@ Notes:
 - In-flight authorizations live in their own table, so calling initiate on an already-connected provider no longer disturbs the stored token: an abandoned re-connect leaves the existing connection intact. Starting a new flow discards the previous unfinished one for the same user and provider.
 - Only digests of the `state` and of the browser binding are persisted, and the row expires after 10 minutes.
 
-**GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. No UI element renders `oauth_error` yet, so the value is only visible in the browser address bar. Stages:
+**GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. The settings page renders both as a dismissible banner and then strips the parameter from the URL. Stages:
 
 | `oauth_error` | Meaning |
 |---------------|---------|
@@ -175,7 +175,7 @@ Notes:
 | `token_exchange_no_token` | The token endpoint answered 2xx but the body carried no `access_token`. TIDAL only |
 | `unknown_provider` | The `:provider` path segment is not a supported provider |
 
-Treat these as untrusted when rendering: the pass-through case is provider-controlled.
+Treat these as untrusted when rendering: the pass-through case is provider-controlled. The settings banner maps only the known stages above to their own message; anything else renders a generic failure message with the raw value echoed back as inert, sanitized, length-capped text.
 
 ---
 

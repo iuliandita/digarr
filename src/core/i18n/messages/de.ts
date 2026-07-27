@@ -1305,6 +1305,31 @@ export const de = {
   'service.notConfigured': 'Nicht konfiguriert',
   'service.error': 'Fehler',
   'service.testing': 'Teste...',
+  'oauth.connectedTitle': 'Verbunden',
+  'oauth.connectedBody': '{0} ist jetzt verbunden.',
+  'oauth.failedTitle': 'Verbindung fehlgeschlagen',
+  'oauth.error.codeLabel': 'Anbietercode',
+  'oauth.error.generic':
+    'Die Verbindung konnte nicht abgeschlossen werden. Starte die Verbindung erneut.',
+  'oauth.error.missingCodeOrState':
+    'Der Anbieter hat keinen Autorisierungscode zurückgesendet. Starte die Verbindung erneut.',
+  'oauth.error.noPendingAuth':
+    'Keine ausstehende Verbindung passt zu dieser Antwort, meist wegen eines veralteten Tabs. Starte die Verbindung erneut.',
+  'oauth.error.stateExpired':
+    'Der Verbindungsversuch hat länger als 10 Minuten gedauert und ist abgelaufen. Starte ihn erneut.',
+  'oauth.error.browserMismatch':
+    'Schließe die Verbindung im selben Browser ab, in dem du sie gestartet hast, und versuche es erneut.',
+  'oauth.error.missingCredentials':
+    'Die gespeicherte Client-ID oder das Secret fehlt. Gib die Anbieter-Zugangsdaten erneut ein und versuche es noch einmal.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Der Anbieter war nicht erreichbar. Prüfe den ausgehenden Netzwerkzugriff und versuche es erneut.',
+  'oauth.error.tokenExchangeFailed':
+    'Der Anbieter hat die Verbindung abgelehnt. Prüfe die Client-Zugangsdaten und die registrierte Redirect-URI.',
+  'oauth.error.tokenExchangeMalformed':
+    'Der Anbieter hat eine unlesbare Antwort zurückgegeben. Versuche es erneut und prüfe den Anbieterstatus, falls es erneut auftritt.',
+  'oauth.error.tokenExchangeNoToken':
+    'Der Anbieter hat kein Zugriffstoken zurückgegeben. Prüfe, ob die App die nötigen Berechtigungen hat, und versuche es erneut.',
+  'oauth.error.unknownProvider': 'Dieser Anbieter wird nicht unterstützt.',
   'search.spotifyNotConnected':
     'Verbinde Spotify in den Einstellungen, um die Suche zu aktivieren.',
   'search.tidalNotConfigured': 'TIDAL-Suche ist noch nicht konfiguriert.',
