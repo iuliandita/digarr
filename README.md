@@ -19,7 +19,7 @@
 >
 > Documentation on `develop` also covers features available in the `:nightly` image but not yet in the latest tagged release. The changelog is the source of truth for released-version availability.
 >
-> **Nightly testers wanted: TIDAL Favorite Artists.** The new TIDAL discovery mode is on `:nightly` but its OAuth flow has never run against a real TIDAL account, so it ships marked experimental. If you have a TIDAL subscription: register `<your-digarr-url>/api/v1/auth/oauth/tidal/callback` on a [TIDAL developer app](https://developer.tidal.com/), connect from **Settings > Your Connections > TIDAL**, and run the mode. Report the result on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553) -- either the `oauth_error=<stage>` value from your browser's address bar after a failed connect, or the number of artists the mode returned. See [Connecting TIDAL](#connecting-tidal) for the full setup.
+> **Nightly testers wanted: TIDAL Favorite Artists.** The new TIDAL discovery mode is on `:nightly` but its OAuth flow has never run against a real TIDAL account, so it ships marked experimental. If you have a TIDAL subscription: register `<your-digarr-url>/api/v1/auth/oauth/tidal/callback` on a [TIDAL developer app](https://developer.tidal.com/), connect from **Settings > Your Connections > TIDAL**, and run the mode. Report the result on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553) -- either the failure message Settings shows after a failed connect, or the number of artists the mode returned. See [Connecting TIDAL](#connecting-tidal) for the full setup.
 >
 > Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
@@ -245,7 +245,7 @@ Spotify uses your own Spotify app credentials over OAuth:
 ### Connecting TIDAL
 
 > [!WARNING]
-> **Unproven.** This OAuth flow has never been validated against a live TIDAL account. It was built from TIDAL's published OpenAPI description, not from a completed connect, so the token exchange, the shared-app PKCE registration, and the collection payload shape are all unverified. Expect it to fail. If it does, Digarr redirects to `/settings?oauth_error=<stage>`. Nothing in the UI renders that value yet, so read it out of your browser's address bar and report it on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553); a failed connect otherwise looks like an unchanged Settings page. If it works, a comment saying so (with the artist count the mode returned) is just as useful.
+> **Unproven.** This OAuth flow has never been validated against a live TIDAL account. It was built from TIDAL's published OpenAPI description, not from a completed connect, so the token exchange, the shared-app PKCE registration, and the collection payload shape are all unverified. Expect it to fail. If it does, Settings shows a banner naming the stage that failed -- report that message on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553). If it works, a comment saying so (with the artist count the mode returned) is just as useful.
 
 TIDAL uses a single app registered by an admin, which every user then authorizes with their own TIDAL account:
 

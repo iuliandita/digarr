@@ -1261,6 +1261,28 @@ export const ko = {
   'service.notConfigured': '미설정',
   'service.error': '오류',
   'service.testing': '테스트 중...',
+  'oauth.connectedTitle': '연결됨',
+  'oauth.connectedBody': '{0}이(가) 연결되었습니다.',
+  'oauth.failedTitle': '연결 실패',
+  'oauth.error.codeLabel': '제공자 코드',
+  'oauth.error.generic': '연결을 완료하지 못했습니다. 연결을 다시 시작하세요.',
+  'oauth.error.missingCodeOrState':
+    '제공자가 인증 코드를 반환하지 않았습니다. 연결을 다시 시작하세요.',
+  'oauth.error.noPendingAuth':
+    '이 응답과 일치하는 대기 중인 연결이 없습니다. 보통 탭이 오래되어 발생합니다. 연결을 다시 시작하세요.',
+  'oauth.error.stateExpired': '연결 시도가 10분을 초과하여 만료되었습니다. 다시 시작하세요.',
+  'oauth.error.browserMismatch': '연결을 시작한 브라우저에서 완료한 뒤 다시 시도하세요.',
+  'oauth.error.missingCredentials':
+    '저장된 클라이언트 ID 또는 시크릿이 없습니다. 제공자 자격 증명을 다시 입력한 뒤 시도하세요.',
+  'oauth.error.tokenExchangeUnreachable':
+    '제공자에 연결할 수 없습니다. 아웃바운드 네트워크 접근을 확인한 뒤 다시 시도하세요.',
+  'oauth.error.tokenExchangeFailed':
+    '제공자가 연결을 거부했습니다. 클라이언트 자격 증명과 등록된 리디렉션 URI를 확인하세요.',
+  'oauth.error.tokenExchangeMalformed':
+    '제공자가 읽을 수 없는 응답을 반환했습니다. 다시 시도하고, 반복되면 제공자 상태를 확인하세요.',
+  'oauth.error.tokenExchangeNoToken':
+    '제공자가 액세스 토큰을 반환하지 않았습니다. 앱에 필요한 권한이 있는지 확인한 뒤 다시 시도하세요.',
+  'oauth.error.unknownProvider': '지원되지 않는 제공자입니다.',
   'search.spotifyNotConnected': '설정에서 Spotify를 연결하여 검색을 활성화하세요.',
   'search.tidalNotConfigured': 'TIDAL 검색이 아직 설정되지 않았습니다.',
   'discover.moodPlaceholder': '비 오는 날의 재즈, 신나는 90년대 팝, 다크 앨비언트...',

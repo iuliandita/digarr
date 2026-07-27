@@ -1299,6 +1299,31 @@ export const it = {
   'service.notConfigured': 'Non configurato',
   'service.error': 'Errore',
   'service.testing': 'Verifica...',
+  'oauth.connectedTitle': 'Collegato',
+  'oauth.connectedBody': '{0} è ora collegato.',
+  'oauth.failedTitle': 'Connessione non riuscita',
+  'oauth.error.codeLabel': 'Codice del provider',
+  'oauth.error.generic':
+    'Non è stato possibile completare la connessione. Avvia di nuovo la connessione.',
+  'oauth.error.missingCodeOrState':
+    'Il provider non ha restituito un codice di autorizzazione. Avvia di nuovo la connessione.',
+  'oauth.error.noPendingAuth':
+    'Nessuna connessione in sospeso corrisponde a questa risposta, di solito per una scheda scaduta. Avvia di nuovo la connessione.',
+  'oauth.error.stateExpired':
+    'Il tentativo di connessione ha superato i 10 minuti ed è scaduto. Avvialo di nuovo.',
+  'oauth.error.browserMismatch':
+    "Completa la connessione nello stesso browser da cui l'hai avviata, poi riprova.",
+  'oauth.error.missingCredentials':
+    "Manca l'ID client o il segreto salvato. Reinserisci le credenziali del provider e riprova.",
+  'oauth.error.tokenExchangeUnreachable':
+    "Non è stato possibile raggiungere il provider. Controlla l'accesso di rete in uscita e riprova.",
+  'oauth.error.tokenExchangeFailed':
+    "Il provider ha rifiutato la connessione. Controlla le credenziali client e l'URI di reindirizzamento registrato.",
+  'oauth.error.tokenExchangeMalformed':
+    'Il provider ha restituito una risposta illeggibile. Riprova e controlla lo stato del provider se si ripete.',
+  'oauth.error.tokenExchangeNoToken':
+    "Il provider non ha restituito alcun token di accesso. Verifica che l'app abbia le autorizzazioni necessarie e riprova.",
+  'oauth.error.unknownProvider': 'Questo provider non è supportato.',
   'search.spotifyNotConnected': 'Collega Spotify nelle Impostazioni per abilitare la ricerca.',
   'search.tidalNotConfigured': 'La ricerca TIDAL non e ancora configurata.',
   'discover.moodPlaceholder': 'jazz per giornate piovose, pop anni 90, dark ambient...',

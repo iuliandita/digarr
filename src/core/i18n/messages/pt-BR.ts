@@ -1297,6 +1297,30 @@ export const ptBR = {
   'service.notConfigured': 'Não configurado',
   'service.error': 'Erro',
   'service.testing': 'Testando...',
+  'oauth.connectedTitle': 'Conectado',
+  'oauth.connectedBody': '{0} agora está conectado.',
+  'oauth.failedTitle': 'Falha na conexão',
+  'oauth.error.codeLabel': 'Código do provedor',
+  'oauth.error.generic': 'Não foi possível concluir a conexão. Inicie a conexão novamente.',
+  'oauth.error.missingCodeOrState':
+    'O provedor não devolveu um código de autorização. Inicie a conexão novamente.',
+  'oauth.error.noPendingAuth':
+    'Nenhuma conexão pendente corresponde a esta resposta, normalmente por causa de uma aba desatualizada. Inicie a conexão novamente.',
+  'oauth.error.stateExpired':
+    'A tentativa de conexão levou mais de 10 minutos e expirou. Inicie-a novamente.',
+  'oauth.error.browserMismatch':
+    'Conclua a conexão no mesmo navegador em que a iniciou e tente de novo.',
+  'oauth.error.missingCredentials':
+    'O ID do cliente ou o segredo salvo está faltando. Informe novamente as credenciais do provedor e tente de novo.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Não foi possível alcançar o provedor. Verifique o acesso de rede de saída e tente de novo.',
+  'oauth.error.tokenExchangeFailed':
+    'O provedor recusou a conexão. Verifique as credenciais do cliente e a URI de redirecionamento registrada.',
+  'oauth.error.tokenExchangeMalformed':
+    'O provedor devolveu uma resposta ilegível. Tente de novo e verifique o estado do provedor se o problema persistir.',
+  'oauth.error.tokenExchangeNoToken':
+    'O provedor não devolveu nenhum token de acesso. Verifique se o aplicativo tem as permissões necessárias e tente de novo.',
+  'oauth.error.unknownProvider': 'Esse provedor não é compatível.',
   'search.spotifyNotConnected': 'Conecte o Spotify nas Configuracoes para habilitar a busca.',
   'search.tidalNotConfigured': 'A busca do TIDAL ainda não está configurada.',
   'discover.moodPlaceholder': 'jazz para dia chuvoso, pop animado dos anos 90, dark ambient...',

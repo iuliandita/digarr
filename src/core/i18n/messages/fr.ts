@@ -1296,6 +1296,30 @@ export const fr = {
   'service.notConfigured': 'Non configuré',
   'service.error': 'Erreur',
   'service.testing': 'Test...',
+  'oauth.connectedTitle': 'Connecté',
+  'oauth.connectedBody': '{0} est maintenant connecté.',
+  'oauth.failedTitle': 'Échec de la connexion',
+  'oauth.error.codeLabel': 'Code du fournisseur',
+  'oauth.error.generic': "La connexion n'a pas pu aboutir. Relancez la connexion.",
+  'oauth.error.missingCodeOrState':
+    "Le fournisseur n'a pas renvoyé de code d'autorisation. Relancez la connexion.",
+  'oauth.error.noPendingAuth':
+    "Aucune connexion en attente ne correspond à cette réponse, généralement à cause d'un onglet périmé. Relancez la connexion.",
+  'oauth.error.stateExpired':
+    'La tentative de connexion a dépassé 10 minutes et a expiré. Relancez-la.',
+  'oauth.error.browserMismatch':
+    "Terminez la connexion dans le navigateur où vous l'avez démarrée, puis réessayez.",
+  'oauth.error.missingCredentials':
+    "L'identifiant client ou le secret enregistré est manquant. Saisissez à nouveau les identifiants du fournisseur et réessayez.",
+  'oauth.error.tokenExchangeUnreachable':
+    "Le fournisseur est injoignable. Vérifiez l'accès réseau sortant et réessayez.",
+  'oauth.error.tokenExchangeFailed':
+    "Le fournisseur a refusé la connexion. Vérifiez les identifiants client et l'URI de redirection enregistrée.",
+  'oauth.error.tokenExchangeMalformed':
+    'Le fournisseur a renvoyé une réponse illisible. Réessayez, et vérifiez son état si cela persiste.',
+  'oauth.error.tokenExchangeNoToken':
+    "Le fournisseur n'a renvoyé aucun jeton d'accès. Vérifiez que l'application dispose des autorisations requises et réessayez.",
+  'oauth.error.unknownProvider': "Ce fournisseur n'est pas pris en charge.",
   'search.spotifyNotConnected': 'Connectez Spotify dans les Paramètres pour activer la recherche.',
   'search.tidalNotConfigured': "La recherche TIDAL n'est pas encore configuree.",
   'discover.moodPlaceholder': 'jazz pour jour de pluie, pop 90s entrainante, dark ambient...',

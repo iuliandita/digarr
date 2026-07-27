@@ -1278,6 +1278,30 @@ export const ja = {
   'service.notConfigured': '未設定',
   'service.error': 'エラー',
   'service.testing': 'テスト中...',
+  'oauth.connectedTitle': '接続しました',
+  'oauth.connectedBody': '{0}が接続されました。',
+  'oauth.failedTitle': '接続に失敗しました',
+  'oauth.error.codeLabel': 'プロバイダーコード',
+  'oauth.error.generic': '接続を完了できませんでした。もう一度接続を開始してください。',
+  'oauth.error.missingCodeOrState':
+    'プロバイダーから認可コードが返されませんでした。もう一度接続を開始してください。',
+  'oauth.error.noPendingAuth':
+    'この応答に一致する保留中の接続がありません。多くの場合、タブが古くなっています。もう一度接続を開始してください。',
+  'oauth.error.stateExpired':
+    '接続の試行が10分を超えたため期限切れになりました。もう一度開始してください。',
+  'oauth.error.browserMismatch':
+    '接続を開始したブラウザーと同じブラウザーで完了してから、もう一度お試しください。',
+  'oauth.error.missingCredentials':
+    '保存されたクライアントIDまたはシークレットがありません。プロバイダーの認証情報を入力し直してからお試しください。',
+  'oauth.error.tokenExchangeUnreachable':
+    'プロバイダーに接続できませんでした。外向きのネットワークアクセスを確認してからお試しください。',
+  'oauth.error.tokenExchangeFailed':
+    'プロバイダーが接続を拒否しました。クライアント認証情報と登録済みのリダイレクトURIを確認してください。',
+  'oauth.error.tokenExchangeMalformed':
+    'プロバイダーが読み取れない応答を返しました。もう一度試し、繰り返す場合はプロバイダーの状態を確認してください。',
+  'oauth.error.tokenExchangeNoToken':
+    'プロバイダーからアクセストークンが返されませんでした。アプリに必要な権限があるか確認してからお試しください。',
+  'oauth.error.unknownProvider': 'このプロバイダーはサポートされていません。',
   'search.spotifyNotConnected': '設定でSpotifyを接続して検索を有効にしてください。',
   'search.tidalNotConfigured': 'TIDAL検索はまだ設定されていません。',
   'discover.moodPlaceholder': '雨の日のジャズ、アップビート90年代ポップ、ダークアンビエント...',

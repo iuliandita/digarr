@@ -1289,6 +1289,32 @@ export const en = {
   'service.error': 'Error',
   'service.testing': 'Testing...',
 
+  // OAuth connect callback banner
+  'oauth.connectedTitle': 'Connected',
+  'oauth.connectedBody': '{0} is now connected.',
+  'oauth.failedTitle': 'Connection failed',
+  'oauth.error.codeLabel': 'Provider code',
+  'oauth.error.generic': 'The connection could not be completed. Start the connection again.',
+  'oauth.error.missingCodeOrState':
+    'The provider did not send back an authorization code. Start the connection again.',
+  'oauth.error.noPendingAuth':
+    'No pending connection matched this response, usually because the tab was stale. Start the connection again.',
+  'oauth.error.stateExpired':
+    'The connection attempt took longer than 10 minutes and expired. Start it again.',
+  'oauth.error.browserMismatch':
+    'Finish the connection in the same browser you started it in, then try again.',
+  'oauth.error.missingCredentials':
+    'The stored client ID or secret is missing. Re-enter the provider credentials and try again.',
+  'oauth.error.tokenExchangeUnreachable':
+    'The provider could not be reached. Check outbound network access and try again.',
+  'oauth.error.tokenExchangeFailed':
+    'The provider rejected the connection. Check the client credentials and the registered redirect URI.',
+  'oauth.error.tokenExchangeMalformed':
+    'The provider returned an unreadable response. Try again, and check the provider status if it repeats.',
+  'oauth.error.tokenExchangeNoToken':
+    'The provider returned no access token. Check that the app has the required permissions and try again.',
+  'oauth.error.unknownProvider': 'That provider is not supported.',
+
   // Search page - disabled source reasons
   'search.spotifyNotConnected': 'Connect Spotify in Settings to enable search.',
   'search.tidalNotConfigured': 'TIDAL search is not configured yet.',

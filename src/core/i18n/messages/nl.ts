@@ -1291,6 +1291,30 @@ export const nl = {
   'service.notConfigured': 'Niet geconfigureerd',
   'service.error': 'Fout',
   'service.testing': 'Testen...',
+  'oauth.connectedTitle': 'Verbonden',
+  'oauth.connectedBody': '{0} is nu verbonden.',
+  'oauth.failedTitle': 'Verbinden mislukt',
+  'oauth.error.codeLabel': 'Aanbiedercode',
+  'oauth.error.generic': 'De verbinding kon niet worden voltooid. Start de verbinding opnieuw.',
+  'oauth.error.missingCodeOrState':
+    'De aanbieder heeft geen autorisatiecode teruggestuurd. Start de verbinding opnieuw.',
+  'oauth.error.noPendingAuth':
+    'Geen openstaande verbinding komt overeen met dit antwoord, meestal door een verouderd tabblad. Start de verbinding opnieuw.',
+  'oauth.error.stateExpired':
+    'De verbindingspoging duurde langer dan 10 minuten en is verlopen. Start hem opnieuw.',
+  'oauth.error.browserMismatch':
+    'Rond de verbinding af in dezelfde browser waarin je hem startte en probeer het opnieuw.',
+  'oauth.error.missingCredentials':
+    'De opgeslagen client-ID of het secret ontbreekt. Voer de gegevens van de aanbieder opnieuw in en probeer het nogmaals.',
+  'oauth.error.tokenExchangeUnreachable':
+    'De aanbieder was niet bereikbaar. Controleer de uitgaande netwerktoegang en probeer het opnieuw.',
+  'oauth.error.tokenExchangeFailed':
+    'De aanbieder weigerde de verbinding. Controleer de clientgegevens en de geregistreerde redirect-URI.',
+  'oauth.error.tokenExchangeMalformed':
+    'De aanbieder gaf een onleesbaar antwoord. Probeer het opnieuw en controleer de status van de aanbieder als het zich herhaalt.',
+  'oauth.error.tokenExchangeNoToken':
+    'De aanbieder gaf geen toegangstoken terug. Controleer of de app de vereiste rechten heeft en probeer het opnieuw.',
+  'oauth.error.unknownProvider': 'Die aanbieder wordt niet ondersteund.',
   'search.spotifyNotConnected': 'Verbind Spotify in Instellingen om zoeken in te schakelen.',
   'search.tidalNotConfigured': 'TIDAL-zoeken is nog niet geconfigureerd.',
   'discover.moodPlaceholder': 'jazz voor regenachtige dagen, vrolijke 90s pop, dark ambient...',

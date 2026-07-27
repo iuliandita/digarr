@@ -1297,6 +1297,30 @@ export const es = {
   'service.notConfigured': 'No configurado',
   'service.error': 'Fallo',
   'service.testing': 'Probando...',
+  'oauth.connectedTitle': 'Conectado',
+  'oauth.connectedBody': '{0} ya está conectado.',
+  'oauth.failedTitle': 'Error de conexión',
+  'oauth.error.codeLabel': 'Código del proveedor',
+  'oauth.error.generic': 'No se pudo completar la conexión. Inicia la conexión de nuevo.',
+  'oauth.error.missingCodeOrState':
+    'El proveedor no devolvió un código de autorización. Inicia la conexión de nuevo.',
+  'oauth.error.noPendingAuth':
+    'Ninguna conexión pendiente coincide con esta respuesta, normalmente por una pestaña obsoleta. Inicia la conexión de nuevo.',
+  'oauth.error.stateExpired':
+    'El intento de conexión tardó más de 10 minutos y caducó. Inícialo de nuevo.',
+  'oauth.error.browserMismatch':
+    'Termina la conexión en el mismo navegador donde la iniciaste y vuelve a intentarlo.',
+  'oauth.error.missingCredentials':
+    'Falta el ID de cliente o el secreto guardado. Vuelve a introducir las credenciales del proveedor e inténtalo de nuevo.',
+  'oauth.error.tokenExchangeUnreachable':
+    'No se pudo contactar con el proveedor. Comprueba el acceso de red saliente e inténtalo de nuevo.',
+  'oauth.error.tokenExchangeFailed':
+    'El proveedor rechazó la conexión. Comprueba las credenciales de cliente y la URI de redirección registrada.',
+  'oauth.error.tokenExchangeMalformed':
+    'El proveedor devolvió una respuesta ilegible. Inténtalo de nuevo y comprueba el estado del proveedor si se repite.',
+  'oauth.error.tokenExchangeNoToken':
+    'El proveedor no devolvió ningún token de acceso. Comprueba que la aplicación tenga los permisos necesarios e inténtalo de nuevo.',
+  'oauth.error.unknownProvider': 'Ese proveedor no es compatible.',
   'search.spotifyNotConnected': 'Conecta Spotify en Configuración para habilitar la búsqueda.',
   'search.tidalNotConfigured': 'La búsqueda de TIDAL aún no está configurada.',
   'discover.moodPlaceholder': 'jazz para dias lluviosos, pop animado de los 90, dark ambient...',
