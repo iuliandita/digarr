@@ -5,8 +5,8 @@ import { createLibrarySyncStore } from '@/core/library/store'
 import { libraryAlbums, libraryArtists } from '@/db/schema'
 
 const SQLITE_MAX_HOST_PARAMETERS = 32_766
-const ARTIST_INSERT_COLUMNS = 9
-const ALBUM_INSERT_COLUMNS = 12
+const ARTIST_INSERT_COLUMNS = 10
+const ALBUM_INSERT_COLUMNS = 13
 
 type InsertCall = {
   table: unknown
@@ -55,7 +55,7 @@ function makeArtist(index: number) {
   }
 }
 
-function makeAlbum(index: number) {
+function makeAlbum(index: number, unreconciledReason: 'ambiguous' | null = null) {
   return {
     sourceAlbumId: `album-${index}`,
     sourceArtistId: `artist-${index}`,
@@ -67,10 +67,36 @@ function makeAlbum(index: number) {
     primaryType: 'Album' as const,
     matchMethod: null,
     matchConfidence: null,
+    unreconciledReason,
   }
 }
 
 describe('LibrarySyncStore chunked inserts', () => {
+  it('preserves artist and album reconciliation reasons in full snapshots', async () => {
+    const db = makeDb()
+    const store = createLibrarySyncStore(db as never)
+
+    await store.replaceLibrarySnapshot(1, 'plex', [makeArtist(1)], [makeAlbum(1, 'ambiguous')])
+
+    const artistRows = db._mocks.insertCalls.find((call) => call.table === libraryArtists)?.rows
+    const albumRows = db._mocks.insertCalls.find((call) => call.table === libraryAlbums)?.rows
+    expect(artistRows?.[0]).toMatchObject({ unreconciledReason: 'no_candidate' })
+    expect(albumRows?.[0]).toMatchObject({ unreconciledReason: 'ambiguous' })
+  })
+
+  it('preserves artist and album reconciliation reasons in split replacements', async () => {
+    const db = makeDb()
+    const store = createLibrarySyncStore(db as never)
+
+    await store.replaceLibraryArtists(1, 'plex', [makeArtist(1)])
+    await store.replaceLibraryAlbums(1, 'plex', [makeAlbum(1, 'ambiguous')])
+
+    const artistRows = db._mocks.insertCalls.find((call) => call.table === libraryArtists)?.rows
+    const albumRows = db._mocks.insertCalls.find((call) => call.table === libraryAlbums)?.rows
+    expect(artistRows?.[0]).toMatchObject({ unreconciledReason: 'no_candidate' })
+    expect(albumRows?.[0]).toMatchObject({ unreconciledReason: 'ambiguous' })
+  })
+
   it('splits oversized album writes into sqlite-safe chunks', async () => {
     const db = makeDb()
     const store = createLibrarySyncStore(db as never)

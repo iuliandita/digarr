@@ -409,17 +409,52 @@ export const nl = {
     'albums konden niet automatisch aan MusicBrainz worden gekoppeld.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'artiesten konden niet automatisch aan MusicBrainz worden gekoppeld.',
+  'libraryReconciliation.bulkIgnoreFailed': 'De geselecteerde items konden niet worden genegeerd.',
+  'libraryReconciliation.clearVisible': 'Zichtbare selectie wissen',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Selectie: {0}. Deze selectie blijft genegeerd totdat de opgeslagen correcties zijn verwijderd.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Geselecteerde albums negeren?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Selectie: {0}. Deze selectie blijft genegeerd totdat de opgeslagen correcties zijn verwijderd.',
+  'libraryReconciliation.confirmArtistsTitle': 'Geselecteerde artiesten negeren?',
   'libraryReconciliation.couldNotLoadAlbums': 'Niet-gekoppelde albums konden niet worden geladen.',
   'libraryReconciliation.couldNotLoadArtists':
     'Niet-gekoppelde artiesten konden niet worden geladen.',
+  'libraryReconciliation.ignoreForever': 'Altijd negeren',
+  'libraryReconciliation.ignoreSelected': 'Selectie negeren',
+  'libraryReconciliation.invalidMbid': 'Geen geldige MBID (UUID verwacht)',
   'libraryReconciliation.loadingAlbums': 'Niet-gekoppelde albums laden...',
   'libraryReconciliation.loadingArtists': 'Niet-gekoppelde artiesten laden...',
   'libraryReconciliation.noAlbums': 'Geen niet-gekoppelde albums.',
   'libraryReconciliation.noArtists':
     'Geen niet-gekoppelde artiesten. Uw bibliotheek is volledig gekoppeld.',
+  'libraryReconciliation.normalizedName': 'Genormaliseerd: {0}',
   'libraryReconciliation.of': 'van',
   'libraryReconciliation.page': 'Pagina',
+  'libraryReconciliation.pasteAlbumMbid': 'Album MBID (UUID) plakken',
+  'libraryReconciliation.pasteMbid': 'MBID (UUID) plakken',
+  'libraryReconciliation.pin': 'Vastmaken',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Er zijn meerdere overeenkomsten. Koppel de juiste MBID of negeer dit item.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Onduidelijke overeenkomst',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz was niet bereikbaar. Probeer de bibliotheek later opnieuw te synchroniseren.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Opzoeken mislukt',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'De oorzaak dateert van voor de registratie van redenen. Voer de koppeling opnieuw uit of controleer het item handmatig.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Controle vereist',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Geen overeenkomst gevonden. Koppel een bekende MBID of negeer dit item.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Geen overeenkomst',
+  'libraryReconciliation.selectAlbum': 'Album {0} selecteren',
+  'libraryReconciliation.selectArtist': 'Artiest {0} selecteren',
+  'libraryReconciliation.selectedCount': 'Geselecteerd: {0}',
+  'libraryReconciliation.selectionLimit':
+    'Er kunnen maximaal {0} items tegelijk worden geselecteerd.',
+  'libraryReconciliation.selectVisible': 'Zichtbare selecteren',
   'libraryReconciliation.showing': 'Toont',
+  'libraryReconciliation.unknownType': 'Onbekend type',
+  'libraryReconciliation.unknownYear': 'Onbekend jaar',
   'playlist.delete': 'Verwijderen',
   'playlist.deleteFailed': 'Kan afspeellijst niet verwijderen',
   'playlist.deleteWarning': 'Deze afspeellijst verwijderen? Dit kan niet ongedaan worden gemaakt.',
@@ -822,9 +857,16 @@ export const nl = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Opgeslagen Albums',
   'discoveryMode.spotify-saved-albums.description':
     'Ontdek artiesten uit de albums die je op Spotify hebt opgeslagen',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify Gevolgde Artiesten',
+  'discoveryMode.spotify-followed-artists.description':
+    'Ontdek uit de artiesten die je op Spotify volgt',
   'discoveryMode.subsonic-starred.label': 'Subsonic-favorieten',
   'discoveryMode.subsonic-starred.description':
     'Ontdek artiesten die lijken op de artiesten die je op je Subsonic-server met een ster hebt gemarkeerd',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL Favoriete Artiesten',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Ontdek op basis van de artiesten in je TIDAL-collectie',
+  'discoveryMode.reason.connectTidal': 'Verbind TIDAL om deze modus te gebruiken.',
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
@@ -835,6 +877,8 @@ export const nl = {
   'discoveryMode.reason.connectLastfm': 'Verbind Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDeezer': 'Verbind Deezer om deze modus te gebruiken.',
   'discoveryMode.reason.connectSpotify': 'Verbind Spotify om deze modus te gebruiken.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Verbind Spotify opnieuw om toegang tot gevolgde artiesten te verlenen.',
   'discoveryMode.reason.connectSubsonic': 'Verbind Subsonic om deze modus te gebruiken.',
   'discoveryMode.reason.releaseRadarFallback':
     'Fallbackproviders worden gebruikt voor release-ontdekking.',
@@ -938,11 +982,6 @@ export const nl = {
   'libraryStats.rootFolders': 'Hoofdmappen',
   'libraryStats.free': 'vrij',
   'libraryStats.unknown': 'onbekend',
-  'libraryReconciliation.pasteMbid': 'MBID (UUID) plakken',
-  'libraryReconciliation.pasteAlbumMbid': 'Album MBID (UUID) plakken',
-  'libraryReconciliation.pin': 'Vastmaken',
-  'libraryReconciliation.ignoreForever': 'Altijd negeren',
-  'libraryReconciliation.invalidMbid': 'Geen geldige MBID (UUID verwacht)',
   'settings.tabs.connections': 'Verbindingen',
   'settings.tabs.targets': 'Doelen',
   'settings.tabs.recommendations': 'Aanbevelingen',
@@ -1007,6 +1046,15 @@ export const nl = {
   'settings.subsonicDescription':
     'Zelf-gehoste muziekserver (Navidrome, Airsonic) voor bibliotheeksynchronisatie en ontdekking',
   'settings.discogsDescription': 'Collectie en verlanglijst van Discogs.',
+  'settings.tidalConnectDescription': 'Gebruik je favoriete TIDAL-artiesten als ontdekkingsbron',
+  'settings.tidalConnectHelp':
+    'Verbind je TIDAL-account om ontdekkingen te starten vanuit je favoriete artiesten.',
+  'settings.tidalAppNotConfigured': 'Een beheerder moet eerst de TIDAL-app-gegevens instellen.',
+  'settings.connectTidal': 'TIDAL verbinden',
+  'settings.tidalConnected': 'Je favoriete TIDAL-artiesten zijn beschikbaar als ontdekkingsbron.',
+  'settings.tidalDisconnected': 'TIDAL losgekoppeld',
+  'settings.tidalDisconnectFailed': 'TIDAL loskoppelen mislukt',
+  'settings.tidalAuthorizationFailed': 'Starten van TIDAL-autorisatie mislukt',
   'settings.tidalDescription':
     'Experimentele zoekbron die gebruikmaakt van TIDAL-clientgegevens. Gebruikt ongedocumenteerde eindpunten die zonder waarschuwing kunnen veranderen.',
   'settings.yourAccount': 'jouw account',
@@ -1243,6 +1291,30 @@ export const nl = {
   'service.notConfigured': 'Niet geconfigureerd',
   'service.error': 'Fout',
   'service.testing': 'Testen...',
+  'oauth.connectedTitle': 'Verbonden',
+  'oauth.connectedBody': '{0} is nu verbonden.',
+  'oauth.failedTitle': 'Verbinden mislukt',
+  'oauth.error.codeLabel': 'Aanbiedercode',
+  'oauth.error.generic': 'De verbinding kon niet worden voltooid. Start de verbinding opnieuw.',
+  'oauth.error.missingCodeOrState':
+    'De aanbieder heeft geen autorisatiecode teruggestuurd. Start de verbinding opnieuw.',
+  'oauth.error.noPendingAuth':
+    'Geen openstaande verbinding komt overeen met dit antwoord, meestal door een verouderd tabblad. Start de verbinding opnieuw.',
+  'oauth.error.stateExpired':
+    'De verbindingspoging duurde langer dan 10 minuten en is verlopen. Start hem opnieuw.',
+  'oauth.error.browserMismatch':
+    'Rond de verbinding af in dezelfde browser waarin je hem startte en probeer het opnieuw.',
+  'oauth.error.missingCredentials':
+    'De opgeslagen client-ID of het secret ontbreekt. Voer de gegevens van de aanbieder opnieuw in en probeer het nogmaals.',
+  'oauth.error.tokenExchangeUnreachable':
+    'De aanbieder was niet bereikbaar. Controleer de uitgaande netwerktoegang en probeer het opnieuw.',
+  'oauth.error.tokenExchangeFailed':
+    'De aanbieder weigerde de verbinding. Controleer de clientgegevens en de geregistreerde redirect-URI.',
+  'oauth.error.tokenExchangeMalformed':
+    'De aanbieder gaf een onleesbaar antwoord. Probeer het opnieuw en controleer de status van de aanbieder als het zich herhaalt.',
+  'oauth.error.tokenExchangeNoToken':
+    'De aanbieder gaf geen toegangstoken terug. Controleer of de app de vereiste rechten heeft en probeer het opnieuw.',
+  'oauth.error.unknownProvider': 'Die aanbieder wordt niet ondersteund.',
   'search.spotifyNotConnected': 'Verbind Spotify in Instellingen om zoeken in te schakelen.',
   'search.tidalNotConfigured': 'TIDAL-zoeken is nog niet geconfigureerd.',
   'discover.moodPlaceholder': 'jazz voor regenachtige dagen, vrolijke 90s pop, dark ambient...',

@@ -32,7 +32,14 @@ export function DiscoveryModeCard({
     >
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-base font-semibold text-text">{modeLabel}</h3>
+          <h3 className="text-base font-semibold text-text">
+            {modeLabel}
+            {mode.stability === 'experimental' && (
+              <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-600">
+                {t('search.experimental')}
+              </span>
+            )}
+          </h3>
           <span
             className={`rounded-full px-2 py-1 text-xs font-medium ${
               mode.availability.enabled

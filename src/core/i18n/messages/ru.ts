@@ -413,17 +413,51 @@ export const ru = {
     'альбомы не удалось автоматически сопоставить с MusicBrainz.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'исполнителей не удалось автоматически сопоставить с MusicBrainz.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Не удалось проигнорировать выбранные элементы.',
+  'libraryReconciliation.clearVisible': 'Снять выделение с видимых',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Выбрано: {0}. Этот выбор будет игнорироваться, пока сохранённые исправления не будут удалены.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Игнорировать выбранные альбомы?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Выбрано: {0}. Этот выбор будет игнорироваться, пока сохранённые исправления не будут удалены.',
+  'libraryReconciliation.confirmArtistsTitle': 'Игнорировать выбранных исполнителей?',
   'libraryReconciliation.couldNotLoadAlbums': 'Не удалось загрузить несопоставленные альбомы.',
   'libraryReconciliation.couldNotLoadArtists':
     'Не удалось загрузить несопоставленных исполнителей.',
+  'libraryReconciliation.ignoreForever': 'Игнорировать навсегда',
+  'libraryReconciliation.ignoreSelected': 'Игнорировать выбранное',
+  'libraryReconciliation.invalidMbid': 'Недействительный MBID (ожидается UUID)',
   'libraryReconciliation.loadingAlbums': 'Загрузка несопоставленных альбомов...',
   'libraryReconciliation.loadingArtists': 'Загрузка несопоставленных исполнителей...',
   'libraryReconciliation.noAlbums': 'Несопоставленных альбомов нет.',
   'libraryReconciliation.noArtists':
     'Несопоставленных исполнителей нет. Ваша библиотека полностью сопоставлена.',
+  'libraryReconciliation.normalizedName': 'Нормализованное имя: {0}',
   'libraryReconciliation.of': 'из',
   'libraryReconciliation.page': 'Страница',
+  'libraryReconciliation.pasteAlbumMbid': 'Вставьте MBID альбома (UUID)',
+  'libraryReconciliation.pasteMbid': 'Вставьте MBID (UUID)',
+  'libraryReconciliation.pin': 'Закрепить',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Осталось несколько совпадений. Закрепите правильный MBID или проигнорируйте этот элемент.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Неоднозначное совпадение',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'Не удалось подключиться к MusicBrainz. Повторите синхронизацию библиотеки позже.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Ошибка поиска',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'Причина возникла до начала её отслеживания. Повторно запустите сопоставление или проверьте вручную.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Требует проверки',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Совпадение не найдено. Закрепите известный MBID или проигнорируйте этот элемент.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Совпадение не найдено',
+  'libraryReconciliation.selectAlbum': 'Выбрать альбом {0}',
+  'libraryReconciliation.selectArtist': 'Выбрать исполнителя {0}',
+  'libraryReconciliation.selectedCount': 'Выбрано: {0}',
+  'libraryReconciliation.selectionLimit': 'Одновременно можно выбрать не более {0} элементов.',
+  'libraryReconciliation.selectVisible': 'Выбрать видимые',
   'libraryReconciliation.showing': 'Показано',
+  'libraryReconciliation.unknownType': 'Неизвестный тип',
+  'libraryReconciliation.unknownYear': 'Неизвестный год',
   'playlist.delete': 'Удалить',
   'playlist.deleteFailed': 'Не удалось удалить плейлист',
   'playlist.deleteWarning': 'Удалить этот плейлист? Это действие нельзя отменить.',
@@ -830,9 +864,16 @@ export const ru = {
   'discoveryMode.spotify-saved-albums.label': 'Сохранённые альбомы Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Открывайте исполнителей из альбомов, сохранённых в Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Отслеживаемые исполнители Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Открывайте исполнителей, на которых вы подписаны в Spotify',
   'discoveryMode.subsonic-starred.label': 'Избранное в Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Открывайте исполнителей, похожих на тех, кого вы отметили звёздочкой на вашем сервере Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Любимые исполнители TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Открывайте новое на основе исполнителей из вашей коллекции TIDAL',
+  'discoveryMode.reason.connectTidal': 'Подключите TIDAL, чтобы использовать этот режим.',
   'discoveryMode.notImplementedYet': 'Этот режим ещё не реализован.',
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
@@ -844,6 +885,8 @@ export const ru = {
   'discoveryMode.reason.connectLastfm': 'Подключите Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDeezer': 'Подключите Deezer, чтобы использовать этот режим.',
   'discoveryMode.reason.connectSpotify': 'Подключите Spotify, чтобы использовать этот режим.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Переподключите Spotify, чтобы предоставить доступ к подпискам.',
   'discoveryMode.reason.connectSubsonic': 'Подключите Subsonic, чтобы использовать этот режим.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для поиска релизов используются резервные провайдеры.',
@@ -947,11 +990,6 @@ export const ru = {
   'libraryStats.rootFolders': 'Корневые папки',
   'libraryStats.free': 'свободно',
   'libraryStats.unknown': 'неизвестно',
-  'libraryReconciliation.pasteMbid': 'Вставьте MBID (UUID)',
-  'libraryReconciliation.pasteAlbumMbid': 'Вставьте MBID альбома (UUID)',
-  'libraryReconciliation.pin': 'Закрепить',
-  'libraryReconciliation.ignoreForever': 'Игнорировать навсегда',
-  'libraryReconciliation.invalidMbid': 'Недействительный MBID (ожидается UUID)',
   'settings.tabs.connections': 'Подключения',
   'settings.tabs.targets': 'Назначения',
   'settings.tabs.recommendations': 'Рекомендации',
@@ -1017,6 +1055,17 @@ export const ru = {
   'settings.subsonicDescription':
     'Самостоятельно размещённый музыкальный сервер (Navidrome, Airsonic) для синхронизации библиотеки и поиска новинок',
   'settings.discogsDescription': 'Коллекция и список желаний из Discogs.',
+  'settings.tidalConnectDescription':
+    'Используйте любимых исполнителей TIDAL как источник рекомендаций',
+  'settings.tidalConnectHelp':
+    'Подключите аккаунт TIDAL, чтобы начать поиск на основе любимых исполнителей.',
+  'settings.tidalAppNotConfigured':
+    'Сначала администратор должен настроить учетные данные приложения TIDAL.',
+  'settings.connectTidal': 'Подключить TIDAL',
+  'settings.tidalConnected': 'Любимые исполнители TIDAL доступны как источник рекомендаций.',
+  'settings.tidalDisconnected': 'TIDAL отключен',
+  'settings.tidalDisconnectFailed': 'Не удалось отключить TIDAL',
+  'settings.tidalAuthorizationFailed': 'Не удалось начать авторизацию TIDAL',
   'settings.tidalDescription':
     'Экспериментальный источник поиска, использующий доступ по клиентским учётным данным TIDAL. Использует недокументированные конечные точки, которые могут измениться без предупреждения.',
   'settings.yourAccount': 'ваш аккаунт',
@@ -1252,6 +1301,30 @@ export const ru = {
   'service.notConfigured': 'Не настроено',
   'service.error': 'Ошибка',
   'service.testing': 'Тестирование...',
+  'oauth.connectedTitle': 'Подключено',
+  'oauth.connectedBody': '{0} теперь подключён.',
+  'oauth.failedTitle': 'Не удалось подключиться',
+  'oauth.error.codeLabel': 'Код поставщика',
+  'oauth.error.generic': 'Не удалось завершить подключение. Начните подключение заново.',
+  'oauth.error.missingCodeOrState':
+    'Поставщик не вернул код авторизации. Начните подключение заново.',
+  'oauth.error.noPendingAuth':
+    'Ни одно ожидающее подключение не соответствует этому ответу, обычно из-за устаревшей вкладки. Начните подключение заново.',
+  'oauth.error.stateExpired':
+    'Попытка подключения заняла больше 10 минут и истекла. Начните её заново.',
+  'oauth.error.browserMismatch':
+    'Завершите подключение в том же браузере, в котором его начали, и повторите попытку.',
+  'oauth.error.missingCredentials':
+    'Сохранённый идентификатор клиента или секрет отсутствует. Введите учётные данные поставщика заново и повторите попытку.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Поставщик недоступен. Проверьте исходящий доступ к сети и повторите попытку.',
+  'oauth.error.tokenExchangeFailed':
+    'Поставщик отклонил подключение. Проверьте учётные данные клиента и зарегистрированный URI перенаправления.',
+  'oauth.error.tokenExchangeMalformed':
+    'Поставщик вернул нечитаемый ответ. Повторите попытку, а если это повторится, проверьте состояние поставщика.',
+  'oauth.error.tokenExchangeNoToken':
+    'Поставщик не вернул токен доступа. Проверьте, есть ли у приложения нужные разрешения, и повторите попытку.',
+  'oauth.error.unknownProvider': 'Этот поставщик не поддерживается.',
   'search.spotifyNotConnected': 'Подключите Spotify в Настройках для включения поиска.',
   'search.tidalNotConfigured': 'Поиск TIDAL еще не настроен.',
   'discover.moodPlaceholder': 'джаз для дождливого дня, веселый поп 90-х, dark ambient...',

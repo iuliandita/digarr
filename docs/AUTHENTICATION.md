@@ -67,6 +67,40 @@ login appear to succeed while the browser rejects the cookie or later mutations
 return `403`. TLS termination therefore requires
 `ALLOWED_ORIGIN=https://public-host` for correct CSRF and public-URL behavior.
 
+The TIDAL connect flow is the second consumer that builds a redirect URI from
+it: when `ALLOWED_ORIGIN` is set, the server pins the callback to
+`${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback` and ignores the URI the
+browser sends, so one shared TIDAL app controls its own callback. Two
+consequences worth knowing before debugging a failed connect:
+
+- A value that differs from the URI registered at TIDAL by so much as a scheme
+  or a trailing slash sends a mismatched `redirect_uri`, and TIDAL rejects the
+  authorization. The failure is opaque, and looks identical to the unvalidated
+  flow simply not working.
+- With `ALLOWED_ORIGIN` unset, the client-supplied URI is accepted only outside
+  production, and only when it points at a loopback host. A production install
+  with no `ALLOWED_ORIGIN` refuses to start the TIDAL flow rather than sending a
+  header-derived callback.
+
+Set `ALLOWED_ORIGIN` before registering the callback at TIDAL, and register
+exactly the URI it produces.
+
+### Provider OAuth transaction state
+
+Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a
+dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row, so
+an abandoned or failed connect cannot drop a working connection. Each pending
+row stores only SHA-256 digests of the opaque `state` and of a browser binding,
+expires after 10 minutes, and is deleted the moment its `state` is redeemed -
+successful exchange or not. Starting a new flow replaces any earlier unfinished
+one for the same user and provider, and expired rows are swept every 6 hours.
+
+Initiate also sets an `HttpOnly`, `SameSite=Lax` transaction cookie scoped to
+that provider's callback path, mirroring the OIDC login flow. A callback whose
+cookie is missing or does not match the pending row is refused, so a leaked
+`state` alone cannot be redeemed from another browser. Finishing a connect in a
+different browser than the one that started it therefore fails by design.
+
 ### Cookie `Secure` policy
 
 In production, session and OIDC transaction cookies default to `Secure` even
@@ -120,8 +154,8 @@ consumes the one-time transaction cookie the login step set.
 After validating the authorization response, Digarr retains only the identity
 claims needed for the local account. Provider access, refresh, and ID tokens
 are not retained or refreshed, copied between database backends, or written to
-backups. OAuth tokens stored for separate provider connections such as Spotify
-or Deezer are unrelated to the OIDC callback session token.
+backups. OAuth tokens stored for separate provider connections such as Spotify,
+Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 

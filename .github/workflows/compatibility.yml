@@ -21,7 +21,7 @@ jobs:
     name: Podman (rootless)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
       - name: Install podman-compose
         run: pip install podman-compose
@@ -95,34 +95,48 @@ jobs:
           podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v || true
 
   docker-macos:
-    name: Docker Desktop (macOS)
-    runs-on: macos-15
-    # Hosted macOS runners are flaky when booting Docker Desktop; keep the
-    # signal visible in PRs and scheduled runs without blocking merges.
+    name: Docker via Colima (macOS Intel)
+    runs-on: macos-15-intel
+    # Keep the macOS signal visible without blocking unrelated pull requests
+    # while the hosted Intel path proves stable.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
-      - name: Install Docker
-        timeout-minutes: 5
-        run: brew install --cask docker
-
-      - name: Start Docker Desktop
-        id: docker
-        timeout-minutes: 6
+      - name: Install Colima and Docker clients
+        timeout-minutes: 10
         run: |
-          open /Applications/Docker.app
-          for i in $(seq 1 150); do
-            if docker info > /dev/null 2>&1; then
-              echo "Docker ready after $((i * 2))s"
-              echo "ready=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::error::Docker Desktop did not become ready within 300 seconds"
-          echo "ready=false" >> "$GITHUB_OUTPUT"
-          exit 1
+          brew install colima docker docker-buildx docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx" ~/.docker/cli-plugins/docker-buildx
+          ln -sfn "$(brew --prefix)/opt/docker-compose/bin/docker-compose" ~/.docker/cli-plugins/docker-compose
+
+      - name: Start Docker through Colima
+        id: docker
+        timeout-minutes: 10
+        run: |
+          colima start \
+            --cpu 4 \
+            --memory 10 \
+            --disk 30 \
+            --arch x86_64 \
+            --vm-type vz \
+            --mount-type virtiofs
+          docker info
+          docker buildx version
+          docker compose version
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Diagnose Colima startup
+        if: failure() && steps.docker.outputs.ready != 'true'
+        run: |
+          sw_vers
+          uname -m
+          sysctl -n kern.hv_support || true
+          colima status || true
+          colima list || true
+          limactl list || true
+          docker info || true
 
       - name: Prepare env
         if: steps.docker.outputs.ready == 'true'
@@ -169,7 +183,7 @@ jobs:
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after ${i}s"
               break
@@ -178,7 +192,7 @@ jobs:
           done
           curl -fsS http://localhost:3000/health | grep -q '"dbBackend":"pglite"'
           docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml restart
-          for i in $(seq 1 30); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "App is healthy after restart (${i}s)"
               break
@@ -192,8 +206,16 @@ jobs:
         if: failure() && steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.compat.yml logs || true
-          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml logs --timestamps || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs --timestamps || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml ps -a || true
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml ps -a || true
+          docker compose -f docker-compose.yml -f docker-compose.compat.yml ps -aq | while IFS= read -r container; do
+            docker inspect --format '{{json .State}}' "$container" || true
+          done
+          docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml ps -aq | while IFS= read -r container; do
+            docker inspect --format '{{json .State}}' "$container" || true
+          done
 
       - name: Tear down
         if: always() && steps.docker.outputs.ready == 'true'
@@ -201,6 +223,7 @@ jobs:
         run: |
           docker compose -f docker-compose.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
           docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v 2>/dev/null || true
+          colima stop || true
 
       - name: Verify compatibility assertions ran
         if: always()

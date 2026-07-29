@@ -1,4 +1,4 @@
-import { createSpotifyClient } from '@/core/clients/spotify'
+import { createSpotifyClient, type SpotifyTimeRange } from '@/core/clients/spotify'
 import type { DiscoverySource } from './types'
 
 export function createSpotifySource(accessToken: string): DiscoverySource {
@@ -10,12 +10,33 @@ export function createSpotifySource(accessToken: string): DiscoverySource {
     capabilities: ['topArtists', 'recentListening'],
 
     async getTopArtists(limit) {
-      const artists = await client.getTopArtists('medium_term', limit)
-      return artists.map((a) => ({
-        name: a.name,
-        playCount: a.popularity,
-        source: 'spotify',
-        genres: a.genres ?? [],
+      const windows: SpotifyTimeRange[] = ['short_term', 'medium_term', 'long_term']
+      const settled = await Promise.allSettled(windows.map((w) => client.getTopArtists(w, limit)))
+
+      const merged = new Map<string, { name: string; playCount: number; genres: Set<string> }>()
+      for (const outcome of settled) {
+        if (outcome.status !== 'fulfilled') continue
+        for (const a of outcome.value) {
+          const key = a.name.trim().toLowerCase()
+          const existing = merged.get(key)
+          if (existing) {
+            existing.playCount = Math.max(existing.playCount, a.popularity)
+            for (const g of a.genres ?? []) existing.genres.add(g)
+          } else {
+            merged.set(key, {
+              name: a.name,
+              playCount: a.popularity,
+              genres: new Set(a.genres ?? []),
+            })
+          }
+        }
+      }
+
+      return [...merged.values()].map((m) => ({
+        name: m.name,
+        playCount: m.playCount,
+        source: 'spotify' as const,
+        genres: [...m.genres],
       }))
     },
 

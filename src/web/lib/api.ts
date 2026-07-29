@@ -20,6 +20,7 @@ export type DiscoveryModeResponse = {
   label: string
   description: string
   availability: DiscoveryAvailabilityResult
+  stability?: 'stable' | 'experimental'
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
 }
@@ -581,6 +582,7 @@ export type LibrarySyncCounts = {
   matchedDisambiguated: number
   unreconciledAmbiguous: number
   unreconciledNoCandidate: number
+  unreconciledLookupFailed?: number
   cacheHits: number
   mbApiCalls: number
   mbApiCallsFailed?: number
@@ -597,6 +599,9 @@ export type LibrarySyncSourceRow = {
   lastSyncError: string | null
   lastSyncCounts: LibrarySyncCounts | null
 }
+export type LibraryUnreconciledReason = 'no_candidate' | 'ambiguous' | 'lookup_failed'
+export type LibraryArtistIdentity = { source: string; sourceArtistId: string }
+export type LibraryAlbumIdentity = { source: string; sourceAlbumId: string }
 export type LibraryUnreconciledRow = {
   id: number
   userId: number | null
@@ -607,8 +612,10 @@ export type LibraryUnreconciledRow = {
   mbid: string | null
   matchMethod: string | null
   matchConfidence: number | null
+  unreconciledReason: LibraryUnreconciledReason | null
   genres: string[] | null
   syncedAt: string
+  lastGapCheckAt: string | null
 }
 export type LibrarySourceSyncResult =
   | { source: string; status: 'completed'; counts: LibrarySyncCounts }
@@ -651,6 +658,9 @@ export type LibraryUnreconciledAlbumRow = {
   artistMbid: string | null
   primaryType: string | null
   releaseYear: number | null
+  matchMethod: string | null
+  matchConfidence: number | null
+  unreconciledReason: LibraryUnreconciledReason | null
   syncedAt: string
 }
 export type LibraryAlbumOverrideInput = {
@@ -674,6 +684,16 @@ export const getLibraryAlbumCoverage = (artistMbid: string) =>
   fetchApi<LibraryAlbumCoverage>(`/library/album-coverage/${encodeURIComponent(artistMbid)}`)
 export const getLibraryUnreconciledAlbums = () =>
   fetchApi<{ items: LibraryUnreconciledAlbumRow[] }>('/library/unreconciled-albums')
+export const bulkIgnoreLibraryArtists = (items: LibraryArtistIdentity[]) =>
+  fetchApi<void>('/library/overrides/bulk-ignore', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  })
+export const bulkIgnoreLibraryAlbums = (items: LibraryAlbumIdentity[]) =>
+  fetchApi<void>('/library/album-overrides/bulk-ignore', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  })
 export const saveLibraryOverride = (payload: LibraryOverrideInput) =>
   fetchApi<void>('/library/overrides', {
     method: 'POST',

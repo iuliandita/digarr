@@ -412,16 +412,50 @@ export const ro = {
     'albumele nu au putut fi potrivite automat cu MusicBrainz.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'artiștii nu au putut fi potriviți automat cu MusicBrainz.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Elementele selectate nu au putut fi ignorate.',
+  'libraryReconciliation.clearVisible': 'Ștergeți selecția vizibilă',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Selecție: {0}. Această selecție va rămâne ignorată până când corecțiile salvate vor fi eliminate.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Ignorați albumele selectate?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Selecție: {0}. Această selecție va rămâne ignorată până când corecțiile salvate vor fi eliminate.',
+  'libraryReconciliation.confirmArtistsTitle': 'Ignorați artiștii selectați?',
   'libraryReconciliation.couldNotLoadAlbums': 'Albumele neconcilitate nu au putut fi încărcate.',
   'libraryReconciliation.couldNotLoadArtists': 'Artiștii neconciliați nu au putut fi încărcați.',
+  'libraryReconciliation.ignoreForever': 'Ignorați permanent',
+  'libraryReconciliation.ignoreSelected': 'Ignorați selecția',
+  'libraryReconciliation.invalidMbid': 'MBID nevalid (UUID așteptat)',
   'libraryReconciliation.loadingAlbums': 'Se încarcă albumele neconcilitate...',
   'libraryReconciliation.loadingArtists': 'Se încarcă artiștii neconciliați...',
   'libraryReconciliation.noAlbums': 'Nu există albume neconcilitate.',
   'libraryReconciliation.noArtists':
     'Nu există artiști neconciliați. Biblioteca dvs. este complet potrivită.',
+  'libraryReconciliation.normalizedName': 'Nume normalizat: {0}',
   'libraryReconciliation.of': 'din',
   'libraryReconciliation.page': 'Pagina',
+  'libraryReconciliation.pasteAlbumMbid': 'Lipiți MBID album (UUID)',
+  'libraryReconciliation.pasteMbid': 'Lipiți MBID (UUID)',
+  'libraryReconciliation.pin': 'Fixați',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Au rămas mai multe potriviri. Fixați MBID-ul corect sau ignorați acest element.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Potrivire ambiguă',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz nu a putut fi accesat. Reîncercați sincronizarea bibliotecii mai târziu.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Căutare eșuată',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'Cauza este anterioară urmăririi motivelor. Reluați concilierea sau verificați manual.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Necesită verificare',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Nu a fost găsită nicio potrivire. Fixați un MBID cunoscut sau ignorați acest element.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Nicio potrivire',
+  'libraryReconciliation.selectAlbum': 'Selectați albumul {0}',
+  'libraryReconciliation.selectArtist': 'Selectați artistul {0}',
+  'libraryReconciliation.selectedCount': 'Selectate: {0}',
+  'libraryReconciliation.selectionLimit': 'Pot fi selectate cel mult {0} elemente simultan.',
+  'libraryReconciliation.selectVisible': 'Selectați elementele vizibile',
   'libraryReconciliation.showing': 'Se afișează',
+  'libraryReconciliation.unknownType': 'Tip necunoscut',
+  'libraryReconciliation.unknownYear': 'An necunoscut',
   'playlist.delete': 'Șterge',
   'playlist.deleteFailed': 'Nu s-a șters lista de redare',
   'playlist.deleteWarning': 'Ștergeți acest playlist? Această acțiune nu poate fi anulată.',
@@ -829,9 +863,16 @@ export const ro = {
   'discoveryMode.spotify-saved-albums.label': 'Albume salvate Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Descoperă artiști din albumele pe care le-ai salvat pe Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Artiști urmăriți Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Descoperă din artiștii pe care îi urmărești pe Spotify',
   'discoveryMode.subsonic-starred.label': 'Favorite Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Descoperă artiști similari celor pe care i-ai marcat cu stea pe serverul tău Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Artiști favoriți TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Descoperă pornind de la artiștii din colecția ta TIDAL',
+  'discoveryMode.reason.connectTidal': 'Conectează TIDAL pentru a folosi acest mod.',
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
@@ -842,6 +883,8 @@ export const ro = {
   'discoveryMode.reason.connectLastfm': 'Conectează Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDeezer': 'Conectează Deezer pentru a folosi acest mod.',
   'discoveryMode.reason.connectSpotify': 'Conectează Spotify pentru a folosi acest mod.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Reconectează Spotify pentru a acorda acces la cei urmăriți.',
   'discoveryMode.reason.connectSubsonic': 'Conectează Subsonic pentru a folosi acest mod.',
   'discoveryMode.reason.releaseRadarFallback':
     'Se folosesc furnizori de rezervă pentru descoperirea lansărilor.',
@@ -945,11 +988,6 @@ export const ro = {
   'libraryStats.rootFolders': 'Dosare rădăcină',
   'libraryStats.free': 'liber',
   'libraryStats.unknown': 'necunoscut',
-  'libraryReconciliation.pasteMbid': 'Lipiți MBID (UUID)',
-  'libraryReconciliation.pasteAlbumMbid': 'Lipiți MBID album (UUID)',
-  'libraryReconciliation.pin': 'Fixați',
-  'libraryReconciliation.ignoreForever': 'Ignorați permanent',
-  'libraryReconciliation.invalidMbid': 'MBID nevalid (UUID așteptat)',
   'settings.tabs.connections': 'Conexiuni',
   'settings.tabs.targets': 'Destinații',
   'settings.tabs.recommendations': 'Recomandări',
@@ -1014,6 +1052,18 @@ export const ro = {
   'settings.subsonicDescription':
     'Server de muzică auto-găzduit (Navidrome, Airsonic) pentru sincronizarea bibliotecii și descoperire',
   'settings.discogsDescription': 'Colecție și listă de dorințe din Discogs.',
+  'settings.tidalConnectDescription':
+    'Folosește artiștii tăi favoriți din TIDAL ca sursă de descoperire',
+  'settings.tidalConnectHelp':
+    'Conectează-ți contul TIDAL pentru a porni descoperirile de la artiștii tăi favoriți.',
+  'settings.tidalAppNotConfigured':
+    'Un administrator trebuie să configureze mai întâi datele aplicației TIDAL.',
+  'settings.connectTidal': 'Conectează TIDAL',
+  'settings.tidalConnected':
+    'Artiștii tăi favoriți din TIDAL sunt disponibili ca sursă de descoperire.',
+  'settings.tidalDisconnected': 'TIDAL deconectat',
+  'settings.tidalDisconnectFailed': 'Deconectarea TIDAL a eșuat',
+  'settings.tidalAuthorizationFailed': 'Pornirea autorizării TIDAL a eșuat',
   'settings.tidalDescription':
     'Sursă de căutare experimentală care utilizează acces prin credențiale de client TIDAL. Folosește puncte finale nedocumentate care se pot schimba fără notificare.',
   'settings.yourAccount': 'contul dvs.',
@@ -1248,6 +1298,30 @@ export const ro = {
   'service.notConfigured': 'Neconfigurat',
   'service.error': 'Eroare',
   'service.testing': 'Testare...',
+  'oauth.connectedTitle': 'Conectat',
+  'oauth.connectedBody': '{0} este acum conectat.',
+  'oauth.failedTitle': 'Conectare eșuată',
+  'oauth.error.codeLabel': 'Cod furnizor',
+  'oauth.error.generic': 'Conectarea nu a putut fi finalizată. Pornește conectarea din nou.',
+  'oauth.error.missingCodeOrState':
+    'Furnizorul nu a trimis înapoi un cod de autorizare. Pornește conectarea din nou.',
+  'oauth.error.noPendingAuth':
+    'Nicio conectare în așteptare nu corespunde acestui răspuns, de obicei din cauza unei file expirate. Pornește conectarea din nou.',
+  'oauth.error.stateExpired':
+    'Încercarea de conectare a durat peste 10 minute și a expirat. Pornește-o din nou.',
+  'oauth.error.browserMismatch':
+    'Finalizează conectarea în același browser în care ai pornit-o, apoi încearcă din nou.',
+  'oauth.error.missingCredentials':
+    'Lipsește ID-ul de client sau secretul salvat. Introdu din nou datele furnizorului și încearcă iar.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Furnizorul nu a putut fi contactat. Verifică accesul de rețea spre exterior și încearcă din nou.',
+  'oauth.error.tokenExchangeFailed':
+    'Furnizorul a respins conectarea. Verifică datele de client și URI-ul de redirecționare înregistrat.',
+  'oauth.error.tokenExchangeMalformed':
+    'Furnizorul a returnat un răspuns ilizibil. Încearcă din nou și verifică starea furnizorului dacă se repetă.',
+  'oauth.error.tokenExchangeNoToken':
+    'Furnizorul nu a returnat niciun token de acces. Verifică dacă aplicația are permisiunile necesare și încearcă din nou.',
+  'oauth.error.unknownProvider': 'Acest furnizor nu este acceptat.',
   'search.spotifyNotConnected': 'Conecteaza Spotify in Setari pentru a activa cautarea.',
   'search.tidalNotConfigured': 'Cautarea TIDAL nu este inca configurata.',
   'discover.moodPlaceholder': 'jazz pentru zile ploioase, pop energic din anii 90, dark ambient...',

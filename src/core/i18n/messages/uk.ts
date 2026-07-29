@@ -411,16 +411,50 @@ export const uk = {
     'альбоми не вдалося автоматично зіставити з MusicBrainz.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'виконавців не вдалося автоматично зіставити з MusicBrainz.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Не вдалося проігнорувати вибрані елементи.',
+  'libraryReconciliation.clearVisible': 'Очистити видиме виділення',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Вибрано: {0}. Цей вибір ігноруватиметься, доки не буде видалено збережені виправлення.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Ігнорувати вибрані альбоми?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Вибрано: {0}. Цей вибір ігноруватиметься, доки не буде видалено збережені виправлення.',
+  'libraryReconciliation.confirmArtistsTitle': 'Ігнорувати вибраних виконавців?',
   'libraryReconciliation.couldNotLoadAlbums': 'Не вдалося завантажити незіставлені альбоми.',
   'libraryReconciliation.couldNotLoadArtists': 'Не вдалося завантажити незіставлених виконавців.',
+  'libraryReconciliation.ignoreForever': 'Ігнорувати назавжди',
+  'libraryReconciliation.ignoreSelected': 'Ігнорувати вибране',
+  'libraryReconciliation.invalidMbid': 'Недійсний MBID (очікується UUID)',
   'libraryReconciliation.loadingAlbums': 'Завантаження незіставлених альбомів...',
   'libraryReconciliation.loadingArtists': 'Завантаження незіставлених виконавців...',
   'libraryReconciliation.noAlbums': 'Незіставлених альбомів немає.',
   'libraryReconciliation.noArtists':
     'Незіставлених виконавців немає. Ваша бібліотека повністю зіставлена.',
+  'libraryReconciliation.normalizedName': 'Нормалізована назва: {0}',
   'libraryReconciliation.of': 'з',
   'libraryReconciliation.page': 'Сторінка',
+  'libraryReconciliation.pasteAlbumMbid': 'Вставте MBID альбому (UUID)',
+  'libraryReconciliation.pasteMbid': 'Вставте MBID (UUID)',
+  'libraryReconciliation.pin': 'Закріпити',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Залишилося кілька відповідників. Закріпіть правильний MBID або проігноруйте цей елемент.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Неоднозначний відповідник',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'Не вдалося підключитися до MusicBrainz. Повторіть синхронізацію бібліотеки пізніше.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Помилка пошуку',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'Причина виникла до запровадження її відстеження. Повторно запустіть зіставлення або перевірте вручну.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Потребує перевірки',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Відповідника не знайдено. Закріпіть відомий MBID або проігноруйте цей елемент.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Відповідника не знайдено',
+  'libraryReconciliation.selectAlbum': 'Вибрати альбом {0}',
+  'libraryReconciliation.selectArtist': 'Вибрати виконавця {0}',
+  'libraryReconciliation.selectedCount': 'Вибрано: {0}',
+  'libraryReconciliation.selectionLimit': 'Одночасно можна вибрати не більше {0} елементів.',
+  'libraryReconciliation.selectVisible': 'Вибрати видимі',
   'libraryReconciliation.showing': 'Показано',
+  'libraryReconciliation.unknownType': 'Невідомий тип',
+  'libraryReconciliation.unknownYear': 'Невідомий рік',
   'playlist.delete': 'Видалити',
   'playlist.deleteFailed': 'Не вдалося видалити список відтворення',
   'playlist.deleteWarning': 'Видалити цей плейлист? Цю дію неможливо скасувати.',
@@ -824,9 +858,16 @@ export const uk = {
   'discoveryMode.spotify-saved-albums.label': 'Збережені альбоми Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Відкривайте виконавців з альбомів, збережених у Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Відстежувані виконавці Spotify',
+  'discoveryMode.spotify-followed-artists.description':
+    'Відкривайте виконавців, на яких ви підписані у Spotify',
   'discoveryMode.subsonic-starred.label': 'Обране в Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Відкривайте виконавців, схожих на тих, кого ви відзначили зірочкою на вашому сервері Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Улюблені виконавці TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Відкривайте нове на основі виконавців із вашої колекції TIDAL',
+  'discoveryMode.reason.connectTidal': 'Підключіть TIDAL, щоб використовувати цей режим.',
   'discoveryMode.notImplementedYet': 'Цей режим ще не реалізовано.',
   'discoveryMode.notShippedYet': 'Цей режим ще не доступний.',
   'discoveryMode.reason.connectListenBrainz':
@@ -838,6 +879,8 @@ export const uk = {
   'discoveryMode.reason.connectLastfm': 'Підключіть Last.fm, щоб використовувати цей режим.',
   'discoveryMode.reason.connectDeezer': 'Підключіть Deezer, щоб використовувати цей режим.',
   'discoveryMode.reason.connectSpotify': 'Підключіть Spotify, щоб використовувати цей режим.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Повторно підключіть Spotify, щоб надати доступ до підписок.',
   'discoveryMode.reason.connectSubsonic': 'Підключіть Subsonic, щоб використовувати цей режим.',
   'discoveryMode.reason.releaseRadarFallback':
     'Для пошуку релізів використовуються резервні постачальники.',
@@ -942,11 +985,6 @@ export const uk = {
   'libraryStats.rootFolders': 'Кореневі папки',
   'libraryStats.free': 'вільно',
   'libraryStats.unknown': 'невідомо',
-  'libraryReconciliation.pasteMbid': 'Вставте MBID (UUID)',
-  'libraryReconciliation.pasteAlbumMbid': 'Вставте MBID альбому (UUID)',
-  'libraryReconciliation.pin': 'Закріпити',
-  'libraryReconciliation.ignoreForever': 'Ігнорувати назавжди',
-  'libraryReconciliation.invalidMbid': 'Недійсний MBID (очікується UUID)',
   'settings.tabs.connections': 'Підключення',
   'settings.tabs.targets': 'Цілі',
   'settings.tabs.recommendations': 'Рекомендації',
@@ -1011,6 +1049,17 @@ export const uk = {
   'settings.subsonicDescription':
     'Самостійно розміщений музичний сервер (Navidrome, Airsonic) для синхронізації бібліотеки та відкриття',
   'settings.discogsDescription': 'Колекція та список бажань із Discogs.',
+  'settings.tidalConnectDescription':
+    'Використовуйте улюблених виконавців TIDAL як джерело відкриттів',
+  'settings.tidalConnectHelp':
+    'Підключіть обліковий запис TIDAL, щоб починати відкриття з улюблених виконавців.',
+  'settings.tidalAppNotConfigured':
+    'Спочатку адміністратор має налаштувати облікові дані застосунку TIDAL.',
+  'settings.connectTidal': 'Підключити TIDAL',
+  'settings.tidalConnected': 'Улюблені виконавці TIDAL доступні як джерело відкриттів.',
+  'settings.tidalDisconnected': 'TIDAL відключено',
+  'settings.tidalDisconnectFailed': 'Не вдалося відключити TIDAL',
+  'settings.tidalAuthorizationFailed': 'Не вдалося розпочати авторизацію TIDAL',
   'settings.tidalDescription':
     'Експериментальне джерело пошуку, що використовує доступ за клієнтськими обліковими даними TIDAL. Використовує недокументовані кінцеві точки, які можуть змінитися без попередження.',
   'settings.yourAccount': 'ваш акаунт',
@@ -1245,6 +1294,30 @@ export const uk = {
   'service.notConfigured': 'Не налаштовано',
   'service.error': 'Помилка',
   'service.testing': 'Тестування...',
+  'oauth.connectedTitle': 'Підключено',
+  'oauth.connectedBody': '{0} тепер підключено.',
+  'oauth.failedTitle': 'Не вдалося підключити',
+  'oauth.error.codeLabel': 'Код постачальника',
+  'oauth.error.generic': 'Не вдалося завершити підключення. Розпочніть підключення знову.',
+  'oauth.error.missingCodeOrState':
+    'Постачальник не повернув код авторизації. Розпочніть підключення знову.',
+  'oauth.error.noPendingAuth':
+    'Жодне очікуване підключення не відповідає цій відповіді, зазвичай через застарілу вкладку. Розпочніть підключення знову.',
+  'oauth.error.stateExpired':
+    'Спроба підключення тривала понад 10 хвилин і завершилася. Розпочніть її знову.',
+  'oauth.error.browserMismatch':
+    'Завершіть підключення в тому самому браузері, де ви його розпочали, і спробуйте ще раз.',
+  'oauth.error.missingCredentials':
+    'Збережений ідентифікатор клієнта або секрет відсутній. Введіть облікові дані постачальника ще раз і спробуйте знову.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Постачальник недоступний. Перевірте вихідний доступ до мережі та спробуйте ще раз.',
+  'oauth.error.tokenExchangeFailed':
+    'Постачальник відхилив підключення. Перевірте облікові дані клієнта та зареєстрований URI перенаправлення.',
+  'oauth.error.tokenExchangeMalformed':
+    'Постачальник повернув нечитабельну відповідь. Спробуйте ще раз, а якщо це повториться, перевірте стан постачальника.',
+  'oauth.error.tokenExchangeNoToken':
+    'Постачальник не повернув токен доступу. Перевірте, чи має застосунок потрібні дозволи, і спробуйте ще раз.',
+  'oauth.error.unknownProvider': 'Цей постачальник не підтримується.',
   'search.spotifyNotConnected': 'Підключіть Spotify в Налаштуваннях для увімкнення пошуку.',
   'search.tidalNotConfigured': 'Пошук TIDAL ще не налаштовано.',
   'discover.moodPlaceholder': 'джаз для дощового дня, веселий поп 90-х, dark ambient...',

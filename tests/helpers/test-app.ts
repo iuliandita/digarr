@@ -198,9 +198,11 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     getDiscoveryConnectionSnapshot: vi.fn(async () => ({
       hasListenBrainz: false,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })),

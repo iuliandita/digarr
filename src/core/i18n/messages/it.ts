@@ -413,16 +413,50 @@ export const it = {
     'album che non e stato possibile associare automaticamente a MusicBrainz.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'artisti che non e stato possibile associare automaticamente a MusicBrainz.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Impossibile ignorare gli elementi selezionati.',
+  'libraryReconciliation.clearVisible': 'Cancella selezione visibile',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Selezione: {0}. Questa selezione resterà ignorata finché non verranno rimosse le correzioni salvate.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Ignorare gli album selezionati?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Selezione: {0}. Questa selezione resterà ignorata finché non verranno rimosse le correzioni salvate.',
+  'libraryReconciliation.confirmArtistsTitle': 'Ignorare gli artisti selezionati?',
   'libraryReconciliation.couldNotLoadAlbums': 'Impossibile caricare gli album non riconciliati.',
   'libraryReconciliation.couldNotLoadArtists': 'Impossibile caricare gli artisti non riconciliati.',
+  'libraryReconciliation.ignoreForever': 'Ignora per sempre',
+  'libraryReconciliation.ignoreSelected': 'Ignora selezionati',
+  'libraryReconciliation.invalidMbid': 'MBID non valido (atteso UUID)',
   'libraryReconciliation.loadingAlbums': 'Caricamento degli album non riconciliati...',
   'libraryReconciliation.loadingArtists': 'Caricamento degli artisti non riconciliati...',
   'libraryReconciliation.noAlbums': 'Nessun album non riconciliato.',
   'libraryReconciliation.noArtists':
     'Nessun artista non riconciliato. La tua libreria è completamente conciliata.',
+  'libraryReconciliation.normalizedName': 'Nome normalizzato: {0}',
   'libraryReconciliation.of': 'di',
   'libraryReconciliation.page': 'Pagina',
+  'libraryReconciliation.pasteAlbumMbid': 'Incolla MBID album (UUID)',
+  'libraryReconciliation.pasteMbid': 'Incolla MBID (UUID)',
+  'libraryReconciliation.pin': 'Fissa',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Rimangono più corrispondenze. Fissa l’MBID corretto oppure ignora questo elemento.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Corrispondenza ambigua',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz non è raggiungibile. Riprova a sincronizzare la libreria più tardi.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Ricerca non riuscita',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'La causa precede il tracciamento dei motivi. Ripeti la riconciliazione o controlla manualmente.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'Da controllare',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Nessuna corrispondenza trovata. Fissa un MBID noto oppure ignora questo elemento.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Nessuna corrispondenza',
+  'libraryReconciliation.selectAlbum': 'Seleziona album {0}',
+  'libraryReconciliation.selectArtist': 'Seleziona artista {0}',
+  'libraryReconciliation.selectedCount': 'Selezionati: {0}',
+  'libraryReconciliation.selectionLimit': 'Puoi selezionare al massimo {0} elementi alla volta.',
+  'libraryReconciliation.selectVisible': 'Seleziona visibili',
   'libraryReconciliation.showing': 'Mostrando',
+  'libraryReconciliation.unknownType': 'Tipo sconosciuto',
+  'libraryReconciliation.unknownYear': 'Anno sconosciuto',
   'playlist.delete': 'Elimina',
   'playlist.deleteFailed': 'Impossibile eliminare la playlist',
   'playlist.deleteWarning': 'Eliminare questa playlist? Questa azione non può essere annullata.',
@@ -828,9 +862,15 @@ export const it = {
   'discoveryMode.spotify-saved-albums.label': 'Album salvati di Spotify',
   'discoveryMode.spotify-saved-albums.description':
     'Scopri artisti dagli album che hai salvato su Spotify',
+  'discoveryMode.spotify-followed-artists.label': 'Artisti seguiti di Spotify',
+  'discoveryMode.spotify-followed-artists.description': 'Scopri dagli artisti che segui su Spotify',
   'discoveryMode.subsonic-starred.label': 'Preferiti Subsonic',
   'discoveryMode.subsonic-starred.description':
     'Scopri artisti simili a quelli che hai contrassegnato con una stella sul tuo server Subsonic',
+  'discoveryMode.tidal-favorite-artists.label': 'Artisti preferiti di TIDAL',
+  'discoveryMode.tidal-favorite-artists.description':
+    'Scopri dagli artisti della tua raccolta TIDAL',
+  'discoveryMode.reason.connectTidal': 'Collega TIDAL per usare questa modalità.',
   'discoveryMode.notImplementedYet': 'Questa modalità non è ancora implementata.',
   'discoveryMode.notShippedYet': 'Questa modalità non è ancora disponibile.',
   'discoveryMode.reason.connectListenBrainz': 'Collega ListenBrainz per usare questa modalità.',
@@ -841,6 +881,8 @@ export const it = {
   'discoveryMode.reason.connectLastfm': 'Collega Last.fm per usare questa modalità.',
   'discoveryMode.reason.connectDeezer': 'Collega Deezer per usare questa modalità.',
   'discoveryMode.reason.connectSpotify': 'Collega Spotify per usare questa modalità.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'Ricollega Spotify per concedere l’accesso agli artisti seguiti.',
   'discoveryMode.reason.connectSubsonic': 'Collega Subsonic per usare questa modalità.',
   'discoveryMode.reason.releaseRadarFallback':
     'Uso di provider di fallback per la scoperta delle uscite.',
@@ -944,11 +986,6 @@ export const it = {
   'libraryStats.rootFolders': 'Cartelle radice',
   'libraryStats.free': 'libero',
   'libraryStats.unknown': 'sconosciuto',
-  'libraryReconciliation.pasteMbid': 'Incolla MBID (UUID)',
-  'libraryReconciliation.pasteAlbumMbid': 'Incolla MBID album (UUID)',
-  'libraryReconciliation.pin': 'Fissa',
-  'libraryReconciliation.ignoreForever': 'Ignora per sempre',
-  'libraryReconciliation.invalidMbid': 'MBID non valido (atteso UUID)',
   'settings.tabs.connections': 'Connessioni',
   'settings.tabs.targets': 'Destinazioni',
   'settings.tabs.recommendations': 'Raccomandazioni',
@@ -1014,6 +1051,18 @@ export const it = {
   'settings.subsonicDescription':
     'Server musicale self-hosted (Navidrome, Airsonic) per sincronizzazione libreria e scoperta',
   'settings.discogsDescription': 'Collezione e lista dei desideri da Discogs.',
+  'settings.tidalConnectDescription':
+    'Usa i tuoi artisti preferiti di TIDAL come fonte di scoperta',
+  'settings.tidalConnectHelp':
+    'Collega il tuo account TIDAL per avviare le scoperte dai tuoi artisti preferiti.',
+  'settings.tidalAppNotConfigured':
+    "Un amministratore deve prima configurare le credenziali dell'app TIDAL.",
+  'settings.connectTidal': 'Collega TIDAL',
+  'settings.tidalConnected':
+    'I tuoi artisti preferiti di TIDAL sono disponibili come fonte di scoperta.',
+  'settings.tidalDisconnected': 'TIDAL scollegato',
+  'settings.tidalDisconnectFailed': 'Impossibile scollegare TIDAL',
+  'settings.tidalAuthorizationFailed': "Impossibile avviare l'autorizzazione TIDAL",
   'settings.tidalDescription':
     "Fonte di ricerca sperimentale che utilizza l'accesso tramite credenziali client TIDAL. Utilizza endpoint non documentati che potrebbero cambiare senza preavviso.",
   'settings.yourAccount': 'il tuo account',
@@ -1250,6 +1299,31 @@ export const it = {
   'service.notConfigured': 'Non configurato',
   'service.error': 'Errore',
   'service.testing': 'Verifica...',
+  'oauth.connectedTitle': 'Collegato',
+  'oauth.connectedBody': '{0} è ora collegato.',
+  'oauth.failedTitle': 'Connessione non riuscita',
+  'oauth.error.codeLabel': 'Codice del provider',
+  'oauth.error.generic':
+    'Non è stato possibile completare la connessione. Avvia di nuovo la connessione.',
+  'oauth.error.missingCodeOrState':
+    'Il provider non ha restituito un codice di autorizzazione. Avvia di nuovo la connessione.',
+  'oauth.error.noPendingAuth':
+    'Nessuna connessione in sospeso corrisponde a questa risposta, di solito per una scheda scaduta. Avvia di nuovo la connessione.',
+  'oauth.error.stateExpired':
+    'Il tentativo di connessione ha superato i 10 minuti ed è scaduto. Avvialo di nuovo.',
+  'oauth.error.browserMismatch':
+    "Completa la connessione nello stesso browser da cui l'hai avviata, poi riprova.",
+  'oauth.error.missingCredentials':
+    "Manca l'ID client o il segreto salvato. Reinserisci le credenziali del provider e riprova.",
+  'oauth.error.tokenExchangeUnreachable':
+    "Non è stato possibile raggiungere il provider. Controlla l'accesso di rete in uscita e riprova.",
+  'oauth.error.tokenExchangeFailed':
+    "Il provider ha rifiutato la connessione. Controlla le credenziali client e l'URI di reindirizzamento registrato.",
+  'oauth.error.tokenExchangeMalformed':
+    'Il provider ha restituito una risposta illeggibile. Riprova e controlla lo stato del provider se si ripete.',
+  'oauth.error.tokenExchangeNoToken':
+    "Il provider non ha restituito alcun token di accesso. Verifica che l'app abbia le autorizzazioni necessarie e riprova.",
+  'oauth.error.unknownProvider': 'Questo provider non è supportato.',
   'search.spotifyNotConnected': 'Collega Spotify nelle Impostazioni per abilitare la ricerca.',
   'search.tidalNotConfigured': 'La ricerca TIDAL non e ancora configurata.',
   'discover.moodPlaceholder': 'jazz per giornate piovose, pop anni 90, dark ambient...',

@@ -13,6 +13,8 @@ export type DiscoveryConfigField = {
 
 export type DiscoveryAvailabilityKind = 'strict' | 'fallback'
 
+export type DiscoveryModeStability = 'stable' | 'experimental'
+
 type RawDiscoveryCandidateBase = {
   name: string
   mbid?: string
@@ -55,6 +57,7 @@ export type DiscoveryModeDefinition = {
   label: string
   description: string
   availability: DiscoveryAvailabilityKind
+  stability?: DiscoveryModeStability
   easyFields: DiscoveryConfigField[]
   advancedFields: DiscoveryConfigField[]
   prepare?: (request: DiscoveryModeRequest) => Promise<DiscoveryModeRequest>

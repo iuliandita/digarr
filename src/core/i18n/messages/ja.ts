@@ -409,16 +409,50 @@ export const ja = {
     '件のアルバムを MusicBrainz に自動で照合できませんでした。',
   'libraryReconciliation.artistsCouldNotBeMatched':
     '件のアーティストを MusicBrainz に自動で照合できませんでした。',
+  'libraryReconciliation.bulkIgnoreFailed': '選択した項目を無視できませんでした。',
+  'libraryReconciliation.clearVisible': '表示中の選択を解除',
+  'libraryReconciliation.confirmAlbumsMessage':
+    '選択数：{0}。保存した修正を削除するまで、この選択は無視され続けます。',
+  'libraryReconciliation.confirmAlbumsTitle': '選択したアルバムを無視しますか？',
+  'libraryReconciliation.confirmArtistsMessage':
+    '選択数：{0}。保存した修正を削除するまで、この選択は無視され続けます。',
+  'libraryReconciliation.confirmArtistsTitle': '選択したアーティストを無視しますか？',
   'libraryReconciliation.couldNotLoadAlbums': '未照合のアルバムを読み込めませんでした。',
   'libraryReconciliation.couldNotLoadArtists': '未照合のアーティストを読み込めませんでした。',
+  'libraryReconciliation.ignoreForever': '永久に無視',
+  'libraryReconciliation.ignoreSelected': '選択項目を無視',
+  'libraryReconciliation.invalidMbid': '有効な MBID ではありません（UUID が必要です）',
   'libraryReconciliation.loadingAlbums': '未照合のアルバムを読み込み中...',
   'libraryReconciliation.loadingArtists': '未照合のアーティストを読み込み中...',
   'libraryReconciliation.noAlbums': '未照合のアルバムはありません。',
   'libraryReconciliation.noArtists':
     '未照合のアーティストはありません。ライブラリはすべて照合済みです。',
+  'libraryReconciliation.normalizedName': '正規化名：{0}',
   'libraryReconciliation.of': '/',
   'libraryReconciliation.page': 'ページ',
+  'libraryReconciliation.pasteAlbumMbid': 'アルバム MBID（UUID）を貼り付け',
+  'libraryReconciliation.pasteMbid': 'MBID（UUID）を貼り付け',
+  'libraryReconciliation.pin': 'ピン留め',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    '複数の候補が残っています。正しい MBID をピン留めするか、この項目を無視してください。',
+  'libraryReconciliation.reasonAmbiguousLabel': '一致候補が複数',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz に接続できませんでした。後でライブラリの同期を再試行してください。',
+  'libraryReconciliation.reasonLookupFailedLabel': '検索失敗',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    '理由の記録開始前に発生したため、原因を特定できません。照合を再実行するか、手動で確認してください。',
+  'libraryReconciliation.reasonNeedsReviewLabel': '確認が必要',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    '一致する候補が見つかりません。既知の MBID をピン留めするか、この項目を無視してください。',
+  'libraryReconciliation.reasonNoCandidateLabel': '一致候補なし',
+  'libraryReconciliation.selectAlbum': 'アルバム {0} を選択',
+  'libraryReconciliation.selectArtist': 'アーティスト {0} を選択',
+  'libraryReconciliation.selectedCount': '選択済み：{0}',
+  'libraryReconciliation.selectionLimit': '一度に選択できるのは最大 {0} 件です。',
+  'libraryReconciliation.selectVisible': '表示中の項目を選択',
   'libraryReconciliation.showing': '表示',
+  'libraryReconciliation.unknownType': '不明な種類',
+  'libraryReconciliation.unknownYear': '年不明',
   'playlist.delete': '削除',
   'playlist.deleteFailed': 'プレイリストの削除に失敗しました',
   'playlist.deleteWarning': 'このプレイリストを削除しますか？この操作は元に戻せません。',
@@ -819,9 +853,16 @@ export const ja = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify 保存済みアルバム',
   'discoveryMode.spotify-saved-albums.description':
     'Spotify に保存したアルバムからアーティストを発見します',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify フォロー中のアーティスト',
+  'discoveryMode.spotify-followed-artists.description':
+    'Spotify でフォローしているアーティストから発見します',
   'discoveryMode.subsonic-starred.label': 'Subsonic のお気に入り',
   'discoveryMode.subsonic-starred.description':
     'Subsonic サーバーでスターを付けたアーティストに似たアーティストを発見します',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL のお気に入りアーティスト',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL のコレクションにいるアーティストから発見します',
+  'discoveryMode.reason.connectTidal': 'このモードを使うには TIDAL を接続してください。',
   'discoveryMode.notImplementedYet': 'このモードはまだ実装されていません。',
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
@@ -833,6 +874,8 @@ export const ja = {
   'discoveryMode.reason.connectLastfm': 'このモードを使うには Last.fm を接続してください。',
   'discoveryMode.reason.connectDeezer': 'このモードを使うには Deezer を接続してください。',
   'discoveryMode.reason.connectSpotify': 'このモードを使うには Spotify を接続してください。',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    'フォローへのアクセスを許可するには Spotify を再接続してください。',
   'discoveryMode.reason.connectSubsonic': 'このモードを使うには Subsonic を接続してください。',
   'discoveryMode.reason.releaseRadarFallback':
     'リリース探索にはフォールバックプロバイダーが使われます。',
@@ -933,11 +976,6 @@ export const ja = {
   'libraryStats.rootFolders': 'ルートフォルダ',
   'libraryStats.free': '空き',
   'libraryStats.unknown': '不明',
-  'libraryReconciliation.pasteMbid': 'MBID（UUID）を貼り付け',
-  'libraryReconciliation.pasteAlbumMbid': 'アルバム MBID（UUID）を貼り付け',
-  'libraryReconciliation.pin': 'ピン留め',
-  'libraryReconciliation.ignoreForever': '永久に無視',
-  'libraryReconciliation.invalidMbid': '有効な MBID ではありません（UUID が必要です）',
   'settings.tabs.connections': '接続',
   'settings.tabs.targets': 'ターゲット',
   'settings.tabs.recommendations': 'おすすめ',
@@ -1001,6 +1039,15 @@ export const ja = {
   'settings.subsonicDescription':
     'ライブラリ同期と発見のためのセルフホスト音楽サーバー（Navidrome、Airsonic）',
   'settings.discogsDescription': 'Discogs のコレクションとウォントリスト。',
+  'settings.tidalConnectDescription': 'TIDAL のお気に入りアーティストを発見のソースとして使います',
+  'settings.tidalConnectHelp':
+    'TIDAL アカウントを接続すると、お気に入りアーティストを起点に発見できます。',
+  'settings.tidalAppNotConfigured': '先に管理者が TIDAL アプリの認証情報を設定する必要があります。',
+  'settings.connectTidal': 'TIDAL を接続',
+  'settings.tidalConnected': 'TIDAL のお気に入りアーティストを発見のソースとして利用できます。',
+  'settings.tidalDisconnected': 'TIDAL の接続を解除しました',
+  'settings.tidalDisconnectFailed': 'TIDAL の接続解除に失敗しました',
+  'settings.tidalAuthorizationFailed': 'TIDAL の認証を開始できませんでした',
   'settings.tidalDescription':
     'TIDALのクライアントクレデンシャルアクセスを使用する実験的な検索ソースです。仕様変更の可能性がある非公開のエンドポイントを使用します。',
   'settings.yourAccount': 'あなたのアカウント',
@@ -1231,6 +1278,30 @@ export const ja = {
   'service.notConfigured': '未設定',
   'service.error': 'エラー',
   'service.testing': 'テスト中...',
+  'oauth.connectedTitle': '接続しました',
+  'oauth.connectedBody': '{0}が接続されました。',
+  'oauth.failedTitle': '接続に失敗しました',
+  'oauth.error.codeLabel': 'プロバイダーコード',
+  'oauth.error.generic': '接続を完了できませんでした。もう一度接続を開始してください。',
+  'oauth.error.missingCodeOrState':
+    'プロバイダーから認可コードが返されませんでした。もう一度接続を開始してください。',
+  'oauth.error.noPendingAuth':
+    'この応答に一致する保留中の接続がありません。多くの場合、タブが古くなっています。もう一度接続を開始してください。',
+  'oauth.error.stateExpired':
+    '接続の試行が10分を超えたため期限切れになりました。もう一度開始してください。',
+  'oauth.error.browserMismatch':
+    '接続を開始したブラウザーと同じブラウザーで完了してから、もう一度お試しください。',
+  'oauth.error.missingCredentials':
+    '保存されたクライアントIDまたはシークレットがありません。プロバイダーの認証情報を入力し直してからお試しください。',
+  'oauth.error.tokenExchangeUnreachable':
+    'プロバイダーに接続できませんでした。外向きのネットワークアクセスを確認してからお試しください。',
+  'oauth.error.tokenExchangeFailed':
+    'プロバイダーが接続を拒否しました。クライアント認証情報と登録済みのリダイレクトURIを確認してください。',
+  'oauth.error.tokenExchangeMalformed':
+    'プロバイダーが読み取れない応答を返しました。もう一度試し、繰り返す場合はプロバイダーの状態を確認してください。',
+  'oauth.error.tokenExchangeNoToken':
+    'プロバイダーからアクセストークンが返されませんでした。アプリに必要な権限があるか確認してからお試しください。',
+  'oauth.error.unknownProvider': 'このプロバイダーはサポートされていません。',
   'search.spotifyNotConnected': '設定でSpotifyを接続して検索を有効にしてください。',
   'search.tidalNotConfigured': 'TIDAL検索はまだ設定されていません。',
   'discover.moodPlaceholder': '雨の日のジャズ、アップビート90年代ポップ、ダークアンビエント...',

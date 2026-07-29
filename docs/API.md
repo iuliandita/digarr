@@ -78,8 +78,9 @@ Offset-paginated routes:
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
 OpenAPI coverage currently includes auth status/login/register/session
-migration, recommendations, artist blocks, jobs, and settings service probes.
-The Markdown reference remains the complete route inventory.
+migration, recommendations, artist blocks, jobs, library reconciliation lists
+and bulk ignore, and settings service probes. The Markdown reference remains
+the complete route inventory.
 
 ---
 
@@ -147,10 +148,34 @@ Notes:
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
 | GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
-| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (e.g. Spotify) |
-| GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback |
+| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
+| GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
+
+**POST /api/v1/auth/oauth/:provider/initiate** notes:
+- For `tidal`, the body `clientId` / `clientSecret` are ignored: the server reads the one admin-registered TIDAL app from settings, so the bundled UI sends empty strings. Returns `400` with `TIDAL app credentials are not configured on the server` when no admin app is registered.
+- For `tidal`, the body `redirectUri` is ignored whenever `ALLOWED_ORIGIN` is set; the server pins the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback`. With `ALLOWED_ORIGIN` unset, the client-supplied value is accepted only outside production and only for a loopback host; production returns `400 ALLOWED_ORIGIN must be set to connect TIDAL`. The registered URI at TIDAL must match whichever value applies.
+- In-flight authorizations live in their own table, so calling initiate on an already-connected provider no longer disturbs the stored token: an abandoned re-connect leaves the existing connection intact. Starting a new flow discards the previous unfinished one for the same user and provider.
+- Only digests of the `state` and of the browser binding are persisted, and the row expires after 10 minutes.
+
+**GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. The settings page renders both as a dismissible banner and then strips the parameter from the URL. Stages:
+
+| `oauth_error` | Meaning |
+|---------------|---------|
+| *(provider value)* | The provider returned an `error` query param; passed through verbatim |
+| `missing_code_or_state` | The provider redirected without `code` or `state` |
+| `no_pending_auth` | No pending authorization matches the `state` (never initiated, already consumed, or superseded by a newer flow) |
+| `state_expired` | The pending authorization matched but is older than its 10-minute TTL |
+| `browser_mismatch` | The transaction cookie is missing or does not match the browser that started the flow |
+| `missing_credentials` | The stored client ID/secret for the provider are gone |
+| `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout). TIDAL only |
+| `token_exchange_failed` | The token endpoint answered non-2xx. The upstream error body is logged, truncated to 300 chars |
+| `token_exchange_malformed` | The token endpoint answered 2xx with a non-JSON body. TIDAL only |
+| `token_exchange_no_token` | The token endpoint answered 2xx but the body carried no `access_token`. TIDAL only |
+| `unknown_provider` | The `:provider` path segment is not a supported provider |
+
+Treat these as untrusted when rendering: the pass-through case is provider-controlled. The settings banner maps only the known stages above to their own message; anything else renders a generic failure message with the raw value echoed back as inert, sanitized, length-capped text.
 
 ---
 
@@ -253,6 +278,7 @@ Locale notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
 - In the web UI, these modes are exposed from Discover -> Discovery Modes
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: its TIDAL OAuth flow has not been validated against a live account. Clients should badge experimental modes rather than hide them.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -660,6 +686,8 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 | POST | `/api/v1/library/sync` | Admin | Run a manual library sync for all sources or a specific source |
 | GET | `/api/v1/library/unreconciled` | Admin | List unreconciled library artists still needing a match |
 | GET | `/api/v1/library/unreconciled-albums` | Admin | List unreconciled library albums still needing a release-group match |
+| POST | `/api/v1/library/overrides/bulk-ignore` | Admin | Atomically save ignore overrides for 1-200 unique artist identities (204) |
+| POST | `/api/v1/library/album-overrides/bulk-ignore` | Admin | Atomically save ignore overrides for 1-200 unique album identities (204) |
 | GET | `/api/v1/library/album-coverage/:artistMbid` | Yes | Owned/missing album counts for an artist, used by the recommendation card coverage badge |
 | POST | `/api/v1/library/overrides` | Admin | Save a manual artist MBID override or an “ignore forever” decision |
 | POST | `/api/v1/library/album-overrides` | Admin | Save a manual album release-group MBID override or an ignore decision |
@@ -669,6 +697,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 **GET /api/v1/library/sources** response notes:
 - `lastSyncCounts.albumsSynced` is present for album-capable sources after a successful sync
 - Lidarr, Plex, and Jellyfin source rows now include artist sync counts plus the number of reconciled album rows written for that source snapshot
+- `lastSyncCounts.unreconciledLookupFailed` counts artist rows left unresolved because their MusicBrainz lookup failed. It is optional and may be absent from historical stored count objects; consumers treat absence as zero
 - `lastSyncCounts.mbApiCallsFailed` is the number of MusicBrainz lookups that failed after internal retries. A non-zero value means the sync completed with partial reconciliation; affected artists and albums are retried on the next sync
 
 **POST /api/v1/library/warm** body:
@@ -700,6 +729,30 @@ Notes:
 
 **GET /api/v1/library/unreconciled** response notes:
 - Returns unreconciled rows from both the current user's sources and any global sources visible to that user
+- Each row's `unreconciledReason` is `no_candidate` when MusicBrainz returned no safe match, `ambiguous` when multiple plausible matches remain, or `lookup_failed` when the lookup failed after retries. `null` remains possible for legacy or otherwise unclassified rows.
+
+**POST /api/v1/library/overrides/bulk-ignore** body:
+```json
+{
+  "items": [
+    { "source": "plex", "sourceArtistId": "artist-123" }
+  ]
+}
+```
+
+**POST /api/v1/library/album-overrides/bulk-ignore** body:
+```json
+{
+  "items": [
+    { "source": "plex", "sourceAlbumId": "album-456" }
+  ]
+}
+```
+
+Bulk-ignore notes:
+- `items` must contain 1-200 identities, and every `(source, sourceArtistId)` or `(source, sourceAlbumId)` pair must be unique. Empty, oversized, duplicate, incomplete, or extra-field payloads return `400` without writing overrides.
+- A successful request stores every ignore override in one database transaction and returns `204 No Content`. If any write fails, the transaction rolls back instead of leaving a partially ignored selection.
+- The operation does not trigger reconciliation. The web review removes the completed selection by refreshing the unreconciled lists and source summary after the `204` response.
 
 **POST /api/v1/library/overrides** body:
 ```json
@@ -737,6 +790,7 @@ Album override notes:
 
 **GET /api/v1/library/unreconciled-albums** response notes:
 - Returns unreconciled album rows from both the current user's sources and any global sources visible to that user
+- `unreconciledReason` uses the same `no_candidate`, `ambiguous`, and `lookup_failed` values as the artist route; `null` remains possible for legacy or otherwise unclassified rows.
 
 **POST /api/v1/library/reconcile** notes:
 - Triggers a forced sync for the current user and returns `202`
@@ -824,7 +878,8 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 Settings notes:
 - Non-admin users can update only their own connection fields; global setting changes return `403`
 - Service probes require admin access when user-session auth is active
-- TIDAL client credentials and the TIDAL probe are global, admin-managed settings
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: the admin app authorizes each user's own account via `/api/v1/auth/oauth/tidal/initiate`
+- `GET /api/v1/settings` returns `_tidalAppConfigured` (boolean), a read-only capability flag telling non-admins whether an admin has registered a TIDAL app, so the UI can enable the Connect button without exposing the credentials. Underscore-prefixed keys are derived flags, never stored settings, and are ignored on `PATCH`
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
 - Failed service probes return `application/problem+json`: `400` for missing or unknown input,

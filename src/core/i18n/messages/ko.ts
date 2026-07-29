@@ -405,16 +405,50 @@ export const ko = {
     '개의 앨범을 MusicBrainz와 자동으로 일치시킬 수 없습니다.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     '명의 아티스트를 MusicBrainz와 자동으로 일치시킬 수 없습니다.',
+  'libraryReconciliation.bulkIgnoreFailed': '선택한 항목을 무시하지 못했습니다.',
+  'libraryReconciliation.clearVisible': '표시된 항목 선택 해제',
+  'libraryReconciliation.confirmAlbumsMessage':
+    '선택 수: {0}. 저장된 수정 사항을 삭제할 때까지 이 선택은 계속 무시됩니다.',
+  'libraryReconciliation.confirmAlbumsTitle': '선택한 앨범을 무시할까요?',
+  'libraryReconciliation.confirmArtistsMessage':
+    '선택 수: {0}. 저장된 수정 사항을 삭제할 때까지 이 선택은 계속 무시됩니다.',
+  'libraryReconciliation.confirmArtistsTitle': '선택한 아티스트를 무시할까요?',
   'libraryReconciliation.couldNotLoadAlbums': '일치하지 않은 앨범을 불러오지 못했습니다.',
   'libraryReconciliation.couldNotLoadArtists': '일치하지 않은 아티스트를 불러오지 못했습니다.',
+  'libraryReconciliation.ignoreForever': '영구 무시',
+  'libraryReconciliation.ignoreSelected': '선택 항목 무시',
+  'libraryReconciliation.invalidMbid': '유효하지 않은 MBID (UUID 형식 필요)',
   'libraryReconciliation.loadingAlbums': '일치하지 않은 앨범을 불러오는 중...',
   'libraryReconciliation.loadingArtists': '일치하지 않은 아티스트를 불러오는 중...',
   'libraryReconciliation.noAlbums': '일치하지 않은 앨범이 없습니다.',
   'libraryReconciliation.noArtists':
     '일치하지 않은 아티스트가 없습니다. 라이브러리가 모두 일치했습니다.',
+  'libraryReconciliation.normalizedName': '정규화된 이름: {0}',
   'libraryReconciliation.of': '/',
   'libraryReconciliation.page': '페이지',
+  'libraryReconciliation.pasteAlbumMbid': '앨범 MBID (UUID) 붙여넣기',
+  'libraryReconciliation.pasteMbid': 'MBID (UUID) 붙여넣기',
+  'libraryReconciliation.pin': '고정',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    '일치 후보가 여러 개 남아 있습니다. 올바른 MBID를 고정하거나 이 항목을 무시하세요.',
+  'libraryReconciliation.reasonAmbiguousLabel': '일치 후보가 여러 개임',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz에 연결하지 못했습니다. 나중에 라이브러리 동기화를 다시 시도하세요.',
+  'libraryReconciliation.reasonLookupFailedLabel': '조회 실패',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    '이유 추적을 시작하기 전에 발생한 항목입니다. 다시 일치시키거나 직접 검토하세요.',
+  'libraryReconciliation.reasonNeedsReviewLabel': '검토 필요',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    '일치 항목을 찾지 못했습니다. 알고 있는 MBID를 고정하거나 이 항목을 무시하세요.',
+  'libraryReconciliation.reasonNoCandidateLabel': '일치 항목 없음',
+  'libraryReconciliation.selectAlbum': '앨범 {0} 선택',
+  'libraryReconciliation.selectArtist': '아티스트 {0} 선택',
+  'libraryReconciliation.selectedCount': '선택됨: {0}',
+  'libraryReconciliation.selectionLimit': '한 번에 최대 {0}개까지 선택할 수 있습니다.',
+  'libraryReconciliation.selectVisible': '표시된 항목 선택',
   'libraryReconciliation.showing': '표시',
+  'libraryReconciliation.unknownType': '알 수 없는 유형',
+  'libraryReconciliation.unknownYear': '알 수 없는 연도',
   'playlist.delete': '삭제',
   'playlist.deleteFailed': '재생목록을 삭제하지 못했습니다.',
   'playlist.deleteWarning': '이 플레이리스트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
@@ -809,9 +843,16 @@ export const ko = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify 저장된 앨범',
   'discoveryMode.spotify-saved-albums.description':
     'Spotify에 저장한 앨범에서 아티스트를 발견합니다',
+  'discoveryMode.spotify-followed-artists.label': 'Spotify 팔로우한 아티스트',
+  'discoveryMode.spotify-followed-artists.description':
+    'Spotify에서 팔로우하는 아티스트에서 발견합니다',
   'discoveryMode.subsonic-starred.label': 'Subsonic 즐겨찾기',
   'discoveryMode.subsonic-starred.description':
     'Subsonic 서버에서 즐겨찾기한 아티스트와 비슷한 아티스트를 발견합니다',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL 즐겨찾기 아티스트',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL 컬렉션에 있는 아티스트를 기반으로 발견합니다',
+  'discoveryMode.reason.connectTidal': '이 모드를 사용하려면 TIDAL을 연결하세요.',
   'discoveryMode.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
   'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
@@ -822,6 +863,8 @@ export const ko = {
   'discoveryMode.reason.connectLastfm': '이 모드를 사용하려면 Last.fm을 연결하세요.',
   'discoveryMode.reason.connectDeezer': '이 모드를 사용하려면 Deezer를 연결하세요.',
   'discoveryMode.reason.connectSpotify': '이 모드를 사용하려면 Spotify를 연결하세요.',
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    '팔로우 접근 권한을 부여하려면 Spotify를 다시 연결하세요.',
   'discoveryMode.reason.connectSubsonic': '이 모드를 사용하려면 Subsonic을 연결하세요.',
   'discoveryMode.reason.releaseRadarFallback': '릴리스 탐색에는 대체 제공자가 사용됩니다.',
   'discoveryMode.reason.libraryRequired': '이 모드를 사용하려면 먼저 라이브러리를 동기화하세요.',
@@ -918,11 +961,6 @@ export const ko = {
   'libraryStats.rootFolders': '루트 폴더',
   'libraryStats.free': '여유',
   'libraryStats.unknown': '알 수 없음',
-  'libraryReconciliation.pasteMbid': 'MBID (UUID) 붙여넣기',
-  'libraryReconciliation.pasteAlbumMbid': '앨범 MBID (UUID) 붙여넣기',
-  'libraryReconciliation.pin': '고정',
-  'libraryReconciliation.ignoreForever': '영구 무시',
-  'libraryReconciliation.invalidMbid': '유효하지 않은 MBID (UUID 형식 필요)',
   'settings.tabs.connections': '연결',
   'settings.tabs.targets': '대상',
   'settings.tabs.recommendations': '추천',
@@ -986,6 +1024,15 @@ export const ko = {
   'settings.subsonicDescription':
     '라이브러리 동기화 및 발견을 위한 셀프 호스팅 음악 서버 (Navidrome, Airsonic)',
   'settings.discogsDescription': 'Discogs의 컬렉션과 위시리스트.',
+  'settings.tidalConnectDescription': 'TIDAL 즐겨찾기 아티스트를 발견 소스로 사용합니다',
+  'settings.tidalConnectHelp':
+    'TIDAL 계정을 연결하면 즐겨찾기 아티스트를 기반으로 발견을 시작합니다.',
+  'settings.tidalAppNotConfigured': '관리자가 먼저 TIDAL 앱 자격 증명을 설정해야 합니다.',
+  'settings.connectTidal': 'TIDAL 연결',
+  'settings.tidalConnected': 'TIDAL 즐겨찾기 아티스트를 발견 소스로 사용할 수 있습니다.',
+  'settings.tidalDisconnected': 'TIDAL 연결이 해제되었습니다',
+  'settings.tidalDisconnectFailed': 'TIDAL 연결 해제에 실패했습니다',
+  'settings.tidalAuthorizationFailed': 'TIDAL 인증을 시작하지 못했습니다',
   'settings.tidalDescription':
     'TIDAL 클라이언트 자격 증명 액세스를 사용하는 실험적 검색 소스입니다. 예고 없이 변경될 수 있는 비공식 엔드포인트를 사용합니다.',
   'settings.yourAccount': '내 계정',
@@ -1214,6 +1261,28 @@ export const ko = {
   'service.notConfigured': '미설정',
   'service.error': '오류',
   'service.testing': '테스트 중...',
+  'oauth.connectedTitle': '연결됨',
+  'oauth.connectedBody': '{0}이(가) 연결되었습니다.',
+  'oauth.failedTitle': '연결 실패',
+  'oauth.error.codeLabel': '제공자 코드',
+  'oauth.error.generic': '연결을 완료하지 못했습니다. 연결을 다시 시작하세요.',
+  'oauth.error.missingCodeOrState':
+    '제공자가 인증 코드를 반환하지 않았습니다. 연결을 다시 시작하세요.',
+  'oauth.error.noPendingAuth':
+    '이 응답과 일치하는 대기 중인 연결이 없습니다. 보통 탭이 오래되어 발생합니다. 연결을 다시 시작하세요.',
+  'oauth.error.stateExpired': '연결 시도가 10분을 초과하여 만료되었습니다. 다시 시작하세요.',
+  'oauth.error.browserMismatch': '연결을 시작한 브라우저에서 완료한 뒤 다시 시도하세요.',
+  'oauth.error.missingCredentials':
+    '저장된 클라이언트 ID 또는 시크릿이 없습니다. 제공자 자격 증명을 다시 입력한 뒤 시도하세요.',
+  'oauth.error.tokenExchangeUnreachable':
+    '제공자에 연결할 수 없습니다. 아웃바운드 네트워크 접근을 확인한 뒤 다시 시도하세요.',
+  'oauth.error.tokenExchangeFailed':
+    '제공자가 연결을 거부했습니다. 클라이언트 자격 증명과 등록된 리디렉션 URI를 확인하세요.',
+  'oauth.error.tokenExchangeMalformed':
+    '제공자가 읽을 수 없는 응답을 반환했습니다. 다시 시도하고, 반복되면 제공자 상태를 확인하세요.',
+  'oauth.error.tokenExchangeNoToken':
+    '제공자가 액세스 토큰을 반환하지 않았습니다. 앱에 필요한 권한이 있는지 확인한 뒤 다시 시도하세요.',
+  'oauth.error.unknownProvider': '지원되지 않는 제공자입니다.',
   'search.spotifyNotConnected': '설정에서 Spotify를 연결하여 검색을 활성화하세요.',
   'search.tidalNotConfigured': 'TIDAL 검색이 아직 설정되지 않았습니다.',
   'discover.moodPlaceholder': '비 오는 날의 재즈, 신나는 90년대 팝, 다크 앨비언트...',

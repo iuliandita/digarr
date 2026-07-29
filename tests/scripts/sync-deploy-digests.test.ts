@@ -68,14 +68,28 @@ describe('release workflow policy', () => {
 })
 
 describe('CI workflow reliability policy', () => {
-  it('requires every macOS compatibility assertion to complete', () => {
+  it('provisions Docker through Colima on macOS and requires every assertion to complete', () => {
     const workflow = readFileSync('.github/workflows/compatibility.yml', 'utf8')
     const macJob = workflow.split('  docker-macos:')[1] ?? ''
 
+    expect(macJob).toContain('runs-on: macos-15-intel')
     expect(macJob.match(/continue-on-error: true/g)).toHaveLength(1)
+    expect(macJob).toContain('brew install colima docker docker-buildx docker-compose')
+    expect(macJob).toContain('~/.docker/cli-plugins/docker-buildx')
+    expect(macJob).toContain('~/.docker/cli-plugins/docker-compose')
+    expect(macJob).toContain('--arch x86_64')
+    expect(macJob).toContain('--vm-type vz')
+    expect(macJob).toContain('--mount-type virtiofs')
+    expect(macJob).toContain('name: Diagnose Colima startup')
+    expect(macJob).toContain('colima status')
+    expect(macJob).toContain('limactl list')
+    expect(macJob).toContain('sysctl -n kern.hv_support')
     expect(macJob).toContain('id: docker')
     expect(macJob).toContain('id: postgres_assert')
     expect(macJob).toContain('id: pglite_assert')
+    expect(macJob.match(/seq 1 90/g)).toHaveLength(2)
+    expect(macJob).toContain('logs --timestamps')
+    expect(macJob).toContain("docker inspect --format '{{json .State}}'")
     expect(macJob).toContain('if: always()')
     expect(macJob).toContain('POSTGRES_ASSERTED')
     expect(macJob).toContain('PGLITE_ASSERTED')

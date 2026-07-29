@@ -406,15 +406,49 @@ export const tr = {
     'albümler MusicBrainz ile otomatik olarak eşleştirilemedi.',
   'libraryReconciliation.artistsCouldNotBeMatched':
     'sanatçılar MusicBrainz ile otomatik olarak eşleştirilemedi.',
+  'libraryReconciliation.bulkIgnoreFailed': 'Seçili öğeler yok sayılamadı.',
+  'libraryReconciliation.clearVisible': 'Görünen seçimi temizle',
+  'libraryReconciliation.confirmAlbumsMessage':
+    'Seçim: {0}. Bu seçim, kaydedilmiş düzeltmeleri kaldırılana kadar yok sayılmaya devam edecek.',
+  'libraryReconciliation.confirmAlbumsTitle': 'Seçili albümler yok sayılsın mı?',
+  'libraryReconciliation.confirmArtistsMessage':
+    'Seçim: {0}. Bu seçim, kaydedilmiş düzeltmeleri kaldırılana kadar yok sayılmaya devam edecek.',
+  'libraryReconciliation.confirmArtistsTitle': 'Seçili sanatçılar yok sayılsın mı?',
   'libraryReconciliation.couldNotLoadAlbums': 'Eşleşmeyen albümler yüklenemedi.',
   'libraryReconciliation.couldNotLoadArtists': 'Eşleşmeyen sanatçılar yüklenemedi.',
+  'libraryReconciliation.ignoreForever': 'Sonsuza kadar yok say',
+  'libraryReconciliation.ignoreSelected': 'Seçilenleri yok say',
+  'libraryReconciliation.invalidMbid': 'Geçersiz MBID (UUID bekleniyor)',
   'libraryReconciliation.loadingAlbums': 'Eşleşmeyen albümler yükleniyor...',
   'libraryReconciliation.loadingArtists': 'Eşleşmeyen sanatçılar yükleniyor...',
   'libraryReconciliation.noAlbums': 'Eşleşmeyen albüm yok.',
   'libraryReconciliation.noArtists': 'Eşleşmeyen sanatçı yok. Kitaplığınız tamamen eşleştirildi.',
+  'libraryReconciliation.normalizedName': 'Normalleştirilmiş: {0}',
   'libraryReconciliation.of': '/',
   'libraryReconciliation.page': 'Sayfa',
+  'libraryReconciliation.pasteAlbumMbid': 'Albüm MBID (UUID) yapıştır',
+  'libraryReconciliation.pasteMbid': 'MBID (UUID) yapıştır',
+  'libraryReconciliation.pin': 'Sabitle',
+  'libraryReconciliation.reasonAmbiguousHelp':
+    'Birden fazla eşleşme kaldı. Doğru MBID’yi sabitleyin veya bu öğeyi yok sayın.',
+  'libraryReconciliation.reasonAmbiguousLabel': 'Belirsiz eşleşme',
+  'libraryReconciliation.reasonLookupFailedHelp':
+    'MusicBrainz’e ulaşılamadı. Kitaplık eşitlemesini daha sonra yeniden deneyin.',
+  'libraryReconciliation.reasonLookupFailedLabel': 'Arama başarısız',
+  'libraryReconciliation.reasonNeedsReviewHelp':
+    'Neden, neden takibinden önce oluştu. Eşleştirmeyi yeniden çalıştırın veya öğeyi elle inceleyin.',
+  'libraryReconciliation.reasonNeedsReviewLabel': 'İnceleme gerekli',
+  'libraryReconciliation.reasonNoCandidateHelp':
+    'Eşleşme bulunamadı. Bilinen bir MBID’yi sabitleyin veya bu öğeyi yok sayın.',
+  'libraryReconciliation.reasonNoCandidateLabel': 'Eşleşme bulunamadı',
+  'libraryReconciliation.selectAlbum': 'Albüm {0} seç',
+  'libraryReconciliation.selectArtist': 'Sanatçı {0} seç',
+  'libraryReconciliation.selectedCount': 'Seçilen: {0}',
+  'libraryReconciliation.selectionLimit': 'Aynı anda en fazla {0} öğe seçilebilir.',
+  'libraryReconciliation.selectVisible': 'Görünenleri seç',
   'libraryReconciliation.showing': 'Gösterilen',
+  'libraryReconciliation.unknownType': 'Bilinmeyen tür',
+  'libraryReconciliation.unknownYear': 'Bilinmeyen yıl',
   'playlist.delete': 'Sil',
   'playlist.deleteFailed': 'Oynatma listesi silinemedi',
   'playlist.deleteWarning': 'Bu çalma listesi silinsin mi? Bu işlem geri alınamaz.',
@@ -817,9 +851,16 @@ export const tr = {
   'discoveryMode.spotify-saved-albums.label': 'Spotify Kaydedilen Albümler',
   'discoveryMode.spotify-saved-albums.description':
     "Spotify'da kaydettiğin albümlerden sanatçılar keşfet",
+  'discoveryMode.spotify-followed-artists.label': "Spotify'da Takip Edilen Sanatçılar",
+  'discoveryMode.spotify-followed-artists.description':
+    "Spotify'da takip ettiğin sanatçılardan keşfet",
   'discoveryMode.subsonic-starred.label': 'Subsonic Favorileri',
   'discoveryMode.subsonic-starred.description':
     'Subsonic sunucunda yıldızladığın sanatçılara benzer sanatçıları keşfet',
+  'discoveryMode.tidal-favorite-artists.label': 'TIDAL Favori Sanatçılar',
+  'discoveryMode.tidal-favorite-artists.description':
+    'TIDAL koleksiyonunuzdaki sanatçılardan keşfedin',
+  'discoveryMode.reason.connectTidal': 'Bu modu kullanmak için TIDAL bağlayın.',
   'discoveryMode.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.notShippedYet': 'Bu mod henüz kullanılamıyor.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz bağlayın.',
@@ -830,6 +871,8 @@ export const tr = {
   'discoveryMode.reason.connectLastfm': "Bu modu kullanmak için Last.fm'i bağlayın.",
   'discoveryMode.reason.connectDeezer': "Bu modu kullanmak için Deezer'ı bağlayın.",
   'discoveryMode.reason.connectSpotify': "Bu modu kullanmak için Spotify'ı bağlayın.",
+  'discoveryMode.reason.reconnectSpotifyFollow':
+    "Takip erişimi vermek için Spotify'ı yeniden bağlayın.",
   'discoveryMode.reason.connectSubsonic': "Bu modu kullanmak için Subsonic'i bağlayın.",
   'discoveryMode.reason.releaseRadarFallback': 'Yayın keşfi için yedek sağlayıcılar kullanılıyor.',
   'discoveryMode.reason.libraryRequired': 'Bu modu kullanmak için önce bir kütüphaneyi eşitleyin.',
@@ -931,11 +974,6 @@ export const tr = {
   'libraryStats.rootFolders': 'Kok Klasorler',
   'libraryStats.free': 'boş',
   'libraryStats.unknown': 'bilinmiyor',
-  'libraryReconciliation.pasteMbid': 'MBID (UUID) yapistir',
-  'libraryReconciliation.pasteAlbumMbid': 'Album MBID (UUID) yapistir',
-  'libraryReconciliation.pin': 'Sabitle',
-  'libraryReconciliation.ignoreForever': 'Sonsuza kadar yoksay',
-  'libraryReconciliation.invalidMbid': 'Geçersiz MBID (UUID bekleniyor)',
   'settings.tabs.connections': 'Bağlantılar',
   'settings.tabs.targets': 'Hedefler',
   'settings.tabs.recommendations': 'Öneriler',
@@ -1000,6 +1038,16 @@ export const tr = {
   'settings.subsonicDescription':
     'Kitaplık eşitleme ve keşif için kendi sunucunuzda barındırılan müzik sunucusu (Navidrome, Airsonic)',
   'settings.discogsDescription': "Discogs'tan koleksiyon ve istek listesi.",
+  'settings.tidalConnectDescription': 'TIDAL favori sanatçılarınızı keşif kaynağı olarak kullanın',
+  'settings.tidalConnectHelp':
+    'Favori sanatçılarınızdan keşfe başlamak için TIDAL hesabınızı bağlayın.',
+  'settings.tidalAppNotConfigured':
+    'Önce bir yönetici TIDAL uygulama kimlik bilgilerini yapılandırmalıdır.',
+  'settings.connectTidal': "TIDAL'ı bağla",
+  'settings.tidalConnected': 'TIDAL favori sanatçılarınız keşif kaynağı olarak kullanılabilir.',
+  'settings.tidalDisconnected': 'TIDAL bağlantısı kesildi',
+  'settings.tidalDisconnectFailed': 'TIDAL bağlantısı kesilemedi',
+  'settings.tidalAuthorizationFailed': 'TIDAL yetkilendirmesi başlatılamadı',
   'settings.tidalDescription':
     'TIDAL istemci kimlik bilgileri erişimini kullanan deneysel bir arama kaynağı. Önceden haber verilmeden değişebilecek belgelenmemiş uç noktalar kullanır.',
   'settings.yourAccount': 'hesabiniz',
@@ -1234,6 +1282,30 @@ export const tr = {
   'service.notConfigured': 'Yapilandirilmamis',
   'service.error': 'Hata',
   'service.testing': 'Test ediliyor...',
+  'oauth.connectedTitle': 'Bağlandı',
+  'oauth.connectedBody': '{0} artık bağlı.',
+  'oauth.failedTitle': 'Bağlantı başarısız',
+  'oauth.error.codeLabel': 'Sağlayıcı kodu',
+  'oauth.error.generic': 'Bağlantı tamamlanamadı. Bağlantıyı yeniden başlatın.',
+  'oauth.error.missingCodeOrState':
+    'Sağlayıcı bir yetkilendirme kodu döndürmedi. Bağlantıyı yeniden başlatın.',
+  'oauth.error.noPendingAuth':
+    'Bu yanıtla eşleşen bekleyen bir bağlantı yok, genellikle sekme eskidiği için. Bağlantıyı yeniden başlatın.',
+  'oauth.error.stateExpired':
+    'Bağlantı denemesi 10 dakikayı aştı ve süresi doldu. Yeniden başlatın.',
+  'oauth.error.browserMismatch':
+    'Bağlantıyı başlattığınız tarayıcıda tamamlayın, sonra yeniden deneyin.',
+  'oauth.error.missingCredentials':
+    'Kayıtlı istemci kimliği veya gizli anahtarı eksik. Sağlayıcı kimlik bilgilerini yeniden girip tekrar deneyin.',
+  'oauth.error.tokenExchangeUnreachable':
+    'Sağlayıcıya ulaşılamadı. Dışa giden ağ erişimini kontrol edip yeniden deneyin.',
+  'oauth.error.tokenExchangeFailed':
+    'Sağlayıcı bağlantıyı reddetti. İstemci kimlik bilgilerini ve kayıtlı yönlendirme URI değerini kontrol edin.',
+  'oauth.error.tokenExchangeMalformed':
+    'Sağlayıcı okunamayan bir yanıt döndürdü. Yeniden deneyin, tekrarlarsa sağlayıcının durumunu kontrol edin.',
+  'oauth.error.tokenExchangeNoToken':
+    'Sağlayıcı erişim jetonu döndürmedi. Uygulamanın gerekli izinlere sahip olduğunu doğrulayıp yeniden deneyin.',
+  'oauth.error.unknownProvider': 'Bu sağlayıcı desteklenmiyor.',
   'search.spotifyNotConnected': "Aramayi etkinlestirmek için Ayarlar'dan Spotify'i baglayIn.",
   'search.tidalNotConfigured': 'TIDAL araması henüz yapılandırılmadı.',
   'discover.moodPlaceholder': "yagmurlu gün cazi, nese dolu 90'lar pop, dark ambient...",

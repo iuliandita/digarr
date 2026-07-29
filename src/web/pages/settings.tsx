@@ -18,6 +18,7 @@ import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import { IntegrationCapabilities } from '../components/integration-capabilities'
 import { LanguageSwitcher } from '../components/language-switcher'
+import { OAuthCallbackNotice } from '../components/oauth-callback-notice'
 import { ServiceCard } from '../components/service-card'
 import {
   AiProviderIcon,
@@ -31,6 +32,7 @@ import {
   PlexIcon,
   SpotifyIcon,
   SubsonicIcon,
+  TidalIcon,
   WebhookIcon,
 } from '../components/service-icons'
 import { SystemHealthCard } from '../components/system-health-card'
@@ -92,6 +94,7 @@ type Settings = {
   wikidataEnabled?: boolean
   tidalClientId?: string
   tidalClientSecret?: string
+  _tidalAppConfigured?: boolean
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string
@@ -351,11 +354,11 @@ const CHANNEL_TYPE_LABEL: Record<ChannelType, MessageKey> = {
 }
 
 function makeChannel(type: ChannelType): NotificationChannel {
-  const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `ch_${Date.now()}_${Math.random().toString(36).slice(2)}`
-  const base = { id, enabled: true, events: ['batch_complete', 'digest'] as NotificationEvent[] }
+  const base = {
+    id: crypto.randomUUID(),
+    enabled: true,
+    events: ['batch_complete', 'digest'] as NotificationEvent[],
+  }
   switch (type) {
     case 'webhook':
       return { ...base, type, url: '' }
@@ -862,6 +865,13 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     queryFn: () => getOAuthStatus('deezer'),
   })
   const deezerConnected = deezerStatus?.connected ?? false
+
+  const { data: tidalStatus } = useQuery({
+    queryKey: ['tidal-oauth-status'],
+    queryFn: () => getOAuthStatus('tidal'),
+  })
+  const tidalConnected = tidalStatus?.connected ?? false
+  const tidalAppConfigured = settings._tidalAppConfigured ?? false
 
   function setTest(key: string, val: ServiceTestState) {
     setTests((prev) => ({ ...prev, [key]: val }))
@@ -1862,6 +1872,74 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   }}
                 >
                   {t('settings.connectDeezer')}
+                </Button>
+              </div>
+            </>
+          )}
+        </ServiceCard>
+      </div>
+
+      {/* TIDAL */}
+      <div>
+        <ServiceCard
+          name="TIDAL"
+          description={
+            <span>
+              {t('settings.tidalConnectDescription')}{' '}
+              <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                {t('search.experimental')}
+              </span>
+            </span>
+          }
+          status={tidalConnected ? 'connected' : 'not_configured'}
+          icon={<TidalIcon />}
+        >
+          {tidalConnected ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted">{t('settings.tidalConnected')}</p>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await disconnectOAuth('tidal')
+                      queryClient.invalidateQueries({ queryKey: ['tidal-oauth-status'] })
+                      toast.success(t('settings.tidalDisconnected'))
+                    } catch {
+                      toast.error(t('settings.tidalDisconnectFailed'))
+                    }
+                  }}
+                >
+                  {t('settings.disconnect')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                {tidalAppConfigured
+                  ? t('settings.tidalConnectHelp')
+                  : t('settings.tidalAppNotConfigured')}
+              </p>
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  disabled={!tidalAppConfigured}
+                  onClick={async () => {
+                    try {
+                      const res = await initiateOAuth('tidal', {
+                        clientId: '',
+                        clientSecret: '',
+                        redirectUri: `${window.location.origin}/api/v1/auth/oauth/tidal/callback`,
+                      })
+                      window.location.href = res.authUrl
+                    } catch {
+                      toast.error(t('settings.tidalAuthorizationFailed'))
+                    }
+                  }}
+                >
+                  {t('settings.connectTidal')}
                 </Button>
               </div>
             </>
@@ -3823,6 +3901,7 @@ export function SettingsPage() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+      <OAuthCallbackNotice />
       <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}

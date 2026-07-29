@@ -8,10 +8,16 @@ vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
   upsertOAuthToken: vi.fn(),
   deleteOAuthToken: vi.fn(),
-  findPendingOAuthByState: vi.fn(),
+}))
+
+vi.mock('@/db/queries/oauth-pending', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/db/queries/oauth-pending')>()),
+  createPendingOAuth: vi.fn(),
+  consumePendingOAuth: vi.fn(),
 }))
 
 const { upsertOAuthToken } = await import('@/db/queries/oauth-tokens')
+const { createPendingOAuth } = await import('@/db/queries/oauth-pending')
 const { oauthRoutes } = await import('@/server/routes/oauth')
 
 function makeDeps() {
@@ -43,6 +49,7 @@ const initiateBody = {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(upsertOAuthToken).mockResolvedValue({} as never)
+  vi.mocked(createPendingOAuth).mockResolvedValue(undefined)
 })
 
 // ---------------------------------------------------------------------------
@@ -101,20 +108,34 @@ describe('POST /api/v1/auth/oauth/spotify/initiate', () => {
     expect(scope.split(' ')).toContain('user-library-read')
   })
 
-  it('persists the requested scopes on the pending token', async () => {
+  it('requests the user-follow-read scope for followed-artists discovery', async () => {
+    const app = createApp(makeDeps())
+    const res = await app.request('/api/v1/auth/oauth/spotify/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(initiateBody),
+    })
+    const body = await res.json()
+    const scope = new URL(body.authUrl).searchParams.get('scope') ?? ''
+    expect(scope.split(' ')).toContain('user-follow-read')
+  })
+
+  it('persists the requested scopes and redirect URI on the pending authorization', async () => {
     const app = createApp(makeDeps())
     await app.request('/api/v1/auth/oauth/spotify/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(initiateBody),
     })
-    expect(upsertOAuthToken).toHaveBeenCalledWith(
+    expect(createPendingOAuth).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         provider: 'spotify',
-        accessToken: expect.stringContaining('pending:'),
         scopes: expect.stringContaining('user-library-read'),
+        payload: { redirectUri: initiateBody.redirectUri },
       }),
     )
+    // An abandoned Spotify flow must not overwrite an existing connection.
+    expect(upsertOAuthToken).not.toHaveBeenCalled()
   })
 })

@@ -58,9 +58,11 @@ describe('charts mode – availability', () => {
     const result = evaluateDiscoveryModeAvailability('charts', {
       hasListenBrainz: false,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -75,9 +77,11 @@ describe('charts mode – availability', () => {
     const result = evaluateDiscoveryModeAvailability('charts', {
       hasListenBrainz: false,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })

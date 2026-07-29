@@ -162,22 +162,60 @@ export const SENSITIVE_PREFERENCES = ['fanartApiKey'] as const
 
 // Notification channels store secrets in array-nested, per-type fields that the
 // flat encrypt/decryptFields helpers cannot reach. These walkers apply
-// field-level crypto per channel type. webhook has no secret field.
+// field-level crypto per channel type. Two classes of field:
+//  - full secrets (CHANNEL_SECRET_FIELDS): encrypted at rest, masked to '***'.
+//  - url secrets (CHANNEL_URL_FIELDS): encrypted at rest, but only PARTIALLY
+//    masked (host + path kept, secret tail/query hidden) because the URL also
+//    identifies the destination and the operator needs to recognize it.
 const CHANNEL_SECRET_FIELDS: Record<string, readonly string[]> = {
   telegram: ['botToken'],
   ntfy: ['token'],
   apprise: ['urls'],
-  webhook: [],
 }
 
-function transformChannelSecrets(
+const CHANNEL_URL_FIELDS: Record<string, readonly string[]> = {
+  webhook: ['url'],
+}
+
+const MASK = '***'
+
+function encryptedFieldsFor(type: string): readonly string[] {
+  return [...(CHANNEL_SECRET_FIELDS[type] ?? []), ...(CHANNEL_URL_FIELDS[type] ?? [])]
+}
+
+/**
+ * Partially mask a webhook URL for API display: keep the scheme, host, and path
+ * structure so the operator can recognize the destination, but replace the last
+ * path segment (where Discord/Slack carry the token) and every query-param value
+ * with `***`. Unparseable input is fully masked.
+ */
+export function maskWebhookUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    const segments = u.pathname.split('/')
+    for (let i = segments.length - 1; i >= 0; i--) {
+      if (segments[i]) {
+        segments[i] = MASK
+        break
+      }
+    }
+    u.pathname = segments.join('/')
+    for (const key of [...u.searchParams.keys()]) {
+      u.searchParams.set(key, MASK)
+    }
+    return u.toString()
+  } catch {
+    return MASK
+  }
+}
+
+function transformChannelFields(
   channels: NotificationChannel[],
   fn: (value: string) => string,
 ): NotificationChannel[] {
   return channels.map((channel) => {
-    const fields = CHANNEL_SECRET_FIELDS[channel.type] ?? []
     const copy = { ...channel } as Record<string, unknown>
-    for (const f of fields) {
+    for (const f of encryptedFieldsFor(channel.type)) {
       const val = copy[f]
       if (typeof val === 'string' && val) {
         copy[f] = fn(val)
@@ -190,46 +228,72 @@ function transformChannelSecrets(
 /** Encrypt per-type secret fields in notification channels. No-op if encryption disabled. */
 export function encryptChannelSecrets(channels: NotificationChannel[]): NotificationChannel[] {
   if (!isEncryptionEnabled()) return channels
-  return transformChannelSecrets(channels, (v) => encryptField(v) as string)
+  return transformChannelFields(channels, (v) => encryptField(v) as string)
 }
 
 /** Decrypt per-type secret fields in notification channels. No-op if encryption disabled. */
 export function decryptChannelSecrets(channels: NotificationChannel[]): NotificationChannel[] {
   if (!isEncryptionEnabled()) return channels
-  return transformChannelSecrets(channels, (v) => decryptField(v) as string)
-}
-
-/** Replace per-type secret fields with a masked placeholder. Always runs. */
-export function maskChannelSecrets(channels: NotificationChannel[]): NotificationChannel[] {
-  return transformChannelSecrets(channels, () => '***')
+  return transformChannelFields(channels, (v) => decryptField(v) as string)
 }
 
 /**
- * Restore masked ('***') channel secrets from a previously-stored channel of the
- * same id, so a save/test that echoes back masked placeholders keeps the stored
- * (encrypted) secret. If the previous channel is missing or has a different type
- * (id reused across a type change, or a genuinely new channel that still carries
- * a literal '***'), the field is dropped instead of persisting a broken secret.
- * Returns new objects; does not mutate the input.
+ * Mask channel secrets for API display. Full-secret fields become '***'; url
+ * fields are decrypted (server-side only) and partially masked so the host stays
+ * visible while the secret tail is hidden. Always runs.
+ */
+export function maskChannelSecrets(channels: NotificationChannel[]): NotificationChannel[] {
+  return channels.map((channel) => {
+    const copy = { ...channel } as Record<string, unknown>
+    for (const f of CHANNEL_SECRET_FIELDS[channel.type] ?? []) {
+      if (typeof copy[f] === 'string' && copy[f]) copy[f] = MASK
+    }
+    for (const f of CHANNEL_URL_FIELDS[channel.type] ?? []) {
+      const val = copy[f]
+      if (typeof val === 'string' && val) copy[f] = maskWebhookUrl(decryptField(val) as string)
+    }
+    return copy as NotificationChannel
+  })
+}
+
+/**
+ * Restore masked channel secrets from a previously-stored channel of the same id,
+ * so a save/test that echoes back masked placeholders keeps the stored (encrypted)
+ * value. Full secrets restore on the '***' sentinel (dropped if there is no prior
+ * channel of the same type, to avoid persisting a broken secret). Url fields
+ * restore when the submitted url still equals the mask of the stored url (i.e. the
+ * operator did not edit it). Returns new objects; does not mutate the input.
  */
 export function restoreMaskedChannelSecrets(
   incoming: NotificationChannel[],
   prevById: Map<string, NotificationChannel>,
 ): NotificationChannel[] {
   return incoming.map((channel) => {
-    const fields = CHANNEL_SECRET_FIELDS[channel.type] ?? []
     const copy = { ...channel } as Record<string, unknown>
-    if (fields.length === 0) return copy as NotificationChannel
+    const secretFields = CHANNEL_SECRET_FIELDS[channel.type] ?? []
+    const urlFields = CHANNEL_URL_FIELDS[channel.type] ?? []
+    if (secretFields.length === 0 && urlFields.length === 0) return copy as NotificationChannel
     const prev = prevById.get(channel.id)
     const prevFields =
       prev && prev.type === channel.type ? (prev as unknown as Record<string, unknown>) : undefined
-    for (const f of fields) {
-      if (copy[f] === '***') {
+    for (const f of secretFields) {
+      if (copy[f] === MASK) {
         if (prevFields && typeof prevFields[f] === 'string' && prevFields[f]) {
           copy[f] = prevFields[f]
         } else {
           delete copy[f]
         }
+      }
+    }
+    for (const f of urlFields) {
+      const prevVal = prevFields?.[f]
+      if (
+        typeof copy[f] === 'string' &&
+        typeof prevVal === 'string' &&
+        prevVal &&
+        copy[f] === maskWebhookUrl(decryptField(prevVal) as string)
+      ) {
+        copy[f] = prevVal
       }
     }
     return copy as NotificationChannel

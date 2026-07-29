@@ -10,9 +10,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const result = evaluateDiscoveryModeAvailability('listenbrainz', {
       hasListenBrainz: false,
       hasSpotify: true,
+      spotifyScopes: [],
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -25,9 +27,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const snapshot = {
       hasListenBrainz: true,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     }
@@ -50,9 +54,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const result = evaluateDiscoveryModeAvailability('lb-artist-radio', {
       hasListenBrainz: false,
       hasSpotify: true,
+      spotifyScopes: [],
       hasLastfm: true,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -69,9 +75,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const result = evaluateDiscoveryModeAvailability('release-radar', {
       hasListenBrainz: false,
       hasSpotify: true,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -84,9 +92,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const snapshot = {
       hasListenBrainz: true,
       hasSpotify: true,
+      spotifyScopes: [],
       hasLastfm: true,
       hasDiscogs: true,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: true,
       hasSubsonic: false,
     }
@@ -107,9 +117,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const snapshot = {
       hasListenBrainz: true,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     }
@@ -132,9 +144,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const result = evaluateDiscoveryModeAvailability('similar-artist-web', {
       hasListenBrainz: false,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: true,
       hasDiscogs: true,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -150,9 +164,11 @@ describe('evaluateDiscoveryModeAvailability', () => {
     const result = evaluateDiscoveryModeAvailability('labels', {
       hasListenBrainz: false,
       hasSpotify: false,
+      spotifyScopes: [],
       hasLastfm: false,
       hasDiscogs: false,
       hasDeezer: false,
+      hasTidal: false,
       hasLibrarySync: false,
       hasSubsonic: false,
     })
@@ -191,8 +207,12 @@ describe('evaluateDiscoveryModeAvailability', () => {
 
   it('never falls through to the not-shipped-yet reason for a registered mode', () => {
     const allTrueSnapshot = Object.fromEntries(
-      Object.keys(EMPTY_DISCOVERY_SNAPSHOT).map((key) => [key, true]),
+      Object.entries(EMPTY_DISCOVERY_SNAPSHOT).map(([key, value]) => [
+        key,
+        typeof value === 'boolean' ? true : value,
+      ]),
     ) as typeof EMPTY_DISCOVERY_SNAPSHOT
+    allTrueSnapshot.spotifyScopes = ['user-follow-read']
 
     const registry = createDefaultDiscoveryModeRegistry()
     for (const mode of registry.list()) {
@@ -201,5 +221,58 @@ describe('evaluateDiscoveryModeAvailability', () => {
         'This mode is not shipped yet.',
       )
     }
+  })
+})
+
+describe('spotify-followed-artists availability', () => {
+  it('is enabled when hasSpotify and user-follow-read is granted', () => {
+    const result = evaluateDiscoveryModeAvailability('spotify-followed-artists', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasSpotify: true,
+      spotifyScopes: ['user-top-read', 'user-follow-read'],
+    })
+    expect(result).toMatchObject({ enabled: true, fallbackUsed: true, providerPath: ['spotify'] })
+  })
+
+  it('is disabled with a reconnect reason when connected but missing the follow scope', () => {
+    const result = evaluateDiscoveryModeAvailability('spotify-followed-artists', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasSpotify: true,
+      spotifyScopes: ['user-top-read'],
+    })
+    expect(result.enabled).toBe(false)
+    expect(result.reason).toMatch(/reconnect/i)
+  })
+
+  it('is disabled with a connect reason when Spotify is not connected', () => {
+    const result = evaluateDiscoveryModeAvailability('spotify-followed-artists', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasSpotify: false,
+    })
+    expect(result.enabled).toBe(false)
+    expect(result.reason).toMatch(/connect spotify/i)
+  })
+})
+
+describe('tidal-favorite-artists availability', () => {
+  it('is enabled as a fallback source when TIDAL is connected', () => {
+    const result = evaluateDiscoveryModeAvailability('tidal-favorite-artists', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasTidal: true,
+    })
+    expect(result).toMatchObject({ enabled: true, fallbackUsed: true, providerPath: ['tidal'] })
+  })
+
+  it('is disabled with a connect reason when TIDAL is not connected', () => {
+    const result = evaluateDiscoveryModeAvailability(
+      'tidal-favorite-artists',
+      EMPTY_DISCOVERY_SNAPSHOT,
+    )
+    expect(result).toMatchObject({
+      enabled: false,
+      fallbackUsed: false,
+      providerPath: [],
+      reason: 'Connect TIDAL to use this mode.',
+    })
   })
 })

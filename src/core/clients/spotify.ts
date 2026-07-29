@@ -111,6 +111,18 @@ type SpotifySavedAlbumsResponse = {
   next: string | null
 }
 
+type SpotifyFollowedArtistsResponse = {
+  artists: {
+    items: Array<{
+      name: string
+      id: string
+      genres: string[]
+      popularity: number
+    }>
+    cursors: { after: string | null }
+  }
+}
+
 export function createSpotifyClient(accessToken: string, options?: { baseUrl?: string }) {
   const http = createHttpClient({
     baseUrl: options?.baseUrl ?? BASE_URL,
@@ -259,6 +271,30 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
     return names.slice(0, limit)
   }
 
+  async function getFollowedArtists(limit = 50): Promise<SpotifyTopArtist[]> {
+    const pageSize = 50
+    const artists: SpotifyTopArtist[] = []
+    let after: string | null = null
+
+    while (artists.length < limit) {
+      const params = new URLSearchParams({
+        type: 'artist',
+        limit: String(pageSize),
+      })
+      if (after) params.set('after', after)
+      const res = await get<SpotifyFollowedArtistsResponse>(`/me/following?${params}`)
+      const items = res.artists?.items ?? []
+      for (const a of items) {
+        artists.push({ name: a.name, id: a.id, genres: a.genres ?? [], popularity: a.popularity })
+        if (artists.length >= limit) break
+      }
+      after = res.artists?.cursors?.after ?? null
+      if (!after || items.length === 0) break
+    }
+
+    return artists.slice(0, limit)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const profile = await get<SpotifyProfileResponse>('/me')
@@ -279,6 +315,7 @@ export function createSpotifyClient(accessToken: string, options?: { baseUrl?: s
     findExactArtistByName,
     getPopularAlbumsForArtist,
     getSavedAlbums,
+    getFollowedArtists,
     testConnection,
   }
 }

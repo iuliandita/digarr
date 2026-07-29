@@ -1,14 +1,14 @@
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
 import { normalizeArtistName } from './normalize'
 import type { LibraryArtist } from './sources/types'
+import type { UnreconciledReason } from './types'
 
 type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
   'searchArtist' | 'getReleaseGroups'
 >
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function mbErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
@@ -18,6 +18,10 @@ function bumpMbFailed(counts: LibrarySyncCounts): void {
   counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
 }
 
+function bumpLookupFailed(counts: LibrarySyncCounts): void {
+  counts.unreconciledLookupFailed = (counts.unreconciledLookupFailed ?? 0) + 1
+}
+
 export type ReconciledArtist = {
   sourceArtistId: string
   name: string
@@ -25,7 +29,7 @@ export type ReconciledArtist = {
   mbid: string | null
   matchMethod: 'mbid' | 'name_exact' | 'name_anchored' | 'name_disambiguated' | null
   matchConfidence: number | null
-  unreconciledReason?: 'no_candidate' | 'ambiguous' | 'override_skip'
+  unreconciledReason?: UnreconciledReason
   genres: string[]
 }
 
@@ -47,10 +51,6 @@ export type ReconcilerContext = {
   ) => Promise<Array<{ mbid: string; name: string; source: string }>>
   /** Mutable accumulator updated as the run progresses; surfaced to UI */
   counts: LibrarySyncCounts
-}
-
-function isValidUuid(value: string | undefined): value is string {
-  return typeof value === 'string' && UUID_RE.test(value)
 }
 
 function matchedRow(
@@ -118,7 +118,7 @@ export async function reconcileArtist(
   }
 
   // Step 1: source-provided MBID
-  if (isValidUuid(artist.mbid)) {
+  if (isValidMbid(artist.mbid)) {
     ctx.counts.matchedMbid += 1
     return matchedRow(artist, nameNormalized, artist.mbid, 'mbid', 1.0)
   }
@@ -141,11 +141,11 @@ export async function reconcileArtist(
     mbResult = await ctx.mbClient.searchArtist(nameNormalized)
   } catch (err) {
     bumpMbFailed(ctx.counts)
+    bumpLookupFailed(ctx.counts)
     console.warn(
       `[library-reconcile] MB searchArtist failed for "${artist.name}"; leaving unreconciled: ${mbErrorMessage(err)}`,
     )
-    ctx.counts.unreconciledNoCandidate += 1
-    return unreconciledRow(artist, nameNormalized, 'no_candidate')
+    return unreconciledRow(artist, nameNormalized, 'lookup_failed')
   }
   const candidates = (mbResult.artists ?? []).filter(
     (c) => normalizeArtistName(c.name) === nameNormalized,
@@ -182,16 +182,20 @@ export async function reconcileArtist(
           for (const t of normalizedSourceTitles) {
             if (mbTitles.has(t)) overlap += 1
           }
-          return { candidate: c, overlap }
+          return { candidate: c, overlap, lookupFailed: false }
         } catch (err) {
           bumpMbFailed(ctx.counts)
           console.warn(
-            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}"; treating as zero overlap: ${mbErrorMessage(err)}`,
+            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}"; leaving artist unreconciled: ${mbErrorMessage(err)}`,
           )
-          return { candidate: c, overlap: 0 }
+          return { candidate: c, overlap: 0, lookupFailed: true }
         }
       }),
     )
+    if (scored.some((result) => result.lookupFailed)) {
+      bumpLookupFailed(ctx.counts)
+      return unreconciledRow(artist, nameNormalized, 'lookup_failed')
+    }
     scored.sort((a, b) => b.overlap - a.overlap)
     const winner = scored[0]
     const runnerUp = scored[1]

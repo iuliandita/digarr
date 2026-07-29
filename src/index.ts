@@ -134,6 +134,7 @@ import {
   markLibraryHealthScanStarted,
   saveLibraryHealthState,
 } from './db/queries/library-health'
+import { deleteExpiredPendingOAuth } from './db/queries/oauth-pending'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
   getEnabledPlaylists,
@@ -253,12 +254,14 @@ const librarySyncIntervalHours = bootSettings?.librarySyncIntervalHours ?? 6
 const librarySyncStore = createLibrarySyncStore(db)
 
 async function getDiscoveryConnectionSnapshot(userId: number) {
-  const [userConnections, spotifyToken, deezerToken, hasLibrarySync] = await Promise.all([
-    getUserConnections(db, userId),
-    getOAuthToken(db, userId, 'spotify'),
-    getOAuthToken(db, userId, 'deezer'),
-    librarySyncStore.userHasAnySyncState(userId),
-  ])
+  const [userConnections, spotifyToken, deezerToken, tidalToken, hasLibrarySync] =
+    await Promise.all([
+      getUserConnections(db, userId),
+      getOAuthToken(db, userId, 'spotify'),
+      getOAuthToken(db, userId, 'deezer'),
+      getOAuthToken(db, userId, 'tidal'),
+      librarySyncStore.userHasAnySyncState(userId),
+    ])
 
   return {
     hasListenBrainz: Boolean(
@@ -267,9 +270,11 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
     hasSpotify: Boolean(
       spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
     ),
+    spotifyScopes: spotifyToken?.scopes?.split(' ').filter(Boolean) ?? [],
     hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
     hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
     hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),
+    hasTidal: Boolean(tidalToken?.accessToken && !tidalToken.accessToken.startsWith('pending:')),
     hasLibrarySync,
     hasSubsonic: Boolean(
       userConnections?.subsonicUrl &&
@@ -1602,12 +1607,14 @@ const server = serve({ fetch: app.fetch, port })
   }
 })()
 
-// Clean up expired sessions every 6 hours
+// Clean up expired sessions and abandoned OAuth authorizations every 6 hours.
+// Both are already rejected on read; this only stops the rows accumulating.
 setInterval(
   async () => {
     if (isMaintenance()) return
     try {
       await sessionQueries(db).deleteExpired()
+      await deleteExpiredPendingOAuth(db)
     } catch {
       /* best-effort cleanup */
     }
