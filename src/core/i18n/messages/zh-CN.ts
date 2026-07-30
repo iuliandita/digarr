@@ -30,6 +30,8 @@ export const zhCN = {
   'auth.passwordMinError': '密码必须至少为 12 个字符',
   'auth.registerDescription': '创建第一个帐户以开始。',
   'auth.sessionCookieRejected': '浏览器未接受会话 Cookie。请检查公共 URL 和 HTTPS 配置。',
+  'auth.sessionCookieInsecureOrigin':
+    '浏览器未接受会话 Cookie。此页面通过普通 HTTP 从非 localhost 地址提供，而会话 Cookie 带有 Secure 标记，因此浏览器将其丢弃。请通过 HTTPS 提供 Digarr，或将 DIGARR_ALLOW_INSECURE_COOKIES=true 与 ALLOWED_ORIGIN 设置为完全相同的此 URL，然后重启。',
   'auth.sessionMigrationFailed': '无法升级浏览器中保存的会话。请重新登录。',
   'auth.sessionVerificationFailed': '无法验证会话。请检查网络连接后重试。',
   'auth.signIn': '登录',

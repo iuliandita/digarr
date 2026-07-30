@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- **A failed login over plain HTTP now says which setting to change.** Signing in from another machine on a direct-HTTP install failed with "The browser did not accept the session cookie", which named the symptom but not the fix. The cause is that session cookies are `Secure` in production and browsers keep those only over HTTPS and on `http://localhost` -- so logging in works on the machine running Digarr and fails everywhere else. When the page is served over plain HTTP from a non-localhost address, the login screen now explains that and names both remedies (serve over HTTPS, or set `DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `ALLOWED_ORIGIN`). A production instance in that configuration also logs a warning at startup, before anyone reaches a login screen, and `docs/AUTHENTICATION.md` gained a troubleshooting entry under the error text. Translated across all 15 shipped locales.
+
 ## v1.15.0 - 2026-07-29
 
 ### Security

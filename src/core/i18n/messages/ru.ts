@@ -32,6 +32,8 @@ export const ru = {
   'auth.registerDescription': 'Создайте первую учетную запись, чтобы начать.',
   'auth.sessionCookieRejected':
     'Браузер не принял файл cookie сеанса. Проверьте настройки публичного URL и HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'Браузер не принял файл cookie сеанса. Эта страница отдается по обычному HTTP с адреса, отличного от localhost, а файл cookie сеанса помечен как Secure, поэтому браузер его отбрасывает. Раздавайте Digarr по HTTPS либо задайте DIGARR_ALLOW_INSECURE_COOKIES=true и ALLOWED_ORIGIN точно с этим URL, затем перезапустите.',
   'auth.sessionMigrationFailed': 'Не удалось обновить сохраненный сеанс браузера. Войдите снова.',
   'auth.sessionVerificationFailed':
     'Не удалось проверить сеанс. Проверьте подключение и повторите попытку.',

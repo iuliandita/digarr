@@ -32,6 +32,8 @@ export const en = {
   'auth.registerDescription': 'Create the first account to get started.',
   'auth.sessionCookieRejected':
     'The browser did not accept the session cookie. Check the public URL and HTTPS configuration.',
+  'auth.sessionCookieInsecureOrigin':
+    'The browser did not accept the session cookie. This page is served over plain HTTP from a non-localhost address, and the session cookie is marked Secure, so the browser discards it. Serve Digarr over HTTPS, or set DIGARR_ALLOW_INSECURE_COOKIES=true and ALLOWED_ORIGIN to this exact URL, then restart.',
   'auth.sessionMigrationFailed': 'Your saved browser session could not be upgraded. Sign in again.',
   'auth.sessionVerificationFailed':
     'The session could not be verified. Check your connection and try again.',

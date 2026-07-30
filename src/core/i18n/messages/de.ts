@@ -32,6 +32,8 @@ export const de = {
   'auth.registerDescription': 'Erstellen Sie das erste Konto, um loszulegen.',
   'auth.sessionCookieRejected':
     'Der Browser hat das Sitzungscookie nicht akzeptiert. Überprüfen Sie die öffentliche URL- und HTTPS-Konfiguration.',
+  'auth.sessionCookieInsecureOrigin':
+    'Der Browser hat das Sitzungscookie nicht akzeptiert. Diese Seite wird über einfaches HTTP von einer Adresse außerhalb von localhost ausgeliefert, und das Sitzungscookie ist als Secure markiert, daher verwirft der Browser es. Stelle Digarr über HTTPS bereit oder setze DIGARR_ALLOW_INSECURE_COOKIES=true und ALLOWED_ORIGIN auf genau diese URL und starte anschließend neu.',
   'auth.sessionMigrationFailed':
     'Ihre gespeicherte Browsersitzung konnte nicht aktualisiert werden. Melden Sie sich erneut an.',
   'auth.sessionVerificationFailed':

@@ -32,6 +32,8 @@ export const ro = {
   'auth.registerDescription': 'Creați primul cont pentru a începe.',
   'auth.sessionCookieRejected':
     'Browserul nu a acceptat cookie-ul de sesiune. Verificați configurația URL-ului public și HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'Browserul nu a acceptat cookie-ul de sesiune. Această pagină este servită prin HTTP simplu de la o adresă diferită de localhost, iar cookie-ul de sesiune este marcat Secure, așa că browserul îl aruncă. Servește Digarr prin HTTPS sau setează DIGARR_ALLOW_INSECURE_COOKIES=true și ALLOWED_ORIGIN exact la acest URL, apoi repornește.',
   'auth.sessionMigrationFailed':
     'Sesiunea salvată în browser nu a putut fi actualizată. Conectați-vă din nou.',
   'auth.sessionVerificationFailed':
