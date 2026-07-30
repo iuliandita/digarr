@@ -10,9 +10,6 @@ const MAX_PAGES = 20
 export type TidalUserArtist = {
   id: string
   name: string
-  popularity?: number
-  url?: string
-  imageUrl?: string
 }
 
 type TidalResourceIdentifier = {
@@ -22,9 +19,6 @@ type TidalResourceIdentifier = {
 
 type TidalArtistAttributes = {
   name?: string
-  popularity?: number
-  externalLinks?: Array<{ href?: string; meta?: { type?: string } }>
-  imageLinks?: Array<{ href?: string; meta?: { width?: number } }>
 }
 
 type TidalIncludedResource = {
@@ -40,28 +34,20 @@ type TidalRelationshipDocument = {
 }
 
 /** Pull the opaque `page[cursor]` value out of a JSON:API `links.next` URL. */
-function extractCursor(next: string | undefined): string | null {
+function extractCursor(next: string | undefined, baseUrl: string): string | null {
   if (!next) return null
   try {
-    const url = new URL(next, DEFAULT_BASE_URL)
+    const url = new URL(next, baseUrl)
     return url.searchParams.get('page[cursor]')
   } catch {
     return null
   }
 }
 
-function extractUrl(attrs: TidalArtistAttributes, id: string): string {
-  const tidalLink = attrs.externalLinks?.find((l) => l.meta?.type === 'TIDAL_SHARING')
-  return tidalLink?.href ?? `https://tidal.com/artist/${id}`
-}
-
-function extractImageUrl(attrs: TidalArtistAttributes): string | undefined {
-  return attrs.imageLinks?.[0]?.href ?? undefined
-}
-
 export function createTidalUserClient(accessToken: string, options: { baseUrl?: string } = {}) {
+  const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL
   const http = createHttpClient({
-    baseUrl: options.baseUrl ?? DEFAULT_BASE_URL,
+    baseUrl,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       Accept: 'application/vnd.api+json',
@@ -73,7 +59,7 @@ export function createTidalUserClient(accessToken: string, options: { baseUrl?: 
    * TIDAL exposes no separate followed-artists list - the collection is the
    * only user-artist signal in the public API.
    */
-  async function getFavoriteArtists(limit = 100): Promise<TidalUserArtist[]> {
+  async function getFavoriteArtists(limit: number): Promise<TidalUserArtist[]> {
     const artists: TidalUserArtist[] = []
     const seen = new Set<string>()
     const seenCursors = new Set<string>()
@@ -109,17 +95,11 @@ export function createTidalUserClient(accessToken: string, options: { baseUrl?: 
         const name = attrs?.name?.trim()
         if (!name) continue
         seen.add(ref.id)
-        artists.push({
-          id: ref.id,
-          name,
-          popularity: attrs?.popularity,
-          url: extractUrl(attrs ?? {}, ref.id),
-          imageUrl: extractImageUrl(attrs ?? {}),
-        })
+        artists.push({ id: ref.id, name })
         if (artists.length >= limit) break
       }
 
-      cursor = extractCursor(doc.links?.next)
+      cursor = extractCursor(doc.links?.next, baseUrl)
       if (!cursor || identifiers.length === 0) break
       // A repeated cursor means the upstream is not advancing; without this the
       // loop would re-request the same page forever.

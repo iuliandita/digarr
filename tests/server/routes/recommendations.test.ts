@@ -11,8 +11,8 @@ vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(),
 }))
 
-vi.mock('@/core/spotify-auth', () => ({
-  resolveSpotifyToken: vi.fn(async () => 'spotify-token'),
+vi.mock('@/core/provider-auth', () => ({
+  resolveProviderToken: vi.fn(async () => 'spotify-token'),
 }))
 
 vi.mock('@/core/clients/spotify', () => ({

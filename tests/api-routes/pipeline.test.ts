@@ -20,12 +20,12 @@ vi.mock('@/db/queries/users', async (importOriginal) => {
   }
 })
 
-// Pipeline /run calls resolveSpotifyToken which queries DB for OAuth tokens.
-vi.mock('@/core/spotify-auth', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@/core/spotify-auth')>()
+// Pipeline /run calls resolveProviderToken which queries DB for OAuth tokens.
+vi.mock('@/core/provider-auth', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/core/provider-auth')>()
   return {
     ...original,
-    resolveSpotifyToken: vi.fn(async () => null),
+    resolveProviderToken: vi.fn(async () => null),
   }
 })
 

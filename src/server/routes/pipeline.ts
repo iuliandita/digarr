@@ -21,7 +21,7 @@ import type { PipelineDeps } from '@/core/pipeline/orchestrator'
 import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
-import { resolveSpotifyToken } from '@/core/spotify-auth'
+import { resolveProviderToken } from '@/core/provider-auth'
 import { errMsg, logAndSanitize } from '@/core/validation'
 import { upsertArtist } from '@/db/queries/artists'
 import { getUserConnections } from '@/db/queries/users'
@@ -66,7 +66,7 @@ export function pipelineRoutes(deps: AppDependencies) {
     let spotifyAccessToken: string | null = null
     if (userId) {
       try {
-        spotifyAccessToken = await resolveSpotifyToken(deps.db, userId)
+        spotifyAccessToken = await resolveProviderToken(deps.db, userId, 'spotify')
       } catch {
         // Best-effort - continue without Spotify
       }
