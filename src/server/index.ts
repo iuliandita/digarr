@@ -113,6 +113,20 @@ export function createApp(deps: AppDependencies) {
       'DIGARR_ALLOW_INSECURE_COOKIES=true permits plaintext browser session cookies for HTTP origins.',
     )
   }
+  // A Secure-only cookie still works on http://localhost (a secure context), so
+  // this misconfiguration looks fine on the host and blocks every other client.
+  if (process.env.NODE_ENV === 'production' && !envConfig.allowInsecureCookies) {
+    const httpOrigin = envConfig.allowedOrigin?.startsWith('http://')
+    if (httpOrigin || !envConfig.allowedOrigin) {
+      console.warn(
+        `Session cookies are Secure-only${
+          httpOrigin
+            ? ` but ALLOWED_ORIGIN is ${envConfig.allowedOrigin}`
+            : ' and ALLOWED_ORIGIN is unset'
+        }. Browsers accept them over HTTPS and on http://localhost only, so logins from other machines over plain HTTP will fail with "the browser did not accept the session cookie". Serve Digarr over HTTPS, or set DIGARR_ALLOW_INSECURE_COOKIES=true with a matching http:// ALLOWED_ORIGIN.`,
+      )
+    }
+  }
   app.use(
     '*',
     cors({

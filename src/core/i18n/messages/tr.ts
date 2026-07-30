@@ -32,6 +32,8 @@ export const tr = {
   'auth.registerDescription': 'Başlamak için ilk hesabı oluşturun.',
   'auth.sessionCookieRejected':
     'Tarayıcı oturum çerezini kabul etmedi. Genel URL ve HTTPS yapılandırmasını kontrol edin.',
+  'auth.sessionCookieInsecureOrigin':
+    "Tarayıcı oturum çerezini kabul etmedi. Bu sayfa localhost dışındaki bir adresten düz HTTP ile sunuluyor ve oturum çerezi Secure olarak işaretli olduğundan tarayıcı çerezi atıyor. Digarr'ı HTTPS üzerinden sunun ya da DIGARR_ALLOW_INSECURE_COOKIES=true ve ALLOWED_ORIGIN değerini tam olarak bu URL yapıp yeniden başlatın.",
   'auth.sessionMigrationFailed': 'Kayıtlı tarayıcı oturumunuz yükseltilemedi. Yeniden oturum açın.',
   'auth.sessionVerificationFailed':
     'Oturum doğrulanamadı. Bağlantınızı kontrol edip tekrar deneyin.',

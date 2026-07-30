@@ -32,6 +32,8 @@ export const pl = {
   'auth.registerDescription': 'Aby rozpocząć, utwórz pierwsze konto.',
   'auth.sessionCookieRejected':
     'Przeglądarka nie zaakceptowała pliku cookie sesji. Sprawdź konfigurację publicznego adresu URL i HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'Przeglądarka nie zaakceptowała pliku cookie sesji. Ta strona jest serwowana przez zwykłe HTTP z adresu innego niż localhost, a plik cookie sesji ma atrybut Secure, więc przeglądarka go odrzuca. Udostępnij Digarr przez HTTPS albo ustaw DIGARR_ALLOW_INSECURE_COOKIES=true oraz ALLOWED_ORIGIN na dokładnie ten adres URL i uruchom ponownie.',
   'auth.sessionMigrationFailed':
     'Nie udało się uaktualnić zapisanej sesji przeglądarki. Zaloguj się ponownie.',
   'auth.sessionVerificationFailed':

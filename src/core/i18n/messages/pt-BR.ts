@@ -32,6 +32,8 @@ export const ptBR = {
   'auth.registerDescription': 'Crie a primeira conta para começar.',
   'auth.sessionCookieRejected':
     'O navegador não aceitou o cookie de sessão. Verifique a configuração da URL pública e do HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'O navegador não aceitou o cookie de sessão. Esta página é servida por HTTP simples a partir de um endereço diferente de localhost e o cookie de sessão está marcado como Secure, então o navegador o descarta. Sirva o Digarr por HTTPS ou defina DIGARR_ALLOW_INSECURE_COOKIES=true e ALLOWED_ORIGIN com exatamente esta URL e reinicie.',
   'auth.sessionMigrationFailed':
     'Não foi possível atualizar sua sessão salva no navegador. Entre novamente.',
   'auth.sessionVerificationFailed':

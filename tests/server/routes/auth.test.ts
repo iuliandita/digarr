@@ -237,18 +237,28 @@ afterEach(async () => {
 })
 
 describe('createApp insecure-cookie warning', () => {
-  const INSECURE_WARNING = expect.stringContaining('DIGARR_ALLOW_INSECURE_COOKIES=true')
+  // Matches the opt-in-enabled warning specifically. The Secure-only warning
+  // also names DIGARR_ALLOW_INSECURE_COOKIES, as the remedy.
+  const INSECURE_WARNING = expect.stringContaining('permits plaintext browser session cookies')
+  const SECURE_ONLY_WARNING = expect.stringContaining('Session cookies are Secure-only')
   let previousNodeEnv: string | undefined
+  let previousOrigin: string | undefined
   let warnSpy: ReturnType<typeof vi.spyOn>
+
+  function setOrigin(origin: string | undefined) {
+    ;(envConfig as { allowedOrigin: string | undefined }).allowedOrigin = origin
+  }
 
   beforeEach(() => {
     previousNodeEnv = process.env.NODE_ENV
+    previousOrigin = envConfig.allowedOrigin
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   afterEach(() => {
     warnSpy.mockRestore()
     ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    setOrigin(previousOrigin)
     if (previousNodeEnv === undefined) delete process.env.NODE_ENV
     else process.env.NODE_ENV = previousNodeEnv
   })
@@ -272,6 +282,47 @@ describe('createApp insecure-cookie warning', () => {
     ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = true
     createApp(makeDeps())
     expect(warnSpy).not.toHaveBeenCalledWith(INSECURE_WARNING)
+  })
+
+  it('warns that Secure-only cookies will block remote logins on an http origin', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    setOrigin('http://192.168.1.50:3000')
+    createApp(makeDeps())
+    expect(warnSpy).toHaveBeenCalledWith(SECURE_ONLY_WARNING)
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('http://192.168.1.50:3000'))
+  })
+
+  it('warns about Secure-only cookies when ALLOWED_ORIGIN is unset in production', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    setOrigin(undefined)
+    createApp(makeDeps())
+    expect(warnSpy).toHaveBeenCalledWith(SECURE_ONLY_WARNING)
+  })
+
+  it('stays quiet when production serves an https origin', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    setOrigin('https://digarr.example.com')
+    createApp(makeDeps())
+    expect(warnSpy).not.toHaveBeenCalledWith(SECURE_ONLY_WARNING)
+  })
+
+  it('stays quiet about Secure-only cookies when the http opt-in is set', () => {
+    process.env.NODE_ENV = 'production'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = true
+    setOrigin('http://192.168.1.50:3000')
+    createApp(makeDeps())
+    expect(warnSpy).not.toHaveBeenCalledWith(SECURE_ONLY_WARNING)
+  })
+
+  it('stays quiet about Secure-only cookies outside production', () => {
+    process.env.NODE_ENV = 'test'
+    ;(envConfig as { allowInsecureCookies: boolean }).allowInsecureCookies = false
+    setOrigin('http://192.168.1.50:3000')
+    createApp(makeDeps())
+    expect(warnSpy).not.toHaveBeenCalledWith(SECURE_ONLY_WARNING)
   })
 })
 

@@ -32,6 +32,8 @@ export const fr = {
   'auth.registerDescription': 'Créez le premier compte pour commencer.',
   'auth.sessionCookieRejected':
     "Le navigateur n'a pas accepté le cookie de session. Vérifiez la configuration de l'URL publique et de HTTPS.",
+  'auth.sessionCookieInsecureOrigin':
+    "Le navigateur n'a pas accepté le cookie de session. Cette page est servie en HTTP simple depuis une adresse autre que localhost, et le cookie de session porte l'attribut Secure : le navigateur le rejette donc. Servez Digarr en HTTPS, ou définissez DIGARR_ALLOW_INSECURE_COOKIES=true et ALLOWED_ORIGIN sur cette URL exacte, puis redémarrez.",
   'auth.sessionMigrationFailed':
     "Votre session enregistrée dans le navigateur n'a pas pu être mise à niveau. Reconnectez-vous.",
   'auth.sessionVerificationFailed':

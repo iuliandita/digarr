@@ -32,6 +32,8 @@ export const ja = {
   'auth.registerDescription': '開始するには、最初のアカウントを作成します。',
   'auth.sessionCookieRejected':
     'ブラウザーがセッション Cookie を受け入れませんでした。公開 URL と HTTPS の設定を確認してください。',
+  'auth.sessionCookieInsecureOrigin':
+    'ブラウザーがセッション Cookie を受け入れませんでした。このページは localhost 以外のアドレスから平文の HTTP で配信されており、セッション Cookie には Secure が付いているため、ブラウザーが破棄します。Digarr を HTTPS で配信するか、DIGARR_ALLOW_INSECURE_COOKIES=true と ALLOWED_ORIGIN にこの URL をそのまま設定して再起動してください。',
   'auth.sessionMigrationFailed':
     'ブラウザーに保存されたセッションを更新できませんでした。もう一度サインインしてください。',
   'auth.sessionVerificationFailed':

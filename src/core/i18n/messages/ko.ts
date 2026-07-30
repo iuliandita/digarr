@@ -32,6 +32,8 @@ export const ko = {
   'auth.registerDescription': '시작하려면 첫 번째 계정을 만드세요.',
   'auth.sessionCookieRejected':
     '브라우저가 세션 쿠키를 허용하지 않았습니다. 공개 URL 및 HTTPS 설정을 확인하세요.',
+  'auth.sessionCookieInsecureOrigin':
+    '브라우저가 세션 쿠키를 허용하지 않았습니다. 이 페이지는 localhost가 아닌 주소에서 일반 HTTP로 제공되고 세션 쿠키에는 Secure 표시가 있어 브라우저가 쿠키를 버립니다. Digarr를 HTTPS로 제공하거나, DIGARR_ALLOW_INSECURE_COOKIES=true와 ALLOWED_ORIGIN을 이 URL과 정확히 동일하게 설정한 뒤 다시 시작하세요.',
   'auth.sessionMigrationFailed':
     '브라우저에 저장된 세션을 업그레이드하지 못했습니다. 다시 로그인하세요.',
   'auth.sessionVerificationFailed': '세션을 확인하지 못했습니다. 연결을 확인하고 다시 시도하세요.',

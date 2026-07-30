@@ -32,6 +32,8 @@ export const it = {
   'auth.registerDescription': 'Crea il primo account per iniziare.',
   'auth.sessionCookieRejected':
     "Il browser non ha accettato il cookie di sessione. Controlla la configurazione dell'URL pubblico e di HTTPS.",
+  'auth.sessionCookieInsecureOrigin':
+    'Il browser non ha accettato il cookie di sessione. Questa pagina viene servita tramite HTTP semplice da un indirizzo diverso da localhost e il cookie di sessione è contrassegnato come Secure, quindi il browser lo scarta. Servi Digarr tramite HTTPS oppure imposta DIGARR_ALLOW_INSECURE_COOKIES=true e ALLOWED_ORIGIN su questo URL esatto, poi riavvia.',
   'auth.sessionMigrationFailed':
     'La sessione salvata nel browser non ha potuto essere aggiornata. Accedi di nuovo.',
   'auth.sessionVerificationFailed':

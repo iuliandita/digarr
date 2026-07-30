@@ -119,6 +119,27 @@ HTTPS public origin and leave the override at `false` whenever a proxy or
 terminator can provide TLS. Outside production the cookie is `Secure` only for
 an `https:` public origin.
 
+#### "The browser did not accept the session cookie"
+
+This is the `Secure`-only cookie being discarded by the browser. Browsers keep
+`Secure` cookies on `https://` origins and on `http://localhost`, which the
+platform treats as a secure context, but drop them on any other plain-HTTP
+address. The tell is that signing in works on the machine running Digarr and
+fails from every other device on the network.
+
+Either serve Digarr over HTTPS and set an `https://` `ALLOWED_ORIGIN`, or, for a
+deliberate plain-HTTP deployment, set both:
+
+```sh
+DIGARR_ALLOW_INSECURE_COOKIES=true
+ALLOWED_ORIGIN=http://<host-or-ip>:3000
+```
+
+`ALLOWED_ORIGIN` must match the URL typed into the address bar exactly, scheme
+and port included. On plain HTTP the session cookie travels unencrypted, so
+prefer TLS wherever a proxy can provide it. A production instance that would hit
+this logs a warning naming both remedies at startup.
+
 Registration is closed by default after the first user has been created. To
 open registration in a fresh install or internal deployment, set
 `DIGARR_DISABLE_REGISTRATION=false`.
