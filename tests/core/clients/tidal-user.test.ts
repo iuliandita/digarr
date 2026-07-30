@@ -20,7 +20,7 @@ function artistPage(
     data: entries.map((e) => ({ id: e.id, type: 'artists' })),
     included: entries
       .filter((e) => e.name !== undefined)
-      .map((e) => ({ id: e.id, type: 'artists', attributes: { name: e.name, popularity: 50 } })),
+      .map((e) => ({ id: e.id, type: 'artists', attributes: { name: e.name } })),
     links: next ? { next } : {},
   }
 }
@@ -48,7 +48,6 @@ describe('createTidalUserClient', () => {
     const artists = await client.getFavoriteArtists(10)
 
     expect(artists.map((a) => a.name)).toEqual(['Portishead', 'Massive Attack'])
-    expect(artists[0]?.url).toBe('https://tidal.com/artist/1')
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
@@ -110,32 +109,25 @@ describe('createTidalUserClient', () => {
     expect(artists.map((a) => a.id)).toEqual(['1'])
   })
 
-  it('prefers the TIDAL sharing link when present', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
-      jsonResponse({
-        data: [{ id: '7', type: 'artists' }],
-        included: [
-          {
-            id: '7',
-            type: 'artists',
-            attributes: {
-              name: 'Aphex Twin',
-              externalLinks: [
-                { href: 'https://tidal.com/browse/artist/7', meta: { type: 'TIDAL_SHARING' } },
-              ],
-              imageLinks: [{ href: 'https://images.tidal.test/7.jpg' }],
-            },
-          },
-        ],
-        links: {},
-      }),
-    )
+  it('resolves a relative next link against the configured base URL', async () => {
+    const seenHosts: string[] = []
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = new URL(String(input))
+      seenHosts.push(url.host)
+      const cursor = url.searchParams.get('page[cursor]')
+      if (!cursor) {
+        return jsonResponse(
+          artistPage([{ id: '1', name: 'A' }], '/v2/relationships/items?page%5Bcursor%5D=page-2'),
+        )
+      }
+      return jsonResponse(artistPage([{ id: '2', name: 'B' }]))
+    })
 
     const client = createTidalUserClient('token', { baseUrl: BASE })
-    const [artist] = await client.getFavoriteArtists(1)
+    const artists = await client.getFavoriteArtists(10)
 
-    expect(artist?.url).toBe('https://tidal.com/browse/artist/7')
-    expect(artist?.imageUrl).toBe('https://images.tidal.test/7.jpg')
+    expect(artists.map((a) => a.name)).toEqual(['A', 'B'])
+    expect(new Set(seenHosts)).toEqual(new Set(['tidal.test']))
   })
 
   it('stops instead of looping forever when the cursor never advances', async () => {

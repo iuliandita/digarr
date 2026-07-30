@@ -12,7 +12,7 @@ vi.mock('@/core/clients/spotify', () => ({
 
 vi.mock('@/core/discovery-modes/modes/runtime', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/discovery-modes/modes/runtime')>()
-  return { ...actual, getDiscoveryModeSpotifyToken: mockGetSpotifyToken }
+  return { ...actual, requireDiscoveryModeProviderToken: mockGetSpotifyToken }
 })
 
 import { createSpotifyFollowedArtistsMode } from '@/core/discovery-modes/modes/spotify-followed-artists'
@@ -77,7 +77,7 @@ describe('spotify-followed-artists mode – executor', () => {
   })
 
   it('throws "Connect Spotify to use this mode." when token resolver returns null', async () => {
-    mockGetSpotifyToken.mockResolvedValue(null)
+    mockGetSpotifyToken.mockRejectedValue(new Error('Connect Spotify to use this mode.'))
     const mode = createSpotifyFollowedArtistsMode()
     await expect(mode.executor(makeRequest({}))).rejects.toThrow(
       'Connect Spotify to use this mode.',

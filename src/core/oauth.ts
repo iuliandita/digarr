@@ -6,6 +6,12 @@ export type OAuthRefreshConfig = {
   tokenEndpoint: string
   clientId: string
   clientSecret: string
+  /**
+   * How the client authenticates to the token endpoint. A given OAuth client
+   * accepts one style, so this must match the authorization-code exchange that
+   * created the token. Defaults to `body`.
+   */
+  authStyle?: 'basic' | 'body'
 }
 
 type TokenResponse = {
@@ -36,12 +42,20 @@ export async function getValidToken(
   // Token expired or about to expire - refresh it
   if (!token.refreshToken) return null
 
+  const basicAuth = refreshConfig.authStyle === 'basic'
   const params = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: token.refreshToken,
     client_id: refreshConfig.clientId,
-    client_secret: refreshConfig.clientSecret,
   })
+  if (!basicAuth) params.set('client_secret', refreshConfig.clientSecret)
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  }
+  if (basicAuth) {
+    headers.Authorization = `Basic ${btoa(`${refreshConfig.clientId}:${refreshConfig.clientSecret}`)}`
+  }
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 10_000)
@@ -49,7 +63,7 @@ export async function getValidToken(
   try {
     res = await fetch(refreshConfig.tokenEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers,
       body: params.toString(),
       signal: controller.signal,
     })

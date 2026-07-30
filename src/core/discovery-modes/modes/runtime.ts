@@ -1,3 +1,4 @@
+import type { OAuthProvider, ProviderAuthReason } from '@/core/provider-auth'
 import type { DiscoveryModeRequest } from '../request'
 
 export async function getDiscoveryModeConnections(userId: number) {
@@ -17,40 +18,56 @@ export async function getDiscoveryModeSkipTlsVerify(): Promise<boolean> {
   return settings?.skipTlsVerify ?? false
 }
 
-export async function getDiscoveryModeSpotifyToken(userId: number): Promise<string | null> {
+export type DiscoveryModeTokenResult =
+  | { ok: true; token: string }
+  | { ok: false; reason: ProviderAuthReason; message: string }
+
+/**
+ * Resolve a provider token for a discovery run, keeping the real failure
+ * instead of flattening every cause into "not connected".
+ */
+export async function resolveDiscoveryModeProviderToken(
+  userId: number,
+  provider: OAuthProvider,
+): Promise<DiscoveryModeTokenResult> {
   try {
-    const [{ db }, { resolveSpotifyToken }] = await Promise.all([
+    const [{ db }, { resolveProviderToken }] = await Promise.all([
       import('@/db'),
-      import('@/core/spotify-auth'),
+      import('@/core/provider-auth'),
     ])
-    return await resolveSpotifyToken(db, userId)
-  } catch {
-    return null
+    return { ok: true, token: await resolveProviderToken(db, userId, provider) }
+  } catch (err) {
+    const { ProviderAuthError, providerLabel } = await import('@/core/provider-auth')
+    const label = providerLabel(provider)
+    if (err instanceof ProviderAuthError && err.reason === 'not_connected') {
+      return { ok: false, reason: 'not_connected', message: `Connect ${label} to use this mode.` }
+    }
+    console.error(`[discovery] ${provider} token unusable for user ${userId}:`, err)
+    return {
+      ok: false,
+      reason: 'token_unusable',
+      message: `Your ${label} connection is no longer usable - reconnect ${label} in Settings.`,
+    }
   }
 }
 
-export async function getDiscoveryModeDeezerToken(userId: number): Promise<string | null> {
-  try {
-    const [{ db }, { resolveDeezerToken }] = await Promise.all([
-      import('@/db'),
-      import('@/core/deezer-auth'),
-    ])
-    return await resolveDeezerToken(db, userId)
-  } catch {
-    return null
-  }
+/** Token or null, for callers that treat an unavailable provider as a soft miss. */
+export async function getDiscoveryModeProviderToken(
+  userId: number,
+  provider: OAuthProvider,
+): Promise<string | null> {
+  const result = await resolveDiscoveryModeProviderToken(userId, provider)
+  return result.ok ? result.token : null
 }
 
-export async function getDiscoveryModeTidalToken(userId: number): Promise<string | null> {
-  try {
-    const [{ db }, { resolveTidalToken }] = await Promise.all([
-      import('@/db'),
-      import('@/core/tidal-auth'),
-    ])
-    return await resolveTidalToken(db, userId)
-  } catch {
-    return null
-  }
+/** Token or a throw that names the actual failure. */
+export async function requireDiscoveryModeProviderToken(
+  userId: number,
+  provider: OAuthProvider,
+): Promise<string> {
+  const result = await resolveDiscoveryModeProviderToken(userId, provider)
+  if (!result.ok) throw new Error(result.message)
+  return result.token
 }
 
 export function getNormalizedLimit(

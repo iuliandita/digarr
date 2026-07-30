@@ -1,12 +1,12 @@
 import { type Context, Hono } from 'hono'
 import { createDeezerUserClient } from '@/core/clients/deezer-user'
-import { resolveDeezerToken } from '@/core/deezer-auth'
 import {
   buildDiscoveryModeExecutionContext,
   EMPTY_DISCOVERY_SNAPSHOT,
   evaluateDiscoveryModeAvailability,
 } from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
+import { resolveProviderToken } from '@/core/provider-auth'
 import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
@@ -600,7 +600,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
 
     let accessToken: string
     try {
-      accessToken = await resolveDeezerToken(deps.db, userId)
+      accessToken = await resolveProviderToken(deps.db, userId, 'deezer')
     } catch {
       return c.json({ error: 'Deezer is not connected' }, 400)
     }

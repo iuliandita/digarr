@@ -45,6 +45,65 @@ const LISTENBRAINZ_MODE_IDS = new Set([
   'lb-tag-radio',
 ])
 
+type SnapshotFlag = {
+  [K in keyof DiscoveryConnectionSnapshot]: DiscoveryConnectionSnapshot[K] extends boolean
+    ? K
+    : never
+}[keyof DiscoveryConnectionSnapshot]
+
+type SingleFlagRule = {
+  flag: SnapshotFlag
+  providerPath: string[]
+  fallbackUsed: boolean
+  reason: string
+}
+
+/** Modes gated on exactly one connection flag. */
+const SINGLE_FLAG_MODES: Record<string, SingleFlagRule> = {
+  labels: {
+    flag: 'hasDiscogs',
+    providerPath: ['discogs'],
+    fallbackUsed: true,
+    reason: 'Connect Discogs to use this mode.',
+  },
+  charts: {
+    flag: 'hasLastfm',
+    providerPath: ['lastfm'],
+    fallbackUsed: true,
+    reason: 'Connect Last.fm to use this mode.',
+  },
+  'deezer-flow': {
+    flag: 'hasDeezer',
+    providerPath: ['deezer'],
+    fallbackUsed: true,
+    reason: 'Connect Deezer to use this mode.',
+  },
+  'tidal-favorite-artists': {
+    flag: 'hasTidal',
+    providerPath: ['tidal'],
+    fallbackUsed: true,
+    reason: 'Connect TIDAL to use this mode.',
+  },
+  'subsonic-starred': {
+    flag: 'hasSubsonic',
+    providerPath: ['subsonic'],
+    fallbackUsed: true,
+    reason: 'Connect Subsonic to use this mode.',
+  },
+  'spotify-saved-albums': {
+    flag: 'hasSpotify',
+    providerPath: ['spotify'],
+    fallbackUsed: true,
+    reason: 'Connect Spotify to use this mode.',
+  },
+  'gap-fill': {
+    flag: 'hasLibrarySync',
+    providerPath: ['musicbrainz'],
+    fallbackUsed: false,
+    reason: 'Sync a library first to use this mode.',
+  },
+}
+
 export function buildDiscoveryModeExecutionContext(
   availability: DiscoveryAvailabilityResult,
 ): DiscoveryModeExecutionContext {
@@ -96,69 +155,19 @@ export function evaluateDiscoveryModeAvailability(
     return { enabled: true, fallbackUsed: false, providerPath: ['musicbrainz'] }
   }
 
-  if (modeId === 'labels') {
-    return snapshot.hasDiscogs
-      ? { enabled: true, fallbackUsed: true, providerPath: ['discogs'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Connect Discogs to use this mode.',
+  const singleFlag = SINGLE_FLAG_MODES[modeId]
+  if (singleFlag) {
+    return snapshot[singleFlag.flag]
+      ? {
+          enabled: true,
+          fallbackUsed: singleFlag.fallbackUsed,
+          providerPath: singleFlag.providerPath,
         }
-  }
-
-  if (modeId === 'charts') {
-    return snapshot.hasLastfm
-      ? { enabled: true, fallbackUsed: true, providerPath: ['lastfm'] }
       : {
           enabled: false,
           fallbackUsed: false,
           providerPath: [],
-          reason: 'Connect Last.fm to use this mode.',
-        }
-  }
-
-  if (modeId === 'deezer-flow') {
-    return snapshot.hasDeezer
-      ? { enabled: true, fallbackUsed: true, providerPath: ['deezer'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Connect Deezer to use this mode.',
-        }
-  }
-
-  if (modeId === 'tidal-favorite-artists') {
-    return snapshot.hasTidal
-      ? { enabled: true, fallbackUsed: true, providerPath: ['tidal'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Connect TIDAL to use this mode.',
-        }
-  }
-
-  if (modeId === 'subsonic-starred') {
-    return snapshot.hasSubsonic
-      ? { enabled: true, fallbackUsed: true, providerPath: ['subsonic'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Connect Subsonic to use this mode.',
-        }
-  }
-
-  if (modeId === 'spotify-saved-albums') {
-    return snapshot.hasSpotify
-      ? { enabled: true, fallbackUsed: true, providerPath: ['spotify'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Connect Spotify to use this mode.',
+          reason: singleFlag.reason,
         }
   }
 
@@ -202,17 +211,6 @@ export function evaluateDiscoveryModeAvailability(
       fallbackUsed: false,
       providerPath,
     }
-  }
-
-  if (modeId === 'gap-fill') {
-    return snapshot.hasLibrarySync
-      ? { enabled: true, fallbackUsed: false, providerPath: ['musicbrainz'] }
-      : {
-          enabled: false,
-          fallbackUsed: false,
-          providerPath: [],
-          reason: 'Sync a library first to use this mode.',
-        }
   }
 
   return {

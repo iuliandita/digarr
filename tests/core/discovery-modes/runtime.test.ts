@@ -2,35 +2,45 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 
-const {
-  db,
-  mockGetSettings,
-  mockGetUserConnections,
-  mockResolveDeezerToken,
-  mockResolveSpotifyToken,
-} = vi.hoisted(() => ({
-  db: { kind: 'test-db' },
-  mockGetSettings: vi.fn(),
-  mockGetUserConnections: vi.fn(),
-  mockResolveDeezerToken: vi.fn(),
-  mockResolveSpotifyToken: vi.fn(),
-}))
+const { db, mockGetSettings, mockGetUserConnections, mockResolveProviderToken } = vi.hoisted(
+  () => ({
+    db: { kind: 'test-db' },
+    mockGetSettings: vi.fn(),
+    mockGetUserConnections: vi.fn(),
+    mockResolveProviderToken: vi.fn(),
+  }),
+)
+
+class FakeProviderAuthError extends Error {
+  constructor(
+    readonly provider: string,
+    readonly reason: string,
+    message: string,
+  ) {
+    super(message)
+  }
+}
 
 vi.mock('@/db', () => ({ db }))
 vi.mock('@/db/queries/settings', () => ({ getSettings: mockGetSettings }))
 vi.mock('@/db/queries/users', () => ({ getUserConnections: mockGetUserConnections }))
-vi.mock('@/core/spotify-auth', () => ({ resolveSpotifyToken: mockResolveSpotifyToken }))
-vi.mock('@/core/deezer-auth', () => ({ resolveDeezerToken: mockResolveDeezerToken }))
+vi.mock('@/core/provider-auth', () => ({
+  resolveProviderToken: mockResolveProviderToken,
+  ProviderAuthError: FakeProviderAuthError,
+  providerLabel: (provider: string) =>
+    ({ spotify: 'Spotify', deezer: 'Deezer', tidal: 'TIDAL' })[provider],
+}))
 
 import {
   getDiscoveryModeConnections,
-  getDiscoveryModeDeezerToken,
+  getDiscoveryModeProviderToken,
   getDiscoveryModeSkipTlsVerify,
-  getDiscoveryModeSpotifyToken,
   getNormalizedLimit,
   getProviderPath,
   normalizeDiscoveryName,
   parseSeeds,
+  requireDiscoveryModeProviderToken,
+  resolveDiscoveryModeProviderToken,
 } from '@/core/discovery-modes/modes/runtime'
 
 function request(
@@ -117,20 +127,66 @@ describe('discovery mode runtime helpers', () => {
   })
 
   it('returns resolved provider tokens', async () => {
-    mockResolveSpotifyToken.mockResolvedValue('spotify-token')
-    mockResolveDeezerToken.mockResolvedValue('deezer-token')
+    mockResolveProviderToken.mockResolvedValue('spotify-token')
 
-    await expect(getDiscoveryModeSpotifyToken(7)).resolves.toBe('spotify-token')
-    await expect(getDiscoveryModeDeezerToken(7)).resolves.toBe('deezer-token')
-    expect(mockResolveSpotifyToken).toHaveBeenCalledWith(db, 7)
-    expect(mockResolveDeezerToken).toHaveBeenCalledWith(db, 7)
+    await expect(getDiscoveryModeProviderToken(7, 'spotify')).resolves.toBe('spotify-token')
+    expect(mockResolveProviderToken).toHaveBeenCalledWith(db, 7, 'spotify')
   })
 
   it('returns null when provider token resolution fails', async () => {
-    mockResolveSpotifyToken.mockRejectedValue(new Error('missing Spotify token'))
-    mockResolveDeezerToken.mockRejectedValue(new Error('missing Deezer token'))
+    mockResolveProviderToken.mockRejectedValue(new Error('missing Deezer token'))
 
-    await expect(getDiscoveryModeSpotifyToken(7)).resolves.toBeNull()
-    await expect(getDiscoveryModeDeezerToken(7)).resolves.toBeNull()
+    await expect(getDiscoveryModeProviderToken(7, 'deezer')).resolves.toBeNull()
+  })
+
+  it('reports a never-connected provider as such, without logging', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResolveProviderToken.mockRejectedValue(
+      new FakeProviderAuthError('tidal', 'not_connected', 'No TIDAL OAuth token'),
+    )
+
+    await expect(resolveDiscoveryModeProviderToken(7, 'tidal')).resolves.toEqual({
+      ok: false,
+      reason: 'not_connected',
+      message: 'Connect TIDAL to use this mode.',
+    })
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
+  it('distinguishes an unusable token from a missing connection, and logs the cause', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResolveProviderToken.mockRejectedValue(
+      new FakeProviderAuthError('spotify', 'token_unusable', 'expired and could not be refreshed'),
+    )
+
+    const result = await resolveDiscoveryModeProviderToken(7, 'spotify')
+    expect(result).toEqual({
+      ok: false,
+      reason: 'token_unusable',
+      message: 'Your Spotify connection is no longer usable - reconnect Spotify in Settings.',
+    })
+    expect(spy).toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
+  it('surfaces an unexpected failure as an unusable token rather than a missing connection', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResolveProviderToken.mockRejectedValue(new Error('DIGARR_ENCRYPTION_KEY mismatch'))
+
+    const result = await resolveDiscoveryModeProviderToken(7, 'deezer')
+    expect(result).toMatchObject({ ok: false, reason: 'token_unusable' })
+    expect(spy).toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
+  it('throws the resolved message when a token is required', async () => {
+    mockResolveProviderToken.mockRejectedValue(
+      new FakeProviderAuthError('spotify', 'not_connected', 'No Spotify OAuth token'),
+    )
+
+    await expect(requireDiscoveryModeProviderToken(7, 'spotify')).rejects.toThrow(
+      'Connect Spotify to use this mode.',
+    )
   })
 })

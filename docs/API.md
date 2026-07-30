@@ -169,10 +169,10 @@ Notes:
 | `state_expired` | The pending authorization matched but is older than its 10-minute TTL |
 | `browser_mismatch` | The transaction cookie is missing or does not match the browser that started the flow |
 | `missing_credentials` | The stored client ID/secret for the provider are gone |
-| `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout). TIDAL only |
+| `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout) |
 | `token_exchange_failed` | The token endpoint answered non-2xx. The upstream error body is logged, truncated to 300 chars |
-| `token_exchange_malformed` | The token endpoint answered 2xx with a non-JSON body. TIDAL only |
-| `token_exchange_no_token` | The token endpoint answered 2xx but the body carried no `access_token`. TIDAL only |
+| `token_exchange_malformed` | The token endpoint answered 2xx with a non-JSON body. Not reachable for Deezer, which is allowed to answer form-encoded |
+| `token_exchange_no_token` | The token endpoint answered 2xx but the body carried no `access_token` |
 | `unknown_provider` | The `:provider` path segment is not a supported provider |
 
 Treat these as untrusted when rendering: the pass-through case is provider-controlled. The settings banner maps only the known stages above to their own message; anything else renders a generic failure message with the raw value echoed back as inert, sanitized, length-capped text.

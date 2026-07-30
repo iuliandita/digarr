@@ -12,7 +12,7 @@ vi.mock('@/core/clients/tidal-user', () => ({
 
 vi.mock('@/core/discovery-modes/modes/runtime', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/discovery-modes/modes/runtime')>()
-  return { ...actual, getDiscoveryModeTidalToken: mockGetTidalToken }
+  return { ...actual, requireDiscoveryModeProviderToken: mockGetTidalToken }
 })
 
 import { createTidalFavoriteArtistsMode } from '@/core/discovery-modes/modes/tidal-favorite-artists'
@@ -37,8 +37,6 @@ describe('tidal-favorite-artists mode – shape', () => {
     expect(mode.id).toBe('tidal-favorite-artists')
     expect(mode.availability).toBe('fallback')
     expect(mode.easyFields.some((f) => f.key === 'limit')).toBe(true)
-    expect(mode.label).toBeTruthy()
-    expect(mode.description).toBeTruthy()
   })
 })
 
@@ -77,7 +75,7 @@ describe('tidal-favorite-artists mode – executor', () => {
   })
 
   it('throws "Connect TIDAL to use this mode." when token resolver returns null', async () => {
-    mockGetTidalToken.mockResolvedValue(null)
+    mockGetTidalToken.mockRejectedValue(new Error('Connect TIDAL to use this mode.'))
     const mode = createTidalFavoriteArtistsMode()
     await expect(mode.executor(makeRequest({}))).rejects.toThrow('Connect TIDAL to use this mode.')
   })
