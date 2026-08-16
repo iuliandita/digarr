@@ -28,8 +28,10 @@
   },
   "overrides": {
     "esbuild": "^0.28.0",
+    "nanoid": "^3.3.18",
     "picomatch": "^4.0.4",
-    "playwright-core": "^1.62.0"
+    "playwright-core": "^1.62.0",
+    "postcss": "^8.5.26"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
