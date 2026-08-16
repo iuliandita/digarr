@@ -69,6 +69,7 @@ export const envConfig = {
   lidarrUrl: env('LIDARR_URL'),
   lidarrApiKey: env('LIDARR_API_KEY'),
   skipTlsVerify: envBool('SKIP_TLS_VERIFY'),
+  lidarrTimeoutSeconds: envInt('DIGARR_LIDARR_TIMEOUT_SECONDS'),
 
   // ListenBrainz
   listenbrainzUsername: env('LISTENBRAINZ_USERNAME'),

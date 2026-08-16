@@ -11,6 +11,7 @@ const { createLidarrTarget } = await import('@/core/targets/lidarr')
 function mockLidarrClient() {
   const client = {
     getArtists: vi.fn().mockResolvedValue([]),
+    findArtistByMbid: vi.fn().mockResolvedValue(null),
     addArtist: vi.fn().mockResolvedValue({ id: 42, artistName: 'Artist' }),
     getAlbums: vi.fn().mockResolvedValue([]),
     setAlbumsMonitored: vi.fn().mockResolvedValue([]),
@@ -31,7 +32,7 @@ describe('createLidarrTarget().addAlbum', () => {
 
   it('adds absent artist unmonitored, monitors only the target album and searches it', async () => {
     const client = mockLidarrClient()
-    client.getArtists.mockResolvedValue([])
+    client.findArtistByMbid.mockResolvedValue(null)
     client.addArtist.mockResolvedValue({ id: 42 })
     client.getAlbums.mockResolvedValue([
       { id: 7, foreignAlbumId: 'rg-1', monitored: false, title: 'One' },
@@ -62,7 +63,7 @@ describe('createLidarrTarget().addAlbum', () => {
 
   it('reuses already-tracked artist without re-adding (gap-fill safe)', async () => {
     const client = mockLidarrClient()
-    client.getArtists.mockResolvedValue([{ id: 99, foreignArtistId: 'a1' }])
+    client.findArtistByMbid.mockResolvedValue({ id: 99, foreignArtistId: 'a1' })
     client.getAlbums.mockResolvedValue([
       { id: 7, foreignAlbumId: 'rg-1', monitored: false, title: 'One' },
     ])
@@ -86,7 +87,7 @@ describe('createLidarrTarget().addAlbum', () => {
 
   it('returns failure when the album is not found in Lidarr', async () => {
     const client = mockLidarrClient()
-    client.getArtists.mockResolvedValue([{ id: 99, foreignArtistId: 'a1' }])
+    client.findArtistByMbid.mockResolvedValue({ id: 99, foreignArtistId: 'a1' })
     client.getAlbums.mockResolvedValue([])
 
     const target = createLidarrTarget(1, {
@@ -109,7 +110,7 @@ describe('createLidarrTarget().addAlbum', () => {
     vi.useFakeTimers()
     try {
       const client = mockLidarrClient()
-      client.getArtists.mockResolvedValue([])
+      client.findArtistByMbid.mockResolvedValue(null)
       client.addArtist.mockResolvedValue({ id: 42 })
       // Lidarr has the artist but never surfaces this release group
       client.getAlbums.mockResolvedValue([
@@ -144,7 +145,7 @@ describe('createLidarrTarget().addAlbum', () => {
     vi.useFakeTimers()
     try {
       const client = mockLidarrClient()
-      client.getArtists.mockResolvedValue([])
+      client.findArtistByMbid.mockResolvedValue(null)
       client.addArtist.mockResolvedValue({ id: 42 })
       client.getAlbums
         .mockResolvedValueOnce([])
@@ -172,9 +173,28 @@ describe('createLidarrTarget().addAlbum', () => {
     }
   })
 
+  // Issue #589: this path used to fetch the entire artist list to find one
+  // MBID, which times out on large libraries and blocks approved adds.
+  it('looks the artist up by MBID instead of fetching the whole library', async () => {
+    const client = mockLidarrClient()
+    client.findArtistByMbid.mockResolvedValue({ id: 99, foreignArtistId: 'a1' })
+    client.getAlbums.mockResolvedValue([
+      { id: 7, foreignAlbumId: 'rg-1', monitored: false, title: 'One' },
+    ])
+
+    const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+    await target.addAlbum?.(
+      { artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' },
+      { qualityProfileId: 1, metadataProfileId: 1, rootFolderId: 1 },
+    )
+
+    expect(client.findArtistByMbid).toHaveBeenCalledWith('a1')
+    expect(client.getArtists).not.toHaveBeenCalled()
+  })
+
   it('does not poll for an already-tracked artist with the album absent', async () => {
     const client = mockLidarrClient()
-    client.getArtists.mockResolvedValue([{ id: 99, foreignArtistId: 'a1' }])
+    client.findArtistByMbid.mockResolvedValue({ id: 99, foreignArtistId: 'a1' })
     client.getAlbums.mockResolvedValue([])
 
     const target = createLidarrTarget(1, {

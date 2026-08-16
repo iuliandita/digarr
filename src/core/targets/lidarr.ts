@@ -116,9 +116,7 @@ export function createLidarrTarget(
       try {
         // Gap-fill safe: reuse the artist if already tracked, otherwise add it
         // unmonitored so Lidarr does not grab the whole discography.
-        const existing = (await client.getArtists()).find(
-          (a) => a.foreignArtistId === album.artistMbid,
-        )
+        const existing = await client.findArtistByMbid(album.artistMbid)
         let artistId = existing?.id
 
         if (!artistId) {

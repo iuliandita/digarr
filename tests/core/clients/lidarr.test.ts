@@ -15,7 +15,10 @@ const mockGet = vi.fn()
 const mockPost = vi.fn()
 const mockPut = vi.fn()
 
-vi.mock('@/core/clients/http', () => ({
+// Only createHttpClient is stubbed; the real error classes are kept so the
+// timeout-wrapping assertions exercise the same types production throws.
+vi.mock('@/core/clients/http', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/core/clients/http')>()),
   createHttpClient: vi.fn(() => ({
     get: mockGet,
     post: mockPost,
@@ -24,7 +27,7 @@ vi.mock('@/core/clients/http', () => ({
   })),
 }))
 
-const { createHttpClient } = await import('@/core/clients/http')
+const { createHttpClient, HttpTimeoutError } = await import('@/core/clients/http')
 
 const TEST_URL = 'http://lidarr.local:8686'
 const TEST_KEY = 'abc123key'
@@ -104,8 +107,79 @@ describe('createLidarrClient', () => {
       mockGet.mockResolvedValueOnce(mockArtists)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       const result = await client.getArtists()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist')
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', expect.any(Object))
       expect(result).toEqual(mockArtists)
+    })
+
+    it('uses a long timeout and does not retry (issue #589)', async () => {
+      // Lidarr serializes the whole library into one response; retrying a
+      // timeout just costs the upstream another full serialization.
+      mockGet.mockResolvedValueOnce(mockArtists)
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.getArtists()
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', {
+        timeout: 120_000,
+        retries: 0,
+      })
+    })
+
+    it('honours an explicit listTimeoutMs override', async () => {
+      mockGet.mockResolvedValueOnce(mockArtists)
+      const client = createLidarrClient(TEST_URL, TEST_KEY, false, { listTimeoutMs: 300_000 })
+      await client.getArtists()
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', {
+        timeout: 300_000,
+        retries: 0,
+      })
+    })
+
+    it('names the tunable env var when the fetch times out', async () => {
+      mockGet.mockRejectedValueOnce(
+        new HttpTimeoutError(120_000, 'GET', `${TEST_URL}/api/v1/artist`),
+      )
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(client.getArtists()).rejects.toThrow(/DIGARR_LIDARR_TIMEOUT_SECONDS/)
+    })
+
+    it('leaves non-timeout failures untouched', async () => {
+      mockGet.mockRejectedValueOnce(new Error('connection refused'))
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(client.getArtists()).rejects.toThrow(/connection refused/)
+    })
+  })
+
+  describe('findArtistByMbid()', () => {
+    const radioheadMbid = mockArtists[0]?.foreignArtistId as string
+
+    it('GETs /api/v1/artist with the mbId filter instead of the full library', async () => {
+      mockGet.mockResolvedValueOnce([mockArtists[0]])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.findArtistByMbid(radioheadMbid)
+      expect(mockGet).toHaveBeenCalledWith(`/api/v1/artist?mbId=${radioheadMbid}`)
+      expect(result?.id).toBe(1)
+    })
+
+    it('returns null when Lidarr has no such artist', async () => {
+      mockGet.mockResolvedValueOnce([])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await expect(client.findArtistByMbid(radioheadMbid)).resolves.toBeNull()
+    })
+
+    it('returns null rather than a wrong artist when the server ignores mbId', async () => {
+      // Lidarr ignores unknown query params instead of rejecting them, so a
+      // version predating mbId support answers with the entire library.
+      // Taking raw[0] there would bind the wrong artist to the album.
+      mockGet.mockResolvedValueOnce(mockArtists)
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.findArtistByMbid('00000000-0000-0000-0000-000000000000')
+      expect(result).toBeNull()
+    })
+
+    it('picks the matching artist when the server ignores mbId', async () => {
+      mockGet.mockResolvedValueOnce(mockArtists)
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.findArtistByMbid(radioheadMbid)
+      expect(result?.artistName).toBe('Radiohead')
     })
   })
 
