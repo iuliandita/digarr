@@ -62,7 +62,7 @@ jobs:
           exit-code: "0"
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
           trivy-version: "0.70.0"
-      - uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      - uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         if: always()
         with:
           sarif_file: trivy-fs.sarif
@@ -104,7 +104,7 @@ jobs:
           output: trivy-image.sarif
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
           trivy-version: "0.70.0"
-      - uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      - uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         if: always()
         with:
           sarif_file: trivy-image.sarif
@@ -117,7 +117,7 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-      - uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      - uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
           languages: javascript-typescript
-      - uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      - uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
