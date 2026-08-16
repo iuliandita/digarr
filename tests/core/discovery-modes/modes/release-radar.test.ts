@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 
 const getUserConnections = vi.fn()
-const resolveSpotifyToken = vi.fn()
+const resolveProviderToken = vi.fn()
 const getReleaseGroups = vi.fn()
 const lastfmGetTopArtists = vi.fn()
 const listenbrainzGetTopArtists = vi.fn()
@@ -16,8 +16,10 @@ vi.mock('@/db/queries/users', () => ({
   getUserConnections,
 }))
 
-vi.mock('@/core/spotify-auth', () => ({
-  resolveSpotifyToken,
+vi.mock('@/core/provider-auth', () => ({
+  resolveProviderToken,
+  ProviderAuthError: class extends Error {},
+  providerLabel: () => 'Spotify',
 }))
 
 vi.mock('@/core/clients/musicbrainz', () => ({
@@ -66,7 +68,7 @@ describe('createReleaseRadarMode', () => {
       listenbrainzUsername: null,
       listenbrainzToken: null,
     })
-    resolveSpotifyToken.mockResolvedValue(null)
+    resolveProviderToken.mockResolvedValue(null)
     lastfmGetTopArtists.mockResolvedValue([
       { name: 'Broadcast', mbid: 'artist-1', playCount: 120, source: 'lastfm' },
       { name: 'Stereolab', mbid: 'artist-2', playCount: 80, source: 'lastfm' },

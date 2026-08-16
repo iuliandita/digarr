@@ -17,7 +17,6 @@ import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
 import { createTidalClient } from './core/clients/tidal'
 import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './core/crypto'
-import { resolveDeezerToken } from './core/deezer-auth'
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
@@ -54,6 +53,7 @@ import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
+import { resolveProviderToken } from './core/provider-auth'
 import { createDefaultRegistry } from './core/providers/registry'
 import { buildSearchSourceCatalog } from './core/search/catalog'
 import { enrichSearchResultsWithImages } from './core/search/enrich'
@@ -67,7 +67,6 @@ import { createTidalSearchSource } from './core/search/sources/tidal'
 import { setSessionStore } from './core/sessions'
 import { createSlskdOrchestrator } from './core/slskd/orchestrator'
 import { createSlskdRunner } from './core/slskd/runner'
-import { resolveSpotifyToken } from './core/spotify-auth'
 import { createCsvImportAdapter } from './core/subscriptions/adapters/csv-import'
 import { createDeezerAdapter } from './core/subscriptions/adapters/deezer'
 import { createGenreAdapter } from './core/subscriptions/adapters/genre'
@@ -653,7 +652,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
 
   let spotifyAccessToken: string | null = null
   try {
-    spotifyAccessToken = await resolveSpotifyToken(db, userId)
+    spotifyAccessToken = await resolveProviderToken(db, userId, 'spotify')
   } catch {
     // Best-effort: discovery mode runs should still work without Spotify.
   }
@@ -777,7 +776,7 @@ async function getEnabledTargetsForResolvedUser(
     if (row.type === 'spotify-playlist') {
       targets.push(
         createSpotifyPlaylistTarget(row.id, {
-          getAccessToken: () => resolveSpotifyToken(db, userId),
+          getAccessToken: () => resolveProviderToken(db, userId, 'spotify'),
         }),
       )
     }
@@ -894,7 +893,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     if (userId !== null && userId !== undefined) {
       const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
       if (spotifyOAuthRow) {
-        const getToken = () => resolveSpotifyToken(db, userId)
+        const getToken = () => resolveProviderToken(db, userId, 'spotify')
         adapterRegistry.register(createSpotifyLikedSongsAdapter({ getToken }))
         adapterRegistry.register(createSpotifyPlaylistAdapter({ getToken }))
         adapterRegistry.register(createSpotifyChartsAdapter({ getToken }))
@@ -905,7 +904,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     if (userId !== null && userId !== undefined) {
       const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
       if (deezerOAuthRow && !deezerOAuthRow.accessToken.startsWith('pending:')) {
-        const getToken = () => resolveDeezerToken(db, userId)
+        const getToken = () => resolveProviderToken(db, userId, 'deezer')
         adapterRegistry.register(createDeezerAdapter({ getToken }))
       }
     }
@@ -1016,7 +1015,7 @@ async function buildPlaylistResolverDeps(userId: number | null) {
     const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
     if (spotifyOAuthRow) {
       resolverDeps.spotifySearch = async (query, limit = 10) => {
-        const accessToken = await resolveSpotifyToken(db, userId)
+        const accessToken = await resolveProviderToken(db, userId, 'spotify')
         const client = createSpotifyClient(accessToken)
         return client.searchTracks(query, limit)
       }
@@ -1430,7 +1429,7 @@ const app = createApp({
         if (spotifyOAuth) {
           sources.push(
             createSpotifySearchSource({
-              getToken: () => resolveSpotifyToken(db, searchUserId),
+              getToken: () => resolveProviderToken(db, searchUserId, 'spotify'),
             }),
           )
         }

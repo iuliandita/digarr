@@ -32,6 +32,8 @@ export const nl = {
   'auth.registerDescription': 'Maak het eerste account aan om aan de slag te gaan.',
   'auth.sessionCookieRejected':
     'De browser heeft de sessiecookie niet geaccepteerd. Controleer de configuratie van de openbare URL en HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'De browser heeft de sessiecookie niet geaccepteerd. Deze pagina wordt via gewone HTTP geserveerd vanaf een ander adres dan localhost en de sessiecookie is als Secure gemarkeerd, dus de browser gooit hem weg. Serveer Digarr via HTTPS, of stel DIGARR_ALLOW_INSECURE_COOKIES=true en ALLOWED_ORIGIN in op exact deze URL en start opnieuw.',
   'auth.sessionMigrationFailed':
     'Uw opgeslagen browsersessie kon niet worden bijgewerkt. Meld u opnieuw aan.',
   'auth.sessionVerificationFailed':

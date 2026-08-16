@@ -40,6 +40,7 @@ type HttpClientConfig = {
 
 export type HttpRequestOptions = {
   retries?: number
+  timeout?: number
 }
 
 export function createHttpClient(config: HttpClientConfig) {
@@ -62,11 +63,12 @@ export function createHttpClient(config: HttpClientConfig) {
   ): Promise<Response> {
     const url = `${baseUrl}${path}`
     const maxRetries = options.retries ?? retries
+    const requestTimeout = options.timeout ?? timeout
     onRequest?.(method, url)
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), timeout)
+      const timer = setTimeout(() => controller.abort(), requestTimeout)
 
       try {
         const prepared = await prepareRequest(
@@ -117,7 +119,14 @@ export function createHttpClient(config: HttpClientConfig) {
           }
           throw err
         }
-        if (attempt >= maxRetries) throw err
+        if (attempt >= maxRetries) {
+          // A bare AbortError reads as "This operation was aborted", which tells
+          // the user nothing about which budget they blew or that it is tunable.
+          if (controller.signal.aborted) {
+            throw new HttpTimeoutError(requestTimeout, method, url)
+          }
+          throw err
+        }
         await sleep(2 ** attempt * 500)
       }
     }
@@ -226,6 +235,21 @@ export class HttpError extends Error {
     const redactedUrl = redactUrlForLog(url)
     super(`HTTP ${status} from ${redactedUrl}: ${body}`)
     this.name = 'HttpError'
+    this.url = redactedUrl
+  }
+
+  public url: string
+}
+
+export class HttpTimeoutError extends Error {
+  constructor(
+    public timeoutMs: number,
+    method: string,
+    url: string,
+  ) {
+    const redactedUrl = redactUrlForLog(url)
+    super(`Request timed out after ${timeoutMs}ms: ${method} ${redactedUrl}`)
+    this.name = 'HttpTimeoutError'
     this.url = redactedUrl
   }
 

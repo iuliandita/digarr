@@ -32,6 +32,8 @@ export const uk = {
   'auth.registerDescription': 'Щоб почати, створіть перший обліковий запис.',
   'auth.sessionCookieRejected':
     'Браузер не прийняв файл cookie сеансу. Перевірте налаштування загальнодоступної URL-адреси та HTTPS.',
+  'auth.sessionCookieInsecureOrigin':
+    'Браузер не прийняв файл cookie сеансу. Ця сторінка віддається звичайним HTTP з адреси, відмінної від localhost, а файл cookie сеансу позначено як Secure, тому браузер його відкидає. Роздавайте Digarr через HTTPS або задайте DIGARR_ALLOW_INSECURE_COOKIES=true та ALLOWED_ORIGIN точно з цією URL-адресою, потім перезапустіть.',
   'auth.sessionMigrationFailed': 'Не вдалося оновити збережений сеанс браузера. Увійдіть знову.',
   'auth.sessionVerificationFailed':
     'Не вдалося перевірити сеанс. Перевірте з’єднання та повторіть спробу.',

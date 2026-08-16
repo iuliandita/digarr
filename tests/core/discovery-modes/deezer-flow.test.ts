@@ -14,7 +14,7 @@ vi.mock('@/core/clients/deezer-user', () => ({
 
 vi.mock('@/core/discovery-modes/modes/runtime', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/discovery-modes/modes/runtime')>()
-  return { ...actual, getDiscoveryModeDeezerToken: mockGetDeezerToken }
+  return { ...actual, requireDiscoveryModeProviderToken: mockGetDeezerToken }
 })
 
 import {
@@ -123,7 +123,7 @@ describe('deezer-flow mode – executor', () => {
   })
 
   it('throws "Connect Deezer to use this mode." when the token resolver returns null', async () => {
-    mockGetDeezerToken.mockResolvedValue(null)
+    mockGetDeezerToken.mockRejectedValue(new Error('Connect Deezer to use this mode.'))
     const mode = createDeezerFlowMode()
     await expect(mode.executor(makeRequest({}))).rejects.toThrow('Connect Deezer to use this mode.')
   })

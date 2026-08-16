@@ -4,7 +4,7 @@ import { createLastFmClient } from '@/core/clients/lastfm'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
-import { resolveSpotifyToken } from '@/core/spotify-auth'
+import { resolveProviderToken } from '@/core/provider-auth'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -120,7 +120,7 @@ async function spotifyPopularCandidates(
   artist: ApprovalArtist,
 ): Promise<PopularAlbumCandidate[]> {
   try {
-    const accessToken = await resolveSpotifyToken(deps.db, userId)
+    const accessToken = await resolveProviderToken(deps.db, userId, 'spotify')
     const spotify = createSpotifyClient(accessToken)
     const spotifyId =
       extractSpotifyArtistId(artist.streamingUrls?.spotify) ??
@@ -572,7 +572,7 @@ export function recommendationRoutes(deps: AppDependencies) {
     const userId = c.get('userId')
     if (!userId) return c.json({ available: false, spotify: false, lastfm: false })
     const [spotify, connections] = await Promise.all([
-      resolveSpotifyToken(deps.db, userId).then(
+      resolveProviderToken(deps.db, userId, 'spotify').then(
         () => true,
         () => false,
       ),

@@ -6,6 +6,7 @@ import {
   isPrivateIp,
   isPrivateUrl,
   isRfc1918,
+  redactSecrets,
 } from '@/core/validation'
 
 describe('conciseErrMsg', () => {
@@ -139,5 +140,23 @@ describe('isPrivateUrl', () => {
     expect(isPrivateUrl('https://hooks.slack.com/services/xxx')).toBe(false)
     expect(isPrivateUrl('https://discord.com/api/webhooks/123/abc')).toBe(false)
     expect(isPrivateUrl('https://ntfy.sh/mytopic')).toBe(false)
+  })
+})
+
+describe('redactSecrets', () => {
+  it('redacts snake_cased credential params that a bare word boundary would skip', () => {
+    expect(redactSecrets('error client_secret=hunter2 refresh_token=abc123')).toBe(
+      'error client_secret=[redacted] refresh_token=[redacted]',
+    )
+  })
+
+  it('still redacts the unprefixed forms', () => {
+    expect(redactSecrets('secret=abc&api_key=def&password=ghi')).toBe(
+      'secret=[redacted]&api_key=[redacted]&password=[redacted]',
+    )
+  })
+
+  it('leaves non-credential params alone', () => {
+    expect(redactSecrets('client_id=public&limit=50')).toBe('client_id=public&limit=50')
   })
 })

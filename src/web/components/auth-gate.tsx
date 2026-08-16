@@ -22,6 +22,28 @@ type MigrationRetryState = 'fresh' | 'retry' | 'unavailable'
 
 const MIGRATION_RETRY_KEY = 'digarr-session-migration-retry'
 
+/**
+ * Browsers treat http://localhost as a secure context and keep Secure cookies
+ * there, so a Secure-only session works on the host but silently fails from any
+ * other address. Detect that case to name the actual fix instead of the symptom.
+ */
+export function isInsecureRemoteOrigin(location: { protocol: string; hostname: string }): boolean {
+  if (location.protocol !== 'http:') return false
+  const host = location.hostname.toLowerCase().replace(/^\[|\]$/g, '')
+  return !(
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host === '127.0.0.1' ||
+    host === '::1'
+  )
+}
+
+function sessionCookieRejectedKey(): MessageKey {
+  return isInsecureRemoteOrigin(window.location)
+    ? 'auth.sessionCookieInsecureOrigin'
+    : 'auth.sessionCookieRejected'
+}
+
 function getMigrationRetryState(): MigrationRetryState {
   try {
     return window.sessionStorage.getItem(MIGRATION_RETRY_KEY) === null ? 'fresh' : 'retry'
@@ -176,7 +198,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       } else if (status.authenticated) {
         setState('authenticated')
       } else {
-        setNotice('auth.sessionCookieRejected')
+        setNotice(sessionCookieRejectedKey())
         setState(status.hasUsers ? 'login' : 'register')
       }
     } catch {

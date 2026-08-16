@@ -20,6 +20,7 @@ jobs:
   podman:
     name: Podman (rootless)
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
@@ -35,7 +36,9 @@ jobs:
       # The base compose sets DB_HOST + a secret, so the app must resolve postgres.
       - name: Start postgres stack (base compose + built image)
         working-directory: deploy/docker
-        run: podman-compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
+        run: |
+          "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
+            podman-compose -f docker-compose.yml -f docker-compose.compat.yml
 
       - name: Assert postgres backend
         run: |
@@ -57,7 +60,9 @@ jobs:
       # pglite from DB_PATH set by the pglite compose.
       - name: Start pglite stack
         working-directory: deploy/docker
-        run: podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml up -d --build
+        run: |
+          "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
+            podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml
 
       - name: Assert pglite backend + persistence across restart
         working-directory: deploy/docker
@@ -97,6 +102,7 @@ jobs:
   docker-macos:
     name: Docker via Colima (macOS Intel)
     runs-on: macos-15-intel
+    timeout-minutes: 45
     # Keep the macOS signal visible without blocking unrelated pull requests
     # while the hosted Intel path proves stable.
     continue-on-error: true
@@ -149,7 +155,9 @@ jobs:
       - name: Start postgres stack (base compose + built image)
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
-        run: docker compose -f docker-compose.yml -f docker-compose.compat.yml up -d --build
+        run: |
+          "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
+            docker compose -f docker-compose.yml -f docker-compose.compat.yml
 
       - name: Assert postgres backend
         id: postgres_assert
@@ -176,7 +184,9 @@ jobs:
       - name: Start pglite stack
         if: steps.docker.outputs.ready == 'true'
         working-directory: deploy/docker
-        run: docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml up -d --build
+        run: |
+          "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
+            docker compose -f docker-compose.pglite.yml -f docker-compose.compat.yml
 
       - name: Assert pglite backend + persistence across restart
         id: pglite_assert

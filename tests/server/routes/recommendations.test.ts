@@ -11,8 +11,8 @@ vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(),
 }))
 
-vi.mock('@/core/spotify-auth', () => ({
-  resolveSpotifyToken: vi.fn(async () => 'spotify-token'),
+vi.mock('@/core/provider-auth', () => ({
+  resolveProviderToken: vi.fn(async () => 'spotify-token'),
 }))
 
 vi.mock('@/core/clients/spotify', () => ({
@@ -254,6 +254,7 @@ const mockLidarrClient = {
   getMetadataProfiles: vi.fn(async () => []),
   getRootFolders: vi.fn(async () => []),
   getArtists: vi.fn(async () => []),
+  findArtistByMbid: vi.fn(async () => null),
   lookupArtist: vi.fn(async () => []),
   getAlbums: vi.fn(async () => []),
   getWantedMissing: vi.fn(async () => []),

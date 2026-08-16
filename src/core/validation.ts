@@ -13,16 +13,20 @@ export function isValidMbid(value: unknown): value is string {
 }
 
 export function redactSecrets(text: string): string {
-  return text
-    .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
-    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
-    .replace(
-      /(\b(?:api_?key|apikey|token|secret|password|auth|access_token|auth_token|signature|sig)=)[^&\s"']+/gi,
-      '$1[redacted]',
-    )
-    .replace(/([?&](?:key|t|s)=)[^&\s"']+/gi, '$1[redacted]')
-    .replace(/\bAIza[0-9A-Za-z_-]{30,}\b/g, '[redacted]')
-    .replace(/\/\/([^/\s:@]+):([^@\s/]+)@/g, '//$1:[redacted]@')
+  return (
+    text
+      .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
+      .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
+      // The `[\w-]*` prefix catches snake_cased forms such as `client_secret=`
+      // and `refresh_token=`, which a bare \b would skip (`_` is a word char).
+      .replace(
+        /\b[\w-]*(?:api_?key|apikey|token|secret|password|auth|signature|sig)=[^&\s"']+/gi,
+        (match) => `${match.slice(0, match.indexOf('=') + 1)}[redacted]`,
+      )
+      .replace(/([?&](?:key|t|s)=)[^&\s"']+/gi, '$1[redacted]')
+      .replace(/\bAIza[0-9A-Za-z_-]{30,}\b/g, '[redacted]')
+      .replace(/\/\/([^/\s:@]+):([^@\s/]+)@/g, '//$1:[redacted]@')
+  )
 }
 
 const CONCISE_ERROR_MAX_LENGTH = 300

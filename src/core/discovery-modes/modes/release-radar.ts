@@ -6,7 +6,7 @@ import type { DiscoverySource, TopArtistEntry } from '@/core/plugins/types'
 import type { DiscoveryModeDefinition } from '../types'
 import {
   getDiscoveryModeConnections,
-  getDiscoveryModeSpotifyToken,
+  getDiscoveryModeProviderToken,
   getProviderPath,
 } from './runtime'
 
@@ -23,7 +23,7 @@ async function getReleaseRadarSources(
 ): Promise<Array<{ id: string; source: Pick<DiscoverySource, 'getTopArtists'> }>> {
   const [connections, spotifyToken] = await Promise.all([
     getDiscoveryModeConnections(userId),
-    getDiscoveryModeSpotifyToken(userId),
+    getDiscoveryModeProviderToken(userId, 'spotify'),
   ])
   const sources: Array<{ id: string; source: Pick<DiscoverySource, 'getTopArtists'> }> = []
 

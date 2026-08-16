@@ -14,6 +14,7 @@ const mockDb = {} as never
 
 let server: http.Server
 let tokenEndpoint: string
+let lastRefreshRequest: { authorization?: string; params: URLSearchParams } | null = null
 
 function sendJson(res: http.ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body)
@@ -31,6 +32,7 @@ beforeAll(async () => {
       req.on('end', () => {
         const body = Buffer.concat(chunks).toString()
         const params = new URLSearchParams(body)
+        lastRefreshRequest = { authorization: req.headers.authorization, params }
 
         if (params.get('grant_type') !== 'refresh_token') {
           sendJson(res, 400, { error: 'unsupported_grant_type' })
@@ -71,6 +73,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  lastRefreshRequest = null
 })
 
 const refreshConfig = {
@@ -201,5 +204,33 @@ describe('getValidToken()', () => {
         accessToken: 'new-access-token',
       }),
     )
+  })
+
+  describe('client authentication style', () => {
+    beforeEach(() => {
+      vi.mocked(getOAuthToken).mockResolvedValue({
+        accessToken: 'expired-token',
+        refreshToken: 'original-refresh',
+        expiresAt: new Date(Date.now() - 60 * 1000),
+      } as never)
+      vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
+    })
+
+    it('defaults to credentials in the form body, with no Basic header', async () => {
+      await getValidToken(mockDb, 1, 'spotify', refreshConfig)
+
+      expect(lastRefreshRequest?.authorization).toBeUndefined()
+      expect(lastRefreshRequest?.params.get('client_id')).toBe('test-client-id')
+      expect(lastRefreshRequest?.params.get('client_secret')).toBe('test-client-secret')
+    })
+
+    it('sends Basic auth and keeps client_id in the body when authStyle is basic', async () => {
+      await getValidToken(mockDb, 1, 'tidal', { ...refreshConfig, authStyle: 'basic' })
+
+      const expected = `Basic ${btoa('test-client-id:test-client-secret')}`
+      expect(lastRefreshRequest?.authorization).toBe(expected)
+      expect(lastRefreshRequest?.params.get('client_id')).toBe('test-client-id')
+      expect(lastRefreshRequest?.params.get('client_secret')).toBeNull()
+    })
   })
 })

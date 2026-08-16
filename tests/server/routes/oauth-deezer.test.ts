@@ -307,7 +307,7 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
     expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
   })
 
-  it('redirects with token_exchange_failed when response has no access_token', async () => {
+  it('redirects with token_exchange_no_token when response has no access_token', async () => {
     vi.mocked(consumePendingOAuth).mockResolvedValue(makePending())
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -317,7 +317,7 @@ describe('GET /api/v1/auth/oauth/deezer/callback', () => {
 
     const res = await callback('test-state-uuid-6')
     expect(res.status).toBe(302)
-    expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_failed')
+    expect(res.headers.get('Location')).toContain('oauth_error=token_exchange_no_token')
   })
 
   it('calls Deezer token endpoint with app_id, secret, code, output=json', async () => {
