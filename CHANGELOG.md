@@ -4,7 +4,11 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
-## Unreleased
+## v1.15.1 - 2026-08-17
+
+### Security
+
+- **The web framework moved to a version that carries four published advisories' fixes.** Hono went from 4.12.32 to 4.13.1, crossing four advisories patched in 4.12.34: a ReDoS in the CORS middleware ([GHSA-8j4g-w8fx-2239](https://github.com/advisories/GHSA-8j4g-w8fx-2239)), an algorithmic-complexity denial of service in the language middleware ([GHSA-54fx-42gc-7vw4](https://github.com/advisories/GHSA-54fx-42gc-7vw4)), `memo()` retaining server-rendered output across requests ([GHSA-f23p-vx2j-j53r](https://github.com/advisories/GHSA-f23p-vx2j-j53r)), and the proxy helper leaving hop-by-hop response headers in place ([GHSA-79qm-7rj5-m7r9](https://github.com/advisories/GHSA-79qm-7rj5-m7r9)). Digarr mounts only the CORS middleware of those four, so the other three were not reachable in this application; the version floor is raised regardless. Sixteen other dependencies were updated in the same pass, and two transitive dev-tree packages (`postcss`, `nanoid`) are now pinned through `overrides` so an audit of the repository reports clean. Neither dev-tree package ships in the runtime image.
 
 ### Fixed
 
