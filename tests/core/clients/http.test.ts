@@ -265,6 +265,28 @@ describe('createHttpClient', () => {
       const client = createHttpClient({ baseUrl, timeout: 100, retries: 0 })
       await expect(client.get('/slow')).rejects.toThrow()
     }, 5_000)
+
+    it('names the elapsed budget instead of surfacing a bare abort', async () => {
+      const client = createHttpClient({ baseUrl, timeout: 100, retries: 0 })
+      await expect(client.get('/slow')).rejects.toThrow(/timed out after 100ms/)
+    }, 5_000)
+
+    it('lets a per-request timeout raise the client default', async () => {
+      // Client default of 100ms would abort /slow; the per-request override
+      // is what large Lidarr libraries rely on.
+      const client = createHttpClient({ baseUrl, timeout: 100, retries: 0 })
+      await expect(client.get('/slow', { timeout: 2_000 })).resolves.toEqual({ ok: true })
+    }, 5_000)
+
+    it('lets a per-request timeout lower the client default', async () => {
+      const client = createHttpClient({ baseUrl, timeout: 5_000, retries: 0 })
+      await expect(client.get('/slow', { timeout: 100 })).rejects.toThrow(/timed out after 100ms/)
+    }, 5_000)
+
+    it('redacts credentials from the timeout message', async () => {
+      const client = createHttpClient({ baseUrl, timeout: 100, retries: 0 })
+      await expect(client.get('/slow?apikey=hunter2')).rejects.toThrow(/REDACTED/)
+    }, 5_000)
   })
 
   describe('onRequest callback', () => {

@@ -1,6 +1,8 @@
+import { envConfig } from '@/config/env'
+import { timeoutSecondsWithDefaultToMs } from '@/core/providers/timeout'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
-import { createHttpClient } from './http'
+import { createHttpClient, HttpTimeoutError } from './http'
 
 export type LidarrArtist = {
   id: number
@@ -67,24 +69,44 @@ export type AddArtistOptions = {
   monitorOption?: 'all' | 'new' | 'none'
 }
 
-export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = false) {
+// Lidarr's /api/v1/artist has no pagination, so a large library arrives as one
+// oversized response (7100 artists is ~54MB / ~83s). The 10s client default
+// cannot cover that; this is the budget for that one call.
+const DEFAULT_ARTIST_LIST_TIMEOUT_SECONDS = 120
+
+export type LidarrClientOptions = {
+  listTimeoutMs?: number
+}
+
+export function createLidarrClient(
+  url: string,
+  apiKey: string,
+  skipTlsVerify = false,
+  opts: LidarrClientOptions = {},
+) {
   const http = createHttpClient({
     baseUrl: url,
     headers: { 'X-Api-Key': apiKey },
     skipTlsVerify,
   })
 
+  const listTimeoutMs =
+    opts.listTimeoutMs ??
+    timeoutSecondsWithDefaultToMs(
+      envConfig.lidarrTimeoutSeconds,
+      DEFAULT_ARTIST_LIST_TIMEOUT_SECONDS,
+    )
+
   // Caches to avoid repeated API calls within a client instance.
   let rootFolderCache: RootFolder[] | null = null
   let qualityProfileCache: QualityProfile[] | null = null
   let metadataProfileCache: MetadataProfile[] | null = null
 
-  async function getArtists(): Promise<LidarrArtist[]> {
-    const raw = await http.get<Record<string, unknown>[]>('/api/v1/artist')
-    // Strip to only the fields we need - the full Lidarr response includes
-    // images, statistics, albums, links, ratings etc. that we don't use,
-    // which wastes significant memory for large libraries.
-    return raw.map((a) => ({
+  // Strip to only the fields we need - the full Lidarr response includes
+  // images, statistics, albums, links, ratings etc. that we don't use,
+  // which wastes significant memory for large libraries.
+  function mapArtist(a: Record<string, unknown>): LidarrArtist {
+    return {
       id: a.id as number,
       artistName: a.artistName as string,
       foreignArtistId: a.foreignArtistId as string,
@@ -93,7 +115,37 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
       monitored: a.monitored as boolean,
       status: a.status as string,
       genres: a.genres as string[] | undefined,
-    }))
+    }
+  }
+
+  async function getArtists(): Promise<LidarrArtist[]> {
+    try {
+      // No retries: an endpoint that reliably outruns the budget will not
+      // succeed on a second attempt, and every attempt costs Lidarr another
+      // full serialization of the library.
+      const raw = await http.get<Record<string, unknown>[]>('/api/v1/artist', {
+        timeout: listTimeoutMs,
+        retries: 0,
+      })
+      return raw.map(mapArtist)
+    } catch (err: unknown) {
+      if (err instanceof HttpTimeoutError) {
+        throw new Error(
+          `${err.message}; raise DIGARR_LIDARR_TIMEOUT_SECONDS if your Lidarr library is large`,
+        )
+      }
+      throw err
+    }
+  }
+
+  // Lidarr's AllArtists accepts an mbId filter, so a single-artist lookup does
+  // not need the whole library. The find() guards versions that predate the
+  // filter: Lidarr ignores unknown query params rather than rejecting them, so
+  // those answer with every artist and raw[0] would be the wrong one.
+  async function findArtistByMbid(mbid: string): Promise<LidarrArtist | null> {
+    const encoded = new URLSearchParams({ mbId: mbid }).toString()
+    const raw = await http.get<Record<string, unknown>[]>(`/api/v1/artist?${encoded}`)
+    return raw.map(mapArtist).find((a) => a.foreignArtistId === mbid) ?? null
   }
 
   function lookupArtist(term: string): Promise<LidarrArtist[]> {
@@ -261,6 +313,7 @@ export function createLidarrClient(url: string, apiKey: string, skipTlsVerify = 
 
   return {
     getArtists,
+    findArtistByMbid,
     lookupArtist,
     addArtist,
     getAlbums,
