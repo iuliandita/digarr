@@ -20,9 +20,9 @@ services:
     #   :stable -> releases soaked for 7+ days with no follow-up patch
     #   :1.15 -> current minor release line, patch fixes only
     # Pin to a specific patch when you want zero surprises:
-    # image: docker.io/iuliandita/digarr:1.15.0
+    # image: docker.io/iuliandita/digarr:1.15.1
     # Default image is alpine (musl libc). Debian/glibc variant:
-    # image: docker.io/iuliandita/digarr:1.15.0-debian
+    # image: docker.io/iuliandita/digarr:1.15.1-debian
     user: "1000:1000"
     networks:
       - frontend

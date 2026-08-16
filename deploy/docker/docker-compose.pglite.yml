@@ -11,8 +11,8 @@ services:
     # :latest -> newest tagged release, recommended for first-time home installs
     # :stable -> releases soaked for 7+ days with no follow-up patch
     # Track patch fixes only: docker.io/iuliandita/digarr:1.15
-    # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.15.0
-    # Default is alpine; Debian/glibc variant: docker.io/iuliandita/digarr:1.15.0-debian
+    # Pin a version for zero surprises: docker.io/iuliandita/digarr:1.15.1
+    # Default is alpine; Debian/glibc variant: docker.io/iuliandita/digarr:1.15.1-debian
     user: "1000:1000"
     env_file:
       - path: .env
