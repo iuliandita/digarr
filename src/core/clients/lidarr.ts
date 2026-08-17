@@ -69,6 +69,16 @@ export type AddArtistOptions = {
   monitorOption?: 'all' | 'new' | 'none'
 }
 
+// digarr's monitor vocabulary is not Lidarr's. MonitorTypes has no `new`
+// member, so forwarding it verbatim fails JSON deserialization with a 400
+// before validation even runs (#611). Keep every digarr value mapped here --
+// the `satisfies` makes a new one a compile error rather than a runtime 400.
+export const LIDARR_MONITOR_TYPES = {
+  all: 'all',
+  new: 'future',
+  none: 'none',
+} as const satisfies Record<NonNullable<AddArtistOptions['monitorOption']>, string>
+
 // Lidarr's /api/v1/artist has no pagination, so a large library arrives as one
 // oversized response (7100 artists is ~54MB / ~83s). The 10s client default
 // cannot cover that; this is the budget for that one call.
@@ -214,7 +224,7 @@ export function createLidarrClient(
       throw new Error(`Root folder with id ${rootFolderId} not found`)
     }
 
-    const monitor = options?.monitorOption ?? 'none'
+    const monitorOption = options?.monitorOption ?? 'none'
 
     return http.post<LidarrArtist>('/api/v1/artist', {
       foreignArtistId,
@@ -224,8 +234,10 @@ export function createLidarrClient(
       rootFolderPath: folder.path,
       monitored: true,
       addOptions: {
-        monitor,
-        searchForMissingAlbums: monitor === 'all',
+        monitor: LIDARR_MONITOR_TYPES[monitorOption],
+        // Derived from digarr's value, not the mapped one, so a future value
+        // that maps onto `all` does not silently inherit the search.
+        searchForMissingAlbums: monitorOption === 'all',
       },
     })
   }
