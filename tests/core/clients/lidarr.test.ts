@@ -8,7 +8,8 @@ import type {
   QualityProfile,
   RootFolder,
 } from '@/core/clients/lidarr'
-import { createLidarrClient } from '@/core/clients/lidarr'
+import { createLidarrClient, LIDARR_MONITOR_TYPES } from '@/core/clients/lidarr'
+import { monitorOptionSchema } from '@/server/schemas/recommendations'
 
 // Mock the HTTP client module so we never hit a real server.
 const mockGet = vi.fn()
@@ -289,7 +290,9 @@ describe('createLidarrClient', () => {
       )
     })
 
-    it('uses monitorOption:"new" and sets searchForMissingAlbums:false', async () => {
+    // Lidarr's MonitorTypes enum has no `new`; the equivalent is `future`.
+    // Sending `new` fails deserialization with a 400 (#611).
+    it('maps monitorOption:"new" to Lidarr "future" and sets searchForMissingAlbums:false', async () => {
       mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 13 })
 
@@ -300,7 +303,7 @@ describe('createLidarrClient', () => {
       expect(mockPost).toHaveBeenCalledWith(
         '/api/v1/artist',
         expect.objectContaining({
-          addOptions: { monitor: 'new', searchForMissingAlbums: false },
+          addOptions: { monitor: 'future', searchForMissingAlbums: false },
         }),
       )
     })
@@ -693,5 +696,41 @@ describe('createLidarrClient', () => {
       expect(result).toHaveProperty('success')
       expect(result).toHaveProperty('message')
     })
+  })
+})
+
+// digarr's monitor vocabulary and Lidarr's MonitorTypes enum drifted apart once
+// already (#611): `new` was forwarded verbatim and rejected with a 400. Mocks
+// cannot catch that -- they accept any string -- so pin both ends here.
+describe('monitor vocabulary', () => {
+  // NzbDrone.Core.Music.MonitorTypes, lowercased as the API serializes it.
+  // Source: src/NzbDrone.Core/Music/Model/MonitorTypes.cs
+  const LIDARR_MONITOR_TYPE_MEMBERS = [
+    'all',
+    'future',
+    'missing',
+    'existing',
+    'latest',
+    'first',
+    'none',
+    'unknown',
+  ]
+
+  it('maps every digarr monitor option onto a real Lidarr MonitorTypes member', () => {
+    for (const target of Object.values(LIDARR_MONITOR_TYPES)) {
+      expect(LIDARR_MONITOR_TYPE_MEMBERS).toContain(target)
+    }
+  })
+
+  it('handles every monitorOptionSchema value somewhere in the chain', () => {
+    // `selected` collapses to `none` in the Lidarr target and `popular` becomes
+    // `selected` in the approve route, so neither reaches the client. Every
+    // other value must have a mapping here.
+    const TRANSLATED_UPSTREAM = ['selected', 'popular']
+    const handled = [...Object.keys(LIDARR_MONITOR_TYPES), ...TRANSLATED_UPSTREAM]
+
+    for (const option of monitorOptionSchema.options) {
+      expect(handled).toContain(option)
+    }
   })
 })

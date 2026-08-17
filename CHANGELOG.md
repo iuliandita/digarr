@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- **Approving an artist with the "New releases" monitor option now works instead of always failing.** Digarr sent its own name for the option, `new`, straight through to Lidarr, whose monitor list has no such value -- so Lidarr rejected the request outright and the recommendation landed in `add_failed` with nothing in the interface explaining why. Every other monitor option happened to be translated somewhere along the way; this one was not. It now maps to Lidarr's equivalent, `future`. The same setting is available for auto-approval, where the failure was quieter and larger: an instance configured to auto-approve with "New releases" failed on every artist it tried to add, on every scan, with no click involved. Reported in [#611](https://github.com/iuliandita/digarr/issues/611).
+
 ## v1.15.1 - 2026-08-17
 
 ### Security
