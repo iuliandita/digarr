@@ -5,9 +5,14 @@
 # unbounded `while True` around `podman wait --condition=healthy`, so a service
 # whose healthcheck never reports hangs `up` instead of failing it -- the whole
 # job then dies at its own timeout with no logs, because a job-level timeout
-# skips the `if: failure()` diagnostics. Gating on health here bounds the wait
-# and prints the state needed to tell "the healthcheck never ran" apart from
-# "postgres is broken" (issue #601).
+# skips the `if: failure()` diagnostics.
+#
+# Under podman 5.8.4 on the hosted runner the scheduled healthcheck never fires
+# at all: postgres logs "ready to accept connections" a second after start, yet
+# health sits at {"Status":"starting","FailingStreak":0,"Log":null} indefinitely.
+# Only the timer is broken -- running the probe by hand records a result and
+# flips the container healthy, which is also what releases podman-compose's
+# wait. So drive the probe here rather than waiting on the scheduler (#601).
 #
 # Usage: wait-for-compose-health.sh <service> [timeout-seconds]
 set -euo pipefail
@@ -32,6 +37,7 @@ fi
 
 deadline=$((SECONDS + TIMEOUT))
 status=unknown
+probe_output=""
 while ((SECONDS < deadline)); do
   status=$(podman inspect --format '{{.State.Health.Status}}' "$container" 2>/dev/null || echo unknown)
   case "$status" in
@@ -43,10 +49,14 @@ while ((SECONDS < deadline)); do
       break
       ;;
   esac
+  # Records a result even when the scheduled check never fires. A container
+  # without a healthcheck errors here, which the next inspect reports anyway.
+  probe_output=$(podman healthcheck run "$container" 2>&1) || true
   sleep 2
 done
 
 printf '%s never reported healthy within %ss (last status: %s)\n' "$SERVICE" "$TIMEOUT" "$status" >&2
+printf '=== last manual probe ===\n%s\n' "$probe_output" >&2
 printf '=== health state ===\n' >&2
 podman inspect --format '{{json .State.Health}}' "$container" >&2 || true
 printf '\n=== container state ===\n' >&2
