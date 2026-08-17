@@ -24,18 +24,44 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
+      # Pinned so the next silent podman-compose release is distinguishable from
+      # a real regression.
       - name: Install podman-compose
-        run: pip install podman-compose
+        run: pip install podman-compose==1.6.0
+
+      # The runner image roll is the only input that changed when #601 started,
+      # so record what this job actually runs against.
+      - name: Report container tooling
+        run: |
+          podman --version
+          podman-compose --version
+          podman info --format 'runtime: {{.Host.OCIRuntime.Name}} {{.Host.OCIRuntime.Version}}'
+          podman info --format 'network: {{.Host.NetworkBackend}}'
+          systemctl --user is-system-running || true
+          loginctl show-user "$(id -un)" --property=Linger || true
 
       - name: Prepare env
         run: |
           cp deploy/docker/.env.example deploy/docker/.env
           printf '%s\n' 'testpass123' > deploy/docker/secrets/postgres_password
 
+      # podman-compose resolves the app's `condition: service_healthy` on
+      # postgres with an unbounded wait, so bringing the stack up in one shot
+      # hangs the whole job when the healthcheck never reports. Start the
+      # dependency alone and gate on it here, where the wait is bounded and
+      # failure prints the health state (#601).
+      - name: Start postgres and wait for health
+        working-directory: deploy/docker
+        timeout-minutes: 10
+        run: |
+          podman-compose -f docker-compose.yml -f docker-compose.compat.yml up -d postgres
+          "$GITHUB_WORKSPACE/scripts/ci/wait-for-compose-health.sh" postgres
+
       # Existing Postgres install + freshly-built image (upgrade-safety test).
       # The base compose sets DB_HOST + a secret, so the app must resolve postgres.
       - name: Start postgres stack (base compose + built image)
         working-directory: deploy/docker
+        timeout-minutes: 10
         run: |
           "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
             podman-compose -f docker-compose.yml -f docker-compose.compat.yml
@@ -60,6 +86,7 @@ jobs:
       # pglite from DB_PATH set by the pglite compose.
       - name: Start pglite stack
         working-directory: deploy/docker
+        timeout-minutes: 10
         run: |
           "$GITHUB_WORKSPACE/scripts/ci/compose-up-retry.sh" \
             podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml
@@ -89,6 +116,10 @@ jobs:
         if: failure()
         working-directory: deploy/docker
         run: |
+          podman ps -a || true
+          podman ps -aq | while IFS= read -r container; do
+            podman inspect --format '{{.Name}} {{json .State}}' "$container" || true
+          done
           podman-compose -f docker-compose.yml -f docker-compose.compat.yml logs || true
           podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml logs || true
 
