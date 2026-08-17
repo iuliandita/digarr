@@ -1,9 +1,16 @@
 name: Promote :stable
 
-# Manually promote a previously-released tag to :stable on Docker Hub and GHCR.
-# Promotion rule: a release should be live for at least 7 days with no
-# follow-up patch release before it gets promoted. The workflow soft-checks
-# the 7-day age so accidental same-day promotions need an explicit override.
+# Promote a released tag to :stable on Docker Hub and GHCR.
+#
+# Policy: a release reaches :stable once it has been live for 7 days and no
+# newer release has superseded it. That policy is the entire gate. Promotion
+# builds nothing -- it retags a digest release.yml already built, approved
+# through the production environment, and signed with cosign. Re-approving a
+# retag of an already-approved digest adds ceremony rather than safety, and a
+# promotion nobody remembers to approve is how :stable sat three releases
+# behind for five weeks (#614). The schedule therefore runs unattended.
+#
+# Manual dispatch still accepts an explicit tag and can override the age check.
 #
 # All workflow_dispatch inputs are surfaced through env: blocks before being
 # used in run: scripts, per the GitHub Actions injection-safety guidance.
@@ -12,13 +19,17 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to promote (e.g. v0.44.0)"
-        required: true
+        description: "Release tag to promote (e.g. v1.15.1). Empty = newest eligible release."
+        required: false
       override_age_check:
         description: "Allow promotion of releases younger than 7 days"
         required: false
         type: boolean
         default: false
+  schedule:
+    # Daily. Most runs resolve to "nothing to do" and stop before the promote
+    # job, so this is cheap; it only acts the first day a release clears soak.
+    - cron: "0 7 * * *"
 
 permissions:
   contents: read
@@ -30,38 +41,102 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOCKER_IMAGE: docker.io/iuliandita/digarr
+  DOCKERHUB_NAMESPACE: iuliandita
+  DOCKERHUB_REPO: digarr
 
 jobs:
-  promote:
+  resolve:
+    name: Resolve promotion candidate
     runs-on: ubuntu-24.04
-    environment: production
+    outputs:
+      tag: ${{ steps.pick.outputs.tag }}
+      eligible: ${{ steps.pick.outputs.eligible }}
+    steps:
+      - name: Pick candidate and apply promotion policy
+        id: pick
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          INPUT_TAG: ${{ inputs.tag }}
+          OVERRIDE: ${{ inputs.override_age_check }}
+          NAMESPACE: ${{ env.DOCKERHUB_NAMESPACE }}
+          IMAGE_REPO: ${{ env.DOCKERHUB_REPO }}
+        run: |
+          set -euo pipefail
+
+          tag="${INPUT_TAG:-}"
+          if [ -z "$tag" ]; then
+            # Newest published non-prerelease release. "Newest" already encodes
+            # the no-follow-up-patch half of the policy: a follow-up patch is
+            # itself a newer release and becomes the candidate instead.
+            tag=$(gh release list --repo "$REPO" --limit 30 \
+              --json tagName,isPrerelease,isDraft,publishedAt \
+              --jq 'map(select(.isPrerelease == false and .isDraft == false))
+                    | sort_by(.publishedAt) | reverse | .[0].tagName // ""')
+            if [ -z "$tag" ]; then
+              echo "::error::no published release found to promote"
+              exit 1
+            fi
+            echo "auto-resolved candidate: $tag"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          if ! gh release view "$tag" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::error::Tag $tag has no GitHub release; cannot promote"
+            exit 1
+          fi
+
+          published_at=$(gh release view "$tag" --repo "$REPO" --json publishedAt -q '.publishedAt')
+          age_days=$(( ( $(date -u +%s) - $(date -u -d "$published_at" +%s) ) / 86400 ))
+          echo "candidate=$tag published_at=$published_at age_days=$age_days"
+
+          if [ "$age_days" -lt 7 ] && [ "$OVERRIDE" != "true" ]; then
+            # An explicitly named tag that is too young is a mistake worth
+            # failing on; an auto-resolved one is just "not yet".
+            if [ -n "$INPUT_TAG" ]; then
+              echo "::error::$tag is only $age_days day(s) old; promotion requires >= 7 days or override_age_check=true"
+              exit 1
+            fi
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "Not promoting: \`$tag\` is $age_days day(s) old, soak is 7." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # An explicit tag is always honoured (re-promotion is a valid repair).
+          # For the scheduled path, stop when :stable already points at the
+          # candidate so a daily run with nothing to do is a clean no-op.
+          if [ -z "$INPUT_TAG" ]; then
+            version="${tag#v}"
+            hub="https://hub.docker.com/v2/namespaces/${NAMESPACE}/repositories/${IMAGE_REPO}/tags"
+            candidate_digest=$(curl -fsSL "$hub/$version" | jq -r '.digest')
+            stable_digest=$(curl -fsSL "$hub/stable" | jq -r '.digest' || true)
+            if [ -z "$candidate_digest" ] || [ "$candidate_digest" = "null" ]; then
+              echo "::error::no published image for $version; release may still be building"
+              exit 1
+            fi
+            if [ "$candidate_digest" = "$stable_digest" ]; then
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "Nothing to do: \`:stable\` already serves \`$tag\`." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "stable=$stable_digest -> candidate=$candidate_digest"
+          fi
+
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+          echo "Promoting \`$tag\` to \`:stable\` ($age_days days since release)." >> "$GITHUB_STEP_SUMMARY"
+
+  promote:
+    name: Promote to :stable
+    needs: resolve
+    if: needs.resolve.outputs.eligible == 'true'
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-
-      - name: Validate tag exists and check age
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag }}
-          OVERRIDE: ${{ inputs.override_age_check }}
-          REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          if ! gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-            echo "::error::Tag $TAG has no GitHub release; cannot promote"
-            exit 1
-          fi
-          published_at=$(gh release view "$TAG" --repo "$REPO" --json publishedAt -q '.publishedAt')
-          age_days=$(( ( $(date -u +%s) - $(date -u -d "$published_at" +%s) ) / 86400 ))
-          echo "published_at=$published_at"
-          echo "age_days=$age_days"
-          if [ "$age_days" -lt 7 ] && [ "$OVERRIDE" != "true" ]; then
-            echo "::error::$TAG is only $age_days day(s) old; promotion requires >= 7 days or override_age_check=true"
-            exit 1
-          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
@@ -85,8 +160,8 @@ jobs:
       - name: Retag manifests as :stable
         env:
           GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          DOCKER_IMAGE: docker.io/iuliandita/digarr
-          TAG: ${{ inputs.tag }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          TAG: ${{ needs.resolve.outputs.tag }}
         run: |
           set -euo pipefail
           # Strip leading 'v' so docker tag matches what release.yml publishes (semver pattern={{version}}).
@@ -116,10 +191,17 @@ jobs:
       - name: Sign :stable tag (cosign keyless)
         env:
           GHCR_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          DOCKER_IMAGE: docker.io/iuliandita/digarr
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           DIGEST: ${{ steps.digest.outputs.digest }}
         run: |
           # The original release.yml already signed this digest under its semver tags;
           # signing again under the :stable name keeps cosign verify --tag :stable green.
           cosign sign --yes "${GHCR_IMAGE}@${DIGEST}"
           cosign sign --yes "${DOCKER_IMAGE}@${DIGEST}"
+
+      - name: Report promotion
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: |
+          printf ':stable now serves `%s` (`%s`).\n' "$TAG" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
