@@ -34,7 +34,7 @@
     "postcss": "^8.5.26"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.7",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
