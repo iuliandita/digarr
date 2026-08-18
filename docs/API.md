@@ -341,7 +341,7 @@ Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `re
 
 Approval notes:
 - `approvalMode` defaults to `single_target`
-- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered. `popular` resolves the artist through Spotify, ranks album releases by Spotify popularity, maps the top 3 matches back to MusicBrainz release groups, and sends them to Lidarr as selected albums.
+- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered. These are Digarr's names, translated to the target's own vocabulary at the boundary: `all` monitors the whole discography and triggers a search for missing albums, and `new` monitors only future releases (Lidarr's `future`) without searching for anything existing. `popular` resolves the artist through Spotify, ranks album releases by Spotify popularity, maps the top 3 matches back to MusicBrainz release groups, and sends them to Lidarr as selected albums.
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
