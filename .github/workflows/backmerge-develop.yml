@@ -1,0 +1,69 @@
+name: Back-merge main into develop
+
+# Step 7 of the release recipe: after anything lands on main, merge it back so
+# main stays an ancestor of develop. Mechanical, and forgetting it silently
+# breaks that invariant until the next release trips over it (#616).
+#
+# A clean merge is pushed directly. A conflicting one opens a PR instead --
+# conflict resolution is a judgment call and does not belong in a cron.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backmerge-develop
+  cancel-in-progress: false
+
+jobs:
+  backmerge:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Merge main into develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name iuliandita
+          git config user.email iulian.dita@gmail.com
+
+          git switch develop
+          git merge --ff-only origin/develop 2>/dev/null || true
+
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "develop already contains main; nothing to back-merge" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if git merge --no-edit origin/main; then
+            git push origin develop
+            echo "main merged into develop and pushed" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Conflicted: leave it to a human, but leave it visible.
+          git merge --abort
+          branch="chore/backmerge-main-${GITHUB_SHA::8}"
+          git switch -c "$branch" origin/develop
+          git push --force-with-lease origin "$branch"
+          {
+            printf 'Merging `main` into `develop` conflicts, so it needs manual resolution.\n\n'
+            printf 'Resolve locally:\n\n'
+            printf '```sh\ngit switch develop && git pull\ngit merge origin/main\n# resolve, then\ngit push origin develop\n```\n'
+          } > /tmp/backmerge-body.md
+          gh pr create --base develop --head "$branch" \
+            --title "chore(release): back-merge main into develop" \
+            --body-file /tmp/backmerge-body.md
+          echo "back-merge conflicts; opened a PR for manual resolution" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

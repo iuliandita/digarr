@@ -1,0 +1,106 @@
+name: Release readiness
+
+# Answers "is there a release worth cutting?" without deciding it. Cutting a
+# release needs judgment -- is this a patch or a minor, does the changelog read
+# coherently -- so this reports and stops (#616).
+#
+# Findings land on one reusable issue rather than a new one each week, so a
+# quiet period does not generate noise.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-readiness
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Build readiness report
+        id: report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          last_tag=$(git describe --tags --abbrev=0 --match 'v*' origin/main)
+          released=$(gh release view "$last_tag" --repo "$REPO" --json publishedAt -q '.publishedAt')
+          soak_days=$(( ( $(date -u +%s) - $(date -u -d "$released" +%s) ) / 86400 ))
+
+          # Boundary is the develop-side release-bump commit, not the tag. The
+          # tag lives on main as a squash, so it shares no ancestry with the
+          # develop commits it was built from -- ranging from it re-reports
+          # every already-released change. The back-merge also pulls main's
+          # lineage into develop, so walk --first-parent to stay on develop's
+          # own line.
+          base=$(git log --first-parent origin/develop --grep '^chore(release): v' -1 --format='%H')
+          if [ -z "$base" ]; then
+            echo "::error::no release-bump commit found on develop"
+            exit 1
+          fi
+          range="${base}..origin/develop"
+          total=$(git log --first-parent --oneline "$range" | wc -l | tr -d ' ')
+
+          # ci/chore scopes ship nothing to users, so they must not drive a bump.
+          user_facing=$(git log --first-parent --pretty=%s "$range" \
+            | grep -E '^(feat|fix)(\(|:)' | grep -vE '^(feat|fix)\(ci\)' || true)
+          feats=$(printf '%s\n' "$user_facing" | grep -cE '^feat' || true)
+          fixes=$(printf '%s\n' "$user_facing" | grep -cE '^fix' || true)
+          breaking=$(git log --first-parent --pretty='%s%n%b' "$range" | grep -cE '^BREAKING CHANGE|^[a-z]+(\(.+\))?!:' || true)
+
+          if [ "$breaking" -gt 0 ]; then bump=major
+          elif [ "$feats" -gt 0 ]; then bump=minor
+          elif [ "$fixes" -gt 0 ]; then bump=patch
+          else bump=none
+          fi
+
+          {
+            printf '## Release readiness\n\n'
+            printf '| | |\n|---|---|\n'
+            printf '| Last release | `%s`, %s days ago |\n' "$last_tag" "$soak_days"
+            printf '| Commits on develop since | %s |\n' "$total"
+            printf '| feat / fix / breaking | %s / %s / %s |\n' "$feats" "$fixes" "$breaking"
+            printf '| Suggested bump | **%s** |\n\n' "$bump"
+            if [ "$bump" = none ]; then
+              printf 'Nothing user-facing has landed. No release needed.\n'
+            else
+              printf 'User-facing commits since `%s`:\n\n' "$last_tag"
+              printf '%s\n' "$user_facing" | sed 's/^/- /'
+              printf '\nCutting one is still a judgment call: does the changelog read coherently, and has this soaked on `:nightly` long enough? See the release recipe in `AGENTS.md`.\n'
+            fi
+            printf '\n<sub>Regenerated weekly by `release-readiness.yml`.</sub>\n'
+          } > /tmp/readiness.md
+
+          echo "bump=$bump" >> "$GITHUB_OUTPUT"
+          cat /tmp/readiness.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post or refresh the readiness issue
+        if: steps.report.outputs.bump != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TITLE: "Release readiness"
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" \
+            --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // \"\"")
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$REPO" --body-file /tmp/readiness.md
+            echo "refreshed issue #$existing"
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body-file /tmp/readiness.md
+          fi
