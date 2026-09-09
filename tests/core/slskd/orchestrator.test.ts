@@ -110,6 +110,58 @@ describe('createSlskdOrchestrator', () => {
     expect(orchestrator.isSyncing).toBe(false)
   })
 
+  it.each(['pending', 'downloading', 'import_pending'] as const)(
+    'fails stale %s jobs before contacting targets reassigned to another owner',
+    async (state) => {
+      const createSlskdClient = vi.fn()
+      const createLidarrClient = vi.fn()
+      const updateJobState = vi.fn()
+      const orchestrator = createSlskdOrchestrator({
+        listPendingJobs: vi.fn(async () => [makeJob({ state, userId: 1 })]),
+        listTargets: vi.fn(async () => [
+          makeTarget({ userId: 2 }),
+          makeTarget({ id: 12, type: 'lidarr', userId: 2 }),
+        ]),
+        createSlskdClient,
+        createLidarrClient,
+        updateJobState,
+      } as never)
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+      try {
+        await orchestrator.triggerSync()
+        expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
+          lastError: 'slskd job target is missing or its owner changed',
+        })
+        expect(createSlskdClient).not.toHaveBeenCalled()
+        expect(createLidarrClient).not.toHaveBeenCalled()
+      } finally {
+        log.mockRestore()
+      }
+    },
+  )
+
+  it('stops ingesting a linked Lidarr wanted queue after its owner changes', async () => {
+    const lidarrTarget = makeTarget({ id: 12, type: 'lidarr' })
+    const getWantedMissing = vi.fn(async () => [])
+    const createLidarrClient = vi.fn(() => ({ getWantedMissing, getAlbums: vi.fn() }))
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => []),
+      processPendingJobs: vi.fn(async () => {}),
+      listTargets: vi.fn(async () => [makeTarget(), lidarrTarget]),
+      createLidarrClient,
+      findActiveJobByWorkKey: vi.fn(),
+      createJob: vi.fn(),
+    } as never)
+    await orchestrator.triggerSync()
+    expect(getWantedMissing).toHaveBeenCalledTimes(1)
+    lidarrTarget.userId = 2
+    createLidarrClient.mockClear()
+    getWantedMissing.mockClear()
+    await orchestrator.triggerSync()
+    expect(createLidarrClient).not.toHaveBeenCalled()
+    expect(getWantedMissing).not.toHaveBeenCalled()
+  })
+
   it('ingests Lidarr wanted releases for enabled linked slskd targets and dedupes active work keys', async () => {
     const createJob = vi.fn(async () => makeJob({ id: 9 }))
     const findActiveJobByWorkKey = vi

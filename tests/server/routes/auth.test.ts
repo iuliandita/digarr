@@ -372,9 +372,9 @@ describe('POST /api/v1/auth/register', () => {
     expect(body.user.username).toBe('admin')
     expect(body.token).toBeDefined()
     expect(typeof body.token).toBe('string')
-    expect(createUser).toHaveBeenCalledWith(
-      expect.objectContaining({ username: 'admin', isAdmin: true }),
-    )
+    expect(createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'admin' }), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('creates subsequent users as non-admin', async () => {
@@ -418,7 +418,9 @@ describe('POST /api/v1/auth/register', () => {
     })
 
     expect(res.status).toBe(201)
-    expect(createUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: false }))
+    expect(createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'user2' }), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('issues a cookie-only session when cookie mode is requested', async () => {

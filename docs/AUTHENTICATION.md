@@ -2,6 +2,14 @@
 
 Digarr supports four authentication modes. Most deployments only need one.
 
+## Users and targets
+
+The first user becomes admin; admins can promote additional users in Settings > Users. Concurrent first-user signups cannot create multiple bootstrap admins. Upgrading does not restore roles removed by older versions; an admin can reassign them after review.
+
+In Settings > Targets, admins choose **Assigned user** when adding or editing a target. Each user's approvals use only their assigned targets. Create separate targets if several users need the same Lidarr instance. Admins manage the connection; ordinary users can test and use it without seeing saved credentials.
+
+Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Shared artists and batch history remain.
+
 ## Session auth (default)
 
 The password is hashed at rest with scrypt (`node:crypto`). The web UI

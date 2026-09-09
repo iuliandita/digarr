@@ -185,6 +185,7 @@ import {
 import {
   createUser,
   deleteUser,
+  FirstUserRequiredError,
   getUserByEmail,
   getUserById,
   getUserByOidcSubject,
@@ -1303,7 +1304,7 @@ const app = createApp({
   restartPlaylistScheduler,
   restartLibraryMaintenanceScheduler,
   restartDigestNotifier,
-  createUser: (data) => createUser(db, data),
+  createUser: (data, options) => createUser(db, data, options),
   getUserByUsername: (username) => getUserByUsername(db, username),
   getUserById: (id) => getUserById(db, id),
   getUserCount: () => getUserCount(db),
@@ -1516,8 +1517,18 @@ const server = serve({ fetch: app.fetch, port })
         const count = await getUserCount(db)
         if (count === 0) {
           const passwordHash = hashPassword(initialPassword)
-          await createUser(db, { username: initialUsername, passwordHash, isAdmin: true })
-          console.log(`Initial admin user "${initialUsername}" created from environment variables`)
+          try {
+            await createUser(
+              db,
+              { username: initialUsername, passwordHash },
+              { bootstrap: 'first-user-only' },
+            )
+            console.log(
+              `Initial admin user "${initialUsername}" created from environment variables`,
+            )
+          } catch (err) {
+            if (!(err instanceof FirstUserRequiredError)) throw err
+          }
         }
       }
     }

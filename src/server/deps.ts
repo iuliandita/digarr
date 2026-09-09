@@ -36,7 +36,7 @@ import type { Cursor } from '@/server/helpers/pagination-cursor'
 type SubscriptionRow = typeof subscriptions.$inferSelect
 
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
-import type { UserPublic } from '@/db/queries/users'
+import type { UserBootstrapOptions, UserPublic } from '@/db/queries/users'
 import type { PlaylistDeps } from './routes/playlists'
 import type { SearchDeps } from './routes/search'
 import type { DiscoveryConnectionSnapshot } from './types'
@@ -66,11 +66,14 @@ export interface SettingsDeps {
 // ---- Users / auth ----
 
 export interface UserDeps {
-  createUser: (data: {
-    username: string
-    passwordHash: string
-    isAdmin?: boolean
-  }) => Promise<UserPublic>
+  createUser: (
+    data: {
+      username: string
+      passwordHash: string
+      isAdmin?: boolean
+    },
+    options?: UserBootstrapOptions,
+  ) => Promise<UserPublic>
   getUserByUsername: (
     username: string,
   ) => Promise<{ id: number; username: string; passwordHash: string; isAdmin: boolean } | null>

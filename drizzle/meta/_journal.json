@@ -337,6 +337,20 @@
       "when": 1784928654022,
       "tag": "0047_big_miss_america",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1788994621372,
+      "tag": "0048_user_deletion_cascades",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1788994626037,
+      "tag": "0049_multiple_admins",
+      "breakpoints": true
     }
   ]
 }

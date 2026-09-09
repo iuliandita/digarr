@@ -141,7 +141,7 @@ export const subscriptions = pgTable(
   {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     name: text('name').notNull(),
-    userId: integer('user_id').references(() => users.id),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     enabled: boolean('enabled').notNull().default(true),
     sourceType: text('source_type').notNull(),
     sourceProvider: text('source_provider').notNull(),
@@ -236,7 +236,9 @@ export const recommendationBatches = pgTable(
     sourceConfig: jsonb('source_config').$type<RecommendationBatchSourceConfig | null>(),
     stats: jsonb('stats'),
     status: text('status').notNull().default('running'),
-    subscriptionId: integer('subscription_id').references(() => subscriptions.id),
+    subscriptionId: integer('subscription_id').references(() => subscriptions.id, {
+      onDelete: 'set null',
+    }),
   },
   (table) => ({
     subscriptionIdx: index('recommendation_batches_subscription_id_idx').on(table.subscriptionId),
@@ -248,7 +250,7 @@ export const recommendations = pgTable(
   'recommendations',
   {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
-    userId: integer('user_id').references(() => users.id),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
     artistId: integer('artist_id')
       .references(() => artists.id)
       .notNull(),

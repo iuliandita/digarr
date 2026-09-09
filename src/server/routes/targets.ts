@@ -33,9 +33,10 @@ type TargetDeps = {
 export function targetRoutes(deps: TargetDeps) {
   const router = new Hono<HonoEnv>()
 
-  const loadOwnedTarget = async (c: Context<HonoEnv>, id: number, userId: number) => {
+  const loadTargetForCaller = async (c: Context<HonoEnv>, id: number, userId: number) => {
     const target = await deps.targetQueries.getTarget(id)
-    if (!target || target.userId !== userId) {
+    const user = await deps.getUserById(userId)
+    if (!target || (!user?.isAdmin && target.userId !== userId)) {
       return {
         ok: false as const,
         response: notFoundProblem(
@@ -47,6 +48,18 @@ export function targetRoutes(deps: TargetDeps) {
       }
     }
     return { ok: true as const, target }
+  }
+
+  const validLidarrLink = async (
+    type: string,
+    config: Record<string, unknown>,
+    userId: number | null,
+  ) => {
+    if (type !== 'slskd' || config.lidarrTargetId == null) return true
+    const linkedId = Number(config.lidarrTargetId)
+    if (!Number.isSafeInteger(linkedId) || linkedId <= 0) return false
+    const linked = await deps.targetQueries.getTarget(linkedId)
+    return linked?.type === 'lidarr' && linked.enabled && linked.userId === userId
   }
 
   // Admins see every target (with masked configs); each row carries `owned: true`
@@ -96,13 +109,21 @@ export function targetRoutes(deps: TargetDeps) {
     async (c) => {
       const userId = c.get('userId')
       if (!userId) return notAuthenticated(c)
-      const { type, name, config } = c.req.valid('json')
+      const { type, name, config, userId: requestedUserId } = c.req.valid('json')
+      const targetUserId = requestedUserId ?? userId
+      const targetUser = await deps.getUserById(targetUserId)
+      if (!targetUser) {
+        return notFoundProblem(c, 'user-not-found', 'User not found', 'errors.user.notFound')
+      }
 
+      if (!(await validLidarrLink(type, config, targetUserId))) {
+        return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
+      }
       const result = await deps.targetQueries.createTarget({
         type,
         name,
         config,
-        userId,
+        userId: targetUserId,
       })
       return c.json(result, 201)
     },
@@ -118,10 +139,25 @@ export function targetRoutes(deps: TargetDeps) {
       if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
-      const loaded = await loadOwnedTarget(c, id, userId)
+      const loaded = await loadTargetForCaller(c, id, userId)
       if (!loaded.ok) return loaded.response
 
-      const allowed: TargetUpdate = c.req.valid('json')
+      const allowed = c.req.valid('json')
+      if (allowed.userId !== undefined && !(await deps.getUserById(allowed.userId))) {
+        return notFoundProblem(c, 'user-not-found', 'User not found', 'errors.user.notFound')
+      }
+      if (allowed.config) {
+        allowed.config = mergeConfig(loaded.target.config, allowed.config)
+      }
+      if (
+        !(await validLidarrLink(
+          loaded.target.type,
+          allowed.config ?? loaded.target.config,
+          allowed.userId ?? loaded.target.userId,
+        ))
+      ) {
+        return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
+      }
       await deps.targetQueries.updateTarget(id, allowed)
       return c.body(null, 204)
     },
@@ -136,7 +172,7 @@ export function targetRoutes(deps: TargetDeps) {
       if (!userId) return notAuthenticated(c)
 
       const { id } = c.req.valid('param')
-      const loaded = await loadOwnedTarget(c, id, userId)
+      const loaded = await loadTargetForCaller(c, id, userId)
       if (!loaded.ok) return loaded.response
 
       await deps.targetQueries.deleteTarget(id)
@@ -149,7 +185,7 @@ export function targetRoutes(deps: TargetDeps) {
     if (!userId) return notAuthenticated(c)
 
     const { id } = c.req.valid('param')
-    const loaded = await loadOwnedTarget(c, id, userId)
+    const loaded = await loadTargetForCaller(c, id, userId)
     if (!loaded.ok) return loaded.response
     const target = loaded.target
 
@@ -166,4 +202,15 @@ function maskConfig(config: Record<string, unknown>): Record<string, unknown> {
     if (typeof masked[key] === 'string') masked[key] = '***'
   }
   return masked
+}
+
+function mergeConfig(
+  stored: Record<string, unknown>,
+  updated: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged = { ...stored, ...updated }
+  for (const key of ['apiKey', 'token', 'password', 'secret']) {
+    if (updated[key] === '***' && typeof stored[key] === 'string') merged[key] = stored[key]
+  }
+  return merged
 }

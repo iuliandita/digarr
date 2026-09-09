@@ -176,7 +176,6 @@ export function createApp(deps: AppDependencies) {
           .filter(Boolean) ?? [],
       getUserByUsername: deps.getUserByUsername,
       createUser: deps.createUser,
-      getUserCount: deps.getUserCount,
     }),
   )
   app.use(
@@ -270,7 +269,6 @@ export function createApp(deps: AppDependencies) {
       getUserByOidcSubject: deps.getUserByOidcSubject,
       getUserByUsername: deps.getUserByUsername,
       createUser: deps.createUser,
-      getUserCount: deps.getUserCount,
       updateUser: deps.updateUser,
     }),
   )

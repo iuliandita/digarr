@@ -1,7 +1,7 @@
-import { and, count, desc, eq, lt, or } from 'drizzle-orm'
+import { and, count, desc, eq, lt, or, sql } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
-import type { Database } from '@/db'
+import type { Database, DbOrTx } from '@/db'
 import type { Preferences } from '@/db/schema'
 import { users } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
@@ -17,6 +17,29 @@ function toPublic(row: UserRow): UserPublic {
   return rest
 }
 
+export type UserBootstrapOptions = { bootstrap?: 'allow-existing' | 'first-user-only' }
+
+export class FirstUserRequiredError extends Error {
+  constructor() {
+    super('A user already exists')
+    this.name = 'FirstUserRequiredError'
+  }
+}
+
+export class LastAdminError extends Error {
+  constructor() {
+    super('Cannot remove the last admin user')
+    this.name = 'LastAdminError'
+  }
+}
+
+async function guardLastAdmin(tx: DbOrTx, id: number): Promise<void> {
+  // Serialize admin removals with other users mutations, including bootstrap.
+  await tx.execute(sql`LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE`)
+  const admins = await tx.select({ id: users.id }).from(users).where(eq(users.isAdmin, true))
+  if (admins.length === 1 && admins[0]?.id === id) throw new LastAdminError()
+}
+
 export async function createUser(
   db: Database,
   data: {
@@ -27,7 +50,23 @@ export async function createUser(
     oidcSubject?: string
     authProvider?: string
   },
+  options: UserBootstrapOptions = {},
 ): Promise<UserPublic> {
+  if (options.bootstrap) {
+    return db.transaction(async (tx) => {
+      // Serialize first-user decisions with every concurrent users insert.
+      await tx.execute(sql`LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE`)
+      const [existing] = await tx.select({ id: users.id }).from(users).limit(1)
+      if (existing && options.bootstrap === 'first-user-only') {
+        throw new FirstUserRequiredError()
+      }
+      return insertUser(tx, { ...data, isAdmin: !existing })
+    })
+  }
+  return insertUser(db, data)
+}
+
+async function insertUser(db: DbOrTx, data: Parameters<typeof createUser>[1]): Promise<UserPublic> {
   const rows = await db
     .insert(users)
     .values({
@@ -101,7 +140,10 @@ export async function listUsers(
 }
 
 export async function deleteUser(db: Database, id: number): Promise<void> {
-  await db.delete(users).where(eq(users.id, id))
+  await db.transaction(async (tx) => {
+    await guardLastAdmin(tx, id)
+    await tx.delete(users).where(eq(users.id, id))
+  })
 }
 
 export async function getUserByOidcSubject(db: Database, subject: string): Promise<UserRow | null> {
@@ -188,5 +230,12 @@ export async function updateUser(
   id: number,
   data: { isAdmin?: boolean; email?: string | null; oidcSubject?: string; authProvider?: string },
 ): Promise<void> {
+  if (data.isAdmin === false) {
+    await db.transaction(async (tx) => {
+      await guardLastAdmin(tx, id)
+      await tx.update(users).set(data).where(eq(users.id, id))
+    })
+    return
+  }
   await db.update(users).set(data).where(eq(users.id, id))
 }

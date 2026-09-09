@@ -1,18 +1,11 @@
 // @vitest-environment node
 
-/**
- * Tests for the first-admin bootstrap race (subphase 1c). The 0026 migration
- * installs a partial unique index `users_single_admin ON users(is_admin) WHERE
- * is_admin = true` that guarantees at-most-one admin at the DB layer. These
- * tests simulate the 23505 collision raised by the index and assert that the
- * three admin-creation sites (register, proxy-auth, oidc) resolve the race
- * correctly instead of surfacing a 500.
- */
-
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { envConfig } from '@/config/env'
 import type { OidcService } from '@/core/auth/oidc'
 import { clearAllSessions } from '@/core/sessions'
+import { FirstUserRequiredError } from '@/db/queries/users'
 import { proxyAuthMiddleware } from '@/server/middleware/proxy-auth'
 import { oidcRoutes } from '@/server/routes/oidc'
 
@@ -46,10 +39,10 @@ vi.mock('@/core/sessions', async (importOriginal) => {
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
-function singleAdminCollision(): Error {
+function usernameCollision(): Error {
   return Object.assign(new Error('duplicate key value violates unique constraint'), {
     code: '23505',
-    constraint: 'users_single_admin',
+    constraint: 'users_username_unique',
   })
 }
 
@@ -185,6 +178,7 @@ function makeRegisterDeps(overrides: Partial<AppDependencies> = {}): AppDependen
 
 beforeEach(async () => {
   await clearAllSessions()
+  Object.assign(envConfig, { disableRegistration: false })
 })
 
 afterEach(async () => {
@@ -192,14 +186,8 @@ afterEach(async () => {
 })
 
 describe('first-admin race: POST /api/auth/register', () => {
-  it('falls back to a non-admin user when the single-admin index collides', async () => {
-    let call = 0
+  it('uses the user selected by atomic bootstrap', async () => {
     const createUser = vi.fn(async (data: { username: string; isAdmin?: boolean }) => {
-      call += 1
-      if (call === 1) {
-        // The DB-level partial unique index serialises admin creation.
-        throw singleAdminCollision()
-      }
       return userRow({ id: 2, username: data.username, isAdmin: data.isAdmin ?? false })
     })
     const getUserByUsername = vi.fn(async () => null)
@@ -221,35 +209,38 @@ describe('first-admin race: POST /api/auth/register', () => {
     expect(res.status).toBe(201)
     const body = await res.json()
     expect(body.user.isAdmin).toBe(false)
-    expect(createUser).toHaveBeenCalledTimes(2)
-    expect(createUser).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({ username: 'loser', isAdmin: true }),
+    expect(createUser).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ username: 'loser' }),
+      { bootstrap: 'allow-existing' },
     )
-    expect(createUser).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ username: 'loser', isAdmin: false }),
-    )
+  })
+
+  it('refuses a closed-registration race loser without creating a session', async () => {
+    Object.assign(envConfig, { disableRegistration: true })
+    const createUser = vi.fn(async () => {
+      throw new FirstUserRequiredError()
+    })
+    const app = createApp(makeRegisterDeps({ createUser }))
+    const res = await app.request('/api/v1/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'loser', password: 'password1234' }),
+    })
+    expect(res.status).toBe(403)
+    expect(await res.json()).toEqual({
+      error:
+        'Registration is disabled. Set DIGARR_DISABLE_REGISTRATION=false to allow open registration.',
+    })
+    expect(createUser).toHaveBeenCalledExactlyOnceWith(expect.any(Object), {
+      bootstrap: 'first-user-only',
+    })
   })
 
   it('returns 409 when the race is already lost AND the username was taken', async () => {
     const createUser = vi.fn(async () => {
-      throw singleAdminCollision()
+      throw usernameCollision()
     })
-    let usernameLookup = 0
-    const getUserByUsername = vi.fn(async () => {
-      usernameLookup += 1
-      // First call is the pre-insert existence check (no user yet).
-      // Second call is the post-collision recheck (winner now exists).
-      return usernameLookup === 1
-        ? null
-        : {
-            id: 1,
-            username: 'loser',
-            passwordHash: 'h',
-            isAdmin: true,
-          }
-    })
+    const getUserByUsername = vi.fn(async () => null)
 
     const app = createApp(
       makeRegisterDeps({
@@ -269,11 +260,11 @@ describe('first-admin race: POST /api/auth/register', () => {
     expect(createUser).toHaveBeenCalledTimes(1)
   })
 
-  it('propagates unrelated 23505 errors (e.g. username uniqueness) as 500', async () => {
+  it('propagates unrelated unique violations as 500', async () => {
     const createUser = vi.fn(async () => {
-      throw Object.assign(new Error('username taken'), {
+      throw Object.assign(new Error('email taken'), {
         code: '23505',
-        constraint: 'users_username_unique',
+        constraint: 'users_email_unique',
       })
     })
     const app = createApp(
@@ -310,7 +301,6 @@ describe('first-admin race: proxyAuthMiddleware', () => {
   function buildProxyApp(opts: {
     createUser: ProxyCreateUser
     getUserByUsername?: ProxyGetUserByUsername
-    getUserCount?: () => Promise<number>
   }) {
     const app = new Hono()
     app.use(
@@ -320,7 +310,6 @@ describe('first-admin race: proxyAuthMiddleware', () => {
         trustedProxies: ['0.0.0.0/32'],
         getUserByUsername: opts.getUserByUsername ?? (async () => null),
         createUser: opts.createUser,
-        getUserCount: opts.getUserCount ?? (async () => 0),
       }),
     )
     app.get('/test', (c) => {
@@ -330,11 +319,8 @@ describe('first-admin race: proxyAuthMiddleware', () => {
     return app
   }
 
-  it('retries as non-admin when the single-admin index collides', async () => {
-    let call = 0
+  it('delegates admin selection to atomic bootstrap', async () => {
     const createUser = vi.fn(async (data: { username: string; isAdmin?: boolean }) => {
-      call += 1
-      if (call === 1) throw singleAdminCollision()
       return {
         id: 42,
         username: data.username,
@@ -349,9 +335,9 @@ describe('first-admin race: proxyAuthMiddleware', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.userId).toBe(42)
-    expect(createUser).toHaveBeenCalledTimes(2)
-    expect(createUser).toHaveBeenNthCalledWith(1, expect.objectContaining({ isAdmin: true }))
-    expect(createUser).toHaveBeenNthCalledWith(2, expect.objectContaining({ isAdmin: false }))
+    expect(createUser).toHaveBeenCalledExactlyOnceWith(expect.any(Object), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('uses the existing row when the race winner shares our username', async () => {
@@ -369,7 +355,7 @@ describe('first-admin race: proxyAuthMiddleware', () => {
       return lookupCall === 1 ? null : existing
     })
     const createUser = vi.fn(async () => {
-      throw singleAdminCollision()
+      throw usernameCollision()
     })
 
     const app = buildProxyApp({ createUser, getUserByUsername })
@@ -415,7 +401,6 @@ describe('first-admin race: oidc callback', () => {
         username: data.username,
         isAdmin: data.isAdmin ?? false,
       })),
-      getUserCount: vi.fn(async () => 0),
       updateUser: vi.fn(async () => {}),
       ...overrides,
     }
@@ -424,11 +409,8 @@ describe('first-admin race: oidc callback', () => {
     return { app, deps }
   }
 
-  it('retries as non-admin when the single-admin index collides', async () => {
-    let call = 0
+  it('delegates admin selection to atomic bootstrap', async () => {
     const createUser = vi.fn(async (data: { username: string; isAdmin?: boolean }) => {
-      call += 1
-      if (call === 1) throw singleAdminCollision()
       return { id: 99, username: data.username, isAdmin: data.isAdmin ?? false }
     })
 
@@ -444,9 +426,9 @@ describe('first-admin race: oidc callback', () => {
       'digarr_session=race-test-token; Max-Age=2592000; Path=/; HttpOnly; SameSite=Lax',
     )
     expect(res.headers.get('cache-control')).toBe('no-store')
-    expect(createUser).toHaveBeenCalledTimes(2)
-    expect(createUser).toHaveBeenNthCalledWith(1, expect.objectContaining({ isAdmin: true }))
-    expect(createUser).toHaveBeenNthCalledWith(2, expect.objectContaining({ isAdmin: false }))
+    expect(createUser).toHaveBeenCalledExactlyOnceWith(expect.any(Object), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('propagates unrelated errors as oidc_error', async () => {

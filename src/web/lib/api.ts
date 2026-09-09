@@ -731,6 +731,7 @@ export const deleteUserApi = (id: number) => fetchApi(`/users/${id}`, { method: 
 // Targets
 export type TargetInfo = {
   id: number
+  userId: number | null
   type: string
   name: string
   config: Record<string, unknown>
@@ -742,10 +743,11 @@ export const createTargetApi = (data: {
   type: string
   name: string
   config: Record<string, unknown>
+  userId?: number
 }) => fetchApi<{ id: number }>('/targets', { method: 'POST', body: JSON.stringify(data) })
 export const updateTargetApi = (
   id: number,
-  data: { name?: string; enabled?: boolean; config?: Record<string, unknown> },
+  data: { name?: string; enabled?: boolean; config?: Record<string, unknown>; userId?: number },
 ) => fetchApi(`/targets/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 export const deleteTargetApi = (id: number) => fetchApi(`/targets/${id}`, { method: 'DELETE' })
 export const testTargetApi = (id: number) =>

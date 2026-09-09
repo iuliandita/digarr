@@ -532,11 +532,17 @@ Discovery-mode subscription notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/targets` | Yes | List targets. Admins see all targets (config masked for non-owners); non-admins see only their own |
+| GET | `/api/v1/targets` | Yes | List targets with masked secrets. Admins see all targets; non-admins see only their own |
 | POST | `/api/v1/targets` | Admin | Create target |
 | PATCH | `/api/v1/targets/:id` | Admin | Update target |
 | DELETE | `/api/v1/targets/:id` | Admin | Delete target |
-| POST | `/api/v1/targets/:id/test` | Yes | Test target connection |
+| POST | `/api/v1/targets/:id/test` | Admin or owner | Test target connection |
+
+Create and update accept an optional positive integer `userId` to assign the target to an existing user. Creation defaults to the calling admin. Admins can manage assigned targets; only the assigned user can use them for approvals. Create a separate target for each user who needs the same destination. Updating a config preserves omitted or masked secrets.
+
+A linked `slskd` target requires an enabled Lidarr target assigned to the same user. To move a linked pair, clear `lidarrTargetId` first, reassign both targets, then restore the link. Active jobs for the previous owner stop instead of using the reassigned connections.
+
+Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url":"http://lidarr:8686","apiKey":"<key>"}}`.
 
 **Target types**: `lidarr`, `slskd`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`, `export`
 
@@ -932,6 +938,8 @@ Notification channels:
 | POST | `/api/v1/users` | Admin | Create user |
 | PATCH | `/api/v1/users/:id` | Admin | Update user (admin status) |
 | DELETE | `/api/v1/users/:id` | Admin | Delete user |
+
+Admins can promote other users. First-user admin creation is serialized in the database. Deleting a user removes their recommendations, subscriptions, and other owned records; shared artists and batch history remain. Admins cannot delete themselves or remove the last admin.
 
 ---
 
