@@ -37,6 +37,7 @@ describe('target routes', () => {
     // admin default so a per-test isAdmin:false override does not leak forward
     // into the adminGuard-protected mutation tests.
     mockDeps.getUserById.mockResolvedValue({ isAdmin: true })
+    mockDeps.targetQueries.getTarget.mockResolvedValue(null)
     mockDeps.targetQueries.getAllTargets.mockResolvedValue([])
     mockDeps.targetQueries.getTargetsByUser.mockResolvedValue([])
   })
@@ -146,6 +147,95 @@ describe('target routes', () => {
     expect(mockDeps.targetQueries.createTarget).toHaveBeenCalled()
   })
 
+  it('POST /api/v1/targets assigns a target to an existing user', async () => {
+    mockDeps.getUserById.mockImplementation(async (id: number) => ({ isAdmin: id === 1 }))
+    const res = await createTestApp().request('/api/v1/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'lidarr', name: 'Assigned', config: {}, userId: 2 }),
+    })
+    expect(res.status).toBe(201)
+    expect(mockDeps.targetQueries.createTarget).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 2 }),
+    )
+  })
+
+  it('POST /api/v1/targets rejects an unknown assigned user', async () => {
+    mockDeps.getUserById.mockImplementation(async (id: number) =>
+      id === 1 ? { isAdmin: true } : null,
+    )
+    const res = await createTestApp().request('/api/v1/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'lidarr', name: 'Assigned', config: {}, userId: 99 }),
+    })
+    expect(res.status).toBe(404)
+    expect(mockDeps.targetQueries.createTarget).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    null,
+    { id: 12, type: 'lidarr', enabled: true, userId: 1 },
+    { id: 12, type: 'lidarr', enabled: false, userId: 2 },
+    { id: 12, type: 'slskd', enabled: true, userId: 2 },
+  ])('rejects an invalid assigned slskd Lidarr link on create: %j', async (linked) => {
+    mockDeps.targetQueries.getTarget.mockResolvedValue(linked)
+    const res = await createTestApp().request('/api/v1/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'slskd',
+        name: 'Assigned',
+        userId: 2,
+        config: { lidarrTargetId: 12 },
+      }),
+    })
+    expect(res.status).toBe(404)
+    expect(await res.json()).toMatchObject({ code: 'errors.target.notFound' })
+    expect(mockDeps.targetQueries.createTarget).not.toHaveBeenCalled()
+  })
+
+  it('allows an assigned slskd target linked to its owner enabled Lidarr', async () => {
+    mockDeps.targetQueries.getTarget.mockResolvedValue({
+      id: 12,
+      type: 'lidarr',
+      enabled: true,
+      userId: 2,
+    })
+    const res = await createTestApp().request('/api/v1/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'slskd',
+        name: 'Assigned',
+        userId: 2,
+        config: { lidarrTargetId: 12 },
+      }),
+    })
+    expect(res.status).toBe(201)
+  })
+
+  it.each([{ userId: 2 }, { config: { lidarrTargetId: 13 } }])(
+    'rejects slskd patches that leave a cross-user linkage: %j',
+    async (patch) => {
+      mockDeps.targetQueries.getTarget.mockImplementation(
+        async (id: number) =>
+          ({
+            71: { id: 71, type: 'slskd', userId: 1, config: { lidarrTargetId: 12 } },
+            12: { id: 12, type: 'lidarr', userId: 1, enabled: true },
+            13: { id: 13, type: 'lidarr', userId: 2, enabled: true },
+          })[id] ?? null,
+      )
+      const res = await createTestApp().request('/api/v1/targets/71', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      expect(res.status).toBe(404)
+      expect(mockDeps.targetQueries.updateTarget).not.toHaveBeenCalled()
+    },
+  )
+
   it('POST /api/v1/targets validates required fields', async () => {
     const app = createTestApp()
     const res = await app.request('/api/v1/targets', {
@@ -185,7 +275,7 @@ describe('target routes', () => {
     expect(res.status).toBe(404)
   })
 
-  it('returns the same hidden 404 body for missing and cross-user targets', async () => {
+  it("allows an admin to delete another user's target", async () => {
     mockDeps.targetQueries.getTarget.mockImplementation(async (id: number) =>
       id === 1 ? { id: 1, userId: 1, type: 'lidarr' } : null,
     )
@@ -194,10 +284,9 @@ describe('target routes', () => {
     const crossUser = await createTestApp(2).request('/api/v1/targets/1', { method: 'DELETE' })
 
     expect(missing.status).toBe(404)
-    expect(crossUser.status).toBe(404)
+    expect(crossUser.status).toBe(204)
     expect(missing.headers.get('content-type')).toContain('application/problem+json')
-    expect(crossUser.headers.get('content-type')).toContain('application/problem+json')
-    expect(await crossUser.text()).toBe(await missing.text())
+    expect(mockDeps.targetQueries.deleteTarget).toHaveBeenCalledWith(1)
   })
 
   it('POST /api/v1/targets/:id/test tests connection', async () => {
@@ -210,6 +299,42 @@ describe('target routes', () => {
     const app = createTestApp()
     const res = await app.request('/api/v1/targets/1/test', { method: 'POST' })
     expect(res.status).toBe(200)
+  })
+
+  it('allows an admin to update, delete, and test an assigned target', async () => {
+    mockDeps.targetQueries.getTarget.mockResolvedValue({
+      id: 1,
+      userId: 2,
+      type: 'lidarr',
+      config: { apiKey: 'saved' },
+    })
+    const app = createTestApp()
+    const update = await app.request('/api/v1/targets/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    })
+    const test = await app.request('/api/v1/targets/1/test', { method: 'POST' })
+    const remove = await app.request('/api/v1/targets/1', { method: 'DELETE' })
+    expect(update.status).toBe(204)
+    expect(test.status).toBe(200)
+    expect(remove.status).toBe(204)
+  })
+
+  it('denies non-admin mutations and testing for another user target', async () => {
+    mockDeps.getUserById.mockResolvedValue({ isAdmin: false })
+    mockDeps.targetQueries.getTarget.mockResolvedValue({ id: 1, userId: 1, type: 'lidarr' })
+    const app = createTestApp(2)
+    const update = await app.request('/api/v1/targets/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated' }),
+    })
+    const remove = await app.request('/api/v1/targets/1', { method: 'DELETE' })
+    const test = await app.request('/api/v1/targets/1/test', { method: 'POST' })
+    expect(update.status).toBe(403)
+    expect(remove.status).toBe(403)
+    expect(test.status).toBe(404)
   })
 
   it('PATCH /api/v1/targets/:id updates a target', async () => {
@@ -226,5 +351,27 @@ describe('target routes', () => {
     })
     expect(res.status).toBe(204)
     expect(mockDeps.targetQueries.updateTarget).toHaveBeenCalledWith(1, { name: 'Updated Lidarr' })
+  })
+
+  it('PATCH /api/v1/targets/:id preserves masked and omitted secrets', async () => {
+    mockDeps.targetQueries.getTarget.mockResolvedValue({
+      id: 1,
+      userId: 1,
+      type: 'lidarr',
+      config: { url: 'http://lidarr:8686', apiKey: 'saved-secret', token: 'saved-token' },
+    })
+    const res = await createTestApp().request('/api/v1/targets/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: { url: 'http://new-lidarr:8686', apiKey: '***' } }),
+    })
+    expect(res.status).toBe(204)
+    expect(mockDeps.targetQueries.updateTarget).toHaveBeenCalledWith(1, {
+      config: {
+        url: 'http://new-lidarr:8686',
+        apiKey: 'saved-secret',
+        token: 'saved-token',
+      },
+    })
   })
 })

@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
+import { LastAdminError } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { adminRequired } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
@@ -11,13 +12,6 @@ import type { HonoEnv } from '@/server/types'
 
 export function userRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
-
-  /** Check if removing admin from targetId would leave zero admins. */
-  async function isLastAdmin(targetId: number): Promise<boolean> {
-    const all = await deps.listUsers()
-    const otherAdmins = all.filter((u) => u.isAdmin && u.id !== targetId)
-    return otherAdmins.length === 0
-  }
 
   const requireAdmin = (c: Parameters<typeof requireAdminShared>[0]) =>
     requireAdminShared(c, deps.getUserById)
@@ -82,15 +76,17 @@ export function userRoutes(deps: AppDependencies) {
       const target = await deps.getUserById(targetId)
       if (!target) return c.json({ error: 'User not found' }, 404)
 
-      // Guard: can't remove admin from last admin user
-      if (body.isAdmin === false && target.isAdmin && (await isLastAdmin(targetId))) {
-        return c.json({ error: 'Cannot remove admin from the last admin user' }, 400)
+      try {
+        await deps.updateUser(
+          targetId,
+          typeof body.isAdmin === 'boolean' ? { isAdmin: body.isAdmin } : {},
+        )
+      } catch (error) {
+        if (error instanceof LastAdminError) {
+          return c.json({ error: 'Cannot remove admin from the last admin user' }, 400)
+        }
+        throw error
       }
-
-      await deps.updateUser(
-        targetId,
-        typeof body.isAdmin === 'boolean' ? { isAdmin: body.isAdmin } : {},
-      )
       return c.body(null, 204)
     },
   )
@@ -112,12 +108,14 @@ export function userRoutes(deps: AppDependencies) {
     const target = await deps.getUserById(targetId)
     if (!target) return c.json({ error: 'User not found' }, 404)
 
-    // Guard: can't delete the last admin
-    if (target.isAdmin && (await isLastAdmin(targetId))) {
-      return c.json({ error: 'Cannot delete the last admin user' }, 400)
+    try {
+      await deps.deleteUser(targetId)
+    } catch (error) {
+      if (error instanceof LastAdminError) {
+        return c.json({ error: 'Cannot delete the last admin user' }, 400)
+      }
+      throw error
     }
-
-    await deps.deleteUser(targetId)
     return c.body(null, 204)
   })
 

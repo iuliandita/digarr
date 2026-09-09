@@ -48,7 +48,6 @@ app.route(
     createUser: async () => {
       throw new Error('mock OIDC user should already exist')
     },
-    getUserCount: async () => 1,
     updateUser: async () => {},
   }),
 )

@@ -4,13 +4,13 @@ import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword, verifyPassword } from '@/core/auth'
 import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
-import { isSingleAdminCollision, isUniqueViolation } from '@/core/db-errors'
+import { isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
 import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
-import { updateUserPreferences } from '@/db/queries/users'
+import { FirstUserRequiredError, updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
@@ -105,36 +105,38 @@ export function authRoutes(deps: AppDependencies) {
       )
     }
 
-    const isAdmin = userCount === 0
     const cookie = cookieModeRequested(c)
     const preparedCookie = cookie ? prepareSessionCookie(c) : false
 
     const passwordHash = hashPassword(password)
-    // Defence-in-depth against the first-admin bootstrap race: two
-    // concurrent requests can both see userCount === 0. The 0026 unique
-    // partial index on users(is_admin) WHERE is_admin = true serialises
-    // admin creation at the DB layer; the loser falls back to non-admin.
     let user: Awaited<ReturnType<typeof deps.createUser>>
     try {
-      user = await deps.createUser({ username, passwordHash, isAdmin })
+      user = await deps.createUser(
+        { username, passwordHash },
+        {
+          bootstrap: envConfig.disableRegistration ? 'first-user-only' : 'allow-existing',
+        },
+      )
     } catch (err: unknown) {
-      if (!isAdmin || !isSingleAdminCollision(err)) throw err
-      // Lost the race. Username may or may not still be free - recheck,
-      // because the unique-username violation would surface as a separate
-      // 23505 on a different constraint which we let propagate.
-      const existing = await deps.getUserByUsername(username)
-      if (existing) {
-        return problem(
-          c,
-          'auth-username-taken',
-          'Username already taken',
-          409,
-          undefined,
-          undefined,
-          'errors.auth.usernameTaken',
+      if (err instanceof FirstUserRequiredError) {
+        return c.json(
+          {
+            error:
+              'Registration is disabled. Set DIGARR_DISABLE_REGISTRATION=false to allow open registration.',
+          },
+          403,
         )
       }
-      user = await deps.createUser({ username, passwordHash, isAdmin: false })
+      if (!isUniqueViolation(err, 'users_username_unique')) throw err
+      return problem(
+        c,
+        'auth-username-taken',
+        'Username already taken',
+        409,
+        undefined,
+        undefined,
+        'errors.auth.usernameTaken',
+      )
     }
 
     const existingCookie = getCookie(c, SESSION_COOKIE_NAME)

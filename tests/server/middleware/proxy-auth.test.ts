@@ -28,7 +28,6 @@ describe('proxyAuthMiddleware', () => {
     isAdmin: false,
     createdAt: new Date(),
   }))
-  const mockGetUserCount = vi.fn(async () => 0)
 
   function buildApp(trustedProxies: string[]) {
     const app = new Hono<HonoEnv>()
@@ -39,7 +38,6 @@ describe('proxyAuthMiddleware', () => {
         trustedProxies,
         getUserByUsername: mockGetUserByUsername,
         createUser: mockCreateUser,
-        getUserCount: mockGetUserCount,
       }),
     )
     app.get('/test', (c) => {
@@ -56,7 +54,6 @@ describe('proxyAuthMiddleware', () => {
     envConfig.allowedOrigin = undefined
     vi.clearAllMocks()
     mockGetUserByUsername.mockResolvedValue(null)
-    mockGetUserCount.mockResolvedValue(0)
     vi.mocked(getSession).mockResolvedValue(null)
   })
 
@@ -113,12 +110,14 @@ describe('proxyAuthMiddleware', () => {
   })
 
   it('first proxy user becomes admin', async () => {
-    mockGetUserCount.mockResolvedValue(0)
     const app = buildApp(['0.0.0.0/32'])
     await app.request('/test', {
       headers: { 'X-Forwarded-User': 'firstuser' },
     })
-    expect(mockCreateUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: true }))
+    expect(mockCreateUser).toHaveBeenCalledWith(
+      expect.objectContaining({ authProvider: 'proxy' }),
+      { bootstrap: 'allow-existing' },
+    )
   })
 
   it('rejects invalid cookie configuration before provisioning a proxy user', async () => {
@@ -145,7 +144,6 @@ describe('proxyAuthMiddleware', () => {
         trustedProxies: ['0.0.0.0/32'],
         getUserByUsername: mockGetUserByUsername,
         createUser: mockCreateUser,
-        getUserCount: mockGetUserCount,
       }),
     )
     app.get('/test', (c) => c.json({ proxyAuth: c.get('proxyAuth' as never) }))

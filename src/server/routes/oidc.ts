@@ -3,7 +3,7 @@ import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
 import { OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
-import { isSingleAdminCollision } from '@/core/db-errors'
+import type { UserBootstrapOptions } from '@/db/queries/users'
 import {
   clearOidcTransactionCookie,
   prepareOidcTransactionCookie,
@@ -19,15 +19,17 @@ type OidcRouteDeps = {
   getOidcService: () => Promise<OidcService | null>
   getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>
   getUserByUsername: (username: string) => Promise<{ id: number; username: string } | null>
-  createUser: (data: {
-    username: string
-    passwordHash: string
-    isAdmin?: boolean
-    email?: string
-    oidcSubject?: string
-    authProvider?: string
-  }) => Promise<{ id: number; username: string }>
-  getUserCount: () => Promise<number>
+  createUser: (
+    data: {
+      username: string
+      passwordHash: string
+      isAdmin?: boolean
+      email?: string
+      oidcSubject?: string
+      authProvider?: string
+    },
+    options?: UserBootstrapOptions,
+  ) => Promise<{ id: number; username: string }>
   updateUser: (id: number, data: { oidcSubject?: string; email?: string }) => Promise<void>
 }
 
@@ -113,7 +115,6 @@ export function oidcRoutes(deps: OidcRouteDeps) {
       let user = await deps.getUserByOidcSubject(result.claims.sub)
 
       if (!user) {
-        const isFirstUser = (await deps.getUserCount()) === 0
         // Local registration lowercases emails and the unique index is
         // case-sensitive; store the claim lowercased so lookups keep matching.
         const email = result.claims.email?.toLowerCase()
@@ -133,28 +134,16 @@ export function oidcRoutes(deps: OidcRouteDeps) {
           username = `${username}-${result.claims.sub.slice(0, 8)}`
         }
 
-        try {
-          user = await deps.createUser({
+        user = await deps.createUser(
+          {
             username,
             passwordHash: hashPassword(crypto.randomUUID()),
-            isAdmin: isFirstUser,
             email,
             oidcSubject: result.claims.sub,
             authProvider: 'oidc',
-          })
-        } catch (err: unknown) {
-          // First-admin race: a concurrent request won the admin slot via
-          // the users_single_admin partial unique index. Retry as non-admin.
-          if (!isFirstUser || !isSingleAdminCollision(err)) throw err
-          user = await deps.createUser({
-            username,
-            passwordHash: hashPassword(crypto.randomUUID()),
-            isAdmin: false,
-            email,
-            oidcSubject: result.claims.sub,
-            authProvider: 'oidc',
-          })
-        }
+          },
+          { bootstrap: 'allow-existing' },
+        )
       }
 
       const oldCookie = getCookie(c, SESSION_COOKIE_NAME)

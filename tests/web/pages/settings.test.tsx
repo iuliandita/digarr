@@ -61,6 +61,10 @@ vi.mock('@/web/lib/api', () => ({
   triggerPipeline: vi.fn(),
   getSetupStatus: vi.fn().mockResolvedValue({ setupComplete: true }),
   listTargets: vi.fn().mockResolvedValue([]),
+  listUsers: vi.fn().mockResolvedValue([
+    { id: 1, username: 'admin', isAdmin: true },
+    { id: 2, username: 'listener', isAdmin: false },
+  ]),
   updateTargetApi: vi.fn().mockResolvedValue(undefined),
   deleteTargetApi: vi.fn().mockResolvedValue(undefined),
   testTargetApi: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
@@ -871,6 +875,7 @@ describe('SettingsPage', () => {
     mockListTargets.mockResolvedValue([
       {
         id: 11,
+        userId: 1,
         type: 'lidarr',
         name: 'Primary Lidarr',
         enabled: true,
@@ -879,6 +884,7 @@ describe('SettingsPage', () => {
       },
       {
         id: 12,
+        userId: 1,
         type: 'lidarr',
         name: 'Disabled Lidarr',
         enabled: false,
@@ -907,6 +913,7 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(mockCreateTargetApi).toHaveBeenCalledWith({
         type: 'slskd',
+        userId: 1,
         name: 'Soulseek',
         config: {
           url: 'http://slskd:5030',
@@ -996,9 +1003,89 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(mockUpdateTargetApi).toHaveBeenCalledWith(7, {
         name: 'Updated Lidarr',
+        userId: 1,
         enabled: true,
         config: { url: 'http://lidarr:8686' },
       })
     })
+  })
+
+  it('lets an admin assign a Lidarr target to another user', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByText('Targets'))
+    fireEvent.click(await screen.findByText('Add Target'))
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
+    await screen.findByRole('option', { name: 'listener' })
+    fireEvent.change(screen.getByLabelText('Assigned user'), { target: { value: '2' } })
+    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://lidarr:8686' } })
+    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'key' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+    await waitFor(() =>
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'lidarr',
+        userId: 2,
+        name: 'Lidarr',
+        config: { url: 'http://lidarr:8686', apiKey: 'key' },
+      }),
+    )
+  })
+
+  it('lets an admin edit an assigned target without exposing its saved key', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 2,
+        type: 'lidarr',
+        name: 'Listener Lidarr',
+        enabled: true,
+        owned: false,
+        config: { url: 'http://lidarr:8686', apiKey: '***' },
+      },
+    ])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByText('Targets'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+    await screen.findByRole('option', { name: 'listener' })
+    expect(screen.getByLabelText('Assigned user')).toHaveValue('2')
+    expect(screen.getByLabelText('API Key')).toHaveValue('')
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+    await waitFor(() =>
+      expect(mockUpdateTargetApi).toHaveBeenCalledWith(7, {
+        name: 'Listener Lidarr',
+        userId: 2,
+        enabled: true,
+        config: { url: 'http://lidarr:8686' },
+      }),
+    )
+  })
+
+  it('shows ordinary users a test action without target management controls', async () => {
+    setupMocks()
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'listener',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 2,
+        type: 'lidarr',
+        name: 'Listener Lidarr',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://lidarr:8686', apiKey: '***' },
+      },
+    ])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByText('Targets'))
+    expect(await screen.findByRole('button', { name: 'Test' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add Target' })).not.toBeInTheDocument()
   })
 })

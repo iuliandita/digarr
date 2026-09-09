@@ -228,7 +228,10 @@ function getLinkedLidarrTarget(
   return (
     targets.find(
       (target) =>
-        target.id === linkedId && target.type === 'lidarr' && normalizeBoolean(target.enabled),
+        target.id === linkedId &&
+        target.type === 'lidarr' &&
+        target.userId === slskdTarget?.userId &&
+        normalizeBoolean(target.enabled),
     ) ?? null
   )
 }
@@ -570,9 +573,19 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     }
 
     for (const job of jobs) {
-      const slskd = getSlskdClient(job.targetId)
-
       try {
+        if (targets) {
+          const target = targets.find(
+            (candidate) => candidate.id === job.targetId && candidate.type === 'slskd',
+          )
+          if (!target || target.userId !== job.userId) {
+            throw new Error('slskd job target is missing or its owner changed')
+          }
+          if (target.config.lidarrTargetId != null && !getLinkedLidarrTarget(targets, target.id)) {
+            throw new Error('slskd job linked Lidarr target is unavailable for its owner')
+          }
+        }
+        const slskd = getSlskdClient(job.targetId)
         if (job.state === 'pending' || job.state === 'searching') {
           await processSearchableJob(job, slskd)
           continue

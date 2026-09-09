@@ -24,6 +24,7 @@ export const createTargetSchema = z.object({
   type: z.enum(TARGET_TYPES),
   name: z.string().trim().min(1).max(200),
   config: targetConfigSchema,
+  userId: z.number().int().positive().optional(),
 })
 
 // PATCH body: only explicitly-allowed fields. .strict() rejects unknown keys
@@ -33,6 +34,7 @@ export const updateTargetSchema = z
     name: z.string().trim().min(1).max(200).optional(),
     config: targetConfigSchema.optional(),
     enabled: z.boolean().optional(),
+    userId: z.number().int().positive().optional(),
   })
   .strict()
 

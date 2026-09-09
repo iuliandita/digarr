@@ -55,7 +55,6 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
       id: 1,
       username: data.username,
     })),
-    getUserCount: vi.fn(async () => 0),
     updateUser: vi.fn(async () => {}),
     ...overrides,
   }
@@ -183,8 +182,8 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         oidcSubject: 'oidc-subject-123',
         email: 'alice@example.com',
         authProvider: 'oidc',
-        isAdmin: true, // first user
       }),
+      { bootstrap: 'allow-existing' },
     )
     await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: 1 })
   })
@@ -280,6 +279,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(deps.updateUser).not.toHaveBeenCalled()
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'alice-oidc-sub' }),
+      { bootstrap: 'allow-existing' },
     )
   })
 
@@ -299,6 +299,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'malloryscriptalert1script' }),
+      { bootstrap: 'allow-existing' },
     )
   })
 
@@ -321,19 +322,21 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'carol.mixedcase@example.com' }),
+      { bootstrap: 'allow-existing' },
     )
   })
 
-  it('creates non-admin user when users already exist', async () => {
-    const deps = makeDeps({
-      getUserCount: vi.fn(async () => 3),
-    })
+  it('delegates admin selection to atomic bootstrap', async () => {
+    const deps = makeDeps()
     const app = createTestApp(deps)
 
     const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
-    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: false }))
+    expect(deps.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({ authProvider: 'oidc' }),
+      { bootstrap: 'allow-existing' },
+    )
   })
 
   it('falls back to email prefix for username when preferredUsername is absent', async () => {
@@ -349,7 +352,9 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
-    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'bob' }))
+    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'bob' }), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('falls back to oidc-{sub} when no username or email', async () => {
@@ -365,6 +370,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'oidc-abcdefgh' }),
+      { bootstrap: 'allow-existing' },
     )
   })
 

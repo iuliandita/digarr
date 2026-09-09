@@ -2,8 +2,9 @@ import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { hashPassword } from '@/core/auth'
 import { isIpTrusted } from '@/core/auth/cidr'
-import { isSingleAdminCollision } from '@/core/db-errors'
+import { isUniqueViolation } from '@/core/db-errors'
 import { getSession } from '@/core/sessions'
+import type { UserBootstrapOptions } from '@/db/queries/users'
 import {
   issueSession,
   type PreparedSessionCookie,
@@ -16,14 +17,16 @@ type ProxyAuthDeps = {
   enabled: boolean
   trustedProxies: string[]
   getUserByUsername: (username: string) => Promise<{ id: number; username: string } | null>
-  createUser: (data: {
-    username: string
-    passwordHash: string
-    isAdmin?: boolean
-    email?: string
-    authProvider?: string
-  }) => Promise<{ id: number; username: string }>
-  getUserCount: () => Promise<number>
+  createUser: (
+    data: {
+      username: string
+      passwordHash: string
+      isAdmin?: boolean
+      email?: string
+      authProvider?: string
+    },
+    options?: UserBootstrapOptions,
+  ) => Promise<{ id: number; username: string }>
 }
 
 /**
@@ -75,33 +78,23 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
     let preparedCookie: PreparedSessionCookie | undefined
     if (!user) {
       preparedCookie = prepareSessionCookie(c)
-      const isFirstUser = (await deps.getUserCount()) === 0
       // Generate random password hash - proxy users authenticate via headers, not passwords
       const randomHash = hashPassword(crypto.randomUUID())
       try {
-        user = await deps.createUser({
-          username: forwardedUser,
-          passwordHash: randomHash,
-          isAdmin: isFirstUser,
-          email: forwardedEmail,
-          authProvider: 'proxy',
-        })
-      } catch (err: unknown) {
-        // First-admin race: a concurrent request won the admin slot via the
-        // users_single_admin partial unique index. Retry as a non-admin.
-        if (!isFirstUser || !isSingleAdminCollision(err)) throw err
-        const existing = await deps.getUserByUsername(forwardedUser)
-        if (existing) {
-          user = existing
-        } else {
-          user = await deps.createUser({
+        user = await deps.createUser(
+          {
             username: forwardedUser,
             passwordHash: randomHash,
-            isAdmin: false,
             email: forwardedEmail,
             authProvider: 'proxy',
-          })
-        }
+          },
+          { bootstrap: 'allow-existing' },
+        )
+      } catch (err: unknown) {
+        if (!isUniqueViolation(err, 'users_username_unique')) throw err
+        const existing = await deps.getUserByUsername(forwardedUser)
+        if (!existing) throw err
+        user = existing
       }
     }
 

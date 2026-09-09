@@ -3,6 +3,7 @@
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
+import { LastAdminError } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
@@ -292,6 +293,27 @@ describe('GET /api/v1/users', () => {
 // ---------------------------------------------------------------------------
 
 describe('PATCH /api/v1/users/:id', () => {
+  it('returns 400 when the atomic update refuses the last admin removal', async () => {
+    const token = await adminToken()
+    const updateUser = vi.fn().mockRejectedValue(new LastAdminError())
+    const app = createApp(
+      makeDeps({
+        updateUser,
+        getUserById: vi.fn(async (id: number) =>
+          id === 1 ? adminUser : { ...regularUser, isAdmin: true },
+        ),
+      }),
+    )
+    const res = await app.request('/api/v1/users/2', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isAdmin: false }),
+    })
+    expect(updateUser).toHaveBeenCalledWith(2, { isAdmin: false })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Cannot remove admin from the last admin user' })
+  })
+
   it('admin can toggle isAdmin on another user', async () => {
     const updateUser = vi.fn(async () => {})
     const token = await adminToken()
@@ -355,6 +377,26 @@ describe('PATCH /api/v1/users/:id', () => {
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/v1/users/:id', () => {
+  it('returns 400 when the atomic delete refuses the last admin removal', async () => {
+    const token = await adminToken()
+    const deleteUser = vi.fn().mockRejectedValue(new LastAdminError())
+    const app = createApp(
+      makeDeps({
+        deleteUser,
+        getUserById: vi.fn(async (id: number) =>
+          id === 1 ? adminUser : { ...regularUser, isAdmin: true },
+        ),
+      }),
+    )
+    const res = await app.request('/api/v1/users/2', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(deleteUser).toHaveBeenCalledWith(2)
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Cannot delete the last admin user' })
+  })
+
   it('admin can delete another user', async () => {
     const deleteUser = vi.fn(async () => {})
     const token = await adminToken()

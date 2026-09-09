@@ -65,6 +65,7 @@ import {
   importSpotifyPlaylist,
   initiateOAuth,
   listTargets,
+  listUsers,
   logoutUser,
   testNotificationChannel,
   testService,
@@ -2594,6 +2595,7 @@ function normalizeTargetConfig(
   const normalizedEntries = Object.entries(config).filter(([, value]) => value !== '')
   const normalizedConfig = Object.fromEntries(normalizedEntries) as Record<string, unknown>
 
+  if (type === 'slskd' && config.lidarrTargetId === '') normalizedConfig.lidarrTargetId = null
   if (type === 'slskd' && typeof normalizedConfig.lidarrTargetId === 'string') {
     const lidarrTargetId = Number.parseInt(normalizedConfig.lidarrTargetId, 10)
     if (Number.isFinite(lidarrTargetId)) {
@@ -2619,12 +2621,23 @@ function AddTargetDialog({
   onSaved,
   targets,
   initialTarget,
+  users,
+  currentUserId,
 }: {
   onClose: () => void
   onSaved: () => void
-  targets: Array<{ id: number; type: string; name: string; enabled: boolean }>
+  targets: Array<{
+    id: number
+    type: string
+    name: string
+    enabled: boolean
+    userId: number | null
+  }>
+  users: Array<{ id: number; username: string }>
+  currentUserId?: number
   initialTarget?: {
     id: number
+    userId: number | null
     type: string
     name: string
     enabled: boolean
@@ -2632,10 +2645,11 @@ function AddTargetDialog({
   }
 }) {
   const { t } = useI18n()
+  const [userId, setUserId] = useState(initialTarget?.userId ?? currentUserId)
   const targetTypes = getTargetTypes(
     t,
     targets
-      .filter((target) => target.type === 'lidarr' && target.enabled)
+      .filter((target) => target.type === 'lidarr' && target.enabled && target.userId === userId)
       .map((target) => ({ id: target.id, name: target.name })),
   )
   const [type, setType] = useState(initialTarget?.type ?? '')
@@ -2657,12 +2671,14 @@ function AddTargetDialog({
         await updateTargetApi(initialTarget.id, {
           name: name || selectedType.label,
           enabled,
+          userId,
           config: normalizeTargetConfig(type, config),
         })
         toast.success(t('settings.targetUpdated'))
       } else {
         await createTargetApi({
           type,
+          userId,
           name: name || selectedType.label,
           config: normalizeTargetConfig(type, config),
         })
@@ -2708,6 +2724,26 @@ function AddTargetDialog({
 
       {selectedType && (
         <>
+          <label className="block text-xs text-muted">
+            {t('settings.targetUser')}
+            <select
+              value={userId ?? ''}
+              onChange={(e) => {
+                setUserId(Number(e.target.value))
+                setConfig((previous) => ({ ...previous, lidarrTargetId: '' }))
+              }}
+              className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+            >
+              <option value="" disabled>
+                {t('settings.targetUser')}
+              </option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username}
+                </option>
+              ))}
+            </select>
+          </label>
           <div>
             <label className="block text-xs text-muted mb-1">
               {t('settings.name')}
@@ -2786,7 +2822,11 @@ function AddTargetDialog({
             <Button variant="outline" size="sm" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving || !type}>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={saving || !type || !userId || !users.some((user) => user.id === userId)}
+            >
               {saving
                 ? isEditing
                   ? t('settings.saving')
@@ -2810,6 +2850,7 @@ function TargetsTab() {
   })
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const isAdmin = currentUser?.isAdmin ?? false
+  const usersQuery = useQuery({ queryKey: ['users'], queryFn: listUsers, enabled: isAdmin })
   const [testing, setTesting] = useState<number | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editingTargetId, setEditingTargetId] = useState<number | null>(null)
@@ -2862,11 +2903,16 @@ function TargetsTab() {
         )}
       </div>
 
+      {isAdmin && usersQuery.isError && (
+        <p className="text-sm text-reject">{t('userManagement.failedToLoad')}</p>
+      )}
       {addOpen && (
         <AddTargetDialog
           onClose={() => setAddOpen(false)}
           onSaved={() => refetch()}
           targets={targets ?? []}
+          users={usersQuery.data ?? []}
+          currentUserId={currentUser?.id}
         />
       )}
 
@@ -2906,17 +2952,26 @@ function TargetsTab() {
                     </span>
                   )}
                 </div>
-                {!owned && (
+                {isAdmin && (
                   <span className="text-xs px-1.5 py-0.5 rounded bg-bg text-muted border border-border">
-                    {t('settings.shared')}
+                    {t('settings.targetUser')}:{' '}
+                    {usersQuery.data?.find((user) => user.id === target.userId)?.username ??
+                      target.userId ??
+                      '--'}
                   </span>
                 )}
               </div>
-              {owned && (
+              {(isAdmin || owned) && (
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditingTargetId(target.id)}>
-                    {t('common.edit')}
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingTargetId(target.id)}
+                    >
+                      {t('common.edit')}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -2925,14 +2980,16 @@ function TargetsTab() {
                   >
                     {testing === target.id ? t('settings.testing') : t('settings.test')}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(target.id)}
-                    className="text-reject"
-                  >
-                    {t('settings.remove')}
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(target.id)}
+                      className="text-reject"
+                    >
+                      {t('settings.remove')}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -2953,6 +3010,8 @@ function TargetsTab() {
                   refetch()
                 }}
                 targets={targets ?? []}
+                users={usersQuery.data ?? []}
+                currentUserId={currentUser?.id}
                 initialTarget={target}
               />
             )}

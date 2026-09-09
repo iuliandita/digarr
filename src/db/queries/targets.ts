@@ -12,7 +12,7 @@ export type TargetInsert = {
   enabled?: boolean
 }
 
-export type TargetUpdate = Partial<Pick<TargetInsert, 'name' | 'config' | 'enabled'>>
+export type TargetUpdate = Partial<Pick<TargetInsert, 'name' | 'config' | 'enabled' | 'userId'>>
 
 export type TargetRow = typeof targets.$inferSelect
 

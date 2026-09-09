@@ -462,8 +462,16 @@ describe('Dashboard', () => {
   it('requests combined approval mode when sending todays pick to slskd with Lidarr present', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([
-      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: true, owned: true },
-      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+      {
+        id: 1,
+        type: 'lidarr',
+        name: 'Main Lidarr',
+        config: {},
+        enabled: true,
+        userId: 1,
+        owned: true,
+      },
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, userId: 1, owned: true },
     ])
 
     renderWithQuery(<Dashboard />)
@@ -486,14 +494,31 @@ describe('Dashboard', () => {
   it('sends the linked Lidarr target when slskd is paired to one of multiple Lidarr targets', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([
-      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: true, owned: true },
-      { id: 2, type: 'lidarr', name: 'Alt Lidarr', config: {}, enabled: true, owned: true },
+      {
+        id: 1,
+        type: 'lidarr',
+        name: 'Main Lidarr',
+        config: {},
+        enabled: true,
+        userId: 1,
+        owned: true,
+      },
+      {
+        id: 2,
+        type: 'lidarr',
+        name: 'Alt Lidarr',
+        config: {},
+        enabled: true,
+        userId: 1,
+        owned: true,
+      },
       {
         id: 7,
         type: 'slskd',
         name: 'slskd',
         config: { lidarrTargetId: 2 },
         enabled: true,
+        userId: 1,
         owned: true,
       },
     ])
@@ -518,7 +543,7 @@ describe('Dashboard', () => {
   it('sends todays pick directly to a standalone slskd target', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([
-      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, userId: 1, owned: true },
     ])
 
     renderWithQuery(<Dashboard />)
@@ -539,8 +564,16 @@ describe('Dashboard', () => {
   it('ignores disabled Lidarr targets when choosing slskd approval mode', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([
-      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: false, owned: true },
-      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
+      {
+        id: 1,
+        type: 'lidarr',
+        name: 'Main Lidarr',
+        config: {},
+        enabled: false,
+        userId: 1,
+        owned: true,
+      },
+      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, userId: 1, owned: true },
     ])
 
     renderWithQuery(<Dashboard />)
