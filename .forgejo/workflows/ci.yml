@@ -30,7 +30,7 @@ jobs:
     # Reuse the pinned bun image already warm on the runner cache -- cheap and
     # avoids juggling an extra digest in the mirror policy comment.
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     steps:
       - name: Reject fork PRs until approved
         if: github.event_name == 'pull_request'
@@ -49,7 +49,7 @@ jobs:
     needs: guard
     runs-on: docker
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils > /dev/null && rm -rf /var/lib/apt/lists/*
@@ -74,7 +74,7 @@ jobs:
   build:
     runs-on: docker
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     needs: lint-typecheck-test
     steps:
       - name: Install git
@@ -94,7 +94,7 @@ jobs:
   api-route-test:
     runs-on: docker
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     needs: build
     services:
       postgres:
@@ -140,7 +140,7 @@ jobs:
     needs: guard
     runs-on: docker
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     env:
       HELM_VERSION: v3.16.4
       HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
@@ -197,7 +197,7 @@ jobs:
   browser-test:
     runs-on: docker
     container:
-      image: oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
     needs: api-route-test
     services:
       postgres:
