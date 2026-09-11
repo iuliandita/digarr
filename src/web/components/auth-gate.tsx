@@ -11,6 +11,7 @@ import {
   registerUser,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { clearQueryCache } from '../lib/query-client'
 import { LanguageSwitcher } from './language-switcher'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -179,6 +180,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   // Listen for 401s from fetchApi and return to login
   useEffect(() => {
     const handler = () => {
+      clearQueryCache()
       setNotice(null)
       setState(hasUsers ? 'login' : 'register')
     }
@@ -187,6 +189,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [hasUsers])
 
   async function handleAuthenticated(fallback: 'login' | 'register') {
+    clearQueryCache()
     setNotice(null)
     clearLegacyMigrationState()
     try {
