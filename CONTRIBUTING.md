@@ -25,7 +25,7 @@ docker run -d \
   -e POSTGRES_PASSWORD=digarr \
   -e POSTGRES_DB=digarr \
   -p 5432:5432 \
-  postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
+  postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
 ```
 
 Copy the env file and set your API keys:
