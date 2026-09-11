@@ -5,6 +5,7 @@ import { StrictMode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthGate } from '@/web/components/auth-gate'
 import { I18nProvider } from '@/web/lib/i18n'
+import { queryClient } from '@/web/lib/query-client'
 
 vi.mock('@/web/lib/locale-storage', () => ({
   detectBrowserLocale: vi.fn(() => 'en'),
@@ -88,6 +89,7 @@ describe('AuthGate', () => {
     window.sessionStorage.clear()
     window.history.replaceState({}, '', '/')
     vi.clearAllMocks()
+    queryClient.clear()
     apiMocks.getAuthStatus.mockResolvedValue(unauthenticatedStatus)
     apiMocks.getLegacyStoredToken.mockReturnValue(null)
     apiMocks.loginUser.mockResolvedValue({
@@ -483,5 +485,32 @@ describe('AuthGate', () => {
 
     expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(screen.queryByText('secret area')).not.toBeInTheDocument()
+  })
+
+  it('drops cached account data when the session expires', async () => {
+    apiMocks.getAuthStatus.mockResolvedValue(authenticatedStatus)
+    renderGate()
+    await screen.findByText('secret area')
+
+    queryClient.setQueryData(['settings'], { userId: 1 })
+    act(() => window.dispatchEvent(new Event('digarr:auth-expired')))
+
+    await screen.findByRole('button', { name: 'Sign in' })
+    expect(queryClient.getQueryData(['settings'])).toBeUndefined()
+  })
+
+  it('drops cached account data before mounting a fresh login', async () => {
+    apiMocks.getAuthStatus
+      .mockResolvedValueOnce(unauthenticatedStatus)
+      .mockResolvedValueOnce(authenticatedStatus)
+    renderGate()
+    await screen.findByRole('button', { name: 'Sign in' })
+
+    queryClient.setQueryData(['settings'], { userId: 1 })
+
+    await submitLogin()
+
+    await screen.findByText('secret area')
+    expect(queryClient.getQueryData(['settings'])).toBeUndefined()
   })
 })
