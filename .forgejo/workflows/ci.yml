@@ -17,8 +17,8 @@ on:
 # it lands earlier in PATH and wins -- matching GitHub runners where Node is
 # preinstalled.
 env:
-  NODE_VERSION: v24.18.0
-  NODE_SHA256: 55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742
+  NODE_VERSION: v24.21.0
+  NODE_SHA256: fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6
 
 jobs:
   # Fail-closed gate for fork PRs. The primary control is the Forgejo repo
@@ -30,7 +30,7 @@ jobs:
     # Reuse the pinned bun image already warm on the runner cache -- cheap and
     # avoids juggling an extra digest in the mirror policy comment.
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     steps:
       - name: Reject fork PRs until approved
         if: github.event_name == 'pull_request'
@@ -49,7 +49,7 @@ jobs:
     needs: guard
     runs-on: docker
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     steps:
       - name: Install git
         run: apt-get update -qq && apt-get install -y -qq git curl ca-certificates xz-utils > /dev/null && rm -rf /var/lib/apt/lists/*
@@ -74,7 +74,7 @@ jobs:
   build:
     runs-on: docker
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     needs: lint-typecheck-test
     steps:
       - name: Install git
@@ -94,11 +94,11 @@ jobs:
   api-route-test:
     runs-on: docker
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     needs: build
     services:
       postgres:
-        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
+        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -140,7 +140,7 @@ jobs:
     needs: guard
     runs-on: docker
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     env:
       HELM_VERSION: v3.16.4
       HELM_SHA256: fc307327959aa38ed8f9f7e66d45492bb022a66c3e5da6063958254b9767d179
@@ -197,11 +197,11 @@ jobs:
   browser-test:
     runs-on: docker
     container:
-      image: oven/bun:1.4.0@sha256:5ff609364c049b54eb0ff560ec96319729a972078ef2c755d758f0c6ef89c2d6
+      image: oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895
     needs: api-route-test
     services:
       postgres:
-        image: postgres:17-alpine@sha256:c7526c0f6c3f30260a563d7bcf8ad778effac59a44f8ffa86678c35418338609
+        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
