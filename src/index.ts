@@ -53,7 +53,7 @@ import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
-import { resolveProviderToken } from './core/provider-auth'
+import { isConnectedToken, resolveProviderToken } from './core/provider-auth'
 import { createDefaultRegistry } from './core/providers/registry'
 import { buildSearchSourceCatalog } from './core/search/catalog'
 import { enrichSearchResultsWithImages } from './core/search/enrich'
@@ -267,14 +267,12 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
     hasListenBrainz: Boolean(
       userConnections?.listenbrainzUsername && userConnections.listenbrainzToken,
     ),
-    hasSpotify: Boolean(
-      spotifyToken?.accessToken && !spotifyToken.accessToken.startsWith('pending:'),
-    ),
+    hasSpotify: isConnectedToken(spotifyToken),
     spotifyScopes: spotifyToken?.scopes?.split(' ').filter(Boolean) ?? [],
     hasLastfm: Boolean(userConnections?.lastfmUsername && userConnections.lastfmApiKey),
     hasDiscogs: Boolean(userConnections?.discogsUsername && userConnections.discogsToken),
-    hasDeezer: Boolean(deezerToken?.accessToken && !deezerToken.accessToken.startsWith('pending:')),
-    hasTidal: Boolean(tidalToken?.accessToken && !tidalToken.accessToken.startsWith('pending:')),
+    hasDeezer: isConnectedToken(deezerToken),
+    hasTidal: isConnectedToken(tidalToken),
     hasLibrarySync,
     hasSubsonic: Boolean(
       userConnections?.subsonicUrl &&
@@ -904,7 +902,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
     // Deezer adapter - only if the user has a stored OAuth token
     if (userId !== null && userId !== undefined) {
       const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
-      if (deezerOAuthRow && !deezerOAuthRow.accessToken.startsWith('pending:')) {
+      if (isConnectedToken(deezerOAuthRow)) {
         const getToken = () => resolveProviderToken(db, userId, 'deezer')
         adapterRegistry.register(createDeezerAdapter({ getToken }))
       }

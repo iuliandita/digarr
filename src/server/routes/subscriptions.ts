@@ -6,7 +6,7 @@ import {
   evaluateDiscoveryModeAvailability,
 } from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
-import { resolveProviderToken } from '@/core/provider-auth'
+import { isConnectedToken, resolveProviderToken } from '@/core/provider-auth'
 import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
@@ -352,7 +352,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
-    if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
+    if (!isConnectedToken(spotifyToken)) {
       return c.json({ error: messages['subscriptions.spotifyNotConnected'] }, 400)
     }
 
@@ -454,7 +454,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       const { playlistId: rawId } = c.req.valid('json')
 
       const spotifyToken = await getOAuthToken(deps.db, userId, 'spotify')
-      if (!spotifyToken || spotifyToken.accessToken.startsWith('pending:')) {
+      if (!isConnectedToken(spotifyToken)) {
         return c.json({ error: 'Spotify is not connected' }, 400)
       }
 
@@ -505,7 +505,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
-    if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
+    if (!isConnectedToken(deezerToken)) {
       return c.json({ error: 'Deezer is not connected' }, 400)
     }
 
@@ -552,7 +552,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
     }
 
     const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
-    if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
+    if (!isConnectedToken(deezerToken)) {
       return c.json({ error: 'Deezer is not connected' }, 400)
     }
 
@@ -620,7 +620,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
       }
 
       const deezerToken = await getOAuthToken(deps.db, userId, 'deezer')
-      if (!deezerToken || deezerToken.accessToken.startsWith('pending:')) {
+      if (!isConnectedToken(deezerToken)) {
         return c.json({ error: 'Deezer is not connected' }, 400)
       }
 

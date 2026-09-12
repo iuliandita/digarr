@@ -9,7 +9,7 @@ vi.mock('@/core/oauth', () => ({ getValidToken: vi.fn() }))
 
 const { getOAuthToken } = await import('@/db/queries/oauth-tokens')
 const { getValidToken } = await import('@/core/oauth')
-const { ProviderAuthError, providerLabel, resolveProviderToken } = await import(
+const { ProviderAuthError, isConnectedToken, providerLabel, resolveProviderToken } = await import(
   '@/core/provider-auth'
 )
 
@@ -43,6 +43,20 @@ describe('providerLabel', () => {
     ['tidal', 'TIDAL'],
   ] as const)('names %s as %s', (provider, label) => {
     expect(providerLabel(provider)).toBe(label)
+  })
+})
+
+describe('isConnectedToken', () => {
+  it('treats a stored token as connected', () => {
+    expect(isConnectedToken({ accessToken: 'valid-token' })).toBe(true)
+  })
+
+  it('treats a legacy pending marker as disconnected', () => {
+    expect(isConnectedToken({ accessToken: 'pending:1:abc' })).toBe(false)
+  })
+
+  it.each([undefined, null])('treats %s as disconnected', (value) => {
+    expect(isConnectedToken(value)).toBe(false)
   })
 })
 
