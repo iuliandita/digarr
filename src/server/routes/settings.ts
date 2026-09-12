@@ -12,6 +12,7 @@ import {
 } from '@/core/crypto'
 import { dispatch } from '@/core/notifications'
 import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
+import { isConnectedToken } from '@/core/provider-auth'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
 import { getUserConnections, updateUserConnections } from '@/db/queries/users'
@@ -636,7 +637,7 @@ export function settingsRoutes(deps: AppDependencies) {
         if (!spotifyUserId) return missingInput('Login required')
         const { getOAuthToken } = await import('@/db/queries/oauth-tokens')
         const oauthToken = await getOAuthToken(deps.db, spotifyUserId, 'spotify')
-        if (!oauthToken || oauthToken.accessToken.startsWith('pending:')) {
+        if (!isConnectedToken(oauthToken)) {
           return missingInput('Spotify not connected')
         }
         const { createSpotifyClient } = await import('@/core/clients/spotify')

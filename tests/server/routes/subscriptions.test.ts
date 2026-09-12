@@ -453,6 +453,18 @@ describe('POST /api/v1/subscriptions/import/spotify-liked-songs', () => {
     expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
   })
 
+  it('returns 400 when the stored Spotify token is a legacy pending marker', async () => {
+    mockGetOAuthToken.mockResolvedValueOnce({ accessToken: 'pending:1:abc' })
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const res = await app.request('/api/v1/subscriptions/import/spotify-liked-songs', {
+      method: 'POST',
+    })
+
+    expect(res.status).toBe(400)
+    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
+  })
+
   it('localizes spotify import errors', async () => {
     mockGetOAuthToken.mockResolvedValueOnce(null)
     const app = createTestApp(makeDeps(), USER_ID)

@@ -47,6 +47,16 @@ export function providerLabel(provider: OAuthProvider): string {
 }
 
 /**
+ * Whether a stored token represents a live connection. The legacy `pending:`
+ * marker is no longer written (migration 0047); the guard covers a downgrade.
+ */
+export function isConnectedToken(
+  row: { accessToken: string } | undefined | null,
+): row is { accessToken: string } {
+  return row != null && !row.accessToken.startsWith('pending:')
+}
+
+/**
  * Resolve a usable access token for a provider connection.
  * Refreshes when the provider supports it and stored credentials allow it,
  * otherwise returns the stored token.
@@ -58,7 +68,7 @@ export async function resolveProviderToken(
 ): Promise<string> {
   const spec = PROVIDER_AUTH[provider]
   const row = await getOAuthToken(db, userId, provider)
-  if (!row || row.accessToken.startsWith('pending:')) {
+  if (!isConnectedToken(row)) {
     throw new ProviderAuthError(
       provider,
       'not_connected',
