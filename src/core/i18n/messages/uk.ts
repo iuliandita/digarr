@@ -511,6 +511,7 @@ export const uk = {
   'playlistForm.moodPlaceholder': 'нічна поїздка',
   'playlistForm.trackCount': 'Кількість треків',
   'playlistForm.scheduleAutomaticGeneration': 'Запланувати автоматичне створення',
+  'playlistForm.targets': 'Цілі',
   'playlistForm.nameRequired': 'Назва обов язкова',
   'playlistForm.genreRequired': 'Жанр обов язковий для стратегії Фокус на жанрі',
   'playlistForm.moodRequired': 'Настрій обов язковий для стратегії Mood Mix',
@@ -1100,6 +1101,9 @@ export const uk = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Плейлист Emby',
+  'settings.targetTypeJellyfinPlaylist': 'Плейлист Jellyfin',
+  'settings.targetTypePlexPlaylist': 'Плейлист Plex',
+  'settings.targetTypeNavidromePlaylist': 'Плейлист Navidrome',
   'settings.slskdModeHelp':
     'slskd може ставити релізи в чергу, але для повної автоматизації потрібна пов’язана ціль Lidarr.',
   'settings.slskdReleasePolicy':

@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- **Playlists can now be pushed to Navidrome, Plex, and Jellyfin, and each playlist picks its own targets.** The Navidrome, Jellyfin, and Plex playlist targets existed on the server but were missing from the Add Target dropdown, and a playlist had no way to choose a destination, so generated playlists were never pushed anywhere. All three types can now be created in Settings > Targets, and the playlist form lists the playlist-capable targets you own so you can attach one or more. Reported in [discussion #644](https://github.com/iuliandita/digarr/discussions/644).
+
 ### Fixed
 
 - Admin promotion and user deletion now work with existing user data. Admins can assign targets to ordinary users, so their approvals reach the configured destination. First-user setup remains protected against concurrent signups. [#634](https://github.com/iuliandita/digarr/issues/634).

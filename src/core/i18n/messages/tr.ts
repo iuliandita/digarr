@@ -505,6 +505,7 @@ export const tr = {
   'playlistForm.moodPlaceholder': 'gece yolculuğu',
   'playlistForm.trackCount': 'Parça sayısı',
   'playlistForm.scheduleAutomaticGeneration': 'Otomatik oluşturmayı zamanla',
+  'playlistForm.targets': 'Hedefler',
   'playlistForm.nameRequired': 'Ad zorunludur',
   'playlistForm.genreRequired': 'Tür Odağı stratejisi için tür zorunludur',
   'playlistForm.moodRequired': 'Mood Mix stratejisi için ruh hali zorunludur',
@@ -1088,6 +1089,9 @@ export const tr = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Emby oynatma listesi',
+  'settings.targetTypeJellyfinPlaylist': 'Jellyfin oynatma listesi',
+  'settings.targetTypePlexPlaylist': 'Plex oynatma listesi',
+  'settings.targetTypeNavidromePlaylist': 'Navidrome oynatma listesi',
   'settings.slskdModeHelp':
     'slskd sürümleri kuyruğa alabilir, ancak tam otomasyon için bağlı bir Lidarr hedefi gerekir.',
   'settings.slskdReleasePolicy':

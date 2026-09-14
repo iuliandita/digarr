@@ -2569,6 +2569,66 @@ function getTargetTypes(
         { key: 'userId', label: t('settings.fieldUserId'), placeholder: t('settings.fieldUserId') },
       ],
     },
+    {
+      value: 'jellyfin-playlist',
+      label: t('settings.targetTypeJellyfinPlaylist'),
+      fields: [
+        {
+          key: 'url',
+          label: t('settings.fieldUrl'),
+          placeholder: 'http://jellyfin:8096',
+          type: 'url',
+        },
+        {
+          key: 'apiKey',
+          label: t('settings.fieldApiKey'),
+          placeholder: t('settings.fieldApiKey'),
+          type: 'password',
+        },
+        { key: 'userId', label: t('settings.fieldUserId'), placeholder: t('settings.fieldUserId') },
+      ],
+    },
+    {
+      value: 'plex-playlist',
+      label: t('settings.targetTypePlexPlaylist'),
+      fields: [
+        {
+          key: 'url',
+          label: t('settings.fieldUrl'),
+          placeholder: 'http://plex:32400',
+          type: 'url',
+        },
+        {
+          key: 'token',
+          label: t('settings.plexToken'),
+          placeholder: t('settings.plexToken'),
+          type: 'password',
+        },
+      ],
+    },
+    {
+      value: 'navidrome-playlist',
+      label: t('settings.targetTypeNavidromePlaylist'),
+      fields: [
+        {
+          key: 'url',
+          label: t('settings.fieldUrl'),
+          placeholder: 'http://navidrome:4533',
+          type: 'url',
+        },
+        {
+          key: 'username',
+          label: t('settings.fieldUsername'),
+          placeholder: t('settings.fieldUsername'),
+        },
+        {
+          key: 'password',
+          label: t('settings.fieldPassword'),
+          placeholder: t('settings.fieldPassword'),
+          type: 'password',
+        },
+      ],
+    },
   ]
 }
 
@@ -2576,6 +2636,9 @@ function TargetTypeIcon({ type }: { type: string }) {
   const iconMap: Record<string, string> = {
     lidarr: '/icons/lidarr.png',
     'emby-playlist': '/icons/emby.svg',
+    'jellyfin-playlist': '/icons/jellyfin.svg',
+    'plex-playlist': '/icons/plex.svg',
+    'navidrome-playlist': '/icons/subsonic.svg',
     jellyfin: '/icons/jellyfin.svg',
     'spotify-playlist': '/icons/spotify.svg',
   }

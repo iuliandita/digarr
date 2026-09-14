@@ -519,6 +519,7 @@ export const de = {
   'playlistForm.moodPlaceholder': 'nächtliche Fahrt',
   'playlistForm.trackCount': 'Anzahl der Titel',
   'playlistForm.scheduleAutomaticGeneration': 'Automatische Generierung planen',
+  'playlistForm.targets': 'Ziele',
   'playlistForm.nameRequired': 'Name ist erforderlich',
   'playlistForm.genreRequired': 'Das Genre ist für die Strategie Genre-Fokus erforderlich',
   'playlistForm.moodRequired': 'Die Stimmung ist fuer die Strategie Mood Mix erforderlich',
@@ -1109,6 +1110,9 @@ export const de = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Emby-Playlist',
+  'settings.targetTypeJellyfinPlaylist': 'Jellyfin-Playlist',
+  'settings.targetTypePlexPlaylist': 'Plex-Playlist',
+  'settings.targetTypeNavidromePlaylist': 'Navidrome-Playlist',
   'settings.slskdModeHelp':
     'slskd kann Releases in die Warteschlange stellen, aber volle Automatisierung braucht ein verknüpftes Lidarr-Ziel.',
   'settings.slskdReleasePolicy':

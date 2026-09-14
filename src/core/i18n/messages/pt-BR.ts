@@ -515,6 +515,7 @@ export const ptBR = {
   'playlistForm.moodPlaceholder': 'dirigindo tarde da noite',
   'playlistForm.trackCount': 'Número de faixas',
   'playlistForm.scheduleAutomaticGeneration': 'Agendar geração automática',
+  'playlistForm.targets': 'Destinos',
   'playlistForm.nameRequired': 'O nome é obrigatório',
   'playlistForm.genreRequired': 'O gênero é obrigatório para a estratégia Foco em gênero',
   'playlistForm.moodRequired': 'O clima é obrigatório para a estratégia Mix de clima',
@@ -1102,6 +1103,9 @@ export const ptBR = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Playlist do Emby',
+  'settings.targetTypeJellyfinPlaylist': 'Playlist do Jellyfin',
+  'settings.targetTypePlexPlaylist': 'Playlist do Plex',
+  'settings.targetTypeNavidromePlaylist': 'Playlist do Navidrome',
   'settings.slskdModeHelp':
     'O slskd pode enfileirar lançamentos, mas a automação completa exige um destino Lidarr vinculado.',
   'settings.slskdReleasePolicy':

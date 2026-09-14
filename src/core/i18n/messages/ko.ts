@@ -505,6 +505,7 @@ export const ko = {
   'playlistForm.moodPlaceholder': '늦은 밤 드라이브',
   'playlistForm.trackCount': '트랙 수',
   'playlistForm.scheduleAutomaticGeneration': '자동 생성을 예약',
+  'playlistForm.targets': '대상',
   'playlistForm.nameRequired': '이름은 필수입니다',
   'playlistForm.genreRequired': '장르 포커스 전략에는 장르가 필요합니다',
   'playlistForm.moodRequired': '무드 믹스 전략에는 분위기가 필요합니다',
@@ -1072,6 +1073,9 @@ export const ko = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Emby 플레이리스트',
+  'settings.targetTypeJellyfinPlaylist': 'Jellyfin 플레이리스트',
+  'settings.targetTypePlexPlaylist': 'Plex 플레이리스트',
+  'settings.targetTypeNavidromePlaylist': 'Navidrome 플레이리스트',
   'settings.slskdModeHelp':
     'slskd는 릴리스를 대기열에 넣을 수 있지만, 완전한 자동화에는 연결된 Lidarr 대상이 필요합니다.',
   'settings.slskdReleasePolicy': '릴리스 정책: 독립형 slskd는 릴리스를 직접 대기열에 넣습니다.',

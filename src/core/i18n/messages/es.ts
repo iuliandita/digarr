@@ -512,6 +512,7 @@ export const es = {
   'playlistForm.moodPlaceholder': 'conduciendo de noche',
   'playlistForm.trackCount': 'Número de canciones',
   'playlistForm.scheduleAutomaticGeneration': 'Programar generación automática',
+  'playlistForm.targets': 'Destinos',
   'playlistForm.nameRequired': 'El nombre es obligatorio',
   'playlistForm.genreRequired': 'El género es obligatorio para la estrategia Enfoque de género',
   'playlistForm.moodRequired':
@@ -1101,6 +1102,9 @@ export const es = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Lista de Emby',
+  'settings.targetTypeJellyfinPlaylist': 'Lista de Jellyfin',
+  'settings.targetTypePlexPlaylist': 'Lista de Plex',
+  'settings.targetTypeNavidromePlaylist': 'Lista de Navidrome',
   'settings.slskdModeHelp':
     'slskd puede poner en cola lanzamientos, pero la automatización completa requiere un destino Lidarr vinculado.',
   'settings.slskdReleasePolicy':

@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { errMsg } from '@/core/validation'
-import type { PlaylistInsert, PlaylistRow } from '../lib/api'
+import { listTargets, type PlaylistInsert, type PlaylistRow } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { CronPicker } from './cron-picker'
 
@@ -33,6 +34,14 @@ const STRATEGIES = [
   },
 ] as const
 
+const PLAYLIST_TARGET_TYPES = new Set([
+  'spotify-playlist',
+  'navidrome-playlist',
+  'jellyfin-playlist',
+  'emby-playlist',
+  'plex-playlist',
+])
+
 export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) {
   const { t } = useI18n()
   const [name, setName] = useState(playlist?.name ?? '')
@@ -43,10 +52,16 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
   const [genre, setGenre] = useState(playlist?.config?.genre ?? '')
   const [mood, setMood] = useState(playlist?.config?.mood ?? '')
   const [enabled, setEnabled] = useState(playlist?.enabled ?? true)
+  const [targetIds, setTargetIds] = useState<number[]>(playlist?.targetIds ?? [])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const isEdit = !!playlist
+
+  const { data: targets = [] } = useQuery({ queryKey: ['targets'], queryFn: listTargets })
+  const playlistTargets = targets.filter(
+    (target) => target.owned && PLAYLIST_TARGET_TYPES.has(target.type),
+  )
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -85,6 +100,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
         schedule: useSchedule ? schedule : null,
         config,
         enabled,
+        targetIds,
       })
     } catch (err: unknown) {
       setError(errMsg(err))
@@ -236,6 +252,34 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
             <label htmlFor="playlist-enabled" className="text-sm text-text">
               {t('common.enabled')}
             </label>
+          </div>
+
+          {/* Targets */}
+          <div className="space-y-2">
+            <span className="block text-sm font-medium text-text">{t('playlistForm.targets')}</span>
+            {playlistTargets.length === 0 ? (
+              <p className="text-xs text-muted">{t('settings.noTargets')}</p>
+            ) : (
+              <div className="space-y-1.5">
+                {playlistTargets.map((target) => (
+                  <label key={target.id} className="flex items-center gap-2 text-sm text-text">
+                    <input
+                      type="checkbox"
+                      checked={targetIds.includes(target.id)}
+                      onChange={(e) =>
+                        setTargetIds((prev) =>
+                          e.target.checked
+                            ? [...prev, target.id]
+                            : prev.filter((id) => id !== target.id),
+                        )
+                      }
+                      className="rounded border-border"
+                    />
+                    {target.name}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Actions */}

@@ -924,6 +924,42 @@ describe('SettingsPage', () => {
     })
   })
 
+  it('creates a Navidrome playlist target', async () => {
+    setupMocks()
+
+    renderWithQuery(<SettingsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Connections')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(await screen.findByText('Add Target'))
+
+    fireEvent.change(screen.getByLabelText('Type'), {
+      target: { value: 'navidrome-playlist' },
+    })
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Navidrome' } })
+    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://navidrome:4533' } })
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'admin' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+
+    await waitFor(() => {
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'navidrome-playlist',
+        userId: 1,
+        name: 'Navidrome',
+        config: {
+          url: 'http://navidrome:4533',
+          username: 'admin',
+          password: 'secret',
+        },
+      })
+    })
+  })
+
   it('shows slskd limitation help when adding a slskd target', async () => {
     setupMocks()
 

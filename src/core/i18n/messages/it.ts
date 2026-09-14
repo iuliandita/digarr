@@ -514,6 +514,7 @@ export const it = {
   'playlistForm.moodPlaceholder': 'guida notturna',
   'playlistForm.trackCount': 'Numero di brani',
   'playlistForm.scheduleAutomaticGeneration': 'Pianifica la generazione automatica',
+  'playlistForm.targets': 'Destinazioni',
   'playlistForm.nameRequired': 'Il nome e obbligatorio',
   'playlistForm.genreRequired': 'Il genere e obbligatorio per la strategia Focus sul genere',
   'playlistForm.moodRequired': 'L atmosfera e obbligatoria per la strategia Mood Mix',
@@ -1103,6 +1104,9 @@ export const it = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Playlist Emby',
+  'settings.targetTypeJellyfinPlaylist': 'Playlist Jellyfin',
+  'settings.targetTypePlexPlaylist': 'Playlist Plex',
+  'settings.targetTypeNavidromePlaylist': 'Playlist Navidrome',
   'settings.slskdModeHelp':
     'slskd può mettere in coda le release, ma l’automazione completa richiede un target Lidarr collegato.',
   'settings.slskdReleasePolicy':

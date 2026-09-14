@@ -512,6 +512,7 @@ export const pl = {
   'playlistForm.moodPlaceholder': 'nocna jazda autem',
   'playlistForm.trackCount': 'Liczba utworów',
   'playlistForm.scheduleAutomaticGeneration': 'Zaplanuj automatyczne generowanie',
+  'playlistForm.targets': 'Cele',
   'playlistForm.nameRequired': 'Nazwa jest wymagana',
   'playlistForm.genreRequired': 'Gatunek jest wymagany dla strategii Fokus na gatunek',
   'playlistForm.moodRequired': 'Nastroj jest wymagany dla strategii Mood Mix',
@@ -1094,6 +1095,9 @@ export const pl = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Playlista Emby',
+  'settings.targetTypeJellyfinPlaylist': 'Playlista Jellyfin',
+  'settings.targetTypePlexPlaylist': 'Playlista Plex',
+  'settings.targetTypeNavidromePlaylist': 'Playlista Navidrome',
   'settings.slskdModeHelp':
     'slskd może kolejkować wydania, ale pełna automatyzacja wymaga połączonego celu Lidarr.',
   'settings.slskdReleasePolicy':

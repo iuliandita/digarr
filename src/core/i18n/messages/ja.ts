@@ -509,6 +509,7 @@ export const ja = {
   'playlistForm.moodPlaceholder': '夜のドライブ',
   'playlistForm.trackCount': '曲数',
   'playlistForm.scheduleAutomaticGeneration': '自動生成をスケジュールする',
+  'playlistForm.targets': 'ターゲット',
   'playlistForm.nameRequired': '名前は必須です',
   'playlistForm.genreRequired': 'ジャンルフォーカス戦略ではジャンルが必須です',
   'playlistForm.moodRequired': 'ムードミックス戦略ではムードが必須です',
@@ -1088,6 +1089,9 @@ export const ja = {
   'settings.targetTypeLidarr': 'Lidarr',
   'settings.targetTypeSlskd': 'slskd',
   'settings.targetTypeEmbyPlaylist': 'Emby プレイリスト',
+  'settings.targetTypeJellyfinPlaylist': 'Jellyfin プレイリスト',
+  'settings.targetTypePlexPlaylist': 'Plex プレイリスト',
+  'settings.targetTypeNavidromePlaylist': 'Navidrome プレイリスト',
   'settings.slskdModeHelp':
     'slskd はリリースをキューに入れられますが、完全な自動化には連携した Lidarr ターゲットが必要です。',
   'settings.slskdReleasePolicy': 'リリース方針: 単体の slskd はリリースを直接キューに入れます。',
