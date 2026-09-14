@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthGate } from '@/web/components/auth-gate'
 import { I18nProvider } from '@/web/lib/i18n'
 import { queryClient } from '@/web/lib/query-client'
+import { SESSION_CHANGED_STORAGE_KEY } from '@/web/lib/session-broadcast'
 
 vi.mock('@/web/lib/locale-storage', () => ({
   detectBrowserLocale: vi.fn(() => 'en'),
@@ -512,5 +513,24 @@ describe('AuthGate', () => {
 
     await screen.findByText('secret area')
     expect(queryClient.getQueryData(['settings'])).toBeUndefined()
+  })
+
+  it('drops cached account data when another tab changes the session', async () => {
+    apiMocks.getAuthStatus.mockResolvedValue(authenticatedStatus)
+    renderGate()
+    await screen.findByText('secret area')
+
+    queryClient.setQueryData(['settings'], { userId: 1 })
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: SESSION_CHANGED_STORAGE_KEY,
+          newValue: String(Date.now()),
+        }),
+      )
+    })
+
+    await waitFor(() => expect(queryClient.getQueryData(['settings'])).toBeUndefined())
+    expect(screen.getByText('secret area')).toBeInTheDocument()
   })
 })

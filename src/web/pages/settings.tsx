@@ -76,6 +76,7 @@ import {
   updateUserPreferences,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { broadcastSessionChanged } from '../lib/session-broadcast'
 import JobHistoryPage from './job-history'
 import { UserManagementPage } from './user-management'
 
@@ -3639,6 +3640,7 @@ function AccountTab() {
     }
     clearStoredToken()
     window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+    broadcastSessionChanged()
   }
 
   async function handleChangePassword(e: React.FormEvent) {

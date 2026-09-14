@@ -55,6 +55,7 @@ import {
 import { useI18n } from './lib/i18n'
 import { PreviewContext } from './lib/preview-context'
 import { queryClient } from './lib/query-client'
+import { broadcastSessionChanged } from './lib/session-broadcast'
 import {
   applyTheme,
   COLOR_THEMES,
@@ -304,6 +305,7 @@ function UserMenu({ username }: { username: string }) {
     }
     clearStoredToken()
     window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+    broadcastSessionChanged()
   }
 
   return (
