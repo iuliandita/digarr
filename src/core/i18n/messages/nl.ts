@@ -1181,7 +1181,7 @@ export const nl = {
   'settings.logOut': 'Uitloggen',
   'settings.email': 'E-mail',
   'settings.emailHelp':
-    'Stel een e-mailadres in zodat een OIDC/SSO-login aan dit account kan worden gekoppeld.',
+    'Sla een contact-e-mailadres op voor je account. Hiermee wordt geen SSO-identiteit gekoppeld.',
   'settings.emailAddress': 'E-mailadres',
   'settings.emailPlaceholder': 'jij@voorbeeld.com',
   'settings.saveEmail': 'E-mail opslaan',
@@ -1204,6 +1204,15 @@ export const nl = {
   'settings.installHint': 'Voeg toe aan je beginscherm voor snelle toegang',
   'settings.install': 'Installeren',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Koppel je SSO-identiteit aan dit account. Je wachtwoord, rol en opgeslagen gegevens blijven hetzelfde.',
+  'settings.oidcLinkAction': 'SSO-account koppelen',
+  'settings.oidcLinking': 'Verbinden...',
+  'settings.oidcLinked': 'SSO is gekoppeld aan dit account.',
+  'settings.oidcLinkSuccess': 'SSO-account gekoppeld.',
+  'settings.oidcLinkFailed':
+    'Het SSO-account kon niet worden gekoppeld. Meld je aan met je wachtwoord en probeer het opnieuw.',
+  'settings.oidcLinkIdentityInUse': 'Deze SSO-identiteit is al gekoppeld aan een ander account.',
   'settings.oidcDescription':
     'OpenID Connect configureren voor single sign-on. Na het opslaan zien gebruikers een knop "Aanmelden met SSO" op de inlogpagina.',
   'settings.authTip':

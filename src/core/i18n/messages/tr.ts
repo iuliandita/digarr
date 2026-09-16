@@ -1174,7 +1174,8 @@ export const tr = {
   'settings.signedInAs': 'Oturum acildi:',
   'settings.logOut': 'Cikis yap',
   'settings.email': 'E-posta',
-  'settings.emailHelp': 'OIDC/SSO girişinin bu hesaba bağlanabilmesi için bir e-posta ayarlayın.',
+  'settings.emailHelp':
+    'Hesabınız için bir iletişim e-postası kaydedin. Bu, bir SSO kimliğini bağlamaz.',
   'settings.emailAddress': 'E-posta adresi',
   'settings.emailPlaceholder': 'siz@örnek.com',
   'settings.saveEmail': 'E-postayı kaydet',
@@ -1197,6 +1198,14 @@ export const tr = {
   'settings.installHint': 'Hızlı erişim için ana ekranınıza ekleyin',
   'settings.install': 'Yükle',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'SSO kimliğinizi bu hesaba bağlayın. Parolanız, rolünüz ve kaydedilmiş verileriniz aynı kalır.',
+  'settings.oidcLinkAction': 'SSO hesabını bağla',
+  'settings.oidcLinking': 'Bağlanıyor...',
+  'settings.oidcLinked': 'SSO bu hesaba bağlı.',
+  'settings.oidcLinkSuccess': 'SSO hesabı bağlandı.',
+  'settings.oidcLinkFailed': 'SSO hesabı bağlanamadı. Parolanızla oturum açın ve yeniden deneyin.',
+  'settings.oidcLinkIdentityInUse': 'Bu SSO kimliği zaten başka bir hesaba bağlı.',
   'settings.oidcDescription':
     "Tek oturum açma için OpenID Connect'i yapılandırın. Kaydettikten sonra kullanıcılar giriş sayfasında “SSO ile oturum aç” düğmesini görecek.",
   'settings.authTip':

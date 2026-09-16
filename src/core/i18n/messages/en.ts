@@ -1179,7 +1179,8 @@ export const en = {
   'settings.signedInAs': 'Signed in as',
   'settings.logOut': 'Log out',
   'settings.email': 'Email',
-  'settings.emailHelp': 'Set an email so an OIDC/SSO login can link to this account.',
+  'settings.emailHelp':
+    'Save a contact email for your account. This does not link an SSO identity.',
   'settings.emailAddress': 'Email address',
   'settings.emailPlaceholder': 'you@example.com',
   'settings.saveEmail': 'Save email',
@@ -1202,6 +1203,15 @@ export const en = {
   'settings.installHint': 'Add to your home screen for quick access',
   'settings.install': 'Install',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Link your SSO identity to this account. Your password, role, and saved data stay the same.',
+  'settings.oidcLinkAction': 'Link SSO account',
+  'settings.oidcLinking': 'Connecting...',
+  'settings.oidcLinked': 'SSO is linked to this account.',
+  'settings.oidcLinkSuccess': 'SSO account linked.',
+  'settings.oidcLinkFailed':
+    'Could not link the SSO account. Sign in with your password and try again.',
+  'settings.oidcLinkIdentityInUse': 'This SSO identity is already linked to another account.',
   'settings.oidcDescription':
     'Configure OpenID Connect for single sign-on. After saving, users will see a "Sign in with SSO" button on the login page.',
   'settings.authTip':

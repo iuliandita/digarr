@@ -50,7 +50,17 @@ interface PendingAuth {
   redirectUri: string
   createdAt: number
   browserBindingHash: Buffer
+  purpose: OidcAuthPurpose
 }
+
+export type OidcAuthPurpose =
+  | Readonly<{ kind: 'login' }>
+  | Readonly<{
+      kind: 'link'
+      userId: number
+      sessionHash: string
+      passwordFingerprint: string
+    }>
 
 export interface OidcUserClaims {
   sub: string
@@ -62,6 +72,7 @@ export interface OidcUserClaims {
 
 export interface CallbackResult {
   claims: OidcUserClaims
+  purpose: OidcAuthPurpose
 }
 
 export const PENDING_AUTH_TTL_MS = 10 * 60 * 1000 // 10 minutes
@@ -72,6 +83,16 @@ export class OidcPendingCapacityError extends Error {
   constructor() {
     super('OIDC login capacity reached')
     this.name = 'OidcPendingCapacityError'
+  }
+}
+
+export class OidcCallbackError extends Error {
+  readonly purpose: OidcAuthPurpose
+
+  constructor(purpose: OidcAuthPurpose, message: string, cause?: unknown) {
+    super(message, cause === undefined ? undefined : { cause })
+    this.name = 'OidcCallbackError'
+    this.purpose = purpose
   }
 }
 
@@ -129,6 +150,7 @@ export class OidcService {
 
   async getAuthorizationUrl(
     redirectUri: string,
+    purpose: OidcAuthPurpose,
   ): Promise<{ url: string; state: string; browserBinding: string }> {
     this.cleanupPendingAuths()
     if (this.pendingAuths.size >= this.maxPendingAuths) throw new OidcPendingCapacityError()
@@ -147,6 +169,15 @@ export class OidcService {
       redirectUri,
       createdAt: this.now(),
       browserBindingHash: bindingHash(browserBinding),
+      purpose:
+        purpose.kind === 'login'
+          ? Object.freeze({ kind: 'login' })
+          : Object.freeze({
+              kind: 'link',
+              userId: purpose.userId,
+              sessionHash: purpose.sessionHash,
+              passwordFingerprint: purpose.passwordFingerprint,
+            }),
     })
 
     const url = oidcClient.buildAuthorizationUrl(config, {
@@ -173,26 +204,35 @@ export class OidcService {
     const pending = this.pendingAuths.get(state)
     this.pendingAuths.delete(state)
 
-    if (
-      !pending ||
-      this.now() - pending.createdAt > PENDING_AUTH_TTL_MS ||
-      !this.bindingMatches(browserBinding, pending.browserBindingHash)
-    ) {
+    if (!pending) {
       throw new Error('Unknown, expired, or invalid OIDC transaction')
     }
 
-    const config = await this.getDiscovery()
+    if (
+      this.now() - pending.createdAt > PENDING_AUTH_TTL_MS ||
+      !this.bindingMatches(browserBinding, pending.browserBindingHash)
+    ) {
+      throw new OidcCallbackError(pending.purpose, 'Unknown, expired, or invalid OIDC transaction')
+    }
 
-    const tokens = await oidcClient.authorizationCodeGrant(config, callbackUrl, {
-      pkceCodeVerifier: pending.codeVerifier,
-      expectedState: state,
-      expectedNonce: pending.nonce,
-    })
-
-    const idClaims = tokens.claims()
-    if (!idClaims) throw new Error('No ID token claims in OIDC response')
+    let idClaims: ReturnType<
+      Awaited<ReturnType<typeof oidcClient.authorizationCodeGrant>>['claims']
+    >
+    try {
+      const config = await this.getDiscovery()
+      const tokens = await oidcClient.authorizationCodeGrant(config, callbackUrl, {
+        pkceCodeVerifier: pending.codeVerifier,
+        expectedState: state,
+        expectedNonce: pending.nonce,
+      })
+      idClaims = tokens.claims()
+      if (!idClaims) throw new Error('No ID token claims in OIDC response')
+    } catch (error) {
+      throw new OidcCallbackError(pending.purpose, errMsg(error), error)
+    }
 
     return {
+      purpose: pending.purpose,
       claims: {
         sub: idClaims.sub,
         email: idClaims.email as string | undefined,

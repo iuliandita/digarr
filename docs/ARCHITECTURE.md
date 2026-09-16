@@ -39,6 +39,13 @@ route; the callback is not limited). Password change and session replacement
 run as one database transaction under a user-row lock, so a password verified
 before a concurrent reset cannot mint a post-reset session.
 
+OIDC account linking reuses that callback with a server-owned transaction
+purpose. Initiation requires a cookie session and fresh password proof. The
+link callback locks the user and initiating session, rechecks the password
+fingerprint and session validity, and updates only the OIDC subject. It never
+creates an account or session; the unique subject index prevents linking one
+identity to two accounts.
+
 ## Database backend
 
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen

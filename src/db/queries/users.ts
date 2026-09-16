@@ -1,9 +1,11 @@
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { and, count, desc, eq, lt, or, sql } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
+import { isUniqueViolation } from '@/core/db-errors'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { Database, DbOrTx } from '@/db'
 import type { Preferences } from '@/db/schema'
-import { users } from '@/db/schema'
+import { sessions, users } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 type UserRow = typeof users.$inferSelect
@@ -30,6 +32,97 @@ export class LastAdminError extends Error {
   constructor() {
     super('Cannot remove the last admin user')
     this.name = 'LastAdminError'
+  }
+}
+
+export class OidcLinkConflictError extends Error {
+  constructor() {
+    super('OIDC account link is no longer valid')
+    this.name = 'OidcLinkConflictError'
+  }
+}
+
+export class OidcIdentityInUseError extends Error {
+  constructor() {
+    super('OIDC identity is already in use')
+    this.name = 'OidcIdentityInUseError'
+  }
+}
+
+export type OidcLinkParams = {
+  userId: number
+  oidcSubject: string
+  passwordFingerprint: string
+  initiatingSessionHash: string
+  presentedSessionHash: string
+}
+
+export type OidcLinkCredentials = {
+  id: number
+  passwordHash: string
+  authProvider: string
+  oidcSubject: string | null
+}
+
+export function fingerprintPasswordHash(passwordHash: string): string {
+  return createHash('sha256').update(passwordHash).digest('hex')
+}
+
+function fingerprintsMatch(actual: string, expected: string): boolean {
+  const actualDigest = createHash('sha256').update(actual).digest()
+  const expectedDigest = createHash('sha256').update(expected).digest()
+  return timingSafeEqual(actualDigest, expectedDigest)
+}
+
+export async function linkOidcIdentity(db: Database, params: OidcLinkParams): Promise<void> {
+  try {
+    await db.transaction(async (tx) => {
+      const [user] = await tx
+        .select({
+          id: users.id,
+          passwordHash: users.passwordHash,
+          authProvider: users.authProvider,
+          oidcSubject: users.oidcSubject,
+        })
+        .from(users)
+        .where(eq(users.id, params.userId))
+        .limit(1)
+        .for('update')
+
+      if (
+        user?.authProvider !== 'local' ||
+        user.oidcSubject !== null ||
+        !fingerprintsMatch(fingerprintPasswordHash(user.passwordHash), params.passwordFingerprint)
+      ) {
+        throw new OidcLinkConflictError()
+      }
+
+      const [session] = await tx
+        .select({ userId: sessions.userId, expiresAt: sessions.expiresAt })
+        .from(sessions)
+        .where(eq(sessions.token, params.initiatingSessionHash))
+        .limit(1)
+        .for('update')
+
+      if (
+        !session ||
+        session.userId !== params.userId ||
+        session.expiresAt <= new Date() ||
+        !fingerprintsMatch(params.initiatingSessionHash, params.presentedSessionHash)
+      ) {
+        throw new OidcLinkConflictError()
+      }
+
+      await tx
+        .update(users)
+        .set({ oidcSubject: params.oidcSubject })
+        .where(eq(users.id, params.userId))
+    })
+  } catch (error) {
+    if (isUniqueViolation(error, 'users_oidc_subject_unique_idx')) {
+      throw new OidcIdentityInUseError()
+    }
+    throw error
   }
 }
 
@@ -92,6 +185,23 @@ export async function getUserById(db: Database, id: number): Promise<UserPublic 
   const rows = await db.select().from(users).where(eq(users.id, id)).limit(1)
   const row = rows[0]
   return row ? toPublic(row) : null
+}
+
+export async function getUserCredentialsById(
+  db: Database,
+  id: number,
+): Promise<OidcLinkCredentials | null> {
+  const rows = await db
+    .select({
+      id: users.id,
+      passwordHash: users.passwordHash,
+      authProvider: users.authProvider,
+      oidcSubject: users.oidcSubject,
+    })
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1)
+  return rows[0] ?? null
 }
 
 export async function getUserCount(db: Database): Promise<number> {

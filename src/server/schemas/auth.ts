@@ -21,6 +21,12 @@ export const changePasswordSchema = z.object({
   ),
 })
 
+export const oidcLinkSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+  })
+  .strict()
+
 export const updateLocaleSchema = z
   .object({
     preferredLocale: z.string().nullable(),

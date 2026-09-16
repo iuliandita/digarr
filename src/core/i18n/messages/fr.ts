@@ -1187,7 +1187,7 @@ export const fr = {
   'settings.logOut': 'Se déconnecter',
   'settings.email': 'E-mail',
   'settings.emailHelp':
-    "Renseignez un e-mail pour qu'une connexion OIDC/SSO puisse être liée à ce compte.",
+    'Enregistrez un e-mail de contact pour votre compte. Cela ne lie pas une identité SSO.',
   'settings.emailAddress': 'Adresse e-mail',
   'settings.emailPlaceholder': 'vous@exemple.com',
   'settings.saveEmail': "Enregistrer l'e-mail",
@@ -1211,6 +1211,15 @@ export const fr = {
   'settings.installHint': "Ajoutez à votre écran d'accueil pour un accès rapide",
   'settings.install': 'Installer',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Liez votre identité SSO à ce compte. Votre mot de passe, votre rôle et vos données enregistrées restent inchangés.',
+  'settings.oidcLinkAction': 'Lier le compte SSO',
+  'settings.oidcLinking': 'Connexion...',
+  'settings.oidcLinked': 'SSO est lié à ce compte.',
+  'settings.oidcLinkSuccess': 'Compte SSO lié.',
+  'settings.oidcLinkFailed':
+    'Impossible de lier le compte SSO. Connectez-vous avec votre mot de passe et réessayez.',
+  'settings.oidcLinkIdentityInUse': 'Cette identité SSO est déjà liée à un autre compte.',
   'settings.oidcDescription':
     'Configurez OpenID Connect pour l\'authentification unique. Après enregistrement, les utilisateurs verront un bouton "Se connecter avec SSO" sur la page de connexion.',
   'settings.authTip':

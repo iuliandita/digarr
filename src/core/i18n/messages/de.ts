@@ -1196,7 +1196,7 @@ export const de = {
   'settings.logOut': 'Abmelden',
   'settings.email': 'E-Mail',
   'settings.emailHelp':
-    'Hinterlege eine E-Mail, damit ein OIDC/SSO-Login mit diesem Konto verknüpft werden kann.',
+    'Speichere eine Kontakt-E-Mail für dein Konto. Dadurch wird keine SSO-Identität verknüpft.',
   'settings.emailAddress': 'E-Mail-Adresse',
   'settings.emailPlaceholder': 'du@beispiel.com',
   'settings.saveEmail': 'E-Mail speichern',
@@ -1219,6 +1219,16 @@ export const de = {
   'settings.installHint': 'Zum Startbildschirm hinzufügen für schnellen Zugriff',
   'settings.install': 'Installieren',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Verknüpfe deine SSO-Identität mit diesem Konto. Dein Passwort, deine Rolle und gespeicherten Daten bleiben unverändert.',
+  'settings.oidcLinkAction': 'SSO-Konto verknüpfen',
+  'settings.oidcLinking': 'Wird verbunden...',
+  'settings.oidcLinked': 'SSO ist mit diesem Konto verknüpft.',
+  'settings.oidcLinkSuccess': 'SSO-Konto verknüpft.',
+  'settings.oidcLinkFailed':
+    'Das SSO-Konto konnte nicht verknüpft werden. Melde dich mit deinem Passwort an und versuche es erneut.',
+  'settings.oidcLinkIdentityInUse':
+    'Diese SSO-Identität ist bereits mit einem anderen Konto verknüpft.',
   'settings.oidcDescription':
     'OpenID Connect für Single Sign-On konfigurieren. Nach dem Speichern sehen Nutzer einen „Mit SSO anmelden"-Button auf der Anmeldeseite.',
   'settings.authTip':

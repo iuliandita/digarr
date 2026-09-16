@@ -80,6 +80,12 @@ The tab row keeps native horizontal scrolling and shows conditional chevrons plu
 
 The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
 
+## Settings > Account
+
+![Account](screenshots/settings-account.png)
+
+The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. This capture uses a sample account with OIDC enabled.
+
 ## Settings > Your Connections
 
 ![Your Connections](screenshots/settings-your-connections.png)

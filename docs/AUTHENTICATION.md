@@ -202,9 +202,31 @@ by Digarr, so matching on it would let an attacker pre-seed an account with a
 victim's address and have the victim's first OIDC sign-in bind to it (pre-link
 account takeover).
 
-To link an OIDC identity to an existing local account, set that account's
-`oidcSubject` to the value the IdP sends as `sub`. A logged-in self-service
-linking flow is the planned long-term replacement.
+To link an existing local account, sign in with its password, open
+**Settings -> Account -> OIDC / SSO**, enter the current password, and select
+**Link SSO account**. Complete sign-in at the provider in the same browser.
+The existing `/api/v1/auth/oidc/callback` redirect URI is reused; no additional
+IdP redirect registration is needed.
+
+Linking preserves the account's password, role, preferences, and saved data.
+It requires the exact browser session that started the flow to remain active;
+logging out or changing the password before returning invalidates the link
+attempt. An identity already linked to another account is rejected. There is
+no account merge, automatic email matching, or self-service unlink action.
+
+Link transactions share the login flow's single-use state, browser binding,
+PKCE, nonce checks, and 10-minute expiry. Pending state is held in memory, so a
+server restart requires starting again. The server records the transaction's
+purpose; a link callback cannot provision an account or create a login session.
+The final link checks the session and password proof in one database
+transaction before changing only the account's OIDC subject.
+
+The callback returns to Account settings with `oidc_link=success`,
+`oidc_link=identity_in_use`, or `oidc_link=failed`. The page displays a fixed
+message and removes the parameter. Link initiation is limited to 5 requests
+per minute and requires a browser cookie session plus normal CSRF protection.
+If the transaction has already expired, been consumed, or been lost during a
+restart, the callback uses the standard OIDC failure redirect instead.
 
 ### OIDC preferred_username sanitization
 

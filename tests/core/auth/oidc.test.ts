@@ -22,7 +22,12 @@ vi.mock('openid-client', () => ({
 import { createHash } from 'node:crypto'
 import * as dns from 'node:dns/promises'
 import * as oidcClient from 'openid-client'
-import { OidcPendingCapacityError, OidcService, PENDING_AUTH_TTL_MS } from '@/core/auth/oidc'
+import {
+  OidcCallbackError,
+  OidcPendingCapacityError,
+  OidcService,
+  PENDING_AUTH_TTL_MS,
+} from '@/core/auth/oidc'
 
 const config = {
   issuerUrl: 'https://auth.example.com',
@@ -32,6 +37,7 @@ const config = {
 }
 
 const TEST_BINDING = 'test-binding'
+const LOGIN_PURPOSE = { kind: 'login' } as const
 const testBindingHash = () => createHash('sha256').update(TEST_BINDING).digest()
 
 const callbackFor = (state: string) =>
@@ -56,6 +62,7 @@ describe('OidcService', () => {
 
       const result = await service.getAuthorizationUrl(
         'http://localhost:3000/api/v1/auth/oidc/callback',
+        LOGIN_PURPOSE,
       )
 
       expect(oidcClient.discovery).toHaveBeenCalledWith(
@@ -88,18 +95,50 @@ describe('OidcService', () => {
         new URL('https://auth.example.com/authorize?state=s1'),
       )
 
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
 
       expect(oidcClient.discovery).toHaveBeenCalledTimes(1)
+    })
+
+    it('clones link purpose fields when the transaction starts', async () => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue({
+        claims: () => ({ sub: 'linked-subject' }),
+      } as never)
+      const purpose = {
+        kind: 'link' as const,
+        userId: 7,
+        sessionHash: 'original-session',
+        passwordFingerprint: 'original-password',
+      }
+
+      const started = await service.getAuthorizationUrl('http://localhost/callback', purpose)
+      purpose.userId = 99
+      purpose.sessionHash = 'mutated-session'
+      purpose.passwordFingerprint = 'mutated-password'
+
+      const result = await service.handleCallback(
+        callbackFor(started.state),
+        started.browserBinding,
+      )
+      expect(result.purpose).toEqual({
+        kind: 'link',
+        userId: 7,
+        sessionHash: 'original-session',
+        passwordFingerprint: 'original-password',
+      })
     })
 
     it('propagates discovery errors', async () => {
       vi.mocked(oidcClient.discovery).mockRejectedValue(new Error('Network error'))
 
-      await expect(service.getAuthorizationUrl('http://localhost:3000/cb')).rejects.toThrow(
-        'Network error',
-      )
+      await expect(
+        service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE),
+      ).rejects.toThrow('Network error')
     })
 
     it('normalizes bracketed IPv6 issuer URLs before custom DNS lookup', async () => {
@@ -115,7 +154,7 @@ describe('OidcService', () => {
         family: 6,
       } as never)
 
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
 
       const discoveryCall = vi.mocked(oidcClient.discovery).mock.calls[0]
       const options = discoveryCall?.[4]
@@ -145,7 +184,7 @@ describe('OidcService', () => {
         family: 6,
       } as never)
 
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
 
       const discoveryCall = vi.mocked(oidcClient.discovery).mock.calls[0]
       const options = discoveryCall?.[4]
@@ -183,11 +222,11 @@ describe('OidcService', () => {
         new URL('https://auth.example.com/authorize?state=mock-state'),
       )
 
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
       expect(oidcClient.discovery).toHaveBeenCalledTimes(1)
 
       service.resetDiscovery()
-      await service.getAuthorizationUrl('http://localhost:3000/cb')
+      await service.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
       expect(oidcClient.discovery).toHaveBeenCalledTimes(2)
     })
   })
@@ -220,6 +259,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       const result = await service.handleCallback(callbackFor('mock-state'), TEST_BINDING)
@@ -234,6 +274,7 @@ describe('OidcService', () => {
         }),
       )
       expect(result).toEqual({
+        purpose: LOGIN_PURPOSE,
         claims: {
           sub: 'user-123',
           email: 'alice@example.com',
@@ -270,6 +311,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       await service.handleCallback(callbackFor('mock-state'), TEST_BINDING)
@@ -299,7 +341,7 @@ describe('OidcService', () => {
         new URL('https://auth.example.com/authorize?state=mock-state'),
       )
 
-      const started = await service.getAuthorizationUrl('http://localhost/callback')
+      const started = await service.getAuthorizationUrl('http://localhost/callback', LOGIN_PURPOSE)
       await expect(
         service.handleCallback(callbackFor(started.state), 'wrong-binding'),
       ).rejects.toThrow('Unknown, expired, or invalid OIDC transaction')
@@ -317,11 +359,34 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       await expect(service.handleCallback(callbackFor('mock-state'))).rejects.toThrow(
         'Unknown, expired, or invalid OIDC transaction',
       )
+      expect(oidcClient.authorizationCodeGrant).not.toHaveBeenCalled()
+    })
+
+    it('preserves trusted link intent when browser binding validation fails', async () => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize?state=mock-state'),
+      )
+      const purpose = {
+        kind: 'link' as const,
+        userId: 7,
+        sessionHash: 'session-hash',
+        passwordFingerprint: 'password-fingerprint',
+      }
+      const started = await service.getAuthorizationUrl('http://localhost/callback', purpose)
+
+      const error = await service
+        .handleCallback(callbackFor(started.state), 'wrong-binding')
+        .catch((value: unknown) => value)
+
+      expect(error).toBeInstanceOf(OidcCallbackError)
+      expect((error as OidcCallbackError).purpose).toEqual(purpose)
       expect(oidcClient.authorizationCodeGrant).not.toHaveBeenCalled()
     })
 
@@ -338,8 +403,8 @@ describe('OidcService', () => {
       }
       vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue(mockTokens as never)
 
-      const first = await service.getAuthorizationUrl('http://localhost/callback')
-      const second = await service.getAuthorizationUrl('http://localhost/callback')
+      const first = await service.getAuthorizationUrl('http://localhost/callback', LOGIN_PURPOSE)
+      const second = await service.getAuthorizationUrl('http://localhost/callback', LOGIN_PURPOSE)
       await service.handleCallback(callbackFor(second.state), second.browserBinding)
       await service.handleCallback(callbackFor(first.state), first.browserBinding)
     })
@@ -360,6 +425,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       await expect(service.handleCallback(callbackFor('mock-state'), TEST_BINDING)).rejects.toThrow(
@@ -378,6 +444,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       await expect(service.handleCallback(callbackFor('mock-state'), TEST_BINDING)).rejects.toThrow(
@@ -395,6 +462,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now() - 20 * 60 * 1000,
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
       service['pendingAuths'].set('fresh-state', {
@@ -403,6 +471,7 @@ describe('OidcService', () => {
         redirectUri: 'http://localhost:3000/api/v1/auth/oidc/callback',
         createdAt: Date.now(),
         browserBindingHash: testBindingHash(),
+        purpose: LOGIN_PURPOSE,
       })
 
       // biome-ignore lint/complexity/useLiteralKeys: accessing private field
@@ -434,13 +503,13 @@ describe('OidcService', () => {
       let now = 1_000_000
       const callback = 'http://localhost/callback'
       const service = new OidcService(config, { maxPendingAuths: 2, now: () => now })
-      await service.getAuthorizationUrl(callback)
-      await service.getAuthorizationUrl(callback)
-      await expect(service.getAuthorizationUrl(callback)).rejects.toBeInstanceOf(
+      await service.getAuthorizationUrl(callback, LOGIN_PURPOSE)
+      await service.getAuthorizationUrl(callback, LOGIN_PURPOSE)
+      await expect(service.getAuthorizationUrl(callback, LOGIN_PURPOSE)).rejects.toBeInstanceOf(
         OidcPendingCapacityError,
       )
       now += PENDING_AUTH_TTL_MS + 1
-      await expect(service.getAuthorizationUrl(callback)).resolves.toBeDefined()
+      await expect(service.getAuthorizationUrl(callback, LOGIN_PURPOSE)).resolves.toBeDefined()
     })
   })
 
@@ -481,7 +550,7 @@ describe('OidcService', () => {
         new URL('https://auth.example.com/authorize?state=mock-state'),
       )
 
-      await pubService.getAuthorizationUrl('http://localhost:3000/cb')
+      await pubService.getAuthorizationUrl('http://localhost:3000/cb', LOGIN_PURPOSE)
 
       expect(oidcClient.discovery).toHaveBeenCalledWith(
         new URL('https://auth.example.com'),

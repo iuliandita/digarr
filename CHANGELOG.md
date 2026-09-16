@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Existing local accounts can link an SSO identity from Settings > Account after confirming the current password. Linking preserves the account's role and data, requires the same active browser session, and rejects identities already linked elsewhere. [#657](https://github.com/iuliandita/digarr/issues/657).
 - MusicBrainz lookups can use a self-hosted mirror through `DIGARR_MUSICBRAINZ_URL`, with `DIGARR_MUSICBRAINZ_INTERVAL_MS` controlling request spacing. The public service keeps its one-request-per-second limit. [#426](https://github.com/iuliandita/digarr/issues/426).
 
 ## v1.16.0 - 2026-09-14

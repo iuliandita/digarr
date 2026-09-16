@@ -1191,7 +1191,7 @@ export const ro = {
   'settings.logOut': 'Deconectare',
   'settings.email': 'E-mail',
   'settings.emailHelp':
-    'Setează un e-mail pentru ca o autentificare OIDC/SSO să poată fi asociată acestui cont.',
+    'Salvează un e-mail de contact pentru contul tău. Aceasta nu leagă o identitate SSO.',
   'settings.emailAddress': 'Adresă de e-mail',
   'settings.emailPlaceholder': 'tu@exemplu.com',
   'settings.saveEmail': 'Salvează e-mailul',
@@ -1214,6 +1214,15 @@ export const ro = {
   'settings.installHint': 'Adăugați pe ecranul principal pentru acces rapid',
   'settings.install': 'Instalați',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Leagă-ți identitatea SSO de acest cont. Parola, rolul și datele salvate rămân neschimbate.',
+  'settings.oidcLinkAction': 'Leagă contul SSO',
+  'settings.oidcLinking': 'Se conectează...',
+  'settings.oidcLinked': 'SSO este legat de acest cont.',
+  'settings.oidcLinkSuccess': 'Cont SSO legat.',
+  'settings.oidcLinkFailed':
+    'Contul SSO nu a putut fi legat. Conectează-te cu parola și încearcă din nou.',
+  'settings.oidcLinkIdentityInUse': 'Această identitate SSO este deja legată de alt cont.',
   'settings.oidcDescription':
     'Configurați OpenID Connect pentru autentificare unică. După salvare, utilizatorii vor vedea un buton „Autentificați-vă cu SSO" pe pagina de conectare.',
   'settings.authTip':

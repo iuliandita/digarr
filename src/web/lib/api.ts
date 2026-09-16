@@ -188,6 +188,8 @@ export type UserProfile = {
   isAdmin: boolean
   preferredLocale: string | null
   email: string | null
+  authProvider: string
+  oidcSubject: string | null
 }
 export async function getCurrentUser(): Promise<UserProfile | null> {
   try {
@@ -207,6 +209,12 @@ export const changePassword = (currentPassword: string, newPassword: string) =>
   fetchApi<void>('/auth/change-password', {
     method: 'POST',
     body: JSON.stringify({ currentPassword, newPassword }),
+  })
+
+export const linkOidcAccount = (currentPassword: string) =>
+  fetchApi<{ url: string }>('/auth/oidc/link', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword }),
   })
 
 export type SessionMigrationResult = 'migrated' | 'legacy-rejected' | 'invalid'

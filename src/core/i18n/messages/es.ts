@@ -1188,7 +1188,7 @@ export const es = {
   'settings.logOut': 'Cerrar sesión',
   'settings.email': 'Correo electrónico',
   'settings.emailHelp':
-    'Añade un correo para que un inicio de sesión OIDC/SSO pueda vincularse a esta cuenta.',
+    'Guarda un correo electrónico de contacto para tu cuenta. Esto no vincula una identidad SSO.',
   'settings.emailAddress': 'Dirección de correo',
   'settings.emailPlaceholder': 'tu@ejemplo.com',
   'settings.saveEmail': 'Guardar correo',
@@ -1211,6 +1211,15 @@ export const es = {
   'settings.installHint': 'Añade a tu pantalla de inicio para acceder rápidamente',
   'settings.install': 'Instalar',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Vincula tu identidad SSO a esta cuenta. Tu contraseña, función y datos guardados no cambiarán.',
+  'settings.oidcLinkAction': 'Vincular cuenta SSO',
+  'settings.oidcLinking': 'Conectando...',
+  'settings.oidcLinked': 'SSO está vinculado a esta cuenta.',
+  'settings.oidcLinkSuccess': 'Cuenta SSO vinculada.',
+  'settings.oidcLinkFailed':
+    'No se pudo vincular la cuenta SSO. Inicia sesión con tu contraseña e inténtalo de nuevo.',
+  'settings.oidcLinkIdentityInUse': 'Esta identidad SSO ya está vinculada a otra cuenta.',
   'settings.oidcDescription':
     'Configura OpenID Connect para el inicio de sesión único. Al guardar, los usuarios verán un botón "Iniciar sesión con SSO" en la página de inicio de sesión.',
   'settings.authTip':

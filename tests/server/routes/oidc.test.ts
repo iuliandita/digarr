@@ -2,10 +2,14 @@
 
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
+import { verifyPassword } from '@/core/auth'
+import { OidcCallbackError, OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
 import { clearAllSessions, createSession, getSession } from '@/core/sessions'
+import { hashSessionToken } from '@/db/queries/sessions'
+import { OidcIdentityInUseError } from '@/db/queries/users'
 import { oidcTransactionCookieName } from '@/server/helpers/oidc-transaction-cookie'
 import { oidcRoutes } from '@/server/routes/oidc'
+import type { HonoEnv } from '@/server/types'
 
 const deletionRegex = (state: string) =>
   new RegExp(`${oidcTransactionCookieName(state)}=;[^,]*Max-Age=0`, 'i')
@@ -19,6 +23,7 @@ vi.mock('@/config/env', () => ({ envConfig }))
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'mock-session-token-123'),
   hashPassword: vi.fn(() => 'mocked-hash'),
+  verifyPassword: vi.fn(() => true),
 }))
 
 function makeMockOidcService() {
@@ -29,6 +34,7 @@ function makeMockOidcService() {
       browserBinding: 'binding-abc',
     })),
     handleCallback: vi.fn(async () => ({
+      purpose: { kind: 'login' as const },
       claims: {
         sub: 'oidc-subject-123',
         email: 'alice@example.com',
@@ -51,17 +57,29 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
     getOidcService: vi.fn(async () => mockOidcService as OidcService),
     getUserByOidcSubject: vi.fn(async () => null),
     getUserByUsername: vi.fn(async () => null),
+    getUserCredentialsById: vi.fn(async () => ({
+      id: 7,
+      username: 'local-user',
+      passwordHash: 'stored-password-hash',
+      authProvider: 'local',
+      oidcSubject: null,
+    })),
     createUser: vi.fn(async (data: { username: string }) => ({
       id: 1,
       username: data.username,
     })),
-    updateUser: vi.fn(async () => {}),
+    linkOidcIdentity: vi.fn(async () => {}),
     ...overrides,
   }
 }
 
 function createTestApp(deps: ReturnType<typeof makeDeps>) {
-  const app = new Hono()
+  const app = new Hono<HonoEnv>()
+  app.use('/api/v1/auth/oidc/link', async (c, next) => {
+    c.set('userId', 7)
+    c.set('authMethod', 'session-cookie')
+    await next()
+  })
   app.route('/', oidcRoutes(deps))
   return app
 }
@@ -89,6 +107,7 @@ describe('GET /api/v1/auth/oidc/login', () => {
     )
     expect(deps.mockOidcService.getAuthorizationUrl).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/auth/oidc/callback',
+      { kind: 'login' },
     )
   })
 
@@ -155,6 +174,70 @@ describe('GET /api/v1/auth/oidc/login', () => {
     expect(deps.mockOidcService.getAuthorizationUrl).not.toHaveBeenCalled()
     expect(res.headers.get('set-cookie')).toBeNull()
     warn.mockRestore()
+  })
+})
+
+describe('POST /api/v1/auth/oidc/link', () => {
+  const requestLink = (app: Hono<HonoEnv>, token = 'link-session') =>
+    app.request('/api/v1/auth/oidc/link', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `digarr_session=${token}`,
+      },
+      body: JSON.stringify({ currentPassword: 'correct-password' }),
+    })
+
+  it('returns an authorization URL bound to the user, password, and cookie session', async () => {
+    const deps = makeDeps()
+    const app = createTestApp(deps)
+
+    const res = await requestLink(app)
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      url: 'https://idp.example.com/authorize?state=abc&code_challenge=xyz',
+    })
+    expect(deps.mockOidcService.getAuthorizationUrl).toHaveBeenCalledWith(
+      'http://localhost:3000/api/v1/auth/oidc/callback',
+      {
+        kind: 'link',
+        userId: 7,
+        sessionHash: hashSessionToken('link-session'),
+        passwordFingerprint: expect.any(String),
+      },
+    )
+    expect(res.headers.get('set-cookie')).toContain(`${oidcTransactionCookieName('abc')}=`)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+  })
+
+  it('rejects a wrong current password without allocating OIDC state', async () => {
+    vi.mocked(verifyPassword).mockReturnValueOnce(false)
+    const deps = makeDeps()
+    const app = createTestApp(deps)
+
+    const res = await requestLink(app)
+
+    expect(res.status).toBe(403)
+    expect(deps.mockOidcService.getAuthorizationUrl).not.toHaveBeenCalled()
+  })
+
+  it('rejects an account that is already linked', async () => {
+    const deps = makeDeps({
+      getUserCredentialsById: vi.fn(async () => ({
+        id: 7,
+        username: 'local-user',
+        passwordHash: 'stored-password-hash',
+        authProvider: 'local',
+        oidcSubject: 'existing-subject',
+      })),
+    })
+    const app = createTestApp(deps)
+
+    const res = await requestLink(app)
+
+    expect(res.status).toBe(409)
+    expect(deps.mockOidcService.getAuthorizationUrl).not.toHaveBeenCalled()
   })
 })
 
@@ -258,7 +341,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
 
     expect(res.status).toBe(302)
     // The pre-seeded account is neither linked nor logged into.
-    expect(deps.updateUser).not.toHaveBeenCalled()
+    expect(deps.linkOidcIdentity).not.toHaveBeenCalled()
     await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: 1 })
     // A fresh account is created for this subject instead.
     expect(deps.createUser).toHaveBeenCalled()
@@ -276,7 +359,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
 
     expect(res.status).toBe(302)
-    expect(deps.updateUser).not.toHaveBeenCalled()
+    expect(deps.linkOidcIdentity).not.toHaveBeenCalled()
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'alice-oidc-sub' }),
       { bootstrap: 'allow-existing' },
@@ -286,6 +369,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
   it('sanitizes malicious preferredUsername claims', async () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
       claims: {
         sub: 'oidc-subject-777',
         email: 'mallory@example.com',
@@ -309,6 +393,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     // invisible to email lookups and allow same-email duplicates.
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
       claims: {
         sub: 'oidc-subject-999',
         email: 'Carol.MixedCase@Example.COM',
@@ -342,6 +427,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
   it('falls back to email prefix for username when preferredUsername is absent', async () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
       claims: {
         sub: 'oidc-subject-456',
         email: 'bob@example.com',
@@ -360,6 +446,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
   it('falls back to oidc-{sub} when no username or email', async () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
       claims: {
         sub: 'abcdefghijklmnop',
       },
@@ -372,6 +459,111 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       expect.objectContaining({ username: 'oidc-abcdefgh' }),
       { bootstrap: 'allow-existing' },
     )
+  })
+
+  it('links the validated identity without issuing or rotating a session', async () => {
+    const deps = makeDeps()
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: {
+        kind: 'link',
+        userId: 7,
+        sessionHash: hashSessionToken('link-session'),
+        passwordFingerprint: 'password-fingerprint',
+      },
+      claims: { sub: 'new-oidc-subject' },
+    })
+    const app = createTestApp(deps)
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
+      headers: {
+        Cookie: `${oidcTransactionCookieName('abc')}=binding-abc; digarr_session=link-session`,
+      },
+    })
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get('Location')).toBe('/settings?tab=account&oidc_link=success')
+    expect(deps.linkOidcIdentity).toHaveBeenCalledWith({
+      userId: 7,
+      oidcSubject: 'new-oidc-subject',
+      passwordFingerprint: 'password-fingerprint',
+      initiatingSessionHash: hashSessionToken('link-session'),
+      presentedSessionHash: hashSessionToken('link-session'),
+    })
+    expect(deps.createUser).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).not.toContain('digarr_session=mock-session-token-123')
+    await expect(getSession('mock-session-token-123')).resolves.toBeNull()
+  })
+
+  it('returns the fixed link failure redirect when the initiating session is stale', async () => {
+    const deps = makeDeps({
+      linkOidcIdentity: vi.fn(async () => {
+        throw new Error('stale session details must not escape')
+      }),
+    })
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: {
+        kind: 'link',
+        userId: 7,
+        sessionHash: hashSessionToken('old-session'),
+        passwordFingerprint: 'password-fingerprint',
+      },
+      claims: { sub: 'new-oidc-subject' },
+    })
+    const app = createTestApp(deps)
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
+      headers: {
+        Cookie: `${oidcTransactionCookieName('abc')}=binding-abc; digarr_session=new-session`,
+      },
+    })
+
+    expect(res.headers.get('Location')).toBe('/settings?tab=account&oidc_link=failed')
+    expect(res.headers.get('Location')).not.toContain('stale')
+  })
+
+  it('returns the fixed identity collision redirect', async () => {
+    const deps = makeDeps({
+      linkOidcIdentity: vi.fn(async () => {
+        throw new OidcIdentityInUseError()
+      }),
+    })
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: {
+        kind: 'link',
+        userId: 7,
+        sessionHash: hashSessionToken('link-session'),
+        passwordFingerprint: 'password-fingerprint',
+      },
+      claims: { sub: 'claimed-subject' },
+    })
+    const app = createTestApp(deps)
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
+      headers: {
+        Cookie: `${oidcTransactionCookieName('abc')}=binding-abc; digarr_session=link-session`,
+      },
+    })
+
+    expect(res.headers.get('Location')).toBe('/settings?tab=account&oidc_link=identity_in_use')
+  })
+
+  it('returns the account failure notice when a recognized link transaction fails validation', async () => {
+    const purpose = {
+      kind: 'link' as const,
+      userId: 7,
+      sessionHash: hashSessionToken('link-session'),
+      passwordFingerprint: 'password-fingerprint',
+    }
+    const deps = makeDeps()
+    deps.mockOidcService.handleCallback.mockRejectedValue(
+      new OidcCallbackError(purpose, 'provider denied the request'),
+    )
+    const app = createTestApp(deps)
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&error=access_denied')
+
+    expect(res.headers.get('Location')).toBe('/settings?tab=account&oidc_link=failed')
+    expect(deps.linkOidcIdentity).not.toHaveBeenCalled()
   })
 
   it('handles errors and redirects with short error code (no message leak)', async () => {
@@ -459,6 +651,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
             throw new Error('Unknown, expired, or invalid OIDC transaction')
           }
           return {
+            purpose: { kind: 'login' },
             claims: {
               sub: 'oidc-subject-123',
               email: 'alice@example.com',
@@ -546,6 +739,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       const deps = makeDeps()
       deps.mockOidcService.handleCallback
         .mockResolvedValueOnce({
+          purpose: { kind: 'login' },
           claims: { sub: 'oidc-subject-123', preferredUsername: 'alice' },
         })
         .mockRejectedValue(new Error('Unknown, expired, or invalid OIDC transaction'))

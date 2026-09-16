@@ -5,6 +5,7 @@ import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
+import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
 import { VERSION } from '@/version'
 import { openapiDoc } from './helpers/openapi-doc'
 import { problem } from './helpers/problem'
@@ -262,14 +263,19 @@ export function createApp(deps: AppDependencies) {
     '/api/v1/auth/oidc/login',
     rateLimiter({ windowMs: 60_000, max: 10, keyPrefix: 'oidc-login' }),
   )
+  app.use(
+    '/api/v1/auth/oidc/link',
+    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'oidc-link' }),
+  )
   app.route(
     '/',
     oidcRoutes({
       getOidcService: deps.getOidcService,
       getUserByOidcSubject: deps.getUserByOidcSubject,
       getUserByUsername: deps.getUserByUsername,
+      getUserCredentialsById: (id) => getUserCredentialsById(deps.db, id),
       createUser: deps.createUser,
-      updateUser: deps.updateUser,
+      linkOidcIdentity: (params) => linkOidcIdentity(deps.db, params),
     }),
   )
   // Rate limit auth endpoints: 10 attempts per minute for login/register

@@ -1187,7 +1187,7 @@ export const uk = {
   'settings.logOut': 'Вийти',
   'settings.email': 'Електронна пошта',
   'settings.emailHelp':
-    "Вкажіть електронну пошту, щоб вхід через OIDC/SSO міг прив'язатися до цього облікового запису.",
+    'Збережіть контактну електронну пошту для свого облікового запису. Це не прив’язує ідентичність SSO.',
   'settings.emailAddress': 'Адреса електронної пошти',
   'settings.emailPlaceholder': 'you@example.com',
   'settings.saveEmail': 'Зберегти пошту',
@@ -1210,6 +1210,16 @@ export const uk = {
   'settings.installHint': 'Додайте на головний екран для швидкого доступу',
   'settings.install': 'Встановити',
   'settings.oidcSso': 'OIDC / SSO',
+  'settings.oidcLinkHelp':
+    'Прив’яжіть свою ідентичність SSO до цього облікового запису. Ваш пароль, роль і збережені дані залишаться без змін.',
+  'settings.oidcLinkAction': 'Прив’язати обліковий запис SSO',
+  'settings.oidcLinking': 'Підключення...',
+  'settings.oidcLinked': 'SSO прив’язано до цього облікового запису.',
+  'settings.oidcLinkSuccess': 'Обліковий запис SSO прив’язано.',
+  'settings.oidcLinkFailed':
+    'Не вдалося прив’язати обліковий запис SSO. Увійдіть за допомогою пароля та спробуйте ще раз.',
+  'settings.oidcLinkIdentityInUse':
+    'Цю ідентичність SSO вже прив’язано до іншого облікового запису.',
   'settings.oidcDescription':
     'Налаштуйте OpenID Connect для єдиного входу. Після збереження користувачі побачать кнопку «Увійти через SSO» на сторінці входу.',
   'settings.authTip':

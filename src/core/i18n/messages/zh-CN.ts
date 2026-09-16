@@ -1091,7 +1091,7 @@ export const zhCN = {
   'settings.signedInAs': '当前登录为',
   'settings.logOut': '退出登录',
   'settings.email': '电子邮箱',
-  'settings.emailHelp': '设置电子邮箱，以便 OIDC/SSO 登录可以关联到此账户。',
+  'settings.emailHelp': '为您的账户保存联系邮箱。这不会关联 SSO 身份。',
   'settings.emailAddress': '电子邮箱地址',
   'settings.emailPlaceholder': 'you@example.com',
   'settings.saveEmail': '保存邮箱',
@@ -1114,6 +1114,13 @@ export const zhCN = {
   'settings.installHint': '添加到主屏幕以快速访问',
   'settings.install': '安装',
   'settings.oidcSso': 'OIDC 与 SSO',
+  'settings.oidcLinkHelp': '将您的 SSO 身份关联到此账户。您的密码、角色和已保存的数据保持不变。',
+  'settings.oidcLinkAction': '关联 SSO 账户',
+  'settings.oidcLinking': '正在连接...',
+  'settings.oidcLinked': 'SSO 已关联到此账户。',
+  'settings.oidcLinkSuccess': 'SSO 账户已关联。',
+  'settings.oidcLinkFailed': '无法关联 SSO 账户。请使用密码登录后重试。',
+  'settings.oidcLinkIdentityInUse': '此 SSO 身份已关联到其他账户。',
   'settings.oidcDescription':
     '配置 OpenID Connect 单点登录。保存后，用户登录页面将看到"使用 SSO 登录"按钮。',
   'settings.authTip':

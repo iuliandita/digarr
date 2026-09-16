@@ -1,9 +1,17 @@
 import { Hono } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
-import { hashPassword } from '@/core/auth'
-import { OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
+import { hashPassword, verifyPassword } from '@/core/auth'
+import { OidcCallbackError, OidcPendingCapacityError, type OidcService } from '@/core/auth/oidc'
+import { hashSessionToken } from '@/db/queries/sessions'
 import type { UserBootstrapOptions } from '@/db/queries/users'
+import {
+  fingerprintPasswordHash,
+  OidcIdentityInUseError,
+  type OidcLinkCredentials,
+  type OidcLinkParams,
+} from '@/db/queries/users'
+import { sessionAuthRequired } from '@/server/helpers/auth-problems'
 import {
   clearOidcTransactionCookie,
   prepareOidcTransactionCookie,
@@ -11,14 +19,18 @@ import {
   setOidcTransactionCookie,
 } from '@/server/helpers/oidc-transaction-cookie'
 import { problem } from '@/server/helpers/problem'
+import { requireSessionUser } from '@/server/helpers/require-user'
 import { issueSession, prepareSessionCookie } from '@/server/helpers/session-auth'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
+import { oidcLinkSchema } from '@/server/schemas/auth'
+import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 type OidcRouteDeps = {
   getOidcService: () => Promise<OidcService | null>
   getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>
   getUserByUsername: (username: string) => Promise<{ id: number; username: string } | null>
+  getUserCredentialsById: (id: number) => Promise<OidcLinkCredentials | null>
   createUser: (
     data: {
       username: string
@@ -30,7 +42,7 @@ type OidcRouteDeps = {
     },
     options?: UserBootstrapOptions,
   ) => Promise<{ id: number; username: string }>
-  updateUser: (id: number, data: { oidcSubject?: string; email?: string }) => Promise<void>
+  linkOidcIdentity: (params: OidcLinkParams) => Promise<void>
 }
 
 function buildRedirectUri(): string | null {
@@ -72,7 +84,9 @@ export function oidcRoutes(deps: OidcRouteDeps) {
     }
 
     try {
-      const { url, state, browserBinding } = await oidcService.getAuthorizationUrl(redirectUri)
+      const { url, state, browserBinding } = await oidcService.getAuthorizationUrl(redirectUri, {
+        kind: 'login',
+      })
       setOidcTransactionCookie(c, prepared, state, browserBinding)
       return c.redirect(url)
     } catch (err: unknown) {
@@ -81,6 +95,65 @@ export function oidcRoutes(deps: OidcRouteDeps) {
         return problem(c, 'oidc-capacity', 'OIDC login capacity reached', 503)
       }
       throw err
+    }
+  })
+
+  router.post('/api/v1/auth/oidc/link', zJson(oidcLinkSchema), async (c) => {
+    if (c.get('authMethod') !== 'session-cookie') return sessionAuthRequired(c)
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+
+    const sessionToken = getCookie(c, SESSION_COOKIE_NAME)
+    if (!sessionToken) return sessionAuthRequired(c)
+
+    const user = await deps.getUserCredentialsById(auth.userId)
+    if (!user) return c.json({ error: 'User not found' }, 404)
+    if (user.authProvider !== 'local' || user.oidcSubject !== null) {
+      return problem(c, 'oidc-link-unavailable', 'OIDC account linking is unavailable', 409)
+    }
+
+    const { currentPassword } = c.req.valid('json')
+    if (!verifyPassword(currentPassword, user.passwordHash)) {
+      return problem(
+        c,
+        'auth-password-incorrect',
+        'Current password is incorrect',
+        403,
+        undefined,
+        undefined,
+        'errors.auth.passwordIncorrect',
+      )
+    }
+    const oidcService = await deps.getOidcService()
+    if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
+    const redirectUri = buildRedirectUri()
+    if (!redirectUri) {
+      return c.json({ error: 'ALLOWED_ORIGIN must be set when OIDC is enabled' }, 500)
+    }
+
+    let prepared: ReturnType<typeof prepareOidcTransactionCookie>
+    try {
+      prepared = prepareOidcTransactionCookie(c)
+    } catch {
+      return c.json({ error: 'Invalid cookie configuration' }, 500)
+    }
+
+    try {
+      const { url, state, browserBinding } = await oidcService.getAuthorizationUrl(redirectUri, {
+        kind: 'link',
+        userId: auth.userId,
+        sessionHash: hashSessionToken(sessionToken),
+        passwordFingerprint: fingerprintPasswordHash(user.passwordHash),
+      })
+      setOidcTransactionCookie(c, prepared, state, browserBinding)
+      c.header('Cache-Control', 'no-store')
+      return c.json({ url })
+    } catch (error) {
+      if (error instanceof OidcPendingCapacityError) {
+        c.header('Retry-After', '60')
+        return problem(c, 'oidc-capacity', 'OIDC login capacity reached', 503)
+      }
+      throw error
     }
   })
 
@@ -93,6 +166,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
     const browserBinding = readOidcTransactionCookie(c, state)
     clearOidcTransactionCookie(c, state)
 
+    let linkCallback = false
     try {
       const oidcService = await deps.getOidcService()
       if (!oidcService) return c.json({ error: 'OIDC not configured' }, 400)
@@ -105,6 +179,23 @@ export function oidcRoutes(deps: OidcRouteDeps) {
 
       const callbackUrl = new URL(`${baseUrl}${reqUrl.pathname}${reqUrl.search}`)
       const result = await oidcService.handleCallback(callbackUrl, browserBinding)
+
+      if (result.purpose.kind === 'link') {
+        linkCallback = true
+        c.header('Cache-Control', 'no-store')
+        const presentedSession = getCookie(c, SESSION_COOKIE_NAME)
+        if (!presentedSession) throw new Error('OIDC link session is missing')
+
+        await deps.linkOidcIdentity({
+          userId: result.purpose.userId,
+          oidcSubject: result.claims.sub,
+          passwordFingerprint: result.purpose.passwordFingerprint,
+          initiatingSessionHash: result.purpose.sessionHash,
+          presentedSessionHash: hashSessionToken(presentedSession),
+        })
+        return c.redirect('/settings?tab=account&oidc_link=success')
+      }
+
       const sessionCookie = prepareSessionCookie(c)
 
       // User matching is by OIDC subject only, then auto-create. Linking by the
@@ -153,8 +244,12 @@ export function oidcRoutes(deps: OidcRouteDeps) {
         revokeTokens: oldCookie ? [oldCookie] : [],
       })
       return c.redirect('/')
-    } catch {
+    } catch (error) {
       console.warn('[oidc] callback failed')
+      if (linkCallback || (error instanceof OidcCallbackError && error.purpose.kind === 'link')) {
+        const result = error instanceof OidcIdentityInUseError ? 'identity_in_use' : 'failed'
+        return c.redirect(`/settings?tab=account&oidc_link=${result}`)
+      }
       return c.redirect('/#oidc_error=oidc_failed')
     }
   })

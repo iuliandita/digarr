@@ -1189,7 +1189,7 @@ export const ptBR = {
   'settings.logOut': 'Sair',
   'settings.email': 'E-mail',
   'settings.emailHelp':
-    'Defina um e-mail para que um login OIDC/SSO possa ser vinculado a esta conta.',
+    'Salve um e-mail de contato para sua conta. Isso não vincula uma identidade SSO.',
   'settings.emailAddress': 'Endereço de e-mail',
   'settings.emailPlaceholder': 'voce@exemplo.com',
   'settings.saveEmail': 'Salvar e-mail',
@@ -1213,6 +1213,15 @@ export const ptBR = {
   'settings.installHint': 'Adicione à sua tela inicial para acesso rápido',
   'settings.install': 'Instalar',
   'settings.oidcSso': 'OIDC e SSO',
+  'settings.oidcLinkHelp':
+    'Vincule sua identidade SSO a esta conta. Sua senha, função e dados salvos permanecem os mesmos.',
+  'settings.oidcLinkAction': 'Vincular conta SSO',
+  'settings.oidcLinking': 'Conectando...',
+  'settings.oidcLinked': 'SSO está vinculado a esta conta.',
+  'settings.oidcLinkSuccess': 'Conta SSO vinculada.',
+  'settings.oidcLinkFailed':
+    'Não foi possível vincular a conta SSO. Entre com sua senha e tente novamente.',
+  'settings.oidcLinkIdentityInUse': 'Esta identidade SSO já está vinculada a outra conta.',
   'settings.oidcDescription':
     'Configure o OpenID Connect para login único. Após salvar, os usuários verão um botão "Entrar com SSO" na página de login.',
   'settings.authTip':

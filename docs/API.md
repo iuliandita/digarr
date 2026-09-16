@@ -147,11 +147,24 @@ Notes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
-| GET | `/api/v1/auth/oidc/callback` | No | OIDC callback; requires the transaction cookie from login (consumed once), creates the user if needed, sets a session cookie, then redirects to `/`. Not rate limited |
+| POST | `/api/v1/auth/oidc/link` | Cookie session | Start account linking after current-password verification. Returns `{ url }`. Requires CSRF protection and an unlinked local account. Rate limited: 5/min |
+| GET | `/api/v1/auth/oidc/callback` | Transaction-bound | OIDC callback; consumes the browser-bound transaction once. Login creates the user if needed and sets a session cookie. Linking also requires the initiating session and updates only its account's OIDC subject. Not rate limited |
 | POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
+
+**POST /api/v1/auth/oidc/link** body:
+
+```json
+{ "currentPassword": "your-current-password" }
+```
+
+The authorization URL uses the existing registered OIDC callback. Linking
+returns to `/settings?tab=account` with `oidc_link=success`, `identity_in_use`,
+or `failed`. It does not create a session, merge accounts, or match by email.
+Logging out or changing the password before the callback invalidates the
+attempt. See [Authentication](AUTHENTICATION.md#oidc-account-matching).
 
 **POST /api/v1/auth/oauth/:provider/initiate** notes:
 - For `tidal`, the body `clientId` / `clientSecret` are ignored: the server reads the one admin-registered TIDAL app from settings, so the bundled UI sends empty strings. Returns `400` with `TIDAL app credentials are not configured on the server` when no admin app is registered.

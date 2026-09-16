@@ -376,6 +376,7 @@ describe('first-admin race: oidc callback', () => {
         state: 's',
       })),
       handleCallback: vi.fn(async () => ({
+        purpose: { kind: 'login' as const },
         claims: {
           sub: 'oidc-sub-xyz',
           email: 'bob@example.com',
@@ -396,12 +397,13 @@ describe('first-admin race: oidc callback', () => {
       getUserByOidcSubject: vi.fn(async () => null),
       getUserByEmail: vi.fn(async () => null),
       getUserByUsername: vi.fn(async () => null),
+      getUserCredentialsById: vi.fn(async () => null),
+      linkOidcIdentity: vi.fn(async () => {}),
       createUser: vi.fn(async (data: { username: string; isAdmin?: boolean }) => ({
         id: 1,
         username: data.username,
         isAdmin: data.isAdmin ?? false,
       })),
-      updateUser: vi.fn(async () => {}),
       ...overrides,
     }
     const app = new Hono()

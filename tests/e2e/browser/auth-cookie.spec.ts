@@ -155,6 +155,40 @@ test('completes the full OIDC redirect flow and clears the transaction cookie', 
   await expectNoBrowserCredentialLeak(page)
 })
 
+test('links OIDC to the current local account without rotating its session', async ({ page }) => {
+  await page.goto('http://127.0.0.1:3011/mock-local-login')
+  const originalCookie = (await page.context().cookies('http://127.0.0.1:3011')).find(
+    (item) => item.name === 'digarr_session',
+  )
+  expect(originalCookie).toBeDefined()
+
+  const authorizationUrl = await page.evaluate(async () => {
+    const response = await fetch('/api/v1/auth/oidc/link', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-Digarr-CSRF': '1' },
+      body: JSON.stringify({ currentPassword: 'local-password-123' }),
+    })
+    if (!response.ok) throw new Error(`OIDC link initiation failed: ${response.status}`)
+    return ((await response.json()) as { url: string }).url
+  })
+
+  await page.goto(authorizationUrl)
+  await expect(page.getByText('OIDC link callback complete')).toBeVisible()
+  expect(page.url()).toBe('http://127.0.0.1:3011/settings?tab=account&oidc_link=success')
+
+  const currentCookie = (await page.context().cookies('http://127.0.0.1:3011')).find(
+    (item) => item.name === 'digarr_session',
+  )
+  expect(currentCookie?.value).toBe(originalCookie?.value)
+  const state = await page.request.get('http://127.0.0.1:3011/mock-link-state')
+  await expect(state.json()).resolves.toEqual({
+    linkedSubject: 'browser-link-subject',
+    linkCount: 1,
+    createUserCount: 0,
+  })
+})
+
 test('proxy auth uses CSRF and upstream logout semantics', async ({ page }) => {
   await page.setExtraHTTPHeaders({ 'X-Forwarded-User': 'proxy-e2e-user' })
   await page.goto('/')
