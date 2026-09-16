@@ -214,7 +214,8 @@ Albums are a first-class recommendation unit. Key additions:
   Read-only calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
-- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, and Plex targets. A target error, including a returned failed playlist result, does not stop later targets of those types; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
+- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
+- Spotify playlist exports retain explicit track URIs, or resolve artist/title pairs with exact matching. Artist-only approvals take up to three artist-matching track search results. Writes use `/me/playlists` and `/playlists/{id}/items`, with at most 100 URIs per request; failures are not retried as duplicate writes.
 - Emby, Jellyfin, and Subsonic source clients each own a media-server request
   queue capped at three concurrent requests and ten starts per second. This is
   an internal load-smoothing policy for self-hosted servers, not a claimed

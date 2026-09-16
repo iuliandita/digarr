@@ -1,13 +1,66 @@
 import type { ServiceTestResult } from '@/core/types'
-import { errMsg } from '@/core/validation'
+import { errMsg, redactSecrets } from '@/core/validation'
 import { TRACKS_PER_ARTIST } from '../playlists/strategies/types'
 import type { DestinationTarget, PlaylistItem, PlaylistResult } from './types'
 
 const SPOTIFY_API = 'https://api.spotify.com'
 const TRACKS_PER_BATCH = 100
+const SPOTIFY_TRACK_URI = /^spotify:track:[A-Za-z0-9]{22}$/
+
+type SpotifyTrack = {
+  uri: string
+  name: string
+  artists: Array<{ name: string }>
+}
+
+type SpotifyTrackSearchResponse = {
+  tracks: { items: SpotifyTrack[] }
+}
+
+type SpotifyPlaylistResponse = {
+  id: string
+  name: string
+}
+
+type SpotifyAddItemsResponse = {
+  snapshot_id: string
+}
 
 export type SpotifyPlaylistConfig = {
   getAccessToken: () => Promise<string>
+}
+
+function normalize(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+function hasArtist(track: SpotifyTrack, artistName: string): boolean {
+  const expected = normalize(artistName)
+  return track.artists.some((artist) => normalize(artist.name) === expected)
+}
+
+function isExactTrackMatch(track: SpotifyTrack, artistName: string, trackName: string): boolean {
+  return normalize(track.name) === normalize(trackName) && hasArtist(track, artistName)
+}
+
+function redactSpotifyError(error: unknown, accessToken?: string): string {
+  const message = redactSecrets(errMsg(error))
+  return accessToken ? message.replaceAll(accessToken, '[redacted]') : message
+}
+
+function assertValidTrackUri(uri: string, source: string): void {
+  if (!SPOTIFY_TRACK_URI.test(uri)) {
+    throw new Error(`Invalid Spotify track URI ${source}`)
+  }
+}
+
+function hasPlaylistIdentity(playlist: SpotifyPlaylistResponse): boolean {
+  return (
+    typeof playlist.id === 'string' &&
+    playlist.id.trim().length > 0 &&
+    typeof playlist.name === 'string' &&
+    playlist.name.trim().length > 0
+  )
 }
 
 async function spotifyFetch<T>(
@@ -38,6 +91,13 @@ async function spotifyFetch<T>(
   return (await res.json()) as T
 }
 
+async function searchTracks(
+  accessToken: string,
+  query: string,
+): Promise<SpotifyTrackSearchResponse> {
+  return spotifyFetch(accessToken, `/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`)
+}
+
 export function createSpotifyPlaylistTarget(
   targetId: number,
   config: SpotifyPlaylistConfig,
@@ -53,40 +113,40 @@ export function createSpotifyPlaylistTarget(
       items: PlaylistItem[],
       options?: { description?: string; public?: boolean; replace?: boolean },
     ): Promise<PlaylistResult> {
+      let token: string | undefined
       try {
-        const token = await config.getAccessToken()
-
-        const me = await spotifyFetch<{ id: string }>(token, '/v1/me')
-
-        // Search each artist and collect their top tracks
+        token = await config.getAccessToken()
         const trackUris: string[] = []
+
         for (const item of items) {
-          try {
-            const search = await spotifyFetch<{
-              artists: { items: Array<{ id: string; name: string; uri: string }> }
-            }>(token, `/v1/search?q=${encodeURIComponent(item.artistName)}&type=artist&limit=1`)
-
-            const artist = search.artists.items[0]
-            if (!artist) continue
-
-            const topTracks = await spotifyFetch<{
-              tracks: Array<{ uri: string; name: string }>
-            }>(token, `/v1/artists/${artist.id}/top-tracks?market=US`)
-
-            for (const track of topTracks.tracks.slice(0, TRACKS_PER_ARTIST)) {
-              trackUris.push(track.uri)
-            }
-          } catch {
-            // Skip artists we can't find or fetch tracks for
+          if (item.spotifyUri) {
+            assertValidTrackUri(item.spotifyUri, `for ${item.artistName}`)
+            trackUris.push(item.spotifyUri)
+            continue
           }
+
+          if (item.trackName) {
+            const trackName = item.trackName
+            const search = await searchTracks(token, `artist:${item.artistName} track:${trackName}`)
+            const match = search.tracks.items.find((track) =>
+              isExactTrackMatch(track, item.artistName, trackName),
+            )
+            if (match) trackUris.push(match.uri)
+            continue
+          }
+
+          const search = await searchTracks(token, `artist:${item.artistName}`)
+          const artistTracks = search.tracks.items.filter((track) =>
+            hasArtist(track, item.artistName),
+          )
+          trackUris.push(...artistTracks.slice(0, TRACKS_PER_ARTIST).map((track) => track.uri))
         }
 
-        // Create playlist
-        const playlist = await spotifyFetch<{
-          id: string
-          name: string
-          external_urls: { spotify: string }
-        }>(token, `/v1/users/${me.id}/playlists`, {
+        for (const uri of trackUris) {
+          assertValidTrackUri(uri, 'returned by search')
+        }
+
+        const playlist = await spotifyFetch<SpotifyPlaylistResponse>(token, '/v1/me/playlists', {
           method: 'POST',
           body: {
             name,
@@ -94,16 +154,16 @@ export function createSpotifyPlaylistTarget(
             public: options?.public ?? false,
           },
         })
+        if (!hasPlaylistIdentity(playlist)) {
+          throw new Error('Spotify did not return a playlist ID and name')
+        }
 
-        // Add tracks in batches of 100 (Spotify API limit)
-        if (trackUris.length > 0) {
-          for (let i = 0; i < trackUris.length; i += TRACKS_PER_BATCH) {
-            const batch = trackUris.slice(i, i + TRACKS_PER_BATCH)
-            await spotifyFetch(token, `/v1/playlists/${playlist.id}/tracks`, {
-              method: 'POST',
-              body: { uris: batch },
-            })
-          }
+        for (let i = 0; i < trackUris.length; i += TRACKS_PER_BATCH) {
+          const batch = trackUris.slice(i, i + TRACKS_PER_BATCH)
+          await spotifyFetch<SpotifyAddItemsResponse>(token, `/v1/playlists/${playlist.id}/items`, {
+            method: 'POST',
+            body: { uris: batch },
+          })
         }
 
         return {
@@ -111,22 +171,23 @@ export function createSpotifyPlaylistTarget(
           targetType: 'spotify-playlist',
           targetId,
           playlistId: playlist.id,
-          playlistName: name,
+          playlistName: playlist.name,
           itemsAdded: trackUris.length,
         }
-      } catch (err: unknown) {
+      } catch (error) {
         return {
           success: false,
           targetType: 'spotify-playlist',
           targetId,
-          error: `Spotify API unreachable: ${errMsg(err)}`,
+          error: `Spotify playlist export failed: ${redactSpotifyError(error, token)}`,
         }
       }
     },
 
     async testConnection(): Promise<ServiceTestResult> {
+      let token: string | undefined
       try {
-        const token = await config.getAccessToken()
+        token = await config.getAccessToken()
         const me = await spotifyFetch<{ display_name: string }>(token, '/v1/me')
         return {
           success: true,
@@ -135,7 +196,7 @@ export function createSpotifyPlaylistTarget(
       } catch (err: unknown) {
         return {
           success: false,
-          message: errMsg(err),
+          message: redactSpotifyError(err, token),
         }
       }
     },

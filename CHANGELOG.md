@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Generated playlists now reach selected Spotify targets with their chosen tracks. Spotify exports use the current playlist endpoints, and lookup or write failures appear in Job History instead of silently creating an empty playlist. [#663](https://github.com/iuliandita/digarr/issues/663).
+
 - Navidrome, Jellyfin, Emby, and Plex playlist target failures now fail the playlist job and appear in Job History after every selected enabled target of those types has been attempted. The locally generated playlist remains available when a remote push fails. [#661](https://github.com/iuliandita/digarr/issues/661).
 - Emby library sync fetches all pages of artists and albums instead of stopping at 200 items. [#659](https://github.com/iuliandita/digarr/issues/659).
 - A failed source album fetch leaves the previous library snapshot intact and marks the sync failed. It no longer clears cached albums while reporting success. [#660](https://github.com/iuliandita/digarr/issues/660).

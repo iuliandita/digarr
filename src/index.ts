@@ -1077,6 +1077,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
     })
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
+      const userId = playlist.userId
       const settings = await getSettings(db)
       const globalSkipTlsVerify = settings?.skipTlsVerify ?? false
       const targetRows = await getTargetsByUser(db, playlist.userId)
@@ -1088,6 +1089,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
         artistMbid: '',
         trackName: track.trackName ?? undefined,
         trackMbid: track.mbid ?? undefined,
+        spotifyUri: track.spotifyUri ?? undefined,
       }))
 
       const targets: DestinationTarget[] = []
@@ -1120,6 +1122,10 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
           target = createPlexPlaylistTarget(targetRow.id, {
             url: targetRow.config.url as string,
             token: targetRow.config.token as string,
+          })
+        } else if (targetRow.type === 'spotify-playlist') {
+          target = createSpotifyPlaylistTarget(targetRow.id, {
+            getAccessToken: () => resolveProviderToken(db, userId, 'spotify'),
           })
         }
 

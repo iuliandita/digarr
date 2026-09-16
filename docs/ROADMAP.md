@@ -6,6 +6,8 @@
 
 ## Where We Are
 
+Unreleased: generated Spotify playlist exports preserve selected tracks and report failures (#663).
+
 Unreleased: server-wide MusicBrainz mirror URL and request interval configuration (#426). Admin promotion, safe user deletion, and per-user target assignment shipped in v1.16.0 (#634).
 
 Unreleased: local accounts can explicitly link an SSO identity from Account settings after password confirmation (#657). Existing roles, passwords, and account data are preserved; email addresses are never used to link identities automatically.

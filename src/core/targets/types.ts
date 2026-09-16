@@ -40,6 +40,7 @@ export type PlaylistItem = {
   artistMbid: string
   trackName?: string
   trackMbid?: string
+  spotifyUri?: string
 }
 
 export type PlaylistResult = {
