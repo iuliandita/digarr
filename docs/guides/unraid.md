@@ -2,8 +2,9 @@
 
 Digarr ships an Unraid Community Applications (CA) container template at
 [`deploy/unraid/digarr.xml`](../../deploy/unraid/digarr.xml). The release
-pipeline keeps the image digest in that file pinned to the current release, so
-the template always tracks a verified image.
+pipeline updates its version tag and records the matching image digest in a
+comment. The container uses the version tag; the comment does not enforce a
+digest pin.
 
 Digarr ships with a **built-in embedded database (PGlite)** -- no separate
 PostgreSQL container is required. New installs run as a single container that
@@ -50,9 +51,10 @@ the Docker tab picks up new releases as they publish.
    templates).
 4. Fill in the configuration (see Step 2) and click **Apply**.
 
-The bundled template pins the image to the current release digest (the release
-pipeline keeps it synced), so updates mean re-copying the file; prefer Option A
-unless you want that digest pinning.
+The bundled template selects a specific release tag. Re-copying it updates the
+template for new containers; for an existing container, edit its Repository
+field to the new version and apply the change. Prefer Option A if you want
+new releases through the `latest` tag.
 
 ---
 
@@ -152,8 +154,9 @@ Digarr publishes multi-arch images (amd64 + arm64). To update from the Unraid
 **Docker** tab, click the container > **Check for Updates** (or **Force Update**)
 and apply. With the CA store template (Option A) the container tracks the
 `latest` release tag, so that is all there is to it. With the bundled template
-(Option B) the image is pinned to a release digest; re-copy the template file to
-move to a newer release.
+(Option B), edit the container and change its Repository field to the new
+release tag, then click **Apply**. Re-copy the template if you also want future
+containers to use that version.
 
 ## Notes
 

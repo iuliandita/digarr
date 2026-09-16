@@ -618,6 +618,8 @@ Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url"
 | GET | `/api/v1/playlists/:id/export/:format` | Yes | Export as json/csv/m3u/xspf |
 | GET | `/api/v1/playlists/scheduler` | Yes | Playlist scheduler status |
 
+**POST /api/v1/playlists/:id/generate** returns `202` with `{ "status": "generating" }` before generation finishes. Generated tracks are saved locally before exports to selected enabled playlist targets. Exports to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets are all attempted; an export failure marks the job failed in Job History, while local tracks and successful remote exports remain. There is no remote rollback.
+
 **Strategies**: `weekly_digest`, `genre_focus`, `mood_mix`, `rediscover`
 
 ---
@@ -738,6 +740,7 @@ Notes:
 - Empty body runs global source sync plus a forced sync for the current user and returns `202`
 - `{ "source": "lidarr" }` runs a single source and returns `200` on completion, `202` if still running, or `502` on sync failure
 - If the requested source is not configured for the current user, Digarr retries it as a global source
+- A source album-fetch failure marks the source sync and its job failed and preserves the previous source snapshot. A single-source request returns `502`; for all-source or scheduled runs, inspect the source status and Job History. This differs from MusicBrainz reconciliation failures, which are counted within an otherwise completed sync.
 
 **POST /api/v1/library/sync** body:
 ```json

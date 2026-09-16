@@ -75,9 +75,9 @@ Low confidence. Would build only with real demand.
 ## Shipped Highlights
 
 For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
-Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it rewrites the pinned digests and version tags across the k8s/Helm/Unraid deploy files plus the example pins in the compose files and README.
+Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it updates the Kubernetes/Helm digest pins, the Unraid version tag and digest comment, and the Compose/README version examples.
 
-### Current develop / :nightly
+### v1.15.0
 
 - Library reconciliation review now explains no MusicBrainz match, ambiguous matches, and failed lookups for both artists and albums. Admins can select eligible visible artists or the current album page and confirm one atomic bulk ignore; transient lookup failures remain unselected, per-row MBID correction remains available, and the complete workflow is translated across all 15 locales
 
