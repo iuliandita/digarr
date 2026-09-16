@@ -46,11 +46,13 @@ test('rotates an old stored bearer and rejects replay', async ({ page }) => {
   const oldToken = await ensureAdminToken(page.request, { completeSetup: true })
   expect(oldToken).toBeTruthy()
   if (!oldToken) return
-  await page.addInitScript((token) => {
+  await page.goto('/')
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await page.evaluate((token) => {
     localStorage.setItem('digarr-auth-token', token)
   }, oldToken)
 
-  await page.goto('/')
+  await page.reload()
   await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible()
   await expectSessionCookie(page)
 
