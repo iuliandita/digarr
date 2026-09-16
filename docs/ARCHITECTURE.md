@@ -207,7 +207,7 @@ Albums are a first-class recommendation unit. Key additions:
 ## Key invariants
 
 - Library sync replaces a source snapshot only after all source album fetches succeed. A failed fetch retains the previous snapshot and marks the run failed; MusicBrainz reconciliation failures remain separately counted.
-- Config precedence: for settings stored in the DB (single row, `id=1`), saved values override env defaults. Deployment-only options such as `DIGARR_MUSICBRAINZ_URL` and `DIGARR_MUSICBRAINZ_INTERVAL_MS` come from the environment and require a restart. Per-user credentials live on the `users` table; global settings are the fallback.
+- Config precedence: for settings stored in the DB (single row, `id=1`), saved values override env defaults. Deployment-only options such as `DIGARR_MUSICBRAINZ_URL` and `DIGARR_MUSICBRAINZ_INTERVAL_MS` come from the environment and require a restart. Direct per-user service credentials live on `users`, with global settings as the fallback where supported; Spotify, Deezer, and TIDAL OAuth credentials live in `oauth_tokens`.
 - Provider, metadata, and playlist-target requests go through
   `createHttpClient()` in `src/core/clients/http.ts` for timeout, retry/backoff,
   JSON parsing, response-body errors, redaction, and optional TLS-skip behavior.
