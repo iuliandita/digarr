@@ -61,36 +61,36 @@ export function createNavidromePlaylistTarget(
       }
       throw error
     }
-    const root = unwrapSubsonicResponse(data)
-    return root as unknown as T
+    try {
+      const root = unwrapSubsonicResponse(data)
+      return root as unknown as T
+    } catch (error) {
+      throw new Error(redactSubsonicAuthValues(errMsg(error), path))
+    }
   }
 
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
-    try {
-      const query = `${artistName} ${trackName}`
-      const searchPath = apiPath('search3', {
-        query,
-        songCount: '5',
-        artistCount: '0',
-        albumCount: '0',
-      })
-      const res = await subsonicFetch<{
-        searchResult3?: { song?: Array<{ id: string; title: string; artist: string }> }
-      }>(searchPath)
+    const query = `${artistName} ${trackName}`
+    const searchPath = apiPath('search3', {
+      query,
+      songCount: '5',
+      artistCount: '0',
+      albumCount: '0',
+    })
+    const res = await subsonicFetch<{
+      searchResult3?: { song?: Array<{ id: string; title: string; artist: string }> }
+    }>(searchPath)
 
-      const songs = res.searchResult3?.song ?? []
-      if (songs.length === 0) return null
+    const songs = res.searchResult3?.song ?? []
+    if (songs.length === 0) return null
 
-      // Prefer exact artist+title match, fall back to first result
-      const exact = songs.find(
-        (s) =>
-          s.title.toLowerCase() === trackName.toLowerCase() &&
-          s.artist.toLowerCase() === artistName.toLowerCase(),
-      )
-      return (exact ?? songs[0])?.id ?? null
-    } catch {
-      return null
-    }
+    // Prefer exact artist+title match, fall back to first result
+    const exact = songs.find(
+      (s) =>
+        s.title.toLowerCase() === trackName.toLowerCase() &&
+        s.artist.toLowerCase() === artistName.toLowerCase(),
+    )
+    return (exact ?? songs[0])?.id ?? null
   }
 
   return {

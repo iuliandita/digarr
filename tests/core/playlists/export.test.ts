@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   type ExportablePlaylistTrack,
   exportPlaylistToCsv,
@@ -7,7 +7,9 @@ import {
   exportPlaylistToM3u,
   exportPlaylistToXspf,
   getPlaylistTrackLocation,
+  pushPlaylistToTargets,
 } from '@/core/playlists/export'
+import type { DestinationTarget, PlaylistItem } from '@/core/targets/types'
 
 const SAMPLE: ExportablePlaylistTrack[] = [
   {
@@ -83,5 +85,47 @@ describe('playlist export helpers', () => {
     expect(result).toContain(
       '<identifier>https://musicbrainz.org/recording/mbid-teardrop</identifier>',
     )
+  })
+
+  it('attempts every target and raises failures after the remaining exports finish', async () => {
+    const attempted: string[] = []
+    const target = (
+      id: number,
+      type: DestinationTarget['type'],
+      createPlaylist: NonNullable<DestinationTarget['createPlaylist']>,
+    ): DestinationTarget => ({
+      id: `${type}-${id}`,
+      name: type,
+      type,
+      capabilities: ['createPlaylist'],
+      createPlaylist,
+      testConnection: vi.fn(),
+    })
+    const items: PlaylistItem[] = [{ artistName: 'Radiohead', artistMbid: 'mbid-rh' }]
+
+    await expect(
+      pushPlaylistToTargets(
+        [
+          target(1, 'plex-playlist', async () => {
+            attempted.push('plex')
+            return { success: false, targetType: 'plex-playlist', targetId: 1, error: 'forbidden' }
+          }),
+          target(2, 'jellyfin-playlist', async () => {
+            attempted.push('jellyfin')
+            return { success: true, targetType: 'jellyfin-playlist', targetId: 2 }
+          }),
+          target(3, 'navidrome-playlist', async () => {
+            attempted.push('navidrome')
+            throw new Error('unreachable')
+          }),
+        ],
+        'Picks',
+        items,
+      ),
+    ).rejects.toThrow(
+      'Playlist export failed: plex-playlist(1): forbidden; navidrome-playlist-3: unreachable',
+    )
+
+    expect(attempted).toEqual(['plex', 'jellyfin', 'navidrome'])
   })
 })

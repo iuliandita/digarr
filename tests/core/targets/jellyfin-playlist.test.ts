@@ -166,6 +166,24 @@ describe('createJellyfinPlaylistTarget()', () => {
       expect(result?.itemsAdded).toBe(0)
     })
 
+    it('fails without creating a playlist when track search is forbidden', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('forbidden', { status: 403 }))
+
+      const target = createJellyfinPlaylistTarget(7, CONFIG)
+      const result = await target.createPlaylist?.('Forbidden', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+
+      expect(result).toMatchObject({ success: false, error: 'Jellyfin API 403: forbidden' })
+      expect(
+        mockFetch.mock.calls.some(
+          ([url, init]) =>
+            String(url).includes('/Playlists') &&
+            (init as RequestInit | undefined)?.method === 'POST',
+        ),
+      ).toBe(false)
+    })
+
     it('returns failure when POST /Playlists errors', async () => {
       mockFetch.mockImplementation(async (url: string | URL | Request, opts?: RequestInit) => {
         const urlStr = String(url)

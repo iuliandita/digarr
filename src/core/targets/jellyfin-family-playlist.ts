@@ -54,38 +54,28 @@ export function createJellyfinFamilyPlaylistTarget(
   }
 
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
-    try {
-      const params = new URLSearchParams({
-        searchTerm: `${artistName} ${trackName}`,
-        IncludeItemTypes: 'Audio',
-        Recursive: 'true',
-        Limit: '5',
-        Fields: 'Name,AlbumArtist,Artists',
-      })
-      const response = await get<{
-        Items: Array<{ Id: string; Name: string; AlbumArtist?: string; Artists?: string[] }>
-      }>(`/Users/${config.userId}/Items?${params.toString()}`)
+    const params = new URLSearchParams({
+      searchTerm: `${artistName} ${trackName}`,
+      IncludeItemTypes: 'Audio',
+      Recursive: 'true',
+      Limit: '5',
+      Fields: 'Name,AlbumArtist,Artists',
+    })
+    const response = await get<{
+      Items: Array<{ Id: string; Name: string; AlbumArtist?: string; Artists?: string[] }>
+    }>(`/Users/${config.userId}/Items?${params.toString()}`)
 
-      return pickBestTrackMatch(
-        (response.Items ?? []).map((item) => ({
-          id: item.Id,
-          title: item.Name,
-          artists: [item.AlbumArtist, ...(item.Artists ?? [])].filter((artist): artist is string =>
-            Boolean(artist),
-          ),
-        })),
-        artistName,
-        trackName,
-      )
-    } catch (error) {
-      console.warn('playlist search transport error', {
-        type,
-        artistName,
-        trackName,
-        error: errMsg(error),
-      })
-      return null
-    }
+    return pickBestTrackMatch(
+      (response.Items ?? []).map((item) => ({
+        id: item.Id,
+        title: item.Name,
+        artists: [item.AlbumArtist, ...(item.Artists ?? [])].filter((artist): artist is string =>
+          Boolean(artist),
+        ),
+      })),
+      artistName,
+      trackName,
+    )
   }
 
   return {

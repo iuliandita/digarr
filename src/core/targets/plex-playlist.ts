@@ -71,28 +71,24 @@ export function createPlexPlaylistTarget(
   }
 
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
-    try {
-      const params = new URLSearchParams({
-        query: `${artistName} ${trackName}`,
-        limit: '5',
-      })
-      const res = await get<PlexHubSearchResponse>(`/hubs/search?${params.toString()}`)
+    const params = new URLSearchParams({
+      query: `${artistName} ${trackName}`,
+      limit: '5',
+    })
+    const res = await get<PlexHubSearchResponse>(`/hubs/search?${params.toString()}`)
 
-      const hubs = res.MediaContainer.Hub ?? []
-      const trackHub = hubs.find((h) => h.type === 'track')
-      const results = trackHub?.Metadata ?? []
-      return pickBestTrackMatch(
-        results.map((result) => ({
-          id: result.ratingKey,
-          title: result.title,
-          artists: result.grandparentTitle ? [result.grandparentTitle] : [],
-        })),
-        artistName,
-        trackName,
-      )
-    } catch {
-      return null
-    }
+    const hubs = res.MediaContainer.Hub ?? []
+    const trackHub = hubs.find((h) => h.type === 'track')
+    const results = trackHub?.Metadata ?? []
+    return pickBestTrackMatch(
+      results.map((result) => ({
+        id: result.ratingKey,
+        title: result.title,
+        artists: result.grandparentTitle ? [result.grandparentTitle] : [],
+      })),
+      artistName,
+      trackName,
+    )
   }
 
   return {

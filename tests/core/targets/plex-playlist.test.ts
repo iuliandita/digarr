@@ -111,6 +111,18 @@ describe('createPlexPlaylistTarget', () => {
     ).toHaveLength(1)
   })
 
+  it('fails without creating a playlist when track search is forbidden', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('forbidden', { status: 403 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [
+      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+    ])
+
+    expect(result).toMatchObject({ success: false, error: 'Plex API 403: forbidden' })
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/playlists?'))).toBe(false)
+  })
+
   it('returns a provider-shaped error for malformed JSON', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string | URL | Request) => {
       if (String(url).includes('/playlists?')) return Promise.resolve(new Response('not-json'))

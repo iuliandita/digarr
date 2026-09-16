@@ -93,16 +93,16 @@ describe('createEmbyPlaylistTarget', () => {
     })
   })
 
-  it('skips a track when its search request fails', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockImplementation((url: string | URL | Request, init?: RequestInit) => {
+  it('fails without creating a playlist when track search fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((url: string | URL | Request, init?: RequestInit) => {
         if (String(url).includes('/Items') && (!init?.method || init.method === 'GET')) {
           return Promise.reject(new Error('search transport failed'))
         }
         return Promise.resolve(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
-      }),
-    )
+      })
+    vi.stubGlobal('fetch', fetchMock)
 
     const target = createEmbyPlaylistTarget(9, {
       url: 'http://emby:8096',
@@ -114,7 +114,14 @@ describe('createEmbyPlaylistTarget', () => {
       { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
     ])
 
-    expect(result).toMatchObject({ success: true, itemsAdded: 0 })
+    expect(result).toMatchObject({ success: false, error: 'search transport failed' })
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url).includes('/Playlists') &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(false)
   })
 
   it('fails when Emby does not return a playlist ID', async () => {

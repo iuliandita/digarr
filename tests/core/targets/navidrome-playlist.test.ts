@@ -226,6 +226,48 @@ describe('createNavidromePlaylistTarget()', () => {
       expect(result?.itemsAdded).toBe(0)
     })
 
+    it('fails without creating a playlist when track search is forbidden', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('forbidden', { status: 403 }))
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.createPlaylist?.('Forbidden', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+
+      expect(result).toMatchObject({ success: false, error: 'Subsonic HTTP 403: forbidden' })
+      expect(
+        mockFetch.mock.calls.some(([url]) => String(url).includes('/rest/createPlaylist')),
+      ).toBe(false)
+    })
+
+    it('redacts auth values from failed Subsonic search envelopes', async () => {
+      let token = ''
+      let salt = ''
+      mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const parsed = new URL(String(url))
+        token = parsed.searchParams.get('t') ?? ''
+        salt = parsed.searchParams.get('s') ?? ''
+        return errorResponse(40, `authentication failed t=${token}&s=${salt}`)
+      })
+
+      const target = createNavidromePlaylistTarget(5, CONFIG)
+      const result = await target.createPlaylist?.('Forbidden', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+
+      expect(result).toMatchObject({ success: false })
+      expect(result?.error).toContain('t=[REDACTED]&s=[REDACTED]')
+      expect(result?.error).not.toContain(token)
+      expect(result?.error).not.toContain(salt)
+      expect(
+        mockFetch.mock.calls.some(
+          ([requestUrl]) =>
+            String(requestUrl).includes('/rest/createPlaylist') ||
+            String(requestUrl).includes('/rest/updatePlaylist'),
+        ),
+      ).toBe(false)
+    })
+
     it('returns failure when createPlaylist endpoint errors', async () => {
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
         const urlStr = String(url)
