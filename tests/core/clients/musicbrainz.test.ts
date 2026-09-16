@@ -116,6 +116,31 @@ describe('parseYear', () => {
 
 describe('createMusicBrainzClient', () => {
   describe('p-queue rate limiter configuration', () => {
+    it('uses the configured mirror base and disables redirects', async () => {
+      vi.stubEnv('DIGARR_MUSICBRAINZ_URL', 'http://mirror.example:5000/custom/ws/2/')
+      vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', '50')
+      vi.resetModules()
+      try {
+        const { createMusicBrainzClient: createMirrorClient } = await import(
+          '@/core/clients/musicbrainz'
+        )
+        mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
+        await createMirrorClient().searchArtist('AC/DC')
+        expect(mockFetch).toHaveBeenCalledWith(
+          'http://mirror.example:5000/custom/ws/2/artist/?query=AC%2FDC&fmt=json',
+          expect.objectContaining({
+            redirect: 'error',
+            headers: { 'User-Agent': USER_AGENT },
+            signal: expect.any(AbortSignal),
+          }),
+        )
+        expect(PQueue).toHaveBeenCalledWith({ concurrency: 1, interval: 50, intervalCap: 1 })
+      } finally {
+        vi.unstubAllEnvs()
+        vi.resetModules()
+      }
+    })
+
     it('creates a shared PQueue with concurrency:1, interval:1000, intervalCap:1', async () => {
       vi.resetModules()
       const { default: FreshPQueue } = await import('p-queue')

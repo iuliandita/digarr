@@ -38,7 +38,79 @@ const ENV_KEYS = [
   'AI_MODEL',
   'AI_BASE_URL',
   'DIGARR_ALLOW_INSECURE_COOKIES',
+  'DIGARR_MUSICBRAINZ_URL',
+  'DIGARR_MUSICBRAINZ_INTERVAL_MS',
 ] as const
+
+describe('MusicBrainz operator configuration', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.stubEnv('DIGARR_MUSICBRAINZ_URL', undefined)
+    vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', undefined)
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it('defaults to the public API with a one-second interval', async () => {
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.musicbrainzUrl).toBe('https://musicbrainz.org/ws/2')
+    expect(envConfig.musicbrainzIntervalMs).toBe(1000)
+  })
+
+  it.each(['http', 'https'])(
+    'reads a %s mirror at runtime and removes trailing slashes',
+    async (scheme) => {
+      vi.stubEnv('DIGARR_MUSICBRAINZ_URL', `${scheme}://mirror.example:5000/custom/ws/2///`)
+      vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', '0')
+      const { envConfig, envSettingsOverrides } = await import('@/config/env')
+      expect(envConfig.musicbrainzUrl).toBe(`${scheme}://mirror.example:5000/custom/ws/2`)
+      expect(envConfig.musicbrainzIntervalMs).toBe(0)
+      expect(envSettingsOverrides()).not.toHaveProperty('musicbrainzUrl')
+      expect(envSettingsOverrides()).not.toHaveProperty('musicbrainzIntervalMs')
+    },
+  )
+
+  it.each([
+    'invalid-secret-value',
+    '/relative/secret',
+    'ftp://mirror.example/secret',
+    'https://secret:password@mirror.example/ws/2',
+    'https://mirror.example/ws/2?token=secret',
+    'https://mirror.example/ws/2#secret',
+    'https://mirror.example/ws/2?',
+    'https://mirror.example/ws/2#',
+  ])('rejects invalid base URL without leaking its value: %s', async (url) => {
+    vi.stubEnv('DIGARR_MUSICBRAINZ_URL', url)
+    await expect(import('@/config/env')).rejects.toThrow(/^DIGARR_MUSICBRAINZ_URL /)
+    await expect(import('@/config/env')).rejects.not.toThrow(/secret|password/)
+  })
+
+  it.each(['-1', '1.5', '1e3', '100ms', 'NaN', 'Infinity', ' ', '2147483648', '9007199254740992'])(
+    'rejects invalid or overflowing intervals: %s',
+    async (interval) => {
+      vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', interval)
+      await expect(import('@/config/env')).rejects.toThrow(/^DIGARR_MUSICBRAINZ_INTERVAL_MS /)
+    },
+  )
+
+  it.each(['musicbrainz.org', 'MUSICBRAINZ.ORG.', 'www.musicbrainz.org', 'test.musicbrainz.org.'])(
+    'protects the public rate limit for %s',
+    async (hostname) => {
+      vi.stubEnv('DIGARR_MUSICBRAINZ_URL', `https://${hostname}/ws/2`)
+      vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', '999')
+      await expect(import('@/config/env')).rejects.toThrow(/at least 1000/)
+    },
+  )
+
+  it('allows a more conservative public interval', async () => {
+    vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', '2000')
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.musicbrainzIntervalMs).toBe(2000)
+  })
+})
 
 describe('buildDatabaseUrl', () => {
   const saved: Record<string, string | undefined> = {}

@@ -47,7 +47,48 @@ function envOneOf<const T extends readonly string[]>(
 
 const DB_SSL_MODES = ['disable', 'require', 'no-verify'] as const
 
+function musicbrainzConfig(): { musicbrainzUrl: string; musicbrainzIntervalMs: number } {
+  const rawUrl = env('DIGARR_MUSICBRAINZ_URL') ?? 'https://musicbrainz.org/ws/2'
+  let url: URL
+  try {
+    url = new URL(rawUrl)
+  } catch {
+    throw new Error('DIGARR_MUSICBRAINZ_URL must be an absolute HTTP(S) API base URL')
+  }
+  if (
+    !['http:', 'https:'].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    rawUrl.includes('?') ||
+    rawUrl.includes('#')
+  ) {
+    throw new Error(
+      'DIGARR_MUSICBRAINZ_URL must use HTTP(S) without credentials, query, or fragment',
+    )
+  }
+
+  const rawInterval = env('DIGARR_MUSICBRAINZ_INTERVAL_MS') ?? '1000'
+  const interval = Number(rawInterval)
+  if (!/^\d+$/.test(rawInterval) || !Number.isSafeInteger(interval) || interval > 2_147_483_647) {
+    throw new Error('DIGARR_MUSICBRAINZ_INTERVAL_MS must be an integer between 0 and 2147483647')
+  }
+  const hostname = url.hostname.replace(/\.+$/, '')
+  if (
+    (hostname === 'musicbrainz.org' || hostname.endsWith('.musicbrainz.org')) &&
+    interval < 1000
+  ) {
+    throw new Error('DIGARR_MUSICBRAINZ_INTERVAL_MS must be at least 1000 for public MusicBrainz')
+  }
+  return {
+    musicbrainzUrl: url.href.replace(/\/+$/, ''),
+    musicbrainzIntervalMs: interval,
+  }
+}
+
 export const envConfig = {
+  // Shared operator configuration; never copied into per-user settings.
+  ...musicbrainzConfig(),
+
   // Database
   databaseUrl: envOrFile('DATABASE_URL'),
   dbHost: env('DB_HOST'),

@@ -1,7 +1,8 @@
 import PQueue from 'p-queue'
+import { envConfig } from '@/config/env'
 import { VERSION } from '@/version'
 
-const BASE_URL = 'https://musicbrainz.org/ws/2'
+const BASE_URL = envConfig.musicbrainzUrl
 const USER_AGENT = `Digarr/${VERSION} (https://github.com/iuliandita/digarr)`
 
 export type MBArtist = {
@@ -118,7 +119,11 @@ function sleep(ms: number): Promise<void> {
 // Single shared rate gate. MusicBrainz enforces ~1 req/s per consumer; every
 // subsystem (pipeline, library sync, discovery modes, routes) funnels through
 // this one queue so concurrent runs can't sum past the ceiling and trigger 503s.
-const sharedQueue = new PQueue({ concurrency: 1, interval: 1000, intervalCap: 1 })
+const sharedQueue = new PQueue({
+  concurrency: 1,
+  interval: envConfig.musicbrainzIntervalMs,
+  intervalCap: 1,
+})
 
 export function createMusicBrainzClient() {
   const queue = sharedQueue
@@ -130,6 +135,8 @@ export function createMusicBrainzClient() {
       return await fetch(`${BASE_URL}${path}`, {
         headers: { 'User-Agent': USER_AGENT },
         signal: controller.signal,
+        // A fast mirror must not redirect requests onto the public rate-limited service.
+        redirect: 'error',
       })
     } finally {
       clearTimeout(timer)
