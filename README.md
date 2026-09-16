@@ -209,6 +209,10 @@ The normal scan finds artists. Album recommendations come from Library Gap-Fill 
 
 Most day-to-day configuration lives in the web UI after initial setup: connections, scoring weights, schedules, preferences, and the saved interface language. If you connect Spotify, Settings > Connections includes an `Import Liked Songs` action to seed recommendations for a faster first scan. Settings also includes `Job History` and `System Health` tabs; Library Health keeps the latest scan snapshot, shows when it last synced, auto-rescans on the configured library-sync interval, and still exposes a manual `Sync Now` action.
 
+If a library source fails to return an artist's albums, the sync is marked failed and keeps the previous source snapshot. Fix the connection or permissions error, then retry the sync to refresh it.
+
+Emby sync fetches artists and each artist's albums in pages of 200. Invalid totals, more than 200,000 reported items, or more than 1,000 pages fail the sync instead of saving a truncated snapshot.
+
 Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 The web UI uses an HttpOnly session cookie; bearer sessions remain available

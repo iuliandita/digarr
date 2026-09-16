@@ -193,23 +193,10 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
           )
         }
 
-        // Per-artist album tasks fail soft: any rejected task is logged and
-        // counted, but the sync still completes. MB-domain errors (5xx,
-        // timeouts) are already caught inside reconcileAlbumsForArtist; this
-        // outer catch protects against unexpected failures from the source's
-        // listAlbums() implementation.
         const albumResults = await Promise.allSettled(albumTasks)
         await albumQueue.onIdle()
-        for (const result of albumResults) {
-          if (result.status === 'rejected') {
-            counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
-            console.warn(
-              `[library-sync] album task failed during ${source.id} sync; continuing: ${
-                result.reason instanceof Error ? result.reason.message : String(result.reason)
-              }`,
-            )
-          }
-        }
+        const rejectedTask = albumResults.find((result) => result.status === 'rejected')
+        if (rejectedTask?.status === 'rejected') throw rejectedTask.reason
 
         const uniqueAlbumRows = deduplicateAlbums(albumRows, matchedArtists)
 

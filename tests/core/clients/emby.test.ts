@@ -95,6 +95,151 @@ describe('createEmbyClient', () => {
     ])
   })
 
+  it('paginates all artists and retains the configured library on each page', async () => {
+    const artists = Array.from({ length: 201 }, (_, index) => ({
+      Id: `artist-${index + 1}`,
+      Name: `Artist ${index + 1}`,
+      Genres: [],
+    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        const startIndex = Number(new URL(url).searchParams.get('StartIndex'))
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              Items: artists.slice(startIndex, startIndex + 200),
+              TotalRecordCount: artists.length,
+            }),
+        })
+      }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1', {
+      libraryId: 'lib-music',
+    })
+    const result = await client.getAllArtists()
+
+    expect(result).toHaveLength(201)
+    expect(result[200]).toMatchObject({ id: 'artist-201', name: 'Artist 201' })
+    const urls = vi.mocked(fetch).mock.calls.map(([url]) => url as string)
+    expect(urls).toHaveLength(2)
+    for (const url of urls) {
+      expect(url).toContain('/Artists?')
+      expect(url).toContain('ParentId=lib-music')
+    }
+    expect(urls[0]).toContain('StartIndex=0')
+    expect(urls[1]).toContain('StartIndex=200')
+  })
+
+  it('paginates all albums for an artist', async () => {
+    const albums = Array.from({ length: 201 }, (_, index) => ({
+      Id: `album-${index + 1}`,
+      Name: `Album ${index + 1}`,
+      ProductionYear: 2000 + index,
+    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        const startIndex = Number(new URL(url).searchParams.get('StartIndex'))
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              Items: albums.slice(startIndex, startIndex + 200),
+              TotalRecordCount: albums.length,
+            }),
+        })
+      }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    const result = await client.getAlbumsForArtist('artist-1')
+
+    expect(result).toHaveLength(201)
+    expect(result[200]).toMatchObject({ id: 'album-201', artistId: 'artist-1' })
+    const urls = vi.mocked(fetch).mock.calls.map(([url]) => url as string)
+    expect(urls).toHaveLength(2)
+    expect(urls[0]).toContain('StartIndex=0')
+    expect(urls[1]).toContain('StartIndex=200')
+  })
+
+  it('rejects totals larger than the pagination limit', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ Items: [], TotalRecordCount: 200001 }),
+      }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.getAllArtists()).rejects.toThrow(
+      'TotalRecordCount exceeds the 200000 item limit',
+    )
+  })
+
+  it('fails instead of returning a partial result after 1000 short pages', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          Items: [{ Id: 'artist-1', Name: 'Artist', Genres: [] }],
+          TotalRecordCount: 1001,
+        }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.getAllArtists()).rejects.toThrow(
+      'Emby artist pagination exceeded 1000 pages',
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1000)
+  })
+
+  it.each([-1, 1.5, '201', null])('rejects invalid total %j', async (total) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ Items: [], TotalRecordCount: total }),
+      }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.getAlbumsForArtist('artist-1')).rejects.toThrow(
+      'Emby returned an invalid TotalRecordCount',
+    )
+  })
+
+  it('stops on missing total counts and empty pages', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({ Items: [{ Id: 'artist-1', Name: 'Artist', Genres: [] }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ Items: [] }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.getAllArtists()).resolves.toHaveLength(1)
+    await expect(client.getAlbumsForArtist('artist-1')).resolves.toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('returns a friendly connection message from /System/Info', async () => {
     vi.stubGlobal(
       'fetch',

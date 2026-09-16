@@ -3,6 +3,8 @@ import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 import {
   type MediaBrowserLibrary,
+  type MediaBrowserLibraryAlbum,
+  type MediaBrowserLibraryArtist,
   mapAlbum,
   mapArtist,
   mapLibraryArtist,
@@ -13,6 +15,25 @@ import {
 import { createMediaServerQueue } from './media-server-queue'
 
 export type EmbyMusicLibrary = MediaBrowserLibrary
+
+const LIBRARY_PAGE_SIZE = 200
+const MAX_LIBRARY_PAGES = 1000
+const MAX_LIBRARY_ITEMS = LIBRARY_PAGE_SIZE * MAX_LIBRARY_PAGES
+
+function getTotalRecordCount(totalRecordCount: unknown, fallback: number): number {
+  if (totalRecordCount === undefined) return fallback
+  if (
+    typeof totalRecordCount !== 'number' ||
+    !Number.isSafeInteger(totalRecordCount) ||
+    totalRecordCount < 0
+  ) {
+    throw new Error('Emby returned an invalid TotalRecordCount')
+  }
+  if (totalRecordCount > MAX_LIBRARY_ITEMS) {
+    throw new Error(`Emby TotalRecordCount exceeds the ${MAX_LIBRARY_ITEMS} item limit`)
+  }
+  return totalRecordCount
+}
 
 export function createEmbyClient(
   url: string,
@@ -161,38 +182,81 @@ export function createEmbyClient(
       return (res.Items ?? []).map(mapRecentTrack)
     },
     getAllArtists: async () => {
-      let path: string
-      if (configuredLibraryId) {
-        path = scopedArtistsPath(userId, configuredLibraryId, {
-          SortBy: 'SortName',
-          SortOrder: 'Ascending',
-          Fields: 'Genres,ProviderIds',
-          Limit: '200',
-        })
-      } else {
-        const params = new URLSearchParams({
-          IncludeItemTypes: 'MusicArtist',
-          Recursive: 'true',
-          Fields: 'Genres,ProviderIds',
-          Limit: '200',
-        })
-        path = `/Users/${userId}/Items?${params.toString()}`
+      const all: MediaBrowserLibraryArtist[] = []
+      let startIndex = 0
+      let total = Number.POSITIVE_INFINITY
+      let pageCount = 0
+
+      while (startIndex < total) {
+        if (pageCount >= MAX_LIBRARY_PAGES) {
+          throw new Error(`Emby artist pagination exceeded ${MAX_LIBRARY_PAGES} pages`)
+        }
+        pageCount += 1
+        let path: string
+        if (configuredLibraryId) {
+          path = scopedArtistsPath(userId, configuredLibraryId, {
+            SortBy: 'SortName',
+            SortOrder: 'Ascending',
+            Fields: 'Genres,ProviderIds',
+            StartIndex: String(startIndex),
+            Limit: String(LIBRARY_PAGE_SIZE),
+          })
+        } else {
+          const params = new URLSearchParams({
+            IncludeItemTypes: 'MusicArtist',
+            Recursive: 'true',
+            Fields: 'Genres,ProviderIds',
+            StartIndex: String(startIndex),
+            Limit: String(LIBRARY_PAGE_SIZE),
+          })
+          path = `/Users/${userId}/Items?${params.toString()}`
+        }
+        const res = await get<{
+          Items: Array<Record<string, unknown>>
+          TotalRecordCount?: unknown
+        }>(path)
+        const items = res.Items ?? []
+
+        total = getTotalRecordCount(res.TotalRecordCount, items.length)
+        all.push(...items.map((item) => mapLibraryArtist(item, false)))
+        if (items.length === 0) break
+        startIndex += items.length
       }
-      const res = await get<{ Items: Array<Record<string, unknown>> }>(path)
-      return (res.Items ?? []).map((item) => mapLibraryArtist(item, false))
+
+      return all
     },
     getAlbumsForArtist: async (artistId: string) => {
-      const params = new URLSearchParams({
-        ParentId: artistId,
-        IncludeItemTypes: 'MusicAlbum',
-        Recursive: 'true',
-        Fields: 'ProviderIds,ProductionYear',
-        Limit: '200',
-      })
-      const res = await get<{ Items: Array<Record<string, unknown>> }>(
-        `/Users/${userId}/Items?${params.toString()}`,
-      )
-      return (res.Items ?? []).map((item) => mapAlbum(item, artistId, false))
+      const all: MediaBrowserLibraryAlbum[] = []
+      let startIndex = 0
+      let total = Number.POSITIVE_INFINITY
+      let pageCount = 0
+
+      while (startIndex < total) {
+        if (pageCount >= MAX_LIBRARY_PAGES) {
+          throw new Error(`Emby album pagination exceeded ${MAX_LIBRARY_PAGES} pages`)
+        }
+        pageCount += 1
+        const params = new URLSearchParams({
+          ParentId: artistId,
+          IncludeItemTypes: 'MusicAlbum',
+          Recursive: 'true',
+          Fields: 'ProviderIds,ProductionYear',
+          StartIndex: String(startIndex),
+          Limit: String(LIBRARY_PAGE_SIZE),
+        })
+        const res = await get<{
+          Items: Array<Record<string, unknown>>
+          TotalRecordCount?: unknown
+        }>(`/Users/${userId}/Items?${params.toString()}`)
+        const items = res.Items ?? []
+
+        total = getTotalRecordCount(res.TotalRecordCount, items.length)
+        all.push(...items.map((item) => mapAlbum(item, artistId, false)))
+        if (items.length === 0) break
+        startIndex += items.length
+      }
+
+      return all
     },
     testConnection,
   }

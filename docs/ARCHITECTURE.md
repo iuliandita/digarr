@@ -199,6 +199,7 @@ Albums are a first-class recommendation unit. Key additions:
 
 ## Key invariants
 
+- Library sync replaces a source snapshot only after all source album fetches succeed. A failed fetch retains the previous snapshot and marks the run failed; MusicBrainz reconciliation failures remain separately counted.
 - Config precedence: DB settings (single row, `id=1`) override env vars. Per-user credentials live on the `users` table; global settings are the fallback.
 - Provider, metadata, and playlist-target requests go through
   `createHttpClient()` in `src/core/clients/http.ts` for timeout, retry/backoff,
