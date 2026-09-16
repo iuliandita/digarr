@@ -107,20 +107,20 @@ describe('CI workflow reliability policy', () => {
     expect(helmJob).toContain('git diff --exit-code -- deploy/k8s/rendered.yaml')
   })
 
-  it('runs PostgreSQL session races after migrations in both CI mirrors', () => {
+  it('runs PostgreSQL session and OIDC linking races after migrations in both CI mirrors', () => {
     for (const path of ['.github/workflows/ci.yml', '.forgejo/workflows/ci.yml']) {
       const workflow = readFileSync(path, 'utf8')
       const apiJob = workflow.split('  api-route-test:')[1]?.split('\n  helm-drift:')[0] ?? ''
       const migrationIndex = apiJob.indexOf('run: bun run db:migrate')
       const sessionTestIndex = apiJob.indexOf(
-        'run: bunx vitest run tests/db/session-queries.test.ts',
+        'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts',
       )
       const routeTestIndex = apiJob.indexOf('run: bun run test:api-routes')
 
       expect(migrationIndex).toBeGreaterThan(-1)
       expect(sessionTestIndex).toBeGreaterThan(migrationIndex)
       expect(routeTestIndex).toBeGreaterThan(sessionTestIndex)
-      expect(apiJob.match(/Run PostgreSQL session concurrency tests/g)).toHaveLength(1)
+      expect(apiJob.match(/Run PostgreSQL auth concurrency tests/g)).toHaveLength(1)
     }
   })
 
