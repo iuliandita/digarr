@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-09-14 | Current: v1.16.0
+> Updated: 2026-09-16 | Current: v1.16.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
