@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Plex playlist exports send all selected track IDs in one content URI and report when no tracks exist in the Plex library. Plex, Jellyfin, and Navidrome playlist targets now use their provider connection tests. [#687](https://github.com/iuliandita/digarr/issues/687), [#688](https://github.com/iuliandita/digarr/issues/688).
 - slskd searches send the correct request field, and failed jobs retry after a cooldown without inserting a new row each time. [#677](https://github.com/iuliandita/digarr/issues/677).
 - Linked slskd downloads import into Lidarr only after every expected file succeeds and the release passes identification checks. Completion requires verified album track files. Existing linked targets must set `lidarrDownloadPath` to a completed-download directory visible to Lidarr, with the shared mount or path mapping configured before imports can resume. [#678](https://github.com/iuliandita/digarr/issues/678).
 
