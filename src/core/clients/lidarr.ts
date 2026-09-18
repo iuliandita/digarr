@@ -63,6 +63,39 @@ export type LidarrCommand = {
   id: number
   name: string
   status: string
+  message?: string
+}
+
+export type LidarrTrack = {
+  id: number
+  albumId?: number
+  hasFile: boolean
+}
+
+export type LidarrManualImportCandidate = {
+  id?: number
+  path: string
+  name?: string
+  artist?: { id?: number; artistName?: string }
+  album?: { id?: number; title?: string; artistId?: number }
+  albumReleaseId?: number
+  tracks?: Array<{ id?: number }>
+  quality?: Record<string, unknown>
+  releaseGroup?: string
+  indexerFlags?: number
+  rejections?: Array<string | { reason?: string; message?: string }>
+  additionalFile?: boolean
+  replaceExistingFiles?: boolean
+  disableReleaseSwitching?: boolean
+}
+
+export type LidarrManualImportFile = {
+  path: string
+  artistId: number
+  albumId: number
+  trackIds: number[]
+  quality: Record<string, unknown>
+  disableReleaseSwitching: false
 }
 
 export type AddArtistOptions = {
@@ -310,6 +343,50 @@ export function createLidarrClient(
     return http.post<LidarrCommand>('/api/v1/command', { name, ...body })
   }
 
+  function getCommand(id: number): Promise<LidarrCommand> {
+    return http.get<LidarrCommand>(`/api/v1/command/${id}`)
+  }
+
+  function getManualImport(folder: string): Promise<LidarrManualImportCandidate[]> {
+    const query = new URLSearchParams({ folder, filterExistingFiles: 'true' }).toString()
+    return http.get<LidarrManualImportCandidate[]>(`/api/v1/manualimport?${query}`)
+  }
+
+  function updateManualImport(
+    candidates: LidarrManualImportCandidate[],
+  ): Promise<LidarrManualImportCandidate[]> {
+    return http.post<LidarrManualImportCandidate[]>(
+      '/api/v1/manualimport',
+      candidates.map((candidate) => ({
+        id: candidate.id,
+        path: candidate.path,
+        name: candidate.name,
+        artistId: candidate.artist?.id,
+        albumId: candidate.album?.id,
+        albumReleaseId: candidate.albumReleaseId,
+        quality: candidate.quality,
+        releaseGroup: candidate.releaseGroup,
+        indexerFlags: candidate.indexerFlags ?? 0,
+        additionalFile: candidate.additionalFile ?? false,
+        replaceExistingFiles: false,
+        disableReleaseSwitching: false,
+      })),
+    )
+  }
+
+  function manualImport(files: LidarrManualImportFile[]): Promise<LidarrCommand> {
+    return triggerCommand('ManualImport', {
+      importMode: 'move',
+      replaceExistingFiles: false,
+      files,
+    })
+  }
+
+  function getTracks(albumId: number): Promise<LidarrTrack[]> {
+    const query = new URLSearchParams({ albumId: String(albumId) }).toString()
+    return http.get<LidarrTrack[]>(`/api/v1/track?${query}`)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const profiles = await http.get<QualityProfile[]>('/api/v1/qualityprofile')
@@ -333,6 +410,11 @@ export function createLidarrClient(
     setAlbumsMonitored,
     setArtistsMonitored,
     triggerCommand,
+    getCommand,
+    getManualImport,
+    updateManualImport,
+    manualImport,
+    getTracks,
     getQualityProfiles,
     getMetadataProfiles,
     getRootFolders,

@@ -46,6 +46,8 @@ TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (vi
 
 ![Playlists](screenshots/playlists.png)
 
+The current playlist form also offers Audition: one track per pending artist, with the existing schedule and target controls.
+
 ## Subscriptions
 
 ![Subscriptions](screenshots/subscriptions.png)
@@ -78,7 +80,7 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 
 The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
 
-The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
+The current Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
 ## Settings > Account
 

@@ -57,8 +57,64 @@ export type SlskdJobUpdate = Partial<
 
 export type SlskdJobRow = typeof slskdJobs.$inferSelect
 
+const FAILED_RETRY_COOLDOWN_MS = 60 * 60 * 1000
+
 function activeSlskdJobWhere(workKey: string) {
   return and(eq(slskdJobs.workKey, workKey), inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
+}
+
+async function findSlskdJobByWorkKey(db: Database, workKey: string): Promise<SlskdJobRow | null> {
+  const conflictStates = [...SLSKD_ACTIVE_JOB_STATES, 'failed']
+  const [row] = await db
+    .select()
+    .from(slskdJobs)
+    .where(and(eq(slskdJobs.workKey, workKey), inArray(slskdJobs.state, conflictStates)))
+    .orderBy(desc(slskdJobs.updatedAt), desc(slskdJobs.id))
+    .limit(1)
+
+  return (row as SlskdJobRow) ?? null
+}
+
+async function retryFailedSlskdJob(
+  db: Database,
+  row: SlskdJobRow,
+  data: CreateSlskdJobInput,
+): Promise<SlskdJobRow> {
+  const updatedAt = row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt)
+  if (Date.now() - updatedAt.getTime() < FAILED_RETRY_COOLDOWN_MS) return row
+
+  const [retried] = await db
+    .update(slskdJobs)
+    .set({
+      userId: data.userId ?? null,
+      targetId: data.targetId,
+      recommendationId: data.recommendationId ?? null,
+      sourceType: data.sourceType,
+      artistMbid: data.artistMbid,
+      artistName: data.artistName,
+      releaseGroupMbid: data.releaseGroupMbid ?? null,
+      releaseTitle: data.releaseTitle,
+      lidarrArtistId: data.lidarrArtistId ?? null,
+      lidarrAlbumId: data.lidarrAlbumId ?? null,
+      state: 'pending',
+      confidence: null,
+      slskdSearchId: null,
+      slskdQueueId: null,
+      slskdDownloadId: null,
+      selectedResult: null,
+      lastError: null,
+      completedAt: null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(slskdJobs.id, row.id), eq(slskdJobs.state, 'failed')))
+    .returning()
+
+  if (!retried) {
+    const active = await findActiveSlskdJobByWorkKey(db, data.workKey)
+    if (active) return active
+    throw new Error(`createSlskdJob: failed to retry row ${row.id}`)
+  }
+  return retried as SlskdJobRow
 }
 
 export async function createSlskdJob(
@@ -101,9 +157,9 @@ export async function createSlskdJob(
       return row as SlskdJobRow
     }
 
-    const existing = await findActiveSlskdJobByWorkKey(db, data.workKey)
+    const existing = await findSlskdJobByWorkKey(db, data.workKey)
     if (existing) {
-      return existing
+      return existing.state === 'failed' ? retryFailedSlskdJob(db, existing, data) : existing
     }
   }
 

@@ -473,6 +473,9 @@ export const en = {
   'playlist.strategyGenreFocus': 'Genre Focus',
   'playlist.strategyMoodMix': 'Mood Mix',
   'playlist.strategyRediscover': 'Rediscover',
+  'playlist.strategyAudition': 'Audition',
+  'playlistForm.strategyAuditionDesc':
+    'One track per pending artist, in score order, to listen before approving.',
   'playlist.strategyWeeklyDigest': 'Weekly Digest',
   'playlist.total': 'total',
   'playlist.unknownTrack': 'Unknown track',
@@ -1272,6 +1275,13 @@ export const en = {
   'settings.embyUserIdHelp':
     'Found under Emby Dashboard -> Users -> (select user). The URL contains the user ID.',
   'settings.aiProviderTitle': 'AI Provider',
+  'settings.plexAccount': 'Plex listener',
+  'settings.plexAccountNone': 'Library only',
+  'settings.plexAccountHint':
+    'Test the connection, then select your Plex listener and save. Listening history stays separate for each Digarr user.',
+  'settings.slskdLidarrDownloadPath': 'Download root as seen by Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'For linked imports, use the completed downloads root that Lidarr can read.',
   'settings.plexToken': 'Plex Token',
   'settings.plexLibrary': 'Music library',
   'settings.plexLibraryAuto': 'Auto-detect (first music library)',

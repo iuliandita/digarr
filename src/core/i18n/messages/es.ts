@@ -482,6 +482,9 @@ export const es = {
   'playlist.strategyGenreFocus': 'Enfoque de género',
   'playlist.strategyMoodMix': 'Mezcla de humor',
   'playlist.strategyRediscover': 'Redescubrir',
+  'playlist.strategyAudition': 'Escucha previa',
+  'playlistForm.strategyAuditionDesc':
+    'Una canción por artista pendiente, ordenados por puntuación, para escuchar antes de aprobar.',
   'playlist.strategyWeeklyDigest': 'Resumen semanal',
   'playlist.total': 'en total',
   'playlist.unknownTrack': 'Pista desconocida',
@@ -1280,6 +1283,13 @@ export const es = {
   'settings.embyUserIdHelp':
     'Se encuentra en el panel de Emby -> Usuarios -> (selecciona usuario). La URL contiene el ID del usuario.',
   'settings.aiProviderTitle': 'Proveedor de IA',
+  'settings.plexAccount': 'Oyente de Plex',
+  'settings.plexAccountNone': 'Solo biblioteca',
+  'settings.plexAccountHint':
+    'Prueba la conexión, selecciona tu oyente de Plex y guarda. El historial se mantiene separado para cada usuario de Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Carpeta de descargas visible para Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Para importar, usa la carpeta de descargas completadas que Lidarr puede leer.',
   'settings.plexToken': 'Token de Plex',
   'settings.plexLibrary': 'Biblioteca de música',
   'settings.plexLibraryAuto': 'Detección automática (primera biblioteca de música)',

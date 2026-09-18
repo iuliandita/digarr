@@ -672,6 +672,55 @@ describe('createLidarrClient', () => {
     })
   })
 
+  describe('manual import', () => {
+    it('requests candidates with filterExistingFiles enabled', async () => {
+      mockGet.mockResolvedValueOnce([])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+
+      await client.getManualImport('/downloads/Artist Album')
+
+      expect(mockGet).toHaveBeenCalledWith(
+        '/api/v1/manualimport?folder=%2Fdownloads%2FArtist+Album&filterExistingFiles=true',
+      )
+    })
+
+    it('submits ManualImport with move mode and no replacement', async () => {
+      mockPost.mockResolvedValueOnce({ id: 91, name: 'ManualImport', status: 'queued' })
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const files = [
+        {
+          path: '/downloads/Album/01.flac',
+          artistId: 7,
+          albumId: 8,
+          trackIds: [9],
+          quality: { quality: { id: 7, name: 'FLAC' } },
+          disableReleaseSwitching: false as const,
+        },
+      ]
+
+      await client.manualImport(files)
+
+      expect(mockPost).toHaveBeenCalledWith('/api/v1/command', {
+        name: 'ManualImport',
+        importMode: 'move',
+        replaceExistingFiles: false,
+        files,
+      })
+    })
+
+    it('reads command status and album track file state', async () => {
+      mockGet
+        .mockResolvedValueOnce({ id: 91, name: 'ManualImport', status: 'completed' })
+        .mockResolvedValueOnce([{ id: 9, albumId: 8, hasFile: true }])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+
+      await expect(client.getCommand(91)).resolves.toMatchObject({ status: 'completed' })
+      await expect(client.getTracks(8)).resolves.toEqual([{ id: 9, albumId: 8, hasFile: true }])
+      expect(mockGet).toHaveBeenNthCalledWith(1, '/api/v1/command/91')
+      expect(mockGet).toHaveBeenNthCalledWith(2, '/api/v1/track?albumId=8')
+    })
+  })
+
   describe('testConnection()', () => {
     it('returns success:true when getQualityProfiles() resolves', async () => {
       mockGet.mockResolvedValueOnce(mockProfiles)

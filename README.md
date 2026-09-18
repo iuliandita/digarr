@@ -57,7 +57,9 @@ Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road 
 Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), Spotify Followed Artists (the artists you follow on Spotify; needs a connected Spotify account with the `user-follow-read` scope, so existing users must disconnect and reconnect Spotify once to grant it), TIDAL Favorite Artists (experimental, not yet validated against a live TIDAL account -- see [Connecting TIDAL](#connecting-tidal); needs an admin-registered TIDAL app plus your own TIDAL account connected from Settings), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
 
 ### Auto-Playlists
-Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. Add the playlist targets you want in Settings > Targets, then pick which of them each playlist pushes to. A failed push is recorded in Job History after the other selected targets have been attempted; the locally generated playlist remains available. The built-in playlist types are Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
+Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. Add the playlist targets you want in Settings > Targets, then pick which of them each playlist pushes to. A failed push is recorded in Job History after the other selected targets have been attempted; the locally generated playlist remains available. The built-in playlist types are Audition, Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
+
+Audition selects your highest-scored pending artists and resolves one track per artist without approving them. Create an Audition playlist, choose its targets, and generate it on demand or set a schedule. Unresolvable artists are skipped. Media-server targets can only play matching tracks already in their libraries; exporting a playlist does not acquire missing music.
 
 Spotify exports keep generated Spotify track IDs and their order. Tracks from other sources need an exact artist/title match; unmatched tracks are skipped. Artist-only approvals use up to three matching Spotify search results rather than the removed top-tracks endpoint. Playlist export still requires a working Spotify connection with playlist permissions.
 
@@ -120,7 +122,7 @@ Connect external services to unlock discovery feeds, library sync, playlist expo
 | Discogs | Collection, Wantlist, Labels | - | - | - | - |
 | Last.fm | Global and regional Charts | Charts, Tag Radio | - | - | - |
 | Lidarr | - | - | Artists, Albums | - | - |
-| Plex | - | - | Artists, Albums | Yes | - |
+| Plex | Per-listener history and similar artists | - | Artists, Albums | Yes | - |
 | Jellyfin | - | - | Artists, Albums | Yes | - |
 | Emby | - | - | Artists, Albums | Yes | - |
 | Subsonic | Starred artists | - | Artists, Albums | Yes (Navidrome target) | - |
@@ -251,9 +253,23 @@ The default remains `https://musicbrainz.org/ws/2` with one request per second. 
 
 For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`, such as `http://<open-webui-host>:<port>/api`. Digarr sends requests to Open WebUI's documented `/api/chat/completions` route. Other compatible servers can use their server root or a base ending in `/v1`. If a local model needs longer to load or generate, set `DIGARR_AI_TIMEOUT_SECONDS` to a suitable value, such as `180`, and restart Digarr; the override applies to both connection tests and recommendation requests.
 
+### Connecting Plex listeners
+
+In Settings > Your Connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
+
+A listener selection is required for listening-based discovery. Existing Plex connections continue to sync their libraries, but need this selection before contributing listening history. Changing the server or token clears the selection. Digarr verifies the server identity and rejects history belonging to a different account instead of mixing profiles. A server or token that cannot expose the account list or playback history can still be used for library sync; Plex similarity data depends on the library's metadata agent. History analysis allows at most 5,000 entries (25 pages) per requested period. If that period cannot be read completely within the limit, top-artist analysis reports a failure instead of returning partial totals; choose a shorter period or another listening source.
+
+### Importing slskd downloads into Lidarr
+
+For a linked slskd target, set **Download root as seen by Lidarr** to the completed-downloads folder that Lidarr can read, such as `/downloads`. Mount the same completed files into Lidarr or configure its path mapping. slskd stores each remote directory under its final folder name; multi-disc folders must be complete and unambiguous before import.
+
+Digarr waits for every queued file to succeed, asks Lidarr to identify the files, and refuses rejected, partial, or ambiguous releases. It imports with move semantics and only reports completion after Lidarr's album tracks have files. Releases are limited to 500 files and 20 GiB, with paths no longer than 2,048 characters. Failed work retries after a one-hour cooldown using the same job; older duplicate failures remain as superseded history. Standalone slskd targets do not import into Lidarr.
+
 ### Connecting Spotify
 
-Spotify uses your own Spotify app credentials over OAuth:
+Spotify uses your own Spotify app credentials over OAuth. Spotify requires the owner of a Development Mode app to maintain an active Premium subscription, and listeners must be added to the app's allowlist (up to five users). A normal Spotify sign-in or PKCE does not remove these app requirements; Digarr does not provide a shared Spotify app. See [Spotify quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
+
+Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, or ListenBrainz listening data, or import artists from CSV. These paths do not require a Spotify subscription.
 
 1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 2. In the app's **Redirect URIs**, add the exact callback URL for your Digarr instance:

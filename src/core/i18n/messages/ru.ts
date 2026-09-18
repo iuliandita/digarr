@@ -484,6 +484,9 @@ export const ru = {
   'playlist.strategyGenreFocus': 'Жанровый фокус',
   'playlist.strategyMoodMix': 'Настроение Микс',
   'playlist.strategyRediscover': 'Откройте для себя заново',
+  'playlist.strategyAudition': 'Прослушивание',
+  'playlistForm.strategyAuditionDesc':
+    'По одному треку каждого ожидающего исполнителя, по оценке, для прослушивания перед одобрением.',
   'playlist.strategyWeeklyDigest': 'Еженедельный дайджест',
   'playlist.total': 'всего',
   'playlist.unknownTrack': 'Неизвестный трек',
@@ -1286,6 +1289,13 @@ export const ru = {
   'settings.embyUserIdHelp':
     'Находится в панели Emby -> Пользователи -> (выберите пользователя). URL содержит ID пользователя.',
   'settings.aiProviderTitle': 'Провайдер AI',
+  'settings.plexAccount': 'Слушатель Plex',
+  'settings.plexAccountNone': 'Только библиотека',
+  'settings.plexAccountHint':
+    'Проверьте соединение, выберите слушателя Plex и сохраните. История прослушивания разделена по пользователям Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Папка загрузок, доступная Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Для связанных импортов укажите папку завершённых загрузок, которую может читать Lidarr.',
   'settings.plexToken': 'Токен Plex',
   'settings.plexLibrary': 'Музыкальная библиотека',
   'settings.plexLibraryAuto': 'Автоматически (первая музыкальная библиотека)',

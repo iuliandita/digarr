@@ -92,4 +92,22 @@ describe('PlaylistForm targets', () => {
       expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ targetIds: [1] })),
     )
   })
+  it('creates a scheduled audition playlist with the selected target', async () => {
+    const onSave = vi.fn()
+    renderForm(onSave)
+    fireEvent.click(await screen.findByLabelText('Navidrome'))
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Try these' } })
+    fireEvent.change(screen.getByLabelText('Strategy'), { target: { value: 'audition' } })
+    fireEvent.click(screen.getByLabelText('Schedule automatic generation'))
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          strategy: 'audition',
+          targetIds: [1],
+          schedule: '0 8 * * 1',
+        }),
+      ),
+    )
+  })
 })

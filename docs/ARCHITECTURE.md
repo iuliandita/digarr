@@ -206,6 +206,10 @@ Albums are a first-class recommendation unit. Key additions:
 
 ## Key invariants
 
+- Plex listening uses a per-user server-account mapping bound to the server machine identifier. Every history page is account-filtered and checked before aggregation; missing mappings disable listening without disabling shared-library sync. Plex similarity candidates use artist metadata from that listener's history.
+- Audition playlists select only the owner's pending recommendations, deduplicate artists before limiting, and resolve one real track per artist. Generation does not approve recommendations or acquire missing media.
+- slskd linked imports retain the queued release manifest, require every expected transfer to succeed, and validate Lidarr's per-file artist, album, and track identifications before moving files. Completion requires track-file verification. Failed work keys remain unique through cooldown retries; superseded historical duplicates are preserved by migrations and backup restore.
+
 - Library sync replaces a source snapshot only after all source album fetches succeed. A failed fetch retains the previous snapshot and marks the run failed; MusicBrainz reconciliation failures remain separately counted.
 - Config precedence: for settings stored in the DB (single row, `id=1`), saved values override env defaults. Deployment-only options such as `DIGARR_MUSICBRAINZ_URL` and `DIGARR_MUSICBRAINZ_INTERVAL_MS` come from the environment and require a restart. Direct per-user service credentials live on `users`, with global settings as the fallback where supported; Spotify, Deezer, and TIDAL OAuth credentials live in `oauth_tokens`.
 - Provider, metadata, and playlist-target requests go through

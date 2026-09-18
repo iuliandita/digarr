@@ -24,6 +24,23 @@ describe('scoreSlskdCandidate()', () => {
 })
 
 describe('selectBestSlskdCandidate()', () => {
+  it('queues an exact audio release with cover art and metadata companions', () => {
+    const selected = selectBestSlskdCandidate(release, [
+      {
+        id: 'release-with-art',
+        filename: 'Radiohead - OK Computer',
+        username: 'listener',
+        size: 300,
+        files: [
+          { filename: 'Radiohead - OK Computer\\01.flac', size: 100 },
+          { filename: 'Radiohead - OK Computer\\cover.jpg', size: 100 },
+          { filename: 'Radiohead - OK Computer\\album.cue', size: 100 },
+        ],
+      },
+    ])
+    expect(selected.decision).toBe('auto_queue')
+  })
+
   it('returns needs_review for ambiguous weak matches', () => {
     const candidates: SlskdSearchResult[] = [
       {

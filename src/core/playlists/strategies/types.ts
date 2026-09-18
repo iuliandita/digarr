@@ -8,6 +8,7 @@ export type StrategyArtist = {
 }
 
 export type StrategyDeps = {
+  getPendingArtists: (opts: { limit: number }) => Promise<StrategyArtist[]>
   getApprovedArtists: (opts: {
     since?: Date
     genre?: string

@@ -20,6 +20,9 @@ const { mockGetUserConnections, mockUpdateUserConnections } = vi.hoisted(() => (
     plexUrl: null as string | null,
     plexToken: null as string | null,
     plexSectionId: null as string | null,
+    plexAccountId: null as number | null,
+    plexAccountName: null as string | null,
+    plexMachineIdentifier: null as string | null,
     jellyfinUrl: null as string | null,
     jellyfinApiKey: null as string | null,
     jellyfinUserId: null as string | null,
@@ -48,9 +51,18 @@ const { mockCreateEmbyClient } = vi.hoisted(() => ({
 
 const { mockCreatePlexClient } = vi.hoisted(() => ({
   mockCreatePlexClient: vi.fn(() => ({
+    getIdentity: vi.fn(async () => ({ machineIdentifier: 'machine-1' })),
+    getAccounts: vi.fn(async () => [{ id: 7, name: 'Listener' }]),
+    getMusicSections: vi.fn(async () => [{ key: 'music-1', title: 'Music' }]),
     testConnection: vi.fn(async () => ({
       success: true,
       message: 'Connected to Plex',
+      details: {
+        sectionId: 'music-1',
+        sections: [{ key: 'music-1', title: 'Music' }],
+        machineIdentifier: 'machine-1',
+        accounts: [{ id: 7, name: 'Listener' }],
+      },
     })),
   })),
 }))
@@ -184,6 +196,9 @@ const defaultUserConnections: UserConnections = {
   plexUrl: null,
   plexToken: null,
   plexSectionId: null,
+  plexAccountId: null,
+  plexAccountName: null,
+  plexMachineIdentifier: null,
   jellyfinUrl: null,
   jellyfinApiKey: null,
   jellyfinUserId: null,
@@ -253,6 +268,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       plexUrl: null,
       plexToken: null,
       plexSectionId: null,
+      plexAccountId: null,
+      plexAccountName: null,
+      plexMachineIdentifier: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
@@ -284,6 +302,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       plexUrl: null,
       plexToken: null,
       plexSectionId: null,
+      plexAccountId: null,
+      plexAccountName: null,
+      plexMachineIdentifier: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
@@ -729,6 +750,9 @@ describe('PATCH /api/v1/settings', () => {
           plexUrl: null,
           plexToken: null,
           plexSectionId: null,
+          plexAccountId: null,
+          plexAccountName: null,
+          plexMachineIdentifier: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
@@ -776,10 +800,106 @@ describe('PATCH /api/v1/settings', () => {
       }),
     )
   })
+
+  it('binds a selected Plex account to the server identity and canonical account name', async () => {
+    mockUpdateUserConnections.mockClear()
+    mockCreatePlexClient.mockClear()
+    mockGetUserConnections
+      .mockResolvedValueOnce(defaultUserConnections)
+      .mockResolvedValueOnce(defaultUserConnections)
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plexUrl: 'http://plex:32400',
+        plexToken: 'plex-token',
+        plexSectionId: 'music-1',
+        plexAccountId: 7,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockUpdateUserConnections).toHaveBeenCalledWith(
+      expect.anything(),
+      1,
+      expect.objectContaining({
+        plexUrl: 'http://plex:32400',
+        plexToken: 'plex-token',
+        plexSectionId: 'music-1',
+        plexAccountId: 7,
+        plexAccountName: 'Listener',
+        plexMachineIdentifier: 'machine-1',
+      }),
+    )
+  })
+
+  it('clears a stale Plex account binding when the server changes without a new selection', async () => {
+    mockUpdateUserConnections.mockClear()
+    mockCreatePlexClient.mockClear()
+    const currentPlex = {
+      ...defaultUserConnections,
+      plexUrl: 'http://old-plex:32400',
+      plexToken: 'plex-token',
+      plexSectionId: 'music-1',
+      plexAccountId: 7,
+      plexAccountName: 'Listener',
+      plexMachineIdentifier: 'old-machine',
+    }
+    mockGetUserConnections.mockResolvedValueOnce(currentPlex).mockResolvedValueOnce(currentPlex)
+    const app = createApp(makeDeps())
+
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plexUrl: 'http://new-plex:32400' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(mockUpdateUserConnections).toHaveBeenCalledWith(
+      expect.anything(),
+      1,
+      expect.objectContaining({
+        plexUrl: 'http://new-plex:32400',
+        plexAccountId: null,
+        plexAccountName: null,
+        plexMachineIdentifier: null,
+      }),
+    )
+    expect(mockCreatePlexClient).not.toHaveBeenCalled()
+  })
 })
 
 describe('POST /api/v1/settings/test/:service', () => {
-  it('requires admin access for every settings test service', async () => {
+  it.each([
+    { body: {}, expected: 7 },
+    { body: { accountId: null }, expected: null },
+    { body: { accountId: 8 }, expected: 8 },
+  ])('uses the explicit Plex probe selection $expected', async ({ body, expected }) => {
+    const current = {
+      ...defaultUserConnections,
+      plexUrl: 'http://plex:32400',
+      plexToken: 'token',
+      plexAccountId: 7,
+    }
+    mockGetUserConnections.mockResolvedValueOnce(current)
+    mockCreatePlexClient.mockClear()
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, '/api/v1/settings/test/plex', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    expect(res.status).toBe(200)
+    expect(mockCreatePlexClient).toHaveBeenCalledWith(
+      'http://plex:32400',
+      'token',
+      expect.objectContaining({ accountId: expected }),
+    )
+  })
+
+  it('requires admin access for global settings test services', async () => {
     await clearAllSessions()
     await createSession(7, 'non-admin-settings-test-token')
 
@@ -801,6 +921,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           plexUrl: null,
           plexToken: null,
           plexSectionId: null,
+          plexAccountId: null,
+          plexAccountName: null,
+          plexMachineIdentifier: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
@@ -824,7 +947,6 @@ describe('POST /api/v1/settings/test/:service', () => {
       'listenbrainz',
       'lastfm',
       'ai',
-      'plex',
       'jellyfin',
       'emby',
       'discogs',
@@ -849,6 +971,53 @@ describe('POST /api/v1/settings/test/:service', () => {
       expect(body.type).toBe('/problems/admin-required')
       expect(body.title).toBe('Admin access required')
     }
+  })
+
+  it('lets a non-admin enumerate accounts only through their own Plex credentials', async () => {
+    await clearAllSessions()
+    await createSession(7, 'non-admin-plex-test-token')
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      plexUrl: 'http://stored-plex:32400',
+      plexToken: 'stored-user-token',
+    })
+    const app = createApp(
+      makeDeps({
+        getUserById: vi.fn(async () => ({
+          id: 7,
+          username: 'user7',
+          isAdmin: false,
+          preferences: null,
+          email: null,
+          oidcSubject: null,
+          authProvider: 'local',
+          ...defaultUserConnections,
+          plexUrl: 'http://stored-plex:32400',
+          plexToken: 'stored-user-token',
+          createdAt: new Date(),
+        })),
+      }),
+    )
+
+    const res = await app.request('/api/v1/settings/test/plex', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer non-admin-plex-test-token',
+      },
+      body: JSON.stringify({}),
+    })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toMatchObject({
+      machineIdentifier: 'machine-1',
+      accounts: [{ id: 7, name: 'Listener' }],
+    })
+    expect(mockCreatePlexClient).toHaveBeenCalledWith(
+      'http://stored-plex:32400',
+      'stored-user-token',
+      { sectionId: null, accountId: null },
+    )
   })
 
   it('allows admins to test private HTTP service URLs', async () => {
@@ -895,6 +1064,7 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(res.status).toBe(200)
     expect(mockCreatePlexClient).toHaveBeenCalledWith('http://plex:32400', 'plex-token', {
       sectionId: expected,
+      accountId: null,
     })
   })
 
@@ -1250,6 +1420,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           plexUrl: null,
           plexToken: null,
           plexSectionId: null,
+          plexAccountId: null,
+          plexAccountName: null,
+          plexMachineIdentifier: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
@@ -1308,6 +1481,9 @@ describe('POST /api/v1/settings/test/:service', () => {
           plexUrl: null,
           plexToken: null,
           plexSectionId: null,
+          plexAccountId: null,
+          plexAccountName: null,
+          plexMachineIdentifier: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,
@@ -1440,6 +1616,9 @@ describe('per-user listening source connections', () => {
       plexUrl: null,
       plexToken: null,
       plexSectionId: null,
+      plexAccountId: null,
+      plexAccountName: null,
+      plexMachineIdentifier: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
@@ -1472,6 +1651,9 @@ describe('per-user listening source connections', () => {
           plexUrl: null,
           plexToken: null,
           plexSectionId: null,
+          plexAccountId: null,
+          plexAccountName: null,
+          plexMachineIdentifier: null,
           jellyfinUrl: null,
           jellyfinApiKey: null,
           jellyfinUserId: null,

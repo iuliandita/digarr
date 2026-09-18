@@ -13,6 +13,11 @@ type PlaylistFormProps = {
 
 const STRATEGIES = [
   {
+    value: 'audition',
+    labelKey: 'playlist.strategyAudition',
+    descriptionKey: 'playlistForm.strategyAuditionDesc',
+  },
+  {
     value: 'weekly_digest',
     labelKey: 'playlist.strategyWeeklyDigest',
     descriptionKey: 'playlistForm.strategyWeeklyDigestDesc',

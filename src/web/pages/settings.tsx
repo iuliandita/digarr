@@ -105,6 +105,9 @@ type Settings = {
   plexUrl?: string
   plexToken?: string
   plexSectionId?: string
+  plexAccountId?: number | null
+  plexAccountName?: string | null
+  plexMachineIdentifier?: string | null
   jellyfinUrl?: string
   jellyfinApiKey?: string
   jellyfinUserId?: string
@@ -811,6 +814,8 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   )
   const [plexSectionId, setPlexSectionId] = useState(settings.plexSectionId ?? '')
   const [plexSections, setPlexSections] = useState<Array<{ key: string; title: string }>>([])
+  const [plexAccountId, setPlexAccountId] = useState(String(settings.plexAccountId ?? ''))
+  const [plexAccounts, setPlexAccounts] = useState<Array<{ id: number; name: string }>>([])
   const [jellyfinUrl, setJellyfinUrl] = useState(settings.jellyfinUrl ?? '')
   const [jellyfinApiKey, setJellyfinApiKey] = useState(
     settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
@@ -1032,8 +1037,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       url: plexUrl,
       token: plexToken,
       sectionId: plexSectionId,
+      accountId: plexAccountId ? Number(plexAccountId) : null,
     })
     if (Array.isArray(res.sections)) setPlexSections(res.sections)
+    if (Array.isArray(res.accounts)) setPlexAccounts(res.accounts)
+    if (res.sectionId && !plexSectionId) setPlexSectionId(res.sectionId)
     return res
   })
   const savePlex = createSaver('plex', 'Plex', () =>
@@ -1041,6 +1049,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       plexUrl,
       plexToken: plexToken || undefined,
       plexSectionId: plexSectionId || null,
+      plexAccountId: plexAccountId ? Number(plexAccountId) : null,
     }),
   )
 
@@ -1965,7 +1974,12 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 type="url"
                 placeholder="http://localhost:32400"
                 value={plexUrl}
-                onChange={(e) => setPlexUrl(e.target.value)}
+                onChange={(e) => {
+                  setPlexUrl(e.target.value)
+                  setPlexAccountId('')
+                  setPlexAccounts([])
+                  setPlexSections([])
+                }}
               />
             </Field>
             <Field label={t('settings.plexToken')} id="plex-token">
@@ -1978,7 +1992,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                     : t('settings.plexToken')
                 }
                 value={plexToken}
-                onChange={(e) => setPlexToken(e.target.value)}
+                onChange={(e) => {
+                  setPlexToken(e.target.value)
+                  setPlexAccountId('')
+                  setPlexAccounts([])
+                }}
               />
             </Field>
           </div>
@@ -2002,17 +2020,34 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             </Select>
             <p className="text-xs text-muted mt-1">{t('settings.plexLibraryHint')}</p>
           </Field>
+          <Field label={t('settings.plexAccount')} id="plex-account">
+            <Select
+              id="plex-account"
+              value={plexAccountId}
+              onChange={(e) => setPlexAccountId(e.target.value)}
+            >
+              <option value="">{t('settings.plexAccountNone')}</option>
+              {plexAccounts.map((account) => (
+                <option key={account.id} value={String(account.id)}>
+                  {account.name}
+                </option>
+              ))}
+              {plexAccountId &&
+                !plexAccounts.some((account) => String(account.id) === plexAccountId) && (
+                  <option value={plexAccountId}>{settings.plexAccountName ?? plexAccountId}</option>
+                )}
+            </Select>
+            <p className="text-xs text-muted mt-1">{t('settings.plexAccountHint')}</p>
+          </Field>
           <div className="flex justify-end gap-2 pt-1">
-            {canTestUserConnections && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={testPlex}
-                disabled={tests.plex === 'testing'}
-              >
-                {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={testPlex}
+              disabled={tests.plex === 'testing'}
+            >
+              {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+            </Button>
             <Button size="sm" onClick={savePlex} disabled={saving.plex}>
               {saving.plex
                 ? t('settings.saving')
@@ -2555,6 +2590,11 @@ function getTargetTypes(
             })),
           ],
         },
+        {
+          key: 'lidarrDownloadPath',
+          label: t('settings.slskdLidarrDownloadPath'),
+          placeholder: '/downloads',
+        },
       ],
     },
     {
@@ -2871,6 +2911,7 @@ function AddTargetDialog({
           {selectedType.value === 'slskd' && (
             <div className="rounded-md border border-border bg-bg/60 p-3 space-y-2">
               <p className="text-xs text-muted">{t('settings.slskdModeHelp')}</p>
+              <p className="text-xs text-muted">{t('settings.slskdLidarrDownloadPathHint')}</p>
               <ul className="space-y-1 text-xs text-muted list-disc pl-4">
                 <li>{t('settings.slskdReleasePolicy')}</li>
                 <li>{t('settings.slskdQualityPolicy')}</li>

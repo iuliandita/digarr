@@ -30,6 +30,7 @@ import {
   recommendationBatches,
   recommendations,
   recordingArtistCache,
+  SLSKD_ACTIVE_JOB_STATES,
   settings,
   slskdJobs,
   subscriptions,
@@ -306,6 +307,39 @@ function sortGenresParentsFirst(rows: Record<string, unknown>[]): Record<string,
   return result
 }
 
+function normalizeSlskdRetryHistory(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  const retryStates = new Set<string>([...SLSKD_ACTIVE_JOB_STATES, 'failed'])
+  const groups = new Map<string, Record<string, unknown>[]>()
+  const result = rows.map((row) => ({ ...row }))
+  for (const row of result) {
+    if (!retryStates.has(String(row.state))) continue
+    const key = String(row.workKey)
+    const group = groups.get(key) ?? []
+    group.push(row)
+    groups.set(key, group)
+  }
+  for (const group of groups.values()) {
+    if (group.length < 2) continue
+    group.sort(
+      (a, b) =>
+        Number(a.state === 'failed') - Number(b.state === 'failed') ||
+        new Date(String(b.updatedAt)).getTime() - new Date(String(a.updatedAt)).getTime() ||
+        Number(b.id) - Number(a.id),
+    )
+    const winner = group[0]
+    if (!winner) continue
+    winner.attempts = Math.min(
+      2147483647,
+      group.reduce(
+        (sum, row) => sum + Math.max(Number(row.attempts ?? 0), row.state === 'failed' ? 1 : 0),
+        0,
+      ),
+    )
+    for (const row of group.slice(1)) row.state = 'superseded'
+  }
+  return result
+}
+
 // Table restore order respects FK dependencies
 const RESTORE_ORDER = [
   createRestoreSpec('settings', settings, settings.id),
@@ -338,7 +372,7 @@ const RESTORE_ORDER = [
   createRestoreSpec('librarySyncState', librarySyncState),
   createRestoreSpec('libraryMatchOverrides', libraryMatchOverrides),
   createRestoreSpec('libraryAlbumMatchOverrides', libraryAlbumMatchOverrides),
-  createRestoreSpec('slskdJobs', slskdJobs),
+  createRestoreSpec('slskdJobs', slskdJobs, undefined, normalizeSlskdRetryHistory),
 ] as const
 
 // Map from backup data key to the table object for external consumers

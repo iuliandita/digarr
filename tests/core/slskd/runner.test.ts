@@ -62,6 +62,25 @@ describe('createSlskdRunner', () => {
     expect(createJob).toHaveBeenCalledTimes(2)
     expect(createJob.mock.calls[0]?.[0].workKey).not.toBe(createJob.mock.calls[1]?.[0].workKey)
   })
+
+  it('reports failure when every release is still in the failed-job cooldown', async () => {
+    const runner = createSlskdRunner({
+      createJob: vi.fn().mockResolvedValue({ id: 9, state: 'failed' }),
+      findActiveJob: vi.fn().mockResolvedValue(null),
+      resolveReleaseGroups: vi
+        .fn()
+        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+    })
+
+    const result = await runner.queueArtist({
+      sourceType: 'standalone_approval',
+      userId: 1,
+      targetId: 4,
+      artist: { mbid: '11111111-1111-1111-1111-111111111111', name: 'Burial' },
+    })
+
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('createSlskdRunner().queueAlbum', () => {
@@ -114,6 +133,26 @@ describe('createSlskdRunner().queueAlbum', () => {
 
     expect(result.success).toBe(false)
     expect(createJob).not.toHaveBeenCalled()
+  })
+
+  it('reports failure while the matching failed job is cooling down', async () => {
+    const runner = createSlskdRunner({
+      createJob: vi.fn().mockResolvedValue({ id: 9, state: 'failed' }),
+      findActiveJob: vi.fn().mockResolvedValue(null),
+      resolveReleaseGroups: vi
+        .fn()
+        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+    })
+
+    const result = await runner.queueAlbum({
+      sourceType: 'standalone_approval',
+      userId: 1,
+      targetId: 4,
+      artist: { mbid: '11111111-1111-1111-1111-111111111111', name: 'Burial' },
+      releaseGroupMbid: 'rg-1',
+    })
+
+    expect(result.success).toBe(false)
   })
 
   it('treats an already-active job as success without creating a duplicate', async () => {
