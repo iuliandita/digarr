@@ -36,7 +36,11 @@ export function createPlexPlaylistTarget(
   const { url, token } = config
   const client = createHttpClient({
     baseUrl: url.replace(/\/+$/, ''),
-    headers: { 'X-Plex-Token': token, Accept: 'application/json' },
+    headers: {
+      'X-Plex-Token': token,
+      Accept: 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     timeout: 10_000,
   })
 
@@ -63,11 +67,15 @@ export function createPlexPlaylistTarget(
     }
   }
 
-  async function getMusicMachineId(): Promise<string> {
+  async function getServerInfo() {
     const res = await get<{
-      MediaContainer: { machineIdentifier: string }
+      MediaContainer: { friendlyName?: string; version?: string; machineIdentifier: string }
     }>('/')
-    return res.MediaContainer.machineIdentifier
+    const id = res.MediaContainer?.machineIdentifier
+    if (typeof id !== 'string' || !id.trim()) {
+      throw new Error('Plex did not return a server machine identifier')
+    }
+    return res.MediaContainer
   }
 
   async function searchTrack(artistName: string, trackName: string): Promise<string | null> {
@@ -103,7 +111,6 @@ export function createPlexPlaylistTarget(
       _options?: { description?: string; public?: boolean; replace?: boolean },
     ): Promise<PlaylistResult> {
       try {
-        // Resolve Plex rating keys for items that have a trackName
         const ratingKeys: string[] = []
         for (const item of items) {
           if (!item.trackName) continue
@@ -111,19 +118,18 @@ export function createPlexPlaylistTarget(
           if (key) ratingKeys.push(key)
         }
 
-        const machineId = await getMusicMachineId()
+        if (ratingKeys.length === 0) {
+          throw new Error('No playlist tracks were found in the Plex library')
+        }
+        const { machineIdentifier: machineId } = await getServerInfo()
+        const params = new URLSearchParams({
+          type: 'audio',
+          title: name,
+          smart: '0',
+          uri: `server://${machineId}/com.plexapp.plugins.library/library/metadata/${ratingKeys.join(',')}`,
+        })
 
-        // Build uri list for Plex playlist creation
-        // Format: server://{machineId}/com.plexapp.plugins.library/library/metadata/{ratingKey}
-        const uris = ratingKeys.map(
-          (key) => `server://${machineId}/com.plexapp.plugins.library/library/metadata/${key}`,
-        )
-
-        const baseParams = new URLSearchParams({ type: 'audio', title: name, smart: '0' })
-        const uriParam = uris.map((u) => `uri=${encodeURIComponent(u)}`).join('&')
-        const qs = uris.length > 0 ? `${baseParams.toString()}&${uriParam}` : baseParams.toString()
-
-        const created = await postOnce<PlexPlaylistCreateResponse>(`/playlists?${qs}`)
+        const created = await postOnce<PlexPlaylistCreateResponse>(`/playlists?${params}`)
 
         const playlist = created.MediaContainer.Metadata?.[0]
         if (!playlist) {
@@ -150,10 +156,7 @@ export function createPlexPlaylistTarget(
 
     async testConnection(): Promise<ServiceTestResult> {
       try {
-        const res = await get<{
-          MediaContainer: { friendlyName?: string; version?: string; machineIdentifier: string }
-        }>('/')
-        const info = res.MediaContainer
+        const info = await getServerInfo()
         const label = info.friendlyName ?? info.machineIdentifier
         return {
           success: true,

@@ -61,6 +61,8 @@ Build playlists from approved recommendations and send them to Navidrome, Jellyf
 
 Audition selects your highest-scored pending artists and resolves one track per artist without approving them. Create an Audition playlist, choose its targets, and generate it on demand or set a schedule. Unresolvable artists are skipped. Media-server targets can only play matching tracks already in their libraries; exporting a playlist does not acquire missing music.
 
+Plex exports resolve tracks already in your Plex library. If none resolve, the export fails with a clear message instead of sending an empty create request. The Plex Playlist target uses its own saved server URL and token when tested.
+
 Spotify exports keep generated Spotify track IDs and their order. Tracks from other sources need an exact artist/title match; unmatched tracks are skipped. Artist-only approvals use up to three matching Spotify search results rather than the removed top-tracks endpoint. Playlist export still requires a working Spotify connection with playlist permissions.
 
 ### Your AI, Your Choice
