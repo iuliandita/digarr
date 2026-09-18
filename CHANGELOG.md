@@ -4,6 +4,24 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Added
+
+- Plex listening sources use an explicit per-user server-account selection, isolated playback history, and Plex similar-artist metadata. Shared-library sync remains independent; existing connections need a listener selection for history. [#647](https://github.com/iuliandita/digarr/issues/647), [#684](https://github.com/iuliandita/digarr/issues/684).
+- Audition playlists select one track per pending artist without approving recommendations, with on-demand or scheduled generation and existing playlist targets. [#390](https://github.com/iuliandita/digarr/issues/390).
+
+### Fixed
+
+- slskd searches send the correct request field, and failed jobs retry after a cooldown without inserting a new row each time. [#677](https://github.com/iuliandita/digarr/issues/677).
+- Linked slskd downloads import into Lidarr only after every expected file succeeds and the release passes identification checks. Completion requires verified album track files. Existing linked targets must set `lidarrDownloadPath` to a completed-download directory visible to Lidarr, with the shared mount or path mapping configured before imports can resume. [#678](https://github.com/iuliandita/digarr/issues/678).
+
+- slskd release downloads are bounded to 500 files and 20 GiB, and oversized manifests are rejected before enqueue. [#685](https://github.com/iuliandita/digarr/issues/685).
+
+### Changed
+
+- Spotify setup documents the Premium app-owner requirement and Development Mode allowlist limits, with alternatives that do not need Spotify. [#395](https://github.com/iuliandita/digarr/issues/395).
+
 ## v1.17.0 - 2026-09-16
 
 ### Fixed

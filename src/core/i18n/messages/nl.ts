@@ -481,6 +481,9 @@ export const nl = {
   'playlist.strategyGenreFocus': 'Genrefocus',
   'playlist.strategyMoodMix': 'Stemmingsmix',
   'playlist.strategyRediscover': 'Herontdek',
+  'playlist.strategyAudition': 'Voorbeluisteren',
+  'playlistForm.strategyAuditionDesc':
+    'Eén nummer per artiest in afwachting, op score gesorteerd, om vóór goedkeuring te beluisteren.',
   'playlist.strategyWeeklyDigest': 'Wekelijkse samenvatting',
   'playlist.total': 'totaal',
   'playlist.unknownTrack': 'Onbekend nummer',
@@ -1273,6 +1276,13 @@ export const nl = {
   'settings.embyUserIdHelp':
     'Te vinden via Emby-dashboard -> Gebruikers -> (gebruiker selecteren). De URL bevat de gebruikers-ID.',
   'settings.aiProviderTitle': 'AI-provider',
+  'settings.plexAccount': 'Plex-luisteraar',
+  'settings.plexAccountNone': 'Alleen bibliotheek',
+  'settings.plexAccountHint':
+    'Test de verbinding, selecteer je Plex-luisteraar en sla op. Elke Digarr-gebruiker houdt een eigen luistergeschiedenis.',
+  'settings.slskdLidarrDownloadPath': 'Downloadmap zoals Lidarr die ziet',
+  'settings.slskdLidarrDownloadPathHint':
+    'Gebruik voor gekoppelde imports de map met voltooide downloads die Lidarr kan lezen.',
   'settings.plexToken': 'Plex-token',
   'settings.plexLibrary': 'Muziekbibliotheek',
   'settings.plexLibraryAuto': 'Automatisch (eerste muziekbibliotheek)',

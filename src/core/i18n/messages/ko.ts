@@ -475,6 +475,9 @@ export const ko = {
   'playlist.strategyGenreFocus': '장르 집중',
   'playlist.strategyMoodMix': '기분 혼합',
   'playlist.strategyRediscover': '재발견',
+  'playlist.strategyAudition': '미리 듣기',
+  'playlistForm.strategyAuditionDesc':
+    '승인 전에 들어볼 수 있도록 대기 중인 아티스트마다 한 곡씩 점수순으로 선택합니다.',
   'playlist.strategyWeeklyDigest': '주간 다이제스트',
   'playlist.total': '합계',
   'playlist.unknownTrack': '알 수 없는 트랙',
@@ -1246,6 +1249,13 @@ export const ko = {
   'settings.embyUserIdHelp':
     'Emby 대시보드 -> 사용자 -> (사용자 선택)에서 확인할 수 있습니다. URL에 사용자 ID가 포함되어 있습니다.',
   'settings.aiProviderTitle': 'AI 제공자',
+  'settings.plexAccount': 'Plex 청취자',
+  'settings.plexAccountNone': '라이브러리만',
+  'settings.plexAccountHint':
+    '연결을 테스트한 다음 Plex 청취자를 선택하고 저장하세요. 청취 기록은 Digarr 사용자별로 분리됩니다.',
+  'settings.slskdLidarrDownloadPath': 'Lidarr에서 보이는 다운로드 폴더',
+  'settings.slskdLidarrDownloadPathHint':
+    '연결된 가져오기에는 Lidarr가 읽을 수 있는 완료된 다운로드의 루트 폴더를 사용하세요.',
   'settings.plexToken': 'Plex 토큰',
   'settings.plexLibrary': '음악 라이브러리',
   'settings.plexLibraryAuto': '자동 감지 (첫 번째 음악 라이브러리)',

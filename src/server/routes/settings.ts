@@ -15,7 +15,7 @@ import type { NotificationChannel, NotificationEvent } from '@/core/notification
 import { isConnectedToken } from '@/core/provider-auth'
 import { redactSecrets } from '@/core/providers/retry'
 import { validateAiBaseUrl } from '@/core/url-safety'
-import { getUserConnections, updateUserConnections } from '@/db/queries/users'
+import { getUserConnections, type UserConnections, updateUserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
@@ -95,6 +95,10 @@ function probeResult(
     const sections = result.details?.sections
     const libraryId = result.details?.libraryId
     const libraries = result.details?.libraries
+    const machineIdentifier = result.details?.machineIdentifier
+    const accounts = result.details?.accounts
+    const accountId = result.details?.accountId
+    const accountName = result.details?.accountName
     return c.json(
       {
         message: result.message,
@@ -104,6 +108,10 @@ function probeResult(
         ...(Array.isArray(sections) ? { sections } : {}),
         ...(typeof libraryId === 'string' ? { libraryId } : {}),
         ...(Array.isArray(libraries) ? { libraries } : {}),
+        ...(typeof machineIdentifier === 'string' ? { machineIdentifier } : {}),
+        ...(Array.isArray(accounts) ? { accounts } : {}),
+        ...(typeof accountId === 'number' ? { accountId } : {}),
+        ...(typeof accountName === 'string' ? { accountName } : {}),
       },
       200,
     )
@@ -197,6 +205,9 @@ async function buildSettingsResponse(
       response.plexUrl = userConns.plexUrl ?? ''
       response.plexToken = userConns.plexToken
       response.plexSectionId = userConns.plexSectionId ?? ''
+      response.plexAccountId = userConns.plexAccountId
+      response.plexAccountName = userConns.plexAccountName ?? ''
+      response.plexMachineIdentifier = userConns.plexMachineIdentifier ?? ''
       response._plexScope = 'user'
       response.jellyfinUrl = userConns.jellyfinUrl ?? ''
       response.jellyfinApiKey = userConns.jellyfinApiKey
@@ -279,6 +290,7 @@ export function settingsRoutes(deps: AppDependencies) {
     'plexUrl',
     'plexToken',
     'plexSectionId',
+    'plexAccountId',
     'jellyfinUrl',
     'jellyfinApiKey',
     'jellyfinUserId',
@@ -319,13 +331,14 @@ export function settingsRoutes(deps: AppDependencies) {
         : null
 
     // Split fields into user-connection vs global
-    const userUpdate: Record<string, string | null> = {}
+    const userUpdate: Partial<UserConnections> = {}
     const globalFields: Record<string, unknown> = {}
 
     for (const [key, val] of Object.entries(sanitized)) {
       if (USER_CONNECTION_FIELDS.has(key)) {
         if (userId) {
-          userUpdate[key] = (val as string | null | undefined) ?? null
+          ;(userUpdate as Record<string, string | number | null>)[key] =
+            (val as string | number | null | undefined) ?? null
         }
         continue
       }
@@ -369,6 +382,92 @@ export function settingsRoutes(deps: AppDependencies) {
       )
       if (!validation.ok) {
         return problem(c, 'invalid-base-url', 'Invalid AI base URL', 400, validation.message)
+      }
+    }
+
+    const plexFieldsTouched = ['plexUrl', 'plexToken', 'plexSectionId', 'plexAccountId'].some(
+      (field) => Object.hasOwn(sanitized, field),
+    )
+    if (userId && plexFieldsTouched) {
+      const current = await getUserConnections(deps.db, userId)
+      const explicitAccountId = Object.hasOwn(sanitized, 'plexAccountId')
+      const url = Object.hasOwn(sanitized, 'plexUrl')
+        ? ((sanitized.plexUrl as string | null) ?? '')
+        : (current?.plexUrl ?? '')
+      let token = Object.hasOwn(sanitized, 'plexToken')
+        ? ((sanitized.plexToken as string | null) ?? '')
+        : (current?.plexToken ?? '')
+      if (token === '***') {
+        token = current?.plexToken ?? ''
+        delete userUpdate.plexToken
+      }
+      const sectionId = Object.hasOwn(sanitized, 'plexSectionId')
+        ? ((sanitized.plexSectionId as string | null) ?? '')
+        : (current?.plexSectionId ?? '')
+      const accountId = explicitAccountId
+        ? ((sanitized.plexAccountId as number | null) ?? null)
+        : (current?.plexAccountId ?? null)
+      const connectionChanged =
+        (Object.hasOwn(sanitized, 'plexUrl') && url !== (current?.plexUrl ?? '')) ||
+        (Object.hasOwn(sanitized, 'plexToken') && token !== (current?.plexToken ?? ''))
+
+      if (!url || !token || accountId == null || (connectionChanged && !explicitAccountId)) {
+        userUpdate.plexAccountId = null
+        userUpdate.plexAccountName = null
+        userUpdate.plexMachineIdentifier = null
+      } else {
+        if (!sectionId) {
+          return problem(
+            c,
+            'invalid-plex-account',
+            'Invalid Plex account',
+            400,
+            'Select a Plex music library before selecting a listening account',
+          )
+        }
+        try {
+          const { createPlexClient } = await import('@/core/clients/plex')
+          const plex = createPlexClient(url, token, { sectionId })
+          const [identity, accounts, sections] = await Promise.all([
+            plex.getIdentity(),
+            plex.getAccounts(),
+            plex.getMusicSections(),
+          ])
+          const account = accounts.find((candidate) => candidate.id === accountId)
+          if (!account) {
+            return problem(
+              c,
+              'invalid-plex-account',
+              'Invalid Plex account',
+              400,
+              'The selected Plex account is not available on this server',
+            )
+          }
+          if (!sections.some((section) => section.key === sectionId)) {
+            return problem(
+              c,
+              'invalid-plex-account',
+              'Invalid Plex account',
+              400,
+              'The selected Plex music library is not available on this server',
+            )
+          }
+          userUpdate.plexAccountId = account.id
+          userUpdate.plexAccountName = account.name
+          userUpdate.plexMachineIdentifier = identity.machineIdentifier
+        } catch (error: unknown) {
+          const detail = redactSecrets(error instanceof Error ? error.message : String(error))
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 300)
+          return problem(
+            c,
+            'invalid-plex-account',
+            'Invalid Plex account',
+            400,
+            detail || 'Could not verify the selected Plex account',
+          )
+        }
       }
     }
 
@@ -439,7 +538,7 @@ export function settingsRoutes(deps: AppDependencies) {
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
     )
-    if (!isAdmin) {
+    if (!isAdmin && service !== 'plex') {
       return problem(
         c,
         'admin-required',
@@ -543,11 +642,15 @@ export function settingsRoutes(deps: AppDependencies) {
         // the stored value, the user is explicitly clearing it in the picker).
         const sectionId =
           typeof body.sectionId === 'string' ? body.sectionId : (userConns?.plexSectionId ?? null)
+        const accountId =
+          body.accountId === null || typeof body.accountId === 'number'
+            ? body.accountId
+            : (userConns?.plexAccountId ?? null)
         if (!url || !token) {
           return missingInput(`Missing ${!url ? 'URL' : 'token'}`)
         }
         const { createPlexClient } = await import('@/core/clients/plex')
-        const client = createPlexClient(url, token, { sectionId })
+        const client = createPlexClient(url, token, { sectionId, accountId })
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'jellyfin': {

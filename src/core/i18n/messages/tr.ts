@@ -475,6 +475,9 @@ export const tr = {
   'playlist.strategyGenreFocus': 'Tür Odaklılığı',
   'playlist.strategyMoodMix': 'Ruh Hali Karışımı',
   'playlist.strategyRediscover': 'Yeniden keşfet',
+  'playlist.strategyAudition': 'Ön Dinleme',
+  'playlistForm.strategyAuditionDesc':
+    'Onaylamadan önce dinlemek için, puan sırasına göre bekleyen her sanatçıdan bir parça.',
   'playlist.strategyWeeklyDigest': 'Haftalık Özet',
   'playlist.total': 'toplam',
   'playlist.unknownTrack': 'Bilinmeyen parça',
@@ -1266,6 +1269,13 @@ export const tr = {
   'settings.embyUserIdHelp':
     "Emby Paneli -> Kullanıcılar -> (kullanıcı sec) altinda bulunur. URL, kullanıcı ID'sini icerir.",
   'settings.aiProviderTitle': 'AI sağlayıcısı',
+  'settings.plexAccount': 'Plex dinleyicisi',
+  'settings.plexAccountNone': 'Yalnızca kitaplık',
+  'settings.plexAccountHint':
+    'Bağlantıyı test edin, Plex dinleyicinizi seçin ve kaydedin. Her Digarr kullanıcısının dinleme geçmişi ayrı tutulur.',
+  'settings.slskdLidarrDownloadPath': 'Lidarr tarafından görülen indirme klasörü',
+  'settings.slskdLidarrDownloadPathHint':
+    'Bağlı içe aktarmalar için Lidarr tarafından okunabilen tamamlanmış indirmeler klasörünü kullanın.',
   'settings.plexToken': 'Plex belirteci',
   'settings.plexLibrary': 'Müzik kitaplığı',
   'settings.plexLibraryAuto': 'Otomatik (ilk müzik kitaplığı)',

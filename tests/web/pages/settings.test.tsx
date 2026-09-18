@@ -766,7 +766,7 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('hides test buttons for non-admin per-user connections but keeps save actions', async () => {
+  it('allows non-admin Plex testing while keeping other connection probes hidden', async () => {
     setupMocks()
     mockGetCurrentUser.mockResolvedValue({
       id: 2,
@@ -782,7 +782,7 @@ describe('SettingsPage', () => {
       expect(screen.getByText('ListenBrainz')).toBeInTheDocument()
     })
 
-    expect(screen.queryByRole('button', { name: 'Test Connection' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Test Connection' })).toHaveLength(1)
 
     const saveButtons = screen.getAllByRole('button', { name: 'Save' })
     const firstSaveButton = saveButtons[0]
@@ -793,6 +793,48 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(mockUpdateSettings).toHaveBeenCalled()
     })
+  })
+
+  it('loads Plex listeners and saves the selected account for a non-admin', async () => {
+    setupMocks({ ...mockSettings, plexUrl: 'http://localhost:32400', plexToken: '***' })
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'user',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    mockTestService.mockResolvedValue({
+      message: 'Connected',
+      sections: [{ key: '2', title: 'Music' }],
+      sectionId: '2',
+      accounts: [{ id: 7, name: 'Listener' }],
+      machineIdentifier: 'server',
+    })
+    mockUpdateSettings.mockResolvedValue(undefined)
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Test Connection' }))
+    await screen.findByRole('option', { name: 'Listener' })
+    expect(mockTestService).toHaveBeenCalledWith(
+      'plex',
+      expect.objectContaining({ url: 'http://localhost:32400', accountId: null }),
+    )
+    const selector = screen.getByLabelText('Plex listener')
+    fireEvent.change(selector, { target: { value: '7' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Test Connection' }))
+    await waitFor(() =>
+      expect(mockTestService).toHaveBeenLastCalledWith(
+        'plex',
+        expect.objectContaining({ accountId: 7 }),
+      ),
+    )
+    const content = selector.parentElement?.parentElement
+    if (!content) throw new Error('Plex card content missing')
+    fireEvent.click(within(content).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mockUpdateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({ plexAccountId: 7, plexSectionId: '2' }),
+      ),
+    )
   })
 
   it('shows error state when settings fail to load', async () => {

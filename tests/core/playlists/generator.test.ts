@@ -23,6 +23,7 @@ const OLDER_ARTISTS: StrategyArtist[] = [
 
 function makeStrategyDeps(overrides: Partial<StrategyDeps> = {}): StrategyDeps {
   return {
+    getPendingArtists: vi.fn().mockResolvedValue(RECENT_ARTISTS),
     getApprovedArtists: vi.fn().mockResolvedValue(RECENT_ARTISTS),
     getOlderApprovedArtists: vi.fn().mockResolvedValue(OLDER_ARTISTS),
     ...overrides,
@@ -64,7 +65,13 @@ function makeResolverDeps(): TrackResolverDeps {
 // ---------------------------------------------------------------------------
 
 describe('getStrategy()', () => {
-  const strategies: PlaylistStrategy[] = ['weekly_digest', 'genre_focus', 'mood_mix', 'rediscover']
+  const strategies: PlaylistStrategy[] = [
+    'weekly_digest',
+    'genre_focus',
+    'mood_mix',
+    'rediscover',
+    'audition',
+  ]
 
   it.each(strategies)('returns an impl with selectArtists for %s', (strategy) => {
     const impl = getStrategy(strategy)
@@ -410,5 +417,35 @@ describe('generatePlaylist()', () => {
 
     expect(result.tracks.every((t) => t.source === 'local')).toBe(true)
     expect(jellyfinSearch).toHaveBeenCalled()
+  })
+})
+
+describe('audition playlists', () => {
+  it('resolves one track per pending artist in score order without approving them', async () => {
+    const deps = makeStrategyDeps({
+      getPendingArtists: vi.fn().mockResolvedValue(RECENT_ARTISTS),
+    })
+    const result = await generatePlaylist(
+      'audition',
+      { size: 4, trackSourcePriority: ['spotify'] },
+      deps,
+      makeResolverDeps(),
+    )
+    expect(deps.getPendingArtists).toHaveBeenCalledWith({ limit: 4 })
+    expect(deps.getApprovedArtists).not.toHaveBeenCalled()
+    expect(result.tracks.map((track) => track.artistName)).toEqual(
+      RECENT_ARTISTS.map((artist) => artist.name),
+    )
+    expect(result.tracks).toHaveLength(4)
+  })
+
+  it('does not create placeholder tracks when no resolver is configured', async () => {
+    const result = await generatePlaylist(
+      'audition',
+      { size: 4, trackSourcePriority: ['local'] },
+      makeStrategyDeps(),
+      {},
+    )
+    expect(result.tracks).toEqual([])
   })
 })

@@ -4,6 +4,7 @@ import { createJellyfinClient } from '@/core/clients/jellyfin'
 import { createLastFmClient, type LastFmPeriod } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient, type ListenBrainzRange } from '@/core/clients/listenbrainz'
+import { createPlexClient } from '@/core/clients/plex'
 import { getUserConnections, type UserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
@@ -70,6 +71,30 @@ function hasJellyfin(conns: UserConnections | null): boolean {
 
 function hasEmby(conns: UserConnections | null): boolean {
   return Boolean(conns?.embyUrl && conns?.embyApiKey && conns?.embyUserId)
+}
+
+function hasPlex(conns: UserConnections | null): boolean {
+  return Boolean(
+    conns?.plexUrl &&
+      conns?.plexToken &&
+      conns.plexSectionId &&
+      conns.plexAccountId &&
+      conns.plexMachineIdentifier,
+  )
+}
+
+function plexRangeStart(range: TopRange, now = new Date()): number | undefined {
+  if (range === 'all_time') return undefined
+  const start = new Date(now)
+  start.setHours(0, 0, 0, 0)
+  if (range === 'this_week') {
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
+  } else if (range === 'this_month') {
+    start.setDate(1)
+  } else {
+    start.setMonth(0, 1)
+  }
+  return Math.floor(start.getTime() / 1000)
 }
 
 async function enrichImages(
@@ -151,7 +176,7 @@ export function listeningRoutes(deps: AppDependencies) {
 
     let tracks: TopArtistEntry[] = []
     let total = 0
-    let source: 'listenbrainz' | 'lastfm' | null = null
+    let source: 'listenbrainz' | 'lastfm' | 'plex' | null = null
     const label = rangeLabel(range)
 
     // Priority: ListenBrainz first (calendar-aligned, matches UI labels), Last.fm fallback.
@@ -203,6 +228,30 @@ export function listeningRoutes(deps: AppDependencies) {
       }
     }
 
+    if (tracks.length === 0 && hasPlex(userConns)) {
+      try {
+        const client = createPlexClient(userConns?.plexUrl ?? '', userConns?.plexToken ?? '', {
+          sectionId: userConns?.plexSectionId,
+          accountId: userConns?.plexAccountId,
+          machineIdentifier: userConns?.plexMachineIdentifier,
+        })
+        const paged = await client.getTopArtistsPaged({
+          offset,
+          limit,
+          since: plexRangeStart(range),
+        })
+        tracks = paged.artists.map((artist) => ({
+          artist: artist.name,
+          track: `${artist.viewCount} plays ${label}`,
+          source: 'plex',
+        }))
+        total = paged.totalCount
+        if (tracks.length > 0) source = 'plex'
+      } catch (err: unknown) {
+        console.warn('[listening] Plex top-artists fetch failed:', err)
+      }
+    }
+
     await enrichImages(tracks, {
       lidarrUrl: settings.lidarrUrl,
       lidarrApiKey: settings.lidarrApiKey,
@@ -227,14 +276,15 @@ export function listeningRoutes(deps: AppDependencies) {
       hasLastFm(userConns) ||
       hasListenBrainz(userConns) ||
       hasJellyfin(userConns) ||
-      hasEmby(userConns)
+      hasEmby(userConns) ||
+      hasPlex(userConns)
 
     if (!settings || !hasSource) {
       return c.json({ tracks: [], hasSource, source: null })
     }
 
     let tracks: RecentTrackEntry[] = []
-    let source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | null = null
+    let source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | 'plex' | null = null
 
     // Priority: Last.fm (richest metadata) -> LB /listens -> Jellyfin -> Emby.
     if (hasLastFm(userConns)) {
@@ -333,6 +383,26 @@ export function listeningRoutes(deps: AppDependencies) {
         if (tracks.length > 0) source = 'emby'
       } catch (err: unknown) {
         console.warn('[listening] Emby recent-tracks fetch failed:', err)
+      }
+    }
+
+    if (tracks.length === 0 && hasPlex(userConns)) {
+      try {
+        const plex = createPlexClient(userConns?.plexUrl ?? '', userConns?.plexToken ?? '', {
+          sectionId: userConns?.plexSectionId,
+          accountId: userConns?.plexAccountId,
+          machineIdentifier: userConns?.plexMachineIdentifier,
+        })
+        const recent = await plex.getRecentlyPlayed(limit)
+        tracks = recent.slice(0, limit).map((track) => ({
+          artist: track.artistName,
+          track: track.trackName,
+          source: 'plex',
+          playedAt: new Date(track.viewedAt).toISOString(),
+        }))
+        if (tracks.length > 0) source = 'plex'
+      } catch (err: unknown) {
+        console.warn('[listening] Plex recent-tracks fetch failed:', err)
       }
     }
 

@@ -95,6 +95,9 @@ export const users = pgTable(
     plexUrl: text('plex_url'),
     plexToken: text('plex_token'),
     plexSectionId: text('plex_section_id'),
+    plexAccountId: integer('plex_account_id'),
+    plexAccountName: text('plex_account_name'),
+    plexMachineIdentifier: text('plex_machine_identifier'),
     jellyfinUrl: text('jellyfin_url'),
     jellyfinApiKey: text('jellyfin_api_key'),
     jellyfinUserId: text('jellyfin_user_id'),
@@ -380,7 +383,7 @@ export const slskdJobs = pgTable(
     activeWorkKeyIdx: uniqueIndex('slskd_jobs_active_work_key_idx')
       .on(table.workKey)
       .where(
-        sql`${table.state} in ('pending', 'searching', 'queued', 'downloading', 'import_pending')`,
+        sql`${table.state} in ('pending', 'searching', 'queued', 'downloading', 'import_pending', 'failed')`,
       ),
     stateIdx: index('slskd_jobs_state_idx').on(table.state),
     userStateIdx: index('slskd_jobs_user_state_idx').on(table.userId, table.state),
@@ -521,7 +524,12 @@ export type PlaylistConfig = {
   trackSourcePriority: ('local' | 'spotify' | 'deezer')[]
 }
 
-export type PlaylistStrategy = 'weekly_digest' | 'genre_focus' | 'mood_mix' | 'rediscover'
+export type PlaylistStrategy =
+  | 'weekly_digest'
+  | 'genre_focus'
+  | 'mood_mix'
+  | 'rediscover'
+  | 'audition'
 
 export type Preferences = {
   qualityProfileId: number

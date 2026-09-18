@@ -155,7 +155,64 @@ describe('slskd job queries', () => {
     expect(result).toEqual(row)
     expect(db._mocks.insertDoNothing).toHaveBeenCalledOnce()
     expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'artist:mbid-1')
-    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
+    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), [
+      ...SLSKD_ACTIVE_JOB_STATES,
+      'failed',
+    ])
+  })
+
+  it('keeps a failed work-key row during the one-hour retry cooldown', async () => {
+    const failed = {
+      id: 9,
+      workKey: 'artist:mbid-1',
+      state: 'failed',
+      attempts: 4,
+      updatedAt: new Date(),
+    }
+    const db = makeDb({ insertedRows: [], selectedRows: [failed] })
+
+    const result = await createSlskdJob(db as unknown as Database, {
+      targetId: 2,
+      sourceType: 'recommendation',
+      workKey: 'artist:mbid-1',
+      artistMbid: '11111111-1111-1111-1111-111111111111',
+      artistName: 'Example Artist',
+      releaseTitle: 'Example Release',
+    })
+
+    expect(result).toEqual(failed)
+    expect(db.update).not.toHaveBeenCalled()
+  })
+
+  it('reuses a failed work-key row after the one-hour retry cooldown', async () => {
+    const failed = {
+      id: 9,
+      workKey: 'artist:mbid-1',
+      state: 'failed',
+      attempts: 4,
+      updatedAt: new Date(Date.now() - 60 * 60 * 1000 - 1),
+    }
+    const retried = { ...failed, state: 'pending' }
+    const db = makeDb({ insertedRows: [], selectedRows: [failed], updatedRows: [retried] })
+
+    const result = await createSlskdJob(db as unknown as Database, {
+      targetId: 2,
+      sourceType: 'recommendation',
+      workKey: 'artist:mbid-1',
+      artistMbid: '11111111-1111-1111-1111-111111111111',
+      artistName: 'Example Artist',
+      releaseTitle: 'Example Release',
+    })
+
+    expect(result).toEqual(retried)
+    expect(db._mocks.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: 'pending',
+        slskdSearchId: null,
+        selectedResult: null,
+        completedAt: null,
+      }),
+    )
   })
 
   it('createSlskdJob retries once when a conflicting active row disappears before lookup', async () => {

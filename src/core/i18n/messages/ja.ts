@@ -479,6 +479,9 @@ export const ja = {
   'playlist.strategyGenreFocus': 'ジャンル重視',
   'playlist.strategyMoodMix': 'ムードミックス',
   'playlist.strategyRediscover': '再発見',
+  'playlist.strategyAudition': '試聴',
+  'playlistForm.strategyAuditionDesc':
+    '承認前に聴けるよう、保留中の各アーティストからスコア順に1曲ずつ選びます。',
   'playlist.strategyWeeklyDigest': 'ウィークリーダイジェスト',
   'playlist.total': '合計',
   'playlist.unknownTrack': '不明なトラック',
@@ -1263,6 +1266,13 @@ export const ja = {
   'settings.embyUserIdHelp':
     'Emby ダッシュボード -> ユーザー -> （ユーザーを選択）で確認できます。URL にユーザー ID が含まれています。',
   'settings.aiProviderTitle': 'AI プロバイダー',
+  'settings.plexAccount': 'Plexのリスナー',
+  'settings.plexAccountNone': 'ライブラリのみ',
+  'settings.plexAccountHint':
+    '接続をテストし、Plexのリスナーを選んで保存してください。再生履歴はDigarrユーザーごとに分離されます。',
+  'settings.slskdLidarrDownloadPath': 'Lidarrから見えるダウンロード先',
+  'settings.slskdLidarrDownloadPathHint':
+    '連携インポートには、Lidarrが読み取れる完了済みダウンロードのルートフォルダーを指定します。',
   'settings.plexToken': 'Plex トークン',
   'settings.plexLibrary': '音楽ライブラリ',
   'settings.plexLibraryAuto': '自動検出（最初の音楽ライブラリ）',

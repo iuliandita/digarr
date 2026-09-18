@@ -1,5 +1,6 @@
 import type { SlskdSearchResult } from '@/core/clients/slskd'
 import { normalizeAlbumTitle, normalizeArtistName } from '@/core/library/normalize'
+import { getSupportedAudioExtension, isSupportedAudioFile } from './audio'
 import type { QualityPreference } from './types'
 
 function normalizeText(raw: string): string {
@@ -32,48 +33,33 @@ function splitCandidateFilename(filename: string): { artist: string; title: stri
   return { artist: stem, title: stem }
 }
 
-const AUDIO_EXTENSIONS = new Set([
-  'flac',
-  'mp3',
-  'm4a',
-  'aac',
-  'wav',
-  'ogg',
-  'oga',
-  'opus',
-  'alac',
-  'wma',
-])
-
-function getFilenameExtension(filename: string): string | undefined {
-  return filename.split('.').pop()?.toLowerCase()
-}
-
 function qualityMatches(
   preference: QualityPreference | undefined,
-  candidate: Pick<SlskdSearchResult, 'filename'>,
+  candidate: Pick<SlskdSearchResult, 'filename'> & Partial<Pick<SlskdSearchResult, 'files'>>,
 ): boolean {
-  const extension = getFilenameExtension(candidate.filename)
+  const extensions = (candidate.files?.length ? candidate.files : [candidate])
+    .filter((file) => isSupportedAudioFile(file.filename))
+    .map((file) => getSupportedAudioExtension(file.filename))
+    .filter((extension): extension is string => extension !== null)
 
-  if (extension === undefined || !AUDIO_EXTENSIONS.has(extension)) {
+  if (extensions.length === 0) {
     return false
   }
 
   switch (preference) {
     case 'lossless_only':
     case 'flac_preferred':
-      return extension === 'flac'
+      return extensions.every((extension) => extension === 'flac')
     default:
-      return extension !== undefined
+      return true
   }
 }
 
 export function scoreSlskdCandidate(
   release: { artistName: string; releaseTitle: string },
-  candidate: Pick<SlskdSearchResult, 'filename'>,
+  candidate: Pick<SlskdSearchResult, 'filename'> & Partial<Pick<SlskdSearchResult, 'files'>>,
 ) {
   const { artist, title } = splitCandidateFilename(candidate.filename)
-  const extension = getFilenameExtension(candidate.filename)
   const normalizedArtist = normalizeText(normalizeArtistName(release.artistName))
   const normalizedTitle = normalizeText(normalizeAlbumTitle(release.releaseTitle))
   const normalizedCandidateArtist = normalizeText(normalizeArtistName(artist))
@@ -83,7 +69,7 @@ export function scoreSlskdCandidate(
   const titleMatch = normalizedTitle === normalizedCandidateTitle && normalizedTitle !== ''
   const qualityMatch = qualityMatches(undefined, candidate)
 
-  if (extension === undefined || !AUDIO_EXTENSIONS.has(extension)) {
+  if (!qualityMatch) {
     return {
       confidence: 0,
       artistMatch,
