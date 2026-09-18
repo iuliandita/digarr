@@ -68,12 +68,12 @@
     "@hono/zod-validator": "^0.9.1",
     "croner": "^10.0.1",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.13.7",
+    "hono": "^4.13.8",
     "openai": "^7.15.0",
     "openid-client": "^6.8.8",
     "p-queue": "^9.3.3",
     "p-retry": "^8.0.1",
     "pg": "^8.23.0",
-    "zod": "^4.6.2"
+    "zod": "^4.6.5"
   }
 }
