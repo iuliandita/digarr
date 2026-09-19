@@ -1,5 +1,7 @@
 # API Reference
 
+This reference follows `develop`; consult [Unreleased](../CHANGELOG.md#unreleased) for behavior not yet in a tagged release. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+
 All endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Bearer sessions
 remain the compatibility path for non-browser API clients. Only
@@ -940,6 +942,7 @@ Notification channels:
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
 - Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
   sending `***` back on `PATCH` preserves the stored ciphertext instead of overwriting it.
+  Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
   returns `403` (same rule as other global settings).
 - `allowPrivateTarget: true` relaxes only RFC1918 ranges (`10/8`, `172.16/12`, `192.168/16`) for
@@ -989,7 +992,7 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
-| POST | `/api/v1/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
+| POST | `/api/v1/admin/restore` | Admin | Replace data from a backup. Requires `?confirm=true`; add `&force=true` only to proceed despite an encryption-key mismatch (affected credentials need re-entry). Accepts multipart form (field: `file`) or raw JSON body. |
 | GET | `/api/v1/admin/backup/last` | Admin | Last auto-backup metadata. |
 
 Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.

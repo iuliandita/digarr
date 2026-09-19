@@ -13,12 +13,18 @@ remains available for anyone who wants it.
 
 ---
 
+## Configure browser access first
+
+Before starting the container or Compose project, set `ALLOWED_ORIGIN` to the URL you will open. For direct HTTP, such as `http://<nas-ip>:3000`, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`. For HTTPS through a reverse proxy, use its public HTTPS origin and leave insecure cookies disabled. Neither origin configuration nor this cookie override is a web UI setting.
+
+Set and retain `DIGARR_ENCRYPTION_KEY` before entering service credentials. For Compose, put these settings in a protected `.env` in the project folder; for the Launch wizard, add them under Environment. Back up the key separately. See [authentication](../AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
 ## DSM 7.2+ (Container Manager - has Project support)
 
 Container Manager supports compose projects natively. Use it if you want a
 no-SSH setup. Pick one of the two paths below.
 
-### Option 1: Embedded PGlite (recommended, single container, no secret)
+### Option 1: Embedded PGlite (recommended, single container)
 
 GUI:
 
@@ -28,7 +34,7 @@ GUI:
 4. Paste the contents of the [docker-compose.pglite.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml)
 5. Click **Done**
 
-There is no secret to create. The app stores its data in the project's `data`
+There is no database-password file to create. The app stores its data in the project's `data`
 volume.
 
 SSH:
@@ -81,7 +87,7 @@ You can create containers individually with the Launch wizard.
 ### Embedded PGlite (recommended, single container)
 
 With the embedded database there is no second container, no custom network,
-and no startup-order problem -- create one container and you are done.
+and no database startup dependency.
 
 1. **Docker** > **Registry** > search for `iuliandita/digarr`
 2. Download `iuliandita/digarr:latest`
@@ -93,7 +99,7 @@ and no startup-order problem -- create one container and you are done.
    - `/volume1/docker/digarr/backups` -> `/app/backups` (pre-migration backups)
 7. Still in **Advanced Settings** > **Environment** - optionally add:
    - `DIGARR_INITIAL_USERNAME` = pick an admin username
-   - `DIGARR_INITIAL_PASSWORD` = pick a password (min 8 chars)
+   - `DIGARR_INITIAL_PASSWORD` = pick a password (min 12 chars)
 8. Click **Next** / **Apply** to create and start the container
 
 The mapped `data` directory must be writable by the container user (uid 1000);
@@ -217,7 +223,7 @@ network lets them reach each other by container name.
      (replace `YOUR_PASSWORD` with the password from step 2 - the hostname
      `digarr-db` resolves because both containers are on `digarr-net`)
    - `DIGARR_INITIAL_USERNAME` = pick an admin username
-   - `DIGARR_INITIAL_PASSWORD` = pick a password (min 8 chars)
+   - `DIGARR_INITIAL_PASSWORD` = pick a password (min 12 chars)
 8. Click **Next** / **Apply** to create and start the container
 
 Open `http://<nas-ip>:3000` in your browser.
@@ -226,9 +232,7 @@ Open `http://<nas-ip>:3000` in your browser.
 
 ## ARM-based Synology models
 
-Digarr publishes multi-arch images (amd64 + arm64). ARM-based models
-(DS220j, DS223, DS124, etc.) work out of the box - Docker pulls the
-correct architecture automatically.
+Digarr publishes amd64 and arm64 images. CPU architecture alone does not establish NAS compatibility: the model and DSM version must also support Docker or Container Manager. Check package availability for your NAS before using this guide.
 
 ## Updating
 
@@ -236,9 +240,11 @@ correct architecture automatically.
 
 ```sh
 cd /volume1/docker/digarr
-sudo docker compose pull
-sudo docker compose up -d
+sudo docker compose -f docker-compose.pglite.yml pull
+sudo docker compose -f docker-compose.pglite.yml up -d
 ```
+
+For the PostgreSQL stack, use `docker-compose.yml` instead and pull only `app` when updating Digarr. Keep the same project name, volume mappings, and environment. Take an application backup before upgrading.
 
 ### GUI (DSM 7.1)
 
@@ -259,8 +265,7 @@ PostgreSQL does not need to be updated unless you specifically want a newer vers
 - Resource use depends on library size and background work; keep at least 1 GB
   free and watch the container during migrations or large syncs.
 - If using a reverse proxy (Synology's built-in or external), set
-  `ALLOWED_ORIGIN` to your public `https://` URL (via environment variable or
-  the web UI) and leave `DIGARR_ALLOW_INSECURE_COOKIES` at its default `false`.
+  `ALLOWED_ORIGIN` to your public `https://` URL through the environment and leave `DIGARR_ALLOW_INSECURE_COOKIES` at its default `false`.
   Session cookies stay `Secure` even though the proxy reaches the container over
   HTTP.
 - If you instead reach Digarr directly over plain HTTP (no proxy), set

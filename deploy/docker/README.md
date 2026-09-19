@@ -8,9 +8,11 @@ production or local development. Two bases are provided:
   the `pgdata` volume and persists across image re-pulls.
 - `docker-compose.pglite.yml` -- single container with the embedded PGlite
   database (real PostgreSQL compiled to Wasm, in-process). No database sidecar,
-  no secret. Data lives in the `data` volume.
+  no database-password secret. Data lives in the `data` volume.
 
 ## Production
+
+Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
 ### Embedded PGlite (single container)
 
@@ -70,13 +72,13 @@ docker compose \
 
 To reach the Postgres base's database from the host, add
 `-f deploy/docker/docker-compose.pgport.yml`, which republishes host port 5432
-(it has no effect on the PGlite base, which runs no postgres service).
+only with the PostgreSQL base. Do not layer this override onto PGlite: it declares a `postgres` service that the PGlite base does not define.
 Everything else (secrets, networks, healthchecks, resource limits) comes from
 the chosen base file.
 
 ## Secrets
 
-The PGlite base needs no secret. The rest of this section applies only to the
+The PGlite base needs no database-password secret. Both backends need `DIGARR_ENCRYPTION_KEY` to encrypt saved service credentials. The rest of this section applies only to the
 Postgres base (`docker-compose.yml`).
 
 The Postgres base compose file uses the `_FILE` env convention with a single secret.

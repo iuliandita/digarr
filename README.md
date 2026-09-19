@@ -12,156 +12,89 @@
 [![Tests](https://img.shields.io/badge/tests-vitest%20%2B%20playwright-brightgreen)](https://github.com/iuliandita/digarr/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/tag/iuliandita/digarr?label=release)](https://github.com/iuliandita/digarr/releases)
 
-**Music discovery for your *arr stack.** Digarr builds a taste profile from your listening sources, asks your AI provider for candidates, scores them, and gives you a review queue. From there you can approve artists into Lidarr or playlist targets, run mood searches, save discovery subscriptions, generate playlists, and browse by genre. The UI and AI-assisted reasoning ship in 15 languages. It is self-hosted, so the data stays with you.
+**Self-hosted music discovery for your library.** Find artists and albums from your listening history, explore a mood, and review recommendations before adding them to Lidarr or sending them to a playlist. Bring your own AI provider, including a local model. Lidarr is optional.
 
 > [!NOTE]
-> **v1.17.0 is out.** Existing local accounts can link SSO from Account settings, and MusicBrainz lookups can use a self-hosted mirror. Library sync now reads complete Emby libraries and keeps the previous snapshot when album fetching fails. Playlist export failures appear in Job History, and Spotify exports keep the chosen tracks using the current API. See the [release notes](https://github.com/iuliandita/digarr/releases/tag/v1.17.0) and [CHANGELOG.md](CHANGELOG.md) for details.
+> **v1.17.0 is out.** This release adds SSO account linking and MusicBrainz mirror support, and fixes library sync and playlist exports. See the [changelog](CHANGELOG.md) for release details.
 >
-> Documentation on `develop` also covers features available in the `:nightly` image but not yet in the latest tagged release. The changelog is the source of truth for released-version availability.
->
-> **TIDAL feedback wanted.** TIDAL Favorite Artists ships as experimental without live-account validation. We do not have a TIDAL account to test authorization, token refresh, or favorite-artist retrieval. If you use TIDAL, please try it and [share your results](#tidal-feedback), including failures. See [Connecting TIDAL](#connecting-tidal) for setup.
->
-> Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
+> This README follows `develop`. Plex listening history, Audition playlists, and the latest slskd import fixes are currently in `:nightly`; they are not part of v1.17.0. See [Unreleased](CHANGELOG.md#unreleased) before choosing an image.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
-[More screenshots](docs/SCREENSHOTS.md)
+[More screenshots](docs/SCREENSHOTS.md) | [Quick start](#quick-start) | [Configuration](#configuration) | [Documentation](#documentation)
 
-> [!IMPORTANT]
-> **Why people pick Digarr**
->
-> - 💿 **Album-level discovery** -- recommends and approves *individual albums* (gap-fills, new releases, net-new finds), not just artists. No whole-discography grabs.
-> - 🧠 **AI you control** -- Anthropic, OpenAI, Gemini, Ollama, or any OpenAI-compatible endpoint, scored with **configurable weights** that learn from your approvals and rejections.
-> - 💬 **Mood discovery** -- *"something like Boards of Canada but darker"* is a valid query.
-> - 🧭 **16 discovery modes** -- ListenBrainz radios, Release Radar, Library Gap-Fill, artist relationship graphs, labels, charts, Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, Subsonic Starred -- all runnable on demand or saved as subscriptions.
-> - 🔓 **No Lidarr required** -- full discovery-only mode; genre-aware scoring uses native listening metadata plus a bounded MusicBrainz cache warmer when no library is connected.
-> - 👥 **Real multi-user** -- OIDC/SSO plus per-user queues, credentials, scoring weights, and targets.
-> - 🌍 **15 languages** -- the UI *and* the AI's reasoning, localized.
-> - 🛡️ **Ops-grade self-hosting** -- zero-external-database single container, backup/restore, job observability, pre-flight upgrade checks, cosign-signed images.
+## What you can do
 
-> [!NOTE]
-> **Built with AI.** A human sets the roadmap, designs the architecture, and reviews the output; most code and tests are AI-generated.
+- **Find music from what you already enjoy.** Connect listening services or a media library, run a scan, and review scored recommendations with an explanation. Adjust scoring weights, reject suggestions, or block artists you never want recommended again.
+- **Discover individual albums.** Release Radar finds new releases from tracked artists; Library Gap-Fill finds missing studio albums. An optional setting turns an AI-suggested album by a new artist into an album recommendation. Album approval in Lidarr monitors and searches that album; it adds a new artist unmonitored and preserves an existing artist's other monitoring settings.
+- **Search by mood or starting artist.** Try "something like Boards of Canada but darker," browse genres, or use focused modes such as ListenBrainz radio, artist relationships, labels, and charts. Save recurring searches as subscriptions.
+- **Listen before approving.** Preview tracks in the review queue or use the Audition preview queue. Generated playlists can go to Spotify, Navidrome, Jellyfin, Emby, or Plex, or download as M3U/XSPF. Media-server exports need matching tracks already in that server's library; they do not download missing music.
+- **Choose where approvals go.** Use Lidarr, queue releases through slskd, or keep a discovery-only setup. Auto-approval is available if you want high-scoring recommendations sent to targets without manual review.
+- **Share an instance.** Each user has their own queue, connections, preferences, and assigned targets. Sign in with a local account or OIDC/SSO. The interface and AI discovery output support 15 languages, with light and dark themes.
 
-## What Makes Digarr Different
+Digarr manages recommendations and calls your connected services. It does not include a music downloader or a full music player. AI suggestions and MusicBrainz matches can be wrong; review the artist and release before approving.
 
-### Album-Level Discovery
-Digarr ships album-level discovery as a first-class feature. The recommendation queue surfaces individual albums alongside artists -- gap-fills for artists you already follow, new releases you may have missed, and net-new album finds. Approving an album adds the artist to Lidarr **unmonitored** (no whole-discography grab) and monitors and searches only the approved album. The Discover page adds a kind filter (All / Artists / Albums) and a dedicated Albums navigation entry. Full i18n across all 15 shipped locales. Three producers feed the Albums tab: Release Radar (new releases from tracked artists), Library Gap-Fill (studio albums you are missing from tracked artists), and net-new album discovery (a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle in Settings > Recommendations > Advanced).
+### Connections at a glance
 
-### 7-Stage AI Pipeline
-Digarr takes signals from up to 9 sources, runs them through an AI-assisted pipeline, scores candidates with configurable weights, removes duplicates across batches, and learns from what you approve or reject.
+| Use | Services |
+|-----|----------|
+| Scan taste-profile sources | ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, Subsonic, Discogs |
+| Deezer feeds | Flow discovery mode, favorites, followed artists, and playlist subscriptions |
+| Library sync | Lidarr, Plex, Jellyfin, Emby, Subsonic |
+| Approval and acquisition | Lidarr, slskd |
+| Playlist export | Spotify, Navidrome, Jellyfin, Emby, Plex |
+| Search | Spotify, Deezer, MusicBrainz, Bandcamp, TIDAL (experimental) |
+| AI recommendations | Anthropic, OpenAI, Gemini, Ollama, OpenAI-compatible endpoints |
+| Notifications | Webhooks, ntfy, Telegram, Apprise |
 
-### Mood Discovery
-Type "something like Boards of Canada but darker" or "upbeat 90s pop for a road trip" and Digarr turns that into a result set. You do not have to translate the idea into filters first.
+A connection's capabilities differ by service. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes. [TIDAL Favorite Artists](#connecting-tidal) is experimental: authorization, refresh, and retrieval have not been tested with a live account. Feedback is welcome through the [TIDAL testing guide](#tidal-feedback).
 
-### Discovery Modes
-Run focused discovery flows from Discover -> Discovery Modes (`/discover/modes`) for the shipped modes: ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick and Deep), Release Radar, Library Gap-Fill (studio albums you are missing from artists you already track), Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs; needs a connected Discogs account), Charts (artists trending on global or regional charts via Last.fm; needs a connected Last.fm account), Deezer Flow (artists from your personalized Deezer Flow feed; needs a connected Deezer account), Spotify Saved Albums (artists from the albums you saved on Spotify; needs a connected Spotify account), Spotify Followed Artists (the artists you follow on Spotify; needs a connected Spotify account with the `user-follow-read` scope, so existing users must disconnect and reconnect Spotify once to grant it), TIDAL Favorite Artists (experimental, not yet validated against a live TIDAL account -- see [Connecting TIDAL](#connecting-tidal); needs an admin-registered TIDAL app plus your own TIDAL account connected from Settings), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server; needs a connected Subsonic account). Manual runs now preflight invalid Artist Radio seeds before the job is accepted, and each accepted run is recorded in Jobs immediately so fast background failures are visible. Available discovery modes can be saved as subscriptions, and those subscriptions now reuse the same provider/fallback path as the manual run you configured.
+### Privacy and credentials
 
-### Auto-Playlists
-Build playlists from approved recommendations and send them to Navidrome, Jellyfin, Emby, Plex, or Spotify, or export them as M3U/XSPF. Add the playlist targets you want in Settings > Targets, then pick which of them each playlist pushes to. A failed push is recorded in Job History after the other selected targets have been attempted; the locally generated playlist remains available. The built-in playlist types are Audition, Weekly Digest, Genre Focus, Mood Mix, and Rediscover.
+Your database runs on your server. Connected services still receive requests: hosted AI providers receive discovery prompts, metadata services receive lookups, and embedded previews contact their providers. A local AI model keeps AI requests local, but does not make all of Digarr offline. Inside a container, `localhost` refers to that container; use a reachable address for a model running elsewhere.
 
-Audition selects your highest-scored pending artists and resolves one track per artist without approving them. Create an Audition playlist, choose its targets, and generate it on demand or set a schedule. Unresolvable artists are skipped. Media-server targets can only play matching tracks already in their libraries; exporting a playlist does not acquire missing music.
+Set and retain `DIGARR_ENCRYPTION_KEY` before saving service credentials. Without it, sensitive database fields are stored unencrypted. Back up the key separately from the database; losing it means re-entering encrypted credentials. See the [key rotation guide](docs/runbooks/encryption-key-rotation.md) before changing an existing key.
 
-Plex exports resolve tracks already in your Plex library. If none resolve, the export fails with a clear message instead of sending an empty create request. The Plex Playlist target uses its own saved server URL and token when tested.
-
-Spotify exports keep generated Spotify track IDs and their order. Tracks from other sources need an exact artist/title match; unmatched tracks are skipped. Artist-only approvals use up to three matching Spotify search results rather than the removed top-tracks endpoint. Playlist export still requires a working Spotify connection with playlist permissions.
-
-### Your AI, Your Choice
-Use Anthropic, OpenAI, Google Gemini, Ollama, or any OpenAI-compatible endpoint. Recommendation cards include a short explanation of why an artist made the cut.
-
-### Multilingual UI and AI Output
-Digarr now ships localized catalogs for 15 languages, a visible language switcher before and after login, persisted per-user locale preferences, and locale-aware AI reasoning for mood discovery, quick discover, and full scans.
-
-> [!NOTE]
-> Shipped UI languages: English, Spanish, French, German, Portuguese (Brazil), Italian, Dutch, Romanian, Polish, Turkish, Ukrainian, Russian, Japanese, Korean, and Simplified Chinese.
->
-> Translations are reviewed in-repo and checked for missing or untranslated catalog values. If you notice awkward wording or missing context, please [open an issue](https://github.com/iuliandita/digarr/issues) or send a PR with fixes.
-
-### Flexible Setup
-The setup wizard supports three starting points: Lidarr, Emby, or discovery-only. If you connect Lidarr, approved artists are added with your chosen quality and metadata profiles. Approval can monitor all albums, future albums, selected albums, or the top 3 popular album releases resolved through Spotify with a Last.fm fallback. If you start with Emby, Digarr saves the server connection for library sync and creates an Emby playlist target during setup. If you skip both, you can still run discovery and add targets later from Settings, including playlist exports. `slskd` targets are configured later in Settings > Targets and support standalone queueing or linked Lidarr handoff.
-
-### slskd Integration
-`slskd` targets support two approval modes:
-
-- **Standalone approval** queues the matched release directly in `slskd`.
-- **Combined Lidarr + slskd approval** adds the artist to Lidarr first, then queues the selected release in `slskd` when the target is linked to a Lidarr destination.
-
-In addition to approval-driven queueing, Digarr now runs a background `slskd` worker for linked Lidarr targets. It polls Lidarr wanted releases, creates deduped `slskd` jobs per target, advances them through search and transfer states, and only marks Lidarr-backed jobs complete after import verification. Admins can trigger a manual sync and inspect active `slskd` jobs from the API.
-
-### Cross-Platform Search
-Search across Spotify, Deezer, MusicBrainz, TIDAL, and Bandcamp in one pass. Digarr merges the results, deduplicates them, and lets you launch Quick Discover from any match. TIDAL is experimental and needs admin-configured client credentials (Settings -> Connections) before it becomes active.
-
-## Features
-
-- **Album-level discovery:** discover and approve individual albums -- gap-fill, new releases, net-new finds -- without grabbing the full discography; kind filter (All / Artists / Albums) and dedicated Albums nav on Discover
-- **9 data sources:** ListenBrainz, Last.fm, Spotify (OAuth), Deezer (OAuth), Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic compatible), and Discogs
-- **Smart scoring:** weighted composite scoring across consensus, similarity, genre overlap, AI confidence, feedback learning, and popularity
-- **Auto-approve:** send high-scoring recommendations to your targets automatically
-- **Discovery modes:** manual and subscription flows for ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional charts), Deezer Flow (personalized Deezer feed), Spotify Saved Albums (artists from albums you saved on Spotify), TIDAL Favorite Artists (the artists in your TIDAL collection; experimental), and Subsonic Starred (artists similar to your starred Subsonic artists)
-- **Subscriptions:** scheduled discovery from discovery modes, Spotify Liked Songs, playlists and charts, Deezer favorites, followed artists and Flow, Last.fm tags and charts, ListenBrainz feeds, genre searches, and similar-artist seeds
-- **Genre deep dive:** browse by genre with Recommended, Trending, and Deep Cuts tabs
-- **Library sync and reconciliation:** background artist and album sync, per-source status, album sync coverage, and unreconciled review that distinguishes no MusicBrainz match, ambiguous matches, and failed lookups; admins can confirm selected-only bulk ignore for eligible artists or the current album page, while per-row MBID correction, recommendation-card coverage badges, and 7 automated health checks remain available
-- **Analytics:** approval rates, genre trends, source effectiveness, score distribution, and time-to-act
-- **Multilingual UI:** 15 shipped locales, saved user language preference, localized auth/setup/high-traffic pages, and locale-aware AI reasoning
-- **Top tracks:** Deezer 30-second previews on recommendation cards with MusicBrainz fallback
-- **Decade filtering:** filter recommendations by era, from the 60s through the 20s+
-- **Music previews:** Spotify embeds, Deezer clips, and YouTube on recommendation cards, plus an Audition queue on Discover that plays pending previews back-to-back in score order with previous/next controls in the global preview bar. Spotify uses a persistent controller so autoplay-blocked previews stay on the current item with usable native controls instead of silently advancing
-- **OIDC/SSO and multi-user:** per-user queues, sources, scoring weights, and target configs. Existing local users can [link an SSO identity](docs/AUTHENTICATION.md#oidc-account-matching) from Settings > Account after confirming their password. Admins assign targets through Settings > Targets > Assigned user; see [user management](docs/AUTHENTICATION.md#users-and-targets).
-- **Swipe-to-approve** on mobile, card-stack mode on desktop
-- **Notifications:** a list of channels of any count and mixed type -- webhook (Discord embeds or raw JSON), ntfy, Telegram, and Apprise (one endpoint fans out to 80+ services). Each channel picks its own events: scan complete, and/or a scheduled digest (a periodic activity roll-up on a cron schedule that survives restarts without double-reporting or dropping a window). An existing single webhook URL is migrated into a webhook channel automatically -- no config change. Channel secrets are encrypted at rest. All delivery flows through one SSRF-guarded transport (DNS-pinned, no redirects, private/link-local/cloud-metadata targets blocked); an admin-only per-channel opt-in relaxes only RFC1918 ranges for that one channel so a self-hosted ntfy/Apprise on your LAN is reachable, while cloud-metadata and link-local stay blocked regardless
-- **16 color themes:** editor classics plus streaming-service-inspired *arr themes, in dark and light variants
-- **Export:** JSON, CSV, M3U, and XSPF
-- **Self-hosted:** a single container that runs alongside your existing *arr stack
-
-### Integrations
-
-Connect external services to unlock discovery feeds, library sync, playlist export, and one-click imports.
-
-| Service | Discovery | Subscriptions | Library Sync | Playlist Export | Import |
-|---------|-----------|--------------|-------------|----------------|--------|
-| ListenBrainz | Artist Radio, User Radio, Tag Radio, Similar Users (Quick), Similar Users (Deep) | Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users | - | - | - |
-| Spotify | Saved Albums, Followed Artists | Liked Songs, Charts, Playlists | - | Yes | Playlist |
-| Deezer | Flow | Favorites, Followed, Flow, Playlists | - | - | Favorites, Followed, Playlists |
-| Discogs | Collection, Wantlist, Labels | - | - | - | - |
-| Last.fm | Global and regional Charts | Charts, Tag Radio | - | - | - |
-| Lidarr | - | - | Artists, Albums | - | - |
-| Plex | Per-listener history and similar artists | - | Artists, Albums | Yes | - |
-| Jellyfin | - | - | Artists, Albums | Yes | - |
-| Emby | - | - | Artists, Albums | Yes | - |
-| Subsonic | Starred artists | - | Artists, Albums | Yes (Navidrome target) | - |
-| TIDAL | Favorite Artists (experimental) | - | - | - | - |
-| TheAudioDB | - | - | - | - | Artist images (primary) |
-| Wikidata | - | - | - | - | Bio + external links per artist |
-| AI Provider | Mood Discover | - | - | - | - |
-
-## Quick Start
+## Quick start
 
 Digarr ships with an embedded database (PGlite) -- no separate PostgreSQL required. The fastest way to run it is a single container with no database setup:
 
 ```sh
-docker run -d --name digarr -p 3000:3000 \
+mkdir digarr && cd digarr
+(umask 077 && printf 'DIGARR_ENCRYPTION_KEY=%s\n' "$(openssl rand -hex 32)" > digarr.env)
+docker run -d --name digarr -p 127.0.0.1:3000:3000 \
+  --env-file ./digarr.env \
+  -e ALLOWED_ORIGIN=http://localhost:3000 \
+  -e DIGARR_ALLOW_INSECURE_COOKIES=true \
   -v digarr-data:/app/data -v digarr-backups:/app/backups \
   docker.io/iuliandita/digarr:latest
 ```
 
-Open `http://localhost:3000` and complete the setup wizard. You can start with Lidarr, Emby, or discovery-only mode. Database migrations run automatically on every startup.
+This example binds to this computer only and explicitly allows HTTP cookies. For access from other devices, use HTTPS with the [public-origin settings](docs/AUTHENTICATION.md#public-origin-and-reverse-proxies), or deliberately opt into HTTP on your trusted network. The command needs OpenSSL and saves the encryption key in `digarr.env`, readable only by your user. Keep that file and back it up separately; reuse it when recreating the container.
 
-The image pulls `docker.io/iuliandita/digarr:latest`, the newest tagged release and the recommended channel for first-time home installs. For maximum caution, `:stable` tracks only releases that have been live for at least seven days with no follow-up patch. Use a minor tag like `:1.17` to stay on patch fixes for that line, or pin a specific patch like `:1.17.0` when you want zero surprises. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on every change with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit. Images are Alpine-based by default; a Debian/glibc variant ships alongside every release as `:debian`, `-debian`-suffixed version tags, and `:stable-debian`.
+Open `http://localhost:3000` and complete the setup wizard. Passwords need at least 12 characters. The first account becomes the admin; further self-registration is closed by default. You can start with Lidarr, Emby, or discovery-only mode. Database migrations run automatically on every startup.
+
+The image pulls `docker.io/iuliandita/digarr:latest`, the newest tagged release and the recommended channel for first-time home installs. For maximum caution, `:stable` tracks only releases that have been live for at least seven days with no follow-up patch. Use a minor tag like `:1.17` to stay on patch fixes for that line, or pin a specific patch like `:1.17.0` when you want zero surprises. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on each push to `develop` with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit. Images are Alpine-based by default; a Debian/glibc variant ships alongside every release as `:debian`, `-debian`-suffixed version tags, and `:stable-debian`.
 
 ### Database backend
 
 Digarr picks its database backend at boot. The `docker run` line above and `deploy/docker/docker-compose.pglite.yml` use the embedded PGlite database (real PostgreSQL compiled to Wasm, in-process, single data directory) -- no separate PostgreSQL container. The default `deploy/docker/docker-compose.yml` instead runs an external PostgreSQL alongside the app; set `DATABASE_URL` or `DB_HOST`/`DB_USER`/`DB_NAME`/`DB_PASS` to point Digarr at your own PostgreSQL. External PostgreSQL stays fully supported everywhere.
 
-> **Upgrade note:** existing deployments are unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and the default backend plus your existing Postgres connection are unchanged. The startup log prints the selected backend (`[db] backend=...`).
+The startup log and `GET /health` report the active backend. A missing or incomplete PostgreSQL configuration can select an empty embedded database instead; check the backend before assuming your data has disappeared. Keep one Digarr instance per database: external PostgreSQL does not make the app safe to run with multiple replicas.
 
 To switch backends after initial setup, use the in-app migration tool under Settings -> Administration -> Migrate Database Backend. It copies all stateful data to the target without modifying the source. See [Switching the Database Backend](docs/guides/switching-backends.md).
 
 ### Docker Compose
 
-Embedded PGlite (single container, no database, no secret):
+Before starting either stack, edit `.env`: set `ALLOWED_ORIGIN` to the URL you will open and set `DIGARR_ENCRYPTION_KEY` to a generated, saved secret. For direct HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; leave it false behind HTTPS. The origin has no path or trailing slash.
+
+Embedded PGlite (single container, no separate database password):
 
 ```sh
 mkdir digarr && cd digarr
 curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+curl -o .env https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
+# Configure the public origin and encryption key in .env before starting.
 docker compose -f docker-compose.pglite.yml up -d
 ```
 
@@ -176,7 +109,7 @@ chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
 (umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp .env.example .env
-# Edit secrets/postgres_password and optionally .env
+# Edit secrets/postgres_password and .env before starting
 docker compose up -d
 ```
 
@@ -186,28 +119,21 @@ For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `
 
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## How It Works
+## Your first recommendations
 
-Digarr runs a 7-stage recommendation pipeline:
+1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
+2. Connect a listening source in Settings, or import artists from CSV or a supported playlist. You can add targets later.
+3. Run a scan from Dashboard or Discover. Digarr builds a taste profile, gathers candidates, resolves MusicBrainz identities, scores them, and removes duplicates and blocked results.
+4. Preview and approve suggestions, reject them, or adjust the scoring weights. Use Release Radar or Library Gap-Fill for albums; the normal scan is artist-focused unless you enable net-new album discovery.
 
-1. **Collect:** fetches your Lidarr library, or skips it in discovery mode
-2. **Analyze:** builds a taste profile from all connected sources
-3. **Discover:** queries Last.fm similar artists, Discogs genres, AI recommendations, and library seeds
-4. **Resolve:** validates against MusicBrainz, fetches metadata and images, and handles genre-aware disambiguation
-5. **Score:** applies the weighted scoring formula
-6. **Filter:** removes library duplicates, rejected artists with cooldowns, and low-score results
-7. **Store:** saves the batch and its recommendations
-
-You can run the pipeline on a schedule, by hand, through subscriptions for targeted discovery, or from Discover -> Discovery Modes for focused manual runs on `/discover/modes`.
-
-The normal scan finds artists. Album recommendations come from Library Gap-Fill (missing studio albums from tracked artists), Release Radar (new releases from tracked artists), or the optional net-new album discovery preference (a specific AI-suggested album from a new-to-you artist). When the Albums view is empty, it links directly to those producers and the relevant setting.
+Admins can inspect failures in Settings > Job History and System Health. A source can fail while the scan completes using the remaining sources; check the job details if results look incomplete. The [architecture guide](docs/ARCHITECTURE.md#pipeline) describes the pipeline stages.
 
 ## Requirements
 
 | Service | Required | Purpose |
 |---------|----------|---------|
 | **Lidarr** | Optional | Music library management + auto-download |
-| **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Deezer, Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic), or Discogs |
+| **Listening source** | Optional | ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, Subsonic (Navidrome/Airsonic/Gonic), or Discogs |
 | **AI Provider** | Yes | Anthropic, OpenAI, Gemini, Ollama, or any compatible endpoint |
 | **Database** | Yes | Embedded PGlite by default (no setup); or external PostgreSQL via `DATABASE_URL` / `DB_*` |
 
@@ -217,9 +143,7 @@ Most day-to-day configuration lives in the web UI after initial setup: connectio
 
 If a library source fails to return an artist's albums, the sync is marked failed and keeps the previous source snapshot. Fix the connection or permissions error, then retry the sync to refresh it.
 
-Emby sync fetches artists and each artist's albums in pages of 200. Invalid totals, more than 200,000 reported items, or more than 1,000 pages fail the sync instead of saving a truncated snapshot.
-
-Env-var auto-setup needs initial admin credentials plus an AI provider and model. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
+Set `AI_PROVIDER` and `AI_MODEL` to complete service setup from the environment on first boot. To create the first admin automatically too, set `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters. Listening sources, Lidarr, and Emby can be added later in the UI or supplied during setup. `slskd` targets are added later in Settings > Targets and can be linked to a Lidarr target, so a single approval can add the artist to Lidarr first and then queue the matched Soulseek release. See [`.env.example`](.env.example) for local development fallbacks and [`deploy/docker/.env.example`](deploy/docker/.env.example) for Compose deployments.
 
 The web UI uses an HttpOnly session cookie; bearer sessions remain available
 for API clients. Behind a reverse proxy or TLS terminator, set
@@ -233,6 +157,14 @@ container directly over plain HTTP, copy the env example and set
 accepting that direct HTTP exposes the session cookie to network interception.
 See [Authentication](docs/AUTHENTICATION.md) for the browser migration and API
 compatibility details.
+
+### Playlists and notifications
+
+Add playlist destinations in Settings > Targets, then select those targets in each playlist. Digarr keeps the generated playlist locally if an export fails; admins can inspect the error in Job History. Spotify exports need a connected account with playlist permissions. Tracks without a matching destination track are skipped.
+
+Audition playlists are available in `:nightly`: they choose one track per pending artist without approving recommendations, and can refresh on demand or on a schedule. They are separate from the Audition preview queue in Discover, which plays short previews in the browser.
+
+Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Notifications, with scan-complete and scheduled-digest subscriptions per channel. Private-network destinations are blocked by default; the per-channel LAN option permits private IPv4 destinations for self-hosted services. It does not override your container or Kubernetes network policy.
 
 ### Large Lidarr libraries
 
@@ -257,11 +189,15 @@ For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`
 
 ### Connecting Plex listeners
 
+Available in `:nightly`; not in v1.17.0.
+
 In Settings > Your Connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
 
 A listener selection is required for listening-based discovery. Existing Plex connections continue to sync their libraries, but need this selection before contributing listening history. Changing the server or token clears the selection. Digarr verifies the server identity and rejects history belonging to a different account instead of mixing profiles. A server or token that cannot expose the account list or playback history can still be used for library sync; Plex similarity data depends on the library's metadata agent. History analysis allows at most 5,000 entries (25 pages) per requested period. If that period cannot be read completely within the limit, top-artist analysis reports a failure instead of returning partial totals; choose a shorter period or another listening source.
 
 ### Importing slskd downloads into Lidarr
+
+These import checks and retries are in `:nightly`; not in v1.17.0.
 
 For a linked slskd target, set **Download root as seen by Lidarr** to the completed-downloads folder that Lidarr can read, such as `/downloads`. Mount the same completed files into Lidarr or configure its path mapping. slskd stores each remote directory under its final folder name; multi-disc folders must be complete and unambiguous before import.
 
@@ -280,7 +216,7 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
    <your-digarr-url>/api/v1/auth/oauth/spotify/callback
    ```
 
-   For a default local install that is `http://localhost:3000/api/v1/auth/oauth/spotify/callback`; behind a reverse proxy use the external URL your browser opens Digarr with, e.g. `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. The value must match exactly between the Spotify app and Digarr.
+   Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
 3. In Digarr, open **Settings > Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
 
 ### Connecting TIDAL
@@ -326,13 +262,13 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Manual backup:** `POST /api/v1/admin/backup` returns a JSON file with all configuration, users, targets, subscriptions, and recommendation history. Add `?includeCaches=true` to include artist and genre caches. The file is larger, but restores do not need to fetch that data from MusicBrainz again.
 
-**Restore:** `POST /api/v1/admin/restore` accepts a backup JSON file. The restore runs in a single transaction, so failures roll back cleanly. It restores a cleared database using the backup's primary keys plus stable natural keys for cache and lookup tables where IDs are instance-specific. If the encryption key differs from the backup, Digarr lists the affected credential fields so you can re-enter them manually.
+**Restore:** `POST /api/v1/admin/restore?confirm=true` accepts backup JSON or a multipart `file` upload. It replaces the included tables in a transaction; it does not merge a backup into existing account data. Back up the destination first. An encryption-key mismatch returns `409` without restoring. Restore with the original key, or explicitly add `&force=true` and re-enter the affected credentials afterward.
 
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
-**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups so a self-hoster can miss roughly two weeks of releases and still roll back. Disable this with `DIGARR_AUTO_BACKUP=false`.
+**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss. Disable this with `DIGARR_AUTO_BACKUP=false`.
 
-**Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests mount one by default; custom deployments should do the same.
+**Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests use `emptyDir` by default, which is lost when the pod is replaced. Enable `backups.persistence.enabled=true` in Helm, or provide persistent storage in custom manifests.
 
 **Downgrading across the OIDC token-storage migration:** Stop Digarr first, and never run an older image against a database that has already received the migration. Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
 
@@ -340,8 +276,8 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 docker compose -f docker-compose.pglite.yml stop app
 docker compose -f docker-compose.pglite.yml run --rm --no-deps app \
   bun dist/scripts/prepare-rollback-backup.js \
-  /app/backups/<automatic-pre-migration-v1.json> \
-  /app/backups/<rollback-compatible-v1.json>
+  '/app/backups/<automatic-pre-migration-v1.json>' \
+  '/app/backups/<rollback-compatible-v1.json>'
 ```
 
 For the external-PostgreSQL installation, use `docker-compose.yml` and include every override file used by that installation. From a source checkout at the same revision, the equivalent command is `bun scripts/prepare-rollback-backup.ts <input> <output>`.
@@ -356,7 +292,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 - **Rebuild Genre Cache:** regenerate cached genres from artist tags
 - **Re-score Recommendations:** recalculate scores with the current weights
 - **Dedupe Repair:** merge duplicate recommendations
-- **AI Reasoning Audit:** detect and fix AI hallucinations
+- **AI Reasoning Audit:** review and repair stored reasoning; this cannot guarantee that AI claims are correct
 - **Purge Sessions:** clean out expired login sessions
 
 ## Deployment
@@ -364,7 +300,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 | Method | Path | Notes |
 |--------|------|-------|
 | Docker Compose | [`deploy/docker/`](deploy/docker/) | Recommended. Choose single-container PGlite or the bundled PostgreSQL stack. Also on [Docker Hub](https://hub.docker.com/r/iuliandita/digarr). |
-| Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Bundled PostgreSQL or bring your own. |
+| Helm chart | [`deploy/helm/digarr/`](deploy/helm/digarr/) | Kubernetes. Embedded PGlite, bundled PostgreSQL, or your own database. Keep one app replica. |
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
 | Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | In the Community Applications store (search "Digarr"); bundled template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)) as manual fallback. Embedded PGlite by default; external PostgreSQL optional. |
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
@@ -377,57 +313,36 @@ Since v0.27.8, every release image is signed with [cosign](https://github.com/si
 Install cosign and verify a pulled image before running it:
 
 ```sh
-# Replace <TAG> with the version you pulled, e.g. 0.27.8
+# Replace <TAG> with the exact release version you pulled
 cosign verify \
   --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  ghcr.io/iuliandita/digarr:<TAG>
+  'ghcr.io/iuliandita/digarr:<TAG>'
 
 # Verify the signed SBOM
 cosign verify-attestation \
   --type spdxjson \
   --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  ghcr.io/iuliandita/digarr:<TAG>
+  'ghcr.io/iuliandita/digarr:<TAG>'
 ```
 
-A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Any tampering or registry compromise after publication would fail verification.
+A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Verify the exact version or digest you intend to run. A valid signature identifies the publishing workflow; it does not guarantee that the software is free of vulnerabilities.
 
-## Friends
+## Documentation
 
-Other self-hosted music discovery projects. For a deeper look at how the
-approaches differ and which tool fits which setup, see
-[Choosing a Self-Hosted Music Discovery Tool](docs/COMPARISON.md).
-
-| Project | Approach |
-|---------|----------|
-| [Lidify](https://github.com/TheWicklowWolf/Lidify) | The OG. Lidarr library + Last.fm similar artists. Simple, focused. |
-| [Aurral](https://github.com/lklynet/aurral) | Last.fm tag similarity + Weekly Flow playlists via Soulseek/Navidrome. |
-| [MixArr](https://github.com/aquantumofdonuts/mixarr) | 56 subscription types across 12 services. Widest net in the space. |
-| [Curatorr](https://github.com/MickyGX/curatorr) | Behavior-first. Scores artists on skips/play completion, not tags. |
-| [Brainarr](https://github.com/RicherTunes/Brainarr) | Native Lidarr plugin. Privacy-first with local AI. |
-| [Sonobarr](https://github.com/Dodelidoo-Labs/sonobarr) | Last.fm discovery with optional AI assistant. Real-time UI. |
-| [Explo](https://github.com/LumePart/Explo) | Discover Weekly for self-hosted. ListenBrainz recs to your media server. |
-| [DroppedNeedle](https://github.com/DroppedNeedle/DroppedNeedle) | Music requests, discovery, playback, and a built-in library/download engine backed by slskd or Usenet. |
-| [SoulSync](https://github.com/Nezreka/SoulSync) | Hands-off acquisition: watchlist monitoring, multi-source downloads, rich tagging. |
-| [Kima Hub](https://github.com/Chevron7Locked/kima-hub) | Full music platform: streaming player, embedding similarity, podcasts. |
-| [MusicMoveArr Datasets](https://github.com/MusicMoveArr/Datasets) | MB/Spotify/Deezer/Tidal datasets used by Digarr for genre enrichment. |
+- [Installation with Docker](deploy/docker/README.md), [Helm](deploy/helm/digarr/README.md), [Unraid](docs/guides/unraid.md), [Synology](docs/guides/synology.md), or [Docker Desktop](docs/guides/docker-desktop.md)
+- [Authentication, SSO, and user management](docs/AUTHENTICATION.md)
+- [API reference](docs/API.md) and [architecture](docs/ARCHITECTURE.md)
+- [Switching database backends](docs/guides/switching-backends.md) and [encryption-key rotation](docs/runbooks/encryption-key-rotation.md)
+- [Changelog](CHANGELOG.md), [roadmap](docs/ROADMAP.md), and [screenshots](docs/SCREENSHOTS.md)
+- [Other self-hosted music projects](docs/COMPARISON.md)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Bug reports, translations, documentation fixes, and code contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and checks. Report security problems through the [private reporting process](SECURITY.md).
 
-### Commit message format
-
-This repo uses Conventional Commits. The commit-msg hook at `.githooks/commit-msg` enforces:
-
-    type(scope): description
-
-Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `build`, `ci`, `revert`. Scope is optional.
-
-Activate the hook once per clone:
-
-    git config --local core.hooksPath .githooks
+Most code and tests are AI-generated, with a human setting direction and reviewing changes.
 
 ## License
 
@@ -442,9 +357,3 @@ MIT. See [LICENSE](LICENSE).
    <img alt="Star History Chart" src="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
  </picture>
 </a>
-
----
-
-<p align="center"><sub>
-music discovery · AI music recommendations · self-hosted · lidarr companion · *arr stack · album discovery · new music finder · music curation · mood search · playlist generator · music taste profile · plex · jellyfin · emby · navidrome · subsonic · slskd · soulseek · listenbrainz · last.fm · spotify · deezer · musicbrainz · discogs · tidal · bandcamp · release radar · library gap-fill · discovery modes · music subscriptions · genre discovery · similar artists · charts · docker · kubernetes · helm · unraid · synology · homelab · multi-user · OIDC · SSO · webhooks · discord notifications · ntfy · telegram · apprise · i18n · 15 languages · open source · MIT
-</sub></p>

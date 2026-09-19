@@ -21,6 +21,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Changed
 
+- Installation guides now spell out HTTP cookie settings, the 12-character password minimum, persistent backups, and database-backend choices. The README and project descriptions focus on discovery, review, and playlist workflows, with nightly features labeled separately.
 - TIDAL Favorite Artists continues to ship as experimental without live-account validation. Authorization, refresh, and favorite-artist retrieval remain unverified; live testing is deferred to community feedback. The [README feedback guide](README.md#tidal-feedback) explains setup and what to report. [#553](https://github.com/iuliandita/digarr/issues/553).
 - Spotify setup documents the Premium app-owner requirement and Development Mode allowlist limits, with alternatives that do not need Spotify. [#395](https://github.com/iuliandita/digarr/issues/395).
 
