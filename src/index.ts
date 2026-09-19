@@ -92,6 +92,7 @@ import { createNavidromePlaylistTarget } from './core/targets/navidrome-playlist
 import { createPlexPlaylistTarget } from './core/targets/plex-playlist'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
+import { testTargetConnection } from './core/targets/test-connection'
 import type { DestinationTarget } from './core/targets/types'
 import { errMsg } from './core/validation'
 import { closeDb, db, pool } from './db'
@@ -1330,56 +1331,7 @@ const app = createApp({
       updateTarget(db, id, data),
     deleteTarget: (id: number) => deleteTarget(db, id),
   },
-  testTargetConnection: async (type, config) => {
-    if (type === 'lidarr') {
-      const target = createLidarrTarget(0, {
-        url: config.url as string,
-        apiKey: config.apiKey as string,
-        skipTlsVerify: (config.skipTlsVerify as boolean) ?? false,
-      })
-      return target.testConnection()
-    }
-
-    if (type === 'jellyfin') {
-      const client = createJellyfinClient(
-        config.url as string,
-        config.apiKey as string,
-        (config.userId as string) ?? '',
-        { skipTlsVerify: (config.skipTlsVerify as boolean) ?? false },
-      )
-      return client.testConnection()
-    }
-
-    if (type === 'emby-playlist') {
-      const target = createEmbyPlaylistTarget(0, {
-        url: config.url as string,
-        apiKey: config.apiKey as string,
-        userId: config.userId as string,
-        skipTlsVerify: (config.skipTlsVerify as boolean) ?? false,
-      })
-      return target.testConnection()
-    }
-
-    if (type === 'spotify-playlist') {
-      // Spotify test requires OAuth - can't test from config alone
-      return {
-        success: false,
-        message:
-          'Spotify targets require OAuth connection. Use Settings > Connections to connect Spotify first.',
-      }
-    }
-
-    if (type === 'slskd') {
-      const client = createSlskdClient(
-        config.url as string,
-        config.apiKey as string,
-        (config.skipTlsVerify as boolean) ?? false,
-      )
-      return client.testConnection()
-    }
-
-    return { success: false, message: `Unknown target type: ${type}` }
-  },
+  testTargetConnection,
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),

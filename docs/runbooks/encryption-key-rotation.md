@@ -19,6 +19,7 @@ Rotation touches these columns:
 
 - `settings.lidarr_api_key`, `settings.ai_api_key`, `settings.audiodb_api_key`, `settings.oidc_client_secret`, `settings.tidal_client_secret`
 - `settings.preferences.fanartApiKey` (nested in jsonb)
+- Encrypted fields in `settings.preferences.channels`, including webhook URLs, Telegram bot tokens, ntfy tokens, and Apprise URLs
 - `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`, `users.subsonic_password`
 - `oauth_tokens.access_token`, `oauth_tokens.refresh_token`, `oauth_tokens.client_secret`
 - `targets.config` (any `enc:v1:`-prefixed string values)
@@ -155,9 +156,8 @@ OIDC provider tokens are not retained and therefore have no rotation site.
 
    Re-run the same Compose command from step 4 with
    `--env-from-file "$HOME/.config/digarr/rotation/verify.env"`. This pass
-   checks every scalar, nested preference, and target-config ciphertext, not a
-   sample. It re-encrypts values again with fresh IVs and exits nonzero if any
-   value still requires the old key.
+   checks all encrypted values, including notification channels. It re-encrypts
+   them with fresh IVs and exits nonzero if any value still requires the old key.
 
 6. **Deploy a third time to drop NEXT.** Restart the stopped app instances only
    after both script passes succeed.

@@ -1,5 +1,7 @@
 # API Reference
 
+This reference covers v1.18.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+
 All endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Bearer sessions
 remain the compatibility path for non-browser API clients. Only
@@ -291,7 +293,7 @@ Locale notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
 - In the web UI, these modes are exposed from Discover -> Discovery Modes
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
-- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: its TIDAL OAuth flow has not been validated against a live account. Clients should badge experimental modes rather than hide them.
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. Clients should badge experimental modes rather than hide them. See [TIDAL feedback](../README.md#tidal-feedback) for safe community reports.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -557,6 +559,8 @@ A linked `slskd` target requires an enabled Lidarr target assigned to the same u
 
 Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url":"http://lidarr:8686","apiKey":"<key>"}}`.
 
+The target test uses the saved provider configuration for `plex-playlist`, `jellyfin-playlist`, `navidrome-playlist`, and `emby-playlist`. Plex playlist export fails before creation when no local tracks resolve or the server identity is missing.
+
 **Target types**: `lidarr`, `slskd`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`, `export`
 
 ## slskd
@@ -570,6 +574,8 @@ Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url"
 - No request body
 - The route acknowledges immediately and lets the sync continue in the background
 - The sync worker polls linked Lidarr wanted releases, creates deduped `slskd` jobs, advances active jobs through search and transfer states, and verifies Lidarr imports before marking linked jobs complete
+- Linked target config requires `lidarrDownloadPath`, the completed downloads root visible to Lidarr. All queued files must succeed before `ManualImport`; partial, rejected, ambiguous, or unidentified files are refused. Imports use `move` and are verified through track `hasFile` values. Releases are capped at 500 files and 20 GiB, with a 2,048-character path limit; rejected manifests never enqueue downloads.
+- Failed work reuses its work-key job after a one-hour cooldown and increments `attempts`. Historical duplicate failures are retained in terminal `superseded` state.
 
 **GET /api/v1/slskd/jobs** response shape:
 
@@ -620,7 +626,9 @@ Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url"
 
 **POST /api/v1/playlists/:id/generate** returns `202` with `{ "status": "generating" }` before generation finishes. Generated tracks are saved locally before exports to selected enabled playlist targets. Exports to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets are all attempted; an export failure marks the job failed in Job History, while local tracks and successful remote exports remain. There is no remote rollback.
 
-**Strategies**: `weekly_digest`, `genre_focus`, `mood_mix`, `rediscover`
+**Strategies**: `audition`, `weekly_digest`, `genre_focus`, `mood_mix`, `rediscover`
+
+`audition` selects the playlist owner's pending recommendations in descending score order, deduplicates artists, and resolves one track per artist up to `config.size`. It does not approve recommendations and skips unresolved tracks instead of inventing placeholder titles. It uses the existing on-demand generation endpoint, schedule, and target selection. Local media-server targets require matching tracks in their libraries.
 
 ---
 
@@ -852,15 +860,15 @@ covered artists when a populated cache entry is due for refresh.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/listening/top-artists` | Yes | Top artists by play count for a given period (ListenBrainz primary, Last.fm fallback) |
-| GET | `/api/v1/listening/recent-tracks` | Yes | Most recent scrobbles (Last.fm primary, ListenBrainz, Jellyfin, Emby fallback) |
+| GET | `/api/v1/listening/top-artists` | Yes | Top artists by play count for a given period (ListenBrainz primary, Last.fm and mapped Plex fallback) |
+| GET | `/api/v1/listening/recent-tracks` | Yes | Most recent scrobbles (Last.fm primary, ListenBrainz, Jellyfin, Emby and mapped Plex fallback) |
 
 **GET /api/v1/listening/top-artists** query params:
 - `range` - `this_week`, `this_month`, `this_year`, `all_time` (default `this_month`). Calendar-aligned ongoing periods, not rolling windows. Legacy `week`/`month`/`year` map to `this_week`/`this_month`/`this_year` for back-compat.
 - `offset` - 0-10000 (default 0)
 - `limit` - 1-50 (default 5)
 
-Response: `{ tracks, total, offset, limit, source }`. `source` is `"listenbrainz"`, `"lastfm"`, or `null`. Last.fm periods are rolling windows (`7day`, `1month`, `12month`, `overall`) and map approximately to the requested calendar range.
+Response: `{ tracks, total, offset, limit, source }`. `source` is `"listenbrainz"`, `"lastfm"`, `"plex"`, or `null`. Last.fm periods are rolling windows (`7day`, `1month`, `12month`, `overall`) and map approximately to the requested calendar range.
 
 **GET /api/v1/listening/recent-tracks** query params:
 - `limit` - 1-50 (default 5)
@@ -892,15 +900,17 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 |--------|------|------|-------------|
 | GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
-| POST | `/api/v1/settings/test/:service` | Admin | Test service connection |
+| POST | `/api/v1/settings/test/:service` | Admin, or own Plex connection | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
 
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
 Settings notes:
+- Plex listener mapping is per user: `plexAccountId` is a positive integer or `null` in PATCH. The server verifies the selected account and derives `plexAccountName` and `plexMachineIdentifier`; clients cannot supply those identity fields. GET returns the stored mapping. Changing the Plex URL or token without selecting an account clears the mapping.
+- The Plex probe returns `accounts: [{id, name}]` and `machineIdentifier` alongside music-library `sections`. Non-admins may probe their own Plex connection, never shared admin credentials. Other service probes stay admin-only. Listening requests require an explicit mapped account and reject mismatched history rows; library sync does not require listener mapping. Plex top-artist analysis requires complete history for the requested period and fails if it exceeds 5,000 entries or 25 pages. Recent-track requests intentionally return only their requested sample. The probe accepts `accountId` (number or explicit `null`); omission uses the saved listener, while `null` tests library-only access.
 - Non-admin users can update only their own connection fields; global setting changes return `403`
-- Service probes require admin access when user-session auth is active
-- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: the admin app authorizes each user's own account via `/api/v1/auth/oauth/tidal/initiate`
+- Service probes require admin access when user-session auth is active, except for probing the current user's own Plex connection
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: each user authorizes their own account using the admin-registered app via `/api/v1/auth/oauth/tidal/initiate`
 - `GET /api/v1/settings` returns `_tidalAppConfigured` (boolean), a read-only capability flag telling non-admins whether an admin has registered a TIDAL app, so the UI can enable the Connect button without exposing the credentials. Underscore-prefixed keys are derived flags, never stored settings, and are ignored on `PATCH`
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`
@@ -932,6 +942,7 @@ Notification channels:
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
 - Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
   sending `***` back on `PATCH` preserves the stored ciphertext instead of overwriting it.
+  Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
   returns `403` (same rule as other global settings).
 - `allowPrivateTarget: true` relaxes only RFC1918 ranges (`10/8`, `172.16/12`, `192.168/16`) for
@@ -981,7 +992,7 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/admin/backup` | Admin | Download backup JSON. Query: `?includeCaches=true` |
-| POST | `/api/v1/admin/restore` | Admin | Upload and restore backup. Query: `?force=true` to skip encryption key mismatch check. Accepts multipart form (field: `file`) or raw JSON body. |
+| POST | `/api/v1/admin/restore` | Admin | Replace data from a backup. Requires `?confirm=true`; add `&force=true` only to proceed despite an encryption-key mismatch (affected credentials need re-entry). Accepts multipart form (field: `file`) or raw JSON body. |
 | GET | `/api/v1/admin/backup/last` | Admin | Last auto-backup metadata. |
 
 Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.

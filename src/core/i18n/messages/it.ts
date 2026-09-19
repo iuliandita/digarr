@@ -483,6 +483,9 @@ export const it = {
   'playlist.strategyGenreFocus': 'Focus sul genere',
   'playlist.strategyMoodMix': 'Miscela di umore',
   'playlist.strategyRediscover': 'Riscoprire',
+  'playlist.strategyAudition': 'Ascolto di prova',
+  'playlistForm.strategyAuditionDesc':
+    'Un brano per artista in attesa, in ordine di punteggio, da ascoltare prima di approvare.',
   'playlist.strategyWeeklyDigest': 'Diario settimanale',
   'playlist.total': 'totale',
   'playlist.unknownTrack': 'Traccia sconosciuta',
@@ -1200,7 +1203,7 @@ export const it = {
   'settings.currentPassword': 'Password attuale',
   'settings.newPassword': 'Nuova password',
   'settings.confirmNewPassword': 'Conferma nuova password',
-  'settings.minCharsPassword': 'Min 8 caratteri',
+  'settings.minCharsPassword': 'Min 12 caratteri',
   'settings.changing': 'Modifica in corso...',
   'settings.passwordChanged': 'Password modificata',
   'settings.passwordsDoNotMatch': 'Le nuove password non corrispondono',
@@ -1283,6 +1286,13 @@ export const it = {
   'settings.embyUserIdHelp':
     "Trovabile in Emby Dashboard -> Utenti -> (seleziona utente). L'URL contiene l'ID utente.",
   'settings.aiProviderTitle': 'Provider AI',
+  'settings.plexAccount': 'Ascoltatore Plex',
+  'settings.plexAccountNone': 'Solo libreria',
+  'settings.plexAccountHint':
+    'Verifica la connessione, seleziona il tuo ascoltatore Plex e salva. La cronologia resta separata per ogni utente Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Cartella download visibile a Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Per le importazioni collegate, usa la cartella dei download completati accessibile a Lidarr.',
   'settings.plexToken': 'Token Plex',
   'settings.plexLibrary': 'Libreria musicale',
   'settings.plexLibraryAuto': 'Rilevamento automatico (prima libreria musicale)',

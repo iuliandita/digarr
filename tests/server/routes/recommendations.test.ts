@@ -158,6 +158,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       plexUrl: null,
       plexToken: null,
       plexSectionId: null,
+      plexAccountId: null,
+      plexAccountName: null,
+      plexMachineIdentifier: null,
       jellyfinUrl: null,
       jellyfinApiKey: null,
       jellyfinUserId: null,
@@ -249,6 +252,11 @@ async function authedRequest(
 }
 
 const mockLidarrClient = {
+  getCommand: vi.fn(async () => ({ id: 0, name: '', status: '' })),
+  getManualImport: vi.fn(async () => []),
+  updateManualImport: vi.fn(async () => []),
+  manualImport: vi.fn(async () => ({ id: 0, name: '', status: '' })),
+  getTracks: vi.fn(async () => []),
   addArtist: vi.fn(),
   getQualityProfiles: vi.fn(async () => []),
   getMetadataProfiles: vi.fn(async () => []),

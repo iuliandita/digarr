@@ -482,6 +482,9 @@ export const ro = {
   'playlist.strategyGenreFocus': 'Focalizare pe gen',
   'playlist.strategyMoodMix': 'Mix de dispoziție',
   'playlist.strategyRediscover': 'Redescoperă',
+  'playlist.strategyAudition': 'Audiție',
+  'playlistForm.strategyAuditionDesc':
+    'O piesă pentru fiecare artist în așteptare, în ordinea scorului, de ascultat înainte de aprobare.',
   'playlist.strategyWeeklyDigest': 'Rezumat săptămânal',
   'playlist.total': 'în total',
   'playlist.unknownTrack': 'Piesă necunoscută',
@@ -1201,7 +1204,7 @@ export const ro = {
   'settings.currentPassword': 'Parola curentă',
   'settings.newPassword': 'Parolă nouă',
   'settings.confirmNewPassword': 'Confirmați parola nouă',
-  'settings.minCharsPassword': 'Min. 8 caractere',
+  'settings.minCharsPassword': 'Min. 12 caractere',
   'settings.changing': 'Se schimbă...',
   'settings.passwordChanged': 'Parolă schimbată',
   'settings.passwordsDoNotMatch': 'Parolele noi nu se potrivesc',
@@ -1283,6 +1286,13 @@ export const ro = {
   'settings.embyUserIdHelp':
     'Se găsește în Emby Dashboard -> Utilizatori -> (selectați utilizatorul). URL-ul conține ID-ul utilizatorului.',
   'settings.aiProviderTitle': 'Furnizor AI',
+  'settings.plexAccount': 'Ascultător Plex',
+  'settings.plexAccountNone': 'Doar bibliotecă',
+  'settings.plexAccountHint':
+    'Testează conexiunea, selectează ascultătorul Plex și salvează. Istoricul rămâne separat pentru fiecare utilizator Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Directorul de descărcări văzut de Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Pentru importuri asociate, folosește directorul descărcărilor finalizate pe care Lidarr îl poate citi.',
   'settings.plexToken': 'Token Plex',
   'settings.plexLibrary': 'Bibliotecă muzicală',
   'settings.plexLibraryAuto': 'Detectare automată (prima bibliotecă muzicală)',

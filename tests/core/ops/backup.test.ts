@@ -269,6 +269,23 @@ describe('restoreBackup', () => {
     expect(usersIdx).toBeLessThan(targetsIdx)
   })
 
+  it('preserves duplicate legacy slskd failures as superseded history', async () => {
+    const db = makeMockUpsertDb()
+    const backup = makeBackupFile()
+    backup.data.slskdJobs = [
+      { id: 1, workKey: 'album', state: 'failed', attempts: 0, updatedAt: '2026-09-16T00:00:00Z' },
+      { id: 2, workKey: 'album', state: 'failed', attempts: 3, updatedAt: '2026-09-17T00:00:00Z' },
+    ]
+    const result = await restoreBackup(db, backup)
+    const rows = db.insertCalls.slskd_jobs?.flat()
+    expect(rows).toEqual([
+      expect.objectContaining({ id: 1, state: 'superseded', attempts: 0 }),
+      expect.objectContaining({ id: 2, state: 'failed', attempts: 4 }),
+    ])
+    expect(result.tablesRestored.slskdJobs).toBe(2)
+    expect(backup.data.slskdJobs[0]?.state).toBe('failed')
+  })
+
   it('returns count of restored rows per table', async () => {
     const db = makeMockUpsertDb()
     const backup = makeBackupFile()

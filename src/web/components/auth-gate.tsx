@@ -98,7 +98,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (!fragment.current) fragment.current = consumeAuthFragment()
 
   const [state, setState] = useState<AuthState>('loading')
-  const [hasUsers, setHasUsers] = useState(false)
+  const hasUsersRef = useRef(false)
   const [oidcEnabled, setOidcEnabled] = useState(false)
   const [notice, setNotice] = useState<MessageKey | null>(
     fragment.current.oidcError
@@ -117,7 +117,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       status: Awaited<ReturnType<typeof getAuthStatus>>,
       allowAuthenticated: boolean,
     ) {
-      setHasUsers(status.hasUsers)
+      hasUsersRef.current = status.hasUsers
       setOidcEnabled(status.oidcEnabled ?? false)
 
       if (!status.required && allowAuthenticated) {
@@ -133,7 +133,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       try {
         applyStatus(await getAuthStatus(), false)
       } catch {
-        setHasUsers(true)
+        hasUsersRef.current = true
         setState('login')
       }
     }
@@ -171,7 +171,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         applyStatus(status, allowAuthenticated)
       } catch {
         setNotice((current) => current ?? 'auth.loginFailed')
-        setHasUsers(true)
+        hasUsersRef.current = true
         setState('login')
       }
     }
@@ -183,11 +183,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const handler = () => {
       clearQueryCache()
       setNotice(null)
-      setState(hasUsers ? 'login' : 'register')
+      setState(hasUsersRef.current ? 'login' : 'register')
     }
     window.addEventListener(AUTH_EXPIRED_EVENT, handler)
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handler)
-  }, [hasUsers])
+  }, [])
 
   const handleAuthenticatedRef = useRef<(fallback: 'login' | 'register') => Promise<void>>(
     async () => {},
@@ -209,7 +209,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     clearLegacyMigrationState()
     try {
       const status = await getAuthStatus()
-      setHasUsers(status.hasUsers)
+      hasUsersRef.current = status.hasUsers
       setOidcEnabled(status.oidcEnabled ?? false)
       if (!status.required) {
         setState('not-required')

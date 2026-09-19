@@ -23,7 +23,12 @@ import { envConfig } from '../src/config/env'
 
 // Import env/crypto via side effects before instantiating the DB pool so the
 // key derivation runs with whatever env is set at invocation.
-import { decryptField, encryptField, initEncryption } from '../src/core/crypto'
+import {
+  decryptField,
+  encryptedChannelFieldsFor,
+  encryptField,
+  initEncryption,
+} from '../src/core/crypto'
 import { closeDb, db, dbBackend } from '../src/db'
 import { COLUMN_SITES, NESTED_SITES, type RotationSite } from './rotation-sites'
 
@@ -77,6 +82,47 @@ async function rotateTargetsConfig(): Promise<RotationResult> {
     }
     if (changed) {
       await db.execute(sql`UPDATE targets SET config = ${next} WHERE id = ${row.id}`)
+      rewritten++
+    }
+  }
+  return { scanned: rows.length, rewritten, failures }
+}
+
+async function rotateNotificationChannels(): Promise<RotationResult> {
+  const rows = (await db.execute(sql`SELECT id, preferences FROM settings`)).rows as Array<{
+    id: number
+    preferences: Record<string, unknown> | null
+  }>
+  let rewritten = 0
+  let failures = 0
+  for (const row of rows) {
+    if (!Array.isArray(row.preferences?.channels)) continue
+    let changed = false
+    const channels = row.preferences.channels.map((channel: unknown, index: number) => {
+      if (!channel || typeof channel !== 'object' || Array.isArray(channel)) return channel
+      const next: Record<string, unknown> = { ...channel }
+      if (typeof next.type !== 'string') return channel
+      for (const key of encryptedChannelFieldsFor(next.type)) {
+        const value = next[key]
+        if (typeof value !== 'string' || !value.startsWith('enc:v1:')) continue
+        try {
+          const re = encryptField(decryptForRotation(value))
+          if (re !== value) {
+            next[key] = re
+            changed = true
+          }
+        } catch (err) {
+          failures++
+          console.error(
+            `  skip settings.preferences.channels id=${row.id} index=${index}: ${(err as Error).message}`,
+          )
+        }
+      }
+      return next
+    })
+    if (changed) {
+      const preferences = { ...row.preferences, channels }
+      await db.execute(sql`UPDATE settings SET preferences = ${preferences} WHERE id = ${row.id}`)
       rewritten++
     }
   }
@@ -187,6 +233,15 @@ async function main(): Promise<void> {
     totalRewritten += rewritten
     totalFailures += failures
   }
+  process.stdout.write('settings.preferences.channels ... ')
+  const channelResult = await rotateNotificationChannels()
+  console.log(
+    `${channelResult.scanned} scanned, ${channelResult.rewritten} rewritten, ${channelResult.failures} failures`,
+  )
+  totalScanned += channelResult.scanned
+  totalRewritten += channelResult.rewritten
+  totalFailures += channelResult.failures
+
   process.stdout.write('targets.config ... ')
   const { scanned, rewritten, failures } = await rotateTargetsConfig()
   console.log(`${scanned} scanned, ${rewritten} rewritten`)

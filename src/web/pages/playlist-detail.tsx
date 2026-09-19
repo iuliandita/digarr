@@ -44,6 +44,7 @@ function formatSchedule(cron: string | null, t: (key: MessageKey) => string): st
 }
 
 const STRATEGY_BADGES: Record<string, { label: string; className: string }> = {
+  audition: { label: 'playlist.strategyAudition', className: 'bg-blue-500/15 text-blue-400' },
   weekly_digest: {
     label: 'playlist.strategyWeeklyDigest',
     className: 'bg-blue-500/15 text-blue-400',

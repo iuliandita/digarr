@@ -60,7 +60,7 @@ const INTEGRATIONS: Capability[] = [
   {
     serviceKey: 'plex',
     serviceLabel: 'Plex',
-    discovery: null,
+    discovery: 'integration.topArtists',
     subscriptions: null,
     librarySync: 'integration.artistsAlbums',
     playlistExport: 'integration.yes',

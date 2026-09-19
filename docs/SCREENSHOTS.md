@@ -2,9 +2,9 @@
 
 The checked-in screenshots use the Youtarr theme. Most were captured from
 v1.10.0; Analytics was refreshed from v1.12.0, and Discovery Modes, Settings,
-Library Reconciliation, and Your Connections were refreshed from the current
-`develop`/`:nightly` UI. The descriptions below reflect that UI when later
-features are not visible in an image. Capture a fresh set with
+Library Reconciliation, and Your Connections were refreshed from development
+builds before v1.18.0. The descriptions below reflect v1.18.0 when later features
+are not visible in an image. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
@@ -28,7 +28,7 @@ The normal Run Scan action is artist-focused. Album recommendations are produced
 
 Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
 
-TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections, because its OAuth flow has not yet been validated against a live TIDAL account ([#553](https://github.com/iuliandita/digarr/issues/553)).
+TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](../README.md#tidal-feedback) for how to report a test safely.
 
 ## Search
 
@@ -45,6 +45,8 @@ TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (vi
 ## Playlists
 
 ![Playlists](screenshots/playlists.png)
+
+Since v1.18.0, the playlist form also offers Audition: one track per pending artist, with the existing schedule and target controls.
 
 ## Subscriptions
 
@@ -78,7 +80,7 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 
 The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
 
-The current Settings > Targets flow also includes `slskd` target creation with an optional linked Lidarr target for combined approvals.
+In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
 ## Settings > Account
 
@@ -90,7 +92,7 @@ The Account page offers password-confirmed SSO linking when OIDC is enabled and 
 
 ![Your Connections](screenshots/settings-your-connections.png)
 
-Per-user listening connections -- ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL -- linked to your account. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge until its OAuth flow is validated against a live account; connecting TIDAL requires an admin to configure the app credentials first.
+Per-user listening connections -- ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL -- linked to your account. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](../README.md#tidal-feedback) for safe community reporting.
 
 ## Settings > Blocked
 

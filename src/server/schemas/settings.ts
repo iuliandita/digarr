@@ -124,6 +124,7 @@ export const updateSettingsSchema = z.object({
   plexUrl: z.string().nullable().optional(),
   plexToken: z.string().nullable().optional(),
   plexSectionId: z.string().nullable().optional(),
+  plexAccountId: z.number().int().positive().nullable().optional(),
   jellyfinUrl: z.string().nullable().optional(),
   jellyfinApiKey: z.string().nullable().optional(),
   jellyfinUserId: z.string().nullable().optional(),

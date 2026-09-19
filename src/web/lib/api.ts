@@ -272,6 +272,8 @@ export const testService = (service: string, config: Record<string, unknown>) =>
     // Plex probe extras: selected library section + all music-type sections
     sectionId?: string
     sections?: Array<{ key: string; title: string }>
+    accounts?: Array<{ id: number; name: string }>
+    machineIdentifier?: string
     // Jellyfin/Emby probe extras: selected music library + all music libraries
     libraryId?: string
     libraries?: Array<{ id: string; name: string }>
@@ -411,7 +413,7 @@ export const getTopArtists = (range: ListeningTopRange, offset = 0, limit = 5) =
     total: number
     offset: number
     limit: number
-    source: 'listenbrainz' | 'lastfm' | null
+    source: 'listenbrainz' | 'lastfm' | 'plex' | null
   }>(`/listening/top-artists?${qs}`)
 }
 
@@ -420,7 +422,7 @@ export const getRecentTracks = (limit = 5) => {
   return fetchApi<{
     tracks: RecentTrackEntry[]
     hasSource: boolean
-    source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | null
+    source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | 'plex' | null
   }>(`/listening/recent-tracks?${qs}`)
 }
 

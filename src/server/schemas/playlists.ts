@@ -7,6 +7,7 @@ export const playlistStrategySchema = z.enum([
   'genre_focus',
   'mood_mix',
   'rediscover',
+  'audition',
 ])
 
 export const playlistIdParamSchema = idParamSchema

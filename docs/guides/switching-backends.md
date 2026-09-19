@@ -91,7 +91,7 @@ Click **Migrate**. The operation:
    next table.
 6. Releases the maintenance lock.
 
-The source database is **never modified**. If anything goes wrong, the target is
+The source database is **never modified**. If a copy write fails, the target
 copy transaction rolls back. Target schema migrations and, during an overwrite,
 the intentional session/rate-limit clear remain outside that transaction. A
 verification mismatch keeps the copied target for inspection but returns a
@@ -122,10 +122,10 @@ The panel shows the exact environment variable(s) to set for the new backend:
   libpq's `require`, which encrypts without verifying. Use `no-verify` for
   self-signed certificates.
 - **Switching to PGlite**: unset `DATABASE_URL` and `DB_HOST`, then set `DB_PATH`
-  to the directory path you entered (e.g. `DB_PATH=/app/data-new`).
+  to the directory path you entered (e.g. `DB_PATH=/app/data-new`). Mount persistent, writable storage at that path before copying; the bundled container has a read-only root filesystem.
 
 Update your `docker-compose.yml`, Helm values, or container template, then
-restart Digarr.
+restart Digarr. The PGlite Compose file explicitly clears `DATABASE_URL` and `DB_HOST`, so setting them only in `.env` will not switch that stack to PostgreSQL. Change the service environment or use an appropriate Compose override. Preserve the existing data and backup volumes when changing Compose files.
 
 ### 7. Verify the switch
 
@@ -175,8 +175,7 @@ Because this migration reads from the running app and writes with the same
 process, both ends always share the current `DIGARR_ENCRYPTION_KEY`, so a key
 mismatch cannot arise here. (The key-mismatch guard exists for the separate
 file-based backup/restore path, where a backup may have been taken under a
-different key -- there the restore refuses with a clear error until the key
-matches.)
+different key -- there the restore refuses by default; forcing it requires re-entering affected credentials.)
 
 ---
 

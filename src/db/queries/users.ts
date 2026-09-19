@@ -277,6 +277,9 @@ export type UserConnections = {
   plexUrl: string | null
   plexToken: string | null
   plexSectionId: string | null
+  plexAccountId: number | null
+  plexAccountName: string | null
+  plexMachineIdentifier: string | null
   jellyfinUrl: string | null
   jellyfinApiKey: string | null
   jellyfinUserId: string | null
@@ -305,6 +308,9 @@ export async function getUserConnections(
       plexUrl: users.plexUrl,
       plexToken: users.plexToken,
       plexSectionId: users.plexSectionId,
+      plexAccountId: users.plexAccountId,
+      plexAccountName: users.plexAccountName,
+      plexMachineIdentifier: users.plexMachineIdentifier,
       jellyfinUrl: users.jellyfinUrl,
       jellyfinApiKey: users.jellyfinApiKey,
       jellyfinUserId: users.jellyfinUserId,

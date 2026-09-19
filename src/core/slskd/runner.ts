@@ -44,7 +44,7 @@ export type SlskdRunnerDeps = {
     releaseGroupMbid: string
     releaseTitle: string
     lidarrArtistId?: number
-  }) => Promise<{ id: number }>
+  }) => Promise<{ id: number; state?: string }>
 }
 
 export function buildSlskdWorkKey(
@@ -80,7 +80,7 @@ export function createSlskdRunner(deps: SlskdRunnerDeps) {
         continue
       }
 
-      await deps.createJob({
+      const job = await deps.createJob({
         userId: input.userId,
         targetId: input.targetId,
         recommendationId: input.recommendationId,
@@ -92,6 +92,7 @@ export function createSlskdRunner(deps: SlskdRunnerDeps) {
         releaseTitle: releaseGroup.releaseTitle,
         lidarrArtistId: input.lidarrArtistId,
       })
+      if (job.state === 'failed') continue
       createdOrExisting++
     }
 
@@ -112,7 +113,7 @@ export function createSlskdRunner(deps: SlskdRunnerDeps) {
       return { success: true }
     }
 
-    await deps.createJob({
+    const job = await deps.createJob({
       userId: input.userId,
       targetId: input.targetId,
       recommendationId: input.recommendationId,
@@ -125,7 +126,7 @@ export function createSlskdRunner(deps: SlskdRunnerDeps) {
       lidarrArtistId: input.lidarrArtistId,
     })
 
-    return { success: true }
+    return { success: job.state !== 'failed' }
   }
 
   return {

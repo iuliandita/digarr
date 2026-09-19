@@ -179,7 +179,7 @@ const CHANNEL_URL_FIELDS: Record<string, readonly string[]> = {
 
 const MASK = '***'
 
-function encryptedFieldsFor(type: string): readonly string[] {
+export function encryptedChannelFieldsFor(type: string): readonly string[] {
   return [...(CHANNEL_SECRET_FIELDS[type] ?? []), ...(CHANNEL_URL_FIELDS[type] ?? [])]
 }
 
@@ -215,7 +215,7 @@ function transformChannelFields(
 ): NotificationChannel[] {
   return channels.map((channel) => {
     const copy = { ...channel } as Record<string, unknown>
-    for (const f of encryptedFieldsFor(channel.type)) {
+    for (const f of encryptedChannelFieldsFor(channel.type)) {
       const val = copy[f]
       if (typeof val === 'string' && val) {
         copy[f] = fn(val)

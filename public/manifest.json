@@ -1,7 +1,7 @@
 {
   "name": "Digarr",
   "short_name": "Digarr",
-  "description": "AI-powered music discovery for Lidarr",
+  "description": "Self-hosted music discovery for your library",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c0c18",

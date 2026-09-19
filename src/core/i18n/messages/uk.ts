@@ -481,6 +481,9 @@ export const uk = {
   'playlist.strategyGenreFocus': 'Жанровий фокус',
   'playlist.strategyMoodMix': 'Мікс настрою',
   'playlist.strategyRediscover': 'Відкрийте заново',
+  'playlist.strategyAudition': 'Прослуховування',
+  'playlistForm.strategyAuditionDesc':
+    'По одному треку кожного виконавця, що очікує схвалення, за оцінкою, для попереднього прослуховування.',
   'playlist.strategyWeeklyDigest': 'Тижневий дайджест',
   'playlist.total': 'всього',
   'playlist.unknownTrack': 'Невідомий трек',
@@ -1197,7 +1200,7 @@ export const uk = {
   'settings.currentPassword': 'Поточний пароль',
   'settings.newPassword': 'Новий пароль',
   'settings.confirmNewPassword': 'Підтвердіть новий пароль',
-  'settings.minCharsPassword': 'Мін. 8 символів',
+  'settings.minCharsPassword': 'Мін. 12 символів',
   'settings.changing': 'Зміна...',
   'settings.passwordChanged': 'Пароль змінено',
   'settings.passwordsDoNotMatch': 'Нові паролі не збігаються',
@@ -1280,6 +1283,13 @@ export const uk = {
   'settings.embyUserIdHelp':
     'Знаходиться в панелі Emby -> Користувачі -> (оберіть користувача). URL містить ID користувача.',
   'settings.aiProviderTitle': 'AI-провайдер',
+  'settings.plexAccount': 'Слухач Plex',
+  'settings.plexAccountNone': 'Лише бібліотека',
+  'settings.plexAccountHint':
+    'Перевірте з’єднання, виберіть слухача Plex і збережіть. Історія прослуховування окрема для кожного користувача Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Папка завантажень, доступна Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Для пов’язаних імпортів використовуйте папку завершених завантажень, яку може читати Lidarr.',
   'settings.plexToken': 'Токен Plex',
   'settings.plexLibrary': 'Музична бібліотека',
   'settings.plexLibraryAuto': 'Автоматично (перша музична бібліотека)',

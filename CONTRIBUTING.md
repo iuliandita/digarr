@@ -2,6 +2,8 @@
 
 ## Dev setup
 
+Install Bun, Node.js (Vitest runs under Node), Docker, and the PostgreSQL client tools (`pg_isready`). Development uses local ports 5432, 3000, and 5173; browser tests also use 3011 for the mock sign-in provider. Keep these ports free.
+
 ```sh
 git clone https://github.com/iuliandita/digarr.git
 cd digarr
@@ -39,6 +41,7 @@ Run migrations and start the dev servers:
 
 ```sh
 bun run db:migrate
+# Run these in separate terminals:
 bun run dev          # backend on :3000
 bun run dev:web      # frontend on :5173 (proxies /api to :3000)
 ```
@@ -70,7 +73,7 @@ bun run test:e2e     # Playwright browser tests (starts test dev servers)
 bun run test:e2e:ui  # Playwright UI mode
 ```
 
-Tests live in `tests/`. Keep them close to the code they cover. Route-contract coverage lives in `tests/api-routes/`; browser coverage lives in `tests/e2e/browser/`; accessibility coverage lives in `tests/e2e/a11y/`. Browser tests require `bunx playwright install --with-deps chromium` first. By default, Playwright starts an isolated backend on `:3000` and Vite on `:5173`; set `PLAYWRIGHT_SKIP_WEBSERVER=1` only when those servers are already running.
+Tests live in `tests/`. Keep them close to the code they cover. Route-contract coverage lives in `tests/api-routes/`; browser coverage lives in `tests/e2e/browser/`; accessibility coverage lives in `tests/e2e/a11y/`. Browser tests require `bunx playwright install --with-deps chromium firefox` first and a running PostgreSQL server. Playwright derives an isolated `<database>_playwright` database from `DATABASE_URL`; use a development database account that can create it. By default, Playwright starts an isolated backend on `:3000`, Vite on `:5173`, and the mock sign-in provider on `:3011`. Set `PLAYWRIGHT_SKIP_WEBSERVER=1` only when all required test servers are already running.
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
@@ -87,7 +90,11 @@ For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. 
 
 Conventional commits: `type(scope): description`
 
-Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `ci`
+Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `build`, `ci`, `revert`. Activate the commit-message and pre-push checks once per clone:
+
+```sh
+git config --local core.hooksPath .githooks
+```
 
 Examples:
 - `feat(pipeline): add spotify source`

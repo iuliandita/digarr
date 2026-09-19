@@ -28,10 +28,15 @@ vi.mock('@/core/clients/jellyfin', () => ({
   createJellyfinClient: vi.fn(),
 }))
 
+vi.mock('@/core/clients/plex', () => ({
+  createPlexClient: vi.fn(),
+}))
+
 import { createEmbyClient } from '@/core/clients/emby'
 import { createJellyfinClient } from '@/core/clients/jellyfin'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { createPlexClient } from '@/core/clients/plex'
 import { getUserConnections } from '@/db/queries/users'
 import { listeningRoutes } from '@/server/routes/listening'
 
@@ -52,6 +57,9 @@ const mockCreateEmbyClient = createEmbyClient as typeof createEmbyClient & {
 const mockCreateJellyfinClient = createJellyfinClient as typeof createJellyfinClient & {
   mockReturnValue: (value: ReturnType<typeof createJellyfinClient>) => void
 }
+const mockCreatePlexClient = createPlexClient as typeof createPlexClient & {
+  mockReturnValue: (value: ReturnType<typeof createPlexClient>) => void
+}
 
 function emptyConnections() {
   return {
@@ -62,6 +70,9 @@ function emptyConnections() {
     plexUrl: null,
     plexToken: null,
     plexSectionId: null,
+    plexAccountId: null,
+    plexAccountName: null,
+    plexMachineIdentifier: null,
     jellyfinUrl: null,
     jellyfinApiKey: null,
     jellyfinUserId: null,
@@ -291,6 +302,45 @@ describe('GET /api/v1/listening/top-artists', () => {
 
     expect(getTopArtistsPaged).toHaveBeenCalledWith('12month', { page: 3, limit: 5 })
   })
+
+  it('falls back to the verified Plex listener account', async () => {
+    mockGetUserConnections.mockResolvedValue({
+      ...emptyConnections(),
+      plexUrl: 'http://plex:32400',
+      plexToken: 'plex-token',
+      plexSectionId: '1',
+      plexAccountId: 7,
+      plexAccountName: 'Listener',
+      plexMachineIdentifier: 'machine-1',
+    })
+    const getTopArtistsPaged = vi.fn(async () => ({
+      artists: [{ name: 'Portishead', viewCount: 9, ratingKey: '101', genres: [] }],
+      totalCount: 1,
+    }))
+    mockCreatePlexClient.mockReturnValue({
+      getTopArtistsPaged,
+    } as unknown as ReturnType<typeof createPlexClient>)
+
+    const app = createTestApp(makeDeps())
+    const res = await app.request('/api/v1/listening/top-artists?range=this_month')
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.source).toBe('plex')
+    expect(body.tracks[0]).toMatchObject({
+      artist: 'Portishead',
+      track: '9 plays this month',
+      source: 'plex',
+    })
+    expect(mockCreatePlexClient).toHaveBeenCalledWith('http://plex:32400', 'plex-token', {
+      sectionId: '1',
+      accountId: 7,
+      machineIdentifier: 'machine-1',
+    })
+    expect(getTopArtistsPaged).toHaveBeenCalledWith(
+      expect.objectContaining({ offset: 0, limit: 5, since: expect.any(Number) }),
+    )
+  })
 })
 
 describe('GET /api/v1/listening/recent-tracks', () => {
@@ -306,6 +356,22 @@ describe('GET /api/v1/listening/recent-tracks', () => {
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ tracks: [], hasSource: false, source: null })
+  })
+
+  it('does not treat a legacy Plex connection without an account binding as a history source', async () => {
+    mockGetUserConnections.mockResolvedValue({
+      ...emptyConnections(),
+      plexUrl: 'http://plex:32400',
+      plexToken: 'plex-token',
+      plexSectionId: '1',
+    })
+
+    const app = createTestApp(makeDeps())
+    const res = await app.request('/api/v1/listening/recent-tracks')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ tracks: [], hasSource: false, source: null })
+    expect(mockCreatePlexClient).not.toHaveBeenCalled()
   })
 
   it('uses Last.fm first when connected and includes now-playing flag', async () => {
@@ -424,6 +490,38 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     expect(mockCreateEmbyClient).toHaveBeenCalledWith('https://emby', 'emby-key', 'emby-user', {
       skipTlsVerify: false,
       libraryId: 'lib-music',
+    })
+  })
+
+  it('uses Plex history only when the listener binding is complete', async () => {
+    mockGetUserConnections.mockResolvedValue({
+      ...emptyConnections(),
+      plexUrl: 'http://plex:32400',
+      plexToken: 'plex-token',
+      plexSectionId: '1',
+      plexAccountId: 7,
+      plexAccountName: 'Listener',
+      plexMachineIdentifier: 'machine-1',
+    })
+    mockCreatePlexClient.mockReturnValue({
+      getRecentlyPlayed: vi.fn(async () => [
+        {
+          artistName: 'Low',
+          trackName: 'Sunflower',
+          viewedAt: 1710000000000,
+          artistRatingKey: '101',
+        },
+      ]),
+    } as unknown as ReturnType<typeof createPlexClient>)
+
+    const app = createTestApp(makeDeps())
+    const res = await app.request('/api/v1/listening/recent-tracks?limit=1')
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toMatchObject({
+      hasSource: true,
+      source: 'plex',
+      tracks: [{ artist: 'Low', track: 'Sunflower', source: 'plex' }],
     })
   })
 })

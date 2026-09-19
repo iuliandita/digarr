@@ -1,4 +1,5 @@
 import type { PlaylistStrategy } from '@/db/schema'
+import { auditionStrategy } from './strategies/audition'
 import { genreFocusStrategy } from './strategies/genre-focus'
 import { moodMixStrategy } from './strategies/mood-mix'
 import { rediscoverStrategy } from './strategies/rediscover'
@@ -15,6 +16,8 @@ export type GenerationResult = {
 
 export function getStrategy(strategy: PlaylistStrategy): PlaylistStrategyImpl {
   switch (strategy) {
+    case 'audition':
+      return auditionStrategy
     case 'weekly_digest':
       return weeklyDigestStrategy
     case 'genre_focus':
@@ -52,7 +55,7 @@ export async function generatePlaylist(
   })
 
   const resolverConfig: TrackResolverConfig = {
-    tracksPerArtist: 3,
+    tracksPerArtist: strategy === 'audition' ? 1 : 3,
     sourcePriority: config.trackSourcePriority,
   }
 
@@ -63,6 +66,8 @@ export async function generatePlaylist(
   if (hasResolverDeps) {
     const allTracks = await resolvePlaylistTracks(artists, resolverDeps, resolverConfig)
     tracks = allTracks.slice(0, config.size)
+  } else if (strategy === 'audition') {
+    tracks = []
   } else {
     // No track resolver deps configured - create artist-level entries
     // so playlists still show the selected artists

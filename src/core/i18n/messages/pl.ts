@@ -482,6 +482,9 @@ export const pl = {
   'playlist.strategyGenreFocus': 'Skupienie na gatunku',
   'playlist.strategyMoodMix': 'Mieszanka nastrojów',
   'playlist.strategyRediscover': 'Odkryj na nowo',
+  'playlist.strategyAudition': 'Odsłuch',
+  'playlistForm.strategyAuditionDesc':
+    'Jeden utwór na oczekującego wykonawcę, według oceny, do odsłuchania przed zatwierdzeniem.',
   'playlist.strategyWeeklyDigest': 'Przegląd tygodniowy',
   'playlist.total': 'łącznie',
   'playlist.unknownTrack': 'Nieznany utwór',
@@ -1190,7 +1193,7 @@ export const pl = {
   'settings.currentPassword': 'Aktualne hasło',
   'settings.newPassword': 'Nowe hasło',
   'settings.confirmNewPassword': 'Potwierdź nowe hasło',
-  'settings.minCharsPassword': 'Min. 8 znaków',
+  'settings.minCharsPassword': 'Min. 12 znaków',
   'settings.changing': 'Zmienianie...',
   'settings.passwordChanged': 'Hasło zmienione',
   'settings.passwordsDoNotMatch': 'Nowe hasła nie są zgodne',
@@ -1273,6 +1276,13 @@ export const pl = {
   'settings.embyUserIdHelp':
     'Znajdziesz w panelu Emby -> Użytkownicy -> (wybierz użytkownika). URL zawiera ID użytkownika.',
   'settings.aiProviderTitle': 'Dostawca AI',
+  'settings.plexAccount': 'Słuchacz Plex',
+  'settings.plexAccountNone': 'Tylko biblioteka',
+  'settings.plexAccountHint':
+    'Przetestuj połączenie, wybierz słuchacza Plex i zapisz. Historia słuchania pozostaje oddzielna dla każdego użytkownika Digarr.',
+  'settings.slskdLidarrDownloadPath': 'Katalog pobierania widoczny dla Lidarr',
+  'settings.slskdLidarrDownloadPathHint':
+    'Do powiązanych importów użyj katalogu ukończonych pobrań, który Lidarr może odczytać.',
   'settings.plexToken': 'Token Plex',
   'settings.plexLibrary': 'Biblioteka muzyczna',
   'settings.plexLibraryAuto': 'Automatycznie (pierwsza biblioteka muzyczna)',
