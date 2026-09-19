@@ -102,7 +102,7 @@ function releaseDirectory(filename: string): string {
 }
 
 function releaseId(username: string, directory: string): string {
-  return createHash('sha1').update(`${username}\0${directory}`).digest('hex')
+  return createHash('sha256').update(`${username}\0${directory}`).digest('hex')
 }
 
 function releaseLabel(directory: string): string {
