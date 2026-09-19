@@ -6,6 +6,11 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## v1.18.0 - 2026-09-20
 
+### Security
+
+- Alpine images install patched OpenSSL libraries, and Debian images apply available distribution updates. The Debian fallback still carries upstream advisories without available patches.
+- slskd result identifiers use SHA-256.
+
 ### Added
 
 - Plex listening sources use an explicit per-user server-account selection, isolated playback history, and Plex similar-artist metadata. Shared-library sync remains independent; existing connections need a listener selection for history. [#647](https://github.com/iuliandita/digarr/issues/647), [#684](https://github.com/iuliandita/digarr/issues/684).
