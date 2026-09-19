@@ -15,9 +15,7 @@
 **Self-hosted music discovery for your library.** Find artists and albums from your listening history, explore a mood, and review recommendations before adding them to Lidarr or sending them to a playlist. Bring your own AI provider, including a local model. Lidarr is optional.
 
 > [!NOTE]
-> **v1.17.0 is out.** This release adds SSO account linking and MusicBrainz mirror support, and fixes library sync and playlist exports. See the [changelog](CHANGELOG.md) for release details.
->
-> This README follows `develop`. Plex listening history, Audition playlists, and the latest slskd import fixes are currently in `:nightly`; they are not part of v1.17.0. See [Unreleased](CHANGELOG.md#unreleased) before choosing an image.
+> **v1.18.0 is out.** This release adds Plex listening history and Audition playlists, and fixes slskd imports, playlist exports, and notification credential rotation. See the [changelog](CHANGELOG.md) for release details.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
@@ -162,7 +160,7 @@ compatibility details.
 
 Add playlist destinations in Settings > Targets, then select those targets in each playlist. Digarr keeps the generated playlist locally if an export fails; admins can inspect the error in Job History. Spotify exports need a connected account with playlist permissions. Tracks without a matching destination track are skipped.
 
-Audition playlists are available in `:nightly`: they choose one track per pending artist without approving recommendations, and can refresh on demand or on a schedule. They are separate from the Audition preview queue in Discover, which plays short previews in the browser.
+Audition playlists choose one track per pending artist without approving recommendations, and can refresh on demand or on a schedule. They are separate from the Audition preview queue in Discover, which plays short previews in the browser.
 
 Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Notifications, with scan-complete and scheduled-digest subscriptions per channel. Private-network destinations are blocked by default; the per-channel LAN option permits private IPv4 destinations for self-hosted services. It does not override your container or Kubernetes network policy.
 
@@ -189,15 +187,11 @@ For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`
 
 ### Connecting Plex listeners
 
-Available in `:nightly`; not in v1.17.0.
-
 In Settings > Your Connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
 
 A listener selection is required for listening-based discovery. Existing Plex connections continue to sync their libraries, but need this selection before contributing listening history. Changing the server or token clears the selection. Digarr verifies the server identity and rejects history belonging to a different account instead of mixing profiles. A server or token that cannot expose the account list or playback history can still be used for library sync; Plex similarity data depends on the library's metadata agent. History analysis allows at most 5,000 entries (25 pages) per requested period. If that period cannot be read completely within the limit, top-artist analysis reports a failure instead of returning partial totals; choose a shorter period or another listening source.
 
 ### Importing slskd downloads into Lidarr
-
-These import checks and retries are in `:nightly`; not in v1.17.0.
 
 For a linked slskd target, set **Download root as seen by Lidarr** to the completed-downloads folder that Lidarr can read, such as `/downloads`. Mount the same completed files into Lidarr or configure its path mapping. slskd stores each remote directory under its final folder name; multi-disc folders must be complete and unambiguous before import.
 
@@ -267,6 +261,8 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
 **Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it saves a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss. Disable this with `DIGARR_AUTO_BACKUP=false`.
+
+**Upgrading to v1.18.0:** Startup migrations add Plex listener identity fields and consolidate duplicate slskd retry jobs, retaining superseded rows and accumulated attempts. Keep a pre-upgrade backup. Existing Plex connections need a listener selection for history; linked slskd targets need a completed-download path visible to Lidarr. See [Plex setup](#connecting-plex-listeners) and [slskd imports](#importing-slskd-downloads-into-lidarr).
 
 **Kubernetes / Helm note:** Auto-backup needs a writable `/app/backups` volume. The bundled Helm chart and raw manifests use `emptyDir` by default, which is lost when the pod is replaced. Enable `backups.persistence.enabled=true` in Helm, or provide persistent storage in custom manifests.
 
