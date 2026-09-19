@@ -197,6 +197,8 @@ For a linked slskd target, set **Download root as seen by Lidarr** to the comple
 
 Digarr waits for every queued file to succeed, asks Lidarr to identify the files, and refuses rejected, partial, or ambiguous releases. It imports with move semantics and only reports completion after Lidarr's album tracks have files. Releases are limited to 500 files and 20 GiB, with paths no longer than 2,048 characters. Failed work retries after a one-hour cooldown using the same job; older duplicate failures remain as superseded history. Standalone slskd targets do not import into Lidarr.
 
+If Digarr stops after submitting a download or import but before saving its confirmation, the next run may retry it or report a failure even though the external service accepted it. Check slskd transfers and Lidarr before retrying manually.
+
 ### Connecting Spotify
 
 Spotify uses your own Spotify app credentials over OAuth. Spotify requires the owner of a Development Mode app to maintain an active Premium subscription, and listeners must be added to the app's allowlist (up to five users). A normal Spotify sign-in or PKCE does not remove these app requirements; Digarr does not provide a shared Spotify app. See [Spotify quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
