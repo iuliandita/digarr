@@ -1,25 +1,23 @@
 # Roadmap
 
-> Updated: 2026-09-19 | Current: v1.17.0
+> Updated: 2026-09-20 | Current: v1.18.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v1.17.0 adds SSO linking for existing local accounts and support for MusicBrainz mirrors. It fixes incomplete Emby syncs, preserves library snapshots after album-fetch failures, and reports playlist export failures. Spotify exports preserve the selected tracks.
+v1.18.0 adds Plex listening history and Audition playlists. It fixes slskd searches and verified Lidarr imports, Plex playlist exports, saved-target connection tests, and notification credential rotation.
 
 Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Current work focuses on review, library operations, and connection reliability.
 
-## Development channel
-
-Available in `:nightly`, pending a tagged release:
+## Shipped highlights
 
 - Plex listening history with a per-user listener selection. Shared-library sync works independently.
 - Audition playlists with one resolved track per pending artist, generated on demand or on a schedule.
 - Plex playlist export and saved-target connection-test fixes.
 - slskd search and retry fixes, complete-release checks, and verified Lidarr imports. Linked targets require a completed-download path visible to Lidarr.
 
-See [Unreleased](../CHANGELOG.md#unreleased) for details.
+See [v1.18.0](../CHANGELOG.md#v1180---2026-09-20) for details.
 
 ## Known integration limitation
 

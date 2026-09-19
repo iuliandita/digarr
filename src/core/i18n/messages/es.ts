@@ -1201,7 +1201,7 @@ export const es = {
   'settings.currentPassword': 'Contraseña actual',
   'settings.newPassword': 'Nueva contraseña',
   'settings.confirmNewPassword': 'Confirmar nueva contraseña',
-  'settings.minCharsPassword': 'Mínimo 8 caracteres',
+  'settings.minCharsPassword': 'Mínimo 12 caracteres',
   'settings.changing': 'Cambiando...',
   'settings.passwordChanged': 'Contraseña cambiada',
   'settings.passwordsDoNotMatch': 'Las contraseñas nuevas no coinciden',

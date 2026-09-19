@@ -1167,7 +1167,7 @@ export const ko = {
   'settings.currentPassword': '현재 비밀번호',
   'settings.newPassword': '새 비밀번호',
   'settings.confirmNewPassword': '새 비밀번호 확인',
-  'settings.minCharsPassword': '최소 8자',
+  'settings.minCharsPassword': '최소 12자',
   'settings.changing': '변경 중...',
   'settings.passwordChanged': '비밀번호가 변경되었습니다',
   'settings.passwordsDoNotMatch': '새 비밀번호가 일치하지 않습니다',

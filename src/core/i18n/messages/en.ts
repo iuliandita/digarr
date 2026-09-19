@@ -1193,7 +1193,7 @@ export const en = {
   'settings.currentPassword': 'Current password',
   'settings.newPassword': 'New password',
   'settings.confirmNewPassword': 'Confirm new password',
-  'settings.minCharsPassword': 'Min 8 characters',
+  'settings.minCharsPassword': 'Min 12 characters',
   'settings.changing': 'Changing...',
   'settings.passwordChanged': 'Password changed',
   'settings.passwordsDoNotMatch': 'New passwords do not match',

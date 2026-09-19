@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { StrictMode } from 'react'
+import { StrictMode, useLayoutEffect } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthGate } from '@/web/components/auth-gate'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -486,6 +486,31 @@ describe('AuthGate', () => {
 
     expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(screen.queryByText('secret area')).not.toBeInTheDocument()
+  })
+
+  it('returns to login and clears the cache when the session expires as children mount', async () => {
+    apiMocks.getAuthStatus.mockResolvedValue(authenticatedStatus)
+    queryClient.setQueryData(['settings'], { userId: 1 })
+
+    function ExpiredSession() {
+      useLayoutEffect(() => {
+        window.dispatchEvent(new Event('digarr:auth-expired'))
+      }, [])
+      return <div>secret area</div>
+    }
+
+    render(
+      <I18nProvider>
+        <AuthGate>
+          <ExpiredSession />
+        </AuthGate>
+      </I18nProvider>,
+    )
+
+    expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Password (min 12 characters)')).not.toBeInTheDocument()
+    expect(screen.queryByText('secret area')).not.toBeInTheDocument()
+    expect(queryClient.getQueryData(['settings'])).toBeUndefined()
   })
 
   it('drops cached account data when the session expires', async () => {

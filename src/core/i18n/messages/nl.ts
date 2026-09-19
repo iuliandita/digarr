@@ -1194,7 +1194,7 @@ export const nl = {
   'settings.currentPassword': 'Huidig wachtwoord',
   'settings.newPassword': 'Nieuw wachtwoord',
   'settings.confirmNewPassword': 'Nieuw wachtwoord bevestigen',
-  'settings.minCharsPassword': 'Min. 8 tekens',
+  'settings.minCharsPassword': 'Min. 12 tekens',
   'settings.changing': 'Bezig met wijzigen...',
   'settings.passwordChanged': 'Wachtwoord gewijzigd',
   'settings.passwordsDoNotMatch': 'Nieuwe wachtwoorden komen niet overeen',

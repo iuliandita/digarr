@@ -1103,7 +1103,7 @@ export const zhCN = {
   'settings.currentPassword': '当前密码',
   'settings.newPassword': '新密码',
   'settings.confirmNewPassword': '确认新密码',
-  'settings.minCharsPassword': '最少 8 个字符',
+  'settings.minCharsPassword': '最少 12 个字符',
   'settings.changing': '修改中...',
   'settings.passwordChanged': '密码已修改',
   'settings.passwordsDoNotMatch': '两次输入的密码不一致',

@@ -4,7 +4,7 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
-## Unreleased
+## v1.18.0 - 2026-09-20
 
 ### Added
 
@@ -13,19 +13,23 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The password-change hint now states the required 12-character minimum in all 15 locales. [#692](https://github.com/iuliandita/digarr/issues/692).
+- An expired session now returns to sign-in even when it expires immediately after authentication, instead of briefly opening registration. [#696](https://github.com/iuliandita/digarr/issues/696).
 - Key rotation now includes notification credentials and fails if any cannot be re-encrypted. [#694](https://github.com/iuliandita/digarr/issues/694).
-
 - Plex playlist exports send all selected track IDs in one content URI and report when no tracks exist in the Plex library. Plex, Jellyfin, and Navidrome playlist targets now use their provider connection tests. [#687](https://github.com/iuliandita/digarr/issues/687), [#688](https://github.com/iuliandita/digarr/issues/688).
 - slskd searches send the correct request field, and failed jobs retry after a cooldown without inserting a new row each time. [#677](https://github.com/iuliandita/digarr/issues/677).
 - Linked slskd downloads import into Lidarr only after every expected file succeeds and the release passes identification checks. Completion requires verified album track files. Existing linked targets must set `lidarrDownloadPath` to a completed-download directory visible to Lidarr, with the shared mount or path mapping configured before imports can resume. [#678](https://github.com/iuliandita/digarr/issues/678).
-
 - slskd release downloads are bounded to 500 files and 20 GiB, and oversized manifests are rejected before enqueue. [#685](https://github.com/iuliandita/digarr/issues/685).
 
 ### Changed
 
-- Installation guides now spell out HTTP cookie settings, the 12-character password minimum, persistent backups, and database-backend choices. The README and project descriptions focus on discovery, review, and playlist workflows, with nightly features labeled separately.
+- Installation guides now spell out HTTP cookie settings, the 12-character password minimum, persistent backups, and database-backend choices. The README and project descriptions focus on discovery, review, and playlist workflows.
 - TIDAL Favorite Artists continues to ship as experimental without live-account validation. Authorization, refresh, and favorite-artist retrieval remain unverified; live testing is deferred to community feedback. The [README feedback guide](README.md#tidal-feedback) explains setup and what to report. [#553](https://github.com/iuliandita/digarr/issues/553).
 - Spotify setup documents the Premium app-owner requirement and Development Mode allowlist limits, with alternatives that do not need Spotify. [#395](https://github.com/iuliandita/digarr/issues/395).
+
+### Upgrade notes
+
+- Startup migrations add Plex listener fields and consolidate duplicate slskd retry jobs without deleting their history. Keep a pre-upgrade backup. Existing Plex connections need a listener selection for history; linked slskd targets need a completed-download path visible to Lidarr. See the [Plex](README.md#connecting-plex-listeners) and [slskd](README.md#importing-slskd-downloads-into-lidarr) setup notes.
 
 ## v1.17.0 - 2026-09-16
 

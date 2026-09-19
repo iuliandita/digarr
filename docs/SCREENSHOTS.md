@@ -2,9 +2,9 @@
 
 The checked-in screenshots use the Youtarr theme. Most were captured from
 v1.10.0; Analytics was refreshed from v1.12.0, and Discovery Modes, Settings,
-Library Reconciliation, and Your Connections were refreshed from the current
-`develop`/`:nightly` UI. The descriptions below reflect that UI when later
-features are not visible in an image. Capture a fresh set with
+Library Reconciliation, and Your Connections were refreshed from development
+builds before v1.18.0. The descriptions below reflect v1.18.0 when later features
+are not visible in an image. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
@@ -46,7 +46,7 @@ TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (vi
 
 ![Playlists](screenshots/playlists.png)
 
-The `:nightly` playlist form also offers Audition (not in v1.17.0): one track per pending artist, with the existing schedule and target controls.
+Since v1.18.0, the playlist form also offers Audition: one track per pending artist, with the existing schedule and target controls.
 
 ## Subscriptions
 
@@ -80,7 +80,7 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 
 The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
 
-The `:nightly` Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
+In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
 ## Settings > Account
 

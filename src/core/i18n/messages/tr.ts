@@ -1188,7 +1188,7 @@ export const tr = {
   'settings.currentPassword': 'Mevcut şifre',
   'settings.newPassword': 'Yeni şifre',
   'settings.confirmNewPassword': 'Yeni şifreyi onayla',
-  'settings.minCharsPassword': 'En az 8 karakter',
+  'settings.minCharsPassword': 'En az 12 karakter',
   'settings.changing': 'Değiştiriliyor...',
   'settings.passwordChanged': 'Şifre değiştirildi',
   'settings.passwordsDoNotMatch': 'Yeni şifreler uyuşmuyor',
