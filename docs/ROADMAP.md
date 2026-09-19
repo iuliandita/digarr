@@ -12,6 +12,8 @@ All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release,
 
 ## Development Channel
 
+- TIDAL Favorite Artists ships with live-account testing deferred to community feedback. Authorization, refresh, and favorite-artist retrieval remain unverified, and Experimental badges remain. This is an accepted release limitation; see the [feedback guide](../README.md#tidal-feedback) and the decision in [#553](https://github.com/iuliandita/digarr/issues/553).
+
 - Plex playlist exports preserve the selected track order in one request; playlist target tests support Plex, Jellyfin, and Navidrome.
 
 - Audition playlists are available on the development channel: one resolved track per pending artist, with on-demand or scheduled refresh and existing playlist targets.

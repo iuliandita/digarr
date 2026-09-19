@@ -291,7 +291,7 @@ Locale notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
 - In the web UI, these modes are exposed from Discover -> Discovery Modes
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
-- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: its TIDAL OAuth flow has not been validated against a live account. Clients should badge experimental modes rather than hide them.
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. Clients should badge experimental modes rather than hide them. See [TIDAL feedback](../README.md#tidal-feedback) for safe community reports.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -908,7 +908,7 @@ Settings notes:
 - The Plex probe returns `accounts: [{id, name}]` and `machineIdentifier` alongside music-library `sections`. Non-admins may probe their own Plex connection, never shared admin credentials. Other service probes stay admin-only. Listening requests require an explicit mapped account and reject mismatched history rows; library sync does not require listener mapping. Plex top-artist analysis requires complete history for the requested period and fails if it exceeds 5,000 entries or 25 pages. Recent-track requests intentionally return only their requested sample. The probe accepts `accountId` (number or explicit `null`); omission uses the saved listener, while `null` tests library-only access.
 - Non-admin users can update only their own connection fields; global setting changes return `403`
 - Service probes require admin access when user-session auth is active, except for probing the current user's own Plex connection
-- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: the admin app authorizes each user's own account via `/api/v1/auth/oauth/tidal/initiate`
+- TIDAL client credentials and the TIDAL probe are global, admin-managed settings. TIDAL is *additionally* a per-user OAuth connection: each user authorizes their own account using the admin-registered app via `/api/v1/auth/oauth/tidal/initiate`
 - `GET /api/v1/settings` returns `_tidalAppConfigured` (boolean), a read-only capability flag telling non-admins whether an admin has registered a TIDAL app, so the UI can enable the Connect button without exposing the credentials. Underscore-prefixed keys are derived flags, never stored settings, and are ignored on `PATCH`
 - Successful service probes return `200` with a required `message` plus optional metadata:
   `{ "message": "Connected", "version": "1.2.3", "latencyMs": 42 }`

@@ -849,6 +849,8 @@ export const openapiDoc = {
         tags: ['Settings'],
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
+        description:
+          'Test the selected service using supplied fields with saved settings as fallback. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
         security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: false, content: { [json]: { schema: { type: 'object' } } } },
