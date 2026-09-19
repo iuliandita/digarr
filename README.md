@@ -19,7 +19,7 @@
 >
 > Documentation on `develop` also covers features available in the `:nightly` image but not yet in the latest tagged release. The changelog is the source of truth for released-version availability.
 >
-> **Testers wanted: TIDAL Favorite Artists.** The new TIDAL discovery mode ships in v1.15.0, but its OAuth flow has never run against a real TIDAL account, so it is marked experimental. If you have a TIDAL subscription: register `<your-digarr-url>/api/v1/auth/oauth/tidal/callback` on a [TIDAL developer app](https://developer.tidal.com/), connect from **Settings > Your Connections > TIDAL**, and run the mode. Report the result on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553) -- either the failure message Settings shows after a failed connect, or the number of artists the mode returned. See [Connecting TIDAL](#connecting-tidal) for the full setup.
+> **TIDAL feedback wanted.** TIDAL Favorite Artists ships as experimental without live-account validation. We do not have a TIDAL account to test authorization, token refresh, or favorite-artist retrieval. If you use TIDAL, please try it and [share your results](#tidal-feedback), including failures. See [Connecting TIDAL](#connecting-tidal) for setup.
 >
 > Free and open source, forever. No tracking from Digarr itself. If you choose a hosted AI provider (Anthropic, OpenAI, Gemini) or point a local-provider option at a remote host, your discovery prompts are sent to that provider under its terms. Use Ollama on localhost or a local OpenAI-compatible endpoint to keep everything on your server.
 
@@ -286,7 +286,7 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
 ### Connecting TIDAL
 
 > [!WARNING]
-> **Unproven.** This OAuth flow has never been validated against a live TIDAL account. It was built from TIDAL's published OpenAPI description, not from a completed connect, so the token exchange, the shared-app PKCE registration, and the collection payload shape are all unverified. Expect it to fail. If it does, Settings shows a banner naming the stage that failed -- report that message on [the validation issue (#553)](https://github.com/iuliandita/digarr/issues/553). If it works, a comment saying so (with the artist count the mode returned) is just as useful.
+> **Experimental and unverified.** Authorization, token refresh, and favorite-artist retrieval have not been tested against a live TIDAL account. We are shipping with that limitation and asking the community for [feedback](#tidal-feedback). The Experimental badges remain until live results establish that these flows work.
 
 TIDAL uses a single app registered by an admin, which every user then authorizes with their own TIDAL account:
 
@@ -296,14 +296,29 @@ TIDAL uses a single app registered by an admin, which every user then authorizes
    <your-digarr-url>/api/v1/auth/oauth/tidal/callback
    ```
 
-   Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces -- a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. With `ALLOWED_ORIGIN` unset, the URI falls back to the browser's origin, which behind a reverse proxy may be a host TIDAL does not know.
+   Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces -- a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. Production requires `ALLOWED_ORIGIN`. Without it, only non-production loopback callback URLs are accepted.
 
 2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL** (the same credentials that power experimental TIDAL search).
 3. Each user then opens **Settings > Your Connections > TIDAL** and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
 
 Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
 
-Each user's connection stores a copy of the app credentials it was made with, so **rotating the shared TIDAL client ID or secret breaks every existing connection.** Connections keep working until their access token expires, then fail to refresh and the mode falls back to "Connect TIDAL to use this mode." After rotating credentials, every user must disconnect and reconnect TIDAL once.
+Each user's connection stores a copy of the app credentials it was made with, so **rotating the shared TIDAL client ID or secret breaks every existing connection.** A still-valid access token may continue to work until it expires; refresh can then fail and require reconnection. After rotating credentials, every user must disconnect and reconnect TIDAL once.
+
+### TIDAL feedback
+
+Live TIDAL testing is deferred because we do not have an account available. This is an accepted release limitation, not a successful validation. The original [validation request (#553)](https://github.com/iuliandita/digarr/issues/553) records the decision; please [open a new issue](https://github.com/iuliandita/digarr/issues/new/choose) with your results so failures can be investigated individually.
+
+After [connecting TIDAL](#connecting-tidal), run **Discover > Discovery Modes > TIDAL Favorite Artists**. Try again after the connection's access token expires, without disconnecting first, to exercise refresh. The read-only `GET /api/v1/auth/oauth/tidal/status` endpoint reports `expiresAt`; a connected status alone does not prove refresh or discovery works.
+
+Please include:
+
+- Your Digarr version and, for nightly, the commit SHA from the footer or `GET /health`.
+- Whether authorization, a later run after token expiry, and Favorite Artists each succeeded or failed. Say which steps you did not try.
+- The Settings error message or relevant Job History error, with private details removed.
+- Whether your TIDAL collection contains favorite artists, the artist count shown in Job History if available, and whether the run produced recommendations. Report an empty result or visible error as shown; it does not by itself identify a missing-name payload problem. Do not include actual artist names.
+
+Do not post client secrets, access or refresh tokens, authorization codes, cookies, or full callback URLs. A successful catalog credential probe does not validate the per-user OAuth flow.
 
 ## Backup & Restore
 

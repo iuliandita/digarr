@@ -93,6 +93,12 @@ consequences worth knowing before debugging a failed connect:
 Set `ALLOWED_ORIGIN` before registering the callback at TIDAL, and register
 exactly the URI it produces.
 
+TIDAL remains experimental. Live-account validation of the initial connect,
+stored-token refresh, and the populated favorite-artist collection response is
+deferred. If you test it, open a new GitHub issue following the
+[TIDAL feedback guide](../README.md#tidal-feedback) for the reporting checklist
+and privacy precautions.
+
 ### Provider OAuth transaction state
 
 Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a
