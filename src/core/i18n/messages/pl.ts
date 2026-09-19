@@ -1193,7 +1193,7 @@ export const pl = {
   'settings.currentPassword': 'Aktualne hasło',
   'settings.newPassword': 'Nowe hasło',
   'settings.confirmNewPassword': 'Potwierdź nowe hasło',
-  'settings.minCharsPassword': 'Min. 8 znaków',
+  'settings.minCharsPassword': 'Min. 12 znaków',
   'settings.changing': 'Zmienianie...',
   'settings.passwordChanged': 'Hasło zmienione',
   'settings.passwordsDoNotMatch': 'Nowe hasła nie są zgodne',

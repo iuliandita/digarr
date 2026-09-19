@@ -1203,7 +1203,7 @@ export const it = {
   'settings.currentPassword': 'Password attuale',
   'settings.newPassword': 'Nuova password',
   'settings.confirmNewPassword': 'Conferma nuova password',
-  'settings.minCharsPassword': 'Min 8 caratteri',
+  'settings.minCharsPassword': 'Min 12 caratteri',
   'settings.changing': 'Modifica in corso...',
   'settings.passwordChanged': 'Password modificata',
   'settings.passwordsDoNotMatch': 'Le nuove password non corrispondono',

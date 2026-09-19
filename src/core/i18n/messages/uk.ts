@@ -1200,7 +1200,7 @@ export const uk = {
   'settings.currentPassword': 'Поточний пароль',
   'settings.newPassword': 'Новий пароль',
   'settings.confirmNewPassword': 'Підтвердіть новий пароль',
-  'settings.minCharsPassword': 'Мін. 8 символів',
+  'settings.minCharsPassword': 'Мін. 12 символів',
   'settings.changing': 'Зміна...',
   'settings.passwordChanged': 'Пароль змінено',
   'settings.passwordsDoNotMatch': 'Нові паролі не збігаються',

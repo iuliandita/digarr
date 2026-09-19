@@ -1207,7 +1207,7 @@ export const ru = {
   'settings.currentPassword': 'Текущий пароль',
   'settings.newPassword': 'Новый пароль',
   'settings.confirmNewPassword': 'Подтвердите новый пароль',
-  'settings.minCharsPassword': 'Мин. 8 символов',
+  'settings.minCharsPassword': 'Мин. 12 символов',
   'settings.changing': 'Смена...',
   'settings.passwordChanged': 'Пароль изменён',
   'settings.passwordsDoNotMatch': 'Новые пароли не совпадают',

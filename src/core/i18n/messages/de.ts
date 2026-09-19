@@ -1209,7 +1209,7 @@ export const de = {
   'settings.currentPassword': 'Aktuelles Passwort',
   'settings.newPassword': 'Neues Passwort',
   'settings.confirmNewPassword': 'Neues Passwort bestätigen',
-  'settings.minCharsPassword': 'Mindestens 8 Zeichen',
+  'settings.minCharsPassword': 'Mindestens 12 Zeichen',
   'settings.changing': 'Wird geändert...',
   'settings.passwordChanged': 'Passwort geändert',
   'settings.passwordsDoNotMatch': 'Neue Passwörter stimmen nicht überein',

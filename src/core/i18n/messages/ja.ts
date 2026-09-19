@@ -1184,7 +1184,7 @@ export const ja = {
   'settings.currentPassword': '現在のパスワード',
   'settings.newPassword': '新しいパスワード',
   'settings.confirmNewPassword': '新しいパスワードの確認',
-  'settings.minCharsPassword': '最低 8 文字',
+  'settings.minCharsPassword': '最低 12 文字',
   'settings.changing': '変更中...',
   'settings.passwordChanged': 'パスワードを変更しました',
   'settings.passwordsDoNotMatch': '新しいパスワードが一致しません',

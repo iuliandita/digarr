@@ -1202,7 +1202,7 @@ export const ptBR = {
   'settings.currentPassword': 'Senha atual',
   'settings.newPassword': 'Nova senha',
   'settings.confirmNewPassword': 'Confirmar nova senha',
-  'settings.minCharsPassword': 'Mín. 8 caracteres',
+  'settings.minCharsPassword': 'Mín. 12 caracteres',
   'settings.changing': 'Alterando...',
   'settings.passwordChanged': 'Senha alterada',
   'settings.passwordsDoNotMatch': 'As novas senhas não coincidem',

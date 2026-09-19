@@ -1204,7 +1204,7 @@ export const ro = {
   'settings.currentPassword': 'Parola curentă',
   'settings.newPassword': 'Parolă nouă',
   'settings.confirmNewPassword': 'Confirmați parola nouă',
-  'settings.minCharsPassword': 'Min. 8 caractere',
+  'settings.minCharsPassword': 'Min. 12 caractere',
   'settings.changing': 'Se schimbă...',
   'settings.passwordChanged': 'Parolă schimbată',
   'settings.passwordsDoNotMatch': 'Parolele noi nu se potrivesc',

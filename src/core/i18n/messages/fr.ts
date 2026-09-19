@@ -1200,7 +1200,7 @@ export const fr = {
   'settings.currentPassword': 'Mot de passe actuel',
   'settings.newPassword': 'Nouveau mot de passe',
   'settings.confirmNewPassword': 'Confirmer le nouveau mot de passe',
-  'settings.minCharsPassword': 'Min 8 caractères',
+  'settings.minCharsPassword': 'Min 12 caractères',
   'settings.changing': 'Modification...',
   'settings.passwordChanged': 'Mot de passe modifié',
   'settings.passwordsDoNotMatch': 'Les nouveaux mots de passe ne correspondent pas',
