@@ -53,7 +53,7 @@ at boot:
 
 - **External PostgreSQL** when a DSN is present -- `DATABASE_URL`, or the
   `DB_HOST` + `DB_USER` + `DB_NAME` triple. Uses a connection pool.
-- **Embedded PGlite** otherwise -- real PostgreSQL 18.3 compiled to Wasm,
+- **Embedded PGlite** otherwise -- PostgreSQL compiled to Wasm,
   running in-process, with the whole database persisted to a single directory at
   `DB_PATH` (image default `/app/data`). No separate database server or
   container.
@@ -69,8 +69,8 @@ for the external pool (`if (pool)`) -- PGlite is in-process and always ready --
 then the same `preFlightCheck()` -> `runMigrations()` path runs for both
 backends.
 
-**Invariants and limits.** PGlite is single-writer: the entire database lives in
-Wasm linear memory backed by one file, so exactly one replica may own it. The
+**Invariants and limits.** PGlite is single-writer: the database runs in
+Wasm and persists in a data directory, so exactly one replica may own it. The
 Helm/k8s opt-in pins `replicaCount=1` and forces the `Recreate` rollout strategy
 (no two pods touching the file at once). Because the working set sits in Wasm
 memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
@@ -174,21 +174,12 @@ fallback.
 
 ## Boot order
 
-Async IIFE in `src/index.ts`:
+Startup in `src/index.ts` has two phases:
 
-1. `createJobRecorder(db)` - module-level, before the IIFE
-2. `markStuck()` - flips any in-progress jobs left over from a crashed prior run
-3. `waitForDatabase()` - external-pool only (`if (pool)`); retry/backoff until Postgres accepts connections (survives a slow PG startup without crash-looping on kubelet); the HTTP server only binds after this succeeds. PGlite is in-process, so it skips this step
-4. `preFlightCheck()` - auto-backup if pending migrations are detected
-5. `migrate()` - drizzle-kit migrations
-6. `autoSetup()` - first-admin bootstrap when the env vars are present
-7. Bootstrap user setup
-8. Lidarr target backfill
-9. Pipeline scheduler
-10. Subscription scheduler
-11. Playlist scheduler
-12. `startStuckDetector()` - cron every 5 min
-13. `startDigestNotifier()` - cron driving the scheduled notification digest; no-ops when `digestCron` is unset. `restartDigestNotifier()` re-arms it at runtime when the cron preference changes, so a settings save applies without a restart. Each send covers the window since a persisted last-sent bookmark (advanced only after a successful send, so delivery is at-least-once and restarts or downtime neither double-report nor drop a window); ticks are skipped during maintenance
+1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations.
+2. After the HTTP listener starts, an async initializer completes env-based setup when configured, creates the initial admin if no users exist, migrates legacy connections, backfills targets, and starts the pipeline, subscription, playlist, library, slskd, stuck-job, and notification-digest schedulers.
+
+The digest bookmark is persisted after successful delivery. This provides at-least-once delivery: a crash after sending but before saving the bookmark can repeat a digest. Schedulers skip work during maintenance; jobs already running must finish before a backend migration.
 
 ## Album-level discovery
 
@@ -200,7 +191,7 @@ Albums are a first-class recommendation unit. Key additions:
 - **`addAlbum` target capability** -- approving an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe).
 - **Release-radar producer** -- the release-radar discovery mode is the first producer that populates the album substrate. It emits first-class `kind='album'` recommendations for new releases from artists the user already tracks, instead of collapsing them into artist rows, and these land in the Albums tab. With the kind-aware dedup change (below), a tracked artist that drops several releases in one scan window now yields one album recommendation per release in the same run, rather than one per run.
 - **Library gap-fill producer** -- a discovery mode whose executor iterates a rotated, bounded slice of the user's tracked artists. The cursor is the `library_artists.last_gap_check_at` column, ordered `asc nulls first` so never-checked artists go first; the slice is bounded (default 25 per run, overridable via the mode's `maxArtistsPerRun` setting) and walked with a p-queue (concurrency 2, 200ms interval) so a large library does not starve the event loop. For each artist it calls the album-coverage engine (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per missing studio album, carrying the release-group MBID and the release year as the recency signal. After the slice runs, the checked artists' `last_gap_check_at` is stamped so the next run advances the cursor. This fills the Albums tab from missing studio albums of artists already in the library.
-- **Net-new album discovery producer** -- a gated promotion inside `resolve()` rather than a standalone discovery mode. AI discovery already returns a free-text `suggestedAlbum`; when the `netNewAlbumDiscovery` preference is on (default off) and that title resolves to a real MusicBrainz release group via `matchSuggestedAlbum`, the artist-kind recommendation is promoted to `kind='album'`, carrying the matched release-group MBID and its first-release date as the recency signal. A failed match falls back to artist-kind. With the toggle off, the trailing `promoteSuggestedAlbums` flag is `false` and the resolve path is byte-for-byte the prior behaviour; the only always-on change is that `matchSuggestedAlbum` now also returns the matched release date (unused unless promoting). This rides the same downstream album paths the substrate and the other two producers built (filter partition, album block/dedup, recency/popularity modifier, `kind` persistence), so it needs no orchestrator/filter/scorer changes beyond threading the flag. It completes the album-discovery producer trilogy.
+- **Net-new album discovery producer** -- when `netNewAlbumDiscovery` is enabled (default off), `resolve()` tries to match the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album recommendation with its release-group MBID and first-release date, then follows the normal album scoring, filtering, and storage paths. An unmatched title stays an artist recommendation.
 - **Album empty-state routing** -- a normal pipeline scan remains artist-focused. When the album-filtered recommendation list is empty, the frontend links to the two explicit album discovery modes (`gap-fill` and `release-radar`) and to the default-off `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested generic mode card; the preference link opens its collapsed settings section and focuses the target.
 - **Kind-aware dedup** -- album candidates dedup and group by release-group MBID instead of artist MBID at three points, which is what lets multiple albums per artist survive a single run (and lifted the release-radar one-album-per-artist-per-run cap): the discover-stage dedup keys album candidates on `rg::{releaseGroupMbid}` while artist candidates still key on artist MBID/name (`src/core/pipeline/discover.ts`); `resolve()` partitions album-kind discoveries out of the artist-MBID grouping and groups them by release group, one resolved recommendation per release group (`src/core/pipeline/resolve.ts`); and the resolve final dedup keys album-kind recommendations on `{artistMbid}::{releaseGroupMbid}` so distinct albums for the same artist are kept.
 

@@ -14,10 +14,10 @@
   <Support>https://github.com/iuliandita/digarr/discussions</Support>
   <Project>https://github.com/iuliandita/digarr</Project>
   <Overview>
-    AI-powered music discovery engine for self-hosted music stacks.
-    Connects to Lidarr, Last.fm, ListenBrainz, Spotify, and more to find
-    new artists you will actually like. Supports auto-playlists, subscription
-    feeds, mood-based discovery, and genre browsing.
+    Self-hosted music discovery for your library. Find artists and albums from
+    your listening history, review recommendations, and send approvals to
+    Lidarr or slskd. Generate playlists for connected services, or run without
+    Lidarr. Use a hosted AI provider or your own local model.
 
     Ships with a built-in embedded database -- no separate PostgreSQL
     container needed. Data is stored in the mapped data folder
@@ -58,7 +58,7 @@
     Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="Initial Password" Target="DIGARR_INITIAL_PASSWORD" Default=""
-    Description="Password for the initial admin user (min 8 chars)"
+    Description="Password for the initial admin user (min 12 chars)"
     Type="Variable" Display="always" Required="false" Mask="true"/>
 
   <!-- AI Provider -->
@@ -67,7 +67,7 @@
     Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="AI Model" Target="AI_MODEL" Default=""
-    Description="Model name, e.g. gpt-4o-mini, claude-sonnet-4-5-20250514"
+    Description="Exact model ID offered by your configured AI provider"
     Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="AI API Key" Target="AI_API_KEY" Default=""
@@ -106,7 +106,7 @@
 
   <!-- Security -->
   <Config Name="Allowed Origin" Target="ALLOWED_ORIGIN" Default=""
-    Description="CORS allowed origin, e.g. https://digarr.example.com (required for reverse proxy)"
+    Description="Exact public origin for cookies, CSRF, and SSO callbacks, e.g. https://digarr.example.com (no trailing slash)"
     Type="Variable" Display="advanced" Required="false" Mask="false"/>
 
   <Config Name="Allow Insecure Cookies" Target="DIGARR_ALLOW_INSECURE_COOKIES" Default="false"
@@ -114,7 +114,7 @@
     Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
 
   <Config Name="Encryption Key" Target="DIGARR_ENCRYPTION_KEY" Default=""
-    Description="32+ char key for encrypting API keys, tokens, and connection passwords (blank stores those fields unencrypted)"
+    Description="Random key (32+ characters recommended) for encrypting API keys, tokens, and connection passwords (blank stores those fields unencrypted)"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>
 
   <Config Name="Disable Registration" Target="DIGARR_DISABLE_REGISTRATION" Default="true|false"
@@ -122,10 +122,10 @@
     Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
   <Config Name="Skip TLS Verify" Target="SKIP_TLS_VERIFY" Default="false|true"
-    Description="Skip TLS certificate verification for Lidarr/Jellyfin connections"
+    Description="First-run auto-setup TLS setting; afterward change saved connection settings in the UI"
     Type="Variable" Display="advanced-hide" Required="true" Mask="false"/>
 
   <Config Name="Webhook URL" Target="WEBHOOK_URL" Default=""
-    Description="Discord HTTPS webhook or public HTTPS endpoint that accepts Digarr JSON"
+    Description="First-run env auto-setup webhook (requires AI_PROVIDER and AI_MODEL); afterward configure channels in Settings"
     Type="Variable" Display="advanced" Required="false" Mask="true"/>
 </Container>

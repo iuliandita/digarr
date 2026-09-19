@@ -1,45 +1,77 @@
 # digarr Helm Chart
 
-Helm chart for deploying the digarr music-discovery pipeline to Kubernetes.
+Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existing PostgreSQL database.
 
 ## Prerequisites
 
 - Kubernetes `>= 1.29`
 - Helm `>= 3.14`
-- A Postgres database. The chart ships a single-replica Postgres StatefulSet
-  out of the box; point `database.host` at an external cluster to disable it.
+- Persistent storage for the selected backend. PostgreSQL is bundled by default. For an external database, set `postgresql.enabled=false` and supply `database.existingSecret` or the database connection values. Setting `database.host` alone does not disable the bundled server.
 
 ## Install
 
-```sh
-helm install digarr deploy/helm/digarr \
-  --namespace arr --create-namespace \
-  --set postgresql.auth.password='CHANGE_ME' \
-  --set ingress.enabled=true \
-  --set ingress.hosts[0].host=digarr.example.com
+Create a values file and store database credentials in a Kubernetes Secret. This example uses an existing PostgreSQL database and TLS Ingress; replace the host, ingress class, and Secret names for your cluster:
+
+```yaml
+postgresql:
+  enabled: false
+database:
+  existingSecret: digarr-database  # Secret key: DATABASE_URL
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: digarr.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: digarr-tls
+      hosts:
+        - digarr.example.com
+backups:
+  persistence:
+    enabled: true
+extraEnv:
+  - name: ALLOWED_ORIGIN
+    value: https://digarr.example.com
+  - name: DIGARR_ENCRYPTION_KEY
+    valueFrom:
+      secretKeyRef:
+        name: digarr-secrets
+        key: encryption-key
 ```
 
-For non-trivial installs, copy `values.yaml` to `my-values.yaml`, edit, and
-install with `-f my-values.yaml`.
+Save this as `my-values.yaml`, review the [network policy](#network-access), then install from a checkout:
+
+```sh
+helm install digarr deploy/helm/digarr \
+  --namespace arr --create-namespace -f my-values.yaml
+```
+
+For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existingSecret`, and set `postgresql.auth.password` in a protected values file. Keep passwords out of command-line arguments.
+
+For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too.
 
 ## Key values
 
 | Value | Default | Purpose |
 |-------|---------|---------|
 | `replicaCount` | `1` | App pods. Keep at 1; external Postgres alone does not make Digarr safe for multiple replicas. |
-| `image.tag` | chart appVersion | Pin a specific release. |
+| `image.tag` | release version in values.yaml | Used when no digest is set. Update `image.digest` as well when choosing another image. |
 | `image.digest` | set by CI | Immutable digest pinning. |
 | `ingress.enabled` | `false` | Classic Ingress resource. |
 | `ingress.controllerNamespace` | `ingress-nginx` | NetworkPolicy source namespace. |
 | `gateway.enabled` | `false` | Gateway API HTTPRoute instead of Ingress. |
-| `postgresql.enabled` | `true` | Bundled Postgres StatefulSet. |
-| `postgresql.auth.password` | _unset_ | **Required** when `postgresql.enabled=true`. |
+| `database.backend` | `postgres` | `postgres` or embedded `pglite`. |
+| `postgresql.enabled` | `true` | Bundled PostgreSQL; ignored with `pglite`. |
+| `postgresql.auth.password` | _unset_ | **Required** for the bundled PostgreSQL backend. |
 | `database.existingSecret` | _unset_ | Reference a pre-created Secret with `DATABASE_URL`. |
 | `backups.persistence.enabled` | `false` | PVC-backed `/app/backups` instead of emptyDir. |
 | `extraEnv` | `[]` | Extra env vars (e.g. `DIGARR_ENCRYPTION_KEY`). |
 | `extraEnvFrom` | `[]` | Extra envFrom entries (e.g. whole OIDC secret). |
 | `namespace.create` | `false` | Emit a Namespace with PSA `restricted` enforced. |
-| `networkPolicy.enabled` | `true` | NetworkPolicy locking egress to public internet and in-ns Postgres. |
+| `networkPolicy.enabled` | `true` | NetworkPolicy restricting ingress and egress; see Network access below. |
 
 See `values.yaml` for the full surface.
 
@@ -67,6 +99,10 @@ rate limits, and migration locks. External PostgreSQL is useful for managed
 storage and larger installations, but it is not sufficient for horizontal app
 scaling; keep `replicaCount: 1` until distributed coordination is implemented.
 
+## Network access
+
+The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fd00::/8`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add a separate NetworkPolicy with the required destinations and ports before connecting those services. Gateway deployments must also allow their controller namespace. Disabling `networkPolicy.enabled` removes the chart's restrictions; do that only if another policy provides the intended controls.
+
 ## Secrets
 
 `DIGARR_ENCRYPTION_KEY`, OIDC client secrets, and similar should be injected
@@ -93,11 +129,8 @@ tag is unchanged.
 
 ## Rollback
 
-```sh
-helm rollback digarr -n arr
-```
+A Helm rollback restores Kubernetes resources, not the database schema. Do not run an older image against an already-migrated database unless its compatibility is established. Restore a compatible backup into a separate database when a schema downgrade is required; see [backup and restore](../../../README.md#backup--restore).
 
-The deployment uses `strategy.rollingUpdate.maxUnavailable: 0` with
-`maxSurge: 1`, so the new pod becomes Ready before the old one terminates.
-On shutdown, the app flips `/health` to `503 draining` for ~12s before
-closing sockets, so rolling updates do not emit 502s.
+PostgreSQL deployments use a rolling update with `maxUnavailable: 0` and `maxSurge: 1`. PGlite uses `Recreate`, so updates have downtime. The app marks `/health` as draining before shutdown, but that does not guarantee uninterrupted traffic through every proxy.
+
+Backups use `emptyDir` unless `backups.persistence.enabled=true`. An `emptyDir` is lost when a pod is replaced, including during an upgrade. Keep persistent backups and a separate off-cluster copy.

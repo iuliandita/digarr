@@ -4,41 +4,26 @@
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
-## Where We Are
+## Current release
 
-v1.17.0 adds password-confirmed SSO linking for existing local accounts (#657) and server-wide MusicBrainz mirror configuration (#426). Emby sync reads every page, failed album fetches preserve the previous library snapshot (#659, #660), and playlist export failures reach Job History (#661). Generated Spotify exports preserve selected tracks and use the current API (#663).
+v1.17.0 adds SSO linking for existing local accounts and support for MusicBrainz mirrors. It fixes incomplete Emby syncs, preserves library snapshots after album-fetch failures, and reports playlist export failures. Spotify exports preserve the selected tracks.
 
-All five v1 exit criteria now pass. Digarr is feature-complete for a v1 release, and the first full library-sync stack is now shipped across Lidarr, Plex, Jellyfin, Emby, and Subsonic; slskd is a separate approval and acquisition target. Multilingual support is fully shipped: all UI strings are translated across 15 locales, and AI-assisted discovery output follows the user's selected language. Deezer OAuth connect with four authenticated data sources (favorites, followed, Flow, playlists) shipped in v0.22.0. Discovery mode expansion is complete: the runnable modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz collaboration/membership/alias graph), Labels (co-label artists via Discogs), Charts (global/regional chart movement via Last.fm), Deezer Flow (the personalized Deezer artist feed), Spotify Saved Albums (artists from the albums you saved on Spotify), Spotify Followed Artists (the artists you follow on Spotify, requiring the `user-follow-read` scope granted on connect/reconnect), TIDAL Favorite Artists (the artists in your TIDAL collection, via a per-user PKCE connect against one admin-registered TIDAL app), and Subsonic Starred (artists similar to the ones you starred on your Subsonic server), all surfaced from Discover -> Discovery Modes instead of embedded on the main Discover page. Manual discovery-mode runs preflight Artist Radio seeds and appear in Jobs as soon as the backend accepts them, so fast failures are no longer silent. Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit with a `kind` discriminator, album blocks, an album scoring modifier, single-album Lidarr approval (`addAlbum`), a kind filter and Albums nav on Discover, and full i18n. All three producers are now live: release-radar new-release discovery (v1.1.0) emits `kind='album'` recommendations for new releases from artists you already track, Library Gap-Fill (v1.2.0) recommends the studio albums you are missing from those same tracked artists, and net-new album discovery (v1.3.0) promotes a specific album the AI suggests by a new-to-you artist into a first-class album recommendation, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. Notification channels beyond Discord/Slack-formatted webhooks (native ntfy and Telegram plus Apprise) are now shipped. v1.14.0 adds a cooperative "Stop scan" control that cancels an in-flight discovery run without a container restart, and hardens web auth: browser sessions moved to HttpOnly cookies that fail closed to `Secure` in production, OIDC login state is browser-bound and single-use, provider tokens are retired after sign-in, and the sunset unversioned `/api/*` redirects now return 404. v1.15.0 deepens the listening signal with Spotify Followed Artists and a top-artists signal spanning all three listening windows, adds TIDAL Favorite Artists via a per-user PKCE connect (experimental, not yet validated against a live TIDAL account), hardens provider OAuth by moving in-flight authorizations into their own table with hashed single-use state and a browser-bound transaction cookie, encrypts webhook notification URLs at rest, and surfaces connect outcomes on the settings page instead of leaving them in the address bar. v1.15.1 is a bugfix release: large Lidarr libraries no longer abort partway through a sync, discovery modes distinguish a stale streaming connection from one that was never made, and TIDAL token refresh authenticates the same way the initial connect does. v1.16.0 exposes the Navidrome, Plex, and Jellyfin playlist targets and a per-playlist target picker, and clears cached account data on logout or account switch, including across open tabs. Current focus is product polish around review and library operations.
+Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Current work focuses on review, library operations, and connection reliability.
 
-## Development Channel
+## Development channel
 
-- TIDAL Favorite Artists ships with live-account testing deferred to community feedback. Authorization, refresh, and favorite-artist retrieval remain unverified, and Experimental badges remain. This is an accepted release limitation; see the [feedback guide](../README.md#tidal-feedback) and the decision in [#553](https://github.com/iuliandita/digarr/issues/553).
+Available in `:nightly`, pending a tagged release:
 
-- Plex playlist exports preserve the selected track order in one request; playlist target tests support Plex, Jellyfin, and Navidrome.
+- Plex listening history with a per-user listener selection. Shared-library sync works independently.
+- Audition playlists with one resolved track per pending artist, generated on demand or on a schedule.
+- Plex playlist export and saved-target connection-test fixes.
+- slskd search and retry fixes, complete-release checks, and verified Lidarr imports. Linked targets require a completed-download path visible to Lidarr.
 
-- Audition playlists are available on the development channel: one resolved track per pending artist, with on-demand or scheduled refresh and existing playlist targets.
+See [Unreleased](../CHANGELOG.md#unreleased) for details.
 
-## v1 Goals
+## Known integration limitation
 
-### New User Can Reach First Value - Pass
-
-Setup wizard, Spotify playlist import, CSV import, and guided empty states get new users to their first recommendations without friction.
-
-### Core Discovery Is Resilient - Pass
-
-External source failures degrade gracefully. Image and metadata fallbacks cover the major fragile paths. The app gives useful results even when Spotify is unavailable.
-
-### Operators Have Safety Rails - Pass
-
-Backup/restore, pre-flight migration checks, auto-backup before upgrades, and data hygiene repair tools are all in place.
-
-### Background Work Is Observable - Pass
-
-Admin job tracking surface with health endpoint, run history, stuck-task detection, and actionable error messages.
-
-### Critical Workflows Have Release Protection - Pass
-
-End-to-end browser test suite (Playwright) covering setup, login, scan, approve/reject, discovery modes, subscriptions, and playlists. CI gates on critical workflow failures.
+TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-artist retrieval have not been tested with a live account. This is an accepted release limitation, with [community testing requested](../README.md#tidal-feedback). The Experimental badges stay until these flows are verified.
 
 ## Exploring
 
@@ -46,7 +31,6 @@ Ideas we're considering. If any of these matter to you, open an issue or discuss
 
 ### Discovery
 
-- Deeper listening-source data (Spotify saved albums shipped in v1.9.0; TIDAL favorites shipped but not yet validated against a live TIDAL account)
 - Contextual discovery-mode presets
 - Additional graph-based discovery modes
 
@@ -79,52 +63,6 @@ Low confidence. Would build only with real demand.
 - Native desktop client (Linux/Mac/Windows) - PWA install already covers most of this
 - Native mobile apps (Android/iOS) - PWA is already installable; native value is mostly reliable push notifications
 
-## Shipped Highlights
+## Release history
 
-For release-by-release detail, see [CHANGELOG.md](../CHANGELOG.md).
-Release reminder: after publishing a new app image, run `bun scripts/sync-deploy-digests.ts <tag>` -- it updates the Kubernetes/Helm digest pins, the Unraid version tag and digest comment, and the Compose/README version examples.
-
-### v1.15.0
-
-- Library reconciliation review now explains no MusicBrainz match, ambiguous matches, and failed lookups for both artists and albums. Admins can select eligible visible artists or the current album page and confirm one atomic bulk ignore; transient lookup failures remain unselected, per-row MBID correction remains available, and the complete workflow is translated across all 15 locales
-
-### v1.14.0
-
-- A cooperative "Stop scan" control cancels an in-flight discovery run without restarting the container: the pipeline progress card gains a Stop button backed by `POST /api/v1/pipeline/cancel`, cancellation checks an abort signal at every stage boundary and inside artist resolution, queued follow-on runs are cleared, the run is recorded with a `cancelled` status, and a run that ignores the request is force-reset after a grace window so the app never stays stuck in "running". Full i18n across 15 locales
-- Notifications expanded from a single webhook URL to a list of mixed-type channels: webhook (Discord/Slack auto-formatting), ntfy (server/topic/priority/token), Telegram (bot token + chat ID), and Apprise (fans one endpoint out to 80+ services). Each channel has its own enabled toggle and per-event subscriptions (scan complete and/or digest), secrets are encrypted at rest and returned masked, an existing single webhook migrates automatically, and all delivery flows through one SSRF-guarded transport with an admin-only per-channel LAN opt-in. Full i18n across 15 locales
-- Browser authentication now uses HttpOnly, SameSite cookies across the web password flow, OIDC, and trusted-proxy sign-in, with same-origin CSRF enforcement for mutations. Existing browser bearer sessions migrate once without exposing the replacement token to JavaScript; bearer API clients retain their compatibility path
-- OIDC sign-in now keeps only local identity claims after authorization validation. Provider access, refresh, and ID tokens are not retained or copied through backup and backend-migration paths; legacy restores skip old token rows with a warning, and a mode-`0600` compatibility-copy helper supports rollback into a fresh old-schema database
-- Browser cookie-session hardening (#386) is shipped: production session and OIDC transaction cookies fail closed to `Secure` even when the backend request arrives over HTTP behind a TLS terminator, with a single `DIGARR_ALLOW_INSECURE_COOKIES=true` opt-in for intentional direct-HTTP deployments. OIDC login state is browser-bound in a one-time, 10-minute, capacity-capped transaction cookie and login is rate limited (10/min/IP), while password change and session replacement run as one atomic transaction so a stale password verification cannot mint a post-reset session
-- Unversioned API compatibility redirects ended after their published 2026-07-19 sunset; requests to `/api/*` now return `404 Not Found`, and clients must use `/api/v1/*`
-
-### Earlier releases
-
-- v1.13.0 adds an Audition queue for continuous preview playback: an Audition button on the Discover toolbar queues the loaded pending recommendations that have previews, in score order; the global preview bar gains previous/next and position controls. Deezer advances when its clip ends, Spotify reuses a persistent supported iframe controller and advances only after real playback completes, and YouTube retains a bounded 30-second fallback. If a browser blocks Spotify autoplay, the queue stays on the current usable embed instead of silently advancing; once manually activated, later Spotify entries reuse the same controller. Preview-less items are skipped, and playing anything else or stopping deactivates the queue. Artist-level v1 ("try before you add"). Full i18n across 15 locales
-- The scheduled notification digest now persists a last-sent bookmark, so restarts or downtime no longer double-report or drop a window; delivery is at-least-once
-- Discover can reject every loaded pending recommendation below a chosen score threshold in one reviewed action, while preserving higher-scored candidates for normal review
-- Cross-provider search now includes experimental TIDAL results when an admin configures TIDAL client credentials; unconfigured installs keep the source disabled
-- AI provider failures are now first-class observable (v1.12.0): a dead provider surfaces in scan progress warnings, job history records the real provider error, connection-test failures show the upstream message, and saving AI settings re-probes the persisted config. Provider hardening landed alongside: shared LLM output parsing for OpenAI/Gemini, secret redaction in error snippets, and Ollama model validation in test connection
-- Zero-external-database operation shipped in v1.11.0: embedded PGlite backend (no separate PostgreSQL container), an admin-gated in-app migration tool between PGlite and PostgreSQL with verified atomic copy, a Subsonic (Navidrome/Airsonic/Gonic) listening + library source, self-service account email, and an OIDC account-takeover fix (subject-only identity matching, GHSA-w643-583p-vm6m)
-- Album-level discovery substrate shipped in v1.0.0: albums are a first-class recommendation unit (`kind` discriminator on recommendations, `album_blocks` forever-block layer, album scoring modifier, `addAlbum` single-album Lidarr approval, kind filter + Albums nav on Discover, full i18n across 15 locales). All three producers now populate it with `kind='album'` recommendations: the release-radar new-release producer (v1.1.0) for new releases from tracked artists, Library Gap-Fill (v1.2.0) for the studio albums you are missing from those tracked artists, and net-new album discovery (v1.3.0) for a specific album the AI suggests by a new-to-you artist, gated behind a default-off toggle. Release-radar now surfaces all new releases per artist in a single scan. The empty Albums view explains that normal scans remain artist-focused and links directly to all three album-producing paths.
-- Scheduled notification digest: alongside the per-batch webhook, a periodic roll-up of recent activity (discovered/added/runs) on a user-set cron schedule, configured in Settings, applied at runtime without a restart, reusing the existing SSRF-protected webhook + Discord formatting, full i18n across 15 locales (v1.10.0)
-- Subsonic Starred is now a runnable discovery mode: your starred Subsonic artists seed similar-artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Subsonic connection and honoring Skip TLS Verify, full i18n across 15 locales
-- TIDAL Favorite Artists is now a runnable discovery mode: the artists in your TIDAL collection seed recommendations on demand from Discover -> Discovery Modes. TIDAL became a per-user connection in the process -- one admin-registered TIDAL app (the existing client ID/secret plus a redirect URI) that every user authorizes with Authorization Code + PKCE and the `user.read` / `collection.read` scopes. Favorites are the only user-artist signal TIDAL's public API exposes, so there is no separate followed-artists mode; full i18n across 15 locales (#385)
-- Spotify Followed Artists is now a runnable discovery mode: the artists you follow on Spotify seed recommendations on demand from Discover -> Discovery Modes, and the same scan gained a richer taste profile by aggregating Spotify top artists across the short/medium/long listening windows. The mode needs the new `user-follow-read` OAuth scope, so existing Spotify connections must disconnect and reconnect once to grant it (new connections get it automatically); full i18n across 15 locales (#384)
-- Spotify Saved Albums is now a runnable discovery mode: the albums you saved on Spotify seed artist recommendations on demand from Discover -> Discovery Modes, reusing the existing Spotify OAuth connection (the `user-library-read` scope was already granted for Liked Songs, so no re-consent), full i18n across 15 locales (v1.9.0)
-- Deezer Flow is now a runnable discovery mode: the personalized Deezer artist feed (previously reachable only as a standing subscription) can be fired on demand from Discover -> Discovery Modes like any other mode, needs only the existing Deezer OAuth connection, full i18n across 15 locales (v1.8.0)
-- Charts discovery mode seeds from global or regional chart movement (via Last.fm) rather than the similarity/relationship graph every other mode uses -- a distinct freshness/popularity axis, runnable and savable as a subscription like any mode, full i18n across 15 locales (v1.7.0)
-- Discovery-only installs (no Lidarr) derive a genre profile from native listening-source metadata and local caches. The #403 follow-up shipped Plex/Jellyfin/Emby/Discogs mappings plus a bounded background MusicBrainz warmer with optional Last.fm fallback; library installs keep their library genre reference.
-- Discovery modes now live on their own page, ship the full set (ListenBrainz radio coverage, Release Radar, Similar Artist Web, Artist Relationships via the MusicBrainz graph, and Labels via Discogs), and can be saved as subscriptions
-- Preview volume control in the global preview bar, persisted across sessions
-- Permanent per-user artist blocking and structured rejection reasons shipped in v0.44.0, with a Settings > Blocked management tab and blocklist filtering across pipeline, subscriptions, and quick-discover
-- Multilingual support is fully shipped across 15 locales, including locale-aware AI output and stricter translation-quality checks
-- Library operations now cover Lidarr, Plex, Jellyfin, Emby, Subsonic, and `slskd`, with artist and album sync, reconciliation review, persistent Library Health snapshots, and better sync visibility
-- slskd download targets reached album-level acquisition parity with Lidarr in v1.5.0: album recommendations can be approved straight to slskd (the `addAlbum` capability queues a download job for the chosen release group through the existing slskd search/match/import pipeline)
-- Operations and safety now include backup/restore, pre-flight migration checks, auto-backups, job history, stuck-task detection, and browser-test release gates
-- Integration work added Deezer OAuth feeds, Emby support, linked `slskd` targets, and broader playlist export coverage
-- TheAudioDB is now the primary artist-image source ahead of the Lidarr/SkyHook + fanart.tv + musicinfo.pro chain, with a token-bucket rate limiter and an optional SSRF-guarded image proxy. Recommendation cards expose a Wikidata-sourced artist description and external-link pills (Wikipedia, official site, Discogs, MusicBrainz), cached per locale
-- API surface migrated to `/api/v1/*` with mutation routes returning `204 No Content`, probe failures expressed as HTTP status plus `application/problem+json`, and cursor pagination on six list endpoints
-- Deep-audit remediation closed across 13 phases (v0.27.x through v0.40.x): auth-surface hardening and first-admin guards, full SSRF sweep including NAT64/Teredo and outbound IP pinning, pipeline isolation with atomic writes, DB index and upsert fixes, dual-key encryption rotation, Kubernetes PSS-restricted with dedicated SA and PDB, Docker hardening with BuildKit cache, cosign keyless signing plus SLSA v1.0 provenance via Sigstore OIDC, Zod validation on every write route, AI provider reliability (Anthropic prompt caching, retry/backoff, Zod-validated outputs, promptfoo eval gate), i18n completeness at 15 locales, component-test plus E2E plus a11y coverage hitting WCAG AA contrast, and a docs/architecture sweep with release-surface consolidation
-
-Release-level detail lives in [CHANGELOG.md](../CHANGELOG.md); this doc keeps
-the feature-level summary and the upcoming milestones only.
+[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Release automation opens a deployment-pin update after publishing an image; maintainers review and merge it before treating those examples as updated.

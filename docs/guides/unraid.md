@@ -15,15 +15,14 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 ## Prerequisites
 
 - Unraid 6.9+ with the **Community Applications** plugin installed
-- An AI provider key (Anthropic, OpenAI, Gemini, Ollama, or any
-  OpenAI-compatible endpoint) -- can also be set later in the web UI
+- Access to an AI provider or local model. Hosted providers need an API key; a local Ollama server does not. Configure this during setup.
 
 ---
 
 ## Step 1: Add the Digarr template
 
 Digarr is published in the Community Applications store via the Selfhosters
-repository, so a plain Apps search is all you need.
+[repository](https://github.com/selfhosters/unRAID-CA-templates/blob/master/templates/digarr.xml). Search for Digarr in Apps.
 
 ### Option A: Community Applications store (recommended)
 
@@ -60,6 +59,10 @@ new releases through the `latest` tag.
 
 ## Step 2: Configure the container
 
+Store templates can lag behind the bundled one. If a field below is missing, add it as a container environment variable using the listed name.
+
+Set **Allowed Origin** before first login. For the default direct-HTTP WebUI, use `http://<server-ip>:<port>` and set **Allow Insecure Cookies** to `true`. For HTTPS through a reverse proxy, use its public HTTPS origin and leave the override false. Generate and retain an **Encryption Key** before saving service credentials.
+
 The template exposes these fields (matching
 [`deploy/unraid/digarr.xml`](../../deploy/unraid/digarr.xml)):
 
@@ -70,7 +73,7 @@ The template exposes these fields (matching
 | Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` -- leave it matching the Data mapping |
 | Database URL | `DATABASE_URL` | No (advanced) | Leave empty to use the embedded database. Set only to use an external PostgreSQL, e.g. `postgresql://digarr:pass@host:5432/digarr` (see Advanced section) |
 | Initial Username | `DIGARR_INITIAL_USERNAME` | No | Auto-creates this admin user on first boot |
-| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Password for the initial admin (min 8 chars) |
+| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Password for the initial admin (min 12 chars) |
 | AI Provider | `AI_PROVIDER` | No | `anthropic`, `openai`, `gemini`, `ollama`, `openai-compatible` (or set in UI) |
 | AI Model | `AI_MODEL` | No | Model name for the chosen provider |
 | AI API Key | `AI_API_KEY` | No | API key for the AI provider |
@@ -80,12 +83,12 @@ The template exposes these fields (matching
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | No | Required behind a reverse proxy, e.g. `https://digarr.example.com` |
 | Allow Insecure Cookies | `DIGARR_ALLOW_INSECURE_COOKIES` | No | Defaults to `false`. Set `true` only for an intentional direct-HTTP deployment; direct HTTP exposes the session cookie to interception |
-| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | 32+ char key for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
+| Encryption Key | `DIGARR_ENCRYPTION_KEY` | No | Random key (32+ characters recommended) for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; generate and persist a key before entering secrets |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` to allow new sign-ups |
-| Skip TLS Verify | `SKIP_TLS_VERIFY` | No | Skip TLS checks for Lidarr/Jellyfin/etc. connections |
-| Webhook URL | `WEBHOOK_URL` | No | Optional bootstrap for a single webhook channel: a Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload. Auto-migrates into the channel list on first start |
+| Skip TLS Verify | `SKIP_TLS_VERIFY` | No | First-run env auto-setup TLS setting; afterward use saved connection settings |
+| Webhook URL | `WEBHOOK_URL` | No | Optional bootstrap for a single webhook channel: a Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload. Applied only during first-run env auto-setup with `AI_PROVIDER` and `AI_MODEL` |
 
-`WEBHOOK_URL` seeds one webhook channel for convenience. Notifications are
+`WEBHOOK_URL` seeds one channel during env auto-setup. Changing it after setup does not update the saved channels. Notifications are
 multi-channel -- add webhook, ntfy, Telegram, or Apprise channels (each with its
 own event subscriptions) under **Settings -> Notifications** in the web UI.
 
