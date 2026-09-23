@@ -65,7 +65,7 @@ updates:
   - package-ecosystem: docker
     # Only scans Dockerfiles/compose here. Bun version strings and the
     # postgres service-image digests in the CI workflows are NOT covered by
-    # any updater and must be bumped manually (same as the .forgejo mirror).
+    # any updater and must be bumped manually.
     directory: /deploy/docker
     target-branch: develop
     schedule:

@@ -7,7 +7,6 @@ dist/
 .git/
 .gitignore
 .github/
-.forgejo/
 docs/
 deploy/
 !deploy/docker/healthcheck.sh
