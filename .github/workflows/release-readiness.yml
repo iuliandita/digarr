@@ -41,15 +41,21 @@ jobs:
           released=$(gh release view "$last_tag" --repo "$REPO" --json publishedAt -q '.publishedAt')
           soak_days=$(( ( $(date -u +%s) - $(date -u -d "$released" +%s) ) / 86400 ))
 
-          # Boundary is the develop-side release-bump commit, not the tag. The
-          # tag lives on main as a squash, so it shares no ancestry with the
-          # develop commits it was built from -- ranging from it re-reports
-          # every already-released change. The back-merge also pulls main's
-          # lineage into develop, so walk --first-parent to stay on develop's
-          # own line.
-          base=$(git log --first-parent origin/develop --grep '^chore(release): v' -1 --format='%H')
+          # Boundary is the develop commit the release was cut from, not the
+          # tag. The tag lives on main as a squash, so it shares no ancestry
+          # with the develop commits it was built from -- ranging from it
+          # re-reports every already-released change. The back-merge also
+          # pulls main's lineage into develop, so walk --first-parent to stay
+          # on develop's own line. The release PR's head is exact even when the
+          # bump was made on main (#710); the develop-side bump is the fallback.
+          tag_sha=$(git rev-list -n1 "$last_tag")
+          base=$(gh api "repos/$REPO/commits/$tag_sha/pulls" \
+            --jq '[.[] | select(.base.ref == "main" and .head.ref == "develop")][0].head.sha // ""')
+          if [ -z "$base" ] || ! git merge-base --is-ancestor "$base" origin/develop; then
+            base=$(git log --first-parent origin/develop --grep '^chore(release): v' -1 --format='%H')
+          fi
           if [ -z "$base" ]; then
-            echo "::error::no release-bump commit found on develop"
+            echo "::error::no release boundary found on develop"
             exit 1
           fi
           range="${base}..origin/develop"
@@ -88,17 +94,23 @@ jobs:
           echo "bump=$bump" >> "$GITHUB_OUTPUT"
           cat /tmp/readiness.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Post or refresh the readiness issue
-        if: steps.report.outputs.bump != 'none'
+      - name: Post, refresh, or close the readiness issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           TITLE: "Release readiness"
+          BUMP: ${{ steps.report.outputs.bump }}
         run: |
           set -euo pipefail
           existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" \
             --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // \"\"")
-          if [ -n "$existing" ]; then
+          if [ "$BUMP" = none ]; then
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --repo "$REPO" --body-file /tmp/readiness.md
+              gh issue close "$existing" --repo "$REPO"
+              echo "closed issue #$existing"
+            fi
+          elif [ -n "$existing" ]; then
             gh issue edit "$existing" --repo "$REPO" --body-file /tmp/readiness.md
             echo "refreshed issue #$existing"
           else
