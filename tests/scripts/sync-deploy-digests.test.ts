@@ -95,56 +95,33 @@ describe('CI workflow reliability policy', () => {
     expect(macJob).toContain('PGLITE_ASSERTED')
   })
 
-  it('bounds Forgejo package and Helm downloads without suppressing drift', () => {
-    const workflow = readFileSync('.forgejo/workflows/ci.yml', 'utf8')
-    const helmJob = workflow.split('  helm-drift:')[1]?.split('\n  browser-test:')[0] ?? ''
+  it('runs PostgreSQL session and OIDC linking races after migrations', () => {
+    const workflow = readFileSync('.github/workflows/ci.yml', 'utf8')
+    const apiJob = workflow.split('  api-route-test:')[1]?.split('\n  helm-drift:')[0] ?? ''
+    const migrationIndex = apiJob.indexOf('run: bun run db:migrate')
+    const sessionTestIndex = apiJob.indexOf(
+      'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts',
+    )
+    const routeTestIndex = apiJob.indexOf('run: bun run test:api-routes')
 
-    expect(helmJob).toContain('Acquire::Retries=3')
-    expect(helmJob).toContain('--connect-timeout 15')
-    expect(helmJob).toContain('--max-time 120')
-    expect(helmJob).toContain('sha256sum -c -')
-    expect(helmJob).toContain('helm lint deploy/helm/digarr')
-    expect(helmJob).toContain('git diff --exit-code -- deploy/k8s/rendered.yaml')
+    expect(migrationIndex).toBeGreaterThan(-1)
+    expect(sessionTestIndex).toBeGreaterThan(migrationIndex)
+    expect(routeTestIndex).toBeGreaterThan(sessionTestIndex)
+    expect(apiJob.match(/Run PostgreSQL auth concurrency tests/g)).toHaveLength(1)
   })
 
-  it('runs PostgreSQL session and OIDC linking races after migrations in both CI mirrors', () => {
-    for (const path of ['.github/workflows/ci.yml', '.forgejo/workflows/ci.yml']) {
-      const workflow = readFileSync(path, 'utf8')
-      const apiJob = workflow.split('  api-route-test:')[1]?.split('\n  helm-drift:')[0] ?? ''
-      const migrationIndex = apiJob.indexOf('run: bun run db:migrate')
-      const sessionTestIndex = apiJob.indexOf(
-        'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts',
-      )
-      const routeTestIndex = apiJob.indexOf('run: bun run test:api-routes')
-
-      expect(migrationIndex).toBeGreaterThan(-1)
-      expect(sessionTestIndex).toBeGreaterThan(migrationIndex)
-      expect(routeTestIndex).toBeGreaterThan(sessionTestIndex)
-      expect(apiJob.match(/Run PostgreSQL auth concurrency tests/g)).toHaveLength(1)
-    }
-  })
-
-  it('runs cookie-auth browser coverage consistently in both CI mirrors', () => {
+  it('runs cookie-auth browser coverage in CI', () => {
     const githubWorkflow = readFileSync('.github/workflows/ci.yml', 'utf8')
     const githubBrowser = githubWorkflow.split('  browser-test:')[1]?.split('\n  a11y:')[0] ?? ''
-    const forgejoWorkflow = readFileSync('.forgejo/workflows/ci.yml', 'utf8')
-    const forgejoBrowser = forgejoWorkflow.split('  browser-test:')[1]?.split('\n  a11y:')[0] ?? ''
     const playwrightConfig = readFileSync('playwright.config.ts', 'utf8')
 
     expect(githubBrowser).toContain('playwright install --with-deps chromium firefox')
-    expect(forgejoBrowser).toContain('playwright install --with-deps chromium firefox')
     expect(playwrightConfig).toContain("PROXY_AUTH_ENABLED: 'true'")
     expect(playwrightConfig).toContain("ALLOWED_ORIGIN: 'http://localhost:5173'")
     expect(playwrightConfig).toContain("PROXY_AUTH_TRUSTED_PROXIES: '127.0.0.0/8,::1/128'")
     expect(playwrightConfig).toContain("DIGARR_DISABLE_REGISTRATION: 'false'")
     expect(playwrightConfig).toContain('tests/e2e/browser/start-oidc-mock.ts')
     expect(playwrightConfig).toContain("ALLOWED_ORIGIN: 'http://127.0.0.1:3011'")
-    expect(forgejoBrowser).toContain('PROXY_AUTH_ENABLED=true')
-    expect(forgejoBrowser).toContain('ALLOWED_ORIGIN=http://localhost:5173')
-    expect(forgejoBrowser).toContain('PROXY_AUTH_TRUSTED_PROXIES=127.0.0.0/8,::1/128')
-    expect(forgejoBrowser).toContain('DIGARR_DISABLE_REGISTRATION=false')
-    expect(forgejoBrowser).toContain('tests/e2e/browser/start-oidc-mock.ts')
-    expect(forgejoBrowser).toContain('ALLOWED_ORIGIN=http://127.0.0.1:3011')
 
     const githubA11y = readFileSync('.github/workflows/ci.yml', 'utf8').split('  a11y:')[1] ?? ''
     expect(githubA11y).toContain('playwright install --with-deps chromium')
