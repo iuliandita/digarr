@@ -87,13 +87,6 @@ describe('AiProviderRegistry', () => {
 })
 
 describe('createDefaultRegistry', () => {
-  test('registers anthropic, openai, and ollama', () => {
-    const registry = createDefaultRegistry()
-    expect(registry.has('anthropic')).toBe(true)
-    expect(registry.has('openai')).toBe(true)
-    expect(registry.has('ollama')).toBe(true)
-  })
-
   test('availableIds() returns all built-in providers', () => {
     const registry = createDefaultRegistry()
     expect(registry.availableIds().sort()).toEqual([
@@ -252,14 +245,5 @@ describe('createDefaultRegistry', () => {
     await expect(
       registry.create('ollama', { apiKey: null, model: 'llama3', baseUrl: null }),
     ).rejects.toThrow('Ollama requires a base URL')
-  })
-
-  test('supports registering additional providers without modifying existing ones', () => {
-    const registry = createDefaultRegistry()
-    const mockCreate = vi.fn().mockReturnValue({})
-    registry.register({ id: 'gemini', name: 'Gemini', create: mockCreate })
-    expect(registry.has('gemini')).toBe(true)
-    expect(registry.has('anthropic')).toBe(true)
-    expect(registry.availableIds()).toContain('gemini')
   })
 })

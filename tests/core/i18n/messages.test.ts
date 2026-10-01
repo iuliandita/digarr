@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ARTIST_EXTERNAL_LINK_KEYS } from '@/core/artists/external-links'
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/core/i18n/locales'
-import { getMessages, getRawMessages } from '@/core/i18n/messages'
+import { getRawMessages } from '@/core/i18n/messages'
 import { en } from '@/core/i18n/messages/en'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import { formatDate, formatDateTime, formatShortDate, formatShortDateTime } from '@/web/lib/intl'
@@ -12,14 +12,6 @@ describe('message catalogs', () => {
 
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(getRawMessages(locale)).sort(), locale).toEqual(englishKeys)
-    }
-  })
-
-  it('every locale has every english key', () => {
-    const englishKeys = Object.keys(getMessages('en')).sort()
-
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(getMessages(locale)).sort()).toEqual(englishKeys)
     }
   })
 
