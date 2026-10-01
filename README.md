@@ -292,7 +292,7 @@ Admin tools available under Settings > Administration > Data Hygiene:
 
 - **Clear Image Failures:** reset failed image cache entries so Digarr can retry them
 - **Rebuild Genre Cache:** regenerate cached genres from artist tags
-- **Re-score Recommendations:** recalculate scores with the current weights
+- **Re-score Recommendations:** recalculate your recommendations with your current weights, preserving saved score evidence and album modifiers. Rows with incompatible evidence or concurrent changes are skipped.
 - **Dedupe Repair:** merge duplicate recommendations
 - **AI Reasoning Audit:** review and repair stored reasoning; this cannot guarantee that AI claims are correct
 - **Purge Sessions:** clean out expired login sessions

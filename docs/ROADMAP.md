@@ -26,6 +26,7 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 ## In development
 
 - Name and catalog-alias validation before genre-based artist resolution. Ambiguous matches remain unresolved.
+- Maintenance rescoring that preserves saved score evidence, applies the current user's weights only to their rows, and skips incompatible or concurrently changed rows.
 - Evaluating ranking that preserves primary taste while allowing secondary interests, before changing scoring weights.
 
 ## Next priorities

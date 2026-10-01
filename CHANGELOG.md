@@ -12,6 +12,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).
+
 - Name-only discovery validates MusicBrainz names and catalog aliases before genre matching, preventing unrelated artists from inheriting another artist's AI explanation and starter album. Tied matches remain unresolved. [#731](https://github.com/iuliandita/digarr/issues/731).
 
 - Discover Audition retains unavailable-preview reasons after skipped items or queue completion, including missing links, lookup failures, and playback failures. Only an actual browser permission rejection is labeled blocked playback. [#729](https://github.com/iuliandita/digarr/issues/729).

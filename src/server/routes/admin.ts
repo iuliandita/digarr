@@ -182,9 +182,7 @@ export function adminRoutes(deps: AdminDeps) {
       return c.json({ error: 'No valid status values provided' }, 400)
     }
 
-    // Library genres unavailable in offline rescore - zero the weight to avoid score drift
-    const adjustedWeights = { ...prefs.scoringWeights, genreOverlap: 0 }
-    const result = await rescoreRecommendations(deps.db, adjustedWeights, [], statuses)
+    const result = await rescoreRecommendations(deps.db, userId, prefs.scoringWeights, statuses)
     return c.json(result)
   })
 

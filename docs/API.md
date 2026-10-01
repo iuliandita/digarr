@@ -1026,7 +1026,7 @@ Copy all stateful data from the current backend (PGlite or PostgreSQL) into a di
 |--------|------|------|-------------|
 | POST | `/api/v1/admin/hygiene/clear-image-failures` | Admin | Reset image failure cache. Query: `?olderThan=7d` |
 | POST | `/api/v1/admin/hygiene/rebuild-genres` | Admin | Rebuild genre table from artist data. |
-| POST | `/api/v1/admin/hygiene/rescore` | Admin | Re-score recommendations. Query: `?status=pending` (default), `?status=pending,approved` |
+| POST | `/api/v1/admin/hygiene/rescore` | Admin | Re-score the current user's recommendations using saved component evidence and current weights. Incompatible legacy rows and concurrently changed rows are skipped. Query: `?status=pending` (default), `?status=pending,approved` |
 | POST | `/api/v1/admin/hygiene/dedupe` | Admin | Find and remove duplicate recommendations. |
 | POST | `/api/v1/admin/hygiene/ai-audit` | Admin | Audit AI reasoning. Query: `?autoFix=true`. Returns 202 when auto-fix starts. |
 | GET | `/api/v1/admin/hygiene/ai-audit/results` | Admin | Poll auto-fix progress. |

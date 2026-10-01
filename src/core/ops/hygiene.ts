@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm'
-import { computeWeightedScore } from '@/core/pipeline/score'
+import { applyAlbumModifier, computeWeightedScore } from '@/core/pipeline/score'
 import type { ScoringWeights } from '@/db/schema'
 import { artistMetadata, artists, genres, recommendations, sessions } from '@/db/schema'
 import type { AiAuditResult, AiAuditStatus, HygieneResult, OpsDb } from './types'
@@ -151,83 +151,105 @@ export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
 
 // ── Rescore Recommendations ─────────────────────
 
-function computeGenreOverlap(artistGenres: string[], libraryGenres: string[]): number {
-  if (artistGenres.length === 0 || libraryGenres.length === 0) return 0
-  const libSet = new Set(libraryGenres.map((g) => g.toLowerCase()))
-  const matches = artistGenres.filter((g) => libSet.has(g.toLowerCase()))
-  return matches.length / Math.max(artistGenres.length, 1)
+function isScoreComponent(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
 }
 
 function rescoreOne(
-  sources: Record<string, number>,
-  artistGenres: string[],
-  libraryGenres: string[],
+  sources: Record<string, number> | null,
+  kind: string,
   weights: ScoringWeights,
-): number {
-  const sourceKeys = Object.keys(sources)
-  const sourceValues = Object.values(sources)
+): number | null {
+  if (kind !== 'artist' && kind !== 'album') return null
+  if (!sources || typeof sources !== 'object' || Array.isArray(sources)) return null
+  const { consensus, similarity, genreOverlap, aiConfidence, feedbackBoost } = sources
+  if (
+    !isScoreComponent(consensus) ||
+    !isScoreComponent(similarity) ||
+    !isScoreComponent(genreOverlap) ||
+    !isScoreComponent(aiConfidence) ||
+    !isScoreComponent(feedbackBoost)
+  ) {
+    return null
+  }
+  if ('popularity' in sources && !isScoreComponent(sources.popularity)) return null
+  if (
+    kind === 'album' &&
+    ['recency', 'gapPriority'].some((key) => key in sources && !isScoreComponent(sources[key]))
+  ) {
+    return null
+  }
 
-  return computeWeightedScore(weights, {
-    consensus: Math.min(sourceKeys.length / 3, 1),
-    similarity: sourceValues.length > 0 ? Math.max(...sourceValues) : 0,
-    genreOverlap: computeGenreOverlap(artistGenres, libraryGenres),
-    aiConfidence: sources.ai ?? 0,
-    feedbackBoost: 0,
-    popularity: 0,
+  const baseScore = computeWeightedScore(weights, {
+    consensus,
+    similarity,
+    genreOverlap,
+    aiConfidence,
+    feedbackBoost,
+    popularity: sources.popularity ?? 0,
   })
+  return kind === 'album' ? applyAlbumModifier(baseScore, sources) : baseScore
 }
 
 export async function rescoreRecommendations(
   db: OpsDb,
+  userId: number,
   weights: ScoringWeights,
-  libraryGenres: string[],
   statusFilter: string[] = ['pending'],
 ): Promise<HygieneResult> {
   const recs = await db
     .select({
       recId: recommendations.id,
       sources: recommendations.sources,
-      artistGenres: artists.genres,
-      artistTags: artists.tags,
-      artistName: artists.name,
+      score: recommendations.score,
+      kind: recommendations.kind,
+      status: recommendations.status,
     })
     .from(recommendations)
-    .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .where(inArray(recommendations.status, statusFilter))
+    .where(and(eq(recommendations.userId, userId), inArray(recommendations.status, statusFilter)))
 
-  if (recs.length === 0) {
-    return { tool: 'rescore', rescored: 0, weightProfile: weights }
-  }
+  // Bound arrays keep large batches below the Postgres parameter limit.
+  const updates = recs.flatMap((rec) => {
+    const score = rescoreOne(rec.sources, rec.kind, weights)
+    return score === null ? [] : [{ ...rec, newScore: score }]
+  })
 
-  // Compute all new scores in memory, then flush via one UPDATE ... FROM
-  // unnest(ids, scores) per chunk instead of one UPDATE per row. unnest
-  // collapses the variadic payload to two array parameters, so Postgres'
-  // 65535 bind-param limit applies to the arrays (not row*column) and we can
-  // run large chunks without risk.
-  const updates = recs.map((rec) => ({
-    id: rec.recId,
-    score: rescoreOne(
-      rec.sources ?? {},
-      [...(rec.artistGenres ?? []), ...(rec.artistTags ?? [])],
-      libraryGenres,
-      weights,
-    ),
-  }))
-
+  let rescored = 0
   const CHUNK = 5000
   for (let i = 0; i < updates.length; i += CHUNK) {
     const chunk = updates.slice(i, i + CHUNK)
-    const ids = chunk.map((u) => u.id)
-    const scores = chunk.map((u) => u.score)
-    await db.execute(sql`
+    const ids = chunk.map((u) => u.recId)
+    const scores = chunk.map((u) => u.newScore)
+    const originalScores = chunk.map((u) => u.score)
+    const originalSources = chunk.map((u) => JSON.stringify(u.sources))
+    const originalStatuses = chunk.map((u) => u.status)
+    const originalKinds = chunk.map((u) => u.kind)
+    const result = await db.execute(sql`
       UPDATE ${recommendations}
       SET score = v.score
-      FROM unnest(${ids}::int[], ${scores}::real[]) AS v(id, score)
+      FROM unnest(${sql.param(ids)}::int[], ${sql.param(scores)}::real[],
+        ${sql.param(originalScores)}::real[], ${sql.param(originalSources)}::jsonb[],
+        ${sql.param(originalStatuses)}::text[], ${sql.param(originalKinds)}::text[])
+        AS v(id, score, original_score, original_sources, original_status, original_kind)
       WHERE ${recommendations.id} = v.id
+        AND ${recommendations.userId} = ${userId}
+        AND ${inArray(recommendations.status, statusFilter)}
+        AND ${recommendations.status} = v.original_status
+        AND ${recommendations.kind} = v.original_kind
+        AND ${recommendations.score} IS NOT DISTINCT FROM v.original_score
+        AND ${recommendations.sources} IS NOT DISTINCT FROM v.original_sources
     `)
+    rescored += result.rowCount ?? 0
   }
 
-  return { tool: 'rescore', rescored: updates.length, weightProfile: weights }
+  return {
+    tool: 'rescore',
+    rescored,
+    skipped: recs.length - rescored,
+    skippedInvalid: recs.length - updates.length,
+    skippedConcurrent: updates.length - rescored,
+    weightProfile: weights,
+  }
 }
 
 // ── AI Reasoning Audit ──────────────────────────
