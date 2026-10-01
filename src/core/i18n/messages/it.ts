@@ -256,6 +256,10 @@ export const it = {
   'dashboard.genreCoverage': 'Dati sui generi disponibili: {0}/{1}',
   'dashboard.genreCoveragePending': 'Aggiornamenti dei dati sui generi in attesa: {0}',
   'dashboard.getStarted': 'Inizia',
+  'dashboard.listeningEmpty':
+    'Nessuna cronologia di ascolto per questo periodo. Prova un altro periodo.',
+  'dashboard.listeningFailed':
+    'Impossibile caricare la cronologia di ascolto. Controlla le connessioni o riprova.',
   'dashboard.listeningHistory': 'Cronologia di ascolto',
   'dashboard.recentPlays': 'Riprodotti di recente',
   'dashboard.recentPlaysEmpty': 'Nessun ascolto recente',

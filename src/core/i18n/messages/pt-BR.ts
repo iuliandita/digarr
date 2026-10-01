@@ -256,6 +256,9 @@ export const ptBR = {
   'dashboard.genreCoverage': 'Dados de gênero disponíveis: {0}/{1}',
   'dashboard.genreCoveragePending': 'Atualizações de dados de gênero pendentes: {0}',
   'dashboard.getStarted': 'Começar',
+  'dashboard.listeningEmpty': 'Nenhum histórico de reprodução neste período. Tente outro período.',
+  'dashboard.listeningFailed':
+    'Não foi possível carregar o histórico de reprodução. Verifique suas conexões ou tente novamente.',
   'dashboard.listeningHistory': 'Histórico de audição',
   'dashboard.recentPlays': 'Reproduzidos recentemente',
   'dashboard.recentPlaysEmpty': 'Sem reproduções recentes',

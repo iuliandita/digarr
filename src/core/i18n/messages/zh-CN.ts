@@ -240,6 +240,8 @@ export const zhCN = {
   'dashboard.genreCoverage': '可用流派数据：{0}/{1}',
   'dashboard.genreCoveragePending': '待更新的流派数据：{0}',
   'dashboard.getStarted': '开始',
+  'dashboard.listeningEmpty': '此时段没有收听记录。请尝试其他时段。',
+  'dashboard.listeningFailed': '无法加载收听记录。请检查连接或重试。',
   'dashboard.listeningHistory': '聆听记录',
   'dashboard.recentPlays': '最近播放',
   'dashboard.recentPlaysEmpty': '暂无最近播放',

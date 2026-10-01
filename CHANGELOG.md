@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- Dashboard listening history distinguishes unconfigured accounts, empty history, and fetch failures, with retry actions for failures. ListenBrainz artist statistics treat HTTP 204 as empty history. [#721](https://github.com/iuliandita/digarr/issues/721).
+
 ## v1.18.0 - 2026-09-20
 
 ### Security

@@ -255,6 +255,10 @@ export const uk = {
   'dashboard.genreCoverage': 'Дані про жанри доступні: {0}/{1}',
   'dashboard.genreCoveragePending': 'Очікують оновлення даних про жанри: {0}',
   'dashboard.getStarted': 'Почніть роботу',
+  'dashboard.listeningEmpty':
+    'За цей період немає історії прослуховування. Спробуйте інший період.',
+  'dashboard.listeningFailed':
+    'Не вдалося завантажити історію прослуховування. Перевірте підключення або спробуйте ще раз.',
   'dashboard.listeningHistory': 'Історія прослуховування',
   'dashboard.recentPlays': 'Нещодавно відтворені',
   'dashboard.recentPlaysEmpty': 'Немає нещодавніх відтворень',

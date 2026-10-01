@@ -256,6 +256,9 @@ export const de = {
   'dashboard.genreCoverage': 'Genre-Daten verfügbar: {0}/{1}',
   'dashboard.genreCoveragePending': 'Ausstehende Genre-Datenaktualisierungen: {0}',
   'dashboard.getStarted': 'Loslegen',
+  'dashboard.listeningEmpty': 'Kein Hörverlauf für diesen Zeitraum. Wähle einen anderen Zeitraum.',
+  'dashboard.listeningFailed':
+    'Der Hörverlauf konnte nicht geladen werden. Prüfe deine Verbindungen oder versuche es erneut.',
   'dashboard.listeningHistory': 'Hörverlauf',
   'dashboard.recentPlays': 'Zuletzt gespielt',
   'dashboard.recentPlaysEmpty': 'Keine aktuellen Wiedergaben',

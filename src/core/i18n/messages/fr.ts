@@ -256,6 +256,10 @@ export const fr = {
   'dashboard.genreCoverage': 'Données de genre disponibles : {0}/{1}',
   'dashboard.genreCoveragePending': 'Mises à jour des données de genre en attente : {0}',
   'dashboard.getStarted': 'Commencer',
+  'dashboard.listeningEmpty':
+    "Aucun historique d'écoute pour cette période. Essayez une autre période.",
+  'dashboard.listeningFailed':
+    "Impossible de charger l'historique d'écoute. Vérifiez vos connexions ou réessayez.",
   'dashboard.listeningHistory': "Historique d'écoute",
   'dashboard.recentPlays': 'Écoutes récentes',
   'dashboard.recentPlaysEmpty': 'Aucune écoute récente',

@@ -255,6 +255,9 @@ export const ja = {
   'dashboard.genreCoverage': 'ジャンルデータあり: {0}/{1}',
   'dashboard.genreCoveragePending': 'ジャンルデータ更新待ち: {0}',
   'dashboard.getStarted': '始めましょう',
+  'dashboard.listeningEmpty': 'この期間の再生履歴はありません。別の期間を選んでください。',
+  'dashboard.listeningFailed':
+    '再生履歴を読み込めませんでした。接続を確認するか、もう一度お試しください。',
   'dashboard.listeningHistory': '再生履歴',
   'dashboard.recentPlays': '最近の再生',
   'dashboard.recentPlaysEmpty': '最近の再生はありません',

@@ -253,6 +253,9 @@ export const en = {
   'dashboard.genreCoverage': 'Genre data available: {0}/{1}',
   'dashboard.genreCoveragePending': 'Pending genre data updates: {0}',
   'dashboard.getStarted': 'Get started',
+  'dashboard.listeningEmpty': 'No listening history for this period. Try another period.',
+  'dashboard.listeningFailed':
+    'Listening history could not be loaded. Check your connections or try again.',
   'dashboard.listeningHistory': 'Listening History',
   'dashboard.recentPlays': 'Recently Played',
   'dashboard.recentPlaysEmpty': 'No recent plays',

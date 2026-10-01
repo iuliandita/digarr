@@ -216,6 +216,7 @@ describe('GET /api/v1/listening/top-artists', () => {
       offset: 0,
       limit: 5,
       source: 'listenbrainz',
+      status: 'ok',
     })
     expect(getTopArtistsPaged).toHaveBeenCalledWith('this_week', { offset: 0, count: 5 })
     expect(createLastFmClient).not.toHaveBeenCalled()
@@ -226,7 +227,12 @@ describe('GET /api/v1/listening/top-artists', () => {
       ...emptyConnections(),
       lastfmUsername: 'user-lastfm',
       lastfmApiKey: 'user-lastfm-key',
+      listenbrainzUsername: 'user-lb',
+      listenbrainzToken: 'user-lb-token',
     })
+    mockCreateListenBrainzClient.mockReturnValue({
+      getTopArtistsPaged: vi.fn().mockRejectedValue(new Error('private upstream detail')),
+    } as unknown as ReturnType<typeof createListenBrainzClient>)
     const getTopArtistsPaged = vi.fn(async () => ({
       artists: [{ name: 'Low', playCount: 12, mbid: 'mbid-2', source: 'lastfm' }],
       totalCount: 3,
@@ -241,6 +247,7 @@ describe('GET /api/v1/listening/top-artists', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.source).toBe('lastfm')
+    expect(body.status).toBe('ok')
     expect(body.tracks).toEqual([
       {
         artist: 'Low',
@@ -265,7 +272,8 @@ describe('GET /api/v1/listening/top-artists', () => {
     } as unknown as ReturnType<typeof createListenBrainzClient>)
 
     const app = createTestApp(makeDeps())
-    await app.request('/api/v1/listening/top-artists?range=month')
+    const res = await app.request('/api/v1/listening/top-artists?range=month')
+    expect(await res.json()).toMatchObject({ status: 'empty', source: 'listenbrainz' })
 
     expect(getTopArtistsPaged).toHaveBeenCalledWith('this_month', expect.any(Object))
   })
@@ -283,6 +291,7 @@ describe('GET /api/v1/listening/top-artists', () => {
       offset: 0,
       limit: 5,
       source: null,
+      status: 'not_configured',
     })
   })
 
@@ -355,7 +364,12 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     const res = await app.request('/api/v1/listening/recent-tracks')
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ tracks: [], hasSource: false, source: null })
+    await expect(res.json()).resolves.toEqual({
+      tracks: [],
+      hasSource: false,
+      source: null,
+      status: 'not_configured',
+    })
   })
 
   it('does not treat a legacy Plex connection without an account binding as a history source', async () => {
@@ -370,7 +384,12 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     const res = await app.request('/api/v1/listening/recent-tracks')
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ tracks: [], hasSource: false, source: null })
+    await expect(res.json()).resolves.toEqual({
+      tracks: [],
+      hasSource: false,
+      source: null,
+      status: 'not_configured',
+    })
     expect(mockCreatePlexClient).not.toHaveBeenCalled()
   })
 
@@ -433,6 +452,7 @@ describe('GET /api/v1/listening/recent-tracks', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.source).toBe('listenbrainz')
+    expect(body.status).toBe('ok')
     expect(body.tracks[0].artist).toBe('Godspeed You! Black Emperor')
     expect(body.tracks[0].mbid).toBe('mbid-3')
   })
@@ -524,4 +544,45 @@ describe('GET /api/v1/listening/recent-tracks', () => {
       tracks: [{ artist: 'Low', track: 'Sunflower', source: 'plex' }],
     })
   })
+})
+
+describe('listening history outcomes', () => {
+  it.each(['top-artists', 'recent-tracks'])(
+    'reports all failed attempts for %s without upstream details',
+    async (path) => {
+      mockGetUserConnections.mockResolvedValue({
+        ...emptyConnections(),
+        lastfmUsername: 'user',
+        lastfmApiKey: 'key',
+      })
+      const fail = vi.fn().mockRejectedValue(new Error('private upstream detail'))
+      mockCreateLastFmClient.mockReturnValue({
+        getTopArtistsPaged: fail,
+        getRecentTracks: fail,
+      } as unknown as ReturnType<typeof createLastFmClient>)
+      const res = await createTestApp(makeDeps()).request(`/api/v1/listening/${path}`)
+      const body = await res.json()
+      expect(body).toMatchObject({ tracks: [], source: null, status: 'error' })
+      expect(JSON.stringify(body)).not.toContain('private upstream detail')
+    },
+  )
+  it.each(['top-artists', 'recent-tracks'])(
+    'reports successful empty Plex history for %s',
+    async (path) => {
+      mockGetUserConnections.mockResolvedValue({
+        ...emptyConnections(),
+        plexUrl: 'http://plex',
+        plexToken: 'token',
+        plexSectionId: '1',
+        plexAccountId: 7,
+        plexMachineIdentifier: 'machine',
+      })
+      mockCreatePlexClient.mockReturnValue({
+        getTopArtistsPaged: vi.fn().mockResolvedValue({ artists: [], totalCount: 0 }),
+        getRecentlyPlayed: vi.fn().mockResolvedValue([]),
+      } as unknown as ReturnType<typeof createPlexClient>)
+      const res = await createTestApp(makeDeps()).request(`/api/v1/listening/${path}`)
+      expect(await res.json()).toMatchObject({ tracks: [], source: 'plex', status: 'empty' })
+    },
+  )
 })

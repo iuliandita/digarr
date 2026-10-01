@@ -255,6 +255,9 @@ export const ru = {
   'dashboard.genreCoverage': 'Данные о жанрах доступны: {0}/{1}',
   'dashboard.genreCoveragePending': 'Ожидают обновления данных о жанрах: {0}',
   'dashboard.getStarted': 'Начать',
+  'dashboard.listeningEmpty': 'За этот период нет истории прослушивания. Попробуйте другой период.',
+  'dashboard.listeningFailed':
+    'Не удалось загрузить историю прослушивания. Проверьте подключения или попробуйте ещё раз.',
   'dashboard.listeningHistory': 'История прослушиваний',
   'dashboard.recentPlays': 'Недавно воспроизведённые',
   'dashboard.recentPlaysEmpty': 'Нет недавних воспроизведений',

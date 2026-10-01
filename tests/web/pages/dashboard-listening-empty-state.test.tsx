@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getRecentTracks, getTopArtists } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -17,11 +18,14 @@ function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
-  return render(
-    <QueryClientProvider client={client}>
-      <I18nProvider>{ui}</I18nProvider>
-    </QueryClientProvider>,
-  )
+  return {
+    ...render(
+      <QueryClientProvider client={client}>
+        <I18nProvider>{ui}</I18nProvider>
+      </QueryClientProvider>,
+    ),
+    client,
+  }
 }
 
 vi.mock('react-router-dom', () => ({
@@ -90,6 +94,20 @@ import { Dashboard } from '@/web/pages/dashboard'
 describe('Dashboard listening empty state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [],
+      total: 0,
+      offset: 0,
+      limit: 5,
+      source: null,
+      status: 'not_configured',
+    })
+    vi.mocked(getRecentTracks).mockResolvedValue({
+      tracks: [],
+      hasSource: false,
+      source: null,
+      status: 'not_configured',
+    })
   })
 
   it('mentions only the listening sources used by the card', async () => {
@@ -99,5 +117,117 @@ describe('Dashboard listening empty state', () => {
       expect(screen.getByText(/Connect your Last\.fm or ListenBrainz account/i)).toBeInTheDocument()
     })
     expect(screen.queryByText(/Spotify/i)).not.toBeInTheDocument()
+  })
+  it('shows empty-period guidance for a connected account', async () => {
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [],
+      total: 0,
+      offset: 0,
+      limit: 5,
+      source: 'listenbrainz',
+      status: 'empty',
+    })
+    renderWithQuery(<Dashboard />)
+    expect(
+      await screen.findByText('No listening history for this period. Try another period.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
+  })
+
+  it('reports a source failure without a connect prompt', async () => {
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [],
+      total: 0,
+      offset: 0,
+      limit: 5,
+      source: null,
+      status: 'error',
+    })
+    renderWithQuery(<Dashboard />)
+    expect(
+      await screen.findByText(
+        'Listening history could not be loaded. Check your connections or try again.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [],
+      total: 0,
+      offset: 0,
+      limit: 5,
+      source: 'listenbrainz',
+      status: 'empty',
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(
+      await screen.findByText('No listening history for this period. Try another period.'),
+    ).toBeInTheDocument()
+  })
+
+  it('reports a request failure instead of asking to connect', async () => {
+    vi.mocked(getTopArtists).mockRejectedValue(new Error('Network unavailable'))
+    renderWithQuery(<Dashboard />)
+    expect(
+      await screen.findByText(
+        'Listening history could not be loaded. Check your connections or try again.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
+  })
+
+  it('does not ask to connect while history is loading', () => {
+    vi.mocked(getTopArtists).mockReturnValue(new Promise(() => {}))
+    renderWithQuery(<Dashboard />)
+    expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
+  })
+
+  it('shows a recent-history failure instead of an empty history', async () => {
+    vi.mocked(getRecentTracks).mockResolvedValue({
+      tracks: [],
+      hasSource: true,
+      source: null,
+      status: 'error',
+    })
+    renderWithQuery(<Dashboard />)
+    expect(
+      await screen.findByText(
+        'Listening history could not be loaded. Check your connections or try again.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('No recent plays')).not.toBeInTheDocument()
+  })
+  it('keeps cached listening rows visible when refresh fails', async () => {
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [{ artist: 'Cached artist', track: '12 plays', source: 'listenbrainz' }],
+      total: 1,
+      offset: 0,
+      limit: 5,
+      source: 'listenbrainz',
+      status: 'ok',
+    })
+    vi.mocked(getRecentTracks).mockResolvedValue({
+      tracks: [{ artist: 'Recent artist', track: 'Cached track', source: 'listenbrainz' }],
+      hasSource: true,
+      source: 'listenbrainz',
+      status: 'ok',
+    })
+    const { client } = renderWithQuery(<Dashboard />)
+    await screen.findByText('Cached artist')
+    await screen.findByText('Cached track')
+    vi.mocked(getTopArtists).mockRejectedValue(new Error('Refresh failed'))
+    vi.mocked(getRecentTracks).mockRejectedValue(new Error('Refresh failed'))
+    await act(async () => {
+      await Promise.all([
+        client.refetchQueries({ queryKey: ['dashboard-top-artists'] }),
+        client.refetchQueries({ queryKey: ['dashboard-recent-tracks'] }),
+      ])
+    })
+    expect(
+      await screen.findAllByText(
+        'Listening history could not be loaded. Check your connections or try again.',
+      ),
+    ).toHaveLength(2)
+    expect(screen.getByText('Cached artist')).toBeInTheDocument()
+    expect(screen.getByText('Cached track')).toBeInTheDocument()
   })
 })
