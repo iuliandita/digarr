@@ -62,6 +62,40 @@ function makeAi() {
 }
 
 describe('discover()', () => {
+  it('does not invoke sources without the similarArtists capability', async () => {
+    const source: DiscoverySource = { ...makeLb(), capabilities: ['topArtists'] }
+    const results = await discover(profile, { listeningSources: [source] }, 10)
+
+    expect(source.getSimilarArtists).not.toHaveBeenCalled()
+    expect(results).toEqual([])
+  })
+
+  it('reports a redacted failure even when another seed contributes artists', async () => {
+    const source = makeLb()
+    vi.mocked(source.getSimilarArtists).mockRejectedValueOnce(
+      new Error('upstream failed: ?api_key=abc123secret'),
+    )
+    const onSourceFailure = vi.fn()
+    const results = await discover(profile, { listeningSources: [source] }, 10, undefined, 0, {
+      onSourceFailure,
+    })
+
+    expect(results.length).toBeGreaterThan(0)
+    expect(onSourceFailure).toHaveBeenCalledWith(
+      'listenbrainz',
+      'upstream failed: ?api_key=[redacted]',
+    )
+  })
+
+  it('reports the actual seed count after library seed selection', async () => {
+    const onSeedCount = vi.fn()
+    await discover(profile, {}, 1, [{ name: 'Radiohead', mbid: 'mbid-rh' }], 1, {
+      onSeedCount,
+    })
+
+    expect(onSeedCount).toHaveBeenCalledWith(0)
+  })
+
   it('collects similar artists from LB source', async () => {
     const lb = makeLb()
     const results = await discover(profile, { listeningSources: [lb] }, 10)

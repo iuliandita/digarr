@@ -1385,6 +1385,12 @@ export const en = {
   'jobHistory.cancelledLabel': 'cancelled',
   'jobHistory.errorLabel': 'Error:',
   'jobHistory.sourceResultsLabel': 'Source Results:',
+  'jobHistory.sourceSuccess': 'Success',
+  'jobHistory.sourceSkipped': 'Skipped',
+  'jobHistory.sourceUnsupported': 'Similar-artist lookup is not supported',
+  'jobHistory.sourceNoSeeds': 'No seed artists available',
+  'jobHistory.sourceExplicitRun': 'This run uses explicit candidates',
+  'jobHistory.sourceNotConfigured': 'Source is not configured',
   'jobHistory.metadataLabel': 'Metadata:',
   'jobHistory.artists': 'artists',
 

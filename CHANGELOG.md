@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- Discovery skips listening sources without similar-artist support instead of reporting them as failed. Job History distinguishes missing seeds, successful empty lookups, and actual or partial source failures, with localized skip explanations. [#722](https://github.com/iuliandita/digarr/issues/722).
+
 ## v1.18.0 - 2026-09-20
 
 ### Security

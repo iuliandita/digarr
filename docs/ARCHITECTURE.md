@@ -131,6 +131,8 @@ artist cache uses its own freshness timestamp, so unrelated image or metadata
 refreshes cannot extend the 180-day genre TTL. Enrichment from
 `artist_metadata` still runs between resolve and score.
 
+Discovery queries only listening sources declaring `similarArtists`. Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
+
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
 bypass those artist-oriented filters (a new release from a tracked artist is the

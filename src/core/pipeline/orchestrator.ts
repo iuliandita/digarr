@@ -388,6 +388,7 @@ export class PipelineOrchestrator extends EventEmitter {
         message: t('pipeline.message.findingSimilar'),
       })
       const discoverFailures = new Map<string, string>()
+      let discoverySeedCount = 0
       const discovered = await discover(
         tasteProfile,
         {
@@ -402,6 +403,9 @@ export class PipelineOrchestrator extends EventEmitter {
           explicitCandidates: deps.explicitCandidates,
           explicitRun: deps.explicitDiscoveryMode != null,
           onSourceFailure: (sourceId, error) => discoverFailures.set(sourceId, error),
+          onSeedCount: (count) => {
+            discoverySeedCount = count
+          },
         },
       )
       const aiFailure = discoverFailures.get('ai')
@@ -438,13 +442,16 @@ export class PipelineOrchestrator extends EventEmitter {
       for (const source of registry.all()) {
         if (!sourceResults[source.id]) {
           const count = sourceArtistCounts.get(source.id) ?? 0
-          sourceResults[source.id] =
-            count > 0
-              ? { status: 'ok', artists: count }
-              : {
-                  status: 'error',
-                  error: discoverFailures.get(source.id) ?? 'No artists returned',
-                }
+          const failure = discoverFailures.get(source.id)
+          sourceResults[source.id] = !source.capabilities.includes('similarArtists')
+            ? { status: 'skipped', reason: 'unsupported_capability' }
+            : deps.explicitDiscoveryMode != null
+              ? { status: 'skipped', reason: 'explicit_run' }
+              : failure !== undefined
+                ? { status: 'error', artists: count, error: failure }
+                : discoverySeedCount === 0
+                  ? { status: 'skipped', reason: 'no_seeds' }
+                  : { status: 'ok', artists: count }
         }
       }
       if (aiProvider) {
