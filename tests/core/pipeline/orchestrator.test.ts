@@ -423,6 +423,91 @@ describe('PipelineOrchestrator', () => {
     expect(messages.some((m) => m.includes(aiError))).toBe(true)
   })
 
+  it.each<
+    [
+      string,
+      boolean,
+      number,
+      string | undefined,
+      typeof discovered,
+      import('@/core/jobs/types').SourceResult,
+      boolean?,
+    ]
+  >([
+    [
+      'unsupported',
+      false,
+      1,
+      undefined,
+      discovered,
+      { status: 'skipped', reason: 'unsupported_capability' },
+    ],
+    ['empty', true, 1, undefined, [], { status: 'ok', artists: 0 }],
+    [
+      'failed',
+      true,
+      1,
+      'upstream unavailable',
+      [],
+      { status: 'error', artists: 0, error: 'upstream unavailable' },
+    ],
+    [
+      'partially failed',
+      true,
+      1,
+      'upstream unavailable',
+      discovered,
+      { status: 'error', artists: 1, error: 'upstream unavailable' },
+    ],
+    ['no seeds', true, 0, undefined, [], { status: 'skipped', reason: 'no_seeds' }],
+    ['explicit run', true, 0, undefined, [], { status: 'skipped', reason: 'explicit_run' }, true],
+  ])(
+    'records a %s listening source outcome',
+    async (_name, supported, seedCount, error, artists, expected, explicitRun) => {
+      const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
+      const source = vi.mocked(createListenBrainzSource)('user', 'token')
+      source.capabilities = supported ? ['topArtists', 'similarArtists'] : ['topArtists']
+      vi.mocked(createListenBrainzSource).mockReturnValue(source)
+      mockDiscover.mockImplementation(
+        async (_profile, _sources, _limit, _seeds, _ratio, options) => {
+          options?.onSeedCount?.(seedCount)
+          if (error) options?.onSourceFailure?.('listenbrainz', error)
+          return artists
+        },
+      )
+      const jobRecorder = {
+        start: vi.fn().mockResolvedValue(7),
+        complete: vi.fn().mockResolvedValue(undefined),
+        fail: vi.fn().mockResolvedValue(undefined),
+        cancel: vi.fn().mockResolvedValue(undefined),
+        markStuck: vi.fn().mockResolvedValue(0),
+      }
+
+      await orchestrator.run({
+        db: makeDb(),
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+        jobRecorder,
+        userConnections: {
+          listenbrainzUsername: 'user',
+          listenbrainzToken: 'token',
+        } as import('@/db/queries/users').UserConnections,
+        explicitDiscoveryMode: explicitRun
+          ? { modeId: 'test', settingsMode: 'easy', providerPath: [] }
+          : undefined,
+      })
+
+      expect(jobRecorder.complete).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({
+          sourceResults: expect.objectContaining({ listenbrainz: expected }),
+        }),
+      )
+    },
+  )
+
   it('hydrates genres, records coverage, then starts the background warmer', async () => {
     const db = {
       ...makeDb(),

@@ -72,6 +72,10 @@ Low confidence. Would build only with real demand.
 
 The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt cases and replayable contract reports. Recommendation fit, catalog identity, previews, and delivery still need separate human and end-to-end evaluation before ranking changes.
 
+## In development
+
+- Capability-aware discovery reporting, including unsupported sources and successful empty lookups. [#722](https://github.com/iuliandita/digarr/issues/722).
+
 ## Release history
 
 [CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Release automation opens a deployment-pin update after publishing an image; maintainers review and merge it before treating those examples as updated.

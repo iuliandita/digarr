@@ -10,6 +10,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Recommendation evaluation uses the production prompt with representative synthetic profiles, field-level checks, and replayable reports. Expected-neighbor checks remain advisory; subjective fit and listening outcomes require separate review. [#718](https://github.com/iuliandita/digarr/issues/718).
 
+### Fixed
+
+- Discovery skips listening sources without similar-artist support instead of reporting them as failed. Job History distinguishes missing seeds, successful empty lookups, and actual or partial source failures, with localized skip explanations. [#722](https://github.com/iuliandita/digarr/issues/722).
+
 ## v1.18.0 - 2026-09-20
 
 ### Security

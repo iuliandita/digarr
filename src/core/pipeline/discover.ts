@@ -67,8 +67,9 @@ export interface DiscoverSources {
 export type DiscoverOptions = {
   explicitCandidates?: Array<DiscoveredArtist | DiscoveryCandidate>
   explicitRun?: boolean
-  /** Invoked when a source fails entirely, so callers can surface the real error. */
+  /** Invoked when any seed lookup fails, so callers can surface the real error. */
   onSourceFailure?: (sourceId: string, error: string) => void
+  onSeedCount?: (count: number) => void
 }
 
 function isDiscoveryCandidate(
@@ -147,7 +148,10 @@ export async function discover(
     seedArtists = [...topArtists.slice(0, listeningSlots), ...librarySeeds]
   }
 
-  const listeningSources = sources.listeningSources ?? []
+  options.onSeedCount?.(seedArtists.length)
+  const listeningSources = (sources.listeningSources ?? []).filter((source) =>
+    source.capabilities.includes('similarArtists'),
+  )
 
   // For each seed artist, query each configured listening source for similar artists
   // Aggregate per-source failures so a dead source is logged once, not per seed.

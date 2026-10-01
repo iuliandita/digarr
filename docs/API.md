@@ -892,6 +892,8 @@ Response: `{ tracks, hasSource, source }`. `hasSource` is `false` when no scrobb
 - `offset` - pagination offset (minimum 0)
 - Invalid `type` or `status` values return `400`
 
+Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. Any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
+
 ---
 
 ## Settings

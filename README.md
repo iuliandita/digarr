@@ -124,7 +124,7 @@ For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 3. Run a scan from Dashboard or Discover. Digarr builds a taste profile, gathers candidates, resolves MusicBrainz identities, scores them, and removes duplicates and blocked results.
 4. Preview and approve suggestions, reject them, or adjust the scoring weights. Use Release Radar or Library Gap-Fill for albums; the normal scan is artist-focused unless you enable net-new album discovery.
 
-Admins can inspect failures in Settings > Job History and System Health. A source can fail while the scan completes using the remaining sources; check the job details if results look incomplete. The [architecture guide](docs/ARCHITECTURE.md#pipeline) describes the pipeline stages.
+Admins can inspect failures in Settings > Job History and System Health. A source can fail while the scan completes using the remaining sources; check the job details if results look incomplete. Listening sources that do not support similar-artist discovery are skipped for that stage, while their taste-profile and library-sync functions remain available. A successful lookup with no matches reports zero artists. The [architecture guide](docs/ARCHITECTURE.md#pipeline) describes the pipeline stages.
 
 ## Requirements
 
