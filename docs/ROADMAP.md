@@ -23,6 +23,11 @@ See [v1.18.0](../CHANGELOG.md#v1180---2026-09-20) for details.
 
 TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-artist retrieval have not been tested with a live account. This is an accepted release limitation, with [community testing requested](../README.md#tidal-feedback). The Experimental badges stay until these flows are verified.
 
+## In development
+
+- Name and catalog-alias validation before genre-based artist resolution. Ambiguous matches remain unresolved.
+- Evaluating ranking that preserves primary taste while allowing secondary interests, before changing scoring weights.
+
 ## Next priorities
 
 Planned direction, in this order. Each step should improve the path from a recommendation to a useful listen before we expand the catalog of integrations.

@@ -37,6 +37,10 @@ function genreOverlapScore(discoveryGenres: string[], mbTags: Array<{ name: stri
   return matches.length / discoveryGenres.length
 }
 
+function normalizeArtistName(name: string): string {
+  return name.normalize('NFC').toLowerCase().trim().replace(/\s+/gu, ' ')
+}
+
 export async function resolve(
   discovered: DiscoveredArtist[],
   mb: MusicBrainzClient,
@@ -66,7 +70,7 @@ export async function resolve(
       existing.push(artist)
       byMbid.set(key, existing)
     } else {
-      const key = artist.name.toLowerCase()
+      const key = normalizeArtistName(artist.name)
       const existing = byName.get(key) ?? []
       existing.push(artist)
       byName.set(key, existing)
@@ -140,28 +144,29 @@ export async function resolve(
     try {
       const searchResult = await mb.searchArtist(firstName)
       const discoveryGenres = discoveries.flatMap((d) => d.genres ?? [])
-      const maxCandidates = discoveryGenres.length > 0 ? 5 : 1
+      const expectedName = normalizeArtistName(firstName)
 
       let bestCandidate: MBArtist | null = null
       let bestOverlap = -Infinity
+      let ambiguous = false
 
-      for (const hit of searchResult.artists.slice(0, maxCandidates)) {
+      for (const hit of searchResult.artists.slice(0, 5)) {
         if (byMbid.has(hit.id)) continue
         try {
           const mbArtist = await mb.lookupArtist(hit.id)
 
-          if (discoveryGenres.length === 0) {
-            // No genre data - trust MB search ranking
-            bestCandidate = mbArtist
-            break
-          }
+          // Genre similarity cannot establish that a search hit is the requested artist.
+          const names = [mbArtist.name, ...(mbArtist.aliases ?? []).map((alias) => alias.name)]
+          if (!names.some((name) => normalizeArtistName(name) === expectedName)) continue
 
           const overlap = genreOverlapScore(discoveryGenres, mbArtist.tags ?? [])
           if (overlap > bestOverlap) {
             bestCandidate = mbArtist
             bestOverlap = overlap
+            ambiguous = false
+          } else if (overlap === bestOverlap && bestCandidate?.id !== mbArtist.id) {
+            ambiguous = true
           }
-          if (overlap > 0) break // good enough
         } catch {
           // skip failed lookup, try next candidate
         }
@@ -173,7 +178,7 @@ export async function resolve(
       // no tags to compare, which is fine - many lesser-known artists lack tags.
       if (discoveryGenres.length > 0 && bestOverlap === 0) continue
 
-      if (!bestCandidate || byMbid.has(bestCandidate.id)) continue
+      if (!bestCandidate || ambiguous || byMbid.has(bestCandidate.id)) continue
       resolved.push(
         await buildResolvedArtist(
           bestCandidate,

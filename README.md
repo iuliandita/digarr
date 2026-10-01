@@ -32,6 +32,8 @@
 
 Digarr manages recommendations and calls your connected services. It does not include a music downloader or a full music player. AI suggestions and MusicBrainz matches can be wrong; review the artist and release before approving. AI explanations may compare a recommendation with artists in your listening profile. The name-confusion check is a limited heuristic and cannot verify those claims.
 
+Name-only discovery accepts a MusicBrainz canonical name or catalog alias after Unicode, case, and whitespace normalization. Genre overlap distinguishes matching names; unrelated names and tied matches remain unresolved. This does not validate AI prose or repair older recommendations.
+
 Dashboard listening history asks you to connect an account only when no eligible source is configured. An empty period suggests trying another period; a failed request shows a retry action. Recently Played also distinguishes empty history from a failure. A failed refresh keeps the last loaded entries visible with a failure notice.
 
 ### Connections at a glance

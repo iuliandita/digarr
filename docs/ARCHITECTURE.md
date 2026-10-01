@@ -139,6 +139,8 @@ Discovery queries only listening sources declaring `similarArtists`. Job results
 
 AI discovery retains comparisons to listening-profile artists. Its description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence. This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
 
+Name-only resolution checks at most five MusicBrainz hits against the requested name or returned catalog aliases before comparing genres. Name normalization preserves accents and punctuation. A uniquely best matching identity can resolve; ties and unrelated hits are dropped. Known-MBID candidates retain their explicit identity path. Older stored recommendations are not rewritten.
+
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
 bypass those artist-oriented filters (a new release from a tracked artist is the

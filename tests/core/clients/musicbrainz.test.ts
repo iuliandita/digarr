@@ -48,6 +48,7 @@ const MOCK_ARTIST_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 const MOCK_ARTIST_RESPONSE: MBArtist = {
   id: MOCK_ARTIST_MBID,
   name: 'Radiohead',
+  aliases: [{ name: 'Radiohead alias' }],
   disambiguation: 'UK rock band',
   tags: [
     { name: 'alternative rock', count: 10 },
@@ -189,13 +190,15 @@ describe('createMusicBrainzClient', () => {
   })
 
   describe('lookupArtist(mbid)', () => {
-    it('GETs /artist/{mbid}?inc=tags+url-rels&fmt=json', async () => {
+    it('GETs /artist/{mbid}?inc=tags+url-rels+aliases&fmt=json', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
       const client = createMusicBrainzClient()
       await client.lookupArtist(MOCK_ARTIST_MBID)
 
       const [url] = mockFetch.mock.calls[0] as [string]
-      expect(url).toBe(`${MB_BASE}/artist/${MOCK_ARTIST_MBID}?inc=tags%2Burl-rels&fmt=json`)
+      expect(url).toBe(
+        `${MB_BASE}/artist/${MOCK_ARTIST_MBID}?inc=tags%2Burl-rels%2Baliases&fmt=json`,
+      )
     })
 
     it('returns artist with name, disambiguation, tags, and relations', async () => {
@@ -205,6 +208,7 @@ describe('createMusicBrainzClient', () => {
 
       expect(result.id).toBe(MOCK_ARTIST_MBID)
       expect(result.name).toBe('Radiohead')
+      expect(result.aliases).toEqual([{ name: 'Radiohead alias' }])
       expect(result.disambiguation).toBe('UK rock band')
       expect(result.tags).toHaveLength(2)
       expect(result.tags?.[0]).toEqual({ name: 'alternative rock', count: 10 })

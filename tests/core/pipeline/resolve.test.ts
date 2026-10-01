@@ -315,11 +315,13 @@ describe('resolve()', () => {
       expect(result[0]?.mbid).toBe('mbid-obscure')
     })
 
-    it('falls back to first MB result when no genre data available', async () => {
+    it('accepts a unique name match when no genre data is available', async () => {
       const discovered: DiscoveredArtist[] = [
         { name: 'SomeArtist', similarityScore: 0.8, source: 'lastfm' },
       ]
-      const mb = makeMb(makeMbArtist({ id: 'mbid-first', name: 'SomeArtist' }))
+      const mb = makeMb(makeMbArtist({ id: 'mbid-first', name: 'SomeArtist' }), {
+        artists: [{ id: 'mbid-first', name: 'SomeArtist', score: 100 }],
+      })
 
       const result = await resolve(discovered, mb)
 
@@ -327,6 +329,119 @@ describe('resolve()', () => {
       expect(result[0]?.mbid).toBe('mbid-first')
       // Only one lookup call (the first hit)
       expect(mb.lookupArtist).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('name identity', () => {
+    it('does not attach Slowdive prose or an album to an unrelated genre-compatible hit', async () => {
+      const discovered: DiscoveredArtist = {
+        name: 'Slowdive',
+        source: 'ai',
+        similarityScore: 0.9,
+        genres: ['shoegaze'],
+        aiReasoning: 'Slowdive make shoegaze.',
+        suggestedAlbum: 'Souvlaki',
+      }
+      const unrelated = makeMbArtist({
+        id: 'simon',
+        name: 'Simon Scott',
+        tags: [{ name: 'shoegaze', count: 1 }],
+      })
+      const exact = makeMbArtist({
+        id: 'slowdive',
+        name: 'Slowdive',
+        tags: [{ name: 'shoegaze', count: 1 }],
+      })
+      const mb = makeMb()
+      mb.lookupArtist.mockImplementation(async (id: string) => (id === 'simon' ? unrelated : exact))
+      mb.searchArtist.mockResolvedValue({
+        artists: [
+          { id: 'simon', name: 'Simon Scott', score: 100 },
+          { id: 'slowdive', name: 'Slowdive', score: 90 },
+        ],
+      })
+      const result = await resolve([discovered], mb)
+      expect(result.map((artist) => artist.name)).toEqual(['Slowdive'])
+      expect(result[0]?.discoveries[0]?.aiReasoning).toBe(discovered.aiReasoning)
+      mb.searchArtist.mockResolvedValue({
+        artists: [{ id: 'simon', name: 'Simon Scott', score: 100 }],
+      })
+      expect(await resolve([discovered], mb)).toEqual([])
+    })
+
+    it('uses catalog aliases and Unicode normalization without guessing punctuation or accents', async () => {
+      const mb = makeMb(
+        makeMbArtist({
+          id: 'ichiko',
+          name: '青葉市子',
+          aliases: [{ name: 'Ichiko Aoba' }],
+          tags: [],
+        }),
+        { artists: [{ id: 'ichiko', name: '青葉市子', score: 100 }] },
+      )
+      expect(
+        (await resolve([{ name: '  ICHIKO   AOBA ', source: 'ai', similarityScore: 0.8 }], mb))[0]
+          ?.name,
+      ).toBe('青葉市子')
+      mb.lookupArtist.mockResolvedValue(makeMbArtist({ id: 'bjork', name: 'Björk', tags: [] }))
+      expect(
+        (await resolve([{ name: 'Bjo\u0308rk', source: 'ai', similarityScore: 0.8 }], mb))[0]?.name,
+      ).toBe('Björk')
+      expect(await resolve([{ name: 'Bjork', source: 'ai', similarityScore: 0.8 }], mb)).toEqual([])
+      mb.lookupArtist.mockResolvedValue(makeMbArtist({ id: 'acdc', name: 'AC/DC', tags: [] }))
+      expect(await resolve([{ name: 'ACDC', source: 'ai', similarityScore: 0.8 }], mb)).toEqual([])
+    })
+
+    it('selects the uniquely best genre match and leaves tied identities unresolved', async () => {
+      const mb = makeMb()
+      mb.searchArtist.mockResolvedValue({
+        artists: [
+          { id: 'partial', name: 'Burial', score: 100 },
+          { id: 'best', name: 'Burial', score: 95 },
+        ],
+      })
+      mb.lookupArtist.mockImplementation(async (id: string) =>
+        makeMbArtist({
+          id,
+          name: 'Burial',
+          tags: (id === 'best' ? ['electronic', 'dubstep'] : ['electronic']).map((name) => ({
+            name,
+            count: 1,
+          })),
+        }),
+      )
+      const candidate: DiscoveredArtist = {
+        name: 'Burial',
+        source: 'ai',
+        similarityScore: 0.8,
+        genres: ['electronic', 'dubstep'],
+      }
+      expect((await resolve([candidate], mb))[0]?.mbid).toBe('best')
+      mb.lookupArtist.mockImplementation(async (id: string) =>
+        makeMbArtist({ id, name: 'Burial', tags: [{ name: 'electronic', count: 1 }] }),
+      )
+      expect(await resolve([candidate], mb)).toEqual([])
+      expect(await resolve([{ ...candidate, genres: undefined }], mb)).toEqual([])
+      mb.lookupArtist.mockImplementation(async (id: string) =>
+        makeMbArtist({ id, name: 'Burial', tags: [] }),
+      )
+      expect(await resolve([candidate], mb)).toEqual([])
+    })
+
+    it('finds a later exact name without genres and never inspects beyond five hits', async () => {
+      const hits = Array.from({ length: 6 }, (_, i) => ({
+        id: `hit-${i}`,
+        name: i === 4 ? 'Tool' : 'Related artist',
+        score: 100 - i,
+      }))
+      const mb = makeMb(undefined, { artists: hits })
+      mb.lookupArtist.mockImplementation(async (id: string) =>
+        makeMbArtist({ id, name: hits.find((hit) => hit.id === id)?.name ?? '', tags: [] }),
+      )
+      expect(
+        (await resolve([{ name: 'Tool', source: 'lastfm', similarityScore: 0.7 }], mb))[0]?.name,
+      ).toBe('Tool')
+      expect(mb.lookupArtist).not.toHaveBeenCalledWith('hit-5')
     })
   })
 

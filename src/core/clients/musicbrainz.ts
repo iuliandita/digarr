@@ -8,6 +8,7 @@ const USER_AGENT = `Digarr/${VERSION} (https://github.com/iuliandita/digarr)`
 export type MBArtist = {
   id: string
   name: string
+  aliases?: Array<{ name: string }>
   disambiguation?: string
   'life-span'?: {
     begin?: string
@@ -197,7 +198,7 @@ export function createMusicBrainzClient() {
   }
 
   function lookupArtist(mbid: string): Promise<MBArtist> {
-    const params = new URLSearchParams({ inc: 'tags+url-rels', fmt: 'json' })
+    const params = new URLSearchParams({ inc: 'tags+url-rels+aliases', fmt: 'json' })
     return request<MBArtist>(`/artist/${mbid}?${params}`)
   }
 
