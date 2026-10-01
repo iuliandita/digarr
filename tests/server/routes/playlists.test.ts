@@ -82,6 +82,8 @@ vi.mock('@/db/queries/playlists', () => ({
   getPlaylistsDueForGeneration: vi.fn(),
 }))
 
+vi.mock('@/db/queries/jobs', () => ({ getLatestPlaylistGeneration: vi.fn() }))
+
 // Mock generator to avoid running real generation in tests
 vi.mock('@/core/playlists/generator', () => ({
   generatePlaylist: vi.fn(),
@@ -97,6 +99,8 @@ vi.mock('@/db/queries/settings', () => ({
 
 beforeEach(async () => {
   vi.clearAllMocks()
+  const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
+  getLatestPlaylistGeneration.mockResolvedValue(null)
   mockPlaylistScheduler.nextRun.mockReturnValue(null)
   mockPlaylistScheduler.listJobs.mockReturnValue([])
 
@@ -245,12 +249,37 @@ describe('GET /api/v1/playlists/:id', () => {
     const body = (await res.json()) as { playlist: unknown; tracks: unknown[] }
     expect(body.playlist).toBeDefined()
     expect(Array.isArray(body.tracks)).toBe(true)
+    expect(body).toHaveProperty('generation', null)
+    const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
+    expect(getLatestPlaylistGeneration).toHaveBeenCalledWith(mockDb, 1, USER_ID)
+  })
+
+  it('returns the latest failed run without inventing an older resolution', async () => {
+    const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
+    getLatestPlaylistGeneration.mockResolvedValue({
+      jobId: 8,
+      status: 'failed',
+      startedAt: new Date('2026-01-01'),
+      completedAt: new Date('2026-01-01'),
+      resolution: null,
+    })
+    const res = await createTestApp(makeDeps(), USER_ID).request('/api/v1/playlists/1')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toHaveProperty('generation', {
+      jobId: 8,
+      status: 'failed',
+      startedAt: '2026-01-01T00:00:00.000Z',
+      completedAt: '2026-01-01T00:00:00.000Z',
+      resolution: null,
+    })
   })
 
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999) // different user
     const res = await app.request('/api/v1/playlists/1')
     expect(res.status).toBe(404)
+    const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
+    expect(getLatestPlaylistGeneration).not.toHaveBeenCalled()
   })
 
   it('returns 404 for missing playlist', async () => {

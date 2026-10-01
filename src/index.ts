@@ -1042,7 +1042,11 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
     jobId = await jobRecorder.start({
       type: 'playlist',
       userId: playlist.userId ?? undefined,
-      metadata: { playlistName: playlist.name, strategy: playlist.strategy },
+      metadata: {
+        playlistId: playlist.id,
+        playlistName: playlist.name,
+        strategy: playlist.strategy,
+      },
     })
 
     const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
@@ -1076,6 +1080,12 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
       lastGeneratedAt: new Date(),
       trackCount: generation.tracks.length,
     })
+
+    if (jobId != null) {
+      await jobQueries.updateJobMetadata(db, jobId, {
+        playlistResolution: generation.resolution,
+      })
+    }
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
       const userId = playlist.userId

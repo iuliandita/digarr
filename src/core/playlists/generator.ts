@@ -5,13 +5,19 @@ import { moodMixStrategy } from './strategies/mood-mix'
 import { rediscoverStrategy } from './strategies/rediscover'
 import type { PlaylistStrategyImpl, StrategyDeps } from './strategies/types'
 import { weeklyDigestStrategy } from './strategies/weekly-digest'
-import { resolvePlaylistTracks } from './track-resolver'
-import type { ResolvedTrack, TrackResolverConfig, TrackResolverDeps } from './types'
+import { resolvePlaylistTracksDetailed } from './track-resolver'
+import type {
+  PlaylistGenerationSummary,
+  ResolvedTrack,
+  TrackResolverConfig,
+  TrackResolverDeps,
+} from './types'
 
 export type GenerationResult = {
   tracks: ResolvedTrack[]
   artistCount: number
   strategy: string
+  resolution: PlaylistGenerationSummary
 }
 
 export function getStrategy(strategy: PlaylistStrategy): PlaylistStrategyImpl {
@@ -59,29 +65,32 @@ export async function generatePlaylist(
     sourcePriority: config.trackSourcePriority,
   }
 
-  const hasResolverDeps = Object.keys(resolverDeps).length > 0
-
-  let tracks: ResolvedTrack[]
-
-  if (hasResolverDeps) {
-    const allTracks = await resolvePlaylistTracks(artists, resolverDeps, resolverConfig)
-    tracks = allTracks.slice(0, config.size)
-  } else if (strategy === 'audition') {
-    tracks = []
-  } else {
-    // No track resolver deps configured - create artist-level entries
-    // so playlists still show the selected artists
-    tracks = artists.slice(0, config.size).map((a) => ({
-      artistName: a.name,
-      trackName: `Top tracks by ${a.name}`,
-      mbid: a.mbid,
-      source: 'musicbrainz' as const,
-    }))
+  const results = await resolvePlaylistTracksDetailed(artists, resolverDeps, resolverConfig)
+  const tracks: ResolvedTrack[] = []
+  const outcomes = results.map((result) => {
+    const included = result.tracks.slice(0, Math.max(0, config.size - tracks.length))
+    tracks.push(...included)
+    return {
+      ...result.outcome,
+      includedTrackCount: included.length,
+      status:
+        result.outcome.status === 'resolved' && included.length === 0
+          ? ('limited' as const)
+          : result.outcome.status,
+    }
+  })
+  const resolution: PlaylistGenerationSummary = {
+    requestedArtistCount: artists.length,
+    resolvedArtistCount: outcomes.filter((outcome) => outcome.resolvedTrackCount > 0).length,
+    includedArtistCount: outcomes.filter((outcome) => outcome.includedTrackCount > 0).length,
+    trackCount: tracks.length,
+    outcomes,
   }
 
   return {
     tracks,
     artistCount: artists.length,
     strategy,
+    resolution,
   }
 }

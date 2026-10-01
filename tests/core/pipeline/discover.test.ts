@@ -93,7 +93,184 @@ describe('discover()', () => {
       onSeedCount,
     })
 
-    expect(onSeedCount).toHaveBeenCalledWith(0)
+    expect(onSeedCount).toHaveBeenCalledWith(1)
+  })
+
+  it('rotates exact weighted ties across the cap without changing ranks or the AI profile', async () => {
+    const weightedProfile: TasteProfile = {
+      ...profile,
+      topArtists: [
+        { name: 'Strong', playCount: 10, tasteWeight: 0.4, source: 'lastfm' },
+        ...['First', 'Second', 'Third'].map((name) => ({
+          name,
+          playCount: 1,
+          tasteWeight: 0.2,
+          source: 'spotify',
+        })),
+      ],
+    }
+    const original = structuredClone(weightedProfile)
+    const source = makeLb()
+    const ai = makeAi()
+    const random = vi.spyOn(Math, 'random')
+    try {
+      for (const [draws, selected] of [
+        [[0, 0.99], 'Third'],
+        [[0.99, 0], 'Second'],
+        [[0.99, 0.99], 'First'],
+      ] as const) {
+        random.mockReturnValueOnce(draws[0]).mockReturnValueOnce(draws[1])
+        vi.mocked(source.getSimilarArtists).mockClear()
+        await discover(weightedProfile, { listeningSources: [source], ai }, 2)
+        expect(vi.mocked(source.getSimilarArtists).mock.calls.map(([name]) => name)).toEqual([
+          'Strong',
+          selected,
+        ])
+      }
+      expect(weightedProfile).toEqual(original)
+      expect(ai.getRecommendations).toHaveBeenCalledTimes(3)
+      for (const [received] of ai.getRecommendations.mock.calls)
+        expect(received).toBe(weightedProfile)
+    } finally {
+      random.mockRestore()
+    }
+  })
+
+  it('keeps legacy and invalid-weight seeds in their original rank order', async () => {
+    const source = makeLb()
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    try {
+      await discover(
+        {
+          ...profile,
+          topArtists: [
+            ...profile.topArtists,
+            ...[0, 0, Number.NaN, Number.POSITIVE_INFINITY].map((tasteWeight, index) => ({
+              name: `Invalid ${index}`,
+              playCount: 1,
+              tasteWeight,
+              source: 'spotify',
+            })),
+          ],
+        },
+        { listeningSources: [source] },
+        4,
+      )
+      expect(vi.mocked(source.getSimilarArtists).mock.calls.map(([name]) => name)).toEqual([
+        'Radiohead',
+        'Portishead',
+        'Invalid 0',
+        'Invalid 1',
+      ])
+      expect(random).not.toHaveBeenCalled()
+    } finally {
+      random.mockRestore()
+    }
+  })
+
+  it('deduplicates mixed seeds by identity and fills sparse library slots from listening', async () => {
+    const source = makeLb()
+    const onSeedCount = vi.fn()
+    const listening = [
+      { name: 'Strong', mbid: 'strong' },
+      { name: 'Echo' },
+      { name: 'Echo', mbid: 'echo-one' },
+      { name: 'Caf\u00e9' },
+      { name: 'The Echo' },
+      { name: 'Echo', mbid: 'echo-two' },
+      { name: 'Tail', mbid: 'tail' },
+    ]
+    const library = [
+      { name: 'Strong', mbid: 'strong' },
+      { name: '  ECHO  ', mbid: '' },
+      { name: 'Echo', mbid: 'echo-one' },
+      { name: '  CAFE\u0301  ', mbid: 'cafe' },
+      { name: 'Echo', mbid: 'echo-two' },
+      { name: 'Echo duplicate', mbid: 'echo-two' },
+    ]
+    const originalLibrary = structuredClone(library)
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    try {
+      await discover(
+        {
+          ...profile,
+          topArtists: listening.map((artist) => ({ ...artist, playCount: 1, source: 'lastfm' })),
+        },
+        { listeningSources: [source] },
+        7,
+        library,
+        0.4,
+        { onSeedCount },
+      )
+      expect(source.getSimilarArtists).toHaveBeenCalledTimes(7)
+      expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+        ['Strong', 'strong'],
+        ['Echo', undefined],
+        ['Echo', 'echo-one'],
+        ['Caf\u00e9', 'cafe'],
+        ['Echo', 'echo-two'],
+        ['The Echo', undefined],
+        ['Tail', 'tail'],
+      ])
+      expect(onSeedCount).toHaveBeenCalledWith(7)
+      expect(library).toEqual(originalLibrary)
+    } finally {
+      random.mockRestore()
+    }
+  })
+
+  it.each([0, 0.5])(
+    'enriches listening seeds from matching library IDs at ratio %s',
+    async (ratio) => {
+      const source = makeLb()
+      vi.mocked(source.getSimilarArtists).mockImplementation(async (_name, mbid) =>
+        mbid === 'mbid-rh'
+          ? [{ name: 'Thom Yorke', similarityScore: 0.9, source: 'listenbrainz' }]
+          : [],
+      )
+      const nameOnlyProfile: TasteProfile = {
+        ...profile,
+        topArtists: [
+          { name: 'Radiohead', playCount: 2, source: 'spotify' },
+          { name: 'Other', playCount: 1, source: 'spotify' },
+        ],
+      }
+      const original = structuredClone(nameOnlyProfile)
+      const onSeedCount = vi.fn()
+      const results = await discover(
+        nameOnlyProfile,
+        { listeningSources: [source] },
+        2,
+        [{ name: 'Radiohead', mbid: 'mbid-rh' }],
+        ratio,
+        { onSeedCount },
+      )
+      expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+        ['Radiohead', 'mbid-rh'],
+        ['Other', undefined],
+      ])
+      expect(results.map((artist) => artist.name)).toEqual(['Thom Yorke'])
+      expect(onSeedCount).toHaveBeenCalledWith(2)
+      expect(nameOnlyProfile).toEqual(original)
+    },
+  )
+
+  it('backfills a library-only scan when the library has fewer unique artists than the cap', async () => {
+    const source = makeLb()
+    const onSeedCount = vi.fn()
+    await discover(
+      profile,
+      { listeningSources: [source] },
+      2,
+      [{ name: 'Radiohead', mbid: 'mbid-rh' }],
+      1,
+      { onSeedCount },
+    )
+    expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+      ['Radiohead', 'mbid-rh'],
+      ['Portishead', 'mbid-ph'],
+    ])
+    expect(onSeedCount).toHaveBeenCalledWith(2)
   })
 
   async function aiNames(recName: string, reasoning: string, seeds: string[]) {

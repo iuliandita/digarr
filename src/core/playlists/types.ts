@@ -1,3 +1,19 @@
+export type PlaylistArtistOutcome = {
+  artistName: string
+  artistMbid?: string
+  status: 'resolved' | 'unmatched' | 'unavailable' | 'error' | 'limited'
+  resolvedTrackCount: number
+  includedTrackCount: number
+}
+
+export type PlaylistGenerationSummary = {
+  requestedArtistCount: number
+  resolvedArtistCount: number
+  includedArtistCount: number
+  trackCount: number
+  outcomes: PlaylistArtistOutcome[]
+}
+
 export type ResolvedTrack = {
   artistName: string
   trackName: string

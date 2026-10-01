@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { resolvePlaylistTracks, resolveTracksForArtist } from '@/core/playlists/track-resolver'
+import {
+  resolvePlaylistTracks,
+  resolveTracksForArtist,
+  resolveTracksForArtistDetailed,
+} from '@/core/playlists/track-resolver'
 import type {
   DeezerTrackSearchResult,
   LocalTrack,
@@ -53,6 +57,118 @@ const ARTIST_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 // ---------------------------------------------------------------------------
 
 describe('resolveTracksForArtist()', () => {
+  it('filters wrong-artist matches before ranking and limiting for each search source', async () => {
+    const artist = 'Beyoncé Knowles'
+    const wrongArtist = 'Beyonce Knowles'
+    const matchedArtist = '  BEYONCE\u0301   KNOWLES '
+    const config: TrackResolverConfig = { tracksPerArtist: 1, sourcePriority: ['local'] }
+    const cases: {
+      deps: TrackResolverDeps
+      source: TrackResolverConfig['sourcePriority'][number]
+      expected: object
+    }[] = [
+      {
+        source: 'local',
+        deps: {
+          jellyfinSearch: vi.fn().mockResolvedValue([
+            { name: 'Wrong', artist: wrongArtist, path: '/wrong' },
+            { name: 'Right', artist: matchedArtist, path: '/right' },
+          ]),
+        },
+        expected: { localPath: '/right' },
+      },
+      {
+        source: 'spotify',
+        deps: {
+          spotifySearch: vi.fn().mockResolvedValue([
+            { name: 'Wrong', artists: [wrongArtist], uri: 'spotify:wrong', popularity: 99 },
+            { name: 'Right', artists: [matchedArtist], uri: 'spotify:right', popularity: 1 },
+          ]),
+        },
+        expected: { spotifyUri: 'spotify:right' },
+      },
+      {
+        source: 'deezer',
+        deps: {
+          deezerSearch: vi.fn().mockResolvedValue([
+            { name: 'Wrong', artists: [wrongArtist], id: 'wrong', rank: 99 },
+            { name: 'Right', artists: [matchedArtist], id: 'right', rank: 1 },
+          ]),
+        },
+        expected: { deezerId: 'right' },
+      },
+    ]
+    for (const testCase of cases) {
+      const tracks = await resolveTracksForArtist(artist, undefined, testCase.deps, {
+        ...config,
+        sourcePriority: [testCase.source],
+      })
+      expect(tracks).toEqual([
+        expect.objectContaining({ trackName: 'Right', ...testCase.expected }),
+      ])
+    }
+  })
+
+  it('continues to MusicBrainz when all search results belong to another artist', async () => {
+    const result = await resolveTracksForArtistDetailed(
+      'Portishead',
+      'portishead-mbid',
+      {
+        jellyfinSearch: vi.fn().mockResolvedValue(LOCAL_TRACKS),
+        spotifySearch: vi.fn().mockResolvedValue(SPOTIFY_RESULTS),
+        deezerSearch: vi.fn().mockResolvedValue(DEEZER_RESULTS),
+        musicbrainzRecordings: vi.fn().mockResolvedValue(MB_RECORDINGS),
+      },
+      { tracksPerArtist: 1, sourcePriority: ['local', 'spotify', 'deezer'] },
+    )
+    expect(result.tracks).toEqual([
+      expect.objectContaining({ mbid: 'mb-rec-1', source: 'musicbrainz' }),
+    ])
+    expect(result.outcome).toMatchObject({
+      artistName: 'Portishead',
+      artistMbid: 'portishead-mbid',
+      status: 'resolved',
+    })
+  })
+
+  it('distinguishes unavailable, unmatched and failed lookups without logging upstream secrets', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const unavailable = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        undefined,
+        {
+          musicbrainzRecordings: vi.fn(),
+        },
+        DEFAULT_CONFIG,
+      )
+      const unmatched = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        undefined,
+        {
+          spotifySearch: vi.fn().mockResolvedValue([]),
+        },
+        DEFAULT_CONFIG,
+      )
+      const failed = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        undefined,
+        {
+          jellyfinSearch: vi.fn().mockRejectedValue(new Error('token=private-secret')),
+          spotifySearch: vi.fn().mockResolvedValue([]),
+        },
+        DEFAULT_CONFIG,
+      )
+      expect([unavailable.outcome.status, unmatched.outcome.status, failed.outcome.status]).toEqual(
+        ['unavailable', 'unmatched', 'error'],
+      )
+      expect(warn).toHaveBeenCalledWith('[track-resolver] local lookup failed')
+      expect(JSON.stringify(warn.mock.calls)).not.toContain('private-secret')
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
   describe('local source', () => {
     it('returns local tracks when jellyfinSearch is available', async () => {
       const deps: TrackResolverDeps = {
@@ -374,7 +490,11 @@ describe('resolveTracksForArtist()', () => {
 
 describe('resolvePlaylistTracks()', () => {
   it('processes multiple artists and returns all tracks', async () => {
-    const spotifySearch = vi.fn().mockResolvedValue(SPOTIFY_RESULTS)
+    const spotifySearch = vi
+      .fn()
+      .mockImplementation(async (query: string) =>
+        SPOTIFY_RESULTS.map((track) => ({ ...track, artists: [query.slice('artist:'.length)] })),
+      )
     const deps: TrackResolverDeps = { spotifySearch }
     const config: TrackResolverConfig = { tracksPerArtist: 2, sourcePriority: ['spotify'] }
 
@@ -392,7 +512,11 @@ describe('resolvePlaylistTracks()', () => {
   })
 
   it('processes multiple artists with Deezer when selected in sourcePriority', async () => {
-    const deezerSearch = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+    const deezerSearch = vi
+      .fn()
+      .mockImplementation(async (query: string) =>
+        DEEZER_RESULTS.map((track) => ({ ...track, artists: [query.slice(8, -1)] })),
+      )
     const deps: TrackResolverDeps = { deezerSearch }
     const config: TrackResolverConfig = { tracksPerArtist: 2, sourcePriority: ['deezer'] }
 
@@ -410,7 +534,11 @@ describe('resolvePlaylistTracks()', () => {
   })
 
   it('returns tracks in artist order (not interleaved)', async () => {
-    const spotifySearch = vi.fn().mockResolvedValue(SPOTIFY_RESULTS)
+    const spotifySearch = vi
+      .fn()
+      .mockImplementation(async (query: string) =>
+        SPOTIFY_RESULTS.map((track) => ({ ...track, artists: [query.slice('artist:'.length)] })),
+      )
     const deps: TrackResolverDeps = { spotifySearch }
     const config: TrackResolverConfig = { tracksPerArtist: 1, sourcePriority: ['spotify'] }
 

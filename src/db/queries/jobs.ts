@@ -1,7 +1,8 @@
 import { and, count, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { JobRunRow, JobType, SourceResult } from '@/core/jobs/types'
+import type { PlaylistGenerationSummary } from '@/core/playlists/types'
 import type { Database } from '@/db'
-import { jobRuns, recommendations } from '@/db/schema'
+import { type JobMetadata, jobRuns, recommendations } from '@/db/schema'
 
 export type ListJobsFilters = {
   type?: JobType
@@ -43,6 +44,102 @@ export async function listJobs(
 export async function getJobById(db: Database, id: number): Promise<JobRunRow | null> {
   const [row] = await db.select().from(jobRuns).where(eq(jobRuns.id, id)).limit(1)
   return (row as JobRunRow) ?? null
+}
+
+export async function updateJobMetadata(
+  db: Database,
+  jobId: number,
+  metadata: JobMetadata,
+): Promise<void> {
+  await db
+    .update(jobRuns)
+    .set({
+      metadata: sql`${jobRuns.metadata} || ${JSON.stringify(metadata)}::jsonb`,
+    })
+    .where(eq(jobRuns.id, jobId))
+}
+
+export type PlaylistGeneration = {
+  jobId: number
+  status: string
+  startedAt: Date
+  completedAt: Date | null
+  resolution: PlaylistGenerationSummary | null
+}
+
+function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
+  if (!value || typeof value !== 'object') return null
+  const summary = value as Record<string, unknown>
+  const validCount = (count: unknown): count is number =>
+    typeof count === 'number' && Number.isSafeInteger(count) && count >= 0
+  const { requestedArtistCount, resolvedArtistCount, includedArtistCount, trackCount, outcomes } =
+    summary
+  if (
+    !validCount(requestedArtistCount) ||
+    !validCount(resolvedArtistCount) ||
+    !validCount(includedArtistCount) ||
+    !validCount(trackCount) ||
+    !Array.isArray(outcomes)
+  )
+    return null
+  const projected: PlaylistGenerationSummary['outcomes'] = []
+  for (const value of outcomes) {
+    if (!value || typeof value !== 'object') return null
+    const outcome = value as Record<string, unknown>
+    const { artistName, artistMbid, status, resolvedTrackCount, includedTrackCount } = outcome
+    if (
+      typeof artistName !== 'string' ||
+      (artistMbid !== undefined && typeof artistMbid !== 'string') ||
+      (status !== 'resolved' &&
+        status !== 'unmatched' &&
+        status !== 'unavailable' &&
+        status !== 'error' &&
+        status !== 'limited') ||
+      !validCount(resolvedTrackCount) ||
+      !validCount(includedTrackCount)
+    )
+      return null
+    projected.push({
+      artistName,
+      ...(artistMbid === undefined ? {} : { artistMbid }),
+      status,
+      resolvedTrackCount,
+      includedTrackCount,
+    })
+  }
+  return {
+    requestedArtistCount,
+    resolvedArtistCount,
+    includedArtistCount,
+    trackCount,
+    outcomes: projected,
+  }
+}
+
+export async function getLatestPlaylistGeneration(
+  db: Database,
+  playlistId: number,
+  userId: number,
+): Promise<PlaylistGeneration | null> {
+  const [row] = await db
+    .select({
+      jobId: jobRuns.id,
+      status: jobRuns.status,
+      startedAt: jobRuns.startedAt,
+      completedAt: jobRuns.completedAt,
+      resolution: sql<unknown>`${jobRuns.metadata}->'playlistResolution'`,
+    })
+    .from(jobRuns)
+    .where(
+      and(
+        eq(jobRuns.type, 'playlist'),
+        eq(jobRuns.userId, userId),
+        sql`${jobRuns.metadata}->>'playlistId' = ${String(playlistId)}`,
+      ),
+    )
+    .orderBy(desc(jobRuns.startedAt), desc(jobRuns.id))
+    .limit(1)
+  return row ? { ...row, resolution: playlistResolution(row.resolution) } : null
 }
 
 export type HealthSummary = {

@@ -8,6 +8,7 @@ import {
 } from '@/core/playlists/export'
 import type { PlaylistScheduler } from '@/core/playlists/scheduler'
 import type { Database } from '@/db'
+import { getLatestPlaylistGeneration } from '@/db/queries/jobs'
 import type { PlaylistInsert, PlaylistRow, PlaylistTrackRow } from '@/db/queries/playlists'
 import {
   createPlaylist,
@@ -163,7 +164,8 @@ export function playlistRoutes(deps: PlaylistDeps) {
     const loaded = await loadOwnedPlaylist(c, id, userId)
     if (!loaded.ok) return loaded.response
 
-    return c.json(loaded.result)
+    const generation = await getLatestPlaylistGeneration(db, id, userId)
+    return c.json({ ...loaded.result, generation })
   })
 
   // GET /api/v1/playlists/:id/export/:format

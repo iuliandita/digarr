@@ -4,6 +4,7 @@ import type { GenreInfo } from '../../core/genre/types'
 import { getMessages } from '../../core/i18n/messages'
 import type { MessageKey } from '../../core/i18n/messages/types'
 import type { NotificationChannel } from '../../core/notifications/types'
+import type { PlaylistGenerationSummary } from '../../core/playlists/types'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -1101,8 +1102,20 @@ export type PlaylistInsert = {
 
 export const getPlaylists = () => fetchApi<PlaylistRow[]>('/playlists')
 
+export type PlaylistGeneration = {
+  jobId: number
+  status: string
+  startedAt: string
+  completedAt: string | null
+  resolution: PlaylistGenerationSummary | null
+}
+
 export const getPlaylist = (id: number) =>
-  fetchApi<{ playlist: PlaylistRow; tracks: PlaylistTrackRow[] }>(`/playlists/${id}`)
+  fetchApi<{
+    playlist: PlaylistRow
+    tracks: PlaylistTrackRow[]
+    generation: PlaylistGeneration | null
+  }>(`/playlists/${id}`)
 
 export const createPlaylistApi = (data: PlaylistInsert) =>
   fetchApi<{ id: number }>('/playlists', {

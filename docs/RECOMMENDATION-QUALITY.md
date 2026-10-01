@@ -71,6 +71,18 @@ The synthetic prompt fixtures start with prepared profiles and bypass source ana
 
 Profiles may include a bounded `tasteWeight` and a `preferenceBasis` of `rank`, `membership`, or `source-weight`. Keep raw source values separate. Source normalization preserves relative evidence, not measured affinity: a short source list can assign one artist a strong weight, and seed limits can omit interests. These checks do not establish recommendation fit, playback, or delivery.
 
+## Seed and playlist outcome checks
+
+Run the focused discovery and playlist suites to exercise capped seeds, artist matching and resolution outcomes:
+
+```sh
+bun run test tests/core/pipeline/discover.test.ts tests/core/playlists/generator.test.ts tests/core/playlists/track-resolver.test.ts
+```
+
+Use controlled randomness when comparing profiles: exact positive taste-weight ties rotate between scans, while stronger evidence stays ahead. Test narrow, equally weighted, missing-metadata and changed-snapshot inputs without inferring genre quotas. Library and listening duplicates must not consume multiple slots; an underfilled library pool can use remaining listening seeds. Rotation gives an equal opportunity, not guaranteed representation in each run.
+
+Playlist checks distinguish selected artists, artists with matching tracks, artists included after the size cap, and track totals. Cover no usable provider, successful empty lookups, upstream errors, fallback success and unrelated search results. Inspect the owned detail result and legacy/no-history behavior separately. Local resolution and a completed export request do not establish remote playback or target read-back coverage.
+
 ## Human and end-to-end review
 
 The report leaves recommendation fit unjudged and preview/delivery unmeasured. For each case, separately record whether the artist exists and is correctly described, whether the output fits the stated taste, whether it adds useful unfamiliar music, and whether a preview or exported track is usable. Keep identity mistakes separate from taste disagreements.

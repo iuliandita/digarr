@@ -311,6 +311,85 @@ describe('rediscover strategy', () => {
 // ---------------------------------------------------------------------------
 
 describe('generatePlaylist()', () => {
+  it('keeps partial artist inclusion and reconciles summary counts after the track cap', async () => {
+    const result = await generatePlaylist(
+      'weekly_digest',
+      {
+        size: 5,
+        trackSourcePriority: ['spotify'],
+      },
+      makeStrategyDeps(),
+      makeResolverDeps(),
+    )
+    expect(result.resolution).toEqual({
+      requestedArtistCount: 2,
+      resolvedArtistCount: 2,
+      includedArtistCount: 2,
+      trackCount: 5,
+      outcomes: [
+        {
+          artistName: 'Radiohead',
+          artistMbid: 'mbid-rh',
+          status: 'resolved',
+          resolvedTrackCount: 3,
+          includedTrackCount: 3,
+        },
+        {
+          artistName: 'Portishead',
+          artistMbid: 'mbid-ph',
+          status: 'resolved',
+          resolvedTrackCount: 3,
+          includedTrackCount: 2,
+        },
+      ],
+    })
+    expect(result.tracks).toHaveLength(result.resolution.trackCount)
+  })
+
+  it('preserves homonymous artist identities and marks artists excluded by the cap as limited', async () => {
+    const result = await generatePlaylist(
+      'audition',
+      {
+        size: 1,
+        trackSourcePriority: [],
+      },
+      makeStrategyDeps({
+        getPendingArtists: vi.fn().mockResolvedValue([
+          { name: 'Same Name', mbid: 'first-mbid', score: 1 },
+          { name: 'Same Name', mbid: 'second-mbid', score: 0.9 },
+        ]),
+      }),
+      {
+        musicbrainzRecordings: vi
+          .fn()
+          .mockImplementation(async (mbid: string) => [{ id: `${mbid}-recording`, title: mbid }]),
+      },
+    )
+    expect(result.resolution).toEqual({
+      requestedArtistCount: 2,
+      resolvedArtistCount: 2,
+      includedArtistCount: 1,
+      trackCount: 1,
+      outcomes: [
+        {
+          artistName: 'Same Name',
+          artistMbid: 'first-mbid',
+          status: 'resolved',
+          resolvedTrackCount: 1,
+          includedTrackCount: 1,
+        },
+        {
+          artistName: 'Same Name',
+          artistMbid: 'second-mbid',
+          status: 'limited',
+          resolvedTrackCount: 1,
+          includedTrackCount: 0,
+        },
+      ],
+    })
+    expect(result.tracks[0]?.mbid).toBe('first-mbid-recording')
+  })
+
   it('chains strategy + resolver and returns GenerationResult', async () => {
     const strategyDeps = makeStrategyDeps()
     const resolverDeps = makeResolverDeps()
@@ -439,13 +518,21 @@ describe('audition playlists', () => {
     expect(result.tracks).toHaveLength(4)
   })
 
-  it('does not create placeholder tracks when no resolver is configured', async () => {
-    const result = await generatePlaylist(
-      'audition',
-      { size: 4, trackSourcePriority: ['local'] },
-      makeStrategyDeps(),
-      {},
-    )
-    expect(result.tracks).toEqual([])
-  })
+  it.each(['audition', 'weekly_digest'] as const)(
+    'does not create placeholder tracks for %s when no resolver is configured',
+    async (strategy) => {
+      const result = await generatePlaylist(
+        strategy,
+        { size: 4, trackSourcePriority: ['local'] },
+        makeStrategyDeps(),
+        {},
+      )
+      expect(result.tracks).toEqual([])
+      expect(result.resolution.resolvedArtistCount).toBe(0)
+      expect(result.resolution.trackCount).toBe(0)
+      expect(result.resolution.outcomes.every((outcome) => outcome.status === 'unavailable')).toBe(
+        true,
+      )
+    },
+  )
 })

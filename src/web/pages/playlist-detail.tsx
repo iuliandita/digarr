@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Download, Pencil, Play } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -10,6 +10,7 @@ import {
   exportPlaylistApi,
   generatePlaylistApi,
   getPlaylist,
+  type PlaylistGeneration,
   type PlaylistRow,
   type PlaylistTrackRow,
 } from '../lib/api'
@@ -212,6 +213,95 @@ function PlaylistActions({
   )
 }
 
+const GENERATION_STATUS_KEYS: Record<string, MessageKey> = {
+  running: 'common.running',
+  completed: 'common.done',
+  failed: 'common.failed',
+  stuck: 'common.stuck',
+  cancelled: 'playlist.generationCancelled',
+}
+
+const OUTCOME_STATUS_KEYS: Record<string, MessageKey> = {
+  unmatched: 'playlist.resolutionUnmatched',
+  unavailable: 'playlist.resolutionUnavailable',
+  error: 'playlist.resolutionError',
+  limited: 'playlist.resolutionLimited',
+}
+
+function GenerationSummary({ generation }: { generation: PlaylistGeneration | null }) {
+  const { t } = useI18n()
+  if (!generation) return null
+  const summary = generation.resolution
+  return (
+    <section
+      className="space-y-3 bg-surface border border-border rounded-lg p-4"
+      aria-live="polite"
+    >
+      <h2 className="text-sm font-semibold text-text">
+        {t('playlist.latestGeneration')}:{' '}
+        {t(GENERATION_STATUS_KEYS[generation.status] ?? 'common.notAvailable')}
+      </h2>
+      {summary && (
+        <>
+          <dl className="flex flex-wrap gap-4 text-sm">
+            <div>
+              <dt className="text-muted">{t('playlist.requestedArtists')}</dt>
+              <dd className="text-text">{summary.requestedArtistCount}</dd>
+            </div>
+            <div>
+              <dt className="text-muted">{t('playlist.resolvedArtists')}</dt>
+              <dd className="text-text">
+                {t('playlist.artistFraction')
+                  .replace('{0}', String(summary.resolvedArtistCount))
+                  .replace('{1}', String(summary.requestedArtistCount))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted">{t('playlist.includedArtists')}</dt>
+              <dd className="text-text">
+                {t('playlist.artistFraction')
+                  .replace('{0}', String(summary.includedArtistCount))
+                  .replace('{1}', String(summary.requestedArtistCount))}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted">{t('playlist.tracks')}</dt>
+              <dd className="text-text">{summary.trackCount}</dd>
+            </div>
+          </dl>
+          <ul className="space-y-2 text-sm">
+            {summary.outcomes.map(
+              (outcome, index) =>
+                (outcome.status !== 'resolved' ||
+                  outcome.includedTrackCount < outcome.resolvedTrackCount) && (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: ordered outcomes can share a name without an MBID
+                  <li key={`${outcome.artistMbid ?? outcome.artistName}-${index}`}>
+                    <span className="text-text">{outcome.artistName}</span>
+                    {outcome.status !== 'resolved' && (
+                      <>
+                        {': '}
+                        <span className="text-muted">
+                          {t(OUTCOME_STATUS_KEYS[outcome.status] ?? 'common.notAvailable')}
+                        </span>
+                      </>
+                    )}
+                    {outcome.resolvedTrackCount > 0 && (
+                      <p className="text-xs text-muted">
+                        {t('playlist.resolutionTracks')
+                          .replace('{0}', String(outcome.includedTrackCount))
+                          .replace('{1}', String(outcome.resolvedTrackCount))}
+                      </p>
+                    )}
+                  </li>
+                ),
+            )}
+          </ul>
+        </>
+      )}
+    </section>
+  )
+}
+
 // PlaylistDetailPage
 
 export function PlaylistDetailPage() {
@@ -219,11 +309,42 @@ export function PlaylistDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const numId = Number(id)
+  const polling = useRef<{
+    playlistId: number
+    deadline: number
+    previousJobId: number | null
+    awaitingNewJob: boolean
+  } | null>(null)
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['playlists', numId],
     queryFn: () => getPlaylist(numId),
     enabled: !Number.isNaN(numId),
+    refetchInterval: (query) => {
+      const generation = query.state.data?.generation
+      if (polling.current?.playlistId !== numId) polling.current = null
+      if (
+        generation?.status === 'running' &&
+        (!polling.current ||
+          (!polling.current.awaitingNewJob && polling.current.previousJobId !== generation.jobId))
+      ) {
+        polling.current = {
+          playlistId: numId,
+          deadline: Date.now() + 300_000,
+          previousJobId: generation.jobId,
+          awaitingNewJob: false,
+        }
+      }
+      const current = polling.current
+      if (!current || Date.now() >= current.deadline) return false
+      if (current.awaitingNewJob && generation?.jobId !== current.previousJobId && generation)
+        current.awaitingNewJob = false
+      if (!current.awaitingNewJob && generation?.status !== 'running') {
+        polling.current = null
+        return false
+      }
+      return 2_000
+    },
   })
 
   function handleEdit() {
@@ -304,7 +425,21 @@ export function PlaylistDetailPage() {
       </Hint>
 
       {/* Actions */}
-      <PlaylistActions playlist={playlist} onEdit={handleEdit} onRefetch={() => refetch()} />
+      <PlaylistActions
+        playlist={playlist}
+        onEdit={handleEdit}
+        onRefetch={() => {
+          polling.current = {
+            playlistId: numId,
+            deadline: Date.now() + 300_000,
+            previousJobId: data.generation?.jobId ?? null,
+            awaitingNewJob: true,
+          }
+          refetch()
+        }}
+      />
+
+      <GenerationSummary generation={data.generation} />
 
       {/* Track listing */}
       <div className="space-y-1">

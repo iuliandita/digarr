@@ -25,6 +25,8 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 ## In development
 
+- Equal-weight discovery seed rotation, identity-safe library mixing and filled seed budgets. [#743](https://github.com/iuliandita/digarr/issues/743).
+- Playlist generation coverage with per-artist dispositions and exact artist matching before choosing tracks. [#744](https://github.com/iuliandita/digarr/issues/744), [#745](https://github.com/iuliandita/digarr/issues/745).
 - Combine source-relative artist evidence without treating global popularity or starred-list position as personal listening counts; preserve raw values and evaluate input invariants across varied tastes. [#741](https://github.com/iuliandita/digarr/issues/741).
 - Name and catalog-alias validation before genre-based artist resolution. Ambiguous matches remain unresolved.
 - Maintenance rescoring that preserves saved score evidence, applies the current user's weights only to their rows, and skips incompatible or concurrently changed rows.

@@ -12,10 +12,13 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Playlist details show the latest generation status and per-artist outcomes, including unmatched artists, missing providers, lookup errors, and size-limit exclusions. Counts separate selected, resolved, and included artists from tracks; local outcomes remain visible when a target export fails. [#744](https://github.com/iuliandita/digarr/issues/744).
 - Optional genre priorities support several equally preferred genres while keeping score ordering as the default. Discover can order preference groups or browse either group separately; scores, thresholds, and auto-approval are unchanged. Matches use explicit genre tags, with no inferred taxonomy. [#732](https://github.com/iuliandita/digarr/issues/732).
 
 ### Fixed
 
+- Similarity discovery rotates exact positive taste-weight ties before capping seeds, keeps stronger evidence first, and backfills duplicate or unavailable library slots. Known artist identities remain distinct; scoring and genre priorities are unchanged. [#743](https://github.com/iuliandita/digarr/issues/743), [#746](https://github.com/iuliandita/digarr/issues/746).
+- Playlist searches require the returned artist to match before selecting tracks and continue through configured fallback sources. Generation no longer invents track titles when no resolver is available. [#745](https://github.com/iuliandita/digarr/issues/745), [#744](https://github.com/iuliandita/digarr/issues/744).
 - Discovery profiles normalize artist evidence within each source instead of comparing incompatible numeric scales. Spotify uses personal top-artist order and Subsonic treats starred artists as equal membership; raw values remain separate, and overlapping sources do not multiply an artist's contribution. Scoring formulas, stored recommendation scores, and history windows are unchanged. [#741](https://github.com/iuliandita/digarr/issues/741).
 - AI profiles retain each seed artist's genre context and describe source-dependent seed weights without calling popularity or favorites play counts. Guidance supports distinct musical interests and treats missing history or tags as unknown. The advisory baseline adds eclectic and sparse-history cases. [#739](https://github.com/iuliandita/digarr/issues/739).
 - Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).
