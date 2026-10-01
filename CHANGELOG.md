@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).
+- Listening profiles split semicolon-separated genre lists and ignore numeric artifacts before genre weighting. Valid genres are deduplicated, and coverage counts only usable genres. Stored library and cache metadata are unchanged. [#736](https://github.com/iuliandita/digarr/issues/736).
 
 - Name-only discovery validates MusicBrainz names and catalog aliases before genre matching, preventing unrelated artists from inheriting another artist's AI explanation and starter album. Tied matches remain unresolved. [#731](https://github.com/iuliandita/digarr/issues/731).
 

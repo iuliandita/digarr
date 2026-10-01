@@ -117,7 +117,7 @@ docker compose up -d
 
 Alternatively, fill in the service env vars in `.env` and setup completes automatically on first boot.
 
-For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses native genres from connected sources, synchronized library metadata, and a bounded background MusicBrainz cache warmer with optional Last.fm fallback. Cold caches improve on later scans without blocking the current scan; Dashboard and Settings show profile coverage. Emby can be added during the setup wizard or later in Settings.
+For zero-touch boot, set `DIGARR_INITIAL_USERNAME`, `DIGARR_INITIAL_PASSWORD`, `AI_PROVIDER`, and `AI_MODEL`. Listening sources stay optional, but connect at least one before running discovery. Lidarr stays optional: omit `LIDARR_URL` / `LIDARR_API_KEY` to run in discovery-only mode. In discovery-only mode the genre-overlap part of scoring uses native genres from connected sources, synchronized library metadata, and a bounded background MusicBrainz cache warmer with optional Last.fm fallback. Listening-profile genres split semicolon lists, discard numeric artifacts, and deduplicate valid names before weighting. Cold caches improve on later scans without blocking the current scan; Dashboard and Settings show profile coverage. Emby can be added during the setup wizard or later in Settings.
 
 For local development, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

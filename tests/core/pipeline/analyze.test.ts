@@ -307,13 +307,13 @@ describe('analyze() genre aggregation', () => {
     expect(profile.topGenres).toEqual([{ name: 'indie', weight: 1 }])
   })
 
-  it('counts case variants of one artist genre only once', async () => {
+  it('cleans semicolon lists and numeric artifacts without duplicate genre contributions', async () => {
     const source = makeSpotifyLike([
       {
         name: 'Case Mix',
         playCount: 100,
         source: 'spotify',
-        genres: ['Rock', 'rock', ' ROCK '],
+        genres: ['Rock;40;rock;137', ' ROCK ', 'R&B', '2 Tone', 'Cafe\u0301; Café', ' ; '],
       },
       { name: 'Other', playCount: 50, source: 'spotify', genres: ['jazz'] },
     ])
@@ -322,8 +322,45 @@ describe('analyze() genre aggregation', () => {
 
     expect(profile.topGenres).toEqual([
       { name: 'rock', weight: 1 },
+      { name: 'r&b', weight: 1 },
+      { name: '2 tone', weight: 1 },
+      { name: 'café', weight: 1 },
       { name: 'jazz', weight: 0.5 },
     ])
+    expect(profile.topArtists[0]?.genres).toEqual(['Rock', 'R&B', '2 Tone', 'Café'])
+  })
+
+  it('cleans genres before hydration and recounts valid coverage after cache hydration', async () => {
+    const source = makeSpotifyLike([
+      {
+        name: 'Fallback',
+        playCount: 10,
+        source: 'spotify',
+        genres: ['40;137'],
+        genreSource: 'native',
+      },
+      { name: 'Junk Cache', playCount: 5, source: 'spotify' },
+    ])
+    const genreHydrator = vi.fn(async (artists: TopArtistEntry[]) => {
+      expect(artists[0]?.genres).toEqual([])
+      expect(artists[0]?.genreSource).toBeUndefined()
+      return {
+        artists: artists.map((artist, i) => ({
+          ...artist,
+          genres: i === 0 ? ['Heavy Metal; Metalcore;6', 'heavy metal'] : ['79;137'],
+          genreSource: 'artist-cache' as const,
+        })),
+        coverage: { coveredArtists: 2, pendingArtists: 1, totalArtists: 2 },
+      }
+    })
+    const profile = await analyze([source], { genreHydrator })
+    expect(profile.topGenres).toEqual([
+      { name: 'heavy metal', weight: 1 },
+      { name: 'metalcore', weight: 1 },
+    ])
+    expect(profile.topArtists[0]?.genres).toEqual(['Heavy Metal', 'Metalcore'])
+    expect(profile.topArtists[1]?.genreSource).toBeUndefined()
+    expect(profile.genreCoverage).toEqual({ coveredArtists: 1, pendingArtists: 1, totalArtists: 2 })
   })
 
   it('aggregates topGenres weighted by playCount, normalized, lowercased', async () => {

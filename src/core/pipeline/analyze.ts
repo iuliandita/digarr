@@ -19,10 +19,20 @@ function preferredGenreSource(
 function mergeGenres(...genreLists: Array<string[] | undefined>): string[] {
   const genres = new Map<string, string>()
   for (const genre of genreLists.flatMap((list) => list ?? [])) {
-    const trimmed = genre.trim()
-    if (trimmed) genres.set(trimmed.toLowerCase(), genres.get(trimmed.toLowerCase()) ?? trimmed)
+    // Media metadata can carry several genre tags in one semicolon-delimited value.
+    for (const fragment of genre.split(';')) {
+      const normalized = fragment.normalize('NFC').trim().replace(/\s+/gu, ' ')
+      if (!normalized || /^\p{Nd}+$/u.test(normalized)) continue
+      const key = normalized.toLowerCase()
+      if (!genres.has(key)) genres.set(key, normalized)
+    }
   }
   return [...genres.values()]
+}
+
+function cleanArtistGenres(artist: TopArtistEntry): TopArtistEntry {
+  const genres = mergeGenres(artist.genres)
+  return { ...artist, genres, genreSource: genres.length > 0 ? artist.genreSource : undefined }
 }
 
 function mergeArtistEntries(first: TopArtistEntry, second: TopArtistEntry): TopArtistEntry {
@@ -66,7 +76,7 @@ export async function analyze(
       console.warn(`[analyze] source ${sourceId} failed: ${msg}`)
       continue
     }
-    for (const a of r.value.artists) allArtists.push(a)
+    for (const a of r.value.artists) allArtists.push(cleanArtistGenres(a))
     // Deterministic: first fulfilled source with activity wins.
     if (activityData.length === 0 && r.value.activity.length > 0) {
       activityData = r.value.activity
@@ -113,7 +123,11 @@ export async function analyze(
           totalArtists: dedupedArtists.length,
         },
       }
-  const topArtists = genreResult.artists
+  const topArtists = genreResult.artists.map(cleanArtistGenres)
+  const genreCoverage = {
+    ...genreResult.coverage,
+    coveredArtists: topArtists.filter((artist) => (artist.genres?.length ?? 0) > 0).length,
+  }
 
   // Aggregate genres from listening sources that carry them (e.g. Spotify).
   // Weight each genre by the sum of playCount of artists that carry it, then
@@ -151,7 +165,7 @@ export async function analyze(
       genreSource: a.genreSource,
     })),
     topGenres,
-    genreCoverage: genreResult.coverage,
+    genreCoverage,
     listeningPatterns: {
       totalListens,
       recentTrend,
