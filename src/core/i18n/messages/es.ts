@@ -256,6 +256,9 @@ export const es = {
   'dashboard.genreCoverage': 'Datos de género disponibles: {0}/{1}',
   'dashboard.genreCoveragePending': 'Actualizaciones de datos de género pendientes: {0}',
   'dashboard.getStarted': 'empezar',
+  'dashboard.listeningEmpty': 'No hay historial de escucha para este período. Prueba otro período.',
+  'dashboard.listeningFailed':
+    'No se pudo cargar el historial de escucha. Revisa tus conexiones o inténtalo de nuevo.',
   'dashboard.listeningHistory': 'Historial de escucha',
   'dashboard.recentPlays': 'Reproducciones recientes',
   'dashboard.recentPlaysEmpty': 'Sin reproducciones recientes',

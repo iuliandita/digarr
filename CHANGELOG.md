@@ -13,8 +13,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - Discovery skips listening sources without similar-artist support instead of reporting them as failed. Job History distinguishes missing seeds, successful empty lookups, and actual or partial source failures, with localized skip explanations. [#722](https://github.com/iuliandita/digarr/issues/722).
-
 - AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. This remains a heuristic, not identity verification. [#719](https://github.com/iuliandita/digarr/issues/719).
+- Dashboard listening history distinguishes unconfigured accounts, empty history, and fetch failures, with retry actions for failures. ListenBrainz artist statistics treat HTTP 204 as empty history. [#721](https://github.com/iuliandita/digarr/issues/721).
 
 ## v1.18.0 - 2026-09-20
 

@@ -195,12 +195,14 @@ function setupMocks() {
     offset: 0,
     limit: 5,
     source: 'listenbrainz',
+    status: 'ok',
   })
 
   mockGetRecentTracks.mockResolvedValue({
     tracks: [{ artist: 'Bon Iver', track: 'Holocene', source: 'listenbrainz' }],
     hasSource: true,
     source: 'listenbrainz',
+    status: 'ok',
   })
 
   mockGetSubscriptions.mockResolvedValue([

@@ -406,10 +406,13 @@ export type RecentTrackEntry = {
   mbid?: string
 }
 
+export type ListeningHistoryStatus = 'not_configured' | 'empty' | 'error' | 'ok'
+
 export const getTopArtists = (range: ListeningTopRange, offset = 0, limit = 5) => {
   const qs = new URLSearchParams({ range, offset: String(offset), limit: String(limit) })
   return fetchApi<{
     tracks: TopArtistEntry[]
+    status: ListeningHistoryStatus
     total: number
     offset: number
     limit: number
@@ -421,6 +424,7 @@ export const getRecentTracks = (limit = 5) => {
   const qs = new URLSearchParams({ limit: String(limit) })
   return fetchApi<{
     tracks: RecentTrackEntry[]
+    status: ListeningHistoryStatus
     hasSource: boolean
     source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | 'plex' | null
   }>(`/listening/recent-tracks?${qs}`)

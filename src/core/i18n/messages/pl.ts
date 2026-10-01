@@ -256,6 +256,9 @@ export const pl = {
   'dashboard.genreCoverage': 'Dostępne dane o gatunkach: {0}/{1}',
   'dashboard.genreCoveragePending': 'Oczekujące aktualizacje danych o gatunkach: {0}',
   'dashboard.getStarted': 'Zacznij',
+  'dashboard.listeningEmpty': 'Brak historii słuchania w tym okresie. Spróbuj wybrać inny okres.',
+  'dashboard.listeningFailed':
+    'Nie udało się wczytać historii słuchania. Sprawdź połączenia lub spróbuj ponownie.',
   'dashboard.listeningHistory': 'Historia słuchania',
   'dashboard.recentPlays': 'Ostatnio odtwarzane',
   'dashboard.recentPlaysEmpty': 'Brak ostatnich odtworzeń',

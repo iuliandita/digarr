@@ -251,6 +251,9 @@ export const ko = {
   'dashboard.genreCoverage': '장르 데이터 있음: {0}/{1}',
   'dashboard.genreCoveragePending': '대기 중인 장르 데이터 업데이트: {0}',
   'dashboard.getStarted': '시작하기',
+  'dashboard.listeningEmpty': '이 기간의 청취 기록이 없습니다. 다른 기간을 선택해 보세요.',
+  'dashboard.listeningFailed':
+    '청취 기록을 불러오지 못했습니다. 연결을 확인하거나 다시 시도하세요.',
   'dashboard.listeningHistory': '청취 기록',
   'dashboard.recentPlays': '최근 재생',
   'dashboard.recentPlaysEmpty': '최근 재생 내역이 없습니다',

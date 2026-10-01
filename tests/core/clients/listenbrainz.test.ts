@@ -18,7 +18,7 @@ vi.mock('@/core/clients/http', async (importOriginal) => {
   }
 })
 
-const { createHttpClient } = await import('@/core/clients/http')
+const { createHttpClient, HttpError } = await import('@/core/clients/http')
 
 const TEST_USERNAME = 'testuser'
 const TEST_TOKEN = 'my-lb-token'
@@ -28,6 +28,19 @@ beforeEach(() => {
 })
 
 describe('createListenBrainzClient', () => {
+  it('treats HTTP 204 as empty paged artist statistics', async () => {
+    mockGet.mockRejectedValueOnce(new HttpError(204, '', 'https://example.com'))
+    const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+    expect(await client.getTopArtistsPaged('month')).toEqual({ artists: [], totalCount: 0 })
+  })
+
+  it('preserves other artist-statistics HTTP failures', async () => {
+    const error = new HttpError(500, 'failed', 'https://example.com')
+    mockGet.mockRejectedValueOnce(error)
+    const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
+    await expect(client.getTopArtists('month')).rejects.toBe(error)
+  })
+
   describe('constructor / auth header', () => {
     it('creates an HTTP client with Authorization: Token header', () => {
       createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)

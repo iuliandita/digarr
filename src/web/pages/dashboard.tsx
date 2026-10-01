@@ -30,12 +30,10 @@ import {
   getUserPreferences,
   type ListeningTopRange,
   listTargets,
-  type RecentTrackEntry,
   rescanArtists,
   type SchedulerJob,
   type Subscription,
   type TasteGenre,
-  type TopArtistEntry,
   triggerPipeline,
   updateRecommendation,
 } from '../lib/api'
@@ -155,22 +153,36 @@ function rangeLabelKey(
         : 'dashboard.allTime'
 }
 
+function ListeningHistoryError({ onRetry }: { onRetry: () => void }) {
+  const { t } = useI18n()
+  return (
+    <div
+      role="alert"
+      className="bg-surface border border-border rounded-lg p-6 text-center space-y-2"
+    >
+      <p className="text-sm text-muted">{t('dashboard.listeningFailed')}</p>
+      <button type="button" onClick={onRetry} className="text-xs text-accent underline">
+        {t('errorBoundary.retry')}
+      </button>
+    </div>
+  )
+}
+
 function ListeningHistory({
   data,
+  loading,
+  error,
+  onRetry,
   range,
   page,
   pageSize,
   onRangeChange,
   onPageChange,
 }: {
-  data:
-    | {
-        tracks: TopArtistEntry[]
-        total: number
-        offset: number
-        limit: number
-      }
-    | undefined
+  data: Awaited<ReturnType<typeof getTopArtists>> | undefined
+  loading: boolean
+  error: boolean
+  onRetry: () => void
   range: ListeningTopRange
   page: number
   pageSize: number
@@ -178,6 +190,11 @@ function ListeningHistory({
   onPageChange: (p: number) => void
 }) {
   const { t } = useI18n()
+  const state = loading
+    ? 'loading'
+    : error
+      ? 'error'
+      : (data?.status ?? (data?.source ? 'empty' : 'not_configured'))
   const total = data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const hasPrev = page > 0
@@ -201,13 +218,29 @@ function ListeningHistory({
           ))}
         </div>
       </div>
+      {state === 'error' && <ListeningHistoryError onRetry={onRetry} />}
       {!data || data.tracks.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
-          <p className="text-sm text-muted">{t('dashboard.connectListening')}</p>
-          <Link to="/settings" className="text-xs text-accent underline inline-block">
-            {t('dashboard.connectAccount')}
-          </Link>
-        </div>
+        state === 'error' ? null : (
+          <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
+            <p className="text-sm text-muted">
+              {t(
+                state === 'loading'
+                  ? 'common.loading'
+                  : state === 'empty'
+                    ? 'dashboard.listeningEmpty'
+                    : 'dashboard.connectListening',
+              )}
+            </p>
+            {state === 'not_configured' && (
+              <Link
+                to="/settings?tab=connections"
+                className="text-xs text-accent underline inline-block"
+              >
+                {t('dashboard.connectAccount')}
+              </Link>
+            )}
+          </div>
+        )
       ) : (
         <div className="bg-surface border border-border rounded-lg">
           <div className="divide-y divide-border">
@@ -255,20 +288,28 @@ function ListeningHistory({
 
 function RecentActivity({
   data,
+  error,
+  onRetry,
 }: {
-  data: { tracks: RecentTrackEntry[]; hasSource: boolean } | undefined
+  data: Awaited<ReturnType<typeof getRecentTracks>> | undefined
+  error: boolean
+  onRetry: () => void
 }) {
   const { t, locale } = useI18n()
-  if (!data?.hasSource) return null
+  if (!data?.hasSource && !error) return null
+  const failed = error || data?.status === 'error'
   return (
     <div>
       <h2 className="text-sm font-semibold text-text uppercase tracking-wide mb-3">
         {t('dashboard.recentPlays')}
       </h2>
-      {data.tracks.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg p-6 text-center">
-          <p className="text-sm text-muted">{t('dashboard.recentPlaysEmpty')}</p>
-        </div>
+      {failed && <ListeningHistoryError onRetry={onRetry} />}
+      {!data || data.tracks.length === 0 ? (
+        failed ? null : (
+          <div className="bg-surface border border-border rounded-lg p-6 text-center">
+            <p className="text-sm text-muted">{t('dashboard.recentPlaysEmpty')}</p>
+          </div>
+        )
       ) : (
         <div className="bg-surface border border-border rounded-lg divide-y divide-border">
           {data.tracks.map((entry) => (
@@ -454,14 +495,23 @@ export function Dashboard() {
   })
 
   // Listening history (top artists)
-  const { data: topArtistsData } = useQuery({
+  const {
+    data: topArtistsData,
+    isPending: topArtistsLoading,
+    isError: topArtistsError,
+    refetch: retryTopArtists,
+  } = useQuery({
     queryKey: ['dashboard-top-artists', listenRange, listenPage, LISTEN_PAGE_SIZE],
     queryFn: () => getTopArtists(listenRange, listenPage * LISTEN_PAGE_SIZE, LISTEN_PAGE_SIZE),
     staleTime: 30_000,
   })
 
   // Recent activity (latest scrobbles)
-  const { data: recentTracksData } = useQuery({
+  const {
+    data: recentTracksData,
+    isError: recentTracksError,
+    refetch: retryRecentTracks,
+  } = useQuery({
     queryKey: ['dashboard-recent-tracks'],
     queryFn: () => getRecentTracks(5),
     staleTime: 30_000,
@@ -709,6 +759,11 @@ export function Dashboard() {
         <div className="space-y-3">
           <ListeningHistory
             data={topArtistsData}
+            loading={topArtistsLoading}
+            error={topArtistsError}
+            onRetry={() => {
+              void retryTopArtists()
+            }}
             range={listenRange}
             page={listenPage}
             pageSize={LISTEN_PAGE_SIZE}
@@ -721,7 +776,13 @@ export function Dashboard() {
           <Hint id="dashboard-listening-tip" type="inline">
             {t('dashboard.listeningTip')}
           </Hint>
-          <RecentActivity data={recentTracksData} />
+          <RecentActivity
+            data={recentTracksData}
+            error={recentTracksError}
+            onRetry={() => {
+              void retryRecentTracks()
+            }}
+          />
         </div>
       </div>
 

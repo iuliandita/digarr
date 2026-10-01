@@ -107,6 +107,10 @@ and skip their ticks while it is set. The routes are
 [`docs/guides/switching-backends.md`](guides/switching-backends.md) for the
 operator walkthrough.
 
+## Dashboard listening history
+
+Listening routes preserve configuration, empty-result, and failure outcomes separately from their returned entries. A successful fallback with entries wins; without entries, any attempted source failure produces an error outcome. ListenBrainz artist statistics map HTTP 204 to an empty result locally, while the shared JSON transport continues to reject missing response bodies elsewhere. The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Failed refreshes keep cached entries visible with a failure notice.
+
 ## Pipeline
 
 Seven stages:

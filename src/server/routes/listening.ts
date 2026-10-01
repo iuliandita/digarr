@@ -83,6 +83,12 @@ function hasPlex(conns: UserConnections | null): boolean {
   )
 }
 
+function historyStatus(trackCount: number, hasSource: boolean, failed: boolean) {
+  if (trackCount > 0) return 'ok'
+  if (!hasSource) return 'not_configured'
+  return failed ? 'error' : 'empty'
+}
+
 function plexRangeStart(range: TopRange, now = new Date()): number | undefined {
   if (range === 'all_time') return undefined
   const start = new Date(now)
@@ -154,7 +160,14 @@ export function listeningRoutes(deps: AppDependencies) {
   router.get('/api/v1/listening/top-artists', async (c) => {
     const settings = await deps.getSettings()
     if (!settings) {
-      return c.json({ tracks: [], total: 0, offset: 0, limit: 5, source: null })
+      return c.json({
+        tracks: [],
+        total: 0,
+        offset: 0,
+        limit: 5,
+        source: null,
+        status: 'not_configured',
+      })
     }
 
     const range = parseTopRange(c.req.query('range'))
@@ -173,6 +186,9 @@ export function listeningRoutes(deps: AppDependencies) {
 
     const userId = c.get('userId')
     const userConns = userId ? await getUserConnections(deps.db, userId) : null
+
+    const hasSource = hasListenBrainz(userConns) || hasLastFm(userConns) || hasPlex(userConns)
+    let failed = false
 
     let tracks: TopArtistEntry[] = []
     let total = 0
@@ -199,6 +215,7 @@ export function listeningRoutes(deps: AppDependencies) {
         total = paged.totalCount
         source = 'listenbrainz'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] ListenBrainz top-artists fetch failed:', err)
       }
     }
@@ -224,6 +241,7 @@ export function listeningRoutes(deps: AppDependencies) {
         total = paged.totalCount
         source = 'lastfm'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Last.fm top-artists fetch failed:', err)
       }
     }
@@ -246,8 +264,9 @@ export function listeningRoutes(deps: AppDependencies) {
           source: 'plex',
         }))
         total = paged.totalCount
-        if (tracks.length > 0) source = 'plex'
+        source = 'plex'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Plex top-artists fetch failed:', err)
       }
     }
@@ -258,7 +277,14 @@ export function listeningRoutes(deps: AppDependencies) {
       skipTlsVerify: settings.skipTlsVerify ?? false,
     })
 
-    return c.json({ tracks, total, offset, limit, source })
+    return c.json({
+      tracks,
+      total,
+      offset,
+      limit,
+      source,
+      status: historyStatus(tracks.length, hasSource, failed),
+    })
   })
 
   router.get('/api/v1/listening/recent-tracks', async (c) => {
@@ -280,10 +306,11 @@ export function listeningRoutes(deps: AppDependencies) {
       hasPlex(userConns)
 
     if (!settings || !hasSource) {
-      return c.json({ tracks: [], hasSource, source: null })
+      return c.json({ tracks: [], hasSource, source: null, status: 'not_configured' })
     }
 
     let tracks: RecentTrackEntry[] = []
+    let failed = false
     let source: 'lastfm' | 'listenbrainz' | 'jellyfin' | 'emby' | 'plex' | null = null
 
     // Priority: Last.fm (richest metadata) -> LB /listens -> Jellyfin -> Emby.
@@ -313,8 +340,9 @@ export function listeningRoutes(deps: AppDependencies) {
             mbid: t.artist.mbid || undefined,
           }
         })
-        if (tracks.length > 0) source = 'lastfm'
+        source = 'lastfm'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Last.fm recent-tracks fetch failed:', err)
       }
     }
@@ -333,8 +361,9 @@ export function listeningRoutes(deps: AppDependencies) {
           playedAt: new Date(l.listenedAt * 1000).toISOString(),
           mbid: l.artistMbid,
         }))
-        if (tracks.length > 0) source = 'listenbrainz'
+        source = 'listenbrainz'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] ListenBrainz recent-tracks fetch failed:', err)
       }
     }
@@ -357,8 +386,9 @@ export function listeningRoutes(deps: AppDependencies) {
           source: 'jellyfin',
           playedAt: r.datePlayed,
         }))
-        if (tracks.length > 0) source = 'jellyfin'
+        source = 'jellyfin'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Jellyfin recent-tracks fetch failed:', err)
       }
     }
@@ -380,8 +410,9 @@ export function listeningRoutes(deps: AppDependencies) {
           track: r.trackName,
           source: 'emby',
         }))
-        if (tracks.length > 0) source = 'emby'
+        source = 'emby'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Emby recent-tracks fetch failed:', err)
       }
     }
@@ -400,8 +431,9 @@ export function listeningRoutes(deps: AppDependencies) {
           source: 'plex',
           playedAt: new Date(track.viewedAt).toISOString(),
         }))
-        if (tracks.length > 0) source = 'plex'
+        source = 'plex'
       } catch (err: unknown) {
+        failed = true
         console.warn('[listening] Plex recent-tracks fetch failed:', err)
       }
     }
@@ -412,7 +444,12 @@ export function listeningRoutes(deps: AppDependencies) {
       skipTlsVerify: settings.skipTlsVerify ?? false,
     })
 
-    return c.json({ tracks, hasSource, source })
+    return c.json({
+      tracks,
+      hasSource,
+      source,
+      status: historyStatus(tracks.length, hasSource, failed),
+    })
   })
 
   return router

@@ -254,6 +254,9 @@ export const tr = {
   'dashboard.genreCoverage': 'Mevcut tür verisi: {0}/{1}',
   'dashboard.genreCoveragePending': 'Bekleyen tür verisi güncellemeleri: {0}',
   'dashboard.getStarted': 'Başlayın',
+  'dashboard.listeningEmpty': 'Bu dönem için dinleme geçmişi yok. Başka bir dönem deneyin.',
+  'dashboard.listeningFailed':
+    'Dinleme geçmişi yüklenemedi. Bağlantılarınızı kontrol edin veya yeniden deneyin.',
   'dashboard.listeningHistory': 'Dinleme geçmişi',
   'dashboard.recentPlays': 'Son dinlenenler',
   'dashboard.recentPlaysEmpty': 'Son dinleme yok',

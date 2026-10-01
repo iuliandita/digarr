@@ -256,6 +256,10 @@ export const ro = {
   'dashboard.genreCoverage': 'Date despre gen disponibile: {0}/{1}',
   'dashboard.genreCoveragePending': 'Actualizări ale datelor despre gen în așteptare: {0}',
   'dashboard.getStarted': 'Începeți',
+  'dashboard.listeningEmpty':
+    'Nu există istoric de ascultare pentru această perioadă. Încearcă altă perioadă.',
+  'dashboard.listeningFailed':
+    'Istoricul de ascultare nu a putut fi încărcat. Verifică conexiunile sau încearcă din nou.',
   'dashboard.listeningHistory': 'Istoric ascultare',
   'dashboard.recentPlays': 'Redate recent',
   'dashboard.recentPlaysEmpty': 'Nicio redare recentă',
