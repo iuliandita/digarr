@@ -482,5 +482,97 @@
       "Tord Gustavsen",
       "Jan Garbarek"
     ]
+  },
+  {
+    "id": "eclectic-equal-interests",
+    "cohort": "eclectic",
+    "description": "Synthetic profile: equally weighted classical, hip-hop, country, and electronic interests. Review coverage of distinct interests; no dominant genre or forced crossover is assumed.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Björk",
+          "playCount": 40,
+          "source": "synthetic",
+          "genres": ["art pop", "electronic"]
+        },
+        {
+          "name": "Kendrick Lamar",
+          "playCount": 40,
+          "source": "synthetic",
+          "genres": ["hip hop"]
+        },
+        {
+          "name": "Dolly Parton",
+          "playCount": 40,
+          "source": "synthetic",
+          "genres": ["country"]
+        },
+        {
+          "name": "Antonín Dvořák",
+          "playCount": 40,
+          "source": "synthetic",
+          "genres": ["classical"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "electronic",
+          "weight": 1
+        },
+        {
+          "name": "hip hop",
+          "weight": 1
+        },
+        {
+          "name": "country",
+          "weight": 1
+        },
+        {
+          "name": "classical",
+          "weight": 1
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 160,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": []
+  },
+  {
+    "id": "sparse-mixed-evidence",
+    "cohort": "sparse-history",
+    "description": "Synthetic profile: one favorite artist without tags and one listening seed with genre evidence. Favorite weights are not listen counts; missing tags do not establish disinterest.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Nina Simone",
+          "playCount": 1,
+          "source": "jellyfin"
+        },
+        {
+          "name": "Massive Attack",
+          "playCount": 3,
+          "source": "listenbrainz",
+          "genres": ["trip hop"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "trip hop",
+          "weight": 1
+        }
+      ],
+      "genreCoverage": {
+        "coveredArtists": 1,
+        "pendingArtists": 1,
+        "totalArtists": 2
+      },
+      "listeningPatterns": {
+        "totalListens": 3,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": []
   }
 ]

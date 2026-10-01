@@ -10,7 +10,7 @@ bun run eval:quality prepare
 
 This generates cases, a bundled assertion, and a manifest in ignored `evaluation-results/recommendation-quality/`. This directory is separate from Playwright output, which browser runs clear. Each case calls the production `buildRecommendationPrompt()` with a structured profile, so prompt changes reach the evaluation automatically. The manifest records fixture and prompt hashes. The fixture data is synthetic, not recorded listening history.
 
-The cases cover familiar mainstream tastes, niche genres, cold starts without history, non-English artist names, and ambiguous artist names. Keep fixture IDs stable when comparing runs. Record fixture changes as a new baseline; do not compare different cohorts as if the model alone changed.
+The cases cover familiar mainstream tastes, niche genres, cold starts without history, non-English artist names, ambiguous artist names, several equally weighted musical interests, and sparse mixed-source evidence. Keep fixture IDs stable when comparing runs. Record fixture changes as a new baseline; do not compare different cohorts as if the model alone changed.
 
 ## Run a live comparison
 
@@ -60,7 +60,7 @@ The default report is `evaluation-results/recommendation-quality/report.json`. A
 
 - Response shape, individual field bounds, and 15-20 returned artists match the production prompt contract. Fenced JSON and reasoning blocks are accepted; other surrounding prose is rejected even if the production parser could salvage an array from it. Invalid rows are counted, even though the production parser can discard them.
 - Duplicate names and seed artists are checked with Unicode normalization, case folding, and whitespace normalization. Similar names, accents, and recording identities are not treated as equivalent.
-- Expected-neighbor hits use returned `artistName` fields, never explanation text. These are broad plausibility smoke checks, not exhaustive correct answers. Cold-start cases have no expected-neighbor check.
+- Expected-neighbor hits use returned `artistName` fields, never explanation text. These are broad plausibility smoke checks, not exhaustive correct answers. Cold-start, eclectic, and sparse-history cases have no expected-neighbor check. For eclectic profiles, human review must assess each distinct interest; one familiar neighbor does not establish broad fit.
 - Returned, valid, duplicate, seed-leak, and neighbor-hit counts are separate metrics. A high confidence value is a model assertion, not evidence of accuracy.
 
 A passing run establishes these contracts only. A failing neighbor check can still contain useful discoveries and needs inspection. Non-English-name cases do not automatically prove the reasoning is correctly translated. Ambiguous-name cases do not establish catalog identity resolution. Neither a score nor a known neighbor establishes that a listener will enjoy the output.

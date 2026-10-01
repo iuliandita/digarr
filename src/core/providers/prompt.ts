@@ -93,7 +93,9 @@ function buildLanguageInstruction(locale?: SupportedLocale): string {
 // string may depend on the caller's profile or locale.
 export const RECOMMENDATION_SYSTEM_PRELUDE = `You are a music discovery expert.
 
-Based on the listening profile in the user turn, recommend 15-20 artists the listener has NOT heard yet but would likely enjoy.
+Based on the listening profile in the user turn, recommend 15-20 artists absent from the supplied profile that the listener would likely enjoy. The available history is incomplete; do not claim the listener has never heard an artist.
+
+Support the listener's distinct evidenced musical interests without forcing them into a common style, one dominant genre, or equal recommendation quotas. Missing genre tags or listening history are unknown evidence, not evidence of dislike.
 
 ## Instructions
 
@@ -126,10 +128,19 @@ Provide 15-20 diverse recommendations. Prioritize lesser-known artists alongside
  * without prompt caching, callers concatenate prelude + userTurn.
  */
 export function buildRecommendationUserTurn(profile: TasteProfile): string {
-  const topArtistNames = profile.topArtists
+  const topArtistRows = profile.topArtists
     .slice(0, 20)
-    .map((a) => `${a.name} (${a.playCount} plays)`)
-    .join(', ')
+    .map(
+      (a) =>
+        `- ${JSON.stringify({
+          artistName: a.name,
+          source: a.source,
+          seedWeight: a.playCount,
+          genres: a.genres?.length ? a.genres.slice(0, 8) : null,
+          genreSource: a.genreSource ?? null,
+        })}`,
+    )
+    .join('\n')
 
   const topGenres = profile.topGenres
     .slice(0, 10)
@@ -142,7 +153,10 @@ export function buildRecommendationUserTurn(profile: TasteProfile): string {
 
   return `${languageInstruction}## Listening Profile
 
-**Top Artists:** ${topArtistNames || 'none recorded'}
+Seed weights are source-dependent signals, not comparable listening counts across sources. A null genres field means tags are unavailable.
+
+**Top Artists:** (showing ${Math.min(profile.topArtists.length, 20)} of ${profile.topArtists.length}; omitted artists are unknown here)
+${topArtistRows || 'none recorded'}
 
 **Top Genres:** ${topGenres || 'none recorded'}
 

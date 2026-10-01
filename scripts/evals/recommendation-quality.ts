@@ -42,7 +42,15 @@ const profileSchema = z.strictObject({
 
 export const RecommendationQualityFixtureSchema = z.strictObject({
   id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  cohort: z.enum(['established', 'cold-start', 'non-english', 'ambiguous-name', 'niche']),
+  cohort: z.enum([
+    'established',
+    'cold-start',
+    'non-english',
+    'ambiguous-name',
+    'niche',
+    'eclectic',
+    'sparse-history',
+  ]),
   description: z.string().min(1).max(500),
   profile: profileSchema,
   expectedNeighbors: z.array(nameSchema).max(20),

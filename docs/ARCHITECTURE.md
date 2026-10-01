@@ -137,6 +137,8 @@ refreshes cannot extend the 180-day genre TTL. Enrichment from
 
 Discovery queries only listening sources declaring `similarArtists`. Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
 
+Recommendation prompts retain per-artist genre context for at most 20 seeds and eight genre tags per seed. Numeric seed weights remain source-dependent, not comparable play counts; aggregate genre weights do not establish a single dominant taste. Guidance preserves distinct evidenced interests and treats missing tags or history as unknown. Scoring and source history windows are unchanged.
+
 AI discovery retains comparisons to listening-profile artists. Its description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence. This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
 
 Name-only resolution checks at most five MusicBrainz hits against the requested name or returned catalog aliases before comparing genres. Name normalization preserves accents and punctuation. A uniquely best matching identity can resolve; ties and unrelated hits are dropped. Known-MBID candidates retain their explicit identity path. Older stored recommendations are not rewritten.

@@ -81,6 +81,7 @@ The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt ca
 
 ## In development
 
+- Retain artist-level genre context and honest source-weight labels in AI profiles; evaluate several equal interests and sparse history without forcing a dominant genre. [#739](https://github.com/iuliandita/digarr/issues/739).
 - Explain unavailable previews in the existing Discover Audition queue. [#729](https://github.com/iuliandita/digarr/issues/729).
 - Capability-aware discovery reporting, including unsupported sources and successful empty lookups. [#722](https://github.com/iuliandita/digarr/issues/722).
 - Preserve legitimate AI comparisons to listening-profile artists while retaining a limited shared-name confusion check. [#719](https://github.com/iuliandita/digarr/issues/719).

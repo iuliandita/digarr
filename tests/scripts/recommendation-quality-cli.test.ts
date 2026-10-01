@@ -77,8 +77,8 @@ describe('recommendation quality replay CLI', () => {
     const data = JSON.parse(await readFile(report, 'utf8'))
     expect(data).toMatchObject({
       complete: true,
-      passedCases: 14,
-      evaluatedCases: 14,
+      passedCases: recommendationQualityFixtures.length,
+      evaluatedCases: recommendationQualityFixtures.length,
       provenance: 'unverified',
       missingCases: [],
     })
@@ -98,7 +98,7 @@ describe('recommendation quality replay CLI', () => {
     expect(result.status).toBe(1)
     const data = JSON.parse(await readFile(report, 'utf8'))
     expect(data).toMatchObject({ complete: false, evaluatedCases: 1, passedCases: 1 })
-    expect(data.missingCases).toHaveLength(13)
+    expect(data.missingCases).toHaveLength(recommendationQualityFixtures.length - 1)
     expect(data.missingCases).toContain('cold-start')
   })
 

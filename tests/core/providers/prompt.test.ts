@@ -4,6 +4,7 @@ import {
   AiRecommendationItemSchema,
   buildMoodPrompt,
   buildRecommendationPrompt,
+  buildRecommendationUserTurn,
   getAiRecommendationsJsonSchema,
   parseRecommendationResponse,
   stripReasoningBlocks,
@@ -19,6 +20,72 @@ const sampleProfile: TasteProfile = {
 }
 
 describe('buildRecommendationPrompt()', () => {
+  it('retains bounded eclectic seed evidence without treating source weights as plays', () => {
+    const profile: TasteProfile = {
+      topArtists: [
+        {
+          name: 'Burial',
+          source: 'spotify',
+          playCount: 100,
+          genres: [
+            'dubstep',
+            'garage',
+            'ambient',
+            'electronic',
+            'experimental',
+            'bass',
+            'downtempo',
+            'future garage',
+            'excluded-tag',
+          ],
+        },
+        {
+          name: 'John Coltrane',
+          source: 'listenbrainz',
+          playCount: 100,
+          genres: ['jazz'],
+          genreSource: 'native',
+        },
+        { name: 'Ravi Shankar', source: 'favorites', playCount: 100 },
+        { name: 'Black Sabbath', source: 'lastfm', playCount: 100, genres: ['heavy metal'] },
+        ...Array.from({ length: 18 }, (_, index) => ({
+          name: `Other interest ${index}`,
+          source: 'spotify',
+          playCount: 100,
+          genres: [],
+        })),
+      ],
+      topGenres: Array.from({ length: 12 }, (_, index) => ({
+        name: `Interest ${index}`,
+        weight: 1,
+      })),
+      listeningPatterns: { totalListens: 0, recentTrend: 'stable' },
+      responseLocale: 'fr',
+    }
+    const turn = buildRecommendationUserTurn(profile)
+    const rows =
+      turn.split('omitted artists are unknown here)\n')[1]?.split('\n\n')[0]?.split('\n') ?? []
+    const artists = rows.map((row) => JSON.parse(row.slice(2)))
+    expect(artists).toHaveLength(20)
+    expect(turn).toContain('showing 20 of 22')
+    expect(artists[0]).toMatchObject({ artistName: 'Burial', source: 'spotify', seedWeight: 100 })
+    expect(artists[0].genres).toHaveLength(8)
+    expect(artists[1]).toMatchObject({
+      artistName: 'John Coltrane',
+      source: 'listenbrainz',
+      seedWeight: 100,
+      genres: ['jazz'],
+      genreSource: 'native',
+    })
+    expect(artists[2]).toMatchObject({ artistName: 'Ravi Shankar', genres: null })
+    expect(artists[3].genres).toEqual(['heavy metal'])
+    expect(turn).not.toContain('excluded-tag')
+    expect(turn).not.toContain('Other interest 16')
+    expect(turn).not.toContain('Interest 10')
+    expect(turn).not.toContain('100 plays')
+    expect(turn).toContain('All reasoning fields must be written in Français.')
+  })
+
   it('anchors reasoning to the exact artist name while allowing comparisons', () => {
     const prompt = buildRecommendationPrompt(sampleProfile)
     expect(prompt).toContain('Include the exact artistName in the first sentence')
