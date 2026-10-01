@@ -16,6 +16,8 @@ const profileSchema = z.strictObject({
         name: nameSchema,
         mbid: z.string().optional(),
         playCount: z.number().int().nonnegative(),
+        tasteWeight: z.number().min(0).max(1).optional(),
+        preferenceBasis: z.enum(['rank', 'membership', 'source-weight']).optional(),
         source: z.string().min(1),
         genres: z.array(nameSchema).optional(),
         genreSource: z.enum(['native', 'library', 'artist-cache']).optional(),

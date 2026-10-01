@@ -16,6 +16,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Discovery profiles normalize artist evidence within each source instead of comparing incompatible numeric scales. Spotify uses personal top-artist order and Subsonic treats starred artists as equal membership; raw values remain separate, and overlapping sources do not multiply an artist's contribution. Scoring formulas, stored recommendation scores, and history windows are unchanged. [#741](https://github.com/iuliandita/digarr/issues/741).
 - AI profiles retain each seed artist's genre context and describe source-dependent seed weights without calling popularity or favorites play counts. Guidance supports distinct musical interests and treats missing history or tags as unknown. The advisory baseline adds eclectic and sparse-history cases. [#739](https://github.com/iuliandita/digarr/issues/739).
 - Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).
 - Listening profiles split semicolon-separated genre lists and ignore numeric artifacts before genre weighting. Valid genres are deduplicated, and coverage counts only usable genres. Stored library and cache metadata are unchanged. [#736](https://github.com/iuliandita/digarr/issues/736).

@@ -13,19 +13,24 @@ export function createSpotifySource(accessToken: string): DiscoverySource {
       const windows: SpotifyTimeRange[] = ['short_term', 'medium_term', 'long_term']
       const settled = await Promise.allSettled(windows.map((w) => client.getTopArtists(w, limit)))
 
-      const merged = new Map<string, { name: string; playCount: number; genres: Set<string> }>()
+      const merged = new Map<
+        string,
+        { name: string; playCount: number; bestRank: number; genres: Set<string> }
+      >()
       for (const outcome of settled) {
         if (outcome.status !== 'fulfilled') continue
-        for (const a of outcome.value) {
+        for (const [index, a] of outcome.value.entries()) {
           const key = a.name.trim().toLowerCase()
           const existing = merged.get(key)
           if (existing) {
             existing.playCount = Math.max(existing.playCount, a.popularity)
+            existing.bestRank = Math.min(existing.bestRank, index + 1)
             for (const g of a.genres ?? []) existing.genres.add(g)
           } else {
             merged.set(key, {
               name: a.name,
               playCount: a.popularity,
+              bestRank: index + 1,
               genres: new Set(a.genres ?? []),
             })
           }
@@ -35,6 +40,8 @@ export function createSpotifySource(accessToken: string): DiscoverySource {
       return [...merged.values()].map((m) => ({
         name: m.name,
         playCount: m.playCount,
+        preferenceScore: 1 / m.bestRank,
+        preferenceBasis: 'rank' as const,
         source: 'spotify' as const,
         genres: [...m.genres],
       }))

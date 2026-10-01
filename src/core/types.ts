@@ -13,6 +13,8 @@ export type TasteProfile = {
     name: string
     mbid?: string
     playCount: number
+    tasteWeight?: number
+    preferenceBasis?: 'rank' | 'membership' | 'source-weight'
     source: string
     genres?: string[]
     genreSource?: GenreSource

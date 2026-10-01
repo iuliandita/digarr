@@ -4,6 +4,8 @@ export type TopArtistEntry = {
   name: string
   mbid?: string
   playCount: number
+  preferenceScore?: number
+  preferenceBasis?: 'rank' | 'membership' | 'source-weight'
   source: string
   genres?: string[]
   genreSource?: GenreSource

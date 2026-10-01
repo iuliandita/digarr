@@ -20,6 +20,8 @@ export function createSubsonicSource(
       return sliced.map((a, i) => ({
         name: a.name,
         playCount: sliced.length - i,
+        preferenceScore: 1,
+        preferenceBasis: 'membership',
         source: 'subsonic',
       }))
     },

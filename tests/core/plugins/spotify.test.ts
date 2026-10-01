@@ -85,11 +85,41 @@ describe('createSpotifySource()', () => {
     expect(rh).toEqual({
       name: 'Radiohead',
       playCount: 90, // max(90 short, 82 medium)
+      preferenceScore: 1,
+      preferenceBasis: 'rank',
       source: 'spotify',
       genres: expect.arrayContaining(['art rock', 'alternative']),
     })
     expect(rh?.genres).toHaveLength(2) // unioned, no dupes
     expect(bj?.playCount).toBe(71)
+  })
+
+  it('getTopArtists() uses the best window rank independently of global popularity', async () => {
+    const client = mockClient()
+    const lowPopularity = { name: 'Radiohead', id: 'sp-rh', genres: [], popularity: 10 }
+    const highPopularity = { name: 'Bjork', id: 'sp-bj', genres: [], popularity: 95 }
+    const middle = { name: 'Portishead', id: 'sp-ph', genres: [], popularity: 50 }
+    client.getTopArtists.mockImplementation((range?: string) =>
+      Promise.resolve(
+        range === 'medium_term'
+          ? [middle, highPopularity, lowPopularity]
+          : [lowPopularity, lowPopularity, middle, highPopularity],
+      ),
+    )
+
+    const artists = await createSpotifySource('access-token').getTopArtists(50)
+
+    expect(artists.find((a) => a.name === 'Radiohead')).toMatchObject({
+      playCount: 10,
+      preferenceScore: 1,
+      preferenceBasis: 'rank',
+    })
+    expect(artists.find((a) => a.name === 'Bjork')).toMatchObject({
+      playCount: 95,
+      preferenceScore: 1 / 2,
+      preferenceBasis: 'rank',
+    })
+    expect(artists.find((a) => a.name === 'Portishead')?.preferenceScore).toBe(1)
   })
 
   it('getTopArtists() degrades gracefully when one window fails, keeping successful windows', async () => {

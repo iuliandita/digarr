@@ -53,6 +53,126 @@ function makeLfm(artists = lfmArtists): DiscoverySource {
 }
 
 describe('analyze()', () => {
+  const sourceFor = (id: string, artists: TopArtistEntry[]): DiscoverySource => ({
+    ...makeLb([], []),
+    id,
+    getTopArtists: vi.fn().mockResolvedValue(artists),
+  })
+
+  it('keeps source-relative evidence invariant across four listening cohorts', async () => {
+    const cohorts = [
+      [90, 10, 1],
+      [1, 1, 1],
+      [1, 0, 0],
+      [10, 80, 10],
+    ]
+    for (const scores of cohorts) {
+      const rows = scores.map((playCount, index) => ({
+        name: `Interest ${index}`,
+        playCount,
+        source: 'history',
+        genres: index === 2 ? undefined : [index === 0 ? 'rock' : 'jazz'],
+      }))
+      const collection = [
+        {
+          name: 'Collection',
+          playCount: 9999,
+          source: 'collection',
+          preferenceScore: 1,
+          preferenceBasis: 'membership' as const,
+        },
+      ]
+      const baseline = await analyze([
+        sourceFor('history', rows),
+        sourceFor('collection', collection),
+      ])
+      const scaled = rows.map((artist) => ({ ...artist, playCount: artist.playCount * 1e300 }))
+      const alternate = await analyze([
+        sourceFor(
+          'collection',
+          [...collection, ...collection].map((artist) => ({ ...artist, preferenceScore: 1e-200 })),
+        ),
+        sourceFor('history', [...scaled, ...scaled].reverse()),
+        sourceFor('history', scaled),
+      ])
+      const evidenceRows = (profile: typeof baseline) =>
+        profile.topArtists.map(({ playCount: _raw, tasteWeight: _weight, ...artist }) => artist)
+      expect(evidenceRows(alternate)).toEqual(evidenceRows(baseline))
+      expect(alternate.topGenres.map((genre) => genre.name)).toEqual(
+        baseline.topGenres.map((genre) => genre.name),
+      )
+      alternate.topArtists.forEach((artist, index) => {
+        expect(artist.tasteWeight).toBeCloseTo(baseline.topArtists[index]?.tasteWeight ?? 0, 14)
+      })
+      alternate.topGenres.forEach((genre, index) => {
+        expect(genre.weight).toBeCloseTo(baseline.topGenres[index]?.weight ?? 0, 14)
+      })
+      expect(baseline.topArtists.find((artist) => artist.name === 'Interest 2')?.genres).toEqual([])
+      for (const artist of alternate.topArtists) {
+        expect(Number.isFinite(artist.tasteWeight)).toBe(true)
+        expect(artist.tasteWeight).toBeGreaterThanOrEqual(0)
+        expect(artist.tasteWeight).toBeLessThanOrEqual(1)
+        expect(artist.playCount).toBe(
+          artist.source === 'collection'
+            ? 9999
+            : scaled.find((row) => row.name === artist.name)?.playCount,
+        )
+      }
+      const updated = await analyze([
+        sourceFor('history', [{ name: 'New interest', playCount: 1, source: 'history' }]),
+      ])
+      expect(updated.topArtists.map((artist) => artist.name)).toEqual(['New interest'])
+      expect(updated.topArtists).not.toEqual(baseline.topArtists)
+    }
+  })
+
+  it('preserves globally ambiguous names before per-source normalization', async () => {
+    const first = {
+      name: 'Shared',
+      mbid: '00000000-0000-0000-0000-000000000041',
+      playCount: 10,
+      source: 'first',
+    }
+    const second = { ...first, mbid: '00000000-0000-0000-0000-000000000042', source: 'second' }
+    const unknown = { name: 'shared', playCount: 5, source: 'first' }
+    const profile = await analyze([
+      sourceFor('first', [first, unknown]),
+      sourceFor('second', [second]),
+    ])
+    expect(profile.topArtists).toHaveLength(3)
+    expect(new Set(profile.topArtists.map((artist) => artist.mbid))).toEqual(
+      new Set([first.mbid, second.mbid, undefined]),
+    )
+    const duplicated = await analyze([
+      sourceFor('second', [second]),
+      sourceFor('first', [unknown, first, unknown]),
+      sourceFor('first', [first, unknown]),
+    ])
+    expect(duplicated.topArtists).toEqual(profile.topArtists)
+    expect(duplicated.topArtists.find((artist) => artist.name === 'shared')?.mbid).toBeUndefined()
+  })
+
+  it('keeps zero and invalid evidence at zero without falling back to raw counts', async () => {
+    const rows = [0, -1, Number.NaN, Number.POSITIVE_INFINITY].map((preferenceScore, index) => ({
+      name: `Invalid ${index}`,
+      playCount: 100,
+      source: 'collection',
+      preferenceScore,
+      genres: ['rock'],
+    }))
+    const profile = await analyze([sourceFor('collection', rows)])
+    expect(profile.topArtists.map((artist) => artist.tasteWeight)).toEqual([0, 0, 0, 0])
+    expect(profile.topArtists.map((artist) => artist.playCount)).toEqual([100, 100, 100, 100])
+    expect(profile.topGenres).toEqual([])
+    const fallback = await analyze([
+      sourceFor('history', [
+        { name: 'Huge', playCount: Number.MAX_VALUE, source: 'history' },
+        { name: 'Also huge', playCount: Number.MAX_VALUE, source: 'history' },
+      ]),
+    ])
+    expect(fallback.topArtists.map((artist) => artist.tasteWeight)).toEqual([0.5, 0.5])
+  })
+
   it('merges ListenBrainz and Last.fm top artists', async () => {
     const lb = makeLb()
     const lfm = makeLfm()
@@ -66,12 +186,12 @@ describe('analyze()', () => {
     expect(names).toContain('Massive Attack')
   })
 
-  it('deduplicates artists by name (case-insensitive), keeping highest play count', async () => {
+  it('deduplicates names and retains raw count from the stronger relative evidence', async () => {
     const lb = makeLb()
     const lfm = makeLfm()
     const profile = await analyze([lb, lfm])
 
-    // Radiohead appears in both - LFM has higher play count (600 vs 500)
+    // Last.fm gives Radiohead 0.6 relative evidence; ListenBrainz gives it 0.5.
     const radiohead = profile.topArtists.find((a) => a.name.toLowerCase() === 'radiohead')
     expect(radiohead).toBeDefined()
     expect(radiohead?.playCount).toBe(600)
@@ -176,6 +296,7 @@ describe('analyze()', () => {
     const profile = await analyze([lb])
 
     expect(profile.topArtists.length).toBe(3)
+    expect(profile.topArtists.map((artist) => artist.playCount)).toEqual([500, 300, 200])
     const names = profile.topArtists.map((a) => a.name)
     expect(names).toContain('Radiohead')
     expect(names).toContain('Portishead')
@@ -221,12 +342,12 @@ describe('analyze()', () => {
     expect(profile.listeningPatterns.totalListens).toBe(300)
   })
 
-  it('sorts topArtists descending by playCount', async () => {
+  it('sorts topArtists by relative evidence while retaining raw counts', async () => {
     const lb = makeLb()
     const profile = await analyze([lb])
     for (let i = 1; i < profile.topArtists.length; i++) {
-      expect(profile.topArtists[i - 1]?.playCount ?? 0).toBeGreaterThanOrEqual(
-        profile.topArtists[i]?.playCount ?? 0,
+      expect(profile.topArtists[i - 1]?.tasteWeight ?? 0).toBeGreaterThanOrEqual(
+        profile.topArtists[i]?.tasteWeight ?? 0,
       )
     }
   })
@@ -274,6 +395,7 @@ describe('analyze() genre aggregation', () => {
     expect(profile.topArtists[0]).toMatchObject({
       genres: ['Post-Rock'],
       genreSource: 'artist-cache',
+      tasteWeight: 1,
     })
     expect(profile.genreCoverage).toEqual({
       coveredArtists: 1,
@@ -321,10 +443,10 @@ describe('analyze() genre aggregation', () => {
     const profile = await analyze([source])
 
     expect(profile.topGenres).toEqual([
-      { name: 'rock', weight: 1 },
-      { name: 'r&b', weight: 1 },
       { name: '2 tone', weight: 1 },
       { name: 'café', weight: 1 },
+      { name: 'r&b', weight: 1 },
+      { name: 'rock', weight: 1 },
       { name: 'jazz', weight: 0.5 },
     ])
     expect(profile.topArtists[0]?.genres).toEqual(['Rock', 'R&B', '2 Tone', 'Café'])

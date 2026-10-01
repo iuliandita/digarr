@@ -32,7 +32,7 @@
 
 Digarr manages recommendations and calls your connected services. It does not include a music downloader or a full music player. AI suggestions and MusicBrainz matches can be wrong; review the artist and release before approving. AI explanations may compare a recommendation with artists in your listening profile. The name-confusion check is a limited heuristic and cannot verify those claims.
 
-AI profiles retain genre context for individual seed artists and label source-dependent weights separately from listening totals. Guidance supports several distinct interests without requiring a dominant genre; incomplete history cannot establish that an artist is unheard. Recommendation fit still needs listening review.
+AI profiles retain genre context for individual seed artists and separate raw source values from relative taste weights. Spotify uses personal top-artist order, and starred Subsonic artists contribute equal membership evidence. Each source's weights are normalized separately; overlapping artists keep their strongest contribution. Guidance supports several distinct interests without requiring a dominant genre; incomplete history cannot establish that an artist is unheard. These weights are estimates, and recommendation fit still needs listening review.
 
 Name-only discovery accepts a MusicBrainz canonical name or catalog alias after Unicode, case, and whitespace normalization. Genre overlap distinguishes matching names; unrelated names and tied matches remain unresolved. This does not validate AI prose or repair older recommendations.
 

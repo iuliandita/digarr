@@ -2,10 +2,12 @@ import type { DiscoverySource, ListeningActivityEntry, TopArtistEntry } from '@/
 import type { GenreCoverage, GenreSource, TasteProfile } from '@/core/types'
 import { isValidMbid } from '@/core/validation'
 
+type AnalyzeArtist = TopArtistEntry & { tasteWeight?: number }
+
 export type AnalyzeOptions = {
   genreHydrator?: (
-    artists: TopArtistEntry[],
-  ) => Promise<{ artists: TopArtistEntry[]; coverage: GenreCoverage }>
+    artists: AnalyzeArtist[],
+  ) => Promise<{ artists: AnalyzeArtist[]; coverage: GenreCoverage }>
 }
 
 function preferredGenreSource(
@@ -30,13 +32,31 @@ function mergeGenres(...genreLists: Array<string[] | undefined>): string[] {
   return [...genres.values()]
 }
 
-function cleanArtistGenres(artist: TopArtistEntry): TopArtistEntry {
+function cleanArtistGenres<T extends TopArtistEntry>(artist: T): T {
   const genres = mergeGenres(artist.genres)
   return { ...artist, genres, genreSource: genres.length > 0 ? artist.genreSource : undefined }
 }
 
-function mergeArtistEntries(first: TopArtistEntry, second: TopArtistEntry): TopArtistEntry {
-  const primary = second.playCount > first.playCount ? second : first
+function compareText(first: string, second: string): number {
+  return first < second ? -1 : first > second ? 1 : 0
+}
+
+function evidence(artist: TopArtistEntry): number {
+  const value = artist.preferenceScore ?? artist.playCount
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
+function compareArtists(first: AnalyzeArtist, second: AnalyzeArtist): number {
+  return (
+    (second.tasteWeight ?? evidence(second)) - (first.tasteWeight ?? evidence(first)) ||
+    compareText(first.source, second.source) ||
+    compareText(first.name, second.name) ||
+    compareText(first.mbid ?? '', second.mbid ?? '')
+  )
+}
+
+function mergeArtistEntries(first: AnalyzeArtist, second: AnalyzeArtist): AnalyzeArtist {
+  const primary = compareArtists(first, second) > 0 ? second : first
   const secondary = primary === second ? first : second
   const genres = mergeGenres(primary.genres, secondary.genres)
   return {
@@ -49,6 +69,44 @@ function mergeArtistEntries(first: TopArtistEntry, second: TopArtistEntry): TopA
     ...(genres.length > 0 ? { genres } : {}),
     genreSource: preferredGenreSource(primary.genreSource, secondary.genreSource),
   }
+}
+
+function dedupeArtists(artists: AnalyzeArtist[], ambiguousNames: Set<string>): AnalyzeArtist[] {
+  const byMbid = new Map<string, AnalyzeArtist>()
+  const withoutMbid: AnalyzeArtist[] = []
+  for (const artist of artists) {
+    const mbid = isValidMbid(artist.mbid) ? artist.mbid.toLowerCase() : undefined
+    if (!mbid) withoutMbid.push({ ...artist, mbid: undefined })
+    else byMbid.set(mbid, mergeArtistEntries(byMbid.get(mbid) ?? artist, artist))
+  }
+
+  const byName = new Map<string, AnalyzeArtist[]>()
+  for (const artist of [...byMbid.values(), ...withoutMbid]) {
+    const key = artist.name.trim().toLowerCase()
+    const matches = byName.get(key) ?? []
+    matches.push(artist)
+    byName.set(key, matches)
+  }
+
+  return [...byName.entries()]
+    .flatMap(([name, matches]) => {
+      const mbids = new Set(
+        matches
+          .map((artist) => (isValidMbid(artist.mbid) ? artist.mbid.toLowerCase() : undefined))
+          .filter(Boolean),
+      )
+      if (mbids.size <= 1 && !ambiguousNames.has(name)) {
+        return [matches.reduce((merged, artist) => mergeArtistEntries(merged, artist))]
+      }
+      const unknown = matches.filter((artist) => !isValidMbid(artist.mbid))
+      return [
+        ...matches.filter((artist) => isValidMbid(artist.mbid)),
+        ...(unknown.length > 0
+          ? [unknown.reduce((merged, artist) => mergeArtistEntries(merged, artist))]
+          : []),
+      ]
+    })
+    .sort(compareArtists)
 }
 
 export async function analyze(
@@ -64,7 +122,21 @@ export async function analyze(
     })),
   )
 
-  const allArtists: TopArtistEntry[] = []
+  const knownIdentities = new Map<string, Set<string>>()
+  for (const result of results) {
+    if (result.status !== 'fulfilled') continue
+    for (const artist of result.value.artists) {
+      if (!isValidMbid(artist.mbid)) continue
+      const name = artist.name.trim().toLowerCase()
+      const mbids = knownIdentities.get(name) ?? new Set<string>()
+      mbids.add(artist.mbid.toLowerCase())
+      knownIdentities.set(name, mbids)
+    }
+  }
+  const ambiguousNames = new Set(
+    [...knownIdentities].filter(([, mbids]) => mbids.size > 1).map(([name]) => name),
+  )
+  const allArtists: AnalyzeArtist[] = []
   let activityData: ListeningActivityEntry[] = []
 
   for (let i = 0; i < results.length; i++) {
@@ -76,41 +148,23 @@ export async function analyze(
       console.warn(`[analyze] source ${sourceId} failed: ${msg}`)
       continue
     }
-    for (const a of r.value.artists) allArtists.push(cleanArtistGenres(a))
+    const artists = dedupeArtists(r.value.artists.map(cleanArtistGenres), ambiguousNames)
+    const max = artists.reduce((highest, artist) => Math.max(highest, evidence(artist)), 0)
+    const scaledTotal =
+      max > 0 ? artists.reduce((sum, artist) => sum + evidence(artist) / max, 0) : 0
+    for (const artist of artists) {
+      allArtists.push({
+        ...artist,
+        tasteWeight: scaledTotal > 0 ? evidence(artist) / max / scaledTotal : 0,
+      })
+    }
     // Deterministic: first fulfilled source with activity wins.
     if (activityData.length === 0 && r.value.activity.length > 0) {
       activityData = r.value.activity
     }
   }
 
-  const byMbid = new Map<string, TopArtistEntry>()
-  const withoutMbid: TopArtistEntry[] = []
-  for (const artist of allArtists) {
-    const mbid = isValidMbid(artist.mbid) ? artist.mbid.toLowerCase() : undefined
-    if (!mbid) withoutMbid.push({ ...artist, mbid: undefined })
-    else byMbid.set(mbid, mergeArtistEntries(byMbid.get(mbid) ?? artist, artist))
-  }
-
-  const byName = new Map<string, TopArtistEntry[]>()
-  for (const artist of [...byMbid.values(), ...withoutMbid]) {
-    const key = artist.name.trim().toLowerCase()
-    const matches = byName.get(key) ?? []
-    matches.push(artist)
-    byName.set(key, matches)
-  }
-
-  const dedupedArtists = [...byName.values()]
-    .flatMap((matches) => {
-      const mbids = new Set(
-        matches
-          .map((artist) => (isValidMbid(artist.mbid) ? artist.mbid.toLowerCase() : undefined))
-          .filter(Boolean),
-      )
-      return mbids.size <= 1
-        ? [matches.reduce((merged, artist) => mergeArtistEntries(merged, artist))]
-        : matches
-    })
-    .sort((a, b) => b.playCount - a.playCount)
+  const dedupedArtists = dedupeArtists(allArtists, ambiguousNames)
   const genreResult = options.genreHydrator
     ? await options.genreHydrator(dedupedArtists)
     : {
@@ -130,7 +184,7 @@ export async function analyze(
   }
 
   // Aggregate genres from listening sources that carry them (e.g. Spotify).
-  // Weight each genre by the sum of playCount of artists that carry it, then
+  // Weight each genre by the sum of relative artist evidence, then
   // normalize so the highest-weight genre is 1.0. Artists with no genres are
   // skipped. Genres are lowercased to match score()'s libraryGenreSet.
   const genreWeights = new Map<string, number>()
@@ -139,7 +193,7 @@ export async function analyze(
     for (const key of new Set(
       artist.genres.map((genre) => genre.trim().toLowerCase()).filter(Boolean),
     )) {
-      genreWeights.set(key, (genreWeights.get(key) ?? 0) + artist.playCount)
+      genreWeights.set(key, (genreWeights.get(key) ?? 0) + (artist.tasteWeight ?? 0))
     }
   }
   const maxWeight = genreWeights.size > 0 ? Math.max(...genreWeights.values()) : 0
@@ -147,7 +201,7 @@ export async function analyze(
     maxWeight > 0
       ? [...genreWeights.entries()]
           .map(([name, weight]) => ({ name, weight: weight / maxWeight }))
-          .sort((a, b) => b.weight - a.weight)
+          .sort((a, b) => b.weight - a.weight || compareText(a.name, b.name))
       : []
 
   // Determine recentTrend from listening activity
@@ -160,6 +214,8 @@ export async function analyze(
       name: a.name,
       mbid: a.mbid,
       playCount: a.playCount,
+      tasteWeight: a.tasteWeight ?? 0,
+      preferenceBasis: a.preferenceBasis ?? 'source-weight',
       source: a.source,
       genres: a.genres,
       genreSource: a.genreSource,

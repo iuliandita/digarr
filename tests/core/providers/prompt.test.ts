@@ -25,6 +25,8 @@ describe('buildRecommendationPrompt()', () => {
       topArtists: [
         {
           name: 'Burial',
+          tasteWeight: 0.25,
+          preferenceBasis: 'rank',
           source: 'spotify',
           playCount: 100,
           genres: [
@@ -68,7 +70,17 @@ describe('buildRecommendationPrompt()', () => {
     const artists = rows.map((row) => JSON.parse(row.slice(2)))
     expect(artists).toHaveLength(20)
     expect(turn).toContain('showing 20 of 22')
-    expect(artists[0]).toMatchObject({ artistName: 'Burial', source: 'spotify', seedWeight: 100 })
+    expect(artists[0]).toMatchObject({
+      artistName: 'Burial',
+      source: 'spotify',
+      seedWeight: 100,
+      tasteWeight: 0.25,
+      preferenceBasis: 'rank',
+    })
+    expect(artists[2]).not.toHaveProperty('tasteWeight')
+    expect(artists[2]).not.toHaveProperty('preferenceBasis')
+    expect(turn).toContain('relative estimates, not listening counts or probabilities')
+    expect(turn).toContain('without recommendation quotas')
     expect(artists[0].genres).toHaveLength(8)
     expect(artists[1]).toMatchObject({
       artistName: 'John Coltrane',

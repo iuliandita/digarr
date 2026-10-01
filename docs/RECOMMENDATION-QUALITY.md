@@ -65,6 +65,12 @@ The default report is `evaluation-results/recommendation-quality/report.json`. A
 
 A passing run establishes these contracts only. A failing neighbor check can still contain useful discoveries and needs inspection. Non-English-name cases do not automatically prove the reasoning is correctly translated. Ambiguous-name cases do not establish catalog identity resolution. Neither a score nor a known neighbor establishes that a listener will enjoy the output.
 
+## Listening-input checks
+
+The synthetic prompt fixtures start with prepared profiles and bypass source analysis. Separately run `bun run test tests/core/pipeline/analyze.test.ts tests/core/plugins/spotify.test.ts tests/core/plugins/subsonic.test.ts` to check source-relative evidence. Equivalent within-source ordering should survive unit rescaling, repeated source rows, and repeated source results. Distinct known artist identities must remain distinct, and missing genres must not become negative feedback. A changed listening snapshot should change the profile without summing earlier windows.
+
+Profiles may include a bounded `tasteWeight` and a `preferenceBasis` of `rank`, `membership`, or `source-weight`. Keep raw source values separate. Source normalization preserves relative evidence, not measured affinity: a short source list can assign one artist a strong weight, and seed limits can omit interests. These checks do not establish recommendation fit, playback, or delivery.
+
 ## Human and end-to-end review
 
 The report leaves recommendation fit unjudged and preview/delivery unmeasured. For each case, separately record whether the artist exists and is correctly described, whether the output fits the stated taste, whether it adds useful unfamiliar music, and whether a preview or exported track is usable. Keep identity mistakes separate from taste disagreements.

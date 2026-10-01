@@ -136,6 +136,8 @@ export function buildRecommendationUserTurn(profile: TasteProfile): string {
           artistName: a.name,
           source: a.source,
           seedWeight: a.playCount,
+          ...(a.tasteWeight !== undefined ? { tasteWeight: a.tasteWeight } : {}),
+          ...(a.preferenceBasis !== undefined ? { preferenceBasis: a.preferenceBasis } : {}),
           genres: a.genres?.length ? a.genres.slice(0, 8) : null,
           genreSource: a.genreSource ?? null,
         })}`,
@@ -153,7 +155,7 @@ export function buildRecommendationUserTurn(profile: TasteProfile): string {
 
   return `${languageInstruction}## Listening Profile
 
-Seed weights are source-dependent signals, not comparable listening counts across sources. A null genres field means tags are unavailable.
+Seed weights are source-dependent signals, not comparable listening counts across sources. Use tasteWeight when present; do not compare raw seedWeight across sources. Normalized taste weights are per-source evidence: relative estimates, not listening counts or probabilities. Support multiple evidenced interests without recommendation quotas. A null genres field means tags are unavailable.
 
 **Top Artists:** (showing ${Math.min(profile.topArtists.length, 20)} of ${profile.topArtists.length}; omitted artists are unknown here)
 ${topArtistRows || 'none recorded'}
