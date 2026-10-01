@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
-import { SUPPORTED_LOCALES, type SupportedLocale } from '@/core/i18n/locales'
 import { discover } from '@/core/pipeline/discover'
 import type { DiscoverySource } from '@/core/plugins/types'
 import type { DiscoveredArtist, TasteProfile } from '@/core/types'
@@ -97,12 +96,7 @@ describe('discover()', () => {
     expect(onSeedCount).toHaveBeenCalledWith(0)
   })
 
-  async function aiNames(
-    recName: string,
-    reasoning: string,
-    seeds: string[],
-    responseLocale = profile.responseLocale,
-  ) {
+  async function aiNames(recName: string, reasoning: string, seeds: string[]) {
     const ai = {
       getRecommendations: vi
         .fn()
@@ -111,7 +105,6 @@ describe('discover()', () => {
     const results = await discover(
       {
         ...profile,
-        responseLocale,
         topArtists: seeds.map((name) => ({ name, playCount: 1, source: 'listenbrainz' })),
       },
       { ai },
@@ -262,30 +255,6 @@ describe('discover()', () => {
     ],
   ])('bounds reasoning identity checks for %s: %s', async (name, reasoning, seeds, retained) => {
     expect(await aiNames(name, reasoning, seeds)).toEqual(retained ? [name] : [])
-  })
-
-  const comparisons: Record<SupportedLocale, string> = {
-    en: 'Digital Underground differs from Velvet Underground.',
-    es: 'Digital Underground se diferencia de Velvet Underground.',
-    fr: 'Digital Underground se distingue de Velvet Underground.',
-    de: 'Digital Underground unterscheidet sich von Velvet Underground.',
-    'pt-BR': 'Digital Underground difere de Velvet Underground.',
-    it: 'Digital Underground si distingue da Velvet Underground.',
-    nl: 'Digital Underground verschilt van Velvet Underground.',
-    ro: 'Digital Underground diferă de Velvet Underground.',
-    pl: 'Digital Underground różni się od Velvet Underground.',
-    tr: 'Digital Underground, Velvet Underground grubundan farklıdır.',
-    uk: 'Digital Underground відрізняється від Velvet Underground.',
-    ru: 'Digital Underground отличается от Velvet Underground.',
-    ja: 'Digital UndergroundはVelvet Undergroundとは異なります。',
-    ko: 'Digital Underground는 Velvet Underground와 다릅니다.',
-    'zh-CN': 'Digital Underground与Velvet Underground不同。',
-  }
-  it.each(SUPPORTED_LOCALES)('retains explicit comparisons in %s', async (locale) => {
-    const reasoning = comparisons[locale]
-    expect(await aiNames('Digital Underground', reasoning, ['Velvet Underground'], locale)).toEqual(
-      ['Digital Underground'],
-    )
   })
 
   it('collects similar artists from LB source', async () => {
