@@ -531,6 +531,10 @@ export function recommendationRoutes(deps: AppDependencies) {
   router.get('/api/v1/recommendations', zQuery(listRecommendationsQuerySchema), async (c) => {
     const userId = c.get('userId')
     const query = c.req.valid('query')
+    const prefs =
+      query.sort === 'taste' || query.tasteTier
+        ? mergePreferences(userId ? (await deps.getUserById(userId))?.preferences : undefined)
+        : null
     const filters = {
       status: query.status,
       batchId: query.batchId,
@@ -541,6 +545,9 @@ export function recommendationRoutes(deps: AppDependencies) {
           ? (query.kind as 'artist' | 'album')
           : undefined,
       sort: query.sort,
+      tasteTier: query.tasteTier,
+      primaryGenres: prefs?.primaryGenres,
+      secondaryGenres: prefs?.secondaryGenres,
       limit: query.limit,
       offset: query.offset,
     }

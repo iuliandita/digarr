@@ -1624,4 +1624,14 @@ export const ko = {
   'settings.channels.saved': '알림이 저장되었습니다',
   'settings.channels.saveFailed': '알림을 저장하지 못했습니다',
   'settings.channels.secretKeepPlaceholder': '저장된 값을 유지하려면 비워 두세요',
+  'settings.primaryGenres': '우선 장르 (선택 사항)',
+  'settings.secondaryGenres': '기타 선호 장르 (선택 사항)',
+  'settings.genrePriorityHelp':
+    '정확한 장르 이름을 쉼표로 구분해 입력하세요. 장르 우선순위는 점수를 바꾸지 않고 일치하는 추천을 먼저 표시합니다. 다양한 음악을 발견하려면 비워 두세요.',
+  'discover.tasteOrdering': '추천 정렬',
+  'discover.tastePriority': '장르 우선순위',
+  'discover.primaryTaste': '우선 장르',
+  'discover.secondaryTaste': '기타 선호 장르',
+  'discover.scoreOrder': '점수순',
+  'errors.preferences.invalidGenres': '잘못된 장르 우선순위',
 } as const

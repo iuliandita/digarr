@@ -302,6 +302,33 @@ describe('GET /api/v1/recommendations', () => {
     )
   })
 
+  it('uses only the authenticated user genre priorities for taste ordering', async () => {
+    const listRecommendations = vi.fn(async () => ({ items: [], total: 0 }))
+    const getUserById = vi.fn(async () => ({
+      id: 1,
+      preferences: {
+        primaryGenres: ['metal', 'jazz', 'trip hop'],
+        secondaryGenres: ['ambient'],
+      },
+    })) as unknown as AppDependencies['getUserById']
+    const app = createApp(makeDeps({ listRecommendations, getUserById }))
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations?sort=taste&tasteTier=secondary&primaryGenres=pop&userId=2',
+    )
+    expect(res.status).toBe(200)
+    expect(getUserById).toHaveBeenCalledWith(1)
+    expect(listRecommendations).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 1,
+        sort: 'taste',
+        tasteTier: 'secondary',
+        primaryGenres: ['metal', 'jazz', 'trip hop'],
+        secondaryGenres: ['ambient'],
+      }),
+    )
+  })
+
   it('returns 400 for an invalid batchId filter', async () => {
     const listRecommendations = vi.fn(async () => ({ items: [], total: 0 }))
     const app = createApp(makeDeps({ listRecommendations }))

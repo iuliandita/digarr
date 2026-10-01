@@ -1674,4 +1674,14 @@ export const ru = {
   'settings.channels.saveFailed': 'Не удалось сохранить уведомления',
   'settings.channels.secretKeepPlaceholder':
     'Оставьте пустым, чтобы сохранить сохранённое значение',
+  'settings.primaryGenres': 'Приоритетные жанры (необязательно)',
+  'settings.secondaryGenres': 'Другие любимые жанры (необязательно)',
+  'settings.genrePriorityHelp':
+    'Введите точные названия жанров через запятую. Приоритеты показывают подходящие рекомендации первыми, не меняя оценки. Оставьте пустым для разнообразных открытий.',
+  'discover.tasteOrdering': 'Порядок рекомендаций',
+  'discover.tastePriority': 'Приоритеты жанров',
+  'discover.primaryTaste': 'Приоритетные жанры',
+  'discover.secondaryTaste': 'Другие любимые жанры',
+  'discover.scoreOrder': 'По оценке',
+  'errors.preferences.invalidGenres': 'Недопустимые приоритеты жанров',
 } as const

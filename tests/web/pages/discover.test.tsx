@@ -91,6 +91,7 @@ import {
   getAuthStatus,
   getCurrentUser,
   getRecommendations,
+  getUserPreferences,
   getWarmStatuses,
   listTargets,
   rescanArtists,
@@ -198,6 +199,33 @@ describe('DiscoverPage', () => {
         disconnect() {}
       },
     })
+  })
+
+  it('defaults to score ordering and allows optional genre priority and secondary browsing', async () => {
+    setupMockApi([makeRec()])
+    vi.mocked(getUserPreferences).mockResolvedValueOnce({
+      primaryGenres: ['metal', 'jazz', 'trip hop'],
+      secondaryGenres: ['ambient'],
+    })
+    renderWithQuery(<DiscoverPage />)
+    const select = await screen.findByRole('combobox', { name: 'Discovery order' })
+    expect(select).toHaveValue('score')
+    await waitFor(() =>
+      expect(within(select).getByRole('option', { name: 'Genre priorities' })).toBeEnabled(),
+    )
+    fireEvent.change(select, { target: { value: 'priority' } })
+    await waitFor(() =>
+      expect(mockGetRecommendations).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sort: 'taste', offset: '0' }),
+      ),
+    )
+    fireEvent.change(select, { target: { value: 'secondary' } })
+    await waitFor(() =>
+      expect(mockGetRecommendations).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sort: 'taste', tasteTier: 'secondary', offset: '0' }),
+      ),
+    )
+    expect(mockApproveRecommendation).not.toHaveBeenCalled()
   })
 
   it('includes pending artists without preview links in Audition without approving them', async () => {

@@ -1675,4 +1675,14 @@ export const fr = {
   'settings.channels.saved': 'Notifications enregistrées',
   'settings.channels.saveFailed': "Échec de l'enregistrement des notifications",
   'settings.channels.secretKeepPlaceholder': 'Laissez vide pour conserver la valeur enregistrée',
+  'settings.primaryGenres': 'Genres prioritaires (facultatif)',
+  'settings.secondaryGenres': 'Autres genres préférés (facultatif)',
+  'settings.genrePriorityHelp':
+    'Saisissez les noms exacts des genres séparés par des virgules. Les priorités placent les recommandations correspondantes en premier sans modifier les scores. Laissez vide pour une découverte variée.',
+  'discover.tasteOrdering': 'Ordre de découverte',
+  'discover.tastePriority': 'Priorités des genres',
+  'discover.primaryTaste': 'Genres prioritaires',
+  'discover.secondaryTaste': 'Autres genres préférés',
+  'discover.scoreOrder': 'Par score',
+  'errors.preferences.invalidGenres': 'Priorités de genres non valides',
 } as const

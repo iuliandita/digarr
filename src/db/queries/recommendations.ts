@@ -40,7 +40,10 @@ export type ListRecommendationsFilters = {
   userId?: number
   decades?: string
   kind?: 'artist' | 'album'
-  sort?: 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc'
+  sort?: 'score_desc' | 'score_asc' | 'created_desc' | 'acted_on_desc' | 'taste'
+  tasteTier?: 'primary' | 'secondary'
+  primaryGenres?: string[]
+  secondaryGenres?: string[]
   limit?: number
   offset?: number
 }
@@ -61,6 +64,9 @@ export async function listRecommendations(
     decades,
     kind,
     sort = 'score_desc',
+    tasteTier,
+    primaryGenres = [],
+    secondaryGenres = [],
     limit = 20,
     offset = 0,
   } = filters
@@ -80,6 +86,18 @@ export async function listRecommendations(
   if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
   if (kind === 'artist' || kind === 'album') conditions.push(eq(recommendations.kind, kind))
 
+  const matchesGenres = (preferred: string[]): SQL =>
+    preferred.length === 0
+      ? sql`false`
+      : sql`EXISTS (
+        SELECT 1 FROM unnest(${artists.genres}) AS preferred_genre(name)
+        WHERE lower(trim(preferred_genre.name)) = ANY(${sql.param(preferred.map((g) => g.trim().toLowerCase()))}::text[])
+      )`
+  const primaryMatch = matchesGenres(primaryGenres)
+  const secondaryMatch = sql`NOT (${primaryMatch}) AND (${matchesGenres(secondaryGenres)})`
+  if (tasteTier === 'primary') conditions.push(primaryMatch)
+  if (tasteTier === 'secondary') conditions.push(secondaryMatch)
+
   if (decades) {
     const ranges = parseDecades(decades)
     if (ranges.length > 0) {
@@ -92,7 +110,7 @@ export async function listRecommendations(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
-  const orderBy =
+  const scoreOrder =
     sort === 'score_asc'
       ? recommendations.score
       : sort === 'created_desc'
@@ -100,6 +118,14 @@ export async function listRecommendations(
         : sort === 'acted_on_desc'
           ? desc(recommendations.actedOnAt)
           : desc(recommendations.score)
+  const orderBy =
+    sort === 'taste'
+      ? [
+          sql`CASE WHEN ${primaryMatch} THEN 0 WHEN ${secondaryMatch} THEN 1 ELSE 2 END`,
+          desc(recommendations.score),
+          recommendations.id,
+        ]
+      : [scoreOrder]
 
   const [rows, countRows] = await Promise.all([
     db
@@ -110,10 +136,10 @@ export async function listRecommendations(
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
       .where(where)
-      .orderBy(orderBy)
+      .orderBy(...orderBy)
       .limit(limit)
       .offset(offset),
-    decades
+    decades || tasteTier
       ? db
           .select({ total: count() })
           .from(recommendations)

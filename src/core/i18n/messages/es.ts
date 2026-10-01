@@ -1671,4 +1671,14 @@ export const es = {
   'settings.channels.saved': 'Notificaciones guardadas',
   'settings.channels.saveFailed': 'No se pudieron guardar las notificaciones',
   'settings.channels.secretKeepPlaceholder': 'Déjalo en blanco para conservar el valor guardado',
+  'settings.primaryGenres': 'Géneros prioritarios (opcional)',
+  'settings.secondaryGenres': 'Otros géneros preferidos (opcional)',
+  'settings.genrePriorityHelp':
+    'Introduce nombres exactos de géneros separados por comas. Las prioridades muestran primero las recomendaciones coincidentes sin cambiar las puntuaciones. Déjalo vacío para descubrir música variada.',
+  'discover.tasteOrdering': 'Orden de descubrimiento',
+  'discover.tastePriority': 'Prioridades de géneros',
+  'discover.primaryTaste': 'Géneros prioritarios',
+  'discover.secondaryTaste': 'Otros géneros preferidos',
+  'discover.scoreOrder': 'Por puntuación',
+  'errors.preferences.invalidGenres': 'Prioridades de géneros no válidas',
 } as const

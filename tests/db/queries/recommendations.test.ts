@@ -4,8 +4,11 @@ import {
   getGenreArtists,
   getGenreFeedbackHistory,
   getRejectedArtistMbids,
+  listRecommendations,
   rejectRecommendation,
 } from '@/db/queries/recommendations'
+import { artists, recommendationBatches, recommendations, users } from '@/db/schema'
+import { makeTestDb } from '../../helpers/test-db'
 
 // Build a mock drizzle db that returns a fixed result when awaited.
 // The query chain: db.select({...}).from(...).innerJoin(...).where(...) -> rows
@@ -360,4 +363,116 @@ describe('rejectRecommendation', () => {
     expect(artistId).toBe(40)
     expect(insertCalls).toHaveLength(0)
   })
+})
+
+describe('taste priority ordering', () => {
+  it('orders optional genre groups without changing scores, eligibility, or user isolation', async () => {
+    const { db, close } = await makeTestDb()
+    try {
+      const [user, otherUser] = await db
+        .insert(users)
+        .values([
+          { username: 'taste-owner', passwordHash: 'test' },
+          { username: 'taste-other', passwordHash: 'test' },
+        ])
+        .returning()
+      const [batch] = await db.insert(recommendationBatches).values({}).returning()
+      if (!user || !otherUser || !batch) throw new Error('fixture missing')
+      const catalog = await db
+        .insert(artists)
+        .values([
+          { mbid: '00000000-0000-0000-0000-000000000101', name: 'Ambient', genres: ['ambient'] },
+          { mbid: '00000000-0000-0000-0000-000000000102', name: 'Metal', genres: ['METAL'] },
+          { mbid: '00000000-0000-0000-0000-000000000103', name: 'Jazz', genres: ['jazz'] },
+          {
+            mbid: '00000000-0000-0000-0000-000000000104',
+            name: 'Mixed',
+            genres: ['metal', 'jazz'],
+          },
+          { mbid: '00000000-0000-0000-0000-000000000105', name: 'Unknown', genres: null },
+        ])
+        .returning()
+      const scores = [0.9, 0.6, 0.7, 0.8, 0.95]
+      const values = catalog.map((artist, i) => {
+        const score = scores[i]
+        if (score === undefined) throw new Error('fixture score missing')
+        return {
+          userId: user.id,
+          artistId: artist.id,
+          batchId: batch.id,
+          score,
+          kind: i === 1 ? 'album' : 'artist',
+        }
+      })
+      const metal = catalog[1]
+      if (!metal) throw new Error('fixture metal missing')
+      const rows = await db
+        .insert(recommendations)
+        .values([
+          ...values,
+          { userId: otherUser.id, artistId: metal.id, batchId: batch.id, score: 1 },
+        ])
+        .returning()
+      const focused = {
+        userId: user.id,
+        status: 'pending',
+        sort: 'taste' as const,
+        primaryGenres: [' metal '],
+        secondaryGenres: ['jazz'],
+      }
+      const ordered = await listRecommendations(db as unknown as Database, focused)
+      expect(ordered.items.map((r) => r.artist.name)).toEqual([
+        'Mixed',
+        'Metal',
+        'Jazz',
+        'Unknown',
+        'Ambient',
+      ])
+      expect(ordered.total).toBe(5)
+      const paged = await listRecommendations(db as unknown as Database, {
+        ...focused,
+        limit: 2,
+        offset: 1,
+      })
+      expect(paged.items.map((r) => r.artist.name)).toEqual(['Metal', 'Jazz'])
+      const secondary = await listRecommendations(db as unknown as Database, {
+        ...focused,
+        tasteTier: 'secondary',
+      })
+      expect(secondary.items.map((r) => r.artist.name)).toEqual(['Jazz'])
+      expect(secondary.total).toBe(1)
+      const balanced = await listRecommendations(db as unknown as Database, {
+        userId: user.id,
+        sort: 'taste',
+      })
+      expect(balanced.items.map((r) => r.artist.name)).toEqual([
+        'Unknown',
+        'Ambient',
+        'Mixed',
+        'Jazz',
+        'Metal',
+      ])
+      const eclectic = await listRecommendations(db as unknown as Database, {
+        ...focused,
+        primaryGenres: ['ambient', 'metal', 'jazz'],
+      })
+      expect(eclectic.items.map((r) => r.artist.name)).toEqual([
+        'Ambient',
+        'Mixed',
+        'Jazz',
+        'Metal',
+        'Unknown',
+      ])
+      const injection = await listRecommendations(db as unknown as Database, {
+        ...focused,
+        primaryGenres: ["metal') OR true --"],
+        tasteTier: 'primary',
+      })
+      expect(injection.total).toBe(0)
+      const unchanged = await db.select().from(recommendations)
+      expect(unchanged).toEqual(rows)
+    } finally {
+      await close()
+    }
+  }, 20000)
 })

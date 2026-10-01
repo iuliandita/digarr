@@ -32,6 +32,7 @@ import {
   updateLocaleSchema,
   updatePreferencesSchema,
 } from '@/server/schemas/auth'
+import { preferredGenreListSchema } from '@/server/schemas/settings'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -47,6 +48,8 @@ const ALLOWED_PREF_KEYS = new Set([
   'rejectionCooldownDays',
   'topArtistsLimit',
   'librarySeedRatio',
+  'primaryGenres',
+  'secondaryGenres',
   'scheduleCron',
   'webhookUrl',
   'autoApproveEnabled',
@@ -476,6 +479,22 @@ export function authRoutes(deps: AppDependencies) {
       if (ALLOWED_PREF_KEYS.has(key)) {
         filtered[key] = value
       }
+    }
+
+    for (const key of ['primaryGenres', 'secondaryGenres']) {
+      if (!Object.hasOwn(filtered, key)) continue
+      const parsed = preferredGenreListSchema.safeParse(filtered[key])
+      if (!parsed.success)
+        return problem(
+          c,
+          'invalid-genre-priorities',
+          'Invalid genre priorities',
+          400,
+          undefined,
+          undefined,
+          'errors.preferences.invalidGenres',
+        )
+      filtered[key] = parsed.data
     }
 
     // SSRF protection: validate metadataFallbackUrl against private IP ranges

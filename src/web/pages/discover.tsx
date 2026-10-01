@@ -46,6 +46,7 @@ import { usePreviewContext } from '../lib/preview-context'
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
 type ViewMode = 'grid' | 'list' | 'stack'
+type TasteOrdering = 'priority' | 'primary' | 'secondary' | 'score'
 type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
 
 const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
@@ -540,6 +541,7 @@ export function DiscoverPage() {
     initialKindFromParam(searchParams.get('kind')),
   )
   const [viewMode, setViewMode] = useState<ViewMode>(getStoredViewMode)
+  const [tasteOrdering, setTasteOrdering] = useState<TasteOrdering>('score')
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [approveThreshold, setApproveThreshold] = useState(70)
@@ -564,6 +566,9 @@ export function DiscoverPage() {
     staleTime: 60_000,
   })
   const prefs = prefsData ?? {}
+  const hasPrimaryGenres = Array.isArray(prefs.primaryGenres) && prefs.primaryGenres.length > 0
+  const hasSecondaryGenres =
+    Array.isArray(prefs.secondaryGenres) && prefs.secondaryGenres.length > 0
 
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['recommendations'] })
@@ -604,7 +609,7 @@ export function DiscoverPage() {
   const decadesParam = activeDecades.size > 0 ? [...activeDecades].join(',') : undefined
 
   const queryParams: Record<string, string> = {
-    sort: 'score_desc',
+    sort: tasteOrdering === 'score' ? 'score_desc' : 'taste',
     limit: String(PAGE_SIZE),
     offset: String(page * PAGE_SIZE),
   }
@@ -613,11 +618,20 @@ export function DiscoverPage() {
   if (statusParam) queryParams.status = statusParam
   if (decadesParam) queryParams.decades = decadesParam
   if (kindParam) queryParams.kind = kindParam
+  if (tasteOrdering === 'primary' || tasteOrdering === 'secondary') {
+    queryParams.tasteTier = tasteOrdering
+  }
 
   const { data, isLoading: loading } = useQuery({
     queryKey: [
       'recommendations',
-      { filter, kind: kindFilter, page, decades: [...activeDecades].sort().join(',') },
+      {
+        filter,
+        kind: kindFilter,
+        page,
+        tasteOrdering,
+        decades: [...activeDecades].sort().join(','),
+      },
     ],
     queryFn: () => getRecommendations(queryParams),
   })
@@ -1241,6 +1255,31 @@ export function DiscoverPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            <label htmlFor="taste-ordering" className="flex items-center gap-2 text-sm text-muted">
+              {t('discover.tasteOrdering')}
+              <select
+                id="taste-ordering"
+                value={tasteOrdering}
+                aria-label={t('discover.tasteOrdering')}
+                onChange={(e) => {
+                  setTasteOrdering(e.target.value as TasteOrdering)
+                  setPage(0)
+                  setSelectedId(null)
+                }}
+                className="bg-surface border border-border rounded text-sm text-text px-2 py-1.5"
+              >
+                <option value="priority" disabled={!hasPrimaryGenres && !hasSecondaryGenres}>
+                  {t('discover.tastePriority')}
+                </option>
+                <option value="primary" disabled={!hasPrimaryGenres}>
+                  {t('discover.primaryTaste')}
+                </option>
+                <option value="secondary" disabled={!hasSecondaryGenres}>
+                  {t('discover.secondaryTaste')}
+                </option>
+                <option value="score">{t('discover.scoreOrder')}</option>
+              </select>
+            </label>
             {/* View mode switcher */}
             <div className="flex items-center gap-0.5 bg-surface border border-border rounded-lg p-1">
               {(

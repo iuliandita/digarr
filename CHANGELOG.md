@@ -10,6 +10,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Recommendation evaluation uses the production prompt with representative synthetic profiles, field-level checks, and replayable reports. Expected-neighbor checks remain advisory; subjective fit and listening outcomes require separate review. [#718](https://github.com/iuliandita/digarr/issues/718).
 
+### Added
+
+- Optional genre priorities support several equally preferred genres while keeping score ordering as the default. Discover can order preference groups or browse either group separately; scores, thresholds, and auto-approval are unchanged. Matches use explicit genre tags, with no inferred taxonomy. [#732](https://github.com/iuliandita/digarr/issues/732).
+
 ### Fixed
 
 - Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).

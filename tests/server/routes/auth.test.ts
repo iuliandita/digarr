@@ -1600,6 +1600,52 @@ describe('POST /api/v1/auth/change-password', () => {
 })
 
 describe('PATCH /api/v1/auth/me/preferences', () => {
+  it('saves many optional genre priorities, clears them, and rejects invalid lists', async () => {
+    const where = vi.fn().mockResolvedValue({ rowCount: 1 })
+    const set = vi.fn().mockReturnValue({ where })
+    const db = { update: vi.fn().mockReturnValue({ set }) } as unknown as AppDependencies['db']
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps({ db })))
+    const patch = (body: unknown) =>
+      app.request('/api/v1/auth/me/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    expect(
+      (
+        await patch({
+          primaryGenres: [' Metal ', 'Jazz', 'TRIP HOP', 'metal'],
+          secondaryGenres: ['ambient'],
+        })
+      ).status,
+    ).toBe(204)
+    expect(set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        preferences: expect.objectContaining({
+          primaryGenres: ['metal', 'jazz', 'trip hop'],
+          secondaryGenres: ['ambient'],
+        }),
+      }),
+    )
+    expect((await patch({ primaryGenres: [], secondaryGenres: [] })).status).toBe(204)
+    expect(set).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        preferences: expect.objectContaining({ primaryGenres: [], secondaryGenres: [] }),
+      }),
+    )
+    for (const invalid of ['metal', [1], [''], ['x'.repeat(65)], Array(25).fill('metal')]) {
+      const res = await patch({ primaryGenres: invalid })
+      expect(res.status).toBe(400)
+      expect(await res.json()).toMatchObject({ code: 'errors.preferences.invalidGenres' })
+    }
+    expect(set).toHaveBeenCalledTimes(2)
+  })
+
   it('rejects legacy read-only token auth', async () => {
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {

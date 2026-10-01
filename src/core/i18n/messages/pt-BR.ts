@@ -1668,4 +1668,14 @@ export const ptBR = {
   'settings.channels.saved': 'Notificações salvas',
   'settings.channels.saveFailed': 'Falha ao salvar notificações',
   'settings.channels.secretKeepPlaceholder': 'Deixe em branco para manter o valor salvo',
+  'settings.primaryGenres': 'Gêneros prioritários (opcional)',
+  'settings.secondaryGenres': 'Outros gêneros preferidos (opcional)',
+  'settings.genrePriorityHelp':
+    'Digite nomes exatos de gêneros separados por vírgulas. As prioridades mostram primeiro as recomendações correspondentes sem alterar as pontuações. Deixe vazio para uma descoberta variada.',
+  'discover.tasteOrdering': 'Ordem de descoberta',
+  'discover.tastePriority': 'Prioridades de gêneros',
+  'discover.primaryTaste': 'Gêneros prioritários',
+  'discover.secondaryTaste': 'Outros gêneros preferidos',
+  'discover.scoreOrder': 'Por pontuação',
+  'errors.preferences.invalidGenres': 'Prioridades de gêneros inválidas',
 } as const

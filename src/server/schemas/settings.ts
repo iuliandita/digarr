@@ -1,6 +1,11 @@
 import * as z from 'zod'
 import type { NotificationChannel } from '@/core/notifications/types'
 
+export const preferredGenreListSchema = z
+  .array(z.string().trim().min(1).max(64))
+  .max(24)
+  .transform((values) => [...new Set(values.map((value) => value.toLowerCase()))])
+
 // Inner preferences object. Enforces numeric ranges where they exist and
 // keeps every field optional so partial PATCH merges stay ergonomic. Strict
 // shape (no passthrough) rejects unknown keys up front so a hostile or buggy
@@ -65,6 +70,8 @@ const preferencesSchema = z
     rejectionCooldownDays: z.number().int().min(0).optional(),
     topArtistsLimit: z.number().int().min(1).optional(),
     librarySeedRatio: z.number().min(0).max(1).optional(),
+    primaryGenres: preferredGenreListSchema.optional(),
+    secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),
     lidarrPublicUrl: z.string().optional(),
     autoApproveEnabled: z.boolean().optional(),

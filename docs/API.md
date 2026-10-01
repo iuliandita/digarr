@@ -332,10 +332,16 @@ Locale notes:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed` (comma-separated)
 - `kind` - `artist` or `album`; omit to return both. Backs the Discover kind filter and the Albums tab (`?kind=album`)
 - `batchId` - filter by batch
-- `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`
+- `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`, `taste`
+- `tasteTier` - optional `primary` or `secondary`; secondary excludes primary matches
+
 - `decades` - era filter, comma-separated: `60s`, `70s`, `80s`, `90s`, `00s`, `10s`, `20s`
 - `limit` - 1-200 (default 20)
 - `offset` - pagination offset
+
+Taste ordering reads only the authenticated user's optional `primaryGenres` and `secondaryGenres` preferences. It orders primary matches, secondary matches, then other recommendations, using descending score within each group and ID for ties. Genres match exact names after trimming and lowercasing; there is no inferred genre taxonomy. Missing preferences retain score ordering. Filtering and ordering do not change stored scores, statuses, thresholds, or auto-approval.
+
+Save either list through `PATCH /api/v1/auth/me/preferences`: `{"primaryGenres":["metal","jazz"],"secondaryGenres":["ambient"]}`. Each list accepts up to 24 nonempty names of at most 64 characters. Names are trimmed, lowercased, and deduplicated. Empty lists clear the preference.
 
 Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `recommendedReleaseGroupId` / `recommendedReleaseGroupTitle` identify the album (its `artistId` still points at the album's artist), and the UI renders the album as the primary unit.
 

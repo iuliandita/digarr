@@ -1664,4 +1664,14 @@ export const uk = {
   'settings.channels.saved': 'Сповіщення збережено',
   'settings.channels.saveFailed': 'Не вдалося зберегти сповіщення',
   'settings.channels.secretKeepPlaceholder': 'Залиште порожнім, щоб зберегти збережене значення',
+  'settings.primaryGenres': 'Пріоритетні жанри (необов’язково)',
+  'settings.secondaryGenres': 'Інші улюблені жанри (необов’язково)',
+  'settings.genrePriorityHelp':
+    'Введіть точні назви жанрів через кому. Пріоритети показують відповідні рекомендації першими, не змінюючи оцінок. Залиште порожнім для різноманітних відкриттів.',
+  'discover.tasteOrdering': 'Порядок рекомендацій',
+  'discover.tastePriority': 'Пріоритети жанрів',
+  'discover.primaryTaste': 'Пріоритетні жанри',
+  'discover.secondaryTaste': 'Інші улюблені жанри',
+  'discover.scoreOrder': 'За оцінкою',
+  'errors.preferences.invalidGenres': 'Недійсні пріоритети жанрів',
 } as const

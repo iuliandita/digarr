@@ -1657,4 +1657,14 @@ export const pl = {
   'settings.channels.saved': 'Zapisano powiadomienia',
   'settings.channels.saveFailed': 'Nie udało się zapisać powiadomień',
   'settings.channels.secretKeepPlaceholder': 'Pozostaw puste, aby zachować zapisaną wartość',
+  'settings.primaryGenres': 'Gatunki priorytetowe (opcjonalnie)',
+  'settings.secondaryGenres': 'Inne ulubione gatunki (opcjonalnie)',
+  'settings.genrePriorityHelp':
+    'Wpisz dokładne nazwy gatunków oddzielone przecinkami. Priorytety pokazują najpierw pasujące rekomendacje bez zmiany ocen. Pozostaw puste, aby odkrywać różnorodną muzykę.',
+  'discover.tasteOrdering': 'Kolejność odkrywania',
+  'discover.tastePriority': 'Priorytety gatunków',
+  'discover.primaryTaste': 'Gatunki priorytetowe',
+  'discover.secondaryTaste': 'Inne ulubione gatunki',
+  'discover.scoreOrder': 'Według oceny',
+  'errors.preferences.invalidGenres': 'Nieprawidłowe priorytety gatunków',
 } as const

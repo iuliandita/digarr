@@ -1683,4 +1683,14 @@ export const de = {
   'settings.channels.saved': 'Benachrichtigungen gespeichert',
   'settings.channels.saveFailed': 'Benachrichtigungen konnten nicht gespeichert werden',
   'settings.channels.secretKeepPlaceholder': 'Leer lassen, um den gespeicherten Wert beizubehalten',
+  'settings.primaryGenres': 'Bevorzugte Genres (optional)',
+  'settings.secondaryGenres': 'Weitere bevorzugte Genres (optional)',
+  'settings.genrePriorityHelp':
+    'Exakte Genrenamen durch Kommas trennen. Genre-Prioritäten zeigen passende Empfehlungen zuerst, ohne Bewertungen zu ändern. Für breite Entdeckungen leer lassen.',
+  'discover.tasteOrdering': 'Reihenfolge der Entdeckungen',
+  'discover.tastePriority': 'Genre-Prioritäten',
+  'discover.primaryTaste': 'Bevorzugte Genres',
+  'discover.secondaryTaste': 'Weitere bevorzugte Genres',
+  'discover.scoreOrder': 'Nach Bewertung',
+  'errors.preferences.invalidGenres': 'Ungültige Genre-Prioritäten',
 } as const

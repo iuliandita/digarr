@@ -1671,4 +1671,14 @@ export const ro = {
   'settings.channels.saved': 'Notificări salvate',
   'settings.channels.saveFailed': 'Salvarea notificărilor a eșuat',
   'settings.channels.secretKeepPlaceholder': 'Lăsați necompletat pentru a păstra valoarea salvată',
+  'settings.primaryGenres': 'Genuri prioritare (opțional)',
+  'settings.secondaryGenres': 'Alte genuri preferate (opțional)',
+  'settings.genrePriorityHelp':
+    'Introdu numele exacte ale genurilor separate prin virgulă. Prioritățile afișează întâi recomandările potrivite fără să schimbe scorurile. Lasă gol pentru descoperiri variate.',
+  'discover.tasteOrdering': 'Ordinea descoperirilor',
+  'discover.tastePriority': 'Priorități de genuri',
+  'discover.primaryTaste': 'Genuri prioritare',
+  'discover.secondaryTaste': 'Alte genuri preferate',
+  'discover.scoreOrder': 'După scor',
+  'errors.preferences.invalidGenres': 'Priorități de genuri nevalide',
 } as const

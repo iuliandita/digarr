@@ -548,6 +548,8 @@ export type Preferences = {
   rejectionCooldownDays: number
   topArtistsLimit: number
   librarySeedRatio: number // 0-1: fraction of seed artists from Lidarr library
+  primaryGenres?: string[]
+  secondaryGenres?: string[]
   webhookUrl?: string
   channels?: NotificationChannel[]
   digestCron?: string // cron string for the periodic digest webhook; absent/empty = disabled

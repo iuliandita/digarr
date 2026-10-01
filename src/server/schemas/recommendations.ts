@@ -12,7 +12,13 @@ export const recommendationIdParamSchema = idParamSchema
 export const recommendationStatusSchema = z.enum(['approved', 'rejected', 'pending'])
 export const approvalModeSchema = z.enum(['single_target', 'combined_lidarr_slskd'])
 export const monitorOptionSchema = z.enum(['all', 'new', 'none', 'selected', 'popular'])
-export const sortSchema = z.enum(['score_desc', 'score_asc', 'created_desc', 'acted_on_desc'])
+export const sortSchema = z.enum([
+  'score_desc',
+  'score_asc',
+  'created_desc',
+  'acted_on_desc',
+  'taste',
+])
 
 export const updateRecommendationSchema = z.object({
   status: recommendationStatusSchema,
@@ -74,6 +80,7 @@ export const listRecommendationsQuerySchema = z.object({
   decades: z.string().max(100).optional(),
   kind: z.string().optional(),
   sort: sortSchema.optional(),
+  tasteTier: z.enum(['primary', 'secondary']).optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 })

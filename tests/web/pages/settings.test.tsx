@@ -490,6 +490,28 @@ describe('SettingsPage', () => {
     })
   })
 
+  it('saves optional genre lists without replacing scoring weights', async () => {
+    setupMocks()
+    renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    const primary = await screen.findByLabelText('Priority genres (optional)')
+    fireEvent.change(primary, { target: { value: 'metal, jazz, trip hop' } })
+    fireEvent.change(screen.getByLabelText('Other preferred genres (optional)'), {
+      target: { value: 'ambient,  ' },
+    })
+    const panel = primary.closest('section')?.parentElement
+    if (!panel) throw new Error('recommendations panel missing')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mockUpdateUserPreferences).toHaveBeenCalledWith(
+        expect.objectContaining({
+          primaryGenres: ['metal', 'jazz', 'trip hop'],
+          secondaryGenres: ['ambient'],
+          scoringWeights: expect.any(Object),
+        }),
+      ),
+    )
+  })
+
   it('opens and focuses net-new album discovery from its deep link', async () => {
     setupMocks()
     Element.prototype.scrollIntoView = vi.fn()

@@ -1719,4 +1719,14 @@ export const en = {
   'settings.channels.saved': 'Notifications saved',
   'settings.channels.saveFailed': 'Failed to save notifications',
   'settings.channels.secretKeepPlaceholder': 'Leave blank to keep the saved value',
+  'settings.primaryGenres': 'Priority genres (optional)',
+  'settings.secondaryGenres': 'Other preferred genres (optional)',
+  'settings.genrePriorityHelp':
+    'Enter comma-separated exact genre names. Genre priorities order matching recommendations first without changing scores. Leave empty for broad discovery.',
+  'discover.tasteOrdering': 'Discovery order',
+  'discover.tastePriority': 'Genre priorities',
+  'discover.primaryTaste': 'Priority genres',
+  'discover.secondaryTaste': 'Other preferred genres',
+  'discover.scoreOrder': 'By score',
+  'errors.preferences.invalidGenres': 'Invalid genre priorities',
 } as const

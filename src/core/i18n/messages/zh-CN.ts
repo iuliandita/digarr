@@ -1539,4 +1539,14 @@ export const zhCN = {
   'settings.channels.saved': '通知已保存',
   'settings.channels.saveFailed': '保存通知失败',
   'settings.channels.secretKeepPlaceholder': '留空以保留已保存的值',
+  'settings.primaryGenres': '优先类型（可选）',
+  'settings.secondaryGenres': '其他喜欢的类型（可选）',
+  'settings.genrePriorityHelp':
+    '输入准确的类型名称，用逗号分隔。类型优先顺序会先显示匹配的推荐，不改变评分。留空可探索更多样的音乐。',
+  'discover.tasteOrdering': '推荐顺序',
+  'discover.tastePriority': '类型优先顺序',
+  'discover.primaryTaste': '优先类型',
+  'discover.secondaryTaste': '其他喜欢的类型',
+  'discover.scoreOrder': '按评分',
+  'errors.preferences.invalidGenres': '类型优先设置无效',
 } as const

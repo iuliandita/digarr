@@ -1663,4 +1663,14 @@ export const nl = {
   'settings.channels.saved': 'Meldingen opgeslagen',
   'settings.channels.saveFailed': 'Meldingen konden niet worden opgeslagen',
   'settings.channels.secretKeepPlaceholder': 'Laat leeg om de opgeslagen waarde te behouden',
+  'settings.primaryGenres': 'Voorkeursgenres (optioneel)',
+  'settings.secondaryGenres': 'Andere voorkeursgenres (optioneel)',
+  'settings.genrePriorityHelp':
+    'Voer exacte genrenamen in, gescheiden door komma’s. Genreprioriteiten tonen passende aanbevelingen eerst zonder scores te wijzigen. Laat leeg voor brede ontdekking.',
+  'discover.tasteOrdering': 'Ontdekkingsvolgorde',
+  'discover.tastePriority': 'Genreprioriteiten',
+  'discover.primaryTaste': 'Voorkeursgenres',
+  'discover.secondaryTaste': 'Andere voorkeursgenres',
+  'discover.scoreOrder': 'Op score',
+  'errors.preferences.invalidGenres': 'Ongeldige genreprioriteiten',
 } as const

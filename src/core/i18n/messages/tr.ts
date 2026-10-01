@@ -1654,4 +1654,14 @@ export const tr = {
   'settings.channels.saved': 'Bildirimler kaydedildi',
   'settings.channels.saveFailed': 'Bildirimler kaydedilemedi',
   'settings.channels.secretKeepPlaceholder': 'Kayıtlı değeri korumak için boş bırakın',
+  'settings.primaryGenres': 'Öncelikli türler (isteğe bağlı)',
+  'settings.secondaryGenres': 'Diğer sevilen türler (isteğe bağlı)',
+  'settings.genrePriorityHelp':
+    'Tam tür adlarını virgülle ayırarak girin. Tür öncelikleri puanları değiştirmeden eşleşen önerileri önce gösterir. Çeşitli keşifler için boş bırakın.',
+  'discover.tasteOrdering': 'Keşif sırası',
+  'discover.tastePriority': 'Tür öncelikleri',
+  'discover.primaryTaste': 'Öncelikli türler',
+  'discover.secondaryTaste': 'Diğer sevilen türler',
+  'discover.scoreOrder': 'Puana göre',
+  'errors.preferences.invalidGenres': 'Geçersiz tür öncelikleri',
 } as const

@@ -1649,4 +1649,14 @@ export const ja = {
   'settings.channels.saved': '通知を保存しました',
   'settings.channels.saveFailed': '通知の保存に失敗しました',
   'settings.channels.secretKeepPlaceholder': '保存された値を維持するには空欄のままにします',
+  'settings.primaryGenres': '優先ジャンル（任意）',
+  'settings.secondaryGenres': 'その他の好きなジャンル（任意）',
+  'settings.genrePriorityHelp':
+    '正確なジャンル名をカンマで区切って入力してください。ジャンル優先順ではスコアを変えずに一致するおすすめを先に表示します。幅広く探す場合は空欄にしてください。',
+  'discover.tasteOrdering': 'おすすめの並び順',
+  'discover.tastePriority': 'ジャンル優先順',
+  'discover.primaryTaste': '優先ジャンル',
+  'discover.secondaryTaste': 'その他の好きなジャンル',
+  'discover.scoreOrder': 'スコア順',
+  'errors.preferences.invalidGenres': 'ジャンル優先設定が無効です',
 } as const

@@ -618,6 +618,22 @@ export const openapiDoc = {
           { name: 'status', in: 'query', schema: { type: 'string' } },
           { name: 'batchId', in: 'query', schema: { type: 'integer' } },
           {
+            name: 'sort',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: ['score_desc', 'score_asc', 'created_desc', 'acted_on_desc', 'taste'],
+            },
+            description:
+              'Taste ordering uses the authenticated user genre priorities without changing scores.',
+          },
+          {
+            name: 'tasteTier',
+            in: 'query',
+            schema: { type: 'string', enum: ['primary', 'secondary'] },
+            description: 'Filter by a preference group. Secondary excludes primary matches.',
+          },
+          {
             name: 'kind',
             in: 'query',
             schema: { type: 'string', enum: ['artist', 'album'] },

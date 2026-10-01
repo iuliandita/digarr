@@ -1673,4 +1673,14 @@ export const it = {
   'settings.channels.saved': 'Notifiche salvate',
   'settings.channels.saveFailed': 'Impossibile salvare le notifiche',
   'settings.channels.secretKeepPlaceholder': 'Lascia vuoto per mantenere il valore salvato',
+  'settings.primaryGenres': 'Generi prioritari (facoltativo)',
+  'settings.secondaryGenres': 'Altri generi preferiti (facoltativo)',
+  'settings.genrePriorityHelp':
+    'Inserisci i nomi esatti dei generi separati da virgole. Le priorità mostrano prima i consigli corrispondenti senza cambiare i punteggi. Lascia vuoto per una scoperta varia.',
+  'discover.tasteOrdering': 'Ordine di scoperta',
+  'discover.tastePriority': 'Priorità dei generi',
+  'discover.primaryTaste': 'Generi prioritari',
+  'discover.secondaryTaste': 'Altri generi preferiti',
+  'discover.scoreOrder': 'Per punteggio',
+  'errors.preferences.invalidGenres': 'Priorità dei generi non valide',
 } as const
