@@ -115,7 +115,7 @@ Example:
   }
 ]
 
-IMPORTANT: For each recommendation, verify that the reasoning accurately describes the EXACT artist named in artistName. Do not confuse similarly-named artists (e.g., "Velvet Underground" and "Digital Underground" are completely different artists). The genres field must match the actual genres of the named artist.
+IMPORTANT: For each recommendation, verify that the reasoning accurately describes the EXACT artist named in artistName. Include the exact artistName in the first sentence of reasoning. Explicit comparisons to the listener's artists are allowed; name both artists clearly. Do not confuse similarly-named artists (e.g., "Velvet Underground" and "Digital Underground" are completely different artists). The genres field must match the actual genres of the named artist.
 
 Provide 15-20 diverse recommendations. Prioritize lesser-known artists alongside some well-known ones. Do not include artists already in the listener's top artists list.`
 

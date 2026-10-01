@@ -133,6 +133,8 @@ refreshes cannot extend the 180-day genre TTL. Enrichment from
 
 Discovery queries only listening sources declaring `similarArtists`. Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
 
+AI discovery retains comparisons to listening-profile artists. Its description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence. This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
+
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
 bypass those artist-oriented filters (a new release from a tracked artist is the
