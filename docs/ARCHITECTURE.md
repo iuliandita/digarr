@@ -131,6 +131,8 @@ artist cache uses its own freshness timestamp, so unrelated image or metadata
 refreshes cannot extend the 180-day genre TTL. Enrichment from
 `artist_metadata` still runs between resolve and score.
 
+AI discovery retains comparisons to listening-profile artists. Its description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence. This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
+
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
 bypass those artist-oriented filters (a new release from a tracked artist is the

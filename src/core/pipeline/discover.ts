@@ -27,22 +27,46 @@ function hasNameConfusion(recName: string, topArtistNames: string[]): boolean {
   return false
 }
 
-/**
- * Detect when AI reasoning explicitly mentions a different top artist by name.
- * E.g. reasoning for "Digital Underground" literally says "Velvet Underground".
- */
+function normalizeReasoning(text: string): string {
+  return text.normalize('NFC').toLowerCase().replace(/\s+/gu, ' ').trim()
+}
+
+function fullNamePattern(name: string): RegExp {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![\\p{L}\\p{M}\\p{N}])${escaped}(?![\\p{L}\\p{M}\\p{N}])`, 'gu')
+}
+
 function reasoningMentionsTopArtist(
   reasoning: string,
   recName: string,
   topArtistNames: string[],
 ): boolean {
-  const reaNorm = reasoning.toLowerCase()
-  const recNorm = normalizeName(recName)
-  for (const topName of topArtistNames) {
-    const topNorm = normalizeName(topName)
+  const reaNorm = normalizeReasoning(reasoning)
+  const recNorm = normalizeName(normalizeReasoning(recName))
+  if (reaNorm.includes(recNorm)) return false
+  const recTokens: string[] = recNorm.match(/[\p{L}\p{M}\p{N}]+/gu) ?? []
+  if (recTokens.length < 2) return false
+  const topNames = topArtistNames.map((name) => normalizeName(normalizeReasoning(name)))
+  // Quoted references and longer known names are ambiguous evidence of identity.
+  const unquoted = reaNorm.replace(
+    /"[^"]*"|(?<![\p{L}\p{M}\p{N}])'[^']*'(?![\p{L}\p{M}\p{N}])|\u201c[^\u201d]*\u201d|\u201e[^\u201c\u201d]*[\u201c\u201d]|\u2018[^\u2019]*\u2019|\u00ab[^\u00bb]*\u00bb|\u300c[^\u300d]*\u300d|\u300e[^\u300f]*\u300f/gu,
+    ' ',
+  )
+  for (const topNorm of topNames) {
     if (recNorm === topNorm) continue
-    if (topNorm.length < 5) continue // avoid matching short common words
-    if (reaNorm.includes(topNorm)) return true
+    const topTokens: string[] = topNorm.match(/[\p{L}\p{M}\p{N}]+/gu) ?? []
+    if (topTokens.length < 2) continue
+    const shared = new Set(
+      recTokens.filter((token) => token.length >= 5 && topTokens.includes(token)),
+    ).size
+    if (shared * 2 < recTokens.length || shared * 2 < topTokens.length) continue
+    let evidence = unquoted
+    for (const longerName of topNames) {
+      if (longerName.length > topNorm.length && fullNamePattern(topNorm).test(longerName)) {
+        evidence = evidence.replace(fullNamePattern(longerName), ' ')
+      }
+    }
+    if (fullNamePattern(topNorm).test(evidence)) return true
   }
   return false
 }

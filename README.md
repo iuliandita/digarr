@@ -30,7 +30,7 @@
 - **Choose where approvals go.** Use Lidarr, queue releases through slskd, or keep a discovery-only setup. Auto-approval is available if you want high-scoring recommendations sent to targets without manual review.
 - **Share an instance.** Each user has their own queue, connections, preferences, and assigned targets. Sign in with a local account or OIDC/SSO. The interface and AI discovery output support 15 languages, with light and dark themes.
 
-Digarr manages recommendations and calls your connected services. It does not include a music downloader or a full music player. AI suggestions and MusicBrainz matches can be wrong; review the artist and release before approving.
+Digarr manages recommendations and calls your connected services. It does not include a music downloader or a full music player. AI suggestions and MusicBrainz matches can be wrong; review the artist and release before approving. AI explanations may compare a recommendation with artists in your listening profile. The name-confusion check is a limited heuristic and cannot verify those claims.
 
 ### Connections at a glance
 

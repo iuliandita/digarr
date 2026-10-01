@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@/core/i18n/locales'
 import { discover } from '@/core/pipeline/discover'
 import type { DiscoverySource } from '@/core/plugins/types'
 import type { DiscoveredArtist, TasteProfile } from '@/core/types'
@@ -62,6 +63,197 @@ function makeAi() {
 }
 
 describe('discover()', () => {
+  async function aiNames(
+    recName: string,
+    reasoning: string,
+    seeds: string[],
+    responseLocale = profile.responseLocale,
+  ) {
+    const ai = {
+      getRecommendations: vi
+        .fn()
+        .mockResolvedValue([{ artistName: recName, reasoning, confidence: 0.8, genres: [] }]),
+    }
+    const results = await discover(
+      {
+        ...profile,
+        responseLocale,
+        topArtists: seeds.map((name) => ({ name, playCount: 1, source: 'listenbrainz' })),
+      },
+      { ai },
+      10,
+    )
+    return results.map((artist) => artist.name)
+  }
+
+  it.each<[string, string, string[], boolean]>([
+    ['Portishead', 'Portishead has textures comparable to Radiohead.', ['Radiohead'], true],
+    ['Four Tet', 'Four Tet offers an electronic contrast to Radiohead.', ['Radiohead'], true],
+    ['Four Tet', 'Electronic textures for fans of Radiohead.', ['Radiohead'], true],
+    [
+      'Burial',
+      'Atmospheric electronics comparable to Boards of Canada.',
+      ['Boards of Canada'],
+      true,
+    ],
+    ['Black Country New Road', 'For fans of Black Sabbath.', ['Black Sabbath'], true],
+    [
+      'Digital Underground',
+      'Digital Underground differs from Velvet Underground.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Velvet Underground is a useful comparison for Digital Underground.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Velvet Underground offers one comparison. Digital Underground takes a different approach.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Known for Velvet Underground soundscapes.',
+      ['Velvet Underground'],
+      false,
+    ],
+    [
+      'Digital Underground',
+      'Like "Velvet Underground" with more rhythm.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      "Like 'Velvet Underground' with more rhythm.",
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Like “Velvet Underground” with more rhythm.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Wie „Velvet Underground“ mit mehr Rhythmus.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Jak „Velvet Underground” z mocniejszym rytmem.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Like «Velvet Underground» with more rhythm.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Like 「Velvet Underground」 with more rhythm.',
+      ['Velvet Underground'],
+      true,
+    ],
+    ['Digital Underground', 'Velvet Undergrounders perform here.', ['Velvet Underground'], true],
+    ['Digital Underground', 'NeoVelvet Underground performs here.', ['Velvet Underground'], true],
+    [
+      'Digital Underground',
+      'Velvet Underground revival performs here.',
+      ['Velvet Underground', 'Velvet Underground Revival'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Velvet Underground Revival inspired Velvet Underground.',
+      ['Velvet Underground', 'Velvet Underground Revival'],
+      false,
+    ],
+    ['Digital Underground', 'Velvet Underground风格的作品。', ['Velvet Underground'], true],
+    ['Digital Underground', '像Velvet Underground的作品。', ['Velvet Underground'], true],
+    [
+      'Digital Underground',
+      'Digital Undergroundは、Velvet Underground と同じ冒険心を持つ。',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Digital Underground는 Velvet Underground 와 다른 펑크 사운드를 들려줍니다.',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      'Digital Underground融合放克与嘻哈，与 Velvet Underground 风格不同。',
+      ['Velvet Underground'],
+      true,
+    ],
+    [
+      'Digital Underground',
+      "Listener's favorite Velvet Underground influences this band's sound.",
+      ['Velvet Underground'],
+      false,
+    ],
+    ['Digital Underground', 'Velvet Underground sounds.', ['The Velvet Underground'], false],
+    ['Digital Underground', 'VELVET\n  UNDERGROUND sounds.', ['Velvet Underground'], false],
+    ['Digital (Underground)', 'Velvet (Underground) sounds.', ['Velvet (Underground)'], false],
+    ['Digital (Underground)', 'Velvet Underground sounds.', ['Velvet (Underground)'], true],
+    ['Digital Université', 'Velvet Universite\u0301 sounds.', ['Velvet Université'], false],
+    [
+      'Digital Université',
+      'Digital Universite\u0301 differs from Velvet Université.',
+      ['Velvet Université'],
+      true,
+    ],
+    [
+      'Digital Underground Collective',
+      'Velvet Underground Collective sounds.',
+      ['Velvet Underground Collective'],
+      false,
+    ],
+    [
+      'Digital Underground Collective',
+      'Velvet Underground Ensemble sounds.',
+      ['Velvet Underground Ensemble'],
+      true,
+    ],
+  ])('bounds reasoning identity checks for %s: %s', async (name, reasoning, seeds, retained) => {
+    expect(await aiNames(name, reasoning, seeds)).toEqual(retained ? [name] : [])
+  })
+
+  const comparisons: Record<SupportedLocale, string> = {
+    en: 'Digital Underground differs from Velvet Underground.',
+    es: 'Digital Underground se diferencia de Velvet Underground.',
+    fr: 'Digital Underground se distingue de Velvet Underground.',
+    de: 'Digital Underground unterscheidet sich von Velvet Underground.',
+    'pt-BR': 'Digital Underground difere de Velvet Underground.',
+    it: 'Digital Underground si distingue da Velvet Underground.',
+    nl: 'Digital Underground verschilt van Velvet Underground.',
+    ro: 'Digital Underground diferă de Velvet Underground.',
+    pl: 'Digital Underground różni się od Velvet Underground.',
+    tr: 'Digital Underground, Velvet Underground grubundan farklıdır.',
+    uk: 'Digital Underground відрізняється від Velvet Underground.',
+    ru: 'Digital Underground отличается от Velvet Underground.',
+    ja: 'Digital UndergroundはVelvet Undergroundとは異なります。',
+    ko: 'Digital Underground는 Velvet Underground와 다릅니다.',
+    'zh-CN': 'Digital Underground与Velvet Underground不同。',
+  }
+  it.each(SUPPORTED_LOCALES)('retains explicit comparisons in %s', async (locale) => {
+    const reasoning = comparisons[locale]
+    expect(await aiNames('Digital Underground', reasoning, ['Velvet Underground'], locale)).toEqual(
+      ['Digital Underground'],
+    )
+  })
+
   it('collects similar artists from LB source', async () => {
     const lb = makeLb()
     const results = await discover(profile, { listeningSources: [lb] }, 10)
@@ -267,7 +459,7 @@ describe('discover()', () => {
     expect(names).toContain('Burial')
   })
 
-  it('filters AI recs whose reasoning mentions a different top artist', async () => {
+  it('filters colliding AI names when reasoning describes only the seed artist', async () => {
     const confusedProfile: TasteProfile = {
       ...profile,
       topArtists: [

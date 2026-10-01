@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-09-20 | Current: v1.18.0
+> Updated: 2026-10-01 | Current: v1.18.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -60,6 +60,10 @@ Low confidence. Would build only with real demand.
 - TUI client (terminal UI for discovery and approval)
 - Native desktop client (Linux/Mac/Windows) - PWA install already covers most of this
 - Native mobile apps (Android/iOS) - PWA is already installable; native value is mostly reliable push notifications
+
+## In development
+
+- Preserve legitimate AI comparisons to listening-profile artists while retaining a limited shared-name confusion check. [#719](https://github.com/iuliandita/digarr/issues/719).
 
 ## Release history
 

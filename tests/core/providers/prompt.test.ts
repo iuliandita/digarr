@@ -19,6 +19,12 @@ const sampleProfile: TasteProfile = {
 }
 
 describe('buildRecommendationPrompt()', () => {
+  it('anchors reasoning to the exact artist name while allowing comparisons', () => {
+    const prompt = buildRecommendationPrompt(sampleProfile)
+    expect(prompt).toContain('Include the exact artistName in the first sentence')
+    expect(prompt).toContain("Explicit comparisons to the listener's artists are allowed")
+  })
+
   it('includes suggestedAlbum in the field list', () => {
     const prompt = buildRecommendationPrompt(sampleProfile)
     expect(prompt).toContain('suggestedAlbum')

@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Fixed
+
+- AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. This remains a heuristic, not identity verification. [#719](https://github.com/iuliandita/digarr/issues/719).
+
 ## v1.18.0 - 2026-09-20
 
 ### Security
