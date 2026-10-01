@@ -1607,6 +1607,14 @@ export const en = {
   'serviceCard.testConnection': 'Test Connection',
 
   // Preview playback toasts
+  'preview.unavailableSummary': '{count} of {total} selected previews unavailable',
+  'preview.reason.missing-links': 'No preview links',
+  'preview.reason.no-match': 'No matching track found',
+  'preview.reason.no-audio': 'Track has no preview audio',
+  'preview.reason.lookup-failed': 'Preview lookup failed',
+  'preview.reason.blocked': 'Browser blocked playback',
+  'preview.reason.playback-failed': 'Audio playback failed',
+  'preview.reason.controller-unavailable': 'Spotify player unavailable',
   'preview.noPreviewAvailable': 'No preview available for this artist',
   'preview.playbackBlocked': 'Playback blocked by browser - try clicking again',
 

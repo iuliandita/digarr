@@ -21,6 +21,7 @@ import { Skeleton } from '../components/ui/skeleton'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
+import type { PreviewFailureReason } from '../hooks/use-preview'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
 import {
   ApiError,
@@ -46,6 +47,16 @@ type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
 type ViewMode = 'grid' | 'list' | 'stack'
 type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
+
+const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
+  'missing-links': 'preview.reason.missing-links',
+  'no-match': 'preview.reason.no-match',
+  'no-audio': 'preview.reason.no-audio',
+  'lookup-failed': 'preview.reason.lookup-failed',
+  blocked: 'preview.reason.blocked',
+  'playback-failed': 'preview.reason.playback-failed',
+  'controller-unavailable': 'preview.reason.controller-unavailable',
+}
 
 const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s+']
 
@@ -917,9 +928,7 @@ export function DiscoverPage() {
   }
 
   function handleAudition() {
-    const eligible = items.filter(
-      (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
-    )
+    const eligible = items.filter((r) => r.status === 'pending')
     if (eligible.length === 0) {
       toast.info(t('discover.nothingToAudition'))
       return
@@ -1108,9 +1117,7 @@ export function DiscoverPage() {
   const pendingBelowThreshold = items.filter(
     (r) => r.score * 100 < approveThreshold && r.status === 'pending',
   ).length
-  const auditionEligible = items.filter(
-    (r) => r.status === 'pending' && preview.hasPreview(r.artist.streamingUrls),
-  ).length
+  const auditionEligible = items.filter((r) => r.status === 'pending').length
 
   return (
     <div
@@ -1118,6 +1125,34 @@ export function DiscoverPage() {
       {...pullHandlers}
     >
       <h1 className="sr-only">{t('discover.title')}</h1>
+      {preview.audition.unavailable?.length > 0 && (
+        <section
+          className="rounded-lg border border-border bg-surface p-4 text-sm"
+          aria-live="polite"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <p>
+              {t('preview.unavailableSummary')
+                .replace('{count}', String(preview.audition.unavailable.length))
+                .replace('{total}', String(preview.audition.selectedCount))}
+            </p>
+            <button
+              type="button"
+              className="text-muted hover:text-text"
+              onClick={preview.audition.dismissSummary}
+            >
+              {t('common.dismiss')}
+            </button>
+          </div>
+          <ul className="mt-2 space-y-1 text-muted">
+            {preview.audition.unavailable.map(({ item, reason }) => (
+              <li key={item.mbid}>
+                {item.artistName}: {t(PREVIEW_REASON_KEYS[reason])}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {/* Pull-to-refresh indicator */}
       {pullY > 0 && (
         <div

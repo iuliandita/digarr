@@ -6,6 +6,7 @@ import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditionQueue } from '@/web/hooks/use-audition-queue'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
 
@@ -19,6 +20,9 @@ const noopPreview = {
   volume: 1,
   setVolume: vi.fn(),
   audition: {
+    unavailable: [] as AuditionQueue['unavailable'],
+    selectedCount: 0,
+    dismissSummary: vi.fn(),
     active: false,
     index: 0,
     count: 0,
@@ -166,6 +170,8 @@ import { DiscoverPage } from '@/web/pages/discover'
 describe('DiscoverPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    noopPreview.audition.unavailable = []
+    noopPreview.audition.selectedCount = 0
     mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
     mockGetCurrentUser.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true })
     const storage = new Map<string, string>()
@@ -192,6 +198,41 @@ describe('DiscoverPage', () => {
         disconnect() {}
       },
     })
+  })
+
+  it('includes pending artists without preview links in Audition without approving them', async () => {
+    const rec = makeRec()
+    rec.artist.streamingUrls = { spotify: '' }
+    setupMockApi([rec, makeRec({ id: 2, status: 'approved' })])
+    renderWithQuery(<DiscoverPage />)
+    const button = await screen.findByRole('button', { name: /Audition/ })
+    await waitFor(() => expect(button).toBeEnabled())
+    fireEvent.click(button)
+    expect(noopPreview.audition.start).toHaveBeenCalledWith([
+      {
+        mbid: rec.artist.mbid,
+        artistName: rec.artist.name,
+        streamingUrls: rec.artist.streamingUrls,
+      },
+    ])
+    expect(mockApproveRecommendation).not.toHaveBeenCalled()
+    expect(mockBulkAction).not.toHaveBeenCalled()
+  })
+
+  it('shows a localized unavailable summary after the queue has ended', async () => {
+    setupMockApi([])
+    noopPreview.audition.selectedCount = 2
+    noopPreview.audition.unavailable = [
+      {
+        item: { mbid: 'a', artistName: 'No-link artist', streamingUrls: null },
+        reason: 'missing-links',
+      },
+    ]
+    renderWithQuery(<DiscoverPage />)
+    expect(await screen.findByText('1 of 2 selected previews unavailable')).toBeInTheDocument()
+    expect(screen.getByText('No-link artist: No preview links')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    expect(noopPreview.audition.dismissSummary).toHaveBeenCalled()
   })
 
   it('renders recommendation cards from API data', async () => {

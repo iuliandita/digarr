@@ -205,6 +205,10 @@ describe('usePreview play outcomes', () => {
 
     expect(result.current.state.playing).toBe(false)
     expect(result.current.playbackEndedCount).toBe(1)
+    expect(result.current.getLastFailure()).toMatchObject({
+      artistMbid: 'm1',
+      reason: 'controller-unavailable',
+    })
   })
 
   it("returns 'started', then 'paused', then 'resumed' for the same deezer artist", async () => {
@@ -213,18 +217,18 @@ describe('usePreview play outcomes', () => {
 
     let outcome: string | undefined
     await act(async () => {
-      outcome = await result.current.play('m1', 'Radiohead', {})
+      outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('started')
 
     await act(async () => {
-      outcome = await result.current.play('m1', 'Radiohead', {})
+      outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('paused')
     expect(result.current.state.playing).toBe(false)
 
     await act(async () => {
-      outcome = await result.current.play('m1', 'Radiohead', {})
+      outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('resumed')
     expect(result.current.state.playing).toBe(true)
@@ -252,19 +256,25 @@ describe('usePreview play outcomes', () => {
 
   it("returns 'blocked' when autoplay is rejected, suppressing the toast on request", async () => {
     stubDeezerFetch()
-    FakeAudio.playImpl = () => Promise.reject(new Error('NotAllowedError'))
+    FakeAudio.playImpl = () =>
+      Promise.reject(new DOMException('Playback denied', 'NotAllowedError'))
     const { result } = renderHook(() => usePreview(), { wrapper })
 
     let outcome: string | undefined
     await act(async () => {
-      outcome = await result.current.play('m1', 'Radiohead', {})
+      outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('blocked')
     expect(toast.error).toHaveBeenCalledTimes(1)
 
     vi.mocked(toast.error).mockClear()
     await act(async () => {
-      outcome = await result.current.play('m2', 'Portishead', {}, { suppressErrorToast: true })
+      outcome = await result.current.play(
+        'm2',
+        'Portishead',
+        { deezer: 'url' },
+        { suppressErrorToast: true },
+      )
     })
     expect(outcome).toBe('blocked')
     expect(toast.error).not.toHaveBeenCalled()
@@ -275,7 +285,7 @@ describe('usePreview play outcomes', () => {
     const { result } = renderHook(() => usePreview(), { wrapper })
 
     await act(async () => {
-      await result.current.play('m1', 'Radiohead', {})
+      await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(result.current.playbackEndedCount).toBe(0)
 
@@ -289,5 +299,69 @@ describe('usePreview play outcomes', () => {
       FakeAudio.instances[0]?.onerror?.()
     })
     expect(result.current.playbackEndedCount).toBe(2)
+    expect(result.current.failureEvent).toMatchObject({
+      artistMbid: 'm1',
+      reason: 'playback-failed',
+    })
+  })
+
+  it.each<
+    [Record<string, string> | null, { data: Array<{ preview?: string }> } | undefined, string]
+  >([
+    [null, undefined, 'missing-links'],
+    [{ deezer: 'https://deezer.com/artist/1' }, { data: [] }, 'no-match'],
+    [{ deezer: 'https://deezer.com/artist/1' }, { data: [{}] }, 'no-audio'],
+    [{ deezer: 'https://deezer.com/artist/1' }, undefined, 'lookup-failed'],
+  ])('reports coarse resolution failure %s', async (links, data, reason) => {
+    if (data)
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => data }))
+    const { result } = renderHook(() => usePreview(), { wrapper })
+    await act(async () => {
+      await result.current.play('m1', 'Artist', links)
+    })
+    expect(result.current.failureEvent).toEqual({ sequence: 1, artistMbid: 'm1', reason })
+    act(() => result.current.stop())
+    expect(result.current.getLastFailure()).toMatchObject({ reason })
+    act(() => result.current.clearFailure())
+    expect(result.current.getLastFailure()).toBeNull()
+  })
+
+  it('does not mistake an error message for browser blocking, including on resume', async () => {
+    stubDeezerFetch()
+    const { result } = renderHook(() => usePreview(), { wrapper })
+    await act(async () => {
+      await result.current.play('m1', 'Artist', { deezer: 'url' })
+    })
+    await act(async () => {
+      await result.current.play('m1', 'Artist', { deezer: 'url' })
+    })
+    FakeAudio.playImpl = () => Promise.reject(new Error('NotAllowedError'))
+    let outcome: string | undefined
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Artist', { deezer: 'url' })
+    })
+    expect(outcome).toBe('failed')
+    expect(result.current.getLastFailure()?.reason).toBe('playback-failed')
+  })
+
+  it('ignores old audio callbacks after another artist starts or stops', async () => {
+    stubDeezerFetch()
+    const { result } = renderHook(() => usePreview(), { wrapper })
+    await act(async () => {
+      await result.current.play('m1', 'First', { deezer: 'url' })
+    })
+    const old = FakeAudio.instances[0]
+    await act(async () => {
+      await result.current.play('m2', 'Second', { deezer: 'url' })
+    })
+    act(() => {
+      old?.onerror?.()
+      old?.onended?.()
+    })
+    expect(result.current.playbackEndedCount).toBe(0)
+    expect(result.current.getLastFailure()).toBeNull()
+    act(() => result.current.stop())
+    act(() => FakeAudio.instances[1]?.onerror?.())
+    expect(result.current.playbackEndedCount).toBe(0)
   })
 })

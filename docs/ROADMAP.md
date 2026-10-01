@@ -74,6 +74,7 @@ The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt ca
 
 ## In development
 
+- Explain unavailable previews in the existing Discover Audition queue. [#729](https://github.com/iuliandita/digarr/issues/729).
 - Capability-aware discovery reporting, including unsupported sources and successful empty lookups. [#722](https://github.com/iuliandita/digarr/issues/722).
 - Preserve legitimate AI comparisons to listening-profile artists while retaining a limited shared-name confusion check. [#719](https://github.com/iuliandita/digarr/issues/719).
 - Distinguish empty listening history from unconfigured accounts and fetch failures. [#721](https://github.com/iuliandita/digarr/issues/721).

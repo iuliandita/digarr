@@ -39,6 +39,9 @@ const noopPreview = {
   volume: 1,
   setVolume: vi.fn(),
   audition: {
+    unavailable: [],
+    selectedCount: 0,
+    dismissSummary: vi.fn(),
     active: false,
     index: 0,
     count: 0,

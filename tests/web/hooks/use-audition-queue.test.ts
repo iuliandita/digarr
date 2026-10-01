@@ -7,7 +7,12 @@ import {
   EMBED_ADVANCE_MS,
   useAuditionQueue,
 } from '@/web/hooks/use-audition-queue'
-import type { PlayOutcome, PreviewSource, usePreview } from '@/web/hooks/use-preview'
+import type {
+  PlayOutcome,
+  PreviewFailure,
+  PreviewSource,
+  usePreview,
+} from '@/web/hooks/use-preview'
 
 type Preview = ReturnType<typeof usePreview>
 
@@ -76,6 +81,9 @@ function createFakePreview(scripts: Record<string, PlayScript> = {}) {
     hasPreview: vi.fn(() => true),
     globalPlayId: 0,
     playbackEndedCount: 0,
+    failureEvent: null,
+    getLastFailure: vi.fn<() => PreviewFailure | null>(() => null),
+    clearFailure: vi.fn(),
     volume: 1,
     setVolume: vi.fn(),
   }
@@ -105,6 +113,91 @@ afterEach(() => {
 })
 
 describe('useAuditionQueue', () => {
+  it('retains every unavailable item after the queue ends and can dismiss the summary', async () => {
+    const fake = createFakePreview({
+      a: { outcome: 'no-source' },
+      b: { outcome: 'blocked' },
+      c: { outcome: 'failed' },
+    })
+    const { result } = renderQueue(fake)
+    await act(async () => result.current.start(items))
+    expect(result.current.active).toBe(false)
+    expect(result.current.selectedCount).toBe(3)
+    expect(result.current.unavailable.map((entry) => entry.item.mbid)).toEqual(['a', 'b', 'c'])
+    await act(async () => result.current.dismissSummary())
+    expect(result.current.unavailable).toEqual([])
+  })
+
+  it('replaces a failed item on retry and resets the summary on a new run', async () => {
+    const scripts: Record<string, PlayScript> = { a: { outcome: 'failed' } }
+    const fake = createFakePreview(scripts)
+    fake.getLastFailure.mockReturnValue({ sequence: 1, artistMbid: 'a', reason: 'lookup-failed' })
+    const { result } = renderQueue(fake)
+    await act(async () => result.current.start(items))
+    expect(result.current.unavailable[0]?.reason).toBe('lookup-failed')
+    scripts.a = { outcome: 'started' }
+    await act(async () => result.current.previous())
+    expect(result.current.unavailable).toEqual([])
+    await act(async () => result.current.start(items.slice(2)))
+    expect(result.current.selectedCount).toBe(1)
+    expect(result.current.unavailable).toEqual([])
+  })
+
+  it('records an asynchronous playback failure before advancing', async () => {
+    const fake = createFakePreview()
+    const { result, rerender } = renderQueue(fake)
+    await act(async () => result.current.start(items))
+    fake.getLastFailure.mockReturnValue({
+      sequence: 1,
+      artistMbid: 'a',
+      reason: 'controller-unavailable',
+    })
+    fake.playbackEndedCount += 1
+    await act(async () => rerender({ preview: fake }))
+    expect(result.current.current?.mbid).toBe('b')
+    expect(result.current.unavailable.map((entry) => entry.reason)).toEqual([
+      'controller-unavailable',
+    ])
+  })
+
+  it('ignores an older lookup after navigating away and back to the same item', async () => {
+    const fake = createFakePreview()
+    let resolveFirst: (outcome: PlayOutcome) => void = () => {}
+    let resolveLatest: (outcome: PlayOutcome) => void = () => {}
+    const original = fake.play.getMockImplementation()
+    fake.play.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirst = resolve
+        }),
+    )
+    const { result } = renderQueue(fake)
+    await act(async () => result.current.start(items))
+    await act(async () => result.current.next())
+    fake.play.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveLatest = resolve
+        }),
+    )
+    await act(async () => result.current.previous())
+    await act(async () => resolveFirst('superseded'))
+    expect(result.current.active).toBe(true)
+    expect(result.current.current?.mbid).toBe('a')
+    expect(result.current.unavailable).toEqual([])
+    fake.play.mockImplementation(original ?? (() => Promise.resolve('started')))
+    await act(async () => resolveLatest('started'))
+    expect(result.current.active).toBe(true)
+  })
+
+  it('does not label a superseded request unavailable', async () => {
+    const fake = createFakePreview({ a: { outcome: 'superseded' } })
+    const { result } = renderQueue(fake)
+    await act(async () => result.current.start(items))
+    expect(result.current.active).toBe(false)
+    expect(result.current.unavailable).toEqual([])
+  })
+
   it('start() stops the engine first, then plays item 0 with suppressed toasts', async () => {
     const fake = createFakePreview()
     const { result } = renderQueue(fake)

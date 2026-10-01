@@ -10,7 +10,24 @@ export type PreviewSource = {
   embedUrl: string
 }
 
-export type PlayOutcome = 'started' | 'paused' | 'resumed' | 'no-source' | 'blocked'
+export type PlayOutcome =
+  | 'started'
+  | 'paused'
+  | 'resumed'
+  | 'no-source'
+  | 'blocked'
+  | 'failed'
+  | 'superseded'
+export type PreviewFailureReason =
+  | 'missing-links'
+  | 'no-match'
+  | 'no-audio'
+  | 'lookup-failed'
+  | 'blocked'
+  | 'playback-failed'
+  | 'controller-unavailable'
+export type PreviewFailure = { sequence: number; artistMbid: string; reason: PreviewFailureReason }
+type PreviewResolution = { source: PreviewSource | null; reason?: PreviewFailureReason }
 
 type PreviewState = {
   playing: boolean
@@ -51,23 +68,19 @@ function resolveSpotifyEmbed(spotifyUrl: string): PreviewSource | null {
   }
 }
 
-/**
- * Attempt to fetch a Deezer preview. The Deezer public API does NOT send
- * CORS headers, so this will fail in most browsers. It works from non-browser
- * contexts (tests, SSR) and some browsers with relaxed CORS policies.
- * When it fails, the preview chain falls through to YouTube embed.
- */
-async function resolveDeezerPreview(artistName: string): Promise<PreviewSource | null> {
+async function resolveDeezerPreview(artistName: string): Promise<PreviewResolution> {
   try {
     const encoded = encodeURIComponent(artistName)
     const res = await fetch(`https://api.deezer.com/search?q=artist:"${encoded}"&limit=1`)
-    if (!res.ok) return null
+    if (!res.ok) return { source: null, reason: 'lookup-failed' }
     const data = (await res.json()) as { data?: Array<{ preview?: string }> }
-    const track = data?.data?.[0]
-    if (!track?.preview) return null
-    return { type: 'deezer-audio', url: track.preview, embedUrl: track.preview }
+    if (!Array.isArray(data?.data)) return { source: null, reason: 'lookup-failed' }
+    const track = data.data[0]
+    if (!track) return { source: null, reason: 'no-match' }
+    if (!track.preview) return { source: null, reason: 'no-audio' }
+    return { source: { type: 'deezer-audio', url: track.preview, embedUrl: track.preview } }
   } catch {
-    return null
+    return { source: null, reason: 'lookup-failed' }
   }
 }
 
@@ -85,26 +98,34 @@ function resolveYouTubeEmbed(youtubeUrl: string): PreviewSource | null {
 
 // Public: exported for testing
 
+async function resolvePreview(
+  streamingUrls: Record<string, string> | null,
+  artistName: string,
+): Promise<PreviewResolution> {
+  if (!streamingUrls || !Object.values(streamingUrls).some(Boolean))
+    return { source: null, reason: 'missing-links' }
+
+  if (streamingUrls.spotify) {
+    const source = resolveSpotifyEmbed(streamingUrls.spotify)
+    if (source) return { source }
+  }
+
+  const deezer = await resolveDeezerPreview(artistName)
+  if (deezer.source) return deezer
+
+  if (streamingUrls.youtube) {
+    const source = resolveYouTubeEmbed(streamingUrls.youtube)
+    if (source) return { source }
+  }
+
+  return deezer
+}
+
 export async function resolvePreviewSource(
   streamingUrls: Record<string, string> | null,
   artistName: string,
 ): Promise<PreviewSource | null> {
-  if (!streamingUrls) return null
-
-  if (streamingUrls.spotify) {
-    const source = resolveSpotifyEmbed(streamingUrls.spotify)
-    if (source) return source
-  }
-
-  const deezer = await resolveDeezerPreview(artistName)
-  if (deezer) return deezer
-
-  if (streamingUrls.youtube) {
-    const source = resolveYouTubeEmbed(streamingUrls.youtube)
-    if (source) return source
-  }
-
-  return null
+  return (await resolvePreview(streamingUrls, artistName)).source
 }
 
 // Hook
@@ -123,6 +144,20 @@ export function usePreview() {
   const stateRef = useRef<PreviewState>(INITIAL_STATE)
   const currentMbidRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const requestIdRef = useRef(0)
+  const failureRef = useRef<PreviewFailure | null>(null)
+  const failureSequenceRef = useRef(0)
+  const [failureEvent, setFailureEvent] = useState<PreviewFailure | null>(null)
+  const getLastFailure = useCallback(() => failureRef.current, [])
+  const clearFailure = useCallback(() => {
+    failureRef.current = null
+    setFailureEvent(null)
+  }, [])
+  const emitFailure = useCallback((artistMbid: string, reason: PreviewFailureReason) => {
+    const failure = { sequence: ++failureSequenceRef.current, artistMbid, reason }
+    failureRef.current = failure
+    setFailureEvent(failure)
+  }, [])
   const globalPlayIdRef = useRef(0)
   const [globalPlayId, setGlobalPlayId] = useState(0)
   const [playbackEndedCount, setPlaybackEndedCount] = useState(0)
@@ -156,6 +191,7 @@ export function usePreview() {
   }, [])
 
   const stop = useCallback(() => {
+    requestIdRef.current += 1
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
@@ -179,9 +215,11 @@ export function usePreview() {
 
   const onSpotifyPlaybackUnavailable = useCallback(() => {
     if (stateRef.current.source?.type !== 'spotify-embed') return
+    if (!currentMbidRef.current) return
+    emitFailure(currentMbidRef.current, 'controller-unavailable')
     setStateAndRef((current) => ({ ...current, playing: false }))
     setPlaybackEndedCount((count) => count + 1)
-  }, [setStateAndRef])
+  }, [emitFailure, setStateAndRef])
 
   const onSpotifyPlaybackEnded = useCallback(() => {
     if (stateRef.current.source?.type !== 'spotify-embed') return
@@ -200,6 +238,7 @@ export function usePreview() {
       // regardless of whether this is a new artist, resume, or toggle-pause
       globalPlayIdRef.current += 1
       setGlobalPlayId(globalPlayIdRef.current)
+      clearFailure()
 
       // Toggle pause if same artist is already playing
       if (currentMbidRef.current === mbid && stateRef.current.playing) {
@@ -214,7 +253,23 @@ export function usePreview() {
       // Resume if same artist is paused
       if (currentMbidRef.current === mbid && !stateRef.current.playing && stateRef.current.source) {
         if (stateRef.current.source.type === 'deezer-audio' && audioRef.current) {
-          await audioRef.current.play()
+          const audio = audioRef.current
+          const requestId = requestIdRef.current
+          try {
+            await audio.play()
+          } catch (error) {
+            if (requestId !== requestIdRef.current) return 'superseded'
+            const blocked =
+              typeof error === 'object' &&
+              error !== null &&
+              'name' in error &&
+              error.name === 'NotAllowedError'
+            emitFailure(mbid, blocked ? 'blocked' : 'playback-failed')
+            if (!opts?.suppressErrorToast)
+              toast.error(t(blocked ? 'preview.playbackBlocked' : 'preview.reason.playback-failed'))
+            return blocked ? 'blocked' : 'failed'
+          }
+          if (requestId !== requestIdRef.current) return 'superseded'
           setStateAndRef((s) => ({ ...s, playing: true }))
           return 'resumed'
         }
@@ -228,12 +283,12 @@ export function usePreview() {
       }
 
       // New artist: stop whatever was playing
+      const requestId = ++requestIdRef.current
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current.src = ''
       }
 
-      const targetMbid = mbid
       currentMbidRef.current = mbid
       const spotifySource = streamingUrls?.spotify
         ? resolveSpotifyEmbed(streamingUrls.spotify)
@@ -261,12 +316,13 @@ export function usePreview() {
         error: null,
       }))
 
-      const source = await resolvePreviewSource(streamingUrls, artistName)
+      const { source, reason } = await resolvePreview(streamingUrls, artistName)
 
       // Guard: user started a different preview while we were resolving
-      if (currentMbidRef.current !== targetMbid) return 'no-source'
+      if (requestIdRef.current !== requestId) return 'superseded'
 
       if (!source) {
+        emitFailure(mbid, reason ?? 'no-audio')
         setStateAndRef(() => INITIAL_STATE)
         if (!opts?.suppressErrorToast) toast.error(t('preview.noPreviewAvailable'))
         return 'no-source'
@@ -276,21 +332,42 @@ export function usePreview() {
         const audio = new Audio(source.url)
         audio.volume = volumeRef.current
         audioRef.current = audio
+        const isCurrent = () => requestIdRef.current === requestId && audioRef.current === audio
+        let audioFailed = false
         audio.onended = () => {
+          if (!isCurrent() || audioFailed) return
           setStateAndRef((s) => ({ ...s, playing: false }))
           setPlaybackEndedCount((c) => c + 1)
         }
         audio.onerror = () => {
-          setStateAndRef((s) => ({ ...s, playing: false, error: 'Audio playback failed.' }))
+          if (!isCurrent() || audioFailed) return
+          audioFailed = true
+          emitFailure(mbid, 'playback-failed')
+          setStateAndRef((s) => ({
+            ...s,
+            playing: false,
+            error: t('preview.reason.playback-failed'),
+          }))
           setPlaybackEndedCount((c) => c + 1)
         }
         try {
           await audio.play()
+          if (!isCurrent()) return 'superseded'
+          if (audioFailed) return 'failed'
           setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
-        } catch {
+        } catch (error) {
+          if (!isCurrent()) return 'superseded'
+          const blocked =
+            typeof error === 'object' &&
+            error !== null &&
+            'name' in error &&
+            error.name === 'NotAllowedError'
+          if (!audioFailed) emitFailure(mbid, blocked ? 'blocked' : 'playback-failed')
+          audioFailed = true
           setStateAndRef(() => INITIAL_STATE)
-          if (!opts?.suppressErrorToast) toast.error(t('preview.playbackBlocked'))
-          return 'blocked'
+          if (!opts?.suppressErrorToast)
+            toast.error(t(blocked ? 'preview.playbackBlocked' : 'preview.reason.playback-failed'))
+          return blocked ? 'blocked' : 'failed'
         }
         return 'started'
       }
@@ -299,7 +376,7 @@ export function usePreview() {
       setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
       return 'started'
     },
-    [issueSpotifyCommand, setStateAndRef, t],
+    [clearFailure, emitFailure, issueSpotifyCommand, setStateAndRef, t],
   )
 
   const hasPreview = useCallback((streamingUrls: Record<string, string> | null): boolean => {
@@ -314,6 +391,9 @@ export function usePreview() {
     hasPreview,
     globalPlayId,
     playbackEndedCount,
+    failureEvent,
+    getLastFailure,
+    clearFailure,
     spotifyCommand,
     onSpotifyPlaybackStarted,
     onSpotifyPlaybackPaused,
