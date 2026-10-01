@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": ["scripts/recommendation-quality.ts", "scripts/evals/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

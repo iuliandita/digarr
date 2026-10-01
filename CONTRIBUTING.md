@@ -77,6 +77,10 @@ Tests live in `tests/`. Keep them close to the code they cover. Route-contract c
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
+## Recommendation quality
+
+Use the [recommendation evaluation guide](docs/RECOMMENDATION-QUALITY.md) before changing prompts or ranking. `bun run eval:quality prepare` generates production-prompt cases without network calls. Live Promptfoo comparisons remain manual and advisory; saved outputs can be replayed locally. Synthetic profiles and automated plausibility checks do not establish human recommendation fit.
+
 ## Submitting a PR
 
 1. Create a branch from `develop`: `git checkout develop && git pull --ff-only && git checkout -b feat/my-thing`

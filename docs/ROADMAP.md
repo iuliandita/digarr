@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-09-20 | Current: v1.18.0
+> Updated: 2026-10-01 | Current: v1.18.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -60,6 +60,10 @@ Low confidence. Would build only with real demand.
 - TUI client (terminal UI for discovery and approval)
 - Native desktop client (Linux/Mac/Windows) - PWA install already covers most of this
 - Native mobile apps (Android/iOS) - PWA is already installable; native value is mostly reliable push notifications
+
+## Recommendation evaluation
+
+The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt cases and replayable contract reports. Recommendation fit, catalog identity, previews, and delivery still need separate human and end-to-end evaluation before ranking changes.
 
 ## Release history
 

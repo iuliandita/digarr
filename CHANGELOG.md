@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Development
+
+- Recommendation evaluation uses the production prompt with representative synthetic profiles, field-level checks, and replayable reports. Expected-neighbor checks remain advisory; subjective fit and listening outcomes require separate review. [#718](https://github.com/iuliandita/digarr/issues/718).
+
 ## v1.18.0 - 2026-09-20
 
 ### Security

@@ -21,11 +21,22 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - run: bun install --frozen-lockfile
+      - name: Prepare production-prompt fixtures
+        run: bun run eval:quality prepare
       - name: Run promptfoo evals
-        run: npx --yes promptfoo@0.119.0 eval --config promptfooconfig.yaml
+        run: npx --yes promptfoo@0.119.0 eval --config promptfooconfig.yaml --output evaluation-results/recommendation-quality/promptfoo.json
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Upload evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: recommendation-quality
+          path: evaluation-results/recommendation-quality/
+          retention-days: 14
       - name: Mark result as advisory
         if: always()
         run: echo "::notice::AI recommendation evals are advisory - review results but do not block merge on failure."

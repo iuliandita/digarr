@@ -9,6 +9,7 @@
       "!.worktrees",
       "!docs/local",
       "!test-results",
+      "!evaluation-results",
       "!playwright-report",
       "!**/*.svg"
     ]

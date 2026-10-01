@@ -19,12 +19,13 @@
     "test:watch": "vitest",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.evals.json",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:a11y": "playwright test --config=playwright.a11y.config.ts"
+    "test:e2e:a11y": "playwright test --config=playwright.a11y.config.ts",
+    "eval:quality": "bun scripts/recommendation-quality.ts"
   },
   "overrides": {
     "esbuild": "^0.28.0",

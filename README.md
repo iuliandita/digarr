@@ -332,6 +332,7 @@ A successful verify proves the image was built by this repo's `release.yml` work
 - [Installation with Docker](deploy/docker/README.md), [Helm](deploy/helm/digarr/README.md), [Unraid](docs/guides/unraid.md), [Synology](docs/guides/synology.md), or [Docker Desktop](docs/guides/docker-desktop.md)
 - [Authentication, SSO, and user management](docs/AUTHENTICATION.md)
 - [API reference](docs/API.md) and [architecture](docs/ARCHITECTURE.md)
+- [Recommendation quality evaluation](docs/RECOMMENDATION-QUALITY.md)
 - [Switching database backends](docs/guides/switching-backends.md) and [encryption-key rotation](docs/runbooks/encryption-key-rotation.md)
 - [Changelog](CHANGELOG.md), [roadmap](docs/ROADMAP.md), and [screenshots](docs/SCREENSHOTS.md)
 - [Other self-hosted music projects](docs/COMPARISON.md)

@@ -12,6 +12,7 @@ coverage/
 *.log
 .DS_Store
 test-results/
+evaluation-results/
 playwright-report/
 
 # Bun is the package manager for this repo; keep alternate lockfiles local.

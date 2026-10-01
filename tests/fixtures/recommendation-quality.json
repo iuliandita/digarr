@@ -1,0 +1,486 @@
+[
+  {
+    "id": "art-rock",
+    "cohort": "established",
+    "description": "Synthetic profile: Indie / art-rock neighborhood.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Radiohead",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["art rock", "alternative rock"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "art rock",
+          "weight": 0.8
+        },
+        {
+          "name": "alternative rock",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Thom Yorke",
+      "Atoms for Peace",
+      "Portishead",
+      "Sigur Ros",
+      "Sigur Rós",
+      "Wilco",
+      "Elliott Smith"
+    ]
+  },
+  {
+    "id": "soft-rock",
+    "cohort": "established",
+    "description": "Synthetic profile: Soft-rock / folk-adjacent 70s listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Fleetwood Mac",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["soft rock", "folk rock"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "soft rock",
+          "weight": 0.8
+        },
+        {
+          "name": "folk rock",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Crosby, Stills, Nash",
+      "Eagles",
+      "Jackson Browne",
+      "Joni Mitchell",
+      "Linda Ronstadt",
+      "America"
+    ]
+  },
+  {
+    "id": "ambient-drone",
+    "cohort": "established",
+    "description": "Synthetic profile: Ambient and drone listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Brian Eno",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["ambient", "drone"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "ambient",
+          "weight": 0.8
+        },
+        {
+          "name": "drone",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Harold Budd",
+      "Stars of the Lid",
+      "William Basinski",
+      "Tim Hecker",
+      "Grouper",
+      "Aphex Twin"
+    ]
+  },
+  {
+    "id": "boom-bap",
+    "cohort": "established",
+    "description": "Synthetic profile: Hip-hop / boom-bap revival.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Madvillain",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["boom bap", "experimental hip hop"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "boom bap",
+          "weight": 0.8
+        },
+        {
+          "name": "experimental hip hop",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "MF DOOM",
+      "J Dilla",
+      "DJ Premier",
+      "Freddie Gibbs",
+      "Aesop Rock",
+      "Company Flow"
+    ]
+  },
+  {
+    "id": "post-rock",
+    "cohort": "established",
+    "description": "Synthetic profile: Cinematic post-rock listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Godspeed You! Black Emperor",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["post-rock", "instrumental rock"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "post-rock",
+          "weight": 0.8
+        },
+        {
+          "name": "instrumental rock",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Mogwai",
+      "Explosions in the Sky",
+      "Mono",
+      "A Silver Mt. Zion",
+      "Do Make Say Think",
+      "This Will Destroy You"
+    ]
+  },
+  {
+    "id": "idm",
+    "cohort": "established",
+    "description": "Synthetic profile: Electronic / IDM listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Aphex Twin",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["IDM", "experimental electronic"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "IDM",
+          "weight": 0.8
+        },
+        {
+          "name": "experimental electronic",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Autechre",
+      "Squarepusher",
+      "Boards of Canada",
+      "Venetian Snares",
+      "Clark",
+      "Flying Lotus"
+    ]
+  },
+  {
+    "id": "doom-metal",
+    "cohort": "established",
+    "description": "Synthetic profile: Classic metal with slow heavy riffs.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Black Sabbath",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["doom metal", "heavy metal"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "doom metal",
+          "weight": 0.8
+        },
+        {
+          "name": "heavy metal",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Pentagram",
+      "Saint Vitus",
+      "Candlemass",
+      "Electric Wizard",
+      "Sleep",
+      "Sir Lord Baltimore"
+    ]
+  },
+  {
+    "id": "afrobeat",
+    "cohort": "established",
+    "description": "Synthetic profile: Afrobeat / funk crossover.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Fela Kuti",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["afrobeat", "funk"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "afrobeat",
+          "weight": 0.8
+        },
+        {
+          "name": "funk",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Tony Allen",
+      "Antibalas",
+      "Ebo Taylor",
+      "Orlando Julius",
+      "The Budos Band",
+      "Femi Kuti"
+    ]
+  },
+  {
+    "id": "indie-songwriter",
+    "cohort": "established",
+    "description": "Synthetic profile: Intimate lo-fi indie songwriting.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Elliott Smith",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["indie folk", "singer-songwriter"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "indie folk",
+          "weight": 0.8
+        },
+        {
+          "name": "singer-songwriter",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Nick Drake",
+      "Mark Kozelek",
+      "Jason Molina",
+      "Bill Callahan",
+      "Sufjan Stevens",
+      "Phoebe Bridgers"
+    ]
+  },
+  {
+    "id": "spiritual-jazz",
+    "cohort": "established",
+    "description": "Synthetic profile: Modal and spiritual jazz listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "John Coltrane",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["spiritual jazz", "modal jazz"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "spiritual jazz",
+          "weight": 0.8
+        },
+        {
+          "name": "modal jazz",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Pharoah Sanders",
+      "Alice Coltrane",
+      "Sun Ra",
+      "Albert Ayler",
+      "McCoy Tyner",
+      "Archie Shepp"
+    ]
+  },
+  {
+    "id": "cold-start",
+    "cohort": "cold-start",
+    "description": "Synthetic profile: No listening history; contract checks only.",
+    "profile": {
+      "topArtists": [],
+      "topGenres": [],
+      "listeningPatterns": {
+        "totalListens": 0,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": []
+  },
+  {
+    "id": "japanese-alt-rock",
+    "cohort": "non-english",
+    "description": "Synthetic profile: Japanese alternative rock with Japanese reasoning.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "椎名林檎",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["Japanese alternative rock", "art pop"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "Japanese alternative rock",
+          "weight": 0.8
+        },
+        {
+          "name": "art pop",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      },
+      "responseLocale": "ja"
+    },
+    "expectedNeighbors": ["東京事変", "UA", "Cocco", "Chara", "中村一義", "相対性理論"]
+  },
+  {
+    "id": "low-slowcore",
+    "cohort": "ambiguous-name",
+    "description": "Synthetic profile: Low is the Minnesota slowcore band; exclude unrelated rap anchors.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Low",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["slowcore", "indie rock"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "slowcore",
+          "weight": 0.8
+        },
+        {
+          "name": "indie rock",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": ["Codeine", "Duster", "Bedhead", "Red House Painters", "Idaho", "Grouper"],
+    "excludedArtists": ["Flo Rida", "Lil Jon"]
+  },
+  {
+    "id": "oud-jazz",
+    "cohort": "niche",
+    "description": "Synthetic profile: Oud-led jazz and chamber music listener.",
+    "profile": {
+      "topArtists": [
+        {
+          "name": "Anouar Brahem",
+          "playCount": 240,
+          "source": "synthetic",
+          "genres": ["oud", "chamber jazz"]
+        }
+      ],
+      "topGenres": [
+        {
+          "name": "oud",
+          "weight": 0.8
+        },
+        {
+          "name": "chamber jazz",
+          "weight": 0.6
+        }
+      ],
+      "listeningPatterns": {
+        "totalListens": 1200,
+        "recentTrend": "stable"
+      }
+    },
+    "expectedNeighbors": [
+      "Rabih Abou-Khalil",
+      "Dhafer Youssef",
+      "Le Trio Joubran",
+      "Ralph Towner",
+      "Tord Gustavsen",
+      "Jan Garbarek"
+    ]
+  }
+]
