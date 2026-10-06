@@ -15,7 +15,7 @@
 **Self-hosted music discovery for your library.** Find artists and albums from your listening history, explore a mood, and review recommendations before adding them to Lidarr or sending them to a playlist. Bring your own AI provider, including a local model. Lidarr is optional.
 
 > [!NOTE]
-> **v1.18.0 is out.** This release adds Plex listening history and Audition playlists, and fixes slskd imports, playlist exports, and notification credential rotation. See the [changelog](CHANGELOG.md) for release details.
+> **v1.19.0 is out.** This release adds optional genre priorities and playlist generation outcomes, improves discovery taste profiles and seed selection, and explains unavailable previews. See the [changelog](CHANGELOG.md) for release details.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 

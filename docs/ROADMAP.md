@@ -1,29 +1,31 @@
 # Roadmap
 
-> Updated: 2026-10-01 | Current: v1.18.0
+> Updated: 2026-10-06 | Current: v1.19.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v1.18.0 adds Plex listening history and Audition playlists. It fixes slskd searches and verified Lidarr imports, Plex playlist exports, saved-target connection tests, and notification credential rotation.
+v1.19.0 adds optional genre priorities and playlist generation outcomes. It improves source-relative taste evidence, discovery seed selection, artist matching, and listening-history and preview failure explanations.
 
 Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. The next priorities are recommendation quality, useful listening output, and clear delivery outcomes. Security and reliability remain release requirements.
 
 ## Shipped highlights
 
-- Plex listening history with a per-user listener selection. Shared-library sync works independently.
-- Audition playlists with one resolved track per pending artist, generated on demand or on a schedule.
-- Plex playlist export and saved-target connection-test fixes.
-- slskd search and retry fixes, complete-release checks, and verified Lidarr imports. Linked targets require a completed-download path visible to Lidarr.
+- Optional genre priorities with preference-group ordering and browsing. Confidence scoring stays unchanged.
+- Playlist generation outcomes separate selected, resolved, and included artists, with exact artist matching and configured fallback sources.
+- Source-relative taste evidence and genre-aware AI profiles preserve distinct interests and sparse-history uncertainty.
+- Equal-weight seed rotation and library backfill keep discovery seed budgets useful.
+- Listening-history states and unavailable preview reasons explain empty results and failures.
+- Replayable recommendation-quality reports exercise the production prompt; subjective fit remains advisory.
 
-See [v1.18.0](../CHANGELOG.md#v1180---2026-09-20) for details.
+See [v1.19.0](../CHANGELOG.md#v1190---2026-10-06) for details.
 
 ## Known integration limitation
 
 TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-artist retrieval have not been tested with a live account. This is an accepted release limitation, with [community testing requested](../README.md#tidal-feedback). The Experimental badges stay until these flows are verified.
 
-## In development
+## Also shipped in v1.19.0
 
 - Equal-weight discovery seed rotation, identity-safe library mixing and filled seed budgets. [#743](https://github.com/iuliandita/digarr/issues/743).
 - Playlist generation coverage with per-artist dispositions and exact artist matching before choosing tracks. [#744](https://github.com/iuliandita/digarr/issues/744), [#745](https://github.com/iuliandita/digarr/issues/745).
@@ -32,6 +34,16 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 - Maintenance rescoring that preserves saved score evidence, applies the current user's weights only to their rows, and skips incompatible or concurrently changed rows.
 - Cleaning imported genre lists before listening-profile weighting and coverage reporting.
 - Optional genre-priority ordering for focused and eclectic preferences, with separate preference-group browsing and unchanged confidence scores. Broader automatic ranking changes still require evaluation across varied profiles.
+
+- Retain artist-level genre context and honest source-weight labels in AI profiles; evaluate several equal interests and sparse history without forcing a dominant genre. [#739](https://github.com/iuliandita/digarr/issues/739).
+- Explain unavailable previews in the existing Discover Audition queue. [#729](https://github.com/iuliandita/digarr/issues/729).
+- Capability-aware discovery reporting, including unsupported sources and successful empty lookups. [#722](https://github.com/iuliandita/digarr/issues/722).
+- Preserve legitimate AI comparisons to listening-profile artists while retaining a limited shared-name confusion check. [#719](https://github.com/iuliandita/digarr/issues/719).
+- Distinguish empty listening history from unconfigured accounts and fetch failures. [#721](https://github.com/iuliandita/digarr/issues/721).
+
+## Release history
+
+[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Release automation opens a deployment-pin update after publishing an image; maintainers review and merge it before treating those examples as updated.
 
 ## Next priorities
 
@@ -81,15 +93,3 @@ Low confidence. Would build only with real demand.
 ## Recommendation evaluation
 
 The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt cases and replayable contract reports. Recommendation fit, catalog identity, previews, and delivery still need separate human and end-to-end evaluation before ranking changes.
-
-## In development
-
-- Retain artist-level genre context and honest source-weight labels in AI profiles; evaluate several equal interests and sparse history without forcing a dominant genre. [#739](https://github.com/iuliandita/digarr/issues/739).
-- Explain unavailable previews in the existing Discover Audition queue. [#729](https://github.com/iuliandita/digarr/issues/729).
-- Capability-aware discovery reporting, including unsupported sources and successful empty lookups. [#722](https://github.com/iuliandita/digarr/issues/722).
-- Preserve legitimate AI comparisons to listening-profile artists while retaining a limited shared-name confusion check. [#719](https://github.com/iuliandita/digarr/issues/719).
-- Distinguish empty listening history from unconfigured accounts and fetch failures. [#721](https://github.com/iuliandita/digarr/issues/721).
-
-## Release history
-
-[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Release automation opens a deployment-pin update after publishing an image; maintainers review and merge it before treating those examples as updated.
