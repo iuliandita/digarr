@@ -21,7 +21,8 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Digest delivery | A successful channel advances the shared bookmark; failed channels do not retry that window independently. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762). |
 | File-backed secrets | Unreadable files are treated as unset; verify mounts and read permissions. [#763](https://github.com/iuliandita/digarr/issues/763). |
 | System Health sources | Normal skips, including unconfigured sources and unsupported discovery capabilities, count toward the source failure rate. Check individual Job History outcomes before concluding there is an outage. [#769](https://github.com/iuliandita/digarr/issues/769). |
-| Listening-history cache | An upstream HTTP 200 error envelope can be treated as an empty success and replace cached history. A rejected request preserves the cache. [#770](https://github.com/iuliandita/digarr/issues/770). |
+| Listening-history cache | Rejected Digarr requests retain cached entries. A Digarr HTTP 200 response carrying `status: "error"` can replace them with an empty error state after a provider failure. [#770](https://github.com/iuliandita/digarr/issues/770). |
+| Helm database credentials | Chart-generated connection URLs do not encode credentials. Use URI-unreserved chart values, or a complete encoded DSN for a user-managed database. [#772](https://github.com/iuliandita/digarr/issues/772). |
 | TIDAL | Experimental; no live-account authorization, refresh, or favorite-artist retrieval validation. See [app setup and feedback](AUTHENTICATION.md#tidal-app-setup). |
 
 ## Unattended setup

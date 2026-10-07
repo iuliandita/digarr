@@ -87,6 +87,8 @@ chmod 700 secrets
 vi secrets/postgres_password
 sudo chown 1000:1000 secrets/postgres_password
 sudo chmod 600 secrets/postgres_password
+# Set ALLOWED_ORIGIN, the HTTP cookie override if needed, and the saved key in .env.
+vi .env
 sudo docker compose up -d
 ```
 

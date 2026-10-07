@@ -79,8 +79,11 @@ make horizontal scaling safe.
 **Per-platform defaults.** The container image and the Unraid template default
 to embedded PGlite (bare `docker run` with no DB env, or
 `deploy/docker/docker-compose.pglite.yml`). The default
-`deploy/docker/docker-compose.yml`, the Helm chart, and the raw k8s manifests
-default to a bundled PostgreSQL container or workload; a user-managed external PostgreSQL server can be configured instead. PGlite is opt-in there (Helm
+`deploy/docker/docker-compose.yml` and the Helm chart bundle PostgreSQL; a user-managed external server can be configured instead.
+
+The Helm-generated `deploy/k8s/rendered.yaml` snapshot also includes PostgreSQL, while the standalone reference `deploy/k8s/deployment.yaml` requires a supplied `DATABASE_URL` and provisions no database.
+
+PGlite is opt-in for these paths (Helm
 `--set database.backend=pglite`, which requires a PVC plus `replicaCount=1` and
 `Recreate`).
 

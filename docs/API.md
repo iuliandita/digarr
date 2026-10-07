@@ -1100,7 +1100,9 @@ Restore replaces included tables in one transaction. Clearing users also cascade
 
 ### Database Migration
 
-Copy all stateful data from the current backend (PGlite or PostgreSQL) into a different one. The source is never modified. See [Switching the Database Backend](guides/switching-backends.md).
+Copy the application restore registry from the current backend (PGlite or PostgreSQL) into a different one. The source is never modified.
+
+Sessions, rate-limit counters, and pending OAuth transactions are excluded; sign in again and restart unfinished provider connections after cutover. See [migration scope](guides/switching-backends.md#what-is-not-copied).
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
