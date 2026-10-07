@@ -21,6 +21,10 @@ see [Public origin and reverse proxies](#public-origin-and-reverse-proxies) for
 the direct-HTTP override. Session tokens expire after 30 days and are SHA-256
 hashed before storage.
 
+Registration is closed by default after the first user has been created. To
+open registration in a fresh install or internal deployment, set
+`DIGARR_DISABLE_REGISTRATION=false`.
+
 Bearer sessions remain supported for API clients. Calling
 `POST /api/v1/auth/login` or `POST /api/v1/auth/register` without
 `X-Digarr-Auth-Mode: cookie` returns the token in the JSON response; send it as
@@ -96,18 +100,16 @@ exactly the URI it produces.
 TIDAL remains experimental. Live-account validation of the initial connect,
 stored-token refresh, and the populated favorite-artist collection response is
 deferred. If you test it, open a new GitHub issue following the
-[TIDAL feedback guide](../README.md#tidal-feedback) for the reporting checklist
+[TIDAL feedback guide](#tidal-feedback) for the reporting checklist
 and privacy precautions.
 
 ### Provider OAuth transaction state
 
-Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a
-dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row, so
-an abandoned or failed connect cannot drop a working connection. Each pending
-row stores only SHA-256 digests of the opaque `state` and of a browser binding,
-expires after 10 minutes, and is deleted the moment its `state` is redeemed -
-successful exchange or not. Starting a new flow replaces any earlier unfinished
-one for the same user and provider, and expired rows are swept every 6 hours.
+Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row. An abandoned or failed connect therefore cannot drop a working connection.
+
+The pending row stores SHA-256 digests of the opaque `state` and browser binding, plus encrypted callback payloads and client secrets when supplied. It expires after 10 minutes and is deleted when its `state` is redeemed, whether or not the exchange succeeds. Starting a new flow replaces any earlier unfinished one for the same user and provider. Expired rows are swept every 6 hours.
+
+Application JSON backups, backend migration, and the encryption-key rotation script omit pending provider transactions. Complete connects before rotation or let them expire, then restart unfinished attempts under the new key. Keep the fallback until no pending transaction needs it; see the [rotation runbook](runbooks/encryption-key-rotation.md).
 
 Initiate also sets an `HttpOnly`, `SameSite=Lax` transaction cookie scoped to
 that provider's callback path, mirroring the OIDC login flow. A callback whose
@@ -154,11 +156,9 @@ and port included. On plain HTTP the session cookie travels unencrypted, so
 prefer TLS wherever a proxy can provide it. A production instance that would hit
 this logs a warning naming both remedies at startup.
 
-Registration is closed by default after the first user has been created. To
-open registration in a fresh install or internal deployment, set
-`DIGARR_DISABLE_REGISTRATION=false`.
-
 ## OIDC (optional)
+
+OIDC discovery and provider requests reject hosts that resolve to private/internal IPs, including split-DNS identity providers. The diagnostic is `OIDC issuer resolves to a private/internal IP`. Opening Kubernetes egress does not bypass this application check; use a publicly resolving, reachable issuer.
 
 Enable OIDC by setting:
 
@@ -203,13 +203,13 @@ OIDC sign-ins are matched to local accounts by the issuer-scoped subject
 
 Digarr deliberately does **not** auto-link an OIDC identity to an existing
 local account by matching the `email` claim. A local account's email can be
-self-asserted (set under **Settings -> Account -> Email**) and is not verified
+self-asserted (set under **Settings > Account > Email**) and is not verified
 by Digarr, so matching on it would let an attacker pre-seed an account with a
 victim's address and have the victim's first OIDC sign-in bind to it (pre-link
 account takeover).
 
 To link an existing local account, sign in with its password, open
-**Settings -> Account -> OIDC / SSO**, enter the current password, and select
+**Settings > Account > OIDC / SSO**, enter the current password, and select
 **Link SSO account**. Complete sign-in at the provider in the same browser.
 The existing `/api/v1/auth/oidc/callback` redirect URI is reused; no additional
 IdP redirect registration is needed.
@@ -288,3 +288,84 @@ your actual reverse-proxy network.
 retained for backwards compatibility with older deployments and will be
 removed in a future release. Migrate to a per-user bearer session, browser
 session auth, or OIDC.
+
+## Streaming-provider app setup
+
+### Spotify app setup
+
+Spotify uses your own Spotify app credentials over OAuth. Spotify requires the owner of a Development Mode app to maintain an active Premium subscription, and listeners must be added to the app's allowlist (up to five users). A normal Spotify sign-in or PKCE does not remove these app requirements; Digarr does not provide a shared Spotify app. See [Spotify quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
+
+Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, or ListenBrainz listening data, or import artists from CSV. These paths do not require a Spotify subscription.
+
+1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. In the app's **Redirect URIs**, add the exact callback URL for your Digarr instance:
+
+   ```text
+   <your-digarr-url>/api/v1/auth/oauth/spotify/callback
+   ```
+
+   Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
+3. In Digarr, open **Settings > Connections > Your Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
+
+### TIDAL app setup
+
+> [!WARNING]
+> **Experimental and unverified.** Authorization, token refresh, and favorite-artist retrieval have not been tested against a live TIDAL account. We are shipping with that limitation and asking the community for [feedback](#tidal-feedback). The Experimental badges remain until live results establish that these flows work.
+
+TIDAL uses a single app registered by an admin, which every user then authorizes with their own TIDAL account:
+
+1. An admin creates an app in the [TIDAL Developer Portal](https://developer.tidal.com/) and adds the callback URL for your Digarr instance to its **Redirect URIs**:
+
+   ```text
+   <your-digarr-url>/api/v1/auth/oauth/tidal/callback
+   ```
+
+   Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces -- a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. Production requires `ALLOWED_ORIGIN`. Without it, only non-production loopback callback URLs are accepted.
+
+2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL** (the same credentials that power experimental TIDAL search).
+3. Each user then opens **Settings > Connections > Your Connections > TIDAL** and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
+
+Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
+
+Each user's connection stores a copy of the app credentials it was made with, so **rotating the shared TIDAL client ID or secret breaks every existing connection.** A still-valid access token may continue to work until it expires; refresh can then fail and require reconnection. After rotating credentials, every user must disconnect and reconnect TIDAL once.
+
+### TIDAL feedback
+
+Live TIDAL testing is deferred because we do not have an account available. This is an accepted release limitation, not a successful validation. The original [validation request (#553)](https://github.com/iuliandita/digarr/issues/553) records the decision; please [open a new issue](https://github.com/iuliandita/digarr/issues/new/choose) with your results so failures can be investigated individually.
+
+After [connecting TIDAL](#tidal-app-setup), run **Discover > Discovery Modes > TIDAL Favorite Artists**. Try again after the connection's access token expires, without disconnecting first, to exercise refresh. The read-only `GET /api/v1/auth/oauth/tidal/status` endpoint reports `expiresAt`; a connected status alone does not prove refresh or discovery works.
+
+Please include:
+
+- Your Digarr version and, for nightly, the commit SHA from the footer or `GET /health`.
+- Whether authorization, a later run after token expiry, and Favorite Artists each succeeded or failed. Say which steps you did not try.
+- The Settings error message or relevant Job History error, with private details removed.
+- Whether your TIDAL collection contains favorite artists, the artist count shown in Job History if available, and whether the run produced recommendations. Report an empty result or visible error as shown; it does not by itself identify a missing-name payload problem. Do not include actual artist names.
+
+Do not post client secrets, access or refresh tokens, authorization codes, cookies, or full callback URLs. A successful catalog credential probe does not validate the per-user OAuth flow.
+
+### Deezer app setup
+
+Deezer connection requires your own working app credentials; Digarr does not register an app for you. Check [Deezer's developer portal](https://developers.deezer.com/) for current app availability before choosing it as a required source. If you cannot obtain credentials, use another listening service or an import.
+
+1. Register the callback `<ALLOWED_ORIGIN>/api/v1/auth/oauth/deezer/callback` with your app, using the exact public origin.
+2. Set `DEEZER_APP_ID` and `DEEZER_APP_SECRET` in the deployment environment and restart Digarr. These are deployment-wide credentials, not fields accepted from the browser.
+3. Each user opens **Settings > Connections > Your Connections > Deezer** and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
+
+Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection.
+
+## Rollback across the OIDC token-storage migration
+
+Stop Digarr first, and never run an older image against a database that has already received the migration. Prefer a complete, consistent pre-migration database backup for recovery. The helper below only repairs the legacy JSON shape: it does not restore omitted artists or other missing state. Default automatic JSON backups normally lack those referenced artist rows, so they cannot recover recommendations into an empty database by themselves. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery). Run the Compose commands from the existing project directory containing the Compose files (`cd deploy/docker` from a source-checkout root). Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
+
+```sh
+docker compose -f docker-compose.pglite.yml stop app
+docker compose -f docker-compose.pglite.yml run --rm --no-deps app \
+  bun dist/scripts/prepare-rollback-backup.js \
+  '/app/backups/<automatic-pre-migration-v1.json>' \
+  '/app/backups/<rollback-compatible-v1.json>'
+```
+
+For the bundled PostgreSQL installation, use `docker-compose.yml` and include every override file used by that installation. From the repository root of a source checkout at the same revision, the equivalent command is `bun scripts/prepare-rollback-backup.ts <input> <output>`.
+
+The input must be the automatic pre-migration backup, use backup version 1, and have no existing `data.oidcTokens` key. The output path must not exist. Provision a separate fresh database with the older image so it creates the old schema, then restore the output copy; never point the old image at the migrated database. The helper writes the copy with mode `0600`, adds only an empty `data.oidcTokens` key, refuses an existing output, and never overwrites the source. It cannot recover retired provider tokens.

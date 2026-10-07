@@ -15,25 +15,36 @@ future pod specs that weaken the securityContext are rejected at admission:
   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
 {{- end }}
 {{- else }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "{{ include "digarr.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 3000:3000
-  echo "Visit http://localhost:3000"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "digarr.fullname" . }} 3000:{{ .Values.service.port }}
+  echo "Local health endpoint: http://localhost:3000/health"
 {{- end }}
 
-2. Database migrations run automatically on startup.
-{{- if and (eq .Values.database.backend "pglite") (not .Values.backups.persistence.enabled) }}
+Configure ALLOWED_ORIGIN to the exact public origin and set DIGARR_ENCRYPTION_KEY
+before saving credentials. Sign in through that public origin; a different
+port-forward origin may be rejected.
 
-  WARNING: backend=pglite but backups.persistence.enabled=false. The pre-migration
-  auto-backup is your only rollback artifact, and it lives on an emptyDir that is
-  wiped on every pod restart. A migration that fails after a restart leaves no way
-  back. Set backups.persistence.enabled=true so rollback survives pod churn.
+2. Database migrations run automatically on startup.
+{{- if not .Values.backups.persistence.enabled }}
+
+  WARNING: backups.persistence.enabled=false. The pre-migration
+  JSON auto-backup is partial and lives on an emptyDir lost on pod replacement.
+  Set backups.persistence.enabled=true to retain these exports, and keep a
+  separate consistent database or data-volume backup for complete recovery.
+  See docs/guides/switching-backends.md for backup boundaries.
 {{- end }}
 
 3. Check health:
   curl http://<host>/health
-{{- if .Values.postgresql.enabled }}
+{{- if and (eq .Values.database.backend "postgres") .Values.postgresql.enabled }}
 
 Note: Using bundled PostgreSQL ({{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}).
 To use your own PostgreSQL (CNPG, RDS, etc.), set postgresql.enabled=false
 and configure the database.* values or supply database.existingSecret.
+{{- end }}
+
+{{- if and (eq .Values.database.backend "pglite") (not .Values.database.pglite.persistence.enabled) }}
+
+WARNING: PGlite data persistence is disabled. The entire database uses emptyDir
+and is deleted when the pod is replaced. Enable database.pglite.persistence.enabled
+before storing data you need to retain.
 {{- end }}

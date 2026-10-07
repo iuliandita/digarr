@@ -3,14 +3,17 @@
 The checked-in screenshots use the Youtarr theme. Most were captured from
 v1.10.0; Analytics was refreshed from v1.12.0, and Discovery Modes, Settings,
 Library Reconciliation, and Your Connections were refreshed from development
-builds before v1.18.0. The descriptions below reflect v1.18.0 when later features
-are not visible in an image. Capture a fresh set with
+builds before v1.18.0. The Account capture was added with v1.17.0 (commit `e36d7d8a`); its exact running build was not recorded.
+
+The descriptions below reflect v1.19.0. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
 ## Dashboard (dark)
 
 ![Dashboard](screenshots/dashboard-dark.png)
+
+In v1.19.0, listening tiles distinguish an unconfigured account, empty history, and a failed fetch. Network or request failures retain cached entries with a retry notice. Upstream failures returned by the API as HTTP 200 with `status: error` can replace cached entries with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
 ## Dashboard (light)
 
@@ -22,13 +25,15 @@ variables.
 
 The normal Run Scan action is artist-focused. Album recommendations are produced by Library Gap-Fill, Release Radar, or the default-off net-new album discovery preference. If the Albums filter has no results, its empty state links to each producer and reveals the requested discovery mode or setting.
 
+Since v1.19.0, Discover can order and browse genre-priority groups without changing scores. The Audition queue retains a dismissible summary of unavailable-preview reasons after skipping items or finishing.
+
 ## Discovery Modes
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
 Discovery Modes lives on its own page under the Discover menu at `/discover/modes`. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
 
-TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](../README.md#tidal-feedback) for how to report a test safely.
+TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for how to report a test safely.
 
 ## Search
 
@@ -47,6 +52,8 @@ TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (vi
 ![Playlists](screenshots/playlists.png)
 
 Since v1.18.0, the playlist form also offers Audition: one track per pending artist, with the existing schedule and target controls.
+
+In v1.19.0, playlist details also show the latest local generation outcome, selected/resolved/included artist counts, and per-artist lookup or size-limit results. These do not verify remote delivery or playback.
 
 ## Subscriptions
 
@@ -82,17 +89,19 @@ The tab row keeps native horizontal scrolling and shows conditional chevrons plu
 
 In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
+In v1.19.0, Settings > Recommendations includes optional primary and secondary genre lists for Discover ordering and browsing.
+
 ## Settings > Account
 
 ![Account](screenshots/settings-account.png)
 
 The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. This capture uses a sample account with OIDC enabled.
 
-## Settings > Your Connections
+## Settings > Connections > Your Connections
 
 ![Your Connections](screenshots/settings-your-connections.png)
 
-Per-user listening connections -- ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL -- linked to your account. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](../README.md#tidal-feedback) for safe community reporting.
+This older capture shows a subset of per-user connections: ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL. The current Your Connections UI also includes Plex, Jellyfin, Emby, Subsonic, and Discogs. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
 
 ## Settings > Blocked
 

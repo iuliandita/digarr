@@ -3,7 +3,7 @@
 This directory contains the Docker Compose stacks for running Digarr in
 production or local development. Two bases are provided:
 
-- `docker-compose.yml` -- the default. Runs the app plus an external
+- `docker-compose.yml` -- the default. Runs the app plus a bundled
   PostgreSQL container, sharing a single password secret. The database lives in
   the `pgdata` volume and persists across image re-pulls.
 - `docker-compose.pglite.yml` -- single container with the embedded PGlite
@@ -12,7 +12,9 @@ production or local development. Two bases are provided:
 
 ## Production
 
-Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+The Compose stacks publish port 3000 on all host interfaces. Restrict access until you create the first admin account, or configure `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. For access only from this computer, change the published port to `127.0.0.1:3000:3000`.
+
+Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Generate a key with `openssl rand -hex 32`. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
 ### Embedded PGlite (single container)
 
@@ -24,7 +26,7 @@ docker compose -f docker-compose.pglite.yml up -d
 No secret to create and no separate database container. The app stores its
 data in the `data` volume; `backups` holds the pre-migration auto-backups.
 
-### External PostgreSQL (default)
+### Bundled PostgreSQL (default)
 
 ```
 cd deploy/docker
@@ -32,7 +34,7 @@ mkdir -p secrets
 chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
 (umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
-cp .env.example .env
+# Use the .env configured above; do not overwrite it.
 docker compose up -d
 ```
 
@@ -48,10 +50,123 @@ public origin needs no further flag. See
 [Authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
 An HTTPS public origin is strongly preferred. If you intentionally open the
-production container directly over plain HTTP, copy `.env.example` to `.env` and
+production container directly over plain HTTP, use the `.env` configured above and
 set `DIGARR_ALLOW_INSECURE_COOKIES=true` with a matching `http://`
 `ALLOWED_ORIGIN`; otherwise the browser rejects the `Secure` session cookie.
 Direct HTTP exposes the session cookie to network interception.
+
+## Back up and update
+
+Application JSON exports are partial. For complete recovery, back up the database consistently and keep the matching encryption key separately. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
+
+### Compose database backups
+
+Run these commands from your existing Compose project directory containing `.env` and the downloaded Compose files. Source-checkout users first run `cd deploy/docker` from the repository root. Retain every `-f` override and any project-name option used for your installation in every command below so the backup uses the existing database and volumes.
+
+Stop every app instance and any other database writers for the backup. The commands below stop the bundled `app` service and leave it stopped on failure. Each block runs in a subshell, protects new files, and refuses to overwrite an existing backup.
+
+For the bundled PostgreSQL stack, leave the `postgres` service running:
+
+```sh
+(
+  set -eu
+  set -C
+  umask 077
+  backup_dir="$HOME/digarr-backups"
+  install -d -m 700 "$backup_dir"
+  backup_file="$backup_dir/postgres-$(date -u +%Y%m%dT%H%M%SZ).dump"
+  docker compose -f docker-compose.yml stop app
+  docker compose -f docker-compose.yml exec -T postgres \
+    sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+    > "$backup_file"
+  test -s "$backup_file"
+  docker compose -f docker-compose.yml exec -T postgres \
+    pg_restore --list < "$backup_file" > /dev/null
+  printf 'Verified backup listing: %s\n' "$backup_file"
+)
+```
+
+For embedded PGlite, the one-off container mounts the same data volume without starting the app or its dependencies:
+
+```sh
+(
+  set -eu
+  set -C
+  umask 077
+  backup_dir="$HOME/digarr-backups"
+  install -d -m 700 "$backup_dir"
+  backup_file="$backup_dir/pglite-$(date -u +%Y%m%dT%H%M%SZ).tar"
+  docker compose -f docker-compose.pglite.yml stop app
+  docker compose -f docker-compose.pglite.yml run -T --rm --no-deps \
+    --entrypoint tar app -C /app/data -cf - . > "$backup_file"
+  test -s "$backup_file"
+  tar -tf "$backup_file"
+  printf 'Verified backup listing: %s\n' "$backup_file"
+)
+```
+
+Check that the PGlite listing contains your database files. A successful listing checks archive readability, not application recovery. Copy the backup off the host, along with separate protected recovery material containing the exact encryption-key bytes, Compose configuration, `.env`, and database credentials. Test a restore into a separate database or data volume with a compatible image and the matching key before relying on it. Never point a recovery test at the live database or volume.
+
+Only after these checks succeed, restart the existing app with the matching command:
+
+```sh
+# Bundled PostgreSQL
+docker compose -f docker-compose.yml start app
+# Embedded PGlite
+docker compose -f docker-compose.pglite.yml start app
+```
+
+Run only the command for your stack. If a backup check fails, keep the app stopped while resolving it; do not proceed with an update. Once recovery is verified, pull and recreate only the app, retaining your existing overrides:
+
+```sh
+# Bundled PostgreSQL
+docker compose -f docker-compose.yml pull app
+docker compose -f docker-compose.yml up -d --no-deps app
+# Embedded PGlite
+docker compose -f docker-compose.pglite.yml pull app
+docker compose -f docker-compose.pglite.yml up -d --no-deps app
+```
+
+Run only the pair for your stack. Check `/health`, confirm the intended database backend, and sign in. Keep the previous image and backup until the upgrade is verified. PostgreSQL server upgrades need their own version-compatible procedure; these commands update only Digarr. An older app image may require restoring its compatible database backup after migrations.
+
+### Named-volume `docker run` backup
+
+For the README's named-volume `docker run` example, stop the app before archiving its PGlite files. Run these commands from the directory containing `digarr.env`:
+
+```sh
+(
+set -eu
+set -C
+umask 077
+install -d -m 700 "$HOME/digarr-backups"
+backup_file="$HOME/digarr-backups/docker-run-pglite-$(date -u +%Y%m%dT%H%M%SZ).tar"
+digarr_image=$(docker inspect --format '{{.Image}}' digarr)
+docker stop digarr
+docker run --rm --volumes-from digarr:ro --entrypoint tar "$digarr_image" \
+  -C /app/data -cf - . > "$backup_file"
+test -s "$backup_file"
+tar -tf "$backup_file"
+printf 'Verified backup listing: %s\n' "$backup_file"
+)
+```
+
+Check that the archive command succeeds and the listing contains your database files. If it fails, keep the app stopped while resolving the backup failure before updating. Copy the archive and a separate protected copy of `digarr.env` off the host. Test recovery into a separate volume before relying on the backup.
+
+Then recreate the container with the same volumes and key:
+
+```sh
+docker pull docker.io/iuliandita/digarr:latest
+docker rm digarr
+docker run -d --name digarr -p 127.0.0.1:3000:3000 \
+  --env-file ./digarr.env \
+  -e ALLOWED_ORIGIN=http://localhost:3000 \
+  -e DIGARR_ALLOW_INSECURE_COOKIES=true \
+  -v digarr-data:/app/data -v digarr-backups:/app/backups \
+  docker.io/iuliandita/digarr:latest
+docker logs --tail 100 digarr
+```
+
+`docker rm` without `-v` preserves these named volumes. This command matches the README example; retain your own ports, origin, environment, mounts, and restart policy if you changed them. Check `/health` and sign in after startup. Keep the previous image ID until the upgrade is verified. An older image may be incompatible with a migrated database; [recovery](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery) can require restoring a compatible database backup rather than changing the image tag.
 
 ## Development with compose
 
@@ -88,8 +203,37 @@ same file via `DB_PASS_FILE`, then assembles `DATABASE_URL` from `DB_HOST`,
 one place -- `secrets/postgres_password` -- so the app and Postgres can never
 disagree. Create that file before starting the stack; see
 `secrets/postgres_password.example` for the format (one line, the password
-only).
+only). File-backed Compose secrets retain host ownership and mode: the app runs as UID 1000 and must be able to read this file. If the host user differs, use `sudo chown 1000:1000 secrets/postgres_password` and keep mode `0600`; the PostgreSQL entrypoint reads it as root.
+
+An unreadable `_FILE` secret currently falls back to an unset value without reporting the file error ([#763](https://github.com/iuliandita/digarr/issues/763)). Verify the mount and UID 1000 read permission before startup. In the bundled PostgreSQL stack, an unreadable `DB_PASS_FILE` leaves PostgreSQL selected but can cause password authentication failure. An unreadable `DATABASE_URL_FILE`, without a complete `DB_HOST`/`DB_USER`/`DB_NAME` alternative, can select an empty PGlite database. Check `/health` for the intended backend when startup succeeds.
 
 If you need env-var-only deployment (e.g. platforms without Compose secrets),
 use a small compose override that sets `DATABASE_URL` for the app and
 `POSTGRES_PASSWORD` for Postgres, and removes the `_FILE` variables.
+
+## Image channels
+
+`docker.io/iuliandita/digarr:latest` is the newest tagged release and the recommended channel for first-time home installs. `:stable` tracks only releases that have been live for at least seven days with no follow-up patch. Only the latest release receives security fixes; `:stable` and pinned versions can lag behind. Use `:MAJOR.MINOR` for patch updates on a release line, or `:MAJOR.MINOR.PATCH` to pin one release. See the [README](../../README.md#quick-start) for current examples. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on each push to `develop` with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit. Images are Alpine-based by default; a Debian/glibc variant ships alongside every release as `:debian`, `-debian`-suffixed version tags, and `:stable-debian`.
+
+## Verifying image signatures
+
+Since v0.27.8, every release image is signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC (no long-lived keys). Signatures are stored alongside the image at both `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`. Tagged Alpine images also have a container SBOM attached as a signed SPDX attestation bound to the image digest. Debian images have signatures and build provenance, but currently lack container SPDX attestations ([#768](https://github.com/iuliandita/digarr/issues/768)).
+
+Install cosign and verify a pulled image before running it:
+
+```sh
+# Replace <TAG> with the exact release version you pulled
+cosign verify \
+  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  'ghcr.io/iuliandita/digarr:<TAG>'
+
+# Verify the signed container SBOM (Alpine images only)
+cosign verify-attestation \
+  --type spdxjson \
+  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  'ghcr.io/iuliandita/digarr:<TAG>'
+```
+
+A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Verify the exact version or digest you intend to run. A valid signature identifies the publishing workflow; it does not guarantee that the software is free of vulnerabilities.

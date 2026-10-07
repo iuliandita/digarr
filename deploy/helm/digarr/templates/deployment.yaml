@@ -1,5 +1,5 @@
 {{- if and (eq .Values.database.backend "pglite") (gt (int .Values.replicaCount) 1) }}
-{{- fail "database.backend=pglite requires replicaCount=1 (the embedded file has a single writer). Use an external Postgres (database.backend=postgres) to scale out." }}
+{{- fail "database.backend=pglite requires replicaCount=1 (the data directory has a single writer). External PostgreSQL also requires one app replica until distributed coordination is supported." }}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment

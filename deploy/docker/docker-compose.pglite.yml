@@ -1,7 +1,7 @@
 # Single-container deployment with the embedded PGlite database.
 #   docker compose -f docker-compose.pglite.yml up -d
 # No separate PostgreSQL, no secret. Data lives in the `data` volume.
-# For external PostgreSQL instead, use the default docker-compose.yml.
+# For bundled PostgreSQL in a separate container, use docker-compose.yml.
 #
 # Podman + SELinux enforcing: add :Z to the data/backups volume mounts.
 

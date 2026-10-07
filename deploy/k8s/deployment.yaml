@@ -1,15 +1,19 @@
 # Digarr Deployment
 # Customize: image tag, namespace, resource limits, and secret name.
-# Create the db-secret first:
-#   kubectl create secret generic digarr-db \
-#     --from-literal=DATABASE_URL='postgresql://user:pass@host:5432/digarr' \
-#     -n digarr
+# Create digarr-db from a protected env file containing DATABASE_URL:
+#   kubectl create secret generic digarr-db --from-env-file=/path/to/database.env -n digarr
+# Configure ALLOWED_ORIGIN and DIGARR_ENCRYPTION_KEY before startup; see the
+# commented env entries below. Keep the key separate from database backups.
 #
 # To run the embedded PGlite backend instead of external Postgres:
 #   1. Remove the DATABASE_URL env entry below.
 #   2. Add env: - name: DB_PATH value: /app/data
 #   3. Add a PVC (digarr-data, ReadWriteOnce) + volume `data` + volumeMount /app/data.
 #   4. Change strategy to: type: Recreate  (single-writer file; no surge pods).
+#   5. Raise the app memory limit to at least 768Mi (1Gi recommended).
+# The default RollingUpdate can briefly run two app processes, duplicating
+# process-local schedules or locks even with PostgreSQL. Use Recreate, or
+# scale to zero before updates if downtime is acceptable; keep one replica.
 # See deploy/helm for a templated version of both backends.
 apiVersion: apps/v1
 kind: Deployment
@@ -61,6 +65,15 @@ spec:
             - name: http
               containerPort: 3000
           env:
+            # Set the exact browser origin, without a path or trailing slash.
+            # - name: ALLOWED_ORIGIN
+            #   value: https://digarr.example.com
+            # - name: DIGARR_ENCRYPTION_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: digarr-secrets
+            #       key: encryption-key
+            # Direct HTTP additionally needs DIGARR_ALLOW_INSECURE_COOKIES=true.
             - name: NODE_ENV
               value: production
             - name: PORT

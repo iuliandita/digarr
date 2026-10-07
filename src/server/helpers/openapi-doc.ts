@@ -65,7 +65,7 @@ export const openapiDoc = {
     title: 'digarr API',
     version: VERSION,
     description:
-      'Backend API for digarr. Error responses follow RFC 9457 problem+json via the central error handler. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
+      'Backend API for Digarr. Central errors use RFC 9457 problem+json; route-specific JSON errors are documented per operation. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
   },
   servers: [{ url: '/', description: 'Current deployment' }],
   components: {
@@ -212,16 +212,40 @@ export const openapiDoc = {
         properties: {
           status: { type: 'string' },
           targetActions: { type: 'object', additionalProperties: true },
+          targetSummary: {
+            type: 'object',
+            required: ['total', 'succeeded', 'failed', 'failures', 'warnings'],
+            properties: {
+              total: { type: 'integer' },
+              succeeded: { type: 'integer' },
+              failed: { type: 'integer' },
+              failures: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['id', 'name'],
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    error: { type: 'string' },
+                  },
+                },
+              },
+              warnings: { type: 'array', items: { type: 'string' } },
+            },
+          },
           lidarrError: { type: 'string' },
         },
         additionalProperties: true,
       },
       ArtistBlock: {
         type: 'object',
-        required: ['artistId'],
+        required: ['artistId', 'name', 'mbid', 'reason', 'reasonText', 'blockedAt'],
         properties: {
           artistId: { type: 'integer' },
-          artistName: { type: 'string' },
+          name: { type: 'string' },
+          mbid: { type: ['string', 'null'] },
+          blockedAt: { type: 'string', format: 'date-time' },
           reason: { type: ['string', 'null'] },
           reasonText: { type: ['string', 'null'] },
         },
@@ -276,6 +300,26 @@ export const openapiDoc = {
           message: { type: 'string' },
           version: { type: 'string' },
           latencyMs: { type: 'integer', minimum: 0 },
+          sectionId: { type: 'string' },
+          sections: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { key: { type: 'string' }, title: { type: 'string' } },
+            },
+          },
+          libraryId: { type: 'string' },
+          libraries: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { id: { type: 'string' }, name: { type: 'string' } },
+            },
+          },
+          machineIdentifier: { type: 'string' },
+          accounts: { type: 'array', items: { type: 'object', additionalProperties: true } },
+          accountId: { type: 'number' },
+          accountName: { type: 'string' },
         },
         additionalProperties: false,
       },
@@ -531,7 +575,10 @@ export const openapiDoc = {
         },
         responses: {
           '200': sessionResponse('Authenticated session.'),
-          '400': validationResponse,
+          '400': {
+            description: 'Missing credentials.',
+            ...jsonSchema('#/components/schemas/ErrorResponse'),
+          },
           '401': unauthenticatedResponse,
           '429': { $ref: '#/components/responses/RateLimited' },
         },
@@ -567,7 +614,8 @@ export const openapiDoc = {
           '201': sessionResponse('User and authenticated session created.'),
           '400': validationResponse,
           '403': {
-            description: 'Registration is disabled after the first user.',
+            description:
+              'Registration is disabled after the first user by default; DIGARR_DISABLE_REGISTRATION=false reopens it.',
             ...jsonSchema('#/components/schemas/ErrorResponse'),
           },
           '409': {
@@ -618,6 +666,13 @@ export const openapiDoc = {
           { name: 'status', in: 'query', schema: { type: 'string' } },
           { name: 'batchId', in: 'query', schema: { type: 'integer' } },
           {
+            name: 'decades',
+            in: 'query',
+            schema: { type: 'string', maxLength: 100 },
+            description:
+              'Comma-separated 60s, 70s, 80s, 90s, 00s, 10s, or 20s+ (2020-2099). Encode + as %2B; unknown tokens are ignored.',
+          },
+          {
             name: 'sort',
             in: 'query',
             schema: {
@@ -636,8 +691,9 @@ export const openapiDoc = {
           {
             name: 'kind',
             in: 'query',
-            schema: { type: 'string', enum: ['artist', 'album'] },
-            description: 'Filter by recommendation kind. Omit to return both artists and albums.',
+            schema: { type: 'string' },
+            description:
+              'Filter by artist or album. Omitted or unrecognized values return both kinds.',
           },
           { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 200 } },
           { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
@@ -681,7 +737,29 @@ export const openapiDoc = {
             description: 'Updated recommendation status.',
             ...jsonSchema('#/components/schemas/RecommendationUpdateResult'),
           },
-          '400': validationResponse,
+          '400': {
+            description:
+              'Invalid input, target selection, popularity lookup, or rejection payload.',
+            content: {
+              [json]: {
+                schema: {
+                  anyOf: [
+                    { $ref: '#/components/schemas/ValidationError' },
+                    {
+                      type: 'object',
+                      required: ['error'],
+                      properties: {
+                        error: { type: 'string' },
+                        code: { type: 'string', enum: ['no_source', 'no_match'] },
+                      },
+                      additionalProperties: false,
+                    },
+                  ],
+                },
+              },
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
+          },
           '401': unauthenticatedResponse,
           '404': notFoundResponse,
         },
@@ -703,7 +781,7 @@ export const openapiDoc = {
             description: 'Artist block page.',
             ...jsonSchema('#/components/schemas/ArtistBlockList'),
           },
-          '400': validationResponse,
+          '400': problemResponse,
           '401': unauthenticatedResponse,
         },
       },
@@ -728,10 +806,9 @@ export const openapiDoc = {
         security: unsafeAuthSecurity,
         parameters: [{ name: 'artistId', in: 'path', required: true, schema: { type: 'integer' } }],
         responses: {
-          '204': { description: 'Artist block removed.' },
-          '400': validationResponse,
+          '204': { description: 'Artist block removed or already absent.' },
+          '400': problemResponse,
           '401': unauthenticatedResponse,
-          '404': notFoundResponse,
         },
       },
     },
@@ -742,8 +819,28 @@ export const openapiDoc = {
         summary: 'List job runs with offset pagination',
         security: authSecurity,
         parameters: [
-          { name: 'type', in: 'query', schema: { type: 'string' } },
-          { name: 'status', in: 'query', schema: { type: 'string' } },
+          {
+            name: 'type',
+            in: 'query',
+            schema: {
+              type: 'string',
+              enum: [
+                'pipeline',
+                'quick_discover',
+                'subscription',
+                'target',
+                'playlist',
+                'library_sync',
+              ],
+            },
+          },
+          {
+            name: 'status',
+            in: 'query',
+            schema: { type: 'string', enum: ['running', 'completed', 'failed', 'stuck'] },
+            description:
+              'Cancelled rows may appear without a status filter; cancelled is not an accepted filter.',
+          },
           { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
           { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
         ],
@@ -767,7 +864,10 @@ export const openapiDoc = {
           '400': validationResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
-          '404': notFoundResponse,
+          '404': {
+            description: 'Job not found.',
+            ...jsonSchema('#/components/schemas/ErrorResponse'),
+          },
         },
       },
     },
@@ -866,10 +966,10 @@ export const openapiDoc = {
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
         description:
-          'Test the selected service using supplied fields with saved settings as fallback. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
+          'Send a JSON object ({} for saved credentials where supported). An absent payload currently returns 500. Supplied fields override supported saved values; Lidarr skipTlsVerify defaults to false rather than the saved setting, so send it explicitly when required. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
         security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
-        requestBody: { required: false, content: { [json]: { schema: { type: 'object' } } } },
+        requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
         responses: {
           '200': {
             description: 'Probe succeeded.',
@@ -878,6 +978,10 @@ export const openapiDoc = {
           '400': problemResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
+          '500': {
+            description: 'Missing JSON payload or an unexpected probe failure.',
+            content: { [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } } },
+          },
           '502': { $ref: '#/components/responses/ProbeFailed' },
         },
       },

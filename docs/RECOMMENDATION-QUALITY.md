@@ -58,7 +58,7 @@ The default report is `evaluation-results/recommendation-quality/report.json`. A
 
 ## What the checks mean
 
-- Response shape, individual field bounds, and 15-20 returned artists match the production prompt contract. Fenced JSON and reasoning blocks are accepted; other surrounding prose is rejected even if the production parser could salvage an array from it. Invalid rows are counted, even though the production parser can discard them.
+- Response shape, individual field bounds, and 15-20 returned artists match the production prompt contract. Reasoning blocks are stripped. If a JSON code fence is found, its contents are parsed and surrounding prose is ignored. Without a fence, extra prose fails JSON parsing even if the production parser could salvage an array from it. Invalid rows are counted, even though the production parser can discard them.
 - Duplicate names and seed artists are checked with Unicode normalization, case folding, and whitespace normalization. Similar names, accents, and recording identities are not treated as equivalent.
 - Expected-neighbor hits use returned `artistName` fields, never explanation text. These are broad plausibility smoke checks, not exhaustive correct answers. Cold-start, eclectic, and sparse-history cases have no expected-neighbor check. For eclectic profiles, human review must assess each distinct interest; one familiar neighbor does not establish broad fit.
 - Returned, valid, duplicate, seed-leak, and neighbor-hit counts are separate metrics. A high confidence value is a model assertion, not evidence of accuracy.

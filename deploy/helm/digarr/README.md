@@ -42,7 +42,25 @@ extraEnv:
         key: encryption-key
 ```
 
-Save this as `my-values.yaml`, review the [network policy](#network-access), then install from a checkout:
+Save this as `my-values.yaml`. Create the referenced Secrets before installing. Store the database DSN in a mode-0600 file with one `DATABASE_URL=postgresql://...` line; do not put credentials in command arguments. For example:
+
+```sh
+kubectl create namespace arr
+install -d -m 700 "$HOME/.config/digarr"
+install -m 600 /dev/null "$HOME/.config/digarr/database.env"
+# Edit database.env with the database's actual connection string.
+(set -C; umask 077; digarr_new_key=$(openssl rand -hex 32) && printf '%s' "$digarr_new_key" > "$HOME/.config/digarr/encryption-key")
+kubectl create secret generic digarr-database -n arr \
+  --from-env-file="$HOME/.config/digarr/database.env"
+kubectl create secret generic digarr-secrets -n arr \
+  --from-file=encryption-key="$HOME/.config/digarr/encryption-key"
+kubectl create secret tls digarr-tls -n arr \
+  --cert=/path/to/tls.crt --key=/path/to/tls.key
+```
+
+Use a valid certificate for the configured hostname, or let your certificate controller manage `digarr-tls`. Preserve the generated encryption key exactly, including any newline in an already deployed Secret; do not strip it or regenerate it on upgrade. New keys above have no trailing newline. Existing namespaces and Secrets should be reused or updated through your normal Secret-management process.
+
+Review and apply the [database network policy](#network-access), then install from a checkout:
 
 ```sh
 helm install digarr deploy/helm/digarr \
@@ -51,7 +69,19 @@ helm install digarr deploy/helm/digarr \
 
 For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existingSecret`, and set `postgresql.auth.password` in a protected values file. Keep passwords out of command-line arguments.
 
-For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too.
+For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too. The chart defaults to a 512Mi app limit, so raise it explicitly for PGlite:
+
+```yaml
+database:
+  backend: pglite
+replicaCount: 1
+resources:
+  limits:
+    memory: 1Gi
+backups:
+  persistence:
+    enabled: true
+```
 
 ## Key values
 
@@ -67,6 +97,7 @@ For embedded PGlite, set `database.backend=pglite`. This skips the bundled Postg
 | `postgresql.enabled` | `true` | Bundled PostgreSQL; ignored with `pglite`. |
 | `postgresql.auth.password` | _unset_ | **Required** for the bundled PostgreSQL backend. |
 | `database.existingSecret` | _unset_ | Reference a pre-created Secret with `DATABASE_URL`. |
+| `resources.limits.memory` | `512Mi` | Raise to at least `768Mi` for PGlite; the example uses `1Gi`. |
 | `backups.persistence.enabled` | `false` | PVC-backed `/app/backups` instead of emptyDir. |
 | `extraEnv` | `[]` | Extra env vars (e.g. `DIGARR_ENCRYPTION_KEY`). |
 | `extraEnvFrom` | `[]` | Extra envFrom entries (e.g. whole OIDC secret). |
@@ -103,6 +134,32 @@ scaling; keep `replicaCount: 1` until distributed coordination is implemented.
 
 The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fd00::/8`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add a separate NetworkPolicy with the required destinations and ports before connecting those services. Gateway deployments must also allow their controller namespace. Disabling `networkPolicy.enabled` removes the chart's restrictions; do that only if another policy provides the intended controls.
 
+For the external database in the install example, apply a supplemental policy before starting Digarr. Replace the documentation address below with the database's actual address, and adjust the namespace, release label, and port to match your deployment:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: digarr-external-database
+  namespace: arr
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: digarr
+      app.kubernetes.io/instance: digarr
+      app.kubernetes.io/component: app
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 192.0.2.10/32
+      ports:
+        - protocol: TCP
+          port: 5432
+```
+
+NetworkPolicies are additive, so this retains the chart's existing rules. For another in-cluster database, select its pods and namespace instead of pinning a pod IP. The database must also accept connections from the app's network.
+
 ## Secrets
 
 `DIGARR_ENCRYPTION_KEY`, OIDC client secrets, and similar should be injected
@@ -119,18 +176,19 @@ extraEnv:
 
 ## Upgrade
 
+Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups are partial. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). The v1.18.0-to-v1.19.0 upgrade has no migrations and makes no pre-migration automatic backup.
+
 ```sh
 helm upgrade digarr deploy/helm/digarr -n arr -f my-values.yaml
 ```
 
 The pod template carries `checksum/config` and `checksum/sensitive-config` annotations,
-so ConfigMap or Secret changes trigger a rolling restart even when the image
-tag is unchanged.
+so changes to chart-rendered configuration and database secrets trigger a rollout even when the image tag is unchanged. Contents of externally managed Secrets (`database.existingSecret`, `extraEnv`, or `extraEnvFrom`) are not hashed. After changing them, restart the deployment explicitly, for example `kubectl rollout restart deployment/digarr -n arr` for the default release name.
 
 ## Rollback
 
-A Helm rollback restores Kubernetes resources, not the database schema. Do not run an older image against an already-migrated database unless its compatibility is established. Restore a compatible backup into a separate database when a schema downgrade is required; see [backup and restore](../../../README.md#backup--restore).
+A Helm rollback restores Kubernetes resources, not the database schema. Do not run an older image against an already-migrated database unless its compatibility is established. Restore a compatible backup into a separate database when a schema downgrade is required; see [backup and restore](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery).
 
-PostgreSQL deployments use a rolling update with `maxUnavailable: 0` and `maxSurge: 1`. PGlite uses `Recreate`, so updates have downtime. The app marks `/health` as draining before shutdown, but that does not guarantee uninterrupted traffic through every proxy.
+PostgreSQL deployments use a rolling update with `maxUnavailable: 0` and `maxSurge: 1`, briefly overlapping two app processes despite process-local schedulers and locks. For an upgrade without that overlap, scale the deployment to zero, wait for the old pod to terminate, then run the upgrade with `replicaCount=1`; this introduces downtime. PGlite uses `Recreate`, so updates have downtime. The app marks `/health` as draining before shutdown, but that does not guarantee uninterrupted traffic through every proxy.
 
-Backups use `emptyDir` unless `backups.persistence.enabled=true`. An `emptyDir` is lost when a pod is replaced, including during an upgrade. Keep persistent backups and a separate off-cluster copy.
+Backups use `emptyDir` unless `backups.persistence.enabled=true`. An `emptyDir` is lost when a pod is replaced, including during an upgrade. Keep persistent JSON exports and a separate off-cluster copy of a complete database or data-volume backup.

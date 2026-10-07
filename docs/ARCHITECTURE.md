@@ -2,10 +2,7 @@
 
 ## Overview
 
-Single Bun process serving a Hono API backend + React SPA frontend. PostgreSQL
-via Drizzle ORM -- either an external server or the embedded PGlite backend
-(see [Database backend](#database-backend)). Frontend is a Vite SPA served by
-Hono in production, proxied via Vite dev server in development.
+Digarr runs as one Bun process with a Hono API and React frontend. Drizzle connects to a PostgreSQL server or embedded PGlite (see [Database backend](#database-backend)). Hono serves the built frontend in production; Vite serves it during development.
 
 ## Authentication boundary
 
@@ -51,7 +48,7 @@ identity to two accounts.
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen
 at boot:
 
-- **External PostgreSQL** when a DSN is present -- `DATABASE_URL`, or the
+- **PostgreSQL server** when a DSN is present -- `DATABASE_URL`, or the
   `DB_HOST` + `DB_USER` + `DB_NAME` triple. Uses a connection pool.
 - **Embedded PGlite** otherwise -- PostgreSQL compiled to Wasm,
   running in-process, with the whole database persisted to a single directory at
@@ -71,10 +68,10 @@ backends.
 
 **Invariants and limits.** PGlite is single-writer: the database runs in
 Wasm and persists in a data directory, so exactly one replica may own it. The
-Helm/k8s opt-in pins `replicaCount=1` and forces the `Recreate` rollout strategy
-(no two pods touching the file at once). Because the working set sits in Wasm
+Helm opt-in requires `replicaCount=1` and forces the `Recreate` rollout strategy
+(no two pods touching the file at once). Raw manifests require manual PVC, strategy, environment, and memory-limit edits; see their deployment comments. Because the working set sits in Wasm
 memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
-profile. Switch to external PostgreSQL for a managed database or larger
+profile. Switch to a PostgreSQL server for a managed database or larger
 datasets, but keep the app at one replica: pipeline coordination, schedulers,
 rate limits, and migration locks remain process-local, so a DSN alone does not
 make horizontal scaling safe.
@@ -83,12 +80,12 @@ make horizontal scaling safe.
 to embedded PGlite (bare `docker run` with no DB env, or
 `deploy/docker/docker-compose.pglite.yml`). The default
 `deploy/docker/docker-compose.yml`, the Helm chart, and the raw k8s manifests
-default to external PostgreSQL; PGlite is opt-in there (Helm
+default to a bundled PostgreSQL container or workload; a user-managed external PostgreSQL server can be configured instead. PGlite is opt-in there (Helm
 `--set database.backend=pglite`, which requires a PVC plus `replicaCount=1` and
 `Recreate`).
 
-**In-app backend migration.** Admins can switch between PGlite and external
-PostgreSQL through Settings -> Administration -> Migrate Database Backend without
+**In-app backend migration.** Admins can switch between PGlite and a
+PostgreSQL server through Settings > Administration > Migrate Database Backend without
 stopping the server or writing SQL. The tool (`src/core/ops/migrate-backend.ts`)
 runs schema migrations on the target, then opens a consistent source view inside
 a `REPEATABLE READ READ ONLY` transaction and copies the restore registry in
@@ -109,7 +106,9 @@ operator walkthrough.
 
 ## Dashboard listening history
 
-Listening routes preserve configuration, empty-result, and failure outcomes separately from their returned entries. A successful fallback with entries wins; without entries, any attempted source failure produces an error outcome. ListenBrainz artist statistics map HTTP 204 to an empty result locally, while the shared JSON transport continues to reject missing response bodies elsewhere. The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Failed refreshes keep cached entries visible with a failure notice.
+Listening routes preserve configuration, empty-result, and failure outcomes separately from their returned entries. A successful fallback with entries wins; without entries, any attempted source failure produces an error outcome. ListenBrainz artist statistics map HTTP 204 to an empty result locally, while the shared JSON transport continues to reject missing response bodies elsewhere.
+
+The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Request failures keep cached entries visible with a failure notice. An HTTP 200 response reporting a source error can instead replace cached entries with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
 ## Pipeline
 
@@ -118,32 +117,62 @@ Seven stages:
 1. **Collect** - gather seed artists from the user's library and listening history
 2. **Analyze** - extract profile features (preferred genres, eras, popularity)
 3. **Discover** - ask providers (AI + similarity sources) for candidates
-4. **Resolve** - canonicalize candidates to MusicBrainz IDs
+4. **Resolve** - canonicalize candidates to MusicBrainz IDs, then enrich sparse genres from cached metadata
 5. **Score** - weighted feature scoring, clamped to [0, 1]
 6. **Filter** - dedupe across batches, apply rejection cooldown, threshold
-7. **Store** - persist recommendations with status = 'discovered'
+7. **Store** - persist recommendations with status = 'pending'
 
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
 Analyze hydrates listening-artist genres from native source payloads,
 `library_artists`, and the `artists` cache before computing the taste profile.
+
 After foreground pipeline work completes, a maintenance-aware warmer queues at
 most 10 stale or missing artists through the shared MusicBrainz rate gate; the
 next scan consumes the refreshed cache through an ambiguity-checked source/name
-alias when the listening source has no MBID. Listening-artist genre data in the
+alias when the listening source has no MBID.
+Listening-artist genre data in the
 artist cache uses its own freshness timestamp, so unrelated image or metadata
 refreshes cannot extend the 180-day genre TTL. Enrichment from
-`artist_metadata` still runs between resolve and score.
+`artist_metadata` runs as a Resolve sub-step before Score.
 
-Discovery queries only listening sources declaring `similarArtists`. Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
+Discovery queries only listening sources declaring `similarArtists`.
 
-Analyze deduplicates each source's artist evidence before normalizing its positive weights to a total of one. Spotify contributes reciprocal best position across the existing personal top-artist windows; this is an ordinal estimate, not a published affinity score. Subsonic starred artists contribute equal membership evidence. Other adapters retain their source-local numeric signals, including favorite boosts or collection counts. Raw values remain separate from normalized `tasteWeight` values. Artists appearing in several sources keep their maximum contribution rather than summing overlapping history. Aggregate genres and the analyzed profile use these relative weights with deterministic ties. Before similarity lookup, discovery shuffles exact positive finite taste-weight ties on a copied list; unequal weights and legacy ordering remain intact. Library mixing deduplicates known identities, preserves a uniquely matching catalog ID on copied seeds, and backfills unavailable slots from remaining listening artists without exceeding the configured cap. This changes seed opportunity, not genre quotas or scoring. Empty, invalid, or zero numeric evidence contributes no positive weight; missing genre tags stay unknown.
+Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
 
-Recommendation prompts retain per-artist genre context for at most 20 seeds and eight genre tags per seed. Raw seed values remain source-dependent, not comparable play counts; relative taste weights are neither probabilities nor evidence of a single dominant taste. Guidance preserves distinct evidenced interests without recommendation quotas. A sparse source can give its single artist a strong relative weight, and bounded seed selection cannot guarantee representation of every interest. Scoring, stored recommendations, and source history windows are unchanged.
+Analyze deduplicates each source's artist evidence before normalizing its positive weights to a total of one.
 
-AI discovery retains comparisons to listening-profile artists. Its description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence. This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
+Spotify contributes reciprocal best position across the existing personal top-artist windows; this is an ordinal estimate, not a published affinity score. Subsonic starred artists contribute equal membership evidence.
 
-Name-only resolution checks at most five MusicBrainz hits against the requested name or returned catalog aliases before comparing genres. Name normalization preserves accents and punctuation. A uniquely best matching identity can resolve; ties and unrelated hits are dropped. Known-MBID candidates retain their explicit identity path. Older stored recommendations are not rewritten.
+Other adapters retain their source-local numeric signals, including favorite boosts or collection counts. Raw values remain separate from normalized `tasteWeight` values.
+
+Artists appearing in several sources keep their maximum contribution rather than summing overlapping history. Aggregate genres and the analyzed profile use these relative weights with deterministic ties.
+
+Before similarity lookup, discovery shuffles exact positive finite taste-weight ties on a copied list; unequal weights and legacy ordering remain intact.
+
+Library mixing deduplicates known identities, preserves a uniquely matching catalog ID on copied seeds, and backfills unavailable slots from remaining listening artists without exceeding the configured cap. This changes seed opportunity, not genre quotas or scoring.
+
+Empty, invalid, or zero numeric evidence contributes no positive weight; missing genre tags stay unknown.
+
+Recommendation prompts retain per-artist genre context for at most 20 seeds and eight genre tags per seed.
+
+Raw seed values remain source-dependent, not comparable play counts; relative taste weights are neither probabilities nor evidence of a single dominant taste. Guidance preserves distinct evidenced interests without recommendation quotas.
+
+A sparse source can give its single artist a strong relative weight, and bounded seed selection cannot guarantee representation of every interest. Scoring, stored recommendations, and source history windows are unchanged.
+
+AI discovery retains comparisons to listening-profile artists.
+
+The existing `hasNameConfusion` filter separately rejects recommendations when either normalized name contains the other. It lowercases names and strips leading English articles; exact matches are handled elsewhere, and seed names shorter than four characters are skipped. Distinct artists with overlapping names can still be rejected by this heuristic.
+
+The AI description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence.
+
+This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
+
+Name-only resolution checks at most five MusicBrainz hits against the requested name or returned catalog aliases before comparing genres. Name normalization preserves accents and punctuation.
+
+A uniquely best matching identity can resolve; ties and unrelated hits are dropped.
+
+Known-MBID candidates retain their explicit identity path. Older stored recommendations are not rewritten.
 
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
@@ -153,21 +182,34 @@ dedup, and the score threshold.
 
 ## Registry patterns
 
-Seven extension points, each registry-based:
+Extension points use registries or configuration maps:
+
+- `DiscoverySource` - listening-source plugins in `src/core/plugins/`, registered through `SourceRegistry`; add new IDs to `LISTENING_SOURCE_IDS` for unconfigured-source reporting
+- `LibrarySource` - library-sync adapters in `src/core/library/sources/`, registered through `LibrarySourceRegistry` and ordered by MBID quality
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
-- `SearchSource` - multi-source artist / track search (Lidarr, MusicBrainz, Deezer, ...)
+- `SearchSource` - multi-source artist / track search (Spotify, Deezer, MusicBrainz, TIDAL, Bandcamp)
 - `RecommendationProvider` - AI backends (Anthropic, OpenAI, Gemini, Ollama, ...)
-- `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, TIDAL Favorite Artists, ...). A new mode is a factory plus a `registry.register` line plus an availability entry; the frontend renders modes generically, so no frontend change is needed. Modes that just read a user's artist collection from an OAuth-connected provider are one `createUserArtistCollectionMode({ id, label, description, provider, fetchArtists })` spec (`modes/user-artist-collection.ts`), and modes gated on a single connection flag are one row in `SINGLE_FLAG_MODES` in `availability.ts` rather than a hand-written branch. An optional `stability: 'experimental'` on the definition (serialized by `GET /api/v1/discovery-modes`, defaulting to `stable`) badges the mode card without a per-mode frontend branch. TIDAL Favorite Artists remains experimental while live-account connect, refresh, and populated collection-result validation is deferred; see [TIDAL feedback](../README.md#tidal-feedback).
+- `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, TIDAL Favorite Artists, ...). A new mode is a factory plus a `registry.register` line plus an availability entry; the frontend renders modes generically, so no frontend change is needed. Modes that just read a user's artist collection from an OAuth-connected provider are one `createUserArtistCollectionMode({ id, label, description, provider, fetchArtists })` spec (`modes/user-artist-collection.ts`), and modes gated on a single connection flag are one row in `SINGLE_FLAG_MODES` in `availability.ts` rather than a hand-written branch. An optional `stability: 'experimental'` on the definition (serialized by `GET /api/v1/discovery-modes`, defaulting to `stable`) badges the mode card without a per-mode frontend branch. TIDAL Favorite Artists remains experimental while live-account connect, refresh, and populated collection-result validation is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 - `NotificationChannel` - where notifications are delivered (webhook, ntfy, Telegram, Apprise), in `src/core/notifications/`. `registry.ts` fans one event out to every enabled, subscribed channel via `Promise.allSettled` (one channel down never blocks the others); each `channels/<type>.ts` formats its payload and calls the single SSRF-guarded `transport.ts`. A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`. The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest and masked (`***`) through the settings API
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`. `resolveProviderToken(db, userId, provider)` is the single entry point for Spotify, Deezer, and TIDAL; a provider without a `tokenEndpoint` (Deezer) is simply one that cannot refresh, rather than a separate code path. `authStyle` (`basic` or `body`) must match how that provider's authorization-code exchange authenticates, since a client accepts one style and not both. Failures raise `ProviderAuthError` with `reason: 'not_connected' | 'token_unusable'`, which is what lets discovery modes tell "never connected" from "token dead" instead of flattening both into one message. A new provider is one row here plus a callback handler in `src/server/routes/oauth-callbacks.ts`
 
 Adding a new implementation means:
 
-1. Implement the interface in `src/core/<kind>/adapters/<name>.ts`
-2. Register in `src/core/<kind>/registry.ts`
-3. Add a settings schema and UI when the adapter is user-configurable
+| Extension | Implementation location |
+|-----------|-------------------------|
+| Listening sources | `src/core/plugins/<name>.ts` |
+| Library sources | `src/core/library/sources/<name>.ts` |
+| Targets | `src/core/targets/<name>.ts` |
+| Subscriptions | `src/core/subscriptions/adapters/<name>.ts` |
+| Search | `src/core/search/sources/<name>.ts` |
+| AI providers | `src/core/providers/<name>.ts` |
+| Discovery modes | `src/core/discovery-modes/modes/<name>.ts` |
+| Notifications | `src/core/notifications/channels/<type>.ts` |
+| Provider auth | `PROVIDER_AUTH` in `src/core/provider-auth.ts` plus its OAuth callback |
+
+Register the implementation at its extension point and add settings/schema/UI when configurable.
 
 ## Preview playback
 
@@ -195,7 +237,7 @@ Startup in `src/index.ts` has two phases:
 1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations.
 2. After the HTTP listener starts, an async initializer completes env-based setup when configured, creates the initial admin if no users exist, migrates legacy connections, backfills targets, and starts the pipeline, subscription, playlist, library, slskd, stuck-job, and notification-digest schedulers.
 
-The digest bookmark is persisted after successful delivery. This provides at-least-once delivery: a crash after sending but before saving the bookmark can repeat a digest. Schedulers skip work during maintenance; jobs already running must finish before a backend migration.
+One shared digest bookmark advances after any channel succeeds. A crash between sending and saving can repeat a digest; a failed channel does not independently retry a window already accepted by another channel ([#762](https://github.com/iuliandita/digarr/issues/762)). Schedulers skip work during maintenance; jobs already running must finish before a backend migration.
 
 ## Album-level discovery
 
@@ -204,8 +246,8 @@ Albums are a first-class recommendation unit. Key additions:
 - **`kind` discriminator** on the `recommendations` table (`'artist' | 'album'`, default `'artist'`). All recommendation queries and API responses include `kind`; the list endpoint accepts a `?kind=` filter.
 - **`album_blocks` table** -- per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
 - **`applyAlbumModifier`** in `src/core/pipeline/score.ts` -- computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
-- **`addAlbum` target capability** -- approving an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe).
-- **Release-radar producer** -- the release-radar discovery mode is the first producer that populates the album substrate. It emits first-class `kind='album'` recommendations for new releases from artists the user already tracks, instead of collapsing them into artist rows, and these land in the Albums tab. With the kind-aware dedup change (below), a tracked artist that drops several releases in one scan window now yields one album recommendation per release in the same run, rather than one per run.
+- **`addAlbum` target capability** -- individual approval of an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe). Bulk and automatic album approval currently use the artist-level path instead; bulk Lidarr approval requests no album monitoring or search ([#756](https://github.com/iuliandita/digarr/issues/756), [#761](https://github.com/iuliandita/digarr/issues/761)); automatic approval uses its configured monitoring scope, defaulting to all albums.
+- **Release-radar producer** -- the release-radar discovery mode is the first producer of album recommendations. It emits first-class `kind='album'` recommendations for new releases from artists the user already tracks, instead of collapsing them into artist rows, and these land in the Albums tab. With the kind-aware dedup change (below), a tracked artist that drops several releases in one scan window now yields one album recommendation per release in the same run, rather than one per run.
 - **Library gap-fill producer** -- a discovery mode whose executor iterates a rotated, bounded slice of the user's tracked artists. The cursor is the `library_artists.last_gap_check_at` column, ordered `asc nulls first` so never-checked artists go first; the slice is bounded (default 25 per run, overridable via the mode's `maxArtistsPerRun` setting) and walked with a p-queue (concurrency 2, 200ms interval) so a large library does not starve the event loop. For each artist it calls the album-coverage engine (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per missing studio album, carrying the release-group MBID and the release year as the recency signal. After the slice runs, the checked artists' `last_gap_check_at` is stamped so the next run advances the cursor. This fills the Albums tab from missing studio albums of artists already in the library.
 - **Net-new album discovery producer** -- when `netNewAlbumDiscovery` is enabled (default off), `resolve()` tries to match the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album recommendation with its release-group MBID and first-release date, then follows the normal album scoring, filtering, and storage paths. An unmatched title stays an artist recommendation.
 - **Album empty-state routing** -- a normal pipeline scan remains artist-focused. When the album-filtered recommendation list is empty, the frontend links to the two explicit album discovery modes (`gap-fill` and `release-radar`) and to the default-off `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested generic mode card; the preference link opens its collapsed settings section and focuses the target.
@@ -219,13 +261,20 @@ Albums are a first-class recommendation unit. Key additions:
 
 - Library sync replaces a source snapshot only after all source album fetches succeed. A failed fetch retains the previous snapshot and marks the run failed; MusicBrainz reconciliation failures remain separately counted.
 - Config precedence: for settings stored in the DB (single row, `id=1`), saved values override env defaults. Deployment-only options such as `DIGARR_MUSICBRAINZ_URL` and `DIGARR_MUSICBRAINZ_INTERVAL_MS` come from the environment and require a restart. Direct per-user service credentials live on `users`, with global settings as the fallback where supported; Spotify, Deezer, and TIDAL OAuth credentials live in `oauth_tokens`.
-- Provider, metadata, and playlist-target requests go through
+- Metadata, service-client, and playlist-target requests generally go through
   `createHttpClient()` in `src/core/clients/http.ts` for timeout, retry/backoff,
   JSON parsing, response-body errors, redaction, and optional TLS-skip behavior.
-  Read-only calls retain the client retry default. Duplicate-producing playlist
+  Anthropic and OpenAI providers use vendor SDK transports, so these policies are not universal. Read-only shared-client calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
-- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Returned local, Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected. Configured fallback sources remain available; no fake playable entries fill unresolved artists. Counts distinguish selected artists, artists with resolved tracks, artists included after truncation, and included tracks. Resolution metadata is saved in the existing job record after local tracks are saved and before remote exports, so a later target failure preserves the local result. Owned playlist details expose only their latest job projection; legacy playlists have no fabricated historical summary.
+- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. The resolver supports local lookups, but the running app wires only Spotify, Deezer, and MusicBrainz; accepted `local` priorities do not search media libraries ([#767](https://github.com/iuliandita/digarr/issues/767)). Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
+
+  MusicBrainz recordings are a final MBID-based fallback: they supply titles and recording IDs without playable URIs or paths. Exports link those rows to MusicBrainz pages; remote targets resolve tracks separately. Navidrome, Jellyfin, Emby, and Plex can substitute their first search result when exact matching fails ([#758](https://github.com/iuliandita/digarr/issues/758)). No invented titles fill unresolved artists.
+
+  Counts distinguish selected artists, artists with resolved tracks, artists included after truncation, and included tracks. Resolution metadata is saved in the existing job record after local tracks are saved and before remote exports, so a later target failure preserves the local result.
+
+  Owned playlist details expose only their latest job projection; legacy playlists have no fabricated historical summary.
+- Playlist scheduling is gated by the global `preferences.playlistEnabled` switch (default false), plus each playlist's enabled flag and schedule. Manual generation is independent of that switch.
 - Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
 - Spotify playlist exports retain explicit track URIs, or resolve artist/title pairs with exact matching. Artist-only approvals take up to three artist-matching track search results. Writes use `/me/playlists` and `/playlists/{id}/items`, with at most 100 URIs per request; failures are not retried as duplicate writes.
 - Emby, Jellyfin, and Subsonic source clients each own a media-server request
@@ -236,12 +285,11 @@ Albums are a first-class recommendation unit. Key additions:
 - Field-level encryption uses AES-256-GCM with HKDF-derived keys (`src/core/crypto.ts`). Encrypted DB values are prefixed `enc:v1:`. Legacy SHA-256 decryption is retained as a read-path fallback for pre-migration values.
 - Tests run in Node.js (vitest), not Bun. `Bun.serve()`, `Bun.file()` and similar Bun-only APIs are unavailable in tests; password hashing uses `node:crypto` `scrypt`.
 - Migrations are idempotent. Drizzle generates bare DDL, so every generated migration must add `IF NOT EXISTS` / `IF EXISTS` clauses by hand.
-- Backup restore runs in a single DB transaction. Upsert conflict targets are natural keys (`mbid`, `slug`, `nameNormalized`, `token`), not generated IDs.
+- Backup restore runs in a single DB transaction. It replaces the included tables and preserves original row IDs. Clearing users also cascades deletion of omitted user-owned rows, so omission does not preserve destination data. Back up the destination and prefer a fresh database for JSON restore ([#757](https://github.com/iuliandita/digarr/issues/757)). Selected tables use natural-key conflict targets (`mbid`, `slug`, `nameNormalized`); others use their original `id`.
 - Primary keys are `integer GENERATED BY DEFAULT AS IDENTITY` (not legacy `serial`). BY DEFAULT is deliberate: backup restore re-inserts rows with their original `id`, which `GENERATED ALWAYS` would reject.
 - Backend migration never modifies the source database. Verification (row count + content hash) must pass before `ok: true` is returned; any mismatch surfaces in `MigrationReport.mismatches`.
 - Optional genre-priority ordering is a user-scoped read concern in `listRecommendations`, independent of score computation. Exact genre matches select primary, secondary, and other groups before score ordering and pagination. Secondary browsing excludes primary matches; missing preferences preserve score ordering. No recommendation rows are rewritten.
 - Scoring uses the shared `computeWeightedScore()` in `src/core/pipeline/score.ts`. All callers (main pipeline + hygiene rescorer) clamp results to `[0, 1]` regardless of user weight sums. Maintenance rescoring reuses stored components and album modifiers, scopes reads and writes to the current user, and skips incompatible evidence or rows changed since selection.
 - Listening profiles clean semicolon-separated genres, blank values, and numeric artifacts before hydration and after reading cached genres. Coverage counts usable genres; pending-cache counts retain their freshness semantics. This does not rewrite library or cache metadata.
 
-See `AGENTS.md` for the gotchas, external-API quirks, and CI notes that
-accumulate faster than this doc should; `AGENTS.md` stays the living ops file.
+See [Contributing](../CONTRIBUTING.md) for development checks and the [API reference](API.md) for endpoint contracts.

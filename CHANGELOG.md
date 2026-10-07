@@ -6,11 +6,13 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Documentation
+
+- Shorten the README and move operator details into linked guides. Correct v1.19.0 API contracts, deployment requirements, backup boundaries, album-approval limitations, and key-rotation coverage. Application defects remain tracked separately. The v1.18.0-to-v1.19.0 upgrade has no migrations and creates no pre-migration auto-backup; take a complete database backup first. [#755](https://github.com/iuliandita/digarr/issues/755).
+
+- Correct historical descriptions in v0.20.3 (inline discovery controls), v1.11.0 (migration key checks), and v1.13.0 (digest bookmarks), checked against their release tags on October 7, 2026. The v1.19.0 wording is also clarified, including the remaining name filter and section ordering. These corrections describe existing behavior, not new features. Older README anchors remain as pointers to the guides. [#755](https://github.com/iuliandita/digarr/issues/755).
+
 ## v1.19.0 - 2026-10-06
-
-### Development
-
-- Recommendation evaluation uses the production prompt with representative synthetic profiles, field-level checks, and replayable reports. Expected-neighbor checks remain advisory; subjective fit and listening outcomes require separate review. [#718](https://github.com/iuliandita/digarr/issues/718).
 
 ### Added
 
@@ -25,13 +27,15 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - AI profiles retain each seed artist's genre context and describe source-dependent seed weights without calling popularity or favorites play counts. Guidance supports distinct musical interests and treats missing history or tags as unknown. The advisory baseline adds eclectic and sparse-history cases. [#739](https://github.com/iuliandita/digarr/issues/739).
 - Maintenance rescoring preserves stored score components and album modifiers, skips incompatible legacy evidence, and uses the current user's weights only for their recommendations. Concurrently changed rows are left untouched. [#734](https://github.com/iuliandita/digarr/issues/734).
 - Listening profiles split semicolon-separated genre lists and ignore numeric artifacts before genre weighting. Valid genres are deduplicated, and coverage counts only usable genres. Stored library and cache metadata are unchanged. [#736](https://github.com/iuliandita/digarr/issues/736).
-
 - Name-only discovery validates MusicBrainz names and catalog aliases before genre matching, preventing unrelated artists from inheriting another artist's AI explanation and starter album. Tied matches remain unresolved. [#731](https://github.com/iuliandita/digarr/issues/731).
-
 - Discover Audition retains unavailable-preview reasons after skipped items or queue completion, including missing links, lookup failures, and playback failures. Only an actual browser permission rejection is labeled blocked playback. [#729](https://github.com/iuliandita/digarr/issues/729).
 - Discovery skips listening sources without similar-artist support instead of reporting them as failed. Job History distinguishes missing seeds, successful empty lookups, and actual or partial source failures, with localized skip explanations. [#722](https://github.com/iuliandita/digarr/issues/722).
-- AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. This remains a heuristic, not identity verification. [#719](https://github.com/iuliandita/digarr/issues/719).
+- AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. A separate name-containment filter remains and can suppress legitimate similarly named artists. This remains a heuristic, not identity verification. [#719](https://github.com/iuliandita/digarr/issues/719).
 - Dashboard listening history distinguishes unconfigured accounts, empty history, and fetch failures, with retry actions for failures. ListenBrainz artist statistics treat HTTP 204 as empty history. [#721](https://github.com/iuliandita/digarr/issues/721).
+
+### Development
+
+- Recommendation evaluation uses the production prompt with representative synthetic profiles, field-level checks, and replayable reports. Expected-neighbor checks remain advisory; subjective fit and listening outcomes require separate review. [#718](https://github.com/iuliandita/digarr/issues/718).
 
 ## v1.18.0 - 2026-09-20
 
@@ -170,7 +174,7 @@ New discovery inputs and review controls, continuous audition playback, broader 
 
 ### Changed
 
-- **Notification digests now persist their last-sent bookmark.** Restarts and downtime no longer double-report or drop an activity window; delivery remains at-least-once.
+- **Notification digests now persist their last-sent bookmark.** Ordinary restarts resume from the saved activity-window bookmark. A crash after webhook delivery but before the bookmark is saved can still repeat delivery; delivery remains at-least-once.
 - **Database backend migration now copies and verifies one table at a time.** The admin migration tool no longer holds whole-source and whole-target backup objects in application memory. It keeps the consistent read-only source transaction and atomic target transaction, restores in bounded chunks, and reports the same count/content verification result while the working set follows the largest individual table.
 - **Playlist targets now share one safe HTTP transport policy.** Jellyfin, Emby, Plex, and Navidrome playlist requests use the shared timeout, TLS, JSON parsing, response-body error, and credential-redaction path. Read-only requests and best-effort metadata updates may retry; duplicate-producing playlist creation and song-add requests make exactly one attempt, including Subsonic's GET-shaped mutation endpoints.
 - **Lidarr library-health repairs use the bulk editor first.** Unmonitored-artist repairs make one bulk request on compatible Lidarr versions and retain a per-artist fallback when the bulk endpoint is unavailable.
@@ -227,7 +231,7 @@ Self-hostable with zero external database, a new Subsonic source, in-app backend
 
 ### Added
 
-- **Migrate between PGlite and PostgreSQL from the admin panel (admin-gated, source never modified, verified copy).** A new "Migrate Database Backend" section in Settings -> Administration lets admins copy all stateful data from the current backend to a different one without taking the server offline for reads. The tool takes a consistent read-only snapshot (`REPEATABLE READ READ ONLY`), blocks write API calls during the copy (reads still serve normally), restores atomically into the target, then verifies every table by row count and content hash. On success, the panel shows the exact env var to set before restarting. `sessions` and rate-limit counters are intentionally excluded (all users must re-login after the switch). The source is never modified; the switch is reversible by pointing the env vars back at the original backend. Requires the same `DIGARR_ENCRYPTION_KEY` on both ends -- the tool refuses with a clear error if they differ. See [Switching the Database Backend](docs/guides/switching-backends.md).
+- **Migrate between PGlite and PostgreSQL from the admin panel (admin-gated, source never modified, verified copy).** A new "Migrate Database Backend" section in Settings -> Administration lets admins copy all stateful data from the current backend to a different one without taking the server offline for reads. The tool takes a consistent read-only snapshot (`REPEATABLE READ READ ONLY`), blocks write API calls during the copy (reads still serve normally), restores atomically into the target, then verifies every table by row count and content hash. On success, the panel shows the exact env var to set before restarting. `sessions` and rate-limit counters are intentionally excluded (all users must re-login after the switch). The source is never modified; the switch is reversible by pointing the env vars back at the original backend. Encrypted values transfer unchanged under the running process's key; retain that `DIGARR_ENCRYPTION_KEY` when restarting on the new backend. This same-process migration does not independently verify source and target keys. See [Switching the Database Backend](docs/guides/switching-backends.md).
 - **Embedded PGlite database backend.** Run digarr with no separate PostgreSQL container via `docker run` (no DB env) or `docker-compose.pglite.yml`. The existing `docker-compose.yml`, Helm, and raw k8s are unchanged and still default to PostgreSQL. External PostgreSQL remains fully supported via `DATABASE_URL`/`DB_*`. Upgrade note: existing deployments are unaffected -- the app uses PostgreSQL whenever a DSN is present (it already required one to boot), and the default backend plus your existing Postgres connection are unchanged. The startup log prints the selected backend (`[db] backend=...`).
 - **Subsonic listening and library source.** Digarr can now connect to a Subsonic-compatible server (Navidrome, Airsonic, Gonic, or plain Subsonic) as a first-class source, at parity with Plex/Jellyfin/Emby. It seeds discovery from your starred/favorite artists and syncs your library (artists and albums) for filtering and gap-fill. Matching is name-based -- Subsonic artists and albums carry no MBIDs, so the reconciler name-matches them against MusicBrainz; the source does not provide similar-artists or genre tags. Configure it under Settings -> Connections with the server URL, username, and password (token auth). Translated across all 15 shipped locales.
 - **Set your account email in-app.** A new **Settings -> Account -> Email** field lets you set or clear your account's email without touching the database (operators previously had to edit the `email` column by hand). Emails are stored case-insensitively and are unique across users -- claiming one already in use is rejected. Note: OIDC/SSO identities link to local accounts by the issuer subject only, not by email, so a self-set email cannot be used to bind an IdP identity to your account. Translated across all 15 shipped locales.
@@ -1084,7 +1088,7 @@ Six data-safety fixes from the deep audit.
 
 ### Added
 
-- Discovery modes on the dedicated `/discover/modes` page, with runnable ListenBrainz, Release Radar, and Similar Artist Web flows
+- Discovery modes within Discover, with runnable ListenBrainz, Release Radar, and Similar Artist Web flows
 - Discovery-mode subscriptions that reuse the existing subscription runner, scheduler, job history, and browser coverage
 
 ### Fixed
