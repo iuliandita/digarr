@@ -232,6 +232,60 @@ describe('documentation contract snapshots', () => {
     expect(createSnapshot(root).release.digest).not.toBe(before.release.digest)
   })
 
+  it('tracks runtime CSS and markup in the interface domain', () => {
+    const root = fixture()
+    for (const path of ['src/web/index.css', 'src/web/shell.html']) {
+      const before = createSnapshot(root)
+      write(root, path, 'body { color: red; }\n')
+      expect(createSnapshot(root).interface.digest).not.toBe(before.interface.digest)
+    }
+  })
+
+  it('ignores version-only action comments and compose minor pins, retaining semantic comments', () => {
+    const path = '.github/workflows/ci.yml'
+    expect(normalizeSource(path, '- uses: actions/checkout@abc # v6.0.0\n')).toBe(
+      normalizeSource(path, '- uses: actions/checkout@def # v6.1.0\r\n'),
+    )
+    expect(normalizeSource(path, '- uses: actions/checkout@abc # preserve credentials\n')).not.toBe(
+      normalizeSource(path, '- uses: actions/checkout@abc\n'),
+    )
+    const compose = '    #   :1.19 -> current minor release line, patch fixes only\n'
+    expect(normalizeSource('deploy/docker/docker-compose.yml', compose)).toBe(
+      normalizeSource('deploy/docker/docker-compose.yml', compose.replace(':1.19', ':1.20')),
+    )
+    expect(normalizeSource('src/core/file.ts', 'const x = 1\r\n')).toBe(
+      normalizeSource('src/core/file.ts', 'const x = 1\n'),
+    )
+  })
+
+  it.each([
+    'src/core/auth.ts',
+    'src/core/oauth.ts',
+    'src/core/sessions.ts',
+    'src/server/schemas/auth.ts',
+    'src/server/schemas/oauth.ts',
+    'src/server/schemas/users.ts',
+    'src/server/routes/users.ts',
+    'src/server/routes/setup.ts',
+    'src/server/routes/admin.ts',
+  ])('maps identity-sensitive source %s to authentication', (path) => {
+    const root = fixture()
+    write(root, path, 'export const identity = true\n')
+    expect(Object.hasOwn(createSnapshot(root).authentication.files, path)).toBe(true)
+  })
+
+  it.each([
+    'deploy/docker/Dockerfile.debian',
+    'deploy/service/app.conf',
+    'deploy/service/app.toml',
+    'deploy/service/app.ini',
+    'deploy/helm/digarr/templates/tests/connection.yaml',
+  ])('includes deployment source %s', (path) => {
+    const root = fixture()
+    write(root, path, 'enabled = true\n')
+    expect(Object.hasOwn(createSnapshot(root).deployment.files, path)).toBe(true)
+  })
+
   it('normalizes known release pins while retaining action identity, conditions, permissions, and defaults', () => {
     const workflow =
       'permissions: read-all\njobs:\n  build:\n    if: true\n    steps:\n      - uses: actions/checkout@v4\n'
@@ -600,6 +654,47 @@ describe('PR range validation and command interface', () => {
         lockAdded: false,
       }).some((finding) => finding.message.includes('cannot use no-impact')),
     ).toBe(true)
+  })
+
+  it('requires a combined migration receipt when a later query receipt supersedes it', () => {
+    const root = fixture()
+    const old = baseline(root)
+    write(root, 'drizzle/0001_new.sql', 'ALTER TABLE users ADD COLUMN name text;\n')
+    const recoveryDocs = ['CHANGELOG.md', 'docs/OPERATIONS.md', 'docs/guides/switching-backends.md']
+    let current = acceptReview(
+      root,
+      old,
+      createSnapshot(root),
+      'data-recovery',
+      receipt({
+        outcome: 'docs-updated',
+        docs: recoveryDocs,
+        note: impactNote,
+        migration: migrationNote,
+      }),
+    )
+    write(root, 'src/db/queries/list.ts', 'export const query = true\n')
+    const snapshot = createSnapshot(root)
+    current = acceptReview(root, current, snapshot, 'data-recovery', receipt())
+    const context = { lock: old, changedFiles: recoveryDocs, lockAdded: false }
+    expect(
+      checkContracts(root, current, snapshot, context).some((finding) =>
+        finding.message.includes('cannot use no-impact'),
+      ),
+    ).toBe(true)
+    current = acceptReview(
+      root,
+      current,
+      snapshot,
+      'data-recovery',
+      receipt({
+        outcome: 'docs-updated',
+        docs: recoveryDocs,
+        note: 'Reviewed the combined release migration and subsequent query changes.',
+        migration: migrationNote,
+      }),
+    )
+    expect(checkContracts(root, current, snapshot, context)).toEqual([])
   })
 
   it('requires changed cited docs, a new explanation, and non-baseline review after the initial lock', () => {

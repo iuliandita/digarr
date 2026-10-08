@@ -8,7 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Maintenance
 
-- Add documentation checks for source changes, local links, environment names, and review receipts. PRs and releases run the checks; Unraid companion templates have a separate advisory comparison. Manual releases check the requested tag before publishing its image; tag/version mismatches fail and both images use the checked commit. [#776](https://github.com/iuliandita/digarr/issues/776), [#777](https://github.com/iuliandita/digarr/issues/777), [#778](https://github.com/iuliandita/digarr/issues/778).
+- Add documentation checks for source changes, local links, environment names, and review receipts. Contributor checks require Bun and Node.js 22.18 or newer. PRs and releases run the checks; Unraid companion templates have a separate advisory comparison. Manual releases check the requested tag before publishing its image; tag/version mismatches fail and both images use the checked commit. [#776](https://github.com/iuliandita/digarr/issues/776), [#777](https://github.com/iuliandita/digarr/issues/777), [#778](https://github.com/iuliandita/digarr/issues/778).
 
 ### Documentation
 

@@ -2,7 +2,7 @@
 
 ## Dev setup
 
-Install Bun, Node.js (Vitest runs under Node), Docker, and the PostgreSQL client tools (`pg_isready`). Development uses local ports 5432, 3000, and 5173; browser tests also use 3011 for the mock sign-in provider. Keep these ports free.
+Install Bun, Node.js 22.18 or newer (Vitest and the documentation AST check run under Node), Docker, and the PostgreSQL client tools (`pg_isready`). Development uses local ports 5432, 3000, and 5173; browser tests also use 3011 for the mock sign-in provider. Keep these ports free.
 
 ```sh
 git clone https://github.com/iuliandita/digarr.git

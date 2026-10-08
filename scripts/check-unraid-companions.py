@@ -4,6 +4,7 @@
 import argparse
 import http.client
 import json
+import re
 from pathlib import Path
 import sys
 import urllib.error
@@ -20,12 +21,17 @@ COMPANIONS = {
         "https://raw.githubusercontent.com/selfhosters/unRAID-CA-templates/master/templates/digarr.xml",
     ),
 }
-IGNORED = {"Repository", "Branch"}
+IGNORED = {"Branch"}
 LIMIT = 1_048_576
 
 
 def contract(data: bytes) -> dict[str, object]:
-    root = ET.fromstring(data)
+    text = data.decode("utf-8-sig")
+    if "\0" in text:
+        raise ValueError("template must use UTF-8 XML")
+    if "<!DOCTYPE" in text.upper() or "<!ENTITY" in text.upper():
+        raise ValueError("XML declarations for DTDs or entities are unsupported")
+    root = ET.fromstring(text)
     if root.tag != "Container":
         raise ValueError("expected a Container template")
     result: dict[str, object] = {}
@@ -37,9 +43,14 @@ def contract(data: bytes) -> dict[str, object]:
             key = f"Config:{element.get('Type')}:{element.get('Target')}"
         if key in result:
             raise ValueError(f"duplicate template field: {key}")
+        value = " ".join((element.text or "").split())
+        if key == "Repository":
+            value = re.sub(r"@sha256:[a-fA-F0-9]{64}$", "", value)
+            value = re.sub(r":[^/:]+$", "", value)
+            value = re.sub(r"^(?:docker\.io|index\.docker\.io|ghcr\.io)/(?=iuliandita/digarr$)", "", value)
         result[key] = {
             "attributes": dict(sorted(element.attrib.items())),
-            "value": " ".join((element.text or "").split()),
+            "value": value,
         }
     if not any(key.startswith("Config:") for key in result):
         raise ValueError("template has no configuration fields")

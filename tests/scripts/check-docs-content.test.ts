@@ -137,6 +137,35 @@ describe('documentation content checks', () => {
     expect([...extractEnvironmentNames(source)].sort()).toEqual(['BRACKET', 'DIRECT'])
   })
 
+  it('parses JSX apostrophes, regex literals, and template expressions without swallowing environment reads', () => {
+    const source = [
+      "const element = <div>user's text {process.env.IN_JSX}</div>",
+      "const regex = /'process.env.REGEX_SAMPLE'/",
+      "process.env.AFTER_REGEX; process.env['AFTER_JSX']",
+      'const template = `value ' + '$' + '{process.env.IN_TEMPLATE}`',
+    ].join('\n')
+    expect([...extractEnvironmentNames(source)].sort()).toEqual([
+      'AFTER_JSX',
+      'AFTER_REGEX',
+      'IN_JSX',
+      'IN_TEMPLATE',
+    ])
+  })
+
+  it('skips deleted tracked runtime sources without hiding surviving undocumented names', () => {
+    const files = { 'src/remaining.ts': 'process.env.REMAINING' }
+    const findings = checkEnvironmentCoverage(fixture(files), [
+      ...Object.keys(files),
+      'src/deleted.ts',
+    ])
+    expect(findings).toEqual([
+      {
+        file: 'src/',
+        message: 'REMAINING is missing from tracked operator documentation or .env.example',
+      },
+    ])
+  })
+
   it('requires whole environment identifiers in operator docs and excludes only explicit internal names', () => {
     const source = [
       "envOrFile('PUBLIC_SECRET')",

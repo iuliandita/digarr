@@ -120,6 +120,8 @@ const HASH = /^[a-f0-9]{64}$/
 const SOURCE_EXTENSIONS = new Set([
   '.ts',
   '.tsx',
+  '.css',
+  '.html',
   '.js',
   '.mjs',
   '.json',
@@ -127,6 +129,9 @@ const SOURCE_EXTENSIONS = new Set([
   '.yml',
   '.sh',
   '.py',
+  '.conf',
+  '.toml',
+  '.ini',
 ])
 
 export function isDomain(value: string): value is Domain {
@@ -142,9 +147,12 @@ export function domainForPath(path: string): Domain | null {
   if (path.startsWith('src/config/') || path === '.env.example') return 'configuration'
   if (
     path.startsWith('src/core/auth/') ||
-    ['src/core/crypto.ts', 'src/core/provider-auth.ts'].includes(path) ||
+    ['auth', 'oauth', 'sessions', 'crypto', 'provider-auth'].some(
+      (name) => path === `src/core/${name}.ts`,
+    ) ||
     path.startsWith('src/server/middleware/') ||
-    /^src\/server\/(routes|helpers)\/[^/]*(auth|oauth|oidc)[^/]*\.(ts|tsx)$/.test(path)
+    /^src\/server\/(routes|helpers|schemas)\/[^/]*(auth|oauth|oidc)[^/]*\.(ts|tsx)$/.test(path) ||
+    /^src\/server\/(routes|schemas)\/(users|setup|admin)\.(ts|tsx)$/.test(path)
   )
     return 'authentication'
   if (path.startsWith('src/server/')) return 'api'
@@ -175,16 +183,20 @@ export function normalizeSource(path: string, content: string): string {
       throw new Error('package.json must contain version and scripts')
     return JSON.stringify({ version: pkg.version, scripts: sortedObject(pkg.scripts) })
   }
-  let normalized = content
+  let normalized = content.replace(/\r\n/g, '\n')
   if (path.startsWith('.github/workflows/'))
-    normalized = normalized.replace(
-      /(^[ \t]*(?:-\s*)?uses:\s*["']?)([\w.-]+\/[\w./-]+)@[^\s"'#]+/gm,
-      '$1$2@<pin>',
-    )
+    normalized = normalized
+      .replace(/(^[ \t]*(?:-\s*)?uses:\s*["']?)([\w.-]+\/[\w./-]+)@[^\s"'#]+/gm, '$1$2@<pin>')
+      .replace(/(@<pin>["']?)[ \t]+# v?\d+(?:\.\d+){0,2}[ \t]*$/gm, '$1')
   if (path.startsWith('deploy/') || path.startsWith('.github/workflows/'))
     normalized = normalized.replace(
       /((?:ghcr\.io|docker\.io)\/iuliandita\/digarr)(?:@sha256:[a-f0-9]{64}|:\d+\.\d+(?:\.\d+)?(?:-debian|-alpine)?)/g,
       '$1:<pin>',
+    )
+  if (path.startsWith('deploy/docker/'))
+    normalized = normalized.replace(
+      /^([ \t]*#\s+):\d+\.\d+(\s+-> current minor release line[^\n]*)$/gm,
+      '$1:<pin>$2',
     )
   if (path === 'deploy/helm/digarr/Chart.yaml')
     normalized = normalized.replace(/^(version|appVersion):[^\n]*$/gm, '$1: <pin>')
@@ -208,7 +220,12 @@ export function normalizeSource(path: string, content: string): string {
 function isSource(path: string): boolean {
   const name = basename(path)
   if (name.startsWith('.env')) return name === '.env.example'
-  if (name === 'Dockerfile' || path === 'deploy/unraid/digarr.xml') return true
+  if (
+    name === 'Dockerfile' ||
+    name.startsWith('Dockerfile.') ||
+    path === 'deploy/unraid/digarr.xml'
+  )
+    return true
   if (path.startsWith('drizzle/') && extname(path) === '.sql') return true
   if (path.startsWith('deploy/helm/') && ['.tpl', '.txt'].includes(extname(path))) return true
   return SOURCE_EXTENSIONS.has(extname(path))
@@ -221,9 +238,8 @@ function eligibleSource(path: string): boolean {
       .slice(0, -1)
       .some(
         (part) =>
-          ['node_modules', 'dist', 'tests', '__tests__', 'secrets', '.git', 'coverage'].includes(
-            part,
-          ) ||
+          ['node_modules', 'secrets', '.git'].includes(part) ||
+          (path.startsWith('src/') && ['dist', 'tests', '__tests__', 'coverage'].includes(part)) ||
           (part.startsWith('.') && part !== '.github'),
       ) &&
     !/\.(test|spec)\.[cm]?[jt]sx?$/.test(path)
@@ -252,9 +268,9 @@ function inventory(root: string, path: string): string[] {
     const relative = `${path}/${entry.name}`
     if (entry.isDirectory()) {
       if (
-        ['node_modules', 'dist', 'tests', '__tests__', 'secrets', '.git', 'coverage'].includes(
-          entry.name,
-        ) ||
+        ['node_modules', 'secrets', '.git'].includes(entry.name) ||
+        (relative.startsWith('src/') &&
+          ['dist', 'tests', '__tests__', 'coverage'].includes(entry.name)) ||
         entry.name.startsWith('.')
       )
         continue

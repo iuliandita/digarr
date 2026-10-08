@@ -3,6 +3,16 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  isCallExpression,
+  isElementAccessExpression,
+  isIdentifier,
+  isPropertyAccessExpression,
+  isStringLiteral,
+  type Node,
+} from 'typescript/unstable/ast'
+import { createVirtualFileSystem } from 'typescript/unstable/fs'
+import { API } from 'typescript/unstable/sync'
 
 export type Finding = { file: string; message: string }
 
@@ -202,42 +212,99 @@ export function checkMarkdownLinks(rootInput: string, files: readonly string[]):
   return findings
 }
 
-export function extractEnvironmentNames(source: string, helpers = false): Set<string> {
-  const names = new Set<string>()
-  const tokens: Array<{ text: string; literal: boolean }> = []
-  const pattern =
-    /\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|[A-Za-z_$][\w$]*|[^\s]/g
-  for (const match of source.matchAll(pattern)) {
-    const text = match[0]
-    if (text.startsWith('//') || text.startsWith('/*') || text.startsWith('`')) continue
-    const quoted = text.startsWith('"') || text.startsWith("'")
-    tokens.push({ text: quoted ? text.slice(1, -1) : text, literal: quoted })
+type EnvironmentSource = { file: string; source: string; helpers: boolean }
+
+function extractEnvironmentSources(sources: readonly EnvironmentSource[]): Set<string> {
+  if (sources.length === 0) return new Set()
+  // The native compiler's synchronous pipe transport requires Node internals.
+  if (process.versions.bun) {
+    const input = JSON.stringify(sources)
+    if (Buffer.byteLength(input) > 32 * 1024 * 1024)
+      throw new Error('Environment source input exceeds 32 MiB')
+    try {
+      return new Set(
+        JSON.parse(
+          execFileSync('node', [fileURLToPath(import.meta.url), '--environment-ast'], {
+            input,
+            encoding: 'utf8',
+            maxBuffer: 16 * 1024 * 1024,
+          }),
+        ) as string[],
+      )
+    } catch (error) {
+      throw new Error(
+        'Environment AST check requires Node.js 22.18 or newer and the installed TypeScript native binary',
+        { cause: error },
+      )
+    }
   }
-  const matches = (index: number, expected: string) =>
-    tokens[index]?.text === expected && !tokens[index]?.literal
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
-    if (!token || token.literal) continue
-    if (
-      helpers &&
-      /^(env|envOrFile|envBool|envInt|envOneOf)$/.test(token.text) &&
-      matches(i + 1, '(') &&
-      tokens[i + 2]?.literal
-    ) {
-      const name = tokens[i + 2]?.text
-      if (name && /^[A-Z_][A-Z0-9_]*$/.test(name)) {
-        names.add(name)
-        if (token.text === 'envOrFile') names.add(`${name}_FILE`)
+  const root = '/docs-content-ast'
+  const files: Record<string, string> = Object.fromEntries(
+    sources.map(({ file, source }) => [`${root}/${file}`, source]),
+  )
+  files[`${root}/tsconfig.json`] = JSON.stringify({
+    compilerOptions: { noLib: true, noResolve: true, jsx: 'preserve', types: [] },
+    files: sources.map(({ file }) => file),
+  })
+  const virtual = createVirtualFileSystem(files)
+  const api = new API({
+    cwd: root,
+    fs: {
+      ...virtual,
+      readFile: (file) => files[file] ?? null,
+      getAccessibleEntries: (directory) =>
+        virtual.getAccessibleEntries?.(directory) ?? { files: [], directories: [] },
+    },
+  })
+  const names = new Set<string>()
+  const isEnv = (node: Node): boolean =>
+    isPropertyAccessExpression(node) &&
+    isIdentifier(node.expression) &&
+    node.expression.text === 'process' &&
+    node.name.text === 'env'
+  try {
+    const snapshot = api.updateSnapshot({ openProjects: [`${root}/tsconfig.json`] })
+    try {
+      const project = snapshot.getProjects()[0]
+      if (!project) throw new Error('TypeScript could not load the documentation source snapshot')
+      for (const { file, helpers } of sources) {
+        const ast = project.program.getSourceFile(`${root}/${file}`)
+        if (!ast) throw new Error(`TypeScript could not parse ${file}`)
+        function visit(node: Node): void {
+          if (
+            helpers &&
+            isCallExpression(node) &&
+            isIdentifier(node.expression) &&
+            /^(env|envOrFile|envBool|envInt|envOneOf)$/.test(node.expression.text)
+          ) {
+            const argument = node.arguments[0]
+            if (argument && isStringLiteral(argument)) {
+              names.add(argument.text)
+              if (node.expression.text === 'envOrFile') names.add(`${argument.text}_FILE`)
+            }
+          }
+          if (isPropertyAccessExpression(node) && isEnv(node.expression)) names.add(node.name.text)
+          if (
+            isElementAccessExpression(node) &&
+            isEnv(node.expression) &&
+            isStringLiteral(node.argumentExpression)
+          )
+            names.add(node.argumentExpression.text)
+          node.forEachChild(visit)
+        }
+        visit(ast)
       }
+    } finally {
+      snapshot.dispose()
     }
-    if (token.text === 'process' && matches(i + 1, '.') && matches(i + 2, 'env')) {
-      const direct = matches(i + 3, '.') ? tokens[i + 4] : undefined
-      const bracket = matches(i + 3, '[') && matches(i + 5, ']') ? tokens[i + 4] : undefined
-      if (direct && !direct.literal) names.add(direct.text)
-      if (bracket?.literal) names.add(bracket.text)
-    }
+  } finally {
+    api.close()
   }
   return names
+}
+
+export function extractEnvironmentNames(source: string, helpers = false): Set<string> {
+  return extractEnvironmentSources([{ file: 'source.tsx', source, helpers }])
 }
 
 export function isOperatorDoc(file: string): boolean {
@@ -256,18 +323,20 @@ export function isOperatorDoc(file: string): boolean {
 }
 
 export function checkEnvironmentCoverage(root: string, files: readonly string[]): Finding[] {
-  const names = new Set<string>()
+  const sources: EnvironmentSource[] = []
   const docs: string[] = []
   for (const file of files) {
-    if (/^src\/.*\.tsx?$/.test(file)) {
-      for (const name of extractEnvironmentNames(
-        readFileSync(safePath(root, file), 'utf8'),
-        file === 'src/config/env.ts',
-      ))
-        names.add(name)
-    }
-    if (isOperatorDoc(file)) docs.push(readFileSync(safePath(root, file), 'utf8'))
+    const path = safePath(root, file)
+    if (!existsSync(path)) continue
+    if (/^src\/.*\.tsx?$/.test(file))
+      sources.push({
+        file,
+        source: readFileSync(path, 'utf8'),
+        helpers: file === 'src/config/env.ts',
+      })
+    if (isOperatorDoc(file)) docs.push(readFileSync(path, 'utf8'))
   }
+  const names = extractEnvironmentSources(sources)
   const identifiers = new Set(docs.join('\n').match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])
   return [...names]
     .sort()
@@ -304,4 +373,7 @@ export function main(args: readonly string[] = process.argv.slice(2)): number {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
-  process.exitCode = main()
+  if (process.argv[2] === '--environment-ast' && !process.versions.bun) {
+    const sources = JSON.parse(readFileSync(0, 'utf8')) as EnvironmentSource[]
+    console.log(JSON.stringify([...extractEnvironmentSources(sources)]))
+  } else process.exitCode = main()

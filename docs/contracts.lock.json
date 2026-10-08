@@ -211,10 +211,13 @@
     },
     "authentication": {
       "files": {
+        "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
         "src/core/auth/oidc.ts": "31d922dc3e6ba4ac2283ae41c5b49ce5504dfa6830a87597fb876e934ecf5c2a",
         "src/core/crypto.ts": "ee63285b6697b04d7e120dad411029201953283ca0d49ded94dd4f3942968215",
+        "src/core/oauth.ts": "864eecc7b3e33ad46a41b62066cebd9cf4cf5bf2dc4fd51eb3cd28443d810e2c",
         "src/core/provider-auth.ts": "77ad75b128a06c5f44e1b0c239f94c25ad1c7698c55637ea1e9bbf78a273200d",
+        "src/core/sessions.ts": "22edb84bdcc5c09129e174ca141cc08eabf2181859c99da319cbf71a39848ad3",
         "src/server/helpers/auth-problems.ts": "5af2038ed6b0ea66d63589383a24a87208ea0cca018b4d3ded5b686960e0b86a",
         "src/server/helpers/oauth-token-exchange.ts": "ec6278d4832be017756d888110aaccddfc6738c36940b440fd61f26bb3aee755",
         "src/server/helpers/oauth-transaction-cookie.ts": "00209e8915bb68bb1d14da106259aa942f2290901d11a7962ab4508e5ce0a019",
@@ -228,26 +231,28 @@
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
+        "src/server/routes/admin.ts": "63b04995136c088e36fb8e7bf1a607891dce1149e0c361d4655803fd8cfd6867",
         "src/server/routes/auth.ts": "9a44429196d182f9b0ad26fa488604a94ebe3a79781d385fd4bc66ed97040b04",
         "src/server/routes/oauth-callbacks.ts": "f425c9a010c1c97c8a3cd8d914dd4e137d40b4d5b5883d2d773eb7e4c97b98fa",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "51de3ebc83b7a7bb17417a644dcd211cd27b982220531ce456e28271d6d13e08",
-        "src/server/routes/oidc.ts": "221fec0de508dd55ebd0d374c6df0475d762c2080ba1b3423c666c330eae170a"
+        "src/server/routes/oidc.ts": "221fec0de508dd55ebd0d374c6df0475d762c2080ba1b3423c666c330eae170a",
+        "src/server/routes/setup.ts": "319fde2dbfaff00b9b2847d85fe3e02521ee493c0d56eb3eaeabf3d08baac612",
+        "src/server/routes/users.ts": "f0a6cdc020e9e43f60fae3c4ed180d9d475827c203a6af09fe2ec972ae92cbd4",
+        "src/server/schemas/admin.ts": "bed36630689052da3c3ed0291c3d5304fac45e68a7c6948e0dde71247355a4f5",
+        "src/server/schemas/auth.ts": "db16ef7a0723d1b2da2860b08790b7e1e443e7ae58d5e1e3b631be44985601d6",
+        "src/server/schemas/oauth.ts": "c7d41cd8b3a78b2e5b4f93662e0aadc02820f92903ba2df008f8ca8834e236e5",
+        "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
+        "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "1960cabbbea62f9bd52855c2aa89313f9a4f7db4436f54f93125224bb18806ee",
+      "digest": "c1f570d83b0515bfce72356aac1439bdb138d6147ea3f545e55a0aa827edbecc",
       "review": {
-        "digest": "1960cabbbea62f9bd52855c2aa89313f9a4f7db4436f54f93125224bb18806ee",
-        "outcome": "baseline",
-        "docs": [
-          "docs/AUTHENTICATION.md",
-          "docs/API.md",
-          "SECURITY.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Extend review coverage to existing authentication helpers and identity management endpoints without modifying runtime behavior.",
         "breaking": "none",
-        "migration": ""
+        "migration": "",
+        "digest": "c1f570d83b0515bfce72356aac1439bdb138d6147ea3f545e55a0aa827edbecc"
       }
     },
     "api": {
@@ -263,7 +268,6 @@
         "src/server/index.ts": "76236b2be189575e5da38434f9f436f61c69951bef0caa7ef226609054ad3d18",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
-        "src/server/routes/admin.ts": "63b04995136c088e36fb8e7bf1a607891dce1149e0c361d4655803fd8cfd6867",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
@@ -285,45 +289,33 @@
         "src/server/routes/recommendations.ts": "6a3c6ba1331010de2b5fec954b632b62e8f5f27d62b7a01ab0434f741cf9a708",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "edc05d7449d58021c1fe76a8cdb712d819b7957e4ccea4d7725fb74a01593a4e",
-        "src/server/routes/setup.ts": "319fde2dbfaff00b9b2847d85fe3e02521ee493c0d56eb3eaeabf3d08baac612",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "d1f236f9a2e4115ff48e6491e42188fa25ac3509b1d4f12cab45f001dc512dbb",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
-        "src/server/routes/users.ts": "f0a6cdc020e9e43f60fae3c4ed180d9d475827c203a6af09fe2ec972ae92cbd4",
-        "src/server/schemas/admin.ts": "bed36630689052da3c3ed0291c3d5304fac45e68a7c6948e0dde71247355a4f5",
-        "src/server/schemas/auth.ts": "db16ef7a0723d1b2da2860b08790b7e1e443e7ae58d5e1e3b631be44985601d6",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
         "src/server/schemas/lidarr.ts": "6b6dc418ae6677b2cf954e3663671bb1094f7b6d9c0108e82c9faa60503d6678",
         "src/server/schemas/migrate.ts": "b2761fffa76049466f2a68870bedb256cfcce50e5d77c713b1145097b9964c43",
         "src/server/schemas/mood.ts": "0c4176694194f59f41ccfc371d588b182c2fde592fcf880e3a3d97334e0f3a8a",
-        "src/server/schemas/oauth.ts": "c7d41cd8b3a78b2e5b4f93662e0aadc02820f92903ba2df008f8ca8834e236e5",
         "src/server/schemas/pipeline.ts": "2eade1dd585f9a0acc72a22a1ddd831887bb3b194c9acf7a5ea08c84a9dc24e2",
         "src/server/schemas/playlists.ts": "5d9ad843bea7549abf2a56d5000aed2816641d03dbf14d7e2dd104e0c94421d9",
         "src/server/schemas/recommendations.ts": "e6ded59221e26bac355bfd8d6ba556fdf08e2f5ca15051ac92cb641a7f3350d4",
         "src/server/schemas/settings.ts": "8cd3355f52e75b4c7282eaae673364dcd9d04b2e7ecfb47b0d94a7b2ab71b339",
-        "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "a06e9afefe69f7518620a6c7bfe70626e848373899022834f5e2deaae505d25c",
-        "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195",
         "src/server/schemas/validator.ts": "c23a1aeeaa484524ec8be483934fea9ef53bcdb0798fcbbc40c6d984482a7f50",
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "25c118c50ddc4184bdb6b6d73863da0cb5a0e3c10b6b54cd30e87d221aaa17eb",
+      "digest": "bf3a75c32f8b5c1cd06547329e58ee9bad04819ff6575a5c2c43b0c08b5f6e74",
       "review": {
-        "digest": "25c118c50ddc4184bdb6b6d73863da0cb5a0e3c10b6b54cd30e87d221aaa17eb",
-        "outcome": "baseline",
-        "docs": [
-          "docs/API.md",
-          "src/server/helpers/openapi-doc.ts",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Move existing identity-sensitive schema and route files into authentication coverage without changing their behavior.",
         "breaking": "none",
-        "migration": ""
+        "migration": "",
+        "digest": "bf3a75c32f8b5c1cd06547329e58ee9bad04819ff6575a5c2c43b0c08b5f6e74"
       }
     },
     "interface": {
@@ -431,6 +423,7 @@
         "src/web/hooks/use-pull-to-refresh.ts": "3f2712e5eeedb351704404d837f6b82290fd4414de60274d3c70988253004a76",
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
+        "src/web/index.css": "5f0c02cad336730eec7eb169a471bc1bcf3f77bb5efe8f727827d2f462b4bf13",
         "src/web/lib/api.ts": "7cadcff1e660ba6181cd75521ae659e37dfbd9f026c5087d6dcee46ea9f3fb11",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "8f492100667f8e7a0123691259c404765262df68d83527f1a0b7f064e10b3f58",
@@ -468,27 +461,20 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "bf2a09b604d65bf13fc6c13e767505672e6fb804ad4cd9041606e3ed1b5f93c1",
+      "digest": "4fd2982a82b59ee84a34192a6da497ef43d66117b27eb93fd43c7022898f4b67",
       "review": {
-        "digest": "bf2a09b604d65bf13fc6c13e767505672e6fb804ad4cd9041606e3ed1b5f93c1",
-        "outcome": "baseline",
-        "docs": [
-          "docs/SCREENSHOTS.md",
-          "README.md",
-          "docs/OPERATIONS.md",
-          "CONTRIBUTING.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Include the existing runtime stylesheet in interface review coverage without changing CSS or rendered application behavior.",
         "breaking": "none",
-        "migration": ""
+        "migration": "",
+        "digest": "4fd2982a82b59ee84a34192a6da497ef43d66117b27eb93fd43c7022898f4b67"
       }
     },
     "features": {
       "files": {
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
-        "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/clients/audiodb.ts": "64b82bbbe59efa17f758c59256cf9e990c906024d6255af8db20317ea85076b4",
         "src/core/clients/bandcamp.ts": "104c50ca2ab56242ab81b4bb208935b1d184b24186bd483770398b3332d4621d",
         "src/core/clients/deezer-user.ts": "674e72755e9f5b5bceb48b50cc4a49326921241f97644f3cda8dbdc1ed7ef825",
@@ -575,7 +561,6 @@
         "src/core/notifications/registry.ts": "08ce7a4937bdd27366a5e34d6ea1dd3e77d0be092edcdd44aa40672653803335",
         "src/core/notifications/transport.ts": "58e8c56d2fc07f34405a4eec3c379294c31acacfe6d041442a11d60c9663a4ca",
         "src/core/notifications/types.ts": "be5640349401fb3b996709e631d14dd8760fbed4f529b00f6328d9ddbe12068a",
-        "src/core/oauth.ts": "864eecc7b3e33ad46a41b62066cebd9cf4cf5bf2dc4fd51eb3cd28443d810e2c",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
         "src/core/pipeline/auto-approve.ts": "e25bf2499ca62e6e17aae4a2590e44d52c0858f3963d4ba0d1c7bcd8c4e01a86",
         "src/core/pipeline/cancel.ts": "346b432a6f0db611f6a6c6322557ea439f6a1f4ab50d4ceac0e6e59aef692752",
@@ -635,7 +620,6 @@
         "src/core/search/sources/musicbrainz.ts": "db15c55baeb16490ea0bdab0456489742f9a8b36aee567ba00a93919b6bc69c1",
         "src/core/search/sources/spotify.ts": "539fa2146fb28d98489f61c35198ae5b7c8d35dff674ba186737c910aedbbd4e",
         "src/core/search/sources/tidal.ts": "9cb3766d9e888589153a75f904f49eee0d6586612ef078cd488e992e80f0ee38",
-        "src/core/sessions.ts": "22edb84bdcc5c09129e174ca141cc08eabf2181859c99da319cbf71a39848ad3",
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "29210e7098e3256ecdb129173a9546edb6d7ae08434a905bacd8407e780fa3c3",
         "src/core/slskd/match-engine.ts": "0a6d7b01d0dfd28dae865a867aada473339f691d2ec97bea0ce88aab135c0c84",
@@ -681,21 +665,14 @@
         "src/index.ts": "8d2a562ba587e94d48c45e4b1dce1b493cc1da1539d5fcc69a7fb02e64a5150b",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "5c035cafec56b4d31ab9a7f5a7c4d68284236d6ea63400bfcac83543b602beed",
+      "digest": "3b8aea7ad637eadf02bcc4c2b0820ff122de047eafa80213a52656138464e8af",
       "review": {
-        "digest": "5c035cafec56b4d31ab9a7f5a7c4d68284236d6ea63400bfcac83543b602beed",
-        "outcome": "baseline",
-        "docs": [
-          "README.md",
-          "docs/ARCHITECTURE.md",
-          "docs/OPERATIONS.md",
-          "docs/API.md",
-          "docs/RECOMMENDATION-QUALITY.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Move existing identity helpers into authentication coverage without changing their inputs outputs or stored credentials.",
         "breaking": "none",
-        "migration": ""
+        "migration": "",
+        "digest": "3b8aea7ad637eadf02bcc4c2b0820ff122de047eafa80213a52656138464e8af"
       }
     },
     "deployment": {
@@ -706,7 +683,7 @@
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
         "deploy/docker/docker-compose.pgport.yml": "e6d731113776f1bfdffa5b5c42e9b2f55447798948c6d19d89fbeb2f17dc3930",
-        "deploy/docker/docker-compose.yml": "402b50622829ed6a4abfcc7b828e73c7448197fdcba820d246f42be1b4f5e591",
+        "deploy/docker/docker-compose.yml": "852164adde7874412aa8a87d3af67507ecab95132cb234c7de28a7811a66177e",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "04d323230d2f57d3b9d7db5261fd0f38b23478ee4ed15d53564c910d0b7796db",
@@ -735,41 +712,41 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "6128ba71eaba460229528453bdcfa82e72ff407b993ccbcbda1bec59e6be6f18",
+      "digest": "0dfb34db7fce66d246abc636c55f5196af0a79f4d2f9ba813406ad58411fc551",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Align Helm project description with the documentation audit; runtime and deployment behavior are unchanged.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Normalize only the automatic Compose minor-release comment pin while retaining container settings and deployment defaults.",
         "breaking": "none",
         "migration": "",
-        "digest": "6128ba71eaba460229528453bdcfa82e72ff407b993ccbcbda1bec59e6be6f18"
+        "digest": "0dfb34db7fce66d246abc636c55f5196af0a79f4d2f9ba813406ad58411fc551"
       }
     },
     "release": {
       "files": {
-        ".github/workflows/backmerge-develop.yml": "6d513fe443e8a7126d09b060034389c15ef60041cce309e0a8761e1a7fa3712d",
-        ".github/workflows/ci.yml": "ca9faac697af1f4f8101223b66fe613dae51ecd0a7f903a25ea7c4cb93222ba5",
-        ".github/workflows/compatibility.yml": "5d837fddaf9bd1c68e0c7bedd299f79a6b6f5936c2d5fb9ffc6fdfe2f858a919",
-        ".github/workflows/dependabot-bun-lockfile.yml": "5d353c6d5deac5e725107ba5f649301f78d3b58d71f46526541f3a37b253e81e",
-        ".github/workflows/docs-companions.yml": "01d9d2fadaa2c3c6d1e6fa2aeeb8be509b2294f0495f3db3f92f68cba3137c80",
-        ".github/workflows/evals.yml": "a4ffd3a50dbb6ab04fa0e6a1c200d717042438cb82de5c303ecf7db2891e2d73",
-        ".github/workflows/labeler.yml": "27cf228401dc07cc9d025437fe1cd8f0a8551b5d3cc0c43b9fbf33cc7a33ff55",
-        ".github/workflows/nightly.yml": "858f4a0bef62519770fdf23e8f12d7b062b1a58254d5f8f3da722bc7a93beb27",
-        ".github/workflows/promote-stable.yml": "45e829c2b5a64787cb9e2a98839a59f57a737c46f9a90cba3e86c7e47f4fa7b2",
-        ".github/workflows/release-readiness.yml": "0b1cb116a9dcd14bfb2b5721c356f193bddc327d1763f2d14e2d547a7ee2b166",
-        ".github/workflows/release.yml": "f6a5437ee4c27dc74817a84f4ec9f5a7d703af32fc8010fc1d592cc30e15a833",
-        ".github/workflows/security.yml": "f529b28150dfe9ef99585f4ba49c8459874330bab4d70fbc99ddedc5b93b731b",
-        ".github/workflows/stale.yml": "e1441fa8b5168d6f64cc62a03d784533ce7362d54e2fdd1c8da54a2e5e75b46a",
+        ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
+        ".github/workflows/ci.yml": "4756b1a7abb706c26800f365fe9204b68bdc826a46f7d47f0610dfd47b163eba",
+        ".github/workflows/compatibility.yml": "285d82b4c5cb9cfe2011be6b8b92ef3fcd70db653b51e47a1cacbcdfbba8a643",
+        ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
+        ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
+        ".github/workflows/evals.yml": "abfc59364fff6b89877593a648072b5f18b22554492dad2340a80587acb1e86a",
+        ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
+        ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
+        ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
+        ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
+        ".github/workflows/release.yml": "4d1b678495aa8f1fe4ea163b1a4baa8448e752a1f0b66d74227f26ba00f16ad2",
+        ".github/workflows/security.yml": "3c0df94a037109c8ea49376340c062ee7ca021e1b13f8cb497fa9a6d05cbff19",
+        ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e"
       },
-      "digest": "6529aade79f232d296b7f8178aa9f6720171efc9f6d26345d33cee44c9e8e1e4",
+      "digest": "19ddfde22128b318cbc8ac492a0642864c4fc7fb22311b3bea591aab324fb68a",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Document release tag/version validation and one checked commit shared by both image builds.",
+        "note": "Document the Node runtime requirement and pin Node 24 for documentation checks and test jobs.",
         "breaking": "none",
         "migration": "",
-        "digest": "6529aade79f232d296b7f8178aa9f6720171efc9f6d26345d33cee44c9e8e1e4"
+        "digest": "19ddfde22128b318cbc8ac492a0642864c4fc7fb22311b3bea591aab324fb68a"
       }
     },
     "maintenance": {
@@ -777,10 +754,10 @@
         "scripts/capture-screenshots.ts": "3670c24cc6c1ec177284456c9ebbf587ddfa088117ff654d9e446f33a728c090",
         "scripts/check-api-docs.ts": "adc0dca31c6479856a7d92684e4ea2d0f6d9094eeaeb15960e423d1ff6782d35",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
-        "scripts/check-docs-content.ts": "d23037638fb9ec886678e6e77f54253776ccf4de656ffcf2d4caa05350398dc4",
+        "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
         "scripts/check-docs-impact.ts": "630e9a5f475e4b1d8a301f3b8a9db61ced4d32b83f79e7415fe1227776e74c36",
         "scripts/check-release-identity.ts": "00fb342ce3f44204688d57a328a414079210ee9caf41447c7a356c359d88c1ac",
-        "scripts/check-unraid-companions.py": "a1e3deeaf60b7fb8fdcf118fcfa59740a1aec21f8ab2085d15e323a4031dfaf0",
+        "scripts/check-unraid-companions.py": "4f1e106e256c111847958b6e04c4d3959c46f35f90628d7f5cba38812d06c7af",
         "scripts/check-version-drift.ts": "74fd4742e9dc6d56f44006b326d355c3d5856743540465af50549e5114ff5293",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
@@ -792,18 +769,18 @@
         "scripts/i18n-machine-translate.ts": "3d4a74ac57345ef30ac28baab4422ad8cba1d3cd4190c6d21cfab2b2c42cbc10",
         "scripts/import-artist-metadata.ts": "0ce7cb594ea6311ff59ac8a655d35007538b46611154c94d61e3c5c81ddb41c9",
         "scripts/k8s-sync.sh": "0927212719ded7e714726e86955096f56036c5c35195dac891474351bb4c78d7",
-        "scripts/lib/docs-contracts.ts": "b4f6be50252fdb0fb095f24143401846f4d1341d20c7d3ae39cf4e8dcc5729af",
+        "scripts/lib/docs-contracts.ts": "55e37fd9e2802d6ba07e75ab3b57227b1eff3d69f70b6059dbf67647d3946d28",
         "scripts/recommendation-quality.ts": "c1916747ce26ba33a5baa3076ac02df4d754489e56b465d9c88924dc7d82b555",
         "scripts/sync-deploy-digests.ts": "d063d2a855fd1d7a49df53b0a072ce2146103dd8ed68b97bb3d0f26d34b51c3a"
       },
-      "digest": "9902b79fbf1af3110b55f9aa3ab68ebc2523591550b30b25cc4ea122b8e6debe",
+      "digest": "501b893a0f3db4d5a5f9b977cb8c11b3f771e1fbca8ea5cb2ce531c3050feb01",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/MAINTENANCE.md", "CONTRIBUTING.md"],
-        "note": "Document tracked-source receipts, rule evolution, and recovery assessment without query-refactor boilerplate.",
+        "note": "Explain AST runtime requirements combined release receipts XML restrictions and the fixed lock schema migration boundary.",
         "breaking": "none",
         "migration": "",
-        "digest": "9902b79fbf1af3110b55f9aa3ab68ebc2523591550b30b25cc4ea122b8e6debe"
+        "digest": "501b893a0f3db4d5a5f9b977cb8c11b3f771e1fbca8ea5cb2ce531c3050feb01"
       }
     }
   }

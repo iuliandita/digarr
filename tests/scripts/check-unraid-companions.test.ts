@@ -53,6 +53,38 @@ describe('Unraid companion contract comparison', () => {
     ).toEqual(['aligned', 'aligned'])
   })
 
+  it('detects a different image repository while allowing Digarr registry aliases', () => {
+    expect(
+      check(
+        template('ghcr.io/iuliandita/digarr:1.19.0'),
+        template('docker.io/iuliandita/digarr:latest'),
+      ).status,
+    ).toBe(0)
+    expect(
+      check(
+        template('docker.io/iuliandita/digarr:1.19.0'),
+        template('docker.io/another/digarr:latest'),
+      ).status,
+    ).toBe(1)
+  })
+
+  it('rejects UTF-16 XML before expanding declarations', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'digarr-encoding-test-'))
+    directories.push(directory)
+    const path = join(directory, 'utf16.xml')
+    writeFileSync(
+      path,
+      Buffer.from(`<!DOCTYPE Container [<!ENTITY x "value">]>${template()}`, 'utf16le'),
+    )
+    const result = spawnSync(
+      'python3',
+      [resolve('scripts/check-unraid-companions.py'), '--bundled', path],
+      { encoding: 'utf8' },
+    )
+    expect(result.status).toBe(2)
+    expect(result.stderr).toContain('UTF-8')
+  })
+
   it.each([
     ['default', template().replace('Default="3000"', 'Default="8080"')],
     ['operator help', template().replace('Listen port', 'Different port help')],
@@ -77,6 +109,12 @@ describe('Unraid companion contract comparison', () => {
     const result = check(template(), '<Container>')
     expect(result.status).toBe(2)
     expect(JSON.parse(result.stdout).companions[0].status).toBe('unavailable')
+  })
+
+  it('rejects DTD and entity declarations before parsing', () => {
+    const result = check(template(), `<!DOCTYPE Container [<!ENTITY port "3000">]>${template()}`)
+    expect(result.status).toBe(2)
+    expect(JSON.parse(result.stdout).companions[0].error).toContain('unsupported')
   })
 
   it('rejects duplicate configuration keys', () => {
