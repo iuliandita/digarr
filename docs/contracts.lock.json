@@ -772,18 +772,18 @@
         "scripts/i18n-machine-translate.ts": "3d4a74ac57345ef30ac28baab4422ad8cba1d3cd4190c6d21cfab2b2c42cbc10",
         "scripts/import-artist-metadata.ts": "0ce7cb594ea6311ff59ac8a655d35007538b46611154c94d61e3c5c81ddb41c9",
         "scripts/k8s-sync.sh": "0927212719ded7e714726e86955096f56036c5c35195dac891474351bb4c78d7",
-        "scripts/lib/docs-contracts.ts": "f5dff50857f58092801680a72f3bf6a9a5d3962d9d6daf09276637d4b0524d04",
+        "scripts/lib/docs-contracts.ts": "59eebd0fd90430ffbe0408af122ecf275ec2544d694aa616cdd4d07ac8b4a6fc",
         "scripts/recommendation-quality.ts": "c1916747ce26ba33a5baa3076ac02df4d754489e56b465d9c88924dc7d82b555",
         "scripts/sync-deploy-digests.ts": "d063d2a855fd1d7a49df53b0a072ce2146103dd8ed68b97bb3d0f26d34b51c3a"
       },
-      "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34",
+      "digest": "5d8a0a786dab3432c92d8290e58cd3c13cc010c823be4d98855d761c61735542",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/MAINTENANCE.md"],
-        "note": "Document source coverage and parser requirements while adding root entrypoint fingerprints and migration range regression cases.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Replace ambiguous Helm image-block regex with a line scan; documented commands and valid configuration normalization remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34"
+        "digest": "5d8a0a786dab3432c92d8290e58cd3c13cc010c823be4d98855d761c61735542"
       }
     }
   }

@@ -300,6 +300,18 @@ describe('documentation contract snapshots', () => {
     expect(Object.hasOwn(createSnapshot(root).deployment.files, path)).toBe(true)
   })
 
+  it('scans whitespace-heavy image blocks without touching subsequent settings', () => {
+    const whitespace = '\t'.repeat(20_000)
+    const values = `image:\n  tag: current\n${whitespace}\n  unterminated`
+    expect(normalizeSource('deploy/helm/digarr/values.yaml', values)).toBe(
+      values.replace('tag: current', 'tag: <pin>'),
+    )
+    const sibling = 'image:\n  tag: current\nother:\n  tag: keep\n'
+    expect(normalizeSource('deploy/helm/digarr/values.yaml', sibling)).toBe(
+      sibling.replace('tag: current', 'tag: <pin>'),
+    )
+  })
+
   it('normalizes known release pins while retaining action identity, conditions, permissions, and defaults', () => {
     const workflow =
       'permissions: read-all\njobs:\n  build:\n    if: true\n    steps:\n      - uses: actions/checkout@v4\n'

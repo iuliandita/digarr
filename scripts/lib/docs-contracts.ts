@@ -204,10 +204,17 @@ export function normalizeSource(path: string, content: string): string {
     )
   if (path === 'deploy/helm/digarr/Chart.yaml')
     normalized = normalized.replace(/^(version|appVersion):[^\n]*$/gm, '$1: <pin>')
-  if (path === 'deploy/helm/digarr/values.yaml')
-    normalized = normalized.replace(/(^image:\n(?:(?:[ \t]+[^\n]*|)\n)*?)(?=\S|$)/m, (block) =>
-      block.replace(/^( {2}(?:tag|digest):)[^\n]*$/gm, '$1 <pin>'),
-    )
+  if (path === 'deploy/helm/digarr/values.yaml') {
+    const lines = normalized.split('\n')
+    const imageStart = lines.indexOf('image:')
+    if (imageStart !== -1)
+      for (let index = imageStart + 1; index < lines.length; index++) {
+        const line = lines[index] ?? ''
+        if (line && !/^[ \t]/.test(line)) break
+        lines[index] = line.replace(/^( {2}(?:tag|digest):)[^\n]*$/, '$1 <pin>')
+      }
+    normalized = lines.join('\n')
+  }
   if (path === 'deploy/k8s/rendered.yaml')
     normalized = normalized
       .replace(/(helm\.sh\/chart: digarr-)\d+\.\d+\.\d+/g, '$1<pin>')
