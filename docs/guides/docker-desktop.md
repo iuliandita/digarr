@@ -42,11 +42,15 @@ mkdir digarr && cd digarr
 curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
 test ! -e .env && curl -fL -o .env https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example
 chmod 600 .env
-# Edit .env before starting (see below).
+```
+
+In WSL 2 or macOS, follow [protected key generation](../AUTHENTICATION.md#generate-a-new-encryption-key), then save the value as `DIGARR_ENCRYPTION_KEY` in `.env`. Set `ALLOWED_ORIGIN=http://localhost:3000` and `DIGARR_ALLOW_INSECURE_COOKIES=true` for this local HTTP setup. Keep a backup of the key. For HTTPS, use the public origin and leave insecure cookies disabled. These settings apply to the PGlite Compose option above and the PostgreSQL Compose options below. After saving `.env`, start the PGlite stack:
+
+```sh
 docker compose -f docker-compose.pglite.yml up -d
 ```
 
-In WSL 2 or macOS, follow [protected key generation](../AUTHENTICATION.md#generate-a-new-encryption-key), then save the value as `DIGARR_ENCRYPTION_KEY` in `.env`. Set `ALLOWED_ORIGIN=http://localhost:3000` and `DIGARR_ALLOW_INSECURE_COOKIES=true` for this local HTTP setup. Keep a backup of the key. For HTTPS, use the public origin and leave insecure cookies disabled. These settings apply to the PGlite Compose option above and the PostgreSQL Compose options below. Then jump to [Verify](#verify).
+Then jump to [Verify](#verify).
 
 ## Bundled PostgreSQL
 
@@ -65,14 +69,16 @@ chmod 700 secrets
 (set -C; umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
 cp -n .env.example .env
 chmod 600 .env
-# File-backed secrets must be readable by container UID 1000 (mode 0600).
-# If your host UID differs: sudo chown 1000:1000 secrets/postgres_password
 ```
 
 Edit `secrets/postgres_password` with a real password, and configure
-`.env`, then:
+`.env`. Finish editing before transferring ownership: the mode-0600 secret must
+be readable by container UID 1000. Then start the stack:
 
 ```sh
+if [ "$(id -u)" -ne 1000 ]; then
+  sudo chown 1000:1000 secrets/postgres_password
+fi
 docker compose up -d
 ```
 

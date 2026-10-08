@@ -55,7 +55,8 @@ mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
 (set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env)
 chmod 600 .env
-# Edit .env: set the origin, HTTP cookie override, and a saved encryption key.
+# Set the origin, HTTP cookie override, and saved encryption key before exiting the editor.
+vi .env
 sudo docker compose -f docker-compose.pglite.yml up -d
 )
 ```
@@ -140,7 +141,8 @@ sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
 sudo curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
 sudo sh -c 'set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env'
 sudo chmod 600 .env
-# Use sudo vi .env: set the origin, HTTP cookie override, and a saved encryption key.
+# Set the origin, HTTP cookie override, and saved encryption key before exiting the editor.
+sudo vi .env
 sudo docker compose -f docker-compose.pglite.yml up -d
 )
 ```

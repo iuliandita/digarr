@@ -30,16 +30,22 @@ data in the `data` volume; `backups` holds the pre-migration auto-backups.
 
 ### Bundled PostgreSQL (default)
 
-```
+For a first installation, create and edit the database-password file before starting. On upgrades, reuse the existing file and encryption key.
+
+```sh
+(
+set -e
 cd deploy/docker
 mkdir -p secrets
 chmod 700 secrets
 # Set ONE database password -- both Postgres and the app read this single file.
-(umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
+(set -C; umask 077 && printf '%s\n' 'change-this-password' > secrets/postgres_password)
+vi secrets/postgres_password
 # Digarr runs as UID 1000 and must be able to read this protected file.
 sudo chown 1000:1000 secrets/postgres_password
 # Use the .env configured above; do not overwrite it.
 docker compose up -d
+)
 ```
 
 Services run on an isolated internal `backend` network; only `app` is exposed

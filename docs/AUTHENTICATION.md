@@ -164,11 +164,13 @@ OIDC discovery and provider requests reject hosts that resolve to private/intern
 
 Enable OIDC by setting:
 
-- `OIDC_ISSUER_URL` - the IdP discovery URL
+- `OIDC_ISSUER_URL` - the issuer identifier, for example `https://auth.example.com/realms/main`
 - `OIDC_CLIENT_ID` - registered client id
 - `OIDC_CLIENT_SECRET` - registered client secret
 - `OIDC_SCOPES` - requested scopes; defaults to `openid profile email`
 - `ALLOWED_ORIGIN` - required, used to build the redirect URI
+
+Use the issuer identifier rather than a `/.well-known/` discovery-document URL. Digarr passes this value to its OIDC client, which discovers the metadata from an issuer identifier and checks its returned issuer against the configured value. A direct discovery-document URL is accepted by the client but skips that configured-versus-discovered issuer comparison.
 
 Users click "Sign in with OIDC" on the login screen, redirect to the IdP, and
 come back to `/api/v1/auth/oidc/callback`. After a successful callback, Digarr
