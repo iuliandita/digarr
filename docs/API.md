@@ -68,7 +68,7 @@ For these routes, non-integer `limit` values return `400`. `meta.nextCursor` is 
 Offset-paginated routes:
 - `GET /api/v1/recommendations` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
 - `GET /api/v1/jobs` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
-- `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null, "status": "not_configured" }`
+- `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null, "status": "not_configured" }`; Last.fm requires page-aligned offsets as described under [Listening](#listening).
 
 ---
 
@@ -975,6 +975,8 @@ covered artists when a populated cache entry is due for refresh.
 
 Response: `{ tracks, total, offset, limit, source, status }`. `source` is `"listenbrainz"`, `"lastfm"`, `"plex"`, or `null`. Last.fm periods are rolling windows (`7day`, `1month`, `12month`, `overall`) and map approximately to the requested calendar range.
 
+Last.fm converts the offset to `floor(offset / limit) + 1` and returns that whole provider page without slicing. The response still echoes the requested offset, so offsets 0 and 1 with limit 5 return the same page. Keep `limit` fixed and advance `offset` in multiples of `limit` when Last.fm is used ([#794](https://github.com/iuliandita/digarr/issues/794)).
+
 **GET /api/v1/listening/recent-tracks** query params:
 - `limit` - 1-50 (default 5)
 
@@ -1011,7 +1013,7 @@ Source health samples the 20 most recent pipeline/quick-discover runs with sourc
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/settings` | Yes | Get settings (secrets masked) |
+| GET | `/api/v1/settings` | Yes | Get settings (partial secret masking; see notes) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
 | POST | `/api/v1/settings/test/:service` | Admin, or own Plex connection | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
@@ -1019,6 +1021,7 @@ Source health samples the 20 most recent pipeline/quick-discover runs with sourc
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
 Settings notes:
+- Treat settings responses as sensitive. Listed top-level credentials and notification-channel secrets are masked, but global `preferences.fanartApiKey` is returned unchanged, including to non-admins. Legacy `preferences.webhookUrl` is returned unchanged to admins and stripped for non-admins. These exceptions are tracked in [#793](https://github.com/iuliandita/digarr/issues/793); do not publish settings responses as safe diagnostics.
 - Plex listener mapping is per user: `plexAccountId` is a positive integer or `null` in PATCH. The server verifies the selected account and derives `plexAccountName` and `plexMachineIdentifier`; clients cannot supply those identity fields. GET returns the stored mapping. Changing the Plex URL or token without selecting an account clears the mapping.
 - The Plex probe returns `accounts: [{id, name}]` and `machineIdentifier` alongside music-library `sections`. Non-admins may probe their own Plex connection, never shared admin credentials. Other service probes stay admin-only. Listening requests require an explicit mapped account and reject mismatched history rows; library sync does not require listener mapping. Plex top-artist analysis requires complete history for the requested period and fails if it exceeds 5,000 entries or 25 pages. Recent-track requests intentionally return only their requested sample. The probe accepts `accountId` (number or explicit `null`); omission uses the saved listener, while `null` tests library-only access.
 - Non-admin users can update only their own connection fields; global setting changes return `403`

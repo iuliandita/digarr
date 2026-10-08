@@ -228,7 +228,7 @@ Extension points use registries or configuration maps:
 
    A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`.
 
-  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full secrets as `***` and partially masks webhook URLs so their destinations remain recognizable.
+  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full channel secrets as `***` and partially masks channel webhook URLs so their destinations remain recognizable.
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`.
 
   `resolveProviderToken(db, userId, provider)` is the single entry point for Spotify, Deezer, and TIDAL; a provider without a `tokenEndpoint` (Deezer) is simply one that cannot refresh, rather than a separate code path.

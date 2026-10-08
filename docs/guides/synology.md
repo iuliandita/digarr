@@ -263,7 +263,10 @@ network lets them reach each other by container name.
      `digarr-db` resolves because both containers are on `digarr-net`)
    - `DIGARR_INITIAL_USERNAME` = optional admin username
    - `DIGARR_INITIAL_PASSWORD` = optional initial password (min 12 chars)
-8. Click **Next** / **Apply** to create and start the container
+8. Still in **Advanced Settings** > **Volume**, create `/volume1/docker/digarr/backups` and map it to `/app/backups`. Make the folder writable by container UID 1000 before startup using DSM permissions, or `sudo chown 1000:1000 /volume1/docker/digarr/backups` over SSH.
+9. Click **Next** / **Apply** to create and start the container
+
+Keep that same backup-folder mapping when recreating the app container. These automatic application exports omit recovery state and do not replace a [complete PostgreSQL backup](switching-backends.md#backup-boundaries-and-recovery). Retain the encryption key separately.
 
 Digarr passes an explicit `DATABASE_URL` unchanged. Percent-encode the username, password, and database-name components when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Keep the original, unencoded password in `POSTGRES_PASSWORD`, direct `DB_PASS`, or the password file. Enter real credentials in the protected configuration or GUI, not command-line arguments. For separate `DB_*` settings, use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other names require a complete, percent-encoded `DATABASE_URL` ([#773](https://github.com/iuliandita/digarr/issues/773)). `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace.
 
