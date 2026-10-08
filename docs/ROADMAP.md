@@ -18,7 +18,7 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 - Equal-weight seed rotation and library backfill keep discovery seed budgets useful.
 - Listening-history states and unavailable preview reasons explain empty results and failures.
 - Evidence-preserving maintenance rescoring and cleaned listening-profile genre lists.
-- Replayable recommendation-quality reports exercise the production prompt; subjective fit remains advisory.
+- Replayable recommendation-quality reports exercise the production prompt; listener fit needs separate human review.
 
 See [v1.19.0](../CHANGELOG.md#v1190---2026-10-06) for details.
 

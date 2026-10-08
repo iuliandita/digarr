@@ -26,7 +26,7 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 ## What you can do
 
 - **Find artists and albums.** Connect a listening source, scan, and review scored suggestions. Release Radar finds new releases; Library Gap-Fill finds missing albums. Mood and artist searches work without a listening history.
-- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk and automatic approval have different monitoring behavior; check the [known limitations](docs/OPERATIONS.md#known-limitations-in-v1190) before using them.
+- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk and automatic approval use artist-level monitoring; see [known limitations](docs/OPERATIONS.md#known-limitations-in-v1190).
 - **Keep discovery running.** Schedule scans and subscriptions, or generate playlists for Spotify and supported media servers. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
 - **Share an instance.** Each user has their own queue, connections, and preferences; admins assign their available targets. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
 
@@ -39,7 +39,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 | Use | Services |
 |-----|----------|
 | Scan taste-profile sources | ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, Subsonic, Discogs |
-| [Deezer feeds](docs/AUTHENTICATION.md#deezer-app-setup) | Flow, favorites, followed artists, and playlist subscriptions; needs your own Deezer app, and new registration may be unavailable |
+| [Deezer feeds](docs/AUTHENTICATION.md#deezer-app-setup) | Flow, favorites, followed artists, and playlists (own app required) |
 | Library sync | Lidarr, Plex, Jellyfin, Emby, Subsonic |
 | Approval and acquisition | Lidarr, slskd |
 | Playlist export | Spotify, Navidrome, Jellyfin, Emby, Plex |
@@ -51,7 +51,7 @@ A connection's capabilities differ by service. Spotify Saved Albums and Followed
 
 ### Privacy and credentials
 
-Your database runs on your server. Connected services still receive requests: hosted AI providers receive discovery prompts, metadata services receive lookups, and embedded previews contact their providers. A local AI model keeps AI requests local, but does not make all of Digarr offline. Inside a container, `localhost` refers to that container; use a reachable address for a model running elsewhere.
+Your database runs on your server. Connected services still receive requests: hosted AI providers receive discovery prompts, metadata services receive lookups, and embedded previews contact their providers. A local AI model keeps AI requests local, but does not make all of Digarr offline.
 
 Set and retain `DIGARR_ENCRYPTION_KEY` before saving service credentials. Without it, sensitive database fields are stored unencrypted. Back up the key separately from the database; losing it means re-entering encrypted credentials. See the [key rotation guide](docs/runbooks/encryption-key-rotation.md) before changing an existing key.
 
@@ -70,32 +70,27 @@ docker run -d --name digarr -p 127.0.0.1:3000:3000 \
   docker.io/iuliandita/digarr:latest
 ```
 
-This example binds to this computer only and explicitly allows HTTP cookies. For access from other devices, use HTTPS with the [public-origin settings](docs/AUTHENTICATION.md#public-origin-and-reverse-proxies), or deliberately opt into HTTP on your trusted network. The command needs OpenSSL and saves the encryption key in `digarr.env`, readable only by your user. Keep that file and back it up separately; reuse it when recreating the container.
+This local-only HTTP example needs OpenSSL and saves the key in protected `digarr.env`. Retain that file for container recreation and recovery. The cookie override avoids browser-dependent Secure-cookie handling on localhost. For other devices, configure an [HTTPS public origin](docs/AUTHENTICATION.md#public-origin-and-reverse-proxies); deliberate HTTP exposes session cookies to interception.
 
-Open `http://localhost:3000` and complete the setup wizard. Passwords need at least 12 characters. The first account becomes the admin; further self-registration is closed by default. You can start with Lidarr, Emby, or discovery-only mode. Database migrations run automatically on every startup.
+Open `http://localhost:3000` and complete setup. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
 
-Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes; other channels can lag. See [image channels](deploy/docker/README.md#image-channels).
+Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
-For Compose, choose [embedded PGlite or bundled PostgreSQL](deploy/docker/README.md). Keep one app instance per database and check `/health` for the intended backend; incomplete PostgreSQL settings can select empty PGlite storage. Follow the [backup and update steps](deploy/docker/README.md#back-up-and-update) before upgrading.
+For Compose, backend selection, and updates, follow the [Docker guide](deploy/docker/README.md). Keep one app instance per database, verify its backend at `/health`, and [back up before upgrading](deploy/docker/README.md#back-up-and-update).
 
 ## Your first recommendations
 
 1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
 2. Connect a listening source in Settings, or import artists from CSV or a supported playlist. You can add targets later.
 3. Run a scan from Dashboard or Discover.
-4. Preview and approve suggestions or reject them. Set optional genre priorities in Settings > Recommendations to change Discover ordering without changing scores or auto-approval ([API details](docs/API.md#recommendations)). Use Release Radar or Library Gap-Fill for albums, or enable net-new album discovery.
+4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; [API clients](docs/API.md#recommendations) can do the same. Use Release Radar or Library Gap-Fill for albums, or enable net-new album discovery.
 
 A scan can complete with a failed source. Admins can check Job History for partial results; other users can refresh Discover. Services without similar-artist lookup still contribute their supported listening and library data. See the [pipeline guide](docs/ARCHITECTURE.md#pipeline) for the details.
 
 ## Configuration
 
-Use Settings for connections, scoring weights, schedules, preferences, and language. Spotify's `Import Liked Songs` action can seed a first scan. Admins can inspect failures in Job History.
-
-Set `ALLOWED_ORIGIN` to the exact public origin, without a path or trailing slash. Use HTTPS behind a reverse proxy. Deliberate plain-HTTP production deployments also need `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTP exposes session cookies to interception. See [Authentication](docs/AUTHENTICATION.md) for cookie, CSRF, API-client, SSO, and proxy details.
-
-[Operations](docs/OPERATIONS.md) covers playlists, notifications, local AI, mirrors, and unattended setup. Connections must be reachable from the container.
-
-<a id="connecting-plex-listeners"></a>[Plex listeners](docs/OPERATIONS.md#connecting-plex-listeners) | <a id="importing-slskd-downloads-into-lidarr"></a>[slskd imports](docs/OPERATIONS.md#importing-slskd-downloads-into-lidarr) | <a id="data-hygiene"></a>[Data Hygiene](docs/OPERATIONS.md#data-hygiene)
+<a id="connecting-plex-listeners"></a><a id="importing-slskd-downloads-into-lidarr"></a><a id="data-hygiene"></a>
+Use Settings for connections, scoring, schedules, preferences, and language. Spotify's `Import Liked Songs` can seed a scan; admins can inspect failures in Job History. [Authentication](docs/AUTHENTICATION.md) covers origins, cookies, SSO, and proxies. [Operations](docs/OPERATIONS.md) covers Plex listeners, slskd imports, Data Hygiene, playlists, notifications, and local AI.
 
 ### Service apps
 
@@ -105,7 +100,7 @@ Set `ALLOWED_ORIGIN` to the exact public origin, without a path or trailing slas
 
 ## Backup & Restore
 
-Application JSON exports are partial; complete recovery requires a consistent database backup and the encryption key retained separately. Automatic backup failure does not stop migrations. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring. v1.19.0 adds no migrations relative to v1.18.0. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and earlier-version upgrades.
+Application JSON exports are partial; complete recovery requires a consistent database backup and the encryption key retained separately. Automatic backup failure does not stop migrations. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and version-specific upgrade notes.
 
 ## Deployment
 
@@ -118,7 +113,7 @@ Application JSON exports are partial; complete recovery requires a consistent da
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
 
-Tagged Alpine images have signed container SBOM attestations. Debian images are signed and have build provenance, but lack container SPDX attestations ([#768](https://github.com/iuliandita/digarr/issues/768)). See [signature verification](deploy/docker/README.md#verifying-image-signatures) before running a release.
+Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-image-signatures) before running a release.
 
 ## Documentation
 

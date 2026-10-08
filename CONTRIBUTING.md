@@ -83,6 +83,10 @@ Tests live in `tests/`. Keep them close to the code they cover. Route-contract c
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
+## Translations
+
+Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations.
+
 ## Recommendation quality
 
 Use the [recommendation evaluation guide](docs/RECOMMENDATION-QUALITY.md) before changing prompts or ranking. `bun run eval:quality prepare` generates production-prompt cases without network calls. Live Promptfoo comparisons remain manual and advisory; saved outputs can be replayed locally. Synthetic profiles and automated plausibility checks do not establish human recommendation fit.

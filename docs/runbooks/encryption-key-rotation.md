@@ -1,4 +1,4 @@
-# Encryption Key Rotation
+# Encryption key rotation
 
 `DIGARR_ENCRYPTION_KEY` is used to encrypt sensitive columns (API keys,
 tokens, passwords) at rest. Changing the key requires re-encrypting saved values; changing the environment variable alone is not a completed rotation.

@@ -66,7 +66,7 @@ podDisruptionBudget:
 ingress:
   enabled: false
   className: nginx
-  # Namespace of the ingress controller. Used by the NetworkPolicy ingress
+  # Namespace of the Ingress or Gateway data plane. Used by the NetworkPolicy ingress
   # rule to allow traffic from this namespace only. The controller's
   # namespace must carry the `kubernetes.io/metadata.name` label
   # (automatic on Kubernetes >= 1.22).
@@ -161,7 +161,8 @@ readinessProbe:
 #
 # Mode 3: External PostgreSQL (database.backend = "postgres", postgresql.enabled = false)
 #   Set database.host and database.password for your own PostgreSQL instance,
-#   cloud RDS, CNPG cluster, etc. Or supply a pre-created Secret via
+#   cloud RDS, CNPG cluster, etc. Chart-generated URLs also insert these
+#   credentials unencoded; use URI-unreserved characters, or supply a Secret via
 #   database.existingSecret with a complete DATABASE_URL key; percent-encode
 #   its username/password components when needed.
 # ---------------------------------------------------------------------------

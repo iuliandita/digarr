@@ -1,6 +1,6 @@
 # Single-container deployment with the embedded PGlite database.
 #   docker compose -f docker-compose.pglite.yml up -d
-# No separate PostgreSQL, no secret. Data lives in the `data` volume.
+# No separate PostgreSQL or database password. Data lives in the `data` volume.
 # For bundled PostgreSQL in a separate container, use docker-compose.yml.
 #
 # Podman + SELinux enforcing: add :Z to the data/backups volume mounts.
@@ -20,9 +20,8 @@ services:
     environment:
       - PORT=3000
       - DB_PATH=/app/data
-      # Force embedded PGlite even if a populated .env (reused from the Postgres
-      # base) carries a DSN: empty values here override env_file and are falsy,
-      # so the backend resolver always picks pglite for this stack.
+      # Clear direct PostgreSQL settings inherited from .env.
+      # Remove DATABASE_URL_FILE from .env too; a readable file overrides this DSN.
       - DATABASE_URL=
       - DB_HOST=
     ports:

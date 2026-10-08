@@ -11,7 +11,7 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Bulk album approval | Uses artist targets. Lidarr requests no album monitoring or search. Approve individual albums to acquire the selected release. [#756](https://github.com/iuliandita/digarr/issues/756). |
 | Automatic album approval | Uses the configured artist monitoring scope, defaulting to all albums. [#761](https://github.com/iuliandita/digarr/issues/761). |
 | Media-server playlists | Navidrome, Jellyfin, Emby, and Plex can substitute unmatched tracks. Inspect the exported playlist. [#758](https://github.com/iuliandita/digarr/issues/758). |
-| Local playlist generation | `local` is accepted as a source priority but no media-library lookup is wired into generation. Use Spotify/Deezer and the MusicBrainz fallback. Export destination matching is separate. [#767](https://github.com/iuliandita/digarr/issues/767). |
+| Local playlist generation | `local` is accepted as a source priority but no media-library lookup is wired into generation. Generation uses configured Spotify/Deezer priorities, then MusicBrainz for artists with an MBID. API defaults search Spotify only. Export destination matching is separate. [#767](https://github.com/iuliandita/digarr/issues/767). |
 | Debian container SBOM | Debian images and build provenance remain signed, but there is no signed Debian container SBOM. [#768](https://github.com/iuliandita/digarr/issues/768). |
 | Scheduled exports | Regeneration replaces local tracks but creates another remote playlist; repeated runs can accumulate same-name copies. [#765](https://github.com/iuliandita/digarr/issues/765). |
 | Playlist API config | Supplied config objects need both `size` and `trackSourcePriority`; partial objects are not merged with defaults. [#764](https://github.com/iuliandita/digarr/issues/764). |
@@ -20,9 +20,12 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Saved-settings probes | Send a JSON object. Lidarr TLS verification does not fall back to its saved setting. [#759](https://github.com/iuliandita/digarr/issues/759). |
 | Digest delivery | A successful channel advances the shared bookmark; failed channels do not retry that window independently. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762). |
 | File-backed secrets | Unreadable files are treated as unset; verify mounts and read permissions. [#763](https://github.com/iuliandita/digarr/issues/763). |
-| System Health sources | Normal skips, including unconfigured sources and unsupported discovery capabilities, count toward the source failure rate. Check individual Job History outcomes before concluding there is an outage. [#769](https://github.com/iuliandita/digarr/issues/769). |
+| System Health sources | The 20 latest pipeline/quick-discover runs within 24 hours form the sample. Normal skips, including unconfigured sources and unsupported discovery capabilities, count toward its failure rate. Check individual Job History outcomes before concluding there is an outage. [#769](https://github.com/iuliandita/digarr/issues/769). |
 | Listening-history cache | Rejected Digarr requests retain cached entries. A Digarr HTTP 200 response carrying `status: "error"` can replace them with an empty error state after a provider failure. [#770](https://github.com/iuliandita/digarr/issues/770). |
 | Helm database credentials | Chart-generated connection URLs do not encode credentials. Use URI-unreserved chart values, or a complete encoded DSN for a user-managed database. [#772](https://github.com/iuliandita/digarr/issues/772). |
+| Separate database settings | Only `DB_PASS` is URL-encoded automatically. Use URI-unreserved `DB_USER` and `DB_NAME` values, or a complete encoded `DATABASE_URL`. [#773](https://github.com/iuliandita/digarr/issues/773). |
+| Deezer subscriptions | Token-resolution failures appear as successful empty feeds. Reconnect when expected artists disappear. Playlist feeds cap collection at 500 distinct artists. [#774](https://github.com/iuliandita/digarr/issues/774). |
+| Backend migration destination | The nonempty guard checks only users. Other destination data can be replaced without `overwrite=true` when no users exist. Use a fresh target or take a complete destination backup. [#775](https://github.com/iuliandita/digarr/issues/775). |
 | TIDAL | Experimental; no live-account authorization, refresh, or favorite-artist retrieval validation. See [app setup and feedback](AUTHENTICATION.md#tidal-app-setup). |
 
 ## Unattended setup
@@ -33,9 +36,9 @@ For unattended first boot, set `AI_PROVIDER` and `AI_MODEL`, plus `DIGARR_INITIA
 
 Add playlist destinations in Settings > Targets, then select those targets in each playlist. Digarr keeps the generated playlist locally if an export fails; admins can inspect the error in Job History. Spotify exports need a connected account with playlist permissions.
 
-The global scheduling switch is API-only in v1.19.0; there is no web UI control. Scheduling requires an admin to enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`; it defaults to false. Each playlist also needs `enabled: true` and a schedule. Manual generation works independently of the global switch.
+The global scheduling switch is API-only in v1.19.0; there is no web UI control. Scheduling requires an admin to enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`; it defaults to false. The Playlists page shows "Schedule paused" when scheduling is off and a cron is configured. Each playlist also needs `enabled: true` and a schedule. Manual generation works independently of the global switch.
 
-Generation currently searches Spotify and Deezer, with MusicBrainz as a final fallback. Although `local` is an accepted source priority, it performs no media-library lookup ([#767](https://github.com/iuliandita/digarr/issues/767)).
+Playlists created in the web UI search Spotify, then Deezer. API playlists without a config search only Spotify; explicit `trackSourcePriority` controls which sources are tried. MusicBrainz is the final fallback for artists with an MBID. Although `local` is an accepted source priority, it performs no media-library lookup ([#767](https://github.com/iuliandita/digarr/issues/767)).
 
 Destination matching is separate from local generation. Navidrome, Jellyfin, Emby, and Plex currently fall back to the first search result when no exact artist/title match exists, so they can export a different track ([known limitation](https://github.com/iuliandita/digarr/issues/758)); inspect the remote playlist.
 
@@ -104,7 +107,7 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
-**Auto-backup before migrations:** When Digarr detects pending database migrations on startup, it attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss. Automatic backups have the same omissions as default JSON exports, and failure does not block migrations. Verify a usable, complete database backup before upgrading. Disable automatic attempts with `DIGARR_AUTO_BACKUP=false`.
+**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss. Automatic backups have the same omissions as default JSON exports, and failure does not block migrations. Verify a usable, complete database backup before upgrading. Fresh databases skip this step. Disable automatic attempts with `DIGARR_AUTO_BACKUP=false`.
 
 **Upgrading to v1.19.0:** this release adds no database migrations relative to v1.18.0, so that upgrade creates no pre-migration automatic backup. Take a complete database backup before updating.
 

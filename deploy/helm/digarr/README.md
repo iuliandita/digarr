@@ -1,6 +1,6 @@
-# digarr Helm Chart
+# Digarr Helm chart
 
-Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existing PostgreSQL database.
+Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existing PostgreSQL database. The chart runs the app as UID/GID 10001, unlike the Docker image default of 1000; mounted storage must allow that identity to write.
 
 ## Prerequisites
 
@@ -97,7 +97,7 @@ backups:
 | `image.tag` | release version in values.yaml | Used when no digest is set. Update `image.digest` as well when choosing another image. |
 | `image.digest` | set by CI | Immutable digest pinning. |
 | `ingress.enabled` | `false` | Classic Ingress resource. |
-| `ingress.controllerNamespace` | `ingress-nginx` | NetworkPolicy source namespace. |
+| `ingress.controllerNamespace` | `ingress-nginx` | NetworkPolicy source namespace for the Ingress or Gateway data plane. |
 | `gateway.enabled` | `false` | Gateway API HTTPRoute instead of Ingress. |
 | `database.backend` | `postgres` | `postgres` or embedded `pglite`. |
 | `postgresql.enabled` | `true` | Bundled PostgreSQL; ignored with `pglite`. |
@@ -138,7 +138,14 @@ scaling; keep `replicaCount: 1` until distributed coordination is implemented.
 
 ## Network access
 
-The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fd00::/8`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add a separate NetworkPolicy with the required destinations and ports before connecting those services. Gateway deployments must also allow their controller namespace. Disabling `networkPolicy.enabled` removes the chart's restrictions; do that only if another policy provides the intended controls.
+The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fd00::/8`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add a separate NetworkPolicy with the required destinations and ports before connecting those services. For Gateway deployments, set `ingress.controllerNamespace` to the Gateway data-plane namespace, despite the value name. For example:
+
+```yaml
+ingress:
+  controllerNamespace: gateway-system
+```
+
+Replace `gateway-system` with the namespace of the controller pods that send traffic to Digarr. If both Ingress and Gateway controllers need access from different namespaces, add a supplemental ingress NetworkPolicy for the second namespace. Disabling `networkPolicy.enabled` removes the chart's restrictions; do that only if another policy provides the intended controls.
 
 For the external database in the install example, apply a supplemental policy before starting Digarr. Replace the documentation address below with the database's actual address, and adjust the namespace, release label, and port to match your deployment:
 
@@ -182,7 +189,7 @@ extraEnv:
 
 ## Upgrade
 
-Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups are partial. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). The v1.18.0-to-v1.19.0 upgrade has no migrations and makes no pre-migration automatic backup.
+Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups are partial. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). See [Operations](../../../docs/OPERATIONS.md#backup--restore) for version-specific upgrade notes.
 
 ```sh
 helm upgrade digarr deploy/helm/digarr -n arr -f my-values.yaml

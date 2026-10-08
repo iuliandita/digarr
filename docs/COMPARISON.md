@@ -29,4 +29,4 @@ Check each project's current documentation for supported services, setup require
 
 ## What to check in Digarr
 
-The [README](../README.md) covers the current feature set and installation paths. Before deciding, check its notes on Spotify app requirements, experimental TIDAL support, playlist library requirements, and the difference between `:nightly` and tagged releases. These constraints matter more than a feature count.
+The [README](../README.md) covers the current feature set and installation paths. Before deciding, check its notes on Spotify app requirements, experimental TIDAL support, and playlist library requirements. Check the [image channels](../deploy/docker/README.md#image-channels) for the difference between `:nightly` and tagged releases. These constraints matter more than a feature count.

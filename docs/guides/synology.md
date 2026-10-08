@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Synology DSM 7.1+ with the **Docker** package (DSM 7.1) or **Container Manager** package (DSM 7.2+)
-- At least 1 GB free RAM; allow more for large libraries, migrations, or an
+- At least 1 GB free RAM; allow more for large libraries, migrations, or a
   separate PostgreSQL container
 - Internet access for pulling images
 
@@ -20,6 +20,10 @@ Before starting the container or Compose project, set `ALLOWED_ORIGIN` to the UR
 Generate a key on a computer with OpenSSL using `openssl rand -hex 32`. Set and retain that exact `DIGARR_ENCRYPTION_KEY` before entering service credentials. For Compose, put these settings in a protected `.env` in the project folder; for the Launch wizard, add them under Environment. Back up the key separately. See [authentication](../AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
 The first account becomes admin. Restrict access to the published port until setup is complete, or set `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. The Compose and Launch wizard examples expose the service on host interfaces unless you restrict the binding or firewall.
+
+## Compose compatibility
+
+The supplied Compose files require Docker Compose 2.24.0 or newer for `env_file.required`; check with `docker compose version` ([Docker reference](https://docs.docker.com/reference/compose-file/services/#required)). With an older Compose version, replace each long-form `env_file` entry with `env_file: [".env"]` at the same indentation. That form requires a present, protected `.env`; configure it before starting the stack. The Compose version bundled with DSM varies; do not infer compatibility from the DSM version. If the project rejects the file, use a compatible Compose installation over SSH or the individual-container Launch wizard below.
 
 ## DSM 7.2+ (Container Manager - has Project support)
 
@@ -63,9 +67,7 @@ GUI:
 3. Set the path to a shared folder (e.g., `/volume1/docker/digarr`)
 4. Paste the contents of the [docker-compose.yml](https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml)
 5. For a first installation, create one file in the project folder before starting:
-   - `secrets/postgres_password` containing only the database password (both
-     the app and PostgreSQL read this single file, so there is nothing to keep
-     in sync)
+   - `secrets/postgres_password` containing only the original database password, with no intentional leading or trailing whitespace. Both the app and PostgreSQL read this single configuration source; Digarr trims surrounding whitespace. Changing the file does not change the password in an initialized PostgreSQL database: update the database role password separately and coordinate the app credentials.
    - Keep the folder restricted, but make the password file readable by container UID 1000. Over SSH, run `sudo chown 1000:1000 secrets/postgres_password` and `sudo chmod 600 secrets/postgres_password` from the project folder. File-backed secrets retain host ownership; restricting the file to another DSM UID prevents app login to PostgreSQL.
 6. For a first installation, create the protected `.env` with the origin, cookie, and encryption settings before starting. On upgrades, reuse the existing `.env`, encryption key, and database-password file.
 7. Click **Done**
@@ -179,7 +181,7 @@ sudo chown 1000:1000 secrets/postgres_password
 # Use sudo vi .env: set the origin, HTTP cookie override, and a saved encryption key.
 ```
 
-The file is owned by UID 1000 so the app can read its mode-0600 bind-mounted secret; the PostgreSQL entrypoint reads it as root. Edit the secret file with a real password:
+The file is owned by UID 1000 so the app can read its mode-0600 bind-mounted secret; the PostgreSQL entrypoint reads it as root. Digarr trims leading and trailing whitespace, so do not use a password with intentional surrounding whitespace in this file. Changing the file does not change an initialized PostgreSQL role password; coordinate that change separately. Edit the secret file with a real password:
 
 ```sh
 sudo vi secrets/postgres_password
@@ -244,11 +246,13 @@ network lets them reach each other by container name.
    - `DIGARR_ALLOW_INSECURE_COOKIES` = `true` for direct HTTP (leave false for HTTPS)
    - `DIGARR_ENCRYPTION_KEY` = a generated, saved secret
    - `DATABASE_URL` = `postgresql://digarr:YOUR_PASSWORD@digarr-db:5432/digarr`
-     (replace `YOUR_PASSWORD` with the password from step 2 - the hostname
+     (replace `YOUR_PASSWORD` with the percent-encoded password from step 2;
      `digarr-db` resolves because both containers are on `digarr-net`)
    - `DIGARR_INITIAL_USERNAME` = optional admin username
    - `DIGARR_INITIAL_PASSWORD` = optional initial password (min 12 chars)
 8. Click **Next** / **Apply** to create and start the container
+
+Digarr passes an explicit `DATABASE_URL` unchanged. Percent-encode the username, password, and database-name components when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Keep the original, unencoded password in `POSTGRES_PASSWORD`, direct `DB_PASS`, or the password file. Enter real credentials in the protected configuration or GUI, not command-line arguments. For separate `DB_*` settings, use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other names require a complete, percent-encoded `DATABASE_URL` ([#773](https://github.com/iuliandita/digarr/issues/773)). `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace.
 
 Open `http://<nas-ip>:3000` in your browser.
 
@@ -262,15 +266,19 @@ Digarr publishes amd64 and arm64 images. CPU architecture alone does not establi
 
 ### Compose (SSH or DSM 7.2 Project)
 
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading; application JSON exports omit recovery state. Keep the same project name, volume mappings, and environment.
+
 ```sh
 cd /volume1/docker/digarr
 sudo docker compose -f docker-compose.pglite.yml pull
 sudo docker compose -f docker-compose.pglite.yml up -d
 ```
 
-For the PostgreSQL stack, use `docker-compose.yml` instead and pull only `app` when updating Digarr. Keep the same project name, volume mappings, and environment. Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading; application JSON exports omit recovery state.
+For the PostgreSQL stack, use `docker-compose.yml` instead and pull only `app` when updating Digarr.
 
 ### GUI (DSM 7.1)
+
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before resetting the container; application JSON exports omit recovery state. Confirm the existing data and backup folder mappings and environment will be retained.
 
 1. Open **Docker** > **Registry** > search for `iuliandita/digarr`
 2. Download the latest tag

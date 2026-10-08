@@ -8,8 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Documentation
 
-- Shorten the README and move operator details into linked guides. Correct v1.19.0 API contracts, deployment requirements, backup boundaries, album-approval limitations, and key-rotation coverage. Application defects remain tracked separately. The v1.18.0-to-v1.19.0 upgrade has no migrations and creates no pre-migration auto-backup; take a complete database backup first. [#755](https://github.com/iuliandita/digarr/issues/755).
-
+- Shorten the README and move operator details into linked guides. Correct v1.19.0 API contracts, deployment requirements, and known limitations, including Helm install messages, Compose comments, and Unraid template help. Application defects remain tracked separately. [#755](https://github.com/iuliandita/digarr/issues/755).
+- Clarify backup boundaries, album approval, and key rotation. The v1.18.0-to-v1.19.0 upgrade has no migrations and creates no pre-migration auto-backup; take a complete database backup first. [#755](https://github.com/iuliandita/digarr/issues/755).
 - Correct historical descriptions in v0.20.3 (inline discovery controls), v1.11.0 (migration key checks), and v1.13.0 (digest bookmarks), checked against their release tags on October 7, 2026. The v1.19.0 wording is also clarified, including the remaining name filter and section ordering. These corrections describe existing behavior, not new features. Older README anchors remain as pointers to the guides. [#755](https://github.com/iuliandita/digarr/issues/755).
 
 ## v1.19.0 - 2026-10-06
@@ -30,7 +30,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Name-only discovery validates MusicBrainz names and catalog aliases before genre matching, preventing unrelated artists from inheriting another artist's AI explanation and starter album. Tied matches remain unresolved. [#731](https://github.com/iuliandita/digarr/issues/731).
 - Discover Audition retains unavailable-preview reasons after skipped items or queue completion, including missing links, lookup failures, and playback failures. Only an actual browser permission rejection is labeled blocked playback. [#729](https://github.com/iuliandita/digarr/issues/729).
 - Discovery skips listening sources without similar-artist support instead of reporting them as failed. Job History distinguishes missing seeds, successful empty lookups, and actual or partial source failures, with localized skip explanations. [#722](https://github.com/iuliandita/digarr/issues/722).
-- AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. A separate name-containment filter remains and can suppress legitimate similarly named artists. This remains a heuristic, not identity verification. [#719](https://github.com/iuliandita/digarr/issues/719).
+- AI recommendations retain legitimate comparisons to listening-profile artists. The description check now targets shared-name collisions, and prompts request the recommended artist's name explicitly. A separate name-containment filter remains and can suppress legitimate similarly named artists. This remains a heuristic, not identity verification (wording clarified after release). [#719](https://github.com/iuliandita/digarr/issues/719).
 - Dashboard listening history distinguishes unconfigured accounts, empty history, and fetch failures, with retry actions for failures. ListenBrainz artist statistics treat HTTP 204 as empty history. [#721](https://github.com/iuliandita/digarr/issues/721).
 
 ### Development

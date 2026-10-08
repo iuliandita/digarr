@@ -47,12 +47,18 @@ the Backup & Restore section). The panel shows the currently active backend.
 
 ### 2. Choose a target
 
+Use a fresh, dedicated target database or directory. Take a complete backup before selecting any existing destination. The nonempty-target guard checks only for users: a target containing other application data but no users can be cleared and replaced even with `overwrite=false` ([#775](https://github.com/iuliandita/digarr/issues/775)). A successful connection test does not establish that the destination is empty.
+
 Select one:
 
 | Target | What to fill in |
 |--------|----------------|
 | PostgreSQL | Full connection string (DSN): `postgresql://user:pass@host:5432/dbname` |
 | PGlite | Absolute path to the data directory on the container filesystem, e.g. `/app/data-new` |
+
+For PostgreSQL, percent-encode the username, password, and database-name components of the DSN when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Digarr passes an explicit `DATABASE_URL` unchanged. Keep the original, unencoded password in `POSTGRES_PASSWORD` or direct `DB_PASS`. `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. Enter real credentials in the protected configuration or GUI, not command-line arguments.
+
+The separate `DB_*` builder encodes only `DB_PASS`. Use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other usernames or database names require a complete `DATABASE_URL` with percent-encoded components ([#773](https://github.com/iuliandita/digarr/issues/773)).
 
 For PGlite, the path must be inside the configured data root. The test step
 checks this without creating any files.
@@ -104,8 +110,7 @@ Progress is shown inline. On a large library the copy may take a minute or two.
 
 ### 5. Read the report
 
-On success, the panel shows every migrated table and its row count, plus a
-summary of what was excluded (see below). Count and same-count content mismatches
+On success, the panel shows every migrated table and its row count. Its excluded-table list names sessions and rate-limit buckets; unfinished OAuth transactions are also outside the copy registry (see below). Count and same-count content mismatches
 appear in the failed report with details.
 
 ### 6. Set the env var and restart
@@ -113,17 +118,18 @@ appear in the failed report with details.
 The panel shows the exact environment variable(s) to set for the new backend:
 
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
-  entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`). Alternatively,
-  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually. For TLS,
+  entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`), with username,
+  password, and database-name components percent-encoded as needed. Alternatively,
+  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually with URI-unreserved usernames/database names and the original, unencoded password, as described above. For TLS,
   `DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. Note that
   Digarr's `require` performs full certificate verification -- stricter than
   libpq's `require`, which encrypts without verifying. Use `no-verify` for
   self-signed certificates.
-- **Switching to PGlite**: unset `DATABASE_URL` and `DB_HOST`, then set `DB_PATH`
+- **Switching to PGlite**: unset `DATABASE_URL`, `DATABASE_URL_FILE`, and `DB_HOST`, then set `DB_PATH`
   to the directory path you entered (e.g. `DB_PATH=/app/data-new`). Mount persistent, writable storage at that path before copying; the bundled Compose and Helm deployments configure a read-only root filesystem.
 
 Update your `docker-compose.yml`, Helm values, or container template, then
-restart Digarr. The PGlite Compose file explicitly clears `DATABASE_URL` and `DB_HOST`, so setting them only in `.env` will not switch that stack to PostgreSQL. Change the service environment or use an appropriate Compose override. Preserve the existing data and backup volumes when changing Compose files.
+restart Digarr. A readable `DATABASE_URL_FILE` can select PostgreSQL even when `DATABASE_URL` is empty. The PGlite Compose file explicitly clears `DATABASE_URL` and `DB_HOST`; remove `DATABASE_URL_FILE` from `.env` yourself. Setting the direct variables only in `.env` will not switch that stack to PostgreSQL. Change the service environment or use an appropriate Compose override. Preserve the existing data and backup volumes when changing Compose files.
 
 ### 7. Verify the switch
 

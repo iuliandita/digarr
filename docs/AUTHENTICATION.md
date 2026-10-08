@@ -21,9 +21,9 @@ see [Public origin and reverse proxies](#public-origin-and-reverse-proxies) for
 the direct-HTTP override. Session tokens expire after 30 days and are SHA-256
 hashed before storage.
 
-Registration is closed by default after the first user has been created. To
+Local password registration is closed by default after the first user has been created. To
 open registration in a fresh install or internal deployment, set
-`DIGARR_DISABLE_REGISTRATION=false`.
+`DIGARR_DISABLE_REGISTRATION=false`. This switch does not gate OIDC account provisioning; restrict allowed users at the identity provider.
 
 Bearer sessions remain supported for API clients. Calling
 `POST /api/v1/auth/login` or `POST /api/v1/auth/register` without
@@ -165,6 +165,7 @@ Enable OIDC by setting:
 - `OIDC_ISSUER_URL` - the IdP discovery URL
 - `OIDC_CLIENT_ID` - registered client id
 - `OIDC_CLIENT_SECRET` - registered client secret
+- `OIDC_SCOPES` - requested scopes; defaults to `openid profile email`
 - `ALLOWED_ORIGIN` - required, used to build the redirect URI
 
 Users click "Sign in with OIDC" on the login screen, redirect to the IdP, and
@@ -236,16 +237,14 @@ restart, the callback uses the standard OIDC failure redirect instead.
 
 ### OIDC preferred_username sanitization
 
-IdPs may return arbitrary strings in the `preferred_username` claim. Digarr
-sanitizes the value before using it as the local username by:
+Digarr chooses `preferred_username`, then the email local part, then `oidc-<first 8 chars of sub>`. It sanitizes the chosen value before using it as the local username by:
 
 - Stripping every character outside `[A-Za-z0-9._-]`.
 - Capping length at 50 characters.
 - Falling back to `oidc-<first 8 chars of sub>` when sanitization emptied
   the value.
 
-This protects downstream systems (filesystem paths, SQL identifiers, UI
-rendering) from injection via IdP-supplied strings.
+If the resulting username already exists, Digarr appends `-<first 8 chars of sub>`. This limits which characters IdP-supplied usernames can contain; account matching still uses the OIDC subject.
 
 ### OIDC callback error handling
 
@@ -310,7 +309,7 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
 ### TIDAL app setup
 
 > [!WARNING]
-> **Experimental and unverified.** Authorization, token refresh, and favorite-artist retrieval have not been tested against a live TIDAL account. We are shipping with that limitation and asking the community for [feedback](#tidal-feedback). The Experimental badges remain until live results establish that these flows work.
+> **Experimental and unverified.** Authorization, token refresh, and favorite-artist retrieval have not been tested against a live TIDAL account. Digarr ships with that limitation; [community feedback](#tidal-feedback) is needed. The Experimental badges remain until live results establish that these flows work.
 
 TIDAL uses a single app registered by an admin, which every user then authorizes with their own TIDAL account:
 
@@ -352,7 +351,7 @@ Deezer connection requires your own working app credentials; Digarr does not reg
 2. Set `DEEZER_APP_ID` and `DEEZER_APP_SECRET` in the deployment environment and restart Digarr. These are deployment-wide credentials, not fields accepted from the browser.
 3. Each user opens **Settings > Connections > Your Connections > Deezer** and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
 
-Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection.
+Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. Subscription token-resolution failures currently appear as successful empty feeds rather than authentication errors ([#774](https://github.com/iuliandita/digarr/issues/774)); reconnect when a previously populated feed unexpectedly becomes empty. Playlist feeds collect at most 500 distinct artists across the selected playlists.
 
 ## Rollback across the OIDC token-storage migration
 

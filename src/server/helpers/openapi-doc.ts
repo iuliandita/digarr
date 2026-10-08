@@ -284,11 +284,12 @@ export const openapiDoc = {
       },
       JobHealth: {
         type: 'object',
-        required: ['pipeline', 'subscriptions', 'playlists', 'sources'],
+        required: ['pipeline', 'subscriptions', 'playlists', 'librarySync', 'sources'],
         properties: {
           pipeline: { type: 'object', additionalProperties: true },
           subscriptions: { type: 'object', additionalProperties: true },
           playlists: { type: 'object', additionalProperties: true },
+          librarySync: { type: 'object', additionalProperties: true },
           sources: { type: 'object', additionalProperties: true },
         },
         additionalProperties: true,

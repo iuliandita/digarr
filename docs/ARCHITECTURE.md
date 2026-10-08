@@ -83,9 +83,7 @@ to embedded PGlite (bare `docker run` with no DB env, or
 
 The Helm-generated `deploy/k8s/rendered.yaml` snapshot also includes PostgreSQL, while the standalone reference `deploy/k8s/deployment.yaml` requires a supplied `DATABASE_URL` and provisions no database.
 
-PGlite is opt-in for these paths (Helm
-`--set database.backend=pglite`, which requires a PVC plus `replicaCount=1` and
-`Recreate`).
+For Helm, opt into PGlite with `--set database.backend=pglite`; this requires a PVC plus `replicaCount=1` and `Recreate`. The standalone raw manifest requires the manual changes described above.
 
 **In-app backend migration.** Admins can switch between PGlite and a
 PostgreSQL server through Settings > Administration > Migrate Database Backend without
@@ -127,61 +125,85 @@ Seven stages:
 
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
+
+### Analyze: source-relative weights
+
 Analyze hydrates listening-artist genres from native source payloads,
 `library_artists`, and the `artists` cache before computing the taste profile.
+It deduplicates each source's artist evidence, then normalizes its positive
+weights to a total of one.
+
+Spotify contributes reciprocal best position across the existing personal
+top-artist windows; this is an ordinal estimate, not a published affinity score. Subsonic starred artists contribute equal membership
+evidence. Other adapters retain their source-local numeric signals, including
+favorite boosts or collection counts. Raw values remain separate from normalized
+`tasteWeight` values.
+
+Artists appearing in several sources keep their maximum contribution rather
+than summing overlapping history. Aggregate genres and the analyzed profile use
+these relative weights with deterministic ties. Empty, invalid, or zero numeric
+evidence contributes no positive weight; missing genre tags stay unknown.
+
+Raw seed values remain source-dependent, not comparable play counts. Relative
+taste weights are neither probabilities nor evidence of a single dominant taste: a
+sparse source can give its single artist a strong relative weight. Guidance
+preserves distinct evidenced interests without recommendation quotas.
 
 After foreground pipeline work completes, a maintenance-aware warmer queues at
-most 10 stale or missing artists through the shared MusicBrainz rate gate; the
+most 10 stale or missing artists through the shared MusicBrainz rate gate. The
 next scan consumes the refreshed cache through an ambiguity-checked source/name
-alias when the listening source has no MBID.
-Listening-artist genre data in the
+alias when the listening source has no MBID. Listening-artist genre data in the
 artist cache uses its own freshness timestamp, so unrelated image or metadata
-refreshes cannot extend the 180-day genre TTL. Enrichment from
+refreshes cannot extend the 180-day genre TTL.
+
+### Discover: seed selection
+
+Discovery queries only listening sources declaring `similarArtists`. Job results
+distinguish unsupported capabilities, explicit discovery modes, missing seeds,
+successful empty lookups, and upstream failures. A seed lookup failure remains
+visible even when other seeds contribute candidates. These outcomes describe
+discovery, independently of profile analysis and library sync.
+
+Before similarity lookup, discovery shuffles exact positive finite taste-weight
+ties on a copied list; unequal weights and legacy ordering remain intact.
+Library mixing deduplicates known identities, preserves a uniquely matching
+catalog ID on copied seeds, and backfills unavailable slots from remaining
+listening artists without exceeding the configured cap. This changes seed
+opportunity, not genre quotas or scoring. Bounded seed selection cannot guarantee
+representation of every interest. Scoring, stored recommendations, and source
+history windows are unchanged.
+
+### AI discovery: prompts and name checks
+
+Recommendation prompts retain per-artist genre context for at most 20 seeds and
+eight genre tags per seed. AI discovery retains comparisons to listening-profile
+artists. The existing `hasNameConfusion` filter separately rejects
+recommendations when either normalized name contains the other. It lowercases
+names and strips leading English articles; exact matches are handled elsewhere,
+and seed names shorter than four characters are skipped. Distinct artists with
+overlapping names can still be rejected by this heuristic.
+
+The AI description guard only checks likely shared-name collisions: an unquoted
+seed name without the recommended name can be rejected. Prompts ask for the exact
+recommended name in the first sentence. This check cannot verify artist identity
+or factual accuracy; MusicBrainz resolution remains a separate stage.
+
+### Resolve: identity and genre enrichment
+
+Name-only resolution checks at most five MusicBrainz hits against the requested
+name or returned catalog aliases before comparing genres. Name normalization
+preserves accents and punctuation. A uniquely best matching identity can resolve;
+ties and unrelated hits are dropped. Known-MBID candidates retain their explicit
+identity path. Older stored recommendations are not rewritten. Enrichment from
 `artist_metadata` runs as a Resolve sub-step before Score.
 
-Discovery queries only listening sources declaring `similarArtists`.
-
-Job results distinguish unsupported capabilities, explicit discovery modes, missing seeds, successful empty lookups, and upstream failures. A seed lookup failure remains visible even when other seeds contribute candidates. These outcomes describe discovery, independently of profile analysis and library sync.
-
-Analyze deduplicates each source's artist evidence before normalizing its positive weights to a total of one.
-
-Spotify contributes reciprocal best position across the existing personal top-artist windows; this is an ordinal estimate, not a published affinity score. Subsonic starred artists contribute equal membership evidence.
-
-Other adapters retain their source-local numeric signals, including favorite boosts or collection counts. Raw values remain separate from normalized `tasteWeight` values.
-
-Artists appearing in several sources keep their maximum contribution rather than summing overlapping history. Aggregate genres and the analyzed profile use these relative weights with deterministic ties.
-
-Before similarity lookup, discovery shuffles exact positive finite taste-weight ties on a copied list; unequal weights and legacy ordering remain intact.
-
-Library mixing deduplicates known identities, preserves a uniquely matching catalog ID on copied seeds, and backfills unavailable slots from remaining listening artists without exceeding the configured cap. This changes seed opportunity, not genre quotas or scoring.
-
-Empty, invalid, or zero numeric evidence contributes no positive weight; missing genre tags stay unknown.
-
-Recommendation prompts retain per-artist genre context for at most 20 seeds and eight genre tags per seed.
-
-Raw seed values remain source-dependent, not comparable play counts; relative taste weights are neither probabilities nor evidence of a single dominant taste. Guidance preserves distinct evidenced interests without recommendation quotas.
-
-A sparse source can give its single artist a strong relative weight, and bounded seed selection cannot guarantee representation of every interest. Scoring, stored recommendations, and source history windows are unchanged.
-
-AI discovery retains comparisons to listening-profile artists.
-
-The existing `hasNameConfusion` filter separately rejects recommendations when either normalized name contains the other. It lowercases names and strips leading English articles; exact matches are handled elsewhere, and seed names shorter than four characters are skipped. Distinct artists with overlapping names can still be rejected by this heuristic.
-
-The AI description guard only checks likely shared-name collisions: an unquoted seed name without the recommended name can be rejected. Prompts ask for the exact recommended name in the first sentence.
-
-This heuristic cannot establish artist identity or factual accuracy; MusicBrainz resolution remains a separate stage.
-
-Name-only resolution checks at most five MusicBrainz hits against the requested name or returned catalog aliases before comparing genres. Name normalization preserves accents and punctuation.
-
-A uniquely best matching identity can resolve; ties and unrelated hits are dropped.
-
-Known-MBID candidates retain their explicit identity path. Older stored recommendations are not rewritten.
+### Filter: artist and album rules
 
 The filter stage partitions candidates by `kind`. Artist-kind candidates run the
 full artist-existence / library / top-artist filters. Album-kind candidates
-bypass those artist-oriented filters (a new release from a tracked artist is the
-point, not a rejection cause) but still pass the album block layer, cross-batch
-dedup, and the score threshold.
+bypass those artist-oriented filters because a new release from a tracked artist
+is the point, but still pass the album block layer, cross-batch dedup, and the
+score threshold.
 
 ## Registry patterns
 
@@ -244,17 +266,74 @@ One shared digest bookmark advances after any channel succeeds. A crash between 
 
 ## Album-level discovery
 
-Albums are a first-class recommendation unit. Key additions:
+Albums are a first-class recommendation unit:
 
 - **`kind` discriminator** on the `recommendations` table (`'artist' | 'album'`, default `'artist'`). All recommendation queries and API responses include `kind`; the list endpoint accepts a `?kind=` filter.
 - **`album_blocks` table** -- per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
 - **`applyAlbumModifier`** in `src/core/pipeline/score.ts` -- computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
-- **`addAlbum` target capability** -- individual approval of an album recommendation calls the Lidarr target's `addAlbum` method: adds the artist unmonitored (no whole-discography grab) and monitors + searches only the approved album. If the artist already exists in Lidarr, the existing record is reused (gap-fill safe). Bulk and automatic album approval currently use the artist-level path instead; bulk Lidarr approval requests no album monitoring or search ([#756](https://github.com/iuliandita/digarr/issues/756), [#761](https://github.com/iuliandita/digarr/issues/761)); automatic approval uses its configured monitoring scope, defaulting to all albums.
-- **Release-radar producer** -- the release-radar discovery mode is the first producer of album recommendations. It emits first-class `kind='album'` recommendations for new releases from artists the user already tracks, instead of collapsing them into artist rows, and these land in the Albums tab. With the kind-aware dedup change (below), a tracked artist that drops several releases in one scan window now yields one album recommendation per release in the same run, rather than one per run.
-- **Library gap-fill producer** -- a discovery mode whose executor iterates a rotated, bounded slice of the user's tracked artists. The cursor is the `library_artists.last_gap_check_at` column, ordered `asc nulls first` so never-checked artists go first; the slice is bounded (default 25 per run, overridable via the mode's `maxArtistsPerRun` setting) and walked with a p-queue (concurrency 2, 200ms interval) so a large library does not starve the event loop. For each artist it calls the album-coverage engine (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per missing studio album, carrying the release-group MBID and the release year as the recency signal. After the slice runs, the checked artists' `last_gap_check_at` is stamped so the next run advances the cursor. This fills the Albums tab from missing studio albums of artists already in the library.
-- **Net-new album discovery producer** -- when `netNewAlbumDiscovery` is enabled (default off), `resolve()` tries to match the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album recommendation with its release-group MBID and first-release date, then follows the normal album scoring, filtering, and storage paths. An unmatched title stays an artist recommendation.
-- **Album empty-state routing** -- a normal pipeline scan remains artist-focused. When the album-filtered recommendation list is empty, the frontend links to the two explicit album discovery modes (`gap-fill` and `release-radar`) and to the default-off `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested generic mode card; the preference link opens its collapsed settings section and focuses the target.
-- **Kind-aware dedup** -- album candidates dedup and group by release-group MBID instead of artist MBID at three points, which is what lets multiple albums per artist survive a single run (and lifted the release-radar one-album-per-artist-per-run cap): the discover-stage dedup keys album candidates on `rg::{releaseGroupMbid}` while artist candidates still key on artist MBID/name (`src/core/pipeline/discover.ts`); `resolve()` partitions album-kind discoveries out of the artist-MBID grouping and groups them by release group, one resolved recommendation per release group (`src/core/pipeline/resolve.ts`); and the resolve final dedup keys album-kind recommendations on `{artistMbid}::{releaseGroupMbid}` so distinct albums for the same artist are kept.
+
+### Album approval
+
+Individual approval calls the Lidarr target's `addAlbum` method. It adds the
+artist unmonitored (no whole-discography grab) and monitors and searches only the
+approved album. If the artist already exists in Lidarr, the existing record is
+reused, making this safe for gap-fill.
+
+Bulk and automatic album approval use the artist-level path. Bulk Lidarr approval
+requests no album monitoring or search
+([#756](https://github.com/iuliandita/digarr/issues/756),
+[#761](https://github.com/iuliandita/digarr/issues/761)). Automatic approval uses
+its configured monitoring scope, defaulting to all albums.
+
+### Release radar
+
+The release-radar discovery mode emits `kind='album'` recommendations for new
+releases from artists the user already tracks. These land in the Albums tab.
+Kind-aware dedup keeps one album recommendation per release, including several
+releases from the same artist in one scan window.
+
+### Library gap-fill
+
+The library gap-fill executor iterates a rotated, bounded slice of the user's
+tracked artists. Its cursor is `library_artists.last_gap_check_at`, ordered
+`asc nulls first` so never-checked artists go first. The default slice is 25
+artists per run, overridable through the mode's `maxArtistsPerRun` setting. A
+p-queue walks the slice with concurrency 2 and a 200ms interval so large libraries
+do not starve the event loop.
+
+For each artist, the executor calls the album-coverage engine
+(`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per
+missing studio album. Each carries the release-group MBID and the release year
+as the recency signal. After the slice runs, the checked artists'
+`last_gap_check_at` is stamped so the next run advances the cursor. The resulting
+recommendations fill the Albums tab with missing studio albums from artists
+already in the library.
+
+### Net-new album discovery
+
+When `netNewAlbumDiscovery` is enabled (default off), `resolve()` tries to match
+the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album
+recommendation with its release-group MBID and first-release date, then follows
+the normal album scoring, filtering, and storage paths. An unmatched title stays
+an artist recommendation.
+
+### Album empty-state routing
+
+A normal pipeline scan remains artist-focused. When the album-filtered
+recommendation list is empty, the frontend links to the two explicit album
+discovery modes (`gap-fill` and `release-radar`) and the default-off
+`netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested
+generic mode card; the preference link opens its collapsed settings section and
+focuses the target.
+
+### Kind-aware dedup
+
+Album candidates dedup and group by release-group MBID instead of artist MBID at
+three points, allowing multiple albums per artist to survive a single run:
+
+1. Discover-stage dedup keys album candidates on `rg::{releaseGroupMbid}` while artist candidates key on artist MBID/name (`src/core/pipeline/discover.ts`).
+2. `resolve()` partitions album-kind discoveries out of the artist-MBID grouping and groups them by release group, producing one resolved recommendation per release group (`src/core/pipeline/resolve.ts`).
+3. Resolve's final dedup keys album-kind recommendations on `{artistMbid}::{releaseGroupMbid}` so distinct albums for the same artist are kept.
 
 ## Key invariants
 
@@ -270,13 +349,26 @@ Albums are a first-class recommendation unit. Key additions:
   Anthropic and OpenAI providers use vendor SDK transports, so these policies are not universal. Read-only shared-client calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
-- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. The resolver supports local lookups, but the running app wires only Spotify, Deezer, and MusicBrainz; accepted `local` priorities do not search media libraries ([#767](https://github.com/iuliandita/digarr/issues/767)). Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
+- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
 
-  MusicBrainz recordings are a final MBID-based fallback: they supply titles and recording IDs without playable URIs or paths. Exports link those rows to MusicBrainz pages; remote targets resolve tracks separately. Navidrome, Jellyfin, Emby, and Plex can substitute their first search result when exact matching fails ([#758](https://github.com/iuliandita/digarr/issues/758)). No invented titles fill unresolved artists.
+  The resolver supports local lookups, but the running app wires only Spotify,
+  Deezer, and MusicBrainz. Accepted `local` priorities do not search media
+  libraries ([#767](https://github.com/iuliandita/digarr/issues/767)).
 
-  Counts distinguish selected artists, artists with resolved tracks, artists included after truncation, and included tracks. Resolution metadata is saved in the existing job record after local tracks are saved and before remote exports, so a later target failure preserves the local result.
+  MusicBrainz recordings are the final MBID-based fallback. They supply titles
+  and recording IDs without playable URIs or paths. Exports link those rows to
+  MusicBrainz pages; remote targets resolve tracks separately. No invented titles
+  fill unresolved artists.
 
-  Owned playlist details expose only their latest job projection; legacy playlists have no fabricated historical summary.
+  Navidrome, Jellyfin, Emby, and Plex can substitute their first search result when
+  exact matching fails ([#758](https://github.com/iuliandita/digarr/issues/758)).
+
+  Counts distinguish selected artists, artists with resolved tracks, artists
+  included after truncation, and included tracks. Resolution metadata is saved in
+  the existing job record after local tracks are saved and before remote exports,
+  so a later target failure preserves the local result. Owned playlist details
+  expose only their latest job projection; legacy playlists have no fabricated
+  historical summary.
 - Playlist scheduling is gated by the global `preferences.playlistEnabled` switch (default false), plus each playlist's enabled flag and schedule. Manual generation is independent of that switch.
 - Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
 - Spotify playlist exports retain explicit track URIs, or resolve artist/title pairs with exact matching. Artist-only approvals take up to three artist-matching track search results. Writes use `/me/playlists` and `/playlists/{id}/items`, with at most 100 URIs per request; failures are not retried as duplicate writes.

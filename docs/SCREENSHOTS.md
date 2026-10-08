@@ -1,9 +1,7 @@
 # Screenshots
 
 The checked-in screenshots use the Youtarr theme. Most were captured from
-v1.10.0; Analytics was refreshed from v1.12.0, and Discovery Modes, Settings,
-Library Reconciliation, and Your Connections were refreshed from development
-builds before v1.18.0. The Account capture was added with v1.17.0 (commit `e36d7d8a`); its exact running build was not recorded.
+v1.10.0; Analytics was refreshed from v1.12.0. Discovery Modes, Settings, and Your Connections show v1.15.1 (`d276d94`) in their footers; Library Reconciliation shows v1.14.0. The Account capture was added with v1.17.0 (commit `e36d7d8a`); its exact running build was not recorded.
 
 The descriptions below reflect v1.19.0. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
@@ -101,7 +99,7 @@ The Account page offers password-confirmed SSO linking when OIDC is enabled and 
 
 ![Your Connections](screenshots/settings-your-connections.png)
 
-This older capture shows a subset of per-user connections: ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL. The current Your Connections UI also includes Plex, Jellyfin, Emby, Subsonic, and Discogs. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
+This older capture shows ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL, plus the top of the Plex card. The current Your Connections UI also includes Jellyfin, Emby, Subsonic, and Discogs. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
 
 ## Settings > Blocked
 

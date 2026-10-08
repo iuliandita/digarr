@@ -30,7 +30,7 @@ Admin-only endpoints return 403 for non-admin users.
 
 ---
 
-## Pagination Shapes
+## Pagination shapes
 
 Digarr uses three pagination styles depending on the route's compatibility history.
 
@@ -72,7 +72,7 @@ Offset-paginated routes:
 
 ---
 
-## API Metadata
+## API metadata
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -117,6 +117,7 @@ Notes:
 - Login and registration return `{ user, token }` for API clients by default.
   Send `X-Digarr-Auth-Mode: cookie` to receive an HttpOnly session cookie and a
   `{ user }` response without the raw token.
+- Registration trims surrounding username whitespace and requires 2-50 characters. Passwords require at least 12 characters.
 - Registration returns `201`; closed registration returns `403`, an existing
   username returns `409`, and the sixth request from one source within a minute
   returns `429`.
@@ -286,7 +287,7 @@ Locale notes:
 
 ---
 
-## Discovery Modes
+## Discovery modes
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -368,7 +369,10 @@ The writable `status` values are `approved`, `rejected`, and `pending`; use `pen
 
 Approval notes:
 - `approvalMode` defaults to `single_target`
-- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered. These are Digarr's names, translated to the target's own vocabulary at the boundary: `all` monitors the whole discography and triggers a search for missing albums, and `new` monitors only future releases (Lidarr's `future`) without searching for anything existing. `popular` tries Spotify popularity first, then Last.fm top albums when Spotify returns no candidates. It maps up to three matching MusicBrainz release groups and sends them to Lidarr as selected albums. If neither source returns candidates, approval fails with `no_source`; if candidates cannot be mapped, it fails with `no_match`.
+- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered.
+
+  These are Digarr's names, translated to the target's own vocabulary at the boundary: `all` monitors the whole discography and triggers a search for missing albums, and `new` monitors only future releases (Lidarr's `future`) without searching for anything existing.
+- `popular` tries Spotify popularity first, then Last.fm top albums when Spotify returns no candidates. It maps up to three matching MusicBrainz release groups and sends them to Lidarr as selected albums. If neither source returns candidates, approval fails with `no_source`; if candidates cannot be mapped, it fails with `no_match`.
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - For artist recommendations, use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
@@ -399,9 +403,13 @@ Approve response (status `approved`):
 - `targetActions` is the full merged map persisted on the rec; `targetSummary` describes only the targets attempted by *this* request, so clients can report partial outcomes at submit time. Its `warnings` array contains non-fatal target warnings.
 - To retry just the failed targets, re-`PATCH` once per failed `targetId` (this preserves the successful targets' actions and will not regress the rec to `add_failed` if others already succeeded).
 
-**POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows. Optional target/profile overrides apply to artist approval. An unknown `targetId` returns `400` with `{ "error": "Unknown targetId: <id>" }`; a selected target without artist approval support returns `400` with `{ "error": "Target does not support artist approval: <id>" }`. These are plain JSON errors, not problem-detail envelopes. In v1.19.0, bulk approval uses the artist-add path even for album rows, requesting no album monitoring or search in Lidarr; approve albums individually with `PATCH /api/v1/recommendations/:id` to monitor and search only the selected album. This limitation is tracked in [#756](https://github.com/iuliandita/digarr/issues/756).
+**POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
 
-## Artist Blocks
+Optional target/profile overrides apply to artist approval. An unknown `targetId` returns `400` with `{ "error": "Unknown targetId: <id>" }`; a selected target without artist approval support returns `400` with `{ "error": "Target does not support artist approval: <id>" }`. These are plain JSON errors, not problem-detail envelopes.
+
+In v1.19.0, bulk approval uses the artist-add path even for album rows, requesting no album monitoring or search in Lidarr; approve albums individually with `PATCH /api/v1/recommendations/:id` to monitor and search only the selected album. This limitation is tracked in [#756](https://github.com/iuliandita/digarr/issues/756).
+
+## Artist blocks
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -427,7 +435,7 @@ List items contain `artistId`, `name`, nullable `mbid`, nullable `reason` and `r
 
 For manual artist blocks, `artistId` must be a positive integer. `reason` accepts the rejection reasons above or null; `reasonText` is nullable and limited to 200 characters after control-character removal and trimming. The rejection-only restrictions on `other` and `not_right_now` do not apply to this endpoint.
 
-## Album Blocks
+## Album blocks
 
 Album blocks are created when the caller permanently rejects an album recommendation. They
 are keyed by MusicBrainz release-group MBID and are independent of artist blocks.
@@ -532,6 +540,8 @@ Path params:
 | POST | `/api/v1/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer` (with `sourceConfig.feedType` of `favorites`, `followed`, `flow`, or `playlists`; `playlistIds` supplies comma-separated IDs for `playlists`), `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
+
+Deezer subscription token-resolution failures currently return an empty artist list instead of an authentication error; reconnect when expected artists disappear ([#774](https://github.com/iuliandita/digarr/issues/774)). Playlist feeds collect at most 500 distinct artists across the selected playlists.
 
 **POST /api/v1/subscriptions** body:
 ```json
@@ -668,7 +678,7 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 
 Creation requires a trimmed, nonempty `name` (up to 200 characters) and a listed strategy. `targetIds` accepts up to 50 positive integer database IDs, not prefixed target strings; omission means no remote exports. `schedule` is a supported cron expression or null, defaulting to null. `enabled` defaults to true. `config` may include `genre` for `genre_focus` or `mood` for `mood_mix`.
 
-When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. A supplied config object is not merged with defaults: include both `size` and `trackSourcePriority` (`local`, `spotify`, or `deezer`). Partial objects are accepted by validation but can fail generation ([#764](https://github.com/iuliandita/digarr/issues/764)).
+When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. A supplied config object is not merged with defaults: include both `size` and `trackSourcePriority` (`local`, `spotify`, or `deezer`). The API accepts arbitrary config keys and values without validating their contents. Partial objects or invalid source priorities can fail generation ([#764](https://github.com/iuliandita/digarr/issues/764)).
 
 **PATCH /api/v1/playlists/:id** accepts optional versions of the same fields and rejects unknown top-level fields. Omitted fields remain unchanged; `config` replaces the whole object. Example:
 
@@ -712,7 +722,7 @@ Navidrome, Jellyfin, Emby, and Plex currently substitute their first search resu
 
 ---
 
-## Mood Discovery
+## Mood discovery
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -767,7 +777,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 
 ---
 
-## Analytics (Admin)
+## Analytics (admin)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -781,7 +791,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 
 ---
 
-## Library Health (Admin)
+## Library health (admin)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -959,7 +969,7 @@ Both listening endpoints return `status`: `not_configured` means no eligible sou
 
 ---
 
-## Jobs (Admin)
+## Jobs (admin)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -978,7 +988,7 @@ Both listening endpoints return `status`: `not_configured` means no eligible sou
 
 Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. Any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
-In v1.19.0, `/api/v1/jobs/health` counts every non-`ok` source result, including `skipped`, toward its source failure rate. Normal skips such as `not_configured` or `unsupported_capability` can therefore produce a degraded/failing source summary and a degraded System Health card. Check the individual job's `sourceResults` in Job History before treating the summary as an upstream outage ([#769](https://github.com/iuliandita/digarr/issues/769)).
+Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. In v1.19.0, `/api/v1/jobs/health` counts every non-`ok` source result, including `skipped`, toward its source failure rate. Normal skips such as `not_configured` or `unsupported_capability` can therefore produce a degraded/failing source summary and a degraded System Health card. Check the individual job's `sourceResults` in Job History before treating the summary as an upstream outage ([#769](https://github.com/iuliandita/digarr/issues/769)).
 
 ---
 
@@ -1044,7 +1054,7 @@ Notification channels:
 
 ---
 
-## Users (Admin)
+## Users (admin)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -1070,11 +1080,11 @@ Admins can promote other users. First-user admin creation is serialized in the d
 
 ---
 
-## Admin (Admin)
+## Admin (admin)
 
 All `/api/v1/admin/*` endpoints require admin authentication.
 
-### Backup & Restore
+### Backup & restore
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -1098,7 +1108,7 @@ Restore replaces included tables in one transaction. Clearing users also cascade
 |--------|------|------|-------------|
 | GET | `/api/v1/admin/migrations/pending` | Admin | Pending migration status. |
 
-### Database Migration
+### Database migration
 
 Copy the application restore registry from the current backend (PGlite or PostgreSQL) into a different one. The source is never modified.
 
@@ -1107,9 +1117,9 @@ Sessions, rate-limit counters, and pending OAuth transactions are excluded; sign
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`, or `502 { ok: false, code, error }` on failure. |
-| POST | `/api/v1/admin/migrate-backend` | Admin | Run the copy. Body: `{ target, overwrite? }`. Returns the `MigrationReport` `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }` **only on `200`**. All error statuses use the `application/problem+json` envelope `{ type, title, status, code, ... }`: a verification failure is `422 code: migration_verify_failed` (the full report rides under a `report` extension); `409 code: pipeline_running` when a pipeline is running; `409 code: migration_in_progress` when a migration is already running; `409 code: target_not_empty` when the target is non-empty without `overwrite`; `409 code: same_database` when source and target identify the same database; the same-process copy keeps encrypted values unchanged and has no source/target key-mismatch check. Retain the running encryption key when restarting on the new backend. |
+| POST | `/api/v1/admin/migrate-backend` | Admin | Run the copy. Body: `{ target, overwrite? }`. Returns the `MigrationReport` `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }` **only on `200`**. All error statuses use the `application/problem+json` envelope `{ type, title, status, code, ... }`: a verification failure is `422 code: migration_verify_failed` (the full report rides under a `report` extension); `409 code: pipeline_running` when a pipeline is running; `409 code: migration_in_progress` when a migration is already running; `409 code: target_not_empty` when the target has users and `overwrite` is false. This check does not protect other destination data when no users exist ([#775](https://github.com/iuliandita/digarr/issues/775)); `409 code: same_database` when source and target identify the same database; the same-process copy keeps encrypted values unchanged and has no source/target key-mismatch check. Retain the running encryption key when restarting on the new backend. |
 
-### Data Hygiene
+### Data hygiene
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|

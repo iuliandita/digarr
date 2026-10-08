@@ -14,6 +14,14 @@ future pod specs that weaken the securityContext are rejected at admission:
 {{- range .Values.ingress.hosts }}
   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
 {{- end }}
+{{- else if .Values.gateway.enabled }}
+  Gateway: {{ .Values.gateway.gatewayName }}
+{{- range .Values.gateway.hostnames }}
+  Hostname: {{ . }}
+{{- end }}
+  Check the parent Gateway listener for the public scheme and port.
+  Set ingress.controllerNamespace to the Gateway data-plane namespace for NetworkPolicy ingress.
+  See the chart README Network access section.
 {{- else }}
   kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "digarr.fullname" . }} 3000:{{ .Values.service.port }}
   echo "Local health endpoint: http://localhost:3000/health"
@@ -21,7 +29,10 @@ future pod specs that weaken the securityContext are rejected at admission:
 
 Configure ALLOWED_ORIGIN to the exact public origin and set DIGARR_ENCRYPTION_KEY
 before saving credentials. Sign in through that public origin; a different
-port-forward origin may be rejected.
+port-forward origin may be rejected. For deliberate local HTTP access through
+the port-forward, set ALLOWED_ORIGIN=http://localhost:3000 and
+DIGARR_ALLOW_INSECURE_COOKIES=true, then restart the app. Keep insecure cookies
+disabled for an HTTPS public origin.
 
 2. Database migrations run automatically on startup.
 {{- if not .Values.backups.persistence.enabled }}
