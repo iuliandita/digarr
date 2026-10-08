@@ -8,6 +8,7 @@ These are existing app behaviors, tracked separately from this documentation upd
 
 | Area | What to expect |
 |------|----------------|
+| Quick Discover seed | The named artist is saved separately with score 1.0, checking existing recommendations but bypassing library, block, cooldown, and threshold filters. Job stored counts exclude it. Inspect the queue even when no similar results are reported. [#795](https://github.com/iuliandita/digarr/issues/795). |
 | Settings diagnostics | Global `preferences.fanartApiKey` remains unmasked, including for non-admins; legacy `preferences.webhookUrl` remains unmasked for admins. Treat settings responses as sensitive. [#793](https://github.com/iuliandita/digarr/issues/793). |
 | Recommendation settings | Non-admin saves can report failure after saving user preferences because a subsequent global settings write returns `403`. Read back `GET /api/v1/auth/me/preferences`, or use the per-user preferences API directly. [#792](https://github.com/iuliandita/digarr/issues/792). |
 | Net-new album discovery | The toggle does not persist: the user-preferences route drops its key and the global schema rejects it. Use Release Radar or Library Gap-Fill. [#791](https://github.com/iuliandita/digarr/issues/791). |
@@ -32,6 +33,8 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Deezer subscriptions | Token-resolution failures appear as successful empty feeds. Reconnect when expected artists disappear. Playlist feeds cap collection at 500 distinct artists. [#774](https://github.com/iuliandita/digarr/issues/774). |
 | Backend migration destination | The nonempty guard checks only users. Other destination data can be replaced without `overwrite=true` when no users exist. Use a fresh target or take a complete destination backup. [#775](https://github.com/iuliandita/digarr/issues/775). |
 | TIDAL | Experimental; no live-account authorization, refresh, or favorite-artist retrieval validation. See [app setup and feedback](AUTHENTICATION.md#tidal-app-setup). |
+
+Manual subscription runs keep the HTTP request open through execution before returning `202`, unlike import requests. After a timeout or source error, check subscription run history and Job History before retrying. A timed-out request may have stored recommendations.
 
 Removing a permanent artist block does not clear an earlier rejection cooldown, which defaults to 90 days from rejection. Unblocking can therefore leave the artist ineligible until that cooldown expires. See [artist blocks](API.md#artist-blocks).
 

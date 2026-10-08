@@ -237,7 +237,7 @@ Setup validation rules:
 | POST | `/api/v1/pipeline/cancel` | Yes | Request cancellation of the in-flight run and drop the queue. Returns 202 with `{ cancelled, message }` (`cancelled` is false when nothing was running). |
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
-| POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
+| POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: try saving the named seed, then discover similar artists. Rate limited: 5/min |
 | POST | `/api/v1/pipeline/rescan` | Admin | Re-fetch images/metadata for up to 200 existing recommendations. Deduplicates artists, safely reuses shared-provider misses for seven days, and returns `{ attempted, updated, failed, total }` (`total` is a compatibility alias for `attempted`). Rate limited to 2/min; concurrent rescans return 409. |
 
 `POST /api/v1/pipeline/run` is intentionally available to any authenticated
@@ -284,6 +284,8 @@ rate-limited lookups are not cached as misses.
 ```json
 { "artistName": "Radiohead" }
 ```
+
+Quick Discover first attempts to resolve and save the submitted artist itself as a pending recommendation with score `1.0`. This direct seed checks existing recommendation MBIDs but bypasses library membership, permanent blocks, rejection cooldowns, and score thresholds. Similar results are resolved and filtered separately through those checks. The seed may remain saved even when no similar artists are found. Job `artistsStored` counts only stored similar results, so it can be zero despite a saved seed ([#795](https://github.com/iuliandita/digarr/issues/795)).
 
 Quick Discover and manual discovery-mode runs return `409 application/problem+json` with type `/problems/pipeline-already-running` when a pipeline scan is active. They do not join the full-scan FIFO queue.
 
@@ -435,7 +437,7 @@ In v1.19.0, bulk approval uses the artist-add path even for album rows, requesti
 
 List items contain `artistId`, `name`, nullable `mbid`, nullable `reason` and `reasonText`, and an ISO-8601 `blockedAt`. Creating or deleting a block returns `204` with no body.
 
-Deleting an artist block removes only the permanent block. It does not clear a previous rejection or its cooldown, which defaults to 90 days from rejection. Unblocking therefore does not immediately make a recently rejected artist eligible for recommendations. The rejection cooldown is currently shared across accounts ([#788](https://github.com/iuliandita/digarr/issues/788)); permanent blocks are per-user.
+Deleting an artist block removes only the permanent block. It does not clear a previous rejection or its cooldown, which defaults to 90 days from rejection. Unblocking therefore does not immediately make a recently rejected artist eligible for recommendations. The rejection cooldown is currently shared across accounts ([#788](https://github.com/iuliandita/digarr/issues/788)); permanent blocks are per-user. Quick Discover's direct seed bypasses these filters; see [Quick Discover](#pipeline) and [#795](https://github.com/iuliandita/digarr/issues/795).
 
 **POST /api/v1/artist-blocks** body:
 ```json
@@ -539,7 +541,7 @@ Path params:
 | POST | `/api/v1/subscriptions` | Yes | Create subscription |
 | PATCH | `/api/v1/subscriptions/:id` | Yes | Update subscription |
 | DELETE | `/api/v1/subscriptions/:id` | Yes | Delete subscription |
-| POST | `/api/v1/subscriptions/:id/run` | Yes | Trigger manual run (202) |
+| POST | `/api/v1/subscriptions/:id/run` | Yes | Await manual run, then return 202 |
 | GET | `/api/v1/subscriptions/:id/runs` | Yes | Run history |
 | POST | `/api/v1/subscriptions/import/spotify-liked-songs` | Yes | Create/reuse the helper Spotify Liked Songs subscription and trigger an import run (202) |
 | POST | `/api/v1/subscriptions/import/spotify-playlist` | Yes | Import the embedded track page from a Spotify playlist (URL, URI, or bare ID). Returns 202; later pages are omitted. |
@@ -551,6 +553,8 @@ Path params:
 | GET | `/api/v1/subscriptions/adapter-types` | Yes | Available adapter types with config schemas |
 | GET | `/api/v1/subscriptions/scheduler` | Yes | Scheduler job status, scoped to the calling user's own subscriptions |
 | POST | `/api/v1/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
+
+Manual `POST /api/v1/subscriptions/:id/run` awaits library preparation and subscription execution before returning `202`; it is not a background acknowledgement like the import endpoints. The request can stay open through fetching, resolution, storage, and job completion. Some propagated source errors return `503` with `retryable: true`; other unhandled failures can return `500`. A request timeout does not establish whether the job stopped. Check `GET /api/v1/subscriptions/:id/runs` and Job History before retrying, and inspect the recorded outcome even after a `202`.
 
 Spotify playlist imports and recurring `spotify-playlist` subscriptions read only the playlist response's embedded `tracks.items` page. They do not paginate or enforce `maxArtistsPerRun` through this adapter, so later artists may be omitted and the configured cap may be exceeded ([#779](https://github.com/iuliandita/digarr/issues/779)).
 

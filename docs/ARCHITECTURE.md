@@ -127,6 +127,8 @@ Seven stages:
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
 
+Quick Discover separately stores the submitted seed before its similar-result filter. That direct seed bypasses library, block, cooldown, and threshold checks; job stored counts exclude it. See the [API contract](API.md#pipeline) and [#795](https://github.com/iuliandita/digarr/issues/795).
+
 Artist filtering applies per-user permanent blocks and a shared rejection cooldown. The cooldown query includes rejected recommendations from all accounts, using the current run's configured window. On shared installations, another user's rejection can suppress an artist ([#788](https://github.com/iuliandita/digarr/issues/788)).
 
 ### Analyze: source-relative weights
@@ -226,7 +228,7 @@ Extension points use registries or configuration maps:
   An optional `stability: 'experimental'` on the definition (serialized by `GET /api/v1/discovery-modes`, defaulting to `stable`) badges the mode card without a per-mode frontend branch. TIDAL Favorite Artists remains experimental while live-account connect, refresh, and populated collection-result validation is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 - `NotificationChannel` - where notifications are delivered (webhook, ntfy, Telegram, Apprise), in `src/core/notifications/`. `registry.ts` fans one event out to every enabled, subscribed channel via `Promise.allSettled` (one channel down never blocks the others). Each `channels/<type>.ts` formats its payload and calls the single SSRF-guarded `transport.ts`.
 
-   A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`.
+   A new type needs a `channels/<type>.ts` sender, a `NotificationChannel` union arm, and wiring in `registry.ts`: `SenderMap`, `defaultSenders`, and the dispatch switch. Add its accepted shape to the discriminated union in `src/server/schemas/settings.ts`. Update configuration UI and translations, secret encryption/masking and masked round trips where applicable, and relevant tests. Reuse the guarded transport.
 
   The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full channel secrets as `***` and partially masks channel webhook URLs so their destinations remain recognizable.
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`.
