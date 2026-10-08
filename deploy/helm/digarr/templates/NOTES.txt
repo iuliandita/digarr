@@ -1,5 +1,9 @@
 Digarr has been deployed!
 
+First boot: keep Ingress/Gateway access restricted until the intended admin account
+is created and verified, including when bootstrap credentials are configured.
+See docs/AUTHENTICATION.md, Users and targets.
+
 For defense-in-depth, label the namespace with Pod Security Standards so
 future pod specs that weaken the securityContext are rejected at admission:
 

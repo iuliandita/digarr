@@ -26,7 +26,7 @@ and is vulnerable to network interception. See
 
 Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
 
-Admin-only endpoints return 403 for non-admin users.
+Admin-only endpoints return 403 for non-admin users. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs.
 
 ---
 
@@ -101,7 +101,7 @@ and bulk ignore, and settings service probes. Some mutation bodies remain generi
 | PATCH | `/api/v1/auth/me/email` | Yes (5/min) | Set or clear the user's email. Session auth only. |
 | POST | `/api/v1/auth/change-password` | Yes | Change password. Invalidates all sessions. Rate limited: 5/min |
 | GET | `/api/v1/auth/me/preferences` | Yes | Get merged user preferences |
-| PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (partial merge). Session auth only. |
+| PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (top-level partial merge). Session auth only. |
 
 **PATCH /api/v1/auth/me/locale** body:
 ```json
@@ -143,6 +143,8 @@ Notes:
 - `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
 - `GET /api/v1/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
+
+Preference updates merge top-level keys only. A supplied `scoringWeights` object replaces the saved object; omitted weights fall back to defaults rather than retaining saved values. Send the complete intended `scoringWeights` object when changing weights.
 
 ### OIDC / OAuth
 
@@ -230,7 +232,7 @@ Setup validation rules:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ message, status, queued, position }`; `status` is `started`, `queued`, or `duplicate`. |
-| POST | `/api/v1/pipeline/cancel` | Yes | Stop the in-flight run and drop the queue. Returns 202 with `{ cancelled, message }` (`cancelled` is false when nothing was running). |
+| POST | `/api/v1/pipeline/cancel` | Yes | Request cancellation of the in-flight run and drop the queue. Returns 202 with `{ cancelled, message }` (`cancelled` is false when nothing was running). |
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: discover artists similar to a given name. Rate limited: 5/min |
@@ -245,15 +247,18 @@ rejected: the response is still 202 with `queued: true` and the caller's 1-based
 The queue drains automatically when the active run finishes. The queue is
 in-memory and per-process.
 
-`POST /api/v1/pipeline/cancel` stops a wedged or unwanted scan without a
-restart. It is available to any authenticated user (symmetric with "Run Scan":
-single-flight means one run total). Cancellation is cooperative -- the run
-checks an abort signal at every stage boundary and inside artist resolution, so
-a stop lands within about one request timeout. The queue is cleared so nothing
-starts behind the stopped run, the job is recorded with status `cancelled`, and
-a terminal `cancelled` progress event closes the SSE stream. A run that ignores
-the signal is force-reset after a short grace window so the app is never left
-permanently "running".
+`POST /api/v1/pipeline/cancel` is available to any authenticated user and clears
+the pending queue. Cancellation is cooperative: when a checkpoint observes the
+abort signal, the job is recorded as `cancelled` and emits a terminal progress
+event. The final checkpoint precedes storage, so a late cancellation can leave
+recommendation writes and automatic target additions running and finish with a
+`completed` job status ([#790](https://github.com/iuliandita/digarr/issues/790)).
+
+If the run is still marked running after 15 seconds, a backstop clears the
+indicator and emits a `cancelled` event without terminating work or recording job cancellation. Neither
+`cancelled: true` nor a cleared indicator proves that all writes have stopped.
+Before a backend migration, follow the [migration prerequisites](guides/switching-backends.md#prerequisites)
+and do not rely on cancellation as confirmation that the process is idle.
 
 `POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
 metadata using the requesting admin's configured providers. It runs one rescan
@@ -330,8 +335,10 @@ Locale notes:
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
-| GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 decisions per genre), scoped to the calling user's own feedback |
+| GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 acted-on recommendations per genre), scoped to the calling user's own feedback |
 | GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Credential availability for the popular-album approve option: Spotify token resolution succeeds and/or a Last.fm API key is stored. Does not probe album lookups; a subsequent lookup can still fail. Returns `{ available, spotify, lastfm }` (booleans). |
+
+**GET /api/v1/recommendations/feedback-summary** returns `{ summary: [{ genre, approved, rejected, total, rate }] }`, ordered by descending rate. `total` counts recommendations with an action timestamp. `approved` counts only current `approved` and `added_to_lidarr` statuses; `rejected` is every other counted row, including failed approvals and recommendations restored to pending. `rate` is `approved / total`, so it is not a pure like/dislike ratio ([#789](https://github.com/iuliandita/digarr/issues/789)).
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `duplicate`, `queued` (comma-separated)
@@ -425,6 +432,8 @@ In v1.19.0, bulk approval uses the artist-add path even for album rows, requesti
 - `cursor` - opaque cursor from `nextCursor`
 
 List items contain `artistId`, `name`, nullable `mbid`, nullable `reason` and `reasonText`, and an ISO-8601 `blockedAt`. Creating or deleting a block returns `204` with no body.
+
+Deleting an artist block removes only the permanent block. It does not clear a previous rejection or its cooldown, which defaults to 90 days from rejection. Unblocking therefore does not immediately make a recently rejected artist eligible for recommendations. The rejection cooldown is currently shared across accounts ([#788](https://github.com/iuliandita/digarr/issues/788)); permanent blocks are per-user.
 
 **POST /api/v1/artist-blocks** body:
 ```json
@@ -1037,12 +1046,12 @@ Notification channels:
   same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
   string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
   "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
-  - `webhook` - `{ ..., url }` (Discord/Slack payloads auto-detected)
+  - `webhook` - `{ ..., url }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON)
   - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
 - Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
-  sending `***` back on `PATCH` preserves the stored ciphertext instead of overwriting it.
+  sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
   returns `403` (same rule as other global settings).

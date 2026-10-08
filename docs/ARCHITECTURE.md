@@ -116,7 +116,7 @@ The dashboard distinguishes loading, unconfigured, empty, and failed history and
 Seven stages:
 
 1. **Collect** - gather seed artists from the user's library and listening history
-2. **Analyze** - extract profile features (preferred genres, eras, popularity)
+2. **Analyze** - build weighted artist and genre profiles, genre coverage, and listening totals and trends
 3. **Discover** - ask providers (AI + similarity sources) for candidates
 4. **Resolve** - canonicalize candidates to MusicBrainz IDs, then enrich sparse genres from cached metadata
 5. **Score** - weighted feature scoring, clamped to [0, 1]
@@ -125,6 +125,8 @@ Seven stages:
 
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
+
+Artist filtering applies per-user permanent blocks and a shared rejection cooldown. The cooldown query includes rejected recommendations from all accounts, using the current run's configured window. On shared installations, another user's rejection can suppress an artist ([#788](https://github.com/iuliandita/digarr/issues/788)).
 
 ### Analyze: source-relative weights
 
@@ -225,7 +227,7 @@ Extension points use registries or configuration maps:
 
    A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`.
 
-  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest and masked (`***`) through the settings API.
+  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full secrets as `***` and partially masks webhook URLs so their destinations remain recognizable.
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`.
 
   `resolveProviderToken(db, userId, provider)` is the single entry point for Spotify, Deezer, and TIDAL; a provider without a `tokenEndpoint` (Deezer) is simply one that cannot refresh, rather than a separate code path.

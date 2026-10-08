@@ -497,7 +497,8 @@ export const openapiDoc = {
         },
       },
       Forbidden: {
-        description: 'Authenticated but not permitted.',
+        description:
+          'Permission denied or browser CSRF validation failed (type /problems/csrf-validation-failed).',
         content: {
           'application/problem+json': { schema: { $ref: '#/components/schemas/Problem' } },
         },
@@ -581,6 +582,7 @@ export const openapiDoc = {
             ...jsonSchema('#/components/schemas/ErrorResponse'),
           },
           '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
           '429': { $ref: '#/components/responses/RateLimited' },
         },
       },
@@ -616,8 +618,11 @@ export const openapiDoc = {
           '400': validationResponse,
           '403': {
             description:
-              'Registration is disabled after the first user by default; DIGARR_DISABLE_REGISTRATION=false reopens it.',
-            ...jsonSchema('#/components/schemas/ErrorResponse'),
+              'Registration is disabled after the first user by default; DIGARR_DISABLE_REGISTRATION=false reopens it. Browser CSRF rejection instead returns a Problem with type /problems/csrf-validation-failed.',
+            content: {
+              [json]: { schema: { $ref: '#/components/schemas/ErrorResponse' } },
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
           },
           '409': {
             description: 'Username already exists.',
@@ -762,6 +767,7 @@ export const openapiDoc = {
             },
           },
           '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
           '404': notFoundResponse,
         },
       },
@@ -801,6 +807,7 @@ export const openapiDoc = {
           '204': { description: 'Artist block created.' },
           '400': validationResponse,
           '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
         },
       },
     },
@@ -815,6 +822,7 @@ export const openapiDoc = {
           '204': { description: 'Artist block removed or already absent.' },
           '400': problemResponse,
           '401': unauthenticatedResponse,
+          '403': forbiddenResponse,
         },
       },
     },

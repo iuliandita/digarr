@@ -36,6 +36,8 @@ The migration tool is for backend changes only. For selected application-data ex
   migration starts can still finish and write; wait for running jobs to complete
   before migrating.
 
+Cancellation does not establish that a scan has stopped writing. A late cancellation can leave storage and automatic target additions running after the running indicator clears ([#790](https://github.com/iuliandita/digarr/issues/790)). Wait for the actual work to finish; do not start migration while its completion is uncertain.
+
 Pause schedules and prevent other users from writing until cutover is complete. The built-in lock ends when the copy finishes, before you inspect the report or restart.
 
 Any later source writes are absent from the target. If writes resume, repeat the copy before switching. This is a point-in-time copy, not continuous replication.

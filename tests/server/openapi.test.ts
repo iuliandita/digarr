@@ -80,6 +80,9 @@ describe('OpenAPI skeleton', () => {
     expect(register.responses['403']?.content?.['application/json']?.schema).toEqual({
       $ref: '#/components/schemas/ErrorResponse',
     })
+    expect(register.responses['403'].content['application/problem+json'].schema).toEqual({
+      $ref: '#/components/schemas/Problem',
+    })
     expect(register.responses['409']?.content?.['application/problem+json']?.schema).toEqual({
       $ref: '#/components/schemas/Problem',
     })
@@ -123,6 +126,20 @@ describe('OpenAPI skeleton', () => {
         ]),
       )
     }
+  })
+
+  it('documents CSRF rejection for covered mutations', () => {
+    for (const operation of [
+      openapiDoc.paths['/api/v1/auth/login'].post,
+      openapiDoc.paths['/api/v1/recommendations/{id}'].patch,
+      openapiDoc.paths['/api/v1/artist-blocks'].post,
+      openapiDoc.paths['/api/v1/artist-blocks/{artistId}'].delete,
+    ]) {
+      expect(operation.responses['403']).toEqual({ $ref: '#/components/responses/Forbidden' })
+    }
+    expect(openapiDoc.components.responses.Forbidden.description).toContain(
+      'csrf-validation-failed',
+    )
   })
 
   it('documents bearer-only session migration into a cookie', () => {

@@ -8,6 +8,7 @@ These are existing app behaviors, tracked separately from this documentation upd
 
 | Area | What to expect |
 |------|----------------|
+| Artist rejection cooldowns | Cooldowns are shared across accounts. One user's rejection can suppress artist recommendations for another user in scans, quick discovery, and subscriptions within the receiving run's configured window. Permanent blocks remain per-user. [#788](https://github.com/iuliandita/digarr/issues/788). |
 | Bulk album approval | Uses artist targets. Lidarr requests no album monitoring or search. Approve individual albums to acquire the selected release. [#756](https://github.com/iuliandita/digarr/issues/756). |
 | Automatic album approval | Uses the configured artist monitoring scope, defaulting to all albums. [#761](https://github.com/iuliandita/digarr/issues/761). |
 | Media-server playlists | Navidrome, Jellyfin, Emby, and Plex can substitute unmatched tracks. Inspect the exported playlist. [#758](https://github.com/iuliandita/digarr/issues/758). |
@@ -29,7 +30,11 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Backend migration destination | The nonempty guard checks only users. Other destination data can be replaced without `overwrite=true` when no users exist. Use a fresh target or take a complete destination backup. [#775](https://github.com/iuliandita/digarr/issues/775). |
 | TIDAL | Experimental; no live-account authorization, refresh, or favorite-artist retrieval validation. See [app setup and feedback](AUTHENTICATION.md#tidal-app-setup). |
 
+Removing a permanent artist block does not clear an earlier rejection cooldown, which defaults to 90 days from rejection. Unblocking can therefore leave the artist ineligible until that cooldown expires. See [artist blocks](API.md#artist-blocks).
+
 ## Job History and stuck jobs
+
+Pipeline cancellation is cooperative. Late cancellation can leave recommendation storage and automatic target additions running, and the job can finish as `completed` ([#790](https://github.com/iuliandita/digarr/issues/790)). The 15-second backstop clears the running indicator without terminating work. Cancellation provides no reliable confirmation that all writes have stopped, so it cannot establish that a backend migration is safe to start. Follow the [migration prerequisites](guides/switching-backends.md#prerequisites) and wait for active work to finish. See [pipeline cancellation](API.md#pipeline) for the API behavior.
 
 Admins can inspect Job History for failures and partial results. The stuck detector checks at startup and every five minutes. It marks a running job `stuck` when its elapsed time exceeds these fixed limits:
 

@@ -269,6 +269,8 @@ oauth2-proxy) already authenticates users, Digarr trusts the
 `PROXY_AUTH_TRUSTED_PROXIES`. Successful proxy auth uses the same cookie and
 CSRF policy as password login.
 
+Digarr matches `X-Forwarded-User` to an existing username regardless of its authentication provider, retaining that account's permissions, including admin access. Missing usernames are provisioned automatically even when local registration is closed; the first account becomes admin. The trusted proxy must overwrite client-supplied identity headers and control who can assert each username.
+
 Set:
 
 - `PROXY_AUTH_ENABLED=true`
