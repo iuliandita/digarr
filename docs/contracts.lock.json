@@ -9,11 +9,7 @@
       "review": {
         "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
         "outcome": "baseline",
-        "docs": [
-          "docs/guides/unraid.md",
-          "deploy/unraid/digarr.xml",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "deploy/unraid/digarr.xml", "CHANGELOG.md"],
         "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
         "breaking": "none",
         "migration": "",
@@ -712,7 +708,7 @@
         "deploy/docker/docker-compose.pgport.yml": "e6d731113776f1bfdffa5b5c42e9b2f55447798948c6d19d89fbeb2f17dc3930",
         "deploy/docker/docker-compose.yml": "402b50622829ed6a4abfcc7b828e73c7448197fdcba820d246f42be1b4f5e591",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
-        "deploy/helm/digarr/Chart.yaml": "8b2be6f72a719dac74840f598b3de3cb68813016a6d79f1b2440a788e31122fd",
+        "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "04d323230d2f57d3b9d7db5261fd0f38b23478ee4ed15d53564c910d0b7796db",
         "deploy/helm/digarr/templates/_helpers.tpl": "ae4d58ef8e9bbad3f5338545818c02c0c69a044f2b20b1fa834ac03ea7a6b507",
         "deploy/helm/digarr/templates/configmap.yaml": "c81c45f728ae64d9a4bb9fbf3efcadefc197c87b7d73b46312247e40f7fd6567",
@@ -739,23 +735,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "bb1ee3ad0a8e5fba0110bf6e0cb589da622af2d8acb74de706256bbab2733d81",
+      "digest": "6128ba71eaba460229528453bdcfa82e72ff407b993ccbcbda1bec59e6be6f18",
       "review": {
-        "digest": "bb1ee3ad0a8e5fba0110bf6e0cb589da622af2d8acb74de706256bbab2733d81",
-        "outcome": "baseline",
-        "docs": [
-          "deploy/docker/README.md",
-          "deploy/helm/digarr/README.md",
-          "docs/guides/docker-desktop.md",
-          "docs/guides/synology.md",
-          "docs/guides/unraid.md",
-          "docs/ARCHITECTURE.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Align Helm project description with the documentation audit; runtime and deployment behavior are unchanged.",
         "breaking": "none",
-        "migration": ""
+        "migration": "",
+        "digest": "6128ba71eaba460229528453bdcfa82e72ff407b993ccbcbda1bec59e6be6f18"
       }
     },
     "release": {
@@ -778,9 +765,7 @@
       "digest": "6529aade79f232d296b7f8178aa9f6720171efc9f6d26345d33cee44c9e8e1e4",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Document release tag/version validation and one checked commit shared by both image builds.",
         "breaking": "none",
         "migration": "",
@@ -814,10 +799,7 @@
       "digest": "9902b79fbf1af3110b55f9aa3ab68ebc2523591550b30b25cc4ea122b8e6debe",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/MAINTENANCE.md",
-          "CONTRIBUTING.md"
-        ],
+        "docs": ["docs/MAINTENANCE.md", "CONTRIBUTING.md"],
         "note": "Document tracked-source receipts, rule evolution, and recovery assessment without query-refactor boilerplate.",
         "breaking": "none",
         "migration": "",
