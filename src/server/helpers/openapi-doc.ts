@@ -665,7 +665,7 @@ export const openapiDoc = {
         security: authSecurity,
         parameters: [
           { name: 'status', in: 'query', schema: { type: 'string' } },
-          { name: 'batchId', in: 'query', schema: { type: 'integer' } },
+          { name: 'batchId', in: 'query', schema: { type: 'integer', minimum: 1 } },
           {
             name: 'decades',
             in: 'query',
@@ -774,7 +774,12 @@ export const openapiDoc = {
         security: authSecurity,
         parameters: [
           { name: 'q', in: 'query', schema: { type: 'string' } },
-          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 200 } },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 50 },
+            description: 'Clamped to 1-200; defaults to 50. Non-integer values are rejected.',
+          },
           { name: 'cursor', in: 'query', schema: { type: 'string' } },
         ],
         responses: {

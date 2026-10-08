@@ -14,9 +14,9 @@ For a new single-host installation, PGlite is the simplest starting point. Choos
 
 ## Production
 
-The Compose stacks publish port 3000 on all host interfaces. Restrict access until you create the first admin account, or configure `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. For access only from this computer, change the published port to `127.0.0.1:3000:3000`.
+The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). For access only from this computer, change the published port to `127.0.0.1:3000:3000`.
 
-Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Generate a key with `openssl rand -hex 32`. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Use the [protected key-generation procedure](../../docs/AUTHENTICATION.md#generate-a-new-encryption-key), then copy the value into `.env` with a trusted editor. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
 ### Embedded PGlite (single container)
 

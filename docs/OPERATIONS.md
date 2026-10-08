@@ -44,7 +44,7 @@ This label does not stop the job or prove that it has stopped making progress. A
 
 ## Unattended setup
 
-For unattended first boot, set `AI_PROVIDER` and `AI_MODEL`, plus `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters. Add listening services and targets in Settings or supply supported environment settings. See [`.env.example`](../.env.example) for local development and [`deploy/docker/.env.example`](../deploy/docker/.env.example) for Compose.
+Keep first-boot access restricted until the intended admin account is verified, even with bootstrap credentials configured ([#785](https://github.com/iuliandita/digarr/issues/785)). For unattended first boot, set `AI_PROVIDER` and `AI_MODEL`, plus `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters. Add listening services and targets in Settings or supply supported environment settings. See [`.env.example`](../.env.example) for local development and [`deploy/docker/.env.example`](../deploy/docker/.env.example) for Compose.
 
 ## Playlists and notifications
 
@@ -115,7 +115,7 @@ If Digarr stops after submitting a download or import but before saving its conf
 
 ## Backup & restore
 
-Digarr provides application-level backup and restore through the admin UI (Settings > Administration) or API.
+Download application-level backups through Settings > Administration or the API. In v1.19.0, both restore-dialog paths omit the required confirmation parameter and fail with `400 confirmation_required`; use the authenticated admin API for restoration ([#784](https://github.com/iuliandita/digarr/issues/784)).
 
 **Manual backup:** use `POST /api/v1/admin/backup?includeCaches=true` to include artists referenced by recommendations and artist blocks. The default export omits those artists and cannot recover referenced rows into an empty database. Even the cache-inclusive JSON omits album blocks, library snapshots/overrides, and slskd jobs; use a consistent database backup for complete recovery. See [backup boundaries and recovery](guides/switching-backends.md#backup-boundaries-and-recovery).
 

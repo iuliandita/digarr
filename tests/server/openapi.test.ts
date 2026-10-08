@@ -11,6 +11,20 @@ describe('OpenAPI skeleton', () => {
     expect(typeof openapiDoc.info?.version).toBe('string')
   })
 
+  it('distinguishes positive recommendation IDs from clamped block pagination', () => {
+    const recommendations = openapiDoc.paths['/api/v1/recommendations'].get.parameters
+    expect(recommendations.find((parameter) => parameter.name === 'batchId')?.schema).toEqual({
+      type: 'integer',
+      minimum: 1,
+    })
+    const blocks = openapiDoc.paths['/api/v1/artist-blocks'].get.parameters
+    const limit = blocks.find((parameter) => parameter.name === 'limit')
+    expect(limit?.schema).toEqual({ type: 'integer', default: 50 })
+    expect(limit).toEqual(
+      expect.objectContaining({ description: expect.stringContaining('Clamped to 1-200') }),
+    )
+  })
+
   it('declares session cookie and bearer security schemes', () => {
     const schemes = openapiDoc.components?.securitySchemes
     expect(schemes?.sessionCookie?.type).toBe('apiKey')

@@ -17,9 +17,9 @@ remains available for anyone who wants it.
 
 Before starting the container or Compose project, set `ALLOWED_ORIGIN` to the URL you will open. For direct HTTP, such as `http://<nas-ip>:3000`, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`. For HTTPS through a reverse proxy, use its public HTTPS origin and leave insecure cookies disabled. Neither origin configuration nor this cookie override is a web UI setting.
 
-Generate a key on a computer with OpenSSL using `openssl rand -hex 32`. Set and retain that exact `DIGARR_ENCRYPTION_KEY` before entering service credentials. For Compose, put these settings in a protected `.env` in the project folder; for the Launch wizard, add them under Environment. Back up the key separately. See [authentication](../AUTHENTICATION.md#public-origin-and-reverse-proxies).
+Generate a key into a [protected file](../AUTHENTICATION.md#generate-a-new-encryption-key) on a computer with OpenSSL. Set and retain that exact `DIGARR_ENCRYPTION_KEY` before entering service credentials. For Compose, put these settings in a protected `.env` in the project folder; for the Launch wizard, add them under Environment. Back up the key separately. See [authentication](../AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
-The first account becomes admin. Restrict access to the published port until setup is complete, or set `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. The Compose and Launch wizard examples expose the service on host interfaces unless you restrict the binding or firewall.
+The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). The Compose and Launch wizard examples expose the service on host interfaces unless you restrict the binding or firewall.
 
 ## Compose compatibility
 
@@ -185,20 +185,25 @@ sudo chmod 700 secrets
 sudo sh -c 'set -C; umask 077; printf "%s\n" "change-this-password" > secrets/postgres_password'
 sudo chmod 600 secrets/postgres_password
 sudo chown 1000:1000 secrets/postgres_password
-# Use sudo vi .env: set the origin, HTTP cookie override, and a saved encryption key.
 )
 ```
 
 The file is owned by UID 1000 so the app can read its mode-0600 bind-mounted secret; the PostgreSQL entrypoint reads it as root. Digarr trims leading and trailing whitespace, so do not use a password with intentional surrounding whitespace in this file. Changing the file does not change an initialized PostgreSQL role password; coordinate that change separately. Edit the secret file with a real password:
 
 ```sh
-sudo vi secrets/postgres_password
+cd /volume1/docker/digarr && sudo vi secrets/postgres_password
+```
+
+Edit `.env` before startup: set the public origin, the HTTP cookie override when needed, and the saved encryption key. Keep the existing key on upgrades.
+
+```sh
+cd /volume1/docker/digarr && sudo vi .env
 ```
 
 Start both containers:
 
 ```sh
-sudo docker compose up -d
+cd /volume1/docker/digarr && sudo docker compose up -d
 ```
 
 The compose file handles networking, health checks, and startup order

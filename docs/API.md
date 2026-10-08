@@ -382,7 +382,7 @@ Approval notes:
 - Automatic album approval uses artist-level monitoring, defaulting to all albums ([#761](https://github.com/iuliandita/digarr/issues/761)); the individual-approval guarantee does not apply.
 - Rejected recommendations may include `reason`, `reasonText`, and `permanent`; `permanent: true` adds an album block for album recommendations with a release-group MBID, or an artist block for artist recommendations and legacy album rows without that identity
 
-Rejection reasons are `already_own`, `wrong_style`, `not_interested`, `tried_didnt_like`, `not_right_now`, and `other`. A permanent rejection cannot use `not_right_now`. Nonempty `reasonText` requires `reason: "other"`; input is limited to 400 characters, then control characters are stripped, whitespace is trimmed, and the result is limited to 200. Omit unused fields rather than sending null.
+For PATCH rejections, reasons are `already_own`, `wrong_style`, `not_interested`, `tried_didnt_like`, `not_right_now`, and `other`. A permanent rejection cannot use `not_right_now`. Nonempty `reasonText` requires `reason: "other"`; input is limited to 400 characters, then control characters are stripped, whitespace is trimmed, and the result is limited to 200. Omit unused fields rather than sending null.
 
 Invalid request shapes return JSON `{error, code: "validation_failed", details}`. Target selection and popularity failures return JSON `{error}` with an optional `no_source` or `no_match` code. Rejection refinement failures return `application/problem+json` with an `issues` array.
 
@@ -404,6 +404,8 @@ Approve response (status `approved`):
 - To retry just the failed targets, re-`PATCH` once per failed `targetId` (this preserves the successful targets' actions and will not regress the rec to `add_failed` if others already succeeded).
 
 **POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
+
+Bulk rejection accepts a shared `reason` (including null) and `permanent`, which defaults to false. Unlike PATCH, it permits `permanent: true` with `reason: "not_right_now"` ([#786](https://github.com/iuliandita/digarr/issues/786)). It does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
 
 Optional target/profile overrides apply to artist approval. An unknown `targetId` returns `400` with `{ "error": "Unknown targetId: <id>" }`; a selected target without artist approval support returns `400` with `{ "error": "Target does not support artist approval: <id>" }`. These are plain JSON errors, not problem-detail envelopes.
 
@@ -1095,6 +1097,8 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 | GET | `/api/v1/admin/backup/last` | Admin | Last auto-backup metadata. |
 
 Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.
+The v1.19.0 web restore dialog omits `confirm=true` and cannot restore a backup, including through its forced path ([#784](https://github.com/iuliandita/digarr/issues/784)). Use the authenticated endpoint above, with a complete destination backup and the matching encryption key.
+
 Restore accepts an optional legacy `data.oidcTokens` array for compatibility:
 an absent or empty array is silent, while nonempty rows are never restored and
 add `Ignored 1 legacy OIDC token record.` or

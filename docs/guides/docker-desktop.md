@@ -18,7 +18,7 @@ single container with no separate database setup. Before saving service credenti
 
 On Windows, the embedded PGlite examples require a WSL 2 shell. Run the shell examples in WSL 2 or a macOS terminal with OpenSSL available. The native PowerShell example below is for bundled PostgreSQL only.
 
-The Compose examples expose port 3000 on all host interfaces. Restrict network access until the first admin account exists, bind the published port to `127.0.0.1:3000:3000` for local-only access, or set `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup.
+The Compose examples expose port 3000 on all host interfaces. Restrict network access until the intended admin account exists and you have verified it, or bind the published port to `127.0.0.1:3000:3000` for local-only access. Keep that restriction even when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured: HTTP opens before bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)).
 
 ### Embedded PGlite (recommended)
 
@@ -46,7 +46,7 @@ chmod 600 .env
 docker compose -f docker-compose.pglite.yml up -d
 ```
 
-In a WSL 2 or macOS shell, run `openssl rand -hex 32` and save the output as `DIGARR_ENCRYPTION_KEY` in `.env`. Set `ALLOWED_ORIGIN=http://localhost:3000` and `DIGARR_ALLOW_INSECURE_COOKIES=true` for this local HTTP setup. Keep a backup of the key. For HTTPS, use the public origin and leave insecure cookies disabled. These settings apply to the PGlite Compose option above and the PostgreSQL Compose options below. Then jump to [Verify](#verify).
+In WSL 2 or macOS, follow [protected key generation](../AUTHENTICATION.md#generate-a-new-encryption-key), then save the value as `DIGARR_ENCRYPTION_KEY` in `.env`. Set `ALLOWED_ORIGIN=http://localhost:3000` and `DIGARR_ALLOW_INSECURE_COOKIES=true` for this local HTTP setup. Keep a backup of the key. For HTTPS, use the public origin and leave insecure cookies disabled. These settings apply to the PGlite Compose option above and the PostgreSQL Compose options below. Then jump to [Verify](#verify).
 
 ## Bundled PostgreSQL
 

@@ -17,7 +17,7 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 - Unraid 6.9+. The **Community Applications** plugin is needed only for Option A.
 - Access to an AI provider or local model. Hosted providers need an API key; a local Ollama server does not. Configure this during setup.
 
-The first account becomes admin. Restrict access to the published port until setup is complete, or set `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. The template exposes the service on host interfaces unless you restrict the binding or firewall.
+The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). The template exposes the service on host interfaces unless you restrict the binding or firewall.
 
 ---
 
@@ -90,7 +90,7 @@ The bundled template exposes these fields (matching
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | Set explicitly | Exact browser origin for direct HTTP or a reverse proxy, e.g. `http://<server-ip>:3000` or `https://digarr.example.com`; no path or trailing slash |
 | Allow Insecure Cookies | `DIGARR_ALLOW_INSECURE_COOKIES` | Direct HTTP only | Defaults to `false`. Set `true` only for an intentional direct-HTTP deployment; direct HTTP exposes the session cookie to interception |
-| Encryption Key | `DIGARR_ENCRYPTION_KEY` | Recommended | Random key (32+ characters recommended) for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; run `openssl rand -hex 32` in the Unraid terminal and save the output in this field before entering secrets; retain the same key on upgrades |
+| Encryption Key | `DIGARR_ENCRYPTION_KEY` | Recommended | Random key (32+ characters recommended) for encrypting API keys, tokens, and connection passwords. If blank, those fields are stored unencrypted and the app logs a production warning; use [protected key generation](../AUTHENTICATION.md#generate-a-new-encryption-key) and copy the value into this field before entering secrets; retain the same key on upgrades |
 | Disable Registration | `DIGARR_DISABLE_REGISTRATION` | No | Defaults to `true`; set `false` for local password sign-ups. OIDC account provisioning is controlled by the identity provider |
 | Skip TLS Verify | `SKIP_TLS_VERIFY` | No | First-run env auto-setup TLS setting; afterward use saved connection settings |
 | Webhook URL | `WEBHOOK_URL` | No | Optional bootstrap for a single webhook channel: a Discord HTTPS webhook (embed payload) or a public HTTPS endpoint that accepts Digarr's raw JSON payload. Applied only during first-run env auto-setup with `AI_PROVIDER` and `AI_MODEL` |

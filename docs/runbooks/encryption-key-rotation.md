@@ -48,7 +48,8 @@ Adding a key does not encrypt previously saved plaintext credentials. After sett
    ```sh
    (set -C; umask 077;
      install -d -m 700 "$HOME/.config/digarr/rotation" &&
-     openssl rand -hex 32 > "$HOME/.config/digarr/rotation/new.key")
+     digarr_new_key=$(openssl rand -hex 32) && \
+       printf '%s\n' "$digarr_new_key" > "$HOME/.config/digarr/rotation/new.key")
    ```
 
    Read the new file in a trusted editor and copy its 64-character value into the protected configuration used below. Do not print keys to terminal output. The command refuses to overwrite an existing key file. This applies to the newly generated key; preserve the exact bytes of an existing key as described above.
