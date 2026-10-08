@@ -8,7 +8,9 @@
       "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md"],
+        "docs": [
+          "docs/guides/unraid.md"
+        ],
         "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
         "breaking": "none",
         "migration": "",
@@ -311,7 +313,10 @@
       "digest": "39419f4a2aff38f653a7200d4d1b856de217159166598bb0f857619da25d55b1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts"],
+        "docs": [
+          "docs/API.md",
+          "src/server/helpers/openapi-doc.ts"
+        ],
         "note": "Clarify empty probe credential fallback and selector clearing rules, plus availability checks on discovery subscription source configuration updates.",
         "breaking": "none",
         "migration": "",
@@ -704,7 +709,7 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "8de16df05a38b4f220299376ae53f61ca9afd54d42cebcd228dfc1dcf40d6294",
-        "deploy/helm/digarr/values.yaml": "807fec76d43f610d68b42330c6ca186acdc908073d6277bd7b1f0b7d95d01e2c",
+        "deploy/helm/digarr/values.yaml": "868e76389876bd3e227f798229a3d94c69fee58733703565238f149acf668287",
         "deploy/k8s/deployment.yaml": "9fcebf06cab9685b94e04b7cb00f9c2d32a716bfa05cb93008d9f51afe8154e3",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
@@ -714,14 +719,16 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "1c5fc57f6863086a7a7913c7509e8f544b9c4e0cb805712671e859d90ce67cc5",
+      "digest": "0f3862c3e77871b8a466b52147454279459298e970726c71029d03cbdc3f8e50",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/helm/digarr/README.md"],
-        "note": "Require first-admin access restrictions before exposing Helm deployments, including installations configured with environment bootstrap credentials.",
+        "docs": [
+          "deploy/helm/digarr/README.md"
+        ],
+        "note": "Document unencoded chart database names alongside usernames and passwords; keep bundled server values plain and encode external DSN components.",
         "breaking": "none",
         "migration": "",
-        "digest": "1c5fc57f6863086a7a7913c7509e8f544b9c4e0cb805712671e859d90ce67cc5"
+        "digest": "0f3862c3e77871b8a466b52147454279459298e970726c71029d03cbdc3f8e50"
       }
     },
     "release": {
@@ -745,7 +752,9 @@
       "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Record Node requirements while extending release review coverage to the existing frontend build configuration.",
         "breaking": "none",
         "migration": "",
@@ -779,7 +788,9 @@
       "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/MAINTENANCE.md"],
+        "docs": [
+          "docs/MAINTENANCE.md"
+        ],
         "note": "Document source coverage and parser requirements while adding root entrypoint fingerprints and migration range regression cases.",
         "breaking": "none",
         "migration": "",
