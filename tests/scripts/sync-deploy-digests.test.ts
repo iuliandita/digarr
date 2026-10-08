@@ -60,7 +60,7 @@ describe('release workflow policy', () => {
   it('contains no prerelease release path', () => {
     const workflow = readFileSync('.github/workflows/release.yml', 'utf8')
 
-    expect(workflow).toMatch(/\^v\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$/)
+    expect(workflow).toContain('run: bun scripts/check-release-identity.ts "$RELEASE_TAG"')
     expect(workflow).not.toMatch(
       /prerelease=true|prerelease=false|--prerelease|channel=rc|steps\.tag\.outputs\.prerelease/,
     )
