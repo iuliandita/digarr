@@ -25,11 +25,21 @@ env:
 jobs:
   quality-gate:
     runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.release.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || format('refs/tags/{0}', inputs.tag) }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: "1.4.2"
+      - name: Validate release identity
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: bun scripts/check-release-identity.ts "$RELEASE_TAG"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.bun/install/cache
@@ -39,6 +49,7 @@ jobs:
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run i18n:check
+      - run: bun run check:docs
       - run: bun run test
 
   docker:
@@ -63,16 +74,10 @@ jobs:
             suffix: "-debian"
             latest: "false"
     steps:
-      # Check out the released tag itself, not the workflow trigger ref. On a
-      # workflow_dispatch run github.ref is the branch HEAD, so without this the
-      # build context and the baked git sha would come from HEAD, not the tag.
+      # Build the exact commit that passed the quality gate.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
-          ref: ${{ github.event.inputs.tag || github.ref_name }}
-
-      - name: Resolve commit sha
-        id: sha
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          ref: ${{ needs.quality-gate.outputs.sha }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
@@ -96,19 +101,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve tag
-        id: tag
-        env:
-          INPUT_TAG: ${{ github.event.inputs.tag || github.ref_name }}
-        run: |
-          set -euo pipefail
-          if [[ ! "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Release tag must look like v1.2.3"
-            exit 1
-          fi
-
-          echo "value=$INPUT_TAG" >> "$GITHUB_OUTPUT"
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
@@ -120,9 +112,9 @@ jobs:
             suffix=${{ matrix.suffix }}
             latest=${{ matrix.latest }}
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.tag.outputs.value }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.tag.outputs.value }}
-            type=semver,pattern={{major}},value=${{ steps.tag.outputs.value }}
+            type=semver,pattern={{version}},value=${{ needs.quality-gate.outputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.quality-gate.outputs.tag }}
+            type=semver,pattern={{major}},value=${{ needs.quality-gate.outputs.tag }}
             type=raw,value=debian,enable=${{ matrix.variant == 'debian' }},suffix=
 
       - name: Build and push
@@ -137,7 +129,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             RUNTIME_IMAGE=${{ matrix.runtime-image }}
-            DIGARR_GIT_SHA=${{ steps.sha.outputs.sha }}
+            DIGARR_GIT_SHA=${{ needs.quality-gate.outputs.sha }}
             DIGARR_CHANNEL=stable
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -197,7 +189,7 @@ jobs:
         if: matrix.variant == 'alpine'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.tag.outputs.value }}
+          TAG: ${{ needs.quality-gate.outputs.tag }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -242,7 +234,7 @@ jobs:
   # script derives everything from the tag -- so it runs here and lands as a PR
   # rather than waiting to be remembered (#616).
   sync-deploy-digests:
-    needs: docker
+    needs: [quality-gate, docker]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -257,7 +249,7 @@ jobs:
       - name: Sync digests and open the follow-up PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag || github.ref_name }}
+          TAG: ${{ needs.quality-gate.outputs.tag }}
         run: |
           set -euo pipefail
           bun scripts/sync-deploy-digests.ts "$TAG"

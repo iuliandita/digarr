@@ -1,0 +1,30 @@
+name: Companion templates
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - name: Compare published Unraid templates
+        run: |
+          set -euo pipefail
+          if python3 scripts/check-unraid-companions.py --format markdown > companion-report.md; then
+            echo "Published companion templates align."
+          else
+            result=$?
+            if [ "$result" -eq 1 ]; then
+              echo "::warning::Published companion templates differ; inspect the report and pending PRs."
+            elif [ "$result" -eq 2 ]; then
+              echo "::warning::Companion state could not be verified; inspect the retrieval errors."
+            else
+              exit "$result"
+            fi
+          fi
+          cat companion-report.md >> "$GITHUB_STEP_SUMMARY"

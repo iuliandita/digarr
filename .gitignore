@@ -6,6 +6,7 @@ dist/
 coverage/
 .vitest-cache/
 *.tsbuildinfo
+__pycache__/
 .env
 .env.*
 !.env.example

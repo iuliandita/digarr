@@ -10,3 +10,10 @@ condition = "and"
 regexTarget = "line"
 paths = ['''deploy/k8s/rendered\.yaml''']
 regexes = ['''checksum/secret:\s+[a-f0-9]{64}''']
+
+[[allowlists]]
+description = "Documentation contract source fingerprints are SHA-256 hashes, not credentials"
+condition = "and"
+regexTarget = "line"
+paths = ['''^docs/contracts\.lock\.json$''']
+regexes = ['''^\s*"(?:src|scripts|drizzle|deploy|public|\.github)/[^"\r\n]+":\s*"[a-f0-9]{64}",?\s*$''']

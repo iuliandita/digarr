@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Version-drift guard: block pushes when release surfaces (CHANGELOG, Helm
-# chart, roadmap, README banner) or published-image pins disagree.
+# Check documentation contracts, links, environment names, API routes and pins.
 # Activate with: git config --local core.hooksPath .githooks
-# CI runs the same script in lint-typecheck-test, so this is the fast local
-# copy of that gate, not a substitute for it.
+# CI and release jobs run the same checks.
 
 cd "$(git rev-parse --show-toplevel)"
 
 if command -v bun >/dev/null 2>&1; then
-  bun scripts/check-version-drift.ts
+  bun run check:docs
 else
-  echo "pre-push: bun not found, skipping version-drift check (CI will enforce it)" >&2
+  echo "pre-push: bun is required for documentation checks; install it before pushing" >&2
+  exit 1
 fi
