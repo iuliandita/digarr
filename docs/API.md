@@ -24,7 +24,7 @@ production instance served directly over plain HTTP must set
 and is vulnerable to network interception. See
 [Authentication](AUTHENTICATION.md#cookie-secure-policy).
 
-Locale-aware routes accept `X-Digarr-Locale` to override the saved user locale for that request. If the header is absent, Digarr falls back to the saved user preference and then `Accept-Language`.
+Locale fallback is route-specific. Pipeline run and Quick Discover use `X-Digarr-Locale`, then the saved user locale, `Accept-Language`, and English. Auth messages, settings probes, and the Spotify Liked Songs import use the request header, then `Accept-Language` and English; these paths do not consult the saved locale. API clients should send `X-Digarr-Locale` explicitly for predictable messages on locale-aware routes.
 
 Admin-only endpoints return 403 for non-admin users. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs.
 
@@ -925,6 +925,8 @@ Album override notes:
 **GET /api/v1/library/album-coverage/:artistMbid** notes:
 - `artistMbid` must be a valid UUID
 - Returns owned and missing album counts derived from the user's reconciled library snapshot
+- Counts only primary-type `Album` groups in one MusicBrainz page, limited to 100 returned groups without pagination. Secondary types are discarded, so this is not studio-only selection and the counts may be incomplete ([#796](https://github.com/iuliandita/digarr/issues/796), [#798](https://github.com/iuliandita/digarr/issues/798)).
+- Gap-Fill uses this bounded coverage. Individual lookup failures become empty results and all selected artists are marked checked, including failures. An empty successful run does not establish complete album coverage ([#797](https://github.com/iuliandita/digarr/issues/797)).
 - Powers the coverage badge shown on recommendation cards
 
 **GET /api/v1/library/unreconciled-albums** response notes:

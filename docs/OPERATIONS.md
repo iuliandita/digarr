@@ -8,6 +8,7 @@ These are existing app behaviors, tracked separately from this documentation upd
 
 | Area | What to expect |
 |------|----------------|
+| Album coverage and Gap-Fill | Coverage uses one MusicBrainz page of at most 100 Album-type groups, without secondary-type checks; it is incomplete for larger catalogs and not studio-only. Failed Gap-Fill lookups become empty results and are still marked checked. An empty successful run does not prove complete coverage. [#796](https://github.com/iuliandita/digarr/issues/796), [#797](https://github.com/iuliandita/digarr/issues/797), [#798](https://github.com/iuliandita/digarr/issues/798). |
 | Quick Discover seed | The named artist is saved separately with score 1.0, checking existing recommendations but bypassing library, block, cooldown, and threshold filters. Job stored counts exclude it. Inspect the queue even when no similar results are reported. [#795](https://github.com/iuliandita/digarr/issues/795). |
 | Settings diagnostics | Global `preferences.fanartApiKey` remains unmasked, including for non-admins; legacy `preferences.webhookUrl` remains unmasked for admins. Treat settings responses as sensitive. [#793](https://github.com/iuliandita/digarr/issues/793). |
 | Recommendation settings | Non-admin saves can report failure after saving user preferences because a subsequent global settings write returns `403`. Read back `GET /api/v1/auth/me/preferences`, or use the per-user preferences API directly. [#792](https://github.com/iuliandita/digarr/issues/792). |

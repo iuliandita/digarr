@@ -313,15 +313,15 @@ Third and final album-discovery producer: net-new album discovery promotes a spe
 
 ### Added
 
-- **Net-new album discovery (Producer C).** When the AI suggests a specific album by an artist you do not yet track and that title resolves to a real MusicBrainz release group, Digarr can surface it as a first-class album recommendation under the Albums tab instead of folding it into a plain artist recommendation. Gated behind a new **Net-new album discovery** toggle in Settings > Recommendations > Advanced (default off); with it off, AI discovery behaves exactly as before. Translated across all 15 shipped locales.
+- **Net-new album discovery (Producer C).** When the AI suggests a specific album by an artist you do not yet track and that title resolves to a real MusicBrainz release group, Digarr can surface it as a first-class album recommendation under the Albums tab instead of folding it into a plain artist recommendation. The new **Net-new album discovery** toggle in Settings > Recommendations > Advanced defaults off, but its per-user save key is omitted from the route allowlist, so the UI cannot persist enablement; the conditional resolver exists (wording clarified after release). Translated across all 15 shipped locales.
 
 ## v1.2.0 - 2026-06-22
 
-Second album-discovery producer: Library Gap-Fill recommends the studio albums you are missing from artists you already track.
+Second album-discovery producer: Library Gap-Fill recommends missing primary-type Album release groups from artists you already track. Secondary types are not checked, so selection is not studio-only (wording clarified after release).
 
 ### Added
 
-- **Library Gap-Fill discovery mode (Producer A).** A new discovery mode that turns "studio albums you are missing from artists you already track" into first-class album recommendations under the Albums tab. Each run checks a rotating, bounded slice of your tracked artists (default 25, configurable), so a large library is covered over successive runs without flooding the queue.
+- **Library Gap-Fill discovery mode (Producer A).** A new discovery mode that turns missing Album-type release groups from tracked artists into first-class album recommendations under the Albums tab. Each run checks a rotating, bounded slice of tracked artists (default 25, configurable); release-group lookup uses one returned page and does not check secondary types (wording clarified after release).
 
 ### Changed
 

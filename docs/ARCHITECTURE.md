@@ -322,11 +322,14 @@ do not starve the event loop.
 
 For each artist, the executor calls the album-coverage engine
 (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per
-missing studio album. Each carries the release-group MBID and the release year
+missing primary-type `Album` release group. Each carries the release-group MBID and the release year
 as the recency signal. After the slice runs, the checked artists'
 `last_gap_check_at` is stamped so the next run advances the cursor. The resulting
-recommendations fill the Albums tab with missing studio albums from artists
-already in the library.
+recommendations fill the Albums tab with missing Album-type releases from artists
+already in the library. Secondary types are discarded, so this does not establish
+studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
+
+Coverage uses one MusicBrainz page of at most 100 returned groups without pagination, so counts and candidates can be incomplete ([#796](https://github.com/iuliandita/digarr/issues/796)). Each lookup failure becomes an empty candidate list, and every selected artist is marked checked even after failure ([#797](https://github.com/iuliandita/digarr/issues/797)). An empty successful run therefore does not prove complete album coverage.
 
 ### Net-new album discovery
 
