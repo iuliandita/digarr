@@ -26,9 +26,9 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 ## What you can do
 
 - **Find artists and albums.** Connect a listening source, scan, and review scored suggestions. Release Radar finds new releases; Library Gap-Fill finds missing albums. Mood and artist searches work without a listening history.
-- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk and automatic approval use artist-level monitoring.
+- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk approval adds the artist without monitoring albums; automatic approval follows the auto-approve monitoring setting, which defaults to all albums.
 - **Keep discovery running.** Schedule scans and subscriptions, or generate playlists for Spotify and supported media servers. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
-- **Share an instance.** Each user has their own queue, connections, and preferences; admins assign their available targets. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
+- **Share an instance.** Each user has their own queue, connections, and preferences; admins assign targets to each user. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
 
 Digarr calls your connected services. It doesn't include a downloader or a full music player.
 
@@ -100,7 +100,7 @@ Use Settings for connections, scoring, schedules, preferences, and language. [Au
 
 <a id="connecting-tidal"></a>**TIDAL is experimental:** authorization, refresh, and favorite-artist retrieval have not been tested with a live account. Catalog search needs admin-registered credentials; each user connects their own account for Favorite Artists. Follow [TIDAL setup](docs/AUTHENTICATION.md#tidal-app-setup). <a id="tidal-feedback"></a>The [feedback checklist](docs/AUTHENTICATION.md#tidal-feedback) explains what to report safely.
 
-## Backup & Restore
+## Backup and restore
 
 Application JSON exports are partial; complete recovery requires a consistent database backup and the encryption key retained separately. Automatic backup failure does not stop migrations. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and version-specific upgrade notes.
 
@@ -113,7 +113,7 @@ Application JSON exports are partial; complete recovery requires a consistent da
 | Raw k8s manifests | [`deploy/k8s/`](deploy/k8s/) | Reference manifests for advanced setups. |
 | Unraid | [`docs/guides/unraid.md`](docs/guides/unraid.md) | In the Community Applications store (search "Digarr"); bundled template ([`deploy/unraid/digarr.xml`](deploy/unraid/digarr.xml)) as manual fallback. Embedded PGlite by default; external PostgreSQL optional. |
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
-| Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2). |
+| Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2 or PowerShell). |
 
 Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-image-signatures) before running a release.
 

@@ -64,7 +64,7 @@ new releases through the `latest` tag.
 
 Switch **Advanced View** on in the container form to expose advanced fields. The bundled template includes Allowed Origin, Encryption Key, and Allow Insecure Cookies. Published store templates can lag behind it; use the add-variable steps above for any missing field.
 
-Corrections are proposed in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) and [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4); both were pending merge when checked on October 8, 2026. Check their status for subsequent updates.
+Corrections are proposed in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) and [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4); both were pending merge when checked on October 8, 2026. After both PRs merge, verify the published templates and remove workarounds for fields and help that are corrected.
 
 Older help omits the HTTP-cookie variable and has stale password, database encoding, origin, model, TLS, and webhook guidance. Follow the settings below, use at least 12 characters for the initial password, manually add `DIGARR_ALLOW_INSECURE_COOKIES` for direct HTTP, and change saved connections in the UI after setup.
 

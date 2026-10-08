@@ -62,12 +62,12 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Changed
 
 - Installation guides now spell out HTTP cookie settings, the 12-character password minimum, persistent backups, and database-backend choices. The README and project descriptions focus on discovery, review, and playlist workflows.
-- TIDAL Favorite Artists continues to ship as experimental without live-account validation. Authorization, refresh, and favorite-artist retrieval remain unverified; live testing is deferred to community feedback. The [README feedback guide](README.md#tidal-feedback) explains setup and what to report. [#553](https://github.com/iuliandita/digarr/issues/553).
+- TIDAL Favorite Artists continues to ship as experimental without live-account validation. Authorization, refresh, and favorite-artist retrieval remain unverified; live testing is deferred to community feedback. The [TIDAL feedback guide](docs/AUTHENTICATION.md#tidal-feedback) explains setup and what to report. [#553](https://github.com/iuliandita/digarr/issues/553).
 - Spotify setup documents the Premium app-owner requirement and Development Mode allowlist limits, with alternatives that do not need Spotify. [#395](https://github.com/iuliandita/digarr/issues/395).
 
 ### Upgrade notes
 
-- Startup migrations add Plex listener fields and consolidate duplicate slskd retry jobs without deleting their history. Keep a pre-upgrade backup. Existing Plex connections need a listener selection for history; linked slskd targets need a completed-download path visible to Lidarr. See the [Plex](README.md#connecting-plex-listeners) and [slskd](README.md#importing-slskd-downloads-into-lidarr) setup notes.
+- Startup migrations add Plex listener fields and consolidate duplicate slskd retry jobs without deleting their history. Keep a pre-upgrade backup. Existing Plex connections need a listener selection for history; linked slskd targets need a completed-download path visible to Lidarr. See the [Plex](docs/OPERATIONS.md#connecting-plex-listeners) and [slskd](docs/OPERATIONS.md#importing-slskd-downloads-into-lidarr) setup notes.
 
 ## v1.17.0 - 2026-09-16
 

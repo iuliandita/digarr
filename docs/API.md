@@ -204,9 +204,9 @@ Treat these as untrusted when rendering: the pass-through case is provider-contr
 Setup validation rules:
 - `aiProvider` and `aiModel` are required
 - Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
-- Emby is optional, but `embyUrl`, `embyApiKey`, and `embyUserId` must be provided together when used
-- When Lidarr is provided during setup, Digarr auto-creates the default Lidarr target for the first user
-- When Emby is provided during setup, Digarr stores the per-user Emby connection and auto-creates an Emby playlist target
+- Emby is optional. A nonempty `embyUrl` requires `embyApiKey` and `embyUserId`; a key or user ID supplied without a URL is accepted and discarded. Always send the complete trio.
+- Creating a Lidarr target, saving the Emby connection, and creating an Emby playlist target require an authenticated caller. Register and authenticate before completing setup, or configure connections and targets afterward.
+- Those connection and target writes are best effort: their failure does not prevent a `204` response. Confirm the saved connection and targets after setup ([#783](https://github.com/iuliandita/digarr/issues/783)).
 - Completing setup does not create a user account. If setup finishes before any user exists, the next step is to register or sign in; protected routes stay locked until then
 
 **POST /api/v1/setup/complete** body:

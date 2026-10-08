@@ -46,12 +46,16 @@ Adding a key does not encrypt previously saved plaintext credentials. After sett
 1. **Generate a new key.**
 
    ```sh
-   openssl rand -hex 32
+   (set -C; umask 077;
+     install -d -m 700 "$HOME/.config/digarr/rotation" &&
+     openssl rand -hex 32 > "$HOME/.config/digarr/rotation/new.key")
    ```
+
+   Read the new file in a trusted editor and copy its 64-character value into the protected configuration used below. Do not print keys to terminal output. The command refuses to overwrite an existing key file. This applies to the newly generated key; preserve the exact bytes of an existing key as described above.
 
 2. **Deploy with both keys set (primary unchanged, NEXT = new).**
 
-   ```sh
+   ```dotenv
    DIGARR_ENCRYPTION_KEY=<old>
    DIGARR_ENCRYPTION_KEY_NEXT=<new>
    ```
@@ -62,7 +66,7 @@ Adding a key does not encrypt previously saved plaintext credentials. After sett
 
 3. **Deploy again with the roles swapped (primary = new, NEXT = old).**
 
-   ```sh
+   ```dotenv
    DIGARR_ENCRYPTION_KEY=<new>
    DIGARR_ENCRYPTION_KEY_NEXT=<old>
    ```
@@ -167,7 +171,8 @@ Adding a key does not encrypt previously saved plaintext credentials. After sett
 
    ```sh
    rm "$HOME/.config/digarr/rotation/primary.env" \
-     "$HOME/.config/digarr/rotation/verify.env"
+     "$HOME/.config/digarr/rotation/verify.env" \
+     "$HOME/.config/digarr/rotation/new.key"
    rmdir "$HOME/.config/digarr/rotation"
    ```
 

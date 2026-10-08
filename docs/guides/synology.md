@@ -49,13 +49,15 @@ SSH (first installation only):
 Reuse the existing `.env`, encryption key, and database-password file on upgrades; follow [Updating](#updating) instead of rerunning setup. The commands below refuse to overwrite existing secret files.
 
 ```sh
+(
 set -e
 mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
-curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
 (set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env)
 chmod 600 .env
 # Edit .env: set the origin, HTTP cookie override, and a saved encryption key.
 sudo docker compose -f docker-compose.pglite.yml up -d
+)
 ```
 
 ### Option 2: Bundled PostgreSQL (two containers)
@@ -79,9 +81,10 @@ SSH (first installation only):
 Reuse the existing `.env`, encryption key, and database-password file on upgrades; follow [Updating](#updating) instead of rerunning setup. The commands below refuse to overwrite existing secret files.
 
 ```sh
+(
 set -e
 mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
-curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
+curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 (set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env)
 mkdir -p secrets
 chmod 700 secrets
@@ -92,6 +95,7 @@ sudo chmod 600 secrets/postgres_password
 # Set ALLOWED_ORIGIN, the HTTP cookie override if needed, and the saved key in .env.
 vi .env
 sudo docker compose up -d
+)
 ```
 
 ---
@@ -130,13 +134,15 @@ If you prefer compose over SSH, the single-container PGlite stack also works
 on DSM 7.1. These commands are for a first installation only; reuse the existing `.env` and encryption key on upgrades:
 
 ```sh
+(
 set -e
 sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
-sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
+sudo curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.pglite.yml
 sudo sh -c 'set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env'
 sudo chmod 600 .env
 # Use sudo vi .env: set the origin, HTTP cookie override, and a saved encryption key.
 sudo docker compose -f docker-compose.pglite.yml up -d
+)
 ```
 
 ---
@@ -169,9 +175,10 @@ The `docker compose` command works via SSH even though the GUI doesn't
 support it. Use it on DSM 7.1 if you want the simpler setup path. This Compose file bundles PostgreSQL as a separate container. These commands are for a first installation only; reuse the existing `.env`, encryption key, and password file on upgrades:
 
 ```sh
+(
 set -e
 sudo mkdir -p /volume1/docker/digarr && cd /volume1/docker/digarr
-sudo curl -LO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
+sudo curl -fLO https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/docker-compose.yml
 sudo sh -c 'set -C; umask 077; curl -fL https://raw.githubusercontent.com/iuliandita/digarr/main/deploy/docker/.env.example > .env'
 sudo mkdir -p secrets
 sudo chmod 700 secrets
@@ -179,6 +186,7 @@ sudo sh -c 'set -C; umask 077; printf "%s\n" "change-this-password" > secrets/po
 sudo chmod 600 secrets/postgres_password
 sudo chown 1000:1000 secrets/postgres_password
 # Use sudo vi .env: set the origin, HTTP cookie override, and a saved encryption key.
+)
 ```
 
 The file is owned by UID 1000 so the app can read its mode-0600 bind-mounted secret; the PostgreSQL entrypoint reads it as root. Digarr trims leading and trailing whitespace, so do not use a password with intentional surrounding whitespace in this file. Changing the file does not change an initialized PostgreSQL role password; coordinate that change separately. Edit the secret file with a real password:

@@ -48,9 +48,11 @@ For unattended first boot, set `AI_PROVIDER` and `AI_MODEL`, plus `DIGARR_INITIA
 
 ## Playlists and notifications
 
-Add playlist destinations in Settings > Targets, then select those targets in each playlist. Digarr keeps the generated playlist locally if an export fails; admins can inspect the error in Job History. Spotify exports need a connected account with playlist permissions.
+Add media-server playlist destinations in Settings > Targets, then select those targets in each playlist. A successful Spotify connection attempts to create a user-owned Spotify Playlist target automatically; select that target in the playlist. The Add Target dialog does not offer Spotify. If the target is missing after connecting, ask an admin to inspect the logs and create it through the targets API.
 
-The global scheduling switch is API-only in v1.19.0; there is no web UI control. Scheduling requires an admin to enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`; it defaults to false. The Playlists page shows "Schedule paused" when scheduling is off and a cron is configured. Each playlist also needs `enabled: true` and a schedule. Manual generation works independently of the global switch.
+Digarr keeps the generated playlist locally if an export fails; admins can inspect the error in Job History. Spotify exports need a connected account with playlist permissions.
+
+The global scheduling switch is API-only in v1.19.0; there is no web UI control. Scheduling requires an admin to enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`; it defaults to false. The Playlists page shows "Schedule paused" when scheduling is off and your playlists share one schedule. With several different schedules, it shows "No schedule configured" even when schedules exist. Check `GET /api/v1/playlists/scheduler` (`enabled`) to confirm the global switch. Each playlist also needs `enabled: true` and a schedule. Manual generation works independently of the global switch.
 
 Playlists created in the web UI search Spotify, then Deezer. API playlists without a config search only Spotify; explicit `trackSourcePriority` controls which sources are tried. Spotify search requires that user's stored Spotify OAuth connection. Deezer search needs no account. MusicBrainz is the final fallback for artists with an MBID. Although `local` is an accepted source priority, it performs no media-library lookup ([#767](https://github.com/iuliandita/digarr/issues/767)).
 

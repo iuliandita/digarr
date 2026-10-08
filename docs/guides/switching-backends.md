@@ -119,7 +119,7 @@ appear in the failed report with details.
 
 ### 6. Set the env var and restart
 
-The panel shows the exact environment variable(s) to set for the new backend:
+The panel suggests environment settings, but its PGlite hint omits `DATABASE_URL_FILE` ([#781](https://github.com/iuliandita/digarr/issues/781)); follow the complete list below for the new backend:
 
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
   entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`), with username,
