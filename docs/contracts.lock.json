@@ -7,26 +7,26 @@
       },
       "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
       "review": {
-        "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
-        "outcome": "baseline",
-        "docs": ["docs/guides/unraid.md", "deploy/unraid/digarr.xml", "CHANGELOG.md"],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
+        "outcome": "docs-updated",
+        "docs": ["docs/guides/unraid.md"],
+        "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
         "breaking": "none",
         "migration": "",
         "companions": [
           {
             "repo": "iuliandita/unraid-templates",
-            "status": "pending",
+            "status": "updated",
             "url": "https://github.com/iuliandita/unraid-templates/pull/4",
-            "note": "Proposed template corrections remain pending merge upstream."
+            "note": "Merged and published template checked against the bundled configuration contract."
           },
           {
             "repo": "selfhosters/unRAID-CA-templates",
             "status": "pending",
             "url": "https://github.com/selfhosters/unRAID-CA-templates/pull/697",
-            "note": "Proposed template corrections remain pending merge upstream."
+            "note": "Store correction remains pending; published template still requires documented workarounds."
           }
-        ]
+        ],
+        "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b"
       }
     },
     "data-recovery": {
