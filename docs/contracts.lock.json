@@ -8,9 +8,7 @@
       "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md"
-        ],
+        "docs": ["docs/guides/unraid.md"],
         "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
         "breaking": "none",
         "migration": "",
@@ -313,10 +311,7 @@
       "digest": "39419f4a2aff38f653a7200d4d1b856de217159166598bb0f857619da25d55b1",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "src/server/helpers/openapi-doc.ts"
-        ],
+        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts"],
         "note": "Clarify empty probe credential fallback and selector clearing rules, plus availability checks on discovery subscription source configuration updates.",
         "breaking": "none",
         "migration": "",
@@ -722,9 +717,7 @@
       "digest": "0f3862c3e77871b8a466b52147454279459298e970726c71029d03cbdc3f8e50",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/helm/digarr/README.md"
-        ],
+        "docs": ["deploy/helm/digarr/README.md"],
         "note": "Document unencoded chart database names alongside usernames and passwords; keep bundled server values plain and encode external DSN components.",
         "breaking": "none",
         "migration": "",
@@ -752,9 +745,7 @@
       "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Record Node requirements while extending release review coverage to the existing frontend build configuration.",
         "breaking": "none",
         "migration": "",
@@ -788,9 +779,7 @@
       "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/MAINTENANCE.md"
-        ],
+        "docs": ["docs/MAINTENANCE.md"],
         "note": "Document source coverage and parser requirements while adding root entrypoint fingerprints and migration range regression cases.",
         "breaking": "none",
         "migration": "",
