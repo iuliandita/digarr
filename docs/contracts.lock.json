@@ -258,7 +258,7 @@
     "api": {
       "files": {
         "src/server/deps.ts": "408d364bc0a4725323c8014a891cd93a49438cf4abbd9de7270e822dcbde90c1",
-        "src/server/helpers/openapi-doc.ts": "4ae843795a863a74ec12b5893057f37ea90cf6e43eee2f083fda8fdd39af6f4f",
+        "src/server/helpers/openapi-doc.ts": "7686ac55975bb5592a39b1fb5c60c2ec37b02a8ef0af033a457b486ffe3bee70",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
@@ -308,14 +308,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "3e65cce7570f558b303f79bf662da9d78e6bfa9f5bae2b57919d9ccc6dae9229",
+      "digest": "39419f4a2aff38f653a7200d4d1b856de217159166598bb0f857619da25d55b1",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts"],
-        "note": "Document CSRF rejection responses alongside registration JSON errors and clarify current account, preference, feedback, and cancellation contracts.",
+        "note": "Clarify empty probe credential fallback and selector clearing rules, plus availability checks on discovery subscription source configuration updates.",
         "breaking": "none",
         "migration": "",
-        "digest": "3e65cce7570f558b303f79bf662da9d78e6bfa9f5bae2b57919d9ccc6dae9229"
+        "digest": "39419f4a2aff38f653a7200d4d1b856de217159166598bb0f857619da25d55b1"
       }
     },
     "interface": {
