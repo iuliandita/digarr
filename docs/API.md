@@ -144,6 +144,8 @@ Notes:
 - `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
 - `GET /api/v1/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 
+The Recommendations settings page first saves user preferences, then writes global metadata settings. For non-admins, the second request returns `403`, so the UI reports failure and skips refreshing cached values even after the preference write succeeds ([#792](https://github.com/iuliandita/digarr/issues/792)). Verify saved values with `GET /api/v1/auth/me/preferences`, or use the per-user `PATCH` directly. `netNewAlbumDiscovery` is not in the per-user allowlist and is silently ignored; the strict global preferences schema rejects it. The UI toggle cannot persist this setting in v1.19.0 ([#791](https://github.com/iuliandita/digarr/issues/791)). Use Release Radar or Library Gap-Fill for album recommendations.
+
 Preference updates merge top-level keys only. A supplied `scoringWeights` object replaces the saved object; omitted weights fall back to defaults rather than retaining saved values. Send the complete intended `scoringWeights` object when changing weights.
 
 ### OIDC / OAuth

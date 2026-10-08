@@ -83,7 +83,7 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
 2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
-4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; [API clients](docs/API.md#recommendations) can do the same. Use Release Radar or Library Gap-Fill for albums, or enable net-new album discovery.
+4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; non-admin saves can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums; the net-new album toggle does not persist in v1.19.0.
 
 CSV and playlist imports process the listed artists into recommendations through separate subscription runs. Spotify's `Import Liked Songs` does the same for saved tracks. Imports do not become inputs to a normal scan.
 

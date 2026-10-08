@@ -327,7 +327,9 @@ already in the library.
 
 ### Net-new album discovery
 
-When `netNewAlbumDiscovery` is enabled (default off), `resolve()` tries to match
+The resolver supports `netNewAlbumDiscovery` (default off), but v1.19.0's UI and preference APIs cannot persist it: the user allowlist omits the key and the global schema rejects it ([#791](https://github.com/iuliandita/digarr/issues/791)). Use Release Radar or Library Gap-Fill through the supported UI.
+
+When the stored flag is enabled, `resolve()` tries to match
 the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album
 recommendation with its release-group MBID and first-release date, then follows
 the normal album scoring, filtering, and storage paths. An unmatched title stays
@@ -340,7 +342,7 @@ recommendation list is empty, the frontend links to the two explicit album
 discovery modes (`gap-fill` and `release-radar`) and the default-off
 `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested
 generic mode card; the preference link opens its collapsed settings section and
-focuses the target.
+focuses the target. That routing does not fix the preference persistence limitation above.
 
 ### Kind-aware dedup
 

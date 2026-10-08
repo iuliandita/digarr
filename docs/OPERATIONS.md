@@ -8,6 +8,8 @@ These are existing app behaviors, tracked separately from this documentation upd
 
 | Area | What to expect |
 |------|----------------|
+| Recommendation settings | Non-admin saves can report failure after saving user preferences because a subsequent global settings write returns `403`. Read back `GET /api/v1/auth/me/preferences`, or use the per-user preferences API directly. [#792](https://github.com/iuliandita/digarr/issues/792). |
+| Net-new album discovery | The toggle does not persist: the user-preferences route drops its key and the global schema rejects it. Use Release Radar or Library Gap-Fill. [#791](https://github.com/iuliandita/digarr/issues/791). |
 | Artist rejection cooldowns | Cooldowns are shared across accounts. One user's rejection can suppress artist recommendations for another user in scans, quick discovery, and subscriptions within the receiving run's configured window. Permanent blocks remain per-user. [#788](https://github.com/iuliandita/digarr/issues/788). |
 | Bulk album approval | Uses artist targets. Lidarr requests no album monitoring or search. Approve individual albums to acquire the selected release. [#756](https://github.com/iuliandita/digarr/issues/756). |
 | Automatic album approval | Uses the configured artist monitoring scope, defaulting to all albums. [#761](https://github.com/iuliandita/digarr/issues/761). |

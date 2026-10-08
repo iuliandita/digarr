@@ -278,9 +278,7 @@ only). File-backed Compose secrets retain host ownership and mode: the app runs 
 
 An unreadable `_FILE` secret currently falls back to an unset value without reporting the file error ([#763](https://github.com/iuliandita/digarr/issues/763)). Verify the mount and UID 1000 read permission before startup. In the bundled PostgreSQL stack, an unreadable `DB_PASS_FILE` leaves PostgreSQL selected but can cause password authentication failure. An unreadable `DATABASE_URL_FILE`, without a complete `DB_HOST`/`DB_USER`/`DB_NAME` alternative, can select an empty PGlite database. Check `/health` for the intended backend when startup succeeds.
 
-If you need env-var-only deployment (e.g. platforms without Compose secrets),
-use a small compose override that sets `DATABASE_URL` for the app and
-`POSTGRES_PASSWORD` for Postgres, and removes the `_FILE` variables.
+For an environment-only deployment on a platform without Compose secrets, copy the Postgres base into a standalone Compose file. Set `DATABASE_URL` for `app` and `POSTGRES_PASSWORD` for `postgres`, using the same password and an appropriately URL-encoded DSN. Remove `app.environment.DB_PASS_FILE` and `postgres.environment.POSTGRES_PASSWORD_FILE`, both services' `secrets` attachments, and the top-level `secrets.postgres_password` definition. Remove any other `_FILE` settings inherited from `.env`. Validate the resulting standalone file with `docker compose -f <file> config` before starting it. Setting plain environment values alone leaves the original secret-file dependency in place.
 
 ## Image channels
 
