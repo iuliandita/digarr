@@ -187,9 +187,9 @@ Both backends use the running process's encryption key during the copy. Keep tha
 
 ## Reversibility
 
-The source database is untouched throughout. To roll back, point the env vars at
-the original backend and restart. You can run the migration in the other direction
-at any time using the same panel.
+Migration copies data once; it does not keep the two backends synchronized. The original backend does not receive writes made after cutover. Pointing environment settings back at it and restarting resumes the old state, omitting later accounts, preferences, approvals, and other changes. Direct switch-back is appropriate only before writes begin on the new backend, or when abandoning those newer changes is intentional.
+
+To preserve changes made after cutover, stop writers and take complete backups of both databases, retaining the encryption key separately. Plan and verify a reverse migration or recovery before switching the application back. The same migration panel supports the reverse direction, but replacing a nonempty original database requires an explicit overwrite decision after backing it up. Verify the copied data and the [recovery boundaries](#backup-boundaries-and-recovery); do not assume a change of connection settings transfers newer data.
 
 ## Backup boundaries and recovery
 
