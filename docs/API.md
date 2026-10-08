@@ -590,7 +590,7 @@ Path params:
 ```
 
 Discovery-mode subscription notes:
-- Creation and updates re-check current availability and reject unavailable modes with `400`
+- Creation and updates supplying `sourceConfig` re-check current availability and reject unavailable modes with `400`. Updates containing only fields such as `enabled`, `cron`, or `name` do not re-check availability
 - The saved `providerContext` and `fallbackPolicy` mirror the execution path chosen for the manual form, so scheduled runs stay aligned with what the user configured
 
 ---
@@ -1029,7 +1029,8 @@ Settings notes:
   `403` for non-admin callers, and `502` when the upstream service probe fails
 - The `502` body's `detail` field carries the upstream failure message (secrets redacted,
   capped at 300 chars) so the caller can see e.g. which model name the provider rejected
-- Send a JSON object for probes: `{}` uses saved credentials where supported; an absent payload currently returns `500`, not a validation response ([#759](https://github.com/iuliandita/digarr/issues/759)). Request fields override the supported saved fields. For Lidarr, `skipTlsVerify` does not fall back to the saved value and defaults to false: send `{ "skipTlsVerify": true }` explicitly when the saved connection needs it.
+- Send a JSON object for probes: `{}` uses saved credentials where supported; an absent payload currently returns `500`, not a validation response ([#759](https://github.com/iuliandita/digarr/issues/759)). Where supported, non-empty connection and credential strings override saved values. Empty strings (including URLs, API keys, tokens, usernames, passwords, provider, and model) fall back to saved values, so a successful probe may test the previous configuration rather than the empty values supplied. For Lidarr, `skipTlsVerify` does not fall back to the saved value and defaults to false: send `{ "skipTlsVerify": true }` explicitly when the saved connection needs it.
+- Probe selectors have separate clearing rules: Plex `sectionId: ""` selects automatic library detection, and `accountId: null` tests library-only access. Jellyfin/Emby `libraryId: ""` selects all libraries. Omitted selectors reuse saved values; `sectionId: null` and `libraryId: null` also reuse saved values. These probe rules differ from saving null selectors through settings PATCH.
 - The `plex` probe additionally returns the selected library and every music-type library on
   the server: `{ "sectionId": "5", "sections": [{ "key": "5", "title": "Music" }] }`. Save the
   chosen key as the per-user `plexSectionId` setting. Empty/null auto-detects the first

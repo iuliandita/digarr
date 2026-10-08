@@ -129,9 +129,9 @@ settings across updates. With external PostgreSQL, persist the Postgres database
 
 1. Click **Apply** to create and start the container.
 2. Open the **WebUI** link (or `http://<server-ip>:3000`).
-3. If you set `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD`, log in with
-   those; otherwise complete the setup wizard to create the first admin.
-4. Database migrations run automatically on every startup. With the embedded
+3. If `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD` are configured, sign in with those and complete any unfinished setup. Otherwise, complete setup and register the first admin account when prompted. The setup wizard saves configuration; it does not create an account.
+4. After signing in, verify the saved connections and targets in Settings. Configure missing ones there: setup performed before authentication cannot save user-scoped connections or targets ([#783](https://github.com/iuliandita/digarr/issues/783)).
+5. Database migrations run automatically on every startup. With the embedded
    database this is self-contained; with external PostgreSQL, if Digarr starts
    before Postgres is ready it retries with backoff, so transient startup-order
    races resolve on their own.

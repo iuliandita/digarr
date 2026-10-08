@@ -980,7 +980,7 @@ export const openapiDoc = {
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
         description:
-          'Send a JSON object ({} for saved credentials where supported). An absent payload currently returns 500. Supplied fields override supported saved values; Lidarr skipTlsVerify defaults to false rather than the saved setting, so send it explicitly when required. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
+          'Send a JSON object ({} for saved credentials where supported). An absent payload currently returns 500. Where supported, non-empty connection and credential strings override saved values; empty strings reuse saved values, so probe success may validate the previous configuration. Plex sectionId and Jellyfin/Emby libraryId clear with an empty string (null falls back), while Plex accountId clears with null; Lidarr skipTlsVerify defaults to false rather than the saved setting, so send it explicitly when required. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
         security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
