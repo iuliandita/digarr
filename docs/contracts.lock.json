@@ -258,7 +258,7 @@
     "api": {
       "files": {
         "src/server/deps.ts": "408d364bc0a4725323c8014a891cd93a49438cf4abbd9de7270e822dcbde90c1",
-        "src/server/helpers/openapi-doc.ts": "1bfa857e4b1509dd0000464fda1a6185e07406243a976831b158e5edfb043a0d",
+        "src/server/helpers/openapi-doc.ts": "de99cc9d51a225011b66fa0085c5a017a25abd1b9ad5d3ecd97cb443b7a90ff9",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
@@ -308,14 +308,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "bf3a75c32f8b5c1cd06547329e58ee9bad04819ff6575a5c2c43b0c08b5f6e74",
+      "digest": "2095f0ba47381db9bf378cee79cc8ef45149d1c9267ba22b8fc5eca2fed2e21f",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Move existing identity-sensitive schema and route files into authentication coverage without changing their behavior.",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts"],
+        "note": "Correct the OpenAPI positive batch ID constraint and artist-block pagination clamping to match existing handlers.",
         "breaking": "none",
         "migration": "",
-        "digest": "bf3a75c32f8b5c1cd06547329e58ee9bad04819ff6575a5c2c43b0c08b5f6e74"
+        "digest": "2095f0ba47381db9bf378cee79cc8ef45149d1c9267ba22b8fc5eca2fed2e21f"
       }
     },
     "interface": {
