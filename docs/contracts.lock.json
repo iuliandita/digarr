@@ -320,8 +320,10 @@
     },
     "interface": {
       "files": {
+        "index.html": "e2e161c5282bacef15f61340a27c571db7fff5a8e1d1e5ef4dfde1fb70c4f057",
         "public/manifest.json": "e67c93403f9c8939af0f6006feed3e892c95f9d8983284c10eb6eadc951457ef",
         "public/sw.js": "d2ead1fe1da5389f0406ea997e171a98e8e63af7b5dcf35cdf4ed373d23ce3e7",
+        "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "7291f9fed76456889b2940bb53fe9d6bb7e6ee71095c425e92054944d3dbfe72",
         "src/core/i18n/messages/de.ts": "85cc853e49a674727e39333559117d32bb164f19023a26eaf7839187f3e73db0",
         "src/core/i18n/messages/en.ts": "49b3583f719ba5062eace10ad08cf1ccc1b45fe7efb501c84eaa38900c12a096",
@@ -461,14 +463,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "4fd2982a82b59ee84a34192a6da497ef43d66117b27eb93fd43c7022898f4b67",
+      "digest": "ce288e5c6e15bd84033f793be30915f79c15cde936853dfb1ef5ce753957b18a",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Include the existing runtime stylesheet in interface review coverage without changing CSS or rendered application behavior.",
+        "note": "Extend review coverage to the existing application HTML entry points without changing markup or rendered behavior.",
         "breaking": "none",
         "migration": "",
-        "digest": "4fd2982a82b59ee84a34192a6da497ef43d66117b27eb93fd43c7022898f4b67"
+        "digest": "ce288e5c6e15bd84033f793be30915f79c15cde936853dfb1ef5ce753957b18a"
       }
     },
     "features": {
@@ -737,16 +739,17 @@
         ".github/workflows/release.yml": "4d1b678495aa8f1fe4ea163b1a4baa8448e752a1f0b66d74227f26ba00f16ad2",
         ".github/workflows/security.yml": "3c0df94a037109c8ea49376340c062ee7ca021e1b13f8cb497fa9a6d05cbff19",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e"
+        "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
+        "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "19ddfde22128b318cbc8ac492a0642864c4fc7fb22311b3bea591aab324fb68a",
+      "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Document the Node runtime requirement and pin Node 24 for documentation checks and test jobs.",
+        "note": "Record Node requirements while extending release review coverage to the existing frontend build configuration.",
         "breaking": "none",
         "migration": "",
-        "digest": "19ddfde22128b318cbc8ac492a0642864c4fc7fb22311b3bea591aab324fb68a"
+        "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb"
       }
     },
     "maintenance": {
@@ -769,18 +772,18 @@
         "scripts/i18n-machine-translate.ts": "3d4a74ac57345ef30ac28baab4422ad8cba1d3cd4190c6d21cfab2b2c42cbc10",
         "scripts/import-artist-metadata.ts": "0ce7cb594ea6311ff59ac8a655d35007538b46611154c94d61e3c5c81ddb41c9",
         "scripts/k8s-sync.sh": "0927212719ded7e714726e86955096f56036c5c35195dac891474351bb4c78d7",
-        "scripts/lib/docs-contracts.ts": "55e37fd9e2802d6ba07e75ab3b57227b1eff3d69f70b6059dbf67647d3946d28",
+        "scripts/lib/docs-contracts.ts": "f5dff50857f58092801680a72f3bf6a9a5d3962d9d6daf09276637d4b0524d04",
         "scripts/recommendation-quality.ts": "c1916747ce26ba33a5baa3076ac02df4d754489e56b465d9c88924dc7d82b555",
         "scripts/sync-deploy-digests.ts": "d063d2a855fd1d7a49df53b0a072ce2146103dd8ed68b97bb3d0f26d34b51c3a"
       },
-      "digest": "501b893a0f3db4d5a5f9b977cb8c11b3f771e1fbca8ea5cb2ce531c3050feb01",
+      "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/MAINTENANCE.md", "CONTRIBUTING.md"],
-        "note": "Explain AST runtime requirements combined release receipts XML restrictions and the fixed lock schema migration boundary.",
+        "docs": ["docs/MAINTENANCE.md"],
+        "note": "Document source coverage and parser requirements while adding root entrypoint fingerprints and migration range regression cases.",
         "breaking": "none",
         "migration": "",
-        "digest": "501b893a0f3db4d5a5f9b977cb8c11b3f771e1fbca8ea5cb2ce531c3050feb01"
+        "digest": "687237d8e94a36c51de44419615e770784c888a1f3879d49bd93edc289413e34"
       }
     }
   }

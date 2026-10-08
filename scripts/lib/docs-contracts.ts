@@ -116,6 +116,7 @@ export type BaseContext = { lock: unknown | null; changedFiles: string[]; lockAd
 export type Finding = { domain?: Domain; message: string }
 export const DOMAIN_NAMES = Object.keys(DOMAINS) as Domain[]
 const ROOTS = ['src', 'drizzle', 'deploy', 'scripts', 'public', '.github/workflows']
+const ROOT_FILES = ['index.html', 'spotify-embed-bridge.html', 'vite.config.ts', 'Dockerfile']
 const HASH = /^[a-f0-9]{64}$/
 const SOURCE_EXTENSIONS = new Set([
   '.ts',
@@ -138,6 +139,9 @@ export function isDomain(value: string): value is Domain {
   return Object.hasOwn(DOMAINS, value)
 }
 export function domainForPath(path: string): Domain | null {
+  if (['index.html', 'spotify-embed-bridge.html'].includes(path)) return 'interface'
+  if (path === 'vite.config.ts') return 'release'
+  if (path === 'Dockerfile') return 'deployment'
   if (path === 'deploy/unraid/digarr.xml') return 'companions'
   if (
     /^(src\/core\/ops\/|src\/db\/|drizzle\/)/.test(path) ||
@@ -291,6 +295,13 @@ export function createSnapshot(root: string, options: { allowNonGit?: boolean } 
       'source snapshot requires Git; filesystem inventory is available only with explicit allowNonGit for synthetic fixtures',
     )
   const files = ['package.json']
+  for (const path of ROOT_FILES)
+    if (
+      (tracked === null || tracked.includes(path)) &&
+      existsSync(join(root, path)) &&
+      lstatSync(join(root, path)).isFile()
+    )
+      files.push(path)
   if (tracked && !tracked.includes('package.json'))
     throw new Error('package.json must be Git-tracked')
   if (!lstatSync(join(root, 'package.json')).isFile())

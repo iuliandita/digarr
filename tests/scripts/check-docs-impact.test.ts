@@ -232,9 +232,23 @@ describe('documentation contract snapshots', () => {
     expect(createSnapshot(root).release.digest).not.toBe(before.release.digest)
   })
 
+  it('tracks the root build configuration and container entrypoint', () => {
+    const root = fixture()
+    write(root, 'vite.config.ts', 'export default { build: { target: "es2022" } }\n')
+    write(root, 'Dockerfile', 'FROM oven/bun:1\n')
+    const snapshot = createSnapshot(root)
+    expect(Object.hasOwn(snapshot.release.files, 'vite.config.ts')).toBe(true)
+    expect(Object.hasOwn(snapshot.deployment.files, 'Dockerfile')).toBe(true)
+  })
+
   it('tracks runtime CSS and markup in the interface domain', () => {
     const root = fixture()
-    for (const path of ['src/web/index.css', 'src/web/shell.html']) {
+    for (const path of [
+      'src/web/index.css',
+      'src/web/shell.html',
+      'index.html',
+      'spotify-embed-bridge.html',
+    ]) {
       const before = createSnapshot(root)
       write(root, path, 'body { color: red; }\n')
       expect(createSnapshot(root).interface.digest).not.toBe(before.interface.digest)
