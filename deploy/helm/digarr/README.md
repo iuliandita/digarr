@@ -71,11 +71,11 @@ helm install digarr deploy/helm/digarr \
 
 For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existingSecret`, and set `postgresql.auth.password` in a protected values file. Keep passwords out of command-line arguments.
 
-The chart currently inserts usernames and passwords into connection URLs without encoding ([#772](https://github.com/iuliandita/digarr/issues/772)). Use URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-._~`) for these chart values; a password generated with `openssl rand -hex 32` is suitable.
+The chart currently inserts usernames, passwords, and database names into connection URLs without encoding ([#772](https://github.com/iuliandita/digarr/issues/772)). Use URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-._~`) for these chart values; a password generated with `openssl rand -hex 32` is suitable.
 
-Do not percent-encode the bundled PostgreSQL password value itself: it is also passed unchanged to the server.
+Do not percent-encode the bundled PostgreSQL password or database-name values themselves: they are also passed unchanged to the server.
 
-For a user-managed database with other credential characters, set `postgresql.enabled=false` and use `database.existingSecret` containing a complete `DATABASE_URL` with percent-encoded username and password components.
+For a user-managed database with other username, password, or database-name characters, set `postgresql.enabled=false` and use `database.existingSecret` containing a complete `DATABASE_URL` with percent-encoded username, password, and database-name components.
 
 For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too. The chart defaults to a 512Mi app limit, so raise it explicitly for PGlite:
 

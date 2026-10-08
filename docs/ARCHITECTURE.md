@@ -94,8 +94,9 @@ foreign key order inside one target transaction. Each table is selected, restore
 chunks, and verified by row count and SHA-256 content hash before the next table
 is loaded. The process does not retain whole-source or whole-target backup
 objects, so its working set follows the largest individual table instead of the
-whole database. A write failure rolls back the target copy transaction before a
-`MigrationReport` is returned. During the copy, `maintenanceMiddleware`
+whole database. A copy write failure rolls back the target copy transaction and
+propagates as HTTP `500`, without a `MigrationReport`. Verification mismatches
+return HTTP `422` with a report extension; they do not roll back the copied rows. During the copy, `maintenanceMiddleware`
 blocks all write methods (`POST/PUT/PATCH/DELETE`) on non-migration routes,
 returning `503 Maintenance in progress`; reads pass through. Background
 schedulers check the same flag (`isMaintenance()` in `src/core/ops/maintenance.ts`)

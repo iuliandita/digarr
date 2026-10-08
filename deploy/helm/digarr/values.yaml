@@ -155,16 +155,17 @@ readinessProbe:
 # Mode 2: Bundled PostgreSQL (database.backend = "postgres", postgresql.enabled = true)
 #   Uses the official postgres:17-alpine image as a StatefulSet.
 #   You MUST set postgresql.auth.password -- there is no default.
-#   Chart-generated URLs do not encode credentials: use URI-unreserved
-#   username/password characters; a random hex password is suitable.
-#   Keep the bundled password plain, not percent-encoded.
+#   Chart-generated URLs do not encode usernames, passwords, or database names:
+#   use URI-unreserved characters; a random hex password is suitable.
+#   Keep bundled passwords and database names plain, not percent-encoded.
 #
 # Mode 3: External PostgreSQL (database.backend = "postgres", postgresql.enabled = false)
 #   Set database.host and database.password for your own PostgreSQL instance,
 #   cloud RDS, CNPG cluster, etc. Chart-generated URLs also insert these
-#   credentials unencoded; use URI-unreserved characters, or supply a Secret via
+#   username/password/database-name values unencoded; use URI-unreserved
+#   characters, or supply a Secret via
 #   database.existingSecret with a complete DATABASE_URL key; percent-encode
-#   its username/password components when needed.
+#   its username/password/database-name components when needed.
 # ---------------------------------------------------------------------------
 
 # Bundled PostgreSQL -- official postgres image, no Bitnami dependency
