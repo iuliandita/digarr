@@ -26,7 +26,7 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 ## What you can do
 
 - **Find artists and albums.** Connect a listening source, scan, and review scored suggestions. Release Radar finds new releases; Library Gap-Fill finds missing albums. Mood and artist searches work without a listening history.
-- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk and automatic approval use artist-level monitoring; see [known limitations](docs/OPERATIONS.md#known-limitations-in-v1190).
+- **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk and automatic approval use artist-level monitoring.
 - **Keep discovery running.** Schedule scans and subscriptions, or generate playlists for Spotify and supported media servers. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
 - **Share an instance.** Each user has their own queue, connections, and preferences; admins assign their available targets. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
 
@@ -47,7 +47,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 | AI recommendations | Anthropic, OpenAI, Gemini, Ollama, OpenAI-compatible endpoints |
 | Notifications | Webhooks, ntfy, Telegram, Apprise |
 
-A connection's capabilities differ by service. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes. [TIDAL Favorite Artists](#connecting-tidal) needs an admin-registered app; see its experimental status below.
+A connection's capabilities differ by service. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes.
 
 ### Privacy and credentials
 
@@ -60,9 +60,9 @@ Set and retain `DIGARR_ENCRYPTION_KEY` before saving service credentials. Withou
 You need Docker and access to an AI provider or local model. Digarr includes an embedded PostgreSQL database (PGlite), so this runs as one container:
 
 ```sh
-mkdir digarr && cd digarr
-(set -C; umask 077 && printf 'DIGARR_ENCRYPTION_KEY=%s\n' "$(openssl rand -hex 32)" > digarr.env)
-docker run -d --name digarr -p 127.0.0.1:3000:3000 \
+mkdir digarr && cd digarr &&
+(set -C; umask 077 && key=$(openssl rand -hex 32) && printf 'DIGARR_ENCRYPTION_KEY=%s\n' "$key" > digarr.env) &&
+docker run -d --name digarr --restart unless-stopped -p 127.0.0.1:3000:3000 \
   --env-file ./digarr.env \
   -e ALLOWED_ORIGIN=http://localhost:3000 \
   -e DIGARR_ALLOW_INSECURE_COOKIES=true \
@@ -81,16 +81,18 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 ## Your first recommendations
 
 1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
-2. Connect a listening source in Settings, or import artists from CSV or a supported playlist. You can add targets later.
+2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
 4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; [API clients](docs/API.md#recommendations) can do the same. Use Release Radar or Library Gap-Fill for albums, or enable net-new album discovery.
+
+CSV and playlist imports process the listed artists into recommendations through separate subscription runs. Spotify's `Import Liked Songs` does the same for saved tracks. Imports do not become inputs to a normal scan.
 
 A scan can complete with a failed source. Admins can check Job History for partial results; other users can refresh Discover. Services without similar-artist lookup still contribute their supported listening and library data. See the [pipeline guide](docs/ARCHITECTURE.md#pipeline) for the details.
 
 ## Configuration
 
 <a id="connecting-plex-listeners"></a><a id="importing-slskd-downloads-into-lidarr"></a><a id="data-hygiene"></a>
-Use Settings for connections, scoring, schedules, preferences, and language. Spotify's `Import Liked Songs` can seed a scan; admins can inspect failures in Job History. [Authentication](docs/AUTHENTICATION.md) covers origins, cookies, SSO, and proxies. [Operations](docs/OPERATIONS.md) covers Plex listeners, slskd imports, Data Hygiene, playlists, notifications, and local AI.
+Use Settings for connections, scoring, schedules, preferences, and language. [Authentication](docs/AUTHENTICATION.md) covers origins, cookies, SSO, and proxies. [Operations](docs/OPERATIONS.md) covers Plex listeners, slskd imports, Data Hygiene, playlists, notifications, and local AI.
 
 ### Service apps
 

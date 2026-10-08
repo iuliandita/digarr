@@ -145,9 +145,9 @@ these relative weights with deterministic ties. Empty, invalid, or zero numeric
 evidence contributes no positive weight; missing genre tags stay unknown.
 
 Raw seed values remain source-dependent, not comparable play counts. Relative
-taste weights are neither probabilities nor evidence of a single dominant taste: a
-sparse source can give its single artist a strong relative weight. Guidance
-preserves distinct evidenced interests without recommendation quotas.
+taste weights do not measure probability or establish one dominant taste. A
+sparse source can give its single artist a strong relative weight. The AI
+guidance preserves distinct interests supported by the profile without setting recommendation quotas.
 
 After foreground pipeline work completes, a maintenance-aware warmer queues at
 most 10 stale or missing artists through the shared MusicBrainz rate gate. The
@@ -216,7 +216,11 @@ Extension points use registries or configuration maps:
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
 - `SearchSource` - multi-source artist / track search (Spotify, Deezer, MusicBrainz, TIDAL, Bandcamp)
 - `RecommendationProvider` - AI backends (Anthropic, OpenAI, Gemini, Ollama, ...)
-- `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, TIDAL Favorite Artists, ...). A new mode is a factory plus a `registry.register` line plus an availability entry; the frontend renders modes generically, so no frontend change is needed. Modes that just read a user's artist collection from an OAuth-connected provider are one `createUserArtistCollectionMode({ id, label, description, provider, fetchArtists })` spec (`modes/user-artist-collection.ts`), and modes gated on a single connection flag are one row in `SINGLE_FLAG_MODES` in `availability.ts` rather than a hand-written branch. An optional `stability: 'experimental'` on the definition (serialized by `GET /api/v1/discovery-modes`, defaulting to `stable`) badges the mode card without a per-mode frontend branch. TIDAL Favorite Artists remains experimental while live-account connect, refresh, and populated collection-result validation is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
+- `DiscoveryMode` - on-demand / savable discovery flows, registered in `src/core/discovery-modes/registry.ts` (ListenBrainz radio, Release Radar, Library Gap-Fill, Charts, Deezer Flow, Spotify Saved Albums, TIDAL Favorite Artists, ...). A new mode is a factory plus a `registry.register` line plus an availability entry; the frontend renders modes generically, so no frontend change is needed.
+
+  Modes that just read a user's artist collection from an OAuth-connected provider are one `createUserArtistCollectionMode({ id, label, description, provider, fetchArtists })` spec (`modes/user-artist-collection.ts`), and modes gated on a single connection flag are one row in `SINGLE_FLAG_MODES` in `availability.ts` rather than a hand-written branch.
+
+  An optional `stability: 'experimental'` on the definition (serialized by `GET /api/v1/discovery-modes`, defaulting to `stable`) badges the mode card without a per-mode frontend branch. TIDAL Favorite Artists remains experimental while live-account connect, refresh, and populated collection-result validation is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 - `NotificationChannel` - where notifications are delivered (webhook, ntfy, Telegram, Apprise), in `src/core/notifications/`. `registry.ts` fans one event out to every enabled, subscribed channel via `Promise.allSettled` (one channel down never blocks the others); each `channels/<type>.ts` formats its payload and calls the single SSRF-guarded `transport.ts`. A new type is a `channels/<type>.ts` module plus a union arm on `NotificationChannel`. The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest and masked (`***`) through the settings API
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`. `resolveProviderToken(db, userId, provider)` is the single entry point for Spotify, Deezer, and TIDAL; a provider without a `tokenEndpoint` (Deezer) is simply one that cannot refresh, rather than a separate code path. `authStyle` (`basic` or `body`) must match how that provider's authorization-code exchange authenticates, since a client accepts one style and not both. Failures raise `ProviderAuthError` with `reason: 'not_connected' | 'token_unusable'`, which is what lets discovery modes tell "never connected" from "token dead" instead of flattening both into one message. A new provider is one row here plus a callback handler in `src/server/routes/oauth-callbacks.ts`
 
@@ -352,7 +356,8 @@ three points, allowing multiple albums per artist to survive a single run:
 - Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
 
   The resolver supports local lookups, but the running app wires only Spotify,
-  Deezer, and MusicBrainz. Accepted `local` priorities do not search media
+  Deezer, and MusicBrainz. Spotify search is wired only for a user with a stored
+  Spotify OAuth connection; Deezer search needs no account. Accepted `local` priorities do not search media
   libraries ([#767](https://github.com/iuliandita/digarr/issues/767)).
 
   MusicBrainz recordings are the final MBID-based fallback. They supply titles

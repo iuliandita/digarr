@@ -23,9 +23,9 @@ The Compose examples expose port 3000 on all host interfaces. Restrict network a
 ### Embedded PGlite (recommended)
 
 ```sh
-mkdir digarr && cd digarr
-(set -C; umask 077 && printf 'DIGARR_ENCRYPTION_KEY=%s\n' "$(openssl rand -hex 32)" > digarr.env)
-docker run -d --name digarr -p 127.0.0.1:3000:3000 \
+mkdir digarr && cd digarr &&
+(set -C; umask 077 && key=$(openssl rand -hex 32) && printf 'DIGARR_ENCRYPTION_KEY=%s\n' "$key" > digarr.env) &&
+docker run -d --name digarr --restart unless-stopped -p 127.0.0.1:3000:3000 \
   --env-file ./digarr.env \
   -e ALLOWED_ORIGIN=http://localhost:3000 \
   -e DIGARR_ALLOW_INSECURE_COOKIES=true \

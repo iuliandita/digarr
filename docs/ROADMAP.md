@@ -8,7 +8,7 @@
 
 v1.19.0 adds optional genre priorities and playlist generation outcomes. It improves source-relative taste evidence, discovery seed selection, artist matching, and listening-history and preview failure explanations.
 
-Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Next, we want better recommendations, usable playlists, and clear reports of what reached each target. Security and reliability remain release requirements.
+Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Next priorities are better recommendations, usable playlists, and clear reports of what reached each target. Security and reliability remain release requirements.
 
 ## Shipped highlights
 
@@ -39,7 +39,7 @@ Planned direction, in this order. Make recommendations easier to hear and use be
 3. **Explain playlist outcomes.** Build on the shipped local per-artist generation outcomes to show submitted items, partial output, and failures for each target. Distinguish submitted tracks from verified delivery when a target supports verification. Strict local-generation matching and complete-release import checks remain required; media-server exports still have a [first-result substitution limitation](https://github.com/iuliandita/digarr/issues/758).
 4. **Control exploration and repetition.** Make familiar versus adventurous discovery understandable using existing controls first. Add recently played track exclusions where reliable history is available, with an explicit history window and missing-data behavior. Recording-level exclusions depend on preserving track identities; permanent blocks still take precedence.
 
-We can improve delivery reports while preserving track identities. Compare ranking and repetition changes with the baseline; more tracks do not prove better recommendations.
+Delivery reports can improve while preserving track identities. Compare ranking and repetition changes with the baseline; more tracks do not prove better recommendations.
 
 ## Exploring
 

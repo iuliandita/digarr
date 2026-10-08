@@ -14,7 +14,7 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 
 ## Prerequisites
 
-- Unraid 6.9+ with the **Community Applications** plugin installed
+- Unraid 6.9+. The **Community Applications** plugin is needed only for Option A.
 - Access to an AI provider or local model. Hosted providers need an API key; a local Ollama server does not. Configure this during setup.
 
 The first account becomes admin. Restrict access to the published port until setup is complete, or set `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before first startup. The template exposes the service on host interfaces unless you restrict the binding or firewall.
@@ -29,12 +29,12 @@ Digarr is published in the Community Applications store via the Selfhosters
 ### Option A: Community Applications store
 
 1. In the Unraid web UI go to **Apps** and search for **Digarr**.
-2. Click **Install** and fill in the configuration (see Step 2).
+2. Click **Install**, switch **Advanced View** on, and fill in the configuration (see Step 2).
 3. For direct HTTP, add `DIGARR_ALLOW_INSECURE_COOKIES=true` if the template lacks it: select **Add another Path, Port, Variable, Label or Device**, choose **Variable**, enter `DIGARR_ALLOW_INSECURE_COOKIES` as the Key and `true` as the Value, then select **Add**. With an HTTPS public origin, leave this override false.
-4. Set **Allowed Origin** to the exact browser origin, choose an initial password of at least 12 characters, then click **Apply**.
+4. Set **Allowed Origin** to the exact browser origin, generate and retain an **Encryption Key**, and choose an initial password of at least 12 characters. Then click **Apply**.
 
 The store template tracks the `latest` release tag, so **Check for Updates** on
-the Docker tab picks up new releases as they publish.
+the Docker tab picks up new releases as they publish. Older tag help calls this "Latest stable release", but `:latest` is distinct from the seven-day-soak `:stable` channel.
 
 ### Option B: User template (manual copy)
 
@@ -64,7 +64,9 @@ new releases through the `latest` tag.
 
 Switch **Advanced View** on in the container form to expose advanced fields. The bundled template includes Allowed Origin, Encryption Key, and Allow Insecure Cookies. Published store templates can lag behind it; use the add-variable steps above for any missing field.
 
-Corrections are proposed in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) and [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4); both were pending merge when checked on October 8, 2026. Check their status for subsequent updates. Older help omits the HTTP-cookie variable and has stale password, database encoding, origin, model, TLS, and webhook guidance. Follow the settings below, use at least 12 characters for the initial password, manually add `DIGARR_ALLOW_INSECURE_COOKIES` for direct HTTP, and change saved connections in the UI after setup.
+Corrections are proposed in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) and [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4); both were pending merge when checked on October 8, 2026. Check their status for subsequent updates.
+
+Older help omits the HTTP-cookie variable and has stale password, database encoding, origin, model, TLS, and webhook guidance. Follow the settings below, use at least 12 characters for the initial password, manually add `DIGARR_ALLOW_INSECURE_COOKIES` for direct HTTP, and change saved connections in the UI after setup.
 
 Set **Allowed Origin** before first login. For the default direct-HTTP WebUI, use `http://<server-ip>:<port>` and set **Allow Insecure Cookies** to `true`. For HTTPS through a reverse proxy, use its public HTTPS origin and leave the override false. Generate and retain an **Encryption Key** before saving service credentials.
 
@@ -162,13 +164,16 @@ Digarr passes an explicit `DATABASE_URL` unchanged. Percent-encode the username,
 
 ## Updating
 
-Digarr publishes multi-arch images (amd64 + arm64). To update from the Unraid
-**Docker** tab, click the container > **Check for Updates** (or **Force Update**)
-and apply. With the CA store template (Option A) the container tracks the
-`latest` release tag, so that is all there is to it. With the bundled template
-(Option B), edit the container and change its Repository field to the new
-release tag, then click **Apply**. Re-copy the template if you also want future
-containers to use that version.
+Digarr publishes multi-arch images (amd64 + arm64). Read the target release notes before updating; the store's moving `latest` tag can cross a database migration.
+
+For the embedded database:
+
+1. Stop Digarr from the Unraid Docker tab. Confirm it is stopped before copying database files.
+2. Copy the mapped data and backups folders to a separate backup location. Defaults are `/mnt/user/appdata/digarr/data` and `/mnt/user/appdata/digarr/backups`; use the actual host paths in your container settings. Keep the encryption key separately and record the current image version or digest. Copy the backup off the server too.
+3. With Option A, use **Check for Updates** or **Force Update**. With Option B, edit the Repository field to the desired release tag and click **Apply**. Re-copying the bundled template changes defaults for future containers.
+4. Start Digarr, check `/health` for its version and backend, and verify sign-in and saved connections.
+
+For external PostgreSQL, use a consistent full database backup instead of copying `/app/data`; that mapping is unused. Retain the original database or stopped data copy until the upgrade is verified. Rollback after a migration requires the previous image and its matching pre-upgrade database, plus the retained key. See [backup boundaries and recovery](switching-backends.md#backup-boundaries-and-recovery).
 
 ## Notes
 

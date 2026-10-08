@@ -229,7 +229,7 @@ Then recreate the container with the same volumes and key:
 ```sh
 docker pull docker.io/iuliandita/digarr:latest
 docker rm digarr
-docker run -d --name digarr -p 127.0.0.1:3000:3000 \
+docker run -d --name digarr --restart unless-stopped -p 127.0.0.1:3000:3000 \
   --env-file ./digarr.env \
   -e ALLOWED_ORIGIN=http://localhost:3000 \
   -e DIGARR_ALLOW_INSECURE_COOKIES=true \

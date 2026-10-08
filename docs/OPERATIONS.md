@@ -24,9 +24,23 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Listening-history cache | Rejected Digarr requests retain cached entries. A Digarr HTTP 200 response carrying `status: "error"` can replace them with an empty error state after a provider failure. [#770](https://github.com/iuliandita/digarr/issues/770). |
 | Helm database credentials | Chart-generated connection URLs do not encode credentials. Use URI-unreserved chart values, or a complete encoded DSN for a user-managed database. [#772](https://github.com/iuliandita/digarr/issues/772). |
 | Separate database settings | Only `DB_PASS` is URL-encoded automatically. Use URI-unreserved `DB_USER` and `DB_NAME` values, or a complete encoded `DATABASE_URL`. [#773](https://github.com/iuliandita/digarr/issues/773). |
+| Spotify playlist imports | Imports and recurring `spotify-playlist` subscriptions read only the embedded track page, omit later pages, and do not enforce `maxArtistsPerRun` in this adapter. [#779](https://github.com/iuliandita/digarr/issues/779). |
 | Deezer subscriptions | Token-resolution failures appear as successful empty feeds. Reconnect when expected artists disappear. Playlist feeds cap collection at 500 distinct artists. [#774](https://github.com/iuliandita/digarr/issues/774). |
 | Backend migration destination | The nonempty guard checks only users. Other destination data can be replaced without `overwrite=true` when no users exist. Use a fresh target or take a complete destination backup. [#775](https://github.com/iuliandita/digarr/issues/775). |
 | TIDAL | Experimental; no live-account authorization, refresh, or favorite-artist retrieval validation. See [app setup and feedback](AUTHENTICATION.md#tidal-app-setup). |
+
+## Job History and stuck jobs
+
+Admins can inspect Job History for failures and partial results. The stuck detector checks at startup and every five minutes. It marks a running job `stuck` when its elapsed time exceeds these fixed limits:
+
+| Job type | Time limit |
+|----------|------------|
+| Pipeline | 10 minutes |
+| Quick discovery or subscription | 5 minutes |
+| Target or playlist | 2 minutes |
+| Library sync | 90 minutes |
+
+This label does not stop the job or prove that it has stopped making progress. A slow, healthy run can cross the limit; check its progress before retrying.
 
 ## Unattended setup
 
@@ -38,7 +52,7 @@ Add playlist destinations in Settings > Targets, then select those targets in ea
 
 The global scheduling switch is API-only in v1.19.0; there is no web UI control. Scheduling requires an admin to enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`; it defaults to false. The Playlists page shows "Schedule paused" when scheduling is off and a cron is configured. Each playlist also needs `enabled: true` and a schedule. Manual generation works independently of the global switch.
 
-Playlists created in the web UI search Spotify, then Deezer. API playlists without a config search only Spotify; explicit `trackSourcePriority` controls which sources are tried. MusicBrainz is the final fallback for artists with an MBID. Although `local` is an accepted source priority, it performs no media-library lookup ([#767](https://github.com/iuliandita/digarr/issues/767)).
+Playlists created in the web UI search Spotify, then Deezer. API playlists without a config search only Spotify; explicit `trackSourcePriority` controls which sources are tried. Spotify search requires that user's stored Spotify OAuth connection. Deezer search needs no account. MusicBrainz is the final fallback for artists with an MBID. Although `local` is an accepted source priority, it performs no media-library lookup ([#767](https://github.com/iuliandita/digarr/issues/767)).
 
 Destination matching is separate from local generation. Navidrome, Jellyfin, Emby, and Plex currently fall back to the first search result when no exact artist/title match exists, so they can export a different track ([known limitation](https://github.com/iuliandita/digarr/issues/758)); inspect the remote playlist.
 
@@ -103,11 +117,15 @@ Digarr provides application-level backup and restore through the admin UI (Setti
 
 **Manual backup:** use `POST /api/v1/admin/backup?includeCaches=true` to include artists referenced by recommendations and artist blocks. The default export omits those artists and cannot recover referenced rows into an empty database. Even the cache-inclusive JSON omits album blocks, library snapshots/overrides, and slskd jobs; use a consistent database backup for complete recovery. See [backup boundaries and recovery](guides/switching-backends.md#backup-boundaries-and-recovery).
 
-**Restore:** `POST /api/v1/admin/restore?confirm=true` accepts backup JSON or a multipart `file` upload. It replaces the included tables in a transaction; it does not merge a backup into existing account data. Clearing users also cascades deletion into omitted user-owned tables, including album blocks and library state; omitted tables are not guaranteed to survive ([#757](https://github.com/iuliandita/digarr/issues/757)). Take a complete destination backup first and prefer restoring into a fresh database. An encryption-key mismatch returns `409` without restoring. Restore with the original key, or explicitly add `&force=true` and re-enter the affected credentials afterward.
+**Restore:** `POST /api/v1/admin/restore?confirm=true` accepts backup JSON or a multipart `file` upload. It replaces the included tables in a transaction; it does not merge a backup into existing account data. Clearing users also cascades deletion into omitted user-owned tables, including album blocks and library state; omitted tables are not guaranteed to survive ([#757](https://github.com/iuliandita/digarr/issues/757)).
+
+Take a complete destination backup first and prefer restoring into a fresh database. An encryption-key mismatch returns `409` without restoring. Restore with the original key, or explicitly add `&force=true` and re-enter the affected credentials afterward.
 
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
-**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss. Automatic backups have the same omissions as default JSON exports, and failure does not block migrations. Verify a usable, complete database backup before upgrading. Fresh databases skip this step. Disable automatic attempts with `DIGARR_AUTO_BACKUP=false`.
+**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss.
+
+Automatic backups have the same omissions as default JSON exports, and failure does not block migrations. Verify a usable, complete database backup before upgrading. Fresh databases skip this step. Disable automatic attempts with `DIGARR_AUTO_BACKUP=false`.
 
 **Upgrading to v1.19.0:** this release adds no database migrations relative to v1.18.0, so that upgrade creates no pre-migration automatic backup. Take a complete database backup before updating.
 

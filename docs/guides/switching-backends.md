@@ -34,7 +34,11 @@ The migration tool is for backend changes only. For selected application-data ex
   health scans, the stuck-job detector) skip their ticks while the lock is held,
   so scheduled jobs do not write during the copy. A job already running when the
   migration starts can still finish and write; wait for running jobs to complete
-  before migrating. Pause schedules and prevent other users from writing until cutover is complete. The built-in lock ends when the copy finishes, before you inspect the report or restart. Any later source writes are absent from the target; if writes resume, repeat the copy before switching. Treat this as a point-in-time copy, not continuous replication.
+  before migrating.
+
+Pause schedules and prevent other users from writing until cutover is complete. The built-in lock ends when the copy finishes, before you inspect the report or restart.
+
+Any later source writes are absent from the target. If writes resume, repeat the copy before switching. This is a point-in-time copy, not continuous replication.
 
 ---
 

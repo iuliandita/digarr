@@ -529,7 +529,7 @@ Path params:
 | POST | `/api/v1/subscriptions/:id/run` | Yes | Trigger manual run (202) |
 | GET | `/api/v1/subscriptions/:id/runs` | Yes | Run history |
 | POST | `/api/v1/subscriptions/import/spotify-liked-songs` | Yes | Create/reuse the helper Spotify Liked Songs subscription and trigger an import run (202) |
-| POST | `/api/v1/subscriptions/import/spotify-playlist` | Yes | Import from a Spotify playlist (accepts URL, URI, or bare ID). Returns 202. |
+| POST | `/api/v1/subscriptions/import/spotify-playlist` | Yes | Import the embedded track page from a Spotify playlist (URL, URI, or bare ID). Returns 202; later pages are omitted. |
 | POST | `/api/v1/subscriptions/import/csv` | Yes | Upload CSV of artist names (multipart form, field: `file`, max 1MB, 500 artists). Returns 202. |
 | POST | `/api/v1/subscriptions/import/deezer-favorites` | Yes | Create/reuse Deezer Favorites subscription and trigger import (202) |
 | POST | `/api/v1/subscriptions/import/deezer-followed` | Yes | Create/reuse Deezer Followed Artists subscription and trigger import (202) |
@@ -538,6 +538,8 @@ Path params:
 | GET | `/api/v1/subscriptions/adapter-types` | Yes | Available adapter types with config schemas |
 | GET | `/api/v1/subscriptions/scheduler` | Yes | Scheduler job status, scoped to the calling user's own subscriptions |
 | POST | `/api/v1/subscriptions/bulk-toggle` | Yes | Enable/disable all subscriptions |
+
+Spotify playlist imports and recurring `spotify-playlist` subscriptions read only the playlist response's embedded `tracks.items` page. They do not paginate or enforce `maxArtistsPerRun` through this adapter, so later artists may be omitted and the configured cap may be exceeded ([#779](https://github.com/iuliandita/digarr/issues/779)).
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer` (with `sourceConfig.feedType` of `favorites`, `followed`, `flow`, or `playlists`; `playlistIds` supplies comma-separated IDs for `playlists`), `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
 
@@ -678,7 +680,7 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 
 Creation requires a trimmed, nonempty `name` (up to 200 characters) and a listed strategy. `targetIds` accepts up to 50 positive integer database IDs, not prefixed target strings; omission means no remote exports. `schedule` is a supported cron expression or null, defaulting to null. `enabled` defaults to true. `config` may include `genre` for `genre_focus` or `mood` for `mood_mix`.
 
-When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. A supplied config object is not merged with defaults: include both `size` and `trackSourcePriority` (`local`, `spotify`, or `deezer`). The API accepts arbitrary config keys and values without validating their contents. Partial objects or invalid source priorities can fail generation ([#764](https://github.com/iuliandita/digarr/issues/764)).
+When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. Spotify search requires that user's stored Spotify OAuth connection. Deezer search needs no account. A supplied config object is not merged with defaults: include both `size` and `trackSourcePriority` (`local`, `spotify`, or `deezer`). The API accepts arbitrary config keys and values without validating their contents. Partial objects or invalid source priorities can fail generation ([#764](https://github.com/iuliandita/digarr/issues/764)).
 
 **PATCH /api/v1/playlists/:id** accepts optional versions of the same fields and rejects unknown top-level fields. Omitted fields remain unchanged; `config` replaces the whole object. Example:
 
@@ -979,7 +981,7 @@ Both listening endpoints return `status`: `not_configured` means no eligible sou
 
 **GET /api/v1/jobs** query params:
 - `type` - `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`
-- `status` - `running`, `completed`, `failed`, `stuck`
+- `status` - `running`, `completed`, `failed`, `stuck`; see [stuck-job time limits](OPERATIONS.md#job-history-and-stuck-jobs)
 - `limit` - 1-100 (default 50)
 - `offset` - pagination offset (minimum 0)
 - Invalid `type` or `status` values return `400`
@@ -1117,7 +1119,20 @@ Sessions, rate-limit counters, and pending OAuth transactions are excluded; sign
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`, or `502 { ok: false, code, error }` on failure. |
-| POST | `/api/v1/admin/migrate-backend` | Admin | Run the copy. Body: `{ target, overwrite? }`. Returns the `MigrationReport` `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }` **only on `200`**. All error statuses use the `application/problem+json` envelope `{ type, title, status, code, ... }`: a verification failure is `422 code: migration_verify_failed` (the full report rides under a `report` extension); `409 code: pipeline_running` when a pipeline is running; `409 code: migration_in_progress` when a migration is already running; `409 code: target_not_empty` when the target has users and `overwrite` is false. This check does not protect other destination data when no users exist ([#775](https://github.com/iuliandita/digarr/issues/775)); `409 code: same_database` when source and target identify the same database; the same-process copy keeps encrypted values unchanged and has no source/target key-mismatch check. Retain the running encryption key when restarting on the new backend. |
+| POST | `/api/v1/admin/migrate-backend` | Admin | Copy data. Body: `{ target, overwrite? }`. Success returns `MigrationReport`; errors use the problem envelope described below. |
+
+A successful copy returns `200` with `MigrationReport`: `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }`. Errors use `application/problem+json` with `{ type, title, status, code, ... }`:
+
+| Status | Code | Meaning |
+|--------|------|---------|
+| 422 | `migration_verify_failed` | Verification failed; the full report is in the `report` extension. |
+| 409 | `pipeline_running` | A pipeline is running. |
+| 409 | `migration_in_progress` | Another migration is running. |
+| 409 | `target_not_empty` | The target has users and `overwrite` is false. Other destination data is not protected when no users exist ([#775](https://github.com/iuliandita/digarr/issues/775)). |
+| 409 | `same_database` | Source and target identify the same database. |
+
+The same-process copy preserves encrypted values and has no source/target key-mismatch check. Retain the running encryption key when restarting on the new backend.
+
 
 ### Data hygiene
 
