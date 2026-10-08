@@ -197,12 +197,20 @@ Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 
-OIDC sign-ins are matched to local accounts by the issuer-scoped subject
-(`oidcSubject`) only. The matching order is:
+OIDC sign-ins are matched to local accounts by the raw `sub` claim stored in
+`oidcSubject`. Digarr v1.19.0 does not store the issuer alongside that subject.
+The matching order is:
 
-1. Match by stored `oidcSubject` (issuer-scoped id; the only safe key).
+1. Match by stored `oidcSubject`.
 2. Fall through and auto-create a new local user (the OIDC-provided email is
    stored on the new account).
+
+Subjects are unique within an issuer, not across providers. Keep the configured
+issuer unchanged for existing OIDC accounts. Changing it requires a reviewed
+identity migration: if the replacement provider returns a subject already stored
+in Digarr, sign-in selects that existing account. Digarr does not provide an
+automatic migration or an issuer-change guard. Track the missing issuer binding
+in [#799](https://github.com/iuliandita/digarr/issues/799).
 
 Digarr deliberately does **not** auto-link an OIDC identity to an existing
 local account by matching the `email` claim. A local account's email can be
@@ -343,7 +351,7 @@ TIDAL uses a single app registered by an admin, which every user then authorizes
 
 Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
 
-Each user's connection stores a copy of the app credentials it was made with, so **rotating the shared TIDAL client ID or secret breaks every existing connection.** A still-valid access token may continue to work until it expires; refresh can then fail and require reconnection. After rotating credentials, every user must disconnect and reconnect TIDAL once.
+Each user's connection stores a copy of the app credentials it was made with. Changing the shared client ID or secret in Digarr does not update those existing connections; they continue refreshing with their saved credentials. Disconnect and reconnect each account to adopt the new credentials. If the old credentials are revoked or invalidated at TIDAL, existing connections can fail at refresh even while an unexpired access token still works.
 
 ### TIDAL feedback
 
