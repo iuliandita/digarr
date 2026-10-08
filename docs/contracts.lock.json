@@ -258,7 +258,7 @@
     "api": {
       "files": {
         "src/server/deps.ts": "408d364bc0a4725323c8014a891cd93a49438cf4abbd9de7270e822dcbde90c1",
-        "src/server/helpers/openapi-doc.ts": "de99cc9d51a225011b66fa0085c5a017a25abd1b9ad5d3ecd97cb443b7a90ff9",
+        "src/server/helpers/openapi-doc.ts": "4ae843795a863a74ec12b5893057f37ea90cf6e43eee2f083fda8fdd39af6f4f",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
@@ -308,14 +308,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "2095f0ba47381db9bf378cee79cc8ef45149d1c9267ba22b8fc5eca2fed2e21f",
+      "digest": "3e65cce7570f558b303f79bf662da9d78e6bfa9f5bae2b57919d9ccc6dae9229",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts"],
-        "note": "Correct the OpenAPI positive batch ID constraint and artist-block pagination clamping to match existing handlers.",
+        "note": "Document CSRF rejection responses alongside registration JSON errors and clarify current account, preference, feedback, and cancellation contracts.",
         "breaking": "none",
         "migration": "",
-        "digest": "2095f0ba47381db9bf378cee79cc8ef45149d1c9267ba22b8fc5eca2fed2e21f"
+        "digest": "3e65cce7570f558b303f79bf662da9d78e6bfa9f5bae2b57919d9ccc6dae9229"
       }
     },
     "interface": {
@@ -688,7 +688,7 @@
         "deploy/docker/docker-compose.yml": "852164adde7874412aa8a87d3af67507ecab95132cb234c7de28a7811a66177e",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
-        "deploy/helm/digarr/templates/NOTES.txt": "04d323230d2f57d3b9d7db5261fd0f38b23478ee4ed15d53564c910d0b7796db",
+        "deploy/helm/digarr/templates/NOTES.txt": "83102f19b9900907f1237e71dd44bd82f700a5de0f07ea23b41a35a40003fab6",
         "deploy/helm/digarr/templates/_helpers.tpl": "ae4d58ef8e9bbad3f5338545818c02c0c69a044f2b20b1fa834ac03ea7a6b507",
         "deploy/helm/digarr/templates/configmap.yaml": "c81c45f728ae64d9a4bb9fbf3efcadefc197c87b7d73b46312247e40f7fd6567",
         "deploy/helm/digarr/templates/deployment.yaml": "7b0f25480d7bbb1b5158c147914049c591bad000c5b7498346ad56a5ccc69b1c",
@@ -714,14 +714,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "0dfb34db7fce66d246abc636c55f5196af0a79f4d2f9ba813406ad58411fc551",
+      "digest": "1c5fc57f6863086a7a7913c7509e8f544b9c4e0cb805712671e859d90ce67cc5",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Normalize only the automatic Compose minor-release comment pin while retaining container settings and deployment defaults.",
+        "outcome": "docs-updated",
+        "docs": ["deploy/helm/digarr/README.md"],
+        "note": "Require first-admin access restrictions before exposing Helm deployments, including installations configured with environment bootstrap credentials.",
         "breaking": "none",
         "migration": "",
-        "digest": "0dfb34db7fce66d246abc636c55f5196af0a79f4d2f9ba813406ad58411fc551"
+        "digest": "1c5fc57f6863086a7a7913c7509e8f544b9c4e0cb805712671e859d90ce67cc5"
       }
     },
     "release": {
