@@ -697,9 +697,9 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 
 Creation requires a trimmed, nonempty `name` (up to 200 characters) and a listed strategy. `targetIds` accepts up to 50 positive integer database IDs, not prefixed target strings; omission means no remote exports. `schedule` is a supported cron expression or null, defaulting to null. `enabled` defaults to true. `config` may include `genre` for `genre_focus` or `mood` for `mood_mix`.
 
-When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. Spotify search requires that user's stored Spotify OAuth connection. Deezer search needs no account. A supplied config object is not merged with defaults: include both `size` and `trackSourcePriority` (`local`, `spotify`, or `deezer`). The API accepts arbitrary config keys and values without validating their contents. Partial objects or invalid source priorities can fail generation ([#764](https://github.com/iuliandita/digarr/issues/764)).
+When `config` is absent or null, generation defaults to size 25 and source priority `["spotify"]`, with MusicBrainz as the final MBID-based fallback. Supplied objects also receive those defaults for omitted fields. `size` must be a positive integer; `trackSourcePriority` is an array of `local`, `spotify`, or `deezer`, including an empty array for MusicBrainz-only fallback. Optional `genre` and `mood` are strings. Unknown config keys and invalid values return `400` before saving. Spotify search requires that user's stored Spotify OAuth connection; Deezer search needs no account. Existing partial saved configs receive the same defaults during generation; invalid saved configs fail generation before replacing local tracks or exporting.
 
-**PATCH /api/v1/playlists/:id** accepts optional versions of the same fields and rejects unknown top-level fields. Omitted fields remain unchanged; `config` replaces the whole object. Example:
+**PATCH /api/v1/playlists/:id** accepts optional versions of the same fields and rejects unknown top-level fields. Omitted fields remain unchanged; a supplied `config` object replaces the whole object and fills omitted fields with defaults, while `config: null` resets it to runtime defaults. Example:
 
 ```json
 {

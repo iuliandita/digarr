@@ -18,7 +18,7 @@ import {
   updatePlaylist,
 } from '@/db/queries/playlists'
 import { getSettings } from '@/db/queries/settings'
-import { mergePreferences, type PlaylistConfig } from '@/db/schema'
+import { mergePreferences } from '@/db/schema'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
@@ -145,7 +145,7 @@ export function playlistRoutes(deps: PlaylistDeps) {
       strategy: body.strategy,
       targetIds: body.targetIds ?? [],
       schedule: body.schedule ?? null,
-      config: (body.config ?? null) as PlaylistConfig | null,
+      config: body.config ?? null,
       enabled: body.enabled ?? true,
     }
 

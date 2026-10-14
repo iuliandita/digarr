@@ -241,6 +241,117 @@ describe('POST /api/v1/playlists', () => {
   })
 })
 
+describe('playlist configuration writes', () => {
+  const methods = ['POST', 'PATCH'] as const
+  const requestBody = (method: (typeof methods)[number], config: unknown) => ({
+    ...(method === 'POST' ? { name: 'My Mix', strategy: 'weekly_digest' } : {}),
+    config,
+  })
+  const requestPath = (method: (typeof methods)[number]) =>
+    method === 'POST' ? '/api/v1/playlists' : '/api/v1/playlists/1'
+
+  it.each(
+    methods.flatMap((method) => [
+      { method, config: {}, expected: { size: 25, trackSourcePriority: ['spotify'] } },
+      { method, config: { size: 5 }, expected: { size: 5, trackSourcePriority: ['spotify'] } },
+      {
+        method,
+        config: { genre: 'rock' },
+        expected: { size: 25, genre: 'rock', trackSourcePriority: ['spotify'] },
+      },
+      {
+        method,
+        config: { mood: '' },
+        expected: { size: 25, mood: '', trackSourcePriority: ['spotify'] },
+      },
+      {
+        method,
+        config: { trackSourcePriority: [] },
+        expected: { size: 25, trackSourcePriority: [] },
+      },
+      {
+        method,
+        config: { trackSourcePriority: ['local', 'deezer', 'spotify'] },
+        expected: { size: 25, trackSourcePriority: ['local', 'deezer', 'spotify'] },
+      },
+    ]),
+  )('$method saves canonical config for $config', async ({ method, config, expected }) => {
+    const { createPlaylist, getPlaylistWithTracks, updatePlaylist } = vi.mocked(
+      await import('@/db/queries/playlists'),
+    )
+    getPlaylistWithTracks.mockResolvedValue({
+      playlist: {
+        ...mockPlaylist,
+        config: { size: 88, mood: 'old', trackSourcePriority: ['local'] },
+      },
+      tracks: [],
+    } as never)
+    const deps = makeDeps()
+    const res = await createTestApp(deps, USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(method === 'POST' ? 201 : 204)
+    const saved =
+      method === 'POST' ? createPlaylist.mock.calls[0]?.[1] : updatePlaylist.mock.calls[0]?.[2]
+    expect(saved).toHaveProperty('config', expected)
+    expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
+  })
+
+  it.each(
+    methods.flatMap((method) => [
+      { method, config: undefined },
+      { method, config: null },
+    ]),
+  )('$method preserves omitted/null config $config', async ({ method, config }) => {
+    const { createPlaylist, updatePlaylist } = vi.mocked(await import('@/db/queries/playlists'))
+    const res = await createTestApp(makeDeps(), USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(method === 'POST' ? 201 : 204)
+    const saved =
+      method === 'POST' ? createPlaylist.mock.calls[0]?.[1] : updatePlaylist.mock.calls[0]?.[2]
+    if (method === 'PATCH' && config === undefined) {
+      expect(saved).not.toHaveProperty('config')
+    } else {
+      expect(saved).toHaveProperty('config', null)
+    }
+  })
+
+  it.each(
+    methods.flatMap((method) =>
+      [
+        { size: 0 },
+        { size: -1 },
+        { size: 1.5 },
+        { size: '25' },
+        { size: null },
+        { trackSourcePriority: 'spotify' },
+        { trackSourcePriority: ['invalid'] },
+        { genre: 1 },
+        { mood: null },
+        { unknown: true },
+        [],
+      ].map((config) => ({ method, config })),
+    ),
+  )('$method rejects invalid config $config before writes', async ({ method, config }) => {
+    const { createPlaylist, updatePlaylist } = vi.mocked(await import('@/db/queries/playlists'))
+    const deps = makeDeps()
+    const res = await createTestApp(deps, USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(400)
+    expect(createPlaylist).not.toHaveBeenCalled()
+    expect(updatePlaylist).not.toHaveBeenCalled()
+    expect(deps.restartPlaylistScheduler).not.toHaveBeenCalled()
+  })
+})
+
 describe('GET /api/v1/playlists/:id', () => {
   it('returns playlist with tracks for owner', async () => {
     const app = createTestApp(makeDeps(), USER_ID)

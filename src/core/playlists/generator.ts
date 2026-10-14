@@ -1,4 +1,5 @@
-import type { PlaylistStrategy } from '@/db/schema'
+import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
+import { normalizePlaylistConfig } from './config'
 import { auditionStrategy } from './strategies/audition'
 import { genreFocusStrategy } from './strategies/genre-focus'
 import { moodMixStrategy } from './strategies/mood-mix'
@@ -43,32 +44,28 @@ export function getStrategy(strategy: PlaylistStrategy): PlaylistStrategyImpl {
 
 export async function generatePlaylist(
   strategy: PlaylistStrategy,
-  config: {
-    size: number
-    genre?: string
-    mood?: string
-    trackSourcePriority: ('local' | 'spotify' | 'deezer')[]
-  },
+  config: Partial<PlaylistConfig> | null | undefined,
   strategyDeps: StrategyDeps,
   resolverDeps: TrackResolverDeps,
 ): Promise<GenerationResult> {
+  const normalizedConfig = normalizePlaylistConfig(config)
   const impl = getStrategy(strategy)
 
   const artists = await impl.selectArtists(strategyDeps, {
-    size: config.size,
-    genre: config.genre,
-    mood: config.mood,
+    size: normalizedConfig.size,
+    genre: normalizedConfig.genre,
+    mood: normalizedConfig.mood,
   })
 
   const resolverConfig: TrackResolverConfig = {
     tracksPerArtist: strategy === 'audition' ? 1 : 3,
-    sourcePriority: config.trackSourcePriority,
+    sourcePriority: normalizedConfig.trackSourcePriority,
   }
 
   const results = await resolvePlaylistTracksDetailed(artists, resolverDeps, resolverConfig)
   const tracks: ResolvedTrack[] = []
   const outcomes = results.map((result) => {
-    const included = result.tracks.slice(0, Math.max(0, config.size - tracks.length))
+    const included = result.tracks.slice(0, Math.max(0, normalizedConfig.size - tracks.length))
     tracks.push(...included)
     return {
       ...result.outcome,

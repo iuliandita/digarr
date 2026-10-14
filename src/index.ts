@@ -1062,15 +1062,9 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
 
     const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
     const resolverDeps = await buildPlaylistResolverDeps(playlist.userId ?? null)
-    const cfg = playlist.config ?? { size: 25, trackSourcePriority: ['spotify' as const] }
     const generation = await generatePlaylist(
       playlist.strategy as import('./db/schema').PlaylistStrategy,
-      {
-        size: cfg.size,
-        genre: cfg.genre,
-        mood: cfg.mood,
-        trackSourcePriority: cfg.trackSourcePriority,
-      },
+      playlist.config,
       strategyDeps,
       resolverDeps,
     )

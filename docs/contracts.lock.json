@@ -275,7 +275,7 @@
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
         "src/server/routes/pipeline.ts": "853d46fdc27ad6836268983ed08c6841dba76ab8d7cb5ce69f7456f61c7dfdc5",
-        "src/server/routes/playlists.ts": "c423b22fa179794098dd6ba3b61b46da6224b70c2eb53e3a3a1dab68fd42dfbd",
+        "src/server/routes/playlists.ts": "0511301b0b0de6473c495f38b5d4c261380d787d10e7b1e18d79a970a5a027be",
         "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "8af46d9a67e722de408b7fc8e3e20bafd51be214f460138fd921827e41d5d8a0",
@@ -289,7 +289,7 @@
         "src/server/schemas/migrate.ts": "b2761fffa76049466f2a68870bedb256cfcce50e5d77c713b1145097b9964c43",
         "src/server/schemas/mood.ts": "0c4176694194f59f41ccfc371d588b182c2fde592fcf880e3a3d97334e0f3a8a",
         "src/server/schemas/pipeline.ts": "2eade1dd585f9a0acc72a22a1ddd831887bb3b194c9acf7a5ea08c84a9dc24e2",
-        "src/server/schemas/playlists.ts": "5d9ad843bea7549abf2a56d5000aed2816641d03dbf14d7e2dd104e0c94421d9",
+        "src/server/schemas/playlists.ts": "a9453e87a6e7fb7a3c770074bd30bce469c024c48b5d5dc8085d1b37a5890c65",
         "src/server/schemas/recommendations.ts": "e6ded59221e26bac355bfd8d6ba556fdf08e2f5ca15051ac92cb641a7f3350d4",
         "src/server/schemas/settings.ts": "cf51c8467c8c485bac6b0a53cfd3dafe2cbf223133c8da8913b0b050550060b8",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
@@ -298,14 +298,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "c16387c76986d16a3561be7b94b7995a942b575035f53ddbba6106c988e9ded9",
+      "digest": "93de67089432762db789443eee6e05227d0d1c0a8d903aec58b973a76642aae4",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Notification channel IDs must be unique; duplicate saves return400. Runtime delivery positions are server-owned, hidden from all settings responses and cannot be edited via PATCH. Channel identity lifecycle documented.",
-        "breaking": "Duplicate notification channel IDs are rejected instead of being saved; existing ambiguous IDs are skipped by digest delivery until corrected.",
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Playlist create and update validate nested configuration and fill omitted size/source fields. API documentation preserves replacement semantics and null resets, and records invalid legacy generation failures before writes.",
+        "breaking": "Invalid values and unknown nested config keys now return 400 instead of being stored; existing valid partial objects receive defaults.",
         "migration": "",
-        "digest": "c16387c76986d16a3561be7b94b7995a942b575035f53ddbba6106c988e9ded9"
+        "digest": "93de67089432762db789443eee6e05227d0d1c0a8d903aec58b973a76642aae4"
       }
     },
     "interface": {
@@ -568,8 +568,9 @@
         "src/core/pipeline/store.ts": "0178d5aa0c75acddf18323a812126eb56e226fb4d07ddb4e553a67a303d95bb6",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
+        "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "38b1593927d0a72806f8a95bd64aab78c310f515d1c36b11fcbfba873527517e",
-        "src/core/playlists/generator.ts": "e8a0ab48203b7041b06b78a299d5057bf7b4f7d9a391486eb2622b843709a5f9",
+        "src/core/playlists/generator.ts": "9bcd7bf0088fd9c6b08b1ba66833fae48e31514e44733e4f82d20fe833f9cf85",
         "src/core/playlists/scheduler.ts": "d99b30a85702aeeccd3d2aa30e066ff15ab3aecf1ec47b4aee4f14dcb17091d1",
         "src/core/playlists/strategies/audition.ts": "a5b9997f4b54afd2c763bbf7180fe706aa9488171c43bb2b80d5445724f95e88",
         "src/core/playlists/strategies/genre-focus.ts": "4393801b18ea5d733ef2233bb5908d2b1271e41355ef864d95eda63418caa535",
@@ -654,17 +655,17 @@
         "src/core/types.ts": "7174f034d84b181799a1c530404962bac02d39bc580313c1ccc6daf9b6321f1e",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "9823dcdc61781ae401c71d64b41bf2814067e97d7005e57e6a69d6526ce44ede",
+        "src/index.ts": "dffde9ba377389cccb04cc4059808975437e5a7e88f78a304e8c0ba051bd6af2",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "48c5b7a051b447b964aea3e4d1be7eaf2d7b0eacb83b5c8f5628744a97bed5ba",
+      "digest": "2befd2e05e24b638950a93bf8bbcce56121ae33ce66ebbd2cedc980f5cc28368",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Per-channel durable positions retain failed windows; first starts persist before sends, confirmed success or zero activity advances own position. SQLNULL bootstrap occurs at startup and active ticks after a legacy restore. Shared process guard survives scheduler restart; pauses/tombstones/new IDs/legacy bootstrap and at-least-once crash boundary documented. No layout or UI string changes.",
-        "breaking": "Failed channels retry expanded aggregate windows independently; same channel ID retains its delivery position through endpoint edits and removal/re-addition.",
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Generation shares save-time normalization, applies defaults to legacy partial configs, preserves explicit empty priorities and optional strings, and rejects invalid saved configuration before track replacement or export. No database or deployment contract changes.",
+        "breaking": "Invalid saved configurations fail generation before local replacement or remote export; correct their values through the playlist API.",
         "migration": "",
-        "digest": "48c5b7a051b447b964aea3e4d1be7eaf2d7b0eacb83b5c8f5628744a97bed5ba"
+        "digest": "2befd2e05e24b638950a93bf8bbcce56121ae33ce66ebbd2cedc980f5cc28368"
       }
     },
     "deployment": {

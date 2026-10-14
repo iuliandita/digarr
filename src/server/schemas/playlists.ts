@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { playlistConfigSchema } from '@/core/playlists/config'
 import { cronSchema } from './subscriptions'
 import { idParamSchema } from './validator'
 
@@ -21,7 +22,7 @@ export const createPlaylistSchema = z.object({
   strategy: playlistStrategySchema,
   targetIds: z.array(z.number().int().positive()).max(50).optional(),
   schedule: cronSchema.nullable().optional(),
-  config: z.record(z.string(), z.unknown()).nullable().optional(),
+  config: playlistConfigSchema.nullable().optional(),
   enabled: z.boolean().optional(),
 })
 
@@ -31,7 +32,7 @@ export const updatePlaylistSchema = z
     strategy: playlistStrategySchema.optional(),
     targetIds: z.array(z.number().int().positive()).max(50).optional(),
     schedule: cronSchema.nullable().optional(),
-    config: z.record(z.string(), z.unknown()).nullable().optional(),
+    config: playlistConfigSchema.nullable().optional(),
     enabled: z.boolean().optional(),
   })
   .strict()

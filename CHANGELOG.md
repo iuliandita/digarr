@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Apply playlist size and source defaults to partial config objects at save and generation time. Reject invalid values and unknown keys before saving, and fail invalid legacy configs before replacing tracks or exporting. PATCH still replaces the supplied config object; null resets to runtime defaults. No database migration is added. [#764](https://github.com/iuliandita/digarr/issues/764).
+
 - Stop startup when a configured database secret file cannot be read, with an error naming only the variable. Keep direct-value precedence and readable-file trimming/empty behavior; unreadable files no longer silently act as unset configuration. Verify mounts and read permissions before restarting. No database migration is added; rollback restores the previous silent fallback. [#763](https://github.com/iuliandita/digarr/issues/763).
 
 - Keep digest delivery positions per channel so a successful channel cannot discard a failed channel's window. Persist the first start before sending, pause disabled channels, and retain positions across edits, restarts and backups. Adds a nullable settings column; existing-schema upgrades require a verified native backup and the explicit automatic-backup override described in the recovery guide. Rollback requires the previous image's matching native backup. Live restores of older backups initialize from their restored legacy position on the next scheduled tick. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762), [#821](https://github.com/iuliandita/digarr/issues/821).
