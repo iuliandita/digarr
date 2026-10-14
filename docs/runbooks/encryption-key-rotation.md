@@ -17,13 +17,13 @@ open its live data directory.
 Rotation touches these columns:
 
 - `settings.lidarr_api_key`, `settings.ai_api_key`, `settings.audiodb_api_key`, `settings.oidc_client_secret`, `settings.tidal_client_secret`
-- `settings.preferences.fanartApiKey` (nested in jsonb)
+- `settings.preferences.fanartApiKey` and `users.preferences.fanartApiKey` (nested in jsonb)
 - Encrypted fields in `settings.preferences.channels`, including webhook URLs, Telegram bot tokens, ntfy tokens, and Apprise URLs
 - `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`, `users.subsonic_password`
 - `oauth_tokens.access_token`, `oauth_tokens.refresh_token`, `oauth_tokens.client_secret`
 - `targets.config` (any `enc:v1:`-prefixed string values)
 
-**v1.19.0 exclusion:** the script does not scan `users.preferences`, including per-user `fanartApiKey` ([issue #760](https://github.com/iuliandita/digarr/issues/760)). A successful script pass does not verify those values. While both keys remain available, re-enter and save affected per-user credentials under the new primary key. Independently verify them with only the new key before retiring the fallback; if you cannot verify them, retain it.
+**Legacy v1.19.0 tool:** it omits `users.preferences`, including per-user `fanartApiKey` ([issue #760](https://github.com/iuliandita/digarr/issues/760)). Use the updated tool for both passes; it scans sensitive preferences in both settings and users. If still using the old tool, re-enter and save affected per-user credentials while both keys remain available, and independently verify them with only the new key before retiring the fallback. Retain it when verification is incomplete.
 
 OIDC provider tokens are not retained and therefore have no rotation site.
 
@@ -150,19 +150,19 @@ Adding a key does not encrypt previously saved plaintext credentials. After sett
 
    Re-run the same Compose command from step 4 with
    `--env-from-file "$HOME/.config/digarr/rotation/verify.env"`. This pass
-   checks registered encrypted values, including notification channels, but excludes per-user preferences as noted above. It re-encrypts
+   checks registered encrypted values, including notification channels and sensitive preferences in both settings and users. It re-encrypts
    them with fresh IVs and exits nonzero if any value still requires the old key.
 
-6. **Restart with both keys and re-save excluded credentials.** After both script passes succeed, restart the app with the new key as primary and the old key as NEXT:
+6. **Restart with both keys.** After both script passes succeed, restart the app with the new key as primary and the old key as NEXT:
 
    ```dotenv
    DIGARR_ENCRYPTION_KEY=<new>
    DIGARR_ENCRYPTION_KEY_NEXT=<old>
    ```
 
-   Have affected users re-enter and save excluded per-user credentials, including `users.preferences.fanartApiKey`. Supply the actual value; a masked placeholder can preserve the old ciphertext. These writes now use the new primary key.
+   The updated tool already rewrites registered per-user preference secrets in both passes. If either pass failed, keep both keys and repair the reported values before proceeding; a successful app restart alone does not verify rotation.
 
-7. **Verify the running app with only the new key.** During a controlled maintenance window, restart with the new primary and NEXT unset or explicitly empty. Independently exercise every encrypted storage site, including the excluded per-user preferences, service connections, OAuth refreshes, targets, and notification channels. The script alone cannot verify the excluded sites. Ensure pending provider connect attempts have completed or expired; restart unfinished attempts under the new key.
+7. **Verify the running app with only the new key.** During a controlled maintenance window, restart with the new primary and NEXT unset or explicitly empty. Independently exercise the registered encrypted storage sites, including per-user preferences, service connections, OAuth refreshes, targets, and notification channels. Script success verifies ciphertext readability, not that upstream credentials still work. Ensure pending provider connect attempts have completed or expired; restart unfinished attempts under the new key.
 
    If any credential fails or cannot be verified, restore the old key as NEXT and restart. Correct or re-save the affected value under the new primary, then repeat the new-key-only verification. Keep the runtime fallback until all sites have passed.
 
@@ -184,4 +184,4 @@ row-by-row, so the database may contain ciphertext written by either key. Fix
 the reported rows and rerun step 4, or restore the pre-rotation backup. Do not
 remove either runtime key until the script checks in step 5 and the running-app checks in step 7 succeed.
 
-After step 8, reverse rotation is possible if both keys are retained: configure the old key as primary and the new key as fallback, then repeat re-encryption and verify the excluded storage sites. If the required key is unavailable or the data cannot be repaired, restore a compatible complete database backup. See [recovery boundaries](../guides/switching-backends.md#backup-boundaries-and-recovery) and [application restore](../OPERATIONS.md#backup--restore).
+After step 8, reverse rotation is possible if both keys are retained: configure the old key as primary and the new key as fallback, then repeat both script passes and running-app verification. Pending provider transactions still need to complete or expire. If the required key is unavailable or the data cannot be repaired, restore a compatible complete database backup. See [recovery boundaries](../guides/switching-backends.md#backup-boundaries-and-recovery) and [application restore](../OPERATIONS.md#backup--restore).

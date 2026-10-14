@@ -134,7 +134,7 @@
         "drizzle/meta/_journal.json": "ec530e797e6deeccc4fc641ed5eba00ee0749b7ad0146b91a31267a56a5c51fb",
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
-        "scripts/rotation-sites.ts": "8be01a7045ff111a13b4a9bea0255a2a3ff8ec3b506aedd24a88a0971219af83",
+        "scripts/rotation-sites.ts": "17a11f3c319771e7fa54dc65f196a262ad89d0ae1b06afb7f3e3f0afd9de6f5e",
         "src/core/ops/backup.ts": "5195fa837b1c454255781153a2c0bdde21c3763120b756b6fbb0ca3d66f02a5c",
         "src/core/ops/cron-scheduler.ts": "98d5c7888eb6112adf6ae7fd6d1ce0c9cc549e51836d87ea79de704ee527a9f1",
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
@@ -172,14 +172,14 @@
         "src/db/schema.ts": "d1576f6141ccc3d06e9cb5cfec12222ed45d584373f45e2aa9d6ab17f148bb5a",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "32528345898f0001d202eeb3ac0ffd47c74bb407e82f787c90aaf0bdc3d38db5",
+      "digest": "128e2cfc4afc2443daedaa7033c770afe758e486e57b721d12351452a523158e",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Default consistent snapshots include persistent state and artist dependencies; legacy partial restore checks reject omitted dependent state before writes, and pre-migration backup failures stop startup. Recovery guides retain native backups and keys for exact rollback and describe the older-schema override.",
-        "breaking": "Required automatic-backup failure now blocks migrations; unsafe partial JSON restores return 422 before writes.",
-        "migration": "No schema migration is added. Verify a native database backup and retain the matching key and previous image before an older-schema upgrade; explicitly disable automatic backup only for that verified upgrade and re-enable afterward. Schema rollback uses the matching native backup.",
-        "digest": "32528345898f0001d202eeb3ac0ffd47c74bb407e82f787c90aaf0bdc3d38db5"
+        "docs": ["docs/runbooks/encryption-key-rotation.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Both rotation passes now include encrypted sensitive preferences in settings and users. The runbook keeps pending OAuth exclusions, a no-write window, exact-key retention, primary-only verification, and runtime credential checks; the legacy tool limitation is version-qualified.",
+        "breaking": "none",
+        "migration": "Upgrade the rotation tool before running both passes; no schema migration is added. Retain a verified consistent pre-rotation backup and both exact keys until primary-only and runtime checks pass. Partial failures leave mixed-key ciphertext and require both keys for repair or rollback; after writes, rollback uses the old primary with the new fallback or a matching native backup.",
+        "digest": "128e2cfc4afc2443daedaa7033c770afe758e486e57b721d12351452a523158e"
       }
     },
     "configuration": {
@@ -276,7 +276,7 @@
         "src/server/routes/playlists.ts": "c423b22fa179794098dd6ba3b61b46da6224b70c2eb53e3a3a1dab68fd42dfbd",
         "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
-        "src/server/routes/settings.ts": "40190ea7bdccd91d1dbe20c59a62c857b904b7091409bc885eaf430971806174",
+        "src/server/routes/settings.ts": "c7a542800576d7306b6f64f4485b3fcda38988655b5116c083bffde4476610a3",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "d1f236f9a2e4115ff48e6491e42188fa25ac3509b1d4f12cab45f001dc512dbb",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
@@ -296,14 +296,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "89eaae3d68091e48923cbc822dd52e403506312138719dc00f16085317bf216c",
+      "digest": "988abae09a3562d14fa7708026279c209c7673a2a7d67a5ad7e431ea6600c2e8",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
-        "note": "Document bulk album routing and explicit album targets, and distinguish successful Lidarr additions from non-Lidarr queued acquisition outcomes.",
-        "breaking": "none",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Saved Lidarr probes use persisted TLS verification when the boolean is omitted and explicit booleans override it. JSON-object and Lidarr TLS type validation return a stable problem+json 400 before probe credential resolution; access checks still run first. No frontend layout or text changes.",
+        "breaking": "Missing, malformed, or non-object probe payloads and invalid Lidarr TLS types now return 400 instead of server errors or accepting invalid values.",
         "migration": "",
-        "digest": "89eaae3d68091e48923cbc822dd52e403506312138719dc00f16085317bf216c"
+        "digest": "988abae09a3562d14fa7708026279c209c7673a2a7d67a5ad7e431ea6600c2e8"
       }
     },
     "interface": {

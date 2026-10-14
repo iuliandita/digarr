@@ -576,7 +576,23 @@ export function settingsRoutes(deps: AppDependencies) {
       )
     }
 
-    const body = await c.req.json()
+    const body = await c.req.json().catch(() => null)
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      return problem(c, 'probe-invalid-input', 'Invalid probe input', 400, 'Expected a JSON object')
+    }
+    if (
+      service === 'lidarr' &&
+      body.skipTlsVerify !== undefined &&
+      typeof body.skipTlsVerify !== 'boolean'
+    ) {
+      return problem(
+        c,
+        'probe-invalid-input',
+        'Invalid probe input',
+        400,
+        'skipTlsVerify must be a boolean',
+      )
+    }
     const testUserId = c.get('userId')
 
     // Fall back to stored credentials when the request sends empty keys
@@ -593,7 +609,8 @@ export function settingsRoutes(deps: AppDependencies) {
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
-        const client = createLidarrClient(url, apiKey, body.skipTlsVerify)
+        const skipTlsVerify = body.skipTlsVerify ?? stored?.skipTlsVerify ?? false
+        const client = createLidarrClient(url, apiKey, skipTlsVerify)
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'listenbrainz': {

@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { COLUMN_SITES, NESTED_SITES } from '../../scripts/rotation-sites'
 import {
   decryptChannelSecrets,
+  decryptField,
   encryptChannelSecrets,
   encryptField,
   initEncryption,
@@ -47,7 +48,8 @@ async function createDatabase(dataDir: string): Promise<void> {
             jellyfin_api_key text,
             emby_api_key text,
             discogs_token text,
-            subsonic_password text
+            subsonic_password text,
+            preferences jsonb
           );
           CREATE TABLE oauth_tokens (
             id integer PRIMARY KEY,
@@ -82,12 +84,13 @@ function runRotation(dataDir: string, nextKey = '') {
 
 async function readPreferences(
   dataDir: string,
+  table: 'settings' | 'users' = 'settings',
 ): Promise<Array<{ id: number; preferences: Record<string, unknown> | null }>> {
   const client = new PGlite(dataDir)
   try {
     return (
       await client.query<{ id: number; preferences: Record<string, unknown> | null }>(
-        'SELECT id, preferences FROM settings ORDER BY id',
+        `SELECT id, preferences FROM ${table} ORDER BY id`,
       )
     ).rows
   } finally {
@@ -110,14 +113,108 @@ describe('encryption-key rotation coverage', () => {
   })
 
   it('covers every encrypted preference path', () => {
-    expect(NESTED_SITES).toEqual(
-      SENSITIVE_PREFERENCES.map((key) => ({
-        table: 'settings',
-        column: 'preferences',
-        path: [key],
-      })),
-    )
+    for (const table of ['settings', 'users']) {
+      expect(NESTED_SITES.filter((site) => site.table === table)).toEqual(
+        SENSITIVE_PREFERENCES.map((key) => ({ table, column: 'preferences', path: [key] })),
+      )
+    }
+    expect(NESTED_SITES).toHaveLength(SENSITIVE_PREFERENCES.length * 2)
+    expect(NESTED_SITES).toContainEqual({
+      table: 'users',
+      column: 'preferences',
+      path: ['fanartApiKey'],
+    })
   })
+
+  it('rotates user preference secrets and preserves other values through both passes', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'digarr-rotation-'))
+    const oldSecret = 'private-old-fanart-key'
+    const currentSecret = 'private-current-fanart-key'
+    const metadata = { theme: 'dark', custom: { enabled: true, values: [1, 'preserved'] } }
+    initEncryption(OLD_KEY)
+    const oldCiphertext = encryptField(oldSecret)
+    initEncryption(CURRENT_KEY)
+    const currentCiphertext = encryptField(currentSecret)
+    const preferences: Array<Record<string, unknown> | null> = [
+      { ...metadata, fanartApiKey: oldCiphertext },
+      { ...metadata, fanartApiKey: currentCiphertext },
+      { ...metadata, fanartApiKey: 'plaintext-fanart-key' },
+      metadata,
+      { ...metadata, fanartApiKey: null },
+      null,
+    ]
+    try {
+      await createDatabase(dataDir)
+      const client = new PGlite(dataDir)
+      try {
+        for (const [index, value] of preferences.entries()) {
+          await client.query('INSERT INTO users (id, preferences) VALUES ($1, $2)', [
+            index + 1,
+            value,
+          ])
+        }
+      } finally {
+        await client.close()
+      }
+      for (const nextKey of [OLD_KEY, '']) {
+        const result = runRotation(dataDir, nextKey)
+        expect(result.error).toBeUndefined()
+        expect(result.status, result.stderr).toBe(0)
+        expect(result.stdout).toContain('users.preferences.fanartApiKey ... 5 scanned, 2 rewritten')
+        initEncryption(CURRENT_KEY)
+        const rows = await readPreferences(dataDir, 'users')
+        for (const [index, secret] of [oldSecret, currentSecret].entries()) {
+          const rotated = rows[index]?.preferences
+          expect(rotated).toEqual({ ...metadata, fanartApiKey: expect.stringMatching(/^enc:v1:/) })
+          expect(rotated?.fanartApiKey).not.toBe(preferences[index]?.fanartApiKey)
+          const ciphertext = rotated?.fanartApiKey
+          if (typeof ciphertext !== 'string') throw new Error('Missing rotated user secret')
+          expect(decryptField(ciphertext)).toBe(secret)
+        }
+        expect(rows.slice(2)).toEqual(
+          preferences.slice(2).map((value, index) => ({ id: index + 3, preferences: value })),
+        )
+        const output = result.stdout + result.stderr
+        for (const secret of [oldSecret, currentSecret, oldCiphertext, currentCiphertext]) {
+          expect(output).not.toContain(secret)
+        }
+      }
+    } finally {
+      rmSync(dataDir, { recursive: true, force: true })
+    }
+  }, 70_000)
+
+  it.each(['malformed', 'wrong-key'])(
+    'fails safely for %s user preference ciphertext',
+    async (kind) => {
+      const dataDir = mkdtempSync(join(tmpdir(), 'digarr-rotation-'))
+      const secret = 'private-unreadable-fanart-key'
+      initEncryption('unavailable-test-key')
+      const ciphertext = kind === 'malformed' ? `enc:v1:${secret}` : encryptField(secret)
+      const preferences = { theme: 'dark', fanartApiKey: ciphertext }
+      try {
+        await createDatabase(dataDir)
+        const client = new PGlite(dataDir)
+        try {
+          await client.query('INSERT INTO users (id, preferences) VALUES (1, $1)', [preferences])
+        } finally {
+          await client.close()
+        }
+        const result = runRotation(dataDir, OLD_KEY)
+        expect(result.error).toBeUndefined()
+        expect(result.status).toBe(1)
+        expect(result.stdout).toContain('users.preferences.fanartApiKey ... 1 scanned, 0 rewritten')
+        expect(result.stderr).toContain('rotation incomplete: 1 encrypted values')
+        expect(result.stdout).not.toContain('rotation complete:')
+        expect(result.stdout + result.stderr).not.toContain(secret)
+        expect(result.stdout + result.stderr).not.toContain(ciphertext)
+        expect(await readPreferences(dataDir, 'users')).toEqual([{ id: 1, preferences }])
+      } finally {
+        rmSync(dataDir, { recursive: true, force: true })
+      }
+    },
+    35_000,
+  )
 
   it('exits nonzero when encrypted ciphertext cannot be rotated', async () => {
     const dataDir = mkdtempSync(join(tmpdir(), 'digarr-rotation-'))
