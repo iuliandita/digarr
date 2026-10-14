@@ -333,7 +333,7 @@ export const nl = {
   'discover.rejectAll': 'Alles afwijzen',
   'discover.rejectAllBelow': 'Alles hieronder afwijzen',
   'discover.auditionAll': 'Beluisteren',
-  'discover.nothingToAudition': 'Geen openstaande items met voorbeeld',
+  'discover.nothingToAudition': 'Geen openstaande aanbevelingen',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',
@@ -476,8 +476,11 @@ export const nl = {
   'playlist.deleteFailed': 'Kan afspeellijst niet verwijderen',
   'playlist.deleteWarning': 'Deze afspeellijst verwijderen? Dit kan niet ongedaan worden gemaakt.',
   'playlist.deletedNamed': 'Afspeellijst verwijderd',
-  'playlist.detailHint':
-    'Deze afspeellijst is gegenereerd op basis van uw goedgekeurde aanbevelingen. Klik op Nu genereren om het te vernieuwen met nieuwe keuzes, download het als M3U of XSPF, of voeg een afspeellijstdoel toe om toekomstige runs automatisch naar Navidrome, Jellyfin of Plex te pushen.',
+  'playlist.detailHint': 'Genereer deze afspeellijst op basis van uw goedgekeurde aanbevelingen.',
+  'playlist.detailAuditionHint':
+    'Genereer deze afspeellijst met openstaande artiesten om ze te beluisteren voordat u ze goedkeurt.',
+  'playlist.detailActionsHint':
+    'Download na het genereren de nummers als M3U of XSPF, of voeg een afspeellijstdoel toe om toekomstige generaties automatisch naar Navidrome, Jellyfin of Plex te sturen.',
   'playlist.disable': 'Afspeellijst uitschakelen',
   'playlist.download': 'Downloaden',
   'playlist.downloadFailed': 'Kan de afspeellijst niet downloaden',

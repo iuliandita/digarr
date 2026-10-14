@@ -334,7 +334,7 @@ export const fr = {
   'discover.rejectAll': 'Tout rejeter',
   'discover.rejectAllBelow': 'Tout rejeter en dessous',
   'discover.auditionAll': 'Pré-écouter',
-  'discover.nothingToAudition': 'Aucun élément en attente avec aperçu',
+  'discover.nothingToAudition': 'Aucune recommandation en attente',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':
     'Refuser toutes les recommandations en attente ? Cela ne peut pas être annulé.',
@@ -472,8 +472,11 @@ export const fr = {
   'playlist.deleteFailed': 'Échec de la suppression de la playlist',
   'playlist.deleteWarning': 'Supprimer cette playlist ? Cette action est irréversible.',
   'playlist.deletedNamed': 'Playlist supprimée',
-  'playlist.detailHint':
-    "Cette playlist a été générée à partir de vos recommandations approuvées. Cliquez sur Générer maintenant pour l'actualiser avec de nouveaux choix, téléchargez-le au format M3U ou XSPF, ou ajoutez une cible de liste de lecture pour transférer automatiquement les futures exécutions vers Navidrome, Jellyfin ou Plex.",
+  'playlist.detailHint': 'Générez cette playlist à partir de vos recommandations approuvées.',
+  'playlist.detailAuditionHint':
+    'Générez cette playlist à partir des artistes en attente pour les écouter avant de les approuver.',
+  'playlist.detailActionsHint':
+    'Après la génération, téléchargez les pistes au format M3U ou XSPF, ou ajoutez une cible de playlist pour envoyer automatiquement les prochaines générations vers Navidrome, Jellyfin ou Plex.',
   'playlist.disable': 'Désactiver la playlist',
   'playlist.download': 'Télécharger',
   'playlist.downloadFailed': 'Échec du téléchargement de la playlist',

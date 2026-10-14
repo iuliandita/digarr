@@ -333,7 +333,7 @@ export const es = {
   'discover.rejectAll': 'Rechazar todo',
   'discover.rejectAllBelow': 'Rechazar todo por debajo',
   'discover.auditionAll': 'Preescuchar',
-  'discover.nothingToAudition': 'No hay elementos pendientes con vista previa',
+  'discover.nothingToAudition': 'No hay recomendaciones pendientes',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',
@@ -477,7 +477,11 @@ export const es = {
   'playlist.deleteWarning': '¿Eliminar esta lista? Esta acción no se puede deshacer.',
   'playlist.deletedNamed': 'Lista eliminada',
   'playlist.detailHint':
-    'Esta lista de reproducción se generó a partir de tus recomendaciones aprobadas. Haga clic en Generar ahora para actualizarlo con nuevas selecciones, descargarlo como M3U o XSPF, o agregar un destino de lista de reproducción para enviar ejecuciones futuras a Navidrome, Jellyfin o Plex automáticamente.',
+    'Genera esta lista de reproducción a partir de tus recomendaciones aprobadas.',
+  'playlist.detailAuditionHint':
+    'Genera esta lista de reproducción con artistas pendientes para escucharlos antes de aprobarlos.',
+  'playlist.detailActionsHint':
+    'Tras la generación, descarga las pistas como M3U o XSPF, o añade un destino de lista de reproducción para enviar las futuras ejecuciones a Navidrome, Jellyfin o Plex automáticamente.',
   'playlist.disable': 'Desactivar lista',
   'playlist.download': 'Descargar',
   'playlist.downloadFailed': 'No se pudo descargar la lista de reproducción',

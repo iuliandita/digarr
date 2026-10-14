@@ -332,7 +332,7 @@ export const ru = {
   'discover.rejectAll': 'Отклонить все',
   'discover.rejectAllBelow': 'Отклонить все ниже',
   'discover.auditionAll': 'Прослушать',
-  'discover.nothingToAudition': 'Нет ожидающих элементов с предпросмотром',
+  'discover.nothingToAudition': 'Нет ожидающих рекомендаций',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',
@@ -478,8 +478,11 @@ export const ru = {
   'playlist.deleteFailed': 'Не удалось удалить плейлист',
   'playlist.deleteWarning': 'Удалить этот плейлист? Это действие нельзя отменить.',
   'playlist.deletedNamed': 'Плейлист удалён',
-  'playlist.detailHint':
-    'Этот плейлист создан на основе ваших одобренных рекомендаций. Нажмите «Создать сейчас», чтобы обновить его новыми подборками, загрузить в формате M3U или XSPF или добавить целевой список воспроизведения, чтобы автоматически отправлять будущие запуски в Navidrome, Jellyfin или Plex.',
+  'playlist.detailHint': 'Создайте этот плейлист из одобренных рекомендаций.',
+  'playlist.detailAuditionHint':
+    'Создайте этот плейлист из ожидающих исполнителей, чтобы послушать их перед одобрением.',
+  'playlist.detailActionsHint':
+    'После создания скачайте треки в формате M3U или XSPF либо добавьте цель плейлиста, чтобы автоматически отправлять будущие подборки в Navidrome, Jellyfin или Plex.',
   'playlist.disable': 'Отключить плейлист',
   'playlist.download': 'Скачать',
   'playlist.downloadFailed': 'Не удалось загрузить плейлист',

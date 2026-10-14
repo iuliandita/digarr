@@ -331,7 +331,7 @@ export const tr = {
   'discover.rejectAll': 'Tümünü Reddet',
   'discover.rejectAllBelow': 'Aşağıdakilerin Tümünü Reddet',
   'discover.auditionAll': 'Dinle',
-  'discover.nothingToAudition': 'Önizlemesi olan bekleyen öğe yok',
+  'discover.nothingToAudition': 'Bekleyen öneri yok',
   'discover.rejectAllPending': 'Bekleyenlerin tümünü reddet',
   'discover.rejectAllPendingMessage': 'Bekleyen tüm öneriler reddedilsin mi? Bu geri alınamaz.',
   'discover.rejectFailed': 'Reddedilemedi',
@@ -469,8 +469,11 @@ export const tr = {
   'playlist.deleteFailed': 'Oynatma listesi silinemedi',
   'playlist.deleteWarning': 'Bu çalma listesi silinsin mi? Bu işlem geri alınamaz.',
   'playlist.deletedNamed': 'Çalma listesi silindi',
-  'playlist.detailHint':
-    "Bu oynatma listesi onaylanan önerilerinizden oluşturuldu. Yeni seçimlerle yenilemek, M3U veya XSPF olarak indirmek veya gelecekteki çalıştırmaları Navidrome, Jellyfin veya Plex'e otomatik olarak göndermek için bir çalma listesi hedefi eklemek için Şimdi Oluştur'a tıklayın.",
+  'playlist.detailHint': 'Bu çalma listesini onaylanan önerilerinizden oluşturun.',
+  'playlist.detailAuditionHint':
+    'Bu çalma listesini bekleyen sanatçılardan oluşturup onaylamadan önce dinleyin.',
+  'playlist.detailActionsHint':
+    'Oluşturduktan sonra parçaları M3U veya XSPF olarak indirin ya da sonraki oluşturma sonuçlarını otomatik olarak Navidrome, Jellyfin veya Plex hizmetlerine göndermek için bir çalma listesi hedefi ekleyin.',
   'playlist.disable': 'Çalma listesini devre dışı bırak',
   'playlist.download': 'İndir',
   'playlist.downloadFailed': 'Oynatma listesi indirilemedi',

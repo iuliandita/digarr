@@ -333,7 +333,7 @@ export const uk = {
   'discover.rejectAll': 'Відхилити всі',
   'discover.rejectAllBelow': 'Відхилити всі нижче',
   'discover.auditionAll': 'Прослухати',
-  'discover.nothingToAudition': 'Немає елементів в очікуванні з попереднім переглядом',
+  'discover.nothingToAudition': 'Немає рекомендацій в очікуванні',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':
     'Відхилити всі очікувані рекомендації? Це неможливо скасувати.',
@@ -476,8 +476,11 @@ export const uk = {
   'playlist.deleteFailed': 'Не вдалося видалити список відтворення',
   'playlist.deleteWarning': 'Видалити цей плейлист? Цю дію неможливо скасувати.',
   'playlist.deletedNamed': 'Плейлист видалено',
-  'playlist.detailHint':
-    'Цей список відтворення було створено на основі ваших схвалених рекомендацій. Натисніть «Створити зараз», щоб оновити його новими вибраними, завантажити як M3U або XSPF або додати цільовий список відтворення, щоб автоматично надсилати майбутні запуски до Navidrome, Jellyfin або Plex.',
+  'playlist.detailHint': 'Створіть цей список відтворення зі схвалених рекомендацій.',
+  'playlist.detailAuditionHint':
+    'Створіть цей список відтворення з виконавців в очікуванні, щоб послухати їх перед схваленням.',
+  'playlist.detailActionsHint':
+    'Після створення завантажте композиції у форматі M3U або XSPF чи додайте ціль списку відтворення, щоб автоматично надсилати майбутні добірки до Navidrome, Jellyfin або Plex.',
   'playlist.disable': 'Вимкнути плейлист',
   'playlist.download': 'Завантажити',
   'playlist.downloadFailed': 'Не вдалося завантажити список відтворення',

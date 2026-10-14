@@ -328,7 +328,7 @@ export const ko = {
   'discover.rejectAll': '모두 거부',
   'discover.rejectAllBelow': '아래 모두 거부',
   'discover.auditionAll': '연속 미리듣기',
-  'discover.nothingToAudition': '미리듣기가 있는 대기 중인 항목이 없습니다',
+  'discover.nothingToAudition': '대기 중인 추천이 없습니다',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',
@@ -469,8 +469,11 @@ export const ko = {
   'playlist.deleteFailed': '재생목록을 삭제하지 못했습니다.',
   'playlist.deleteWarning': '이 플레이리스트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
   'playlist.deletedNamed': '플레이리스트를 삭제했습니다',
-  'playlist.detailHint':
-    '이 재생목록은 승인된 추천을 통해 생성되었습니다. 지금 생성을 클릭하여 새로운 선택으로 새로 고치거나, M3U 또는 XSPF로 다운로드하거나, 재생 목록 대상을 추가하여 Navidrome, Jellyfin 또는 Plex에 자동으로 향후 실행을 푸시할 수 있습니다.',
+  'playlist.detailHint': '승인된 추천으로 이 재생목록을 생성하세요.',
+  'playlist.detailAuditionHint':
+    '대기 중인 아티스트로 이 재생목록을 생성하여 승인 전에 들어보세요.',
+  'playlist.detailActionsHint':
+    '생성 후 트랙을 M3U 또는 XSPF로 다운로드하거나 재생목록 대상을 추가하여 이후 생성 결과를 Navidrome, Jellyfin 또는 Plex에 자동으로 보낼 수 있습니다.',
   'playlist.disable': '플레이리스트 비활성화',
   'playlist.download': '다운로드',
   'playlist.downloadFailed': '재생목록을 다운로드하지 못했습니다.',

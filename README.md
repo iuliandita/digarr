@@ -27,7 +27,7 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 
 - **Find artists and albums.** Connect a listening source, scan, and review scored suggestions. Release Radar finds new releases; Library Gap-Fill finds missing albums. Mood and artist searches work without a listening history.
 - **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual album approval monitors and searches only that album in Lidarr. Bulk approval adds the artist without monitoring albums; automatic approval follows the auto-approve monitoring setting, which defaults to all albums.
-- **Keep discovery running.** Schedule scans and subscriptions, or generate playlists for Spotify and supported media servers. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
+- **Keep discovery running.** Schedule scans and subscriptions, or generate playlists for Spotify and supported media servers. Audition playlists use pending artists without approving them. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
 - **Share an instance.** Each user has their own queue, connections, and preferences; admins assign targets to each user. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
 
 Digarr calls your connected services. It doesn't include a downloader or a full music player.

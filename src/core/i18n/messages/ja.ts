@@ -332,7 +332,7 @@ export const ja = {
   'discover.rejectAll': 'すべて拒否する',
   'discover.rejectAllBelow': '下記をすべて拒否',
   'discover.auditionAll': '試聴',
-  'discover.nothingToAudition': 'プレビューのある保留中の項目はありません',
+  'discover.nothingToAudition': '保留中のおすすめはありません',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',
@@ -473,8 +473,11 @@ export const ja = {
   'playlist.deleteFailed': 'プレイリストの削除に失敗しました',
   'playlist.deleteWarning': 'このプレイリストを削除しますか？この操作は元に戻せません。',
   'playlist.deletedNamed': 'プレイリストを削除しました',
-  'playlist.detailHint':
-    'このプレイリストは、承認された推奨事項から生成されました。 [今すぐ生成] をクリックして新しいピックで更新したり、M3U または XSPF としてダウンロードしたり、プレイリスト ターゲットを追加して今後の実行を Navidrome、Jellyfin、または Plex に自動的にプッシュします。',
+  'playlist.detailHint': '承認済みのおすすめからこのプレイリストを生成します。',
+  'playlist.detailAuditionHint':
+    '保留中のアーティストからこのプレイリストを生成し、承認する前に試聴できます。',
+  'playlist.detailActionsHint':
+    '生成後は曲を M3U または XSPF としてダウンロードするか、プレイリストの送信先を追加して今後の生成結果を Navidrome、Jellyfin、Plex に自動送信できます。',
   'playlist.disable': 'プレイリストを無効化',
   'playlist.download': 'ダウンロード',
   'playlist.downloadFailed': 'プレイリストのダウンロードに失敗しました',

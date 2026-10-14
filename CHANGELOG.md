@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Match Audition playlist hints to pending artists and describe generation before tracks exist. The empty Discover queue message now describes pending recommendations in all 15 languages. [#748](https://github.com/iuliandita/digarr/issues/748), [#752](https://github.com/iuliandita/digarr/issues/752).
 - Restore Plex recent listening and top-artist history when Plex returns artist and track IDs as metadata paths. Log a warning when an in-range track page has no usable entries, reload saved music-library names in Settings, and name the supported Release Radar providers in all 15 languages. [#807](https://github.com/iuliandita/digarr/issues/807).
 
 ### Maintenance

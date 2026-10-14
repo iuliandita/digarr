@@ -333,7 +333,7 @@ export const de = {
   'discover.rejectAll': 'Alle ablehnen',
   'discover.rejectAllBelow': 'Alle darunter ablehnen',
   'discover.auditionAll': 'Probehören',
-  'discover.nothingToAudition': 'Keine ausstehenden Einträge mit Vorschau',
+  'discover.nothingToAudition': 'Keine ausstehenden Empfehlungen',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',
@@ -482,8 +482,11 @@ export const de = {
   'playlist.deleteFailed': 'Playlist konnte nicht gelöscht werden',
   'playlist.deleteWarning': 'Diese Playlist löschen? Dies kann nicht rückgängig gemacht werden.',
   'playlist.deletedNamed': 'Playlist gelöscht',
-  'playlist.detailHint':
-    'Diese Playlist wurde aus Ihren genehmigten Empfehlungen erstellt. Klicken Sie auf „Jetzt generieren“, um es mit neuen Tipps zu aktualisieren, es als M3U oder XSPF herunterzuladen oder ein Playlist-Ziel hinzuzufügen, um zukünftige Läufe automatisch an Navidrome, Jellyfin oder Plex zu senden.',
+  'playlist.detailHint': 'Generieren Sie diese Playlist aus Ihren genehmigten Empfehlungen.',
+  'playlist.detailAuditionHint':
+    'Generieren Sie diese Playlist aus ausstehenden Künstlern, um sie vor der Genehmigung anzuhören.',
+  'playlist.detailActionsHint':
+    'Nach der Generierung können Sie die Titel als M3U oder XSPF herunterladen oder ein Playlist-Ziel hinzufügen, um zukünftige Durchläufe automatisch an Navidrome, Jellyfin oder Plex zu senden.',
   'playlist.disable': 'Playlist deaktivieren',
   'playlist.download': 'Herunterladen',
   'playlist.downloadFailed': 'Download der Playlist fehlgeschlagen',

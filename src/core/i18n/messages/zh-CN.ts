@@ -309,7 +309,7 @@ export const zhCN = {
   'discover.rejectAll': '全部拒绝',
   'discover.rejectAllBelow': '拒绝以下所有内容',
   'discover.auditionAll': '试听',
-  'discover.nothingToAudition': '没有带预览的待处理项目',
+  'discover.nothingToAudition': '没有待处理的推荐',
   'discover.rejectAllPending': '拒绝所有待处理的',
   'discover.rejectAllPendingMessage': '拒绝所有待处理的建议？此操作无法撤消。',
   'discover.rejectFailed': '拒绝失败',
@@ -440,8 +440,10 @@ export const zhCN = {
   'playlist.deleteFailed': '删除播放列表失败',
   'playlist.deleteWarning': '要删除此播放列表吗？此操作无法撤销。',
   'playlist.deletedNamed': '播放列表已删除',
-  'playlist.detailHint':
-    '该播放列表是根据您批准的推荐生成的。单击“立即生成”以使用新选择刷新它，将其下载为 M3U 或 XSPF，或添加播放列表目标以将未来的运行自动推送到 Navidrome、Jellyfin 或 Plex。',
+  'playlist.detailHint': '根据已批准的推荐生成此播放列表。',
+  'playlist.detailAuditionHint': '根据待处理的艺人生成此播放列表，以便在批准前试听。',
+  'playlist.detailActionsHint':
+    '生成后，可以将曲目下载为 M3U 或 XSPF，或添加播放列表目标，将今后的生成结果自动发送到 Navidrome、Jellyfin 或 Plex。',
   'playlist.disable': '禁用播放列表',
   'playlist.download': '下载',
   'playlist.downloadFailed': '下载播放列表失败',

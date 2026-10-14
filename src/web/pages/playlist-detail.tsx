@@ -421,7 +421,10 @@ export function PlaylistDetailPage() {
       </div>
 
       <Hint id="playlist-detail-intro-tip" type="inline">
-        {t('playlist.detailHint')}
+        {t(
+          playlist.strategy === 'audition' ? 'playlist.detailAuditionHint' : 'playlist.detailHint',
+        )}{' '}
+        {t('playlist.detailActionsHint')}
       </Hint>
 
       {/* Actions */}

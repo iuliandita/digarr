@@ -333,7 +333,7 @@ export const pl = {
   'discover.rejectAll': 'Odrzuć wszystko',
   'discover.rejectAllBelow': 'Odrzuć wszystko poniżej',
   'discover.auditionAll': 'Odsłuchaj',
-  'discover.nothingToAudition': 'Brak oczekujących pozycji z podglądem',
+  'discover.nothingToAudition': 'Brak oczekujących rekomendacji',
   'discover.rejectAllPending': 'Odrzuć wszystkie oczekujące',
   'discover.rejectAllPendingMessage':
     'Odrzucić wszystkie oczekujące rekomendacje? Tego nie można cofnąć.',
@@ -475,8 +475,11 @@ export const pl = {
   'playlist.deleteFailed': 'Nie udało się usunąć playlisty',
   'playlist.deleteWarning': 'Usunąć tę playlistę? Tej operacji nie można cofnąć.',
   'playlist.deletedNamed': 'Playlista usunięta',
-  'playlist.detailHint':
-    'Ta playlista została wygenerowana na podstawie Twoich zatwierdzonych rekomendacji. Kliknij Wygeneruj teraz, aby odświeżyć ją o nowe typy, pobierz ją jako M3U lub XSPF lub dodaj docelową listę odtwarzania, aby automatycznie przesyłać przyszłe uruchomienia do Navidrome, Jellyfin lub Plex.',
+  'playlist.detailHint': 'Wygeneruj tę playlistę z zatwierdzonych rekomendacji.',
+  'playlist.detailAuditionHint':
+    'Wygeneruj tę playlistę z oczekujących wykonawców, aby posłuchać ich przed zatwierdzeniem.',
+  'playlist.detailActionsHint':
+    'Po wygenerowaniu pobierz utwory jako M3U lub XSPF albo dodaj cel playlisty, aby automatycznie wysyłać kolejne generacje do Navidrome, Jellyfin lub Plex.',
   'playlist.disable': 'Wyłącz playlistę',
   'playlist.download': 'Pobierz',
   'playlist.downloadFailed': 'Nie udało się pobrać playlisty',

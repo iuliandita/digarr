@@ -333,7 +333,7 @@ export const ptBR = {
   'discover.rejectAll': 'Rejeitar tudo',
   'discover.rejectAllBelow': 'Rejeitar tudo abaixo',
   'discover.auditionAll': 'Ouvir prévias',
-  'discover.nothingToAudition': 'Nenhum item pendente com prévia',
+  'discover.nothingToAudition': 'Nenhuma recomendação pendente',
   'discover.rejectAllPending': 'Rejeitar todas as pendências',
   'discover.rejectAllPendingMessage':
     'Rejeitar todas as recomendações pendentes? Isto não pode ser desfeito.',
@@ -479,8 +479,11 @@ export const ptBR = {
   'playlist.deleteFailed': 'Falha ao excluir a playlist',
   'playlist.deleteWarning': 'Excluir esta playlist? Esta ação não pode ser desfeita.',
   'playlist.deletedNamed': 'Playlist excluída',
-  'playlist.detailHint':
-    'Esta playlist foi gerada a partir das suas recomendações aprovadas. Clique em Gerar agora para atualizá-lo com novas escolhas, baixá-lo como M3U ou XSPF ou adicionar um destino de lista de reprodução para enviar execuções futuras para Navidrome, Jellyfin ou Plex automaticamente.',
+  'playlist.detailHint': 'Gere esta playlist a partir das suas recomendações aprovadas.',
+  'playlist.detailAuditionHint':
+    'Gere esta playlist com artistas pendentes para ouvi-los antes de aprová-los.',
+  'playlist.detailActionsHint':
+    'Após a geração, baixe as faixas como M3U ou XSPF ou adicione um destino de playlist para enviar as próximas gerações ao Navidrome, Jellyfin ou Plex automaticamente.',
   'playlist.disable': 'Desativar playlist',
   'playlist.download': 'Baixar',
   'playlist.downloadFailed': 'Falha ao baixar a lista de reprodução',

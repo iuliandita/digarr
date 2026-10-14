@@ -334,7 +334,7 @@ export const it = {
   'discover.rejectAll': 'Rifiuta tutto',
   'discover.rejectAllBelow': 'Rifiuta tutto sotto',
   'discover.auditionAll': 'Preascolto',
-  'discover.nothingToAudition': 'Nessun elemento in sospeso con anteprima',
+  'discover.nothingToAudition': 'Nessuna raccomandazione in sospeso',
   'discover.rejectAllPending': 'Rifiuta tutto in sospeso',
   'discover.rejectAllPendingMessage':
     'Rifiutare tutti i consigli in sospeso? Questa operazione non può essere annullata.',
@@ -478,8 +478,11 @@ export const it = {
   'playlist.deleteFailed': 'Impossibile eliminare la playlist',
   'playlist.deleteWarning': 'Eliminare questa playlist? Questa azione non può essere annullata.',
   'playlist.deletedNamed': 'Playlist eliminata',
-  'playlist.detailHint':
-    'Questa playlist è stata generata dai tuoi consigli approvati. Fai clic su Genera ora per aggiornarlo con nuove scelte, scaricalo come M3U o XSPF o aggiungi una destinazione playlist per inviare automaticamente le corse future a Navidrome, Jellyfin o Plex.',
+  'playlist.detailHint': 'Genera questa playlist dai tuoi consigli approvati.',
+  'playlist.detailAuditionHint':
+    'Genera questa playlist dagli artisti in sospeso per ascoltarli prima di approvarli.',
+  'playlist.detailActionsHint':
+    'Dopo la generazione, scarica i brani come M3U o XSPF oppure aggiungi una destinazione playlist per inviare automaticamente le generazioni future a Navidrome, Jellyfin o Plex.',
   'playlist.disable': 'Disattiva playlist',
   'playlist.download': 'Scarica',
   'playlist.downloadFailed': 'Impossibile scaricare la playlist',

@@ -329,7 +329,7 @@ export const en = {
   'discover.rejectAll': 'Reject All',
   'discover.rejectAllBelow': 'Reject All Below',
   'discover.auditionAll': 'Audition',
-  'discover.nothingToAudition': 'No pending items with previews',
+  'discover.nothingToAudition': 'No pending recommendations',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
@@ -467,8 +467,11 @@ export const en = {
   'playlist.deleteFailed': 'Failed to delete playlist',
   'playlist.deleteWarning': 'Delete this playlist? This cannot be undone.',
   'playlist.deletedNamed': 'Playlist deleted',
-  'playlist.detailHint':
-    'This playlist was generated from your approved recommendations. Click Generate Now to refresh it with new picks, download it as M3U or XSPF, or add a playlist target to push future runs to Navidrome, Jellyfin, or Plex automatically.',
+  'playlist.detailHint': 'Generate this playlist from your approved recommendations.',
+  'playlist.detailAuditionHint':
+    'Generate this playlist from pending artists to listen before approving them.',
+  'playlist.detailActionsHint':
+    'After generation, download the tracks as M3U or XSPF, or add a playlist target to send future runs to Navidrome, Jellyfin, or Plex automatically.',
   'playlist.disable': 'Disable playlist',
   'playlist.download': 'Download',
   'playlist.downloadFailed': 'Failed to download playlist',

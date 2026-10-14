@@ -334,7 +334,7 @@ export const ro = {
   'discover.rejectAll': 'Respingeți tot',
   'discover.rejectAllBelow': 'Respingeți tot ce este mai jos',
   'discover.auditionAll': 'Audiție',
-  'discover.nothingToAudition': 'Nu există elemente în așteptare cu previzualizare',
+  'discover.nothingToAudition': 'Nu există recomandări în așteptare',
   'discover.rejectAllPending': 'Respingeți toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':
     'Respingeți toate recomandările în așteptare? Acest lucru nu poate fi anulat.',
@@ -477,8 +477,11 @@ export const ro = {
   'playlist.deleteFailed': 'Nu s-a șters lista de redare',
   'playlist.deleteWarning': 'Ștergeți acest playlist? Această acțiune nu poate fi anulată.',
   'playlist.deletedNamed': 'Playlist șters',
-  'playlist.detailHint':
-    'Această listă de redare a fost generată din recomandările dvs. aprobate. Faceți clic pe Generare acum pentru a-l reîmprospăta cu noi alegeri, descărcați-l ca M3U sau XSPF sau adăugați o listă de redare țintă pentru a împinge rulările viitoare către Navidrome, Jellyfin sau Plex în mod automat.',
+  'playlist.detailHint': 'Generează această listă de redare din recomandările aprobate.',
+  'playlist.detailAuditionHint':
+    'Generează această listă de redare din artiștii în așteptare pentru a-i asculta înainte de aprobare.',
+  'playlist.detailActionsHint':
+    'După generare, descarcă piesele ca M3U sau XSPF ori adaugă o destinație pentru lista de redare ca să trimiți automat generările viitoare către Navidrome, Jellyfin sau Plex.',
   'playlist.disable': 'Dezactivați playlistul',
   'playlist.download': 'Descărcați',
   'playlist.downloadFailed': 'Nu s-a putut descărca lista de redare',
