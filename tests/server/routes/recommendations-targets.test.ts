@@ -337,6 +337,197 @@ describe('target-aware approval', () => {
     expect(body.results[0].status).toBe('approved')
   })
 
+  it.each([
+    { scenario: 'Lidarr success', lidarr: true, slskd: false, status: 'added_to_lidarr' },
+    { scenario: 'Lidarr failure', lidarr: false, slskd: false, status: 'add_failed' },
+    { scenario: 'slskd queued', lidarr: null, slskd: true, status: 'approved' },
+    { scenario: 'Lidarr failed and slskd queued', lidarr: false, slskd: true, status: 'approved' },
+  ])(
+    'bulk album approval preserves target outcome: $scenario',
+    async ({ lidarr, slskd, status }) => {
+      mockDeps.getRecommendation.mockResolvedValue({
+        id: 1,
+        kind: 'album',
+        recommendedReleaseGroupId: 'rg-1',
+        artist: { mbid: 'mbid-1', name: 'Radiohead' },
+      })
+      const targets = [
+        ...(lidarr !== null ? [{ type: 'lidarr', success: lidarr }] : []),
+        ...(slskd ? [{ type: 'slskd', success: true }] : []),
+      ].map(({ type, success }) => ({
+        id: `${type}-1`,
+        type,
+        capabilities: ['addArtist', 'addAlbum'],
+        addArtist: vi.fn(),
+        addAlbum: vi
+          .fn()
+          .mockResolvedValue(
+            success ? { success, externalId: 7 } : { success, error: 'album not found in Lidarr' },
+          ),
+      }))
+      mockDeps.getEnabledTargetsForUser.mockResolvedValue(targets)
+
+      const res = await createTestApp().request('/api/v1/recommendations/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: [1],
+          action: 'approve',
+          qualityProfileId: 2,
+          metadataProfileId: 3,
+          rootFolderId: 4,
+        }),
+      })
+
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ results: [{ id: 1, status }] })
+      for (const target of targets) {
+        expect(target.addAlbum).toHaveBeenCalledExactlyOnceWith(
+          { artistMbid: 'mbid-1', artistName: 'Radiohead', releaseGroupMbid: 'rg-1' },
+          {
+            qualityProfileId: 2,
+            metadataProfileId: 3,
+            rootFolderId: 4,
+            userId: 1,
+            recommendationId: 1,
+          },
+        )
+        expect(target.addArtist).not.toHaveBeenCalled()
+      }
+      expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(1, status, {
+        targetActions: {
+          ...(lidarr !== null
+            ? {
+                'lidarr-1': {
+                  status: lidarr ? 'added' : 'failed',
+                  externalId: lidarr ? 7 : undefined,
+                  error: lidarr ? undefined : 'album not found in Lidarr',
+                },
+              }
+            : {}),
+          ...(slskd ? { 'slskd-1': { status: 'queued', externalId: 7, error: undefined } } : {}),
+        },
+        ...(lidarr === false ? { lidarrError: 'album not found in Lidarr' } : {}),
+      })
+    },
+  )
+
+  it.each(['artist-only target', 'missing release group', 'no targets'])(
+    'bulk album approval fails without artist acquisition: %s',
+    async (scenario) => {
+      mockDeps.getRecommendation.mockResolvedValue({
+        id: 1,
+        kind: 'album',
+        recommendedReleaseGroupId: scenario === 'missing release group' ? null : 'rg-1',
+        artist: { mbid: 'mbid-1', name: 'Radiohead' },
+      })
+      const target = {
+        id: 'lidarr-1',
+        type: 'lidarr',
+        capabilities: scenario === 'artist-only target' ? ['addArtist'] : ['addArtist', 'addAlbum'],
+        addArtist: vi.fn(),
+        addAlbum: vi.fn(),
+      }
+      mockDeps.getEnabledTargetsForUser.mockResolvedValue(scenario === 'no targets' ? [] : [target])
+
+      const res = await createTestApp().request('/api/v1/recommendations/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: [1],
+          action: 'approve',
+          ...(scenario === 'no targets' ? {} : { targetId: target.id }),
+        }),
+      })
+
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ results: [{ id: 1, status: 'add_failed' }] })
+      expect(target.addArtist).not.toHaveBeenCalled()
+      expect(target.addAlbum).not.toHaveBeenCalled()
+      expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(1, 'add_failed', {
+        targetActions: {},
+      })
+    },
+  )
+
+  it('bulk approval dispatches mixed rows by kind and skips unowned or missing rows', async () => {
+    mockDeps.getRecommendation.mockImplementation(async (id: number) => {
+      if (id === 4) return null
+      return {
+        id,
+        userId: id === 3 ? 2 : 1,
+        kind: id === 1 ? 'album' : 'artist',
+        recommendedReleaseGroupId: id === 1 ? 'rg-1' : null,
+        artist: { mbid: `mbid-${id}`, name: `Artist ${id}` },
+      }
+    })
+    const target = {
+      id: 'lidarr-1',
+      type: 'lidarr',
+      capabilities: ['addArtist', 'addAlbum'],
+      addArtist: vi.fn().mockResolvedValue({ success: true, externalId: 42 }),
+      addAlbum: vi.fn().mockResolvedValue({ success: true, externalId: 7 }),
+    }
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue([target])
+
+    const res = await createTestApp().request('/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [1, 2, 3, 4], action: 'approve' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({
+      results: [
+        { id: 1, status: 'added_to_lidarr' },
+        { id: 2, status: 'added_to_lidarr' },
+        { id: 3, status: 'not_found' },
+        { id: 4, status: 'not_found' },
+      ],
+    })
+    expect(target.addAlbum).toHaveBeenCalledExactlyOnceWith(
+      { artistMbid: 'mbid-1', artistName: 'Artist 1', releaseGroupMbid: 'rg-1' },
+      expect.objectContaining({ userId: 1, recommendationId: 1 }),
+    )
+    expect(target.addArtist).toHaveBeenCalledExactlyOnceWith(
+      { mbid: 'mbid-2', name: 'Artist 2' },
+      expect.objectContaining({ userId: 1, recommendationId: 2 }),
+    )
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledTimes(2)
+    expect(mockDeps.updateRecommendationStatus).toHaveBeenCalledWith(
+      2,
+      'added_to_lidarr',
+      expect.objectContaining({ lidarrArtistId: 42 }),
+    )
+  })
+
+  it('bulk album approval selects an album-only target', async () => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      id: 1,
+      kind: 'album',
+      recommendedReleaseGroupId: 'rg-1',
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+    const targets = ['lidarr-1', 'lidarr-2'].map((id) => ({
+      id,
+      type: 'lidarr',
+      capabilities: ['addAlbum'],
+      addAlbum: vi.fn().mockResolvedValue({ success: true, externalId: 7 }),
+    }))
+    mockDeps.getEnabledTargetsForUser.mockResolvedValue(targets)
+
+    const res = await createTestApp().request('/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [1], action: 'approve', targetId: 'lidarr-2' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ results: [{ id: 1, status: 'added_to_lidarr' }] })
+    expect(targets[0]?.addAlbum).not.toHaveBeenCalled()
+    expect(targets[1]?.addAlbum).toHaveBeenCalledTimes(1)
+  })
+
   it('bulk approve with createPlaylist-only targets marks all as approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       id: 1,

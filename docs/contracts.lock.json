@@ -286,7 +286,7 @@
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
         "src/server/routes/pipeline.ts": "f7b712bbdd9b5c6864457d1645acf83f4a6a900263b31fad7855747eed2ffa8c",
         "src/server/routes/playlists.ts": "c423b22fa179794098dd6ba3b61b46da6224b70c2eb53e3a3a1dab68fd42dfbd",
-        "src/server/routes/recommendations.ts": "6a3c6ba1331010de2b5fec954b632b62e8f5f27d62b7a01ab0434f741cf9a708",
+        "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "40190ea7bdccd91d1dbe20c59a62c857b904b7091409bc885eaf430971806174",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -308,14 +308,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "696a1f3886eec15972ea63675e7fca7128306d6b7a60ef200b035de4a130dbc8",
+      "digest": "89eaae3d68091e48923cbc822dd52e403506312138719dc00f16085317bf216c",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "docs/OPERATIONS.md"],
-        "note": "Document the per-user saved Plex music-sections read, empty and redacted failure responses, and dashboard history diagnostics without job records.",
+        "docs": ["docs/API.md"],
+        "note": "Document bulk album routing and explicit album targets, and distinguish successful Lidarr additions from non-Lidarr queued acquisition outcomes.",
         "breaking": "none",
         "migration": "",
-        "digest": "696a1f3886eec15972ea63675e7fca7128306d6b7a60ef200b035de4a130dbc8"
+        "digest": "89eaae3d68091e48923cbc822dd52e403506312138719dc00f16085317bf216c"
       }
     },
     "interface": {

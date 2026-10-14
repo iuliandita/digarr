@@ -298,11 +298,13 @@ artist unmonitored (no whole-discography grab) and monitors and searches only th
 approved album. If the artist already exists in Lidarr, the existing record is
 reused, making this safe for gap-fill.
 
-Bulk and automatic album approval use the artist-level path. Bulk Lidarr approval
-requests no album monitoring or search
-([#756](https://github.com/iuliandita/digarr/issues/756),
-[#761](https://github.com/iuliandita/digarr/issues/761)). Automatic approval uses
-its configured monitoring scope, defaulting to all albums.
+Bulk approval dispatches each recommendation by kind and uses `addAlbum` for
+albums, including explicit album-only targets. Missing release-group identities
+or incompatible targets fail without artist acquisition. Only successful Lidarr
+additions produce `added_to_lidarr`; other successful targets produce `approved`,
+with slskd queueing recorded separately from a completed import. Automatic album
+approval still uses the artist-level path and its configured monitoring scope,
+defaulting to all albums ([#761](https://github.com/iuliandita/digarr/issues/761)).
 
 ### Release radar
 
