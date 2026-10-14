@@ -154,6 +154,15 @@ export async function pushPlaylistToTargets(
         failures.push(
           `${result.targetType}(${result.targetId}): ${result.error || 'export failed'}`,
         )
+      } else if (
+        ['navidrome-playlist', 'jellyfin-playlist', 'emby-playlist', 'plex-playlist'].includes(
+          target.type,
+        ) &&
+        (result.itemsSkipped ?? 0) > 0
+      ) {
+        failures.push(
+          `${result.targetType}(${result.targetId}): added ${result.itemsAdded ?? 0}, skipped ${result.itemsSkipped}`,
+        )
       }
     } catch (error) {
       failures.push(`${target.id}: ${errMsg(error)}`)

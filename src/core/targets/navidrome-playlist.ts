@@ -6,6 +6,7 @@ import {
 } from '@/core/clients/subsonic-auth'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
+import { pickBestTrackMatch } from './playlist-match'
 import type { DestinationTarget, PlaylistItem, PlaylistResult } from './types'
 
 export type NavidromePlaylistConfig = {
@@ -82,15 +83,11 @@ export function createNavidromePlaylistTarget(
     }>(searchPath)
 
     const songs = res.searchResult3?.song ?? []
-    if (songs.length === 0) return null
-
-    // Prefer exact artist+title match, fall back to first result
-    const exact = songs.find(
-      (s) =>
-        s.title.toLowerCase() === trackName.toLowerCase() &&
-        s.artist.toLowerCase() === artistName.toLowerCase(),
+    return pickBestTrackMatch(
+      songs.map((song) => ({ id: song.id, title: song.title, artists: [song.artist] })),
+      artistName,
+      trackName,
     )
-    return (exact ?? songs[0])?.id ?? null
   }
 
   return {
@@ -108,7 +105,7 @@ export function createNavidromePlaylistTarget(
         // Resolve song IDs for items that have a trackName
         const songIds: string[] = []
         for (const item of items) {
-          if (!item.trackName) continue
+          if (!item.trackName?.trim()) continue
           const id = await searchTrack(item.artistName, item.trackName)
           if (id) songIds.push(id)
         }
@@ -151,6 +148,7 @@ export function createNavidromePlaylistTarget(
           playlistId,
           playlistName: name,
           itemsAdded: songIds.length,
+          itemsSkipped: items.length - songIds.length,
         }
       } catch (err: unknown) {
         return {

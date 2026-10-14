@@ -389,8 +389,10 @@ three points, allowing multiple albums per artist to survive a single run:
   MusicBrainz pages; remote targets resolve tracks separately. No invented titles
   fill unresolved artists.
 
-  Navidrome, Jellyfin, Emby, and Plex can substitute their first search result when
-  exact matching fails ([#758](https://github.com/iuliandita/digarr/issues/758)).
+  Navidrome, Jellyfin, Emby, and Plex accept only an exact title and credited
+  artist after case and whitespace normalization. They skip unmatched or
+  missing-title items and report added/skipped counts; omissions fail the
+  playlist job after all selected exports are attempted.
 
   Counts distinguish selected artists, artists with resolved tracks, artists
   included after truncation, and included tracks. Resolution metadata is saved in
@@ -399,7 +401,7 @@ three points, allowing multiple albums per artist to survive a single run:
   expose only their latest job projection; legacy playlists have no fabricated
   historical summary.
 - Playlist scheduling is gated by the global `preferences.playlistEnabled` switch (default false), plus each playlist's enabled flag and schedule. Manual generation is independent of that switch.
-- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
+- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result or a media-server skipped count, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
 - Spotify playlist exports retain explicit track URIs, or resolve artist/title pairs with exact matching. Artist-only approvals take up to three artist-matching track search results. Writes use `/me/playlists` and `/playlists/{id}/items`, with at most 100 URIs per request; failures are not retried as duplicate writes.
 - Emby, Jellyfin, and Subsonic source clients each own a media-server request
   queue capped at three concurrent requests and ten starts per second. This is

@@ -88,7 +88,7 @@ export function createJellyfinFamilyPlaylistTarget(
       try {
         const itemIds: string[] = []
         for (const item of items) {
-          if (!item.trackName) continue
+          if (!item.trackName?.trim()) continue
           const itemId = await searchTrack(item.artistName, item.trackName)
           if (itemId) itemIds.push(itemId)
         }
@@ -111,6 +111,7 @@ export function createJellyfinFamilyPlaylistTarget(
           playlistId,
           playlistName: name,
           itemsAdded: itemIds.length,
+          itemsSkipped: items.length - itemIds.length,
         }
       } catch (error) {
         return {

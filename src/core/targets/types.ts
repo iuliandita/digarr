@@ -50,6 +50,7 @@ export type PlaylistResult = {
   playlistId?: string
   playlistName?: string
   itemsAdded?: number
+  itemsSkipped?: number
   error?: string
 }
 

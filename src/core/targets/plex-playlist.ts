@@ -113,7 +113,7 @@ export function createPlexPlaylistTarget(
       try {
         const ratingKeys: string[] = []
         for (const item of items) {
-          if (!item.trackName) continue
+          if (!item.trackName?.trim()) continue
           const key = await searchTrack(item.artistName, item.trackName)
           if (key) ratingKeys.push(key)
         }
@@ -143,6 +143,7 @@ export function createPlexPlaylistTarget(
           playlistId: playlist.ratingKey,
           playlistName: playlist.title,
           itemsAdded: ratingKeys.length,
+          itemsSkipped: items.length - ratingKeys.length,
         }
       } catch (err: unknown) {
         return {

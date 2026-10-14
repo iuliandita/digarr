@@ -32,7 +32,7 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 
 Digarr calls your connected services. It doesn't include a downloader or a full music player.
 
-AI suggestions and MusicBrainz matches can be wrong, so check the artist and release before approving. Playlist generation reports local results; it doesn't verify remote playback. Media-server exports can substitute an unmatched track. See [known limitations](docs/OPERATIONS.md#known-limitations-in-v1190).
+AI suggestions and MusicBrainz matches can be wrong, so check the artist and release before approving. Playlist generation reports local results; it doesn't verify remote playback. Media-server exports require an exact artist/title match after case and whitespace normalization. Unmatched tracks are skipped, and omissions are reported in Job History. See [known limitations](docs/OPERATIONS.md#known-limitations-in-v1190).
 
 ### Connections at a glance
 

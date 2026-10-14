@@ -737,7 +737,7 @@ Generation uses Spotify and Deezer lookups. The accepted `local` source priority
 
 MusicBrainz recordings provide a final MBID-based fallback, returning real titles and recording IDs without playable URIs or paths; M3U/XSPF export locations for these rows are MusicBrainz recording pages. Remote targets resolve tracks again.
 
-Navidrome, Jellyfin, Emby, and Plex currently substitute their first search result when no exact artist/title match exists ([#758](https://github.com/iuliandita/digarr/issues/758)); local generation outcomes do not verify remote track identity.
+Navidrome, Jellyfin, Emby, and Plex require an exact title and credited artist after case and whitespace normalization. Unmatched items and missing titles are skipped. Their internal target results report `itemsAdded` and `itemsSkipped`; a nonzero skipped count marks the export job failed in Job History after all selected targets are attempted. Local generation outcomes remain separate from remote matching and do not verify playback. Partial remote playlists and local tracks are retained; there is no rollback. Navidrome, Jellyfin, and Emby may create an empty playlist when all items are skipped, while Plex fails without creating one.
 
 ---
 
