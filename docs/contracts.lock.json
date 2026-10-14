@@ -272,7 +272,7 @@
         "src/server/routes/listening.ts": "cc79551ebb1d6b7e33486814efd4680be3b4e4599b084ee2e3e26a24c098d019",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
-        "src/server/routes/pipeline.ts": "f7b712bbdd9b5c6864457d1645acf83f4a6a900263b31fad7855747eed2ffa8c",
+        "src/server/routes/pipeline.ts": "853d46fdc27ad6836268983ed08c6841dba76ab8d7cb5ce69f7456f61c7dfdc5",
         "src/server/routes/playlists.ts": "c423b22fa179794098dd6ba3b61b46da6224b70c2eb53e3a3a1dab68fd42dfbd",
         "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
@@ -296,14 +296,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "988abae09a3562d14fa7708026279c209c7673a2a7d67a5ad7e431ea6600c2e8",
+      "digest": "fc00a5c9fd537c907e7102bfbaba211ac385a6d69a065c043052c9dc350cc2e3",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Saved Lidarr probes use persisted TLS verification when the boolean is omitted and explicit booleans override it. JSON-object and Lidarr TLS type validation return a stable problem+json 400 before probe credential resolution; access checks still run first. No frontend layout or text changes.",
-        "breaking": "Missing, malformed, or non-object probe payloads and invalid Lidarr TLS types now return 400 instead of server errors or accepting invalid values.",
+        "note": "Both pipeline entry points retain album kind and release identity for automatic approval; no request or response shape changes.",
+        "breaking": "none",
         "migration": "",
-        "digest": "988abae09a3562d14fa7708026279c209c7673a2a7d67a5ad7e431ea6600c2e8"
+        "digest": "fc00a5c9fd537c907e7102bfbaba211ac385a6d69a065c043052c9dc350cc2e3"
       }
     },
     "interface": {
@@ -552,7 +552,7 @@
         "src/core/notifications/transport.ts": "58e8c56d2fc07f34405a4eec3c379294c31acacfe6d041442a11d60c9663a4ca",
         "src/core/notifications/types.ts": "be5640349401fb3b996709e631d14dd8760fbed4f529b00f6328d9ddbe12068a",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
-        "src/core/pipeline/auto-approve.ts": "e25bf2499ca62e6e17aae4a2590e44d52c0858f3963d4ba0d1c7bcd8c4e01a86",
+        "src/core/pipeline/auto-approve.ts": "c5ce5b0bcbca23f8fef6c57601b62498b4d2a4de1c7098b9d3ad7c26de79ff23",
         "src/core/pipeline/cancel.ts": "346b432a6f0db611f6a6c6322557ea439f6a1f4ab50d4ceac0e6e59aef692752",
         "src/core/pipeline/discover.ts": "1b09622f0c84dfe1a0e4e9029eeadad56986b0f8d468726ceff0537f4a56c09c",
         "src/core/pipeline/enrich.ts": "3744493e0cbad7c12aa697af3f9b8b429506e8a57566f1b3bbc0ad509ba318ff",
@@ -652,17 +652,17 @@
         "src/core/types.ts": "7174f034d84b181799a1c530404962bac02d39bc580313c1ccc6daf9b6321f1e",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "8d2a562ba587e94d48c45e4b1dce1b493cc1da1539d5fcc69a7fb02e64a5150b",
+        "src/index.ts": "a566cad8d3fb05e9de99926abb6cce6f3b082b420adb3c3549c812a1f03ae899",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "b86f923608ef0f9c3cc383d2b4aa09d91a584f7b995d6956d66c05bf5a9fec94",
+      "digest": "579a4b5091a7b7c7490ed1d1334734c6e10a08d3d13a79ef87f038a450fe6bbc",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Media-server playlist destinations now require exact normalized artist/title matches, skip unmatched or missing-title items, and report added/skipped counts. The export aggregator attempts all targets then records partial media exports as failed jobs; local tracks and completed remote writes are retained, with no playback verification or rollback. README, API, and roadmap were reviewed and updated; no UI strings or layout changes.",
-        "breaking": "Previously substituted tracks are now omitted; partial media exports mark the job failed with counts after all targets are attempted.",
+        "note": "Automatic album approval dispatches the selected release via album targets, fails without identity or compatible acquisition targets, and records successful slskd actions as queued. Artist monitoring remains configurable.",
+        "breaking": "Automatic album approval no longer acquires a whole artist discography. No configuration or database migration is required; artist automatic approval retains its monitoring setting.",
         "migration": "",
-        "digest": "b86f923608ef0f9c3cc383d2b4aa09d91a584f7b995d6956d66c05bf5a9fec94"
+        "digest": "579a4b5091a7b7c7490ed1d1334734c6e10a08d3d13a79ef87f038a450fe6bbc"
       }
     },
     "deployment": {

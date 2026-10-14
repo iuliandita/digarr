@@ -87,11 +87,14 @@ export function pipelineRoutes(deps: AppDependencies) {
           id: r.id,
           score: r.score,
           status: r.status,
+          kind: r.kind,
+          recommendedReleaseGroupId: r.recommendedReleaseGroupId,
           artist: { mbid: r.artist.mbid, name: r.artist.name },
         }))
       },
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
+      userId,
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
       warmArtist: deps.skyhookWarmer

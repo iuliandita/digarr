@@ -5,9 +5,30 @@ import { type AutoApproveDeps, autoApprove } from '@/core/pipeline/auto-approve'
 function makeDeps(overrides: Partial<AutoApproveDeps> = {}): AutoApproveDeps {
   return {
     getRecommendationsByBatch: vi.fn().mockResolvedValue([
-      { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'Artist A' } },
-      { id: 2, score: 0.6, status: 'pending', artist: { mbid: 'mbid-2', name: 'Artist B' } },
-      { id: 3, score: 0.4, status: 'pending', artist: { mbid: 'mbid-3', name: 'Artist C' } },
+      {
+        id: 1,
+        score: 0.9,
+        status: 'pending',
+        kind: 'artist',
+        recommendedReleaseGroupId: null,
+        artist: { mbid: 'mbid-1', name: 'Artist A' },
+      },
+      {
+        id: 2,
+        score: 0.6,
+        status: 'pending',
+        kind: 'artist',
+        recommendedReleaseGroupId: null,
+        artist: { mbid: 'mbid-2', name: 'Artist B' },
+      },
+      {
+        id: 3,
+        score: 0.4,
+        status: 'pending',
+        kind: 'artist',
+        recommendedReleaseGroupId: null,
+        artist: { mbid: 'mbid-3', name: 'Artist C' },
+      },
     ]),
     getEnabledTargets: vi.fn().mockResolvedValue([
       {
@@ -58,11 +79,16 @@ describe('autoApprove()', () => {
 
   it('skips non-pending recommendations', async () => {
     const deps = makeDeps({
-      getRecommendationsByBatch: vi
-        .fn()
-        .mockResolvedValue([
-          { id: 1, score: 0.9, status: 'rejected', artist: { mbid: 'mbid-1', name: 'A' } },
-        ]),
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          score: 0.9,
+          status: 'rejected',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-1', name: 'A' },
+        },
+      ]),
     })
     const result = await autoApprove(
       1,
@@ -122,8 +148,22 @@ describe('autoApprove()', () => {
     const deps = makeDeps({
       getEnabledTargets: vi.fn().mockResolvedValue([failTarget]),
       getRecommendationsByBatch: vi.fn().mockResolvedValue([
-        { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
-        { id: 2, score: 0.8, status: 'pending', artist: { mbid: 'mbid-2', name: 'B' } },
+        {
+          id: 1,
+          score: 0.9,
+          status: 'pending',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-1', name: 'A' },
+        },
+        {
+          id: 2,
+          score: 0.8,
+          status: 'pending',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-2', name: 'B' },
+        },
       ]),
     })
     const result = await autoApprove(
@@ -158,11 +198,16 @@ describe('autoApprove()', () => {
           testConnection: vi.fn(),
         },
       ]),
-      getRecommendationsByBatch: vi
-        .fn()
-        .mockResolvedValue([
-          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
-        ]),
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          score: 0.9,
+          status: 'pending',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-1', name: 'A' },
+        },
+      ]),
     })
     const result = await autoApprove(
       1,
@@ -217,11 +262,16 @@ describe('autoApprove()', () => {
           testConnection: vi.fn(),
         },
       ]),
-      getRecommendationsByBatch: vi
-        .fn()
-        .mockResolvedValue([
-          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
-        ]),
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          score: 0.9,
+          status: 'pending',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-1', name: 'A' },
+        },
+      ]),
     })
     await autoApprove(
       1,
@@ -261,11 +311,16 @@ describe('autoApprove()', () => {
           testConnection: vi.fn(),
         },
       ]),
-      getRecommendationsByBatch: vi
-        .fn()
-        .mockResolvedValue([
-          { id: 1, score: 0.9, status: 'pending', artist: { mbid: 'mbid-1', name: 'A' } },
-        ]),
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          score: 0.9,
+          status: 'pending',
+          kind: 'artist',
+          recommendedReleaseGroupId: null,
+          artist: { mbid: 'mbid-1', name: 'A' },
+        },
+      ]),
     })
     const result = await autoApprove(
       1,
@@ -280,5 +335,192 @@ describe('autoApprove()', () => {
     )
     expect(result.approved).toBe(1)
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(1, 'approved', expect.any(Object))
+  })
+
+  const config = {
+    threshold: 0.7,
+    monitorOption: 'new' as const,
+    qualityProfileId: 2,
+    metadataProfileId: 3,
+    rootFolderId: 4,
+  }
+  const albumRec = {
+    id: 11,
+    score: 0.9,
+    status: 'pending',
+    kind: 'album',
+    recommendedReleaseGroupId: 'release-1',
+    artist: { mbid: 'mbid-1', name: 'Artist A' },
+  }
+
+  it('dispatches mixed recommendations by kind and preserves acquisition context', async () => {
+    const addArtist = vi.fn().mockResolvedValue({ success: true, externalId: 99 })
+    const addAlbum = vi.fn().mockResolvedValue({ success: true, externalId: 123 })
+    const recorder = {
+      start: vi.fn().mockResolvedValue(1),
+      complete: vi.fn(),
+      fail: vi.fn(),
+      cancel: vi.fn(),
+      markStuck: vi.fn(),
+    }
+    const deps = makeDeps({
+      userId: 7,
+      jobRecorder: recorder,
+      getRecommendationsByBatch: vi
+        .fn()
+        .mockResolvedValue([
+          { ...albumRec, id: 10, kind: 'artist', recommendedReleaseGroupId: null },
+          albumRec,
+        ]),
+      getEnabledTargets: vi.fn().mockResolvedValue([
+        {
+          id: 'lidarr-1',
+          type: 'lidarr',
+          capabilities: ['addArtist', 'addAlbum'],
+          addArtist,
+          addAlbum,
+        },
+      ]),
+    })
+    expect(await autoApprove(1, config, deps)).toEqual({ approved: 2, failed: 0 })
+    expect(addArtist).toHaveBeenCalledExactlyOnceWith(
+      { mbid: 'mbid-1', name: 'Artist A' },
+      {
+        monitorOption: 'new',
+        qualityProfileId: 2,
+        metadataProfileId: 3,
+        rootFolderId: 4,
+        userId: 7,
+        recommendationId: 10,
+      },
+    )
+    expect(addAlbum).toHaveBeenCalledExactlyOnceWith(
+      { artistMbid: 'mbid-1', artistName: 'Artist A', releaseGroupMbid: 'release-1' },
+      expect.objectContaining({
+        monitorOption: 'new',
+        qualityProfileId: 2,
+        metadataProfileId: 3,
+        rootFolderId: 4,
+        userId: 7,
+        recommendationId: 11,
+      }),
+    )
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(10, 'added_to_lidarr', {
+      targetActions: { 'lidarr-1': { status: 'added', externalId: 99, error: undefined } },
+      lidarrArtistId: 99,
+    })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(11, 'added_to_lidarr', {
+      targetActions: { 'lidarr-1': { status: 'added', externalId: 123, error: undefined } },
+    })
+    expect(recorder.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ action: 'addAlbum', releaseGroupMbid: 'release-1' }),
+      }),
+    )
+  })
+
+  it.each(['missing release', 'artist-only target', 'unimplemented album capability'])(
+    'fails closed for %s without artist acquisition or prewarming',
+    async (scenario) => {
+      const addArtist = vi.fn()
+      const addAlbum = vi.fn()
+      const deps = makeDeps({
+        getRecommendationsByBatch: vi.fn().mockResolvedValue([
+          {
+            ...albumRec,
+            recommendedReleaseGroupId: scenario === 'missing release' ? null : 'release-1',
+          },
+        ]),
+        getEnabledTargets: vi.fn().mockResolvedValue([
+          {
+            id: 'lidarr-1',
+            type: 'lidarr',
+            addArtist,
+            capabilities:
+              scenario === 'artist-only target' ? ['addArtist'] : ['addArtist', 'addAlbum'],
+            ...(scenario === 'missing release' ? { addAlbum } : {}),
+          },
+        ]),
+      })
+      expect(await autoApprove(1, config, deps)).toEqual({ approved: 0, failed: 1 })
+      expect(addArtist).not.toHaveBeenCalled()
+      expect(addAlbum).not.toHaveBeenCalled()
+      expect(deps.warmArtist).not.toHaveBeenCalled()
+      expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(11, 'add_failed', {
+        targetActions: {},
+      })
+    },
+  )
+
+  it.each(['lidarr', 'slskd'])(
+    'acquires albums through an explicit %s album-only target',
+    async (type) => {
+      const addAlbum = vi.fn().mockResolvedValue({ success: true, externalId: 123 })
+      const deps = makeDeps({
+        getRecommendationsByBatch: vi.fn().mockResolvedValue([albumRec]),
+        getEnabledTargets: vi
+          .fn()
+          .mockResolvedValue([{ id: 'album-target', type, capabilities: ['addAlbum'], addAlbum }]),
+      })
+      expect(await autoApprove(1, config, deps)).toEqual({ approved: 1, failed: 0 })
+      expect(addAlbum).toHaveBeenCalledTimes(1)
+      expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
+        11,
+        type === 'lidarr' ? 'added_to_lidarr' : 'approved',
+        {
+          targetActions: {
+            'album-target': {
+              status: type === 'slskd' ? 'queued' : 'added',
+              externalId: 123,
+              error: undefined,
+            },
+          },
+        },
+      )
+      expect(deps.warmArtist).toHaveBeenCalledTimes(type === 'lidarr' ? 1 : 0)
+    },
+  )
+
+  it('preserves discovery-only album approval and pending/score filtering', async () => {
+    const deps = makeDeps({
+      getRecommendationsByBatch: vi
+        .fn()
+        .mockResolvedValue([
+          albumRec,
+          { ...albumRec, id: 12, score: 0.6 },
+          { ...albumRec, id: 13, status: 'approved' },
+        ]),
+      getEnabledTargets: vi
+        .fn()
+        .mockResolvedValue([
+          { id: 'playlist', type: 'spotify-playlist', capabilities: ['createPlaylist'] },
+        ]),
+    })
+    expect(await autoApprove(1, config, deps)).toEqual({ approved: 1, failed: 0 })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(11, 'approved', {
+      targetActions: {},
+    })
+    expect(deps.warmArtist).not.toHaveBeenCalled()
+  })
+
+  it('preserves Lidarr album failure details', async () => {
+    const deps = makeDeps({
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([albumRec]),
+      getEnabledTargets: vi.fn().mockResolvedValue([
+        {
+          id: 'lidarr-1',
+          type: 'lidarr',
+          capabilities: ['addAlbum'],
+          addAlbum: vi
+            .fn()
+            .mockResolvedValue({ success: false, externalId: 123, error: 'album missing' }),
+        },
+      ]),
+    })
+    expect(await autoApprove(1, config, deps)).toEqual({ approved: 0, failed: 1 })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(11, 'add_failed', {
+      targetActions: { 'lidarr-1': { status: 'failed', externalId: 123, error: 'album missing' } },
+      lidarrError: 'album missing',
+    })
   })
 })

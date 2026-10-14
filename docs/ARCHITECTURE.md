@@ -303,8 +303,11 @@ albums, including explicit album-only targets. Missing release-group identities
 or incompatible targets fail without artist acquisition. Only successful Lidarr
 additions produce `added_to_lidarr`; other successful targets produce `approved`,
 with slskd queueing recorded separately from a completed import. Automatic album
-approval still uses the artist-level path and its configured monitoring scope,
-defaulting to all albums ([#761](https://github.com/iuliandita/digarr/issues/761)).
+approval preserves the release identity in both pipeline entry points and calls
+`addAlbum` too. Its monitoring setting applies only to artist recommendations.
+Missing release identities or incompatible acquisition targets fail without
+artist acquisition; discovery-only instances approve valid albums without a
+target call. Album external IDs stay in `targetActions`, never the artist ID.
 
 ### Release radar
 

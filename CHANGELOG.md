@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Preserve release identity in automatic album approval and use album targets to monitor/search only the recommended release. Missing identity or incompatible acquisition targets fail without artist acquisition; the monitoring setting applies only to artist recommendations. Slskd queueing remains approved with a queued target action, and album IDs stay separate from artist IDs. [#761](https://github.com/iuliandita/digarr/issues/761), [#818](https://github.com/iuliandita/digarr/issues/818).
+
 - Use saved Lidarr TLS settings for empty-object probes, preserve explicit boolean overrides, and return `400` for missing, malformed, non-object, or invalid TLS input before reading saved credentials. [#759](https://github.com/iuliandita/digarr/issues/759).
 - Include encrypted per-user preferences in both key-rotation passes. Keep unrelated preferences unchanged and fail without exposing unreadable secrets. No schema migration is added; retain both exact keys and a consistent pre-rotation backup until verification succeeds. Pending OAuth transactions remain excluded and must complete or expire. [#760](https://github.com/iuliandita/digarr/issues/760).
 - Skip unmatched tracks in Navidrome, Jellyfin, Emby, and Plex playlist exports instead of substituting search results. Require exact artist/title matches after case and whitespace normalization; report added/skipped counts in failed Job History entries while retaining local tracks and partial remote playlists and attempting other targets. [#758](https://github.com/iuliandita/digarr/issues/758).

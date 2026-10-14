@@ -659,13 +659,15 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     // Best-effort: discovery mode runs should still work without Spotify.
   }
 
-  const autoApproveDeps = {
+  const autoApproveDeps: import('./core/pipeline/auto-approve').AutoApproveDeps = {
     getRecommendationsByBatch: async (batchId: number) => {
       const result = await listRecommendations(db, { batchId, limit: 1000 })
       return result.items.map((recommendation) => ({
         id: recommendation.id,
         score: recommendation.score,
         status: recommendation.status,
+        kind: recommendation.kind,
+        recommendedReleaseGroupId: recommendation.recommendedReleaseGroupId,
         artist: {
           mbid: recommendation.artist.mbid,
           name: recommendation.artist.name,
@@ -673,6 +675,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       }))
     },
     getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
+    userId,
     updateRecommendationStatus: (
       id: number,
       status: string,

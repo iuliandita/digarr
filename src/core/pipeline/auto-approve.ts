@@ -8,6 +8,8 @@ export type AutoApproveDeps = {
       id: number
       score: number
       status: string
+      kind: string
+      recommendedReleaseGroupId: string | null
       artist: { mbid: string; name: string }
     }>
   >
@@ -42,6 +44,12 @@ export async function autoApprove(
 
   const targets = await deps.getEnabledTargets()
   const addTargets = targets.filter((t) => t.capabilities?.includes('addArtist'))
+  const albumTargets = targets.filter(
+    (t) => t.capabilities?.includes('addAlbum') && typeof t.addAlbum === 'function',
+  )
+  const hasAcquisitionTargets = targets.some(
+    (t) => t.capabilities?.includes('addArtist') || t.capabilities?.includes('addAlbum'),
+  )
   const hasLidarr = targets.some((t) => t.type === 'lidarr')
 
   const addOptions: TargetAddOptions = {
@@ -55,16 +63,27 @@ export async function autoApprove(
   let failed = 0
 
   for (const rec of eligible) {
-    // Pre-warm SkyHook if Lidarr target exists
-    if (deps.warmArtist && hasLidarr) {
-      await deps.warmArtist(rec.artist.mbid).catch(() => {})
+    const isAlbum = rec.kind === 'album'
+    const recTargets = isAlbum ? albumTargets : addTargets
+    if (
+      isAlbum &&
+      (!rec.recommendedReleaseGroupId?.trim() ||
+        (hasAcquisitionTargets && albumTargets.length === 0))
+    ) {
+      await deps.updateRecommendationStatus(rec.id, 'add_failed', { targetActions: {} })
+      failed++
+      continue
     }
 
-    if (addTargets.length === 0) {
+    if (recTargets.length === 0) {
       // No targets - mark as approved (discovery-only)
       await deps.updateRecommendationStatus(rec.id, 'approved', { targetActions: {} })
       approved++
       continue
+    }
+
+    if (deps.warmArtist && recTargets.some((t) => t.type === 'lidarr')) {
+      await deps.warmArtist(rec.artist.mbid).catch(() => {})
     }
 
     const targetActions: Record<string, unknown> = {}
@@ -75,36 +94,45 @@ export async function autoApprove(
       error?: string
     } | null = null
 
-    for (const target of addTargets) {
+    for (const target of recTargets) {
+      const metadata = {
+        targetType: target.type,
+        artistName: rec.artist.name,
+        mbid: rec.artist.mbid,
+        action: isAlbum ? 'addAlbum' : 'add',
+        ...(isAlbum ? { releaseGroupMbid: rec.recommendedReleaseGroupId } : {}),
+      }
       const targetJobId = deps.jobRecorder
         ? await deps.jobRecorder.start({
             type: 'target',
             userId: deps.userId,
-            metadata: {
-              targetType: target.type,
-              artistName: rec.artist.name,
-              mbid: rec.artist.mbid,
-              action: 'add',
-            },
+            metadata,
           })
         : null
 
-      const result = await target.addArtist?.(
-        { mbid: rec.artist.mbid, name: rec.artist.name },
-        addOptions,
-      )
+      const options = { ...addOptions, userId: deps.userId, recommendationId: rec.id }
+      const result = isAlbum
+        ? await target.addAlbum?.(
+            {
+              artistMbid: rec.artist.mbid,
+              artistName: rec.artist.name,
+              releaseGroupMbid: rec.recommendedReleaseGroupId as string,
+            },
+            options,
+          )
+        : await target.addArtist?.({ mbid: rec.artist.mbid, name: rec.artist.name }, options)
 
       if (!result) {
         if (targetJobId != null && deps.jobRecorder) {
           await deps.jobRecorder.complete(targetJobId, {
-            metadata: { targetType: target.type, artistName: rec.artist.name, skipped: true },
+            metadata: { ...metadata, skipped: true },
           })
         }
         continue
       }
 
       targetActions[target.id] = {
-        status: result.success ? 'added' : 'failed',
+        status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
         externalId: result.externalId,
         error: result.error,
       }
@@ -115,8 +143,7 @@ export async function autoApprove(
         if (result.success) {
           await deps.jobRecorder.complete(targetJobId, {
             metadata: {
-              targetType: target.type,
-              artistName: rec.artist.name,
+              ...metadata,
               externalId: result.externalId,
             },
           })
@@ -132,7 +159,9 @@ export async function autoApprove(
 
     const extra: StatusUpdateExtra = { targetActions }
     if (lidarrResult) {
-      if (lidarrResult.externalId) extra.lidarrArtistId = lidarrResult.externalId as number
+      if (!isAlbum && lidarrResult.externalId) {
+        extra.lidarrArtistId = lidarrResult.externalId as number
+      }
       if (lidarrResult.error) extra.lidarrError = lidarrResult.error
     }
 
