@@ -876,7 +876,8 @@ export const ko = {
   'discoveryMode.notImplementedYet': '이 모드는 아직 구현되지 않았습니다.',
   'discoveryMode.notShippedYet': '이 모드는 아직 출시되지 않았습니다.',
   'discoveryMode.reason.connectListenBrainz': '이 모드를 사용하려면 ListenBrainz를 연결하세요.',
-  'discoveryMode.reason.connectListeningSource': '먼저 청취 소스를 연결하세요.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    '이 모드를 사용하려면 ListenBrainz, Spotify 또는 Last.fm을 연결하세요.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '이 모드를 사용하려면 ListenBrainz 또는 Last.fm을 연결하세요.',
   'discoveryMode.reason.connectDiscogs': '이 모드를 사용하려면 Discogs를 연결하세요.',

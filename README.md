@@ -47,7 +47,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 | AI recommendations | Anthropic, OpenAI, Gemini, Ollama, OpenAI-compatible endpoints |
 | Notifications | Webhooks, ntfy, Telegram, Apprise |
 
-A connection's capabilities differ by service. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes.
+A connection's capabilities differ by service. Release Radar requires ListenBrainz, Spotify, or Last.fm. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes.
 
 ### Privacy and credentials
 

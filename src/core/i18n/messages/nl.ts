@@ -891,7 +891,8 @@ export const nl = {
   'discoveryMode.notImplementedYet': 'Deze modus is nog niet geïmplementeerd.',
   'discoveryMode.notShippedYet': 'Deze modus is nog niet beschikbaar.',
   'discoveryMode.reason.connectListenBrainz': 'Verbind ListenBrainz om deze modus te gebruiken.',
-  'discoveryMode.reason.connectListeningSource': 'Verbind eerst een luisterbron.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Verbind ListenBrainz, Spotify of Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbind ListenBrainz of Last.fm om deze modus te gebruiken.',
   'discoveryMode.reason.connectDiscogs': 'Verbind Discogs om deze modus te gebruiken.',

@@ -184,6 +184,7 @@ describe('OpenAPI skeleton', () => {
         '/api/v1/jobs',
         '/api/v1/jobs/{id}',
         '/api/v1/jobs/health',
+        '/api/v1/settings/plex/sections',
         '/api/v1/settings/test/{service}',
       ]),
     )
@@ -383,6 +384,7 @@ describe('OpenAPI skeleton', () => {
     const noBadRequestPaths = new Set([
       '/api/v1/library/unreconciled',
       '/api/v1/library/unreconciled-albums',
+      '/api/v1/settings/plex/sections',
     ])
     for (const [path, item] of Object.entries(openapiDoc.paths)) {
       for (const [method, operation] of Object.entries(item)) {

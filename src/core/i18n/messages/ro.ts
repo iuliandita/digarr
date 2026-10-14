@@ -897,7 +897,8 @@ export const ro = {
   'discoveryMode.notImplementedYet': 'Acest mod nu este încă implementat.',
   'discoveryMode.notShippedYet': 'Acest mod nu este încă disponibil.',
   'discoveryMode.reason.connectListenBrainz': 'Conectați ListenBrainz pentru a folosi acest mod.',
-  'discoveryMode.reason.connectListeningSource': 'Conectați mai întâi o sursă de ascultare.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Conectați ListenBrainz, Spotify sau Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Conectați ListenBrainz sau Last.fm pentru a folosi acest mod.',
   'discoveryMode.reason.connectDiscogs': 'Conectează Discogs pentru a folosi acest mod.',

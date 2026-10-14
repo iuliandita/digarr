@@ -902,7 +902,8 @@ export const de = {
   'discoveryMode.notShippedYet': 'Dieser Modus ist noch nicht verfügbar.',
   'discoveryMode.reason.connectListenBrainz':
     'Verbinde ListenBrainz, um diesen Modus zu verwenden.',
-  'discoveryMode.reason.connectListeningSource': 'Verbinde zuerst eine Hörquelle.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Verbinde ListenBrainz, Spotify oder Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Verbinde ListenBrainz oder Last.fm, um diesen Modus zu verwenden.',
   'discoveryMode.reason.connectDiscogs': 'Verbinde Discogs, um diesen Modus zu nutzen.',

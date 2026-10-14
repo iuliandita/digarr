@@ -79,7 +79,7 @@ describe('DiscoveryModeCard i18n', () => {
               enabled: false,
               fallbackUsed: false,
               providerPath: [],
-              reason: 'Connect a listening source first.',
+              reason: 'Connect ListenBrainz, Spotify, or Last.fm to use this mode.',
             },
             easyFields: [
               {
@@ -99,10 +99,14 @@ describe('DiscoveryModeCard i18n', () => {
     expect(screen.getByText('Radar uscite')).toBeInTheDocument()
     expect(screen.getByText('Finestra di uscita')).toBeInTheDocument()
     expect(screen.getByText('Non disponibile perché')).toBeInTheDocument()
-    expect(screen.getByText("Collega prima una sorgente d'ascolto.")).toBeInTheDocument()
+    expect(
+      screen.getByText('Collega ListenBrainz, Spotify o Last.fm per usare questa modalità.'),
+    ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Ignora' }))
-    expect(screen.queryByText("Collega prima una sorgente d'ascolto.")).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Collega ListenBrainz, Spotify o Last.fm per usare questa modalità.'),
+    ).not.toBeInTheDocument()
   })
 
   it('translates the not-implemented-yet availability reason', () => {

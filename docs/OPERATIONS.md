@@ -111,11 +111,17 @@ For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`
 
 In Settings > Connections > Your Connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
 
+Settings reloads music-library names from your saved Plex connection. If Plex is unavailable or the selected library no longer exists, the saved section ID remains visible; loading the names does not change your selection.
+
 A listener selection is required for listening-based discovery. Existing Plex connections continue to sync their libraries, but need this selection before contributing listening history. Changing the server or token clears the selection.
 
 Digarr verifies the server identity and rejects history belonging to a different account instead of mixing profiles. A server or token that cannot expose the account list or playback history can still be used for library sync; Plex similarity data depends on the library's metadata agent.
 
 History analysis allows at most 5,000 entries (25 pages) per requested period. If that period cannot be read completely within the limit, top-artist analysis reports a failure instead of returning partial totals; choose a shorter period or another listening source.
+
+Plex history IDs can arrive as bare rating keys or `/library/metadata/<id>` paths. Entries without usable artist and track IDs are skipped, including plays of removed media. If a page contains in-range tracks but none are usable, Digarr logs a count-only warning. Dashboard listening requests do not create Job History entries; inspect the container logs when Plex has plays but the dashboard is empty.
+
+Release Radar currently requires ListenBrainz, Spotify, or Last.fm for artist seeds, even when Plex listening works. It looks up new releases through MusicBrainz.
 
 ## Importing slskd downloads into Lidarr
 

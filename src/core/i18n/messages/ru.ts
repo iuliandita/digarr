@@ -898,7 +898,8 @@ export const ru = {
   'discoveryMode.notShippedYet': 'Этот режим ещё недоступен.',
   'discoveryMode.reason.connectListenBrainz':
     'Подключите ListenBrainz, чтобы использовать этот режим.',
-  'discoveryMode.reason.connectListeningSource': 'Сначала подключите источник прослушивания.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Подключите ListenBrainz, Spotify или Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Подключите ListenBrainz или Last.fm, чтобы использовать этот режим.',
   'discoveryMode.reason.connectDiscogs': 'Подключите Discogs, чтобы использовать этот режим.',

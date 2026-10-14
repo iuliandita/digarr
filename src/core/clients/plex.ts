@@ -77,8 +77,10 @@ type PlexHistoryResponse = {
       accountID?: number | string
       librarySectionID?: number | string
       grandparentRatingKey?: number | string
+      grandparentKey?: string
       grandparentTitle?: string
       ratingKey?: number | string
+      key?: string
       title?: string
       viewedAt?: number
     }>
@@ -146,6 +148,19 @@ const DEFAULT_HISTORY_PAGE_SIZE = 200
 const MAX_HISTORY_PAGE_SIZE = 500
 const MAX_HISTORY_ITEMS = 5_000
 const MAX_HISTORY_PAGES = 25
+
+function historyRatingKey(ratingKey: unknown, key: unknown): string {
+  const bareKey =
+    typeof ratingKey === 'string'
+      ? ratingKey.trim()
+      : typeof ratingKey === 'number' && Number.isSafeInteger(ratingKey) && ratingKey > 0
+        ? String(ratingKey)
+        : ''
+  if (/^[A-Za-z0-9_-]+$/.test(bareKey)) return bareKey
+  return typeof key === 'string'
+    ? (/^\/library\/metadata\/([A-Za-z0-9_-]+)$/.exec(key)?.[1] ?? '')
+    : ''
+}
 
 export function createPlexClient(
   url: string,
@@ -287,6 +302,8 @@ export function createPlexClient(
       const metadata = res.MediaContainer.Metadata ?? []
       total = res.MediaContainer.totalSize ?? total
       let pageExceededItemLimit = false
+      let trackCount = 0
+      let usableTrackCount = 0
 
       for (const raw of metadata) {
         const returnedAccountId = Number(raw.accountID)
@@ -303,12 +320,14 @@ export function createPlexClient(
         }
         if (raw.type !== 'track') continue
 
-        const artistName = raw.grandparentTitle?.trim()
-        const trackName = raw.title?.trim()
-        const artistRatingKey = String(raw.grandparentRatingKey ?? '').trim()
-        const ratingKey = String(raw.ratingKey ?? '').trim()
-        const viewedAt = Number(raw.viewedAt)
+        const artistName =
+          typeof raw.grandparentTitle === 'string' ? raw.grandparentTitle.trim() : ''
+        const trackName = typeof raw.title === 'string' ? raw.title.trim() : ''
+        const artistRatingKey = historyRatingKey(raw.grandparentRatingKey, raw.grandparentKey)
+        const ratingKey = historyRatingKey(raw.ratingKey, raw.key)
+        const viewedAt = Number(raw.viewedAt ?? Number.NaN)
         if (options.since != null && Number.isFinite(viewedAt) && viewedAt < options.since) continue
+        trackCount += 1
         if (
           !artistName ||
           !trackName ||
@@ -318,6 +337,7 @@ export function createPlexClient(
         ) {
           continue
         }
+        usableTrackCount += 1
         if (items.length >= maxItems) {
           pageExceededItemLimit = true
           continue
@@ -331,6 +351,11 @@ export function createPlexClient(
           ratingKey,
           viewedAt: viewedAt * 1000,
         })
+      }
+      if (trackCount > 0 && usableTrackCount === 0) {
+        console.warn(
+          `[plex] History page contained ${trackCount} track entries but 0 usable tracks; required fields are missing or malformed`,
+        )
       }
 
       start += metadata.length

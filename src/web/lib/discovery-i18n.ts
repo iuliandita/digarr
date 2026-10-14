@@ -46,7 +46,8 @@ const OPTION_VALUE_ALIASES: Record<string, string> = {
 
 const REASON_KEY_ALIASES: Record<string, MessageKey> = {
   'Connect ListenBrainz to use this mode.': 'discoveryMode.reason.connectListenBrainz',
-  'Connect a listening source first.': 'discoveryMode.reason.connectListeningSource',
+  'Connect ListenBrainz, Spotify, or Last.fm to use this mode.':
+    'discoveryMode.reason.connectReleaseRadarProviders',
   'Connect ListenBrainz or Last.fm to use this mode.':
     'discoveryMode.reason.connectListenBrainzOrLastfm',
   'Connect Discogs to use this mode.': 'discoveryMode.reason.connectDiscogs',

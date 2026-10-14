@@ -261,6 +261,32 @@ export function settingsRoutes(deps: AppDependencies) {
     return c.json(maskSecrets(response))
   })
 
+  router.get('/api/v1/settings/plex/sections', async (c) => {
+    const userId = c.get('userId')
+    const connections = userId ? await getUserConnections(deps.db, userId) : null
+    if (!connections?.plexUrl || !connections.plexToken) {
+      return c.json({ sections: [] })
+    }
+    try {
+      const { createPlexClient } = await import('@/core/clients/plex')
+      const client = createPlexClient(connections.plexUrl, connections.plexToken)
+      const sections = await client.getMusicSections()
+      return c.json({ sections: sections.map(({ key, title }) => ({ key, title })) })
+    } catch (error: unknown) {
+      const message = (error instanceof Error ? error.message : String(error))
+        .split(connections.plexToken)
+        .join('[redacted]')
+      return probeResult(
+        c,
+        { success: false, message },
+        resolveRequestMessages({
+          requestLocale: c.req.header('X-Digarr-Locale'),
+          acceptLanguage: c.req.header('Accept-Language'),
+        })['common.unknownError'],
+      )
+    }
+  })
+
   const GLOBAL_MUTABLE_FIELDS = new Set([
     'lidarrUrl',
     'lidarrApiKey',

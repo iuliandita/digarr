@@ -990,6 +990,8 @@ Response: `{ tracks, hasSource, source, status }`. `hasSource` is `false` when n
 
 Both listening endpoints return `status`: `not_configured` means no eligible source or application settings; `empty` means attempts succeeded but returned no entries; `error` means no entries were available and at least one attempted source failed; `ok` means entries were returned, including a successful fallback after another source failed. Existing fallback priorities are unchanged. Raw upstream errors are not returned. ListenBrainz artist-statistics HTTP 204 responses count as empty success.
 
+Plex accepts artist and track IDs from bare rating keys or canonical metadata paths. Entries missing usable IDs are skipped. A page with in-range tracks but no usable entries emits a count-only server warning; the response remains `empty` if no other source returns tracks. These dashboard requests do not create job records.
+
 ---
 
 ## Jobs (admin)
@@ -1021,12 +1023,14 @@ Source health samples the 20 most recent pipeline/quick-discover runs with sourc
 |--------|------|------|-------------|
 | GET | `/api/v1/settings` | Yes | Get settings (partial secret masking; see notes) |
 | PATCH | `/api/v1/settings` | Yes | Update settings (admin for global, any user for own connections) |
+| GET | `/api/v1/settings/plex/sections` | Yes | List music libraries using the current user's saved Plex connection |
 | POST | `/api/v1/settings/test/:service` | Admin, or own Plex connection | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
 
 **Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
 
 Settings notes:
+- `GET /api/v1/settings/plex/sections` returns `{ "sections": [{ "key": "3", "title": "Music" }] }` using only the current user's saved URL and token, including for non-admins. An unconfigured connection returns `{ "sections": [] }`; an upstream failure returns `502` problem+json with secret-redacted detail capped at 300 characters. It never changes the saved section or falls back to shared admin credentials.
 - Treat settings responses as sensitive. Listed top-level credentials and notification-channel secrets are masked, but global `preferences.fanartApiKey` is returned unchanged, including to non-admins. Legacy `preferences.webhookUrl` is returned unchanged to admins and stripped for non-admins. These exceptions are tracked in [#793](https://github.com/iuliandita/digarr/issues/793); do not publish settings responses as safe diagnostics.
 - Plex listener mapping is per user: `plexAccountId` is a positive integer or `null` in PATCH. The server verifies the selected account and derives `plexAccountName` and `plexMachineIdentifier`; clients cannot supply those identity fields. GET returns the stored mapping. Changing the Plex URL or token without selecting an account clears the mapping.
 - The Plex probe returns `accounts: [{id, name}]` and `machineIdentifier` alongside music-library `sections`. Non-admins may probe their own Plex connection, never shared admin credentials. Other service probes stay admin-only. Listening requests require an explicit mapped account and reject mismatched history rows; library sync does not require listener mapping. Plex top-artist analysis requires complete history for the requested period and fails if it exceeds 5,000 entries or 25 pages. Recent-track requests intentionally return only their requested sample. The probe accepts `accountId` (number or explicit `null`); omission uses the saved listener, while `null` tests library-only access.

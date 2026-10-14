@@ -887,7 +887,8 @@ export const ja = {
   'discoveryMode.notShippedYet': 'このモードはまだ利用できません。',
   'discoveryMode.reason.connectListenBrainz':
     'このモードを使うには ListenBrainz を接続してください。',
-  'discoveryMode.reason.connectListeningSource': '先に再生ソースを接続してください。',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'このモードを使うには ListenBrainz、Spotify または Last.fm を接続してください。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'このモードを使うには ListenBrainz または Last.fm を接続してください。',
   'discoveryMode.reason.connectDiscogs': 'このモードを使うには Discogs を接続してください。',

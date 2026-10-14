@@ -263,6 +263,8 @@ export const completeSetup = (config: Record<string, unknown>) =>
 
 // Settings
 export const getSettings = () => fetchApi<Record<string, unknown>>('/settings')
+export const getPlexSections = () =>
+  fetchApi<{ sections: Array<{ key: string; title: string }> }>('/settings/plex/sections')
 export const updateSettings = (partial: Record<string, unknown>) =>
   fetchApi('/settings', { method: 'PATCH', body: JSON.stringify(partial) })
 export const testService = (service: string, config: Record<string, unknown>) =>

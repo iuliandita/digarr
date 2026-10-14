@@ -457,6 +457,61 @@ describe('GET /api/v1/settings', () => {
   })
 })
 
+describe('GET /api/v1/settings/plex/sections', () => {
+  it('loads only the authenticated non-admin user connection', async () => {
+    await createSession(2, 'plex-listener-session')
+    mockGetUserConnections.mockClear()
+    mockCreatePlexClient.mockClear()
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      plexUrl: 'http://listener-plex:32400',
+      plexToken: 'listener-token',
+    })
+    const deps = makeDeps()
+    const admin = await deps.getUserById(1)
+    deps.getUserById = vi.fn(async () => (admin ? { ...admin, id: 2, isAdmin: false } : null))
+    const res = await createApp(deps).request(
+      '/api/v1/settings/plex/sections?url=http://other-plex:32400&token=other-token',
+      { headers: { Authorization: 'Bearer plex-listener-session' } },
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ sections: [{ key: 'music-1', title: 'Music' }] })
+    expect(mockGetUserConnections).toHaveBeenCalledWith(deps.db, 2)
+    expect(mockCreatePlexClient).toHaveBeenCalledWith(
+      'http://listener-plex:32400',
+      'listener-token',
+    )
+    expect(deps.getSettings).not.toHaveBeenCalled()
+  })
+
+  it('returns no sections when the user has no saved Plex connection', async () => {
+    mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
+    mockCreatePlexClient.mockClear()
+    const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/plex/sections')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ sections: [] })
+    expect(mockCreatePlexClient).not.toHaveBeenCalled()
+  })
+
+  it('redacts the saved token from provider failures', async () => {
+    mockGetUserConnections.mockResolvedValueOnce({
+      ...defaultUserConnections,
+      plexUrl: 'http://plex:32400',
+      plexToken: 'plain-plex-secret',
+    })
+    const client = mockCreatePlexClient()
+    client.getMusicSections.mockRejectedValueOnce(
+      new Error('Failed plain-plex-secret token=other-secret'),
+    )
+    mockCreatePlexClient.mockReturnValueOnce(client)
+    const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/plex/sections')
+    expect(res.status).toBe(502)
+    expect(res.headers.get('Content-Type')).toContain('application/problem+json')
+    const body = await res.json()
+    expect(body.detail).toBe('Failed [redacted] token=[redacted]')
+  })
+})
+
 describe('PATCH /api/v1/settings', () => {
   it('calls updateSettings and returns updated settings', async () => {
     const updateSettings = vi.fn(async () => {})

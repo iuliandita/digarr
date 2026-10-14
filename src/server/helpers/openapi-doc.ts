@@ -974,6 +974,41 @@ export const openapiDoc = {
         },
       },
     },
+    '/api/v1/settings/plex/sections': {
+      get: {
+        tags: ['Settings'],
+        operationId: 'listSavedPlexMusicSections',
+        summary: "List music libraries for the current user's saved Plex connection",
+        description:
+          "Uses only the authenticated user's saved Plex URL and token. Returns an empty sections array when no connection is configured; never uses shared credentials or changes the saved selection.",
+        security: authSecurity,
+        responses: {
+          '200': {
+            description: 'Available music libraries.',
+            content: {
+              [json]: {
+                schema: {
+                  type: 'object',
+                  required: ['sections'],
+                  properties: {
+                    sections: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        required: ['key', 'title'],
+                        properties: { key: { type: 'string' }, title: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': unauthenticatedResponse,
+          '502': { $ref: '#/components/responses/ProbeFailed' },
+        },
+      },
+    },
     '/api/v1/settings/test/{service}': {
       post: {
         tags: ['Settings'],

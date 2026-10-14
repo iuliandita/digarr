@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '@/web/App'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -37,6 +38,7 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 
 vi.mock('@/web/lib/api', () => ({
   getSettings: vi.fn(),
+  getPlexSections: vi.fn().mockResolvedValue({ sections: [] }),
   getAuthMeta: vi.fn().mockResolvedValue({ oidcEnabled: false, proxyAuthEnabled: false }),
   linkOidcAccount: vi.fn().mockResolvedValue({ url: '#oidc-link-test' }),
   updateSettings: vi.fn(),
@@ -196,6 +198,7 @@ import {
   getLidarrRootFolders,
   getOAuthStatus,
   getPipelineStatus,
+  getPlexSections,
   getSettings,
   importSpotifyLikedSongs,
   linkOidcAccount,
@@ -271,6 +274,7 @@ function setupMocks(settings: Record<string, unknown> = mockSettings) {
 describe('SettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getPlexSections).mockResolvedValue({ sections: [] })
     vi.mocked(getAuthMeta).mockResolvedValue({
       version: '1.16.0',
       oidcEnabled: false,
@@ -816,6 +820,59 @@ describe('SettingsPage', () => {
       expect(mockUpdateSettings).toHaveBeenCalled()
     })
   })
+
+  it('restores the saved Plex library title without testing the connection', async () => {
+    setupMocks({
+      ...mockSettings,
+      plexUrl: 'http://localhost:32400',
+      plexToken: '***',
+      plexSectionId: '2',
+    })
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'listener',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    vi.mocked(getPlexSections).mockResolvedValue({ sections: [{ key: '2', title: 'Music' }] })
+    renderWithQuery(<SettingsPage />)
+    expect(await screen.findByRole('option', { name: 'Music' })).toBeInTheDocument()
+    expect(document.getElementById('plex-section')).toHaveValue('2')
+    expect(mockTestService).not.toHaveBeenCalled()
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it.each(['plex-url', 'plex-token'])(
+    'ignores saved Plex labels after editing %s while loading',
+    async (field) => {
+      setupMocks({
+        ...mockSettings,
+        plexUrl: 'http://localhost:32400',
+        plexToken: '***',
+        plexSectionId: '2',
+      })
+      let resolveSections!: (value: { sections: Array<{ key: string; title: string }> }) => void
+      vi.mocked(getPlexSections).mockReturnValue(
+        new Promise((resolve) => {
+          resolveSections = resolve
+        }),
+      )
+      renderWithQuery(<SettingsPage />)
+      await waitFor(() => expect(getPlexSections).toHaveBeenCalled())
+      const input = document.getElementById(field)
+      if (!input) throw new Error('Plex input missing')
+      fireEvent.change(input, {
+        target: { value: field === 'plex-url' ? 'http://draft-plex:32400' : 'draft-token' },
+      })
+      await act(async () => {
+        resolveSections({ sections: [{ key: '2', title: 'Music' }] })
+      })
+      await waitFor(() =>
+        expect(screen.queryByRole('option', { name: 'Music' })).not.toBeInTheDocument(),
+      )
+      expect(document.getElementById('plex-section')).toHaveValue('2')
+    },
+  )
 
   it('loads Plex listeners and saves the selected account for a non-admin', async () => {
     setupMocks({ ...mockSettings, plexUrl: 'http://localhost:32400', plexToken: '***' })

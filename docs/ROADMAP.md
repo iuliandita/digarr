@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-10-07 | Current: v1.19.0
+> Updated: 2026-10-14 | Current: v1.19.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -23,6 +23,8 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 See [v1.19.0](../CHANGELOG.md#v1190---2026-10-06) for details.
 
 ## Known integration limitation
+
+Unreleased: [#807](https://github.com/iuliandita/digarr/issues/807) restores Plex history parsing and saved library names, adds an unusable-history warning, and clarifies Release Radar's supported providers. See the [unreleased changelog](../CHANGELOG.md#unreleased).
 
 TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-artist retrieval have not been tested with a live account. This is an accepted release limitation, with [community testing requested](AUTHENTICATION.md#tidal-feedback). The Experimental badges stay until these flows are verified.
 

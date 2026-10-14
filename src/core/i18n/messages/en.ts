@@ -890,7 +890,8 @@ export const en = {
   'discoveryMode.notImplementedYet': 'This mode is not implemented yet.',
   'discoveryMode.notShippedYet': 'This mode is not shipped yet.',
   'discoveryMode.reason.connectListenBrainz': 'Connect ListenBrainz to use this mode.',
-  'discoveryMode.reason.connectListeningSource': 'Connect a listening source first.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Connect ListenBrainz, Spotify, or Last.fm to use this mode.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Connect ListenBrainz or Last.fm to use this mode.',
   'discoveryMode.reason.connectDiscogs': 'Connect Discogs to use this mode.',

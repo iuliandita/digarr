@@ -827,7 +827,8 @@ export const zhCN = {
   'discoveryMode.notImplementedYet': '此模式尚未实现。',
   'discoveryMode.notShippedYet': '此模式尚未上线。',
   'discoveryMode.reason.connectListenBrainz': '连接 ListenBrainz 后才能使用此模式。',
-  'discoveryMode.reason.connectListeningSource': '请先连接一个听歌来源。',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    '连接 ListenBrainz、Spotify 或 Last.fm 后才能使用此模式。',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     '连接 ListenBrainz 或 Last.fm 后才能使用此模式。',
   'discoveryMode.reason.connectDiscogs': '连接 Discogs 以使用此模式。',

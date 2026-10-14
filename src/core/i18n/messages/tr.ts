@@ -884,7 +884,8 @@ export const tr = {
   'discoveryMode.notImplementedYet': 'Bu mod henüz uygulanmadı.',
   'discoveryMode.notShippedYet': 'Bu mod henüz kullanılamıyor.',
   'discoveryMode.reason.connectListenBrainz': 'Bu modu kullanmak için ListenBrainz bağlayın.',
-  'discoveryMode.reason.connectListeningSource': 'Önce bir dinleme kaynağı bağlayın.',
+  'discoveryMode.reason.connectReleaseRadarProviders':
+    'Bu modu kullanmak için ListenBrainz, Spotify veya Last.fm bağlayın.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
     'Bu modu kullanmak için ListenBrainz veya Last.fm bağlayın.',
   'discoveryMode.reason.connectDiscogs': "Bu modu kullanmak için Discogs'u bağlayın.",

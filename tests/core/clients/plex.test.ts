@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPlexClient } from '@/core/clients/plex'
 
 const mockGet = vi.fn()
@@ -17,6 +17,10 @@ beforeEach(() => {
   mockGet.mockReset()
 })
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 const TEST_URL = 'http://plex.local:32400'
 const TEST_TOKEN = 'test-plex-token'
 const LISTENING_OPTIONS = {
@@ -24,6 +28,140 @@ const LISTENING_OPTIONS = {
   accountId: 7,
   machineIdentifier: 'machine-1',
 }
+
+describe('plex history metadata paths', () => {
+  const row = {
+    type: 'track',
+    accountID: 7,
+    librarySectionID: 1,
+    grandparentKey: '/library/metadata/101',
+    grandparentTitle: 'Portishead',
+    key: '/library/metadata/102',
+    title: 'Roads',
+    viewedAt: 1710000000,
+  }
+  const mockWarn = vi.fn()
+
+  beforeEach(() => {
+    mockWarn.mockReset()
+    vi.spyOn(console, 'warn').mockImplementation(mockWarn)
+  })
+
+  it.each(['recent', 'top'] as const)(
+    'uses metadata paths for %s listening history',
+    async (method) => {
+      mockGet
+        .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+        .mockResolvedValueOnce({
+          MediaContainer: {
+            totalSize: 2,
+            Metadata: [row, { ...row, key: '/library/metadata/103', title: 'Wandering Star' }],
+          },
+        })
+      const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+      if (method === 'recent') {
+        await expect(client.getRecentlyPlayed()).resolves.toEqual([
+          {
+            artistName: 'Portishead',
+            trackName: 'Roads',
+            artistRatingKey: '101',
+            viewedAt: 1710000000000,
+          },
+          {
+            artistName: 'Portishead',
+            trackName: 'Wandering Star',
+            artistRatingKey: '101',
+            viewedAt: 1710000000000,
+          },
+        ])
+      } else {
+        await expect(client.getTopArtists()).resolves.toEqual([
+          { name: 'Portishead', ratingKey: '101', viewCount: 2, genres: [] },
+        ])
+      }
+      expect(mockWarn).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    { grandparentRatingKey: '201', ratingKey: '202' },
+    { grandparentRatingKey: 201, ratingKey: 202 },
+    { grandparentRatingKey: 'artist-201', ratingKey: 'track-202' },
+  ])('prefers bare rating keys over metadata paths: %j', async (keys) => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: { totalSize: 1, Metadata: [{ ...row, ...keys }] },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    const history = await client.getHistory({ accountId: 7, librarySectionId: '1' })
+
+    expect(history).toEqual([
+      expect.objectContaining({
+        artistRatingKey: String(keys.grandparentRatingKey),
+        ratingKey: String(keys.ratingKey),
+      }),
+    ])
+  })
+
+  it.each([
+    { grandparentKey: undefined, key: undefined },
+    { grandparentKey: '/removed/101', key: '/removed/102' },
+    {
+      grandparentKey: 'https://plex.local/library/metadata/101',
+      key: 'https://plex.local/library/metadata/102',
+    },
+    { grandparentKey: '/library/metadata/101/children', key: '/library/metadata/102?token=secret' },
+    { grandparentKey: '/library/metadata/', key: '/library/metadata/' },
+  ])('skips invalid or removed metadata paths: %j', async (keys) => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: { totalSize: 2, Metadata: [{ ...row, ...keys }, row] },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    const history = await client.getHistory({ accountId: 7, librarySectionId: '1' })
+
+    expect(history).toEqual([expect.objectContaining({ artistRatingKey: '101', ratingKey: '102' })])
+    expect(mockWarn).not.toHaveBeenCalled()
+  })
+
+  it('warns with counts only when all track candidates have malformed required fields', async () => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: {
+        totalSize: 3,
+        Metadata: [
+          { ...row, grandparentTitle: 123 },
+          { ...row, title: '' },
+          { ...row, viewedAt: undefined },
+        ],
+      },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    await expect(client.getHistory({ accountId: 7, librarySectionId: '1' })).resolves.toEqual([])
+
+    expect(mockWarn).toHaveBeenCalledExactlyOnceWith(
+      '[plex] History page contained 3 track entries but 0 usable tracks; required fields are missing or malformed',
+    )
+  })
+
+  it.each([
+    { name: 'empty', metadata: [] },
+    { name: 'non-track', metadata: [{ ...row, type: 'movie' }] },
+    { name: 'outside since', metadata: [{ ...row, viewedAt: 1600000000 }] },
+  ])('does not warn for $name history pages', async ({ metadata }) => {
+    mockGet.mockResolvedValueOnce({
+      MediaContainer: { totalSize: metadata.length, Metadata: metadata },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+
+    await expect(
+      client.getHistory({ accountId: 7, librarySectionId: '1', since: 1700000000 }),
+    ).resolves.toEqual([])
+
+    expect(mockWarn).not.toHaveBeenCalled()
+  })
+})
 
 describe('plex client.getTopArtists()', () => {
   it('aggregates the selected account history instead of library-wide view counts', async () => {

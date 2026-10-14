@@ -308,6 +308,8 @@ its configured monitoring scope, defaulting to all albums.
 
 The release-radar discovery mode emits `kind='album'` recommendations for new
 releases from artists the user already tracks. These land in the Albums tab.
+Artist seeds come from ListenBrainz, Spotify, or Last.fm; Plex listening history
+does not currently supply this mode. Release metadata comes from MusicBrainz.
 Kind-aware dedup keeps one album recommendation per release, including several
 releases from the same artist in one scan window.
 

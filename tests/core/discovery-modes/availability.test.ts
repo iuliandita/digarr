@@ -71,6 +71,19 @@ describe('evaluateDiscoveryModeAvailability', () => {
     })
   })
 
+  it('names the supported Release Radar providers when none are connected', () => {
+    const result = evaluateDiscoveryModeAvailability('release-radar', {
+      ...EMPTY_DISCOVERY_SNAPSHOT,
+      hasLibrarySync: true,
+    })
+
+    expect(result).toMatchObject({
+      enabled: false,
+      providerPath: [],
+      reason: 'Connect ListenBrainz, Spotify, or Last.fm to use this mode.',
+    })
+  })
+
   it('keeps fallback mode enabled and marks fallback when preferred providers are missing', () => {
     const result = evaluateDiscoveryModeAvailability('release-radar', {
       hasListenBrainz: false,

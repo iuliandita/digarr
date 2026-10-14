@@ -57,6 +57,7 @@ import {
   getLidarrProfiles,
   getLidarrRootFolders,
   getOAuthStatus,
+  getPlexSections,
   getSettings,
   getUserPreferences,
   importDeezerFavorites,
@@ -813,7 +814,11 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
     settings.plexToken === '***' ? '' : (settings.plexToken ?? ''),
   )
   const [plexSectionId, setPlexSectionId] = useState(settings.plexSectionId ?? '')
-  const [plexSections, setPlexSections] = useState<Array<{ key: string; title: string }>>([])
+  const [plexTestSections, setPlexTestSections] = useState<{
+    url: string
+    token: string
+    sections: Array<{ key: string; title: string }>
+  } | null>(null)
   const [plexAccountId, setPlexAccountId] = useState(String(settings.plexAccountId ?? ''))
   const [plexAccounts, setPlexAccounts] = useState<Array<{ id: number; name: string }>>([])
   const [jellyfinUrl, setJellyfinUrl] = useState(settings.jellyfinUrl ?? '')
@@ -855,6 +860,25 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const [saving, setSaving] = useState<Record<string, boolean>>({})
 
   const queryClient = useQueryClient()
+  const savedPlexToken = settings.plexToken === '***' ? '' : (settings.plexToken ?? '')
+  const { data: savedPlexSections } = useQuery({
+    queryKey: [
+      'plex-sections',
+      currentUser?.id,
+      settings.plexUrl,
+      settings.plexMachineIdentifier,
+      Boolean(settings.plexToken),
+    ],
+    queryFn: getPlexSections,
+    enabled: Boolean(currentUser?.id && settings.plexUrl && settings.plexToken),
+    retry: false,
+  })
+  const plexSections =
+    plexTestSections?.url === plexUrl && plexTestSections.token === plexToken
+      ? plexTestSections.sections
+      : plexUrl === (settings.plexUrl ?? '') && plexToken === savedPlexToken
+        ? (savedPlexSections?.sections ?? [])
+        : []
   const aiProviderLabel = t('settings.aiProviderTitle')
   const canTestUserConnections = isAdmin
 
@@ -1039,19 +1063,22 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
       sectionId: plexSectionId,
       accountId: plexAccountId ? Number(plexAccountId) : null,
     })
-    if (Array.isArray(res.sections)) setPlexSections(res.sections)
+    if (Array.isArray(res.sections)) {
+      setPlexTestSections({ url: plexUrl, token: plexToken, sections: res.sections })
+    }
     if (Array.isArray(res.accounts)) setPlexAccounts(res.accounts)
     if (res.sectionId && !plexSectionId) setPlexSectionId(res.sectionId)
     return res
   })
-  const savePlex = createSaver('plex', 'Plex', () =>
-    updateSettings({
+  const savePlex = createSaver('plex', 'Plex', async () => {
+    await updateSettings({
       plexUrl,
       plexToken: plexToken || undefined,
       plexSectionId: plexSectionId || null,
       plexAccountId: plexAccountId ? Number(plexAccountId) : null,
-    }),
-  )
+    })
+    await queryClient.invalidateQueries({ queryKey: ['plex-sections', currentUser?.id] })
+  })
 
   const testJellyfin = createTester('jellyfin', 'Jellyfin', async () => {
     const res = await testService('jellyfin', {
@@ -1978,7 +2005,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                   setPlexUrl(e.target.value)
                   setPlexAccountId('')
                   setPlexAccounts([])
-                  setPlexSections([])
+                  setPlexTestSections(null)
                 }}
               />
             </Field>
@@ -1994,6 +2021,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
                 value={plexToken}
                 onChange={(e) => {
                   setPlexToken(e.target.value)
+                  setPlexTestSections(null)
                   setPlexAccountId('')
                   setPlexAccounts([])
                 }}
