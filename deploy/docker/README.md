@@ -67,7 +67,7 @@ Direct HTTP exposes the session cookie to network interception.
 
 ## Back up and update
 
-Application JSON exports are partial. For complete recovery, back up the database consistently and keep the matching encryption key separately. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
+Application JSON exports preserve persistent application state, with optional artist metadata caches; they exclude sessions, pending authorizations, and schema history. For exact rollback, back up the database consistently and keep the matching encryption key separately. Required automatic-backup failures stop migrations; see the recovery guide for the explicit native-backup procedure when an older schema cannot be read. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
 
 ### Compose database backups
 

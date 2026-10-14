@@ -268,7 +268,7 @@ network lets them reach each other by container name.
 8. Still in **Advanced Settings** > **Volume**, create `/volume1/docker/digarr/backups` and map it to `/app/backups`. Make the folder writable by container UID 1000 before startup using DSM permissions, or `sudo chown 1000:1000 /volume1/docker/digarr/backups` over SSH.
 9. Click **Next** / **Apply** to create and start the container
 
-Keep that same backup-folder mapping when recreating the app container. These automatic application exports omit recovery state and do not replace a [complete PostgreSQL backup](switching-backends.md#backup-boundaries-and-recovery). Retain the encryption key separately.
+Keep that same backup-folder mapping when recreating the app container. These automatic application exports preserve persistent state, excluding ephemeral authorization and schema history, and do not replace a [complete PostgreSQL backup](switching-backends.md#backup-boundaries-and-recovery). Retain the encryption key separately.
 
 Digarr passes an explicit `DATABASE_URL` unchanged. Percent-encode the username, password, and database-name components when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Keep the original, unencoded password in `POSTGRES_PASSWORD`, direct `DB_PASS`, or the password file. Enter real credentials in the protected configuration or GUI, not command-line arguments. For separate `DB_*` settings, use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other names require a complete, percent-encoded `DATABASE_URL` ([#773](https://github.com/iuliandita/digarr/issues/773)). `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace.
 
@@ -284,7 +284,7 @@ Digarr publishes amd64 and arm64 images. CPU architecture alone does not establi
 
 ### Compose (SSH or DSM 7.2 Project)
 
-Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading; application JSON exports omit recovery state. Keep the same project name, volume mappings, and environment.
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading; new application JSON exports preserve persistent state but exclude ephemeral authorization and schema history. Required backup failures stop migrations; follow the recovery guide for the older-schema native-backup override. Keep the same project name, volume mappings, and environment.
 
 ```sh
 cd /volume1/docker/digarr
@@ -296,7 +296,7 @@ For the PostgreSQL stack, use `docker-compose.yml` instead and pull only `app` w
 
 ### GUI (DSM 7.1)
 
-Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before resetting the container; application JSON exports omit recovery state. Confirm the existing data and backup folder mappings and environment will be retained.
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before resetting the container; new application JSON exports preserve persistent state but exclude ephemeral authorization and schema history. Required backup failures stop migrations; follow the recovery guide for the older-schema native-backup override. Confirm the existing data and backup folder mappings and environment will be retained.
 
 1. Open **Docker** > **Registry** > search for `iuliandita/digarr`
 2. Download the latest tag

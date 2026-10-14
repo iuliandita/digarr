@@ -9,7 +9,7 @@ import {
 } from 'node:fs'
 import { basename, join } from 'node:path'
 import { sql } from 'drizzle-orm'
-import { createBackup } from './backup'
+import { createBackupSnapshot } from './backup'
 import type { MigrationStatus, OpsDb, PreFlightResult } from './types'
 
 interface JournalEntry {
@@ -139,15 +139,11 @@ export async function autoBackup(
   db: OpsDb,
   fromVersion: string | null,
   toVersion: string | null,
-): Promise<string | null> {
+): Promise<string> {
   const dir = getBackupDir()
-  try {
-    mkdirSync(dir, { recursive: true })
-  } catch {
-    return null
-  }
+  mkdirSync(dir, { recursive: true })
 
-  const backup = await createBackup(db, { includeCaches: false })
+  const backup = await createBackupSnapshot(db, { includeCaches: true })
   const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15)
   const from = fromVersion ?? 'fresh'
   const to = toVersion ?? 'unknown'
@@ -194,25 +190,12 @@ export async function runPreFlightCheck(db: OpsDb): Promise<PreFlightResult> {
     }
   }
 
-  try {
-    const path = await autoBackup(db, status.currentVersion, status.targetVersion)
-    if (path) {
-      console.log(`[ops] Auto-backup saved to ${path}`)
-    }
-    return {
-      pendingCount: status.pendingCount,
-      backupPath: path,
-      backupSkipped: false,
-      backupError: null,
-    }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.warn(`[ops] Auto-backup failed: ${msg}`)
-    return {
-      pendingCount: status.pendingCount,
-      backupPath: null,
-      backupSkipped: false,
-      backupError: msg,
-    }
+  const path = await autoBackup(db, status.currentVersion, status.targetVersion)
+  console.log(`[ops] Auto-backup saved to ${path}`)
+  return {
+    pendingCount: status.pendingCount,
+    backupPath: path,
+    backupSkipped: false,
+    backupError: null,
   }
 }

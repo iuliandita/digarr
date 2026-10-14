@@ -24,12 +24,13 @@ export interface BackupData {
   playlists: Record<string, unknown>[]
   playlistTracks: Record<string, unknown>[]
   artistBlocks: Record<string, unknown>[]
-  // Optional caches
+  // Optional in legacy backups; included by every new backup.
   artists?: Record<string, unknown>[]
   artistGenreAliases?: Record<string, unknown>[]
   genres?: Record<string, unknown>[]
+  // Optional metadata cache.
   artistMetadata?: Record<string, unknown>[]
-  // Optional full-fidelity tables
+  // Optional in legacy/selective backups; included by default.
   albumBlocks?: Record<string, unknown>[]
   libraryArtists?: Record<string, unknown>[]
   libraryAlbums?: Record<string, unknown>[]

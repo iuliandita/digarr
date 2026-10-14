@@ -1,6 +1,5 @@
-import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
-import { createBackup, restoreBackup } from '@/core/ops/backup'
+import { createBackupSnapshot, PartialBackupConflictError, restoreBackup } from '@/core/ops/backup'
 import {
   aiReasoningAudit,
   clearImageFailures,
@@ -45,15 +44,10 @@ export function adminRoutes(deps: AdminDeps) {
   // POST /api/v1/admin/backup - download backup JSON
   router.post('/api/v1/admin/backup', async (c) => {
     const includeCaches = c.req.query('includeCaches') === 'true'
-    const backup = includeCaches
-      ? await deps.db.transaction(async (tx) => {
-          await tx.execute(sql`set transaction isolation level repeatable read read only`)
-          return createBackup(tx, { includeCaches })
-        })
-      : await createBackup(deps.db, { includeCaches })
+    const backup = await createBackupSnapshot(deps.db, { includeCaches })
     const json = JSON.stringify(backup, null, 2)
     const timestamp = new Date().toISOString().slice(0, 10)
-    const suffix = includeCaches ? '-full' : ''
+    const suffix = includeCaches ? '-with-caches' : ''
 
     return new Response(json, {
       headers: {
@@ -122,6 +116,16 @@ export function adminRoutes(deps: AdminDeps) {
     try {
       result = await restoreBackup(deps.db, backup, { force })
     } catch (err) {
+      if (err instanceof PartialBackupConflictError) {
+        return c.json(
+          {
+            error: err.message,
+            code: 'partial_backup_conflict' as const,
+            affectedTables: err.affectedTables,
+          },
+          422,
+        )
+      }
       const message = logAndSanitize(err, 'admin-restore')
       return c.json({ error: `Restore failed (rolled back): ${message}` }, 500)
     }

@@ -53,7 +53,7 @@ A connection's capabilities differ by service. Release Radar requires ListenBrai
 
 Your database runs on your server. Connected services still receive requests: hosted AI providers receive discovery prompts, metadata services receive lookups, and embedded previews contact their providers. A local AI model keeps AI requests local, but does not make all of Digarr offline.
 
-Set and retain `DIGARR_ENCRYPTION_KEY` before saving service credentials. Without it, sensitive database fields are stored unencrypted. Back up the key separately from the database; losing it means re-entering encrypted credentials. See the [key rotation guide](docs/runbooks/encryption-key-rotation.md) before changing an existing key.
+Set and retain `DIGARR_ENCRYPTION_KEY` before saving service credentials. Without it, sensitive database fields are stored unencrypted. Back up the key separately from the database; losing it means re-entering encrypted credentials. Application exports preserve persistent state; a native consistent database backup is still required for exact schema rollback. Required automatic-backup failures stop migrations. See the [key rotation guide](docs/runbooks/encryption-key-rotation.md) before changing an existing key.
 
 ## Quick start
 
@@ -102,7 +102,7 @@ Use Settings for connections, scoring, schedules, preferences, and language. [Au
 
 ## Backup and restore
 
-Application JSON exports are partial; complete recovery requires a consistent database backup and the encryption key retained separately. Automatic backup failure does not stop migrations. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and version-specific upgrade notes.
+Application JSON exports preserve persistent application state and reject unsafe partial restores before writes. Required automatic-backup failures stop migrations. Retain the matching encryption key separately, and use a native consistent database backup for exact schema rollback. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring, including the explicit native-backup procedure for older schemas. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and version-specific upgrade notes.
 
 ## Deployment
 

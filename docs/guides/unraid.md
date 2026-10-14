@@ -121,7 +121,7 @@ Before startup, make both host folders (`data` and `backups`) writable by contai
 
 With the embedded database, your library data lives in the mapped `/app/data`
 folder, so persisting that mapping is what protects your recommendations and
-settings across updates. With external PostgreSQL, persist the Postgres database instead. Automatic JSON backups are partial and can fail without blocking migrations; see [Backup & restore](../OPERATIONS.md#backup--restore). Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading.
+settings across updates. With external PostgreSQL, persist the Postgres database instead. Automatic JSON backups preserve persistent application state but exclude ephemeral authorization and schema history. A required backup failure stops startup before migrations; see [Backup & restore](../OPERATIONS.md#backup--restore) for the explicit native-backup procedure when an older schema cannot be read. Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately before upgrading.
 
 ---
 

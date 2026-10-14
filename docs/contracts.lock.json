@@ -135,14 +135,14 @@
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "8be01a7045ff111a13b4a9bea0255a2a3ff8ec3b506aedd24a88a0971219af83",
-        "src/core/ops/backup.ts": "d76cb46a46c5fa226661c2f3e6aed4bdaa500acab23d4cfe8262ee53a9dc9854",
+        "src/core/ops/backup.ts": "5195fa837b1c454255781153a2c0bdde21c3763120b756b6fbb0ca3d66f02a5c",
         "src/core/ops/cron-scheduler.ts": "98d5c7888eb6112adf6ae7fd6d1ce0c9cc549e51836d87ea79de704ee527a9f1",
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "d2832ae978ea58d3860938c5d200cd7c5f34ddb23e315e2442ac36238dec1922",
-        "src/core/ops/types.ts": "603bbc0b205907cd351e238c725d5e5cfa60ae3cf165938d17233719fc9e1679",
-        "src/core/ops/upgrade.ts": "fc9acef0961cc78c8da16f959f14738ca071b003a3ffd5fcfd18ae4bd68bcc92",
+        "src/core/ops/types.ts": "53f6af00b62a3620d35eeb4a565af45645c5d880e3eb2472aaf2bcf849f4dc42",
+        "src/core/ops/upgrade.ts": "9fbcd673397927afdf479c49978c36bf9472d6dcd04c81405327e32dc0347a03",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
         "src/db/connect.ts": "9b8aa0bf3d700903d9cca1c75406729ed68fb327f29c5def635313cc21026069",
         "src/db/index.ts": "85fbd2e77a8350d5b7b38e9231105dc2ee091e7cd66fec11065401dba17206fa",
@@ -172,41 +172,29 @@
         "src/db/schema.ts": "d1576f6141ccc3d06e9cb5cfec12222ed45d584373f45e2aa9d6ab17f148bb5a",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "a213025304edb3e76f298462f8bd2af9d043245258ddf855a2037473341f3ba1",
+      "digest": "32528345898f0001d202eeb3ac0ffd47c74bb407e82f787c90aaf0bdc3d38db5",
       "review": {
-        "digest": "a213025304edb3e76f298462f8bd2af9d043245258ddf855a2037473341f3ba1",
-        "outcome": "baseline",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/runbooks/encryption-key-rotation.md",
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
-        "breaking": "none",
-        "migration": "Initial baseline records existing upgrade, rollback, and backup consequences."
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "note": "Default consistent snapshots include persistent state and artist dependencies; legacy partial restore checks reject omitted dependent state before writes, and pre-migration backup failures stop startup. Recovery guides retain native backups and keys for exact rollback and describe the older-schema override.",
+        "breaking": "Required automatic-backup failure now blocks migrations; unsafe partial JSON restores return 422 before writes.",
+        "migration": "No schema migration is added. Verify a native database backup and retain the matching key and previous image before an older-schema upgrade; explicitly disable automatic backup only for that verified upgrade and re-enable afterward. Schema rollback uses the matching native backup.",
+        "digest": "32528345898f0001d202eeb3ac0ffd47c74bb407e82f787c90aaf0bdc3d38db5"
       }
     },
     "configuration": {
       "files": {
-        ".env.example": "5076392627d60fd0634f4873beb9db539c515ac7506a28b323d2881646e74266",
+        ".env.example": "4034ef33c07b571810e8c2ece5b9673f4a567a8fd49fc8be3ef67a3e35aead85",
         "src/config/env.ts": "f8c56d00ea00f4b97a39fc662987e418488193876aa4b3a59656dc01304582a3"
       },
-      "digest": "2b80b8a88b4e5ce147d307041dd5b3c42918484ad02e30b40f82b982ef2dafaf",
+      "digest": "a17fda494bf08a9227b5a7dee3b0687f6c02417e88cbfa4093e997b687f6d7e9",
       "review": {
-        "digest": "2b80b8a88b4e5ce147d307041dd5b3c42918484ad02e30b40f82b982ef2dafaf",
-        "outcome": "baseline",
-        "docs": [
-          ".env.example",
-          "deploy/docker/.env.example",
-          "docs/OPERATIONS.md",
-          "docs/AUTHENTICATION.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Initial source-impact baseline after the v1.19.0 documentation audit; receipts identify future review obligations.",
-        "breaking": "none",
-        "migration": ""
+        "outcome": "docs-updated",
+        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Document the existing DIGARR_AUTO_BACKUP option as a required safety gate and its explicit older-schema native-backup override; paths, volume mappings, key requirements, and companion image channels are unchanged.",
+        "breaking": "Failure of an enabled required automatic backup stops startup before migrations.",
+        "migration": "",
+        "digest": "a17fda494bf08a9227b5a7dee3b0687f6c02417e88cbfa4093e997b687f6d7e9"
       }
     },
     "authentication": {
@@ -231,7 +219,7 @@
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
-        "src/server/routes/admin.ts": "63b04995136c088e36fb8e7bf1a607891dce1149e0c361d4655803fd8cfd6867",
+        "src/server/routes/admin.ts": "d5606fe3f7d100676691fe99e3b7732671c6c1bb2bac3d3c8ef599e4837baf95",
         "src/server/routes/auth.ts": "9a44429196d182f9b0ad26fa488604a94ebe3a79781d385fd4bc66ed97040b04",
         "src/server/routes/oauth-callbacks.ts": "f425c9a010c1c97c8a3cd8d914dd4e137d40b4d5b5883d2d773eb7e4c97b98fa",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
@@ -245,14 +233,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "c1f570d83b0515bfce72356aac1439bdb138d6147ea3f545e55a0aa827edbecc",
+      "digest": "738c39118cee39a85df21e585fa928223ec5717de43ca79fd8453236a5ec9be1",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Extend review coverage to existing authentication helpers and identity management endpoints without modifying runtime behavior.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Admin backup downloads use consistent snapshots; restore reports partial_backup_conflict and affectedTables as 422 before deletes, including force=true. Admin, confirmation, and encryption-mismatch guards are preserved.",
+        "breaking": "Unsafe partial restores now return 422 rather than deleting omitted dependent state.",
         "migration": "",
-        "digest": "c1f570d83b0515bfce72356aac1439bdb138d6147ea3f545e55a0aa827edbecc"
+        "digest": "738c39118cee39a85df21e585fa928223ec5717de43ca79fd8453236a5ec9be1"
       }
     },
     "api": {
@@ -688,7 +676,7 @@
         "deploy/docker/docker-compose.yml": "852164adde7874412aa8a87d3af67507ecab95132cb234c7de28a7811a66177e",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
-        "deploy/helm/digarr/templates/NOTES.txt": "83102f19b9900907f1237e71dd44bd82f700a5de0f07ea23b41a35a40003fab6",
+        "deploy/helm/digarr/templates/NOTES.txt": "e33958558729a2ab1642a38e1366c171653511a36f77082e54db25e2d5a6e85b",
         "deploy/helm/digarr/templates/_helpers.tpl": "ae4d58ef8e9bbad3f5338545818c02c0c69a044f2b20b1fa834ac03ea7a6b507",
         "deploy/helm/digarr/templates/configmap.yaml": "c81c45f728ae64d9a4bb9fbf3efcadefc197c87b7d73b46312247e40f7fd6567",
         "deploy/helm/digarr/templates/deployment.yaml": "7b0f25480d7bbb1b5158c147914049c591bad000c5b7498346ad56a5ccc69b1c",
@@ -704,7 +692,7 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "8de16df05a38b4f220299376ae53f61ca9afd54d42cebcd228dfc1dcf40d6294",
-        "deploy/helm/digarr/values.yaml": "868e76389876bd3e227f798229a3d94c69fee58733703565238f149acf668287",
+        "deploy/helm/digarr/values.yaml": "fe71718c85e4521dbe480d3fb45efa0f2c48ffdd3c43fd43ea5dfd16062423b5",
         "deploy/k8s/deployment.yaml": "9fcebf06cab9685b94e04b7cb00f9c2d32a716bfa05cb93008d9f51afe8154e3",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
@@ -714,14 +702,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "0f3862c3e77871b8a466b52147454279459298e970726c71029d03cbdc3f8e50",
+      "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817",
       "review": {
         "outcome": "docs-updated",
         "docs": ["deploy/helm/digarr/README.md"],
-        "note": "Document unencoded chart database names alongside usernames and passwords; keep bundled server values plain and encode external DSN components.",
+        "note": "Helm backup-volume comments and operator notes now distinguish persistent JSON state from ephemeral authorization and schema history, and explain that required backup failure stops migrations. Volume defaults, image channels, and manifest resources are unchanged; the chart snapshot was regenerated.",
         "breaking": "none",
         "migration": "",
-        "digest": "0f3862c3e77871b8a466b52147454279459298e970726c71029d03cbdc3f8e50"
+        "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817"
       }
     },
     "release": {

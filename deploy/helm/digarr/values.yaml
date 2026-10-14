@@ -249,7 +249,8 @@ gateway:
 # ---------------------------------------------------------------------------
 # Default is emptyDir -- backups live only for the pod lifetime. Enable
 # persistence to survive pod replacement. Pre-migration JSON auto-backups
-# are partial and do not replace a consistent database or data-volume backup.
+# preserve persistent application state but exclude ephemeral authorization and
+# schema history. Keep a consistent database or data-volume backup for rollback.
 # See docs/guides/switching-backends.md for complete recovery boundaries.
 backups:
   persistence:

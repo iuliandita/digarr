@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getTableColumns, getTableName, sql } from 'drizzle-orm'
 import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
+import { getTableConfig } from 'drizzle-orm/pg-core'
 import {
   getKeyFingerprint,
   SENSITIVE_OAUTH,
@@ -123,7 +124,7 @@ export async function createBackup(
   db: Pick<OpsDb, 'select'>,
   options: BackupOptions = {},
 ): Promise<BackupFile> {
-  const { includeCaches = false, full = false } = options
+  const { includeCaches = false, full = true } = options
 
   const settingsRows = await selectAll(db, settings)
   const userRows = await selectAll(db, users)
@@ -155,13 +156,13 @@ export async function createBackup(
       playlists: playlistRows,
       playlistTracks: trackRows,
       artistBlocks: blockRows,
+      artists: await selectAll(db, artists),
+      artistGenreAliases: await selectAll(db, artistGenreAliases),
+      genres: await selectAll(db, genres),
     },
   }
 
   if (includeCaches) {
-    backup.data.artists = await selectAll(db, artists)
-    backup.data.artistGenreAliases = await selectAll(db, artistGenreAliases)
-    backup.data.genres = await selectAll(db, genres)
     backup.data.artistMetadata = await selectAll(db, artistMetadata)
   }
 
@@ -178,6 +179,16 @@ export async function createBackup(
   }
 
   return backup
+}
+
+export async function createBackupSnapshot(
+  db: OpsDb,
+  options: BackupOptions = {},
+): Promise<BackupFile> {
+  return db.transaction((tx) => createBackup(tx, options), {
+    isolationLevel: 'repeatable read',
+    accessMode: 'read only',
+  })
 }
 
 // ── Restore ────────────────────────────────────
@@ -380,6 +391,83 @@ export const BACKUP_TABLE_BY_KEY = Object.fromEntries(
   RESTORE_ORDER.map((spec) => [spec.key as keyof BackupData, spec.table]),
 ) as Partial<Record<keyof BackupData, AnyPgTable>>
 
+export class PartialBackupConflictError extends Error {
+  constructor(
+    public readonly affectedTables: string[],
+    detail?: string,
+  ) {
+    super(detail ?? `Partial backup would alter omitted tables: ${affectedTables.join(', ')}`)
+    this.name = 'PartialBackupConflictError'
+  }
+}
+
+async function checkRestoreSafety(tx: RestoreTx, backup: BackupFile): Promise<void> {
+  const included = RESTORE_ORDER.filter((spec) => Array.isArray(backup.data[spec.key]))
+  const includedTables = new Set<AnyPgTable>(included.map((spec) => spec.table))
+  const omittedReferences = RESTORE_ORDER.filter((spec) => !includedTables.has(spec.table)).map(
+    (spec) => ({
+      spec,
+      references: getTableConfig(spec.table)
+        .foreignKeys.map((fk) => fk.reference())
+        .filter((ref) => includedTables.has(ref.foreignTable)),
+    }),
+  )
+  const lockedTables = new Set<AnyPgTable>(includedTables)
+  for (const { spec, references } of omittedReferences) {
+    if (references.length > 0) lockedTables.add(spec.table)
+  }
+  // Retained artists must remain stable while validating legacy references.
+  lockedTables.add(artists)
+  const tableNames = [...lockedTables].map(getTableName).sort()
+  await tx.execute(
+    sql`LOCK TABLE ${sql.join(
+      tableNames.map((name) => sql.identifier(name)),
+      sql`, `,
+    )} IN SHARE ROW EXCLUSIVE MODE`,
+  )
+
+  const affectedTables: string[] = []
+  for (const { spec, references } of omittedReferences) {
+    if (references.length === 0) continue
+    const conditions = references.map((ref) =>
+      sql.join(
+        ref.columns.map((column) => sql`${column} IS NOT NULL`),
+        sql` AND `,
+      ),
+    )
+    const result = await tx.execute(
+      sql`SELECT 1 FROM ${spec.table} WHERE ${sql.join(
+        conditions.map((condition) => sql`(${condition})`),
+        sql` OR `,
+      )} LIMIT 1`,
+    )
+    if ((result as unknown as { rows: unknown[] }).rows.length > 0) {
+      affectedTables.push(spec.key)
+    }
+  }
+  if (affectedTables.length > 0) throw new PartialBackupConflictError(affectedTables)
+
+  const artistReferences = [
+    { key: 'recommendations', column: 'artistId', artistColumn: 'id' },
+    { key: 'albumBlocks', column: 'artistId', artistColumn: 'id' },
+    { key: 'artistBlocks', column: 'artistId', artistColumn: 'id' },
+    { key: 'artistGenreAliases', column: 'mbid', artistColumn: 'mbid' },
+  ] as const
+  const referenced = artistReferences.filter((ref) => (backup.data[ref.key]?.length ?? 0) > 0)
+  if (referenced.length === 0) return
+  const artistRows = backup.data.artists ?? (await selectAll(tx, artists))
+  const unresolved = referenced.filter((ref) => {
+    const values = new Set(artistRows.map((row) => row[ref.artistColumn]))
+    return backup.data[ref.key]?.some((row) => !values.has(row[ref.column]))
+  })
+  if (unresolved.length > 0) {
+    throw new PartialBackupConflictError(
+      unresolved.map((ref) => ref.key),
+      `Backup has unresolved artist references in: ${unresolved.map((ref) => ref.key).join(', ')}`,
+    )
+  }
+}
+
 export async function copyDatabaseTables(
   source: Pick<OpsDb, 'select'>,
   target: OpsDb,
@@ -485,6 +573,7 @@ export async function restoreBackup(
   // an empty tablesRestored map and a warning the UI may miss.
   await db.transaction(async (tx) => {
     const includedSpecs = RESTORE_ORDER.filter((spec) => Array.isArray(backup.data[spec.key]))
+    await checkRestoreSafety(tx, backup)
 
     for (const spec of [...includedSpecs].reverse()) {
       await spec.clear(tx)

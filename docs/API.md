@@ -1129,9 +1129,9 @@ an absent or empty array is silent, while nonempty rows are never restored and
 add `Ignored 1 legacy OIDC token record.` or
 `Ignored N legacy OIDC token records.` to `warnings`.
 
-JSON backup boundaries in v1.19.0: default exports and startup auto-backups omit referenced artist rows. Use `?includeCaches=true` when recovering recommendations or artist blocks into an empty database. Even that export omits album blocks, library snapshots/overrides, health state, recording cache, and slskd jobs; no public `full=true` option exists. A complete disaster-recovery copy requires a consistent database backup. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery).
+Default JSON exports are consistent snapshots of persistent application state and required artist dependencies, including album blocks, library snapshots/overrides, health state, recording cache, and slskd jobs. `?includeCaches=true` adds optional artist metadata and a `-with-caches` filename suffix. Automatic snapshots also include that metadata. Ephemeral sessions, pending authorizations, rate limits, and migration history are excluded. Retain the matching encryption key separately; exact schema rollback requires a native consistent database backup. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery).
 
-Restore replaces included tables in one transaction. Clearing users also cascades deletion into omitted user-owned tables, including album blocks and library state. Omitted data is not guaranteed to survive ([#757](https://github.com/iuliandita/digarr/issues/757)). Take a complete destination backup first and prefer a fresh database.
+Restore replaces included tables in one transaction. Unsafe partial backups return `422` with `{ "code": "partial_backup_conflict", "error": "...", "affectedTables": ["albumBlocks"] }` before any deletes. This covers omitted dependent destination state and unresolved artist references; `force=true` cannot bypass it. Safe legacy partial files remain accepted. Take a complete destination backup first and prefer a fresh database. Required automatic-backup failures stop startup before migrations; the explicit override is documented in the recovery guide.
 
 ### Upgrade
 

@@ -278,7 +278,7 @@ Audition retains per-item unavailable reasons after skipping or queue completion
 
 Startup in `src/index.ts` has two phases:
 
-1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations.
+1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations. Required backup failures stop startup before any migration. Application snapshots use repeatable-read transactions; partial restores lock affected tables and check dependencies before clearing data.
 2. After the HTTP listener starts, an async initializer completes env-based setup when configured, creates the initial admin if no users exist, migrates legacy connections, backfills targets, and starts the pipeline, subscription, playlist, library, slskd, stuck-job, and notification-digest schedulers.
 
 One shared digest bookmark advances after any channel succeeds. A crash between sending and saving can repeat a digest; a failed channel does not independently retry a window already accepted by another channel ([#762](https://github.com/iuliandita/digarr/issues/762)). Schedulers skip work during maintenance; jobs already running must finish before a backend migration.

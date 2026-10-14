@@ -3,7 +3,7 @@
 import { getTableName } from 'drizzle-orm'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { initEncryption } from '@/core/crypto'
-import { createBackup, restoreBackup } from '@/core/ops/backup'
+import { createBackup, createBackupSnapshot, restoreBackup } from '@/core/ops/backup'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 
 function makeMockDb(tableData: Record<string, unknown[]> = {}): OpsDb {
@@ -56,6 +56,22 @@ describe('getKeyFingerprint', () => {
 })
 
 describe('createBackup', () => {
+  it('collects the snapshot inside a repeatable-read, read-only transaction', async () => {
+    const tx = makeMockDb({ users: [{ id: 3, username: 'snapshot-user' }] })
+    const transaction = vi
+      .fn()
+      .mockImplementation((cb: (tx: OpsDb) => Promise<BackupFile>) => cb(tx))
+    const db = { transaction } as unknown as OpsDb
+
+    const result = await createBackupSnapshot(db)
+
+    expect(transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: 'repeatable read',
+      accessMode: 'read only',
+    })
+    expect(result.data.users).toEqual([{ id: 3, username: 'snapshot-user' }])
+  })
+
   it('returns a valid BackupFile with version and timestamp', async () => {
     const db = makeMockDb({
       settings: [{ id: 1, lidarrUrl: 'http://lidarr:8686' }],
@@ -81,7 +97,7 @@ describe('createBackup', () => {
     expect(result.data).not.toHaveProperty('oidcTokens')
   })
 
-  it('excludes cache tables when includeCaches is false', async () => {
+  it('keeps required artist and genre state while excluding optional metadata', async () => {
     const db = makeMockDb({
       artists: [{ id: 1, name: 'Artist' }],
       artist_genre_aliases: [{ id: 1, source: 'subsonic', nameNormalized: 'artist' }],
@@ -90,9 +106,9 @@ describe('createBackup', () => {
     })
     const result = await createBackup(db, { includeCaches: false })
 
-    expect(result.data.artists).toBeUndefined()
-    expect(result.data.artistGenreAliases).toBeUndefined()
-    expect(result.data.genres).toBeUndefined()
+    expect(result.data.artists).toHaveLength(1)
+    expect(result.data.artistGenreAliases).toHaveLength(1)
+    expect(result.data.genres).toHaveLength(1)
     expect(result.data.artistMetadata).toBeUndefined()
   })
 

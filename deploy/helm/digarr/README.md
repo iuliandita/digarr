@@ -191,7 +191,7 @@ extraEnv:
 
 ## Upgrade
 
-Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups are partial. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). See [Operations](../../../docs/OPERATIONS.md#backup--restore) for version-specific upgrade notes.
+Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups preserve persistent application state but exclude ephemeral authorization and schema history. A required backup failure stops startup before migrations; older schemas may need the explicit native-backup upgrade procedure. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). See [Operations](../../../docs/OPERATIONS.md#backup--restore) for version-specific upgrade notes.
 
 ```sh
 helm upgrade digarr deploy/helm/digarr -n arr -f my-values.yaml

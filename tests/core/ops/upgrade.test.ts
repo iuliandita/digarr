@@ -1,9 +1,9 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPendingMigrations, runPreFlightCheck } from '@/core/ops/upgrade'
 
 vi.mock('@/core/ops/backup', () => ({
-  createBackup: vi.fn(),
+  createBackupSnapshot: vi.fn(),
 }))
 
 // Mock fs for journal reading
@@ -21,8 +21,15 @@ vi.mock('node:fs', async (importOriginal) => {
   }
 })
 
-import { existsSync, readFileSync } from 'node:fs'
-import { createBackup } from '@/core/ops/backup'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs'
+import { createBackupSnapshot } from '@/core/ops/backup'
 
 const mockJournal = {
   version: '7',
@@ -109,7 +116,16 @@ describe('runPreFlightCheck', () => {
   beforeEach(() => {
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockJournal))
     vi.mocked(existsSync).mockReturnValue(true)
-    vi.mocked(createBackup).mockReset()
+    vi.mocked(createBackupSnapshot).mockReset()
+    vi.mocked(mkdirSync).mockReset()
+    vi.mocked(writeFileSync).mockReset()
+    vi.mocked(unlinkSync).mockReset()
+    vi.mocked(readdirSync).mockReturnValue([])
+    vi.stubEnv('DIGARR_AUTO_BACKUP', 'true')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   it('skips auto-backup on a fresh database with no app tables yet', async () => {
@@ -125,11 +141,14 @@ describe('runPreFlightCheck', () => {
     expect(result.pendingCount).toBe(3)
     expect(result.backupSkipped).toBe(true)
     expect(result.backupPath).toBeNull()
-    expect(createBackup).not.toHaveBeenCalled()
+    expect(createBackupSnapshot).not.toHaveBeenCalled()
   })
 
   it('still runs auto-backup when app tables already exist', async () => {
-    vi.mocked(createBackup).mockResolvedValue({
+    vi.mocked(readdirSync).mockReturnValue(
+      Array.from({ length: 15 }, (_, index) => `pre-migrate-${index}.json`) as never,
+    )
+    vi.mocked(createBackupSnapshot).mockResolvedValue({
       version: 1,
       appVersion: '0.0.0-test',
       createdAt: '2026-04-13T00:00:00.000Z',
@@ -161,7 +180,57 @@ describe('runPreFlightCheck', () => {
 
     expect(result.pendingCount).toBe(3)
     expect(result.backupSkipped).toBe(false)
-    expect(createBackup).toHaveBeenCalledTimes(1)
+    expect(createBackupSnapshot).toHaveBeenCalledExactlyOnceWith(mockDb, { includeCaches: true })
+    expect(writeFileSync).toHaveBeenCalledTimes(1)
+    expect(unlinkSync).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(writeFileSync).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(unlinkSync).mock.invocationCallOrder[0] ?? 0,
+    )
     expect(result.backupPath).toContain('pre-migrate-')
   })
+
+  it.each(['mkdir', 'snapshot', 'write'] as const)(
+    'rejects pre-flight when the required backup fails at %s',
+    async (stage) => {
+      const failure = new Error(`backup ${stage} failed`)
+      vi.mocked(readdirSync).mockReturnValue(
+        Array.from({ length: 15 }, (_, index) => `pre-migrate-${index}.json`) as never,
+      )
+      if (stage === 'mkdir')
+        vi.mocked(mkdirSync).mockImplementation(() => {
+          throw failure
+        })
+      if (stage === 'snapshot') vi.mocked(createBackupSnapshot).mockRejectedValue(failure)
+      if (stage === 'write')
+        vi.mocked(writeFileSync).mockImplementation(() => {
+          throw failure
+        })
+      const mockDb = {
+        execute: vi.fn().mockResolvedValue({ rows: [{ hash: 'h0', created_at: '1' }] }),
+      }
+
+      await expect(runPreFlightCheck(mockDb as never)).rejects.toThrow(failure)
+      expect(unlinkSync).not.toHaveBeenCalled()
+      if (stage !== 'write') expect(writeFileSync).not.toHaveBeenCalled()
+      if (stage === 'mkdir') expect(createBackupSnapshot).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each(['no pending migrations', 'explicit override'])(
+    'does not back up with %s',
+    async (reason) => {
+      const applied = reason === 'no pending migrations' ? 3 : 1
+      if (reason === 'explicit override') vi.stubEnv('DIGARR_AUTO_BACKUP', 'false')
+      const mockDb = {
+        execute: vi.fn().mockResolvedValue({ rows: Array.from({ length: applied }, () => ({})) }),
+      }
+
+      const result = await runPreFlightCheck(mockDb as never)
+
+      expect(result.backupSkipped).toBe(reason === 'explicit override')
+      expect(result.backupError).toBeNull()
+      expect(createBackupSnapshot).not.toHaveBeenCalled()
+      expect(writeFileSync).not.toHaveBeenCalled()
+    },
+  )
 })

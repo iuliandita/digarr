@@ -126,7 +126,7 @@ or via `docker ps`.
 
 ## Update
 
-Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately first; application JSON exports omit recovery state. For embedded PGlite:
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately first; new application JSON exports preserve persistent state but exclude ephemeral authorization and schema history. Required backup failures stop migrations; follow the recovery guide for older schemas that need the explicit native-backup override. For embedded PGlite:
 
 ```sh
 docker compose -f docker-compose.pglite.yml pull

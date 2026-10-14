@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createBackup, restoreBackup } from '@/core/ops/backup'
+import { initEncryption } from '@/core/crypto'
+import {
+  BACKUP_TABLE_BY_KEY,
+  createBackup,
+  createBackupSnapshot,
+  PartialBackupConflictError,
+  restoreBackup,
+} from '@/core/ops/backup'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
 
@@ -8,22 +15,25 @@ import { makeTestDb } from '../helpers/test-db'
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
 
 describe('backup full-fidelity', () => {
-  it('selective mode (no full flag) omits albumBlocks, libraryArtists, slskdJobs', async () => {
+  it('explicit selective mode retains artist dependencies but omits full-state tables', async () => {
     const { db, close } = await makeTestDb()
     try {
-      const backup = await createBackup(db as never)
+      const backup = await createBackup(db as never, { full: false })
       expect(backup.data).not.toHaveProperty('albumBlocks')
       expect(backup.data).not.toHaveProperty('libraryArtists')
       expect(backup.data).not.toHaveProperty('slskdJobs')
+      expect(backup.data).toHaveProperty('artists')
+      expect(backup.data).toHaveProperty('artistGenreAliases')
+      expect(backup.data).toHaveProperty('genres')
     } finally {
       await close()
     }
   })
 
-  it('full mode includes all stateful tables and excludes sessions/rateLimitBuckets', async () => {
+  it('default snapshot includes all persistent tables and excludes ephemeral state', async () => {
     const { db, close } = await makeTestDb()
     try {
-      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+      const backup = await createBackupSnapshot(db as never)
       expect(backup.data).toHaveProperty('albumBlocks')
       expect(backup.data).toHaveProperty('artistGenreAliases')
       expect(backup.data).toHaveProperty('libraryArtists')
@@ -37,6 +47,8 @@ describe('backup full-fidelity', () => {
       expect(backup.data).not.toHaveProperty('oidcTokens')
       expect(backup.data).not.toHaveProperty('sessions')
       expect(backup.data).not.toHaveProperty('rateLimitBuckets')
+      expect(backup.data).not.toHaveProperty('oauthPendingAuths')
+      expect(backup.data).not.toHaveProperty('artistMetadata')
     } finally {
       await close()
     }
@@ -213,6 +225,83 @@ describe('backup full-fidelity', () => {
       .returning()
     if (!target) throw new Error('target insert failed')
 
+    await db.insert(schema.settings).values({ setupComplete: true, aiModel: 'recovery-model' })
+    await db.insert(schema.oauthTokens).values({
+      userId: user.id,
+      provider: 'spotify',
+      accessToken: 'saved-token',
+      expiresAt: new Date('2030-01-01T00:00:00Z'),
+    })
+    const [subscription] = await db
+      .insert(schema.subscriptions)
+      .values({
+        userId: user.id,
+        name: 'Fidelity Subscription',
+        sourceType: 'playlist',
+        sourceProvider: 'spotify',
+        sourceConfig: { playlistId: 'saved-playlist' },
+        cron: '0 0 * * *',
+      })
+      .returning()
+    if (!subscription) throw new Error('subscription insert failed')
+    const [batch] = await db
+      .insert(schema.recommendationBatches)
+      .values({
+        subscriptionId: subscription.id,
+        status: 'completed',
+      })
+      .returning()
+    if (!batch) throw new Error('batch insert failed')
+    await db.insert(schema.jobRuns).values({
+      userId: user.id,
+      subscriptionId: subscription.id,
+      batchId: batch.id,
+      type: 'subscription',
+      status: 'completed',
+      metadata: { trigger: 'subscription' },
+    })
+    const [recommendation] = await db
+      .insert(schema.recommendations)
+      .values({
+        userId: user.id,
+        artistId: artist.id,
+        batchId: batch.id,
+        score: 0.75,
+        status: 'approved',
+      })
+      .returning()
+    if (!recommendation) throw new Error('recommendation insert failed')
+    const [playlist] = await db
+      .insert(schema.playlists)
+      .values({
+        userId: user.id,
+        name: 'Fidelity Playlist',
+        strategy: 'weekly_digest',
+        targetIds: [target.id],
+      })
+      .returning()
+    if (!playlist) throw new Error('playlist insert failed')
+    await db.insert(schema.playlistTracks).values({
+      playlistId: playlist.id,
+      artistName: artist.name,
+      trackName: 'Fidelity Track',
+      position: 0,
+    })
+    await db.insert(schema.artistBlocks).values({ userId: user.id, artistId: artist.id })
+    await db.insert(schema.artistGenreAliases).values({
+      source: 'subsonic',
+      nameNormalized: 'fidelity artist',
+      mbid: artist.mbid,
+    })
+    await db
+      .insert(schema.genres)
+      .values({ name: 'Fidelity Genre', slug: 'fidelity', source: 'test' })
+    await db.insert(schema.artistMetadata).values({
+      name: artist.name,
+      nameNormalized: 'fidelity artist',
+      spotifyPopularity: 42,
+    })
+
     await db.insert(schema.albumBlocks).values({
       userId: user.id,
       artistId: artist.id,
@@ -271,6 +360,7 @@ describe('backup full-fidelity', () => {
     await db.insert(schema.slskdJobs).values({
       userId: user.id,
       targetId: target.id,
+      recommendationId: recommendation.id,
       sourceType: 'recommendation',
       workKey: 'fid-wk-1',
       artistMbid: '00000000-0000-0000-0000-0000000000a1',
@@ -280,13 +370,28 @@ describe('backup full-fidelity', () => {
     return { user, artist, target }
   }
 
-  it('round-trips actual row CONTENT (not just counts) for the 9 full-mode tables', async () => {
+  it('round-trips every persistent table and relationship using the default snapshot', async () => {
     const { db, close } = await makeTestDb()
     const { db: db2, close: close2 } = await makeTestDb()
     try {
       await seedFullTables(db)
-      const backup = await createBackup(db as never, { includeCaches: true, full: true })
+      const backup = await createBackupSnapshot(db as never)
       await restoreBackup(db2 as never, backup, { force: true })
+
+      for (const [key, table] of Object.entries(BACKUP_TABLE_BY_KEY)) {
+        if (key === 'artistMetadata') continue
+        const restoredRows = await db2.select().from(table)
+        expect(JSON.parse(JSON.stringify(restoredRows)), key).toEqual(
+          JSON.parse(JSON.stringify(backup.data[key as keyof typeof backup.data])),
+        )
+        expect(restoredRows.length, key).toBeGreaterThan(0)
+      }
+      expect(await db2.select().from(schema.artistMetadata)).toEqual([])
+      const cachedBackup = await createBackupSnapshot(db as never, { includeCaches: true })
+      await restoreBackup(db2 as never, cachedBackup, { force: true })
+      expect(await db2.select().from(schema.artistMetadata)).toMatchObject([
+        { nameNormalized: 'fidelity artist', spotifyPopularity: 42 },
+      ])
 
       // Select each table back out of the restored DB and assert the distinctive
       // field survived the JSON serialize -> restore round-trip intact.
@@ -370,6 +475,89 @@ describe('backup full-fidelity', () => {
     } finally {
       await close()
       await close2()
+    }
+  })
+
+  it.each([false, true])(
+    'rejects destructive legacy partial restores unchanged (force=%s)',
+    async (force) => {
+      const { db, close } = await makeTestDb()
+      try {
+        await seedFullTables(db)
+        const before = await createBackupSnapshot(db as never, { includeCaches: true })
+        const backup = structuredClone(before)
+        const legacyData = backup.data as Partial<typeof backup.data>
+        delete backup.data.libraryArtists
+        delete legacyData.jobRuns
+        delete legacyData.recommendations
+        if (force) {
+          initEncryption('restore-conflict-key')
+          backup.encryptionKeyHash = 'sha256:old-key'
+        }
+
+        await expect(restoreBackup(db as never, backup, { force })).rejects.toMatchObject({
+          name: 'PartialBackupConflictError',
+          affectedTables: expect.arrayContaining(['libraryArtists', 'jobRuns', 'recommendations']),
+        })
+        const after = await createBackupSnapshot(db as never, { includeCaches: true })
+        expect(after.data).toEqual(before.data)
+      } finally {
+        initEncryption(undefined)
+        await close()
+      }
+    },
+  )
+
+  it('rejects missing artist dependencies before changing the destination and accepts retained artists', async () => {
+    const { db, close } = await makeTestDb()
+    const { db: destination, close: closeDestination } = await makeTestDb()
+    try {
+      await seedFullTables(db)
+      const backup = await createBackupSnapshot(db as never)
+      delete backup.data.artists
+      await destination.insert(schema.users).values({ username: 'survivor', passwordHash: 'x' })
+      const before = await createBackupSnapshot(destination as never)
+      await expect(restoreBackup(destination as never, backup)).rejects.toBeInstanceOf(
+        PartialBackupConflictError,
+      )
+      expect((await createBackupSnapshot(destination as never)).data).toEqual(before.data)
+
+      const retainedArtists = await db.select().from(schema.artists)
+      await destination.insert(schema.artists).values(retainedArtists)
+      await restoreBackup(destination as never, backup)
+      expect(await destination.select().from(schema.artists)).toEqual(retainedArtists)
+      expect(await destination.select().from(schema.recommendations)).toMatchObject([
+        { artistId: retainedArtists[0]?.id, status: 'approved' },
+      ])
+    } finally {
+      await close()
+      await closeDestination()
+    }
+  })
+
+  it('restores safe legacy partial data while retaining omitted global library state', async () => {
+    const { db, close } = await makeTestDb()
+    const { db: destination, close: closeDestination } = await makeTestDb()
+    try {
+      await db.insert(schema.users).values({ username: 'legacy', passwordHash: 'x' })
+      const backup = await createBackup(db as never, { full: false })
+      delete backup.data.artists
+      delete backup.data.artistGenreAliases
+      delete backup.data.genres
+      await destination.insert(schema.libraryArtists).values({
+        source: 'lidarr',
+        sourceArtistId: 'global',
+        name: 'Global',
+        nameNormalized: 'global',
+      })
+      await restoreBackup(destination as never, backup)
+      expect(await destination.select().from(schema.users)).toMatchObject([{ username: 'legacy' }])
+      expect(await destination.select().from(schema.libraryArtists)).toMatchObject([
+        { userId: null, sourceArtistId: 'global' },
+      ])
+    } finally {
+      await close()
+      await closeDestination()
     }
   })
 
