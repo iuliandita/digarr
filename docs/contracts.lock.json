@@ -725,19 +725,19 @@
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
         ".github/workflows/release.yml": "4d1b678495aa8f1fe4ea163b1a4baa8448e752a1f0b66d74227f26ba00f16ad2",
-        ".github/workflows/security.yml": "3c0df94a037109c8ea49376340c062ee7ca021e1b13f8cb497fa9a6d05cbff19",
+        ".github/workflows/security.yml": "6a33002c0799edd45a4dd96e77b0ee38df422dba359f1cc877d7fc2fadeb94d6",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb",
+      "digest": "343eafc9b9ed16d597556c285ec359115f32cd65e62144d8efb87f035c5a38bc",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Record Node requirements while extending release review coverage to the existing frontend build configuration.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Dependency audit now delegates severity thresholds and command failures to Bun instead of parsing an unsupported response shape; application behavior, deployment configuration, upgrade, backup, and rollback contracts are unchanged. The maintenance guide documents the CI gate.",
         "breaking": "none",
         "migration": "",
-        "digest": "6e4aec379813e803dc829b432bd1f88e9a1a87a2a349e49fc1231150cf9038cb"
+        "digest": "343eafc9b9ed16d597556c285ec359115f32cd65e62144d8efb87f035c5a38bc"
       }
     },
     "maintenance": {
