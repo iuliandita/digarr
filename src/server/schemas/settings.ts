@@ -84,7 +84,15 @@ const preferencesSchema = z
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),
     fanartApiKey: z.string().optional(),
     metadataFallbackUrl: z.string().optional(),
-    channels: z.array(notificationChannel).optional(),
+    channels: z
+      .array(notificationChannel)
+      .refine(
+        (channels) => new Set(channels.map((channel) => channel.id)).size === channels.length,
+        {
+          message: 'Notification channel IDs must be unique',
+        },
+      )
+      .optional(),
   })
   .strict()
 

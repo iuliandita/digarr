@@ -1058,6 +1058,7 @@ Settings notes:
   artists, favorites, recent listening, and library sync are scoped to that library
 
 Notification channels:
+- Channel IDs must be unique within `preferences.channels`; duplicate IDs return `400` without saving. Digest delivery positions are server-owned, omitted from settings responses, and cannot be edited through PATCH. Disabling a channel or its digest subscription pauses its position; removing and re-adding the same ID resumes it. A new ID starts from the current cadence. Endpoint/type edits under the same ID keep the position.
 - `GET /api/v1/settings` returns a `channels` array under `preferences`, and `PATCH` accepts the
   same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
   string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",

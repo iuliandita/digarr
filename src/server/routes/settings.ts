@@ -183,6 +183,7 @@ async function buildSettingsResponse(
   if (!row) return null
 
   let response: Record<string, unknown> = { ...row }
+  delete response.digestDeliveryPositions
 
   // Non-admins get a stripped view of global settings
   if (!isAdmin) {

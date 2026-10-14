@@ -158,7 +158,15 @@ import {
 } from './db/queries/recommendations'
 import { sessionQueries } from './db/queries/sessions'
 import type { SetupConfig } from './db/queries/settings'
-import { completeSetup, getSettings, isSetupComplete, updateSettings } from './db/queries/settings'
+import {
+  completeSetup,
+  getDigestDeliveryPositions,
+  getSettings,
+  initializeDigestDeliveryPositions,
+  isSetupComplete,
+  setDigestDeliveryPosition,
+  updateSettings,
+} from './db/queries/settings'
 import {
   createSlskdJob,
   findActiveSlskdJobByWorkKey,
@@ -1208,6 +1216,8 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   })
 }
 
+const digestDeliveryInFlight = { running: false }
+
 function buildDigestDeps() {
   return {
     getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
@@ -1215,8 +1225,12 @@ function buildDigestDeps() {
       decryptChannelSecrets(mergePreferences((await getSettings(db))?.preferences).channels ?? []),
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
     dispatch,
-    getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
-    setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
+    initializeDeliveryPositions: (channelIds: string[]) =>
+      initializeDigestDeliveryPositions(db, channelIds),
+    getDeliveryPositions: () => getDigestDeliveryPositions(db),
+    setDeliveryPosition: (channelId: string, at: Date) =>
+      setDigestDeliveryPosition(db, channelId, at),
+    inFlight: digestDeliveryInFlight,
   }
 }
 

@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Keep digest delivery positions per channel so a successful channel cannot discard a failed channel's window. Persist the first start before sending, pause disabled channels, and retain positions across edits, restarts and backups. Adds a nullable settings column; existing-schema upgrades require a verified native backup and the explicit automatic-backup override described in the recovery guide. Rollback requires the previous image's matching native backup. Live restores of older backups initialize from their restored legacy position on the next scheduled tick. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762), [#821](https://github.com/iuliandita/digarr/issues/821).
+
 - Preserve release identity in automatic album approval and use album targets to monitor/search only the recommended release. Missing identity or incompatible acquisition targets fail without artist acquisition; the monitoring setting applies only to artist recommendations. Slskd queueing remains approved with a queued target action, and album IDs stay separate from artist IDs. [#761](https://github.com/iuliandita/digarr/issues/761), [#818](https://github.com/iuliandita/digarr/issues/818).
 
 - Use saved Lidarr TLS settings for empty-object probes, preserve explicit boolean overrides, and return `400` for missing, malformed, non-object, or invalid TLS input before reading saved credentials. [#759](https://github.com/iuliandita/digarr/issues/759).

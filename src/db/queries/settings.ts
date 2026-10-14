@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull, sql } from 'drizzle-orm'
 import { envSettingsOverrides } from '@/config/env'
 import { decryptFields, encryptFields, SENSITIVE_SETTINGS } from '@/core/crypto'
 import type { Database } from '@/db'
@@ -6,7 +6,9 @@ import type { Preferences } from '@/db/schema'
 import { settings } from '@/db/schema'
 
 export type SettingsRow = typeof settings.$inferSelect
-type SettingsPartial = Partial<Omit<SettingsRow, 'id' | 'createdAt' | 'updatedAt'>>
+type SettingsPartial = Partial<
+  Omit<SettingsRow, 'id' | 'createdAt' | 'updatedAt' | 'digestDeliveryPositions'>
+>
 
 export type SetupConfig = {
   lidarrUrl?: string
@@ -65,4 +67,50 @@ export async function completeSetup(db: Database, config: SetupConfig): Promise<
 export async function isSetupComplete(db: Database): Promise<boolean> {
   const rows = await db.select({ setupComplete: settings.setupComplete }).from(settings).limit(1)
   return rows[0]?.setupComplete ?? false
+}
+
+export async function getDigestDeliveryPositions(
+  db: Database,
+): Promise<Record<string, string | null>> {
+  const [row] = await db
+    .select({ positions: settings.digestDeliveryPositions })
+    .from(settings)
+    .where(eq(settings.id, 1))
+  return row?.positions ?? {}
+}
+
+export async function initializeDigestDeliveryPositions(
+  db: Database,
+  channelIds: string[],
+): Promise<Record<string, string | null>> {
+  const [row] = await db
+    .select({ legacy: settings.digestLastSentAt })
+    .from(settings)
+    .where(eq(settings.id, 1))
+  if (!row) return {}
+
+  const positions = Object.fromEntries(
+    channelIds.map((id) => [id, row.legacy?.toISOString() ?? null]),
+  )
+  await db
+    .update(settings)
+    .set({ digestDeliveryPositions: positions, updatedAt: new Date() })
+    .where(and(eq(settings.id, 1), isNull(settings.digestDeliveryPositions)))
+  return getDigestDeliveryPositions(db)
+}
+
+export async function setDigestDeliveryPosition(
+  db: Database,
+  channelId: string,
+  at: Date,
+): Promise<void> {
+  const rows = await db
+    .update(settings)
+    .set({
+      digestDeliveryPositions: sql`coalesce(${settings.digestDeliveryPositions}, '{}'::jsonb) || jsonb_build_object(${channelId}::text, ${at.toISOString()}::text)`,
+      updatedAt: new Date(),
+    })
+    .where(eq(settings.id, 1))
+    .returning({ id: settings.id })
+  if (!rows[0]) throw new Error('setDigestDeliveryPosition: settings row missing')
 }

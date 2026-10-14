@@ -62,6 +62,9 @@ export const settings = pgTable('settings', {
   setupComplete: boolean('setup_complete').default(false).notNull(),
   librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
   digestLastSentAt: timestamp('digest_last_sent_at', { withTimezone: true }),
+  digestDeliveryPositions: jsonb('digest_delivery_positions').$type<
+    Record<string, string | null>
+  >(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })

@@ -6,6 +6,7 @@ import {
   startDigestNotifier,
   windowMsFromCron,
 } from '@/core/jobs/digest-notifier'
+import type { DispatchResult } from '@/core/notifications/registry'
 import type { NotificationChannel } from '@/core/notifications/types'
 import { setMaintenance } from '@/core/ops/maintenance'
 
@@ -19,14 +20,39 @@ const digestChannel: NotificationChannel = {
   url: 'https://hooks.example.com/webhook',
 }
 
-function makeDeps(overrides: Partial<DigestNotifierDeps> = {}): DigestNotifierDeps {
+function makeDeps(
+  overrides: Partial<DigestNotifierDeps> = {},
+  positions: Record<string, string | null> = {},
+): DigestNotifierDeps {
   return {
     getDigestCron: () => '0 6 * * *',
     getChannels: () => [digestChannel],
-    getStats: async () => ({ discovered: 0, added: 0, runs: 0 }),
-    dispatch: vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }]),
-    getLastSentAt: vi.fn().mockResolvedValue(null),
-    setLastSentAt: vi.fn().mockResolvedValue(undefined),
+    getStats: vi.fn(async () => ({ discovered: 0, added: 0, runs: 0 })),
+    dispatch: vi.fn(async (channels: NotificationChannel[]) =>
+      channels.map((channel) => ({ id: channel.id, type: channel.type, ok: true })),
+    ),
+    initializeDeliveryPositions: vi.fn(async (ids: string[]) => {
+      for (const id of ids) {
+        if (!Object.hasOwn(positions, id)) {
+          Object.defineProperty(positions, id, {
+            value: null,
+            writable: true,
+            enumerable: true,
+            configurable: true,
+          })
+        }
+      }
+      return { ...positions }
+    }),
+    getDeliveryPositions: vi.fn(async () => ({ ...positions })),
+    setDeliveryPosition: vi.fn(async (id: string, at: Date) => {
+      Object.defineProperty(positions, id, {
+        value: at.toISOString(),
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      })
+    }),
     ...overrides,
   }
 }
@@ -72,194 +98,351 @@ describe('windowMsFromCron', () => {
 })
 
 describe('startDigestNotifier', () => {
-  let started: Cron | null = null
+  const now = new Date(2024, 0, 5, 6, 0, 0, 0)
+  const old = new Date(2024, 0, 2, 6, 0, 0, 0).toISOString()
+  const stats = { discovered: 9, added: 3, runs: 4 }
+  const jobs: Cron[] = []
+
+  async function start(deps: DigestNotifierDeps): Promise<Cron> {
+    const job = await startDigestNotifier(deps)
+    if (!job) throw new Error('Expected a configured digest schedule')
+    jobs.push(job)
+    return job
+  }
 
   afterEach(() => {
-    started?.stop()
-    started = null
+    for (const job of jobs.splice(0)) job.stop()
     setMaintenance(false)
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
-  it('returns null (no job) when digestCron is unset', async () => {
-    const deps = makeDeps({ getDigestCron: () => undefined })
-    started = await startDigestNotifier(deps)
-    expect(started).toBeNull()
+  function freeze() {
+    vi.useFakeTimers()
+    vi.setSystemTime(now)
+  }
+
+  it('initializes existing IDs once even when cron and channel delivery are disabled', async () => {
+    const channels = [digestChannel, { ...digestChannel, id: 'paused', enabled: false }]
+    const positions = { w1: old }
+    const deps = makeDeps(
+      { getDigestCron: () => undefined, getChannels: () => channels },
+      positions,
+    )
+    expect(await startDigestNotifier(deps)).toBeNull()
+    expect(deps.initializeDeliveryPositions).toHaveBeenCalledExactlyOnceWith(['w1', 'paused'])
+    expect(positions.w1).toBe(old)
     expect(deps.dispatch).not.toHaveBeenCalled()
   })
 
-  it('does not send when no channel is subscribed to digest at fire time', async () => {
-    const deps = makeDeps({
-      getChannels: () => [{ ...digestChannel, events: ['batch_complete'] }],
-      getStats: async () => ({ discovered: 5, added: 2, runs: 1 }),
+  it.each(['no cron', 'empty', 'unsubscribed', 'disabled', 'maintenance'])(
+    'pauses delivery without advancing positions during %s',
+    async (mode) => {
+      freeze()
+      let cron: string | undefined = '0 6 * * *'
+      let channels: NotificationChannel[] = [digestChannel]
+      const deps = makeDeps({ getDigestCron: () => cron, getChannels: () => channels })
+      const job = await start(deps)
+      if (mode === 'no cron') cron = undefined
+      if (mode === 'empty') channels = []
+      if (mode === 'unsubscribed') channels = [{ ...digestChannel, events: ['batch_complete'] }]
+      if (mode === 'disabled') channels = [{ ...digestChannel, enabled: false }]
+      if (mode === 'maintenance') setMaintenance(true)
+      await fire(job)
+      expect(deps.initializeDeliveryPositions).toHaveBeenCalledOnce()
+      expect(deps.getDeliveryPositions).not.toHaveBeenCalled()
+      expect(deps.dispatch).not.toHaveBeenCalled()
+      expect(deps.setDeliveryPosition).not.toHaveBeenCalled()
+    },
+  )
+
+  it('advances only each successful or empty window while preserving failed channel history', async () => {
+    freeze()
+    const positions = {
+      w1: old,
+      failed: new Date(now.getTime() - 2 * DAY_MS).toISOString(),
+      empty: new Date(now.getTime() - DAY_MS).toISOString(),
+    }
+    const channels = ['w1', 'failed', 'empty'].map((id) => ({ ...digestChannel, id }))
+    const getStats = vi.fn(async (since: Date) =>
+      since.toISOString() === positions.empty ? { discovered: 0, added: 0, runs: 0 } : stats,
+    )
+    const dispatch = vi.fn(async ([channel]: NotificationChannel[]) => [
+      { id: channel?.id ?? '', type: 'webhook', ok: channel?.id !== 'failed' },
+    ])
+    const deps = makeDeps({ getChannels: () => channels, getStats, dispatch }, positions)
+    const failedStart = positions.failed
+    const emptyStart = positions.empty
+    await fire(await start(deps))
+    expect(getStats.mock.calls.map(([since]) => since.toISOString())).toEqual([
+      old,
+      failedStart,
+      emptyStart,
+    ])
+    expect(positions).toEqual({
+      w1: now.toISOString(),
+      failed: failedStart,
+      empty: now.toISOString(),
     })
-    started = await startDigestNotifier(deps)
-    expect(started).not.toBeNull()
-    if (started) await fire(started)
-    expect(deps.dispatch).not.toHaveBeenCalled()
-  })
-
-  it('does not send when channels are empty at fire time', async () => {
-    const deps = makeDeps({
-      getChannels: () => [],
-      getStats: async () => ({ discovered: 5, added: 2, runs: 1 }),
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-    expect(deps.dispatch).not.toHaveBeenCalled()
-  })
-
-  it('does not send when the window had zero activity, but still advances the bookmark', async () => {
-    const deps = makeDeps({ getStats: async () => ({ discovered: 0, added: 0, runs: 0 }) })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-    expect(deps.dispatch).not.toHaveBeenCalled()
-    expect(deps.setLastSentAt).toHaveBeenCalledOnce()
-  })
-
-  it('sends a digest payload with aggregated stats when there was activity', async () => {
-    const dispatch = vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }])
-    const deps = makeDeps({
-      getStats: async () => ({ discovered: 9, added: 3, runs: 4 }),
-      dispatch,
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(dispatch).toHaveBeenCalledOnce()
-    const [channels, event, payload] = dispatch.mock.calls[0] ?? []
-    expect(event).toBe('digest')
-    expect(channels).toEqual([digestChannel])
-    expect(payload).toMatchObject({
+    expect(dispatch.mock.calls.map(([targets]) => targets.map((channel) => channel.id))).toEqual([
+      ['w1'],
+      ['failed'],
+    ])
+    expect(vi.mocked(deps.dispatch).mock.calls[0]?.[2]).toMatchObject({
       event: 'digest',
       window: 'day',
-      stats: { discovered: 9, added: 3, runs: 4 },
+      stats,
+      message: expect.any(String),
+      timestamp: now.toISOString(),
     })
-    expect(typeof payload.message).toBe('string')
-    expect(payload.message.length).toBeGreaterThan(0)
-    expect(typeof payload.timestamp).toBe('string')
   })
 
-  it('swallows errors from the stats query', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const dispatch = vi.fn()
+  it('uses the restored legacy window while the existing scheduler remains running', async () => {
+    freeze()
+    let positions: Record<string, string | null> | null = { w1: now.toISOString() }
+    let legacy: string | null = null
+    const getStats = vi.fn(async (_since: Date) => stats)
     const deps = makeDeps({
-      getStats: async () => {
-        throw new Error('db down')
-      },
-      dispatch,
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(dispatch).not.toHaveBeenCalled()
-    expect(consoleSpy).toHaveBeenCalledWith('[digest-notifier] Failed:', expect.any(Error))
-  })
-
-  it('uses the persisted bookmark as the window start when set', async () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2024, 0, 5, 6, 0, 0, 0))
-    const bookmark = new Date(2024, 0, 2, 6, 0, 0, 0)
-    const getStats = vi.fn().mockResolvedValue({ discovered: 1, added: 0, runs: 1 })
-    const deps = makeDeps({
-      getLastSentAt: vi.fn().mockResolvedValue(bookmark),
       getStats,
+      initializeDeliveryPositions: vi.fn(async (ids: string[]) => {
+        if (positions === null) positions = Object.fromEntries(ids.map((id) => [id, legacy]))
+        return { ...positions }
+      }),
+      getDeliveryPositions: vi.fn(async () => ({ ...positions })),
+      setDeliveryPosition: vi.fn(async (id: string, at: Date) => {
+        positions = { ...(positions ?? {}), [id]: at.toISOString() }
+      }),
     })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(getStats).toHaveBeenCalledOnce()
-    expect(getStats.mock.calls[0]?.[0]).toEqual(bookmark)
+    const job = await start(deps)
+    positions = null
+    legacy = old
+    await fire(job)
+    expect(getStats).toHaveBeenCalledExactlyOnceWith(new Date(old))
     expect(deps.dispatch).toHaveBeenCalledOnce()
+    expect(positions).toEqual({ w1: now.toISOString() })
+    expect(deps.setDeliveryPosition).toHaveBeenCalledExactlyOnceWith('w1', now)
   })
 
-  it('falls back to the cron-derived window when the bookmark is null', async () => {
-    vi.useFakeTimers()
-    // Friday 06:00 local, a fire of '0 6 * * *': previous fire is 24h back.
-    vi.setSystemTime(new Date(2024, 0, 5, 6, 0, 0, 0))
-    const getStats = vi.fn().mockResolvedValue({ discovered: 1, added: 0, runs: 1 })
-    const deps = makeDeps({ getLastSentAt: vi.fn().mockResolvedValue(null), getStats })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
+  it.each([null, 'invalid', new Date(now.getTime() + DAY_MS).toISOString()])(
+    'persists a cadence fallback for %s and retries the expanded window after restart',
+    async (position) => {
+      freeze()
+      const positions = { w1: position }
+      const getStats = vi.fn(async (_since: Date) => stats)
+      const dispatch = vi.fn(async () => [{ id: 'w1', type: 'webhook', ok: false }])
+      const deps = makeDeps({ getStats, dispatch }, positions)
+      const job = await start(deps)
+      await fire(job)
+      const since = new Date(now.getTime() - DAY_MS)
+      expect(positions.w1).toBe(since.toISOString())
+      expect(vi.mocked(deps.setDeliveryPosition).mock.invocationCallOrder[0]).toBeLessThan(
+        getStats.mock.invocationCallOrder[0] ?? 0,
+      )
+      job.stop()
+      vi.setSystemTime(new Date(now.getTime() + DAY_MS))
+      dispatch.mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }])
+      await fire(await start(deps))
+      expect(getStats.mock.calls.map(([startAt]) => startAt)).toEqual([since, since])
+      expect(positions.w1).toBe(new Date(now.getTime() + DAY_MS).toISOString())
+    },
+  )
 
-    expect(getStats.mock.calls[0]?.[0]).toEqual(new Date(2024, 0, 4, 6, 0, 0, 0))
+  it.each<DispatchResult[]>([
+    [],
+    [{ id: 'another', type: 'webhook', ok: true }],
+    [{ id: 'w1', type: 'ntfy', ok: true }],
+    [{ id: 'w1', type: 'webhook', ok: false }],
+    [
+      { id: 'w1', type: 'webhook', ok: true },
+      { id: 'extra', type: 'webhook', ok: true },
+    ],
+  ])('requires one matching successful dispatch result: %j', async (...results) => {
+    freeze()
+    const positions = { w1: old }
+    const deps = makeDeps(
+      { getStats: async () => stats, dispatch: vi.fn(async () => results) },
+      positions,
+    )
+    await fire(await start(deps))
+    expect(positions.w1).toBe(old)
+    expect(deps.setDeliveryPosition).not.toHaveBeenCalled()
   })
 
-  it('falls back to the cron-derived window when the bookmark is in the future', async () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2024, 0, 5, 6, 0, 0, 0))
-    const futureBookmark = new Date(2024, 0, 5, 7, 0, 0, 0)
-    const getStats = vi.fn().mockResolvedValue({ discovered: 1, added: 0, runs: 1 })
-    const deps = makeDeps({ getLastSentAt: vi.fn().mockResolvedValue(futureBookmark), getStats })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
+  it.each(['stats', 'first write', 'dispatch', 'last write'])(
+    'isolates a channel %s error and still delivers the other channel',
+    async (failure) => {
+      freeze()
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const positions: Record<string, string | null> = {
+        w1: failure === 'first write' ? null : old,
+        other: old,
+      }
+      const deps = makeDeps(
+        {
+          getChannels: () => [digestChannel, { ...digestChannel, id: 'other' }],
+          getStats: async () => stats,
+        },
+        positions,
+      )
+      const persist = deps.setDeliveryPosition
+      deps.setDeliveryPosition = vi.fn(async (id: string, at: Date) => {
+        if (id === 'w1' && (failure === 'first write' || failure === 'last write'))
+          throw new Error('write failed')
+        await persist(id, at)
+      })
+      if (failure === 'stats')
+        deps.getStats = vi
+          .fn()
+          .mockRejectedValueOnce(new Error('query failed'))
+          .mockResolvedValue(stats)
+      if (failure === 'dispatch')
+        deps.dispatch = vi
+          .fn()
+          .mockRejectedValueOnce(new Error('send failed'))
+          .mockResolvedValue([{ id: 'other', type: 'webhook', ok: true }])
+      await fire(await start(deps))
+      expect(positions.w1).toBe(failure === 'first write' ? null : old)
+      expect(positions.other).toBe(now.toISOString())
+      expect(console.error).toHaveBeenCalledWith(
+        '[digest-notifier] Channel failed:',
+        'w1',
+        expect.any(Error),
+      )
+      if (failure === 'first write')
+        expect(vi.mocked(deps.dispatch).mock.calls.map(([targets]) => targets[0]?.id)).toEqual([
+          'other',
+        ])
+    },
+  )
 
-    expect(getStats.mock.calls[0]?.[0]).toEqual(new Date(2024, 0, 4, 6, 0, 0, 0))
+  it('skips an already covered window at the same instant', async () => {
+    freeze()
+    const deps = makeDeps({}, { w1: now.toISOString() })
+    await fire(await start(deps))
+    expect(deps.getStats).not.toHaveBeenCalled()
+    expect(deps.setDeliveryPosition).not.toHaveBeenCalled()
   })
 
-  it('advances the bookmark only after a successful send', async () => {
-    const dispatch = vi.fn().mockResolvedValue([{ id: 'w1', type: 'webhook', ok: true }])
-    const setLastSentAt = vi.fn().mockResolvedValue(undefined)
-    const deps = makeDeps({
-      getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
-      dispatch,
-      setLastSentAt,
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(dispatch).toHaveBeenCalledOnce()
-    expect(setLastSentAt).toHaveBeenCalledOnce()
-    const sendOrder = dispatch.mock.invocationCallOrder[0]
-    const bookmarkOrder = setLastSentAt.mock.invocationCallOrder[0]
-    expect(bookmarkOrder).toBeGreaterThan(sendOrder ?? Number.POSITIVE_INFINITY)
+  it('retains paused and removed IDs, resumes changed destinations, and starts new IDs at cadence', async () => {
+    freeze()
+    const positions = { w1: old }
+    let channels: NotificationChannel[] = [{ ...digestChannel, enabled: false }]
+    const getStats = vi.fn(async (_since: Date) => stats)
+    const deps = makeDeps(
+      {
+        getChannels: () => channels,
+        getStats,
+        dispatch: vi.fn(async (targets: NotificationChannel[]) =>
+          targets.map((channel) => ({ id: channel.id, type: channel.type, ok: false })),
+        ),
+      },
+      positions,
+    )
+    const job = await start(deps)
+    await fire(job)
+    channels = []
+    await fire(job)
+    expect(positions.w1).toBe(old)
+    channels = [
+      {
+        id: 'w1',
+        type: 'ntfy',
+        enabled: true,
+        events: ['digest'],
+        server: 'https://ntfy.example.com',
+        topic: 'changed',
+      },
+      { ...digestChannel, id: '__proto__' },
+    ]
+    await fire(job)
+    expect(getStats.mock.calls.map(([since]) => since)).toEqual([
+      new Date(old),
+      new Date(now.getTime() - DAY_MS),
+    ])
+    expect(positions.w1).toBe(old)
+    expect(Object.hasOwn(positions, '__proto__')).toBe(true)
+    expect(Object.getOwnPropertyDescriptor(positions, '__proto__')?.value).toBe(
+      new Date(now.getTime() - DAY_MS).toISOString(),
+    )
+    expect(deps.initializeDeliveryPositions).toHaveBeenCalledTimes(2)
   })
 
-  it('does not advance the bookmark when every channel failed', async () => {
-    const setLastSentAt = vi.fn().mockResolvedValue(undefined)
-    const deps = makeDeps({
-      getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
-      dispatch: vi
-        .fn()
-        .mockResolvedValue([{ id: 'w1', type: 'webhook', ok: false, error: 'HTTP 500' }]),
-      setLastSentAt,
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(deps.dispatch).toHaveBeenCalledOnce()
-    expect(setLastSentAt).not.toHaveBeenCalled()
+  it('skips duplicate IDs even when one duplicate is disabled and delivers unique IDs', async () => {
+    freeze()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const positions = { w1: old, unique: old }
+    const deps = makeDeps(
+      {
+        getChannels: () => [
+          digestChannel,
+          { ...digestChannel, enabled: false },
+          { ...digestChannel, id: 'unique' },
+        ],
+        getStats: async () => stats,
+      },
+      positions,
+    )
+    await fire(await start(deps))
+    expect(vi.mocked(deps.dispatch).mock.calls.map(([targets]) => targets[0]?.id)).toEqual([
+      'unique',
+    ])
+    expect(positions).toEqual({ w1: old, unique: now.toISOString() })
+    expect(console.error).toHaveBeenCalledWith(
+      '[digest-notifier] Duplicate channel ID skipped:',
+      'w1',
+    )
   })
 
-  it('advances the bookmark when at least one channel succeeded', async () => {
-    const setLastSentAt = vi.fn().mockResolvedValue(undefined)
-    const deps = makeDeps({
-      getStats: async () => ({ discovered: 2, added: 1, runs: 1 }),
-      dispatch: vi.fn().mockResolvedValue([
-        { id: 'a', type: 'webhook', ok: false, error: 'HTTP 500' },
-        { id: 'b', type: 'ntfy', ok: true },
-      ]),
-      setLastSentAt,
-    })
-    started = await startDigestNotifier(deps)
-    if (started) await fire(started)
-
-    expect(setLastSentAt).toHaveBeenCalledOnce()
-  })
-
-  it('skips the tick entirely during maintenance', async () => {
-    const getLastSentAt = vi.fn().mockResolvedValue(null)
-    const deps = makeDeps({
-      getLastSentAt,
-      getStats: async () => ({ discovered: 5, added: 2, runs: 1 }),
-    })
-    started = await startDigestNotifier(deps)
-    setMaintenance(true)
-    if (started) await fire(started)
-
-    expect(getLastSentAt).not.toHaveBeenCalled()
+  it('releases the overlap guard when restored position initialization fails', async () => {
+    freeze()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const inFlight = { running: false }
+    const deps = makeDeps({ inFlight, getStats: vi.fn(async () => stats) }, { w1: old })
+    const job = await start(deps)
+    vi.mocked(deps.initializeDeliveryPositions).mockRejectedValueOnce(
+      new Error('restore unavailable'),
+    )
+    await fire(job)
+    expect(deps.getDeliveryPositions).not.toHaveBeenCalled()
     expect(deps.dispatch).not.toHaveBeenCalled()
-    expect(deps.setLastSentAt).not.toHaveBeenCalled()
+    expect(inFlight.running).toBe(false)
+    expect(console.error).toHaveBeenCalledWith('[digest-notifier] Failed:', expect.any(Error))
+    await fire(job)
+    expect(deps.dispatch).toHaveBeenCalledOnce()
+    expect(inFlight.running).toBe(false)
+  })
+
+  it('shares the overlap guard across reentrant ticks and scheduler replacement, then releases it', async () => {
+    freeze()
+    const inFlight = { running: false }
+    let release: (() => void) | undefined
+    let entered: (() => void) | undefined
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const entering = new Promise<void>((resolve) => {
+      entered = resolve
+    })
+    const getStats = vi.fn(async () => {
+      entered?.()
+      await pending
+      return stats
+    })
+    const deps = makeDeps({ inFlight, getStats }, { w1: old })
+    const first = await start(deps)
+    const tick = fire(first)
+    await entering
+    await fire(first)
+    first.stop()
+    const replacement = await start(deps)
+    await fire(replacement)
+    expect(getStats).toHaveBeenCalledOnce()
+    release?.()
+    await tick
+    expect(inFlight.running).toBe(false)
+    vi.setSystemTime(new Date(now.getTime() + DAY_MS))
+    await fire(replacement)
+    expect(getStats).toHaveBeenCalledTimes(2)
+    expect(deps.dispatch).toHaveBeenCalledTimes(2)
   })
 })

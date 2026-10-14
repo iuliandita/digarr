@@ -205,3 +205,11 @@ For complete recovery, retain a database backup and the matching encryption key 
 - Embedded PGlite: stop every process using its data directory, then archive or snapshot the entire persistent data volume. Never copy a live directory. Check the archive and test it with a separate data directory and a compatible image.
 
 The [Docker backup procedure](../../deploy/docker/README.md#back-up-and-update) includes complete Compose commands for both database-backup methods. Protect backups as credentials, copy them off the host, and preserve the original database until the recovered instance is verified.
+
+## Digest delivery migration
+
+The digest fix adds nullable `settings.digest_delivery_positions`. Existing databases lack this column before the migration, so the current-schema automatic snapshot fails closed before DDL. For this upgrade, stop app writers, take and verify the native consistent database backup described above, and retain the exact encryption key and previous image. Then explicitly set `DIGARR_AUTO_BACKUP=false` for the upgrade and re-enable it after startup succeeds. Do not bypass an unexplained backup failure. Fresh databases need no override.
+
+Current channel IDs inherit the legacy shared timestamp once, including when the digest schedule is disabled. New IDs use the current cadence; old windows already skipped by the legacy bookmark cannot be recovered. Application backups and backend copies preserve the new map. An older application backup without the field leaves it uninitialized and uses its legacy timestamp at startup or on the next live tick after restore.
+
+For rollback, restore the previous image's verified native backup into a separate database and use that image with its matching key. Do not feed a migrated database or newer JSON backup to an older image. Verify recovery before replacing the original database; delivery after the backup may repeat, because remote sends are not rolled back.

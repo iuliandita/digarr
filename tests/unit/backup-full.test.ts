@@ -7,6 +7,7 @@ import {
   PartialBackupConflictError,
   restoreBackup,
 } from '@/core/ops/backup'
+import { initializeDigestDeliveryPositions } from '@/db/queries/settings'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
 
@@ -225,7 +226,11 @@ describe('backup full-fidelity', () => {
       .returning()
     if (!target) throw new Error('target insert failed')
 
-    await db.insert(schema.settings).values({ setupComplete: true, aiModel: 'recovery-model' })
+    await db.insert(schema.settings).values({
+      setupComplete: true,
+      aiModel: 'recovery-model',
+      digestDeliveryPositions: { saved: '2026-10-01T00:00:00.000Z', pending: null },
+    })
     await db.insert(schema.oauthTokens).values({
       userId: user.id,
       provider: 'spotify',
@@ -428,6 +433,30 @@ describe('backup full-fidelity', () => {
     } finally {
       await close()
       await close2()
+    }
+  })
+
+  it('restores an old backup without delivery positions as NULL for legacy bootstrap', async () => {
+    const { db, close } = await makeTestDb()
+    const { db: destination, close: closeDestination } = await makeTestDb()
+    try {
+      const legacy = new Date('2026-10-01T00:00:00.000Z')
+      await db.insert(schema.settings).values({ id: 1, digestLastSentAt: legacy })
+      const backup = await createBackupSnapshot(db as never)
+      for (const row of backup.data.settings ?? []) delete row.digestDeliveryPositions
+      await destination.insert(schema.settings).values({
+        id: 1,
+        digestDeliveryPositions: { stale: '2026-10-02T00:00:00.000Z' },
+      })
+      await restoreBackup(destination as never, backup, { force: true })
+      const [restored] = await destination.select().from(schema.settings)
+      expect(restored?.digestDeliveryPositions).toBeNull()
+      expect(await initializeDigestDeliveryPositions(destination as never, ['restored'])).toEqual({
+        restored: legacy.toISOString(),
+      })
+    } finally {
+      await close()
+      await closeDestination()
     }
   })
 

@@ -32,6 +32,7 @@ function makeSettings(overrides: Partial<SettingsRow> = {}): SettingsRow {
     preferences: null,
     librarySyncIntervalHours: 6,
     digestLastSentAt: null,
+    digestDeliveryPositions: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

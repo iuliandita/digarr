@@ -413,6 +413,25 @@ describe('GET /api/v1/settings', () => {
     expect(body.aiApiKey).toBeNull()
   })
 
+  it.each([true, false])(
+    'hides digest delivery positions from settings when admin=%s',
+    async (isAdmin) => {
+      const positions = { w1: '2024-01-01T00:00:00.000Z' }
+      const deps = makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({ ...mockSettings, digestDeliveryPositions: positions }) as unknown as SettingsRow,
+        ),
+      })
+      const user = await deps.getUserById(1)
+      deps.getUserById = vi.fn(async () => (user ? { ...user, isAdmin } : null))
+      const res = await authedRequest(createApp(deps), '/api/v1/settings')
+      expect(res.status).toBe(200)
+      expect(await res.json()).not.toHaveProperty('digestDeliveryPositions')
+      expect(positions).toEqual({ w1: '2024-01-01T00:00:00.000Z' })
+    },
+  )
+
   it('masks the stored TIDAL client secret', async () => {
     mockGetUserConnections.mockResolvedValueOnce(defaultUserConnections)
     const app = createApp(
@@ -685,6 +704,62 @@ describe('PATCH /api/v1/settings', () => {
     expect(res.status).toBe(200)
     expect(restartLibraryMaintenanceScheduler).toHaveBeenCalledWith(12)
   })
+
+  it('rejects duplicate notification channel IDs before saving preferences', async () => {
+    const deps = makeDeps()
+    const channel = {
+      id: 'duplicate',
+      type: 'webhook',
+      enabled: true,
+      events: ['digest'],
+      url: 'https://hooks.example.com/notify',
+    }
+    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preferences: { channels: [channel, { ...channel, enabled: false }] },
+      }),
+    })
+    expect(res.status).toBe(400)
+    expect(JSON.stringify(await res.json())).toContain('Notification channel IDs must be unique')
+    expect(deps.updateSettings).not.toHaveBeenCalled()
+  })
+
+  it.each(['top-level', 'preferences'])(
+    'prevents editing digest positions through %s settings',
+    async (placement) => {
+      const deps = makeDeps({
+        getSettings: vi.fn(
+          async () =>
+            ({
+              ...mockSettings,
+              digestDeliveryPositions: { w1: '2024-01-01T00:00:00.000Z' },
+            }) as unknown as SettingsRow,
+        ),
+      })
+      const positions = { w1: '2099-01-01T00:00:00.000Z' }
+      const body =
+        placement === 'top-level'
+          ? { digestDeliveryPositions: positions, preferences: { digestCron: '0 6 * * *' } }
+          : { preferences: { digestDeliveryPositions: positions } }
+      const res = await authedRequest(createApp(deps), '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (placement === 'preferences') {
+        expect(res.status).toBe(400)
+        expect(deps.updateSettings).not.toHaveBeenCalled()
+      } else {
+        expect(res.status).toBe(200)
+        expect(deps.updateSettings).toHaveBeenCalledWith({
+          preferences: { digestCron: '0 6 * * *' },
+        })
+        expect(await res.json()).not.toHaveProperty('digestDeliveryPositions')
+      }
+    },
+  )
 
   it('restarts the digest notifier when digestCron is updated', async () => {
     const restartDigestNotifier = vi.fn(async () => {})

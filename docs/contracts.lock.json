@@ -83,6 +83,7 @@
         "drizzle/0049_multiple_admins.sql": "a1fa15d1d1bf97112acb1bb7aaf668b896b83e2ff7eaa9f9c09059c99d6428a2",
         "drizzle/0050_slskd_retry_history.sql": "cbb6c8926f6c861d4492be615c1d7c3c5ea9f25ffe910f1cdaf496675e8ee7d6",
         "drizzle/0051_plex_accounts_slskd_retry.sql": "1cd523086d5985f5a22993296c944177198bc5a6006f04c29ab1486dbc4b27ee",
+        "drizzle/0052_windy_dark_phoenix.sql": "01f7bd47d13619a02d96aa2be7792f5ce2eea2c77ddf9f64d5ea9e3aca827c64",
         "drizzle/meta/0000_snapshot.json": "0288497d803f09f4ad1304b866b91ab25785865951841152291b11e6642230c2",
         "drizzle/meta/0001_snapshot.json": "2d057997cde52ff489663572db9d8c8a905017420e37fc808444e0fd2e23057d",
         "drizzle/meta/0002_snapshot.json": "1b11da03bfc729f4c3a59fed6765ed2e7fff3e602dc1738e176062cff922a4b9",
@@ -131,7 +132,8 @@
         "drizzle/meta/0049_snapshot.json": "b1e4779762097c539aa8e24ab67abfacf7ce9b683e68bdd939189f826968ec30",
         "drizzle/meta/0050_snapshot.json": "9ea16d61d8ea9a777cb72fb51964195fc3c5469d38b5a3b1fbfc275e4bba3515",
         "drizzle/meta/0051_snapshot.json": "10dd6d0ea571b365cd75352e94760aa4f4d7bfd70afabb9c619d70e7afba05d2",
-        "drizzle/meta/_journal.json": "ec530e797e6deeccc4fc641ed5eba00ee0749b7ad0146b91a31267a56a5c51fb",
+        "drizzle/meta/0052_snapshot.json": "179561543d4eafea3fae8daa0c16664333fcb6d631c51582085bc0f3441455df",
+        "drizzle/meta/_journal.json": "11d0c83807624be6584e1b52c764bfdd58f5d9573d7c765b456e0278bbba1f6c",
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "17a11f3c319771e7fa54dc65f196a262ad89d0ae1b06afb7f3e3f0afd9de6f5e",
@@ -164,22 +166,22 @@
         "src/db/queries/recommendations.ts": "18b266561a47db8a4bba4623876647bd4fe47304c93c0adc2a689a1ac4796f86",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
-        "src/db/queries/settings.ts": "dcf2edb0781b26230b980fe75aa78093a106651d8e246cbf9613310fb839ac53",
+        "src/db/queries/settings.ts": "ba83754a01665c8865664fadb7ac25ddeeebc2329302630a2ad248e1b15da5c4",
         "src/db/queries/slskd-jobs.ts": "e67c2a6f34f311b8fe3a7a715e65a1b58eef4152f62e64bda14e988b9aa677c7",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "3187d4a8e0770df25af44c10017ad56a057fcb1a7c2987b8f7656869b008dbc1",
         "src/db/queries/users.ts": "7fbecd13f0142103b01d7550f8676fce501d9d34df309df4d0da2f5abc6a99cf",
-        "src/db/schema.ts": "d1576f6141ccc3d06e9cb5cfec12222ed45d584373f45e2aa9d6ab17f148bb5a",
+        "src/db/schema.ts": "92483663c879fff5272f143d1534c625d146c5771df6a7b627664f451657514e",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "128e2cfc4afc2443daedaa7033c770afe758e486e57b721d12351452a523158e",
+      "digest": "4807769de48a298d1fa7047efc91069320857aa737283ae313759e7e161e4838",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/runbooks/encryption-key-rotation.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Both rotation passes now include encrypted sensitive preferences in settings and users. The runbook keeps pending OAuth exclusions, a no-write window, exact-key retention, primary-only verification, and runtime credential checks; the legacy tool limitation is version-qualified.",
-        "breaking": "none",
-        "migration": "Upgrade the rotation tool before running both passes; no schema migration is added. Retain a verified consistent pre-rotation backup and both exact keys until primary-only and runtime checks pass. Partial failures leave mixed-key ciphertext and require both keys for repair or rollback; after writes, rollback uses the old primary with the new fallback or a matching native backup.",
-        "digest": "128e2cfc4afc2443daedaa7033c770afe758e486e57b721d12351452a523158e"
+        "docs": ["docs/OPERATIONS.md", "docs/guides/switching-backends.md", "CHANGELOG.md"],
+        "note": "Nullable per-channel delivery map is saved in settings and preserved by consistent application backups and backend copies. Legacy backups omit it and bootstrap from their legacy timestamp. Reviewed key rotation: map contains timestamps, no new encrypted location.",
+        "breaking": "Adds a nullable settings column; old schema snapshots stop before DDL and older images must use their matching database.",
+        "migration": "Upgrade: stop writers, take and verify a native consistent backup, retain the exact key and previous image, explicitly set DIGARR_AUTO_BACKUP=false for this upgrade, then re-enable it. Rollback: restore the previous image matching native backup into a separate database and verify before replacement; remote sends after the backup may repeat.",
+        "digest": "4807769de48a298d1fa7047efc91069320857aa737283ae313759e7e161e4838"
       }
     },
     "configuration": {
@@ -276,7 +278,7 @@
         "src/server/routes/playlists.ts": "c423b22fa179794098dd6ba3b61b46da6224b70c2eb53e3a3a1dab68fd42dfbd",
         "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
-        "src/server/routes/settings.ts": "c7a542800576d7306b6f64f4485b3fcda38988655b5116c083bffde4476610a3",
+        "src/server/routes/settings.ts": "8af46d9a67e722de408b7fc8e3e20bafd51be214f460138fd921827e41d5d8a0",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "d1f236f9a2e4115ff48e6491e42188fa25ac3509b1d4f12cab45f001dc512dbb",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
@@ -289,21 +291,21 @@
         "src/server/schemas/pipeline.ts": "2eade1dd585f9a0acc72a22a1ddd831887bb3b194c9acf7a5ea08c84a9dc24e2",
         "src/server/schemas/playlists.ts": "5d9ad843bea7549abf2a56d5000aed2816641d03dbf14d7e2dd104e0c94421d9",
         "src/server/schemas/recommendations.ts": "e6ded59221e26bac355bfd8d6ba556fdf08e2f5ca15051ac92cb641a7f3350d4",
-        "src/server/schemas/settings.ts": "8cd3355f52e75b4c7282eaae673364dcd9d04b2e7ecfb47b0d94a7b2ab71b339",
+        "src/server/schemas/settings.ts": "cf51c8467c8c485bac6b0a53cfd3dafe2cbf223133c8da8913b0b050550060b8",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "a06e9afefe69f7518620a6c7bfe70626e848373899022834f5e2deaae505d25c",
         "src/server/schemas/validator.ts": "c23a1aeeaa484524ec8be483934fea9ef53bcdb0798fcbbc40c6d984482a7f50",
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "fc00a5c9fd537c907e7102bfbaba211ac385a6d69a065c043052c9dc350cc2e3",
+      "digest": "c16387c76986d16a3561be7b94b7995a942b575035f53ddbba6106c988e9ded9",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Both pipeline entry points retain album kind and release identity for automatic approval; no request or response shape changes.",
-        "breaking": "none",
+        "note": "Notification channel IDs must be unique; duplicate saves return400. Runtime delivery positions are server-owned, hidden from all settings responses and cannot be edited via PATCH. Channel identity lifecycle documented.",
+        "breaking": "Duplicate notification channel IDs are rejected instead of being saved; existing ambiguous IDs are skipped by digest delivery until corrected.",
         "migration": "",
-        "digest": "fc00a5c9fd537c907e7102bfbaba211ac385a6d69a065c043052c9dc350cc2e3"
+        "digest": "c16387c76986d16a3561be7b94b7995a942b575035f53ddbba6106c988e9ded9"
       }
     },
     "interface": {
@@ -518,7 +520,7 @@
         "src/core/discovery-modes/types.ts": "fa88f214d2b18499c825a3845320c500df04c425a174aa65f1234379a5411859",
         "src/core/genre/service.ts": "bf109dc59b94f944191cea3efc86e2c4818540456daea8d21f539c0a452f0bdc",
         "src/core/genre/types.ts": "e5dee85474cbb7815c9589f993b2870985ac6a65be5955b6bb66ec773ebb9ca1",
-        "src/core/jobs/digest-notifier.ts": "6d20f5b30ad3182bf0fc5fc03f0a1441090db5f057a77d369c062b6ca1a7b0b7",
+        "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
         "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
@@ -652,17 +654,17 @@
         "src/core/types.ts": "7174f034d84b181799a1c530404962bac02d39bc580313c1ccc6daf9b6321f1e",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "a566cad8d3fb05e9de99926abb6cce6f3b082b420adb3c3549c812a1f03ae899",
+        "src/index.ts": "9823dcdc61781ae401c71d64b41bf2814067e97d7005e57e6a69d6526ce44ede",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "579a4b5091a7b7c7490ed1d1334734c6e10a08d3d13a79ef87f038a450fe6bbc",
+      "digest": "48c5b7a051b447b964aea3e4d1be7eaf2d7b0eacb83b5c8f5628744a97bed5ba",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Automatic album approval dispatches the selected release via album targets, fails without identity or compatible acquisition targets, and records successful slskd actions as queued. Artist monitoring remains configurable.",
-        "breaking": "Automatic album approval no longer acquires a whole artist discography. No configuration or database migration is required; artist automatic approval retains its monitoring setting.",
+        "note": "Per-channel durable positions retain failed windows; first starts persist before sends, confirmed success or zero activity advances own position. SQLNULL bootstrap occurs at startup and active ticks after a legacy restore. Shared process guard survives scheduler restart; pauses/tombstones/new IDs/legacy bootstrap and at-least-once crash boundary documented. No layout or UI string changes.",
+        "breaking": "Failed channels retry expanded aggregate windows independently; same channel ID retains its delivery position through endpoint edits and removal/re-addition.",
         "migration": "",
-        "digest": "579a4b5091a7b7c7490ed1d1334734c6e10a08d3d13a79ef87f038a450fe6bbc"
+        "digest": "48c5b7a051b447b964aea3e4d1be7eaf2d7b0eacb83b5c8f5628744a97bed5ba"
       }
     },
     "deployment": {

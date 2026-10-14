@@ -24,7 +24,7 @@ These are existing app behaviors, tracked separately from this documentation upd
 | Application JSON backups | Fixed on develop: default exports include persistent application state and dependencies; unsafe legacy partial restores are refused, and failed required backups stop migrations. v1.19.0 exports remain partial. [#757](https://github.com/iuliandita/digarr/issues/757). |
 | Encryption-key rotation | Fixed on develop: both script passes include per-user sensitive preferences. v1.19.0 tools omit them; use the updated tool and retain both keys until verification succeeds. [#760](https://github.com/iuliandita/digarr/issues/760). |
 | Saved-settings probes | Fixed on develop: `{}` uses saved Lidarr TLS settings; missing or invalid JSON objects return `400`. v1.19.0 callers must supply TLS settings explicitly. [#759](https://github.com/iuliandita/digarr/issues/759). |
-| Digest delivery | A successful channel advances the shared bookmark; failed channels do not retry that window independently. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762). |
+| Digest delivery | Fixed on develop: each channel retains its own delivery position and retries failed windows. v1.19.0 uses a shared bookmark. Crash duplicates remain possible. [#762](https://github.com/iuliandita/digarr/issues/762). |
 | File-backed secrets | Unreadable files are treated as unset; verify mounts and read permissions. [#763](https://github.com/iuliandita/digarr/issues/763). |
 | System Health sources | The 20 latest pipeline/quick-discover runs within 24 hours form the sample. Normal skips, including unconfigured sources and unsupported discovery capabilities, count toward its failure rate. Check individual Job History outcomes before concluding there is an outage. [#769](https://github.com/iuliandita/digarr/issues/769). |
 | Listening-history cache | Rejected Digarr requests retain cached entries. A Digarr HTTP 200 response carrying `status: "error"` can replace them with an empty error state after a provider failure. [#770](https://github.com/iuliandita/digarr/issues/770). |
@@ -80,7 +80,11 @@ Audition playlists choose one track per pending artist without approving recomme
 
 Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Connections > Notifications, with scan-complete and scheduled-digest subscriptions per channel. Private-network destinations are blocked by default; the per-channel LAN option permits private IPv4 destinations for self-hosted services. It does not override your container or Kubernetes network policy.
 
-A digest uses one shared delivery bookmark. It advances when any channel succeeds, so a failed channel does not independently retry that window. A crash after sending but before saving can duplicate a digest ([#762](https://github.com/iuliandita/digarr/issues/762)).
+Each digest channel has its own saved delivery position. Only its confirmed successful send or an empty activity window advances it. Failed channels retry from their saved start on the next scheduled run, with totals covering the longer interval; successful channels keep their own shorter interval. The first window start is saved before sending, so a failed first attempt survives a restart.
+
+Disabling a channel or removing its digest subscription pauses its position. Removing a channel retains its position; reusing that ID resumes it, while a new ID starts from the current cron cadence. Editing an endpoint or type under the same ID keeps its position. Duplicate IDs are rejected on save; existing ambiguous IDs are skipped. The old shared position seeds existing channels once on upgrade, including when scheduling is disabled; previously lost windows cannot be reconstructed.
+
+Delivery remains at least once: a crash after sending but before saving can duplicate a digest. Keep one app replica; the overlap guard is process-local. A consistent application backup includes the positions. Older JSON files without them bootstrap from their saved legacy position at startup or the next live tick after restore. See the [digest upgrade procedure](guides/switching-backends.md#digest-delivery-migration) before updating an existing database.
 
 ## Library health
 
