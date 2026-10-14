@@ -136,3 +136,5 @@ Most code and tests are AI-generated, with a human setting direction and reviewi
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+Made by [Iulian Dita](https://iuliandita.com). [Other projects](https://iuliandita.com/projects/).

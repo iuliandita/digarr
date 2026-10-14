@@ -6,3 +6,6 @@ contact_links:
   - name: Feature Ideas
     url: https://github.com/iuliandita/digarr/discussions/categories/ideas
     about: Suggest features or discuss ideas in Discussions.
+  - name: Security vulnerability
+    url: https://github.com/iuliandita/digarr/blob/develop/SECURITY.md
+    about: Follow the private reporting process; do not post vulnerability details in a public issue.
