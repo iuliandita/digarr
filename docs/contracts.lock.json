@@ -187,16 +187,16 @@
     "configuration": {
       "files": {
         ".env.example": "4034ef33c07b571810e8c2ece5b9673f4a567a8fd49fc8be3ef67a3e35aead85",
-        "src/config/env.ts": "f8c56d00ea00f4b97a39fc662987e418488193876aa4b3a59656dc01304582a3"
+        "src/config/env.ts": "43e5868363aa05aaf7962219b6bf15c766b85c75fcc3129704584eeee99c4e36"
       },
-      "digest": "a17fda494bf08a9227b5a7dee3b0687f6c02417e88cbfa4093e997b687f6d7e9",
+      "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document the existing DIGARR_AUTO_BACKUP option as a required safety gate and its explicit older-schema native-backup override; paths, volume mappings, key requirements, and companion image channels are unchanged.",
-        "breaking": "Failure of an enabled required automatic backup stops startup before migrations.",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Configured DATABASE_URL_FILE and DB_PASS_FILE read failures stop startup with variable-only errors. Nonempty corresponding direct values retain precedence; readable files retain trimming and empty behavior. Existing env example reviewed with no new variable/default. Docker and Unraid read-permission guidance updated; existing template mappings remain valid.",
+        "breaking": "Unreadable configured database secret files now stop startup instead of silently falling back. Verify mounts and UID1000 read permissions before updating; no database migration is added, and rollback restores the old silent fallback.",
         "migration": "",
-        "digest": "a17fda494bf08a9227b5a7dee3b0687f6c02417e88cbfa4093e997b687f6d7e9"
+        "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12"
       }
     },
     "authentication": {

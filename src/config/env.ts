@@ -19,7 +19,7 @@ function envOrFile(key: string): string | undefined {
   try {
     return readFileSync(filePath, 'utf8').trim() || undefined
   } catch {
-    return undefined
+    throw new Error(`${key}_FILE could not be read`)
   }
 }
 
