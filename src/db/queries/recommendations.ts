@@ -286,6 +286,7 @@ export async function getGenreFeedbackHistory(
       genre,
       COUNT(*)::int AS total,
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved,
+      COUNT(CASE WHEN r.status = 'rejected' THEN 1 END)::int AS rejected,
       COUNT(CASE WHEN r.status = 'rejected'
                   AND r.rejection_reason IN ('tried_didnt_like', 'wrong_style')
                  THEN 1 END)::int AS strong_negative
@@ -303,10 +304,12 @@ export async function getGenreFeedbackHistory(
     genre: string
     total: number
     approved: number
+    rejected: number
     strong_negative: number
   }>) {
     genreMap.set(row.genre, {
       approved: row.approved,
+      rejected: row.rejected,
       total: row.total,
       strongNegative: row.strong_negative,
     })

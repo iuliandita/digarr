@@ -168,7 +168,7 @@
         "src/db/queries/oauth-tokens.ts": "30c12c802d60c28e27764b40357d8f917ddfea4186594840cd234e5c7fade696",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "3de3f8bf446900d5f9b4ba3b058d4d4581231194a2b3b31a9a0f43378cbe8269",
-        "src/db/queries/recommendations.ts": "97bfab55b56e79ddec9bcdf471a22ca8941d557fde60157baeb6a444af2add20",
+        "src/db/queries/recommendations.ts": "281c42caaf58ed087300c79b086de9c310da311e030673f324a135143c099a35",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
@@ -180,14 +180,14 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "6109eb521e36cbe762aa2f4ddcbf5898bd9308c01d2366de4c3c54ff4a2ca55c",
+      "digest": "0f01b48d2d94f23949057b93998d1abf40d3e22209e420b0ef43492662929398",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Reviewed owner-specific rejection eligibility and explicit isolation of legacy unowned records; existing rows and HTTP response shapes are preserved.",
-        "breaking": "none",
-        "migration": "No schema migration or row rewrite. Normal database backup and matching encryption key remain the upgrade precaution; rollback restores shared cooldown behavior. Existing unowned records remain unowned.",
-        "digest": "6109eb521e36cbe762aa2f4ddcbf5898bd9308c01d2366de4c3c54ff4a2ca55c"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed migrated PGlite mixed-status aggregation for owned and global histories, including unowned rows. Added a status-specific rejected tally while preserving acted-on totals, ownership, approval and strong-negative counts.",
+        "breaking": "API rejected now means current rejected rows only; clients must include the new other field when reconciling total.",
+        "migration": "No schema migration or row rewrite. Upgrade clients to include other; ordinary database backup and matching encryption key procedures are unchanged. Rollback restores the previous non-approved remainder calculation without a data conversion.",
+        "digest": "0f01b48d2d94f23949057b93998d1abf40d3e22209e420b0ef43492662929398"
       }
     },
     "configuration": {
@@ -282,7 +282,7 @@
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
         "src/server/routes/pipeline.ts": "ccef5767bb9abc8e3cdf72e100221d7b8dcd061f6dfe8426267f6cb4735c62ad",
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
-        "src/server/routes/recommendations.ts": "3b431a82041432404146f69dd55cbc17f1453707457d7d829001e12d4a2cc3df",
+        "src/server/routes/recommendations.ts": "4a05ac93ec2b0728d503515f915dcdb1ca4a116180549bd4a65ff6633dc35a74",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "8af46d9a67e722de408b7fc8e3e20bafd51be214f460138fd921827e41d5d8a0",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "64f8f224435d62ddf486631d4c02ce16c3f1657c07b48967df0fe3fd530b8dbf",
+      "digest": "6bc108789055127d9e82ef512ee061bba1e7f1314dcb1807123f01081c5f1205",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Quick Discover similar-result filtering now uses its authenticated owner. Documented account-only and legacy-unowned scopes, unchanged request/response shapes and cooldown window, and the separate direct-seed limitation.",
-        "breaking": "none",
-        "migration": "",
-        "digest": "64f8f224435d62ddf486631d4c02ce16c3f1657c07b48967df0fe3fd530b8dbf"
+        "note": "Feedback summary returns actual rejected plus other outcomes; approved, acted-on total, rate, threshold, order, limit and user scope stay unchanged. The intentionally partial OpenAPI contract has no summary schema to update. Documented old v1.19.0 behavior and consumer upgrade/rollback.",
+        "breaking": "API rejected excludes failed approvals and restored pending rows; clients reconciling counts must include the new other field.",
+        "migration": "No stored-row migration. Upgrade API consumers to reconcile approved plus rejected plus other; rollback restores the old rejected remainder. Database backup procedures are unchanged.",
+        "digest": "6bc108789055127d9e82ef512ee061bba1e7f1314dcb1807123f01081c5f1205"
       }
     },
     "interface": {
@@ -422,7 +422,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "5f0c02cad336730eec7eb169a471bc1bcf3f77bb5efe8f727827d2f462b4bf13",
-        "src/web/lib/api.ts": "6b6c3cb22652e16061a5b7028b1bf5048b8b2948679b25ee40185ae9823ae944",
+        "src/web/lib/api.ts": "8ec942a408af3f5ac09bf085a80aaec1b590666bf9395f2a522de611386020d9",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "8f492100667f8e7a0123691259c404765262df68d83527f1a0b7f064e10b3f58",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -459,14 +459,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "3d8c8e8ec6c5d513021461da0206398fad3af358742e77f09ff9d5b66cf8e545",
+      "digest": "a0e572da29f2cd0932d2d44a5655cdfa3d73699e845d3586b9e82b35f54ac4f2",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "docs/SCREENSHOTS.md", "CHANGELOG.md"],
-        "note": "Reviewed browser restore consent, separate encryption-mismatch override, both confirmed multipart queries, all 15 translated catalogs, cookie and CSRF transport, cancellation and duplicate guards. Updated operator/API guidance and screenshot descriptions; existing shared dialog/theme reused. Server validation, restore transactions, backup format and schema are unchanged.",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed typed summary response and FeedbackInsights consumer: only rate and total render, and both are unchanged. Added other to client typing. No UI text, theme, locale, screenshot, configuration, deployment or Unraid changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "3d8c8e8ec6c5d513021461da0206398fad3af358742e77f09ff9d5b66cf8e545"
+        "digest": "a0e572da29f2cd0932d2d44a5655cdfa3d73699e845d3586b9e82b35f54ac4f2"
       }
     },
     "features": {
@@ -570,7 +570,7 @@
         "src/core/pipeline/orchestrator.ts": "7f230b0d1e6ac8085554f922b988c2b8bca77a0b6a0f74256c952405cebf0f1c",
         "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
         "src/core/pipeline/scheduler.ts": "108abc5f29c6c4595407d8b26137d4068b24fd71b44d5ccd92161a28a8ecbed2",
-        "src/core/pipeline/score.ts": "5ae2d7e9f7824b8ee904dc0dab13cc744755d224069b5b30bb75a7ffcbfc46a1",
+        "src/core/pipeline/score.ts": "f699ad1cea010b6dd035121039fe60de7c5d4d55ae05a5ff23a0f3dc6c2432fa",
         "src/core/pipeline/store.ts": "48ef2f6783affcd93709622ccb6a07f2dbc4af992457429bd7016ad00728fa22",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
@@ -667,14 +667,14 @@
         "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "e128f9e95ef0a7b610d3f65760ee89fee0463f403e68423ae40005331aac5b68",
+      "digest": "6396b704add655dd62458ba8b465a85d4a8a84259f8e24e4222a4363a4a40b14",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Documented explicit run-owner forwarding for pipeline, Quick Discover similar results, and subscriptions. Reviewed README: no cooldown-specific contract needs changing. No UI, locale, screenshot, configuration, or deployment changes; direct seed bypass remains tracked separately in #795.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Reviewed the shared GenreFeedback type and all scorer reads. New optional rejected tally is not used by scoring; total, approval rate, strong-negative penalty, stored scores and ranking stay unchanged. README and architecture have no affected count claim.",
         "breaking": "none",
         "migration": "",
-        "digest": "e128f9e95ef0a7b610d3f65760ee89fee0463f403e68423ae40005331aac5b68"
+        "digest": "6396b704add655dd62458ba8b465a85d4a8a84259f8e24e4222a4363a4a40b14"
       }
     },
     "deployment": {

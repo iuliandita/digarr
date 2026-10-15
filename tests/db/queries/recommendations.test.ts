@@ -66,18 +66,18 @@ function makeExecuteMock(rows: unknown[]): Database {
 }
 
 describe('getGenreFeedbackHistory', () => {
-  it('returns correct approved/total counts per genre', async () => {
+  it('returns correct feedback counts per genre', async () => {
     const db = makeExecuteMock([
-      { genre: 'rock', total: 2, approved: 1 },
-      { genre: 'metal', total: 2, approved: 2 },
-      { genre: 'jazz', total: 1, approved: 1 },
+      { genre: 'rock', total: 2, approved: 1, rejected: 1, strong_negative: 1 },
+      { genre: 'metal', total: 2, approved: 2, rejected: 0, strong_negative: 0 },
+      { genre: 'jazz', total: 1, approved: 1, rejected: 0, strong_negative: 0 },
     ])
 
     const result = await getGenreFeedbackHistory(db)
 
-    expect(result.get('rock')).toEqual({ approved: 1, total: 2 })
-    expect(result.get('metal')).toEqual({ approved: 2, total: 2 })
-    expect(result.get('jazz')).toEqual({ approved: 1, total: 1 })
+    expect(result.get('rock')).toEqual({ approved: 1, rejected: 1, total: 2, strongNegative: 1 })
+    expect(result.get('metal')).toEqual({ approved: 2, rejected: 0, total: 2, strongNegative: 0 })
+    expect(result.get('jazz')).toEqual({ approved: 1, rejected: 0, total: 1, strongNegative: 0 })
   })
 
   it('returns empty map when no acted-upon recommendations', async () => {

@@ -365,6 +365,7 @@ export const getFeedbackSummary = () =>
       genre: string
       approved: number
       rejected: number
+      other: number
       total: number
       rate: number
     }>

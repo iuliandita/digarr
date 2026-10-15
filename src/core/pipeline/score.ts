@@ -4,6 +4,7 @@ import type { Preferences, ScoringWeights } from '@/db/schema'
 /** Per-genre feedback tally feeding the feedbackBoost score component. */
 export type GenreFeedback = {
   approved: number
+  rejected?: number
   total: number
   /**
    * Count of acted-on recommendations rejected with a strong-negative reason

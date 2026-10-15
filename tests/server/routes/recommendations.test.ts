@@ -1146,9 +1146,10 @@ describe('POST /api/v1/recommendations/bulk', () => {
 describe('GET /api/v1/recommendations/feedback-summary', () => {
   it('returns genre feedback summary sorted by approval rate', async () => {
     const history = new Map([
-      ['rock', { approved: 8, total: 10 }],
-      ['jazz', { approved: 2, total: 5 }],
-      ['pop', { approved: 1, total: 1 }],
+      ['jazz', { approved: 2, rejected: 1, total: 5 }],
+      ['rock', { approved: 8, rejected: 1, total: 10 }],
+      ['pop', { approved: 1, rejected: 0, total: 1 }],
+      ['legacy', { approved: 0, total: 3 }],
     ])
     const app = createApp(
       makeDeps({
@@ -1158,10 +1159,36 @@ describe('GET /api/v1/recommendations/feedback-summary', () => {
     const res = await authedRequest(app, '/api/v1/recommendations/feedback-summary')
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.summary).toHaveLength(2) // pop excluded (below 3 total)
-    expect(body.summary[0].genre).toBe('rock')
-    expect(body.summary[0].rate).toBe(0.8)
-    expect(body.summary[1].genre).toBe('jazz')
+    expect(body.summary).toEqual([
+      { genre: 'rock', approved: 8, rejected: 1, other: 1, total: 10, rate: 0.8 },
+      { genre: 'jazz', approved: 2, rejected: 1, other: 2, total: 5, rate: 0.4 },
+      { genre: 'legacy', approved: 0, rejected: 0, other: 3, total: 3, rate: 0 },
+    ])
+  })
+
+  it('limits the summary to the twenty highest approval rates', async () => {
+    const history = new Map(
+      Array.from(
+        { length: 25 },
+        (_, approved) => [`genre-${approved}`, { approved, rejected: 1, total: 30 }] as const,
+      ),
+    )
+    const app = createApp(makeDeps({ getFeedbackHistory: vi.fn().mockResolvedValue(history) }))
+    const res = await authedRequest(app, '/api/v1/recommendations/feedback-summary')
+    const body = await res.json()
+    expect(body.summary).toEqual(
+      Array.from({ length: 20 }, (_, i) => {
+        const approved = 24 - i
+        return {
+          genre: `genre-${approved}`,
+          approved,
+          rejected: 1,
+          other: 29 - approved,
+          total: 30,
+          rate: approved / 30,
+        }
+      }),
+    )
   })
 
   it('returns empty summary when no feedback data', async () => {
