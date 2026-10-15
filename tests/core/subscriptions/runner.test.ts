@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ProviderAuthError } from '@/core/provider-auth'
+import { createDeezerAdapter } from '@/core/subscriptions/adapters/deezer'
 import { runSubscription } from '@/core/subscriptions/runner'
 import type {
   SubscriptionAdapter,
@@ -127,6 +129,12 @@ describe('runSubscription', () => {
         metadata: expect.objectContaining({ artistsFound: 0, artistsNew: 0 }),
       }),
     )
+    expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+      lastRunAt: expect.any(Date),
+      lastResultCount: 0,
+      lastError: null,
+    })
+    expect(deps.jobRecorder.fail).not.toHaveBeenCalled()
     expect(result.artistsFound).toBe(0)
     expect(result.artistsNew).toBe(0)
   })
@@ -205,6 +213,37 @@ describe('runSubscription', () => {
       expect.objectContaining({ subscriptionId: 42, userId: 5 }),
     )
   })
+
+  it.each(['not_connected', 'token_unusable'] as const)(
+    'records a Deezer %s failure without overwriting the previous result count',
+    async (reason) => {
+      const error = new ProviderAuthError('deezer', reason, 'Reconnect Deezer in Settings')
+      const adapter = createDeezerAdapter({
+        getToken: async () => {
+          throw error
+        },
+      })
+      const deps = makeDeps()
+      const subscription = makeSubscription({
+        userId: 42,
+        sourceType: 'deezer',
+        sourceConfig: { feedType: 'favorites' },
+      })
+
+      await expect(runSubscription(subscription, adapter, deps)).rejects.toBe(error)
+
+      expect(deps.jobRecorder.start).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 42, subscriptionId: 1 }),
+      )
+      expect(deps.jobRecorder.fail).toHaveBeenCalledWith(10, error.message)
+      expect(deps.jobRecorder.complete).not.toHaveBeenCalled()
+      expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+        lastRunAt: expect.any(Date),
+        lastError: error.message,
+      })
+      expect(resolveMock).not.toHaveBeenCalled()
+    },
+  )
 
   it('records error and re-throws on adapter failure', async () => {
     const boom = new Error('adapter exploded')

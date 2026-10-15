@@ -560,7 +560,7 @@ Spotify playlist imports and recurring `spotify-playlist` subscriptions read onl
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer` (with `sourceConfig.feedType` of `favorites`, `followed`, `flow`, or `playlists`; `playlistIds` supplies comma-separated IDs for `playlists`), `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
 
-Deezer subscription token-resolution failures currently return an empty artist list instead of an authentication error; reconnect when expected artists disappear ([#774](https://github.com/iuliandita/digarr/issues/774)). Playlist feeds collect at most 500 distinct artists across the selected playlists.
+Deezer subscription token-resolution failures and provider error envelopes fail the run instead of completing with zero artists. Disconnected subscriptions still record a failed attempt for their owner. Manual-run failures return `503` with `service: "deezer"`, `retryable: true` and check/reconnect guidance; this is a source failure, not an application-session `401`. Inspect the saved subscription `lastError` and Job History, then reconnect Deezer in Settings when needed before retrying. Successful empty feeds still complete with zero results and clear the previous error. Playlist feeds retain the 500-distinct-artist cap ([#774](https://github.com/iuliandita/digarr/issues/774)).
 
 **POST /api/v1/subscriptions** body:
 ```json

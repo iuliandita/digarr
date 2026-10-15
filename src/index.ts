@@ -914,14 +914,17 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       }
     }
 
-    // Deezer adapter - only if the user has a stored OAuth token
-    if (userId !== null && userId !== undefined) {
-      const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
-      if (isConnectedToken(deezerOAuthRow)) {
-        const getToken = () => resolveProviderToken(db, userId, 'deezer')
-        adapterRegistry.register(createDeezerAdapter({ getToken }))
-      }
-    }
+    // Keep disconnected subscriptions runnable so the failure reaches Job History.
+    adapterRegistry.register(
+      createDeezerAdapter({
+        getToken: async () => {
+          if (userId === null || userId === undefined) {
+            throw new Error('Deezer subscription has no owner; recreate it under your account')
+          }
+          return resolveProviderToken(db, userId, 'deezer')
+        },
+      }),
+    )
 
     setCachedAdapterRegistry(userId ?? null, adapterRegistry)
   }

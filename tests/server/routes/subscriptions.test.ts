@@ -730,6 +730,23 @@ describe('POST /api/v1/subscriptions/:id/run', () => {
     expect(res.status).toBe(202)
   })
 
+  it.each(['No Deezer OAuth token - connect Deezer in Settings', 'HTTP 401', 'HTTP 503'])(
+    'reports a Deezer source failure without expiring the app session: %s',
+    async (message) => {
+      mockSubQueries.getSubscription.mockResolvedValueOnce({ ...mockSub, sourceType: 'deezer' })
+      const runSubscription = vi.fn().mockRejectedValue(new Error(message))
+      const app = createTestApp(makeDeps({ runSubscription }), USER_ID)
+      const res = await app.request('/api/v1/subscriptions/1/run', { method: 'POST' })
+      expect(res.status).toBe(503)
+      expect(await res.json()).toEqual({
+        error:
+          'Deezer request failed. Check your Deezer connection in Settings and reconnect if needed.',
+        service: 'deezer',
+        retryable: true,
+      })
+    },
+  )
+
   it('hides cross-user subscription with 404', async () => {
     const app = createTestApp(makeDeps(), 99)
     const res = await app.request('/api/v1/subscriptions/1/run', { method: 'POST' })

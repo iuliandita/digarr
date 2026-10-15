@@ -284,7 +284,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "8af46d9a67e722de408b7fc8e3e20bafd51be214f460138fd921827e41d5d8a0",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "d1f236f9a2e4115ff48e6491e42188fa25ac3509b1d4f12cab45f001dc512dbb",
+        "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
@@ -302,14 +302,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "497cf5af4b5a0cacc97b08f91238fb8a2965785fb0f35fa1272e2f79c452b814",
+      "digest": "17552c03e7d498b55f4879e0b4bc3b0cab099bd63c07559879570fb8349a782c",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed owner-scoped export projections and explicit local recovery reset, acknowledgement validation, hidden scope credentials, 404 ownership checks, 409 busy handling, and fail-closed retained playlist identities.",
+        "note": "Manual Deezer subscription execution returns a source-specific 503 with retry guidance rather than a session 401 or Spotify service label. API guide describes persisted lastError, failed Job History and genuine empty success; endpoint schema and auth ownership stay unchanged.",
         "breaking": "none",
-        "migration": "",
-        "digest": "497cf5af4b5a0cacc97b08f91238fb8a2965785fb0f35fa1272e2f79c452b814"
+        "migration": "No endpoint or stored-data migration; existing run requests use the same path, owner check and body contract.",
+        "digest": "17552c03e7d498b55f4879e0b4bc3b0cab099bd63c07559879570fb8349a782c"
       }
     },
     "interface": {
@@ -452,19 +452,19 @@
         "src/web/pages/search.tsx": "aa696a4204e52765bf4f45628e1cec3782daf7dfcd169f7fd39629b4eb866752",
         "src/web/pages/settings.tsx": "d2cea1fe88aad88fa837fc8c97498de2dec6f427b89448f43a93a4f54c4d81b0",
         "src/web/pages/setup.tsx": "b8a2614a550de30ad9c0b31a1b4f5cac6c0338d246d2113f9b5a2de2cbb33a0c",
-        "src/web/pages/subscriptions.tsx": "1cffdb5a3f1ce89d2a173f4faa1069e45745ae006670f99f066607e27b8ed408",
+        "src/web/pages/subscriptions.tsx": "b8c109c7fd6a626313451f8dd8cae274ae2c8130d4cee32d9e995433702ec2a0",
         "src/web/pages/user-management.tsx": "b1fadab3ef2599afe6aa78d68f92689a7cd9b2d9bbefdba75d712e2d446a1d1f",
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "ac6b7185409fb9b68cc58a464680d6d10b0f6259bad5d51b2afe5acb8e6fbc53",
+      "digest": "8e9925665083eb6943bb0430a9221956a5b3e4c644b92fc2bb1395806bc92fd5",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed top-artist and recent-play query failure handling: HTTP 200 source errors now reject so matching cached rows remain with existing translated retry notices. Successful ok/empty/not_configured outcomes still replace rows, and query keys plus session cache clearing are unchanged. No new strings, layout, theme or locale persistence changes; existing notices and screenshots remain accurate. README and API contract, server fallbacks, deployment and Unraid companion surfaces are unaffected.",
+        "note": "Failed manual runs refetch subscriptions to reveal the existing saved error row and preserve the translated generic toast. No new strings, layout or screenshots are needed; existing locale coverage is unchanged.",
         "breaking": "none",
-        "migration": "No schema, storage, session or configuration migration. Uses existing React Query cache only; rollback restores prior source-error refresh clearing behavior.",
-        "digest": "ac6b7185409fb9b68cc58a464680d6d10b0f6259bad5d51b2afe5acb8e6fbc53"
+        "migration": "No preference, theme, locale or stored-data migration; only the subscription query refreshes after a failed manual run.",
+        "digest": "8e9925665083eb6943bb0430a9221956a5b3e4c644b92fc2bb1395806bc92fd5"
       }
     },
     "features": {
@@ -473,7 +473,7 @@
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
         "src/core/clients/audiodb.ts": "64b82bbbe59efa17f758c59256cf9e990c906024d6255af8db20317ea85076b4",
         "src/core/clients/bandcamp.ts": "104c50ca2ab56242ab81b4bb208935b1d184b24186bd483770398b3332d4621d",
-        "src/core/clients/deezer-user.ts": "674e72755e9f5b5bceb48b50cc4a49326921241f97644f3cda8dbdc1ed7ef825",
+        "src/core/clients/deezer-user.ts": "252280b4b9b7db417095f2653c16e1cef421361f64097efe20ab24436ec5d0d7",
         "src/core/clients/deezer.ts": "22c8256142329a10879fa20368f801d745469cd95fe4497f2c8998486102dff4",
         "src/core/clients/discogs.ts": "5f8590ac95362349e83959e36a0a1895e92b532d98fbdbe2493cf2447e473d94",
         "src/core/clients/emby.ts": "42038a7a23baa1dfd74d9c2280d7f4ed02ecdb1ab8f7ced0265477e99acbeb73",
@@ -626,7 +626,7 @@
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
         "src/core/subscriptions/adapters/csv-import.ts": "41d2e707204f2fb66f111b1ed0df8292ec56bb92d8eb094045e10c994fbaf003",
-        "src/core/subscriptions/adapters/deezer.ts": "87ac4c22dd9442b924823d41eea61ad383dfbb087e9d924d8fb6d06fd23cf8be",
+        "src/core/subscriptions/adapters/deezer.ts": "bbeffe0fe06323b5d4934656e9d358a94995798f6228116956a68a7a17c85cf8",
         "src/core/subscriptions/adapters/genre.ts": "83eac1673feaeb2cbd5ae41ea617a43db6365476c963f617e7aa14feb5287a60",
         "src/core/subscriptions/adapters/lastfm-charts.ts": "af50020c2d8ab306164066346c5fb4a2ac8454afa986018737f954643570ec38",
         "src/core/subscriptions/adapters/lastfm-tag.ts": "b9259c82b372f025cc1f338e418d80793a8d16f64d1e1d02b2a974146f9f5126",
@@ -662,23 +662,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "8a711dedf8a0af722195d24ba23e48906bd018e3148d7bdddb5f89911b8857a4",
+        "src/index.ts": "3398f05402b684024810cef02066f1f4f5c0eafafea8977b75516eee664a5665",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "8a5372ab5fe530a7f843d95a278e7150dcb5ecf2375deb1aa3b24c0c25a9343b",
+      "digest": "b75795f3ef6e57af417e64fc6334b7d8493af116026e09ca3efedc799b4c5860",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "README.md",
-          "docs/API.md",
-          "docs/ARCHITECTURE.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Reviewed owner-scoped local lookup, saved user/library/section filters, bounded real-path exact-artist matching, first-success fallback, unchanged API defaults, current Spotify tokens and saved operator TLS preference. No UI layout, locale, deployment or companion-template contract changes.",
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Deezer subscription token and provider failures now fail recorded runs; reconnect guidance, source 503 response, empty-feed recovery, unchanged limits and refresh policy are documented, including the authentication guide. README provider link remains accurate; deployment and backup behavior are unchanged.",
         "breaking": "none",
-        "migration": "No database migration or new settings. Existing owner connections and operator TLS setting are reused; rollback restores generation without local lookup and preserves saved connections and tracks.",
-        "digest": "8a5372ab5fe530a7f843d95a278e7150dcb5ecf2375deb1aa3b24c0c25a9343b"
+        "migration": "No database schema or stored-data migration; existing subscriptions use the same owner, feed configuration and limits.",
+        "digest": "b75795f3ef6e57af417e64fc6334b7d8493af116026e09ca3efedc799b4c5860"
       }
     },
     "deployment": {
