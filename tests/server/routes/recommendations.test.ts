@@ -965,6 +965,92 @@ describe('PATCH /api/v1/recommendations/:id', () => {
 })
 
 describe('POST /api/v1/recommendations/bulk', () => {
+  it('rejects permanent not_right_now before ownership queries or writes', async () => {
+    const deps = makeDeps()
+    const app = createApp(deps)
+    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ids: [1, 2],
+        action: 'reject',
+        reason: 'not_right_now',
+        permanent: true,
+      }),
+    })
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({
+      code: 'validation_failed',
+      details: [{ path: ['permanent'], code: 'custom' }],
+    })
+    expect(deps.filterOwnedIds).not.toHaveBeenCalled()
+    expect(deps.getRecommendation).not.toHaveBeenCalled()
+    expect(deps.rejectRecommendation).not.toHaveBeenCalled()
+    expect(deps.bulkUpdateStatus).not.toHaveBeenCalled()
+    expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { reason: 'not_right_now', permanent: false },
+    { reason: 'not_right_now' },
+    { reason: 'other', permanent: true },
+    { reason: null, permanent: true },
+    { permanent: true },
+    { reason: null },
+    {},
+  ])('preserves owned bulk rejection semantics for %j', async (fields) => {
+    const deps = makeDeps({ filterOwnedIds: vi.fn(async () => [1]) })
+    const app = createApp(deps)
+    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ids: [1, 2],
+        action: 'reject',
+        ...fields,
+        reasonText: 'not supported in bulk',
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ updated: 1 })
+    expect(deps.filterOwnedIds).toHaveBeenCalledWith([1, 2], 1)
+    if (fields.reason || fields.permanent) {
+      expect(deps.rejectRecommendation).toHaveBeenCalledExactlyOnceWith({
+        recommendationId: 1,
+        userId: 1,
+        reason: fields.reason ?? null,
+        reasonText: null,
+        permanent: fields.permanent ?? false,
+      })
+      expect(deps.bulkUpdateStatus).not.toHaveBeenCalled()
+    } else {
+      expect(deps.bulkUpdateStatus).toHaveBeenCalledExactlyOnceWith([1], 'rejected')
+      expect(deps.rejectRecommendation).not.toHaveBeenCalled()
+    }
+  })
+
+  it('ignores rejection compatibility fields when bulk approving', async () => {
+    const deps = makeDeps()
+    const app = createApp(deps)
+    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ids: [1],
+        action: 'approve',
+        reason: 'not_right_now',
+        permanent: true,
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(1, 'approved', expect.any(Object))
+    expect(deps.rejectRecommendation).not.toHaveBeenCalled()
+    expect(deps.bulkUpdateStatus).not.toHaveBeenCalled()
+  })
+
   it('bulk rejects without calling Lidarr', async () => {
     const bulkUpdateStatus = vi.fn(async () => {})
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)

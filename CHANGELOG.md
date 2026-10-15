@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Reject bulk permanent blocks with reason `not_right_now` before any updates, using the same compatibility rule as individual rejection. API clients sending that combination now receive `400`; use a temporary rejection or a compatible permanent-block reason. Nullable or omitted bulk reasons, bulk approval, and the lack of bulk free-text support are unchanged. No schema migration is added. [#786](https://github.com/iuliandita/digarr/issues/786).
+
 - Finish configured initial-admin creation before opening HTTP, independently of environment-based service setup. On an empty database, partial bootstrap credentials, a password shorter than 12 characters, or a creation failure now stop startup; leaving both unset retains manual registration. Existing accounts are never changed by bootstrap variables. No schema migration is added; retain a consistent backup and matching key before upgrade. Rollback restores the old first-boot race. See [bootstrap recovery](docs/OPERATIONS.md#unattended-setup). [#785](https://github.com/iuliandita/digarr/issues/785). Bundled and personal Unraid help now describe paired credentials; the community template update remains tracked in [#843](https://github.com/iuliandita/digarr/issues/843).
 
 - Confirm backup replacement before uploading from the browser and include `confirm=true` in normal and forced restores. Encryption-key mismatches require a separate explicit confirmation; canceling does not submit the next restore request. Existing server safeguards, transaction behavior, and backup formats are unchanged; no schema migration is added. [#784](https://github.com/iuliandita/digarr/issues/784).

@@ -396,7 +396,7 @@ Approval notes:
 
 For PATCH rejections, reasons are `already_own`, `wrong_style`, `not_interested`, `tried_didnt_like`, `not_right_now`, and `other`. A permanent rejection cannot use `not_right_now`. Nonempty `reasonText` requires `reason: "other"`; input is limited to 400 characters, then control characters are stripped, whitespace is trimmed, and the result is limited to 200. Omit unused fields rather than sending null.
 
-Invalid request shapes return JSON `{error, code: "validation_failed", details}`. Target selection and popularity failures return JSON `{error}` with an optional `no_source` or `no_match` code. Rejection refinement failures return `application/problem+json` with an `issues` array.
+Invalid request shapes return JSON `{error, code: "validation_failed", details}`. Target selection and popularity failures return JSON `{error}` with an optional `no_source` or `no_match` code. PATCH rejection refinement failures return `application/problem+json` with an `issues` array.
 
 Approve response (status `approved`):
 ```json
@@ -417,7 +417,9 @@ Approve response (status `approved`):
 
 **POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
 
-Bulk rejection accepts a shared `reason` (including null) and `permanent`, which defaults to false. Unlike PATCH, it permits `permanent: true` with `reason: "not_right_now"` ([#786](https://github.com/iuliandita/digarr/issues/786)). It does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
+Bulk rejection accepts a shared `reason` (including null or omission) and `permanent`, which defaults to false. On develop, `action: "reject"` with `permanent: true` and `reason: "not_right_now"` returns `400` before any updates, matching PATCH's compatibility rule. The bulk error is JSON `{error, code: "validation_failed", details}` with a `permanent` field issue. v1.19.0 accepts that incompatible combination ([#786](https://github.com/iuliandita/digarr/issues/786)). A null or omitted reason remains valid with either permanent value; `not_right_now` remains valid with `permanent: false`. Reject-only compatibility rules do not apply to bulk approval.
+
+Bulk rejection does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
 
 Optional target/profile overrides apply to approval. An unknown `targetId` returns `400` with `{ "error": "Unknown targetId: <id>" }`; a selected target without either artist or album approval support returns `400` with `{ "error": "Target does not support recommendation approval: <id>" }`. These are plain JSON errors, not problem-detail envelopes.
 

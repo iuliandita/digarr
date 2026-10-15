@@ -296,7 +296,7 @@
         "src/server/schemas/mood.ts": "0c4176694194f59f41ccfc371d588b182c2fde592fcf880e3a3d97334e0f3a8a",
         "src/server/schemas/pipeline.ts": "2eade1dd585f9a0acc72a22a1ddd831887bb3b194c9acf7a5ea08c84a9dc24e2",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
-        "src/server/schemas/recommendations.ts": "e6ded59221e26bac355bfd8d6ba556fdf08e2f5ca15051ac92cb641a7f3350d4",
+        "src/server/schemas/recommendations.ts": "94dde5c2f9fd1fd8ab95ec7926dc0daed35bda28f8dc38b7a7e415376c381922",
         "src/server/schemas/settings.ts": "cf51c8467c8c485bac6b0a53cfd3dafe2cbf223133c8da8913b0b050550060b8",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "a06e9afefe69f7518620a6c7bfe70626e848373899022834f5e2deaae505d25c",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "faf1bfe4b7a71b98ee96b15c62850b3b39654be97b2e81135aea6c2480c85e8d",
+      "digest": "12fc01b27b9b19a80a695cee77f559b3019d15bee62dd8208e6021c256ec8654",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Existing completeSetup dependency accepts optional owner/service options and runtime dispatches HTTP completion to atomic persistence. Documented complete service groups, conditional owner authentication, generic setup.failed 500 rollback, 409 concurrent completion and retained 204 success; no endpoint or response schema removal.",
-        "breaking": "none",
-        "migration": "",
-        "digest": "faf1bfe4b7a71b98ee96b15c62850b3b39654be97b2e81135aea6c2480c85e8d"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed both rejection routes and validation envelopes. API and operations now distinguish the develop compatibility rule from v1.19.0, preserve nullable or omitted bulk reasons and unsupported free text, and document approval bypass. README review found no changed UI claim; no UI, locale, screenshot, configuration, deployment, or companion behavior changes.",
+        "breaking": "Bulk rejection requests combining permanent=true with reason=not_right_now now return 400 before updates; clients must select temporary rejection or a compatible permanent-block reason.",
+        "migration": "No database migration or stored-row rewrite; upgrading tightens request validation, while rollback restores acceptance of the incompatible combination. Existing backup procedures are unchanged.",
+        "digest": "12fc01b27b9b19a80a695cee77f559b3019d15bee62dd8208e6021c256ec8654"
       }
     },
     "interface": {
