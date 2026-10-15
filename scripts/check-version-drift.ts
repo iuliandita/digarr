@@ -2,7 +2,7 @@
 /**
  * Guard against version-string drift across the repo.
  *
- * Two classes of version surfaces, with different freshness rules:
+ * Release surfaces and published image pins have different freshness rules:
  *
  * Class A - "release commit" surfaces. Bumped together in the
  * `chore(release): vX.Y.Z` commit and must ALWAYS equal package.json:
@@ -10,7 +10,10 @@
  *   - deploy/helm/digarr/Chart.yaml (version + appVersion; regen rendered.yaml
  *                              via scripts/k8s-sync.sh after bumping)
  *   - docs/ROADMAP.md         (`Current: vX.Y.Z` header)
+ *   - docs/API.md             (`This reference covers vX.Y.Z` heading)
  *   - README.md               (`**vX.Y.Z is out.**` banner note)
+ *   - README.md and deploy/docker/docker-compose*.yml (copyable patch/minor
+ *                              examples match the release version/minor)
  *
  * Class B - "published image" pins. Rewritten by scripts/sync-deploy-digests.ts
  * AFTER the image publishes, so they legitimately lag class A between the
@@ -18,9 +21,6 @@
  * other and never exceed class A:
  *   - deploy/helm/digarr/values.yaml   (image tag)
  *   - deploy/unraid/digarr.xml         (<Repository>, <Tag>, and <TagDescription>)
- *   - deploy/docker/docker-compose*.yml (example pin comments, incl. -debian
- *                                        and the minor-line pin)
- *   - README.md                        (example minor/patch pins)
  *
  * Digest pins across deployment.yaml / values.yaml / rendered.yaml / the
  * Unraid XML comment must also be identical (same rule as the release
@@ -86,6 +86,11 @@ const classA: Array<{ path: string; pattern: RegExp; label: string }> = [
     pattern: /\*\*v(\d+\.\d+\.\d+) is out\.\*\*/,
     label: 'release banner note',
   },
+  {
+    path: 'docs/API.md',
+    pattern: /This reference covers v(\d+\.\d+\.\d+)/,
+    label: 'API reference version',
+  },
 ]
 
 for (const t of classA) {
@@ -98,7 +103,7 @@ for (const t of classA) {
   }
 }
 
-// --- Class B: image pins must agree with each other, never exceed A ---------
+// --- Class B: published image pins may lag the release ----------------------
 
 const classBPatch: Array<{ path: string; pattern: RegExp; label: string }> = [
   {
@@ -121,6 +126,9 @@ const classBPatch: Array<{ path: string; pattern: RegExp; label: string }> = [
     pattern: /<TagDescription>v(\d+\.\d+\.\d+) release<\/TagDescription>/,
     label: 'unraid TagDescription',
   },
+]
+
+const examplePatch: Array<{ path: string; pattern: RegExp; label: string }> = [
   {
     path: 'deploy/docker/docker-compose.yml',
     pattern: /# image: docker\.io\/iuliandita\/digarr:(\d+\.\d+\.\d+)\n/,
@@ -148,7 +156,7 @@ const classBPatch: Array<{ path: string; pattern: RegExp; label: string }> = [
   },
 ]
 
-const classBMinor: Array<{ path: string; pattern: RegExp; label: string }> = [
+const exampleMinor: Array<{ path: string; pattern: RegExp; label: string }> = [
   {
     path: 'deploy/docker/docker-compose.yml',
     pattern: /# {3}:(\d+\.\d+) -> current minor release line/,
@@ -189,14 +197,19 @@ if (pinned && semverGt(pinned, pkgVersion)) {
   })
 }
 
-const expectedMinor = pinned ? pinned.split('.').slice(0, 2).join('.') : null
-for (const t of classBMinor) {
-  const found = capture(t.path, read(t.path), t.pattern, t.label)
-  if (found && expectedMinor && found !== expectedMinor) {
-    findings.push({
-      file: t.path,
-      message: `${t.label} is :${found}, expected :${expectedMinor} (from patch pins v${pinned})`,
-    })
+const expectedMinor = pkgVersion.split('.').slice(0, 2).join('.')
+for (const [targets, expected] of [
+  [examplePatch, pkgVersion],
+  [exampleMinor, expectedMinor],
+] as const) {
+  for (const t of targets) {
+    const found = capture(t.path, read(t.path), t.pattern, t.label)
+    if (found && found !== expected) {
+      findings.push({
+        file: t.path,
+        message: `${t.label} is :${found}, expected :${expected} - update it in the release commit`,
+      })
+    }
   }
 }
 

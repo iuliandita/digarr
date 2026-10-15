@@ -1,6 +1,6 @@
 # Other self-hosted music projects
 
-Digarr is for finding and reviewing music, then sending approved choices to connected services. It can run without Lidarr, but it does not provide its own downloader or full music player. You can use manual approval or enable automatic approval above a score threshold. In v2.0.0, automatic album approval monitors and searches only the recommended release in Lidarr; the monitoring setting applies to artist recommendations. v1.19.0 still uses artist monitoring for automatic albums; check the [known limitations](OPERATIONS.md#known-limitations-in-v1190).
+Digarr is for finding and reviewing music, then sending approved choices to connected services. It can run without Lidarr, but it does not provide its own downloader or full music player. You can use manual approval or enable automatic approval above a score threshold. Automatic album approval monitors and searches only the recommended release in Lidarr; the monitoring setting applies to artist recommendations. See the [known limitations](OPERATIONS.md#known-limitations) and [changelog](../CHANGELOG.md) for release differences.
 
 When choosing a tool, start with your setup:
 

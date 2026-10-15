@@ -3,7 +3,7 @@
  * Sync image digest across deploy artefacts (k8s, Helm, Unraid).
  *
  * Usage: bun scripts/sync-deploy-digests.ts <tag>
- *   <tag> may be "v0.32.3" or "0.32.3" (leading "v" stripped).
+ *   <tag> may be "vX.Y.Z" or "X.Y.Z" (leading "v" stripped).
  *
  * Fetches the multi-arch manifest digest from ghcr.io and rewrites both the
  * digest pins AND the human-readable version tags, so they cannot drift apart:

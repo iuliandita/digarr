@@ -4,6 +4,12 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
+## Unreleased
+
+### Documentation
+
+- Correct the API reference scope and release guidance after v2.0.0. Require copyable README/Compose version examples to match the release before tagging, independently of post-publication digest updates. The v2.0.0 source archive retains its old 1.19 examples; use the [correct image pins](deploy/docker/README.md#image-channels). [#870](https://github.com/iuliandita/digarr/issues/870).
+
 ## v2.0.0 - 2026-10-15
 
 ### Upgrade notes

@@ -1,6 +1,6 @@
 # API Reference
 
-This reference covers v1.19.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+This reference covers v2.0.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
 All endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Bearer sessions
@@ -351,7 +351,7 @@ Locale notes:
 
 **GET /api/v1/recommendations/feedback-summary** returns `{ summary: [{ genre, approved, rejected, other, total, rate }] }` in v2.0.0, ordered by descending rate and limited to 20 genres with at least 3 acted-on recommendations each. `total` counts recommendations with an action timestamp. `approved` counts current `approved` and `added_to_lidarr` statuses; `rejected` counts only current `rejected` rows, including those without a reason. `other` counts the remaining acted-on rows, such as failed approvals and recommendations restored to pending. Thus `approved + rejected + other = total`. `rate` remains `approved / total`, including those other outcomes in the denominator, so it is not a pure like/dislike ratio. Recommendation scoring is unchanged.
 
-v1.19.0 has no `other` field and labels every non-approved acted-on row as `rejected` ([#789](https://github.com/iuliandita/digarr/issues/789)). API consumers upgrading to develop must use `other` when reconciling totals instead of assuming `approved + rejected = total`. There is no schema migration or stored-row rewrite; rollback restores the old response calculation.
+v1.19.0 has no `other` field and labels every non-approved acted-on row as `rejected` ([#789](https://github.com/iuliandita/digarr/issues/789)). API consumers upgrading to v2.0.0 must use `other` when reconciling totals instead of assuming `approved + rejected = total`. There is no schema migration or stored-row rewrite; rollback restores the old response calculation.
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `duplicate`, `queued` (comma-separated)
@@ -726,7 +726,7 @@ When `config` is absent or null, generation defaults to size 25 and source prior
 
 Playlist PATCH and DELETE return `204` with no body.
 
-Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. This global switch is API-only in v1.19.0; there is no web UI control. An admin can enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must also be enabled and have a schedule. Manual generation does not require the global switch.
+Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. This global switch is API-only; there is no web UI control. An admin can enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must also be enabled and have a schedule. Manual generation does not require the global switch.
 
 `GET /api/v1/playlists/scheduler` returns `{ nextRun, cron, enabled }`. `enabled` is the global switch, not a per-playlist flag. `nextRun` is the earliest registered next run among the current user's playlists, or null. `cron` is the single distinct nonempty schedule across that user's saved playlists, or null when there are none or several; it can be present even when scheduling is disabled.
 
@@ -1033,7 +1033,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 - `limit` - 1-100 (default 50)
 - `offset` - pagination offset (minimum 0)
 - Invalid `type` or `status` values return `400`
-- Cancelled jobs can appear in unfiltered results, but `status=cancelled` is not accepted in v1.19.0
+- Cancelled jobs can appear in unfiltered results, but `status=cancelled` is not accepted as a filter
 - Missing job detail returns `404` with `application/json` body `{ "error": "Job not found" }`
 
 Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. Any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.

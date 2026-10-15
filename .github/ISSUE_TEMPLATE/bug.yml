@@ -39,8 +39,8 @@ body:
     id: digarr-version
     attributes:
       label: Digarr version
-      description: Visible in the footer of the web UI, or `package.json`.
-      placeholder: "e.g. 1.19.0, or nightly with the commit SHA from /health"
+      description: Copy the version from the web footer or /health. For nightly builds, include the commit SHA.
+      placeholder: "Release version, or nightly with its gitSha from /health"
     validations:
       required: true
 

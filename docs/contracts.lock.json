@@ -743,20 +743,20 @@
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
-        ".github/workflows/release.yml": "496bddbb1f824e79159d71e9fe40fbb87b1b3c7179837af9c0850b5314609c6e",
+        ".github/workflows/release.yml": "59df9e5106292421322e75b2f358ad69053a57efc83f1d73bb03095434a6b43f",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "37e213c0b4f6d7c73867f84d5cd05cd1a6e51e8a5d210c6c2789e2340cc9b38d",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "c5543f0988a949abbda0813ddb75f69ff83cac2a396d11702c362df0fdea39f5",
+      "digest": "d053e749539c4dde3b4f76f8c9046a674a804d78530d246afebb22af376e020c",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Use the supported Trivy version input with the same v0.70.0 release. Application behavior, release channels, signed inventory scope, advisory scan policy and existing event exclusions are unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["docs/ROADMAP.md", "deploy/docker/README.md"],
+        "note": "Document the v2.0.0 archive example correction and distinguish pre-tag version examples from post-publication immutable image pins. Release input help now uses the generic vX.Y.Z format; runtime, image channels and publication policy are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "c5543f0988a949abbda0813ddb75f69ff83cac2a396d11702c362df0fdea39f5"
+        "digest": "d053e749539c4dde3b4f76f8c9046a674a804d78530d246afebb22af376e020c"
       }
     },
     "maintenance": {
@@ -768,7 +768,7 @@
         "scripts/check-docs-impact.ts": "630e9a5f475e4b1d8a301f3b8a9db61ced4d32b83f79e7415fe1227776e74c36",
         "scripts/check-release-identity.ts": "00fb342ce3f44204688d57a328a414079210ee9caf41447c7a356c359d88c1ac",
         "scripts/check-unraid-companions.py": "4f1e106e256c111847958b6e04c4d3959c46f35f90628d7f5cba38812d06c7af",
-        "scripts/check-version-drift.ts": "74fd4742e9dc6d56f44006b326d355c3d5856743540465af50549e5114ff5293",
+        "scripts/check-version-drift.ts": "6995a5262c167abf9bb515b2f9f705e3895944c0e2d29e3c5b8ce074de2714f3",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
         "scripts/dev-setup.sh": "afa2e79675b77b29af40ba6298446d51de5dad0d3ca0478934bb0be58f1e6fdd",
@@ -782,16 +782,16 @@
         "scripts/lib/docs-contracts.ts": "59eebd0fd90430ffbe0408af122ecf275ec2544d694aa616cdd4d07ac8b4a6fc",
         "scripts/recommendation-quality.ts": "c1916747ce26ba33a5baa3076ac02df4d754489e56b465d9c88924dc7d82b555",
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
-        "scripts/sync-deploy-digests.ts": "d063d2a855fd1d7a49df53b0a072ce2146103dd8ed68b97bb3d0f26d34b51c3a"
+        "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "f28d09f06571025a4918b3506f4d143bd578a4874c349bb070105d1f08435b0b",
+      "digest": "418414657afba2313f551b8aa0f553d39bbc3a176c69d326300f7530231b9e4f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Document the new recovery helper and its dry-run default in the changelog; linked authentication instructions cover legacy-only row validation, stopped-workload invocation, native-backup upgrade and rollback. Existing maintenance commands retain their behavior.",
+        "docs": ["docs/MAINTENANCE.md"],
+        "note": "Require copyable Compose and README version examples plus the API reference version to match package.json before tagging, while actual published Helm and Unraid pins retain their post-publication lag. Document the release checklist and preserve immutable published tags.",
         "breaking": "none",
         "migration": "",
-        "digest": "f28d09f06571025a4918b3506f4d143bd578a4874c349bb070105d1f08435b0b"
+        "digest": "418414657afba2313f551b8aa0f553d39bbc3a176c69d326300f7530231b9e4f"
       }
     }
   }

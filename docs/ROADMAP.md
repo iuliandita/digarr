@@ -19,7 +19,7 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 - First-account creation precedes the browser setup wizard; configured admin bootstrap completes before HTTP opens.
 - Settings saves respect user/admin permissions, mask secret-bearing preferences, and retain explicit configuration failures.
 - Exact OIDC issuer/subject matching includes a dry-run recovery helper for verified legacy identities.
-- Release automation prepares separate signed Alpine and Debian container inventories with explicit amd64 scope. Publication and attestations require release-time verification.
+- v2.0.0 publishes separate signed Alpine and Debian container inventories with explicit amd64 scope. See the [release assets](https://github.com/iuliandita/digarr/releases/tag/v2.0.0) and [verification instructions](../deploy/docker/README.md#verifying-image-signatures).
 
 See [v2.0.0](../CHANGELOG.md#v200---2026-10-15) for the full changes and migration requirements.
 
@@ -31,7 +31,7 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 ## Release history
 
-[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Release automation opens a deployment-pin update after publishing an image; maintainers review and merge it before treating those examples as updated.
+[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
 
 ## Next priorities
 
