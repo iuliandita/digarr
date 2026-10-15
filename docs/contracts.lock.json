@@ -438,7 +438,7 @@
         "src/web/lib/utils.ts": "85b365f6dbed14aff415b73f4b458c22e767dd3251876bf76e30605d016172b5",
         "src/web/main.tsx": "4ef853e155c45506576b3afa4febb53eea777370c0f197a7b887a33a7e00018c",
         "src/web/pages/analytics.tsx": "f874f77cb25b7a7884fa3ccb6271a65cef9298244326a6fe7e4ff16bf94e5dd3",
-        "src/web/pages/dashboard.tsx": "f7d60e972c257579f5748c57315485b7d80153a2447380f2acb398ce335ebdbc",
+        "src/web/pages/dashboard.tsx": "46c31e06ef9e4324ba91d82126cf1ac813b6d6706e64be5e30030d2cd3e07414",
         "src/web/pages/discover.tsx": "ebb7756fe026202cc481ce9d3c9cbbe5770a8dcc56d1d030e18f146782994295",
         "src/web/pages/discovery-modes.tsx": "8c23afb893bfbde82b9727ffcdf7056b6d1a53e8992156adfd89a4fd6699cdbb",
         "src/web/pages/genre-detail.tsx": "853c1f0f002cc910bc51843b04b960d9ffffff87f7853405313d42a6c5184607",
@@ -456,14 +456,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "354808dbd258c0f118c19fc5a450f15cb272e1199664bb1a2658b1d8bcbb06fa",
+      "digest": "ac6b7185409fb9b68cc58a464680d6d10b0f6259bad5d51b2afe5acb8e6fbc53",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Add the playlist-operation conflict translation in all 15 locales for API recovery errors. Recovery remains API-only and existing layouts, controls, theme and locale persistence are unchanged; no screenshot update is needed. README links to the recovery contract.",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed top-artist and recent-play query failure handling: HTTP 200 source errors now reject so matching cached rows remain with existing translated retry notices. Successful ok/empty/not_configured outcomes still replace rows, and query keys plus session cache clearing are unchanged. No new strings, layout, theme or locale persistence changes; existing notices and screenshots remain accurate. README and API contract, server fallbacks, deployment and Unraid companion surfaces are unaffected.",
         "breaking": "none",
-        "migration": "",
-        "digest": "354808dbd258c0f118c19fc5a450f15cb272e1199664bb1a2658b1d8bcbb06fa"
+        "migration": "No schema, storage, session or configuration migration. Uses existing React Query cache only; rollback restores prior source-error refresh clearing behavior.",
+        "digest": "ac6b7185409fb9b68cc58a464680d6d10b0f6259bad5d51b2afe5acb8e6fbc53"
       }
     },
     "features": {

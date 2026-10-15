@@ -502,7 +502,15 @@ export function Dashboard() {
     refetch: retryTopArtists,
   } = useQuery({
     queryKey: ['dashboard-top-artists', listenRange, listenPage, LISTEN_PAGE_SIZE],
-    queryFn: () => getTopArtists(listenRange, listenPage * LISTEN_PAGE_SIZE, LISTEN_PAGE_SIZE),
+    queryFn: async () => {
+      const result = await getTopArtists(
+        listenRange,
+        listenPage * LISTEN_PAGE_SIZE,
+        LISTEN_PAGE_SIZE,
+      )
+      if (result.status === 'error') throw new Error('Listening source failed')
+      return result
+    },
     staleTime: 30_000,
   })
 
@@ -513,7 +521,11 @@ export function Dashboard() {
     refetch: retryRecentTracks,
   } = useQuery({
     queryKey: ['dashboard-recent-tracks'],
-    queryFn: () => getRecentTracks(5),
+    queryFn: async () => {
+      const result = await getRecentTracks(5)
+      if (result.status === 'error') throw new Error('Listening source failed')
+      return result
+    },
     staleTime: 30_000,
   })
 

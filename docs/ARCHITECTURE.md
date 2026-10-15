@@ -110,7 +110,7 @@ operator walkthrough.
 
 Listening routes preserve configuration, empty-result, and failure outcomes separately from their returned entries. A successful fallback with entries wins; without entries, any attempted source failure produces an error outcome. ListenBrainz artist statistics map HTTP 204 to an empty result locally, while the shared JSON transport continues to reject missing response bodies elsewhere.
 
-The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Request failures keep cached entries visible with a failure notice. An HTTP 200 response reporting a source error can instead replace cached entries with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
+The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Its listening query functions reject HTTP 200 source-error outcomes as query failures, retaining the last successful matching query data with the existing failure notice. Successful retries, empty periods, and unconfigured responses replace old rows normally. Range/page keys and session cache clearing keep their existing boundaries; no separate history cache is added. The server outcome contract and successful provider fallback remain unchanged ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
 ## Pipeline
 
