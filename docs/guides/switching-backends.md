@@ -44,6 +44,14 @@ Any later source writes are absent from the target. If writes resume, repeat the
 
 ---
 
+## Database identifier upgrades
+
+Before upgrading an installation that uses reserved characters or literal percent escapes in its database settings, stop writes and take a consistent native backup of the database it actually uses. Retain the exact encryption key, previous image and configuration. Check `current_database()` and `current_user` directly on that server, then confirm the intended names with the new configuration before allowing application writes.
+
+The correction can select a different database if the old version used an accidentally decoded, escaped or fallback name. It does not rename databases or move data. If the populated database has the old unintended name, deliberately configure that exact name or perform a separately verified backend copy. Do not proceed merely because startup creates an empty schema successfully.
+
+No schema migration is added by this correction. For rollback, stop writes, restore the previous image and exact previous settings, and reconnect to the verified original database. If data was copied or changed after cutover, use its consistent native backup; changing the image does not merge databases. Keep URI-unreserved identifiers other than `.` or `..` when operating the old parser.
+
 ## Step-by-step
 
 ### 1. Open the panel
@@ -62,9 +70,9 @@ Select one:
 | PostgreSQL | Full connection string (DSN): `postgresql://user:pass@host:5432/dbname` |
 | PGlite | Absolute path to the data directory on the container filesystem, e.g. `/app/data-new` |
 
-For PostgreSQL, percent-encode the username, password, and database-name components of the DSN when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Digarr passes an explicit `DATABASE_URL` unchanged. Keep the original, unencoded password in `POSTGRES_PASSWORD` or direct `DB_PASS`. `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. Enter real credentials in the protected configuration or GUI, not command-line arguments.
+For PostgreSQL, percent-encode the username, password, and database-name components of the DSN when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. An explicit `DATABASE_URL` takes precedence over separate settings. Keep the original, unencoded password in `POSTGRES_PASSWORD` or direct `DB_PASS`. `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. Enter real credentials in the protected configuration or GUI, not command-line arguments.
 
-The separate `DB_*` builder encodes only `DB_PASS`. Use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other usernames or database names require a complete `DATABASE_URL` with percent-encoded components ([#773](https://github.com/iuliandita/digarr/issues/773)).
+Supply raw `DB_USER`, `DB_PASS`, and `DB_NAME` when using separate settings; the unreleased builder encodes each component once. Do not pre-encode those values. Application startup and backend-copy targets also preserve reserved database-name characters and dot segments in encoded DSNs. External Drizzle Kit commands use their own connection-string parser and are outside this correction. v1.19.0 encodes only `DB_PASS` and can still misread an encoded database name ([#773](https://github.com/iuliandita/digarr/issues/773), [#834](https://github.com/iuliandita/digarr/issues/834)).
 
 For PGlite, the path must be inside the configured data root. The test step
 checks this without creating any files.
@@ -126,7 +134,7 @@ The panel suggests environment settings, but its PGlite hint omits `DATABASE_URL
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
   entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`), with username,
   password, and database-name components percent-encoded as needed. Alternatively,
-  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually with URI-unreserved usernames/database names and the original, unencoded password, as described above. For TLS,
+  set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually with raw usernames, database names and passwords, as described above. For TLS,
   `DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. Note that
   Digarr's `require` performs full certificate verification -- stricter than
   libpq's `require`, which encrypts without verifying. Use `no-verify` for

@@ -73,7 +73,7 @@ For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existing
 
 Supply raw usernames, passwords, and database names in chart values. The chart percent-encodes each component when constructing `DATABASE_URL` and keeps bundled PostgreSQL server values unchanged. Do not pre-encode these values: a literal `%` is part of the credential or identifier.
 
-The PostgreSQL client still mishandles encoded reserved characters in database names ([#834](https://github.com/iuliandita/digarr/issues/834)). Keep database names URI-unreserved (`A-Z`, `a-z`, `0-9`, `-._~`) and avoid `.` or `..` until that runtime issue is fixed. This limitation also applies to complete encoded connection strings; encoding alone does not make these database names usable.
+Use an application build containing the runtime database-name correction for reserved characters or names such as `.` and `..` ([#834](https://github.com/iuliandita/digarr/issues/834)). v1.19.0 images still require URI-unreserved database names other than `.` or `..`, even with an encoded URL. Before upgrading an existing installation with unusual names, follow the [database identifier precautions](../../../docs/guides/switching-backends.md#database-identifier-upgrades).
 
 For a user-managed database, `database.existingSecret` can supply a complete `DATABASE_URL`. The chart uses that Secret without constructing or re-encoding its URL; percent-encode the URL's username, password, and database-name components yourself.
 

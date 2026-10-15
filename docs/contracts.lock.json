@@ -148,9 +148,10 @@
         "src/core/ops/types.ts": "05133c0670a772c804601094eb2cd46e07bc92297dec21ea043e0d1283ef4b86",
         "src/core/ops/upgrade.ts": "9fbcd673397927afdf479c49978c36bf9472d6dcd04c81405327e32dc0347a03",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
-        "src/db/connect.ts": "9b8aa0bf3d700903d9cca1c75406729ed68fb327f29c5def635313cc21026069",
-        "src/db/index.ts": "85fbd2e77a8350d5b7b38e9231105dc2ee091e7cd66fec11065401dba17206fa",
+        "src/db/connect.ts": "8ceabe90f6765e1700741b20561967406d166a88f542dc10b0bf62151ac2983c",
+        "src/db/index.ts": "b7542782e276e575fc784669a6269da82ac84a07f8f69eab514c87dc8eb4ed2e",
         "src/db/migrate.ts": "e3867b5c4b9cdce075a79760894ac087a6ac67b37c78530eb458055ee94dc9f3",
+        "src/db/postgres-options.ts": "8da91c2b7548ee6b0ea0e5c817fb865f6f8e04d9951517f4337b9ed483a1f423",
         "src/db/queries/album-blocks.ts": "c0649466bab27dd2ca1555cb684a25769e97dd97d27ec97f7bc276d5de31da07",
         "src/db/queries/analytics.ts": "454400be4b346d52ff40956d19d76b06d2a6e5aea56512f3d2a9da358a9089fe",
         "src/db/queries/artist-blocks.ts": "88fee42a98ec0483cd2bfbc296404765ce74e671a404c10eeebc8afba288e9a1",
@@ -177,29 +178,29 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "54a79efe8f66d80d0902fe22a31d751f6291f50ac017516e7e359ec35a5b78d2",
+      "digest": "14bde4b80579b1648222e2797481e5a83aca5b16e35b049ecb7a5d5141aebf6f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed source-health aggregation: only ok/error attempts count inside unchanged 20-run/24-hour pipeline and quick-discover sample; skip-only sources are omitted and recorded reasons remain in Job History. API/operations/changelog explain thresholds and historical behavior. Read-only summary change: schema, stored records, backup/restore, migrations, README architecture claims, UI strings/layout/theme/locales and deployment/companion contracts remain unaffected; no screenshots needed.",
-        "breaking": "none",
-        "migration": "No schema or data migration; existing job records are interpreted at read time. Rollback restores prior skip-as-failure summaries without changing persisted jobs or backups.",
-        "digest": "54a79efe8f66d80d0902fe22a31d751f6291f50ac017516e7e359ec35a5b78d2"
+        "docs": ["docs/OPERATIONS.md", "docs/guides/switching-backends.md", "CHANGELOG.md"],
+        "note": "Both application and backend-copy PostgreSQL pools share public driver parsing with exact original database paths, explicit connection-option selection, unchanged TLS/query precedence and application-owned pool limits. Recovery guidance covers exact-name confirmation and old-parser limits. External Drizzle Kit parsing is explicitly excluded; there is no schema migration or automatic data movement.",
+        "breaking": "Correct database identifier parsing can select a different database from an old escaped or fallback name; do not allow writes until the populated database and role have been confirmed.",
+        "migration": "Take a consistent native backup of the actual current database and retain the encryption key, previous image and configuration before upgrading. Check current_database/current_user before and after cutover; choose the exact existing name or perform a separately verified backend copy. Rollback stops writes and restores the prior image/settings and matching native backup when data changed; it never merges databases.",
+        "digest": "14bde4b80579b1648222e2797481e5a83aca5b16e35b049ecb7a5d5141aebf6f"
       }
     },
     "configuration": {
       "files": {
-        ".env.example": "4034ef33c07b571810e8c2ece5b9673f4a567a8fd49fc8be3ef67a3e35aead85",
-        "src/config/env.ts": "43e5868363aa05aaf7962219b6bf15c766b85c75fcc3129704584eeee99c4e36"
+        ".env.example": "89a764ef33d6581741c4e2b5eea75804b56614c31feaa199ef61784295b91931",
+        "src/config/env.ts": "55c9c06eb7c2a1b275a5b43f63a2250e9cc806c14834108ac7783a97daa3d52e"
       },
-      "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12",
+      "digest": "444fad2eb580ee942f799089ed718ceca1d2b94a6d46865242ff0ed16e341c04",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Configured DATABASE_URL_FILE and DB_PASS_FILE read failures stop startup with variable-only errors. Nonempty corresponding direct values retain precedence; readable files retain trimming and empty behavior. Existing env example reviewed with no new variable/default. Docker and Unraid read-permission guidance updated; existing template mappings remain valid.",
-        "breaking": "Unreadable configured database secret files now stop startup instead of silently falling back. Verify mounts and UID1000 read permissions before updating; no database migration is added, and rollback restores the old silent fallback.",
-        "migration": "",
-        "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12"
+        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Separate DB_USER, DB_PASS and DB_NAME are raw inputs encoded once; explicit DATABASE_URL retains precedence and encoded URI components are interpreted once by the runtime. Documented historical v1.19 limitations, raw versus encoded inputs and exact-name upgrade checks. No environment names/defaults, UI, API, locale or screenshot changes.",
+        "breaking": "An installation relying on accidentally decoded or escaped database identifiers can connect to a different database after correction; confirm current_database and current_user against a native backup before enabling writes.",
+        "migration": "No schema migration or automatic rename. Preserve native backup, encryption key, previous image and settings; verify the intended existing database before cutover. Rollback stops writes and restores the old image/settings against the verified original database; use its consistent backup after data changes.",
+        "digest": "444fad2eb580ee942f799089ed718ceca1d2b94a6d46865242ff0ed16e341c04"
       }
     },
     "authentication": {
@@ -707,7 +708,7 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "8de16df05a38b4f220299376ae53f61ca9afd54d42cebcd228dfc1dcf40d6294",
-        "deploy/helm/digarr/values.yaml": "a89bdf8eae011572b4762d654518d749202beb51a1124029c37b1d62a72d3cae",
+        "deploy/helm/digarr/values.yaml": "45f306178e35b50c55f84c0b140defbcba89c3e8a452731f030b27def3f8dc39",
         "deploy/k8s/deployment.yaml": "9fcebf06cab9685b94e04b7cb00f9c2d32a716bfa05cb93008d9f51afe8154e3",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
@@ -717,14 +718,20 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "29b2a5ba2e5887f852934ac3809c82e3564f882edfc4ed5234bd33cf22ad8f39",
+      "digest": "e42cf31eded10b289d87b9bc9905213449d513e6f5a56fb982ac321681cd4e7a",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/helm/digarr/README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Helm now encodes raw username/password/database components for bundled and external generated URLs, preserves raw PostgreSQL server values and existing Secrets, and documents the separate client database-name parser limitation in issue 834. Defaults, ports, volumes and image channels stay unchanged. Current personal Unraid template aligns; community differences remain in existing PR697 and require no Helm-only update. No API, UI, locale or screenshot changes.",
-        "breaking": "none",
-        "migration": "No schema or data migration. Keep raw values when upgrading; pre-encoded chart inputs remain literal identifiers. Ordinary unreserved inputs are unchanged. Rollback to the previous chart restores raw URL interpolation and requires URI-unreserved inputs; existing Secrets remain unchanged.",
-        "digest": "29b2a5ba2e5887f852934ac3809c82e3564f882edfc4ed5234bd33cf22ad8f39"
+        "docs": [
+          "deploy/helm/digarr/README.md",
+          "docs/guides/unraid.md",
+          "docs/guides/synology.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
+        "note": "Operator guides now distinguish raw DB_* inputs from encoded full DSNs and link exact-name upgrade precautions; Helm notes require a runtime build containing issue 834 and retain the v1.19 image limitation. Image pins/channels, ports, volumes, permissions, cookies and auth are unchanged. Live personal Unraid template aligns and still correctly requests encoded DSNs; published community drift is already covered by open PR697, with no new template contract change.",
+        "breaking": "Database identity correction can change the selected database for previously misread names; use the native-backup and exact-name cutover precautions before upgrading.",
+        "migration": "No chart, volume or schema migration. Keep raw chart and DB_* component values, or properly encoded full DSNs. Retain native backup/key/previous image/settings; verify current_database/current_user and restore the original database with the previous image/settings for rollback.",
+        "digest": "e42cf31eded10b289d87b9bc9905213449d513e6f5a56fb982ac321681cd4e7a"
       }
     },
     "release": {
@@ -748,10 +755,10 @@
       "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "deploy/helm/digarr/README.md"],
-        "note": "The existing pinned Helm CI job now runs four standard-library rendered URL regression groups before its unchanged snapshot drift gate. No release triggers, image publication, approvals, required job names, versions or signing behavior change; user documentation separates serialization correction from the open runtime parser issue.",
-        "breaking": "none",
-        "migration": "",
+        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "docs/OPERATIONS.md"],
+        "note": "Promoted the already resolved pg-connection-string 2.14.0 to an exact direct production dependency for its public parser API; no package versions or dependency graph entries upgraded. Release triggers, signing, image publishing, version surfaces and CI policy are unchanged. Changelog, operations and roadmap state runtime scope and identifier-selection upgrade risk.",
+        "breaking": "Operators relying on a misdecoded database name must verify and deliberately select the populated database before starting the corrected runtime.",
+        "migration": "No schema migration or automatic database rename. Review the exact-name native-backup/cutover/rollback guide before release; external Drizzle Kit remains outside this runtime correction.",
         "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8"
       }
     },

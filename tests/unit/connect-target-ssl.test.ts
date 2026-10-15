@@ -63,3 +63,38 @@ describe('connectTarget postgres pool hardening', () => {
     expect(opts.ssl).toEqual({ rejectUnauthorized: false })
   })
 })
+
+describe('Postgres pool identifier wiring', () => {
+  it('passes exact identifiers and fixed limits to migration targets', async () => {
+    const { connectTarget } = await import('@/db/connect')
+    const conn = await connectTarget({
+      backend: 'postgres',
+      dsn: 'postgres://u:p@localhost/a%2Fb%3Fc?max=999&connectionString=postgres%3A%2F%2Fother%2Fwrong',
+    })
+    await conn.close()
+    const opts = poolCtor.mock.calls.at(-1)?.[0] ?? {}
+    expect(opts).toMatchObject({ database: 'a/b?c', max: 4 })
+    expect(opts).not.toHaveProperty('connectionString')
+  })
+
+  it('passes exact identifiers and configured limits to the startup pool', async () => {
+    const originalDsn = process.env.DATABASE_URL
+    const originalMax = process.env.DB_POOL_MAX
+    try {
+      process.env.DATABASE_URL = 'postgres://u:p@localhost/%2e%2e?max=999'
+      process.env.DB_POOL_MAX = '9'
+      vi.resetModules()
+      const { closeDb } = await import('@/db/index')
+      await closeDb()
+      const opts = poolCtor.mock.calls.at(-1)?.[0] ?? {}
+      expect(opts).toMatchObject({ database: '..', max: 9, statement_timeout: 30_000 })
+      expect(opts).not.toHaveProperty('connectionString')
+    } finally {
+      if (originalDsn === undefined) delete process.env.DATABASE_URL
+      else process.env.DATABASE_URL = originalDsn
+      if (originalMax === undefined) delete process.env.DB_POOL_MAX
+      else process.env.DB_POOL_MAX = originalMax
+      vi.resetModules()
+    }
+  })
+})

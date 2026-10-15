@@ -157,8 +157,9 @@ readinessProbe:
 #   You MUST set postgresql.auth.password -- there is no default.
 #   Supply raw username/password/database values, never pre-encoded. The chart
 #   encodes URL components but keeps the bundled server values unchanged.
-#   Database names must remain URI-unreserved and not . or .. until the
-#   client parsing limitation is fixed: https://github.com/iuliandita/digarr/issues/834
+#   Reserved database names require the runtime fix from issue 834. Older
+#   v1.19.0 images still need URI-unreserved names other than . or ..:
+#   https://github.com/iuliandita/digarr/issues/834
 #
 # Mode 3: External PostgreSQL (database.backend = "postgres", postgresql.enabled = false)
 #   Set database.host and database.password for your own PostgreSQL instance,
