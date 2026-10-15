@@ -939,8 +939,10 @@ Album override notes:
 **GET /api/v1/library/album-coverage/:artistMbid** notes:
 - `artistMbid` must be a valid UUID
 - Returns owned and missing album counts derived from the user's reconciled library snapshot
-- Counts only primary-type `Album` groups in one MusicBrainz page, limited to 100 returned groups without pagination. Secondary types are discarded, so this is not studio-only selection and the counts may be incomplete ([#796](https://github.com/iuliandita/digarr/issues/796), [#798](https://github.com/iuliandita/digarr/issues/798)).
-- Gap-Fill uses this bounded coverage. Individual lookup failures become empty results and all selected artists are marked checked, including failures. An empty successful run does not establish complete album coverage ([#797](https://github.com/iuliandita/digarr/issues/797)).
+- On develop, counts primary-type `Album` groups across sequential MusicBrainz pages of up to 100 groups, with duplicate IDs counted once. The shared client retains its type filter and rate limiter. It reads at most 100 pages/10,000 returned groups; if completeness cannot be established within that bound, a required page fails, or pagination is invalid, it rejects the whole lookup instead of returning accumulated partial groups. Catalog edits between requests can change the results; this is not a snapshot. v1.19.0 reads only the first page ([#796](https://github.com/iuliandita/digarr/issues/796)).
+- Secondary types are still discarded, so this is not studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
+- Gap-Fill uses this coverage, but individual lookup failures still become empty results and all selected artists are marked checked, including failures. An empty successful Gap-Fill run does not establish complete album coverage ([#797](https://github.com/iuliandita/digarr/issues/797)).
+- The shared pagination also applies to artist album lists, release matching, reconciliation and Release Radar. Large catalogs can take longer or fail when a later page is unavailable. No schema migration or stored-row rewrite is added; rollback restores first-page truncation.
 - Powers the coverage badge shown on recommendation cards
 
 **GET /api/v1/library/unreconciled-albums** response notes:

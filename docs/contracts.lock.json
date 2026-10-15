@@ -488,7 +488,7 @@
         "src/core/clients/listenbrainz.ts": "7e594c0f1552692257561d54ee9c8383f47e142bb336b49672fc80dffd44d4f4",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "8c51c809bffa950add7c3362d62c8a0782613669dec790fc7f2b573db064ce3a",
+        "src/core/clients/musicbrainz.ts": "49cfe67c04414bd514cc1d1298de74475c559766b4fbf4d1329bc14f4d3873a3",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -667,14 +667,14 @@
         "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "701d87bb57abe43cdaceb841b9354bb336059c6cb4d3d5edf7e3ae15c4c1b14b",
+      "digest": "95b5a5c9030b630395b9cca52ea9ec2efa0178a8b370bdba20d0ce28fe164309",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed cooperative store and target checkpoints, retained results, error-preserving cleanup, completion commitment and terminal event ownership/reentrance. Documented no whole-application quiescence guarantee. README has no affected cancellation contract.",
-        "breaking": "Cancelled work no longer force-unlocks after 15 seconds. Hung operations remain busy, and cancellation is declined once success finalization begins.",
-        "migration": "No schema migration or row rewrite. Before upgrade retain normal database backup and matching encryption key; interrupted work retains committed outcomes. Rollback restores the old forced-unlock and late-write behavior.",
-        "digest": "701d87bb57abe43cdaceb841b9354bb336059c6cb4d3d5edf7e3ae15c4c1b14b"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
+        "note": "Reviewed shared MusicBrainz release-group pagination across coverage, gap-fill, artist album lists, release matching, reconciliation and Release Radar. Document sequential queued pages, type/order preservation, deduplicated IDs, validated metadata, missing-later-page/stall/error rejection, 100-page/10000-raw-group bound, non-snapshot limits, and remaining separate Gap-Fill failure/secondary-type issues. No schema, locale, auth or deployment changes.",
+        "breaking": "Shared catalog lookups now fetch later pages and can take longer or fail on a required later-page error, invalid pagination or an unproven end at the 100-page bound instead of returning the first partial page.",
+        "migration": "No schema migration or existing-row rewrite. Upgrade applies pagination to future lookups; normal backup procedures are unchanged. Retry after resolving provider or mirror failures. Rollback restores first-page truncation and its incomplete counts/candidates; no data conversion is needed.",
+        "digest": "95b5a5c9030b630395b9cca52ea9ec2efa0178a8b370bdba20d0ce28fe164309"
       }
     },
     "deployment": {

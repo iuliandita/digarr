@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Paginate shared MusicBrainz release-group reads for album coverage, Gap-Fill and other catalog consumers instead of stopping after 100 groups. Deduplicate IDs and reject failed, invalid, stalled or incomplete reads at the 100-page/10,000-group bound. Larger catalogs can take longer; secondary-type filtering and Gap-Fill failure handling remain separate issues. No schema migration or row rewrite is added; rollback restores first-page truncation. [#796](https://github.com/iuliandita/digarr/issues/796).
+
 - Apply library, recommendation deduplication, permanent-block, owner-cooldown and threshold filters to Quick Discover's explicit seed while retaining its score of 1.0. Count actual successful seed and similar-result writes in Job History, including seed-only runs; fatal storage or batch-statistics failures fail the job without undoing saved rows. Existing recommendations are unchanged; no schema migration is added. Rollback restores the seed bypass and old counts. [#795](https://github.com/iuliandita/digarr/issues/795).
 
 - Honor arbitrary Last.fm top-artist offsets by combining at most two provider pages, preserving the provider total and existing failure/fallback behavior. Page-aligned callers remain compatible. No schema migration is added; rollback restores repeated pages for unaligned offsets. [#794](https://github.com/iuliandita/digarr/issues/794).

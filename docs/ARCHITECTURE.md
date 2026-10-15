@@ -338,7 +338,9 @@ recommendations fill the Albums tab with missing Album-type releases from artist
 already in the library. Secondary types are discarded, so this does not establish
 studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
 
-Coverage uses one MusicBrainz page of at most 100 returned groups without pagination, so counts and candidates can be incomplete ([#796](https://github.com/iuliandita/digarr/issues/796)). Each lookup failure becomes an empty candidate list, and every selected artist is marked checked even after failure ([#797](https://github.com/iuliandita/digarr/issues/797)). An empty successful run therefore does not prove complete album coverage.
+On develop, the shared MusicBrainz release-group client walks sequential pages of up to 100 groups through the existing rate limiter, retains type filters and first-seen order, and deduplicates IDs. Provider counts/offsets are validated when present; without them, a short or empty page ends the read. At most 100 pages/10,000 returned groups are read. A failed required page, invalid or stalled pagination, or an unresolved end at that bound rejects the whole lookup without returning accumulated partial groups. Catalog changes can invalidate the read; it is not a snapshot. This also applies to artist album lists, release matching, reconciliation and Release Radar. v1.19.0 stops after the first page ([#796](https://github.com/iuliandita/digarr/issues/796)).
+
+Gap-Fill still converts each lookup failure into an empty candidate list and marks every selected artist checked even after failure ([#797](https://github.com/iuliandita/digarr/issues/797)). An empty successful Gap-Fill run therefore does not prove complete album coverage. Secondary-type selection remains unchanged.
 
 ### Net-new album discovery
 
