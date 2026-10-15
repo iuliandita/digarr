@@ -95,20 +95,7 @@ vi.mock('@/web/lib/api', () => ({
   createTargetApi: vi.fn().mockResolvedValue({ id: 99 }),
   updatePreferredLocale: vi.fn().mockResolvedValue({ success: true, preferredLocale: 'en' }),
   AUTH_EXPIRED_EVENT: 'digarr:auth-expired',
-  getUserPreferences: vi.fn().mockResolvedValue({
-    scoreThreshold: 0.5,
-    scoringWeights: {
-      consensus: 0.3,
-      similarity: 0.25,
-      genreOverlap: 0.2,
-      aiConfidence: 0.15,
-      feedbackBoost: 0.1,
-      popularity: 0.0,
-    },
-    rejectionCooldownDays: 90,
-    topArtistsLimit: 30,
-    librarySeedRatio: 0.3,
-  }),
+  getUserPreferences: vi.fn(),
   getRecommendations: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   approveRecommendation: vi.fn().mockResolvedValue({}),
   approveToTarget: vi.fn().mockResolvedValue({}),
@@ -200,6 +187,7 @@ import {
   getPipelineStatus,
   getPlexSections,
   getSettings,
+  getUserPreferences,
   importSpotifyLikedSongs,
   linkOidcAccount,
   listJobs,
@@ -231,6 +219,7 @@ const mockCreateTargetApi = createTargetApi as ReturnType<typeof vi.fn>
 const mockListTargets = listTargets as ReturnType<typeof vi.fn>
 const mockUpdateTargetApi = updateTargetApi as ReturnType<typeof vi.fn>
 const mockUpdateUserPreferences = updateUserPreferences as ReturnType<typeof vi.fn>
+const mockGetUserPreferences = getUserPreferences as ReturnType<typeof vi.fn>
 const mockListJobs = listJobs as ReturnType<typeof vi.fn>
 const mockGetJobHealth = getJobHealth as ReturnType<typeof vi.fn>
 const mockChangePassword = changePassword as ReturnType<typeof vi.fn>
@@ -322,6 +311,22 @@ describe('SettingsPage', () => {
     mockGetPipelineStatus.mockResolvedValue({ running: false })
     mockUpdatePreferredLocale.mockResolvedValue({ success: true, preferredLocale: 'en' })
     mockChangePassword.mockResolvedValue(undefined)
+    mockUpdateUserPreferences.mockReset().mockResolvedValue({ success: true })
+    mockUpdateSettings.mockReset().mockResolvedValue(undefined)
+    mockGetUserPreferences.mockReset().mockResolvedValue({
+      scoreThreshold: 0.5,
+      scoringWeights: {
+        consensus: 0.3,
+        similarity: 0.25,
+        genreOverlap: 0.2,
+        aiConfidence: 0.15,
+        feedbackBoost: 0.1,
+        popularity: 0.0,
+      },
+      rejectionCooldownDays: 90,
+      topArtistsLimit: 30,
+      librarySeedRatio: 0.3,
+    })
   })
 
   it('shows listening genre coverage in Connections', async () => {
@@ -514,6 +519,129 @@ describe('SettingsPage', () => {
         }),
       ),
     )
+  })
+
+  it('saves member recommendation preferences without global controls or writes', async () => {
+    setupMocks()
+    mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'listener', isAdmin: false })
+    mockUpdateSettings.mockRejectedValue(new Error('Forbidden'))
+    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    const primary = await screen.findByLabelText('Priority genres (optional)')
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+
+    expect(screen.queryByLabelText('TheAudioDB premium API key (optional)')).toBeNull()
+    expect(screen.queryByLabelText(/Proxy images through Digarr/)).toBeNull()
+    expect(
+      screen.queryByLabelText('Show artist bio and external links on recommendation cards'),
+    ).toBeNull()
+    fireEvent.change(primary, { target: { value: 'metal' } })
+    fireEvent.change(screen.getByLabelText('Fanart.tv API key (optional)'), {
+      target: { value: 'personal-fanart-key' },
+    })
+    fireEvent.change(screen.getByLabelText('Metadata fallback URL (optional)'), {
+      target: { value: 'https://metadata.example.com' },
+    })
+    const saved = {
+      ...client.getQueryData<Record<string, unknown>>(['user-preferences']),
+      primaryGenres: ['metal'],
+    }
+    mockGetUserPreferences.mockResolvedValueOnce(saved)
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Recommendation settings saved'))
+    expect(mockUpdateUserPreferences).toHaveBeenCalledWith(
+      expect.objectContaining({
+        primaryGenres: ['metal'],
+        fanartApiKey: 'personal-fanart-key',
+        metadataFallbackUrl: 'https://metadata.example.com',
+      }),
+    )
+    expect(mockUpdateSettings).not.toHaveBeenCalled()
+    expect(toast.error).not.toHaveBeenCalled()
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['user-preferences'] })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['recommendations'] })
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ['settings'] })
+    await waitFor(() => expect(client.getQueryData(['user-preferences'])).toEqual(saved))
+  })
+
+  it('saves admin personal preferences before global metadata settings', async () => {
+    setupMocks({ ...mockSettings, audiodbProxyImages: false, wikidataEnabled: true })
+    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    await screen.findByLabelText('Priority genres (optional)')
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+    fireEvent.change(screen.getByLabelText('TheAudioDB premium API key (optional)'), {
+      target: { value: 'global-audiodb-key' },
+    })
+    fireEvent.click(screen.getByLabelText(/Proxy images through Digarr/))
+    fireEvent.click(
+      screen.getByLabelText('Show artist bio and external links on recommendation cards'),
+    )
+    mockUpdateSettings.mockImplementationOnce(async () => {
+      expect(mockUpdateUserPreferences).toHaveBeenCalledOnce()
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['user-preferences'] })
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['recommendations'] })
+      expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('0')
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Recommendation settings saved'))
+    expect(mockUpdateSettings).toHaveBeenCalledWith({
+      audiodbApiKey: 'global-audiodb-key',
+      audiodbProxyImages: true,
+      wikidataEnabled: false,
+    })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['settings'] })
+    expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('1')
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('reports partial admin saves and refreshes personal preferences after global failure', async () => {
+    setupMocks({ ...mockSettings, audiodbProxyImages: false })
+    mockUpdateSettings.mockRejectedValueOnce(new Error('Global settings unavailable'))
+    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    const primary = await screen.findByLabelText('Priority genres (optional)')
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    fireEvent.change(primary, { target: { value: 'jazz' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+    fireEvent.click(screen.getByLabelText(/Proxy images through Digarr/))
+    const saved = {
+      ...client.getQueryData<Record<string, unknown>>(['user-preferences']),
+      primaryGenres: ['jazz'],
+    }
+    mockGetUserPreferences.mockResolvedValueOnce(saved)
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'Personal preferences saved, but global metadata settings failed to save.',
+      ),
+    )
+    expect(mockUpdateSettings).toHaveBeenCalledOnce()
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['recommendations'] })
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ['settings'] })
+    await waitFor(() => expect(client.getQueryData(['user-preferences'])).toEqual(saved))
+    expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('0')
+    expect(primary).toHaveValue('jazz')
+    expect(screen.getByLabelText(/Proxy images through Digarr/)).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
+  it('aborts global settings when saving personal preferences fails', async () => {
+    setupMocks()
+    mockUpdateUserPreferences.mockRejectedValueOnce(new Error('Preferences unavailable'))
+    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    await screen.findByLabelText('Priority genres (optional)')
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Failed to save settings'))
+    expect(mockUpdateSettings).not.toHaveBeenCalled()
+    expect(invalidate).not.toHaveBeenCalled()
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 
   it('opens and focuses net-new album discovery from its deep link', async () => {

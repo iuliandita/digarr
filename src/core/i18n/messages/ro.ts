@@ -1197,6 +1197,8 @@ export const ro = {
     'Folosit când serverul de metadate Lidarr nu este disponibil. Implicit api.musicinfo.pro. Setați URL-ul propriei instanțe dacă o găzduiți singur.',
   'settings.recommendationsSaved': 'Setările de recomandări salvate',
   'settings.recommendationsFailed': 'Imposibil de salvat setările',
+  'settings.recommendationsPartiallySaved':
+    'Preferințele personale au fost salvate, dar setările globale pentru metadate nu au putut fi salvate.',
   'settings.scheduleTip':
     'Setați o planificare cron pentru a rula pipeline-ul de descoperire automat. O dată pe săptămână, luni, este o alegere populară.',
   'settings.librarySyncInterval': 'Sync bibliotecă',

@@ -8,7 +8,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
-- Persist the default-off net-new album discovery preference through user and admin-global APIs, retaining explicit `false` and unrelated saved preferences. Clients must send a boolean or omit the key; non-boolean values now return `400` instead of being silently ignored by the user API. No schema migration is added; rollback restores the previous save limitation. The separate non-admin Recommendations save notice remains tracked in [#792](https://github.com/iuliandita/digarr/issues/792). [#791](https://github.com/iuliandita/digarr/issues/791).
+- Save Recommendations settings for non-admins without a forbidden global write. Restrict shared AudioDB/Wikidata controls and writes to admins, refresh personal preferences and recommendations after their successful save, and show a translated partial-save notice if an admin's later global save fails. Personal image settings remain available to everyone; server permissions are unchanged. [#792](https://github.com/iuliandita/digarr/issues/792).
+
+- Persist the default-off net-new album discovery preference through user and admin-global APIs, retaining explicit `false` and unrelated saved preferences. Clients must send a boolean or omit the key; non-boolean values now return `400` instead of being silently ignored by the user API. No schema migration is added; rollback restores the previous save limitation. [#791](https://github.com/iuliandita/digarr/issues/791).
 
 - Keep pipeline cancellation busy until in-flight operations and bookkeeping settle, stop new storage and target work at safe checkpoints, and retain completed outcomes. Remove the 15-second forced unlock; hung operations now remain busy. Cancellation is declined once success finalization begins. Cleanup failures surface without hiding the original error. No schema migration is added; rollback restores the previous cancellation behavior. [#790](https://github.com/iuliandita/digarr/issues/790), [#850](https://github.com/iuliandita/digarr/issues/850).
 

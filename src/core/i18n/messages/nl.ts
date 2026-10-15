@@ -1187,6 +1187,8 @@ export const nl = {
     "Gebruikt als Lidarr's metadataserver niet beschikbaar is. Standaard is api.musicinfo.pro. Gebruik je eigen hearring-aid-instantie-URL bij zelfhosting.",
   'settings.recommendationsSaved': 'Aanbevelingsinstellingen opgeslagen',
   'settings.recommendationsFailed': 'Instellingen konden niet worden opgeslagen',
+  'settings.recommendationsPartiallySaved':
+    'Persoonlijke voorkeuren opgeslagen, maar de globale metadata-instellingen konden niet worden opgeslagen.',
   'settings.scheduleTip':
     'Stel een cron-schema in om de ontdekkingspipeline automatisch uit te voeren. Wekelijks op maandag is een populaire keuze.',
   'settings.librarySyncInterval': 'Bibliotheeksynchronisatie',

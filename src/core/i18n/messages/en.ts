@@ -1185,6 +1185,8 @@ export const en = {
     "Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your own hearring-aid instance URL if self-hosting.",
   'settings.recommendationsSaved': 'Recommendation settings saved',
   'settings.recommendationsFailed': 'Failed to save settings',
+  'settings.recommendationsPartiallySaved':
+    'Personal preferences saved, but global metadata settings failed to save.',
   'settings.scheduleTip':
     'Set a cron schedule to run the discovery pipeline automatically. Weekly on Monday is a popular choice.',
   'settings.librarySyncInterval': 'Library Sync',

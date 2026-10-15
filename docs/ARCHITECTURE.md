@@ -342,7 +342,7 @@ Coverage uses one MusicBrainz page of at most 100 returned groups without pagina
 
 ### Net-new album discovery
 
-On develop, `netNewAlbumDiscovery` persists as an optional boolean through per-user preferences and admin-global preferences. It defaults off; omission preserves the stored value and explicit `false` disables promotion. Existing per-user/global preference resolution is unchanged. v1.19.0 cannot persist the setting ([#791](https://github.com/iuliandita/digarr/issues/791)); Release Radar and Library Gap-Fill remain usable there. The separate non-admin Recommendations save notice is tracked in [#792](https://github.com/iuliandita/digarr/issues/792).
+On develop, `netNewAlbumDiscovery` persists as an optional boolean through per-user preferences and admin-global preferences. It defaults off; omission preserves the stored value and explicit `false` disables promotion. Existing per-user/global preference resolution is unchanged. v1.19.0 cannot persist the setting ([#791](https://github.com/iuliandita/digarr/issues/791)); Release Radar and Library Gap-Fill remain usable there. The Recommendations page saves personal preferences independently of admin-only global AudioDB/Wikidata settings and refreshes personal caches after that first write. A later global failure reports partial success without rollback; v1.19.0 still has the non-admin false-failure behavior ([#792](https://github.com/iuliandita/digarr/issues/792)).
 
 When the stored flag is enabled, `resolve()` tries to match
 the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album

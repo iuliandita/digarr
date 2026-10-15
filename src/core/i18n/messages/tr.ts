@@ -1180,6 +1180,8 @@ export const tr = {
     "Lidarr'ın meta veri sunucusu kapalıyken kullanılır. Varsayılan api.musicinfo.pro. Kendi sunucunuzu barındırıyorsanız kendi hearring-aid örnek URL'nizi girin.",
   'settings.recommendationsSaved': 'Öneri ayarları kaydedildi',
   'settings.recommendationsFailed': 'Ayarlar kaydedilemedi',
+  'settings.recommendationsPartiallySaved':
+    'Kişisel tercihler kaydedildi, ancak genel meta veri ayarları kaydedilemedi.',
   'settings.scheduleTip':
     "Keşfetme pipeline'ını otomatik çalıştırmak için bir cron programı ayarlayın. Pazartesi günü haftalık seçim popüler bir tercihtir.",
   'settings.librarySyncInterval': 'Kütüphane eşitleme',

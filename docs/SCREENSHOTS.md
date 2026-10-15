@@ -23,7 +23,7 @@ In v1.19.0, listening tiles distinguish an unconfigured account, empty history, 
 
 ![Discover](screenshots/discover.png)
 
-The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. On develop, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. Non-admin saves still have the separate failure notice described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences to verify the saved value. The layout is unchanged.
+The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. On develop, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. On develop, non-admin saves omit global writes and shared AudioDB/Wikidata controls are shown only to admins; personal image settings stay visible. Admins receive an explicit partial-save notice if only their later global save fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The existing admin layout is unchanged.
 
 Since v1.19.0, Discover can order and browse genre-priority groups without changing scores. The Audition queue retains a dismissible summary of unavailable-preview reasons after skipping items or finishing.
 

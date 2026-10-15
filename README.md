@@ -85,7 +85,7 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 1. Sign in, then choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider. On develop, requested settings, connections, and targets save together; a failed save leaves setup retryable.
 2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
-4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; non-admin saves can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums. On develop, the default-off net-new album toggle also persists; v1.19.0 cannot save it.
+4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed. On develop, personal saves work for non-admins and global metadata controls are admin-only; v1.19.0 can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums. On develop, the default-off net-new album toggle also persists; v1.19.0 cannot save it.
 
 CSV and playlist imports process the listed artists into recommendations through separate subscription runs. Spotify's `Import Liked Songs` does the same for saved tracks. Imports do not become inputs to a normal scan. Spotify playlist imports on develop honor the saved artist cap across pages; see [limits and playlist access](docs/API.md#subscriptions).
 

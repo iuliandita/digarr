@@ -1196,6 +1196,8 @@ export const it = {
     "Usato quando il server di metadati di Lidarr non è disponibile. Predefinito su api.musicinfo.pro. Imposta l'URL della tua istanza se la ospiti tu stesso.",
   'settings.recommendationsSaved': 'Impostazioni raccomandazioni salvate',
   'settings.recommendationsFailed': 'Impossibile salvare le impostazioni',
+  'settings.recommendationsPartiallySaved':
+    'Le preferenze personali sono state salvate, ma non è stato possibile salvare le impostazioni globali dei metadati.',
   'settings.scheduleTip':
     'Imposta una pianificazione cron per eseguire automaticamente il pipeline. Una volta a settimana il lunedì è una scelta popolare.',
   'settings.librarySyncInterval': 'Sync libreria',

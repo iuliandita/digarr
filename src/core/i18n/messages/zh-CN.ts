@@ -1096,6 +1096,7 @@ export const zhCN = {
     '当 Lidarr 元数据服务器不可用时使用。默认为 api.musicinfo.pro。如自托管，可填写你的实例 URL。',
   'settings.recommendationsSaved': '推荐设置已保存',
   'settings.recommendationsFailed': '保存设置失败',
+  'settings.recommendationsPartiallySaved': '个人偏好设置已保存，但全局元数据设置保存失败。',
   'settings.scheduleTip': '设置 Cron 计划自动运行发现流水线。每周一运行是常见选择。',
   'settings.librarySyncInterval': '资料库同步',
   'settings.librarySyncIntervalHours': '同步间隔（小时）',

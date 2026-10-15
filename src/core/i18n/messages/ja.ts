@@ -1176,6 +1176,8 @@ export const ja = {
     'Lidarr のメタデータサーバーが利用できないときに使用されます。デフォルトは api.musicinfo.pro。セルフホストの場合はインスタンスの URL を設定してください。',
   'settings.recommendationsSaved': 'おすすめの設定を保存しました',
   'settings.recommendationsFailed': '設定の保存に失敗しました',
+  'settings.recommendationsPartiallySaved':
+    '個人設定は保存されましたが、全体のメタデータ設定を保存できませんでした。',
   'settings.scheduleTip':
     'Cron スケジュールを設定してディスカバリーパイプラインを自動実行します。毎週月曜日が人気の選択肢です。',
   'settings.librarySyncInterval': 'ライブラリ同期',
