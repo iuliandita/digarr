@@ -725,10 +725,10 @@
       "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/helm/digarr/README.md"],
-        "note": "Helm backup-volume comments and operator notes now distinguish persistent JSON state from ephemeral authorization and schema history, and explain that required backup failure stops migrations. Volume defaults, image channels, and manifest resources are unchanged; the chart snapshot was regenerated.",
+        "docs": ["deploy/docker/README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Updated image-verification guidance for separate Alpine and Debian SPDX inventories, exact workflow identities and immutable index digests, bounded amd64 coverage and existing-release limits. Deployments, image pins/channels, environment/defaults, cookies/auth, ports, volumes and permissions are unchanged; Unraid XML/guide and external companion contracts are unaffected.",
         "breaking": "none",
-        "migration": "",
+        "migration": "No deployment or database migration. Existing release assets are not backfilled; signed publication is verified at the next tagged release.",
         "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817"
       }
     },
@@ -744,20 +744,25 @@
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
-        ".github/workflows/release.yml": "4d1b678495aa8f1fe4ea163b1a4baa8448e752a1f0b66d74227f26ba00f16ad2",
+        ".github/workflows/release.yml": "f8648f5b547ecf99e04a050e9de6b87fdf128f34d21d518276f389a984f09af6",
         ".github/workflows/security.yml": "6a33002c0799edd45a4dd96e77b0ee38df422dba359f1cc877d7fc2fadeb94d6",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "343eafc9b9ed16d597556c285ec359115f32cd65e62144d8efb87f035c5a38bc",
+      "digest": "56a5c15462270ad232c48a841775593a0580804c4cabb5b1b5e7921ae7549c10",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Dependency audit now delegates severity thresholds and command failures to Bun instead of parsing an unsupported response shape; application behavior, deployment configuration, upgrade, backup, and rollback contracts are unchanged. The maintenance guide documents the CI gate.",
+        "outcome": "docs-updated",
+        "docs": [
+          "deploy/docker/README.md",
+          "docs/OPERATIONS.md",
+          "docs/ROADMAP.md",
+          "CHANGELOG.md"
+        ],
+        "note": "Reviewed immutable per-variant container scans, explicit amd64 scope, matching index-digest attestations at both registries, source-only inventory, distinct required release assets and one post-matrix publisher. Documented existing-release and nightly coverage plus exact cosign identity/digest verification. No image channel, pin, environment, default, port, volume, auth or operator setup changes; Unraid companion surfaces remain unchanged.",
         "breaking": "none",
-        "migration": "",
-        "digest": "343eafc9b9ed16d597556c285ec359115f32cd65e62144d8efb87f035c5a38bc"
+        "migration": "No database or configuration migration. New Debian SBOM publication starts with the next tagged release; old releases are not backfilled. Previous images and signatures remain usable, and rollback restores prior Alpine-only SBOM automation.",
+        "digest": "56a5c15462270ad232c48a841775593a0580804c4cabb5b1b5e7921ae7549c10"
       }
     },
     "maintenance": {

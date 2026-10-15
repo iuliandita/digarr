@@ -292,23 +292,31 @@ For an environment-only deployment on a platform without Compose secrets, copy t
 
 ## Verifying image signatures
 
-Since v0.27.8, every release image is signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC (no long-lived keys). Signatures are stored alongside the image at both `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`. Tagged Alpine images also have a container SBOM attached as a signed SPDX attestation bound to the image digest. Debian images have signatures and build provenance, but currently lack container SPDX attestations ([#768](https://github.com/iuliandita/digarr/issues/768)).
+Since v0.27.8, release images are signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC. Signatures and build provenance are stored alongside both variants at `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`.
 
-Install cosign and verify a pulled image before running it:
+Unreleased ([#768](https://github.com/iuliandita/digarr/issues/768)): release automation generates a separate SPDX container SBOM for Alpine and Debian, scans each immutable build digest, and signs each inventory as an attestation at both registries. Each inventory covers **linux/amd64** and is attached to that variant's multi-architecture index digest; it does not establish arm64 or separate child-manifest SBOM coverage. v1.19.0 retains its Alpine-only container SBOM; this workflow change does not backfill existing releases. Nightly images have no signed SBOMs.
+
+The release assets are `sbom-container.spdx.json` (Alpine), `sbom-container-debian.spdx.json` (Debian), and `sbom-source.spdx.json` (one checkout inventory). Source inventory does not replace either container inventory. Downloaded JSON assets alone do not verify a signed attestation.
+
+Install cosign and verify the exact image digest you intend to run. Set the release tag used to publish it and select either variant's index digest, from either registry:
 
 ```sh
-# Replace <TAG> with the exact release version you pulled
-cosign verify \
-  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
-  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  'ghcr.io/iuliandita/digarr:<TAG>'
+RELEASE_TAG='vX.Y.Z'
+IMAGE='ghcr.io/iuliandita/digarr@sha256:<digest>'
 
-# Verify the signed container SBOM (Alpine images only)
+cosign verify \
+  --certificate-identity "https://github.com/iuliandita/digarr/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  "$IMAGE"
+
+# Debian requires a release containing the #768 workflow fix.
 cosign verify-attestation \
   --type spdxjson \
-  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-identity "https://github.com/iuliandita/digarr/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  'ghcr.io/iuliandita/digarr:<TAG>'
+  "$IMAGE"
 ```
 
-A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Verify the exact version or digest you intend to run. A valid signature identifies the publishing workflow; it does not guarantee that the software is free of vulnerabilities.
+For Docker Hub, use `docker.io/iuliandita/digarr@sha256:<digest>`. Alpine and Debian have different digests; select the one for your variant. Inspect the verified attestation payload's subject digest and SPDX inventory to confirm the intended image, OS packages, and amd64 scope. Keep the tag's exact workflow identity and issuer checks; do not relax them to make a failed verification pass. See [cosign verification](https://docs.sigstore.dev/cosign/verifying/verify/) for the verification contract.
+
+A successful verify identifies this repository's publishing workflow and the supplied digest. It does not guarantee that the software is free of vulnerabilities. Registry publication and signed attestations for this change still need verification during the first release containing it.
