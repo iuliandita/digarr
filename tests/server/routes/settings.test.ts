@@ -532,6 +532,45 @@ describe('GET /api/v1/settings/plex/sections', () => {
 })
 
 describe('PATCH /api/v1/settings', () => {
+  it.each([true, false])(
+    'saves the global album discovery boolean %s for admins only',
+    async (value) => {
+      const updateSettings = vi.fn(async () => {})
+      const deps = makeDeps({ updateSettings })
+      const app = createApp(deps)
+      const request = () =>
+        authedRequest(app, '/api/v1/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value } }),
+        })
+
+      expect((await request()).status).toBe(200)
+      expect(updateSettings).toHaveBeenCalledWith({
+        preferences: { netNewAlbumDiscovery: value },
+      })
+      updateSettings.mockClear()
+      const admin = await deps.getUserById(1)
+      deps.getUserById = vi.fn(async () => (admin ? { ...admin, isAdmin: false } : null))
+      expect((await request()).status).toBe(403)
+      expect(updateSettings).not.toHaveBeenCalled()
+    },
+  )
+
+  it('rejects malformed global album discovery values without saving any settings', async () => {
+    const updateSettings = vi.fn(async () => {})
+    const app = createApp(makeDeps({ updateSettings }))
+    for (const value of ['true', 'false', 1, 0, null, [], {}]) {
+      const response = await authedRequest(app, '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value, scoreThreshold: 0.9 } }),
+      })
+      expect(response.status).toBe(400)
+    }
+    expect(updateSettings).not.toHaveBeenCalled()
+  })
+
   it('calls updateSettings and returns updated settings', async () => {
     const updateSettings = vi.fn(async () => {})
     const updatedSettings = { ...mockSettings, lidarrUrl: 'http://new:8686' }
@@ -809,6 +848,7 @@ describe('PATCH /api/v1/settings', () => {
           preferences: {
             scoreThreshold: 0.72,
             rejectionCooldownDays: 45,
+            netNewAlbumDiscovery: true,
             subscriptionMode: 'active',
           },
         }) as unknown as SettingsRow,
@@ -827,6 +867,7 @@ describe('PATCH /api/v1/settings', () => {
         preferences: {
           scoreThreshold: 0.72,
           rejectionCooldownDays: 45,
+          netNewAlbumDiscovery: true,
           subscriptionMode: 'ai-only',
         },
       }),

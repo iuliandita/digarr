@@ -342,7 +342,7 @@ Coverage uses one MusicBrainz page of at most 100 returned groups without pagina
 
 ### Net-new album discovery
 
-The resolver supports `netNewAlbumDiscovery` (default off), but v1.19.0's UI and preference APIs cannot persist it: the user allowlist omits the key and the global schema rejects it ([#791](https://github.com/iuliandita/digarr/issues/791)). Use Release Radar or Library Gap-Fill through the supported UI.
+On develop, `netNewAlbumDiscovery` persists as an optional boolean through per-user preferences and admin-global preferences. It defaults off; omission preserves the stored value and explicit `false` disables promotion. Existing per-user/global preference resolution is unchanged. v1.19.0 cannot persist the setting ([#791](https://github.com/iuliandita/digarr/issues/791)); Release Radar and Library Gap-Fill remain usable there. The separate non-admin Recommendations save notice is tracked in [#792](https://github.com/iuliandita/digarr/issues/792).
 
 When the stored flag is enabled, `resolve()` tries to match
 the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album
@@ -357,7 +357,7 @@ recommendation list is empty, the frontend links to the two explicit album
 discovery modes (`gap-fill` and `release-radar`) and the default-off
 `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested
 generic mode card; the preference link opens its collapsed settings section and
-focuses the target. That routing does not fix the preference persistence limitation above.
+focuses the target. Saving the preference requires the persistence fix described above.
 
 ### Kind-aware dedup
 

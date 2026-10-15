@@ -1600,6 +1600,29 @@ describe('POST /api/v1/auth/change-password', () => {
 })
 
 describe('PATCH /api/v1/auth/me/preferences', () => {
+  it('rejects malformed album discovery values before writing preferences', async () => {
+    const where = vi.fn().mockResolvedValue({ rowCount: 1 })
+    const set = vi.fn().mockReturnValue({ where })
+    const update = vi.fn().mockReturnValue({ set })
+    const db = { update } as unknown as AppDependencies['db']
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps({ db })))
+
+    for (const value of ['true', 'false', 1, 0, null, [], {}]) {
+      const response = await app.request('/api/v1/auth/me/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ netNewAlbumDiscovery: value, scoreThreshold: 0.9 }),
+      })
+      expect(response.status).toBe(400)
+    }
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('saves many optional genre priorities, clears them, and rejects invalid lists', async () => {
     const where = vi.fn().mockResolvedValue({ rowCount: 1 })
     const set = vi.fn().mockReturnValue({ where })

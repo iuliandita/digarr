@@ -41,6 +41,8 @@ export const updateEmailSchema = z
   .strict()
 
 // Partial preferences update. Unknown keys are filtered by the route handler
-// so we stay permissive here; a stricter schema would be a breaking change
-// for in-flight client code. Individual value types are validated in-handler.
-export const updatePreferencesSchema = z.record(z.string(), z.unknown())
+// so existing fields stay permissive for in-flight client code. New fields
+// validate their value types here; genre priorities are validated in-handler.
+export const updatePreferencesSchema = z
+  .object({ netNewAlbumDiscovery: z.boolean().optional() })
+  .passthrough()
