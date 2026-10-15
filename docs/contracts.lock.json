@@ -682,7 +682,7 @@
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "47f197f3e6a70db02d1e421dad8f7af396188d3a9546be6def9d55f2f190bef5",
-        "deploy/docker/Dockerfile": "dd62e2addd6a90c70ab5641ddc8d191958509316ddba127dcb142022adea401d",
+        "deploy/docker/Dockerfile": "8dccb5a8d7e2badf59e7aa264f547a6715f1c03bf7e88185c5716d736cbe6893",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -716,42 +716,42 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "4fba98ca0e9f229336f320d024eda3b273479a812b11814a412e084a477ff679",
+      "digest": "e51e8a27b9e58a0ca07115a87bfcab58cca91da2c6f48152f098b5de5820817d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Bundle the recovery helper in published images and verify its build artifact. Document stopped-workload maintenance and native-backup upgrade/rollback. Reviewed bundled/personal/community Unraid surfaces: no XML field, port, volume or channel change; community bootstrap copy remains tracked in issue843.",
-        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "docs": ["deploy/docker/README.md", "CHANGELOG.md"],
+        "note": "Align all Docker build stages and the default Alpine runtime on Bun 1.4.3. Preserve existing non-root user, ports, volumes, environment, healthcheck and backup helpers; retain variant-specific multi-platform digest pins. No schema or operator configuration change; batch migration rollback precautions still apply.",
+        "breaking": "none",
         "migration": "",
-        "digest": "4fba98ca0e9f229336f320d024eda3b273479a812b11814a412e084a477ff679"
+        "digest": "e51e8a27b9e58a0ca07115a87bfcab58cca91da2c6f48152f098b5de5820817d"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "789c49dbd551419ebe4456d55fd96acdc1ecb7abc37d11d89e4e0d8b25f1b2ba",
+        ".github/workflows/ci.yml": "be6065dd23116ea5e25253a5ec4471d2c8aaa5c795a15ab87967b6f67b384e5d",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
-        ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
+        ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
         ".github/workflows/evals.yml": "abfc59364fff6b89877593a648072b5f18b22554492dad2340a80587acb1e86a",
         ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
-        ".github/workflows/release.yml": "f8648f5b547ecf99e04a050e9de6b87fdf128f34d21d518276f389a984f09af6",
-        ".github/workflows/security.yml": "6a33002c0799edd45a4dd96e77b0ee38df422dba359f1cc877d7fc2fadeb94d6",
+        ".github/workflows/release.yml": "496bddbb1f824e79159d71e9fe40fbb87b1b3c7179837af9c0850b5314609c6e",
+        ".github/workflows/security.yml": "51cd8a2c24e75ce95c6c122d855d3a6c997423146b1441c111b21f0b2a06b38c",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "b6218400e05242e453becab53416831465a28936616b9e5ffc233e5d90520ad6",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "fd8a9fa3cd3440fcecbbf3e74185177c36a67ec423331bdc590aab5b80a75729",
+      "digest": "448446b76c823016a80be3af5f9db491db494ea7f9557cda46e1be835d80fdcd",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Build includes the recover-oidc-binding helper and the required PostgreSQL job runs issuer upgrade/restore tests. Release tags, channels, security exclusions and advisory gates retain their contract.",
+        "docs": ["deploy/docker/README.md", "CHANGELOG.md"],
+        "note": "Use Bun 1.4.3 in CI, security, lockfile-sync and release quality checks plus both published runtime variants. Preserve existing required jobs, fork/bot exclusions, advisory scans, production approval, signing, SBOMs and amd64/arm64 publishing. Unraid fields and image channels are unaffected.",
         "breaking": "none",
         "migration": "",
-        "digest": "fd8a9fa3cd3440fcecbbf3e74185177c36a67ec423331bdc590aab5b80a75729"
+        "digest": "448446b76c823016a80be3af5f9db491db494ea7f9557cda46e1be835d80fdcd"
       }
     },
     "maintenance": {

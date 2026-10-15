@@ -12,6 +12,11 @@ For a new single-host installation, PGlite is the simplest starting point. Choos
   database (real PostgreSQL compiled to Wasm, in-process). No database sidecar,
   no database-password secret. Data lives in the `data` volume.
 
+The unreleased container build and both runtime variants use Bun 1.4.3 with
+flavor-specific multi-platform digest pins. This runtime update adds no settings
+or database migration; use the existing backup and rollback guidance for the
+complete release batch.
+
 ## Production
 
 The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it. In v1.19.0, the HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens; with no users, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, and existing users make these variables a no-op. For access only from this computer, change the published port to `127.0.0.1:3000:3000`. See [bootstrap recovery](../../docs/OPERATIONS.md#unattended-setup).

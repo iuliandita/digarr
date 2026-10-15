@@ -2,7 +2,7 @@
 
 # Global ARG -- must be before any FROM. Alpine default: fewer OS-package CVEs
 # than slim. Override to the slim digest for the -debian variant.
-ARG RUNTIME_IMAGE=oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f
+ARG RUNTIME_IMAGE=oven/bun:1.4.3-alpine@sha256:629e17411f1f129dbec3af78d5af9c9f2a937435c80349437206c6b0b7422373
 
 # Deps stage -- all deps (dev + prod) for the builder. Cache-mount accelerates rebuilds.
 FROM oven/bun:1.4.3@sha256:ec06c3b6cea04192ae6770c434f668ca41d343ad19fa6472216c7b48be39c598 AS deps

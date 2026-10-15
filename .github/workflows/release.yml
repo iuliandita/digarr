@@ -37,7 +37,7 @@ jobs:
           node-version: "24"
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: "1.4.2"
+          bun-version: "1.4.3"
       - name: Validate release identity
         id: release
         env:
@@ -69,12 +69,12 @@ jobs:
         include:
           # alpine is primary: owns unsuffixed :latest/:vX.Y.Z and the source SBOM.
           - variant: alpine
-            runtime-image: "oven/bun:1.4.2-alpine@sha256:d888c0ae6c86d7866ff10c5aafdd9077b36aee6455b33dd270fb93c0dd5cef6f"
+            runtime-image: "oven/bun:1.4.3-alpine@sha256:629e17411f1f129dbec3af78d5af9c9f2a937435c80349437206c6b0b7422373"
             suffix: ""
             latest: "auto"
             sbom-file: sbom-container.spdx.json
           - variant: debian
-            runtime-image: "oven/bun:1.4.2-slim@sha256:cb3bbbb08e13a4a2ff400f24c7a2a1d5efa83f6ef8544d52d95a519631e2fc61"
+            runtime-image: "oven/bun:1.4.3-slim@sha256:14a223fa35747ec728bce300ef85888bc5f7958164d15bbba6a54b22b52a3288"
             suffix: "-debian"
             latest: "false"
             sbom-file: sbom-container-debian.spdx.json
