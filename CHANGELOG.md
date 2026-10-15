@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Honor arbitrary Last.fm top-artist offsets by combining at most two provider pages, preserving the provider total and existing failure/fallback behavior. Page-aligned callers remain compatible. No schema migration is added; rollback restores repeated pages for unaligned offsets. [#794](https://github.com/iuliandita/digarr/issues/794).
+
 - Mask global fanart credentials and legacy webhook URLs as `***` in admin settings responses, and omit both for non-admins. Masked PATCH values preserve the exact saved value; explicit replacements and empty-string clearing still work. Clients can no longer read these secrets through settings responses. No schema migration or encryption-policy change is added; rollback restores the exposure. [#793](https://github.com/iuliandita/digarr/issues/793).
 
 - Save Recommendations settings for non-admins without a forbidden global write. Restrict shared AudioDB/Wikidata controls and writes to admins, refresh personal preferences and recommendations after their successful save, and show a translated partial-save notice if an admin's later global save fails. Personal image settings remain available to everyone; server permissions are unchanged. [#792](https://github.com/iuliandita/digarr/issues/792).

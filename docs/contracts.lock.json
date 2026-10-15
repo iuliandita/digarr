@@ -277,7 +277,7 @@
         "src/server/routes/jobs.ts": "b0a0b4abf7f0e0c284245cd3cbcb41f1ad0d15f7d827a1b2bb17a298fd6fd02c",
         "src/server/routes/library.ts": "ea1a73179de3543ef1e599d05cc2ca0d5b392d24b0f806b452fe6dd904bfc667",
         "src/server/routes/lidarr.ts": "f8a5655072497bc8dca51229782134831947453150c3ac1d03a0134365393a8d",
-        "src/server/routes/listening.ts": "cc79551ebb1d6b7e33486814efd4680be3b4e4599b084ee2e3e26a24c098d019",
+        "src/server/routes/listening.ts": "bc8c37bc858b73398791982861a2c39e792edcc25ef7c41c7df80152ad6ef251",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
         "src/server/routes/pipeline.ts": "1a62b35811c302545d04a36f7a1729596974b991b580207a62b5cbd6a2e2bc2e",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "82ef642663e654de65413b39e50214dca40536dec4142dbdd293c54c4e86d8ee",
+      "digest": "12bb0f869cbe0ef3d8b6bd8e22f89924a59266b5a1a0342fa09bc9b4ed177992",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed global scalar fanartApiKey and legacy webhookUrl projection on settings GET, normal PATCH and scheduler-warning returns. Admins receive a full mask and non-admins omit both; channel masking and capability flags stay unchanged. Incoming scalar masks preserve exact stored plaintext or ciphertext, including absent/empty values, while replacements and clearing remain supported. No decryption, at-rest policy, schema, auth permissions, deployment or Unraid companion changes.",
-        "breaking": "Settings clients can no longer read global scalar fanart or legacy webhook secrets from responses. Treat *** as a placeholder to preserve the saved value, or explicitly send a replacement or empty string.",
-        "migration": "No stored-data migration or backup-format change. Upgrade to apply response masking; review any previously shared responses and replace exposed provider credentials. Rollback restores the old exposure and save behavior.",
-        "digest": "82ef642663e654de65413b39e50214dca40536dec4142dbdd293c54c4e86d8ee"
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Document exact Last.fm offset windows via at most two same-limit pages, unchanged provider totals and fallback/error behavior, v1.19.0 aligned-offset workaround compatibility, and rollback limits; no schema, setup, locale or deployment changes.",
+        "breaking": "none",
+        "migration": "",
+        "digest": "12bb0f869cbe0ef3d8b6bd8e22f89924a59266b5a1a0342fa09bc9b4ed177992"
       }
     },
     "interface": {

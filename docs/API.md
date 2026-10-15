@@ -68,7 +68,7 @@ For these routes, non-integer `limit` values return `400`. `meta.nextCursor` is 
 Offset-paginated routes:
 - `GET /api/v1/recommendations` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
 - `GET /api/v1/jobs` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
-- `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null, "status": "not_configured" }`; Last.fm requires page-aligned offsets as described under [Listening](#listening).
+- `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null, "status": "not_configured" }`; Last.fm honors arbitrary offsets on develop as described under [Listening](#listening).
 
 ---
 
@@ -991,7 +991,9 @@ covered artists when a populated cache entry is due for refresh.
 
 Response: `{ tracks, total, offset, limit, source, status }`. `source` is `"listenbrainz"`, `"lastfm"`, `"plex"`, or `null`. Last.fm periods are rolling windows (`7day`, `1month`, `12month`, `overall`) and map approximately to the requested calendar range.
 
-Last.fm converts the offset to `floor(offset / limit) + 1` and returns that whole provider page without slicing. The response still echoes the requested offset, so offsets 0 and 1 with limit 5 return the same page. Keep `limit` fixed and advance `offset` in multiples of `limit` when Last.fm is used ([#794](https://github.com/iuliandita/digarr/issues/794)).
+On develop, Last.fm returns the requested offset window by slicing its provider page and, when needed, reading the next page with the same limit. Each attempt reads at most two pages and preserves the first response's provider-reported `total`. If either required read fails, the existing Plex fallback or source-error status applies without returning a partial Last.fm window. Results can change between provider requests; this is not a snapshot.
+
+v1.19.0 returns whole Last.fm pages, so offsets 0 and 1 with limit 5 repeat the same results ([#794](https://github.com/iuliandita/digarr/issues/794)). Older clients must keep `limit` fixed and advance `offset` in multiples of `limit`; that workaround remains compatible on develop. No schema migration is added; rollback restores the old page behavior.
 
 **GET /api/v1/listening/recent-tracks** query params:
 - `limit` - 1-50 (default 5)

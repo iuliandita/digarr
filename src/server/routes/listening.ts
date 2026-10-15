@@ -226,13 +226,26 @@ export function listeningRoutes(deps: AppDependencies) {
           userConns?.lastfmUsername ?? '',
           userConns?.lastfmApiKey ?? '',
         )
-        // Last.fm paginates by page (1-indexed), so derive page from offset.
         const page = Math.floor(offset / limit) + 1
+        const skip = offset % limit
         const paged = await client.getTopArtistsPaged(lastFmPeriodFor(range), {
           page,
           limit,
         })
-        tracks = paged.artists.map((a) => ({
+        const artists = paged.artists.slice(skip, skip + limit)
+        if (
+          skip > 0 &&
+          paged.artists.length === limit &&
+          artists.length < limit &&
+          (paged.totalCount <= 0 || page * limit < paged.totalCount)
+        ) {
+          const next = await client.getTopArtistsPaged(lastFmPeriodFor(range), {
+            page: page + 1,
+            limit,
+          })
+          artists.push(...next.artists.slice(0, limit - artists.length))
+        }
+        tracks = artists.map((a) => ({
           artist: a.name,
           track: `${a.playCount} plays ${label}`,
           source: 'lastfm',
