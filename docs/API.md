@@ -156,11 +156,16 @@ Preference updates merge top-level keys only. A supplied `scoringWeights` object
 |--------|------|------|-------------|
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
 | POST | `/api/v1/auth/oidc/link` | Cookie session | Start account linking after current-password verification. Returns `{ url }`. Requires CSRF protection and an unlinked local account. Rate limited: 5/min |
-| GET | `/api/v1/auth/oidc/callback` | Transaction-bound | OIDC callback; consumes the browser-bound transaction once. Login creates the user if needed and sets a session cookie. Linking also requires the initiating session and updates only its account's OIDC subject. Not rate limited |
+| GET | `/api/v1/auth/oidc/callback` | Transaction-bound | OIDC callback; consumes the browser-bound transaction once. Login creates the user if needed and sets a session cookie. Linking also requires the initiating session and updates only its account's OIDC issuer and subject. Not rate limited |
 | POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
 | GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
+
+On develop, login and linking use the exact validated `iss`/`sub` pair. Legacy
+issuer-less bindings require [operator recovery](AUTHENTICATION.md#recovering-legacy-oidc-bindings);
+they are not matched by subject or email. A different issuer with the same
+subject is a separate identity. Request bodies and callback URLs are unchanged.
 
 **POST /api/v1/auth/oidc/link** body:
 

@@ -164,6 +164,8 @@ An explicit `DATABASE_URL` takes precedence over separate settings. Percent-enco
 
 ## Updating
 
+On develop, migration 0054 requires existing SSO bindings to undergo [verified issuer recovery](../AUTHENTICATION.md#recovering-legacy-oidc-bindings). Before updating an SSO deployment, retain a tested native backup, matching encryption key and previous image. Its missing column makes the old-schema automatic snapshot stop safely; use the documented one-upgrade override only after backup verification and re-enable it afterward. Stop the container before using the recovery helper against its mounted PGlite data. The XML fields and moving companion image channels do not change.
+
 Digarr publishes multi-arch images (amd64 + arm64). Read the target release notes before updating; the store's moving `latest` tag can cross a database migration.
 
 For the embedded database:

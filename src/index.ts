@@ -200,7 +200,7 @@ import {
   deleteUser,
   getUserByEmail,
   getUserById,
-  getUserByOidcSubject,
+  getUserByOidcIdentity,
   getUserByUsername,
   getUserConnections,
   getUserCount,
@@ -1332,7 +1332,7 @@ const app = createApp({
   updateUserPreferredLocale: (id, preferredLocale) =>
     updateUserPreferredLocale(db, id, preferredLocale),
   getOidcService,
-  getUserByOidcSubject: (subject) => getUserByOidcSubject(db, subject),
+  getUserByOidcIdentity: (issuer, subject) => getUserByOidcIdentity(db, issuer, subject),
   getUserByEmail: (email) => getUserByEmail(db, email),
   updateUser: (id, data) => updateUser(db, id, data),
   listUsers: (opts?: Parameters<typeof listUsers>[1]) => listUsers(db, opts),

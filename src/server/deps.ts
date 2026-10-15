@@ -82,12 +82,12 @@ export interface UserDeps {
   getUserCount: () => Promise<number>
   updateUserPreferredLocale: (id: number, preferredLocale: SupportedLocale | null) => Promise<void>
   getOidcService: () => Promise<OidcService | null>
-  getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>
+  getUserByOidcIdentity: (
+    issuer: string,
+    subject: string,
+  ) => Promise<{ id: number; username: string } | null>
   getUserByEmail: (email: string) => Promise<{ id: number; username: string } | null>
-  updateUser: (
-    id: number,
-    data: { isAdmin?: boolean; email?: string | null; oidcSubject?: string },
-  ) => Promise<void>
+  updateUser: (id: number, data: { isAdmin?: boolean; email?: string | null }) => Promise<void>
   listUsers: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<UserPublic[]>
   deleteUser: (id: number) => Promise<void>
 }

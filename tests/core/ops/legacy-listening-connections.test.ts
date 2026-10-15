@@ -46,6 +46,7 @@ function makeUser(overrides: Partial<UserPublic> = {}): UserPublic {
     isAdmin: true,
     email: null,
     oidcSubject: null,
+    oidcIssuer: null,
     authProvider: 'local',
     preferences: null,
     listenbrainzUsername: null,

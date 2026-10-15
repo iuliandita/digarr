@@ -203,20 +203,19 @@ Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 
-OIDC sign-ins are matched to local accounts by the raw `sub` claim stored in
-`oidcSubject`. Digarr v1.19.0 does not store the issuer alongside that subject.
-The matching order is:
+On develop, OIDC sign-ins match the exact validated ID-token issuer (`iss`) and
+subject (`sub`) stored as `oidcIssuer` and `oidcSubject`. Both values identify
+an account; the same subject from another issuer cannot select it. A new pair
+can provision a separate account under the existing OIDC provisioning rules. A
+conflicting email fails sign-in instead of linking accounts. Issuer strings
+are preserved exactly, including path and trailing slash.
 
-1. Match by stored `oidcSubject`.
-2. Fall through and auto-create a new local user (the OIDC-provided email is
-   stored on the new account).
-
-Subjects are unique within an issuer, not across providers. Keep the configured
-issuer unchanged for existing OIDC accounts. Changing it requires a reviewed
-identity migration: if the replacement provider returns a subject already stored
-in Digarr, sign-in selects that existing account. Digarr does not provide an
-automatic migration or an issuer-change guard. Track the missing issuer binding
-in [#799](https://github.com/iuliandita/digarr/issues/799).
+v1.19.0 stores only the raw subject. Migration 0054 preserves those subjects
+with a null issuer, so existing SSO bindings no longer match until an operator
+recovers them. It never guesses the old issuer from current settings, email,
+or the next sign-in. Local passwords and existing sessions remain usable;
+SSO-only accounts have no known local password. See the recovery procedure
+below before upgrading an SSO deployment.
 
 Digarr deliberately does **not** auto-link an OIDC identity to an existing
 local account by matching the `email` claim. A local account's email can be
@@ -242,7 +241,7 @@ PKCE, nonce checks, and 10-minute expiry. Pending state is held in memory, so a
 server restart requires starting again. The server records the transaction's
 purpose; a link callback cannot provision an account or create a login session.
 The final link checks the session and password proof in one database
-transaction before changing only the account's OIDC subject.
+transaction before changing only the account's OIDC issuer and subject.
 
 The callback returns to Account settings with `oidc_link=success`,
 `oidc_link=identity_in_use`, or `oidc_link=failed`. The page displays a fixed
@@ -274,6 +273,51 @@ Current codes:
 | ------------- | ------------------------------------------------------------- |
 | `config`      | Server misconfiguration (e.g., `ALLOWED_ORIGIN` not set).     |
 | `oidc_failed` | Callback processing threw (bad state, token exchange error).  |
+
+### Recovering legacy OIDC bindings
+
+Before upgrading, stop app writers, verify a native database backup by restoring
+it separately, and retain the matching encryption key and previous image. The
+current automatic snapshot cannot read the old schema without `oidc_issuer`;
+use the understood, one-upgrade `DIGARR_AUTO_BACKUP=false` override from
+[Operations](OPERATIONS.md#backup--restore), then re-enable it. Fresh databases
+need no override. Keep a working local-admin session or local login available.
+
+For each legacy account, verify its numeric user ID, exact stored subject, and
+historical issuer from trusted records or the original identity provider. The
+current configured issuer is not proof of the historical binding. If that
+identity cannot be verified, leave the account unbound and resolve ownership
+outside this command; do not merge by email or create a replacement admin.
+
+After migrations, keep the app stopped and run the helper with the same database
+configuration and mounted data as the installation. From a source checkout:
+
+```sh
+bun scripts/recover-oidc-binding.ts --user-id 7 \
+  --subject '<verified-subject>' --issuer 'https://identity.example/realms/original'
+```
+
+The default is a locked dry run. Check the reported backend, account and exact
+issuer/subject, then repeat with `--apply`. In a published image, run
+`bun dist/scripts/recover-oidc-binding.js` with those same flags; use the
+installation's Compose file set and volumes, or an equivalent stopped-workload
+maintenance container. Never point a second process at a live PGlite directory.
+The helper requires the exact legacy subject and a null issuer, rejects an
+already claimed pair, and changes only the selected issuer. Already bound
+accounts are refused, including a repeat apply. Passwords, roles, sessions,
+and other account data are unchanged. Test sign-in at the original provider
+before restoring access for users.
+
+New JSON exports and backend copies preserve exact issuer/subject pairs.
+Restoring an older JSON backup without issuer information leaves its subjects
+unbound and requires the same recovery. A composite-identity conflict aborts
+the restore transaction. Back up the destination before restoring.
+
+For rollback, stop the app and restore the previous image's matching native
+backup into a separate database. Never run an older subject-only image against
+the migrated database: it cannot distinguish issuers, and subjects can now
+repeat across issuers. Verify the original provider before enabling SSO on the
+recovered instance; post-backup writes need a separately reviewed recovery.
 
 ## Proxy auth (optional)
 

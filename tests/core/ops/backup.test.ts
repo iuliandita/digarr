@@ -57,7 +57,13 @@ describe('getKeyFingerprint', () => {
 
 describe('createBackup', () => {
   it('collects the snapshot inside a repeatable-read, read-only transaction', async () => {
-    const tx = makeMockDb({ users: [{ id: 3, username: 'snapshot-user' }] })
+    const user = {
+      id: 3,
+      username: 'snapshot-user',
+      oidcIssuer: 'https://identity.example/realm/',
+      oidcSubject: 'subject-with-exact-issuer',
+    }
+    const tx = makeMockDb({ users: [user] })
     const transaction = vi
       .fn()
       .mockImplementation((cb: (tx: OpsDb) => Promise<BackupFile>) => cb(tx))
@@ -69,7 +75,7 @@ describe('createBackup', () => {
       isolationLevel: 'repeatable read',
       accessMode: 'read only',
     })
-    expect(result.data.users).toEqual([{ id: 3, username: 'snapshot-user' }])
+    expect(result.data.users).toEqual([user])
   })
 
   it('returns a valid BackupFile with version and timestamp', async () => {

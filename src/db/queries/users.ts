@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
-import { and, count, desc, eq, lt, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, isNull, lt, or, sql } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
 import { isUniqueViolation } from '@/core/db-errors'
 import type { SupportedLocale } from '@/core/i18n/locales'
@@ -51,6 +51,7 @@ export class OidcIdentityInUseError extends Error {
 
 export type OidcLinkParams = {
   userId: number
+  oidcIssuer: string
   oidcSubject: string
   passwordFingerprint: string
   initiatingSessionHash: string
@@ -61,6 +62,7 @@ export type OidcLinkCredentials = {
   id: number
   passwordHash: string
   authProvider: string
+  oidcIssuer: string | null
   oidcSubject: string | null
 }
 
@@ -75,6 +77,7 @@ function fingerprintsMatch(actual: string, expected: string): boolean {
 }
 
 export async function linkOidcIdentity(db: Database, params: OidcLinkParams): Promise<void> {
+  validateOidcIdentity(params.oidcIssuer, params.oidcSubject)
   try {
     await db.transaction(async (tx) => {
       const [user] = await tx
@@ -82,6 +85,7 @@ export async function linkOidcIdentity(db: Database, params: OidcLinkParams): Pr
           id: users.id,
           passwordHash: users.passwordHash,
           authProvider: users.authProvider,
+          oidcIssuer: users.oidcIssuer,
           oidcSubject: users.oidcSubject,
         })
         .from(users)
@@ -91,6 +95,7 @@ export async function linkOidcIdentity(db: Database, params: OidcLinkParams): Pr
 
       if (
         user?.authProvider !== 'local' ||
+        user.oidcIssuer !== null ||
         user.oidcSubject !== null ||
         !fingerprintsMatch(fingerprintPasswordHash(user.passwordHash), params.passwordFingerprint)
       ) {
@@ -115,11 +120,101 @@ export async function linkOidcIdentity(db: Database, params: OidcLinkParams): Pr
 
       await tx
         .update(users)
-        .set({ oidcSubject: params.oidcSubject })
+        .set({ oidcIssuer: params.oidcIssuer, oidcSubject: params.oidcSubject })
         .where(eq(users.id, params.userId))
     })
   } catch (error) {
-    if (isUniqueViolation(error, 'users_oidc_subject_unique_idx')) {
+    if (isUniqueViolation(error, 'users_oidc_identity_unique_idx')) {
+      throw new OidcIdentityInUseError()
+    }
+    throw error
+  }
+}
+
+function validateOidcIdentity(issuer: unknown, subject: unknown): asserts issuer is string {
+  if (
+    typeof issuer !== 'string' ||
+    !issuer.trim() ||
+    typeof subject !== 'string' ||
+    !subject.trim()
+  ) {
+    throw new Error('OIDC issuer and subject must both be nonempty strings')
+  }
+}
+
+export type LegacyOidcBindingRecoveryParams = {
+  userId: number
+  subject: string
+  issuer: string
+  apply?: boolean
+}
+
+export async function recoverLegacyOidcBinding(
+  db: Database,
+  params: LegacyOidcBindingRecoveryParams,
+): Promise<{ userId: number; subject: string; issuer: string; applied: boolean }> {
+  validateOidcIdentity(params.issuer, params.subject)
+  if (!Number.isSafeInteger(params.userId) || params.userId <= 0) {
+    throw new Error('User ID must be a positive safe integer')
+  }
+  let issuerUrl: URL
+  try {
+    issuerUrl = new URL(params.issuer)
+  } catch {
+    throw new Error('Historical issuer must be an exact HTTP(S) issuer URL')
+  }
+  if (
+    !/^https?:\/\//i.test(params.issuer) ||
+    /[\s\\?#]/.test(params.issuer) ||
+    !['https:', 'http:'].includes(issuerUrl.protocol) ||
+    issuerUrl.username ||
+    issuerUrl.password ||
+    issuerUrl.search ||
+    issuerUrl.hash ||
+    params.issuer.trim() !== params.issuer
+  ) {
+    throw new Error(
+      'Historical issuer must be an exact HTTP(S) issuer URL without credentials, query, or fragment',
+    )
+  }
+  try {
+    return await db.transaction(async (tx) => {
+      const [user] = await tx
+        .select({ oidcIssuer: users.oidcIssuer, oidcSubject: users.oidcSubject })
+        .from(users)
+        .where(eq(users.id, params.userId))
+        .limit(1)
+        .for('update')
+      if (!user || user.oidcIssuer !== null || user.oidcSubject !== params.subject) {
+        throw new OidcLinkConflictError()
+      }
+      const [owner] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.oidcIssuer, params.issuer), eq(users.oidcSubject, params.subject)))
+        .limit(1)
+      if (owner) throw new OidcIdentityInUseError()
+      if (params.apply === true) {
+        await tx
+          .update(users)
+          .set({ oidcIssuer: params.issuer })
+          .where(
+            and(
+              eq(users.id, params.userId),
+              isNull(users.oidcIssuer),
+              eq(users.oidcSubject, params.subject),
+            ),
+          )
+      }
+      return {
+        userId: params.userId,
+        subject: params.subject,
+        issuer: params.issuer,
+        applied: params.apply === true,
+      }
+    })
+  } catch (error) {
+    if (isUniqueViolation(error, 'users_oidc_identity_unique_idx')) {
       throw new OidcIdentityInUseError()
     }
     throw error
@@ -140,11 +235,19 @@ export async function createUser(
     passwordHash: string
     isAdmin?: boolean
     email?: string
+    oidcIssuer?: string
     oidcSubject?: string
     authProvider?: string
   },
   options: UserBootstrapOptions = {},
 ): Promise<UserPublic> {
+  if (
+    data.oidcIssuer !== undefined ||
+    data.oidcSubject !== undefined ||
+    data.authProvider === 'oidc'
+  ) {
+    validateOidcIdentity(data.oidcIssuer, data.oidcSubject)
+  }
   if (options.bootstrap) {
     return db.transaction(async (tx) => {
       // Serialize first-user decisions with every concurrent users insert.
@@ -167,6 +270,7 @@ async function insertUser(db: DbOrTx, data: Parameters<typeof createUser>[1]): P
       passwordHash: data.passwordHash,
       isAdmin: data.isAdmin ?? false,
       email: data.email,
+      oidcIssuer: data.oidcIssuer,
       oidcSubject: data.oidcSubject,
       authProvider: data.authProvider ?? 'local',
     })
@@ -196,6 +300,7 @@ export async function getUserCredentialsById(
       id: users.id,
       passwordHash: users.passwordHash,
       authProvider: users.authProvider,
+      oidcIssuer: users.oidcIssuer,
       oidcSubject: users.oidcSubject,
     })
     .from(users)
@@ -256,8 +361,17 @@ export async function deleteUser(db: Database, id: number): Promise<void> {
   })
 }
 
-export async function getUserByOidcSubject(db: Database, subject: string): Promise<UserRow | null> {
-  const rows = await db.select().from(users).where(eq(users.oidcSubject, subject)).limit(1)
+export async function getUserByOidcIdentity(
+  db: Database,
+  issuer: string,
+  subject: string,
+): Promise<UserRow | null> {
+  validateOidcIdentity(issuer, subject)
+  const rows = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.oidcIssuer, issuer), eq(users.oidcSubject, subject)))
+    .limit(1)
   return rows[0] ?? null
 }
 
@@ -344,14 +458,15 @@ export async function updateUserConnections(
 export async function updateUser(
   db: Database,
   id: number,
-  data: { isAdmin?: boolean; email?: string | null; oidcSubject?: string; authProvider?: string },
+  data: { isAdmin?: boolean; email?: string | null },
 ): Promise<void> {
+  const updates = { isAdmin: data.isAdmin, email: data.email }
   if (data.isAdmin === false) {
     await db.transaction(async (tx) => {
       await guardLastAdmin(tx, id)
-      await tx.update(users).set(data).where(eq(users.id, id))
+      await tx.update(users).set(updates).where(eq(users.id, id))
     })
     return
   }
-  await db.update(users).set(data).where(eq(users.id, id))
+  await db.update(users).set(updates).where(eq(users.id, id))
 }

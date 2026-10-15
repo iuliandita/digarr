@@ -11,6 +11,7 @@ const adminUser = {
   preferences: null,
   email: null,
   oidcSubject: null,
+  oidcIssuer: null,
   authProvider: 'local' as const,
   listenbrainzUsername: null,
   listenbrainzToken: null,

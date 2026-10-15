@@ -142,7 +142,7 @@ function makeDeps(
     getUserCount: vi.fn(async () => 1),
     updateUserPreferredLocale: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),

@@ -89,6 +89,7 @@ export const users = pgTable(
     isAdmin: boolean('is_admin').default(false).notNull(),
     preferredLocale: text('preferred_locale'),
     email: text('email'),
+    oidcIssuer: text('oidc_issuer'),
     oidcSubject: text('oidc_subject'),
     authProvider: text('auth_provider').notNull().default('local'),
     preferences: jsonb('preferences').$type<Preferences>(),
@@ -121,9 +122,14 @@ export const users = pgTable(
     emailUniqueIdx: uniqueIndex('users_email_unique_idx')
       .on(table.email)
       .where(sql`${table.email} IS NOT NULL`),
-    oidcSubjectUniqueIdx: uniqueIndex('users_oidc_subject_unique_idx')
-      .on(table.oidcSubject)
-      .where(sql`${table.oidcSubject} IS NOT NULL`),
+    oidcIdentityUniqueIdx: uniqueIndex('users_oidc_identity_unique_idx').on(
+      table.oidcIssuer,
+      table.oidcSubject,
+    ),
+    oidcIdentityValid: check(
+      'users_oidc_identity_valid',
+      sql`${table.oidcIssuer} IS NULL OR (length(trim(${table.oidcIssuer})) > 0 AND ${table.oidcSubject} IS NOT NULL AND length(trim(${table.oidcSubject})) > 0)`,
+    ),
   }),
 )
 

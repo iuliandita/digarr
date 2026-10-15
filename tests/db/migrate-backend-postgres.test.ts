@@ -20,6 +20,7 @@ const schemaName = `migration_guard_${randomUUID().replaceAll('-', '')}`
 const applicationName = `migration-guard-${randomUUID()}`
 let setupPool: pg.Pool
 let targetPool: pg.Pool
+let sourcePool: pg.Pool
 
 describe.runIf(Boolean(POSTGRES_URL))('backend migration PostgreSQL concurrency', () => {
   beforeAll(async () => {
@@ -39,11 +40,25 @@ describe.runIf(Boolean(POSTGRES_URL))('backend migration PostgreSQL concurrency'
       application_name: applicationName,
       options: `-c search_path=${schemaName} -c statement_timeout=10000`,
     })
+    await setupPool.query(`CREATE SCHEMA "${schemaName}_source"`)
+    for (const table of Object.values(BACKUP_TABLE_BY_KEY)) {
+      const name = getTableName(table)
+      await setupPool.query(
+        `CREATE TABLE "${schemaName}_source"."${name}" (LIKE public."${name}" INCLUDING ALL)`,
+      )
+    }
+    sourcePool = new pg.Pool({
+      connectionString: POSTGRES_URL,
+      max: 1,
+      options: `-c search_path=${schemaName}_source -c statement_timeout=10000`,
+    })
   })
 
   afterAll(async () => {
     await targetPool?.end()
+    await sourcePool?.end()
     if (setupPool) {
+      await setupPool.query(`DROP SCHEMA IF EXISTS "${schemaName}_source" CASCADE`)
       await setupPool.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`)
       await setupPool.end()
     }
@@ -94,5 +109,41 @@ describe.runIf(Boolean(POSTGRES_URL))('backend migration PostgreSQL concurrency'
       await operation?.catch(() => undefined)
       writer.release()
     }
+  })
+
+  it('copies exact issuer bindings and quarantined legacy subjects without merging identities', async () => {
+    const sourceDb = drizzle(sourcePool, { schema })
+    const targetDb = drizzle(targetPool, { schema })
+    const identities = [
+      { username: 'issuer-one', oidcIssuer: 'https://identity.example/realm', oidcSubject: 'same' },
+      {
+        username: 'issuer-two',
+        oidcIssuer: 'https://identity.example/realm/',
+        oidcSubject: 'same',
+      },
+      { username: 'legacy', oidcIssuer: null, oidcSubject: 'legacy-subject' },
+    ]
+    await sourceDb.insert(schema.users).values(
+      identities.map((identity, index) => ({
+        id: index + 1,
+        passwordHash: 'test-hash',
+        authProvider: 'oidc',
+        ...identity,
+      })),
+    )
+
+    const result = await copyDatabaseTables(sourceDb, targetDb)
+
+    expect(result.mismatches).toEqual([])
+    expect(result.tablesRestored.users).toBe(3)
+    const copied = await targetDb
+      .select({
+        username: schema.users.username,
+        oidcIssuer: schema.users.oidcIssuer,
+        oidcSubject: schema.users.oidcSubject,
+      })
+      .from(schema.users)
+      .orderBy(schema.users.id)
+    expect(copied).toEqual(identities)
   })
 })

@@ -60,7 +60,7 @@ function makeDeps(
     subscriptionQueries: {} as unknown as AppDependencies['subscriptionQueries'],
     runSubscription: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),

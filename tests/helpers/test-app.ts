@@ -101,7 +101,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     },
     updateUserPreferredLocale: vi.fn(),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(),
     listUsers: vi.fn(async () => []),

@@ -5,12 +5,20 @@ import { describe, expect, it } from 'vitest'
 import { libraryAlbums, libraryArtists, users } from '@/db/schema'
 
 describe('users schema indexes', () => {
-  it('defines partial unique indexes for nullable identity fields', () => {
+  it('defines email uniqueness and composite OIDC identity uniqueness', () => {
     const config = getTableConfig(users)
     const indexNames = config.indexes.map((index) => index.config.name)
 
     expect(indexNames).toContain('users_email_unique_idx')
-    expect(indexNames).toContain('users_oidc_subject_unique_idx')
+    expect(indexNames).not.toContain('users_oidc_subject_unique_idx')
+    const identityIndex = config.indexes.find(
+      (index) => index.config.name === 'users_oidc_identity_unique_idx',
+    )
+    expect(identityIndex?.config.unique).toBe(true)
+    expect(identityIndex?.config.columns.map((column) => 'name' in column && column.name)).toEqual([
+      'oidc_issuer',
+      'oidc_subject',
+    ])
   })
 })
 

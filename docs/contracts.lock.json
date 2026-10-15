@@ -85,6 +85,7 @@
         "drizzle/0051_plex_accounts_slskd_retry.sql": "1cd523086d5985f5a22993296c944177198bc5a6006f04c29ab1486dbc4b27ee",
         "drizzle/0052_windy_dark_phoenix.sql": "01f7bd47d13619a02d96aa2be7792f5ce2eea2c77ddf9f64d5ea9e3aca827c64",
         "drizzle/0053_shallow_mysterio.sql": "7df9a9983159366c54648a4a336a6756ffa8041cc3de6ecac30d3b6944b4587d",
+        "drizzle/0054_blue_morbius.sql": "390a34019f360fe0179ad098235691bf19480204a568cf3ca7bb44223b7b02f5",
         "drizzle/meta/0000_snapshot.json": "0288497d803f09f4ad1304b866b91ab25785865951841152291b11e6642230c2",
         "drizzle/meta/0001_snapshot.json": "2d057997cde52ff489663572db9d8c8a905017420e37fc808444e0fd2e23057d",
         "drizzle/meta/0002_snapshot.json": "1b11da03bfc729f4c3a59fed6765ed2e7fff3e602dc1738e176062cff922a4b9",
@@ -135,7 +136,8 @@
         "drizzle/meta/0051_snapshot.json": "10dd6d0ea571b365cd75352e94760aa4f4d7bfd70afabb9c619d70e7afba05d2",
         "drizzle/meta/0052_snapshot.json": "179561543d4eafea3fae8daa0c16664333fcb6d631c51582085bc0f3441455df",
         "drizzle/meta/0053_snapshot.json": "ad8853297d6fe0482df16e648d03b00f9ddcd4cc121f158c707fdb2fdf7f2619",
-        "drizzle/meta/_journal.json": "58d8adcfbcbb8a7ace26ea53c12714a44a43ccb98538c0ff7ad66b75f40611df",
+        "drizzle/meta/0054_snapshot.json": "bf7e8f7c835bcf9e32fa492cd484fec407500600d6a3df15e07254d64c9581cf",
+        "drizzle/meta/_journal.json": "ad72e52b9ef0f3ffbbff809a26942044e5fe6576def61f07e1a22b358bde69dc",
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "17a11f3c319771e7fa54dc65f196a262ad89d0ae1b06afb7f3e3f0afd9de6f5e",
@@ -176,18 +178,18 @@
         "src/db/queries/slskd-jobs.ts": "e67c2a6f34f311b8fe3a7a715e65a1b58eef4152f62e64bda14e988b9aa677c7",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
-        "src/db/queries/users.ts": "f8bf839d2625d04849a647cebd0650ec4b1e3da8eb797b251b912a27b8d5829a",
-        "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
+        "src/db/queries/users.ts": "637e6c15a8caaee605b1bd6bb19102a32bc4afb94d1859f90b48bd0abee29c3e",
+        "src/db/schema.ts": "aa0365573cac5ecce8d909c778c9cdab17a8c37fb0b7038b6e2c2c3a36a6d3ca",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "0f01b48d2d94f23949057b93998d1abf40d3e22209e420b0ef43492662929398",
+      "digest": "7c2657d1411032c0f7403535243be75489abf55cb06c7e9d0f3ba99b41121b5c",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed migrated PGlite mixed-status aggregation for owned and global histories, including unowned rows. Added a status-specific rejected tally while preserving acted-on totals, ownership, approval and strong-negative counts.",
-        "breaking": "API rejected now means current rejected rows only; clients must include the new other field when reconciling total.",
-        "migration": "No schema migration or row rewrite. Upgrade clients to include other; ordinary database backup and matching encryption key procedures are unchanged. Rollback restores the previous non-approved remainder calculation without a data conversion.",
-        "digest": "0f01b48d2d94f23949057b93998d1abf40d3e22209e420b0ef43492662929398"
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "note": "Document composite identity migration, legacy quarantine, exact-pair backups/copy and verified operator recovery without inferring issuer.",
+        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "migration": "Upgrade migration 0054 preserves legacy subjects with NULL issuer and replaces raw-subject uniqueness. Rehearsed old-schema native PostgreSQL backup restoration, expected missing-column preflight failure, verified-backup override upgrade, recovery dry run/apply and issuer isolation. Retain the exact key and prior image, re-enable automatic backup; rollback requires the matching native backup in a separate database.",
+        "digest": "7c2657d1411032c0f7403535243be75489abf55cb06c7e9d0f3ba99b41121b5c"
       }
     },
     "configuration": {
@@ -209,7 +211,7 @@
       "files": {
         "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
-        "src/core/auth/oidc.ts": "31d922dc3e6ba4ac2283ae41c5b49ce5504dfa6830a87597fb876e934ecf5c2a",
+        "src/core/auth/oidc.ts": "c63e396968586a67bca32762bb2b62b42ae0835d76cba6d6770e445009786724",
         "src/core/crypto.ts": "ee63285b6697b04d7e120dad411029201953283ca0d49ded94dd4f3942968215",
         "src/core/oauth.ts": "864eecc7b3e33ad46a41b62066cebd9cf4cf5bf2dc4fd51eb3cd28443d810e2c",
         "src/core/provider-auth.ts": "77ad75b128a06c5f44e1b0c239f94c25ad1c7698c55637ea1e9bbf78a273200d",
@@ -232,7 +234,7 @@
         "src/server/routes/oauth-callbacks.ts": "f425c9a010c1c97c8a3cd8d914dd4e137d40b4d5b5883d2d773eb7e4c97b98fa",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "51de3ebc83b7a7bb17417a644dcd211cd27b982220531ce456e28271d6d13e08",
-        "src/server/routes/oidc.ts": "221fec0de508dd55ebd0d374c6df0475d762c2080ba1b3423c666c330eae170a",
+        "src/server/routes/oidc.ts": "94e28540a2bbfa25f737983726e5b00fc5a617eb7cddba3f8aa293bac308ab91",
         "src/server/routes/setup.ts": "a487dce636f245402feded00604cf6eaeb891c3d6ed5f6a7c0646c7829c29a8f",
         "src/server/routes/users.ts": "f0a6cdc020e9e43f60fae3c4ed180d9d475827c203a6af09fe2ec972ae92cbd4",
         "src/server/schemas/admin.ts": "e3a05f9cd80edf946e8ebcfc0d553d89b0a2712c0be1a52a7b5e498067c73caf",
@@ -241,19 +243,19 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "ad86f22a91ee5eb0eafaca79e70a10dff6e94808e6ea49c3cadea6134a088c36",
+      "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed session-owned preference writes and fresh reads: netNewAlbumDiscovery now persists as an optional boolean, omission preserves saved values, and explicit false disables it. Default and fallback behavior remain unchanged; non-admin UI save feedback remains tracked separately in #792. No database migration or stored-row rewrite.",
-        "breaking": "User API clients sending non-boolean netNewAlbumDiscovery values now receive 400 instead of having the key ignored; send true or false or omit the key.",
+        "note": "Authentication guide documents exact validated issuer/subject matching, password/session-preserving explicit linking and verified recovery for SSO-only users.",
+        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
         "migration": "",
-        "digest": "ad86f22a91ee5eb0eafaca79e70a10dff6e94808e6ea49c3cadea6134a088c36"
+        "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937"
       }
     },
     "api": {
       "files": {
-        "src/server/deps.ts": "721236f4d9ee832c0cae53ce7544db6accfc5b3f1a62175a5f384a4b9b3a9e3a",
+        "src/server/deps.ts": "11c06f8e4b43288ff1582ee023bdcea38c95b4163c17ccc0f8e129fc5dd3187d",
         "src/server/helpers/openapi-doc.ts": "b28973d7f8e2b439db9bf60b57d5823432cf04a5195da05ec14977972bf13245",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
@@ -261,7 +263,7 @@
         "src/server/helpers/preferences.ts": "819d0f0482fde33ea86bce6addf1221442fdffb9523bed5ef1c060f0495f4b8e",
         "src/server/helpers/problem.ts": "400b8d509b1b31a02b2ca556ff424ac8d7d3fa7913cef7092cbbeae993f9eecc",
         "src/server/helpers/require-user.ts": "598e50f60af3e97ad59abfa2d791ddab4a47d5ccaf80a65b07ae96710abdf3a6",
-        "src/server/index.ts": "76236b2be189575e5da38434f9f436f61c69951bef0caa7ef226609054ad3d18",
+        "src/server/index.ts": "0adf26086e51f9355b31f630e8013602187b80fc75602008182f851e3fa83396",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -304,14 +306,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "123697e0ac4c14dec7f2104de5192d9eb259cc5d81c39340ecd885efa7db18ba",
+      "digest": "75221e5e2b2afb01ce5f514538aa03a5ed07e082b94d4a3cbca8cfba061b3c5b",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed Quick Discover explicit score-1 seed, shared owner exclusions and post-seed deduplication; Job History now counts actual completed seed/similar batch writes, including seed-only runs. Document retained successful writes, per-item failures, fatal storage/statistics failures and the v1.19.0 difference. Architecture and roadmap agree; no UI, locale, schema or deployment change.",
-        "breaking": "Quick Discover no longer adds explicit seeds excluded by library membership, existing recommendations, permanent blocks or owner cooldowns; artistsStored includes successful seed writes and excludes failed inserts.",
-        "migration": "No schema migration or existing recommendation rewrite. Upgrade applies the corrected exclusion/count policy; inspect retained queue rows and Job History before retrying failed runs. Normal backup procedures are unchanged. Rollback restores the seed bypass and prior counts.",
-        "digest": "123697e0ac4c14dec7f2104de5192d9eb259cc5d81c39340ecd885efa7db18ba"
+        "note": "OIDC callback and link documentation describe issuer/subject matching and legacy quarantine; request bodies, callback URLs and cookies retain their contract.",
+        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "migration": "",
+        "digest": "75221e5e2b2afb01ce5f514538aa03a5ed07e082b94d4a3cbca8cfba061b3c5b"
       }
     },
     "interface": {
@@ -664,23 +666,23 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
+        "src/index.ts": "e22e7ac52cd9764df034e09ac629db44f183ed25349aae4fcdee247d8c597140",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "c2e93043eb59eb1188eb3c7e0c85d652b38793042af2d7db1d743faaa894c262",
+      "digest": "c092b114b22f6b8f37077fc83fa075c86644d5b3c5ffe82cdc8e09a3142d6e87",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Retain valid optional secondaryTypes in the broad shared catalog; coverage and Gap-Fill select only Album groups with an explicit empty array. Document excluded types/counts, invalid-metadata retry, additive album-list field, unchanged other consumers and rollback.",
-        "breaking": "Coverage counts and Gap-Fill selection now exclude all secondary types; Album groups with missing or malformed secondary metadata fail coverage instead of being counted. Other catalog consumers retain broad selection.",
-        "migration": "No schema migration or existing recommendation/cursor rewrite. Retain normal backups. Resolve provider metadata errors and retry; rollback restores broader coverage and counts.",
-        "digest": "c2e93043eb59eb1188eb3c7e0c85d652b38793042af2d7db1d743faaa894c262"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Runtime dependency wiring passes issuer and subject for authentication lookup; catalog, discovery, localization and visual controls are unaffected.",
+        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "migration": "",
+        "digest": "c092b114b22f6b8f37077fc83fa075c86644d5b3c5ffe82cdc8e09a3142d6e87"
       }
     },
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "47f197f3e6a70db02d1e421dad8f7af396188d3a9546be6def9d55f2f190bef5",
-        "deploy/docker/Dockerfile": "a4f7e03284efe2a78744b2807668187283aabee03c94356490ec148d41d66bab",
+        "deploy/docker/Dockerfile": "dd62e2addd6a90c70ab5641ddc8d191958509316ddba127dcb142022adea401d",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -714,28 +716,20 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "66549d4e61cd4ad34aef4ea41ad43e98e97b057e41e03b1701e573d6f80d8951",
+      "digest": "4fba98ca0e9f229336f320d024eda3b273479a812b11814a412e084a477ff679",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/docker/README.md",
-          "deploy/helm/digarr/README.md",
-          "docs/guides/docker-desktop.md",
-          "docs/guides/synology.md",
-          "docs/guides/unraid.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Reviewed Compose environment example, Docker/Helm/Desktop/Synology/Unraid bootstrap guidance and existing public-port access precautions. Documented pre-listener admin requirement on develop, version-limited old race, paired variables, ignored existing-account settings and recovery. No image pins, chart templates, runtime ports, volumes or permissions change.",
-        "breaking": "Fresh installs with incomplete bootstrap variables or a password shorter than 12 characters now stop startup instead of opening HTTP.",
+        "docs": ["docs/guides/unraid.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Bundle the recovery helper in published images and verify its build artifact. Document stopped-workload maintenance and native-backup upgrade/rollback. Reviewed bundled/personal/community Unraid surfaces: no XML field, port, volume or channel change; community bootstrap copy remains tracked in issue843.",
+        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
         "migration": "",
-        "digest": "66549d4e61cd4ad34aef4ea41ad43e98e97b057e41e03b1701e573d6f80d8951"
+        "digest": "4fba98ca0e9f229336f320d024eda3b273479a812b11814a412e084a477ff679"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "21d97a3b5ce10c35e7d820ccf6b1cd09a170624b961e9b160fb968f745f0d0ee",
+        ".github/workflows/ci.yml": "789c49dbd551419ebe4456d55fd96acdc1ecb7abc37d11d89e4e0d8b25f1b2ba",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -747,17 +741,17 @@
         ".github/workflows/release.yml": "f8648f5b547ecf99e04a050e9de6b87fdf128f34d21d518276f389a984f09af6",
         ".github/workflows/security.yml": "6a33002c0799edd45a4dd96e77b0ee38df422dba359f1cc877d7fc2fadeb94d6",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
+        "package.json": "b6218400e05242e453becab53416831465a28936616b9e5ffc233e5d90520ad6",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "a58539a5510ba87c9145e514501b04d78831c4944403fb53895e96259a6da293",
+      "digest": "fd8a9fa3cd3440fcecbbf3e74185177c36a67ec423331bdc590aab5b80a75729",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Reviewed advisory Compatibility bootstrap and contributor instructions. Documented explicit hosted guest DNS, the 15-minute startup allowance supported by late-readiness logs, bounded startup diagnostics and downstream network diagnostics before teardown, plus unchanged Compose retries and final backend assertion requirements. README, deployment and companion surfaces retain product channels, settings, ports, authentication and pins unchanged; no app or locale behavior change.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Build includes the recover-oidc-binding helper and the required PostgreSQL job runs issuer upgrade/restore tests. Release tags, channels, security exclusions and advisory gates retain their contract.",
         "breaking": "none",
         "migration": "",
-        "digest": "a58539a5510ba87c9145e514501b04d78831c4944403fb53895e96259a6da293"
+        "digest": "fd8a9fa3cd3440fcecbbf3e74185177c36a67ec423331bdc590aab5b80a75729"
       }
     },
     "maintenance": {
@@ -782,16 +776,17 @@
         "scripts/k8s-sync.sh": "0927212719ded7e714726e86955096f56036c5c35195dac891474351bb4c78d7",
         "scripts/lib/docs-contracts.ts": "59eebd0fd90430ffbe0408af122ecf275ec2544d694aa616cdd4d07ac8b4a6fc",
         "scripts/recommendation-quality.ts": "c1916747ce26ba33a5baa3076ac02df4d754489e56b465d9c88924dc7d82b555",
+        "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "d063d2a855fd1d7a49df53b0a072ce2146103dd8ed68b97bb3d0f26d34b51c3a"
       },
-      "digest": "5d8a0a786dab3432c92d8290e58cd3c13cc010c823be4d98855d761c61735542",
+      "digest": "f28d09f06571025a4918b3506f4d143bd578a4874c349bb070105d1f08435b0b",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Replace ambiguous Helm image-block regex with a line scan; documented commands and valid configuration normalization remain unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Document the new recovery helper and its dry-run default in the changelog; linked authentication instructions cover legacy-only row validation, stopped-workload invocation, native-backup upgrade and rollback. Existing maintenance commands retain their behavior.",
         "breaking": "none",
         "migration": "",
-        "digest": "5d8a0a786dab3432c92d8290e58cd3c13cc010c823be4d98855d761c61735542"
+        "digest": "f28d09f06571025a4918b3506f4d143bd578a4874c349bb070105d1f08435b0b"
       }
     }
   }
