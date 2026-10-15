@@ -76,7 +76,7 @@ Open `http://localhost:3000` and complete setup. Create the first account or sig
 
 For unattended first boot, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before starting. The configured admin must be created before HTTP opens; partial credentials or a password shorter than 12 characters stop startup. Leave both unset for manual registration. These settings never reset an existing account. Restrict access until you verify the intended admin. See [first-boot access](docs/AUTHENTICATION.md#users-and-targets).
 
-Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
+Use `:latest` for the newest release, a minor tag like `:2.0` for patch updates, or a specific patch like `:2.0.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
 For Compose, backend selection, and updates, follow the [Docker guide](deploy/docker/README.md). Keep one app instance per database, verify its backend at `/health`, and [back up before upgrading](deploy/docker/README.md#back-up-and-update).
 
