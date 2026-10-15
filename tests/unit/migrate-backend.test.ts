@@ -135,7 +135,9 @@ describe('migrateBackend', () => {
     )
     expect(report.excludedTables).toEqual(['sessions', 'rateLimitBuckets'])
     expect(report.mismatches).toEqual([])
-    expect(report.targetEnvHint).toMatch(/DB_PATH=/)
+    expect(report.targetEnvHint).toBe(
+      `Unset DATABASE_URL, DATABASE_URL_FILE and DB_HOST and set DB_PATH=${tgt('ok')}, then restart.`,
+    )
     await src.close()
   })
 

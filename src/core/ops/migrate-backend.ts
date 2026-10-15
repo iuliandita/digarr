@@ -48,7 +48,7 @@ const EXCLUDED_TABLES = ['sessions', 'rateLimitBuckets'] as const
 
 function envHint(target: MigrationTargetSpec): string {
   if (target.backend === 'pglite') {
-    return `Unset DATABASE_URL/DB_HOST and set DB_PATH=${target.path}, then restart.`
+    return `Unset DATABASE_URL, DATABASE_URL_FILE and DB_HOST and set DB_PATH=${target.path}, then restart.`
   }
   return 'Set DATABASE_URL to the PostgreSQL connection string you entered above, then restart.'
 }

@@ -144,7 +144,7 @@
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
-        "src/core/ops/migrate-backend.ts": "4722703ee3e3c69a2e7a3a3699badcf6733545e7f3bc2938593477b17d27ffcd",
+        "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
         "src/core/ops/types.ts": "05133c0670a772c804601094eb2cd46e07bc92297dec21ea043e0d1283ef4b86",
         "src/core/ops/upgrade.ts": "9fbcd673397927afdf479c49978c36bf9472d6dcd04c81405327e32dc0347a03",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
@@ -178,19 +178,14 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "a3ac4a033fed2516ae557686ba7f5ff56418fe013b00d13c5e457f340597493b",
+      "digest": "eb20850067e71da7cce04475a6eeb7aded87def0d8433d6f3ddfcbd7f6fb8c2a",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/switching-backends.md",
-          "docs/OPERATIONS.md",
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Migration checks every copy-managed destination table before schema preparation and under sorted table locks before deletes; rejects userless data and inspection failures, preserves explicit overwrite/default restore behavior, and documents stopped writers and existing schema side effects.",
+        "docs": ["docs/guides/switching-backends.md", "CHANGELOG.md"],
+        "note": "Issue 781 adds DATABASE_URL_FILE to the existing PGlite migration report hint, matching the complete backend-switching instructions. Marked develop fix versus v1.19.0 omission; source selection, copy transaction, encryption, schema and backup behavior are unchanged.",
         "breaking": "none",
-        "migration": "Upgrade adds no schema migration or data rewrite; existing destinations now need explicit overwrite if any copy-managed row exists. Rollback restores the users-only guard. Retain consistent native backups of both databases and the exact encryption key before replacement; target schema preparation and explicit-overwrite ephemeral clearing remain outside the copy transaction.",
-        "digest": "a3ac4a033fed2516ae557686ba7f5ff56418fe013b00d13c5e457f340597493b"
+        "migration": "Upgrade changes only guidance; no data migration is added. Existing backup requirements and rollback procedure remain unchanged; rollback to v1.19.0 restores the incomplete hint, so continue clearing DATABASE_URL_FILE manually.",
+        "digest": "eb20850067e71da7cce04475a6eeb7aded87def0d8433d6f3ddfcbd7f6fb8c2a"
       }
     },
     "configuration": {
@@ -239,19 +234,19 @@
         "src/server/routes/setup.ts": "319fde2dbfaff00b9b2847d85fe3e02521ee493c0d56eb3eaeabf3d08baac612",
         "src/server/routes/users.ts": "f0a6cdc020e9e43f60fae3c4ed180d9d475827c203a6af09fe2ec972ae92cbd4",
         "src/server/schemas/admin.ts": "e3a05f9cd80edf946e8ebcfc0d553d89b0a2712c0be1a52a7b5e498067c73caf",
-        "src/server/schemas/auth.ts": "db16ef7a0723d1b2da2860b08790b7e1e443e7ae58d5e1e3b631be44985601d6",
+        "src/server/schemas/auth.ts": "0296b66d0db47e4ff30c92dc86a904b5c8566de009fc4a88d06f56051cca25c7",
         "src/server/schemas/oauth.ts": "c7d41cd8b3a78b2e5b4f93662e0aadc02820f92903ba2df008f8ca8834e236e5",
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "cb55e6d9da49f8696ccd961ca59dd6536b7745a8711e601e2d37e7bbc9274dc8",
+      "digest": "76ed8f725e772064618b3a9a77be84918b27b8c6572d78de90a3e67e86e4a969",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "The admin restore schema accepts an optional playlistExports array for older files; existing admin authorization, key checks, and confirmation requirements remain. Backup registry ownership/dependency checks prevent unsafe omitted-binding removal. New playlist recovery requires both playlist and target ownership and exposes no scope hashes or credentials.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Issue 780 corrects only the updateEmailSchema comment: self-asserted email never links existing OIDC accounts. Reviewed existing explicit password/session linking and subject-only login, plus authentication guide and API; runtime schemas, routes, identity storage and documented behavior are unchanged. Missing issuer binding remains separately tracked in issue 799.",
         "breaking": "none",
         "migration": "",
-        "digest": "cb55e6d9da49f8696ccd961ca59dd6536b7745a8711e601e2d37e7bbc9274dc8"
+        "digest": "76ed8f725e772064618b3a9a77be84918b27b8c6572d78de90a3e67e86e4a969"
       }
     },
     "api": {

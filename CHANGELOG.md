@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Include `DATABASE_URL_FILE` in the embedded-backend migration hint so file-backed PostgreSQL settings are cleared before restarting with PGlite. No schema, configuration precedence or authentication behavior changes; the email-schema comment also no longer describes removed OIDC email auto-linking. [#780](https://github.com/iuliandita/digarr/issues/780), [#781](https://github.com/iuliandita/digarr/issues/781).
+
 - Paginate Spotify playlist imports and subscriptions through the current items endpoint and honor the saved distinct-artist cap across pages. Preserve collaboration credits and case-insensitive deduplication; fail incomplete or invalid reads instead of storing partial results. Reads are bounded to 20 pages/1,000 items and require playlist ownership or collaboration. Existing import/default caps remain 100/20 artists; no schema migration is added. See [subscription limits](docs/API.md#subscriptions). [#779](https://github.com/iuliandita/digarr/issues/779).
 
 - Refuse backend migration into any populated copy-managed destination table unless overwrite is explicit, including targets with settings, artists or caches but no users. Recheck emptiness under table locks before clearing rows, and abort on inspection failures. No schema migration is added; target schema preparation and explicit-overwrite session/rate-limit clearing remain outside the copy transaction. Retain complete backups, the matching encryption key and stopped writers through cutover; rolling back restores the older users-only check. See [migration precautions](docs/guides/switching-backends.md#step-by-step). [#775](https://github.com/iuliandita/digarr/issues/775).

@@ -33,9 +33,7 @@ export const updateLocaleSchema = z
   })
   .strict()
 
-// Set or clear the current user's email. Empty string and null both clear it;
-// a non-empty value must be a valid address. Email is the key OIDC uses to
-// auto-link an existing local account to an IdP identity.
+// Email is self-asserted and never links an OIDC identity to an existing account.
 export const updateEmailSchema = z
   .object({
     email: z.string().trim().max(254).email('Invalid email address').nullable().or(z.literal('')),
