@@ -40,7 +40,18 @@ export function createAlbumCoverageService(deps: {
 
       const ownedByMbid = new Map(ownedAlbums.map((album) => [album.albumMbid, album]))
       const studioAlbums = releaseGroups
-        .filter((releaseGroup) => releaseGroup.type === 'Album')
+        .filter((releaseGroup) => {
+          if (releaseGroup.type !== 'Album') return false
+          if (
+            !Array.isArray(releaseGroup.secondaryTypes) ||
+            !releaseGroup.secondaryTypes.every((type) => typeof type === 'string')
+          ) {
+            throw new Error(
+              `MusicBrainz missing or invalid secondary types for release group ${releaseGroup.id}`,
+            )
+          }
+          return releaseGroup.secondaryTypes.length === 0
+        })
         .map((releaseGroup) => ({
           albumMbid: releaseGroup.id,
           title: releaseGroup.title,

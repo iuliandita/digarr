@@ -488,7 +488,7 @@
         "src/core/clients/listenbrainz.ts": "7e594c0f1552692257561d54ee9c8383f47e142bb336b49672fc80dffd44d4f4",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "49cfe67c04414bd514cc1d1298de74475c559766b4fbf4d1329bc14f4d3873a3",
+        "src/core/clients/musicbrainz.ts": "470f30a2e3389ed49f051d69dd8b0e594cb4dbbff611d24bff8989bc14126964",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -531,7 +531,7 @@
         "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "1cd1e0124fa698c7f54a5ebc6dea64ef200e850b7cd2da9d7f96b3c251ec02ab",
-        "src/core/library/album-coverage.ts": "4ffd22653079a71a84c1b4201b0168516cff29c7740e688e3e72d4780950f7ad",
+        "src/core/library/album-coverage.ts": "dfef35e740be4c39428830549b4f6b39950fa549454904a699063d584b0b6c9e",
         "src/core/library/album-reconciler.ts": "2cc0bb7a657185fbc3cb9bf1a26d98c516e852c6e47a3eec9114bf97ec51afb4",
         "src/core/library/health-scheduler.ts": "f1c3595d984033933731adf26be6aa3d1998d3fa5bb7d6e6ee7b0c56a04b9a58",
         "src/core/library/health.ts": "0a1c9554db82ea7c42b14c8574d4bcd90762e1c41c3a88d3dcf301b072286f3c",
@@ -667,14 +667,14 @@
         "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "3e4b8ae511b97ae036512fc7621544daf434b159c216624cd93b8598f3f17ce5",
+      "digest": "c2e93043eb59eb1188eb3c7e0c85d652b38793042af2d7db1d743faaa894c262",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Gap-Fill awaits all coverage lookups and rejects any failed slice before marking cursors or forwarding partial candidates; document manual/subscription errors, retained result counts, retry eligibility and persistent-failure rotation tradeoff.",
-        "breaking": "Coverage failures now fail the whole Gap-Fill run instead of completing with partial or empty candidates; no selected rotation cursor advances until every lookup succeeds.",
-        "migration": "No schema migration or existing cursor repair is added. Keep normal backups; resolve provider errors and retry. Existing rotation revisits previously stamped artists. Rollback restores swallowed coverage failures.",
-        "digest": "3e4b8ae511b97ae036512fc7621544daf434b159c216624cd93b8598f3f17ce5"
+        "note": "Retain valid optional secondaryTypes in the broad shared catalog; coverage and Gap-Fill select only Album groups with an explicit empty array. Document excluded types/counts, invalid-metadata retry, additive album-list field, unchanged other consumers and rollback.",
+        "breaking": "Coverage counts and Gap-Fill selection now exclude all secondary types; Album groups with missing or malformed secondary metadata fail coverage instead of being counted. Other catalog consumers retain broad selection.",
+        "migration": "No schema migration or existing recommendation/cursor rewrite. Retain normal backups. Resolve provider metadata errors and retry; rollback restores broader coverage and counts.",
+        "digest": "c2e93043eb59eb1188eb3c7e0c85d652b38793042af2d7db1d743faaa894c262"
       }
     },
     "deployment": {

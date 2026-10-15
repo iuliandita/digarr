@@ -331,16 +331,25 @@ do not starve the event loop.
 
 For each artist, the executor calls the album-coverage engine
 (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per
-missing primary-type `Album` release group. Each carries the release-group MBID and the release year
+missing eligible primary-type `Album` release group. Each carries the release-group MBID and the release year
 as the recency signal. On develop, only a slice whose coverage lookups all succeed
 has its artists' `last_gap_check_at` stamped so the next run advances the cursor. The resulting
-recommendations fill the Albums tab with missing Album-type releases from artists
-already in the library. Secondary types are discarded, so this does not establish
-studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
+recommendations fill the Albums tab with missing studio-classified releases from artists
+already in the library. On develop, coverage requires primary type `Album` and an
+explicit empty secondary-type array; it excludes every secondary type, including
+Live, Compilation, Soundtrack and Demo. Owned excluded groups affect neither count.
+Missing or malformed metadata on an Album fails coverage for retry instead of
+treating an unknown group as studio. This relies on MusicBrainz classification,
+not evidence of recording conditions. v1.19.0 discards secondary types and counts
+every Album group ([#798](https://github.com/iuliandita/digarr/issues/798)).
+The shared client retains optional `secondaryTypes` metadata but keeps its broad
+catalog for album picking, Release Radar, reconciliation and release matching.
+Counts can decrease; existing recommendations remain. No schema migration or
+row rewrite is added; rollback restores broader coverage.
 
 On develop, the shared MusicBrainz release-group client walks sequential pages of up to 100 groups through the existing rate limiter, retains type filters and first-seen order, and deduplicates IDs. Provider counts/offsets are validated when present; without them, a short or empty page ends the read. At most 100 pages/10,000 returned groups are read. A failed required page, invalid or stalled pagination, or an unresolved end at that bound rejects the whole lookup without returning accumulated partial groups. Catalog changes can invalidate the read; it is not a snapshot. This also applies to artist album lists, release matching, reconciliation and Release Radar. v1.19.0 stops after the first page ([#796](https://github.com/iuliandita/digarr/issues/796)).
 
-On develop, Gap-Fill waits for every queued coverage lookup to settle. Any failure rejects the run with the original error before stamping any artist or handing candidates to the pipeline. The whole slice remains eligible for retry, including successful lookups whose candidates were not stored. Manual and subscription runs record the failure; subscriptions retain the previous result count and save the error. Genuine empty coverage remains successful and advances the cursor. A persistently failing artist can hold the selected slice until its lookup succeeds. v1.19.0 swallows coverage errors and marks failed artists checked ([#797](https://github.com/iuliandita/digarr/issues/797)). No schema migration or repair of old cursor values is added; retry after resolving provider errors, and allow the existing rotation to revisit previously stamped artists. Rollback restores swallowed failures. Secondary-type selection remains unchanged.
+On develop, Gap-Fill waits for every queued coverage lookup to settle. Any failure rejects the run with the original error before stamping any artist or handing candidates to the pipeline. The whole slice remains eligible for retry, including successful lookups whose candidates were not stored. Manual and subscription runs record the failure; subscriptions retain the previous result count and save the error. Genuine empty coverage remains successful and advances the cursor. A persistently failing artist can hold the selected slice until its lookup succeeds. v1.19.0 swallows coverage errors and marks failed artists checked ([#797](https://github.com/iuliandita/digarr/issues/797)). No schema migration or repair of old cursor values is added; retry after resolving provider errors, and allow the existing rotation to revisit previously stamped artists. Rollback restores swallowed failures.
 
 ### Net-new album discovery
 

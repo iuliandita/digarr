@@ -48,6 +48,7 @@ export type MBReleaseGroup = {
   id: string
   title: string
   type: string
+  secondaryTypes?: string[]
   firstReleaseDate?: string
 }
 
@@ -240,6 +241,7 @@ export function createMusicBrainzClient() {
           id: string
           title: string
           'primary-type'?: string
+          'secondary-types'?: unknown
           'first-release-date'?: string
         }>
       }>(`/release-group?${params}`)
@@ -287,6 +289,11 @@ export function createMusicBrainzClient() {
           id: group.id,
           title: group.title,
           type: group['primary-type'] ?? 'Other',
+          secondaryTypes:
+            Array.isArray(group['secondary-types']) &&
+            group['secondary-types'].every((type) => typeof type === 'string')
+              ? group['secondary-types']
+              : undefined,
           firstReleaseDate: group['first-release-date'],
         })
       }

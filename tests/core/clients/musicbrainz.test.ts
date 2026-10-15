@@ -591,6 +591,44 @@ describe('createMusicBrainzClient', () => {
       }))
     }
 
+    it('preserves secondary types across pages without narrowing the shared catalog', async () => {
+      const firstPage = groups(0, 100).map((group) => ({ ...group, 'secondary-types': [] }))
+      const laterPage = [
+        { ...groups(100, 1)[0], 'secondary-types': ['Live'] },
+        { ...groups(101, 1)[0], 'secondary-types': ['Compilation', 'Live'] },
+        { ...groups(102, 1)[0], 'primary-type': 'EP', 'secondary-types': [] },
+        ...groups(103, 1),
+      ]
+      for (const [offset, page] of [
+        [0, firstPage],
+        [100, laterPage],
+      ] as const) {
+        mockFetch.mockResolvedValueOnce(
+          makeJsonResponse({
+            'release-groups': page,
+            'release-group-count': 104,
+            'release-group-offset': offset,
+          }),
+        )
+      }
+
+      const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
+
+      expect(result).toHaveLength(104)
+      expect(result[0]).toMatchObject({ secondaryTypes: [] })
+      expect(result.slice(100)).toEqual([
+        expect.objectContaining({ id: 'rg-100', type: 'Album', secondaryTypes: ['Live'] }),
+        expect.objectContaining({
+          id: 'rg-101',
+          type: 'Album',
+          secondaryTypes: ['Compilation', 'Live'],
+        }),
+        expect.objectContaining({ id: 'rg-102', type: 'EP', secondaryTypes: [] }),
+        expect.objectContaining({ id: 'rg-103', type: 'Album' }),
+      ])
+      expect(result[103]?.secondaryTypes).toBeUndefined()
+    })
+
     it.each([0, 99, 100, 101, 200, 10_000])(
       'retrieves all %i advertised groups through the shared request queue',
       async (count) => {
@@ -749,19 +787,23 @@ describe('createMusicBrainzClient', () => {
       }
     })
 
-    it('includes a missing album after the first 100 owned albums in coverage and gap-fill', async () => {
-      const firstPage = groups(0, 100)
+    it('includes only the missing studio album after 100 owned studio albums in coverage and gap-fill', async () => {
+      const firstPage = groups(0, 100).map((group) => ({ ...group, 'secondary-types': [] }))
       mockFetch.mockResolvedValueOnce(
         makeJsonResponse({
           'release-groups': firstPage,
-          'release-group-count': 101,
+          'release-group-count': 103,
           'release-group-offset': 0,
         }),
       )
       mockFetch.mockResolvedValueOnce(
         makeJsonResponse({
-          'release-groups': groups(100, 1),
-          'release-group-count': 101,
+          'release-groups': [
+            { ...groups(100, 1)[0], 'secondary-types': [] },
+            { ...groups(101, 1)[0], 'secondary-types': ['Live'] },
+            { ...groups(102, 1)[0], 'secondary-types': ['Compilation'] },
+          ],
+          'release-group-count': 103,
           'release-group-offset': 100,
         }),
       )
