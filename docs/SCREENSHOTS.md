@@ -91,6 +91,8 @@ In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an
 
 In v1.19.0, Settings > Recommendations includes optional primary and secondary genre lists for Discover ordering and browsing.
 
+On develop, Settings > Administration asks for confirmation before uploading a selected backup. A key mismatch requires a separate **Restore Anyway** confirmation. These dialogs are not shown in the existing Settings capture; they use the shared translated confirmation dialog and existing theme styles.
+
 ## Settings > Account
 
 ![Account](screenshots/settings-account.png)

@@ -1423,6 +1423,9 @@ export const ru = {
   'admin.exporting': 'Экспорт...',
   'admin.includeCaches': 'Включить кэш',
   'admin.restoreFromBackup': 'Восстановить из копии',
+  'admin.restoreConfirmTitle': 'Восстановить резервную копию?',
+  'admin.restoreConfirmMessage':
+    'Данные, включённые в резервную копию, будут заменены. Сначала создайте резервную копию этого экземпляра. Продолжить?',
   'admin.lastAutoBackup': 'Последняя авто-копия:',
   'admin.backupDownloaded': 'Копия скачана',
   'admin.backupFailed': 'Не удалось создать копию',

@@ -1414,6 +1414,9 @@ export const nl = {
   'admin.exporting': 'Exporteren...',
   'admin.includeCaches': 'Caches opnemen',
   'admin.restoreFromBackup': 'Herstellen uit back-up',
+  'admin.restoreConfirmTitle': 'Back-up herstellen?',
+  'admin.restoreConfirmMessage':
+    'Hiermee worden de gegevens in de back-up vervangen. Maak eerst een back-up van deze instantie. Doorgaan?',
   'admin.lastAutoBackup': 'Laatste auto-back-up:',
   'admin.backupDownloaded': 'Back-up gedownload',
   'admin.backupFailed': 'Back-up maken mislukt',

@@ -1421,6 +1421,9 @@ export const ro = {
   'admin.exporting': 'Export...',
   'admin.includeCaches': 'Include cache',
   'admin.restoreFromBackup': 'Restaureaza din backup',
+  'admin.restoreConfirmTitle': 'Restaurezi backup-ul?',
+  'admin.restoreConfirmMessage':
+    'Această operațiune înlocuiește datele incluse în backup. Creează mai întâi un backup al acestei instanțe. Continui?',
   'admin.lastAutoBackup': 'Ultimul backup automat:',
   'admin.backupDownloaded': 'Backup descarcat',
   'admin.backupFailed': 'Crearea backup-ului a esuat',

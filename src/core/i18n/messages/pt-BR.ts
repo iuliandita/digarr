@@ -1419,6 +1419,9 @@ export const ptBR = {
   'admin.exporting': 'Exportando...',
   'admin.includeCaches': 'Incluir caches',
   'admin.restoreFromBackup': 'Restaurar de backup',
+  'admin.restoreConfirmTitle': 'Restaurar backup?',
+  'admin.restoreConfirmMessage':
+    'Isso substitui os dados incluídos no backup. Faça primeiro um backup desta instância. Continuar?',
   'admin.lastAutoBackup': 'Último backup automático:',
   'admin.backupDownloaded': 'Backup baixado',
   'admin.backupFailed': 'Falha ao criar backup',

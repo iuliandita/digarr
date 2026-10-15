@@ -1423,6 +1423,9 @@ export const it = {
   'admin.exporting': 'Esportazione...',
   'admin.includeCaches': 'Includi cache',
   'admin.restoreFromBackup': 'Ripristina da backup',
+  'admin.restoreConfirmTitle': 'Ripristinare il backup?',
+  'admin.restoreConfirmMessage':
+    'Questa operazione sostituisce i dati inclusi nel backup. Esegui prima un backup di questa istanza. Continuare?',
   'admin.lastAutoBackup': 'Ultimo backup automatico:',
   'admin.backupDownloaded': 'Backup scaricato',
   'admin.backupFailed': 'Creazione backup fallita',

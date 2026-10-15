@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Confirm backup replacement before uploading from the browser and include `confirm=true` in normal and forced restores. Encryption-key mismatches require a separate explicit confirmation; canceling does not submit the next restore request. Existing server safeguards, transaction behavior, and backup formats are unchanged; no schema migration is added. [#784](https://github.com/iuliandita/digarr/issues/784).
+
 - Save initial setup settings, requested Emby credentials, and requested Lidarr/Emby targets atomically, with an existing authenticated service owner and complete connection fields. Failed persistence returns an error, rolls back, and permits retry; serialized completion prevents duplicate setup targets. The browser now creates or signs into an account before the wizard. AI-only API bootstrap and environment-based setup retain their existing access and startup behavior; no schema migration is added. [#783](https://github.com/iuliandita/digarr/issues/783).
 
 - Include `DATABASE_URL_FILE` in the embedded-backend migration hint so file-backed PostgreSQL settings are cleared before restarting with PGlite. No schema, configuration precedence or authentication behavior changes; the email-schema comment also no longer describes removed OIDC email auto-linking. [#780](https://github.com/iuliandita/digarr/issues/780), [#781](https://github.com/iuliandita/digarr/issues/781).

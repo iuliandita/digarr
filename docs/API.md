@@ -1134,6 +1134,8 @@ All `/api/v1/admin/*` endpoints require admin authentication.
 Backup files use a version-1 envelope. Current exports omit `data.oidcTokens`.
 The v1.19.0 web restore dialog omits `confirm=true` and cannot restore a backup, including through its forced path ([#784](https://github.com/iuliandita/digarr/issues/784)). Use the authenticated endpoint above, with a complete destination backup and the matching encryption key.
 
+On develop, the browser requests destructive-operation confirmation before uploading the file, then sends `?confirm=true`. A key mismatch requires a second explicit confirmation before retrying the same file with `?confirm=true&force=true`. Canceling either dialog sends no restore request for that step. Cookie authentication, CSRF protection, backup validation, and restore transaction behavior are unchanged.
+
 Restore accepts an optional legacy `data.oidcTokens` array for compatibility:
 an absent or empty array is silent, while nonempty rows are never restored and
 add `Ignored 1 legacy OIDC token record.` or

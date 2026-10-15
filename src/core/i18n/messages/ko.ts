@@ -1381,6 +1381,9 @@ export const ko = {
   'admin.exporting': '내보내는 중...',
   'admin.includeCaches': '캐시 포함',
   'admin.restoreFromBackup': '백업에서 복원',
+  'admin.restoreConfirmTitle': '백업을 복원할까요?',
+  'admin.restoreConfirmMessage':
+    '백업에 포함된 데이터가 교체됩니다. 먼저 이 인스턴스를 백업하세요. 계속할까요?',
   'admin.lastAutoBackup': '마지막 자동 백업:',
   'admin.backupDownloaded': '백업 다운로드 완료',
   'admin.backupFailed': '백업 생성 실패',

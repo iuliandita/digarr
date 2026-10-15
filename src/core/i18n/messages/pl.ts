@@ -1411,6 +1411,9 @@ export const pl = {
   'admin.exporting': 'Eksportowanie...',
   'admin.includeCaches': 'Dolacz pamiec podreczna',
   'admin.restoreFromBackup': 'Przywroc z kopii',
+  'admin.restoreConfirmTitle': 'Przywrócić kopię zapasową?',
+  'admin.restoreConfirmMessage':
+    'Spowoduje to zastąpienie danych zawartych w kopii zapasowej. Najpierw utwórz kopię zapasową tej instancji. Kontynuować?',
   'admin.lastAutoBackup': 'Ostatnia automatyczna kopia:',
   'admin.backupDownloaded': 'Kopia pobrana',
   'admin.backupFailed': 'Tworzenie kopii nie powiodło się',

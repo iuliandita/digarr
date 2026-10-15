@@ -1418,6 +1418,9 @@ export const uk = {
   'admin.exporting': 'Експорт...',
   'admin.includeCaches': 'Включити кеш',
   'admin.restoreFromBackup': 'Відновити з копії',
+  'admin.restoreConfirmTitle': 'Відновити резервну копію?',
+  'admin.restoreConfirmMessage':
+    'Дані, включені до резервної копії, буде замінено. Спочатку створіть резервну копію цього екземпляра. Продовжити?',
   'admin.lastAutoBackup': 'Остання авто-копія:',
   'admin.backupDownloaded': 'Копію завантажено',
   'admin.backupFailed': 'Не вдалося створити копію',

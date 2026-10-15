@@ -1404,6 +1404,9 @@ export const tr = {
   'admin.exporting': 'Disa aktariliyor...',
   'admin.includeCaches': 'Onbellekleri dahil et',
   'admin.restoreFromBackup': 'Yedekten geri yükle',
+  'admin.restoreConfirmTitle': 'Yedek geri yüklensin mi?',
+  'admin.restoreConfirmMessage':
+    'Bu işlem, yedekte yer alan verileri değiştirir. Önce bu kurulumun yedeğini alın. Devam edilsin mi?',
   'admin.lastAutoBackup': 'Son otomatik yedek:',
   'admin.backupDownloaded': 'Yedek indirildi',
   'admin.backupFailed': 'Yedek oluşturma başarısız',

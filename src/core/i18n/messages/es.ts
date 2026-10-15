@@ -1420,6 +1420,9 @@ export const es = {
   'admin.exporting': 'Exportando...',
   'admin.includeCaches': 'Incluir cachés',
   'admin.restoreFromBackup': 'Restaurar desde copia',
+  'admin.restoreConfirmTitle': '¿Restaurar la copia de seguridad?',
+  'admin.restoreConfirmMessage':
+    'Esto reemplaza los datos incluidos en la copia de seguridad. Haz primero una copia de seguridad de esta instancia. ¿Continuar?',
   'admin.lastAutoBackup': 'Última copia automática:',
   'admin.backupDownloaded': 'Copia descargada',
   'admin.backupFailed': 'Error al crear la copia',

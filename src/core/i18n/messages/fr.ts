@@ -1419,6 +1419,9 @@ export const fr = {
   'admin.exporting': 'Exportation...',
   'admin.includeCaches': 'Inclure les caches',
   'admin.restoreFromBackup': 'Restaurer depuis la sauvegarde',
+  'admin.restoreConfirmTitle': 'Restaurer la sauvegarde ?',
+  'admin.restoreConfirmMessage':
+    "Cette opération remplace les données incluses dans la sauvegarde. Sauvegardez d'abord cette instance. Continuer ?",
   'admin.lastAutoBackup': 'Dernière sauvegarde auto :',
   'admin.backupDownloaded': 'Sauvegarde telechargee',
   'admin.backupFailed': 'Échec de la sauvegarde',

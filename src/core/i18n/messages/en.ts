@@ -1425,6 +1425,9 @@ export const en = {
   'admin.exporting': 'Exporting...',
   'admin.includeCaches': 'Include caches',
   'admin.restoreFromBackup': 'Restore from Backup',
+  'admin.restoreConfirmTitle': 'Restore backup?',
+  'admin.restoreConfirmMessage':
+    'This replaces the data included in the backup. Back up this instance first. Continue?',
   'admin.lastAutoBackup': 'Last auto-backup:',
   'admin.backupDownloaded': 'Backup downloaded',
   'admin.backupFailed': 'Failed to create backup',

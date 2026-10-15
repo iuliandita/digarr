@@ -1303,6 +1303,8 @@ export const zhCN = {
   'admin.exporting': '导出中...',
   'admin.includeCaches': '包含缓存',
   'admin.restoreFromBackup': '从备份恢复',
+  'admin.restoreConfirmTitle': '恢复备份？',
+  'admin.restoreConfirmMessage': '这将替换备份中包含的数据。请先备份此实例。是否继续？',
   'admin.lastAutoBackup': '上次自动备份:',
   'admin.backupDownloaded': '备份已下载',
   'admin.backupFailed': '创建备份失败',

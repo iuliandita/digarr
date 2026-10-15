@@ -1430,6 +1430,9 @@ export const de = {
   'admin.exporting': 'Exportiere...',
   'admin.includeCaches': 'Caches einschliessen',
   'admin.restoreFromBackup': 'Aus Backup wiederherstellen',
+  'admin.restoreConfirmTitle': 'Backup wiederherstellen?',
+  'admin.restoreConfirmMessage':
+    'Dadurch werden die im Backup enthaltenen Daten ersetzt. Erstelle zuerst ein Backup dieser Instanz. Fortfahren?',
   'admin.lastAutoBackup': 'Letztes Auto-Backup:',
   'admin.backupDownloaded': 'Backup heruntergeladen',
   'admin.backupFailed': 'Backup-Erstellung fehlgeschlagen',

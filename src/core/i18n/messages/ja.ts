@@ -1400,6 +1400,9 @@ export const ja = {
   'admin.exporting': 'エクスポート中...',
   'admin.includeCaches': 'キャッシュを含む',
   'admin.restoreFromBackup': 'バックアップから復元',
+  'admin.restoreConfirmTitle': 'バックアップを復元しますか？',
+  'admin.restoreConfirmMessage':
+    'バックアップに含まれるデータが置き換えられます。先にこのインスタンスのバックアップを作成してください。続行しますか？',
   'admin.lastAutoBackup': '最後の自動バックアップ:',
   'admin.backupDownloaded': 'バックアップをダウンロードしました',
   'admin.backupFailed': 'バックアップの作成に失敗',
