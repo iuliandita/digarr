@@ -889,6 +889,7 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
         sourceType: 'spotify-playlist',
         sourceProvider: 'spotify',
         sourceConfig: { playlistId: '37i9dQZEVXbMDoHDwVN2tF' },
+        maxArtistsPerRun: 100,
       }),
     )
   })

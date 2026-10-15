@@ -333,6 +333,8 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
    Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
 3. In Digarr, open **Settings > Connections > Your Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
 
+Spotify playlist imports on develop use the current items endpoint, which Spotify restricts to playlists owned by the connected user or playlists they collaborate on. A `403` fails the subscription run; reconnecting does not grant playlist ownership. See [pagination and artist limits](API.md#subscriptions) and [Spotify's endpoint reference](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items).
+
 ### TIDAL app setup
 
 > [!WARNING]

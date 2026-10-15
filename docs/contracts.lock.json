@@ -639,7 +639,7 @@
         "src/core/subscriptions/adapters/similar.ts": "f1d06dfce912da090dadd1f094659817165aec22a785d7d8aaa50a9b70d7790d",
         "src/core/subscriptions/adapters/spotify-charts.ts": "9820a88f49b62931189d75e983f5686d9962f2cf7b1931b8ae1289926b4aa1ad",
         "src/core/subscriptions/adapters/spotify-liked-songs.ts": "2153d1af62f9a9e94d75ba8f4fdab2eb045a96b66fe1a9fdf49ebd74c874227c",
-        "src/core/subscriptions/adapters/spotify-playlist.ts": "f37a2f5d83fa1b00be191af5753c404d86df7b0f048051631ef8189d86064351",
+        "src/core/subscriptions/adapters/spotify-playlist.ts": "e12d155118c465043d9758edadfda4c239d6b9f6483923eaf82fb6f717f16275",
         "src/core/subscriptions/adapters/spotify-shared.ts": "76a0b26cb7de95200cea81db0f49e7b431a0194bbb7b5e806579545d1ae80273",
         "src/core/subscriptions/connections.ts": "a7a26cbba2e3ab823140a71c9bc4a40cf8a698014b5f9a78f1322ed60833b59e",
         "src/core/subscriptions/dedup.ts": "f23afd2e0b4385a7e0c416ce23ae89125d16de848623fafc12eda91b2610c849",
@@ -670,14 +670,14 @@
         "src/index.ts": "3398f05402b684024810cef02066f1f4f5c0eafafea8977b75516eee664a5665",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "b75795f3ef6e57af417e64fc6334b7d8493af116026e09ca3efedc799b4c5860",
+      "digest": "14da17a34fbdd0f2e55ceae99c69a846b720cc3fbb9a11c28810d56f4dacc7ce",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Deezer subscription token and provider failures now fail recorded runs; reconnect guidance, source 503 response, empty-feed recovery, unchanged limits and refresh policy are documented, including the authentication guide. README provider link remains accurate; deployment and backup behavior are unchanged.",
+        "docs": ["README.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed Spotify playlist pagination, saved distinct-artist caps, sparse page windows, local-file metadata, owner/collaborator access, 20-page incomplete-read failures and Job History behavior. Updated README, API, authentication, operations, roadmap and changelog; no UI, locale, screenshot or Unraid companion change.",
         "breaking": "none",
-        "migration": "No database schema or stored-data migration; existing subscriptions use the same owner, feed configuration and limits.",
-        "digest": "b75795f3ef6e57af417e64fc6334b7d8493af116026e09ca3efedc799b4c5860"
+        "migration": "No schema or stored-data migration; existing subscription owners, saved caps and import defaults are retained.",
+        "digest": "14da17a34fbdd0f2e55ceae99c69a846b720cc3fbb9a11c28810d56f4dacc7ce"
       }
     },
     "deployment": {
