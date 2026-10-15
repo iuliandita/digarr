@@ -160,7 +160,7 @@
         "src/db/queries/dashboard.ts": "61f6f7a54bd99be90b9305b3348844948b281d44fb90d020a68bdaf5d809c3d7",
         "src/db/queries/gap-fill.ts": "a892a9108aaef2e231e02ec5453c2875b90fad105e660287101f4e5f601c8b50",
         "src/db/queries/genres.ts": "0f143655c07c8ea6d1d006cff284025c1ab3744be0cfde25116673dafbb894ba",
-        "src/db/queries/jobs.ts": "c7ad36635dcb06699d17cb3d6d0625220e329614e2755e19635bcdce45ac47b1",
+        "src/db/queries/jobs.ts": "91ac768b9a9e39871c34be0f5b20712dea3b9d8ae48f6e2b09d99b36ca811284",
         "src/db/queries/library-health.ts": "79ac771e246b86abff9e6616df15a95f07292c16a4d6a0af8c72af24b65359fe",
         "src/db/queries/oauth-pending.ts": "7857a14e93ecdf60f1d9d90e96e61844da20a22f1623efa22f71117e87607dd3",
         "src/db/queries/oauth-tokens.ts": "30c12c802d60c28e27764b40357d8f917ddfea4186594840cd234e5c7fade696",
@@ -177,19 +177,14 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "8ddc371035a5751d412e7a7e2fba6b07d934f66419887d8713e04c1e0e925f63",
+      "digest": "54a79efe8f66d80d0902fe22a31d751f6291f50ac017516e7e359ec35a5b78d2",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Remote playlist bindings are persistent recovery state, included in default snapshots and backend copies with both parent dependencies. Older JSON without bindings cannot cascade through populated omitted bindings, even forced. Migration 0053 changes no remote services; restoring old knowledge cannot undo remote writes.",
-        "breaking": "Existing-schema automatic snapshots fail closed when the new table is absent.",
-        "migration": "Take and verify a native consistent backup, retain its encryption key and previous image, explicitly set DIGARR_AUTO_BACKUP=false only for this understood upgrade, then re-enable it. Exact rollback restores that matching native backup into a separate database with the previous image; old images can resume duplicate remote creation.",
-        "digest": "8ddc371035a5751d412e7a7e2fba6b07d934f66419887d8713e04c1e0e925f63"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed source-health aggregation: only ok/error attempts count inside unchanged 20-run/24-hour pipeline and quick-discover sample; skip-only sources are omitted and recorded reasons remain in Job History. API/operations/changelog explain thresholds and historical behavior. Read-only summary change: schema, stored records, backup/restore, migrations, README architecture claims, UI strings/layout/theme/locales and deployment/companion contracts remain unaffected; no screenshots needed.",
+        "breaking": "none",
+        "migration": "No schema or data migration; existing job records are interpreted at read time. Rollback restores prior skip-as-failure summaries without changing persisted jobs or backups.",
+        "digest": "54a79efe8f66d80d0902fe22a31d751f6291f50ac017516e7e359ec35a5b78d2"
       }
     },
     "configuration": {

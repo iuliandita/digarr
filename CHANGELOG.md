@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Exclude skipped discovery sources from System Health failure rates. Count only successful and failed attempts in the existing recent-run sample, omit skip-only sources, and retain skip reasons in Job History. Stored jobs, schema, and backups are unchanged. [#769](https://github.com/iuliandita/digarr/issues/769).
+
 - Generate separate digest-bound signed container SBOMs for Alpine and Debian at both registries, with explicit amd64 inventory scope. Publish both inventories and the source SBOM after both image variants succeed. Existing releases are not backfilled; signed publication still needs verification at the next release. [#768](https://github.com/iuliandita/digarr/issues/768).
 
 - Wire playlist `local` priority to the owner's connected Jellyfin, Emby, Subsonic/Navidrome, and Plex libraries with saved user/library/section filters. Try local connections before configured catalog fallbacks, retain only exact-artist tracks with real file paths, and preserve API defaults. Paths do not prove player access or playback. Honor the saved TLS setting for Jellyfin, Emby, and Subsonic. No migration is added. [#767](https://github.com/iuliandita/digarr/issues/767), [#828](https://github.com/iuliandita/digarr/issues/828).

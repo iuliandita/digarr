@@ -231,6 +231,7 @@ export async function getJobHealth(
     const results = row.sourceResults as Record<string, SourceResult> | null
     if (!results) continue
     for (const [source, result] of Object.entries(results)) {
+      if (result.status !== 'ok' && result.status !== 'error') continue
       if (!sourceCounts[source]) sourceCounts[source] = { ok: 0, total: 0 }
       sourceCounts[source].total++
       if (result.status === 'ok') sourceCounts[source].ok++
