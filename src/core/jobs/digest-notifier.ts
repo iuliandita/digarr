@@ -18,10 +18,11 @@ export type DigestNotifierDeps = {
     event: 'digest',
     payload: WebhookPayload,
   ) => Promise<DispatchResult[]>
-  /** Read the persisted last-sent bookmark; null = never sent. */
-  getLastSentAt: () => Promise<Date | null>
-  /** Persist the bookmark after a covered window (sent OR zero-activity). */
-  setLastSentAt: (at: Date) => Promise<void>
+  initializeDeliveryPositions: (channelIds: string[]) => Promise<Record<string, string | null>>
+  getDeliveryPositions: () => Promise<Record<string, string | null>>
+  setDeliveryPosition: (channelId: string, at: Date) => Promise<void>
+  /** Shared across scheduler replacements to keep an unfinished tick exclusive. */
+  inFlight?: { running: boolean }
 }
 
 /**
@@ -60,72 +61,91 @@ function windowLabel(windowMs: number, t: ReturnType<typeof createTranslator>): 
     : t('notifications.digest.window.day')
 }
 
-/**
- * Start the scheduled notification digest. Modeled on `startStuckDetector`:
- * one Cron, body wrapped in try/catch. Reads prefs each fire so the digest can
- * be toggled at runtime. No-ops when `digestCron` is unset or no channel is
- * subscribed to `digest`; a zero-activity window sends nothing but still
- * advances the bookmark.
- * Returns null when no cron is configured at boot (digest disabled).
- */
+/** Start the digest schedule after initializing existing channel positions, even when disabled. */
 export async function startDigestNotifier(deps: DigestNotifierDeps): Promise<Cron | null> {
+  const channels = await deps.getChannels()
+  await deps.initializeDeliveryPositions([
+    ...new Set((channels ?? []).map((channel) => channel.id)),
+  ])
   const cronExpr = await deps.getDigestCron()
   if (!cronExpr) return null
 
+  const inFlight = deps.inFlight ?? { running: false }
   return new Cron(cronExpr, async () => {
-    if (isMaintenance()) {
-      console.log('[digest-notifier] tick skipped: maintenance in progress')
-      return
-    }
+    if (inFlight.running) return
+    inFlight.running = true
     try {
-      const [liveCron, channels] = await Promise.all([deps.getDigestCron(), deps.getChannels()])
-      const digestChannels = (channels ?? []).filter(
-        (c) => c.enabled && c.events.includes('digest'),
-      )
-      if (!liveCron || digestChannels.length === 0) return
-
-      const now = new Date()
-      const lastSentAt = await deps.getLastSentAt()
-      // A bookmark in the future (clock skew, restored backup) falls back to
-      // the cron window rather than producing a negative range.
-      const since =
-        lastSentAt && lastSentAt.getTime() < now.getTime()
-          ? lastSentAt
-          : new Date(now.getTime() - windowMsFromCron(liveCron, now))
-      const windowMs = now.getTime() - since.getTime()
-      const stats = await deps.getStats(since)
-
-      if (stats.discovered === 0 && stats.added === 0 && stats.runs === 0) {
-        await deps.setLastSentAt(now)
+      if (isMaintenance()) {
+        console.log('[digest-notifier] tick skipped: maintenance in progress')
         return
       }
-
-      const t = createTranslator('en')
-      const label = windowLabel(windowMs, t)
-      const message = t(
-        'notifications.digest.message',
-        label,
-        String(stats.discovered),
-        String(stats.added),
-        String(stats.runs),
+      const [liveCron, liveChannels] = await Promise.all([deps.getDigestCron(), deps.getChannels()])
+      if (!liveCron) return
+      const idCounts = new Map<string, number>()
+      for (const channel of liveChannels ?? []) {
+        idCounts.set(channel.id, (idCounts.get(channel.id) ?? 0) + 1)
+      }
+      const digestChannels = (liveChannels ?? []).filter(
+        (channel) => channel.enabled && channel.events.includes('digest'),
       )
+      if (digestChannels.length === 0) return
 
-      const results = await deps.dispatch(digestChannels, 'digest', {
-        event: 'digest',
-        window: label,
-        stats,
-        message,
-        timestamp: new Date().toISOString(),
-      })
-      // Advance the bookmark only when at least one channel accepted the
-      // digest. If every channel failed, leave it so the next fire re-covers
-      // the window (at-least-once). dispatch never rejects, so failures are
-      // reported as ok:false results, not thrown errors.
-      if (results.some((r) => r.ok)) {
-        await deps.setLastSentAt(now)
+      await deps.initializeDeliveryPositions([...idCounts.keys()])
+      const now = new Date()
+      const positions = await deps.getDeliveryPositions()
+      for (const channel of digestChannels) {
+        if (idCounts.get(channel.id) !== 1) {
+          console.error('[digest-notifier] Duplicate channel ID skipped:', channel.id)
+          continue
+        }
+        try {
+          const position = Object.hasOwn(positions, channel.id) ? positions[channel.id] : null
+          const saved = position ? new Date(position) : null
+          const valid =
+            saved && Number.isFinite(saved.getTime()) && saved.getTime() <= now.getTime()
+          if (valid && saved.getTime() === now.getTime()) continue
+          const since = valid ? saved : new Date(now.getTime() - windowMsFromCron(liveCron, now))
+          // Keep a first failed window stable across retries and process restarts.
+          if (!valid) await deps.setDeliveryPosition(channel.id, since)
+          const stats = await deps.getStats(since)
+          if (stats.discovered === 0 && stats.added === 0 && stats.runs === 0) {
+            await deps.setDeliveryPosition(channel.id, now)
+            continue
+          }
+
+          const t = createTranslator('en')
+          const label = windowLabel(now.getTime() - since.getTime(), t)
+          const results = await deps.dispatch([channel], 'digest', {
+            event: 'digest',
+            window: label,
+            stats,
+            message: t(
+              'notifications.digest.message',
+              label,
+              String(stats.discovered),
+              String(stats.added),
+              String(stats.runs),
+            ),
+            timestamp: now.toISOString(),
+          })
+          const result = results[0]
+          // A crash after remote acceptance can replay this channel's window.
+          if (
+            results.length === 1 &&
+            result?.id === channel.id &&
+            result.type === channel.type &&
+            result.ok === true
+          ) {
+            await deps.setDeliveryPosition(channel.id, now)
+          }
+        } catch (err: unknown) {
+          console.error('[digest-notifier] Channel failed:', channel.id, err)
+        }
       }
     } catch (err: unknown) {
       console.error('[digest-notifier] Failed:', err)
+    } finally {
+      inFlight.running = false
     }
   })
 }

@@ -332,7 +332,7 @@ export const ru = {
   'discover.rejectAll': 'Отклонить все',
   'discover.rejectAllBelow': 'Отклонить все ниже',
   'discover.auditionAll': 'Прослушать',
-  'discover.nothingToAudition': 'Нет ожидающих элементов с предпросмотром',
+  'discover.nothingToAudition': 'Нет ожидающих рекомендаций',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',
@@ -478,8 +478,11 @@ export const ru = {
   'playlist.deleteFailed': 'Не удалось удалить плейлист',
   'playlist.deleteWarning': 'Удалить этот плейлист? Это действие нельзя отменить.',
   'playlist.deletedNamed': 'Плейлист удалён',
-  'playlist.detailHint':
-    'Этот плейлист создан на основе ваших одобренных рекомендаций. Нажмите «Создать сейчас», чтобы обновить его новыми подборками, загрузить в формате M3U или XSPF или добавить целевой список воспроизведения, чтобы автоматически отправлять будущие запуски в Navidrome, Jellyfin или Plex.',
+  'playlist.detailHint': 'Создайте этот плейлист из одобренных рекомендаций.',
+  'playlist.detailAuditionHint':
+    'Создайте этот плейлист из ожидающих исполнителей, чтобы послушать их перед одобрением.',
+  'playlist.detailActionsHint':
+    'После создания скачайте треки в формате M3U или XSPF либо добавьте цель плейлиста, чтобы автоматически отправлять будущие подборки в Navidrome, Jellyfin или Plex.',
   'playlist.disable': 'Отключить плейлист',
   'playlist.download': 'Скачать',
   'playlist.downloadFailed': 'Не удалось загрузить плейлист',
@@ -1196,6 +1199,8 @@ export const ru = {
     'Используется, когда сервер метаданных Lidarr недоступен. По умолчанию api.musicinfo.pro. Укажите URL своего экземпляра hearring-aid, если вы самостоятельно его разворачиваете.',
   'settings.recommendationsSaved': 'Настройки рекомендаций сохранены',
   'settings.recommendationsFailed': 'Не удалось сохранить настройки',
+  'settings.recommendationsPartiallySaved':
+    'Личные настройки сохранены, но не удалось сохранить глобальные настройки метаданных.',
   'settings.scheduleTip':
     'Установите cron-расписание для автоматического запуска конвейера. Популярный выбор - каждый понедельник.',
   'settings.librarySyncInterval': 'Синхронизация библиотеки',
@@ -1420,6 +1425,9 @@ export const ru = {
   'admin.exporting': 'Экспорт...',
   'admin.includeCaches': 'Включить кэш',
   'admin.restoreFromBackup': 'Восстановить из копии',
+  'admin.restoreConfirmTitle': 'Восстановить резервную копию?',
+  'admin.restoreConfirmMessage':
+    'Данные, включённые в резервную копию, будут заменены. Сначала создайте резервную копию этого экземпляра. Продолжить?',
   'admin.lastAutoBackup': 'Последняя авто-копия:',
   'admin.backupDownloaded': 'Копия скачана',
   'admin.backupFailed': 'Не удалось создать копию',
@@ -1651,6 +1659,7 @@ export const ru = {
   'errors.recommendation.notFound': 'Рекомендация не найдена',
   'errors.subscription.notFound': 'Подписка не найдена',
   'errors.playlist.notFound': 'Плейлист не найден',
+  'errors.playlist.busy': 'Создание плейлиста или восстановление экспорта уже выполняется',
   'settings.channels.title': 'Уведомления',
   'settings.channels.description':
     'Отправляйте уведомления о завершении сканирования и сводки в один или несколько каналов.',

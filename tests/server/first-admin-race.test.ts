@@ -55,6 +55,7 @@ function userRow(overrides: Partial<Record<string, unknown>> = {}) {
     preferredLocale: null,
     email: null,
     oidcSubject: null,
+    oidcIssuer: null,
     authProvider: 'local',
     listenbrainzUsername: null,
     listenbrainzToken: null,
@@ -146,7 +147,7 @@ function makeRegisterDeps(overrides: Partial<AppDependencies> = {}): AppDependen
     },
     runSubscription: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),
@@ -381,6 +382,7 @@ describe('first-admin race: oidc callback', () => {
       handleCallback: vi.fn(async () => ({
         purpose: { kind: 'login' as const },
         claims: {
+          iss: 'https://idp.example.com',
           sub: 'oidc-sub-xyz',
           email: 'bob@example.com',
           emailVerified: true,
@@ -397,7 +399,7 @@ describe('first-admin race: oidc callback', () => {
     const service = makeOidcService()
     const deps = {
       getOidcService: vi.fn(async () => service),
-      getUserByOidcSubject: vi.fn(async () => null),
+      getUserByOidcIdentity: vi.fn(async () => null),
       getUserByEmail: vi.fn(async () => null),
       getUserByUsername: vi.fn(async () => null),
       getUserCredentialsById: vi.fn(async () => null),

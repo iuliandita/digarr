@@ -327,6 +327,7 @@ async function approveAlbumToTargets(
 
   const targetActions: Record<string, unknown> = {}
   let anySuccess = false
+  let anyLidarrSuccess = false
   let lidarrError: string | undefined
 
   for (const target of actionableTargets) {
@@ -387,12 +388,13 @@ async function approveAlbumToTargets(
     }
     if (result.success) {
       anySuccess = true
+      if (target.type === 'lidarr') anyLidarrSuccess = true
     } else if (target.type === 'lidarr') {
       lidarrError = result.error
     }
   }
 
-  const status = anySuccess ? 'added_to_lidarr' : 'add_failed'
+  const status = anyLidarrSuccess ? 'added_to_lidarr' : anySuccess ? 'approved' : 'add_failed'
   // lidarrArtistId stays undefined: the album path returns the Lidarr ALBUM id,
   // wrong semantics for lidarr_artist_id (it's kept in targetActions instead).
   return { status, targetActions, lidarrArtistId: undefined, lidarrError }
@@ -559,10 +561,11 @@ export function recommendationRoutes(deps: AppDependencies) {
     const userId = c.get('userId')
     const history = await deps.getFeedbackHistory(userId)
     const summary = [...history.entries()]
-      .map(([genre, { approved, total }]) => ({
+      .map(([genre, { approved, rejected = 0, total }]) => ({
         genre,
         approved,
-        rejected: total - approved,
+        rejected,
+        other: total - approved - rejected,
         total,
         rate: total > 0 ? approved / total : 0,
       }))
@@ -849,8 +852,13 @@ export function recommendationRoutes(deps: AppDependencies) {
     if (targetId && effectiveTargets.length === 0) {
       return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
     }
-    if (targetId && !effectiveTargets.some((t) => t.capabilities?.includes('addArtist'))) {
-      return c.json({ error: `Target does not support artist approval: ${targetId}` }, 400)
+    if (
+      targetId &&
+      !effectiveTargets.some(
+        (t) => t.capabilities?.includes('addArtist') || t.capabilities?.includes('addAlbum'),
+      )
+    ) {
+      return c.json({ error: `Target does not support recommendation approval: ${targetId}` }, 400)
     }
 
     const addOptions = await buildAddOptions(deps, userId, undefined, {
@@ -872,14 +880,30 @@ export function recommendationRoutes(deps: AppDependencies) {
         continue
       }
 
-      const result = await approveToTargets(
-        { mbid: rec.artist.mbid, name: rec.artist.name },
-        effectiveTargets,
-        addOptions,
-        deps.jobRecorder,
-        userId,
-        id,
-      )
+      const result: ApproveResult =
+        rec.kind === 'album'
+          ? rec.recommendedReleaseGroupId
+            ? await approveAlbumToTargets(
+                {
+                  artistMbid: rec.artist.mbid,
+                  artistName: rec.artist.name,
+                  releaseGroupMbid: rec.recommendedReleaseGroupId,
+                },
+                effectiveTargets,
+                addOptions,
+                deps.jobRecorder,
+                userId,
+                id,
+              )
+            : { status: 'add_failed', targetActions: {} }
+          : await approveToTargets(
+              { mbid: rec.artist.mbid, name: rec.artist.name },
+              effectiveTargets,
+              addOptions,
+              deps.jobRecorder,
+              userId,
+              id,
+            )
 
       const extra: Record<string, unknown> = { targetActions: result.targetActions }
       if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId

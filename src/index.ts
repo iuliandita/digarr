@@ -2,7 +2,6 @@ import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { canAutoSetup, envConfig } from './config/env'
-import { hashPassword } from './core/auth'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
@@ -13,7 +12,6 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
 import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
-import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
 import { createTidalClient } from './core/clients/tidal'
 import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './core/crypto'
@@ -38,6 +36,7 @@ import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
 import { dispatch } from './core/notifications'
+import { bootstrapInitialAdmin } from './core/ops/initial-admin'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -46,8 +45,10 @@ import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
-import { pushPlaylistToTargets } from './core/playlists/export'
+import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
+import { withPlaylistLock } from './core/playlists/generation-lock'
 import { generatePlaylist } from './core/playlists/generator'
+import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
 import { createDiscogsSource } from './core/plugins/discogs'
@@ -158,7 +159,16 @@ import {
 } from './db/queries/recommendations'
 import { sessionQueries } from './db/queries/sessions'
 import type { SetupConfig } from './db/queries/settings'
-import { completeSetup, getSettings, isSetupComplete, updateSettings } from './db/queries/settings'
+import {
+  completeSetup,
+  getDigestDeliveryPositions,
+  getSettings,
+  initializeDigestDeliveryPositions,
+  isSetupComplete,
+  setDigestDeliveryPosition,
+  updateSettings,
+} from './db/queries/settings'
+import { completeSetupWithServices } from './db/queries/setup'
 import {
   createSlskdJob,
   findActiveSlskdJobByWorkKey,
@@ -188,10 +198,9 @@ import {
 import {
   createUser,
   deleteUser,
-  FirstUserRequiredError,
   getUserByEmail,
   getUserById,
-  getUserByOidcSubject,
+  getUserByOidcIdentity,
   getUserByUsername,
   getUserConnections,
   getUserCount,
@@ -245,6 +254,19 @@ await runPreFlightCheck(db)
 // Idempotent; selects the migrator matching the active backend.
 await runMigrations()
 console.log('Database migrations applied')
+
+try {
+  await bootstrapInitialAdmin(db, envConfig)
+} catch {
+  console.error(
+    'Initial admin bootstrap failed. On first boot, set both DIGARR_INITIAL_USERNAME and DIGARR_INITIAL_PASSWORD with a password of at least 12 characters. Verify database availability before restarting.',
+  )
+  try {
+    await closeDb()
+  } finally {
+    process.exit(1)
+  }
+}
 
 // Wire up DB-backed session store after migrations are applied.
 setSessionStore(sessionQueries(db))
@@ -334,7 +356,7 @@ const storeDb: StoreDb = {
       await insertRecommendation(tx, { ...recData, artistId: row.id })
     })
   },
-  getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
+  getRejectedMbids: (cooldownDays, userId) => getRejectedArtistMbids(db, cooldownDays, userId),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
@@ -659,13 +681,15 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     // Best-effort: discovery mode runs should still work without Spotify.
   }
 
-  const autoApproveDeps = {
+  const autoApproveDeps: import('./core/pipeline/auto-approve').AutoApproveDeps = {
     getRecommendationsByBatch: async (batchId: number) => {
       const result = await listRecommendations(db, { batchId, limit: 1000 })
       return result.items.map((recommendation) => ({
         id: recommendation.id,
         score: recommendation.score,
         status: recommendation.status,
+        kind: recommendation.kind,
+        recommendedReleaseGroupId: recommendation.recommendedReleaseGroupId,
         artist: {
           mbid: recommendation.artist.mbid,
           name: recommendation.artist.name,
@@ -673,6 +697,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       }))
     },
     getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
+    userId,
     updateRecommendationStatus: (
       id: number,
       status: string,
@@ -837,7 +862,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
         )
       : null
 
-  const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
+  const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays, sub.userId)
   const blockedMbids = sub.userId ? await storeDb.getBlockedMbids(sub.userId) : new Set<string>()
   const feedbackHistory = sub.userId
     ? await storeDb.getFeedbackHistory(sub.userId)
@@ -902,14 +927,17 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
       }
     }
 
-    // Deezer adapter - only if the user has a stored OAuth token
-    if (userId !== null && userId !== undefined) {
-      const deezerOAuthRow = await getOAuthToken(db, userId, 'deezer')
-      if (isConnectedToken(deezerOAuthRow)) {
-        const getToken = () => resolveProviderToken(db, userId, 'deezer')
-        adapterRegistry.register(createDeezerAdapter({ getToken }))
-      }
-    }
+    // Keep disconnected subscriptions runnable so the failure reaches Job History.
+    adapterRegistry.register(
+      createDeezerAdapter({
+        getToken: async () => {
+          if (userId === null || userId === undefined) {
+            throw new Error('Deezer subscription has no owner; recreate it under your account')
+          }
+          return resolveProviderToken(db, userId, 'deezer')
+        },
+      }),
+    )
 
     setCachedAdapterRegistry(userId ?? null, adapterRegistry)
   }
@@ -1005,29 +1033,11 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   )
 }
 
-async function buildPlaylistResolverDeps(userId: number | null) {
-  const mbClient = createMusicBrainzClient()
-  const deezerClient = createDeezerClient()
-  const resolverDeps: import('./core/playlists/types').TrackResolverDeps = {
-    musicbrainzRecordings: (artistMbid) => mbClient.getRecordings(artistMbid),
-    deezerSearch: (query, limit = 10) => deezerClient.searchTracks(query, limit),
-  }
-
-  if (userId != null) {
-    const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
-    if (spotifyOAuthRow) {
-      resolverDeps.spotifySearch = async (query, limit = 10) => {
-        const accessToken = await resolveProviderToken(db, userId, 'spotify')
-        const client = createSpotifyClient(accessToken)
-        return client.searchTracks(query, limit)
-      }
-    }
-  }
-
-  return resolverDeps
+async function executePlaylistGeneration(playlistId: number): Promise<void> {
+  return withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId))
 }
 
-async function executePlaylistGeneration(playlistId: number): Promise<void> {
+async function generatePlaylistContents(playlistId: number): Promise<void> {
   let jobId: number | null = null
 
   const result = await getPlaylistWithTracks(db, playlistId)
@@ -1050,16 +1060,10 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
     })
 
     const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
-    const resolverDeps = await buildPlaylistResolverDeps(playlist.userId ?? null)
-    const cfg = playlist.config ?? { size: 25, trackSourcePriority: ['spotify' as const] }
+    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId ?? null)
     const generation = await generatePlaylist(
       playlist.strategy as import('./db/schema').PlaylistStrategy,
-      {
-        size: cfg.size,
-        genre: cfg.genre,
-        mood: cfg.mood,
-        trackSourcePriority: cfg.trackSourcePriority,
-      },
+      playlist.config,
       strategyDeps,
       resolverDeps,
     )
@@ -1103,7 +1107,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
         spotifyUri: track.spotifyUri ?? undefined,
       }))
 
-      const targets: DestinationTarget[] = []
+      const targets: Array<{ targetId: number; target: DestinationTarget }> = []
       for (const targetRow of enabledTargetRows) {
         let target: DestinationTarget | null = null
 
@@ -1140,10 +1144,15 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
           })
         }
 
-        if (target?.createPlaylist) targets.push(target)
+        if (target?.createPlaylist) targets.push({ targetId: targetRow.id, target })
       }
 
-      await pushPlaylistToTargets(targets, playlist.name, playlistItems)
+      await pushSavedPlaylistToTargets(
+        targets,
+        playlist.name,
+        playlistItems,
+        createSavedPlaylistExportStore(db, userId, playlist.id),
+      )
     }
 
     console.log(
@@ -1205,6 +1214,8 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   })
 }
 
+const digestDeliveryInFlight = { running: false }
+
 function buildDigestDeps() {
   return {
     getDigestCron: async () => mergePreferences((await getSettings(db))?.preferences).digestCron,
@@ -1212,8 +1223,12 @@ function buildDigestDeps() {
       decryptChannelSecrets(mergePreferences((await getSettings(db))?.preferences).channels ?? []),
     getStats: (since: Date) => jobQueries.getDigestStats(db, since),
     dispatch,
-    getLastSentAt: async () => (await getSettings(db))?.digestLastSentAt ?? null,
-    setLastSentAt: (at: Date) => updateSettings(db, { digestLastSentAt: at }),
+    initializeDeliveryPositions: (channelIds: string[]) =>
+      initializeDigestDeliveryPositions(db, channelIds),
+    getDeliveryPositions: () => getDigestDeliveryPositions(db),
+    setDeliveryPosition: (channelId: string, at: Date) =>
+      setDigestDeliveryPosition(db, channelId, at),
+    inFlight: digestDeliveryInFlight,
   }
 }
 
@@ -1271,7 +1286,7 @@ const app = createApp({
   isSetupComplete: () => isSetupComplete(db),
   getSettings: () => getSettings(db),
   updateSettings: (partial) => updateSettings(db, partial),
-  completeSetup: (config) => completeSetup(db, config),
+  completeSetup: (config, services) => completeSetupWithServices(db, config, services),
   getLastBatch: async () => {
     const batches = await listBatches(db)
     return batches[0] ?? null
@@ -1317,7 +1332,7 @@ const app = createApp({
   updateUserPreferredLocale: (id, preferredLocale) =>
     updateUserPreferredLocale(db, id, preferredLocale),
   getOidcService,
-  getUserByOidcSubject: (subject) => getUserByOidcSubject(db, subject),
+  getUserByOidcIdentity: (issuer, subject) => getUserByOidcIdentity(db, issuer, subject),
   getUserByEmail: (email) => getUserByEmail(db, email),
   updateUser: (id, data) => updateUser(db, id, data),
   listUsers: (opts?: Parameters<typeof listUsers>[1]) => listUsers(db, opts),
@@ -1442,7 +1457,7 @@ const app = createApp({
 const port = envConfig.port
 const server = serve({ fetch: app.fetch, port })
 
-// Auto-complete setup from env vars, then bootstrap user, then start scheduler
+// Auto-complete setup from env vars, then start scheduler
 ;(async () => {
   try {
     const done = await isSetupComplete(db)
@@ -1461,33 +1476,6 @@ const server = serve({ fetch: app.fetch, port })
       }
       await completeSetup(db, config)
       console.log('Setup auto-completed from environment variables')
-    }
-
-    // Bootstrap initial admin user from env vars if no users exist
-    const { initialUsername, initialPassword } = envConfig
-    if (initialUsername && initialPassword) {
-      if (initialPassword.length < 12) {
-        console.error(
-          'DIGARR_INITIAL_PASSWORD must be at least 12 characters - skipping user creation',
-        )
-      } else {
-        const count = await getUserCount(db)
-        if (count === 0) {
-          const passwordHash = hashPassword(initialPassword)
-          try {
-            await createUser(
-              db,
-              { username: initialUsername, passwordHash },
-              { bootstrap: 'first-user-only' },
-            )
-            console.log(
-              `Initial admin user "${initialUsername}" created from environment variables`,
-            )
-          } catch (err) {
-            if (!(err instanceof FirstUserRequiredError)) throw err
-          }
-        }
-      }
     }
 
     const settingsBeforeMigration = await getSettings(db)

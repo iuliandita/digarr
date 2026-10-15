@@ -18,6 +18,7 @@ describe('createSubsonicSource()', () => {
       ]),
       getAllArtists: vi.fn().mockResolvedValue([]),
       getAlbumsForArtist: vi.fn().mockResolvedValue([]),
+      searchTracks: vi.fn().mockResolvedValue([]),
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
     }
     vi.mocked(createSubsonicClient).mockReturnValue(client)

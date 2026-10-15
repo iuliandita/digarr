@@ -10,6 +10,7 @@ import pg from 'pg'
 import { envConfig } from '@/config/env'
 import { getPgliteDataDir } from '@/db/backend'
 import * as schema from '@/db/schema'
+import { postgresConnectionOptions } from './postgres-options'
 
 const MIGRATIONS_FOLDER = path.join(process.cwd(), 'drizzle')
 
@@ -126,12 +127,13 @@ export async function connectTarget(spec: MigrationTargetSpec): Promise<TargetCo
       : envConfig.dbSslMode === 'no-verify'
         ? { rejectUnauthorized: false }
         : undefined
-  const pool = new pg.Pool({
-    connectionString: spec.dsn,
-    max: 4,
-    connectionTimeoutMillis: envConfig.dbConnectTimeoutMs ?? 10_000,
-    ssl,
-  })
+  const pool = new pg.Pool(
+    postgresConnectionOptions(spec.dsn, {
+      max: 4,
+      connectionTimeoutMillis: envConfig.dbConnectTimeoutMs ?? 10_000,
+      ssl,
+    }),
+  )
   const db = drizzlePg(pool, { schema })
   return {
     backend: 'postgres',

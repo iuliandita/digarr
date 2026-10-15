@@ -95,7 +95,7 @@ describe('Lidarr-optional setup', () => {
     expect(res.status).toBe(400)
   })
 
-  it('creates Lidarr target when Lidarr config provided', async () => {
+  it('hands Lidarr config and owner to atomic completion', async () => {
     const app = createTestApp()
     await app.request('/api/v1/setup/complete', {
       method: 'POST',
@@ -109,11 +109,28 @@ describe('Lidarr-optional setup', () => {
         lidarrApiKey: 'abc123',
       }),
     })
-    expect(mockDeps.targetQueries.createTarget).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'lidarr',
-        config: expect.objectContaining({ url: 'http://lidarr:8686' }),
-      }),
+    expect(mockDeps.completeSetup).toHaveBeenCalledWith(
+      expect.objectContaining({ lidarrUrl: 'http://lidarr:8686', lidarrApiKey: 'abc123' }),
+      { userId: 1 },
     )
+  })
+  it.each([
+    { embyUrl: 'http://emby:8096', embyApiKey: '  ', embyUserId: 'user-1' },
+    { embyUrl: ' ', embyApiKey: ' ', embyUserId: ' ' },
+    { lidarrUrl: 'http://lidarr:8686', lidarrApiKey: '  ' },
+    { embyUrl: 'http://emby:8096' },
+    { embyUrl: 'http://emby:8096', embyApiKey: 'key' },
+    { embyUrl: 'http://emby:8096', embyUserId: 'user-1' },
+    { embyApiKey: 'key' },
+    { embyUserId: 'user-1' },
+    { embyApiKey: 'key', embyUserId: 'user-1' },
+  ])('rejects incomplete service credentials before persistence: %o', async (fields) => {
+    const res = await createTestApp().request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aiProvider: 'ollama', aiModel: 'llama3', ...fields }),
+    })
+    expect(res.status).toBe(400)
+    expect(mockDeps.completeSetup).not.toHaveBeenCalled()
   })
 })

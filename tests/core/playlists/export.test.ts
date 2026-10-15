@@ -112,20 +112,36 @@ describe('playlist export helpers', () => {
           }),
           target(2, 'jellyfin-playlist', async () => {
             attempted.push('jellyfin')
-            return { success: true, targetType: 'jellyfin-playlist', targetId: 2 }
+            return {
+              success: true,
+              targetType: 'jellyfin-playlist',
+              targetId: 2,
+              itemsAdded: 2,
+              itemsSkipped: 1,
+            }
           }),
           target(3, 'navidrome-playlist', async () => {
             attempted.push('navidrome')
             throw new Error('unreachable')
+          }),
+          target(4, 'spotify-playlist', async () => {
+            attempted.push('spotify')
+            return {
+              success: true,
+              targetType: 'spotify-playlist',
+              targetId: 4,
+              itemsAdded: 2,
+              itemsSkipped: 1,
+            }
           }),
         ],
         'Picks',
         items,
       ),
     ).rejects.toThrow(
-      'Playlist export failed: plex-playlist(1): forbidden; navidrome-playlist-3: unreachable',
+      'Playlist export failed: plex-playlist(1): forbidden; jellyfin-playlist(2): added 2, skipped 1; navidrome-playlist-3: unreachable',
     )
 
-    expect(attempted).toEqual(['plex', 'jellyfin', 'navidrome'])
+    expect(attempted).toEqual(['plex', 'jellyfin', 'navidrome', 'spotify'])
   })
 })

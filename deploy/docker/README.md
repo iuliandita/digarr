@@ -14,9 +14,11 @@ For a new single-host installation, PGlite is the simplest starting point. Choos
 
 ## Production
 
-The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). For access only from this computer, change the published port to `127.0.0.1:3000:3000`.
+The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it. In v1.19.0, the HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens; with no users, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, and existing users make these variables a no-op. For access only from this computer, change the published port to `127.0.0.1:3000:3000`. See [bootstrap recovery](../../docs/OPERATIONS.md#unattended-setup).
 
 Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Use the [protected key-generation procedure](../../docs/AUTHENTICATION.md#generate-a-new-encryption-key), then copy the value into `.env` with a trusted editor. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
+
+On develop, open the WebUI and create the first account or sign in before completing the wizard. Requested Lidarr/Emby connections and targets save atomically with setup settings; if saving fails, correct the problem and retry. A successful save does not test external service reachability. Environment-based bootstrap remains separate.
 
 ### Embedded PGlite (single container)
 
@@ -67,7 +69,7 @@ Direct HTTP exposes the session cookie to network interception.
 
 ## Back up and update
 
-Application JSON exports are partial. For complete recovery, back up the database consistently and keep the matching encryption key separately. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
+Application JSON exports preserve persistent application state, with optional artist metadata caches; they exclude sessions, pending authorizations, and schema history. For exact rollback, back up the database consistently and keep the matching encryption key separately. Required automatic-backup failures stop migrations; see the recovery guide for the explicit native-backup procedure when an older schema cannot be read. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
 
 ### Compose database backups
 
@@ -282,7 +284,7 @@ one configuration file -- `secrets/postgres_password`. PostgreSQL reads it when 
 `secrets/postgres_password.example` for the format (one line, the password
 only). File-backed Compose secrets retain host ownership and mode: the app runs as UID 1000 and must be able to read this file. If the host user differs, use `sudo chown 1000:1000 secrets/postgres_password` and keep mode `0600`; the PostgreSQL entrypoint reads it as root.
 
-An unreadable `_FILE` secret currently falls back to an unset value without reporting the file error ([#763](https://github.com/iuliandita/digarr/issues/763)). Verify the mount and UID 1000 read permission before startup. In the bundled PostgreSQL stack, an unreadable `DB_PASS_FILE` leaves PostgreSQL selected but can cause password authentication failure. An unreadable `DATABASE_URL_FILE`, without a complete `DB_HOST`/`DB_USER`/`DB_NAME` alternative, can select an empty PGlite database. Check `/health` for the intended backend when startup succeeds.
+A nonempty direct `DATABASE_URL` or `DB_PASS` takes precedence over its corresponding `_FILE` setting. Otherwise, a configured file must be readable: startup stops with a message naming the failed variable, without its path or contents. Verify the mount and UID 1000 read permission before restarting. Readable files are trimmed; empty files remain unset. This prevents unreadable database files from silently selecting another backend. Check `/health` for the intended backend when startup succeeds.
 
 For an environment-only deployment on a platform without Compose secrets, copy the Postgres base into a standalone Compose file. Set `DATABASE_URL` for `app` and `POSTGRES_PASSWORD` for `postgres`, using the same password and an appropriately URL-encoded DSN. Remove `app.environment.DB_PASS_FILE` and `postgres.environment.POSTGRES_PASSWORD_FILE`, both services' `secrets` attachments, and the top-level `secrets.postgres_password` definition. Remove any other `_FILE` settings inherited from `.env`. Validate the resulting standalone file with `docker compose -f <file> config` before starting it. Setting plain environment values alone leaves the original secret-file dependency in place.
 
@@ -292,23 +294,31 @@ For an environment-only deployment on a platform without Compose secrets, copy t
 
 ## Verifying image signatures
 
-Since v0.27.8, every release image is signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC (no long-lived keys). Signatures are stored alongside the image at both `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`. Tagged Alpine images also have a container SBOM attached as a signed SPDX attestation bound to the image digest. Debian images have signatures and build provenance, but currently lack container SPDX attestations ([#768](https://github.com/iuliandita/digarr/issues/768)).
+Since v0.27.8, release images are signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC. Signatures and build provenance are stored alongside both variants at `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`.
 
-Install cosign and verify a pulled image before running it:
+Unreleased ([#768](https://github.com/iuliandita/digarr/issues/768)): release automation generates a separate SPDX container SBOM for Alpine and Debian, scans each immutable build digest, and signs each inventory as an attestation at both registries. Each inventory covers **linux/amd64** and is attached to that variant's multi-architecture index digest; it does not establish arm64 or separate child-manifest SBOM coverage. v1.19.0 retains its Alpine-only container SBOM; this workflow change does not backfill existing releases. Nightly images have no signed SBOMs.
+
+The release assets are `sbom-container.spdx.json` (Alpine), `sbom-container-debian.spdx.json` (Debian), and `sbom-source.spdx.json` (one checkout inventory). Source inventory does not replace either container inventory. Downloaded JSON assets alone do not verify a signed attestation.
+
+Install cosign and verify the exact image digest you intend to run. Set the release tag used to publish it and select either variant's index digest, from either registry:
 
 ```sh
-# Replace <TAG> with the exact release version you pulled
-cosign verify \
-  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
-  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  'ghcr.io/iuliandita/digarr:<TAG>'
+RELEASE_TAG='vX.Y.Z'
+IMAGE='ghcr.io/iuliandita/digarr@sha256:<digest>'
 
-# Verify the signed container SBOM (Alpine images only)
+cosign verify \
+  --certificate-identity "https://github.com/iuliandita/digarr/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  "$IMAGE"
+
+# Debian requires a release containing the #768 workflow fix.
 cosign verify-attestation \
   --type spdxjson \
-  --certificate-identity-regexp '^https://github\.com/iuliandita/digarr/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-identity "https://github.com/iuliandita/digarr/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  'ghcr.io/iuliandita/digarr:<TAG>'
+  "$IMAGE"
 ```
 
-A successful verify proves the image was built by this repo's `release.yml` workflow on a tagged push. Verify the exact version or digest you intend to run. A valid signature identifies the publishing workflow; it does not guarantee that the software is free of vulnerabilities.
+For Docker Hub, use `docker.io/iuliandita/digarr@sha256:<digest>`. Alpine and Debian have different digests; select the one for your variant. Inspect the verified attestation payload's subject digest and SPDX inventory to confirm the intended image, OS packages, and amd64 scope. Keep the tag's exact workflow identity and issuer checks; do not relax them to make a failed verification pass. See [cosign verification](https://docs.sigstore.dev/cosign/verifying/verify/) for the verification contract.
+
+A successful verify identifies this repository's publishing workflow and the supplied digest. It does not guarantee that the software is free of vulnerabilities. Registry publication and signed attestations for this change still need verification during the first release containing it.

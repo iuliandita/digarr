@@ -3,8 +3,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DiscoveryModeResponse } from '@/web/lib/api'
+import type { DiscoveryModeResponse, Subscription } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -120,7 +121,12 @@ vi.mock('@/web/lib/api', () => ({
   updateSubscriptionApi: vi.fn(),
 }))
 
-import { createSubscriptionApi, getDiscoveryModes } from '@/web/lib/api'
+import {
+  createSubscriptionApi,
+  getDiscoveryModes,
+  getSubscriptions,
+  triggerSubscriptionRun,
+} from '@/web/lib/api'
 import SubscriptionsPage from '@/web/pages/subscriptions'
 
 const mockCreateSubscriptionApi = vi.mocked(createSubscriptionApi)
@@ -144,6 +150,7 @@ describe('SubscriptionsPage discovery mode support', () => {
   beforeEach(() => {
     discoveryModeProps.length = 0
     vi.clearAllMocks()
+    vi.mocked(getSubscriptions).mockResolvedValue([])
   })
 
   it('passes discovery modes into the subscription form when opening create', async () => {
@@ -163,5 +170,45 @@ describe('SubscriptionsPage discovery mode support', () => {
     )
     expect(mockGetDiscoveryModes).toHaveBeenCalled()
     expect(mockCreateSubscriptionApi).not.toHaveBeenCalled()
+  })
+
+  it('shows the persisted subscription error after a manual run fails', async () => {
+    const subscription: Subscription = {
+      id: 42,
+      name: 'Deezer favorites',
+      userId: 1,
+      enabled: true,
+      sourceType: 'deezer',
+      sourceProvider: 'deezer',
+      sourceConfig: { feedType: 'favorites' },
+      maxArtistsPerRun: 20,
+      listenerRange: null,
+      cron: '0 0 * * *',
+      action: 'recommend',
+      scoreThreshold: null,
+      scoringWeightPreset: null,
+      scoringWeightOverrides: null,
+      lastRunAt: null,
+      lastResultCount: null,
+      lastError: null,
+      createdAt: '2026-10-15T00:00:00.000Z',
+      updatedAt: '2026-10-15T00:00:00.000Z',
+    }
+    const error = 'Deezer connection expired. Reconnect your account.'
+    vi.mocked(getSubscriptions)
+      .mockResolvedValueOnce([subscription])
+      .mockResolvedValue([{ ...subscription, lastError: error }])
+    vi.mocked(triggerSubscriptionRun).mockRejectedValueOnce(new Error(error))
+
+    renderPage()
+
+    await screen.findByText(subscription.name)
+    expect(screen.queryByTitle(error)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Run now'))
+
+    expect(await screen.findByTitle(error)).toBeInTheDocument()
+    expect(triggerSubscriptionRun).toHaveBeenCalledWith(subscription.id)
+    expect(toast.error).toHaveBeenCalledWith('Failed to trigger run')
+    expect(toast.success).not.toHaveBeenCalled()
   })
 })

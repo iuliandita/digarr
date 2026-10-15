@@ -1,4 +1,4 @@
-import type { ServiceTestResult } from '@/core/types'
+import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 import {
@@ -8,9 +8,12 @@ import {
   mapAlbum,
   mapArtist,
   mapLibraryArtist,
+  mapLibraryTracks,
   mapRecentTrack,
   scopedArtistsPath,
   toMusicLibraries,
+  trackSearchLimit,
+  trackSearchPath,
 } from './media-browser'
 import { createMediaServerQueue } from './media-server-queue'
 
@@ -118,6 +121,15 @@ export function createEmbyClient(
     return (res.Items ?? []).map((item) => mapArtist(item, false))
   }
 
+  async function searchTracks(artistName: string, limit = 25): Promise<LibraryTrack[]> {
+    const boundedLimit = trackSearchLimit(limit)
+    if (!artistName.trim() || boundedLimit === 0) return []
+    const res = await get<unknown>(
+      trackSearchPath(userId, artistName, configuredLibraryId, boundedLimit),
+    )
+    return mapLibraryTracks(res, artistName, boundedLimit)
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const info = await get<{ ServerName: string; Version: string }>('/System/Info')
@@ -192,6 +204,7 @@ export function createEmbyClient(
   }
 
   return {
+    searchTracks,
     getTopArtists,
     getFavoriteArtists,
     getMusicLibraries,

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createGapFillMode } from '@/core/discovery-modes/modes/gap-fill'
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
@@ -208,5 +209,39 @@ describe('runDiscoveryMode', () => {
     expect(jobRecorder.fail).toHaveBeenCalledWith(22, 'executor blew up')
     expect(orchestrator.run).not.toHaveBeenCalled()
     expect(jobRecorder.complete).not.toHaveBeenCalled()
+  })
+
+  it('records a real gap-fill coverage failure without running the pipeline or advancing cursors', async () => {
+    const failure = new Error('MusicBrainz unavailable')
+    const markChecked = vi.fn()
+    const mode = createGapFillMode({
+      getArtistsForGapFill: vi
+        .fn()
+        .mockResolvedValue([{ id: 1, mbid: 'artist-1', name: 'Radiohead' }]),
+      markArtistsGapChecked: markChecked,
+      getCoverageForArtist: vi.fn().mockRejectedValue(failure),
+    })
+    const jobRecorder = {
+      start: vi.fn().mockResolvedValue(22),
+      complete: vi.fn(),
+      fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn(),
+      markStuck: vi.fn(),
+    }
+    const orchestrator = { run: vi.fn().mockResolvedValue({ batchId: 1 }) }
+    await expect(
+      runDiscoveryMode({
+        request: { ...makeRequest(), modeId: 'gap-fill', normalizedSettings: {} },
+        pipelineDeps: makePipelineDeps(),
+        registry: { get: () => mode } as never,
+        orchestrator: orchestrator as never,
+        jobRecorder,
+      }),
+    ).rejects.toBe(failure)
+
+    expect(jobRecorder.fail).toHaveBeenCalledWith(22, 'MusicBrainz unavailable')
+    expect(jobRecorder.complete).not.toHaveBeenCalled()
+    expect(orchestrator.run).not.toHaveBeenCalled()
+    expect(markChecked).not.toHaveBeenCalled()
   })
 })

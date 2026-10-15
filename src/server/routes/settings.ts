@@ -9,6 +9,7 @@ import {
   encryptChannelSecrets,
   maskChannelSecrets,
   restoreMaskedChannelSecrets,
+  SENSITIVE_PREFERENCES,
 } from '@/core/crypto'
 import { dispatch } from '@/core/notifications'
 import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
@@ -39,6 +40,8 @@ const SECRET_FIELDS = [
   'subsonicPassword',
   'tidalClientSecret',
 ] as const
+
+const SECRET_PREFERENCE_FIELDS = [...SENSITIVE_PREFERENCES, 'webhookUrl'] as const
 
 type SettingsResponse = Record<string, unknown>
 
@@ -161,11 +164,10 @@ function stripForNonAdmin(settings: Record<string, unknown>): SettingsResponse {
     }
   }
 
-  // Strip webhook URL and notification channels (secret-bearing) from
-  // preferences for non-admins - notification config is admin-only.
+  // Global preference secrets and notification config are admin-only.
   if (stripped.preferences && typeof stripped.preferences === 'object') {
     const prefs = { ...(stripped.preferences as Record<string, unknown>) }
-    delete prefs.webhookUrl
+    for (const field of SECRET_PREFERENCE_FIELDS) delete prefs[field]
     delete prefs.channels
     // Keep scheduleCron visible but not editable (frontend hides the tab)
     stripped.preferences = prefs
@@ -183,6 +185,7 @@ async function buildSettingsResponse(
   if (!row) return null
 
   let response: Record<string, unknown> = { ...row }
+  delete response.digestDeliveryPositions
 
   // Non-admins get a stripped view of global settings
   if (!isAdmin) {
@@ -229,15 +232,16 @@ async function buildSettingsResponse(
     }
   }
 
-  // Notification channel secrets must never leave the server (plaintext OR
-  // ciphertext). Mask them in a copied preferences object so the stored row is
-  // not mutated. Non-admins already had channels stripped above.
+  // Mask plaintext and ciphertext in a copy, preserving the stored preferences.
   if (response.preferences && typeof response.preferences === 'object') {
     const prefs = { ...(response.preferences as Record<string, unknown>) }
+    for (const field of SECRET_PREFERENCE_FIELDS) {
+      if (typeof prefs[field] === 'string' && prefs[field].length > 0) prefs[field] = '***'
+    }
     if (Array.isArray(prefs.channels)) {
       prefs.channels = maskChannelSecrets(prefs.channels as NotificationChannel[])
-      response.preferences = prefs
     }
+    response.preferences = prefs
   }
 
   return response
@@ -386,6 +390,9 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     if (incomingPrefs) {
+      for (const field of SECRET_PREFERENCE_FIELDS) {
+        if (incomingPrefs[field] === '***') delete incomingPrefs[field]
+      }
       globalFields.preferences = mergePreferenceUpdate(storedSettings?.preferences, incomingPrefs)
     }
 
@@ -576,7 +583,23 @@ export function settingsRoutes(deps: AppDependencies) {
       )
     }
 
-    const body = await c.req.json()
+    const body = await c.req.json().catch(() => null)
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+      return problem(c, 'probe-invalid-input', 'Invalid probe input', 400, 'Expected a JSON object')
+    }
+    if (
+      service === 'lidarr' &&
+      body.skipTlsVerify !== undefined &&
+      typeof body.skipTlsVerify !== 'boolean'
+    ) {
+      return problem(
+        c,
+        'probe-invalid-input',
+        'Invalid probe input',
+        400,
+        'skipTlsVerify must be a boolean',
+      )
+    }
     const testUserId = c.get('userId')
 
     // Fall back to stored credentials when the request sends empty keys
@@ -593,7 +616,8 @@ export function settingsRoutes(deps: AppDependencies) {
         if (!url || !apiKey) {
           return missingInput(`Missing ${!url ? 'URL' : 'API key'}`)
         }
-        const client = createLidarrClient(url, apiKey, body.skipTlsVerify)
+        const skipTlsVerify = body.skipTlsVerify ?? stored?.skipTlsVerify ?? false
+        const client = createLidarrClient(url, apiKey, skipTlsVerify)
         return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
       }
       case 'listenbrainz': {

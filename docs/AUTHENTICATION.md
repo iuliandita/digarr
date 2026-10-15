@@ -4,7 +4,11 @@ Digarr supports four authentication modes. Most deployments only need one.
 
 ## Users and targets
 
-Restrict first-boot access until the intended admin exists and you have verified it. Environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
+Restrict first-boot access until the intended admin exists and you have verified it. In v1.19.0, environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
+
+On develop, a configured initial admin is created after migrations and before HTTP opens. For an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` with a password of at least 12 characters, or leave both unset for manual registration. Partial credentials, a short password, or a bootstrap database failure stop startup without serving requests. Existing users make bootstrap a no-op: these variables do not create another admin, reset a password, or change roles. Keep one app instance per database; a competing first-user write causes this startup attempt to fail rather than silently skip the configured admin.
+
+The browser asks you to create the first account or sign in before opening the setup wizard. Requested Lidarr/Emby setup needs an existing authenticated owner; AI-only API bootstrap retains its existing first-run access rules. Environment-based service setup remains separate and does not delay or suppress initial-admin creation.
 
 The first user becomes admin; admins can promote additional users in Settings > Users. Concurrent first-user signups cannot create multiple bootstrap admins. Upgrading does not restore roles removed by older versions; an admin can reassign them after review.
 
@@ -199,20 +203,19 @@ Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 
-OIDC sign-ins are matched to local accounts by the raw `sub` claim stored in
-`oidcSubject`. Digarr v1.19.0 does not store the issuer alongside that subject.
-The matching order is:
+On develop, OIDC sign-ins match the exact validated ID-token issuer (`iss`) and
+subject (`sub`) stored as `oidcIssuer` and `oidcSubject`. Both values identify
+an account; the same subject from another issuer cannot select it. A new pair
+can provision a separate account under the existing OIDC provisioning rules. A
+conflicting email fails sign-in instead of linking accounts. Issuer strings
+are preserved exactly, including path and trailing slash.
 
-1. Match by stored `oidcSubject`.
-2. Fall through and auto-create a new local user (the OIDC-provided email is
-   stored on the new account).
-
-Subjects are unique within an issuer, not across providers. Keep the configured
-issuer unchanged for existing OIDC accounts. Changing it requires a reviewed
-identity migration: if the replacement provider returns a subject already stored
-in Digarr, sign-in selects that existing account. Digarr does not provide an
-automatic migration or an issuer-change guard. Track the missing issuer binding
-in [#799](https://github.com/iuliandita/digarr/issues/799).
+v1.19.0 stores only the raw subject. Migration 0054 preserves those subjects
+with a null issuer, so existing SSO bindings no longer match until an operator
+recovers them. It never guesses the old issuer from current settings, email,
+or the next sign-in. Local passwords and existing sessions remain usable;
+SSO-only accounts have no known local password. See the recovery procedure
+below before upgrading an SSO deployment.
 
 Digarr deliberately does **not** auto-link an OIDC identity to an existing
 local account by matching the `email` claim. A local account's email can be
@@ -238,7 +241,7 @@ PKCE, nonce checks, and 10-minute expiry. Pending state is held in memory, so a
 server restart requires starting again. The server records the transaction's
 purpose; a link callback cannot provision an account or create a login session.
 The final link checks the session and password proof in one database
-transaction before changing only the account's OIDC subject.
+transaction before changing only the account's OIDC issuer and subject.
 
 The callback returns to Account settings with `oidc_link=success`,
 `oidc_link=identity_in_use`, or `oidc_link=failed`. The page displays a fixed
@@ -270,6 +273,51 @@ Current codes:
 | ------------- | ------------------------------------------------------------- |
 | `config`      | Server misconfiguration (e.g., `ALLOWED_ORIGIN` not set).     |
 | `oidc_failed` | Callback processing threw (bad state, token exchange error).  |
+
+### Recovering legacy OIDC bindings
+
+Before upgrading, stop app writers, verify a native database backup by restoring
+it separately, and retain the matching encryption key and previous image. The
+current automatic snapshot cannot read the old schema without `oidc_issuer`;
+use the understood, one-upgrade `DIGARR_AUTO_BACKUP=false` override from
+[Operations](OPERATIONS.md#backup--restore), then re-enable it. Fresh databases
+need no override. Keep a working local-admin session or local login available.
+
+For each legacy account, verify its numeric user ID, exact stored subject, and
+historical issuer from trusted records or the original identity provider. The
+current configured issuer is not proof of the historical binding. If that
+identity cannot be verified, leave the account unbound and resolve ownership
+outside this command; do not merge by email or create a replacement admin.
+
+After migrations, keep the app stopped and run the helper with the same database
+configuration and mounted data as the installation. From a source checkout:
+
+```sh
+bun scripts/recover-oidc-binding.ts --user-id 7 \
+  --subject '<verified-subject>' --issuer 'https://identity.example/realms/original'
+```
+
+The default is a locked dry run. Check the reported backend, account and exact
+issuer/subject, then repeat with `--apply`. In a published image, run
+`bun dist/scripts/recover-oidc-binding.js` with those same flags; use the
+installation's Compose file set and volumes, or an equivalent stopped-workload
+maintenance container. Never point a second process at a live PGlite directory.
+The helper requires the exact legacy subject and a null issuer, rejects an
+already claimed pair, and changes only the selected issuer. Already bound
+accounts are refused, including a repeat apply. Passwords, roles, sessions,
+and other account data are unchanged. Test sign-in at the original provider
+before restoring access for users.
+
+New JSON exports and backend copies preserve exact issuer/subject pairs.
+Restoring an older JSON backup without issuer information leaves its subjects
+unbound and requires the same recovery. A composite-identity conflict aborts
+the restore transaction. Back up the destination before restoring.
+
+For rollback, stop the app and restore the previous image's matching native
+backup into a separate database. Never run an older subject-only image against
+the migrated database: it cannot distinguish issuers, and subjects can now
+repeat across issuers. Verify the original provider before enabling SSO on the
+recovered instance; post-backup writes need a separately reviewed recovery.
 
 ## Proxy auth (optional)
 
@@ -333,6 +381,8 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
    Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
 3. In Digarr, open **Settings > Connections > Your Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
 
+Spotify playlist imports on develop use the current items endpoint, which Spotify restricts to playlists owned by the connected user or playlists they collaborate on. A `403` fails the subscription run; reconnecting does not grant playlist ownership. See [pagination and artist limits](API.md#subscriptions) and [Spotify's endpoint reference](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items).
+
 ### TIDAL app setup
 
 > [!WARNING]
@@ -378,11 +428,11 @@ Deezer connection requires your own working app credentials; Digarr does not reg
 2. Set `DEEZER_APP_ID` and `DEEZER_APP_SECRET` in the deployment environment and restart Digarr. These are deployment-wide credentials, not fields accepted from the browser.
 3. Each user opens **Settings > Connections > Your Connections > Deezer** and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
 
-Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. Subscription token-resolution failures currently appear as successful empty feeds rather than authentication errors ([#774](https://github.com/iuliandita/digarr/issues/774)); reconnect when a previously populated feed unexpectedly becomes empty. Playlist feeds collect at most 500 distinct artists across the selected playlists.
+Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. On develop, missing connections, token-resolution failures and provider error responses record failed subscription runs with Settings/reconnect guidance instead of successful empty feeds. The subscription row refreshes its saved error after a failed manual run; genuine empty feeds remain successful. Check Job History and reconnect in Settings when needed before retrying ([#774](https://github.com/iuliandita/digarr/issues/774)). v1.19.0 can show these failures as empty feeds or skip disconnected subscriptions. Playlist feeds collect at most 500 distinct artists across the selected playlists.
 
 ## Rollback across the OIDC token-storage migration
 
-Stop Digarr first, and never run an older image against a database that has already received the migration. Prefer a complete, consistent pre-migration database backup for recovery. The helper below only repairs the legacy JSON shape: it does not restore omitted artists or other missing state. Default automatic JSON backups normally lack those referenced artist rows, so they cannot recover recommendations into an empty database by themselves. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery). Run the Compose commands from the existing project directory containing the Compose files (`cd deploy/docker` from a source-checkout root). Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
+Stop Digarr first, and never run an older image against a database that has already received the migration. Prefer a complete, consistent pre-migration database backup for recovery. The helper below only repairs the legacy JSON shape: it does not restore omitted artists or other missing state. Legacy v1.19.0 automatic JSON backups lack those referenced artist rows, so they cannot recover recommendations into an empty database by themselves. New exports include persistent application state and its dependencies, but a native consistent database backup is still required for exact schema rollback. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery). Run the Compose commands from the existing project directory containing the Compose files (`cd deploy/docker` from a source-checkout root). Before changing the image tag, use the same Compose file set as the installation so the `app` service runs the current image with its mounted `/app/backups` volume. For example, a PGlite installation uses:
 
 ```sh
 docker compose -f docker-compose.pglite.yml stop app

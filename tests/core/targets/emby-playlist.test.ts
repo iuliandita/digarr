@@ -181,3 +181,59 @@ describe('createEmbyPlaylistTarget', () => {
     })
   })
 })
+
+describe('Emby scheduled playlist session', () => {
+  it('uses the verified Emby identity, checkpoints creation, and replaces entries rather than audio IDs', async () => {
+    const config = { url: 'http://emby:8096', apiKey: 'emby-secret', userId: 'user-1' }
+    const fetchMock = vi.fn().mockImplementation(async (url: string, init: RequestInit) => {
+      const request = new URL(url)
+      if (request.pathname === '/System/Info') return ok({ Id: 'emby-server' })
+      if (request.pathname === '/Users/user-1') return ok({ Id: 'user-1', ServerId: 'emby-server' })
+      if (request.pathname === '/Users/user-1/Items')
+        return ok({ Items: [{ Id: 'track-1', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' }] })
+      if (request.pathname === '/Users/user-1/Items/playlist-1')
+        return ok({ Id: 'playlist-1', Type: 'Playlist', MediaType: 'Audio', Name: 'Original' })
+      if (request.pathname === '/Playlists') return ok({ Id: 'playlist-1' })
+      if (init.method === 'GET')
+        return ok({ Items: [{ Id: 'audio-1', PlaylistItemId: 'entry-1' }], TotalRecordCount: 1 })
+      return new Response(null, { status: 204 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const session = await createEmbyPlaylistTarget(9, config).openPlaylistExportSession?.([
+      { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
+    ])
+    const checkpoint = vi.fn().mockImplementation(async (id: string) => {
+      expect(id).toBe('playlist-1')
+      expect(fetchMock.mock.calls.filter(([, init]) => init.method !== 'GET')).toHaveLength(1)
+    })
+    expect(await session?.createPlaylist('Picks', checkpoint)).toMatchObject({
+      success: true,
+      playlistId: 'playlist-1',
+    })
+    expect(checkpoint).toHaveBeenCalledOnce()
+    expect(await session?.replacePlaylist('playlist-1', 'New name')).toMatchObject({
+      success: true,
+      playlistId: 'playlist-1',
+      playlistName: 'Original',
+    })
+    const writes = fetchMock.mock.calls.filter(([, init]) => init.method !== 'GET')
+    expect(writes.map(([, init]) => init.method)).toEqual(['POST', 'DELETE', 'POST'])
+    expect(new URL(writes[1]?.[0]).searchParams.get('EntryIds')).toBe('entry-1')
+    expect(new URL(writes[2]?.[0]).searchParams.get('Ids')).toBe('track-1')
+  })
+
+  it('redacts transport errors during identity preparation', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network failed emby-secret'))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(
+      createEmbyPlaylistTarget(9, {
+        url: 'http://emby:8096',
+        apiKey: 'emby-secret',
+        userId: 'user-1',
+      }).openPlaylistExportSession?.([
+        { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
+      ]),
+    ).rejects.toThrow('network failed [REDACTED]')
+    expect(fetchMock.mock.calls.every(([, init]) => init.method === 'GET')).toBe(true)
+  })
+})

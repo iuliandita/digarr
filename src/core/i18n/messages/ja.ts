@@ -332,7 +332,7 @@ export const ja = {
   'discover.rejectAll': 'すべて拒否する',
   'discover.rejectAllBelow': '下記をすべて拒否',
   'discover.auditionAll': '試聴',
-  'discover.nothingToAudition': 'プレビューのある保留中の項目はありません',
+  'discover.nothingToAudition': '保留中のおすすめはありません',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',
@@ -473,8 +473,11 @@ export const ja = {
   'playlist.deleteFailed': 'プレイリストの削除に失敗しました',
   'playlist.deleteWarning': 'このプレイリストを削除しますか？この操作は元に戻せません。',
   'playlist.deletedNamed': 'プレイリストを削除しました',
-  'playlist.detailHint':
-    'このプレイリストは、承認された推奨事項から生成されました。 [今すぐ生成] をクリックして新しいピックで更新したり、M3U または XSPF としてダウンロードしたり、プレイリスト ターゲットを追加して今後の実行を Navidrome、Jellyfin、または Plex に自動的にプッシュします。',
+  'playlist.detailHint': '承認済みのおすすめからこのプレイリストを生成します。',
+  'playlist.detailAuditionHint':
+    '保留中のアーティストからこのプレイリストを生成し、承認する前に試聴できます。',
+  'playlist.detailActionsHint':
+    '生成後は曲を M3U または XSPF としてダウンロードするか、プレイリストの送信先を追加して今後の生成結果を Navidrome、Jellyfin、Plex に自動送信できます。',
   'playlist.disable': 'プレイリストを無効化',
   'playlist.download': 'ダウンロード',
   'playlist.downloadFailed': 'プレイリストのダウンロードに失敗しました',
@@ -1173,6 +1176,8 @@ export const ja = {
     'Lidarr のメタデータサーバーが利用できないときに使用されます。デフォルトは api.musicinfo.pro。セルフホストの場合はインスタンスの URL を設定してください。',
   'settings.recommendationsSaved': 'おすすめの設定を保存しました',
   'settings.recommendationsFailed': '設定の保存に失敗しました',
+  'settings.recommendationsPartiallySaved':
+    '個人設定は保存されましたが、全体のメタデータ設定を保存できませんでした。',
   'settings.scheduleTip':
     'Cron スケジュールを設定してディスカバリーパイプラインを自動実行します。毎週月曜日が人気の選択肢です。',
   'settings.librarySyncInterval': 'ライブラリ同期',
@@ -1397,6 +1402,9 @@ export const ja = {
   'admin.exporting': 'エクスポート中...',
   'admin.includeCaches': 'キャッシュを含む',
   'admin.restoreFromBackup': 'バックアップから復元',
+  'admin.restoreConfirmTitle': 'バックアップを復元しますか？',
+  'admin.restoreConfirmMessage':
+    'バックアップに含まれるデータが置き換えられます。先にこのインスタンスのバックアップを作成してください。続行しますか？',
   'admin.lastAutoBackup': '最後の自動バックアップ:',
   'admin.backupDownloaded': 'バックアップをダウンロードしました',
   'admin.backupFailed': 'バックアップの作成に失敗',
@@ -1627,6 +1635,7 @@ export const ja = {
   'errors.recommendation.notFound': 'おすすめが見つかりません',
   'errors.subscription.notFound': 'サブスクリプションが見つかりません',
   'errors.playlist.notFound': 'プレイリストが見つかりません',
+  'errors.playlist.busy': 'プレイリストの生成またはエクスポートの復旧がすでに進行中です',
   'settings.channels.title': '通知',
   'settings.channels.description':
     'スキャン完了通知とダイジェスト通知を1つ以上のチャンネルに送信します。',

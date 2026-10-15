@@ -329,7 +329,7 @@ export const en = {
   'discover.rejectAll': 'Reject All',
   'discover.rejectAllBelow': 'Reject All Below',
   'discover.auditionAll': 'Audition',
-  'discover.nothingToAudition': 'No pending items with previews',
+  'discover.nothingToAudition': 'No pending recommendations',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
@@ -467,8 +467,11 @@ export const en = {
   'playlist.deleteFailed': 'Failed to delete playlist',
   'playlist.deleteWarning': 'Delete this playlist? This cannot be undone.',
   'playlist.deletedNamed': 'Playlist deleted',
-  'playlist.detailHint':
-    'This playlist was generated from your approved recommendations. Click Generate Now to refresh it with new picks, download it as M3U or XSPF, or add a playlist target to push future runs to Navidrome, Jellyfin, or Plex automatically.',
+  'playlist.detailHint': 'Generate this playlist from your approved recommendations.',
+  'playlist.detailAuditionHint':
+    'Generate this playlist from pending artists to listen before approving them.',
+  'playlist.detailActionsHint':
+    'After generation, download the tracks as M3U or XSPF, or add a playlist target to send future runs to Navidrome, Jellyfin, or Plex automatically.',
   'playlist.disable': 'Disable playlist',
   'playlist.download': 'Download',
   'playlist.downloadFailed': 'Failed to download playlist',
@@ -1182,6 +1185,8 @@ export const en = {
     "Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your own hearring-aid instance URL if self-hosting.",
   'settings.recommendationsSaved': 'Recommendation settings saved',
   'settings.recommendationsFailed': 'Failed to save settings',
+  'settings.recommendationsPartiallySaved':
+    'Personal preferences saved, but global metadata settings failed to save.',
   'settings.scheduleTip':
     'Set a cron schedule to run the discovery pipeline automatically. Weekly on Monday is a popular choice.',
   'settings.librarySyncInterval': 'Library Sync',
@@ -1422,6 +1427,9 @@ export const en = {
   'admin.exporting': 'Exporting...',
   'admin.includeCaches': 'Include caches',
   'admin.restoreFromBackup': 'Restore from Backup',
+  'admin.restoreConfirmTitle': 'Restore backup?',
+  'admin.restoreConfirmMessage':
+    'This replaces the data included in the backup. Back up this instance first. Continue?',
   'admin.lastAutoBackup': 'Last auto-backup:',
   'admin.backupDownloaded': 'Backup downloaded',
   'admin.backupFailed': 'Failed to create backup',
@@ -1697,6 +1705,7 @@ export const en = {
   'errors.recommendation.notFound': 'Recommendation not found',
   'errors.subscription.notFound': 'Subscription not found',
   'errors.playlist.notFound': 'Playlist not found',
+  'errors.playlist.busy': 'Playlist generation or export recovery is already in progress',
   'settings.channels.title': 'Notifications',
   'settings.channels.description':
     'Send scan-complete and digest notifications to one or more channels.',

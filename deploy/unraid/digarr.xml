@@ -54,11 +54,11 @@
 
   <!-- Auth (recommended) -->
   <Config Name="Initial Username" Target="DIGARR_INITIAL_USERNAME" Default=""
-    Description="Auto-create this admin user on first boot"
+    Description="Set with Initial Password to create the first admin. Leave both blank for manual registration. Ignored when users already exist."
     Type="Variable" Display="always" Required="false" Mask="false"/>
 
   <Config Name="Initial Password" Target="DIGARR_INITIAL_PASSWORD" Default=""
-    Description="Password for the initial admin user (min 12 chars)"
+    Description="Set with Initial Username, using at least 12 characters. Ignored when users already exist; does not reset passwords."
     Type="Variable" Display="always" Required="false" Mask="true"/>
 
   <!-- AI Provider -->

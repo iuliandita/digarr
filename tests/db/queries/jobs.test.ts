@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Database } from '@/db'
-import { getLatestPlaylistGeneration, updateJobMetadata } from '@/db/queries/jobs'
+import { getJobHealth, getLatestPlaylistGeneration, updateJobMetadata } from '@/db/queries/jobs'
 import { jobRuns, users } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
 
@@ -52,7 +52,7 @@ describe('job queries', () => {
   })
 })
 
-describe('playlist generation queries on migrated PGlite', () => {
+describe('job queries on migrated PGlite', () => {
   let db: Database
   let close: () => Promise<void>
   let ownerId: number
@@ -92,6 +92,150 @@ describe('playlist generation queries on migrated PGlite', () => {
   })
   beforeEach(async () => {
     await db.delete(jobRuns)
+  })
+
+  it('omits sources with only skipped results for every skip reason', async () => {
+    await db.insert(jobRuns).values({
+      type: 'pipeline',
+      status: 'completed',
+      sourceResults: {
+        unconfigured: { status: 'skipped', reason: 'not_configured' },
+        unsupported: { status: 'skipped', reason: 'unsupported_capability' },
+        explicit: { status: 'skipped', reason: 'explicit_run' },
+        seedless: { status: 'skipped', reason: 'no_seeds' },
+      },
+    })
+
+    expect((await getJobHealth(db, null)).sources).toEqual({})
+  })
+
+  it('keeps successful sources healthy across skips, including zero-artist results', async () => {
+    await db.insert(jobRuns).values([
+      {
+        type: 'pipeline',
+        status: 'completed',
+        sourceResults: {
+          unconfigured: { status: 'skipped', reason: 'not_configured' },
+          unsupported: { status: 'skipped', reason: 'unsupported_capability' },
+          explicit: { status: 'skipped', reason: 'explicit_run' },
+          seedless: { status: 'skipped', reason: 'no_seeds' },
+        },
+      },
+      {
+        type: 'quick_discover',
+        status: 'completed',
+        sourceResults: {
+          unconfigured: { status: 'ok', artists: 2 },
+          unsupported: { status: 'ok', artists: 2 },
+          explicit: { status: 'ok', artists: 2 },
+          seedless: { status: 'ok', artists: 0 },
+        },
+      },
+    ])
+
+    expect((await getJobHealth(db, null)).sources).toEqual({
+      unconfigured: 'ok',
+      unsupported: 'ok',
+      explicit: 'ok',
+      seedless: 'ok',
+    })
+  })
+
+  it('uses only attempted results for degraded and failing thresholds', async () => {
+    await db.insert(jobRuns).values([
+      {
+        type: 'pipeline',
+        status: 'completed',
+        sourceResults: {
+          degraded: { status: 'error', error: 'unavailable' },
+          boundary: { status: 'error', error: 'unavailable' },
+          errorOnly: { status: 'error', error: 'unavailable' },
+        },
+      },
+      {
+        type: 'quick_discover',
+        status: 'completed',
+        sourceResults: {
+          degraded: { status: 'ok', artists: 0 },
+          boundary: { status: 'ok', artists: 1 },
+          errorOnly: { status: 'skipped', reason: 'not_configured' },
+        },
+      },
+      {
+        type: 'pipeline',
+        status: 'completed',
+        sourceResults: {
+          degraded: { status: 'ok', artists: 1 },
+          boundary: { status: 'skipped', reason: 'explicit_run' },
+          errorOnly: { status: 'skipped', reason: 'no_seeds' },
+        },
+      },
+      {
+        type: 'quick_discover',
+        status: 'completed',
+        sourceResults: {
+          degraded: { status: 'skipped', reason: 'unsupported_capability' },
+          boundary: { status: 'skipped', reason: 'no_seeds' },
+          errorOnly: { status: 'skipped', reason: 'explicit_run' },
+        },
+      },
+    ])
+
+    expect((await getJobHealth(db, null)).sources).toEqual({
+      degraded: 'degraded',
+      boundary: 'failing',
+      errorOnly: 'failing',
+    })
+  })
+
+  it('keeps the latest 20 eligible runs and the 24-hour job-type filters', async () => {
+    const now = Date.now()
+    await db.insert(jobRuns).values([
+      ...Array.from({ length: 20 }, (_, index) => ({
+        type: index % 2 === 0 ? 'pipeline' : 'quick_discover',
+        status: 'completed',
+        startedAt: new Date(now - (60 + index) * 60_000),
+        sourceResults: { recent: { status: 'skipped', reason: 'no_seeds' } },
+      })),
+      ...Array.from({ length: 20 }, (_, index) => ({
+        type: 'pipeline',
+        status: 'completed',
+        startedAt: new Date(now - (index + 1) * 60_000),
+        sourceResults: null,
+      })),
+      {
+        type: 'pipeline',
+        status: 'completed',
+        startedAt: new Date(now - 2 * 60 * 60_000),
+        sourceResults: { olderAttempt: { status: 'error', error: 'unavailable' } },
+      },
+    ])
+
+    expect((await getJobHealth(db, null)).sources).toEqual({})
+
+    await db.delete(jobRuns)
+    await db.insert(jobRuns).values([
+      {
+        type: 'pipeline',
+        status: 'completed',
+        startedAt: new Date(now - 60_000),
+        sourceResults: { recent: { status: 'ok', artists: 1 } },
+      },
+      {
+        type: 'quick_discover',
+        status: 'completed',
+        startedAt: new Date(now - 25 * 60 * 60_000),
+        sourceResults: { expired: { status: 'error', error: 'unavailable' } },
+      },
+      ...['subscription', 'target', 'playlist', 'library_sync'].map((type) => ({
+        type,
+        status: 'completed',
+        startedAt: new Date(now),
+        sourceResults: { unrelated: { status: 'error', error: 'unavailable' } },
+      })),
+    ])
+
+    expect((await getJobHealth(db, null)).sources).toEqual({ recent: 'ok' })
   })
 
   it('merges metadata and returns only safe generation fields', async () => {

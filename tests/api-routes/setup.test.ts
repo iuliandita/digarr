@@ -90,6 +90,7 @@ describe('API routes: setup', () => {
         aiBaseUrl: expect.anything(),
         aiApiKey: expect.anything(),
       }),
+      { userId: undefined },
     )
   })
 
@@ -117,6 +118,7 @@ describe('API routes: setup', () => {
         listenbrainzUsername: expect.anything(),
         lastfmUsername: expect.anything(),
       }),
+      { userId: undefined },
     )
   })
 })

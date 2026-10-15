@@ -1,4 +1,7 @@
 // @vitest-environment node
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // We need to test the module with different env vars, so we import dynamically
@@ -16,10 +19,12 @@ function setEnv(vars: Record<string, string | undefined>) {
 
 const ENV_KEYS = [
   'DATABASE_URL',
+  'DATABASE_URL_FILE',
   'DB_HOST',
   'DB_PORT',
   'DB_USER',
   'DB_PASS',
+  'DB_PASS_FILE',
   'DB_NAME',
   'DB_POOL_MAX',
   'DB_CONNECT_TIMEOUT_MS',
@@ -41,6 +46,80 @@ const ENV_KEYS = [
   'DIGARR_MUSICBRAINZ_URL',
   'DIGARR_MUSICBRAINZ_INTERVAL_MS',
 ] as const
+
+describe.each([
+  ['DATABASE_URL', 'databaseUrl'],
+  ['DB_PASS', 'dbPass'],
+] as const)('%s secret-file configuration', (key, field) => {
+  let directory: string
+
+  beforeEach(() => {
+    vi.resetModules()
+    for (const envKey of ENV_KEYS) vi.stubEnv(envKey, undefined)
+    directory = mkdtempSync(join(tmpdir(), 'digarr-env-'))
+  })
+
+  afterEach(() => {
+    vi.doUnmock('node:fs')
+    vi.resetModules()
+    vi.unstubAllEnvs()
+    rmSync(directory, { recursive: true, force: true })
+  })
+
+  it('prefers a direct value without reading the configured file', async () => {
+    vi.stubEnv(key, 'direct-secret')
+    vi.stubEnv(`${key}_FILE`, join(directory, 'missing-secret'))
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig[field]).toBe('direct-secret')
+  })
+
+  it.each([
+    ['trimmed', ' \tfile-secret\n', 'file-secret'],
+    ['empty', ' \n\t', undefined],
+    ['unset', undefined, undefined],
+  ])('preserves %s file-value behavior', async (_kind, contents, expected) => {
+    vi.stubEnv(key, '')
+    if (contents !== undefined) {
+      const filePath = join(directory, 'secret')
+      writeFileSync(filePath, contents)
+      vi.stubEnv(`${key}_FILE`, filePath)
+    }
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig[field]).toBe(expected)
+  })
+
+  it.each(['missing', 'directory'])('rejects a %s file at module load', async (kind) => {
+    const filePath = kind === 'missing' ? join(directory, 'missing-secret') : directory
+    vi.stubEnv(`${key}_FILE`, filePath)
+    const error = await import('@/config/env').catch((reason: unknown) => reason)
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toHaveProperty('message', `${key}_FILE could not be read`)
+    expect(error).not.toHaveProperty('cause')
+    expect(String(error)).not.toContain(filePath)
+    expect(String(error)).not.toContain('missing-secret')
+  })
+
+  it('sanitizes permission failures without retaining the underlying error', async () => {
+    const filePath = join(directory, 'private-secret')
+    writeFileSync(filePath, 'file-secret')
+    vi.stubEnv(`${key}_FILE`, filePath)
+    vi.doMock('node:fs', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('node:fs')>()
+      return {
+        ...actual,
+        readFileSync: () => {
+          throw Object.assign(new Error(`EACCES: ${filePath}: file-secret`), { code: 'EACCES' })
+        },
+      }
+    })
+    const error = await import('@/config/env').catch((reason: unknown) => reason)
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toHaveProperty('message', `${key}_FILE could not be read`)
+    expect(error).not.toHaveProperty('cause')
+    expect(String(error)).not.toMatch(/EACCES|private-secret|file-secret/)
+    expect(String(error)).not.toContain(filePath)
+  })
+})
 
 describe('MusicBrainz operator configuration', () => {
   beforeEach(() => {
@@ -141,6 +220,27 @@ describe('buildDatabaseUrl', () => {
     expect(buildDatabaseUrl()).toBe('postgresql://usr:pw@myhost:5433/testdb')
   })
 
+  it.each([
+    ['user%41', 'pass%41', 'db%41', 'postgresql://user%2541:pass%2541@myhost:5432/db%2541'],
+    [
+      'u:@/?#[]',
+      'p:@/?#[]',
+      'd:@/?#[]',
+      'postgresql://u%3A%40%2F%3F%23%5B%5D:p%3A%40%2F%3F%23%5B%5D@myhost:5432/d%3A%40%2F%3F%23%5B%5D',
+    ],
+    [
+      'user +café',
+      'pass +café',
+      'db +café',
+      'postgresql://user%20%2Bcaf%C3%A9:pass%20%2Bcaf%C3%A9@myhost:5432/db%20%2Bcaf%C3%A9',
+    ],
+  ])('preserves raw DB_* components for %s', async (user, password, name, expected) => {
+    vi.resetModules()
+    setEnv({ DB_HOST: 'myhost', DB_USER: user, DB_PASS: password, DB_NAME: name })
+    const { buildDatabaseUrl } = await import('@/config/env')
+    expect(buildDatabaseUrl()).toBe(expected)
+  })
+
   it('defaults DB_PORT to 5432', async () => {
     setEnv({ DB_HOST: 'myhost', DB_USER: 'usr', DB_NAME: 'testdb' })
     const { buildDatabaseUrl } = await import('@/config/env')
@@ -152,15 +252,20 @@ describe('buildDatabaseUrl', () => {
     expect(() => buildDatabaseUrl()).toThrow('DATABASE_URL or DB_HOST')
   })
 
-  it('prefers DATABASE_URL over individual vars', async () => {
+  it.each([
+    'postgresql://preferred:pw@host:5432/db',
+    'postgresql://user%2541:pass%23word@host:5432/db%23name?sslmode=disable',
+    'postgresql://preferred:pw@host:5432/..',
+  ])('preserves explicit DATABASE_URL over individual vars: %s', async (dsn) => {
+    vi.resetModules()
     setEnv({
-      DATABASE_URL: 'postgresql://preferred:pw@host:5432/db',
+      DATABASE_URL: dsn,
       DB_HOST: 'other',
       DB_USER: 'other',
       DB_NAME: 'other',
     })
     const { buildDatabaseUrl } = await import('@/config/env')
-    expect(buildDatabaseUrl()).toBe('postgresql://preferred:pw@host:5432/db')
+    expect(buildDatabaseUrl()).toBe(dsn)
   })
 
   it('parses optional pool and SSL settings', async () => {

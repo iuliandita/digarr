@@ -167,8 +167,12 @@ export function createHttpClient(config: HttpClientConfig) {
       request<T>('GET', path, undefined, options),
     post: <T>(path: string, body?: unknown, options?: HttpRequestOptions) =>
       request<T>('POST', path, body, options),
+    postVoid: (path: string, body?: unknown, options?: HttpRequestOptions) =>
+      requestVoid('POST', path, body, options),
     put: <T>(path: string, body?: unknown, options?: HttpRequestOptions) =>
       request<T>('PUT', path, body, options),
+    putVoid: (path: string, body?: unknown, options?: HttpRequestOptions) =>
+      requestVoid('PUT', path, body, options),
     delete: (path: string, options?: HttpRequestOptions) =>
       requestVoid('DELETE', path, undefined, options),
   }

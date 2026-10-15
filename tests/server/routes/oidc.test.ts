@@ -36,6 +36,7 @@ function makeMockOidcService() {
     handleCallback: vi.fn(async () => ({
       purpose: { kind: 'login' as const },
       claims: {
+        iss: 'https://idp.example.com',
         sub: 'oidc-subject-123',
         email: 'alice@example.com',
         emailVerified: true,
@@ -55,7 +56,7 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
   return {
     mockOidcService,
     getOidcService: vi.fn(async () => mockOidcService as OidcService),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByUsername: vi.fn(async () => null),
     getUserCredentialsById: vi.fn(async () => ({
       id: 7,
@@ -63,6 +64,7 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
       passwordHash: 'stored-password-hash',
       authProvider: 'local',
       oidcSubject: null,
+      oidcIssuer: null,
     })),
     createUser: vi.fn(async (data: { username: string }) => ({
       id: 1,
@@ -230,6 +232,7 @@ describe('POST /api/v1/auth/oidc/link', () => {
         passwordHash: 'stored-password-hash',
         authProvider: 'local',
         oidcSubject: 'existing-subject',
+        oidcIssuer: 'https://idp.example.com',
       })),
     })
     const app = createTestApp(deps)
@@ -263,6 +266,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       expect.objectContaining({
         username: 'alice',
         oidcSubject: 'oidc-subject-123',
+        oidcIssuer: 'https://idp.example.com',
         email: 'alice@example.com',
         authProvider: 'oidc',
       }),
@@ -271,9 +275,9 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: 1 })
   })
 
-  it('matches existing user by OIDC subject (no createUser call)', async () => {
+  it('matches existing user by issuer and subject (no createUser call)', async () => {
     const deps = makeDeps({
-      getUserByOidcSubject: vi.fn(async () => ({
+      getUserByOidcIdentity: vi.fn(async () => ({
         id: 42,
         username: 'existing-alice',
       })),
@@ -290,11 +294,44 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: 42 })
   })
 
+  it.each([
+    ['https://idp.example.com', 42],
+    ['https://other-idp.example.com', 1],
+    ['https://idp.example.com/', 1],
+  ])('scopes subject matching to exact issuer %s', async (issuer, expectedUserId) => {
+    const deps = makeDeps({
+      getUserByOidcIdentity: vi.fn(async (candidateIssuer: string, subject: string) =>
+        candidateIssuer === 'https://idp.example.com' && subject === 'shared-subject'
+          ? { id: 42, username: 'existing-alice' }
+          : null,
+      ),
+    })
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
+      claims: { iss: issuer, sub: 'shared-subject', preferredUsername: 'alice' },
+    })
+    const app = createTestApp(deps)
+
+    const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
+
+    expect(res.headers.get('Location')).toBe('/')
+    expect(deps.getUserByOidcIdentity).toHaveBeenCalledWith(issuer, 'shared-subject')
+    await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: expectedUserId })
+    if (expectedUserId === 1) {
+      expect(deps.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({ oidcIssuer: issuer, oidcSubject: 'shared-subject' }),
+        { bootstrap: 'allow-existing' },
+      )
+    } else {
+      expect(deps.createUser).not.toHaveBeenCalled()
+    }
+  })
+
   it('replaces the existing browser cookie session and preserves another device session', async () => {
     await createSession(42, 'old-browser-session')
     await createSession(42, 'other-device-session')
     const deps = makeDeps({
-      getUserByOidcSubject: vi.fn(async () => ({
+      getUserByOidcIdentity: vi.fn(async () => ({
         id: 42,
         username: 'existing-alice',
       })),
@@ -316,7 +353,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
   it('sets Secure when the configured public origin uses HTTPS', async () => {
     envConfig.allowedOrigin = 'https://app.example.com'
     const deps = makeDeps({
-      getUserByOidcSubject: vi.fn(async () => ({ id: 42, username: 'existing-alice' })),
+      getUserByOidcIdentity: vi.fn(async () => ({ id: 42, username: 'existing-alice' })),
     })
     const app = createTestApp(deps)
 
@@ -328,10 +365,10 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(res.headers.get('cache-control')).toBe('no-store')
   })
 
-  it('never links to a local account by email; matches strictly by OIDC subject', async () => {
+  it('never links to a local account by email; matches strictly by issuer and subject', async () => {
     // An attacker could seed a local account carrying the victim's email. The
     // victim's first OIDC login must NOT auto-link into that account (pre-link
-    // account takeover) -- linking is by OIDC subject only.
+    // account takeover) -- linking requires the issuer and subject pair.
     const deps = makeDeps({
       getUserByEmail: vi.fn(async () => ({ id: 10, username: 'squatted-by-attacker' })),
     })
@@ -371,6 +408,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     deps.mockOidcService.handleCallback.mockResolvedValue({
       purpose: { kind: 'login' },
       claims: {
+        iss: 'https://idp.example.com',
         sub: 'oidc-subject-777',
         email: 'mallory@example.com',
         emailVerified: true,
@@ -395,6 +433,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     deps.mockOidcService.handleCallback.mockResolvedValue({
       purpose: { kind: 'login' },
       claims: {
+        iss: 'https://idp.example.com',
         sub: 'oidc-subject-999',
         email: 'Carol.MixedCase@Example.COM',
         emailVerified: true,
@@ -429,6 +468,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     deps.mockOidcService.handleCallback.mockResolvedValue({
       purpose: { kind: 'login' },
       claims: {
+        iss: 'https://idp.example.com',
         sub: 'oidc-subject-456',
         email: 'bob@example.com',
         name: 'Bob',
@@ -447,9 +487,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     const deps = makeDeps()
     deps.mockOidcService.handleCallback.mockResolvedValue({
       purpose: { kind: 'login' },
-      claims: {
-        sub: 'abcdefghijklmnop',
-      },
+      claims: { iss: 'https://idp.example.com', sub: 'abcdefghijklmnop' },
     })
     const app = createTestApp(deps)
 
@@ -470,7 +508,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         sessionHash: hashSessionToken('link-session'),
         passwordFingerprint: 'password-fingerprint',
       },
-      claims: { sub: 'new-oidc-subject' },
+      claims: { iss: 'https://idp.example.com', sub: 'new-oidc-subject' },
     })
     const app = createTestApp(deps)
 
@@ -485,6 +523,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(deps.linkOidcIdentity).toHaveBeenCalledWith({
       userId: 7,
       oidcSubject: 'new-oidc-subject',
+      oidcIssuer: 'https://idp.example.com',
       passwordFingerprint: 'password-fingerprint',
       initiatingSessionHash: hashSessionToken('link-session'),
       presentedSessionHash: hashSessionToken('link-session'),
@@ -507,7 +546,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         sessionHash: hashSessionToken('old-session'),
         passwordFingerprint: 'password-fingerprint',
       },
-      claims: { sub: 'new-oidc-subject' },
+      claims: { iss: 'https://idp.example.com', sub: 'new-oidc-subject' },
     })
     const app = createTestApp(deps)
 
@@ -534,7 +573,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
         sessionHash: hashSessionToken('link-session'),
         passwordFingerprint: 'password-fingerprint',
       },
-      claims: { sub: 'claimed-subject' },
+      claims: { iss: 'https://idp.example.com', sub: 'claimed-subject' },
     })
     const app = createTestApp(deps)
 
@@ -593,7 +632,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     await createSession(42, 'old-browser-session')
     await createSession(42, 'other-device-session')
     const deps = makeDeps({
-      getUserByOidcSubject: vi.fn(async () => ({ id: 42, username: 'existing-alice' })),
+      getUserByOidcIdentity: vi.fn(async () => ({ id: 42, username: 'existing-alice' })),
     })
     const app = createTestApp(deps)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -653,6 +692,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
           return {
             purpose: { kind: 'login' },
             claims: {
+              iss: 'https://idp.example.com',
               sub: 'oidc-subject-123',
               email: 'alice@example.com',
               emailVerified: true,
@@ -740,7 +780,11 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       deps.mockOidcService.handleCallback
         .mockResolvedValueOnce({
           purpose: { kind: 'login' },
-          claims: { sub: 'oidc-subject-123', preferredUsername: 'alice' },
+          claims: {
+            iss: 'https://idp.example.com',
+            sub: 'oidc-subject-123',
+            preferredUsername: 'alice',
+          },
         })
         .mockRejectedValue(new Error('Unknown, expired, or invalid OIDC transaction'))
       const app = createTestApp(deps)
@@ -794,7 +838,7 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     it('deletes the transaction cookie on session-issuance failure', async () => {
       envConfig.allowedOrigin = 'file:///tmp/app'
       const deps = makeDeps({
-        getUserByOidcSubject: vi.fn(async () => ({ id: 7, username: 'existing' })),
+        getUserByOidcIdentity: vi.fn(async () => ({ id: 7, username: 'existing' })),
       })
       const app = createTestApp(deps)
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -1,3 +1,5 @@
+import type { LibraryTrack } from '@/core/types'
+
 export type PlaylistArtistOutcome = {
   artistName: string
   artistMbid?: string
@@ -38,12 +40,7 @@ export type DeezerTrackSearchResult = {
   rank: number
 }
 
-export type LocalTrack = {
-  name: string
-  artist: string
-  path: string
-  duration?: number
-}
+export type LocalTrack = LibraryTrack
 
 export type MBRecording = {
   id: string
@@ -55,6 +52,7 @@ export type TrackResolverDeps = {
   spotifySearch?: (query: string, limit?: number) => Promise<SpotifySearchResult[]>
   deezerSearch?: (query: string, limit?: number) => Promise<DeezerTrackSearchResult[]>
   jellyfinSearch?: (artist: string) => Promise<LocalTrack[]>
+  embySearch?: (artist: string) => Promise<LocalTrack[]>
   navidromeSearch?: (artist: string) => Promise<LocalTrack[]>
   plexSearch?: (artist: string) => Promise<LocalTrack[]>
   musicbrainzRecordings?: (artistMbid: string) => Promise<MBRecording[]>

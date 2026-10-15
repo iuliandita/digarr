@@ -36,6 +36,121 @@ describe('jellyfin media-server queue', () => {
   })
 })
 
+describe('jellyfin client.searchTracks()', () => {
+  const USER = '00000000-0000-0000-0000-000000000001'
+
+  it.each([
+    [undefined, 25],
+    [0, 0],
+    [-2, 0],
+    [200, 100],
+    [2.8, 2],
+  ])('scopes queued audio search with bounded limit %s', async (limit, expectedLimit) => {
+    const client = createJellyfinClient('http://jf:8096', 'key', 'Listener', {
+      libraryId: 'music & more',
+    })
+    mockGet.mockResolvedValueOnce([{ Id: USER, Name: 'Listener' }])
+    mockGet.mockResolvedValue({
+      Items: Array.from({ length: 101 }, (_, index) => ({
+        Name: `Track ${index}`,
+        Artists: ['AC/DC & Friends'],
+        Path: `/music/track-${index}.flac`,
+      })),
+    })
+
+    await expect(client.searchTracks('AC/DC & Friends', limit)).resolves.toHaveLength(expectedLimit)
+
+    if (expectedLimit === 0) {
+      expect(mockGet).not.toHaveBeenCalled()
+      return
+    }
+
+    const url = new URL(mockGet.mock.calls[1]?.[0] as string, 'http://jf:8096')
+    expect(url.pathname).toBe(`/Users/${USER}/Items`)
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      Artists: 'AC/DC & Friends',
+      IncludeItemTypes: 'Audio',
+      Recursive: 'true',
+      Fields: 'Path',
+      Limit: String(expectedLimit),
+      ParentId: 'music & more',
+    })
+    expect(queueMocks.add).toHaveBeenCalledTimes(2)
+  })
+
+  it('maps real paths and matching credits, omits incomplete tracks and invalid durations', async () => {
+    const client = createJellyfinClient('http://jf:8096', 'key', USER)
+    mockGet.mockResolvedValueOnce({
+      Items: [
+        {
+          Name: 'Duet',
+          Artists: ['Guest', '  Bjo\u0308rk  '],
+          AlbumArtist: 'Various Artists',
+          Path: '/music/Bjork/Duet.flac',
+          RunTimeTicks: 1_255_000_000,
+        },
+        { Name: 'Intro', Artists: ['Björk'], Path: 'D:\\music\\Intro.mp3', RunTimeTicks: 0 },
+        {
+          Name: 'No duration',
+          ArtistItems: [{ Name: 'Björk' }],
+          Path: '/music/track.flac',
+          RunTimeTicks: -1,
+        },
+        {
+          Name: 'Album credit',
+          AlbumArtist: 'Björk',
+          Path: '/music/album.flac',
+          RunTimeTicks: Number.POSITIVE_INFINITY,
+        },
+        {
+          Name: 'Other artist',
+          Artists: ['Guest'],
+          AlbumArtist: 'Björk',
+          Path: '/music/guest.flac',
+        },
+        { Name: 'Missing path', Artists: ['Björk'], Id: 'not-a-path' },
+        { Name: 'Empty path', Artists: ['Björk'], Path: ' ' },
+        { Name: 'Remote', Artists: ['Björk'], Path: 'https://server/stream' },
+        {
+          Name: 'No artist',
+          Artists: [null, 42],
+          ArtistItems: [null, {}],
+          Path: '/music/unknown.flac',
+        },
+        { Name: ' ', Artists: ['Björk'], Path: '/music/empty.flac' },
+      ],
+    })
+
+    await expect(client.searchTracks('Björk')).resolves.toEqual([
+      { name: 'Duet', artist: 'Bjo\u0308rk', path: '/music/Bjork/Duet.flac', duration: 125.5 },
+      { name: 'Intro', artist: 'Björk', path: 'D:\\music\\Intro.mp3', duration: 0 },
+      { name: 'No duration', artist: 'Björk', path: '/music/track.flac', duration: undefined },
+      { name: 'Album credit', artist: 'Björk', path: '/music/album.flac', duration: undefined },
+      { name: 'Other artist', artist: 'Guest', path: '/music/guest.flac', duration: undefined },
+    ])
+    expect(mockGet.mock.calls[0]?.[0]).not.toContain('ParentId=')
+  })
+
+  it.each([null, {}, { Items: null }, { Items: {} }, { Items: [null] }, { Items: [[]] }])(
+    'rejects malformed track collection %j',
+    async (response) => {
+      mockGet.mockResolvedValueOnce(response)
+      const client = createJellyfinClient('http://jf:8096', 'key', USER)
+      await expect(client.searchTracks('Artist')).rejects.toThrow('invalid track collection')
+    },
+  )
+
+  it('propagates provider failures', async () => {
+    const invalidClient = createJellyfinClient('http://jf:8096', 'key', 'Listener')
+    await expect(invalidClient.searchTracks(' ')).resolves.toEqual([])
+    await expect(invalidClient.searchTracks('Artist', Number.NaN)).rejects.toThrow('must be finite')
+    expect(mockGet).not.toHaveBeenCalled()
+    mockGet.mockRejectedValueOnce(new Error('401 Unauthorized'))
+    const client = createJellyfinClient('http://jf:8096', 'key', USER)
+    await expect(client.searchTracks('Artist')).rejects.toThrow('401 Unauthorized')
+  })
+})
+
 describe('jellyfin client.getAllArtists()', () => {
   it('paginates and extracts MBIDs from ProviderIds', async () => {
     // Pass a UUID so getUserId() short-circuits without an extra mockGet call

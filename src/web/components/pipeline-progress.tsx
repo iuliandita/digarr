@@ -155,7 +155,8 @@ export function PipelineProgress({
   async function handleStop() {
     setCancelling(true)
     try {
-      await cancelPipeline()
+      const result = await cancelPipeline()
+      if (!result.cancelled) setCancelling(false)
     } catch {
       // Best-effort: the SSE 'cancelled' event drives the UI; on failure the
       // user can retry. Reset the button so it isn't stuck disabled.

@@ -5,7 +5,7 @@ type TrackSearchCandidate = {
 }
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase()
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
 export function pickBestTrackMatch(
@@ -13,10 +13,9 @@ export function pickBestTrackMatch(
   artistName: string,
   trackName: string,
 ): string | null {
-  if (items.length === 0) return null
-
   const normalizedArtist = normalize(artistName)
   const normalizedTrack = normalize(trackName)
+  if (!normalizedArtist || !normalizedTrack) return null
 
   const exact = items.find((item) => {
     const titleMatch = normalize(item.title) === normalizedTrack
@@ -24,5 +23,5 @@ export function pickBestTrackMatch(
     return titleMatch && artistMatch
   })
 
-  return (exact ?? items[0])?.id ?? null
+  return exact?.id ?? null
 }

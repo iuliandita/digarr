@@ -29,19 +29,7 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Dependency audit
-        # Structured JSON output + jq filter avoids the fragile grep that would
-        # match 'high'/'critical' anywhere in the text (e.g. inside package
-        # names or advisory titles).
-        run: |
-          set -euo pipefail
-          report=$(bun audit --json 2>/dev/null || true)
-          echo "$report"
-          count=$(printf '%s' "$report" | jq '[.vulnerabilities[]? | select(.severity == "high" or .severity == "critical")] | length')
-          echo "High/critical vulnerabilities: $count"
-          if [ "$count" -gt 0 ]; then
-            echo "::error::High or critical vulnerabilities found"
-            exit 1
-          fi
+        run: bun audit --audit-level=high
 
   trivy-fs:
     name: Trivy filesystem scan

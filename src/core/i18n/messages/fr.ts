@@ -334,7 +334,7 @@ export const fr = {
   'discover.rejectAll': 'Tout rejeter',
   'discover.rejectAllBelow': 'Tout rejeter en dessous',
   'discover.auditionAll': 'Pré-écouter',
-  'discover.nothingToAudition': 'Aucun élément en attente avec aperçu',
+  'discover.nothingToAudition': 'Aucune recommandation en attente',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':
     'Refuser toutes les recommandations en attente ? Cela ne peut pas être annulé.',
@@ -472,8 +472,11 @@ export const fr = {
   'playlist.deleteFailed': 'Échec de la suppression de la playlist',
   'playlist.deleteWarning': 'Supprimer cette playlist ? Cette action est irréversible.',
   'playlist.deletedNamed': 'Playlist supprimée',
-  'playlist.detailHint':
-    "Cette playlist a été générée à partir de vos recommandations approuvées. Cliquez sur Générer maintenant pour l'actualiser avec de nouveaux choix, téléchargez-le au format M3U ou XSPF, ou ajoutez une cible de liste de lecture pour transférer automatiquement les futures exécutions vers Navidrome, Jellyfin ou Plex.",
+  'playlist.detailHint': 'Générez cette playlist à partir de vos recommandations approuvées.',
+  'playlist.detailAuditionHint':
+    'Générez cette playlist à partir des artistes en attente pour les écouter avant de les approuver.',
+  'playlist.detailActionsHint':
+    'Après la génération, téléchargez les pistes au format M3U ou XSPF, ou ajoutez une cible de playlist pour envoyer automatiquement les prochaines générations vers Navidrome, Jellyfin ou Plex.',
   'playlist.disable': 'Désactiver la playlist',
   'playlist.download': 'Télécharger',
   'playlist.downloadFailed': 'Échec du téléchargement de la playlist',
@@ -1190,6 +1193,8 @@ export const fr = {
     "Utilisé quand le serveur de métadonnées de Lidarr est indisponible. Par défaut api.musicinfo.pro. Remplacez par l'URL de votre propre instance si vous l'hébergez vous-même.",
   'settings.recommendationsSaved': 'Paramètres de recommandations enregistrés',
   'settings.recommendationsFailed': "Échec de l'enregistrement des paramètres",
+  'settings.recommendationsPartiallySaved':
+    'Les préférences personnelles ont été enregistrées, mais les paramètres globaux des métadonnées n’ont pas pu être enregistrés.',
   'settings.scheduleTip':
     'Définissez une planification cron pour exécuter automatiquement le pipeline. Une fois par semaine le lundi est un choix populaire.',
   'settings.librarySyncInterval': 'Sync bibliothèque',
@@ -1416,6 +1421,9 @@ export const fr = {
   'admin.exporting': 'Exportation...',
   'admin.includeCaches': 'Inclure les caches',
   'admin.restoreFromBackup': 'Restaurer depuis la sauvegarde',
+  'admin.restoreConfirmTitle': 'Restaurer la sauvegarde ?',
+  'admin.restoreConfirmMessage':
+    "Cette opération remplace les données incluses dans la sauvegarde. Sauvegardez d'abord cette instance. Continuer ?",
   'admin.lastAutoBackup': 'Dernière sauvegarde auto :',
   'admin.backupDownloaded': 'Sauvegarde telechargee',
   'admin.backupFailed': 'Échec de la sauvegarde',
@@ -1653,6 +1661,8 @@ export const fr = {
   'errors.recommendation.notFound': 'Recommandation introuvable',
   'errors.subscription.notFound': 'Abonnement introuvable',
   'errors.playlist.notFound': 'Liste de lecture introuvable',
+  'errors.playlist.busy':
+    "La génération de la liste de lecture ou la reprise de l'export est déjà en cours",
   'settings.channels.title': 'Canaux de notification',
   'settings.channels.description':
     "Envoyez des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",

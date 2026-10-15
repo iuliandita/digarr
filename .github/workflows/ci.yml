@@ -119,8 +119,8 @@ jobs:
         run: bun run db:migrate
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
-      - name: Run PostgreSQL auth concurrency tests
-        run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts
+      - name: Run PostgreSQL concurrency tests
+        run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts tests/db/oidc-issuer-upgrade-postgres.test.ts
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
       - name: Run API route contract tests
@@ -137,6 +137,8 @@ jobs:
           version: v3.16.4
       - name: Lint Helm chart
         run: helm lint deploy/helm/digarr --set postgresql.auth.password=lint
+      - name: Test database URL rendering
+        run: python3 tests/deploy/helm_database_url_test.py
       - name: Verify deploy/k8s/rendered.yaml is in sync with chart
         run: |
           ./scripts/k8s-sync.sh

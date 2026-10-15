@@ -59,16 +59,18 @@ describe('linkOidcIdentity', () => {
       id: user.id,
       passwordHash: user.passwordHash,
       authProvider: 'local',
+      oidcIssuer: null,
       oidcSubject: null,
     })
   })
 
-  it('updates only the OIDC subject for the initiating local account', async () => {
+  it('updates only the OIDC issuer and subject for the initiating local account', async () => {
     const user = await createLocalUser('alice')
     await createActiveSession(user.id, 'alice-session')
 
     await linkOidcIdentity(db, {
       userId: user.id,
+      oidcIssuer: 'https://issuer.example',
       oidcSubject: 'oidc-alice',
       passwordFingerprint: fingerprintPasswordHash(user.passwordHash),
       initiatingSessionHash: hashSessionToken('alice-session'),
@@ -76,7 +78,11 @@ describe('linkOidcIdentity', () => {
     })
 
     const [linked] = await db.select().from(users).where(eq(users.id, user.id))
-    expect(linked).toEqual({ ...user, oidcSubject: 'oidc-alice' })
+    expect(linked).toEqual({
+      ...user,
+      oidcIssuer: 'https://issuer.example',
+      oidcSubject: 'oidc-alice',
+    })
   })
 
   it('rejects when the password changed after initiation', async () => {
@@ -87,6 +93,7 @@ describe('linkOidcIdentity', () => {
     await expect(
       linkOidcIdentity(db, {
         userId: user.id,
+        oidcIssuer: 'https://issuer.example',
         oidcSubject: 'oidc-alice',
         passwordFingerprint: fingerprintPasswordHash(user.passwordHash),
         initiatingSessionHash: hashSessionToken('alice-session'),
@@ -100,6 +107,7 @@ describe('linkOidcIdentity', () => {
     await createActiveSession(user.id, 'alice-session')
     const params = {
       userId: user.id,
+      oidcIssuer: 'https://issuer.example',
       oidcSubject: 'oidc-alice',
       passwordFingerprint: fingerprintPasswordHash(user.passwordHash),
       initiatingSessionHash: hashSessionToken('alice-session'),
@@ -125,6 +133,7 @@ describe('linkOidcIdentity', () => {
     await expect(
       linkOidcIdentity(db, {
         userId: alice.id,
+        oidcIssuer: 'https://issuer.example',
         oidcSubject: 'oidc-alice',
         passwordFingerprint: fingerprintPasswordHash(alice.passwordHash),
         initiatingSessionHash: hashSessionToken('shared-browser-session'),
@@ -144,6 +153,7 @@ describe('linkOidcIdentity', () => {
     await expect(
       linkOidcIdentity(db, {
         userId: user.id,
+        oidcIssuer: 'https://issuer.example',
         oidcSubject: 'oidc-alice',
         passwordFingerprint: fingerprintPasswordHash(user.passwordHash),
         initiatingSessionHash: hashSessionToken('expired-session'),
@@ -152,15 +162,19 @@ describe('linkOidcIdentity', () => {
     ).rejects.toBeInstanceOf(OidcLinkConflictError)
   })
 
-  it('maps a unique subject collision to the fixed identity-in-use error', async () => {
+  it('maps a unique identity collision to the fixed identity-in-use error', async () => {
     const alice = await createLocalUser('alice')
     const bob = await createLocalUser('bob')
-    await db.update(users).set({ oidcSubject: 'claimed-subject' }).where(eq(users.id, bob.id))
+    await db
+      .update(users)
+      .set({ oidcIssuer: 'https://issuer.example', oidcSubject: 'claimed-subject' })
+      .where(eq(users.id, bob.id))
     await createActiveSession(alice.id, 'alice-session')
 
     await expect(
       linkOidcIdentity(db, {
         userId: alice.id,
+        oidcIssuer: 'https://issuer.example',
         oidcSubject: 'claimed-subject',
         passwordFingerprint: fingerprintPasswordHash(alice.passwordHash),
         initiatingSessionHash: hashSessionToken('alice-session'),

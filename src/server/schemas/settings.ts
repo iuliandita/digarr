@@ -70,6 +70,7 @@ const preferencesSchema = z
     rejectionCooldownDays: z.number().int().min(0).optional(),
     topArtistsLimit: z.number().int().min(1).optional(),
     librarySeedRatio: z.number().min(0).max(1).optional(),
+    netNewAlbumDiscovery: z.boolean().optional(),
     primaryGenres: preferredGenreListSchema.optional(),
     secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),
@@ -84,7 +85,15 @@ const preferencesSchema = z
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),
     fanartApiKey: z.string().optional(),
     metadataFallbackUrl: z.string().optional(),
-    channels: z.array(notificationChannel).optional(),
+    channels: z
+      .array(notificationChannel)
+      .refine(
+        (channels) => new Set(channels.map((channel) => channel.id)).size === channels.length,
+        {
+          message: 'Notification channel IDs must be unique',
+        },
+      )
+      .optional(),
   })
   .strict()
 

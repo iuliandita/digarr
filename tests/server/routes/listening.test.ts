@@ -142,7 +142,7 @@ function makeDeps(
     getUserCount: vi.fn(async () => 1),
     updateUserPreferredLocale: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),
@@ -295,22 +295,178 @@ describe('GET /api/v1/listening/top-artists', () => {
     })
   })
 
-  it('derives Last.fm page number from offset', async () => {
+  it.each([
+    { offset: 0, limit: 5, count: 13, pages: [1] },
+    { offset: 0, limit: 5, count: 0, pages: [1] },
+    { offset: 1, limit: 5, count: 13, pages: [1, 2] },
+    { offset: 4, limit: 5, count: 13, pages: [1, 2] },
+    { offset: 5, limit: 5, count: 13, pages: [2] },
+    { offset: 6, limit: 5, count: 13, pages: [2, 3] },
+    { offset: 9, limit: 5, count: 13, pages: [2, 3] },
+    { offset: 10, limit: 5, count: 13, pages: [3] },
+    { offset: 6, limit: 5, count: 10, pages: [2] },
+    { offset: 11, limit: 5, count: 13, pages: [3] },
+    { offset: 14, limit: 5, count: 13, pages: [3] },
+    { offset: 15, limit: 5, count: 13, pages: [4] },
+    { offset: 1, limit: 1, count: 13, pages: [2] },
+    { offset: 49, limit: 50, count: 100, pages: [1, 2] },
+    { offset: 9999, limit: 50, count: 10060, pages: [200, 201] },
+    { offset: 10000, limit: 50, count: 10060, pages: [201] },
+    { offset: 10000, limit: 1, count: 10060, pages: [10001] },
+  ])(
+    'returns the exact Last.fm window for $offset/$limit with $count artists',
+    async ({ offset, limit, count, pages }) => {
+      mockGetUserConnections.mockResolvedValue({
+        ...emptyConnections(),
+        lastfmUsername: 'user-lastfm',
+        lastfmApiKey: 'user-lastfm-key',
+      })
+      const artists = Array.from({ length: count }, (_, index) => ({
+        name: `Artist ${index}`,
+        playCount: count - index,
+        mbid: `mbid-${index}`,
+      }))
+      const getTopArtistsPaged = vi.fn(
+        async (_period: string, options: { page: number; limit: number }) => ({
+          artists: artists.slice((options.page - 1) * options.limit, options.page * options.limit),
+          totalCount: count,
+        }),
+      )
+      mockCreateLastFmClient.mockReturnValue({
+        getTopArtistsPaged,
+      } as unknown as ReturnType<typeof createLastFmClient>)
+
+      const res = await createTestApp(makeDeps()).request(
+        `/api/v1/listening/top-artists?range=this_year&limit=${limit}&offset=${offset}`,
+      )
+      const expectedArtists = artists.slice(offset, offset + limit)
+      expect(res.status).toBe(200)
+      await expect(res.json()).resolves.toEqual({
+        tracks: expectedArtists.map((artist) => ({
+          artist: artist.name,
+          track: `${artist.playCount} plays this year`,
+          source: 'lastfm',
+          mbid: artist.mbid,
+        })),
+        total: count,
+        offset,
+        limit,
+        source: 'lastfm',
+        status: expectedArtists.length ? 'ok' : 'empty',
+      })
+      expect(getTopArtistsPaged.mock.calls).toEqual(
+        pages.map((page) => ['12month', { page, limit }]),
+      )
+    },
+  )
+
+  it('keeps nonempty Last.fm pages with zero total and preserves the first total', async () => {
     mockGetUserConnections.mockResolvedValue({
       ...emptyConnections(),
       lastfmUsername: 'user-lastfm',
       lastfmApiKey: 'user-lastfm-key',
     })
-    const getTopArtistsPaged = vi.fn(async () => ({ artists: [], totalCount: 0 }))
+    const getTopArtistsPaged = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artists: Array.from({ length: 5 }, (_, index) => ({
+          name: `Artist ${index}`,
+          playCount: 1,
+        })),
+        totalCount: 0,
+      })
+      .mockResolvedValueOnce({ artists: [{ name: 'Artist 5', playCount: 1 }], totalCount: 99 })
     mockCreateLastFmClient.mockReturnValue({
       getTopArtistsPaged,
     } as unknown as ReturnType<typeof createLastFmClient>)
 
-    const app = createTestApp(makeDeps())
-    await app.request('/api/v1/listening/top-artists?range=this_year&limit=5&offset=10')
-
-    expect(getTopArtistsPaged).toHaveBeenCalledWith('12month', { page: 3, limit: 5 })
+    const res = await createTestApp(makeDeps()).request(
+      '/api/v1/listening/top-artists?limit=5&offset=1',
+    )
+    expect(await res.json()).toEqual({
+      tracks: Array.from({ length: 5 }, (_, index) => ({
+        artist: `Artist ${index + 1}`,
+        track: '1 plays this month',
+        source: 'lastfm',
+      })),
+      total: 0,
+      offset: 1,
+      limit: 5,
+      source: 'lastfm',
+      status: 'ok',
+    })
+    expect(getTopArtistsPaged.mock.calls).toEqual([
+      ['1month', { page: 1, limit: 5 }],
+      ['1month', { page: 2, limit: 5 }],
+    ])
   })
+
+  it.each([
+    { failedPage: 1, plex: false },
+    { failedPage: 2, plex: false },
+    { failedPage: 1, plex: true },
+    { failedPage: 2, plex: true },
+  ])(
+    'handles Last.fm page $failedPage failure with Plex=$plex without partial success',
+    async ({ failedPage, plex }) => {
+      mockGetUserConnections.mockResolvedValue({
+        ...emptyConnections(),
+        lastfmUsername: 'user-lastfm',
+        lastfmApiKey: 'user-lastfm-key',
+        ...(plex
+          ? {
+              plexUrl: 'http://plex',
+              plexToken: 'token',
+              plexSectionId: '1',
+              plexAccountId: 7,
+              plexMachineIdentifier: 'machine',
+            }
+          : {}),
+      })
+      const getTopArtistsPaged = vi.fn(
+        async (_period: string, { page }: { page: number; limit: number }) => {
+          if (page === failedPage) throw new Error('private upstream detail')
+          return {
+            artists: Array.from({ length: 5 }, (_, index) => ({
+              name: `Artist ${index}`,
+              playCount: 1,
+            })),
+            totalCount: 20,
+          }
+        },
+      )
+      mockCreateLastFmClient.mockReturnValue({
+        getTopArtistsPaged,
+      } as unknown as ReturnType<typeof createLastFmClient>)
+      const getPlexTopArtistsPaged = vi.fn(async () => ({
+        artists: [{ name: 'Portishead', viewCount: 9, ratingKey: '101', genres: [] }],
+        totalCount: 1,
+      }))
+      mockCreatePlexClient.mockReturnValue({
+        getTopArtistsPaged: getPlexTopArtistsPaged,
+      } as unknown as ReturnType<typeof createPlexClient>)
+
+      const res = await createTestApp(makeDeps()).request(
+        '/api/v1/listening/top-artists?limit=5&offset=1',
+      )
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({
+        tracks: plex ? [{ artist: 'Portishead', track: '9 plays this month', source: 'plex' }] : [],
+        total: plex ? 1 : 0,
+        offset: 1,
+        limit: 5,
+        source: plex ? 'plex' : null,
+        status: plex ? 'ok' : 'error',
+      })
+      expect(getTopArtistsPaged).toHaveBeenCalledTimes(failedPage)
+      expect(getPlexTopArtistsPaged).toHaveBeenCalledTimes(plex ? 1 : 0)
+      if (plex) {
+        expect(getPlexTopArtistsPaged).toHaveBeenCalledWith(
+          expect.objectContaining({ offset: 1, limit: 5 }),
+        )
+      }
+    },
+  )
 
   it('falls back to the verified Plex listener account', async () => {
     mockGetUserConnections.mockResolvedValue({

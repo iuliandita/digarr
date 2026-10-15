@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { generatePlaylist, getStrategy } from '@/core/playlists/generator'
 import type { StrategyArtist, StrategyDeps } from '@/core/playlists/strategies/types'
 import type { TrackResolverDeps } from '@/core/playlists/types'
-import type { PlaylistStrategy } from '@/db/schema'
+import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -311,6 +311,75 @@ describe('rediscover strategy', () => {
 // ---------------------------------------------------------------------------
 
 describe('generatePlaylist()', () => {
+  it.each([
+    { config: undefined, count: 12, source: 'spotify' },
+    { config: null, count: 12, source: 'spotify' },
+    { config: {}, count: 12, source: 'spotify' },
+    { config: { size: 5 }, count: 5, source: 'spotify' },
+    { config: { genre: '', mood: '' }, count: 12, source: 'spotify' },
+    { config: { trackSourcePriority: ['spotify'] }, count: 12, source: 'spotify' },
+    { config: { trackSourcePriority: [] }, count: 4, source: 'musicbrainz' },
+  ] satisfies Array<{
+    config: Partial<PlaylistConfig> | null | undefined
+    count: number
+    source: string
+  }>)(
+    'normalizes runtime config $config before resolving tracks',
+    async ({ config, count, source }) => {
+      const resolverDeps = {
+        ...makeResolverDeps(),
+        musicbrainzRecordings: vi
+          .fn()
+          .mockImplementation(async (mbid: string) => [
+            { id: `${mbid}-recording`, title: 'Recording' },
+          ]),
+      }
+      const result = await generatePlaylist(
+        'weekly_digest',
+        config,
+        makeStrategyDeps(),
+        resolverDeps,
+      )
+      expect(result.tracks).toHaveLength(count)
+      expect(result.tracks.every((track) => track.source === source)).toBe(true)
+      if (source === 'musicbrainz') {
+        expect(resolverDeps.spotifySearch).not.toHaveBeenCalled()
+        expect(resolverDeps.musicbrainzRecordings).toHaveBeenCalled()
+      } else {
+        expect(resolverDeps.spotifySearch).toHaveBeenCalled()
+      }
+    },
+  )
+
+  it.each([
+    { size: 0 },
+    { size: -1 },
+    { size: 1.5 },
+    { size: '25' },
+    { size: null },
+    { trackSourcePriority: 'spotify' },
+    { trackSourcePriority: ['invalid'] },
+    { genre: 1 },
+    { mood: null },
+    { unknown: true },
+    [],
+  ])('rejects invalid runtime config %j before calling dependencies', async (config) => {
+    const strategyDeps = makeStrategyDeps()
+    const resolverDeps = makeResolverDeps()
+    await expect(
+      generatePlaylist(
+        'weekly_digest',
+        config as Partial<PlaylistConfig>,
+        strategyDeps,
+        resolverDeps,
+      ),
+    ).rejects.toThrow()
+    expect(strategyDeps.getApprovedArtists).not.toHaveBeenCalled()
+    expect(strategyDeps.getPendingArtists).not.toHaveBeenCalled()
+    expect(strategyDeps.getOlderApprovedArtists).not.toHaveBeenCalled()
+    expect(resolverDeps.spotifySearch).not.toHaveBeenCalled()
+  })
+
   it('keeps partial artist inclusion and reconciles summary counts after the track cap', async () => {
     const result = await generatePlaylist(
       'weekly_digest',

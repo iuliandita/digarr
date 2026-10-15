@@ -2,6 +2,7 @@
 
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { withPlaylistLock } from '@/core/playlists/generation-lock'
 import type { PlaylistDeps } from '@/server/routes/playlists'
 import { playlistRoutes } from '@/server/routes/playlists'
 
@@ -83,6 +84,11 @@ vi.mock('@/db/queries/playlists', () => ({
 }))
 
 vi.mock('@/db/queries/jobs', () => ({ getLatestPlaylistGeneration: vi.fn() }))
+vi.mock('@/db/queries/playlist-exports', () => ({
+  getPlaylistExports: vi.fn().mockResolvedValue([]),
+  getPlaylistExport: vi.fn().mockResolvedValue(null),
+  resetPlaylistExport: vi.fn().mockResolvedValue(undefined),
+}))
 
 // Mock generator to avoid running real generation in tests
 vi.mock('@/core/playlists/generator', () => ({
@@ -99,6 +105,9 @@ vi.mock('@/db/queries/settings', () => ({
 
 beforeEach(async () => {
   vi.clearAllMocks()
+  const exports = vi.mocked(await import('@/db/queries/playlist-exports'))
+  exports.getPlaylistExports.mockResolvedValue([])
+  exports.getPlaylistExport.mockResolvedValue(null)
   const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
   getLatestPlaylistGeneration.mockResolvedValue(null)
   mockPlaylistScheduler.nextRun.mockReturnValue(null)
@@ -238,6 +247,117 @@ describe('POST /api/v1/playlists', () => {
       body: JSON.stringify({ name: 'X', strategy: 'weekly_digest' }),
     })
     expect(res.status).toBe(401)
+  })
+})
+
+describe('playlist configuration writes', () => {
+  const methods = ['POST', 'PATCH'] as const
+  const requestBody = (method: (typeof methods)[number], config: unknown) => ({
+    ...(method === 'POST' ? { name: 'My Mix', strategy: 'weekly_digest' } : {}),
+    config,
+  })
+  const requestPath = (method: (typeof methods)[number]) =>
+    method === 'POST' ? '/api/v1/playlists' : '/api/v1/playlists/1'
+
+  it.each(
+    methods.flatMap((method) => [
+      { method, config: {}, expected: { size: 25, trackSourcePriority: ['spotify'] } },
+      { method, config: { size: 5 }, expected: { size: 5, trackSourcePriority: ['spotify'] } },
+      {
+        method,
+        config: { genre: 'rock' },
+        expected: { size: 25, genre: 'rock', trackSourcePriority: ['spotify'] },
+      },
+      {
+        method,
+        config: { mood: '' },
+        expected: { size: 25, mood: '', trackSourcePriority: ['spotify'] },
+      },
+      {
+        method,
+        config: { trackSourcePriority: [] },
+        expected: { size: 25, trackSourcePriority: [] },
+      },
+      {
+        method,
+        config: { trackSourcePriority: ['local', 'deezer', 'spotify'] },
+        expected: { size: 25, trackSourcePriority: ['local', 'deezer', 'spotify'] },
+      },
+    ]),
+  )('$method saves canonical config for $config', async ({ method, config, expected }) => {
+    const { createPlaylist, getPlaylistWithTracks, updatePlaylist } = vi.mocked(
+      await import('@/db/queries/playlists'),
+    )
+    getPlaylistWithTracks.mockResolvedValue({
+      playlist: {
+        ...mockPlaylist,
+        config: { size: 88, mood: 'old', trackSourcePriority: ['local'] },
+      },
+      tracks: [],
+    } as never)
+    const deps = makeDeps()
+    const res = await createTestApp(deps, USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(method === 'POST' ? 201 : 204)
+    const saved =
+      method === 'POST' ? createPlaylist.mock.calls[0]?.[1] : updatePlaylist.mock.calls[0]?.[2]
+    expect(saved).toHaveProperty('config', expected)
+    expect(deps.restartPlaylistScheduler).toHaveBeenCalledOnce()
+  })
+
+  it.each(
+    methods.flatMap((method) => [
+      { method, config: undefined },
+      { method, config: null },
+    ]),
+  )('$method preserves omitted/null config $config', async ({ method, config }) => {
+    const { createPlaylist, updatePlaylist } = vi.mocked(await import('@/db/queries/playlists'))
+    const res = await createTestApp(makeDeps(), USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(method === 'POST' ? 201 : 204)
+    const saved =
+      method === 'POST' ? createPlaylist.mock.calls[0]?.[1] : updatePlaylist.mock.calls[0]?.[2]
+    if (method === 'PATCH' && config === undefined) {
+      expect(saved).not.toHaveProperty('config')
+    } else {
+      expect(saved).toHaveProperty('config', null)
+    }
+  })
+
+  it.each(
+    methods.flatMap((method) =>
+      [
+        { size: 0 },
+        { size: -1 },
+        { size: 1.5 },
+        { size: '25' },
+        { size: null },
+        { trackSourcePriority: 'spotify' },
+        { trackSourcePriority: ['invalid'] },
+        { genre: 1 },
+        { mood: null },
+        { unknown: true },
+        [],
+      ].map((config) => ({ method, config })),
+    ),
+  )('$method rejects invalid config $config before writes', async ({ method, config }) => {
+    const { createPlaylist, updatePlaylist } = vi.mocked(await import('@/db/queries/playlists'))
+    const deps = makeDeps()
+    const res = await createTestApp(deps, USER_ID).request(requestPath(method), {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody(method, config)),
+    })
+    expect(res.status).toBe(400)
+    expect(createPlaylist).not.toHaveBeenCalled()
+    expect(updatePlaylist).not.toHaveBeenCalled()
+    expect(deps.restartPlaylistScheduler).not.toHaveBeenCalled()
   })
 })
 
@@ -396,5 +516,94 @@ describe('POST /api/v1/playlists/:id/generate', () => {
     const app = createTestApp(makeDeps(), USER_ID)
     const res = await app.request('/api/v1/playlists/9999/generate', { method: 'POST' })
     expect(res.status).toBe(404)
+  })
+})
+
+describe('saved playlist export recovery', () => {
+  const binding = {
+    id: 10,
+    playlistId: 1,
+    targetId: 7,
+    remotePlaylistId: 'remote-7',
+    remoteScope: 'v1:account',
+    state: 'linked' as const,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-02'),
+  }
+  const resetRequest = (body: unknown = { acknowledgePossibleDuplicate: true }) => ({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  it('lists only the owned binding projection and resets only local state after acknowledgment', async () => {
+    const queries = vi.mocked(await import('@/db/queries/playlist-exports'))
+    queries.getPlaylistExports.mockResolvedValue([binding])
+    queries.getPlaylistExport.mockResolvedValue(binding)
+    const app = createTestApp(makeDeps(), USER_ID)
+    const result = await app.request('/api/v1/playlists/1/exports')
+    expect(result.status).toBe(200)
+    expect(await result.json()).toEqual({
+      exports: [
+        {
+          targetId: 7,
+          remotePlaylistId: 'remote-7',
+          state: 'linked',
+          updatedAt: binding.updatedAt.toISOString(),
+        },
+      ],
+    })
+    expect(queries.getPlaylistExports).toHaveBeenCalledWith(mockDb, USER_ID, 1)
+    expect((await app.request('/api/v1/playlists/1/exports/7/reset', resetRequest())).status).toBe(
+      204,
+    )
+    expect(queries.resetPlaylistExport).toHaveBeenCalledWith(mockDb, USER_ID, 1, 7)
+  })
+
+  it.each([
+    { userId: undefined, status: 401 },
+    { userId: 999, status: 404 },
+  ])(
+    'refuses another user or anonymous access ($status) before reading bindings',
+    async ({ userId, status }) => {
+      const queries = vi.mocked(await import('@/db/queries/playlist-exports'))
+      const app = createTestApp(makeDeps(), userId)
+      expect((await app.request('/api/v1/playlists/1/exports')).status).toBe(status)
+      expect(
+        (await app.request('/api/v1/playlists/1/exports/7/reset', resetRequest())).status,
+      ).toBe(status)
+      expect(queries.getPlaylistExports).not.toHaveBeenCalled()
+      expect(queries.getPlaylistExport).not.toHaveBeenCalled()
+      expect(queries.resetPlaylistExport).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    {},
+    { acknowledgePossibleDuplicate: false },
+    { acknowledgePossibleDuplicate: true, extra: true },
+  ])('requires explicit acknowledgment and rejects unknown recovery fields: %j', async (body) => {
+    const queries = vi.mocked(await import('@/db/queries/playlist-exports'))
+    const response = await createTestApp(makeDeps(), USER_ID).request(
+      '/api/v1/playlists/1/exports/7/reset',
+      resetRequest(body),
+    )
+    expect(response.status).toBe(400)
+    expect(queries.resetPlaylistExport).not.toHaveBeenCalled()
+  })
+
+  it('refuses missing or transferred target bindings and blocks reset during generation', async () => {
+    const queries = vi.mocked(await import('@/db/queries/playlist-exports'))
+    const app = createTestApp(makeDeps(), USER_ID)
+    expect((await app.request('/api/v1/playlists/1/exports/7/reset', resetRequest())).status).toBe(
+      404,
+    )
+    queries.getPlaylistExport.mockResolvedValue(binding)
+    const response = await withPlaylistLock(1, async () =>
+      app.request('/api/v1/playlists/1/exports/7/reset', resetRequest()),
+    )
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ code: 'errors.playlist.busy' })
+    expect(queries.resetPlaylistExport).not.toHaveBeenCalled()
   })
 })

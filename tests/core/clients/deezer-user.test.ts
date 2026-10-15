@@ -22,6 +22,71 @@ beforeEach(() => {
 })
 
 describe('createDeezerUserClient', () => {
+  const requests = [
+    [
+      'getFavoriteArtists',
+      (client: ReturnType<typeof createDeezerUserClient>) => client.getFavoriteArtists(),
+    ],
+    [
+      'getFollowedArtists',
+      (client: ReturnType<typeof createDeezerUserClient>) => client.getFollowedArtists(),
+    ],
+    [
+      'getFlowRecommendations',
+      (client: ReturnType<typeof createDeezerUserClient>) => client.getFlowRecommendations(),
+    ],
+    ['getPlaylists', (client: ReturnType<typeof createDeezerUserClient>) => client.getPlaylists()],
+    [
+      'getPlaylistTracks',
+      (client: ReturnType<typeof createDeezerUserClient>) => client.getPlaylistTracks(42),
+    ],
+    ['getMe', (client: ReturnType<typeof createDeezerUserClient>) => client.getMe()],
+  ] as const
+
+  it.each(requests)('%s rejects provider error envelopes', async (_name, request) => {
+    mockGet.mockResolvedValueOnce({
+      error: { message: 'Untrusted provider text containing test-token' },
+      data: [],
+    })
+
+    await expect(request(createDeezerUserClient('test-token'))).rejects.toThrow(
+      'Deezer request failed. Reconnect Deezer or check its configuration in Settings.',
+    )
+  })
+
+  it.each(requests)(
+    '%s sanitizes transport failures without retaining the original error',
+    async (_name, request) => {
+      const token = 'private/token?with=characters&more'
+      const original = Object.assign(new Error(`HTTP 503: ${token} ${encodeURIComponent(token)}`), {
+        body: token,
+        cause: new Error(token),
+      })
+      mockGet.mockRejectedValueOnce(original)
+
+      const error = await request(createDeezerUserClient(token)).catch(
+        (failure: unknown) => failure,
+      )
+
+      expect(error).toBeInstanceOf(Error)
+      expect(error).not.toBe(original)
+      expect(error).toMatchObject({
+        message:
+          'Deezer request failed: HTTP 503: [REDACTED] [REDACTED]. Check your Deezer connection in Settings and reconnect if needed.',
+      })
+      expect(error).not.toHaveProperty('cause')
+      expect(error).not.toHaveProperty('body')
+      expect(String(error)).not.toContain(token)
+      expect(String(error)).not.toContain(encodeURIComponent(token))
+    },
+  )
+
+  it.each(requests.slice(0, -1))('%s preserves successful empty feeds', async (_name, request) => {
+    mockGet.mockResolvedValueOnce({ data: [] })
+
+    await expect(request(createDeezerUserClient('test-token'))).resolves.toEqual([])
+  })
+
   describe('getFavoriteArtists(limit)', () => {
     it('returns mapped artists from user favorites', async () => {
       mockGet.mockResolvedValueOnce({
@@ -190,6 +255,7 @@ describe('createDeezerUserClient', () => {
       await client.getPlaylistTracks(42)
 
       expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/playlist/42/tracks'))
+      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=500'))
     })
 
     it('returns empty array when data is absent', async () => {

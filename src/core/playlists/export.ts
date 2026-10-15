@@ -1,5 +1,12 @@
-import type { DestinationTarget, PlaylistItem } from '@/core/targets/types'
+import type { DestinationTarget, PlaylistItem, PlaylistResult } from '@/core/targets/types'
 import { errMsg } from '@/core/validation'
+import type { Database } from '@/db'
+import type { PlaylistExportRow } from '@/db/queries/playlist-exports'
+import {
+  linkPlaylistExport,
+  markPlaylistExportRecoveryRequired,
+  reservePlaylistExport,
+} from '@/db/queries/playlist-exports'
 import type { PlaylistTrackRow } from '@/db/queries/playlists'
 
 export type PlaylistExportFormat = 'json' | 'csv' | 'm3u' | 'xspf'
@@ -154,6 +161,15 @@ export async function pushPlaylistToTargets(
         failures.push(
           `${result.targetType}(${result.targetId}): ${result.error || 'export failed'}`,
         )
+      } else if (
+        ['navidrome-playlist', 'jellyfin-playlist', 'emby-playlist', 'plex-playlist'].includes(
+          target.type,
+        ) &&
+        (result.itemsSkipped ?? 0) > 0
+      ) {
+        failures.push(
+          `${result.targetType}(${result.targetId}): added ${result.itemsAdded ?? 0}, skipped ${result.itemsSkipped}`,
+        )
       }
     } catch (error) {
       failures.push(`${target.id}: ${errMsg(error)}`)
@@ -163,4 +179,87 @@ export async function pushPlaylistToTargets(
   if (failures.length > 0) {
     throw new Error(`Playlist export failed: ${failures.join('; ')}`)
   }
+}
+
+export type SavedPlaylistExportStore = {
+  reserve(
+    targetId: number,
+    scope: string,
+  ): Promise<{
+    created: boolean
+    binding: Pick<PlaylistExportRow, 'remoteScope' | 'remotePlaylistId' | 'state'>
+  }>
+  link(targetId: number, scope: string, remotePlaylistId: string): Promise<void>
+  markRecoveryRequired(targetId: number): Promise<void>
+}
+
+export function createSavedPlaylistExportStore(
+  db: Database,
+  userId: number,
+  playlistId: number,
+): SavedPlaylistExportStore {
+  return {
+    reserve: (targetId, scope) => reservePlaylistExport(db, userId, playlistId, targetId, scope),
+    link: (targetId, scope, remoteId) =>
+      linkPlaylistExport(db, userId, playlistId, targetId, scope, remoteId),
+    markRecoveryRequired: (targetId) =>
+      markPlaylistExportRecoveryRequired(db, userId, playlistId, targetId),
+  }
+}
+
+export async function pushSavedPlaylistToTargets(
+  targets: Array<{ targetId: number; target: DestinationTarget }>,
+  name: string,
+  items: PlaylistItem[],
+  store: SavedPlaylistExportStore,
+): Promise<void> {
+  const failures: string[] = []
+  for (const { targetId, target } of targets) {
+    let created = false
+    try {
+      if (items.length === 0)
+        throw new Error('No generated tracks; the remote playlist was preserved')
+      if (!target.openPlaylistExportSession)
+        throw new Error('Destination cannot refresh saved playlists')
+      const session = await target.openPlaylistExportSession(items)
+      const reservation = await store.reserve(targetId, session.scope)
+      created = reservation.created
+      const { binding } = reservation
+      if (binding.remoteScope !== session.scope)
+        throw new Error('Destination account or server changed; export recovery is required')
+
+      let result: PlaylistResult
+      if (created) {
+        let checkpointedId: string | undefined
+        result = await session.createPlaylist(name, async (remotePlaylistId) => {
+          if (checkpointedId) throw new Error('Playlist identity was already checkpointed')
+          await store.link(targetId, session.scope, remotePlaylistId)
+          checkpointedId = remotePlaylistId
+        })
+        if (!checkpointedId || result.playlistId !== checkpointedId) {
+          throw new Error(
+            `${result.error ? `${result.error}; ` : ''}Remote playlist identity was not confirmed; export recovery is required`,
+          )
+        }
+      } else {
+        if (binding.state !== 'linked' || !binding.remotePlaylistId)
+          throw new Error('Remote playlist creation is unresolved; export recovery is required')
+        result = await session.replacePlaylist(binding.remotePlaylistId, name)
+      }
+      if (!result.success) throw new Error(result.error || 'Export failed')
+      if ((result.itemsSkipped ?? 0) > 0)
+        throw new Error(`Added ${result.itemsAdded ?? 0}, skipped ${result.itemsSkipped}`)
+    } catch (error) {
+      let message = errMsg(error)
+      if (created) {
+        try {
+          await store.markRecoveryRequired(targetId)
+        } catch (checkpointError) {
+          message += `; recovery state could not be persisted: ${errMsg(checkpointError)}`
+        }
+      }
+      failures.push(`${target.type}(${targetId}): ${message}`)
+    }
+  }
+  if (failures.length > 0) throw new Error(`Playlist export failed: ${failures.join('; ')}`)
 }

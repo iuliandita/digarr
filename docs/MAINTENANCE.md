@@ -83,6 +83,10 @@ bun run check:companions
 
 This fetches both published templates and compares configuration fields and operator help with the bundled template. Image repository identity is compared, allowing the Digarr Docker Hub and GHCR aliases. Moving `latest` tags, release pins, and digest comments are intentionally excluded. Templates must use UTF-8 XML without DTD or entity declarations. Exit 0 means aligned, 1 means differences, and 2 means the comparison was unavailable or invalid. Python 3 and network access are required. The weekly and manually triggered Companion templates workflow produces an advisory report; network outages and pending external PRs do not block normal CI. Check existing PRs before opening duplicate work.
 
+## Dependency security checks
+
+The required dependency audit runs `bun audit --audit-level=high`. High and critical advisories fail the job; lower severities do not. Bun handles its audit response and command failures directly, and error output stays visible. Trivy filesystem reporting remains advisory-only. This gate does not certify that every dependency is free of vulnerabilities.
+
 ## Limits and release checks
 
 The Markdown parser covers common local links and anchors; it is not a complete CommonMark renderer and does not check remote links. Environment coverage scans tracked `src/**/*.ts` and `src/**/*.tsx` for literal names and known access patterns, including file variants; it cannot infer dynamically constructed names. Source hashes detect a review obligation, not semantic correctness, valid translations, current screenshots, or working examples. Keep the existing tests, i18n check, Helm rendering, and release version checks.

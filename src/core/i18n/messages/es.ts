@@ -333,7 +333,7 @@ export const es = {
   'discover.rejectAll': 'Rechazar todo',
   'discover.rejectAllBelow': 'Rechazar todo por debajo',
   'discover.auditionAll': 'Preescuchar',
-  'discover.nothingToAudition': 'No hay elementos pendientes con vista previa',
+  'discover.nothingToAudition': 'No hay recomendaciones pendientes',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',
@@ -477,7 +477,11 @@ export const es = {
   'playlist.deleteWarning': '¿Eliminar esta lista? Esta acción no se puede deshacer.',
   'playlist.deletedNamed': 'Lista eliminada',
   'playlist.detailHint':
-    'Esta lista de reproducción se generó a partir de tus recomendaciones aprobadas. Haga clic en Generar ahora para actualizarlo con nuevas selecciones, descargarlo como M3U o XSPF, o agregar un destino de lista de reproducción para enviar ejecuciones futuras a Navidrome, Jellyfin o Plex automáticamente.',
+    'Genera esta lista de reproducción a partir de tus recomendaciones aprobadas.',
+  'playlist.detailAuditionHint':
+    'Genera esta lista de reproducción con artistas pendientes para escucharlos antes de aprobarlos.',
+  'playlist.detailActionsHint':
+    'Tras la generación, descarga las pistas como M3U o XSPF, o añade un destino de lista de reproducción para enviar las futuras ejecuciones a Navidrome, Jellyfin o Plex automáticamente.',
   'playlist.disable': 'Desactivar lista',
   'playlist.download': 'Descargar',
   'playlist.downloadFailed': 'No se pudo descargar la lista de reproducción',
@@ -1190,6 +1194,8 @@ export const es = {
     'Se usa cuando el servidor de metadatos de Lidarr no está disponible. Por defecto es api.musicinfo.pro. Indica la URL de tu propia instancia de hearring-aid si la alojas tú mismo.',
   'settings.recommendationsSaved': 'Ajustes de recomendaciones guardados',
   'settings.recommendationsFailed': 'Error al guardar los ajustes',
+  'settings.recommendationsPartiallySaved':
+    'Se guardaron las preferencias personales, pero no se pudieron guardar los ajustes globales de metadatos.',
   'settings.scheduleTip':
     'Establece una programación cron para ejecutar el pipeline automáticamente. Una vez a la semana, los lunes, es una opción popular.',
   'settings.librarySyncInterval': 'Sincronización de biblioteca',
@@ -1416,6 +1422,9 @@ export const es = {
   'admin.exporting': 'Exportando...',
   'admin.includeCaches': 'Incluir cachés',
   'admin.restoreFromBackup': 'Restaurar desde copia',
+  'admin.restoreConfirmTitle': '¿Restaurar la copia de seguridad?',
+  'admin.restoreConfirmMessage':
+    'Esto reemplaza los datos incluidos en la copia de seguridad. Haz primero una copia de seguridad de esta instancia. ¿Continuar?',
   'admin.lastAutoBackup': 'Última copia automática:',
   'admin.backupDownloaded': 'Copia descargada',
   'admin.backupFailed': 'Error al crear la copia',
@@ -1649,6 +1658,8 @@ export const es = {
   'errors.recommendation.notFound': 'Recomendación no encontrada',
   'errors.subscription.notFound': 'Suscripción no encontrada',
   'errors.playlist.notFound': 'Lista de reproducción no encontrada',
+  'errors.playlist.busy':
+    'La generación de la lista de reproducción o la recuperación de la exportación ya está en curso',
   'settings.channels.title': 'Notificaciones',
   'settings.channels.description':
     'Envía notificaciones de fin de escaneo y de resumen a uno o varios canales.',

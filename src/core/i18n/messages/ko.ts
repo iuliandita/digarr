@@ -328,7 +328,7 @@ export const ko = {
   'discover.rejectAll': '모두 거부',
   'discover.rejectAllBelow': '아래 모두 거부',
   'discover.auditionAll': '연속 미리듣기',
-  'discover.nothingToAudition': '미리듣기가 있는 대기 중인 항목이 없습니다',
+  'discover.nothingToAudition': '대기 중인 추천이 없습니다',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',
@@ -469,8 +469,11 @@ export const ko = {
   'playlist.deleteFailed': '재생목록을 삭제하지 못했습니다.',
   'playlist.deleteWarning': '이 플레이리스트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
   'playlist.deletedNamed': '플레이리스트를 삭제했습니다',
-  'playlist.detailHint':
-    '이 재생목록은 승인된 추천을 통해 생성되었습니다. 지금 생성을 클릭하여 새로운 선택으로 새로 고치거나, M3U 또는 XSPF로 다운로드하거나, 재생 목록 대상을 추가하여 Navidrome, Jellyfin 또는 Plex에 자동으로 향후 실행을 푸시할 수 있습니다.',
+  'playlist.detailHint': '승인된 추천으로 이 재생목록을 생성하세요.',
+  'playlist.detailAuditionHint':
+    '대기 중인 아티스트로 이 재생목록을 생성하여 승인 전에 들어보세요.',
+  'playlist.detailActionsHint':
+    '생성 후 트랙을 M3U 또는 XSPF로 다운로드하거나 재생목록 대상을 추가하여 이후 생성 결과를 Navidrome, Jellyfin 또는 Plex에 자동으로 보낼 수 있습니다.',
   'playlist.disable': '플레이리스트 비활성화',
   'playlist.download': '다운로드',
   'playlist.downloadFailed': '재생목록을 다운로드하지 못했습니다.',
@@ -1157,6 +1160,8 @@ export const ko = {
     'Lidarr 메타데이터 서버가 다운될 때 사용됩니다. 기본값은 api.musicinfo.pro. 셀프 호스팅 시 자체 인스턴스 URL을 설정하세요.',
   'settings.recommendationsSaved': '추천 설정이 저장되었습니다',
   'settings.recommendationsFailed': '설정 저장에 실패했습니다',
+  'settings.recommendationsPartiallySaved':
+    '개인 설정은 저장되었지만 전역 메타데이터 설정을 저장하지 못했습니다.',
   'settings.scheduleTip':
     'Cron 일정을 설정하여 탐색 파이프라인을 자동 실행합니다. 매주 월요일이 인기 있는 선택입니다.',
   'settings.librarySyncInterval': '라이브러리 동기화',
@@ -1378,6 +1383,9 @@ export const ko = {
   'admin.exporting': '내보내는 중...',
   'admin.includeCaches': '캐시 포함',
   'admin.restoreFromBackup': '백업에서 복원',
+  'admin.restoreConfirmTitle': '백업을 복원할까요?',
+  'admin.restoreConfirmMessage':
+    '백업에 포함된 데이터가 교체됩니다. 먼저 이 인스턴스를 백업하세요. 계속할까요?',
   'admin.lastAutoBackup': '마지막 자동 백업:',
   'admin.backupDownloaded': '백업 다운로드 완료',
   'admin.backupFailed': '백업 생성 실패',
@@ -1603,6 +1611,7 @@ export const ko = {
   'errors.recommendation.notFound': '추천을 찾을 수 없습니다',
   'errors.subscription.notFound': '구독을 찾을 수 없습니다',
   'errors.playlist.notFound': '재생목록을 찾을 수 없습니다',
+  'errors.playlist.busy': '재생목록 생성 또는 내보내기 복구가 이미 진행 중입니다',
   'settings.channels.title': '알림',
   'settings.channels.description': '스캔 완료 및 요약 알림을 하나 이상의 채널로 보냅니다.',
   'settings.channels.add': '채널 추가',

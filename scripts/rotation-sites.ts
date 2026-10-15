@@ -21,8 +21,10 @@ export const COLUMN_SITES: RotationSite[] = [
   ...scalarSites('oauth_tokens', SENSITIVE_OAUTH),
 ]
 
-export const NESTED_SITES = SENSITIVE_PREFERENCES.map((key) => ({
-  table: 'settings',
-  column: 'preferences',
-  path: [key],
-}))
+export const NESTED_SITES = ['settings', 'users'].flatMap((table) =>
+  SENSITIVE_PREFERENCES.map((key) => ({
+    table,
+    column: 'preferences',
+    path: [key],
+  })),
+)

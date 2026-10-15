@@ -333,7 +333,7 @@ export const de = {
   'discover.rejectAll': 'Alle ablehnen',
   'discover.rejectAllBelow': 'Alle darunter ablehnen',
   'discover.auditionAll': 'Probehören',
-  'discover.nothingToAudition': 'Keine ausstehenden Einträge mit Vorschau',
+  'discover.nothingToAudition': 'Keine ausstehenden Empfehlungen',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',
@@ -482,8 +482,11 @@ export const de = {
   'playlist.deleteFailed': 'Playlist konnte nicht gelöscht werden',
   'playlist.deleteWarning': 'Diese Playlist löschen? Dies kann nicht rückgängig gemacht werden.',
   'playlist.deletedNamed': 'Playlist gelöscht',
-  'playlist.detailHint':
-    'Diese Playlist wurde aus Ihren genehmigten Empfehlungen erstellt. Klicken Sie auf „Jetzt generieren“, um es mit neuen Tipps zu aktualisieren, es als M3U oder XSPF herunterzuladen oder ein Playlist-Ziel hinzuzufügen, um zukünftige Läufe automatisch an Navidrome, Jellyfin oder Plex zu senden.',
+  'playlist.detailHint': 'Generieren Sie diese Playlist aus Ihren genehmigten Empfehlungen.',
+  'playlist.detailAuditionHint':
+    'Generieren Sie diese Playlist aus ausstehenden Künstlern, um sie vor der Genehmigung anzuhören.',
+  'playlist.detailActionsHint':
+    'Nach der Generierung können Sie die Titel als M3U oder XSPF herunterladen oder ein Playlist-Ziel hinzufügen, um zukünftige Durchläufe automatisch an Navidrome, Jellyfin oder Plex zu senden.',
   'playlist.disable': 'Playlist deaktivieren',
   'playlist.download': 'Herunterladen',
   'playlist.downloadFailed': 'Download der Playlist fehlgeschlagen',
@@ -1198,6 +1201,8 @@ export const de = {
     'Wird verwendet, wenn Lidarrs Metadatenserver nicht erreichbar ist. Standard ist api.musicinfo.pro. Bei Self-Hosting eigene hearring-aid-Instanz-URL angeben.',
   'settings.recommendationsSaved': 'Empfehlungseinstellungen gespeichert',
   'settings.recommendationsFailed': 'Einstellungen konnten nicht gespeichert werden',
+  'settings.recommendationsPartiallySaved':
+    'Persönliche Einstellungen gespeichert, aber die globalen Metadateneinstellungen konnten nicht gespeichert werden.',
   'settings.scheduleTip':
     'Lege einen Cron-Zeitplan für die automatische Ausführung der Entdeckungs-Pipeline fest. Wöchentlich montags ist eine beliebte Wahl.',
   'settings.librarySyncInterval': 'Bibliothekssync',
@@ -1427,6 +1432,9 @@ export const de = {
   'admin.exporting': 'Exportiere...',
   'admin.includeCaches': 'Caches einschliessen',
   'admin.restoreFromBackup': 'Aus Backup wiederherstellen',
+  'admin.restoreConfirmTitle': 'Backup wiederherstellen?',
+  'admin.restoreConfirmMessage':
+    'Dadurch werden die im Backup enthaltenen Daten ersetzt. Erstelle zuerst ein Backup dieser Instanz. Fortfahren?',
   'admin.lastAutoBackup': 'Letztes Auto-Backup:',
   'admin.backupDownloaded': 'Backup heruntergeladen',
   'admin.backupFailed': 'Backup-Erstellung fehlgeschlagen',
@@ -1661,6 +1669,8 @@ export const de = {
   'errors.recommendation.notFound': 'Empfehlung nicht gefunden',
   'errors.subscription.notFound': 'Abonnement nicht gefunden',
   'errors.playlist.notFound': 'Wiedergabeliste nicht gefunden',
+  'errors.playlist.busy':
+    'Die Erstellung der Wiedergabeliste oder die Wiederaufnahme des Exports läuft bereits',
   'settings.channels.title': 'Benachrichtigungen',
   'settings.channels.description':
     'Sende Scan-Abschluss- und Zusammenfassungs-Benachrichtigungen an einen oder mehrere Kanäle.',

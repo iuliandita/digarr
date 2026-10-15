@@ -19,7 +19,7 @@ function envOrFile(key: string): string | undefined {
   try {
     return readFileSync(filePath, 'utf8').trim() || undefined
   } catch {
-    return undefined
+    throw new Error(`${key}_FILE could not be read`)
   }
 }
 
@@ -198,7 +198,7 @@ export function buildDatabaseUrl(): string {
   if (dbHost && dbUser && dbName) {
     const port = dbPort ?? 5432
     const pass = dbPass ? `:${encodeURIComponent(dbPass)}` : ''
-    return `postgresql://${dbUser}${pass}@${dbHost}:${port}/${dbName}`
+    return `postgresql://${encodeURIComponent(dbUser)}${pass}@${dbHost}:${port}/${encodeURIComponent(dbName)}`
   }
 
   throw new Error('DATABASE_URL or DB_HOST + DB_USER + DB_NAME must be set')

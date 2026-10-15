@@ -16,6 +16,7 @@ export function BackupSection() {
     affectedFields?: string[]
   } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const restoreInFlight = useRef(false)
 
   const { data: lastBackup } = useQuery({
     queryKey: ['lastAutoBackup'],
@@ -34,28 +35,50 @@ export function BackupSection() {
     }
   }
 
-  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) return
+    e.target.value = ''
+    if (!file || restoreInFlight.current) return
+    setConfirmRestore({ file })
+  }
 
+  async function handleRestore() {
+    if (!confirmRestore || restoreInFlight.current) return
+    const { file, mismatch: force = false } = confirmRestore
+    restoreInFlight.current = true
+    setRestoring(true)
+    setConfirmRestore(null)
     try {
-      const result = await restoreBackupApi(file, false)
-      if (result.encryptionMismatch) {
+      const result = await restoreBackupApi(file, force)
+      if (result.encryptionMismatch && !force) {
         setConfirmRestore({ file, mismatch: true, affectedFields: result.affectedEncryptedFields })
       } else {
         const total = Object.values(result.tablesRestored).reduce((a, b) => a + b, 0)
         toast.success(
-          t('admin.restoreSummary')
-            .replace('{0}', String(total))
-            .replace('{1}', String(Object.keys(result.tablesRestored).length)),
+          force
+            ? t('admin.restoreSummaryForce').replace('{0}', String(total))
+            : t('admin.restoreSummary')
+                .replace('{0}', String(total))
+                .replace('{1}', String(Object.keys(result.tablesRestored).length)),
         )
         if (result.warnings.length > 0) {
           toast.warning(result.warnings.join('; '))
         }
       }
     } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 409) {
-        const body = err.data as { affectedFields?: string[] }
+      const body =
+        err instanceof ApiError
+          ? (err.data as {
+              error?: string
+              affectedFields?: string[]
+            } | null)
+          : null
+      if (
+        !force &&
+        err instanceof ApiError &&
+        err.status === 409 &&
+        body?.error === 'Encryption key mismatch'
+      ) {
         setConfirmRestore({
           file,
           mismatch: true,
@@ -65,22 +88,8 @@ export function BackupSection() {
         toast.error(t('admin.restoreFailed'))
       }
     } finally {
-      if (fileRef.current) fileRef.current.value = ''
-    }
-  }
-
-  async function handleForceRestore() {
-    if (!confirmRestore) return
-    setRestoring(true)
-    try {
-      const result = await restoreBackupApi(confirmRestore.file, true)
-      const total = Object.values(result.tablesRestored).reduce((a, b) => a + b, 0)
-      toast.success(t('admin.restoreSummaryForce').replace('{0}', String(total)))
-    } catch {
-      toast.error(t('admin.restoreFailed'))
-    } finally {
+      restoreInFlight.current = false
       setRestoring(false)
-      setConfirmRestore(null)
     }
   }
 
@@ -120,31 +129,41 @@ export function BackupSection() {
           type="file"
           accept=".json"
           onChange={handleFileSelect}
+          disabled={restoring}
           style={{ display: 'none' }}
         />
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="px-3 py-1.5 text-sm font-medium rounded-md border border-border text-text hover:bg-surface"
+          disabled={restoring}
+          className="px-3 py-1.5 text-sm font-medium rounded-md border border-border text-text hover:bg-surface disabled:opacity-50"
         >
-          {t('admin.restoreFromBackup')}
+          {restoring ? t('admin.restoring') : t('admin.restoreFromBackup')}
         </button>
       </div>
 
-      {confirmRestore?.mismatch && (
+      {confirmRestore && (
         <ConfirmDialog
-          title={t('admin.encryptionMismatch')}
-          message={`${t('admin.encryptionMismatchMessage')} ${
-            confirmRestore.affectedFields?.length
-              ? t('admin.encryptionMismatchAffected').replace(
-                  '{0}',
-                  confirmRestore.affectedFields.join(', '),
-                )
-              : t('admin.encryptionMismatchFallback')
-          }`}
-          confirmLabel={restoring ? t('admin.restoring') : t('admin.restoreAnyway')}
+          title={t(
+            confirmRestore.mismatch ? 'admin.encryptionMismatch' : 'admin.restoreConfirmTitle',
+          )}
+          message={
+            confirmRestore.mismatch
+              ? `${t('admin.encryptionMismatchMessage')} ${
+                  confirmRestore.affectedFields?.length
+                    ? t('admin.encryptionMismatchAffected').replace(
+                        '{0}',
+                        confirmRestore.affectedFields.join(', '),
+                      )
+                    : t('admin.encryptionMismatchFallback')
+                }`
+              : t('admin.restoreConfirmMessage')
+          }
+          confirmLabel={t(
+            confirmRestore.mismatch ? 'admin.restoreAnyway' : 'admin.restoreFromBackup',
+          )}
           destructive
-          onConfirm={handleForceRestore}
+          onConfirm={handleRestore}
           onCancel={() => setConfirmRestore(null)}
         />
       )}

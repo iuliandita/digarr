@@ -18,7 +18,7 @@ single container with no separate database setup. Before saving service credenti
 
 On Windows, the embedded PGlite examples require a WSL 2 shell. Run the shell examples in WSL 2 or a macOS terminal with OpenSSL available. The native PowerShell example below is for bundled PostgreSQL only.
 
-The Compose examples expose port 3000 on all host interfaces. Restrict network access until the intended admin account exists and you have verified it, or bind the published port to `127.0.0.1:3000:3000` for local-only access. Keep that restriction even when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured: HTTP opens before bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)).
+The Compose examples expose port 3000 on all host interfaces. Restrict network access until the intended admin account exists and you have verified it, or bind the published port to `127.0.0.1:3000:3000` for local-only access. In v1.19.0, HTTP opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens: set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters) on a fresh database, or leave both unset for manual registration. Partial or short first-boot credentials stop startup; existing users ignore these settings. See [bootstrap recovery](../OPERATIONS.md#unattended-setup).
 
 ### Embedded PGlite (recommended)
 
@@ -126,7 +126,7 @@ or via `docker ps`.
 
 ## Update
 
-Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately first; application JSON exports omit recovery state. For embedded PGlite:
+Take a [complete database backup](switching-backends.md#backup-boundaries-and-recovery) and retain the encryption key separately first; new application JSON exports preserve persistent state but exclude ephemeral authorization and schema history. Required backup failures stop migrations; follow the recovery guide for older schemas that need the explicit native-backup override. For embedded PGlite:
 
 ```sh
 docker compose -f docker-compose.pglite.yml pull

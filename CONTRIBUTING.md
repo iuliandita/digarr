@@ -82,6 +82,12 @@ Tests live in `tests/`. Keep them close to the code they cover. Route-contract c
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
+### Container compatibility checks
+
+The Compatibility workflow tests rootless Podman on Linux and Docker through Colima on hosted macOS Intel. The macOS job remains advisory. Its VM startup has a 15-minute limit and uses explicit guest DNS resolvers, following [Colima's DNS guidance](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#colima-cannot-access-the-internet). Startup failures collect VM diagnostics; later failures also collect host and guest DNS diagnostics. Persistent failures still fail the job after the existing bounded Compose retries.
+
+Changes to this bootstrap need an actual macOS workflow run: verify PostgreSQL, PGlite, and persistence after restart, plus the final assertion gate. A working Docker daemon alone does not establish application compatibility. The final gate runs even after failure and requires readiness and both backend assertions.
+
 ## Translations
 
 Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations.

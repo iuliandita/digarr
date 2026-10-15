@@ -38,11 +38,14 @@ the port-forward, set ALLOWED_ORIGIN=http://localhost:3000 and
 DIGARR_ALLOW_INSECURE_COOKIES=true, then restart the app. Keep insecure cookies
 disabled for an HTTPS public origin.
 
-2. Database migrations run automatically on startup.
+2. Database migrations run automatically on startup. Required backup failures
+   stop startup before migrations; see the recovery guide for older schemas.
 {{- if not .Values.backups.persistence.enabled }}
 
   WARNING: backups.persistence.enabled=false. The pre-migration
-  JSON auto-backup is partial and lives on an emptyDir lost on pod replacement.
+  JSON auto-backup lives on an emptyDir lost on pod replacement. It preserves
+  persistent application state but excludes ephemeral authorization and schema
+  history.
   Set backups.persistence.enabled=true to retain these exports, and keep a
   separate consistent database or data-volume backup for complete recovery.
   See docs/guides/switching-backends.md for backup boundaries.

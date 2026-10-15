@@ -1,6 +1,6 @@
 import { and, desc, eq, lt, or } from 'drizzle-orm'
 import { decryptFields, encryptFields, SENSITIVE_TARGET_CONFIG } from '@/core/crypto'
-import type { Database } from '@/db'
+import type { Database, DbOrTx } from '@/db'
 import { targets } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
 
@@ -30,7 +30,7 @@ function decryptConfig<T extends { config: Record<string, unknown> | unknown }>(
   return row
 }
 
-export async function createTarget(db: Database, data: TargetInsert): Promise<{ id: number }> {
+export async function createTarget(db: DbOrTx, data: TargetInsert): Promise<{ id: number }> {
   const [row] = await db
     .insert(targets)
     .values({

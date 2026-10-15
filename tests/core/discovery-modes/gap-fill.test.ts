@@ -87,43 +87,127 @@ describe('createGapFillMode executor', () => {
     expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
   })
 
-  it('advances the rotation cursor even when a coverage lookup throws', async () => {
-    const getArtists = vi.fn().mockResolvedValue([
-      { id: 1, mbid: 'artist-1', name: 'Radiohead' },
-      { id: 2, mbid: 'artist-2', name: 'Portishead' },
-    ])
+  it.each(['mixed', 'all'] as const)(
+    'preserves the selected slice on %s lookup failures and returns its candidates on retry',
+    async (failureKind) => {
+      const getArtists = vi.fn().mockResolvedValue([
+        { id: 1, mbid: 'artist-1', name: 'Radiohead' },
+        { id: 2, mbid: 'artist-2', name: 'Portishead' },
+      ])
+      const markChecked = vi.fn().mockResolvedValue(undefined)
+      const failure = new Error('MB timeout')
+      let failing = true
+      const getCoverage = vi
+        .fn()
+        .mockImplementation(async (_userId: number, artistMbid: string) => {
+          if (failing && (failureKind === 'all' || artistMbid === 'artist-2')) {
+            throw failure
+          }
+          return {
+            artistMbid,
+            ownedCount: 0,
+            totalCount: 1,
+            owned: [],
+            missing: [{ albumMbid: `rg-${artistMbid}`, title: 'Missing album', releaseYear: 1995 }],
+          }
+        })
+
+      const mode = createGapFillMode({
+        getArtistsForGapFill: getArtists,
+        markArtistsGapChecked: markChecked,
+        getCoverageForArtist: getCoverage,
+        maxArtistsPerRun: 25,
+      })
+
+      const request = {
+        userId: 7,
+        normalizedSettings: {},
+        providerContext: {},
+      } as DiscoveryModeRequest
+
+      await expect(mode.executor(request)).rejects.toBe(failure)
+      expect(markChecked).not.toHaveBeenCalled()
+
+      failing = false
+      const result = await mode.executor(request)
+      expect(result.candidates.map((candidate) => candidate.artistName)).toEqual([
+        'Radiohead',
+        'Portishead',
+      ])
+      expect(getArtists).toHaveBeenCalledTimes(2)
+      expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
+      expect(markChecked).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('settles running and queued coverage lookups before rejecting', async () => {
+    vi.useFakeTimers()
+    try {
+      const failure = new Error('MB timeout')
+      let finishRunning!: (coverage: AlbumCoverage) => void
+      let finishQueued!: (coverage: AlbumCoverage) => void
+      const running = new Promise<AlbumCoverage>((resolve) => {
+        finishRunning = resolve
+      })
+      const queued = new Promise<AlbumCoverage>((resolve) => {
+        finishQueued = resolve
+      })
+      const getCoverage = vi
+        .fn()
+        .mockRejectedValueOnce(failure)
+        .mockReturnValueOnce(running)
+        .mockReturnValueOnce(queued)
+      const markChecked = vi.fn()
+      const mode = createGapFillMode({
+        getArtistsForGapFill: vi.fn().mockResolvedValue([
+          { id: 1, mbid: 'artist-1', name: 'Radiohead' },
+          { id: 2, mbid: 'artist-2', name: 'Portishead' },
+          { id: 3, mbid: 'artist-3', name: 'Broadcast' },
+        ]),
+        markArtistsGapChecked: markChecked,
+        getCoverageForArtist: getCoverage,
+      })
+      const settled = vi.fn()
+      const execution = mode.executor({
+        userId: 7,
+        normalizedSettings: {},
+        providerContext: {},
+      } as DiscoveryModeRequest)
+      const outcome = execution.then(settled, (error: unknown) => {
+        settled()
+        return error
+      })
+
+      await vi.advanceTimersByTimeAsync(200)
+      expect(getCoverage).toHaveBeenCalledTimes(3)
+      expect(settled).not.toHaveBeenCalled()
+      finishRunning(coverage)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(settled).not.toHaveBeenCalled()
+      finishQueued(coverage)
+      expect(await outcome).toBe(failure)
+      expect(markChecked).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('advances the rotation after successful empty coverage', async () => {
     const markChecked = vi.fn().mockResolvedValue(undefined)
-    const getCoverage = vi.fn().mockImplementation(async (_userId: number, artistMbid: string) => {
-      if (artistMbid === 'artist-2') {
-        throw new Error('MB timeout')
-      }
-      return {
-        artistMbid,
-        ownedCount: 0,
-        totalCount: 1,
-        owned: [],
-        missing: [{ albumMbid: 'rg-bends', title: 'The Bends', releaseYear: 1995 }],
-      }
-    })
-
     const mode = createGapFillMode({
-      getArtistsForGapFill: getArtists,
+      getArtistsForGapFill: vi
+        .fn()
+        .mockResolvedValue([{ id: 1, mbid: 'artist-1', name: 'Radiohead' }]),
       markArtistsGapChecked: markChecked,
-      getCoverageForArtist: getCoverage,
-      maxArtistsPerRun: 25,
+      getCoverageForArtist: vi.fn().mockResolvedValue({ ...coverage, missing: [] }),
     })
-
-    const result = await mode.executor({
-      userId: 7,
-      normalizedSettings: {},
-      providerContext: {},
-    } as DiscoveryModeRequest)
-
-    expect(result.candidates).toHaveLength(1)
-    expect(result.candidates[0]).toMatchObject({
-      releaseGroupMbid: 'rg-bends',
-      artistName: 'Radiohead',
-    })
-    expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1, 2])
+    await expect(
+      mode.executor({
+        userId: 7,
+        normalizedSettings: {},
+        providerContext: {},
+      } as DiscoveryModeRequest),
+    ).resolves.toEqual({ candidates: [] })
+    expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1])
   })
 })

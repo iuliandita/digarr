@@ -64,6 +64,7 @@ const ALLOWED_PREF_KEYS = new Set([
   'rootFolderId',
   'fanartApiKey',
   'metadataFallbackUrl',
+  'netNewAlbumDiscovery',
 ])
 
 export function authRoutes(deps: AppDependencies) {

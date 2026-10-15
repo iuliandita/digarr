@@ -333,7 +333,7 @@ export const nl = {
   'discover.rejectAll': 'Alles afwijzen',
   'discover.rejectAllBelow': 'Alles hieronder afwijzen',
   'discover.auditionAll': 'Beluisteren',
-  'discover.nothingToAudition': 'Geen openstaande items met voorbeeld',
+  'discover.nothingToAudition': 'Geen openstaande aanbevelingen',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',
@@ -476,8 +476,11 @@ export const nl = {
   'playlist.deleteFailed': 'Kan afspeellijst niet verwijderen',
   'playlist.deleteWarning': 'Deze afspeellijst verwijderen? Dit kan niet ongedaan worden gemaakt.',
   'playlist.deletedNamed': 'Afspeellijst verwijderd',
-  'playlist.detailHint':
-    'Deze afspeellijst is gegenereerd op basis van uw goedgekeurde aanbevelingen. Klik op Nu genereren om het te vernieuwen met nieuwe keuzes, download het als M3U of XSPF, of voeg een afspeellijstdoel toe om toekomstige runs automatisch naar Navidrome, Jellyfin of Plex te pushen.',
+  'playlist.detailHint': 'Genereer deze afspeellijst op basis van uw goedgekeurde aanbevelingen.',
+  'playlist.detailAuditionHint':
+    'Genereer deze afspeellijst met openstaande artiesten om ze te beluisteren voordat u ze goedkeurt.',
+  'playlist.detailActionsHint':
+    'Download na het genereren de nummers als M3U of XSPF, of voeg een afspeellijstdoel toe om toekomstige generaties automatisch naar Navidrome, Jellyfin of Plex te sturen.',
   'playlist.disable': 'Afspeellijst uitschakelen',
   'playlist.download': 'Downloaden',
   'playlist.downloadFailed': 'Kan de afspeellijst niet downloaden',
@@ -1184,6 +1187,8 @@ export const nl = {
     "Gebruikt als Lidarr's metadataserver niet beschikbaar is. Standaard is api.musicinfo.pro. Gebruik je eigen hearring-aid-instantie-URL bij zelfhosting.",
   'settings.recommendationsSaved': 'Aanbevelingsinstellingen opgeslagen',
   'settings.recommendationsFailed': 'Instellingen konden niet worden opgeslagen',
+  'settings.recommendationsPartiallySaved':
+    'Persoonlijke voorkeuren opgeslagen, maar de globale metadata-instellingen konden niet worden opgeslagen.',
   'settings.scheduleTip':
     'Stel een cron-schema in om de ontdekkingspipeline automatisch uit te voeren. Wekelijks op maandag is een populaire keuze.',
   'settings.librarySyncInterval': 'Bibliotheeksynchronisatie',
@@ -1411,6 +1416,9 @@ export const nl = {
   'admin.exporting': 'Exporteren...',
   'admin.includeCaches': 'Caches opnemen',
   'admin.restoreFromBackup': 'Herstellen uit back-up',
+  'admin.restoreConfirmTitle': 'Back-up herstellen?',
+  'admin.restoreConfirmMessage':
+    'Hiermee worden de gegevens in de back-up vervangen. Maak eerst een back-up van deze instantie. Doorgaan?',
   'admin.lastAutoBackup': 'Laatste auto-back-up:',
   'admin.backupDownloaded': 'Back-up gedownload',
   'admin.backupFailed': 'Back-up maken mislukt',
@@ -1641,6 +1649,8 @@ export const nl = {
   'errors.recommendation.notFound': 'Aanbeveling niet gevonden',
   'errors.subscription.notFound': 'Abonnement niet gevonden',
   'errors.playlist.notFound': 'Afspeellijst niet gevonden',
+  'errors.playlist.busy':
+    'Het genereren van de afspeellijst of het herstellen van de export is al bezig',
   'settings.channels.title': 'Meldingen',
   'settings.channels.description':
     'Stuur meldingen bij voltooiing van een scan en samenvattingen naar een of meer kanalen.',

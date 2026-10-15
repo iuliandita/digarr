@@ -17,24 +17,19 @@ const DEFAULT_CONFIG: TrackResolverConfig = {
   sourcePriority: ['local', 'spotify'],
 }
 
-// Returns the first local search dep that's configured.
-function getLocalSearchFn(
-  deps: TrackResolverDeps,
-): ((artist: string) => Promise<LocalTrack[]>) | undefined {
-  return deps.jellyfinSearch ?? deps.navidromeSearch ?? deps.plexSearch
-}
-
 async function resolveFromLocal(
   artistName: string,
-  deps: TrackResolverDeps,
+  search: (artist: string) => Promise<LocalTrack[]>,
   limit: number,
 ): Promise<ResolvedTrack[]> {
-  const search = getLocalSearchFn(deps)
-  if (!search) return []
-
   const tracks = await search(artistName)
   return tracks
-    .filter((t) => normalizeArtist(t.artist) === normalizeArtist(artistName))
+    .filter(
+      (t) =>
+        t.name.trim().length > 0 &&
+        t.path.trim().length > 0 &&
+        normalizeArtist(t.artist) === normalizeArtist(artistName),
+    )
     .slice(0, limit)
     .map((t) => ({
       artistName,
@@ -122,11 +117,19 @@ export async function resolveTracksForArtistDetailed(
   const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = []
 
   for (const source of cfg.sourcePriority) {
-    if (source === 'local' && getLocalSearchFn(deps)) {
-      searches.push({
-        source,
-        resolve: () => resolveFromLocal(artistName, deps, cfg.tracksPerArtist),
-      })
+    if (source === 'local') {
+      for (const search of [
+        deps.jellyfinSearch,
+        deps.embySearch,
+        deps.navidromeSearch,
+        deps.plexSearch,
+      ]) {
+        if (search)
+          searches.push({
+            source,
+            resolve: () => resolveFromLocal(artistName, search, cfg.tracksPerArtist),
+          })
+      }
     } else if (source === 'spotify' && deps.spotifySearch) {
       searches.push({
         source,

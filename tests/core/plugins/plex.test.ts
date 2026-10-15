@@ -21,6 +21,7 @@ describe('createPlexSource()', () => {
         { name: 'Bjork', viewCount: 300, ratingKey: '101' },
       ]),
       getTopArtistsPaged: vi.fn().mockResolvedValue({ artists: [], totalCount: 0 }),
+      searchTracks: vi.fn().mockResolvedValue([]),
       getAllArtists: vi.fn().mockResolvedValue([]),
       getAlbumsForArtist: vi.fn().mockResolvedValue([]),
       getRecentlyPlayed: vi.fn().mockResolvedValue([

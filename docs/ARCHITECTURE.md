@@ -110,7 +110,7 @@ operator walkthrough.
 
 Listening routes preserve configuration, empty-result, and failure outcomes separately from their returned entries. A successful fallback with entries wins; without entries, any attempted source failure produces an error outcome. ListenBrainz artist statistics map HTTP 204 to an empty result locally, while the shared JSON transport continues to reject missing response bodies elsewhere.
 
-The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Request failures keep cached entries visible with a failure notice. An HTTP 200 response reporting a source error can instead replace cached entries with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
+The dashboard distinguishes loading, unconfigured, empty, and failed history and retries failed queries on request. Its listening query functions reject HTTP 200 source-error outcomes as query failures, retaining the last successful matching query data with the existing failure notice. Successful retries, empty periods, and unconfigured responses replace old rows normally. Range/page keys and session cache clearing keep their existing boundaries; no separate history cache is added. The server outcome contract and successful provider fallback remain unchanged ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
 ## Pipeline
 
@@ -127,9 +127,11 @@ Seven stages:
 Pure functions live in `src/core/pipeline/`. The orchestrator
 (`src/core/pipeline/orchestrator.ts`) composes the stages and emits SSE progress.
 
-Quick Discover separately stores the submitted seed before its similar-result filter. That direct seed bypasses library, block, cooldown, and threshold checks; job stored counts exclude it. See the [API contract](API.md#pipeline) and [#795](https://github.com/iuliandita/digarr/issues/795).
+On develop, cooperative cancellation retains coordinator ownership until active operations and awaited bookkeeping settle. Storage stops between complete artist/recommendation units; automatic approval drains an attempted target and records its outcome before skipping later work. Final success bookkeeping has an explicit commitment boundary after which cancellation is declined. Terminal progress follows settlement, with no timer-based forced unlock. Successful writes are retained; this lifecycle does not make all background jobs idle ([#790](https://github.com/iuliandita/digarr/issues/790)).
 
-Artist filtering applies per-user permanent blocks and a shared rejection cooldown. The cooldown query includes rejected recommendations from all accounts, using the current run's configured window. On shared installations, another user's rejection can suppress an artist ([#788](https://github.com/iuliandita/digarr/issues/788)).
+On develop, Quick Discover preserves the explicit seed add at score `1.0` with MusicBrainz-only resolution, but applies the same owner-scoped library, recommendation deduplication, block, cooldown, and threshold policy as similar results before storage. It refreshes recommendation deduplication after seed storage. Job stored counts sum actual successful writes from the completed seed and similar-result batches, including seed-only runs; fatal storage or batch-statistics errors fail the job without undoing completed writes. Provider-discovered counts still exclude the explicit seed. v1.19.0 bypasses the seed filters and omits its stored count. See the [API contract](API.md#pipeline) and [#795](https://github.com/iuliandita/digarr/issues/795).
+
+Artist filtering applies per-user permanent blocks and, on develop, owner-scoped rejection cooldowns. Pipeline, Quick Discover seed/similar-result, and subscription reads pass an explicit owner to the cooldown query, using the current run's configured window. Account runs include only their own rejected rows; legacy unowned subscriptions include only unowned rows. Neither scope includes the other. Existing rows are preserved without reassignment. v1.19.0 instead includes rejected recommendations from all accounts ([#788](https://github.com/iuliandita/digarr/issues/788)).
 
 ### Analyze: source-relative weights
 
@@ -230,7 +232,7 @@ Extension points use registries or configuration maps:
 
    A new type needs a `channels/<type>.ts` sender, a `NotificationChannel` union arm, and wiring in `registry.ts`: `SenderMap`, `defaultSenders`, and the dispatch switch. Add its accepted shape to the discriminated union in `src/server/schemas/settings.ts`. Update configuration UI and translations, secret encryption/masking and masked round trips where applicable, and relevant tests. Reuse the guarded transport.
 
-  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full channel secrets as `***` and partially masks channel webhook URLs so their destinations remain recognizable.
+  The transport does DNS-pinned resolution, `redirect: manual`, and blocks private/link-local/cloud-metadata targets; a per-channel admin-only `allowPrivateTarget` waives only the RFC1918 set. Channel secrets are encrypted at rest when `DIGARR_ENCRYPTION_KEY` is configured. The settings API masks full channel secrets as `***` and partially masks channel webhook URLs so their destinations remain recognizable. Global scalar fanart credentials and legacy webhook URLs are masked as `***` for admins and omitted for non-admins on develop; masked PATCH values preserve their stored bytes. This response projection does not change at-rest encryption policy.
 - `ProviderAuth` - how a streaming provider's stored OAuth token is resolved and refreshed, as a `PROVIDER_AUTH` map in `src/core/provider-auth.ts` keyed by `OAuthProvider`.
 
   `resolveProviderToken(db, userId, provider)` is the single entry point for Spotify, Deezer, and TIDAL; a provider without a `tokenEndpoint` (Deezer) is simply one that cannot refresh, rather than a separate code path.
@@ -278,10 +280,10 @@ Audition retains per-item unavailable reasons after skipping or queue completion
 
 Startup in `src/index.ts` has two phases:
 
-1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations.
-2. After the HTTP listener starts, an async initializer completes env-based setup when configured, creates the initial admin if no users exist, migrates legacy connections, backfills targets, and starts the pipeline, subscription, playlist, library, slskd, stuck-job, and notification-digest schedulers.
+1. Before the HTTP listener starts, initialize encryption, wait for external PostgreSQL if configured, run the pre-flight backup check, and apply schema migrations. On develop, await initial-admin bootstrap next: existing users skip it; an empty database permits manual registration when both bootstrap variables are unset, or requires a complete pair and a 12-character password. Configured creation must return the intended admin, and any failure closes the database and exits before services or HTTP start. Then wire the session store, library services, job recorder, and application dependencies. Startup stuck-job detection runs after migrations. Required backup failures stop startup before any migration. Application snapshots use repeatable-read transactions; partial restores lock affected tables and check dependencies before clearing data.
+2. After the HTTP listener starts, an async initializer completes env-based service setup when configured, migrates legacy connections, backfills targets, and starts the pipeline, subscription, playlist, library, slskd, stuck-job, and notification-digest schedulers. In v1.19.0, this best-effort phase also creates the initial admin; the develop correction makes admin creation independent of service-setup failures.
 
-One shared digest bookmark advances after any channel succeeds. A crash between sending and saving can repeat a digest; a failed channel does not independently retry a window already accepted by another channel ([#762](https://github.com/iuliandita/digarr/issues/762)). Schedulers skip work during maintenance; jobs already running must finish before a backend migration.
+Digest positions live in server-owned `settings.digestDeliveryPositions`, outside editable preferences. SQL NULL marks an uninitialized map; current channel IDs inherit `digestLastSentAt` once, even with scheduling disabled; live ticks also initialize after an older backup restores SQL NULL. New IDs start from the cron cadence and save their start before querying or sending. Atomic per-key writes preserve other channels and preference edits. Only that channel's matching successful result or zero-activity window advances its position; failures retry a longer aggregate window. Disabled or removed channels retain positions, and ambiguous duplicate IDs are skipped. One shared in-process guard survives scheduler replacement, but a crash between remote acceptance and persistence can repeat delivery. Multiple replicas are unsupported. Schedulers skip work during maintenance; jobs already running must finish before a backend migration.
 
 ## Album-level discovery
 
@@ -298,11 +300,16 @@ artist unmonitored (no whole-discography grab) and monitors and searches only th
 approved album. If the artist already exists in Lidarr, the existing record is
 reused, making this safe for gap-fill.
 
-Bulk and automatic album approval use the artist-level path. Bulk Lidarr approval
-requests no album monitoring or search
-([#756](https://github.com/iuliandita/digarr/issues/756),
-[#761](https://github.com/iuliandita/digarr/issues/761)). Automatic approval uses
-its configured monitoring scope, defaulting to all albums.
+Bulk approval dispatches each recommendation by kind and uses `addAlbum` for
+albums, including explicit album-only targets. Missing release-group identities
+or incompatible targets fail without artist acquisition. Only successful Lidarr
+additions produce `added_to_lidarr`; other successful targets produce `approved`,
+with slskd queueing recorded separately from a completed import. Automatic album
+approval preserves the release identity in both pipeline entry points and calls
+`addAlbum` too. Its monitoring setting applies only to artist recommendations.
+Missing release identities or incompatible acquisition targets fail without
+artist acquisition; discovery-only instances approve valid albums without a
+target call. Album external IDs stay in `targetActions`, never the artist ID.
 
 ### Release radar
 
@@ -324,18 +331,29 @@ do not starve the event loop.
 
 For each artist, the executor calls the album-coverage engine
 (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per
-missing primary-type `Album` release group. Each carries the release-group MBID and the release year
-as the recency signal. After the slice runs, the checked artists'
-`last_gap_check_at` is stamped so the next run advances the cursor. The resulting
-recommendations fill the Albums tab with missing Album-type releases from artists
-already in the library. Secondary types are discarded, so this does not establish
-studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
+missing eligible primary-type `Album` release group. Each carries the release-group MBID and the release year
+as the recency signal. On develop, only a slice whose coverage lookups all succeed
+has its artists' `last_gap_check_at` stamped so the next run advances the cursor. The resulting
+recommendations fill the Albums tab with missing studio-classified releases from artists
+already in the library. On develop, coverage requires primary type `Album` and an
+explicit empty secondary-type array; it excludes every secondary type, including
+Live, Compilation, Soundtrack and Demo. Owned excluded groups affect neither count.
+Missing or malformed metadata on an Album fails coverage for retry instead of
+treating an unknown group as studio. This relies on MusicBrainz classification,
+not evidence of recording conditions. v1.19.0 discards secondary types and counts
+every Album group ([#798](https://github.com/iuliandita/digarr/issues/798)).
+The shared client retains optional `secondaryTypes` metadata but keeps its broad
+catalog for album picking, Release Radar, reconciliation and release matching.
+Counts can decrease; existing recommendations remain. No schema migration or
+row rewrite is added; rollback restores broader coverage.
 
-Coverage uses one MusicBrainz page of at most 100 returned groups without pagination, so counts and candidates can be incomplete ([#796](https://github.com/iuliandita/digarr/issues/796)). Each lookup failure becomes an empty candidate list, and every selected artist is marked checked even after failure ([#797](https://github.com/iuliandita/digarr/issues/797)). An empty successful run therefore does not prove complete album coverage.
+On develop, the shared MusicBrainz release-group client walks sequential pages of up to 100 groups through the existing rate limiter, retains type filters and first-seen order, and deduplicates IDs. Provider counts/offsets are validated when present; without them, a short or empty page ends the read. At most 100 pages/10,000 returned groups are read. A failed required page, invalid or stalled pagination, or an unresolved end at that bound rejects the whole lookup without returning accumulated partial groups. Catalog changes can invalidate the read; it is not a snapshot. This also applies to artist album lists, release matching, reconciliation and Release Radar. v1.19.0 stops after the first page ([#796](https://github.com/iuliandita/digarr/issues/796)).
+
+On develop, Gap-Fill waits for every queued coverage lookup to settle. Any failure rejects the run with the original error before stamping any artist or handing candidates to the pipeline. The whole slice remains eligible for retry, including successful lookups whose candidates were not stored. Manual and subscription runs record the failure; subscriptions retain the previous result count and save the error. Genuine empty coverage remains successful and advances the cursor. A persistently failing artist can hold the selected slice until its lookup succeeds. v1.19.0 swallows coverage errors and marks failed artists checked ([#797](https://github.com/iuliandita/digarr/issues/797)). No schema migration or repair of old cursor values is added; retry after resolving provider errors, and allow the existing rotation to revisit previously stamped artists. Rollback restores swallowed failures.
 
 ### Net-new album discovery
 
-The resolver supports `netNewAlbumDiscovery` (default off), but v1.19.0's UI and preference APIs cannot persist it: the user allowlist omits the key and the global schema rejects it ([#791](https://github.com/iuliandita/digarr/issues/791)). Use Release Radar or Library Gap-Fill through the supported UI.
+On develop, `netNewAlbumDiscovery` persists as an optional boolean through per-user preferences and admin-global preferences. It defaults off; omission preserves the stored value and explicit `false` disables promotion. Existing per-user/global preference resolution is unchanged. v1.19.0 cannot persist the setting ([#791](https://github.com/iuliandita/digarr/issues/791)); Release Radar and Library Gap-Fill remain usable there. The Recommendations page saves personal preferences independently of admin-only global AudioDB/Wikidata settings and refreshes personal caches after that first write. A later global failure reports partial success without rollback; v1.19.0 still has the non-admin false-failure behavior ([#792](https://github.com/iuliandita/digarr/issues/792)).
 
 When the stored flag is enabled, `resolve()` tries to match
 the AI's `suggestedAlbum` to a MusicBrainz release group. A match becomes an album
@@ -350,7 +368,7 @@ recommendation list is empty, the frontend links to the two explicit album
 discovery modes (`gap-fill` and `release-radar`) and the default-off
 `netNewAlbumDiscovery` preference. Discovery-mode deep links focus the requested
 generic mode card; the preference link opens its collapsed settings section and
-focuses the target. That routing does not fix the preference persistence limitation above.
+focuses the target. Saving the preference requires the persistence fix described above.
 
 ### Kind-aware dedup
 
@@ -377,18 +395,28 @@ three points, allowing multiple albums per artist to survive a single run:
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
 - Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
 
-  The resolver supports local lookups, but the running app wires only Spotify,
-  Deezer, and MusicBrainz. Spotify search is wired only for a user with a stored
-  Spotify OAuth connection; Deezer search needs no account. Accepted `local` priorities do not search media
-  libraries ([#767](https://github.com/iuliandita/digarr/issues/767)).
+  Production resolver credentials come only from the playlist owner's saved
+  library connections. Jellyfin, Emby, and Subsonic use the saved operator TLS
+  verification preference. A `local` priority tries Jellyfin, Emby, Subsonic/Navidrome, then
+  Plex with their configured user/library/section scope and existing request
+  queues. Each provider search is bounded to 25 candidates. The first exact
+  normalized artist match with real title and file path wins; an empty or failed
+  lookup continues through local connections before catalog fallbacks. Tracks
+  are not combined across connections. File paths remain server paths, not
+  copied or verified-playable media. Shared Lidarr settings and export targets
+  are separate. Ownerless playlists use no private connections. Spotify search
+  is wired only for a user with a stored Spotify OAuth connection and resolves
+  its current token per search; Deezer search needs no account.
 
   MusicBrainz recordings are the final MBID-based fallback. They supply titles
   and recording IDs without playable URIs or paths. Exports link those rows to
   MusicBrainz pages; remote targets resolve tracks separately. No invented titles
   fill unresolved artists.
 
-  Navidrome, Jellyfin, Emby, and Plex can substitute their first search result when
-  exact matching fails ([#758](https://github.com/iuliandita/digarr/issues/758)).
+  Navidrome, Jellyfin, Emby, and Plex accept only an exact title and credited
+  artist after case and whitespace normalization. They skip unmatched or
+  missing-title items and report added/skipped counts; omissions fail the
+  playlist job after all selected exports are attempted.
 
   Counts distinguish selected artists, artists with resolved tracks, artists
   included after truncation, and included tracks. Resolution metadata is saved in
@@ -397,7 +425,8 @@ three points, allowing multiple albums per artist to survive a single run:
   expose only their latest job projection; legacy playlists have no fabricated
   historical summary.
 - Playlist scheduling is gated by the global `preferences.playlistEnabled` switch (default false), plus each playlist's enabled flag and schedule. Manual generation is independent of that switch.
-- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
+- Playlist generation stores its local tracks before pushing to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets. A target error, including a returned failed playlist result or a media-server skipped count, does not stop later selected targets; after all attempts it fails the playlist job for Job History. There is no remote rollback, and the locally generated playlist remains available.
+- Saved exports use `playlist_exports`, unique by local playlist and target, with both parents checked for ownership. A prepared provider session captures credentials, verifies scope, and resolves usable tracks before writes. An atomic `creating` reservation precedes creation; a returned ID is checkpointed as `linked` before follow-up mutations. A failed or interrupted unconfirmed create blocks automatic retry as `creating` or `recovery_required`; known IDs remain linked after population errors. Regeneration replaces by ID, never by name. Scope mismatch, missing/inaccessible IDs, and zero usable tracks preserve the binding and fail. Owner-only API reset forgets local state after explicit duplicate acknowledgment, never remote data. Bindings participate in backups, omission safety, and backend copies. An in-process per-playlist guard covers cron, manual generation, and recovery; replacement across multiple replicas is unsupported.
 - Spotify playlist exports retain explicit track URIs, or resolve artist/title pairs with exact matching. Artist-only approvals take up to three artist-matching track search results. Writes use `/me/playlists` and `/playlists/{id}/items`, with at most 100 URIs per request; failures are not retried as duplicate writes.
 - Emby, Jellyfin, and Subsonic source clients each own a media-server request
   queue capped at three concurrent requests and ten starts per second. This is

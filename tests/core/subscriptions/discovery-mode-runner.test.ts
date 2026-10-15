@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createGapFillMode } from '@/core/discovery-modes/modes/gap-fill'
+import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import { runSubscription } from '@/core/subscriptions/runner'
 import type {
   DiscoveryModeSubscriptionConfig,
@@ -244,5 +246,55 @@ describe('runSubscription discovery-mode', () => {
         }),
       }),
     )
+  })
+
+  it('records gap-fill coverage failures and preserves the previous subscription result count', async () => {
+    const failure = new Error('MusicBrainz unavailable')
+    const markChecked = vi.fn()
+    const mode = createGapFillMode({
+      getArtistsForGapFill: vi
+        .fn()
+        .mockResolvedValue([{ id: 1, mbid: 'artist-1', name: 'Radiohead' }]),
+      markArtistsGapChecked: markChecked,
+      getCoverageForArtist: vi.fn().mockRejectedValue(failure),
+    })
+    const orchestrator = { run: vi.fn().mockResolvedValue({ batchId: 123 }) }
+    const saved = { lastResultCount: 9, lastError: null as string | null }
+    const deps = makeDeps({
+      discoveryModeRunner: runDiscoveryMode,
+      discoveryModeRegistry: { get: () => mode } as never,
+      pipelineOrchestrator: orchestrator as never,
+    })
+    vi.mocked(deps.queries.updateSubscription).mockImplementation(async (_id, patch) => {
+      Object.assign(saved, patch)
+    })
+    const adapter = {
+      type: 'discovery-mode',
+      label: 'Discovery Mode',
+      configFields: [],
+      fetch: vi.fn(),
+    }
+
+    await expect(
+      runSubscription(
+        makeSubscription({
+          modeId: 'gap-fill',
+          settingsMode: 'easy',
+          settings: {},
+        }),
+        adapter,
+        deps,
+      ),
+    ).rejects.toBe(failure)
+
+    expect(deps.jobRecorder.fail).toHaveBeenCalledWith(10, 'MusicBrainz unavailable')
+    expect(deps.jobRecorder.complete).not.toHaveBeenCalled()
+    expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+      lastRunAt: expect.any(Date),
+      lastError: 'MusicBrainz unavailable',
+    })
+    expect(saved).toMatchObject({ lastResultCount: 9, lastError: 'MusicBrainz unavailable' })
+    expect(orchestrator.run).not.toHaveBeenCalled()
+    expect(markChecked).not.toHaveBeenCalled()
   })
 })

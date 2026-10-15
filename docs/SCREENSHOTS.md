@@ -7,6 +7,8 @@ The descriptions below reflect v1.19.0. The captures predate its genre-priority 
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
+On develop, first-time browser setup starts with account creation before the existing wizard. These captures do not show that onboarding order; form layouts and translated labels are unchanged.
+
 ## Dashboard (dark)
 
 ![Dashboard](screenshots/dashboard-dark.png)
@@ -21,7 +23,7 @@ In v1.19.0, listening tiles distinguish an unconfigured account, empty history, 
 
 ![Discover](screenshots/discover.png)
 
-The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting, but that toggle does not persist in v1.19.0 ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting; routing to the toggle does not make it usable.
+The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. On develop, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. On develop, non-admin saves omit global writes and shared AudioDB/Wikidata controls are shown only to admins; personal image settings stay visible. Admins receive an explicit partial-save notice if only their later global save fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The existing admin layout is unchanged.
 
 Since v1.19.0, Discover can order and browse genre-priority groups without changing scores. The Audition queue retains a dismissible summary of unavailable-preview reasons after skipping items or finishing.
 
@@ -88,6 +90,8 @@ The tab row keeps native horizontal scrolling and shows conditional chevrons plu
 In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
 In v1.19.0, Settings > Recommendations includes optional primary and secondary genre lists for Discover ordering and browsing.
+
+On develop, Settings > Administration asks for confirmation before uploading a selected backup. A key mismatch requires a separate **Restore Anyway** confirmation. These dialogs are not shown in the existing Settings capture; they use the shared translated confirmation dialog and existing theme styles.
 
 ## Settings > Account
 

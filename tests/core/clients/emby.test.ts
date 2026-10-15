@@ -322,6 +322,72 @@ describe('createEmbyClient', () => {
   })
 })
 
+describe('emby client.searchTracks()', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    queueMocks.add.mockClear()
+  })
+
+  it('uses queued user-scoped audio requests with real paths and the configured library', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            Items: [
+              {
+                Name: 'Song',
+                Artists: ['Guest', 'Artist'],
+                AlbumArtist: 'Compilation',
+                Path: '/music/song.flac',
+                RunTimeTicks: 2_000_000_000,
+              },
+              { Name: 'Missing path', Artists: ['Artist'], Id: 'id-only' },
+            ],
+          }),
+      }),
+    )
+    const client = createEmbyClient('http://emby:8096', 'key', 'user/1', {
+      libraryId: 'library & 1',
+    })
+
+    await expect(client.searchTracks('Artist', 500)).resolves.toEqual([
+      { name: 'Song', artist: 'Artist', path: '/music/song.flac', duration: 200 },
+    ])
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    const parsed = new URL(url)
+    expect(parsed.pathname).toBe('/Users/user%2F1/Items')
+    expect(Object.fromEntries(parsed.searchParams)).toEqual({
+      Artists: 'Artist',
+      IncludeItemTypes: 'Audio',
+      Recursive: 'true',
+      Fields: 'Path',
+      Limit: '100',
+      ParentId: 'library & 1',
+    })
+    expect(new Headers(init.headers).get('X-Emby-Token')).toBe('key')
+    expect(queueMocks.add).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects malformed and unauthorized responses without returning empty results', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ Items: null }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 401, text: async () => 'Unauthorized' })
+    vi.stubGlobal('fetch', fetchMock)
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+
+    await expect(client.searchTracks('Artist')).rejects.toThrow('invalid track collection')
+    await expect(client.searchTracks('Artist')).rejects.toThrow('401')
+  })
+})
+
 describe('emby library selection', () => {
   beforeEach(() => {
     vi.restoreAllMocks()

@@ -50,7 +50,17 @@ export type PlaylistResult = {
   playlistId?: string
   playlistName?: string
   itemsAdded?: number
+  itemsSkipped?: number
   error?: string
+}
+
+export type PlaylistExportSession = {
+  scope: string
+  createPlaylist(
+    name: string,
+    onCreated: (playlistId: string) => Promise<void>,
+  ): Promise<PlaylistResult>
+  replacePlaylist(playlistId: string, name: string): Promise<PlaylistResult>
 }
 
 export interface DestinationTarget {
@@ -75,6 +85,8 @@ export interface DestinationTarget {
     items: PlaylistItem[],
     options?: { description?: string; public?: boolean; replace?: boolean },
   ): Promise<PlaylistResult>
+
+  openPlaylistExportSession?(items: PlaylistItem[]): Promise<PlaylistExportSession>
 
   testConnection(): Promise<ServiceTestResult>
 }

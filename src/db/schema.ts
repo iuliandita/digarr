@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -62,6 +63,9 @@ export const settings = pgTable('settings', {
   setupComplete: boolean('setup_complete').default(false).notNull(),
   librarySyncIntervalHours: integer('library_sync_interval_hours').notNull().default(6),
   digestLastSentAt: timestamp('digest_last_sent_at', { withTimezone: true }),
+  digestDeliveryPositions: jsonb('digest_delivery_positions').$type<
+    Record<string, string | null>
+  >(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
@@ -85,6 +89,7 @@ export const users = pgTable(
     isAdmin: boolean('is_admin').default(false).notNull(),
     preferredLocale: text('preferred_locale'),
     email: text('email'),
+    oidcIssuer: text('oidc_issuer'),
     oidcSubject: text('oidc_subject'),
     authProvider: text('auth_provider').notNull().default('local'),
     preferences: jsonb('preferences').$type<Preferences>(),
@@ -117,9 +122,14 @@ export const users = pgTable(
     emailUniqueIdx: uniqueIndex('users_email_unique_idx')
       .on(table.email)
       .where(sql`${table.email} IS NOT NULL`),
-    oidcSubjectUniqueIdx: uniqueIndex('users_oidc_subject_unique_idx')
-      .on(table.oidcSubject)
-      .where(sql`${table.oidcSubject} IS NOT NULL`),
+    oidcIdentityUniqueIdx: uniqueIndex('users_oidc_identity_unique_idx').on(
+      table.oidcIssuer,
+      table.oidcSubject,
+    ),
+    oidcIdentityValid: check(
+      'users_oidc_identity_valid',
+      sql`${table.oidcIssuer} IS NULL OR (length(trim(${table.oidcIssuer})) > 0 AND ${table.oidcSubject} IS NOT NULL AND length(trim(${table.oidcSubject})) > 0)`,
+    ),
   }),
 )
 
@@ -492,6 +502,44 @@ export const playlists = pgTable(
       table.lastGeneratedAt,
     ),
   }),
+)
+
+export const playlistExports = pgTable(
+  'playlist_exports',
+  {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    playlistId: integer('playlist_id')
+      .references(() => playlists.id, { onDelete: 'cascade' })
+      .notNull(),
+    targetId: integer('target_id')
+      .references(() => targets.id, { onDelete: 'cascade' })
+      .notNull(),
+    remotePlaylistId: text('remote_playlist_id'),
+    remoteScope: text('remote_scope').notNull(),
+    state: text('state')
+      .$type<'creating' | 'linked' | 'recovery_required'>()
+      .notNull()
+      .default('creating'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('playlist_exports_playlist_target_unique').on(table.playlistId, table.targetId),
+    index('playlist_exports_target_id_idx').on(table.targetId),
+    check('playlist_exports_scope_nonempty', sql`length(trim(${table.remoteScope})) > 0`),
+    check(
+      'playlist_exports_remote_id_valid',
+      sql`${table.remotePlaylistId} IS NULL OR (length(trim(${table.remotePlaylistId})) > 0 AND length(${table.remotePlaylistId}) <= 2048)`,
+    ),
+    check(
+      'playlist_exports_state_valid',
+      sql`${table.state} IN ('creating', 'linked', 'recovery_required')`,
+    ),
+    check(
+      'playlist_exports_linked_id_required',
+      sql`${table.state} != 'linked' OR ${table.remotePlaylistId} IS NOT NULL`,
+    ),
+  ],
 )
 
 export const playlistTracks = pgTable(

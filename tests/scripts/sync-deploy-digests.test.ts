@@ -95,19 +95,19 @@ describe('CI workflow reliability policy', () => {
     expect(macJob).toContain('PGLITE_ASSERTED')
   })
 
-  it('runs PostgreSQL session and OIDC linking races after migrations', () => {
+  it('runs PostgreSQL auth and migration races after migrations', () => {
     const workflow = readFileSync('.github/workflows/ci.yml', 'utf8')
     const apiJob = workflow.split('  api-route-test:')[1]?.split('\n  helm-drift:')[0] ?? ''
     const migrationIndex = apiJob.indexOf('run: bun run db:migrate')
     const sessionTestIndex = apiJob.indexOf(
-      'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts',
+      'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts',
     )
     const routeTestIndex = apiJob.indexOf('run: bun run test:api-routes')
 
     expect(migrationIndex).toBeGreaterThan(-1)
     expect(sessionTestIndex).toBeGreaterThan(migrationIndex)
     expect(routeTestIndex).toBeGreaterThan(sessionTestIndex)
-    expect(apiJob.match(/Run PostgreSQL auth concurrency tests/g)).toHaveLength(1)
+    expect(apiJob.match(/Run PostgreSQL concurrency tests/g)).toHaveLength(1)
   })
 
   it('runs cookie-auth browser coverage in CI', () => {
