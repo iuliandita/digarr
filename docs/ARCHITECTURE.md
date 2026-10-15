@@ -332,15 +332,15 @@ do not starve the event loop.
 For each artist, the executor calls the album-coverage engine
 (`src/core/library/album-coverage.ts`) and emits one `kind='album'` candidate per
 missing primary-type `Album` release group. Each carries the release-group MBID and the release year
-as the recency signal. After the slice runs, the checked artists'
-`last_gap_check_at` is stamped so the next run advances the cursor. The resulting
+as the recency signal. On develop, only a slice whose coverage lookups all succeed
+has its artists' `last_gap_check_at` stamped so the next run advances the cursor. The resulting
 recommendations fill the Albums tab with missing Album-type releases from artists
 already in the library. Secondary types are discarded, so this does not establish
 studio-only selection ([#798](https://github.com/iuliandita/digarr/issues/798)).
 
 On develop, the shared MusicBrainz release-group client walks sequential pages of up to 100 groups through the existing rate limiter, retains type filters and first-seen order, and deduplicates IDs. Provider counts/offsets are validated when present; without them, a short or empty page ends the read. At most 100 pages/10,000 returned groups are read. A failed required page, invalid or stalled pagination, or an unresolved end at that bound rejects the whole lookup without returning accumulated partial groups. Catalog changes can invalidate the read; it is not a snapshot. This also applies to artist album lists, release matching, reconciliation and Release Radar. v1.19.0 stops after the first page ([#796](https://github.com/iuliandita/digarr/issues/796)).
 
-Gap-Fill still converts each lookup failure into an empty candidate list and marks every selected artist checked even after failure ([#797](https://github.com/iuliandita/digarr/issues/797)). An empty successful Gap-Fill run therefore does not prove complete album coverage. Secondary-type selection remains unchanged.
+On develop, Gap-Fill waits for every queued coverage lookup to settle. Any failure rejects the run with the original error before stamping any artist or handing candidates to the pipeline. The whole slice remains eligible for retry, including successful lookups whose candidates were not stored. Manual and subscription runs record the failure; subscriptions retain the previous result count and save the error. Genuine empty coverage remains successful and advances the cursor. A persistently failing artist can hold the selected slice until its lookup succeeds. v1.19.0 swallows coverage errors and marks failed artists checked ([#797](https://github.com/iuliandita/digarr/issues/797)). No schema migration or repair of old cursor values is added; retry after resolving provider errors, and allow the existing rotation to revisit previously stamped artists. Rollback restores swallowed failures. Secondary-type selection remains unchanged.
 
 ### Net-new album discovery
 

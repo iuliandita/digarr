@@ -8,7 +8,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
-- Paginate shared MusicBrainz release-group reads for album coverage, Gap-Fill and other catalog consumers instead of stopping after 100 groups. Deduplicate IDs and reject failed, invalid, stalled or incomplete reads at the 100-page/10,000-group bound. Larger catalogs can take longer; secondary-type filtering and Gap-Fill failure handling remain separate issues. No schema migration or row rewrite is added; rollback restores first-page truncation. [#796](https://github.com/iuliandita/digarr/issues/796).
+- Fail Gap-Fill runs when any coverage lookup fails, wait for queued lookups to settle, and leave the whole selected slice eligible for retry without submitting partial candidates. Genuine empty coverage remains successful. Manual and subscription jobs record the error; subscriptions retain their previous result count. Persistent lookup errors can hold a slice until resolved. No schema migration or repair of existing cursor values is added; rollback restores swallowed failures. [#797](https://github.com/iuliandita/digarr/issues/797).
+
+- Paginate shared MusicBrainz release-group reads for album coverage, Gap-Fill and other catalog consumers instead of stopping after 100 groups. Deduplicate IDs and reject failed, invalid, stalled or incomplete reads at the 100-page/10,000-group bound. Larger catalogs can take longer; secondary-type filtering remains a separate issue. No schema migration or row rewrite is added; rollback restores first-page truncation. [#796](https://github.com/iuliandita/digarr/issues/796).
 
 - Apply library, recommendation deduplication, permanent-block, owner-cooldown and threshold filters to Quick Discover's explicit seed while retaining its score of 1.0. Count actual successful seed and similar-result writes in Job History, including seed-only runs; fatal storage or batch-statistics failures fail the job without undoing saved rows. Existing recommendations are unchanged; no schema migration is added. Rollback restores the seed bypass and old counts. [#795](https://github.com/iuliandita/digarr/issues/795).
 

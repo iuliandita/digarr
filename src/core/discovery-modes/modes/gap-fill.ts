@@ -81,27 +81,28 @@ export function createGapFillMode(injected?: GapFillDeps): DiscoveryModeDefiniti
       // Concurrency 2 + small spacing: one live MB getReleaseGroups call per artist
       // would otherwise starve the event loop (k8s liveness probe gotcha).
       const queue = new PQueue({ concurrency: 2, interval: 200, intervalCap: 2 })
-      const perArtist = await Promise.all(
+      const perArtist = await Promise.allSettled(
         artists.map((artist) =>
           queue.add(async (): Promise<RawDiscoveryCandidate[]> => {
-            try {
-              const coverage = await deps.getCoverageForArtist(request.userId, artist.mbid)
-              return coverageToReleaseCandidates(coverage, artist.name)
-            } catch {
-              return []
-            }
+            const coverage = await deps.getCoverageForArtist(request.userId, artist.mbid)
+            return coverageToReleaseCandidates(coverage, artist.name)
           }),
         ),
       )
+
+      // Failed runs cannot deliver partial candidates, so retain the whole slice for retry.
+      for (const result of perArtist) {
+        if (result.status === 'rejected') throw result.reason
+      }
 
       await deps.markArtistsGapChecked(
         {},
         artists.map((artist) => artist.id),
       )
 
-      const candidates = perArtist
-        .filter((entry): entry is RawDiscoveryCandidate[] => Array.isArray(entry))
-        .flat()
+      const candidates = perArtist.flatMap((result) =>
+        result.status === 'fulfilled' ? (result.value ?? []) : [],
+      )
 
       return { candidates }
     },

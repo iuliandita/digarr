@@ -508,7 +508,7 @@
         "src/core/discovery-modes/modes/artist-relationships.ts": "25be319057b78a244c35d29b02e4bcfba68f153032422b5182767f5ef30c0913",
         "src/core/discovery-modes/modes/charts.ts": "1d01a88bcf59b1f2afc6e7240c93aa78b1c28cfa1c745be026cc1b6fe7b0f0d3",
         "src/core/discovery-modes/modes/deezer-flow.ts": "0eee1d434256cf9bf4ab9fadb166045a66cbd6d0222f6ed3bf9b4f98c8a8ff7e",
-        "src/core/discovery-modes/modes/gap-fill.ts": "4d51ed9ae9c59877550486e189fc5748251886f56d079452b4db0e9ce4df828a",
+        "src/core/discovery-modes/modes/gap-fill.ts": "6e9307543fbd7dd3b477a9eaf29a454f61c40164a192aa0e4aaf47feadd89502",
         "src/core/discovery-modes/modes/labels.ts": "a9ebf278f6d1b72a975b605db0d4714365c8fb74a4e5201aeb99ecd44a16ac14",
         "src/core/discovery-modes/modes/listenbrainz.ts": "b5e9c8471a1aa466caae52996a4d9a0dbe22f897601a69945a513f149ba4afe1",
         "src/core/discovery-modes/modes/release-radar.ts": "551607e0579af468c42210a690523a0e83a54a5a7b99c86c640967edbcad76c6",
@@ -667,14 +667,14 @@
         "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "95b5a5c9030b630395b9cca52ea9ec2efa0178a8b370bdba20d0ce28fe164309",
+      "digest": "3e4b8ae511b97ae036512fc7621544daf434b159c216624cd93b8598f3f17ce5",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Reviewed shared MusicBrainz release-group pagination across coverage, gap-fill, artist album lists, release matching, reconciliation and Release Radar. Document sequential queued pages, type/order preservation, deduplicated IDs, validated metadata, missing-later-page/stall/error rejection, 100-page/10000-raw-group bound, non-snapshot limits, and remaining separate Gap-Fill failure/secondary-type issues. No schema, locale, auth or deployment changes.",
-        "breaking": "Shared catalog lookups now fetch later pages and can take longer or fail on a required later-page error, invalid pagination or an unproven end at the 100-page bound instead of returning the first partial page.",
-        "migration": "No schema migration or existing-row rewrite. Upgrade applies pagination to future lookups; normal backup procedures are unchanged. Retry after resolving provider or mirror failures. Rollback restores first-page truncation and its incomplete counts/candidates; no data conversion is needed.",
-        "digest": "95b5a5c9030b630395b9cca52ea9ec2efa0178a8b370bdba20d0ce28fe164309"
+        "note": "Gap-Fill awaits all coverage lookups and rejects any failed slice before marking cursors or forwarding partial candidates; document manual/subscription errors, retained result counts, retry eligibility and persistent-failure rotation tradeoff.",
+        "breaking": "Coverage failures now fail the whole Gap-Fill run instead of completing with partial or empty candidates; no selected rotation cursor advances until every lookup succeeds.",
+        "migration": "No schema migration or existing cursor repair is added. Keep normal backups; resolve provider errors and retry. Existing rotation revisits previously stamped artists. Rollback restores swallowed coverage failures.",
+        "digest": "3e4b8ae511b97ae036512fc7621544daf434b159c216624cd93b8598f3f17ce5"
       }
     },
     "deployment": {
