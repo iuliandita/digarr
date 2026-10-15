@@ -8,6 +8,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Send repeated `songIdToAdd` parameters when populating Navidrome playlists, matching the Subsonic API contract for both saved and create-only exports. [#826](https://github.com/iuliandita/digarr/issues/826).
+
+- Refresh saved remote playlists by persisted target IDs instead of creating a copy on every generation. Checkpoint creation, preserve known IDs after failures, and require explicit API recovery for uncertain creation or destination changes. Empty/unmatched exports preserve remote contents; there is no remote rollback or cross-replica replacement lock. Migration 0053 adds bindings to backups and backend copies; existing-schema upgrades need the verified native-backup override, and rollback needs the previous image's matching backup. See [operations](docs/OPERATIONS.md#playlists-and-notifications) for recovery and provider identity limits. [#765](https://github.com/iuliandita/digarr/issues/765).
+
 - Apply playlist size and source defaults to partial config objects at save and generation time. Reject invalid values and unknown keys before saving, and fail invalid legacy configs before replacing tracks or exporting. PATCH still replaces the supplied config object; null resets to runtime defaults. No database migration is added. [#764](https://github.com/iuliandita/digarr/issues/764).
 
 - Stop startup when a configured database secret file cannot be read, with an error naming only the variable. Keep direct-value precedence and readable-file trimming/empty behavior; unreadable files no longer silently act as unset configuration. Verify mounts and read permissions before restarting. No database migration is added; rollback restores the previous silent fallback. [#763](https://github.com/iuliandita/digarr/issues/763).

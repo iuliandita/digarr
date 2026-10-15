@@ -1638,6 +1638,7 @@ export const pl = {
   'errors.recommendation.notFound': 'Nie znaleziono rekomendacji',
   'errors.subscription.notFound': 'Nie znaleziono subskrypcji',
   'errors.playlist.notFound': 'Nie znaleziono playlisty',
+  'errors.playlist.busy': 'Generowanie playlisty lub odzyskiwanie eksportu już trwa',
   'settings.channels.title': 'Powiadomienia',
   'settings.channels.description':
     'Wysyłaj powiadomienia o zakończeniu skanowania i podsumowania do jednego lub więcej kanałów.',

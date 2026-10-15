@@ -26,6 +26,7 @@ import {
   libraryMatchOverrides,
   librarySyncState,
   oauthTokens,
+  playlistExports,
   playlists,
   playlistTracks,
   recommendationBatches,
@@ -62,6 +63,7 @@ type BackupTable =
   | typeof libraryMatchOverrides
   | typeof librarySyncState
   | typeof oauthTokens
+  | typeof playlistExports
   | typeof playlists
   | typeof playlistTracks
   | typeof recommendationBatches
@@ -155,6 +157,7 @@ export async function createBackup(
       recommendations: recRows,
       playlists: playlistRows,
       playlistTracks: trackRows,
+      playlistExports: await selectAll(db, playlistExports),
       artistBlocks: blockRows,
       artists: await selectAll(db, artists),
       artistGenreAliases: await selectAll(db, artistGenreAliases),
@@ -376,6 +379,10 @@ const RESTORE_ORDER = [
   createRestoreSpec('jobRuns', jobRuns),
   createRestoreSpec('recommendations', recommendations),
   createRestoreSpec('playlistTracks', playlistTracks),
+  createRestoreSpec('playlistExports', playlistExports, [
+    playlistExports.playlistId,
+    playlistExports.targetId,
+  ]),
   createRestoreSpec('artistBlocks', artistBlocks),
   createRestoreSpec('albumBlocks', albumBlocks),
   createRestoreSpec('libraryArtists', libraryArtists),

@@ -1652,6 +1652,7 @@ export const ro = {
   'errors.recommendation.notFound': 'Recomandarea nu a fost găsită',
   'errors.subscription.notFound': 'Abonamentul nu a fost găsit',
   'errors.playlist.notFound': 'Lista de redare nu a fost găsită',
+  'errors.playlist.busy': 'Generarea listei de redare sau recuperarea exportului este deja în curs',
   'settings.channels.title': 'Notificări',
   'settings.channels.description':
     'Trimite notificări de finalizare a scanării și rezumate către unul sau mai multe canale.',

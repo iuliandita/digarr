@@ -680,6 +680,8 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 | DELETE | `/api/v1/playlists/:id` | Yes | Delete playlist |
 | POST | `/api/v1/playlists/:id/generate` | Yes | Generate playlist tracks (202) |
 | GET | `/api/v1/playlists/:id/export/:format` | Yes | Export as json/csv/m3u/xspf |
+| GET | `/api/v1/playlists/:id/exports` | Yes | Owned remote export bindings |
+| POST | `/api/v1/playlists/:id/exports/:targetId/reset` | Yes | Explicitly forget one local export binding |
 | GET | `/api/v1/playlists/scheduler` | Yes | Playlist scheduler status |
 
 **POST /api/v1/playlists** returns the created row with `201`. Example:
@@ -719,7 +721,13 @@ Scheduled generation requires the global `preferences.playlistEnabled` setting, 
 
 Generated tracks are saved locally before exports to selected enabled playlist targets. Exports to selected enabled Navidrome, Jellyfin, Emby, Plex, and Spotify targets are all attempted; an export failure marks the job failed in Job History, while local tracks and successful remote exports remain. There is no remote rollback.
 
-Regeneration replaces the local track list, but every export creates a new remote playlist rather than updating the previous one. Repeated scheduled runs can accumulate same-name copies ([#765](https://github.com/iuliandita/digarr/issues/765)).
+Saved playlist generation retains a binding per playlist and target. Its first export creates a remote playlist and checkpoints its ID; subsequent manual and scheduled runs replace tracks in that same playlist. This applies to Navidrome, Jellyfin, Emby, Plex, and Spotify. Existing remote playlists from older versions are not adopted by name: the first run after upgrading creates one new binding. Renaming refreshes the remote name on Spotify and Navidrome; Jellyfin, Emby, and Plex keep the existing name.
+
+Before remote writes, Digarr verifies the destination identity and resolves matching tracks. An empty generation or zero matches preserves the remote playlist and fails the export. Account/server changes, missing or inaccessible remote IDs, and uncertain creation fail without automatically creating another playlist. Replacement can leave partial remote contents after an upstream failure; retry replaces the same saved ID. One application process prevents overlapping generation and recovery for a playlist. Multiple replicas are unsupported for these operations.
+
+**GET /api/v1/playlists/:id/exports** returns `{ exports: [{ targetId, remotePlaylistId, state, updatedAt }] }` for bindings whose playlist and target both belong to the caller. `state` is `creating`, `linked`, or `recovery_required`. Scope hashes and credentials are not returned.
+
+**POST /api/v1/playlists/:id/exports/:targetId/reset** requires exactly `{ "acknowledgePossibleDuplicate": true }` and returns `204`. It forgets only the owned local binding; it does not remove the remote playlist. Inspect the destination and remove or retain the old playlist deliberately before resetting, because the next export can create another copy. Reset is API-only; there is no automatic adoption or remote deletion. Another playlist owner or a missing/transferred target returns `404`; an overlapping generation/recovery returns `409` with `code: "errors.playlist.busy"`.
 
 **GET /api/v1/playlists/:id** adds `generation`, either `null` for legacy/no-history playlists or `{ jobId, status, startedAt, completedAt, resolution }` for the latest owned generation job.
 
@@ -737,7 +745,7 @@ Generation uses Spotify and Deezer lookups. The accepted `local` source priority
 
 MusicBrainz recordings provide a final MBID-based fallback, returning real titles and recording IDs without playable URIs or paths; M3U/XSPF export locations for these rows are MusicBrainz recording pages. Remote targets resolve tracks again.
 
-Navidrome, Jellyfin, Emby, and Plex require an exact title and credited artist after case and whitespace normalization. Unmatched items and missing titles are skipped. Their internal target results report `itemsAdded` and `itemsSkipped`; a nonzero skipped count marks the export job failed in Job History after all selected targets are attempted. Local generation outcomes remain separate from remote matching and do not verify playback. Partial remote playlists and local tracks are retained; there is no rollback. Navidrome, Jellyfin, and Emby may create an empty playlist when all items are skipped, while Plex fails without creating one.
+Navidrome, Jellyfin, Emby, and Plex require an exact title and credited artist after case and whitespace normalization. Unmatched items and missing titles are skipped. Their internal target results report `itemsAdded` and `itemsSkipped`; a nonzero skipped count marks the export job failed in Job History after all selected targets are attempted. Local generation outcomes remain separate from remote matching and do not verify playback. Partial remote playlists and local tracks are retained; there is no rollback. Saved playlist exports reject zero matches before mutation. Separate create-only recommendation exports keep their existing behavior: Navidrome, Jellyfin, and Emby may create an empty playlist when all items are skipped, while Plex fails without creating one.
 
 ---
 

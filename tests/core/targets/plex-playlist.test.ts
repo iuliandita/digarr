@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createPlexPlaylistTarget } from '@/core/targets/plex-playlist'
+import type { PlaylistItem } from '@/core/targets/types'
 
 const CONFIG = {
   url: 'http://plex:32400/',
@@ -245,4 +246,205 @@ describe('createPlexPlaylistTarget', () => {
     })
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/playlists?'))).toBe(false)
   })
+})
+
+function sessionFetch(
+  options: { machineId?: unknown; metadata?: unknown; addStatus?: number; create?: unknown } = {},
+) {
+  return vi.fn().mockImplementation(async (url: string, init: RequestInit) => {
+    const request = new URL(url)
+    if (request.pathname === '/')
+      return ok({
+        MediaContainer: {
+          machineIdentifier: 'machineId' in options ? options.machineId : 'machine-1',
+        },
+      })
+    if (request.pathname === '/hubs/search') return trackResponse()
+    if (request.pathname === '/playlists')
+      return ok(
+        options.create ?? { MediaContainer: { Metadata: [{ ratingKey: '99', title: 'Picks' }] } },
+      )
+    if (init.method === 'GET')
+      return ok({
+        MediaContainer: {
+          Metadata: [
+            options.metadata ?? {
+              ratingKey: '99',
+              type: 'playlist',
+              playlistType: 'audio',
+              smart: false,
+              title: 'Original',
+            },
+          ],
+        },
+      })
+    return new Response(
+      init.method === 'PUT' && options.addStatus ? `failed ${CONFIG.token}` : null,
+      { status: init.method === 'PUT' && options.addStatus ? options.addStatus : 204 },
+    )
+  })
+}
+
+function sessionWrites(fetchMock: ReturnType<typeof vi.fn>) {
+  return fetchMock.mock.calls.filter(([, init]) => (init as RequestInit).method !== 'GET')
+}
+
+describe('Plex scheduled playlist session', () => {
+  it('checkpoints the validated new ID before returning and retains it when persistence fails', async () => {
+    const fetchMock = sessionFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+    expect(sessionWrites(fetchMock)).toHaveLength(0)
+    const checkpoint = vi.fn().mockImplementation(async (id: string) => {
+      expect(id).toBe('99')
+      expect(sessionWrites(fetchMock)).toHaveLength(1)
+      throw new Error(`save failed ${CONFIG.token}`)
+    })
+    expect(await session?.createPlaylist('Picks', checkpoint)).toMatchObject({
+      success: false,
+      playlistId: '99',
+      error: 'save failed [REDACTED]',
+    })
+    expect(checkpoint).toHaveBeenCalledOnce()
+    expect(sessionWrites(fetchMock)).toHaveLength(1)
+  })
+
+  it('clears and populates the bound dumb audio playlist without recreating or renaming it', async () => {
+    const fetchMock = sessionFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+    expect(await session?.replacePlaylist('99', 'New name')).toMatchObject({
+      success: true,
+      playlistId: '99',
+      playlistName: 'Original',
+      itemsAdded: 1,
+    })
+    const writes = sessionWrites(fetchMock)
+    expect(writes.map(([, init]) => init.method)).toEqual(['DELETE', 'PUT'])
+    expect(writes.every(([url]) => new URL(url).pathname === '/playlists/99/items')).toBe(true)
+    expect(new URL(writes[1]?.[0]).searchParams.get('uri')).toBe(
+      'server://machine-1/com.plexapp.plugins.library/library/metadata/101',
+    )
+    expect(writes[1]?.[1].body).toBeUndefined()
+  })
+
+  it.each([
+    { ratingKey: '99', type: 'playlist', playlistType: 'audio', smart: true },
+    { ratingKey: '99', type: 'playlist', playlistType: 'video', smart: false },
+    { ratingKey: 'other', type: 'playlist', playlistType: 'audio', smart: false },
+    { ratingKey: '99', type: 'playlist', playlistType: 'audio' },
+    { ratingKey: '99', type: 'track', playlistType: 'audio', smart: false },
+  ])('leaves the playlist unchanged when remote metadata does not match: %j', async (metadata) => {
+    const fetchMock = sessionFetch({ metadata })
+    vi.stubGlobal('fetch', fetchMock)
+    const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+    expect(await session?.replacePlaylist('99', 'Picks')).toMatchObject({
+      success: false,
+      playlistId: '99',
+    })
+    expect(sessionWrites(fetchMock)).toHaveLength(0)
+  })
+
+  it.each([404, 403, 500])(
+    'retains the same ID and redacts a mid-replace failure %i without retry or recreation',
+    async (status) => {
+      const fetchMock = sessionFetch({ addStatus: status })
+      vi.stubGlobal('fetch', fetchMock)
+      const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+      expect(await session?.replacePlaylist('99', 'Picks')).toMatchObject({
+        success: false,
+        playlistId: '99',
+        error: `Plex API ${status}: failed [REDACTED]`,
+      })
+      expect(sessionWrites(fetchMock)).toHaveLength(2)
+      expect(await session?.replacePlaylist('99', 'Picks')).toMatchObject({
+        success: false,
+        playlistId: '99',
+      })
+      expect(sessionWrites(fetchMock)).toHaveLength(4)
+      expect(
+        sessionWrites(fetchMock).every(([url]) => new URL(url).pathname === '/playlists/99/items'),
+      ).toBe(true)
+    },
+  )
+
+  it.each([undefined, '', '  ', 'machine/invalid'])(
+    'rejects invalid identity %j before any write',
+    async (machineId) => {
+      const fetchMock = sessionFetch({ machineId })
+      vi.stubGlobal('fetch', fetchMock)
+      await expect(
+        createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM]),
+      ).rejects.toThrow('server machine identifier')
+      expect(sessionWrites(fetchMock)).toHaveLength(0)
+    },
+  )
+
+  it.each([
+    { items: [] as PlaylistItem[], error: 'No playlist tracks were provided' },
+    {
+      items: [{ ...ITEM, trackName: undefined }],
+      error: 'No playlist tracks were found in the Plex library',
+    },
+  ])('refuses an export with no resolved tracks: $error', async ({ items, error }) => {
+    const fetchMock = sessionFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(
+      createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.(items),
+    ).rejects.toThrow(error)
+    expect(sessionWrites(fetchMock)).toHaveLength(0)
+  })
+
+  it.each([404, 403])(
+    'does not recreate a missing or inaccessible saved playlist (%i)',
+    async (status) => {
+      const fetchMock = sessionFetch()
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockImplementation((url: string, init: RequestInit) =>
+            new URL(url).pathname === '/playlists/99' && init.method === 'GET'
+              ? Promise.resolve(new Response('unavailable', { status }))
+              : fetchMock(url, init),
+          ),
+      )
+      const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+      expect(await session?.replacePlaylist('99', 'Picks')).toMatchObject({
+        success: false,
+        playlistId: '99',
+      })
+      expect(sessionWrites(fetchMock)).toHaveLength(0)
+    },
+  )
+
+  it('binds the scope to the server and token snapshot without exposing the token', async () => {
+    const fetchMock = sessionFetch()
+    vi.stubGlobal('fetch', fetchMock)
+    const config = { ...CONFIG }
+    const first = await createPlexPlaylistTarget(4, config).openPlaylistExportSession?.([ITEM])
+    const same = await createPlexPlaylistTarget(4, config).openPlaylistExportSession?.([ITEM])
+    config.token = 'rotated-token'
+    const rotated = await createPlexPlaylistTarget(4, config).openPlaylistExportSession?.([ITEM])
+    expect(first?.scope).toBe(same?.scope)
+    expect(first?.scope).not.toBe(rotated?.scope)
+    expect(first?.scope).not.toContain(CONFIG.token)
+    await first?.createPlaylist('Picks', async () => {})
+    expect(new Headers(sessionWrites(fetchMock).at(-1)?.[1].headers).get('X-Plex-Token')).toBe(
+      CONFIG.token,
+    )
+  })
+
+  it.each([{}, { MediaContainer: { Metadata: [{ ratingKey: '../invalid', title: 'Picks' }] } }])(
+    'does not checkpoint an invalid create response: %j',
+    async (create) => {
+      const fetchMock = sessionFetch({ create })
+      vi.stubGlobal('fetch', fetchMock)
+      const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+      const checkpoint = vi.fn()
+      expect(await session?.createPlaylist('Picks', checkpoint)).toMatchObject({ success: false })
+      expect(checkpoint).not.toHaveBeenCalled()
+      expect(sessionWrites(fetchMock)).toHaveLength(1)
+    },
+  )
 })

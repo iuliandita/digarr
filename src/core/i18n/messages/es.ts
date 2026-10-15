@@ -1653,6 +1653,8 @@ export const es = {
   'errors.recommendation.notFound': 'Recomendación no encontrada',
   'errors.subscription.notFound': 'Suscripción no encontrada',
   'errors.playlist.notFound': 'Lista de reproducción no encontrada',
+  'errors.playlist.busy':
+    'La generación de la lista de reproducción o la recuperación de la exportación ya está en curso',
   'settings.channels.title': 'Notificaciones',
   'settings.channels.description':
     'Envía notificaciones de fin de escaneo y de resumen a uno o varios canales.',

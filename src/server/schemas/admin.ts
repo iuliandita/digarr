@@ -22,6 +22,7 @@ export const backupDataSchema = z.strictObject({
   recommendations: tableArray,
   playlists: tableArray,
   playlistTracks: tableArray,
+  playlistExports: tableArray.optional(),
   artists: tableArray.optional(),
   artistGenreAliases: tableArray.optional(),
   genres: tableArray.optional(),

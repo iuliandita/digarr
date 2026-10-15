@@ -5,8 +5,9 @@ import {
   unwrapSubsonicResponse,
 } from '@/core/clients/subsonic-auth'
 import type { ServiceTestResult } from '@/core/types'
-import { errMsg } from '@/core/validation'
+import { errMsg, redactSecrets } from '@/core/validation'
 import { pickBestTrackMatch } from './playlist-match'
+import { createPlaylistScope, playlistEndpoint } from './playlist-scope'
 import type { DestinationTarget, PlaylistItem, PlaylistResult } from './types'
 
 export type NavidromePlaylistConfig = {
@@ -19,13 +20,15 @@ function buildSubsonicPath(
   username: string,
   password: string,
   endpoint: string,
-  extra?: Record<string, string>,
+  extra?: Record<string, string | string[]>,
 ): string {
   const params = buildSubsonicAuthParams({
     username,
     password,
-    extra,
   })
+  for (const [key, value] of Object.entries(extra ?? {})) {
+    for (const entry of Array.isArray(value) ? value : [value]) params.append(key, entry)
+  }
   return `/rest/${endpoint}?${params.toString()}`
 }
 
@@ -46,7 +49,18 @@ export function createNavidromePlaylistTarget(
   const { url, username, password } = config
   const client = createHttpClient({ baseUrl: url.replace(/\/+$/, ''), timeout: 10_000 })
 
-  function apiPath(endpoint: string, extra?: Record<string, string>): string {
+  function redactError(error: unknown): string {
+    let message = redactSecrets(errMsg(error))
+    for (const value of [password, username]) {
+      if (value) {
+        message = message.replaceAll(value, '[REDACTED]')
+        message = message.replaceAll(encodeURIComponent(value), '[REDACTED]')
+      }
+    }
+    return message.replaceAll('[redacted]', '[REDACTED]')
+  }
+
+  function apiPath(endpoint: string, extra?: Record<string, string | string[]>): string {
     return buildSubsonicPath(username, password, endpoint, extra)
   }
 
@@ -57,16 +71,16 @@ export function createNavidromePlaylistTarget(
     } catch (error) {
       if (error instanceof HttpError) {
         throw new Error(
-          `Subsonic HTTP ${error.status}: ${redactSubsonicAuthValues(error.body, path)}`,
+          `Subsonic HTTP ${error.status}: ${redactSubsonicAuthValues(redactError(error.body), path)}`,
         )
       }
-      throw error
+      throw new Error(redactSubsonicAuthValues(redactError(error), path))
     }
     try {
       const root = unwrapSubsonicResponse(data)
       return root as unknown as T
     } catch (error) {
-      throw new Error(redactSubsonicAuthValues(errMsg(error), path))
+      throw new Error(redactSubsonicAuthValues(redactError(error), path))
     }
   }
 
@@ -90,73 +104,134 @@ export function createNavidromePlaylistTarget(
     )
   }
 
+  async function resolveTracks(items: PlaylistItem[]): Promise<string[]> {
+    const songIds: string[] = []
+    for (const item of items) {
+      if (!item.trackName?.trim()) continue
+      const id = await searchTrack(item.artistName, item.trackName)
+      if (id !== null) {
+        if (typeof id !== 'string' || !id.trim()) throw new Error('Invalid Navidrome song ID')
+        songIds.push(id)
+      }
+    }
+    return songIds
+  }
+
+  function failure(error: unknown, playlistId?: string): PlaylistResult {
+    return {
+      success: false,
+      targetType: 'navidrome-playlist',
+      targetId,
+      ...(playlistId ? { playlistId } : {}),
+      error: redactError(error),
+    }
+  }
+
+  function result(
+    playlistId: string,
+    name: string,
+    songIds: string[],
+    itemCount: number,
+  ): PlaylistResult {
+    return {
+      success: true,
+      targetType: 'navidrome-playlist',
+      targetId,
+      playlistId,
+      playlistName: name,
+      itemsAdded: songIds.length,
+      itemsSkipped: itemCount - songIds.length,
+    }
+  }
+
+  async function createPrepared(
+    name: string,
+    songIds: string[],
+    itemCount: number,
+    onCreated?: (playlistId: string) => Promise<void>,
+    description?: string,
+  ): Promise<PlaylistResult> {
+    let playlistId: string | undefined
+    try {
+      const created = await subsonicFetch<{ playlist?: { id?: string } }>(
+        apiPath('createPlaylist', { name }),
+        { retries: 0 },
+      )
+      if (typeof created.playlist?.id !== 'string' || !created.playlist.id.trim()) {
+        throw new Error('Navidrome did not return a playlist ID')
+      }
+      playlistId = created.playlist.id
+      await onCreated?.(playlistId)
+      if (songIds.length > 0) {
+        await subsonicFetch(apiPath('updatePlaylist', { playlistId, songIdToAdd: songIds }), {
+          retries: 0,
+        })
+      }
+      if (description) {
+        await subsonicFetch(apiPath('updatePlaylist', { playlistId, comment: description }), {
+          retries: 0,
+        }).catch(() => {})
+      }
+      return result(playlistId, name, songIds, itemCount)
+    } catch (error) {
+      return failure(error, playlistId)
+    }
+  }
+
   return {
     id: `navidrome-playlist-${targetId}`,
     name: 'Navidrome Playlist',
     type: 'navidrome-playlist',
     capabilities: ['createPlaylist'],
 
-    async createPlaylist(
-      name: string,
-      items: PlaylistItem[],
-      options?: { description?: string; public?: boolean; replace?: boolean },
-    ): Promise<PlaylistResult> {
+    async createPlaylist(name, items, options): Promise<PlaylistResult> {
       try {
-        // Resolve song IDs for items that have a trackName
-        const songIds: string[] = []
-        for (const item of items) {
-          if (!item.trackName?.trim()) continue
-          const id = await searchTrack(item.artistName, item.trackName)
-          if (id) songIds.push(id)
+        const songIds = await resolveTracks(items)
+        return await createPrepared(name, songIds, items.length, undefined, options?.description)
+      } catch (error) {
+        return failure(error)
+      }
+    },
+
+    async openPlaylistExportSession(items) {
+      const itemCount = items.length
+      try {
+        const user = await subsonicFetch<{ user?: { username?: string } }>(
+          apiPath('getUser', { username }),
+        )
+        if (!username.trim() || user.user?.username !== username) {
+          throw new Error('Navidrome did not verify the export username')
         }
-
-        // Create the playlist
-        const createPath = apiPath('createPlaylist', { name })
-        const created = await subsonicFetch<{
-          playlist: { id: string; name: string }
-        }>(createPath, { retries: 0 })
-
-        const playlistId = created.playlist?.id
-        if (!playlistId) {
-          throw new Error('Navidrome did not return a playlist ID')
-        }
-
-        // Add songs if any were resolved
-        if (songIds.length > 0) {
-          const updateParams: Record<string, string> = { playlistId }
-          songIds.forEach((id, i) => {
-            updateParams[`songIdToAdd[${i}]`] = id
-          })
-          const updatePath = apiPath('updatePlaylist', updateParams)
-          await subsonicFetch(updatePath, { retries: 0 })
-        }
-
-        if (options?.description) {
-          const commentPath = apiPath('updatePlaylist', {
-            playlistId,
-            comment: options.description,
-          })
-          await subsonicFetch(commentPath).catch(() => {
-            // Best-effort: description update is not critical
-          })
-        }
-
+        const scope = createPlaylistScope('navidrome-playlist', [playlistEndpoint(url), username])
+        const songIds = await resolveTracks(items)
+        if (songIds.length === 0) throw new Error('No usable Navidrome tracks to export')
         return {
-          success: true,
-          targetType: 'navidrome-playlist',
-          targetId,
-          playlistId,
-          playlistName: name,
-          itemsAdded: songIds.length,
-          itemsSkipped: items.length - songIds.length,
+          scope,
+          createPlaylist: (name, onCreated) => createPrepared(name, songIds, itemCount, onCreated),
+          async replacePlaylist(playlistId, name) {
+            try {
+              const current = await subsonicFetch<{ playlist?: { id?: string; owner?: string } }>(
+                apiPath('getPlaylist', { id: playlistId }),
+              )
+              if (current.playlist?.id !== playlistId || current.playlist.owner !== username) {
+                throw new Error('Navidrome playlist owner does not match the export account')
+              }
+              const replaced = await subsonicFetch<{ playlist?: { id?: string } }>(
+                apiPath('createPlaylist', { playlistId, songId: songIds }),
+                { retries: 0 },
+              )
+              if (replaced.playlist?.id !== playlistId) {
+                throw new Error('Navidrome did not return the replaced playlist ID')
+              }
+              await subsonicFetch(apiPath('updatePlaylist', { playlistId, name }), { retries: 0 })
+              return result(playlistId, name, songIds, itemCount)
+            } catch (error) {
+              return failure(error, playlistId)
+            }
+          },
         }
-      } catch (err: unknown) {
-        return {
-          success: false,
-          targetType: 'navidrome-playlist',
-          targetId,
-          error: errMsg(err),
-        }
+      } catch (error) {
+        throw new Error(redactError(error))
       }
     },
 
@@ -171,7 +246,7 @@ export function createNavidromePlaylistTarget(
       } catch (err: unknown) {
         return {
           success: false,
-          message: errMsg(err),
+          message: redactError(err),
         }
       }
     },

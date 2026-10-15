@@ -1520,6 +1520,7 @@ export const zhCN = {
   'errors.recommendation.notFound': '未找到推荐',
   'errors.subscription.notFound': '未找到订阅',
   'errors.playlist.notFound': '未找到播放列表',
+  'errors.playlist.busy': '播放列表生成或导出恢复已在进行中',
   'settings.channels.title': '通知',
   'settings.channels.description': '将扫描完成和摘要通知发送到一个或多个渠道。',
   'settings.channels.add': '添加渠道',

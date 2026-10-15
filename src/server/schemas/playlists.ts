@@ -13,6 +13,16 @@ export const playlistStrategySchema = z.enum([
 
 export const playlistIdParamSchema = idParamSchema
 
+export const playlistExportTargetParamSchema = idParamSchema.extend({
+  targetId: z.coerce.number().int().positive(),
+})
+
+export const resetPlaylistExportSchema = z
+  .object({
+    acknowledgePossibleDuplicate: z.literal(true),
+  })
+  .strict()
+
 export const playlistExportFormatParamSchema = idParamSchema.extend({
   format: z.enum(['json', 'csv', 'm3u', 'xspf']),
 })

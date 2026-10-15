@@ -1635,6 +1635,8 @@ export const tr = {
   'errors.recommendation.notFound': 'Öneri bulunamadı',
   'errors.subscription.notFound': 'Abonelik bulunamadı',
   'errors.playlist.notFound': 'Oynatma listesi bulunamadı',
+  'errors.playlist.busy':
+    'Oynatma listesi oluşturma veya dışa aktarma kurtarma işlemi zaten devam ediyor',
   'settings.channels.title': 'Bildirimler',
   'settings.channels.description':
     'Tarama tamamlanma ve özet bildirimlerini bir veya daha fazla kanala gönderin.',

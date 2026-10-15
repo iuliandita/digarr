@@ -64,6 +64,7 @@ describe('backupFileSchema', () => {
       includesCaches: true,
       data: {
         ...makeBase().data,
+        playlistExports: [{ playlistId: 1, targetId: 1, remotePlaylistId: 'remote' }],
         artists: [],
         artistGenreAliases: [],
         genres: [],

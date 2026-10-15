@@ -1654,6 +1654,8 @@ export const it = {
   'errors.recommendation.notFound': 'Raccomandazione non trovata',
   'errors.subscription.notFound': 'Abbonamento non trovato',
   'errors.playlist.notFound': 'Playlist non trovata',
+  'errors.playlist.busy':
+    "La generazione della playlist o il recupero dell'esportazione è già in corso",
   'settings.channels.title': 'Notifiche',
   'settings.channels.description':
     'Invia notifiche di completamento scansione e di riepilogo a uno o più canali.',

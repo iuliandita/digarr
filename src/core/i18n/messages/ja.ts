@@ -1630,6 +1630,7 @@ export const ja = {
   'errors.recommendation.notFound': 'おすすめが見つかりません',
   'errors.subscription.notFound': 'サブスクリプションが見つかりません',
   'errors.playlist.notFound': 'プレイリストが見つかりません',
+  'errors.playlist.busy': 'プレイリストの生成またはエクスポートの復旧がすでに進行中です',
   'settings.channels.title': '通知',
   'settings.channels.description':
     'スキャン完了通知とダイジェスト通知を1つ以上のチャンネルに送信します。',

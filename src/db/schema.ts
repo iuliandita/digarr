@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -495,6 +496,44 @@ export const playlists = pgTable(
       table.lastGeneratedAt,
     ),
   }),
+)
+
+export const playlistExports = pgTable(
+  'playlist_exports',
+  {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    playlistId: integer('playlist_id')
+      .references(() => playlists.id, { onDelete: 'cascade' })
+      .notNull(),
+    targetId: integer('target_id')
+      .references(() => targets.id, { onDelete: 'cascade' })
+      .notNull(),
+    remotePlaylistId: text('remote_playlist_id'),
+    remoteScope: text('remote_scope').notNull(),
+    state: text('state')
+      .$type<'creating' | 'linked' | 'recovery_required'>()
+      .notNull()
+      .default('creating'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('playlist_exports_playlist_target_unique').on(table.playlistId, table.targetId),
+    index('playlist_exports_target_id_idx').on(table.targetId),
+    check('playlist_exports_scope_nonempty', sql`length(trim(${table.remoteScope})) > 0`),
+    check(
+      'playlist_exports_remote_id_valid',
+      sql`${table.remotePlaylistId} IS NULL OR (length(trim(${table.remotePlaylistId})) > 0 AND length(${table.remotePlaylistId}) <= 2048)`,
+    ),
+    check(
+      'playlist_exports_state_valid',
+      sql`${table.state} IN ('creating', 'linked', 'recovery_required')`,
+    ),
+    check(
+      'playlist_exports_linked_id_required',
+      sql`${table.state} != 'linked' OR ${table.remotePlaylistId} IS NOT NULL`,
+    ),
+  ],
 )
 
 export const playlistTracks = pgTable(

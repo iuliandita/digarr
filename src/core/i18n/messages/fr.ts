@@ -1656,6 +1656,8 @@ export const fr = {
   'errors.recommendation.notFound': 'Recommandation introuvable',
   'errors.subscription.notFound': 'Abonnement introuvable',
   'errors.playlist.notFound': 'Liste de lecture introuvable',
+  'errors.playlist.busy':
+    "La génération de la liste de lecture ou la reprise de l'export est déjà en cours",
   'settings.channels.title': 'Canaux de notification',
   'settings.channels.description':
     "Envoyez des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",

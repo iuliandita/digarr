@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createPlaylistScope } from '@/core/targets/playlist-scope'
 import { createSpotifyPlaylistTarget } from '@/core/targets/spotify-playlist'
 
 const ACCESS_TOKEN = 'spotify-access-token-secret'
@@ -30,7 +31,7 @@ function setupSuccessResponses(tracks: unknown[] = []) {
     if (path.includes('/v1/playlists/playlist-1/items') && init?.method === 'POST') {
       return json({ snapshot_id: 'snapshot-1' })
     }
-    if (path.endsWith('/v1/me')) return json({ display_name: 'Test User' })
+    if (path.endsWith('/v1/me')) return json({ id: 'account-1', display_name: 'Test User' })
     return new Response('Not Found', { status: 404 })
   })
 }
@@ -49,9 +50,18 @@ function playlistMutationCalls() {
   })
 }
 
-function requestBody(call: [unknown, RequestInit | undefined] | undefined): unknown {
+function requestBody(call: readonly unknown[] | undefined): unknown {
   if (!call) throw new Error('Expected a request')
-  return JSON.parse(call[1]?.body as string)
+  const init = call[1]
+  if (
+    typeof init !== 'object' ||
+    init === null ||
+    !('body' in init) ||
+    typeof init.body !== 'string'
+  ) {
+    throw new Error('Expected a JSON request body')
+  }
+  return JSON.parse(init.body)
 }
 
 afterEach(() => {
@@ -253,7 +263,7 @@ describe('createSpotifyPlaylistTarget()', () => {
     })
   })
 
-  it('uses /v1/me only to test the Spotify connection', async () => {
+  it('uses /v1/me to test the Spotify connection', async () => {
     setupSuccessResponses()
 
     const result = await target().testConnection()
@@ -261,5 +271,137 @@ describe('createSpotifyPlaylistTarget()', () => {
     expect(result).toMatchObject({ success: true, message: 'Connected as Test User' })
     expect(mockFetch).toHaveBeenCalledOnce()
     expect(String(mockFetch.mock.calls[0]?.[0])).toBe('https://api.spotify.com/v1/me')
+  })
+})
+
+describe('Spotify scheduled export session', () => {
+  const item = { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: trackUri('1') }
+
+  it.each([
+    ['empty input', [], { id: 'account-1' }],
+    [
+      'unmatched tracks',
+      [{ artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' }],
+      { id: 'account-1' },
+    ],
+    ['missing identity', [item], {}],
+    ['malformed identity', [item], { id: 42 }],
+  ])('rejects %s before mutations', async (_name, items, identity) => {
+    mockFetch.mockImplementation(async (url) =>
+      String(url).endsWith('/v1/me') ? json(identity) : json({ tracks: { items: [] } }),
+    )
+    await expect(target().openPlaylistExportSession?.(items)).rejects.toThrow()
+    expect(mockFetch.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(
+      true,
+    )
+  })
+
+  it.each(['success', 'checkpoint failure', 'malformed name'])(
+    'checkpoints creation before population: %s',
+    async (outcome) => {
+      const fails = outcome !== 'success'
+      setupSuccessResponses()
+      const session = await target().openPlaylistExportSession?.([item])
+      expect(session?.scope).toBe(createPlaylistScope('spotify-playlist', ['account-1']))
+      mockGetAccessToken.mockResolvedValue('rotated-token')
+      if (outcome === 'malformed name')
+        mockFetch.mockResolvedValueOnce(json({ id: 'playlist-1', name: 42 }))
+      const checkpoint = vi.fn(async (id: string) => {
+        expect(id).toBe('playlist-1')
+        expect(mockFetch.mock.calls.some(([url]) => String(url).includes('/items'))).toBe(false)
+        if (outcome === 'checkpoint failure') throw new Error(`checkpoint failed ${ACCESS_TOKEN}`)
+      })
+      const result = await session?.createPlaylist('Generated', checkpoint)
+      expect(result).toMatchObject({ success: !fails, playlistId: 'playlist-1' })
+      expect(checkpoint).toHaveBeenCalledOnce()
+      expect(mockGetAccessToken).toHaveBeenCalledOnce()
+      expect(
+        mockFetch.mock.calls.every(
+          ([, init]) => init?.headers.Authorization === `Bearer ${ACCESS_TOKEN}`,
+        ),
+      ).toBe(true)
+      expect(mockFetch.mock.calls.filter(([url]) => String(url).includes('/items'))).toHaveLength(
+        fails ? 0 : 1,
+      )
+      if (fails) expect(result?.error).not.toContain(ACCESS_TOKEN)
+    },
+  )
+
+  it('replaces in batches and starts a retry from the first PUT without creating', async () => {
+    const uris = Array.from({ length: 201 }, (_, index) => trackUri(String(index)))
+    let failAppend = true
+    mockFetch.mockImplementation(async (url, init) => {
+      const path = String(url)
+      if (path.endsWith('/v1/me')) return json({ id: 'account-1' })
+      if (path.endsWith('/playlist%2F1') && init?.method === 'GET')
+        return json({ id: 'playlist/1', owner: { id: 'account-1' } })
+      if (path.endsWith('/items')) {
+        if (init?.method === 'POST' && failAppend) {
+          failAppend = false
+          return new Response('append failed', { status: 500 })
+        }
+        return json({ snapshot_id: 'snapshot' })
+      }
+      if (path.endsWith('/playlist%2F1') && init?.method === 'PUT')
+        return new Response(null, { status: 200 })
+      return new Response('Not Found', { status: 404 })
+    })
+    const session = await target().openPlaylistExportSession?.(
+      uris.map((spotifyUri) => ({ ...item, spotifyUri })),
+    )
+    expect(await session?.replacePlaylist('playlist/1', 'Renamed')).toMatchObject({
+      success: false,
+      playlistId: 'playlist/1',
+    })
+    expect(mockFetch.mock.calls.filter(([url]) => String(url).endsWith('/items'))).toHaveLength(2)
+    expect(await session?.replacePlaylist('playlist/1', 'Renamed')).toMatchObject({
+      success: true,
+      playlistId: 'playlist/1',
+      itemsAdded: 201,
+    })
+    const calls = mockFetch.mock.calls.filter(([url]) => String(url).endsWith('/items'))
+    expect(calls.map(([, init]) => init.method)).toEqual(['PUT', 'POST', 'PUT', 'POST', 'POST'])
+    expect(calls.map((call) => (requestBody(call) as { uris: string[] }).uris.length)).toEqual([
+      100, 100, 100, 100, 1,
+    ])
+    expect(mockFetch.mock.calls.some(([url]) => String(url).endsWith('/v1/me/playlists'))).toBe(
+      false,
+    )
+    expect(requestBody(mockFetch.mock.calls.at(-1))).toEqual({ name: 'Renamed' })
+  })
+
+  it.each(['missing owner', 'wrong owner', 'not found'])(
+    'preserves identity and does not recreate after %s',
+    async (failure) => {
+      mockFetch.mockImplementation(async (url) => {
+        if (String(url).endsWith('/v1/me')) return json({ id: 'account-1' })
+        if (failure === 'not found') return new Response('gone', { status: 404 })
+        return json({
+          id: 'playlist-1',
+          ...(failure === 'wrong owner' ? { owner: { id: 'other' } } : {}),
+        })
+      })
+      const session = await target().openPlaylistExportSession?.([item])
+      expect(await session?.replacePlaylist('playlist-1', 'Generated')).toMatchObject({
+        success: false,
+        playlistId: 'playlist-1',
+      })
+      expect(mockFetch.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
+    },
+  )
+
+  it('prepares strict matches with meaningful skips and redacts preparation failures', async () => {
+    setupSuccessResponses([spotifyTrack(trackUri('2'), 'Creep', 'Radiohead')])
+    const session = await target().openPlaylistExportSession?.([
+      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      { artistName: 'Cover Band', artistMbid: 'mbid-cover', trackName: 'Creep' },
+    ])
+    expect(await session?.createPlaylist('Generated', async () => {})).toMatchObject({
+      success: true,
+      itemsAdded: 1,
+      itemsSkipped: 1,
+    })
+    mockFetch.mockResolvedValueOnce(new Response(`auth failure ${ACCESS_TOKEN}`, { status: 401 }))
+    await expect(target().openPlaylistExportSession?.([item])).rejects.not.toThrow(ACCESS_TOKEN)
   })
 })

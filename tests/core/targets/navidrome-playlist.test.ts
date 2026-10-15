@@ -1,5 +1,8 @@
 // @vitest-environment node
+
+import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPlaylistScope } from '@/core/targets/playlist-scope'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -347,7 +350,7 @@ describe('createNavidromePlaylistTarget()', () => {
       ).toHaveLength(1)
     })
 
-    it('retries a best-effort comment update', async () => {
+    it('does not retry a best-effort comment mutation', async () => {
       let commentAttempts = 0
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
         const value = String(url)
@@ -365,7 +368,7 @@ describe('createNavidromePlaylistTarget()', () => {
       const result = await target.createPlaylist?.('Test', [], { description: 'Description' })
 
       expect(result?.success).toBe(true)
-      expect(commentAttempts).toBe(2)
+      expect(commentAttempts).toBe(1)
     })
 
     it('prefers exact title+artist match over first search result', async () => {
@@ -427,4 +430,185 @@ describe('createNavidromePlaylistTarget()', () => {
       expect(new Set(salts).size).toBe(3)
     })
   })
+})
+
+describe('Navidrome scheduled export session', () => {
+  const item = { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' }
+
+  beforeEach(() => {
+    mockFetch.mockImplementation(async (url) => {
+      const parsed = new URL(String(url))
+      if (parsed.pathname.endsWith('/getUser'))
+        return okResponse({ user: { username: parsed.searchParams.get('username') } })
+      if (parsed.pathname.endsWith('/search3'))
+        return okResponse({
+          searchResult3: { song: [{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }] },
+        })
+      if (parsed.pathname.endsWith('/getPlaylist'))
+        return okResponse({ playlist: { id: 'pl-42', owner: 'admin' } })
+      if (parsed.pathname.endsWith('/createPlaylist'))
+        return okResponse({ playlist: { id: 'pl-42' } })
+      return okResponse({})
+    })
+  })
+
+  it.each([
+    ['empty input', [], 'admin'],
+    ['unmatched tracks', [{ ...item, trackName: 'Missing' }], 'admin'],
+    ['missing identity', [item], undefined],
+    ['wrong identity', [item], 'other'],
+  ])('rejects %s before mutations', async (_name, items, username) => {
+    mockFetch.mockImplementation(async (url) =>
+      String(url).includes('/getUser')
+        ? okResponse({ user: { username } })
+        : okResponse({ searchResult3: { song: [] } }),
+    )
+    const target = createNavidromePlaylistTarget(5, CONFIG)
+    await expect(target.openPlaylistExportSession?.(items)).rejects.toThrow()
+    expect(
+      mockFetch.mock.calls.some(([url]) => /\/(createPlaylist|updatePlaylist)\?/.test(String(url))),
+    ).toBe(false)
+  })
+
+  it.each([false, true])(
+    'checkpoints creation before repeated song parameters (checkpoint fails: %s)',
+    async (fails) => {
+      const config = { ...CONFIG }
+      const target = createNavidromePlaylistTarget(5, config)
+      const session = await target.openPlaylistExportSession?.([item, item])
+      expect(session?.scope).toBe(createPlaylistScope('navidrome-playlist', [CONFIG.url, 'admin']))
+      config.password = 'rotated-password'
+      const checkpoint = vi.fn(async (id: string) => {
+        expect(id).toBe('pl-42')
+        expect(mockFetch.mock.calls.some(([url]) => String(url).includes('/updatePlaylist'))).toBe(
+          false,
+        )
+        if (fails) throw new Error(`checkpoint failed ${CONFIG.password}`)
+      })
+      const result = await session?.createPlaylist('Generated', checkpoint)
+      expect(result).toMatchObject({ success: !fails, playlistId: 'pl-42' })
+      expect(checkpoint).toHaveBeenCalledOnce()
+      const updates = mockFetch.mock.calls.filter(([url]) =>
+        String(url).includes('/updatePlaylist'),
+      )
+      expect(updates).toHaveLength(fails ? 0 : 1)
+      if (!fails) {
+        const params = new URL(String(updates[0]?.[0])).searchParams
+        expect(params.getAll('songIdToAdd')).toEqual(['song-1', 'song-1'])
+        expect([...params.keys()].some((key) => key.includes('['))).toBe(false)
+      } else expect(result?.error).not.toContain(CONFIG.password)
+      for (const [url] of mockFetch.mock.calls) {
+        const params = new URL(String(url)).searchParams
+        expect(params.get('t')).toBe(
+          createHash('md5')
+            .update(CONFIG.password + params.get('s'))
+            .digest('hex'),
+        )
+      }
+    },
+  )
+
+  it('scopes the full canonical endpoint and verified user without the password', async () => {
+    const scopes = []
+    for (const config of [
+      { ...CONFIG, url: 'http://NAVIDROME:4533/library/' },
+      { ...CONFIG, url: 'http://navidrome:4533/library', password: 'new-password' },
+      { ...CONFIG, url: 'http://navidrome:4533/another' },
+      { ...CONFIG, url: 'http://navidrome:4533/library', username: 'other' },
+    ])
+      scopes.push(
+        (await createNavidromePlaylistTarget(5, config).openPlaylistExportSession?.([item]))?.scope,
+      )
+    expect(scopes[0]).toBe(scopes[1])
+    expect(scopes[0]).not.toBe(scopes[2])
+    expect(scopes[0]).not.toBe(scopes[3])
+  })
+
+  it.each(['success', 'missing owner', 'wrong owner', 'not found', 'replace failure'])(
+    'replaces only a verified owned playlist: %s',
+    async (outcome) => {
+      let replaceAttempts = 0
+      mockFetch.mockImplementation(async (url) => {
+        const parsed = new URL(String(url))
+        if (parsed.pathname.endsWith('/getUser')) return okResponse({ user: { username: 'admin' } })
+        if (parsed.pathname.endsWith('/search3'))
+          return okResponse({
+            searchResult3: { song: [{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }] },
+          })
+        if (parsed.pathname.endsWith('/getPlaylist')) {
+          if (outcome === 'not found') return new Response('gone', { status: 404 })
+          return okResponse({
+            playlist: {
+              id: 'pl-42',
+              ...(outcome === 'missing owner'
+                ? {}
+                : { owner: outcome === 'wrong owner' ? 'other' : 'admin' }),
+            },
+          })
+        }
+        if (parsed.pathname.endsWith('/createPlaylist')) {
+          replaceAttempts += 1
+          expect(parsed.searchParams.get('playlistId')).toBe('pl-42')
+          expect(parsed.searchParams.get('name')).toBeNull()
+          expect(parsed.searchParams.getAll('songId')).toEqual(['song-1', 'song-1'])
+          if (outcome === 'replace failure') return new Response('replace failed', { status: 500 })
+          return okResponse({ playlist: { id: 'pl-42' } })
+        }
+        return okResponse({})
+      })
+      const session = await createNavidromePlaylistTarget(5, CONFIG).openPlaylistExportSession?.([
+        item,
+        item,
+        { ...item, trackName: 'Missing' },
+      ])
+      expect(await session?.replacePlaylist('pl-42', 'Renamed')).toMatchObject({
+        success: outcome === 'success',
+        playlistId: 'pl-42',
+      })
+      expect(replaceAttempts).toBe(['success', 'replace failure'].includes(outcome) ? 1 : 0)
+      const updates = mockFetch.mock.calls.filter(([url]) =>
+        String(url).includes('/updatePlaylist'),
+      )
+      expect(updates).toHaveLength(outcome === 'success' ? 1 : 0)
+      if (outcome === 'success') {
+        expect(new URL(String(updates[0]?.[0])).searchParams.get('name')).toBe('Renamed')
+        expect(await session?.replacePlaylist('pl-42', 'Renamed')).toMatchObject({
+          success: true,
+          itemsAdded: 2,
+          itemsSkipped: 1,
+        })
+      }
+    },
+  )
+
+  it.each(['envelope', 'transport'])(
+    'redacts credentials from %s preparation failures',
+    async (kind) => {
+      let token = ''
+      let salt = ''
+      mockFetch.mockImplementation(async (url) => {
+        const params = new URL(String(url)).searchParams
+        token = params.get('t') ?? ''
+        salt = params.get('s') ?? ''
+        const message = `failed ${CONFIG.password} t=${token}&s=${salt}`
+        if (kind === 'transport') throw new Error(message)
+        return errorResponse(40, message)
+      })
+      let message = ''
+      try {
+        await createNavidromePlaylistTarget(5, CONFIG).openPlaylistExportSession?.([item])
+      } catch (error) {
+        message = (error as Error).message
+      }
+      expect(message).toContain('[REDACTED]')
+      expect(message).not.toContain(CONFIG.password)
+      expect(message).not.toContain(token)
+      expect(message).not.toContain(salt)
+      expect(
+        mockFetch.mock.calls.some(([url]) =>
+          /\/(createPlaylist|updatePlaylist)\?/.test(String(url)),
+        ),
+      ).toBe(false)
+    },
+  )
 })

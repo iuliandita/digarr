@@ -38,6 +38,18 @@ async function seedFullFixtures(db: TestDatabase) {
     .values({ userId: user.id, name: 'Migration Playlist', strategy: 'weekly_digest' })
     .returning()
   if (!playlist) throw new Error('playlist insert failed')
+  const [target] = await db
+    .insert(schema.targets)
+    .values({ userId: user.id, type: 'spotify', name: 'Migration target' })
+    .returning()
+  if (!target) throw new Error('target insert failed')
+  await db.insert(schema.playlistExports).values({
+    playlistId: playlist.id,
+    targetId: target.id,
+    remoteScope: 'v1:migration-scope',
+    remotePlaylistId: 'migration-remote',
+    state: 'linked',
+  })
   await db.insert(schema.playlistTracks).values({
     playlistId: playlist.id,
     artistName: artist.name,
@@ -110,6 +122,7 @@ describe('migrateBackend', () => {
     expect(report.verified).toBe(true)
     expect(report.contentVerified).toBe(true)
     expect(report.tablesMigrated.users).toBeGreaterThan(0)
+    expect(report.tablesMigrated.playlistExports).toBe(1)
     expect(Object.keys(report.tablesMigrated).sort()).toEqual(
       Object.keys(BACKUP_TABLE_BY_KEY).sort(),
     )

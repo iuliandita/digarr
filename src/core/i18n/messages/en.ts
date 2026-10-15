@@ -1700,6 +1700,7 @@ export const en = {
   'errors.recommendation.notFound': 'Recommendation not found',
   'errors.subscription.notFound': 'Subscription not found',
   'errors.playlist.notFound': 'Playlist not found',
+  'errors.playlist.busy': 'Playlist generation or export recovery is already in progress',
   'settings.channels.title': 'Notifications',
   'settings.channels.description':
     'Send scan-complete and digest notifications to one or more channels.',

@@ -1645,6 +1645,7 @@ export const uk = {
   'errors.recommendation.notFound': 'Рекомендацію не знайдено',
   'errors.subscription.notFound': 'Підписку не знайдено',
   'errors.playlist.notFound': 'Список відтворення не знайдено',
+  'errors.playlist.busy': 'Створення списку відтворення або відновлення експорту вже триває',
   'settings.channels.title': 'Сповіщення',
   'settings.channels.description':
     'Надсилайте сповіщення про завершення сканування та зведення до одного чи кількох каналів.',

@@ -80,6 +80,13 @@ describe('admin recovery backup round trip', () => {
         await db
           .insert(schema.targets)
           .values({ id: 1, userId: 1, type: 'slskd', name: 'Recovery target' })
+        await db.insert(schema.playlistExports).values({
+          playlistId: 1,
+          targetId: 1,
+          remoteScope: 'v1:roundtrip-scope',
+          remotePlaylistId: 'roundtrip-remote',
+          state: 'linked',
+        })
         await db.insert(schema.slskdJobs).values({
           userId: 1,
           targetId: 1,
@@ -107,6 +114,7 @@ describe('admin recovery backup round trip', () => {
         if (includeCaches) expect(backup.data.artistMetadata).toEqual([])
         else expect(backup.data).not.toHaveProperty('artistMetadata')
         expect(backup.data.artistGenreAliases).toHaveLength(1)
+        expect(backup.data.playlistExports).toHaveLength(1)
 
         const { app: targetApp } = createTestApp({ db: target.db as never })
         const restoreResponse = await targetApp.request(
@@ -128,6 +136,9 @@ describe('admin recovery backup round trip', () => {
         expect(await target.db.select().from(schema.libraryMatchOverrides)).toHaveLength(1)
         expect(await target.db.select().from(schema.libraryAlbumMatchOverrides)).toHaveLength(1)
         expect(await target.db.select().from(schema.playlistTracks)).toHaveLength(1)
+        expect(await target.db.select().from(schema.playlistExports)).toMatchObject([
+          { playlistId: 1, targetId: 1, remotePlaylistId: 'roundtrip-remote', state: 'linked' },
+        ])
         expect(await target.db.select().from(schema.recommendations)).toMatchObject([
           { status: 'approved' },
         ])

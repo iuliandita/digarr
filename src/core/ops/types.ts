@@ -23,6 +23,7 @@ export interface BackupData {
   recommendations: Record<string, unknown>[]
   playlists: Record<string, unknown>[]
   playlistTracks: Record<string, unknown>[]
+  playlistExports?: Record<string, unknown>[]
   artistBlocks: Record<string, unknown>[]
   // Optional in legacy backups; included by every new backup.
   artists?: Record<string, unknown>[]

@@ -26,6 +26,7 @@ describe('backup full-fidelity', () => {
       expect(backup.data).toHaveProperty('artists')
       expect(backup.data).toHaveProperty('artistGenreAliases')
       expect(backup.data).toHaveProperty('genres')
+      expect(backup.data).toHaveProperty('playlistExports')
     } finally {
       await close()
     }
@@ -36,6 +37,7 @@ describe('backup full-fidelity', () => {
     try {
       const backup = await createBackupSnapshot(db as never)
       expect(backup.data).toHaveProperty('albumBlocks')
+      expect(backup.data).toHaveProperty('playlistExports')
       expect(backup.data).toHaveProperty('artistGenreAliases')
       expect(backup.data).toHaveProperty('libraryArtists')
       expect(backup.data).toHaveProperty('libraryAlbums')
@@ -281,11 +283,20 @@ describe('backup full-fidelity', () => {
       .values({
         userId: user.id,
         name: 'Fidelity Playlist',
+        id: 61,
         strategy: 'weekly_digest',
         targetIds: [target.id],
       })
       .returning()
     if (!playlist) throw new Error('playlist insert failed')
+    await db.insert(schema.playlistExports).values({
+      id: 91,
+      playlistId: playlist.id,
+      targetId: target.id,
+      remoteScope: 'v1:stored-scope',
+      remotePlaylistId: 'fidelity-remote',
+      state: 'linked',
+    })
     await db.insert(schema.playlistTracks).values({
       playlistId: playlist.id,
       artistName: artist.name,
@@ -443,6 +454,7 @@ describe('backup full-fidelity', () => {
       const legacy = new Date('2026-10-01T00:00:00.000Z')
       await db.insert(schema.settings).values({ id: 1, digestLastSentAt: legacy })
       const backup = await createBackupSnapshot(db as never)
+      delete backup.data.playlistExports
       for (const row of backup.data.settings ?? []) delete row.digestDeliveryPositions
       await destination.insert(schema.settings).values({
         id: 1,
@@ -516,6 +528,7 @@ describe('backup full-fidelity', () => {
         const before = await createBackupSnapshot(db as never, { includeCaches: true })
         const backup = structuredClone(before)
         const legacyData = backup.data as Partial<typeof backup.data>
+        delete backup.data.playlistExports
         delete backup.data.libraryArtists
         delete legacyData.jobRuns
         delete legacyData.recommendations
@@ -526,7 +539,12 @@ describe('backup full-fidelity', () => {
 
         await expect(restoreBackup(db as never, backup, { force })).rejects.toMatchObject({
           name: 'PartialBackupConflictError',
-          affectedTables: expect.arrayContaining(['libraryArtists', 'jobRuns', 'recommendations']),
+          affectedTables: expect.arrayContaining([
+            'libraryArtists',
+            'jobRuns',
+            'recommendations',
+            'playlistExports',
+          ]),
         })
         const after = await createBackupSnapshot(db as never, { includeCaches: true })
         expect(after.data).toEqual(before.data)

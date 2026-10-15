@@ -1606,6 +1606,7 @@ export const ko = {
   'errors.recommendation.notFound': '추천을 찾을 수 없습니다',
   'errors.subscription.notFound': '구독을 찾을 수 없습니다',
   'errors.playlist.notFound': '재생목록을 찾을 수 없습니다',
+  'errors.playlist.busy': '재생목록 생성 또는 내보내기 복구가 이미 진행 중입니다',
   'settings.channels.title': '알림',
   'settings.channels.description': '스캔 완료 및 요약 알림을 하나 이상의 채널로 보냅니다.',
   'settings.channels.add': '채널 추가',

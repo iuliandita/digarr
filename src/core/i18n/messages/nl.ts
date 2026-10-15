@@ -1644,6 +1644,8 @@ export const nl = {
   'errors.recommendation.notFound': 'Aanbeveling niet gevonden',
   'errors.subscription.notFound': 'Abonnement niet gevonden',
   'errors.playlist.notFound': 'Afspeellijst niet gevonden',
+  'errors.playlist.busy':
+    'Het genereren van de afspeellijst of het herstellen van de export is al bezig',
   'settings.channels.title': 'Meldingen',
   'settings.channels.description':
     'Stuur meldingen bij voltooiing van een scan en samenvattingen naar een of meer kanalen.',

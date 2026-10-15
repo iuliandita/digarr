@@ -1649,6 +1649,8 @@ export const ptBR = {
   'errors.recommendation.notFound': 'Recomendação não encontrada',
   'errors.subscription.notFound': 'Assinatura não encontrada',
   'errors.playlist.notFound': 'Playlist não encontrada',
+  'errors.playlist.busy':
+    'A geração da playlist ou a recuperação da exportação já está em andamento',
   'settings.channels.title': 'Notificações',
   'settings.channels.description':
     'Envie notificações de conclusão de varredura e de resumo para um ou mais canais.',

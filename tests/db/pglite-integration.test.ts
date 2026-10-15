@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
@@ -19,10 +20,14 @@ beforeAll(async () => {
 
 describe('pglite backend contract', () => {
   it('applies all repo migrations and creates core tables', async () => {
+    const migration = readFileSync('drizzle/0053_shallow_mysterio.sql', 'utf8')
+    for (const statement of migration.split('--> statement-breakpoint')) {
+      await db.execute(sql.raw(statement))
+    }
     const res = await db.execute(
-      sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('users','settings','artists')`,
+      sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('users','settings','artists','playlist_exports')`,
     )
-    expect(res.rows.length).toBe(3)
+    expect(res.rows.length).toBe(4)
   })
 
   it('creates nullable text unreconciled reason columns', async () => {
@@ -90,7 +95,7 @@ describe('pglite backend contract', () => {
       FROM information_schema.columns
       WHERE table_schema = 'public' AND column_name = 'id'
     `)
-    expect(res.rows.length).toBe(24)
+    expect(res.rows.length).toBe(25)
     expect(res.rows.every((r) => r.is_identity === 'YES')).toBe(true)
     expect(res.rows.every((r) => r.identity_generation === 'BY DEFAULT')).toBe(true)
   })

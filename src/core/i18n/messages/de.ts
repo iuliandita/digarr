@@ -1664,6 +1664,8 @@ export const de = {
   'errors.recommendation.notFound': 'Empfehlung nicht gefunden',
   'errors.subscription.notFound': 'Abonnement nicht gefunden',
   'errors.playlist.notFound': 'Wiedergabeliste nicht gefunden',
+  'errors.playlist.busy':
+    'Die Erstellung der Wiedergabeliste oder die Wiederaufnahme des Exports läuft bereits',
   'settings.channels.title': 'Benachrichtigungen',
   'settings.channels.description':
     'Sende Scan-Abschluss- und Zusammenfassungs-Benachrichtigungen an einen oder mehrere Kanäle.',

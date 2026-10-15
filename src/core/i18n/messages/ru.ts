@@ -1654,6 +1654,7 @@ export const ru = {
   'errors.recommendation.notFound': 'Рекомендация не найдена',
   'errors.subscription.notFound': 'Подписка не найдена',
   'errors.playlist.notFound': 'Плейлист не найден',
+  'errors.playlist.busy': 'Создание плейлиста или восстановление экспорта уже выполняется',
   'settings.channels.title': 'Уведомления',
   'settings.channels.description':
     'Отправляйте уведомления о завершении сканирования и сводки в один или несколько каналов.',

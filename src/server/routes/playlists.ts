@@ -6,9 +6,15 @@ import {
   exportPlaylistToXspf,
   type PlaylistExportFormat,
 } from '@/core/playlists/export'
+import { PlaylistBusyError, withPlaylistLock } from '@/core/playlists/generation-lock'
 import type { PlaylistScheduler } from '@/core/playlists/scheduler'
 import type { Database } from '@/db'
 import { getLatestPlaylistGeneration } from '@/db/queries/jobs'
+import {
+  getPlaylistExport,
+  getPlaylistExports,
+  resetPlaylistExport,
+} from '@/db/queries/playlist-exports'
 import type { PlaylistInsert, PlaylistRow, PlaylistTrackRow } from '@/db/queries/playlists'
 import {
   createPlaylist,
@@ -22,11 +28,13 @@ import { mergePreferences } from '@/db/schema'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
-import { notFoundProblem } from '@/server/helpers/problem'
+import { notFoundProblem, problem } from '@/server/helpers/problem'
 import {
   createPlaylistSchema,
   playlistExportFormatParamSchema,
+  playlistExportTargetParamSchema,
   playlistIdParamSchema,
+  resetPlaylistExportSchema,
   updatePlaylistSchema,
 } from '@/server/schemas/playlists'
 import { zJson, zParam } from '@/server/schemas/validator'
@@ -231,6 +239,62 @@ export function playlistRoutes(deps: PlaylistDeps) {
     await deps.restartPlaylistScheduler()
     return c.body(null, 204)
   })
+
+  router.get('/api/v1/playlists/:id/exports', zParam(playlistIdParamSchema), async (c) => {
+    const userId = c.get('userId')
+    if (!userId) return notAuthenticated(c)
+    const { id } = c.req.valid('param')
+    const loaded = await loadOwnedPlaylist(c, id, userId)
+    if (!loaded.ok) return loaded.response
+    const bindings = await getPlaylistExports(db, userId, id)
+    return c.json({
+      exports: bindings.map(({ targetId, remotePlaylistId, state, updatedAt }) => ({
+        targetId,
+        remotePlaylistId,
+        state,
+        updatedAt,
+      })),
+    })
+  })
+
+  router.post(
+    '/api/v1/playlists/:id/exports/:targetId/reset',
+    zParam(playlistExportTargetParamSchema),
+    zJson(resetPlaylistExportSchema),
+    async (c) => {
+      const userId = c.get('userId')
+      if (!userId) return notAuthenticated(c)
+      const { id, targetId } = c.req.valid('param')
+      try {
+        return await withPlaylistLock(id, async () => {
+          const loaded = await loadOwnedPlaylist(c, id, userId)
+          if (!loaded.ok) return loaded.response
+          const binding = await getPlaylistExport(db, userId, id, targetId)
+          if (!binding)
+            return notFoundProblem(
+              c,
+              'target-not-found',
+              'Target not found',
+              'errors.target.notFound',
+            )
+          await resetPlaylistExport(db, userId, id, targetId)
+          return c.body(null, 204)
+        })
+      } catch (error) {
+        if (error instanceof PlaylistBusyError)
+          return problem(
+            c,
+            'playlist-busy',
+            'Playlist operation is already in progress',
+            409,
+            undefined,
+            undefined,
+            'errors.playlist.busy',
+          )
+        throw error
+      }
+    },
+  )
 
   // POST /api/v1/playlists/:id/generate
   router.post('/api/v1/playlists/:id/generate', zParam(playlistIdParamSchema), async (c) => {

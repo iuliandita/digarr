@@ -171,7 +171,7 @@ The copy follows the application restore registry, not every database table. The
 | Rate-limit counters | Login and register rate limits reset. |
 | `oauth_pending_auths` | Unfinished Spotify, Deezer, and TIDAL connect attempts must be restarted. |
 
-The registry includes users, artists, recommendations, targets, saved connections, settings, preferences, jobs, playlists, artist/album blocks, and library state. It does not preserve unfinished provider authorization transactions.
+The registry includes users, artists, recommendations, targets, saved connections, settings, preferences, jobs, playlists and their remote export bindings, artist/album blocks, and library state. It does not preserve unfinished provider authorization transactions.
 
 ---
 
@@ -194,6 +194,10 @@ To preserve changes made after cutover, stop writers and take complete backups o
 ## Backup boundaries and recovery
 
 New application JSON exports use a consistent snapshot and include persistent application state and its artist dependencies by default: recommendations, blocks, playlists, library snapshots and overrides, recording cache, and slskd jobs. `includeCaches=true` adds optional artist metadata, not required recovery dependencies. Keep the matching encryption key separately. Sessions, pending authorizations, rate limits, and migration history are deliberately excluded, so JSON recovery is not a database-schema rollback.
+
+Saved remote export bindings are included in new JSON exports and backend copies. Restoring older knowledge cannot undo external playlist writes or recover IDs created afterward; inspect each destination before an explicit binding reset, which may create another copy. Older JSON files without bindings remain readable but cannot clear populated omitted bindings through parent replacement; that returns `422 partial_backup_conflict` even with `force=true`.
+
+Unreleased migration 0053 adds the binding table. An existing schema without it cannot satisfy the current pre-migration snapshot. Use the verified native-backup override procedure below, retain the key and previous image, then re-enable automatic backup. Roll back by restoring the matching native backup into a separate database with its previous image; older images do not maintain bindings and can accumulate remote copies again. Migration itself does not contact remote services.
 
 Legacy v1.19.0 JSON files remain partial, including those named `-full`. Restore checks dependencies before replacing tables. If clearing included parents would alter populated omitted tables, or artist references cannot resolve, it returns `422 partial_backup_conflict` without changing the destination; `force=true` only handles encryption mismatch and cannot bypass this check. Use a complete new export, or a fresh compatible database when the legacy file has the required dependencies. Restore does not invent missing artists or merge account identities. Back up the destination before any restore.
 

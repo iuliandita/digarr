@@ -46,7 +46,8 @@ import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
-import { pushPlaylistToTargets } from './core/playlists/export'
+import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
+import { withPlaylistLock } from './core/playlists/generation-lock'
 import { generatePlaylist } from './core/playlists/generator'
 import { PlaylistScheduler } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
@@ -1039,6 +1040,10 @@ async function buildPlaylistResolverDeps(userId: number | null) {
 }
 
 async function executePlaylistGeneration(playlistId: number): Promise<void> {
+  return withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId))
+}
+
+async function generatePlaylistContents(playlistId: number): Promise<void> {
   let jobId: number | null = null
 
   const result = await getPlaylistWithTracks(db, playlistId)
@@ -1108,7 +1113,7 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
         spotifyUri: track.spotifyUri ?? undefined,
       }))
 
-      const targets: DestinationTarget[] = []
+      const targets: Array<{ targetId: number; target: DestinationTarget }> = []
       for (const targetRow of enabledTargetRows) {
         let target: DestinationTarget | null = null
 
@@ -1145,10 +1150,15 @@ async function executePlaylistGeneration(playlistId: number): Promise<void> {
           })
         }
 
-        if (target?.createPlaylist) targets.push(target)
+        if (target?.createPlaylist) targets.push({ targetId: targetRow.id, target })
       }
 
-      await pushPlaylistToTargets(targets, playlist.name, playlistItems)
+      await pushSavedPlaylistToTargets(
+        targets,
+        playlist.name,
+        playlistItems,
+        createSavedPlaylistExportStore(db, userId, playlist.id),
+      )
     }
 
     console.log(
