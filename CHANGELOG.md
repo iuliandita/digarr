@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Apply library, recommendation deduplication, permanent-block, owner-cooldown and threshold filters to Quick Discover's explicit seed while retaining its score of 1.0. Count actual successful seed and similar-result writes in Job History, including seed-only runs; fatal storage or batch-statistics failures fail the job without undoing saved rows. Existing recommendations are unchanged; no schema migration is added. Rollback restores the seed bypass and old counts. [#795](https://github.com/iuliandita/digarr/issues/795).
+
 - Honor arbitrary Last.fm top-artist offsets by combining at most two provider pages, preserving the provider total and existing failure/fallback behavior. Page-aligned callers remain compatible. No schema migration is added; rollback restores repeated pages for unaligned offsets. [#794](https://github.com/iuliandita/digarr/issues/794).
 
 - Mask global fanart credentials and legacy webhook URLs as `***` in admin settings responses, and omit both for non-admins. Masked PATCH values preserve the exact saved value; explicit replacements and empty-string clearing still work. Clients can no longer read these secrets through settings responses. No schema migration or encryption-policy change is added; rollback restores the exposure. [#793](https://github.com/iuliandita/digarr/issues/793).

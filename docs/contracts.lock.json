@@ -280,7 +280,7 @@
         "src/server/routes/listening.ts": "bc8c37bc858b73398791982861a2c39e792edcc25ef7c41c7df80152ad6ef251",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
-        "src/server/routes/pipeline.ts": "1a62b35811c302545d04a36f7a1729596974b991b580207a62b5cbd6a2e2bc2e",
+        "src/server/routes/pipeline.ts": "a388bfa1db3ff90241277c1fd1a879e74c238008ef3f6c9068ce84e5ea71592c",
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
         "src/server/routes/recommendations.ts": "4a05ac93ec2b0728d503515f915dcdb1ca4a116180549bd4a65ff6633dc35a74",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "12bb0f869cbe0ef3d8b6bd8e22f89924a59266b5a1a0342fa09bc9b4ed177992",
+      "digest": "123697e0ac4c14dec7f2104de5192d9eb259cc5d81c39340ecd885efa7db18ba",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Document exact Last.fm offset windows via at most two same-limit pages, unchanged provider totals and fallback/error behavior, v1.19.0 aligned-offset workaround compatibility, and rollback limits; no schema, setup, locale or deployment changes.",
-        "breaking": "none",
-        "migration": "",
-        "digest": "12bb0f869cbe0ef3d8b6bd8e22f89924a59266b5a1a0342fa09bc9b4ed177992"
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed Quick Discover explicit score-1 seed, shared owner exclusions and post-seed deduplication; Job History now counts actual completed seed/similar batch writes, including seed-only runs. Document retained successful writes, per-item failures, fatal storage/statistics failures and the v1.19.0 difference. Architecture and roadmap agree; no UI, locale, schema or deployment change.",
+        "breaking": "Quick Discover no longer adds explicit seeds excluded by library membership, existing recommendations, permanent blocks or owner cooldowns; artistsStored includes successful seed writes and excludes failed inserts.",
+        "migration": "No schema migration or existing recommendation rewrite. Upgrade applies the corrected exclusion/count policy; inspect retained queue rows and Job History before retrying failed runs. Normal backup procedures are unchanged. Rollback restores the seed bypass and prior counts.",
+        "digest": "123697e0ac4c14dec7f2104de5192d9eb259cc5d81c39340ecd885efa7db18ba"
       }
     },
     "interface": {

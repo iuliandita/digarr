@@ -2,7 +2,10 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { resolve } from '@/core/pipeline/resolve'
+import { store } from '@/core/pipeline/store'
 import { createSession } from '@/core/sessions'
+import type { ResolvedArtist } from '@/core/types'
 
 const mocks = vi.hoisted(() => ({
   audiodbClient: { getArtistImages: vi.fn(), searchArtistByName: vi.fn() },
@@ -534,73 +537,72 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
 
   it('does not let an ambiguous latin-script artist name override the resolved locale', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])
-    const app = createApp(
-      makeDeps({
-        getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 1,
-          username: 'test',
-          isAdmin: false,
-          preferredLocale: 'de',
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
-        providerRegistry: {
-          create: vi.fn().mockResolvedValue({
-            getRecommendations,
-            testConnection: vi.fn(),
-          }),
-          register: vi.fn(),
-          has: vi.fn().mockReturnValue(true),
-          availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
-        } as unknown as AppDependencies['providerRegistry'],
-        getSettings: vi.fn(
-          async () =>
-            ({
-              id: 1,
-              lidarrUrl: null,
-              lidarrApiKey: null,
-              aiProvider: 'openai',
-              aiModel: 'gpt-4o-mini',
-              aiApiKey: 'test-key',
-              aiBaseUrl: null,
-              preferences: null,
-            }) as SettingsRow,
-        ),
-        storeDb: {
-          getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-          getRejectedMbids: vi.fn(async () => new Set<string>()),
-          getBlockedMbids: vi.fn(async () => new Set<string>()),
-          getFeedbackHistory: vi.fn(async () => new Map()),
-        } as unknown as AppDependencies['storeDb'],
-      }),
-    )
+    const deps = makeDeps({
+      getUserCount: vi.fn(async () => 1),
+      getUserById: vi.fn(async () => ({
+        id: 1,
+        username: 'test',
+        isAdmin: false,
+        preferredLocale: 'de',
+        preferences: null,
+        email: null,
+        oidcSubject: null,
+        authProvider: 'local',
+        listenbrainzUsername: null,
+        listenbrainzToken: null,
+        lastfmUsername: null,
+        lastfmApiKey: null,
+        plexUrl: null,
+        plexToken: null,
+        plexSectionId: null,
+        plexAccountId: null,
+        plexAccountName: null,
+        plexMachineIdentifier: null,
+        jellyfinUrl: null,
+        jellyfinApiKey: null,
+        jellyfinUserId: null,
+        jellyfinLibraryId: null,
+        embyUrl: null,
+        embyApiKey: null,
+        embyUserId: null,
+        embyLibraryId: null,
+        discogsToken: null,
+        discogsUsername: null,
+        subsonicUrl: null,
+        subsonicUsername: null,
+        subsonicPassword: null,
+        createdAt: new Date(),
+      })),
+      providerRegistry: {
+        create: vi.fn().mockResolvedValue({
+          getRecommendations,
+          testConnection: vi.fn(),
+        }),
+        register: vi.fn(),
+        has: vi.fn().mockReturnValue(true),
+        availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
+      } as unknown as AppDependencies['providerRegistry'],
+      getSettings: vi.fn(
+        async () =>
+          ({
+            id: 1,
+            lidarrUrl: null,
+            lidarrApiKey: null,
+            aiProvider: 'openai',
+            aiModel: 'gpt-4o-mini',
+            aiApiKey: 'test-key',
+            aiBaseUrl: null,
+            preferences: null,
+          }) as SettingsRow,
+      ),
+      storeDb: {
+        getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
+        getRejectedMbids: vi.fn(async () => new Set<string>()),
+        getBlockedMbids: vi.fn(async () => new Set<string>()),
+        getFeedbackHistory: vi.fn(async () => new Map()),
+      } as unknown as AppDependencies['storeDb'],
+    })
+    const app = createApp(deps)
 
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
@@ -624,77 +626,78 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         }),
       )
     })
+    await vi.waitFor(() => expect(deps.jobRecorder?.complete).toHaveBeenCalledOnce())
+    expect(deps.jobRecorder?.fail).not.toHaveBeenCalled()
   })
 
   it('keeps responseLocale on the resolved UI locale when promptLocale differs', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])
-    const app = createApp(
-      makeDeps({
-        getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 1,
-          username: 'test',
-          isAdmin: false,
-          preferredLocale: 'de',
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
-        providerRegistry: {
-          create: vi.fn().mockResolvedValue({
-            getRecommendations,
-            testConnection: vi.fn(),
-          }),
-          register: vi.fn(),
-          has: vi.fn().mockReturnValue(true),
-          availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
-        } as unknown as AppDependencies['providerRegistry'],
-        getSettings: vi.fn(
-          async () =>
-            ({
-              id: 1,
-              lidarrUrl: null,
-              lidarrApiKey: null,
-              aiProvider: 'openai',
-              aiModel: 'gpt-4o-mini',
-              aiApiKey: 'test-key',
-              aiBaseUrl: null,
-              preferences: null,
-            }) as SettingsRow,
-        ),
-        storeDb: {
-          getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-          getRejectedMbids: vi.fn(async () => new Set<string>()),
-          getBlockedMbids: vi.fn(async () => new Set<string>()),
-          getFeedbackHistory: vi.fn(async () => new Map()),
-        } as unknown as AppDependencies['storeDb'],
-      }),
-    )
+    const deps = makeDeps({
+      getUserCount: vi.fn(async () => 1),
+      getUserById: vi.fn(async () => ({
+        id: 1,
+        username: 'test',
+        isAdmin: false,
+        preferredLocale: 'de',
+        preferences: null,
+        email: null,
+        oidcSubject: null,
+        authProvider: 'local',
+        listenbrainzUsername: null,
+        listenbrainzToken: null,
+        lastfmUsername: null,
+        lastfmApiKey: null,
+        plexUrl: null,
+        plexToken: null,
+        plexSectionId: null,
+        plexAccountId: null,
+        plexAccountName: null,
+        plexMachineIdentifier: null,
+        jellyfinUrl: null,
+        jellyfinApiKey: null,
+        jellyfinUserId: null,
+        jellyfinLibraryId: null,
+        embyUrl: null,
+        embyApiKey: null,
+        embyUserId: null,
+        embyLibraryId: null,
+        discogsToken: null,
+        discogsUsername: null,
+        subsonicUrl: null,
+        subsonicUsername: null,
+        subsonicPassword: null,
+        createdAt: new Date(),
+      })),
+      providerRegistry: {
+        create: vi.fn().mockResolvedValue({
+          getRecommendations,
+          testConnection: vi.fn(),
+        }),
+        register: vi.fn(),
+        has: vi.fn().mockReturnValue(true),
+        availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
+      } as unknown as AppDependencies['providerRegistry'],
+      getSettings: vi.fn(
+        async () =>
+          ({
+            id: 1,
+            lidarrUrl: null,
+            lidarrApiKey: null,
+            aiProvider: 'openai',
+            aiModel: 'gpt-4o-mini',
+            aiApiKey: 'test-key',
+            aiBaseUrl: null,
+            preferences: null,
+          }) as SettingsRow,
+      ),
+      storeDb: {
+        getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
+        getRejectedMbids: vi.fn(async () => new Set<string>()),
+        getBlockedMbids: vi.fn(async () => new Set<string>()),
+        getFeedbackHistory: vi.fn(async () => new Map()),
+      } as unknown as AppDependencies['storeDb'],
+    })
+    const app = createApp(deps)
 
     const { createSession } = await import('@/core/sessions')
     await createSession(1, 'session-token')
@@ -718,6 +721,241 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         }),
       )
     })
+    await vi.waitFor(() => expect(deps.jobRecorder?.complete).toHaveBeenCalledOnce())
+    expect(deps.jobRecorder?.fail).not.toHaveBeenCalled()
+  })
+})
+
+describe('quick-discover seed policy and completed storage counts', () => {
+  const seedMbid = 'seed-mbid'
+
+  beforeEach(async () => {
+    const actual =
+      await vi.importActual<typeof import('@/core/pipeline/store')>('@/core/pipeline/store')
+    vi.mocked(store).mockImplementation(actual.store)
+    vi.mocked(resolve).mockImplementation(async (artists) =>
+      artists.map((artist) => ({
+        mbid: artist.name === 'Seed Artist' ? seedMbid : artist.name,
+        name: artist.name,
+        tags: [],
+        genres: [],
+        streamingUrls: {},
+        discoveries: [artist],
+      })),
+    )
+  })
+
+  afterEach(() => {
+    vi.mocked(store).mockReset().mockResolvedValue(1)
+    vi.mocked(resolve).mockReset().mockResolvedValue([])
+  })
+
+  function fixture(similarNames: string[] = [], userId = 1) {
+    const existing = new Set<string>()
+    const batches = new Map<number, { added: number }>()
+    const storeDb = {
+      getExistingRecommendationMbids: vi.fn(async () => new Set(existing)),
+      getLibraryArtistsForUser: vi.fn(async () => []),
+      getRejectedMbids: vi.fn(async () => new Set<string>()),
+      getBlockedMbids: vi.fn(async () => new Set<string>()),
+      getFeedbackHistory: vi.fn(async () => new Map()),
+      insertBatch: vi.fn(async () => ({ id: batches.size + 1 })),
+      completeBatch: vi.fn(async (id: number, stats: { added: number }) => {
+        batches.set(id, stats)
+      }),
+      failBatch: vi.fn(async () => {}),
+      upsertArtistAndRecommendation: vi.fn(async (artist: ResolvedArtist) => {
+        existing.add(artist.mbid)
+      }),
+    }
+    const getRecommendations = vi.fn(async () =>
+      similarNames.map((artistName) => ({ artistName, confidence: 0.8, reasoning: 'Similar' })),
+    )
+    const deps = makeDeps({
+      getUserCount: vi.fn(async () => 1),
+      getUserById: vi.fn(
+        async () =>
+          ({
+            id: userId,
+            preferences: {
+              rejectionCooldownDays: 17,
+              scoreThreshold: 0.6,
+              scoringWeights: {
+                ...DEFAULT_PREFERENCES.scoringWeights,
+                similarity: 1,
+                consensus: 0,
+                genreOverlap: 0,
+                aiConfidence: 0,
+                feedbackBoost: 0,
+                popularity: 0,
+              },
+            },
+          }) as never,
+      ),
+      getSettings: vi.fn(
+        async () =>
+          ({
+            id: 1,
+            aiProvider: 'openai',
+            aiModel: 'test-model',
+            preferences: {
+              rejectionCooldownDays: 99,
+              scoreThreshold: 1,
+            },
+          }) as SettingsRow,
+      ),
+      providerRegistry: {
+        create: vi.fn(async () => ({ getRecommendations })),
+      } as unknown as AppDependencies['providerRegistry'],
+      storeDb: storeDb as unknown as AppDependencies['storeDb'],
+      getBatch: vi.fn(async (id) => ({ id, status: 'completed', stats: batches.get(id) }) as never),
+    })
+    return { deps, storeDb, existing }
+  }
+
+  async function run(deps: AppDependencies, failed = false, userId = 1) {
+    await createSession(userId, SESSION_TOKEN)
+    const response = await createApp(deps).request('/api/v1/pipeline/quick-discover', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${SESSION_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artistName: 'Seed Artist' }),
+    })
+    expect(response.status).toBe(200)
+    await vi.waitFor(() =>
+      expect(failed ? deps.jobRecorder?.fail : deps.jobRecorder?.complete).toHaveBeenCalledOnce(),
+    )
+    expect(failed ? deps.jobRecorder?.complete : deps.jobRecorder?.fail).not.toHaveBeenCalled()
+  }
+
+  it.each(['library', 'existing recommendation', 'block', 'owned cooldown'])(
+    'does not store a seed excluded by %s and reads the owner policy',
+    async (policy) => {
+      const { deps, storeDb, existing } = fixture()
+      if (policy === 'library')
+        storeDb.getLibraryArtistsForUser.mockResolvedValue([{ mbid: seedMbid } as never])
+      if (policy === 'existing recommendation') existing.add(seedMbid)
+      if (policy === 'block') storeDb.getBlockedMbids.mockResolvedValue(new Set([seedMbid]))
+      if (policy === 'owned cooldown')
+        storeDb.getRejectedMbids.mockResolvedValue(new Set([seedMbid]))
+      await run(deps)
+      expect(storeDb.upsertArtistAndRecommendation).not.toHaveBeenCalled()
+      expect(storeDb.getLibraryArtistsForUser).toHaveBeenCalledWith(1, { onlyReconciled: true })
+      expect(storeDb.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(17, 1)
+      expect(storeDb.getBlockedMbids).toHaveBeenCalledExactlyOnceWith(1)
+      expect(storeDb.getExistingRecommendationMbids).toHaveBeenCalledWith(1)
+      expect(deps.jobRecorder?.complete).toHaveBeenCalledWith(1, {
+        metadata: { seedArtist: 'Seed Artist', artistsDiscovered: 0, artistsStored: 0 },
+      })
+    },
+  )
+
+  it.each([
+    { names: [], stored: 1 },
+    { names: ['Similar Artist'], stored: 2 },
+    { names: ['Seed Artist', 'Similar Artist'], stored: 2 },
+    { names: ['Below Threshold'], stored: 1 },
+  ])(
+    'counts eligible writes and keeps direct-add confidence for $names',
+    async ({ names, stored }) => {
+      const { deps, storeDb } = fixture(names)
+      if (names.includes('Below Threshold')) {
+        vi.mocked(resolve).mockImplementation(async (artists) =>
+          artists.map((artist) => ({
+            mbid: artist.name === 'Seed Artist' ? seedMbid : artist.name,
+            name: artist.name,
+            tags: [],
+            genres: [],
+            streamingUrls: {},
+            discoveries: [{ ...artist, similarityScore: 0.1 }],
+          })),
+        )
+      }
+      await run(deps)
+      expect(storeDb.upsertArtistAndRecommendation).toHaveBeenCalledTimes(stored)
+      expect(storeDb.upsertArtistAndRecommendation).toHaveBeenCalledWith(
+        expect.objectContaining({ mbid: seedMbid }),
+        expect.objectContaining({ score: 1, userId: 1 }),
+      )
+      expect(vi.mocked(resolve).mock.calls[0]).toHaveLength(2)
+      expect(deps.jobRecorder?.complete).toHaveBeenCalledWith(1, {
+        metadata: {
+          seedArtist: 'Seed Artist',
+          artistsDiscovered: names.length,
+          artistsStored: stored,
+        },
+      })
+      expect(deps.getBatch).toHaveBeenCalledTimes(stored === 1 ? 1 : 2)
+    },
+  )
+
+  it.each([0, 1])('reports %s successful writes when candidate writes fail', async (successful) => {
+    const { deps, storeDb } = fixture(['Similar Artist', 'Other Artist'])
+    storeDb.upsertArtistAndRecommendation.mockImplementation(async (artist) => {
+      if (successful === 0 || artist.name !== 'Similar Artist') throw new Error('write failed')
+    })
+    await run(deps)
+    expect(storeDb.upsertArtistAndRecommendation).toHaveBeenCalledTimes(3)
+    expect(deps.jobRecorder?.complete).toHaveBeenCalledWith(1, {
+      metadata: { seedArtist: 'Seed Artist', artistsDiscovered: 2, artistsStored: successful },
+    })
+  })
+
+  it.each([1, 2])(
+    'uses only user %s cooldown rather than another user rejection',
+    async (userId) => {
+      const { deps, storeDb } = fixture([], userId)
+      vi.mocked(deps.storeDb.getRejectedMbids).mockImplementation(
+        async (_days, owner) => new Set(owner === 1 ? [seedMbid] : []),
+      )
+      await run(deps, false, userId)
+      expect(storeDb.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(17, userId)
+      expect(storeDb.upsertArtistAndRecommendation).toHaveBeenCalledTimes(userId === 1 ? 0 : 1)
+    },
+  )
+
+  it.each([
+    'seed policy read',
+    'seed batch insert',
+    'batch completion',
+    'batch read',
+    'missing batch',
+    'missing stats',
+    'negative count',
+    'fractional count',
+    'string count',
+    'infinite count',
+    'excess count',
+    'unfinished batch',
+  ])('fails the job for %s instead of reporting success', async (failure) => {
+    const { deps, storeDb } = fixture()
+    if (failure === 'seed policy read')
+      storeDb.getExistingRecommendationMbids.mockRejectedValue(new Error('read failed'))
+    if (failure === 'seed batch insert')
+      storeDb.insertBatch.mockRejectedValue(new Error('insert failed'))
+    if (failure === 'batch completion')
+      storeDb.completeBatch.mockRejectedValue(new Error('completion failed'))
+    if (failure === 'batch read')
+      vi.mocked(deps.getBatch).mockRejectedValue(new Error('batch read failed'))
+    if (failure === 'missing batch') vi.mocked(deps.getBatch).mockResolvedValue(null)
+    const invalid = {
+      'missing stats': undefined,
+      'negative count': { added: -1 },
+      'fractional count': { added: 0.5 },
+      'string count': { added: '1' },
+      'infinite count': { added: Number.POSITIVE_INFINITY },
+      'excess count': { added: 2 },
+    }
+    if (failure in invalid)
+      vi.mocked(deps.getBatch).mockResolvedValue({
+        status: 'completed',
+        stats: invalid[failure as keyof typeof invalid],
+      } as never)
+    if (failure === 'unfinished batch')
+      vi.mocked(deps.getBatch).mockResolvedValue({
+        status: 'running',
+        stats: { added: 1 },
+      } as never)
+    await run(deps, true)
   })
 })
 
