@@ -8,9 +8,7 @@
       "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md"
-        ],
+        "docs": ["docs/guides/unraid.md"],
         "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
         "breaking": "none",
         "migration": "",
@@ -202,10 +200,7 @@
       "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Configured DATABASE_URL_FILE and DB_PASS_FILE read failures stop startup with variable-only errors. Nonempty corresponding direct values retain precedence; readable files retain trimming and empty behavior. Existing env example reviewed with no new variable/default. Docker and Unraid read-permission guidance updated; existing template mappings remain valid.",
         "breaking": "Unreadable configured database secret files now stop startup instead of silently falling back. Verify mounts and UID1000 read permissions before updating; no database migration is added, and rollback restores the old silent fallback.",
         "migration": "",
@@ -251,11 +246,7 @@
       "digest": "cb55e6d9da49f8696ccd961ca59dd6536b7745a8711e601e2d37e7bbc9274dc8",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "The admin restore schema accepts an optional playlistExports array for older files; existing admin authorization, key checks, and confirmation requirements remain. Backup registry ownership/dependency checks prevent unsafe omitted-binding removal. New playlist recovery requires both playlist and target ownership and exposes no scope hashes or credentials.",
         "breaking": "none",
         "migration": "",
@@ -318,11 +309,7 @@
       "digest": "497cf5af4b5a0cacc97b08f91238fb8a2965785fb0f35fa1272e2f79c452b814",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Reviewed owner-scoped export projections and explicit local recovery reset, acknowledgement validation, hidden scope credentials, 404 ownership checks, 409 busy handling, and fail-closed retained playlist identities.",
         "breaking": "none",
         "migration": "",
@@ -477,11 +464,7 @@
       "digest": "354808dbd258c0f118c19fc5a450f15cb272e1199664bb1a2658b1d8bcbb06fa",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "README.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Add the playlist-operation conflict translation in all 15 locales for API recovery errors. Recovery remains API-only and existing layouts, controls, theme and locale persistence are unchanged; no screenshot update is needed. README links to the recovery contract.",
         "breaking": "none",
         "migration": "",
@@ -742,9 +725,7 @@
       "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/helm/digarr/README.md"
-        ],
+        "docs": ["deploy/helm/digarr/README.md"],
         "note": "Helm backup-volume comments and operator notes now distinguish persistent JSON state from ephemeral authorization and schema history, and explain that required backup failure stops migrations. Volume defaults, image channels, and manifest resources are unchanged; the chart snapshot was regenerated.",
         "breaking": "none",
         "migration": "",
