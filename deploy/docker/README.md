@@ -12,18 +12,18 @@ For a new single-host installation, PGlite is the simplest starting point. Choos
   database (real PostgreSQL compiled to Wasm, in-process). No database sidecar,
   no database-password secret. Data lives in the `data` volume.
 
-The unreleased container build and both runtime variants use Bun 1.4.3 with
+The v2.0.0 container build and both runtime variants use Bun 1.4.3 with
 flavor-specific multi-platform digest pins. This runtime update adds no settings
 or database migration; use the existing backup and rollback guidance for the
 complete release batch.
 
 ## Production
 
-The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it. In v1.19.0, the HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens; with no users, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, and existing users make these variables a no-op. For access only from this computer, change the published port to `127.0.0.1:3000:3000`. See [bootstrap recovery](../../docs/OPERATIONS.md#unattended-setup).
+The Compose stacks publish port 3000 on all host interfaces. Restrict access until the intended admin account exists and you have verified it. Configured admin creation finishes before HTTP opens; with no users, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, and existing users make these variables a no-op. For access only from this computer, change the published port to `127.0.0.1:3000:3000`. See [bootstrap recovery](../../docs/OPERATIONS.md#unattended-setup).
 
 Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Use the [protected key-generation procedure](../../docs/AUTHENTICATION.md#generate-a-new-encryption-key), then copy the value into `.env` with a trusted editor. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
-On develop, open the WebUI and create the first account or sign in before completing the wizard. Requested Lidarr/Emby connections and targets save atomically with setup settings; if saving fails, correct the problem and retry. A successful save does not test external service reachability. Environment-based bootstrap remains separate.
+Open the WebUI and create the first account or sign in before completing the wizard. Requested Lidarr/Emby connections and targets save atomically with setup settings; if saving fails, correct the problem and retry. A successful save does not test external service reachability. Environment-based bootstrap remains separate.
 
 ### Embedded PGlite (single container)
 
@@ -75,6 +75,8 @@ Direct HTTP exposes the session cookie to network interception.
 ## Back up and update
 
 Application JSON exports preserve persistent application state, with optional artist metadata caches; they exclude sessions, pending authorizations, and schema history. For exact rollback, back up the database consistently and keep the matching encryption key separately. Required automatic-backup failures stop migrations; see the recovery guide for the explicit native-backup procedure when an older schema cannot be read. See [backup boundaries](../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). Keep the same Compose project directory and volume names when recreating services; do not use `docker compose down -v` unless you intend to delete the data.
+
+**Upgrading from v1.19.0 to v2.0.0:** follow the [combined migration procedure](../../docs/OPERATIONS.md#upgrading-from-v1190-to-v200) before pulling the new app image. Migrations 0052/0053/0054 add digest positions, saved export bindings, and exact OIDC identities. First verify a native backup by restoring it separately. If the old-schema JSON snapshot cannot read the new fields/tables, only then set `DIGARR_AUTO_BACKUP=false` for this one upgrade and re-enable it afterward. Legacy SSO bindings need verified historical-issuer recovery. Rollback uses the previous image with a separate restored database and original key; never point an older subject-only image at migrated identities.
 
 ### Compose database backups
 
@@ -297,11 +299,13 @@ For an environment-only deployment on a platform without Compose secrets, copy t
 
 `docker.io/iuliandita/digarr:latest` is the newest tagged release and the recommended channel for first-time home installs. `:stable` tracks only releases that have been live for at least seven days with no follow-up patch. Only the latest release receives security fixes; `:stable` and pinned versions can lag behind. Use `:MAJOR.MINOR` for patch updates on a release line, or `:MAJOR.MINOR.PATCH` to pin one release. See the [README](../../README.md#quick-start) for current examples. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on each push to `develop` with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit. Images are Alpine-based by default; a Debian/glibc variant ships alongside every release as `:debian`, `-debian`-suffixed version tags, and `:stable-debian`.
 
+The Debian/glibc fallback retains 43 HIGH findings across eight unique upstream vulnerabilities without an available fix in the pre-release audit ([#863](https://github.com/iuliandita/digarr/issues/863)). Alpine remains the default. Variant availability and a successful signature verification do not establish a clean vulnerability scan.
+
 ## Verifying image signatures
 
 Since v0.27.8, release images are signed with [cosign](https://github.com/sigstore/cosign) using GitHub OIDC. Signatures and build provenance are stored alongside both variants at `ghcr.io/iuliandita/digarr` and `docker.io/iuliandita/digarr`.
 
-Unreleased ([#768](https://github.com/iuliandita/digarr/issues/768)): release automation generates a separate SPDX container SBOM for Alpine and Debian, scans each immutable build digest, and signs each inventory as an attestation at both registries. Each inventory covers **linux/amd64** and is attached to that variant's multi-architecture index digest; it does not establish arm64 or separate child-manifest SBOM coverage. v1.19.0 retains its Alpine-only container SBOM; this workflow change does not backfill existing releases. Nightly images have no signed SBOMs.
+Starting with v2.0.0 ([#768](https://github.com/iuliandita/digarr/issues/768)), release automation generates a separate SPDX container SBOM for Alpine and Debian, scans each immutable build digest, and signs each inventory as an attestation at both registries. Each inventory covers **linux/amd64** and is attached to that variant's multi-architecture index digest; it does not establish arm64 or separate child-manifest SBOM coverage. v1.19.0 retains its Alpine-only container SBOM; this workflow change does not backfill existing releases. Nightly images have no signed SBOMs.
 
 The release assets are `sbom-container.spdx.json` (Alpine), `sbom-container-debian.spdx.json` (Debian), and `sbom-source.spdx.json` (one checkout inventory). Source inventory does not replace either container inventory. Downloaded JSON assets alone do not verify a signed attestation.
 
@@ -316,7 +320,7 @@ cosign verify \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   "$IMAGE"
 
-# Debian requires a release containing the #768 workflow fix.
+# Debian container attestations require v2.0.0 or later.
 cosign verify-attestation \
   --type spdxjson \
   --certificate-identity "https://github.com/iuliandita/digarr/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \

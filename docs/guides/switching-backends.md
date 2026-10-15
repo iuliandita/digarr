@@ -36,7 +36,7 @@ The migration tool is for backend changes only. For selected application-data ex
   migration starts can still finish and write; wait for running jobs to complete
   before migrating.
 
-On develop, a cancellation request keeps the pipeline marked running until in-flight work and awaited bookkeeping settle; wait for that settlement, not merely `cancelled: true`. A run already finalizing can decline cancellation with `Pipeline finishing`. Saved recommendations and remote additions remain. Hung operations keep the pipeline busy; do not bypass that state to start a migration. v1.19.0 instead can clear the indicator after 15 seconds while storage or target additions continue ([#790](https://github.com/iuliandita/digarr/issues/790)). On every version, also wait for other running jobs and writers; a settled pipeline alone does not establish that the whole application is idle.
+A cancellation request keeps the pipeline marked running until in-flight work and awaited bookkeeping settle; wait for that settlement, not merely `cancelled: true`. A run already finalizing can decline cancellation with `Pipeline finishing`. Saved recommendations and remote additions remain. Hung operations keep the pipeline busy; do not bypass that state to start a migration. v1.19.0 instead can clear the indicator after 15 seconds while storage or target additions continue ([#790](https://github.com/iuliandita/digarr/issues/790)). On every version, also wait for other running jobs and writers; a settled pipeline alone does not establish that the whole application is idle.
 
 Pause schedules and prevent other users from writing until cutover is complete. The built-in lock ends when the copy finishes, before you inspect the report or restart.
 
@@ -61,7 +61,7 @@ the Backup & Restore section). The panel shows the currently active backend.
 
 ### 2. Choose a target
 
-Use a fresh, dedicated target database or directory. Take a complete, consistent backup before selecting any existing destination, and keep the matching encryption key. On develop, any row in a table the copy replaces requires explicit `overwrite=true`, including settings, artists and caches when no users exist. The guard checks existing tables before schema migrations and checks again under table locks inside the copy transaction before clearing data. Failed inspections abort instead of assuming the destination is empty. v1.19.0 checks only users and can replace other data without overwrite consent ([#775](https://github.com/iuliandita/digarr/issues/775)). A successful connection test does not establish that the destination is empty.
+Use a fresh, dedicated target database or directory. Take a complete, consistent backup before selecting any existing destination, and keep the matching encryption key. Any row in a table the copy replaces requires explicit `overwrite=true`, including settings, artists and caches when no users exist. The guard checks existing tables before schema migrations and checks again under table locks inside the copy transaction before clearing data. Failed inspections abort instead of assuming the destination is empty. v1.19.0 checks only users and can replace other data without overwrite consent ([#775](https://github.com/iuliandita/digarr/issues/775)). A successful connection test does not establish that the destination is empty.
 
 Select one:
 
@@ -72,7 +72,7 @@ Select one:
 
 For PostgreSQL, percent-encode the username, password, and database-name components of the DSN when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. An explicit `DATABASE_URL` takes precedence over separate settings. Keep the original, unencoded password in `POSTGRES_PASSWORD` or direct `DB_PASS`. `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. Enter real credentials in the protected configuration or GUI, not command-line arguments.
 
-Supply raw `DB_USER`, `DB_PASS`, and `DB_NAME` when using separate settings; the unreleased builder encodes each component once. Do not pre-encode those values. Application startup and backend-copy targets also preserve reserved database-name characters and dot segments in encoded DSNs. External Drizzle Kit commands use their own connection-string parser and are outside this correction. v1.19.0 encodes only `DB_PASS` and can still misread an encoded database name ([#773](https://github.com/iuliandita/digarr/issues/773), [#834](https://github.com/iuliandita/digarr/issues/834)).
+Supply raw `DB_USER`, `DB_PASS`, and `DB_NAME` when using separate settings; Digarr encodes each component once. Do not pre-encode those values. Application startup and backend-copy targets also preserve reserved database-name characters and dot segments in encoded DSNs. External Drizzle Kit commands use their own connection-string parser and are outside this correction. v1.19.0 encodes only `DB_PASS` and can still misread an encoded database name ([#773](https://github.com/iuliandita/digarr/issues/773), [#834](https://github.com/iuliandita/digarr/issues/834)).
 
 For PGlite, the path must be inside the configured data root. The test step
 checks this without creating any files.
@@ -132,7 +132,7 @@ appear in the failed report with details.
 
 ### 6. Set the env var and restart
 
-On develop, the panel's PGlite hint includes clearing `DATABASE_URL_FILE`. v1.19.0 omits it ([#781](https://github.com/iuliandita/digarr/issues/781)); follow the complete list below for the new backend:
+When switching backends, follow the complete list below, including file-backed settings:
 
 - **Switching to PostgreSQL**: set `DATABASE_URL` to the connection string you
   entered (e.g. `postgresql://digarr:pass@db-host:5432/digarr`), with username,
@@ -206,13 +206,15 @@ To preserve changes made after cutover, stop writers and take complete backups o
 
 ## Backup boundaries and recovery
 
+For v1.19.0-to-v2.0.0 upgrades, follow the [combined upgrade procedure](../OPERATIONS.md#upgrading-from-v1190-to-v200) before starting the new image. Migrations 0052, 0053, and 0054 add digest positions, playlist export bindings, and exact OIDC issuer/subject pairs. Verify a native backup by restoring it separately before using the one-upgrade automatic-backup override; re-enable automatic backups afterward.
+
 New application JSON exports use a consistent snapshot and include persistent application state and its artist dependencies by default: recommendations, blocks, playlists, library snapshots and overrides, recording cache, and slskd jobs. `includeCaches=true` adds optional artist metadata, not required recovery dependencies. Keep the matching encryption key separately. Sessions, pending authorizations, rate limits, and migration history are deliberately excluded, so JSON recovery is not a database-schema rollback.
 
 Saved remote export bindings are included in new JSON exports and backend copies. Restoring older knowledge cannot undo external playlist writes or recover IDs created afterward; inspect each destination before an explicit binding reset, which may create another copy. Older JSON files without bindings remain readable but cannot clear populated omitted bindings through parent replacement; that returns `422 partial_backup_conflict` even with `force=true`.
 
-Unreleased migration 0053 adds the binding table. An existing schema without it cannot satisfy the current pre-migration snapshot. Use the verified native-backup override procedure below, retain the key and previous image, then re-enable automatic backup. Roll back by restoring the matching native backup into a separate database with its previous image; older images do not maintain bindings and can accumulate remote copies again. Migration itself does not contact remote services.
+Migration 0053 in v2.0.0 adds the binding table. An existing schema without it cannot satisfy the current pre-migration snapshot. Use the verified native-backup override procedure below, retain the key and previous image, then re-enable automatic backup. Roll back by restoring the matching native backup into a separate database with its previous image; older images do not maintain bindings and can accumulate remote copies again. Migration itself does not contact remote services.
 
-Unreleased migration 0054 binds OIDC accounts to exact issuer/subject pairs. Backend copies and new JSON exports preserve both; older JSON restores retain the subject with a null issuer and require [verified operator recovery](../AUTHENTICATION.md#recovering-legacy-oidc-bindings). Migration never infers the historical issuer. The old schema's missing column stops automatic snapshots; use the verified native-backup override below only for this understood upgrade. Retain the key and previous image. For rollback, restore the previous image's matching native backup into a separate database; a subject-only image cannot safely read migrated identities.
+Migration 0054 in v2.0.0 binds OIDC accounts to exact issuer/subject pairs. Backend copies and new JSON exports preserve both; older JSON restores retain the subject with a null issuer and require [verified operator recovery](../AUTHENTICATION.md#recovering-legacy-oidc-bindings). Migration never infers the historical issuer. The old schema's missing column stops automatic snapshots; use the verified native-backup override below only for this understood upgrade. Retain the key and previous image. For rollback, restore the previous image's matching native backup into a separate database; a subject-only image cannot safely read migrated identities.
 
 Legacy v1.19.0 JSON files remain partial, including those named `-full`. Restore checks dependencies before replacing tables. If clearing included parents would alter populated omitted tables, or artist references cannot resolve, it returns `422 partial_backup_conflict` without changing the destination; `force=true` only handles encryption mismatch and cannot bypass this check. Use a complete new export, or a fresh compatible database when the legacy file has the required dependencies. Restore does not invent missing artists or merge account identities. Back up the destination before any restore.
 
@@ -227,7 +229,7 @@ The [Docker backup procedure](../../deploy/docker/README.md#back-up-and-update) 
 
 ## Digest delivery migration
 
-The digest fix adds nullable `settings.digest_delivery_positions`. Existing databases lack this column before the migration, so the current-schema automatic snapshot fails closed before DDL. For this upgrade, stop app writers, take and verify the native consistent database backup described above, and retain the exact encryption key and previous image. Then explicitly set `DIGARR_AUTO_BACKUP=false` for the upgrade and re-enable it after startup succeeds. Do not bypass an unexplained backup failure. Fresh databases need no override.
+Migration 0052 in v2.0.0 adds nullable `settings.digest_delivery_positions`. Existing databases lack this column before the migration, so the current-schema automatic snapshot fails closed before DDL. For this upgrade, stop app writers, take and verify the native consistent database backup described above, and retain the exact encryption key and previous image. Then explicitly set `DIGARR_AUTO_BACKUP=false` for the upgrade and re-enable it after startup succeeds. Do not bypass an unexplained backup failure. Fresh databases need no override.
 
 Current channel IDs inherit the legacy shared timestamp once, including when the digest schedule is disabled. New IDs use the current cadence; old windows already skipped by the legacy bookmark cannot be recovered. Application backups and backend copies preserve the new map. An older application backup without the field leaves it uninitialized and uses its legacy timestamp at startup or on the next live tick after restore.
 

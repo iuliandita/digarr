@@ -186,9 +186,9 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Document composite identity migration, legacy quarantine, exact-pair backups/copy and verified operator recovery without inferring issuer.",
-        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
-        "migration": "Upgrade migration 0054 preserves legacy subjects with NULL issuer and replaces raw-subject uniqueness. Rehearsed old-schema native PostgreSQL backup restoration, expected missing-column preflight failure, verified-backup override upgrade, recovery dry run/apply and issuer isolation. Retain the exact key and prior image, re-enable automatic backup; rollback requires the matching native backup in a separate database.",
+        "note": "Review combined 0052 digest positions, 0053 playlist bindings and 0054 exact OIDC identities, consistent JSON backup boundaries and backend copies. Document verified native restoration before the one-upgrade snapshot override and issuer recovery.",
+        "breaking": "Legacy issuer-less SSO accounts require verified historical issuer recovery; older subject-only images cannot safely use migrated identities.",
+        "migration": "Before upgrade, stop writers, preserve the original key and previous image, and verify a native backup in a separate database. Apply all three migrations once with the understood automatic-backup override, then re-enable backups and recover verified issuer bindings. Rollback restores the matching native backup separately; external sends and playlist writes remain.",
         "digest": "7c2657d1411032c0f7403535243be75489abf55cb06c7e9d0f3ba99b41121b5c"
       }
     },
@@ -246,9 +246,9 @@
       "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Authentication guide documents exact validated issuer/subject matching, password/session-preserving explicit linking and verified recovery for SSO-only users.",
-        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Review the combined exact issuer/subject OIDC contract, locked historical-identity recovery, first-admin bootstrap before HTTP, account-first atomic setup and settings secret projection. Preserve local login, sessions and no email linking.",
+        "breaking": "Legacy issuer-less SSO accounts remain unbound until verified operator recovery; partial or short initial-admin credentials stop empty-database startup.",
         "migration": "",
         "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937"
       }
@@ -577,7 +577,7 @@
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
-        "src/core/playlists/export.ts": "4cecf722657df503436342ce2dfec06fb101ba5ada4dd8e5fc84159e9b357e51",
+        "src/core/playlists/export.ts": "541b116cc2def37f263a4f22b9860df61ed8811878a07ca06f5a69de6e168026",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
         "src/core/playlists/generator.ts": "9bcd7bf0088fd9c6b08b1ba66833fae48e31514e44733e4f82d20fe833f9cf85",
         "src/core/playlists/resolver-deps.ts": "fb4bf6626de207f1cbfcb4feca6c6f515af0c3646f205299ea9ac5a46d912957",
@@ -669,14 +669,14 @@
         "src/index.ts": "e22e7ac52cd9764df034e09ac629db44f183ed25349aae4fcdee247d8c597140",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "c092b114b22f6b8f37077fc83fa075c86644d5b3c5ffe82cdc8e09a3142d6e87",
+      "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Runtime dependency wiring passes issuer and subject for authentication lookup; catalog, discovery, localization and visual controls are unaffected.",
-        "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
+        "docs": ["docs/API.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Review combined complete MusicBrainz pagination and coverage selection, owner-scoped discovery, cooperative cancellation, per-channel digest retries and saved playlist exports. Remove the unused create-only orchestrator without changing active failure aggregation or file exports.",
+        "breaking": "Incomplete provider pages and uncertain playlist destinations fail explicitly; album coverage can decrease and hung cancellation remains busy. See combined migration and rollback precautions for persisted state.",
         "migration": "",
-        "digest": "c092b114b22f6b8f37077fc83fa075c86644d5b3c5ffe82cdc8e09a3142d6e87"
+        "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f"
       }
     },
     "deployment": {
@@ -712,18 +712,23 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0e29f929c9747d8be2f51387becfaf8cc517403f3c6c50ac4b2c8dee89be4e61",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "96340df4bf20229b48eba3231fbdef3e0555e4158a1532c8400255988dcd646c",
+        "deploy/k8s/rendered.yaml": "8460a99dae6271fbf949e19d1ef5a894e08f20dc4f2cce0aa41f55cb0a03a41e",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "e51e8a27b9e58a0ca07115a87bfcab58cca91da2c6f48152f098b5de5820817d",
+      "digest": "cdbef75a8512e92b91a62fdc055a2e195edbb5ccb6f014189d8720aa3aa91037",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/docker/README.md", "CHANGELOG.md"],
-        "note": "Align all Docker build stages and the default Alpine runtime on Bun 1.4.3. Preserve existing non-root user, ports, volumes, environment, healthcheck and backup helpers; retain variant-specific multi-platform digest pins. No schema or operator configuration change; batch migration rollback precautions still apply.",
-        "breaking": "none",
+        "docs": [
+          "deploy/docker/README.md",
+          "deploy/helm/digarr/README.md",
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
+        "note": "Review Bun 1.4.3 image variants, version-only Helm regeneration, bootstrap failure behavior, exact database identifiers and combined upgrade steps. Keep published image pins unchanged until digest sync and community template status pending.",
+        "breaking": "Legacy OIDC upgrade needs verified issuer recovery and a matching native backup; incomplete first-boot credentials now stop startup.",
         "migration": "",
-        "digest": "e51e8a27b9e58a0ca07115a87bfcab58cca91da2c6f48152f098b5de5820817d"
+        "digest": "cdbef75a8512e92b91a62fdc055a2e195edbb5ccb6f014189d8720aa3aa91037"
       }
     },
     "release": {
@@ -741,17 +746,17 @@
         ".github/workflows/release.yml": "496bddbb1f824e79159d71e9fe40fbb87b1b3c7179837af9c0850b5314609c6e",
         ".github/workflows/security.yml": "51cd8a2c24e75ce95c6c122d855d3a6c997423146b1441c111b21f0b2a06b38c",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "b6218400e05242e453becab53416831465a28936616b9e5ffc233e5d90520ad6",
+        "package.json": "37e213c0b4f6d7c73867f84d5cd05cd1a6e51e8a5d210c6c2789e2340cc9b38d",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "448446b76c823016a80be3af5f9db491db494ea7f9557cda46e1be835d80fdcd",
+      "digest": "b8d7124494f6d0dc088170b670fe0cce420fcf9802a2f661f966a423b592582c",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/docker/README.md", "CHANGELOG.md"],
-        "note": "Use Bun 1.4.3 in CI, security, lockfile-sync and release quality checks plus both published runtime variants. Preserve existing required jobs, fork/bot exclusions, advisory scans, production approval, signing, SBOMs and amd64/arm64 publishing. Unraid fields and image channels are unaffected.",
-        "breaking": "none",
+        "docs": ["README.md", "CHANGELOG.md", "docs/ROADMAP.md", "deploy/docker/README.md"],
+        "note": "Prepare v2.0.0 class A versions and combined release guidance. Preserve latest versus seven-day stable promotion, amd64-only container inventory scope and release-time verification requirements for both variants and registries.",
+        "breaking": "The batch changes the database and SSO identity contract; follow the combined v1.19.0 upgrade and separate-database rollback procedure.",
         "migration": "",
-        "digest": "448446b76c823016a80be3af5f9db491db494ea7f9557cda46e1be835d80fdcd"
+        "digest": "b8d7124494f6d0dc088170b670fe0cce420fcf9802a2f661f966a423b592582c"
       }
     },
     "maintenance": {

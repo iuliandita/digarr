@@ -10,7 +10,7 @@ Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existin
 
 ## Install
 
-Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. In v1.19.0, HTTP starts before environment-based admin bootstrap. On develop, configured admin creation finishes before HTTP opens; on an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, while existing accounts ignore these variables. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets) and [bootstrap recovery](../../../docs/OPERATIONS.md#unattended-setup).
+Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. Configured admin creation finishes before HTTP opens; on an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, while existing accounts ignore these variables. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets) and [bootstrap recovery](../../../docs/OPERATIONS.md#unattended-setup).
 
 Create a values file and store database credentials in a Kubernetes Secret. This example uses an existing PostgreSQL database and TLS Ingress; replace the host, ingress class, and Secret names for your cluster:
 
@@ -73,7 +73,7 @@ For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existing
 
 Supply raw usernames, passwords, and database names in chart values. The chart percent-encodes each component when constructing `DATABASE_URL` and keeps bundled PostgreSQL server values unchanged. Do not pre-encode these values: a literal `%` is part of the credential or identifier.
 
-Use an application build containing the runtime database-name correction for reserved characters or names such as `.` and `..` ([#834](https://github.com/iuliandita/digarr/issues/834)). v1.19.0 images still require URI-unreserved database names other than `.` or `..`, even with an encoded URL. Before upgrading an existing installation with unusual names, follow the [database identifier precautions](../../../docs/guides/switching-backends.md#database-identifier-upgrades).
+v2.0.0 includes the runtime database-name correction for reserved characters or names such as `.` and `..` ([#834](https://github.com/iuliandita/digarr/issues/834)). v1.19.0 images still require URI-unreserved database names other than `.` or `..`, even with an encoded URL. Before upgrading an existing installation with unusual names, follow the [database identifier precautions](../../../docs/guides/switching-backends.md#database-identifier-upgrades).
 
 For a user-managed database, `database.existingSecret` can supply a complete `DATABASE_URL`. The chart uses that Secret without constructing or re-encoding its URL; percent-encode the URL's username, password, and database-name components yourself.
 
@@ -192,6 +192,8 @@ extraEnv:
 ## Upgrade
 
 Take a consistent database backup first and retain the encryption key separately. For bundled PostgreSQL, use `pg_dump` against the StatefulSet database; for PGlite, stop the app and back up the entire data PVC or take a consistent volume snapshot while it is stopped. Application JSON auto-backups preserve persistent application state but exclude ephemeral authorization and schema history. A required backup failure stops startup before migrations; older schemas may need the explicit native-backup upgrade procedure. See [complete recovery boundaries](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery). See [Operations](../../../docs/OPERATIONS.md#backup--restore) for version-specific upgrade notes.
+
+For v1.19.0-to-v2.0.0 upgrades, follow the [combined migration procedure](../../../docs/OPERATIONS.md#upgrading-from-v1190-to-v200) first. Migrations 0052/0053/0054 add digest positions, playlist export bindings, and exact OIDC identities. Verify a native backup by restoring it separately before setting `DIGARR_AUTO_BACKUP=false` through `extraEnv` for this one upgrade; remove that override or set it to `true` afterward. Legacy SSO bindings require verified historical-issuer recovery. Rollback needs the previous image with a separate restored database and original key; an older subject-only image must never use migrated identities.
 
 ```sh
 helm upgrade digarr deploy/helm/digarr -n arr -f my-values.yaml

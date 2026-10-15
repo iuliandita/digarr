@@ -3,17 +3,17 @@
 The checked-in screenshots use the Youtarr theme. Most were captured from
 v1.10.0; Analytics was refreshed from v1.12.0. Discovery Modes, Settings, and Your Connections show v1.15.1 (`d276d94`) in their footers; Library Reconciliation shows v1.14.0. The Account capture was added with v1.17.0 (commit `e36d7d8a`); its exact running build was not recorded.
 
-The descriptions below reflect v1.19.0. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
+The descriptions below reflect v2.0.0. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
-On develop, first-time browser setup starts with account creation before the existing wizard. These captures do not show that onboarding order; form layouts and translated labels are unchanged.
+In v2.0.0, first-time browser setup starts with account creation before the existing wizard. These captures do not show that onboarding order; form layouts and translated labels are unchanged.
 
 ## Dashboard (dark)
 
 ![Dashboard](screenshots/dashboard-dark.png)
 
-In v1.19.0, listening tiles distinguish an unconfigured account, empty history, and a failed fetch. Network or request failures retain cached entries with a retry notice. Upstream failures returned by the API as HTTP 200 with `status: error` can replace cached entries with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
+In v1.19.0, listening tiles distinguish an unconfigured account, empty history, and a failed fetch. Network or request failures retain cached entries with a retry notice. In v2.0.0, upstream failures returned by the API as HTTP 200 with `status: error` also retain cached entries and show a retry notice; v1.19.0 can replace them with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
 ## Dashboard (light)
 
@@ -23,7 +23,7 @@ In v1.19.0, listening tiles distinguish an unconfigured account, empty history, 
 
 ![Discover](screenshots/discover.png)
 
-The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. On develop, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. On develop, non-admin saves omit global writes and shared AudioDB/Wikidata controls are shown only to admins; personal image settings stay visible. Admins receive an explicit partial-save notice if only their later global save fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The existing admin layout is unchanged.
+The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. In v2.0.0, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. In v2.0.0, non-admin saves omit global writes and shared AudioDB/Wikidata controls are shown only to admins; personal image settings stay visible. Admins receive an explicit partial-save notice if only their later global save fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The existing admin layout is unchanged.
 
 Since v1.19.0, Discover can order and browse genre-priority groups without changing scores. The Audition queue retains a dismissible summary of unavailable-preview reasons after skipping items or finishing.
 
@@ -91,7 +91,7 @@ In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an
 
 In v1.19.0, Settings > Recommendations includes optional primary and secondary genre lists for Discover ordering and browsing.
 
-On develop, Settings > Administration asks for confirmation before uploading a selected backup. A key mismatch requires a separate **Restore Anyway** confirmation. These dialogs are not shown in the existing Settings capture; they use the shared translated confirmation dialog and existing theme styles.
+In v2.0.0, Settings > Administration asks for confirmation before uploading a selected backup. A key mismatch requires a separate **Restore Anyway** confirmation. These dialogs are not shown in the existing Settings capture; they use the shared translated confirmation dialog and existing theme styles.
 
 ## Settings > Account
 

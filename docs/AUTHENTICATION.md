@@ -4,9 +4,9 @@ Digarr supports four authentication modes. Most deployments only need one.
 
 ## Users and targets
 
-Restrict first-boot access until the intended admin exists and you have verified it. In v1.19.0, environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
+Restrict first-boot access until the intended admin exists and you have verified it.
 
-On develop, a configured initial admin is created after migrations and before HTTP opens. For an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` with a password of at least 12 characters, or leave both unset for manual registration. Partial credentials, a short password, or a bootstrap database failure stop startup without serving requests. Existing users make bootstrap a no-op: these variables do not create another admin, reset a password, or change roles. Keep one app instance per database; a competing first-user write causes this startup attempt to fail rather than silently skip the configured admin.
+A configured initial admin is created after migrations and before HTTP opens. For an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` with a password of at least 12 characters, or leave both unset for manual registration. Partial credentials, a short password, or a bootstrap database failure stop startup without serving requests. Existing users make bootstrap a no-op: these variables do not create another admin, reset a password, or change roles. Keep one app instance per database; a competing first-user write causes this startup attempt to fail rather than silently skip the configured admin.
 
 The browser asks you to create the first account or sign in before opening the setup wizard. Requested Lidarr/Emby setup needs an existing authenticated owner; AI-only API bootstrap retains its existing first-run access rules. Environment-based service setup remains separate and does not delay or suppress initial-admin creation.
 
@@ -203,7 +203,7 @@ Deezer, or TIDAL are unrelated to the OIDC callback session token.
 
 ### OIDC account matching
 
-On develop, OIDC sign-ins match the exact validated ID-token issuer (`iss`) and
+OIDC sign-ins match the exact validated ID-token issuer (`iss`) and
 subject (`sub`) stored as `oidcIssuer` and `oidcSubject`. Both values identify
 an account; the same subject from another issuer cannot select it. A new pair
 can provision a separate account under the existing OIDC provisioning rules. A
@@ -259,7 +259,7 @@ Digarr chooses `preferred_username`, then the email local part, then `oidc-<firs
 - Falling back to `oidc-<first 8 chars of sub>` when sanitization emptied
   the value.
 
-If the resulting username already exists, Digarr appends `-<first 8 chars of sub>`. This limits which characters IdP-supplied usernames can contain; account matching still uses the OIDC subject.
+If the resulting username already exists, Digarr appends `-<first 8 chars of sub>`. This limits which characters IdP-supplied usernames can contain; account matching still uses the exact OIDC issuer/subject pair.
 
 ### OIDC callback error handling
 
@@ -315,8 +315,9 @@ the restore transaction. Back up the destination before restoring.
 
 For rollback, stop the app and restore the previous image's matching native
 backup into a separate database. Never run an older subject-only image against
-the migrated database: it cannot distinguish issuers, and subjects can now
-repeat across issuers. Verify the original provider before enabling SSO on the
+the migrated database. Use the original encryption key with the restored
+database. An older image cannot distinguish issuers, and subjects can now repeat
+across issuers. Verify the original provider before enabling SSO on the
 recovered instance; post-backup writes need a separately reviewed recovery.
 
 ## Proxy auth (optional)
@@ -381,7 +382,7 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
    Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
 3. In Digarr, open **Settings > Connections > Your Connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
 
-Spotify playlist imports on develop use the current items endpoint, which Spotify restricts to playlists owned by the connected user or playlists they collaborate on. A `403` fails the subscription run; reconnecting does not grant playlist ownership. See [pagination and artist limits](API.md#subscriptions) and [Spotify's endpoint reference](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items).
+Spotify playlist imports use the current items endpoint, which Spotify restricts to playlists owned by the connected user or playlists they collaborate on. A `403` fails the subscription run; reconnecting does not grant playlist ownership. See [pagination and artist limits](API.md#subscriptions) and [Spotify's endpoint reference](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items).
 
 ### TIDAL app setup
 
@@ -428,7 +429,7 @@ Deezer connection requires your own working app credentials; Digarr does not reg
 2. Set `DEEZER_APP_ID` and `DEEZER_APP_SECRET` in the deployment environment and restart Digarr. These are deployment-wide credentials, not fields accepted from the browser.
 3. Each user opens **Settings > Connections > Your Connections > Deezer** and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
 
-Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. On develop, missing connections, token-resolution failures and provider error responses record failed subscription runs with Settings/reconnect guidance instead of successful empty feeds. The subscription row refreshes its saved error after a failed manual run; genuine empty feeds remain successful. Check Job History and reconnect in Settings when needed before retrying ([#774](https://github.com/iuliandita/digarr/issues/774)). v1.19.0 can show these failures as empty feeds or skip disconnected subscriptions. Playlist feeds collect at most 500 distinct artists across the selected playlists.
+Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. Missing connections, token-resolution failures and provider error responses record failed subscription runs with Settings/reconnect guidance instead of successful empty feeds. The subscription row refreshes its saved error after a failed manual run; genuine empty feeds remain successful. Check Job History and reconnect in Settings when needed before retrying ([#774](https://github.com/iuliandita/digarr/issues/774)). Playlist feeds collect at most 500 distinct artists across the selected playlists.
 
 ## Rollback across the OIDC token-storage migration
 

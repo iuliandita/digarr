@@ -145,42 +145,6 @@ export function exportPlaylistToXspf(
     .join('\n')
 }
 
-export async function pushPlaylistToTargets(
-  targets: DestinationTarget[],
-  name: string,
-  items: PlaylistItem[],
-): Promise<void> {
-  const failures: string[] = []
-
-  for (const target of targets) {
-    if (!target.createPlaylist) continue
-
-    try {
-      const result = await target.createPlaylist(name, items)
-      if (!result.success) {
-        failures.push(
-          `${result.targetType}(${result.targetId}): ${result.error || 'export failed'}`,
-        )
-      } else if (
-        ['navidrome-playlist', 'jellyfin-playlist', 'emby-playlist', 'plex-playlist'].includes(
-          target.type,
-        ) &&
-        (result.itemsSkipped ?? 0) > 0
-      ) {
-        failures.push(
-          `${result.targetType}(${result.targetId}): added ${result.itemsAdded ?? 0}, skipped ${result.itemsSkipped}`,
-        )
-      }
-    } catch (error) {
-      failures.push(`${target.id}: ${errMsg(error)}`)
-    }
-  }
-
-  if (failures.length > 0) {
-    throw new Error(`Playlist export failed: ${failures.join('; ')}`)
-  }
-}
-
 export type SavedPlaylistExportStore = {
   reserve(
     targetId: number,

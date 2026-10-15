@@ -4,7 +4,17 @@ All notable user-facing changes are documented here.
 
 Releases that have been promoted to the `:stable` Docker channel carry a `(stable)` marker after the version heading. Promotion happens after a release has been live for at least seven days with no follow-up patch.
 
-## Unreleased
+## v2.0.0 - 2026-10-15
+
+### Upgrade notes
+
+This release changes the database and SSO identity contract. Before upgrading from v1.19.0, stop writers, take a native consistent database backup, and verify a restore into a separate database or data directory. Retain the exact encryption key, previous image, and configuration. Application JSON exports do not provide schema rollback.
+
+- Migration 0052 adds per-channel digest delivery positions; 0053 adds saved playlist export bindings; 0054 binds OIDC accounts to the exact validated issuer and subject. Legacy issuer-less subjects remain intentionally unbound. Verify each historical issuer and subject with the [operator recovery helper](docs/AUTHENTICATION.md#recovering-legacy-oidc-bindings); email matching is never recovery evidence.
+- The current JSON pre-migration snapshot can fail on fields or tables absent from the old schema. Only after verifying the native backup and separate restore, set `DIGARR_AUTO_BACKUP=false` for this one upgrade, then re-enable it. Do not bypass an unexplained backup failure.
+- Never run an older subject-only image against migrated identities. Rollback requires the previous image, a separate database restored from its matching native backup, and the original encryption key. Remote playlist writes and notification sends are not undone.
+
+Follow the [combined upgrade procedure](docs/OPERATIONS.md#upgrading-from-v1190-to-v200). TIDAL remains experimental without live-account validation. The Debian fallback retains 43 HIGH findings across eight unique upstream vulnerabilities with no available fix ([#863](https://github.com/iuliandita/digarr/issues/863)); Alpine remains the default. Community Unraid template corrections remain pending in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697).
 
 ### Fixed
 
@@ -83,6 +93,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Restore Plex recent listening and top-artist history when Plex returns artist and track IDs as metadata paths. Log a warning when an in-range track page has no usable entries, reload saved music-library names in Settings, and name the supported Release Radar providers in all 15 languages. [#807](https://github.com/iuliandita/digarr/issues/807).
 
 ### Maintenance
+
+- Remove the unused create-only playlist export orchestrator after saved playlists moved to persisted export bindings. File exports and active target failure reporting are unchanged. [#864](https://github.com/iuliandita/digarr/issues/864).
 
 - Align container build stages, Alpine/Debian runtimes and CI on Bun 1.4.3, retaining flavor-specific multi-platform digest pins. Container configuration and database schema are unchanged by this update; rollback uses the previous image subject to the batch's migration precautions. [#862](https://github.com/iuliandita/digarr/issues/862).
 
