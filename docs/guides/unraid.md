@@ -17,7 +17,7 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 - Unraid 6.9+. The **Community Applications** plugin is needed only for Option A.
 - Access to an AI provider or local model. Hosted providers need an API key; a local Ollama server does not. Configure this during setup.
 
-The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). The template exposes the service on host interfaces unless you restrict the binding or firewall.
+The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it. In v1.19.0, HTTP opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens: with no users, set both initial-account fields and use at least 12 password characters, or leave both blank for manual registration. Partial or short first-boot credentials stop startup; existing accounts ignore these fields. The template exposes the service on host interfaces unless you restrict the binding or firewall. See [bootstrap recovery](../OPERATIONS.md#unattended-setup).
 
 ---
 
@@ -64,7 +64,7 @@ new releases through the `latest` tag.
 
 Switch **Advanced View** on in the container form to expose advanced fields. The bundled template includes Allowed Origin, Encryption Key, and Allow Insecure Cookies. Published store templates can lag behind it; use the add-variable steps above for any missing field.
 
-The personal companion corrections merged in [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4), and its published template matches the current fields and help. [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) remains pending as of October 8, 2026; the Community Applications store still needs the workarounds below. After that PR merges, verify the published store template before removing them.
+The personal companion corrections merged in [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4), and paired-bootstrap descriptions merged in [personal PR #5](https://github.com/iuliandita/unraid-templates/pull/5). Its published fields and help now match the bundled template. The community bootstrap copy remains tracked in [#843](https://github.com/iuliandita/digarr/issues/843). [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) remains pending as of October 15, 2026; the Community Applications store still needs the workarounds below. After that PR merges, verify the published store template before removing its pending notes or workarounds.
 
 The current store help omits the HTTP-cookie variable and has stale password, database encoding, origin, model, TLS, and webhook guidance. Follow the settings below, use at least 12 characters for the initial password, manually add `DIGARR_ALLOW_INSECURE_COOKIES` for direct HTTP, and change saved connections in the UI after setup.
 
@@ -79,8 +79,8 @@ The bundled template exposes these fields (matching
 | Data | path `/app/data` | Yes | Persistent storage for the embedded database. Default maps `/mnt/user/appdata/digarr/data` -> `/app/data`. Must be writable by the container user (uid 1000) |
 | Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` -- leave it matching the Data mapping |
 | Database URL | `DATABASE_URL` | No (advanced) | Leave empty to use the embedded database. Set only to use an external PostgreSQL, e.g. `postgresql://digarr:pass@host:5432/digarr`; percent-encode username, password, and database-name components when needed (see [Advanced section](#advanced-external-postgresql)) |
-| Initial Username | `DIGARR_INITIAL_USERNAME` | No | Auto-creates this admin user on first boot |
-| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Password for the initial admin (min 12 chars) |
+| Initial Username | `DIGARR_INITIAL_USERNAME` | No | Set with Initial Password to create the first admin; leave both blank for manual registration. Ignored when users exist |
+| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Set with Initial Username, at least 12 characters. Ignored when users exist; does not reset passwords |
 | AI Provider | `AI_PROVIDER` | No | `anthropic`, `openai`, `gemini`, `ollama`, `openai-compatible` (or set in UI) |
 | AI Model | `AI_MODEL` | No | Model name for the chosen provider |
 | AI API Key | `AI_API_KEY` | No | API key for the AI provider |

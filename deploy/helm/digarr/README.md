@@ -10,7 +10,7 @@ Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existin
 
 ## Install
 
-Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. This also applies when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are supplied: HTTP starts before admin bootstrap. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets).
+Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. In v1.19.0, HTTP starts before environment-based admin bootstrap. On develop, configured admin creation finishes before HTTP opens; on an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, while existing accounts ignore these variables. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets) and [bootstrap recovery](../../../docs/OPERATIONS.md#unattended-setup).
 
 Create a values file and store database credentials in a Kubernetes Secret. This example uses an existing PostgreSQL database and TLS Ingress; replace the host, ingress class, and Secret names for your cluster:
 

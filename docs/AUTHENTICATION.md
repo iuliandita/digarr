@@ -4,9 +4,11 @@ Digarr supports four authentication modes. Most deployments only need one.
 
 ## Users and targets
 
-Restrict first-boot access until the intended admin exists and you have verified it. Environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
+Restrict first-boot access until the intended admin exists and you have verified it. In v1.19.0, environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
 
-On develop, the browser asks you to create the first account or sign in before opening the setup wizard. Requested Lidarr/Emby setup needs an existing authenticated owner; AI-only API bootstrap retains its existing first-run access rules. This does not change environment-based bootstrap.
+On develop, a configured initial admin is created after migrations and before HTTP opens. For an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` with a password of at least 12 characters, or leave both unset for manual registration. Partial credentials, a short password, or a bootstrap database failure stop startup without serving requests. Existing users make bootstrap a no-op: these variables do not create another admin, reset a password, or change roles. Keep one app instance per database; a competing first-user write causes this startup attempt to fail rather than silently skip the configured admin.
+
+The browser asks you to create the first account or sign in before opening the setup wizard. Requested Lidarr/Emby setup needs an existing authenticated owner; AI-only API bootstrap retains its existing first-run access rules. Environment-based service setup remains separate and does not delay or suppress initial-admin creation.
 
 The first user becomes admin; admins can promote additional users in Settings > Users. Concurrent first-user signups cannot create multiple bootstrap admins. Upgrading does not restore roles removed by older versions; an admin can reassign them after review.
 

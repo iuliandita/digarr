@@ -2,7 +2,6 @@ import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { canAutoSetup, envConfig } from './config/env'
-import { hashPassword } from './core/auth'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
@@ -37,6 +36,7 @@ import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
 import { dispatch } from './core/notifications'
+import { bootstrapInitialAdmin } from './core/ops/initial-admin'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
@@ -198,7 +198,6 @@ import {
 import {
   createUser,
   deleteUser,
-  FirstUserRequiredError,
   getUserByEmail,
   getUserById,
   getUserByOidcSubject,
@@ -255,6 +254,19 @@ await runPreFlightCheck(db)
 // Idempotent; selects the migrator matching the active backend.
 await runMigrations()
 console.log('Database migrations applied')
+
+try {
+  await bootstrapInitialAdmin(db, envConfig)
+} catch {
+  console.error(
+    'Initial admin bootstrap failed. On first boot, set both DIGARR_INITIAL_USERNAME and DIGARR_INITIAL_PASSWORD with a password of at least 12 characters. Verify database availability before restarting.',
+  )
+  try {
+    await closeDb()
+  } finally {
+    process.exit(1)
+  }
+}
 
 // Wire up DB-backed session store after migrations are applied.
 setSessionStore(sessionQueries(db))
@@ -1445,7 +1457,7 @@ const app = createApp({
 const port = envConfig.port
 const server = serve({ fetch: app.fetch, port })
 
-// Auto-complete setup from env vars, then bootstrap user, then start scheduler
+// Auto-complete setup from env vars, then start scheduler
 ;(async () => {
   try {
     const done = await isSetupComplete(db)
@@ -1464,33 +1476,6 @@ const server = serve({ fetch: app.fetch, port })
       }
       await completeSetup(db, config)
       console.log('Setup auto-completed from environment variables')
-    }
-
-    // Bootstrap initial admin user from env vars if no users exist
-    const { initialUsername, initialPassword } = envConfig
-    if (initialUsername && initialPassword) {
-      if (initialPassword.length < 12) {
-        console.error(
-          'DIGARR_INITIAL_PASSWORD must be at least 12 characters - skipping user creation',
-        )
-      } else {
-        const count = await getUserCount(db)
-        if (count === 0) {
-          const passwordHash = hashPassword(initialPassword)
-          try {
-            await createUser(
-              db,
-              { username: initialUsername, passwordHash },
-              { bootstrap: 'first-user-only' },
-            )
-            console.log(
-              `Initial admin user "${initialUsername}" created from environment variables`,
-            )
-          } catch (err) {
-            if (!(err instanceof FirstUserRequiredError)) throw err
-          }
-        }
-      }
     }
 
     const settingsBeforeMigration = await getSettings(db)

@@ -74,6 +74,8 @@ This local-only HTTP example needs OpenSSL and saves the key in protected `digar
 
 Open `http://localhost:3000` and complete setup. On develop, create the first account or sign in before the wizard. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
 
+For unattended first boot on develop, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before starting. The configured admin must be created before HTTP opens; partial credentials or a password shorter than 12 characters stop startup. Leave both unset for manual registration. These settings never reset an existing account. Restrict access until you verify the intended admin, especially on v1.19.0 where HTTP opens before bootstrap finishes. See [first-boot access](docs/AUTHENTICATION.md#users-and-targets).
+
 Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
 For Compose, backend selection, and updates, follow the [Docker guide](deploy/docker/README.md). Keep one app instance per database, verify its backend at `/health`, and [back up before upgrading](deploy/docker/README.md#back-up-and-update).

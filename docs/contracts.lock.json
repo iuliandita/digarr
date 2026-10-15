@@ -3,30 +3,30 @@
   "domains": {
     "companions": {
       "files": {
-        "deploy/unraid/digarr.xml": "2486225f5eaf305250f621534955dd1381b31135a17730b855d68beba88fa5e0"
+        "deploy/unraid/digarr.xml": "260288f954b978401053f634ce9fbd01d1293ac69a220e5f2b9e2551c52a46dc"
       },
-      "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
+      "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md"],
-        "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
+        "docs": ["deploy/unraid/digarr.xml", "docs/guides/unraid.md", "CHANGELOG.md"],
+        "note": "Compared current upstream blobs and PR status on October 15 after independently reviewed personal PR5 merged. Bundled and published personal XML explain paired initial-account settings and existing-account no-op. Community bootstrap help remains tracked in issue843 alongside pending PR697. No variable, image channel, port, volume, permission or WebUI URL changes.",
         "breaking": "none",
         "migration": "",
         "companions": [
           {
             "repo": "iuliandita/unraid-templates",
             "status": "updated",
-            "url": "https://github.com/iuliandita/unraid-templates/pull/4",
-            "note": "Merged and published template checked against the bundled configuration contract."
+            "url": "https://github.com/iuliandita/unraid-templates/pull/5",
+            "note": "PR5 merged as 5c85037e8ed1ceabb5daf89eb70d7721622f070f after independent review and XML validation; published blob ec81ec3fa165d8934f541cd0b60f2c3c8972c898 has exact bundled descriptions."
           },
           {
             "repo": "selfhosters/unRAID-CA-templates",
             "status": "pending",
             "url": "https://github.com/selfhosters/unRAID-CA-templates/pull/697",
-            "note": "Store correction remains pending; published template still requires documented workarounds."
+            "note": "Master template blob 27852fd4077f54038f0693a59c08fddb4150af8c retains eight-character and old bootstrap help; PR697 raises minimum but paired-value copy remains tracked in issue843."
           }
         ],
-        "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b"
+        "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514"
       }
     },
     "data-recovery": {
@@ -142,6 +142,7 @@
         "src/core/ops/backup.ts": "840403e0dafc3c9237a6eea921202bc3b3cef317d78968b6f284e72efd03e8fe",
         "src/core/ops/cron-scheduler.ts": "98d5c7888eb6112adf6ae7fd6d1ce0c9cc549e51836d87ea79de704ee527a9f1",
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
+        "src/core/ops/initial-admin.ts": "7f8b81e3e103c8e7f103afae6ba61ae5116c06cb26d4ede30c19b21d439018f7",
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
@@ -179,29 +180,29 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "74fdea68240616b0160e7b141df0a88bebca78a71d8ad618a5f9a56098e7d311",
+      "digest": "4e3fec9680ac45839ef7a071bfdb58357c71fdb068783878c86f1e733ff567a4",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Initial HTTP setup now commits settings, requested owner Emby credentials and Lidarr/Emby targets in one transaction; owner and singleton locks prevent silent no-op saves and duplicate concurrent completion. Database-trigger rollback/retry tests and native PostgreSQL lock scheduling verified. Shared query parameter types support the same transaction; existing environment bootstrap remains separate.",
-        "breaking": "none",
-        "migration": "No schema or stored-data migration is added on upgrade; existing backup and rollback requirements remain unchanged. Rollback to v1.19.0 restores best-effort setup, so verify requested connections and targets manually after setup.",
-        "digest": "74fdea68240616b0160e7b141df0a88bebca78a71d8ad618a5f9a56098e7d311"
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed new initial-admin bootstrap helper, actual migrated PGlite creation and unchanged first-user lock. Native PostgreSQL process checks prove listener stays closed during pending creation, valid login afterward, existing-user no-op, invalid credentials exit, and manual registration. No database schema or recovery format changes; operator upgrade and recovery guidance updated.",
+        "breaking": "On an empty database, partial bootstrap credentials or a password shorter than 12 characters now stop startup before HTTP instead of being skipped.",
+        "migration": "Before upgrade retain a consistent database backup, matching encryption key, previous image and bootstrap configuration. No schema migration is added by this change. Rollback restores the previous startup race and skip behavior; if other schema migrations have run, use that image with its matching backup in a separate database.",
+        "digest": "4e3fec9680ac45839ef7a071bfdb58357c71fdb068783878c86f1e733ff567a4"
       }
     },
     "configuration": {
       "files": {
-        ".env.example": "89a764ef33d6581741c4e2b5eea75804b56614c31feaa199ef61784295b91931",
+        ".env.example": "2fbe8e754714c9ad5138b58f041bf43b04e82e2e340f00cc37a9db4e24d6e8a5",
         "src/config/env.ts": "55c9c06eb7c2a1b275a5b43f63a2250e9cc806c14834108ac7783a97daa3d52e"
       },
-      "digest": "444fad2eb580ee942f799089ed718ceca1d2b94a6d46865242ff0ed16e341c04",
+      "digest": "8076b80cdb5d50e0ae9aed883feca0fd380a1505edca54db9ad0e8214a247d09",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Separate DB_USER, DB_PASS and DB_NAME are raw inputs encoded once; explicit DATABASE_URL retains precedence and encoded URI components are interpreted once by the runtime. Documented historical v1.19 limitations, raw versus encoded inputs and exact-name upgrade checks. No environment names/defaults, UI, API, locale or screenshot changes.",
-        "breaking": "An installation relying on accidentally decoded or escaped database identifiers can connect to a different database after correction; confirm current_database and current_user against a native backup before enabling writes.",
-        "migration": "No schema migration or automatic rename. Preserve native backup, encryption key, previous image and settings; verify the intended existing database before cutover. Rollback stops writes and restores the old image/settings against the verified original database; use its consistent backup after data changes.",
-        "digest": "444fad2eb580ee942f799089ed718ceca1d2b94a6d46865242ff0ed16e341c04"
+        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed both environment examples and all deployment guides for paired initial-account values, 12-character password minimum, fail-closed fresh boot, existing-account no-op and manual registration. Bootstrap keeps raw credential bytes and never resets existing passwords or roles; no new setting or secret source is added.",
+        "breaking": "An empty database with only one initial-account variable or a short initial password now exits before HTTP.",
+        "migration": "",
+        "digest": "8076b80cdb5d50e0ae9aed883feca0fd380a1505edca54db9ad0e8214a247d09"
       }
     },
     "authentication": {
@@ -663,22 +664,22 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "54957037d2827850903137eb84594e04ff4127d4a6face120e08495acdf6de9b",
+        "src/index.ts": "1fa504f544ba3744a4ff6dc87bfa8812cdd4e30ab1e3cdf1246c859b4be4b0c0",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "d64cb4056e89b4f7959f920c1009fc3585c48eb320cff07189fd9862b4bc5225",
+      "digest": "84ae8e7ec7f60f91162fae300c2413c1396892003767107a6b2780ff76219909",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "HTTP setup wiring now invokes atomic settings, connection and target persistence; direct environment bootstrap call is retained. Reviewed README, Docker/Unraid first-run guides, authentication, API, roadmap and screenshots. Current personal and Community Applications template fields remain compatible; pending CA template sync is preexisting and this change requires no cross-repository template edit.",
-        "breaking": "none",
+        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed full runtime boot order: await initial admin after migrations before session wiring, services, timers and HTTP; failures close the database and exit with a fixed safe message. Removed duplicate best-effort admin block while preserving environment service setup, connection migration, target backfill and schedulers. Architecture and setup guidance distinguish develop from v1.19.0.",
+        "breaking": "Fresh installations with partial or short initial-admin configuration now fail startup; existing users and unconfigured manual first boot retain their behavior.",
         "migration": "",
-        "digest": "d64cb4056e89b4f7959f920c1009fc3585c48eb320cff07189fd9862b4bc5225"
+        "digest": "84ae8e7ec7f60f91162fae300c2413c1396892003767107a6b2780ff76219909"
       }
     },
     "deployment": {
       "files": {
-        "deploy/docker/.env.example": "e7a805535a4f3a0b0bce0aca2d27cfb812fcf8b6e486dd84c66d4a4bedc54891",
+        "deploy/docker/.env.example": "47f197f3e6a70db02d1e421dad8f7af396188d3a9546be6def9d55f2f190bef5",
         "deploy/docker/Dockerfile": "a4f7e03284efe2a78744b2807668187283aabee03c94356490ec148d41d66bab",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
@@ -713,20 +714,22 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "e42cf31eded10b289d87b9bc9905213449d513e6f5a56fb982ac321681cd4e7a",
+      "digest": "66549d4e61cd4ad34aef4ea41ad43e98e97b057e41e03b1701e573d6f80d8951",
       "review": {
         "outcome": "docs-updated",
         "docs": [
+          "deploy/docker/README.md",
           "deploy/helm/digarr/README.md",
-          "docs/guides/unraid.md",
+          "docs/guides/docker-desktop.md",
           "docs/guides/synology.md",
+          "docs/guides/unraid.md",
           "docs/OPERATIONS.md",
           "CHANGELOG.md"
         ],
-        "note": "Operator guides now distinguish raw DB_* inputs from encoded full DSNs and link exact-name upgrade precautions; Helm notes require a runtime build containing issue 834 and retain the v1.19 image limitation. Image pins/channels, ports, volumes, permissions, cookies and auth are unchanged. Live personal Unraid template aligns and still correctly requests encoded DSNs; published community drift is already covered by open PR697, with no new template contract change.",
-        "breaking": "Database identity correction can change the selected database for previously misread names; use the native-backup and exact-name cutover precautions before upgrading.",
-        "migration": "No chart, volume or schema migration. Keep raw chart and DB_* component values, or properly encoded full DSNs. Retain native backup/key/previous image/settings; verify current_database/current_user and restore the original database with the previous image/settings for rollback.",
-        "digest": "e42cf31eded10b289d87b9bc9905213449d513e6f5a56fb982ac321681cd4e7a"
+        "note": "Reviewed Compose environment example, Docker/Helm/Desktop/Synology/Unraid bootstrap guidance and existing public-port access precautions. Documented pre-listener admin requirement on develop, version-limited old race, paired variables, ignored existing-account settings and recovery. No image pins, chart templates, runtime ports, volumes or permissions change.",
+        "breaking": "Fresh installs with incomplete bootstrap variables or a password shorter than 12 characters now stop startup instead of opening HTTP.",
+        "migration": "",
+        "digest": "66549d4e61cd4ad34aef4ea41ad43e98e97b057e41e03b1701e573d6f80d8951"
       }
     },
     "release": {

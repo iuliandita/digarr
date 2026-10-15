@@ -58,7 +58,11 @@ This label does not stop the job or prove that it has stopped making progress. A
 
 ## Unattended setup
 
-Keep first-boot access restricted until the intended admin account is verified, even with bootstrap credentials configured ([#785](https://github.com/iuliandita/digarr/issues/785)). For unattended first boot, set `AI_PROVIDER` and `AI_MODEL`, plus `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters. Add listening services and targets in Settings or supply supported environment settings. See [`.env.example`](../.env.example) for local development and [`deploy/docker/.env.example`](../deploy/docker/.env.example) for Compose.
+Keep first-boot access restricted until the intended admin account is verified. In v1.19.0, HTTP opens before environment-based admin bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, migrations and configured initial-admin creation finish before HTTP opens. With no users, set both `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters, or leave both unset for manual registration. A partial pair, short password, or database failure stops startup. Existing users bypass these bootstrap settings without password or role changes; keep one app instance per database.
+
+For unattended service setup, also set `AI_PROVIDER` and `AI_MODEL`. This separate initializer still runs after HTTP opens; it no longer controls whether the initial admin is created. Add listening services and targets in Settings or supply supported environment settings. See [`.env.example`](../.env.example) for local development and [`deploy/docker/.env.example`](../deploy/docker/.env.example) for Compose.
+
+Before upgrade, review both bootstrap variables and retain a consistent database backup, matching encryption key, and previous image. If first boot stops, correct the pair or intentionally unset both for restricted manual registration, verify database availability, and restart. If another account already exists, verify who owns it; bootstrap never replaces it. This correction adds no schema migration. Rollback restores the previous startup race and weak/partial-credential skip behavior; keep access restricted, and use a compatible image and its matching backup if other migrations have run.
 
 ## Playlists and notifications
 
