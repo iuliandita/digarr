@@ -744,19 +744,19 @@
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
         ".github/workflows/release.yml": "496bddbb1f824e79159d71e9fe40fbb87b1b3c7179837af9c0850b5314609c6e",
-        ".github/workflows/security.yml": "51cd8a2c24e75ce95c6c122d855d3a6c997423146b1441c111b21f0b2a06b38c",
+        ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "37e213c0b4f6d7c73867f84d5cd05cd1a6e51e8a5d210c6c2789e2340cc9b38d",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "b8d7124494f6d0dc088170b670fe0cce420fcf9802a2f661f966a423b592582c",
+      "digest": "c5543f0988a949abbda0813ddb75f69ff83cac2a396d11702c362df0fdea39f5",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["README.md", "CHANGELOG.md", "docs/ROADMAP.md", "deploy/docker/README.md"],
-        "note": "Prepare v2.0.0 class A versions and combined release guidance. Preserve latest versus seven-day stable promotion, amd64-only container inventory scope and release-time verification requirements for both variants and registries.",
-        "breaking": "The batch changes the database and SSO identity contract; follow the combined v1.19.0 upgrade and separate-database rollback procedure.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Use the supported Trivy version input with the same v0.70.0 release. Application behavior, release channels, signed inventory scope, advisory scan policy and existing event exclusions are unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "b8d7124494f6d0dc088170b670fe0cce420fcf9802a2f661f966a423b592582c"
+        "digest": "c5543f0988a949abbda0813ddb75f69ff83cac2a396d11702c362df0fdea39f5"
       }
     },
     "maintenance": {
