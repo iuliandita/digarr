@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Percent-encode raw username, password, and database-name components in Helm-generated PostgreSQL URLs while retaining raw bundled server values and existing-Secret precedence. Existing ordinary values need no changes; do not pre-encode chart inputs. The separate client database-name parsing limitation remains tracked in [#834](https://github.com/iuliandita/digarr/issues/834). [#772](https://github.com/iuliandita/digarr/issues/772).
+
 - Keep cached dashboard listening history and recent plays visible with the failure/retry notice when a refresh returns a source error. Successful retries and legitimate empty or disconnected results still replace previous rows; query and session boundaries are unchanged. [#770](https://github.com/iuliandita/digarr/issues/770).
 
 - Exclude skipped discovery sources from System Health failure rates. Count only successful and failed attempts in the existing recent-run sample, omit skip-only sources, and retain skip reasons in Job History. Stored jobs, schema, and backups are unchanged. [#769](https://github.com/iuliandita/digarr/issues/769).

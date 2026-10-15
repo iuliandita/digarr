@@ -692,7 +692,7 @@
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "e33958558729a2ab1642a38e1366c171653511a36f77082e54db25e2d5a6e85b",
-        "deploy/helm/digarr/templates/_helpers.tpl": "ae4d58ef8e9bbad3f5338545818c02c0c69a044f2b20b1fa834ac03ea7a6b507",
+        "deploy/helm/digarr/templates/_helpers.tpl": "dce53e7156b2d4842a49869f1d7e7fd983af1899f9fb1fea166948df36b968cb",
         "deploy/helm/digarr/templates/configmap.yaml": "c81c45f728ae64d9a4bb9fbf3efcadefc197c87b7d73b46312247e40f7fd6567",
         "deploy/helm/digarr/templates/deployment.yaml": "7b0f25480d7bbb1b5158c147914049c591bad000c5b7498346ad56a5ccc69b1c",
         "deploy/helm/digarr/templates/httproute.yaml": "5a268ea0867d5194abb78ed197abaf68f20d6b43bcb50d371b0938c07b58fc8e",
@@ -703,11 +703,11 @@
         "deploy/helm/digarr/templates/postgresql.yaml": "63deb3fc434cb32ad5bca78206c64b203f1ca2bbc94f466b43284016cf145b28",
         "deploy/helm/digarr/templates/pvc-backups.yaml": "fb7fe632896d72816ceafe0686b613bf9a745495066f047c376ae26d6fdd34f1",
         "deploy/helm/digarr/templates/pvc-data.yaml": "5cc04414b649788dc59b8f16011040cbbbd831fe317459d80c78ceca22e905f4",
-        "deploy/helm/digarr/templates/secret.yaml": "4cc79973121367047e50e6d6fa26213bbdb7fb5c5c565d98116c0ef262e05e17",
+        "deploy/helm/digarr/templates/secret.yaml": "c3a7f8cb66ab978288fe331dbbe1f4d6098832c942b91b6999c05e3d2e8edb53",
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "8de16df05a38b4f220299376ae53f61ca9afd54d42cebcd228dfc1dcf40d6294",
-        "deploy/helm/digarr/values.yaml": "fe71718c85e4521dbe480d3fb45efa0f2c48ffdd3c43fd43ea5dfd16062423b5",
+        "deploy/helm/digarr/values.yaml": "a89bdf8eae011572b4762d654518d749202beb51a1124029c37b1d62a72d3cae",
         "deploy/k8s/deployment.yaml": "9fcebf06cab9685b94e04b7cb00f9c2d32a716bfa05cb93008d9f51afe8154e3",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
@@ -717,20 +717,20 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817",
+      "digest": "29b2a5ba2e5887f852934ac3809c82e3564f882edfc4ed5234bd33cf22ad8f39",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/docker/README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Updated image-verification guidance for separate Alpine and Debian SPDX inventories, exact workflow identities and immutable index digests, bounded amd64 coverage and existing-release limits. Deployments, image pins/channels, environment/defaults, cookies/auth, ports, volumes and permissions are unchanged; Unraid XML/guide and external companion contracts are unaffected.",
+        "docs": ["deploy/helm/digarr/README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Helm now encodes raw username/password/database components for bundled and external generated URLs, preserves raw PostgreSQL server values and existing Secrets, and documents the separate client database-name parser limitation in issue 834. Defaults, ports, volumes and image channels stay unchanged. Current personal Unraid template aligns; community differences remain in existing PR697 and require no Helm-only update. No API, UI, locale or screenshot changes.",
         "breaking": "none",
-        "migration": "No deployment or database migration. Existing release assets are not backfilled; signed publication is verified at the next tagged release.",
-        "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817"
+        "migration": "No schema or data migration. Keep raw values when upgrading; pre-encoded chart inputs remain literal identifiers. Ordinary unreserved inputs are unchanged. Rollback to the previous chart restores raw URL interpolation and requires URI-unreserved inputs; existing Secrets remain unchanged.",
+        "digest": "29b2a5ba2e5887f852934ac3809c82e3564f882edfc4ed5234bd33cf22ad8f39"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "4756b1a7abb706c26800f365fe9204b68bdc826a46f7d47f0610dfd47b163eba",
+        ".github/workflows/ci.yml": "913cde5144321bf7451c02b29c229ddaa4a0d9824204b4ee2a4da178b4e33259",
         ".github/workflows/compatibility.yml": "285d82b4c5cb9cfe2011be6b8b92ef3fcd70db653b51e47a1cacbcdfbba8a643",
         ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -745,19 +745,14 @@
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "56a5c15462270ad232c48a841775593a0580804c4cabb5b1b5e7921ae7549c10",
+      "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/docker/README.md",
-          "docs/OPERATIONS.md",
-          "docs/ROADMAP.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Reviewed immutable per-variant container scans, explicit amd64 scope, matching index-digest attestations at both registries, source-only inventory, distinct required release assets and one post-matrix publisher. Documented existing-release and nightly coverage plus exact cosign identity/digest verification. No image channel, pin, environment, default, port, volume, auth or operator setup changes; Unraid companion surfaces remain unchanged.",
+        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "deploy/helm/digarr/README.md"],
+        "note": "The existing pinned Helm CI job now runs four standard-library rendered URL regression groups before its unchanged snapshot drift gate. No release triggers, image publication, approvals, required job names, versions or signing behavior change; user documentation separates serialization correction from the open runtime parser issue.",
         "breaking": "none",
-        "migration": "No database or configuration migration. New Debian SBOM publication starts with the next tagged release; old releases are not backfilled. Previous images and signatures remain usable, and rollback restores prior Alpine-only SBOM automation.",
-        "digest": "56a5c15462270ad232c48a841775593a0580804c4cabb5b1b5e7921ae7549c10"
+        "migration": "",
+        "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8"
       }
     },
     "maintenance": {

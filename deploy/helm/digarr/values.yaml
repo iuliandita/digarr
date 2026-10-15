@@ -155,17 +155,17 @@ readinessProbe:
 # Mode 2: Bundled PostgreSQL (database.backend = "postgres", postgresql.enabled = true)
 #   Uses the official postgres:17-alpine image as a StatefulSet.
 #   You MUST set postgresql.auth.password -- there is no default.
-#   Chart-generated URLs do not encode usernames, passwords, or database names:
-#   use URI-unreserved characters; a random hex password is suitable.
-#   Keep bundled passwords and database names plain, not percent-encoded.
+#   Supply raw username/password/database values, never pre-encoded. The chart
+#   encodes URL components but keeps the bundled server values unchanged.
+#   Database names must remain URI-unreserved and not . or .. until the
+#   client parsing limitation is fixed: https://github.com/iuliandita/digarr/issues/834
 #
 # Mode 3: External PostgreSQL (database.backend = "postgres", postgresql.enabled = false)
 #   Set database.host and database.password for your own PostgreSQL instance,
-#   cloud RDS, CNPG cluster, etc. Chart-generated URLs also insert these
-#   username/password/database-name values unencoded; use URI-unreserved
-#   characters, or supply a Secret via
-#   database.existingSecret with a complete DATABASE_URL key; percent-encode
-#   its username/password/database-name components when needed.
+#   cloud RDS, CNPG cluster, etc. Supply raw user/password/name values; the
+#   chart encodes each URL component. The database-name limitation above applies.
+#   Alternatively, database.existingSecret supplies a complete DATABASE_URL;
+#   encode its components yourself. The chart does not rewrite that URL.
 # ---------------------------------------------------------------------------
 
 # Bundled PostgreSQL -- official postgres image, no Bitnami dependency

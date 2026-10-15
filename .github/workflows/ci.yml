@@ -137,6 +137,8 @@ jobs:
           version: v3.16.4
       - name: Lint Helm chart
         run: helm lint deploy/helm/digarr --set postgresql.auth.password=lint
+      - name: Test database URL rendering
+        run: python3 tests/deploy/helm_database_url_test.py
       - name: Verify deploy/k8s/rendered.yaml is in sync with chart
         run: |
           ./scripts/k8s-sync.sh

@@ -71,11 +71,11 @@ helm install digarr deploy/helm/digarr \
 
 For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existingSecret`, and set `postgresql.auth.password` in a protected values file. Keep passwords out of command-line arguments.
 
-The chart currently inserts usernames, passwords, and database names into connection URLs without encoding ([#772](https://github.com/iuliandita/digarr/issues/772)). Use URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-._~`) for these chart values; a password generated with `openssl rand -hex 32` is suitable.
+Supply raw usernames, passwords, and database names in chart values. The chart percent-encodes each component when constructing `DATABASE_URL` and keeps bundled PostgreSQL server values unchanged. Do not pre-encode these values: a literal `%` is part of the credential or identifier.
 
-Do not percent-encode the bundled PostgreSQL password or database-name values themselves: they are also passed unchanged to the server.
+The PostgreSQL client still mishandles encoded reserved characters in database names ([#834](https://github.com/iuliandita/digarr/issues/834)). Keep database names URI-unreserved (`A-Z`, `a-z`, `0-9`, `-._~`) and avoid `.` or `..` until that runtime issue is fixed. This limitation also applies to complete encoded connection strings; encoding alone does not make these database names usable.
 
-For a user-managed database with other username, password, or database-name characters, set `postgresql.enabled=false` and use `database.existingSecret` containing a complete `DATABASE_URL` with percent-encoded username, password, and database-name components.
+For a user-managed database, `database.existingSecret` can supply a complete `DATABASE_URL`. The chart uses that Secret without constructing or re-encoding its URL; percent-encode the URL's username, password, and database-name components yourself.
 
 For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too. The chart defaults to a 512Mi app limit, so raise it explicitly for PGlite:
 
