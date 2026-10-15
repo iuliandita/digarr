@@ -1,6 +1,7 @@
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import type { DestinationTarget, TargetAddOptions } from '@/core/targets/types'
 import type { StatusUpdateExtra } from '@/db/queries/recommendations'
+import { checkPipelineCancelled } from './cancel'
 
 export type AutoApproveDeps = {
   getRecommendationsByBatch: (batchId: number) => Promise<
@@ -36,13 +37,17 @@ export async function autoApprove(
   batchId: number,
   config: AutoApproveConfig,
   deps: AutoApproveDeps,
+  signal?: AbortSignal,
 ): Promise<{ approved: number; failed: number }> {
+  checkPipelineCancelled(signal)
   const recs = await deps.getRecommendationsByBatch(batchId)
+  checkPipelineCancelled(signal)
   const eligible = recs.filter((r) => r.status === 'pending' && r.score >= config.threshold)
 
   if (eligible.length === 0) return { approved: 0, failed: 0 }
 
   const targets = await deps.getEnabledTargets()
+  checkPipelineCancelled(signal)
   const addTargets = targets.filter((t) => t.capabilities?.includes('addArtist'))
   const albumTargets = targets.filter(
     (t) => t.capabilities?.includes('addAlbum') && typeof t.addAlbum === 'function',
@@ -63,6 +68,7 @@ export async function autoApprove(
   let failed = 0
 
   for (const rec of eligible) {
+    checkPipelineCancelled(signal)
     const isAlbum = rec.kind === 'album'
     const recTargets = isAlbum ? albumTargets : addTargets
     if (
@@ -72,6 +78,7 @@ export async function autoApprove(
     ) {
       await deps.updateRecommendationStatus(rec.id, 'add_failed', { targetActions: {} })
       failed++
+      checkPipelineCancelled(signal)
       continue
     }
 
@@ -79,6 +86,7 @@ export async function autoApprove(
       // No targets - mark as approved (discovery-only)
       await deps.updateRecommendationStatus(rec.id, 'approved', { targetActions: {} })
       approved++
+      checkPipelineCancelled(signal)
       continue
     }
 
@@ -86,7 +94,11 @@ export async function autoApprove(
       await deps.warmArtist(rec.artist.mbid).catch(() => {})
     }
 
+    checkPipelineCancelled(signal)
     const targetActions: Record<string, unknown> = {}
+    let attempted = false
+    let targetError: unknown
+    let targetFailure: Error | undefined
     let anySuccess = false
     let lidarrResult: {
       success: boolean
@@ -95,6 +107,7 @@ export async function autoApprove(
     } | null = null
 
     for (const target of recTargets) {
+      if (signal?.aborted) break
       const metadata = {
         targetType: target.type,
         artistName: rec.artist.name,
@@ -102,61 +115,91 @@ export async function autoApprove(
         action: isAlbum ? 'addAlbum' : 'add',
         ...(isAlbum ? { releaseGroupMbid: rec.recommendedReleaseGroupId } : {}),
       }
-      const targetJobId = deps.jobRecorder
-        ? await deps.jobRecorder.start({
-            type: 'target',
-            userId: deps.userId,
-            metadata,
-          })
-        : null
+      let targetJobId: number | null = null
+      try {
+        targetJobId = deps.jobRecorder
+          ? await deps.jobRecorder.start({ type: 'target', userId: deps.userId, metadata })
+          : null
+      } catch (error) {
+        targetError = error
+        break
+      }
 
-      const options = { ...addOptions, userId: deps.userId, recommendationId: rec.id }
-      const result = isAlbum
-        ? await target.addAlbum?.(
-            {
-              artistMbid: rec.artist.mbid,
-              artistName: rec.artist.name,
-              releaseGroupMbid: rec.recommendedReleaseGroupId as string,
-            },
-            options,
-          )
-        : await target.addArtist?.({ mbid: rec.artist.mbid, name: rec.artist.name }, options)
-
-      if (!result) {
+      if (signal?.aborted) {
         if (targetJobId != null && deps.jobRecorder) {
-          await deps.jobRecorder.complete(targetJobId, {
-            metadata: { ...metadata, skipped: true },
-          })
+          try {
+            await deps.jobRecorder.cancel(targetJobId)
+          } catch (error) {
+            targetError = error
+          }
         }
-        continue
+        break
       }
+      attempted = true
+      const options = { ...addOptions, userId: deps.userId, recommendationId: rec.id }
+      try {
+        const result = isAlbum
+          ? await target.addAlbum?.(
+              {
+                artistMbid: rec.artist.mbid,
+                artistName: rec.artist.name,
+                releaseGroupMbid: rec.recommendedReleaseGroupId as string,
+              },
+              options,
+            )
+          : await target.addArtist?.({ mbid: rec.artist.mbid, name: rec.artist.name }, options)
 
-      targetActions[target.id] = {
-        status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
-        externalId: result.externalId,
-        error: result.error,
-      }
-      if (result.success) anySuccess = true
-      if (target.type === 'lidarr') lidarrResult = result
+        if (!result) {
+          if (targetJobId != null && deps.jobRecorder) {
+            await deps.jobRecorder.complete(targetJobId, {
+              metadata: { ...metadata, skipped: true },
+            })
+          }
+          continue
+        }
 
-      if (targetJobId != null && deps.jobRecorder) {
-        if (result.success) {
-          await deps.jobRecorder.complete(targetJobId, {
-            metadata: {
-              ...metadata,
-              externalId: result.externalId,
-            },
-          })
-        } else {
+        targetActions[target.id] = {
+          status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
+          externalId: result.externalId,
+          error: result.error,
+        }
+        if (!result.success) targetFailure = new Error(result.error ?? 'Target returned failure')
+        if (result.success) anySuccess = true
+        if (target.type === 'lidarr') lidarrResult = result
+
+        if (targetJobId != null && deps.jobRecorder) {
+          if (result.success) {
+            await deps.jobRecorder.complete(targetJobId, {
+              metadata: {
+                ...metadata,
+                externalId: result.externalId,
+              },
+            })
+          } else {
+            await deps.jobRecorder.fail(targetJobId, result.error ?? 'Target returned failure')
+          }
+        }
+      } catch (error) {
+        targetError = error
+        targetActions[target.id] ??= {
+          status: 'failed',
+          error: error instanceof Error ? error.message : String(error),
+        }
+        if (targetJobId != null && deps.jobRecorder) {
           await recordFailureSafely(
             deps.jobRecorder,
             targetJobId,
-            result.error ?? 'Target returned failure',
+            error instanceof Error ? error.message : String(error),
           )
         }
+        break
       }
     }
 
+    if (!attempted) {
+      if (targetError) throw targetError
+      checkPipelineCancelled(signal)
+    }
     const extra: StatusUpdateExtra = { targetActions }
     if (lidarrResult) {
       if (!isAlbum && lidarrResult.externalId) {
@@ -175,7 +218,16 @@ export async function autoApprove(
           ? 'approved'
           : 'add_failed'
 
-    await deps.updateRecommendationStatus(rec.id, finalStatus, extra)
+    try {
+      await deps.updateRecommendationStatus(rec.id, finalStatus, extra)
+    } catch (error) {
+      if (targetError)
+        throw new AggregateError([targetError, error], 'Failed to persist target results')
+      throw error
+    }
+    if (targetError) throw targetError
+    if (signal?.aborted && targetFailure) throw targetFailure
+    checkPipelineCancelled(signal)
     if (anySuccess) approved++
     else failed++
   }

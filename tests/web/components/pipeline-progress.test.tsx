@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -29,6 +29,7 @@ function renderWithQuery(ui: ReactElement) {
 
 vi.mock('@/web/lib/api', () => ({
   getPipelineStatus: vi.fn(),
+  cancelPipeline: vi.fn(),
 }))
 
 // Mock useSSE to avoid real EventSource in jsdom
@@ -41,7 +42,7 @@ vi.mock('@/web/lib/hooks', async (importOriginal) => {
 })
 
 import { PipelineProgress } from '@/web/components/pipeline-progress'
-import { getPipelineStatus } from '@/web/lib/api'
+import { cancelPipeline, getPipelineStatus } from '@/web/lib/api'
 import { useSSE } from '@/web/lib/hooks'
 
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
@@ -135,5 +136,15 @@ describe('PipelineProgress', () => {
     rerender(<PipelineProgress onComplete={onComplete} />)
     vi.advanceTimersByTime(600)
     expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+  it('reenables Stop when cancellation is declined during completion', async () => {
+    mockGetPipelineStatus.mockResolvedValue({ running: true, stage: 'store' })
+    mockUseSSE.mockReturnValue({ data: null, connected: false })
+    vi.mocked(cancelPipeline).mockResolvedValue({ cancelled: false, message: 'Pipeline finishing' })
+    renderWithQuery(<PipelineProgress />)
+    const stop = await screen.findByRole('button', { name: 'Stop scan' })
+    fireEvent.click(stop)
+    await waitFor(() => expect(stop).toBeEnabled())
+    expect(cancelPipeline).toHaveBeenCalledOnce()
   })
 })

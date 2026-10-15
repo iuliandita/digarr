@@ -140,17 +140,17 @@ export function pipelineRoutes(deps: AppDependencies) {
     )
   })
 
-  // Stop the in-flight run and drop anything queued. Non-admin by design: a
-  // regular user who can start a scan can stop it (single-flight => one run
-  // total, so the blast radius matches "Run Scan"). Cooperative abort lands
-  // within ~one request timeout; a wedged run is force-reset after a grace
-  // window inside the orchestrator, so this never leaves the app stuck.
+  // The current write and its bookkeeping drain before the pipeline stops.
   router.post('/api/v1/pipeline/cancel', (c) => {
     const result = deps.orchestrator.cancel()
     return c.json(
       {
         cancelled: result.cancelled,
-        message: result.cancelled ? 'Pipeline stopping' : 'No pipeline run in progress',
+        message: result.cancelled
+          ? 'Pipeline stopping'
+          : deps.orchestrator.isRunning
+            ? 'Pipeline finishing'
+            : 'No pipeline run in progress',
       },
       202,
     )

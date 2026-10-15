@@ -36,7 +36,7 @@ The migration tool is for backend changes only. For selected application-data ex
   migration starts can still finish and write; wait for running jobs to complete
   before migrating.
 
-Cancellation does not establish that a scan has stopped writing. A late cancellation can leave storage and automatic target additions running after the running indicator clears ([#790](https://github.com/iuliandita/digarr/issues/790)). Wait for the actual work to finish; do not start migration while its completion is uncertain.
+On develop, a cancellation request keeps the pipeline marked running until in-flight work and awaited bookkeeping settle; wait for that settlement, not merely `cancelled: true`. A run already finalizing can decline cancellation with `Pipeline finishing`. Saved recommendations and remote additions remain. Hung operations keep the pipeline busy; do not bypass that state to start a migration. v1.19.0 instead can clear the indicator after 15 seconds while storage or target additions continue ([#790](https://github.com/iuliandita/digarr/issues/790)). On every version, also wait for other running jobs and writers; a settled pipeline alone does not establish that the whole application is idle.
 
 Pause schedules and prevent other users from writing until cutover is complete. The built-in lock ends when the copy finishes, before you inspect the report or restart.
 

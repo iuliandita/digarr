@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import { PipelineCancelledError } from '@/core/pipeline/cancel'
 import { store } from '@/core/pipeline/store'
 import type { ScoredArtist } from '@/core/types'
 
@@ -240,5 +241,58 @@ describe('store()', () => {
       imageUrl: 'https://example.com/img.jpg',
       streamingUrls: { spotify: 'https://spotify.com/foo' },
     })
+  })
+  it.each([false, true])(
+    'drains the current write unit and stops before the next artist (atomic=%s)',
+    async (atomic) => {
+      const controller = new AbortController()
+      const db = makeDb()
+      const write = vi.fn(async () => {
+        controller.abort()
+      })
+      if (atomic) Object.assign(db, { upsertArtistAndRecommendation: write })
+      else
+        db.upsertArtist.mockImplementationOnce(async () => {
+          controller.abort()
+          return { id: 100 }
+        })
+      await expect(
+        store([makeArtist('a'), makeArtist('b')], db, { signal: controller.signal }),
+      ).rejects.toBeInstanceOf(PipelineCancelledError)
+      expect(atomic ? write : db.insertRecommendation).toHaveBeenCalledOnce()
+      expect(db.completeBatch).not.toHaveBeenCalled()
+      expect(db.failBatch).toHaveBeenCalledWith(1)
+    },
+  )
+
+  it('preserves the original completion failure when batch cleanup also fails', async () => {
+    const db = makeDb()
+    db.completeBatch.mockRejectedValueOnce(new Error('primary failure'))
+    db.failBatch.mockRejectedValueOnce(new Error('cleanup failure'))
+    await expect(store([], db)).rejects.toThrow('primary failure')
+  })
+  it('does not create a batch when cancellation was already accepted', async () => {
+    const db = makeDb()
+    const controller = new AbortController()
+    controller.abort()
+    await expect(store([], db, { signal: controller.signal })).rejects.toBeInstanceOf(
+      PipelineCancelledError,
+    )
+    expect(db.insertBatch).not.toHaveBeenCalled()
+  })
+
+  it('reports failed cancellation cleanup as a real error with both causes', async () => {
+    const db = makeDb()
+    const controller = new AbortController()
+    db.upsertArtist.mockImplementationOnce(async () => {
+      controller.abort()
+      return { id: 1 }
+    })
+    const cleanupError = new Error('batch cleanup failed')
+    db.failBatch.mockRejectedValueOnce(cleanupError)
+    await expect(store([makeArtist('a')], db, { signal: controller.signal })).rejects.toMatchObject(
+      { errors: [expect.any(PipelineCancelledError), cleanupError] },
+    )
+    expect(db.completeBatch).not.toHaveBeenCalled()
   })
 })

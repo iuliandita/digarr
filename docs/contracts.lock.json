@@ -280,7 +280,7 @@
         "src/server/routes/listening.ts": "cc79551ebb1d6b7e33486814efd4680be3b4e4599b084ee2e3e26a24c098d019",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "e49aecc75bb71f922b15c48337d6f9b39ab39de70d9870c0c95d245c2692b2a4",
-        "src/server/routes/pipeline.ts": "ccef5767bb9abc8e3cdf72e100221d7b8dcd061f6dfe8426267f6cb4735c62ad",
+        "src/server/routes/pipeline.ts": "1a62b35811c302545d04a36f7a1729596974b991b580207a62b5cbd6a2e2bc2e",
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
         "src/server/routes/recommendations.ts": "4a05ac93ec2b0728d503515f915dcdb1ca4a116180549bd4a65ff6633dc35a74",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "6bc108789055127d9e82ef512ee061bba1e7f1314dcb1807123f01081c5f1205",
+      "digest": "4be4eeb87cad40b28754e59cbb24acbc3d458119d03ba354fbe540c001e2bd72",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Feedback summary returns actual rejected plus other outcomes; approved, acted-on total, rate, threshold, order, limit and user scope stay unchanged. The intentionally partial OpenAPI contract has no summary schema to update. Documented old v1.19.0 behavior and consumer upgrade/rollback.",
-        "breaking": "API rejected excludes failed approvals and restored pending rows; clients reconciling counts must include the new other field.",
-        "migration": "No stored-row migration. Upgrade API consumers to reconcile approved plus rejected plus other; rollback restores the old rejected remainder. Database backup procedures are unchanged.",
-        "digest": "6bc108789055127d9e82ef512ee061bba1e7f1314dcb1807123f01081c5f1205"
+        "note": "Cancel retains its 202 cancelled/message shape and queue clearing. Documented accepted-stop versus settlement, explicit finishing decline, retained writes and target outcomes, errors and v1.19.0 differences. Partial OpenAPI contract has no cancellation response schema to amend.",
+        "breaking": "cancelled false can mean a busy run is finalizing; clients must distinguish Pipeline finishing from idle and await terminal settlement instead of a 15-second reset.",
+        "migration": "No stored-data migration. Upgrade callers to wait for pipeline settlement and preserve all migration prerequisites for other writers; backup procedures are unchanged. Rollback restores the old cancellation behavior.",
+        "digest": "4be4eeb87cad40b28754e59cbb24acbc3d458119d03ba354fbe540c001e2bd72"
       }
     },
     "interface": {
@@ -387,7 +387,7 @@
         "src/web/components/monitoring-options.tsx": "ce08a5e683db3d7175e5a9c7d3e37089fca2484b4680c8820d7cf26ce794b92a",
         "src/web/components/mood-prompt-bar.tsx": "f43ce0139384f09e11f0bc1bfe2658ee516c66b83c8aa3f4ff2fc71ed358bef4",
         "src/web/components/oauth-callback-notice.tsx": "1c0fa4ed9f97987d6eb9ea14a315a3aa788f82036b9376fcaaf2073ac56c3f2b",
-        "src/web/components/pipeline-progress.tsx": "e666031fd5054f03fb06b909ac9b5e3ba7d17b4e3537fdb5f54fb4f07237c295",
+        "src/web/components/pipeline-progress.tsx": "43b74abf15dedf27c2a592d988ff6251771733c2c30b04a16e2e6a1b0663d657",
         "src/web/components/playlist-card.tsx": "db37b633bb71b4b4d36bd5106f4f2e0bb809b2e53f205181e7e602ad617b66f2",
         "src/web/components/playlist-form.tsx": "3df528e4fd38dc48b3fe34ee104321c01306b648cf726f44340fa7b1ce3e13a9",
         "src/web/components/preview-player.tsx": "549fe3d71cfad0afcaf7aca906bcb9c3226ac8a6267e2fce6759003c3812e422",
@@ -459,14 +459,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "a0e572da29f2cd0932d2d44a5655cdfa3d73699e845d3586b9e82b35f54ac4f2",
+      "digest": "03df38194727da067e563152e564dfb1668a081d7655db30c6fa515aed237a83",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed typed summary response and FeedbackInsights consumer: only rate and total render, and both are unchanged. Added other to client typing. No UI text, theme, locale, screenshot, configuration, deployment or Unraid changes.",
+        "note": "Stop resets its local stopping state when cancellation is declined. Existing translated labels, themes, layout and request shape stay unchanged; no new UI strings or screenshot changes. Reviewed image/channel/environment/authentication/port/volume/bootstrap surfaces: no deployment or Unraid companion impact.",
         "breaking": "none",
         "migration": "",
-        "digest": "a0e572da29f2cd0932d2d44a5655cdfa3d73699e845d3586b9e82b35f54ac4f2"
+        "digest": "03df38194727da067e563152e564dfb1668a081d7655db30c6fa515aed237a83"
       }
     },
     "features": {
@@ -560,18 +560,18 @@
         "src/core/notifications/transport.ts": "58e8c56d2fc07f34405a4eec3c379294c31acacfe6d041442a11d60c9663a4ca",
         "src/core/notifications/types.ts": "be5640349401fb3b996709e631d14dd8760fbed4f529b00f6328d9ddbe12068a",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
-        "src/core/pipeline/auto-approve.ts": "c5ce5b0bcbca23f8fef6c57601b62498b4d2a4de1c7098b9d3ad7c26de79ff23",
-        "src/core/pipeline/cancel.ts": "346b432a6f0db611f6a6c6322557ea439f6a1f4ab50d4ceac0e6e59aef692752",
+        "src/core/pipeline/auto-approve.ts": "a9a52ae3478da777837c8da9620eeb0f9d97f088b7f87ed2753f7daa918dc722",
+        "src/core/pipeline/cancel.ts": "6d28ad56bac72093e4558b8269cab606ba2dff0f058dc0ffdddba040666cffe1",
         "src/core/pipeline/discover.ts": "1b09622f0c84dfe1a0e4e9029eeadad56986b0f8d468726ceff0537f4a56c09c",
         "src/core/pipeline/enrich.ts": "3744493e0cbad7c12aa697af3f9b8b429506e8a57566f1b3bbc0ad509ba318ff",
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
         "src/core/pipeline/genre-backfill.ts": "63a7d5ebc180fa1a15b2c0fb9266b416f468fc75c07aecc6360072ccbc133d19",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
-        "src/core/pipeline/orchestrator.ts": "7f230b0d1e6ac8085554f922b988c2b8bca77a0b6a0f74256c952405cebf0f1c",
+        "src/core/pipeline/orchestrator.ts": "bf3b449ec3d7498587548de5d5bfc38a6e96ea191301471b8343e7b5832a036d",
         "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
         "src/core/pipeline/scheduler.ts": "108abc5f29c6c4595407d8b26137d4068b24fd71b44d5ccd92161a28a8ecbed2",
         "src/core/pipeline/score.ts": "f699ad1cea010b6dd035121039fe60de7c5d4d55ae05a5ff23a0f3dc6c2432fa",
-        "src/core/pipeline/store.ts": "48ef2f6783affcd93709622ccb6a07f2dbc4af992457429bd7016ad00728fa22",
+        "src/core/pipeline/store.ts": "dbc481c1e1250860afa50135f529b139a2bd044482f7a4a0c3edf66692052d5d",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
@@ -667,14 +667,14 @@
         "src/index.ts": "edcf5900bbc9c1fb12da9183e296c35b2eaa6cd3fca370fec6a832486dda60d1",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "6396b704add655dd62458ba8b465a85d4a8a84259f8e24e4222a4363a4a40b14",
+      "digest": "701d87bb57abe43cdaceb841b9354bb336059c6cb4d3d5edf7e3ae15c4c1b14b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Reviewed the shared GenreFeedback type and all scorer reads. New optional rejected tally is not used by scoring; total, approval rate, strong-negative penalty, stored scores and ranking stay unchanged. README and architecture have no affected count claim.",
-        "breaking": "none",
-        "migration": "",
-        "digest": "6396b704add655dd62458ba8b465a85d4a8a84259f8e24e4222a4363a4a40b14"
+        "docs": ["docs/ARCHITECTURE.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Reviewed cooperative store and target checkpoints, retained results, error-preserving cleanup, completion commitment and terminal event ownership/reentrance. Documented no whole-application quiescence guarantee. README has no affected cancellation contract.",
+        "breaking": "Cancelled work no longer force-unlocks after 15 seconds. Hung operations remain busy, and cancellation is declined once success finalization begins.",
+        "migration": "No schema migration or row rewrite. Before upgrade retain normal database backup and matching encryption key; interrupted work retains committed outcomes. Rollback restores the old forced-unlock and late-write behavior.",
+        "digest": "701d87bb57abe43cdaceb841b9354bb336059c6cb4d3d5edf7e3ae15c4c1b14b"
       }
     },
     "deployment": {

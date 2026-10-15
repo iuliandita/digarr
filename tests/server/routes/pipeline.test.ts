@@ -406,8 +406,16 @@ describe('POST /api/v1/pipeline/cancel', () => {
     const body = await res.json()
     expect(body.cancelled).toBe(false)
   })
+  it('returns a finishing response when completion has committed', async () => {
+    const mock = makeMockOrchestrator(true)
+    mock.cancel.mockReturnValue({ cancelled: false })
+    const orchestrator = mock as unknown as AppDependencies['orchestrator']
+    const app = createApp(makeDeps({ orchestrator }))
+    const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ cancelled: false, message: 'Pipeline finishing' })
+  })
 })
-
 describe('GET /api/v1/pipeline/events', () => {
   it('returns text/event-stream content type', async () => {
     const app = createApp(makeDeps())

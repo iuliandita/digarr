@@ -235,7 +235,7 @@ Setup validation rules:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/v1/pipeline/run` | Yes | Start a full discovery scan, or queue it behind an in-flight run. Returns 202 with `{ message, status, queued, position }`; `status` is `started`, `queued`, or `duplicate`. |
-| POST | `/api/v1/pipeline/cancel` | Yes | Request cancellation of the in-flight run and drop the queue. Returns 202 with `{ cancelled, message }` (`cancelled` is false when nothing was running). |
+| POST | `/api/v1/pipeline/cancel` | Yes | Request cancellation of the in-flight run and drop the queue. Returns 202 with `{ cancelled, message }`; on develop, `cancelled` is false when idle or already finishing. |
 | GET | `/api/v1/pipeline/status` | Yes | Current pipeline status (running, stage, last run, `queueLength`, caller `queuePosition`) |
 | GET | `/api/v1/pipeline/events` | Yes | SSE stream of pipeline progress events |
 | POST | `/api/v1/pipeline/quick-discover` | Yes | Fire-and-forget: try saving the named seed, then discover similar artists. Rate limited: 5/min |
@@ -250,18 +250,13 @@ rejected: the response is still 202 with `queued: true` and the caller's 1-based
 The queue drains automatically when the active run finishes. The queue is
 in-memory and per-process.
 
-`POST /api/v1/pipeline/cancel` is available to any authenticated user and clears
-the pending queue. Cancellation is cooperative: when a checkpoint observes the
-abort signal, the job is recorded as `cancelled` and emits a terminal progress
-event. The final checkpoint precedes storage, so a late cancellation can leave
-recommendation writes and automatic target additions running and finish with a
-`completed` job status ([#790](https://github.com/iuliandita/digarr/issues/790)).
+`POST /api/v1/pipeline/cancel` is available to any authenticated user and clears the pending queue. On develop, `cancelled: true` accepts a cooperative stop request; it does not report that the worker has stopped. Storage checks between complete artist/recommendation units, and automatic approval checks before new recommendations and targets. An operation already in flight finishes and records its actual result before stopping. Saved recommendations and remote additions remain; cancellation does not roll them back. An actual target or database failure remains a failure even when cancellation was requested. Interrupted storage marks its batch failed, while the pipeline job records cancellation after cleanup succeeds.
 
-If the run is still marked running after 15 seconds, a backstop clears the
-indicator and emits a `cancelled` event without terminating work or recording job cancellation. Neither
-`cancelled: true` nor a cleared indicator proves that all writes have stopped.
-Before a backend migration, follow the [migration prerequisites](guides/switching-backends.md#prerequisites)
-and do not rely on cancellation as confirmation that the process is idle.
+The running flag stays true until active work and awaited batch/job bookkeeping settle. A terminal `cancelled` or `complete` progress event follows that settlement. Cleanup failures surface as errors, preserving the original failure, rather than claiming successful cancellation ([#790](https://github.com/iuliandita/digarr/issues/790), [#850](https://github.com/iuliandita/digarr/issues/850)). There is no forced unlock after 15 seconds. A hung operation keeps the pipeline busy until it settles or the process is deliberately restarted; inspect retained recommendations and target outcomes before retrying.
+
+After the run commits to final success bookkeeping, cancellation is too late: the response is `202` with `cancelled: false` and message `Pipeline finishing`, while `running` remains true until finalization settles. An idle request returns `cancelled: false` with `No pipeline run in progress`. The browser resets the Stop button when cancellation is declined. The queue is cleared in all cases.
+
+v1.19.0 checks cancellation only before storage and can continue storage or target additions after its 15-second backstop clears the indicator. Do not use that indicator as evidence that writes stopped. On every version, follow the [migration prerequisites](guides/switching-backends.md#prerequisites): pipeline settlement does not prove that every background job or other writer is idle.
 
 `POST /api/v1/pipeline/rescan` is admin-only because it writes shared artist
 metadata using the requesting admin's configured providers. It runs one rescan

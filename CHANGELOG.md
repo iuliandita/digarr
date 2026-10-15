@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Keep pipeline cancellation busy until in-flight operations and bookkeeping settle, stop new storage and target work at safe checkpoints, and retain completed outcomes. Remove the 15-second forced unlock; hung operations now remain busy. Cancellation is declined once success finalization begins. Cleanup failures surface without hiding the original error. No schema migration is added; rollback restores the previous cancellation behavior. [#790](https://github.com/iuliandita/digarr/issues/790), [#850](https://github.com/iuliandita/digarr/issues/850).
+
 - Count only actual rejections in genre feedback summaries and expose the remaining acted-on outcomes as `other`. API consumers must include `other` when reconciling totals. Approval rates and recommendation scoring retain their existing denominator; no migration or row rewrite is added. Rollback restores the old response calculation. [#789](https://github.com/iuliandita/digarr/issues/789).
 
 - Scope rejection cooldowns to the run owner across scans, Quick Discover similar results, and subscriptions. Account runs exclude other accounts and legacy unowned rejections; unowned subscriptions consult only unowned rejections. Existing cooldown windows, permanent blocks, and the separate Quick Discover seed behavior are unchanged. This change adds no migration or row rewrite; rollback restores shared cooldowns. [#788](https://github.com/iuliandita/digarr/issues/788).

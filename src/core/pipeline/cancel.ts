@@ -6,9 +6,6 @@ export class PipelineCancelledError extends Error {
   }
 }
 
-/**
- * Grace window before a cancelled-but-wedged run is force-reset. Cooperative
- * abort normally lands within one request timeout (~10s); this backstop only
- * fires if the run ignores the signal entirely.
- */
-export const FORCE_RESET_GRACE_MS = 15_000
+export function checkPipelineCancelled(signal?: AbortSignal): void {
+  if (signal?.aborted) throw new PipelineCancelledError()
+}
