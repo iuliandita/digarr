@@ -1194,6 +1194,8 @@ export const es = {
     'Se usa cuando el servidor de metadatos de Lidarr no está disponible. Por defecto es api.musicinfo.pro. Indica la URL de tu propia instancia de hearring-aid si la alojas tú mismo.',
   'settings.recommendationsSaved': 'Ajustes de recomendaciones guardados',
   'settings.recommendationsFailed': 'Error al guardar los ajustes',
+  'settings.recommendationsPartiallySaved':
+    'Se guardaron las preferencias personales, pero no se pudieron guardar los ajustes globales de metadatos.',
   'settings.scheduleTip':
     'Establece una programación cron para ejecutar el pipeline automáticamente. Una vez a la semana, los lunes, es una opción popular.',
   'settings.librarySyncInterval': 'Sincronización de biblioteca',
@@ -1420,6 +1422,9 @@ export const es = {
   'admin.exporting': 'Exportando...',
   'admin.includeCaches': 'Incluir cachés',
   'admin.restoreFromBackup': 'Restaurar desde copia',
+  'admin.restoreConfirmTitle': '¿Restaurar la copia de seguridad?',
+  'admin.restoreConfirmMessage':
+    'Esto reemplaza los datos incluidos en la copia de seguridad. Haz primero una copia de seguridad de esta instancia. ¿Continuar?',
   'admin.lastAutoBackup': 'Última copia automática:',
   'admin.backupDownloaded': 'Copia descargada',
   'admin.backupFailed': 'Error al crear la copia',

@@ -28,7 +28,10 @@ import type { HonoEnv } from '@/server/types'
 
 type OidcRouteDeps = {
   getOidcService: () => Promise<OidcService | null>
-  getUserByOidcSubject: (subject: string) => Promise<{ id: number; username: string } | null>
+  getUserByOidcIdentity: (
+    issuer: string,
+    subject: string,
+  ) => Promise<{ id: number; username: string } | null>
   getUserByUsername: (username: string) => Promise<{ id: number; username: string } | null>
   getUserCredentialsById: (id: number) => Promise<OidcLinkCredentials | null>
   createUser: (
@@ -38,6 +41,7 @@ type OidcRouteDeps = {
       isAdmin?: boolean
       email?: string
       oidcSubject?: string
+      oidcIssuer?: string
       authProvider?: string
     },
     options?: UserBootstrapOptions,
@@ -189,6 +193,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
         await deps.linkOidcIdentity({
           userId: result.purpose.userId,
           oidcSubject: result.claims.sub,
+          oidcIssuer: result.claims.iss,
           passwordFingerprint: result.purpose.passwordFingerprint,
           initiatingSessionHash: result.purpose.sessionHash,
           presentedSessionHash: hashSessionToken(presentedSession),
@@ -198,12 +203,12 @@ export function oidcRoutes(deps: OidcRouteDeps) {
 
       const sessionCookie = prepareSessionCookie(c)
 
-      // User matching is by OIDC subject only, then auto-create. Linking by the
+      // Match the exact validated issuer and subject pair, then auto-create. Linking by the
       // `email` claim is deliberately NOT done: a local account's email can be
       // self-asserted (unverified), so matching on it would let an attacker
       // pre-seed an account with a victim's email and have the victim's first
       // OIDC login bind to it (pre-link account takeover).
-      let user = await deps.getUserByOidcSubject(result.claims.sub)
+      let user = await deps.getUserByOidcIdentity(result.claims.iss, result.claims.sub)
 
       if (!user) {
         // Local registration lowercases emails and the unique index is
@@ -231,6 +236,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
             passwordHash: hashPassword(crypto.randomUUID()),
             email,
             oidcSubject: result.claims.sub,
+            oidcIssuer: result.claims.iss,
             authProvider: 'oidc',
           },
           { bootstrap: 'allow-existing' },

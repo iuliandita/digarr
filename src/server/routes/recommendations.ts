@@ -561,10 +561,11 @@ export function recommendationRoutes(deps: AppDependencies) {
     const userId = c.get('userId')
     const history = await deps.getFeedbackHistory(userId)
     const summary = [...history.entries()]
-      .map(([genre, { approved, total }]) => ({
+      .map(([genre, { approved, rejected = 0, total }]) => ({
         genre,
         approved,
-        rejected: total - approved,
+        rejected,
+        other: total - approved - rejected,
         total,
         rate: total > 0 ? approved / total : 0,
       }))

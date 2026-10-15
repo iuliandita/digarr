@@ -9,6 +9,7 @@ import {
   encryptChannelSecrets,
   maskChannelSecrets,
   restoreMaskedChannelSecrets,
+  SENSITIVE_PREFERENCES,
 } from '@/core/crypto'
 import { dispatch } from '@/core/notifications'
 import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
@@ -39,6 +40,8 @@ const SECRET_FIELDS = [
   'subsonicPassword',
   'tidalClientSecret',
 ] as const
+
+const SECRET_PREFERENCE_FIELDS = [...SENSITIVE_PREFERENCES, 'webhookUrl'] as const
 
 type SettingsResponse = Record<string, unknown>
 
@@ -161,11 +164,10 @@ function stripForNonAdmin(settings: Record<string, unknown>): SettingsResponse {
     }
   }
 
-  // Strip webhook URL and notification channels (secret-bearing) from
-  // preferences for non-admins - notification config is admin-only.
+  // Global preference secrets and notification config are admin-only.
   if (stripped.preferences && typeof stripped.preferences === 'object') {
     const prefs = { ...(stripped.preferences as Record<string, unknown>) }
-    delete prefs.webhookUrl
+    for (const field of SECRET_PREFERENCE_FIELDS) delete prefs[field]
     delete prefs.channels
     // Keep scheduleCron visible but not editable (frontend hides the tab)
     stripped.preferences = prefs
@@ -230,15 +232,16 @@ async function buildSettingsResponse(
     }
   }
 
-  // Notification channel secrets must never leave the server (plaintext OR
-  // ciphertext). Mask them in a copied preferences object so the stored row is
-  // not mutated. Non-admins already had channels stripped above.
+  // Mask plaintext and ciphertext in a copy, preserving the stored preferences.
   if (response.preferences && typeof response.preferences === 'object') {
     const prefs = { ...(response.preferences as Record<string, unknown>) }
+    for (const field of SECRET_PREFERENCE_FIELDS) {
+      if (typeof prefs[field] === 'string' && prefs[field].length > 0) prefs[field] = '***'
+    }
     if (Array.isArray(prefs.channels)) {
       prefs.channels = maskChannelSecrets(prefs.channels as NotificationChannel[])
-      response.preferences = prefs
     }
+    response.preferences = prefs
   }
 
   return response
@@ -387,6 +390,9 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     if (incomingPrefs) {
+      for (const field of SECRET_PREFERENCE_FIELDS) {
+        if (incomingPrefs[field] === '***') delete incomingPrefs[field]
+      }
       globalFields.preferences = mergePreferenceUpdate(storedSettings?.preferences, incomingPrefs)
     }
 

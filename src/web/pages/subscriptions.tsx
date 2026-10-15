@@ -404,7 +404,10 @@ export default function SubscriptionsPage() {
       invalidate()
       toast.success(t('subscriptions.runTriggered'))
     },
-    onError: () => toast.error(t('subscriptions.runTriggerFailed')),
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      toast.error(t('subscriptions.runTriggerFailed'))
+    },
   })
 
   const bulkMutation = useMutation({

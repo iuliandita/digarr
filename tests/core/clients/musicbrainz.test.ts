@@ -7,6 +7,8 @@ import {
   type MBSearchResult,
   parseYear,
 } from '@/core/clients/musicbrainz'
+import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fill'
+import { createAlbumCoverageService } from '@/core/library/album-coverage'
 import { VERSION } from '@/version'
 
 // ---------------------------------------------------------------------------
@@ -576,6 +578,260 @@ describe('createMusicBrainzClient', () => {
       expect(types).toContain('Album')
       expect(types).toContain('Single')
       expect(types).toContain('EP')
+    })
+  })
+
+  describe('release-group pagination', () => {
+    function groups(start: number, length: number) {
+      return Array.from({ length }, (_, index) => ({
+        id: `rg-${start + index}`,
+        title: `Album ${start + index}`,
+        'primary-type': 'Album',
+        'first-release-date': '2001-02-03',
+      }))
+    }
+
+    it('preserves secondary types across pages without narrowing the shared catalog', async () => {
+      const firstPage = groups(0, 100).map((group) => ({ ...group, 'secondary-types': [] }))
+      const laterPage = [
+        { ...groups(100, 1)[0], 'secondary-types': ['Live'] },
+        { ...groups(101, 1)[0], 'secondary-types': ['Compilation', 'Live'] },
+        { ...groups(102, 1)[0], 'primary-type': 'EP', 'secondary-types': [] },
+        ...groups(103, 1),
+      ]
+      for (const [offset, page] of [
+        [0, firstPage],
+        [100, laterPage],
+      ] as const) {
+        mockFetch.mockResolvedValueOnce(
+          makeJsonResponse({
+            'release-groups': page,
+            'release-group-count': 104,
+            'release-group-offset': offset,
+          }),
+        )
+      }
+
+      const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
+
+      expect(result).toHaveLength(104)
+      expect(result[0]).toMatchObject({ secondaryTypes: [] })
+      expect(result.slice(100)).toEqual([
+        expect.objectContaining({ id: 'rg-100', type: 'Album', secondaryTypes: ['Live'] }),
+        expect.objectContaining({
+          id: 'rg-101',
+          type: 'Album',
+          secondaryTypes: ['Compilation', 'Live'],
+        }),
+        expect.objectContaining({ id: 'rg-102', type: 'EP', secondaryTypes: [] }),
+        expect.objectContaining({ id: 'rg-103', type: 'Album' }),
+      ])
+      expect(result[103]?.secondaryTypes).toBeUndefined()
+    })
+
+    it.each([0, 99, 100, 101, 200, 10_000])(
+      'retrieves all %i advertised groups through the shared request queue',
+      async (count) => {
+        const pages = Math.max(1, Math.ceil(count / 100))
+        for (let page = 0; page < pages; page += 1) {
+          mockFetch.mockResolvedValueOnce(
+            makeJsonResponse({
+              'release-groups': groups(page * 100, Math.min(100, count - page * 100)),
+              'release-group-count': count,
+              'release-group-offset': page * 100,
+            }),
+          )
+        }
+
+        const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID, ['album'])
+        expect(result.map((group) => group.id)).toEqual(groups(0, count).map((group) => group.id))
+        expect(mockFetch).toHaveBeenCalledTimes(pages)
+        const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
+        expect(sharedAdd).toHaveBeenCalledTimes(pages)
+        for (const [index, [url, options]] of mockFetch.mock.calls.entries()) {
+          expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
+            artist: MOCK_ARTIST_MBID,
+            type: 'album',
+            fmt: 'json',
+            limit: '100',
+            offset: String(index * 100),
+          })
+          expect(options.headers['User-Agent']).toBe(USER_AGENT)
+        }
+      },
+    )
+
+    it.each([
+      {
+        name: 'short final page',
+        pages: [groups(0, 100), groups(100, 1)],
+        offsets: [0, 100],
+        count: 101,
+      },
+      { name: 'empty final page', pages: [groups(0, 100), []], offsets: [0, 100], count: 100 },
+      {
+        name: 'overlapping IDs with raw offsets',
+        pages: [
+          groups(0, 100),
+          [{ ...groups(99, 1)[0], title: 'Changed title' }, ...groups(100, 1)],
+        ],
+        offsets: [0, 100],
+        count: 101,
+      },
+      {
+        name: 'duplicates within a full page',
+        pages: [[...groups(0, 99), ...groups(98, 1)], groups(99, 1)],
+        offsets: [0, 100],
+        count: 100,
+      },
+    ])('collects metadata-free pages with $name', async ({ pages, offsets, count }) => {
+      for (const page of pages) {
+        mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': page }))
+      }
+      const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
+      expect(result).toEqual(
+        groups(0, count).map((group) => ({
+          id: group.id,
+          title: group.title,
+          type: 'Album',
+          firstReleaseDate: '2001-02-03',
+        })),
+      )
+      expect(
+        mockFetch.mock.calls.map(([url]) => Number(new URL(url).searchParams.get('offset'))),
+      ).toEqual(offsets)
+      for (const [url] of mockFetch.mock.calls) {
+        expect(new URL(url).searchParams.get('type')).toBe('album|ep|single')
+      }
+    })
+
+    it.each([
+      ...(['release-group-count', 'release-group-offset'] as const).flatMap((key) =>
+        [-1, 0.5, Number.MAX_SAFE_INTEGER + 1, '100', null].map((value) => ({
+          name: `invalid ${key}: ${String(value)}`,
+          pages: [{ 'release-groups': groups(0, 1), [key]: value }],
+        })),
+      ),
+      {
+        name: 'mismatched offset',
+        pages: [{ 'release-groups': groups(0, 1), 'release-group-offset': 1 }],
+      },
+      { name: 'oversized page', pages: [{ 'release-groups': groups(0, 101) }] },
+      ...[undefined, null, {}].map((value) => ({
+        name: `malformed later release-groups: ${String(value)}`,
+        pages: [{ 'release-groups': groups(0, 100) }, { 'release-groups': value }],
+      })),
+      {
+        name: 'count smaller than page',
+        pages: [{ 'release-groups': groups(0, 1), 'release-group-count': 0 }],
+      },
+      { name: 'empty first page with outstanding count', pages: [{ 'release-group-count': 1 }] },
+      {
+        name: 'premature empty page retaining the first count',
+        pages: [{ 'release-groups': groups(0, 100), 'release-group-count': 101 }, {}],
+      },
+      {
+        name: 'repeated full page',
+        pages: [{ 'release-groups': groups(0, 100) }, { 'release-groups': groups(0, 100) }],
+      },
+      {
+        name: 'short page with no new IDs',
+        pages: [{ 'release-groups': groups(0, 100) }, { 'release-groups': groups(0, 1) }],
+      },
+      {
+        name: 'changing count',
+        pages: [
+          { 'release-groups': groups(0, 100), 'release-group-count': 101 },
+          { 'release-groups': groups(100, 1), 'release-group-count': 100 },
+        ],
+      },
+      {
+        name: 'later HTTP failure',
+        pages: [{ 'release-groups': groups(0, 100) }, new Response('', { status: 404 })],
+      },
+      ...[undefined, 10_001].map((count) => ({
+        name: `unproven completion at cap with count ${String(count)}`,
+        pages: Array.from({ length: 100 }, (_, page) => ({
+          'release-groups': groups(page * 100, 100),
+          'release-group-count': count,
+        })),
+      })),
+    ])('rejects incomplete results for $name', async ({ pages }) => {
+      for (const page of pages) {
+        mockFetch.mockResolvedValueOnce(page instanceof Response ? page : makeJsonResponse(page))
+      }
+      await expect(createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)).rejects.toThrow(
+        /MusicBrainz/,
+      )
+      expect(mockFetch).toHaveBeenCalledTimes(pages.length)
+    })
+
+    it('retries a transient later page through the shared queue', async () => {
+      vi.useFakeTimers()
+      try {
+        mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': groups(0, 100) }))
+        mockFetch.mockResolvedValueOnce(
+          new Response('', { status: 503, headers: { 'Retry-After': '1' } }),
+        )
+        mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': groups(100, 1) }))
+        const pending = createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
+        await vi.runAllTimersAsync()
+        expect(await pending).toHaveLength(101)
+        expect(
+          mockFetch.mock.calls.map(([url]) => new URL(url).searchParams.get('offset')),
+        ).toEqual(['0', '100', '100'])
+        const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
+        expect(sharedAdd).toHaveBeenCalledTimes(3)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('includes only the missing studio album after 100 owned studio albums in coverage and gap-fill', async () => {
+      const firstPage = groups(0, 100).map((group) => ({ ...group, 'secondary-types': [] }))
+      mockFetch.mockResolvedValueOnce(
+        makeJsonResponse({
+          'release-groups': firstPage,
+          'release-group-count': 103,
+          'release-group-offset': 0,
+        }),
+      )
+      mockFetch.mockResolvedValueOnce(
+        makeJsonResponse({
+          'release-groups': [
+            { ...groups(100, 1)[0], 'secondary-types': [] },
+            { ...groups(101, 1)[0], 'secondary-types': ['Live'] },
+            { ...groups(102, 1)[0], 'secondary-types': ['Compilation'] },
+          ],
+          'release-group-count': 103,
+          'release-group-offset': 100,
+        }),
+      )
+      const service = createAlbumCoverageService({
+        mbClient: createMusicBrainzClient(),
+        store: {
+          listOwnedAlbumsForArtist: async () =>
+            firstPage.map((group) => ({
+              source: 'plex',
+              sourceAlbumId: group.id,
+              albumMbid: group.id,
+              title: group.title,
+              releaseYear: 2001,
+              primaryType: 'Album',
+            })),
+        },
+      })
+
+      const coverage = await service.getCoverageForArtist(7, MOCK_ARTIST_MBID)
+      expect(coverage).toMatchObject({ ownedCount: 100, totalCount: 101 })
+      expect(coverageToReleaseCandidates(coverage, 'Artist')).toEqual([
+        expect.objectContaining({
+          candidateType: 'release',
+          releaseGroupMbid: 'rg-100',
+          artistMbid: MOCK_ARTIST_MBID,
+          name: 'Album 100',
+        }),
+      ])
     })
   })
 

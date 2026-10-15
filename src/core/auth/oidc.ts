@@ -63,6 +63,7 @@ export type OidcAuthPurpose =
     }>
 
 export interface OidcUserClaims {
+  iss: string
   sub: string
   email?: string
   emailVerified?: boolean
@@ -227,6 +228,14 @@ export class OidcService {
       })
       idClaims = tokens.claims()
       if (!idClaims) throw new Error('No ID token claims in OIDC response')
+      if (
+        typeof idClaims.iss !== 'string' ||
+        idClaims.iss.length === 0 ||
+        typeof idClaims.sub !== 'string' ||
+        idClaims.sub.length === 0
+      ) {
+        throw new Error('Invalid OIDC identity claims')
+      }
     } catch (error) {
       throw new OidcCallbackError(pending.purpose, errMsg(error), error)
     }
@@ -234,6 +243,7 @@ export class OidcService {
     return {
       purpose: pending.purpose,
       claims: {
+        iss: idClaims.iss,
         sub: idClaims.sub,
         email: idClaims.email as string | undefined,
         emailVerified: idClaims.email_verified as boolean | undefined,

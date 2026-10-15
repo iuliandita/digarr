@@ -1201,6 +1201,8 @@ export const de = {
     'Wird verwendet, wenn Lidarrs Metadatenserver nicht erreichbar ist. Standard ist api.musicinfo.pro. Bei Self-Hosting eigene hearring-aid-Instanz-URL angeben.',
   'settings.recommendationsSaved': 'Empfehlungseinstellungen gespeichert',
   'settings.recommendationsFailed': 'Einstellungen konnten nicht gespeichert werden',
+  'settings.recommendationsPartiallySaved':
+    'Persönliche Einstellungen gespeichert, aber die globalen Metadateneinstellungen konnten nicht gespeichert werden.',
   'settings.scheduleTip':
     'Lege einen Cron-Zeitplan für die automatische Ausführung der Entdeckungs-Pipeline fest. Wöchentlich montags ist eine beliebte Wahl.',
   'settings.librarySyncInterval': 'Bibliothekssync',
@@ -1430,6 +1432,9 @@ export const de = {
   'admin.exporting': 'Exportiere...',
   'admin.includeCaches': 'Caches einschliessen',
   'admin.restoreFromBackup': 'Aus Backup wiederherstellen',
+  'admin.restoreConfirmTitle': 'Backup wiederherstellen?',
+  'admin.restoreConfirmMessage':
+    'Dadurch werden die im Backup enthaltenen Daten ersetzt. Erstelle zuerst ein Backup dieser Instanz. Fortfahren?',
   'admin.lastAutoBackup': 'Letztes Auto-Backup:',
   'admin.backupDownloaded': 'Backup heruntergeladen',
   'admin.backupFailed': 'Backup-Erstellung fehlgeschlagen',

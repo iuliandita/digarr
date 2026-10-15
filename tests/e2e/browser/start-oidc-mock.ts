@@ -17,6 +17,7 @@ const localUser = {
   passwordHash: hashPassword('local-password-123'),
   authProvider: 'local',
   oidcSubject: null,
+  oidcIssuer: null,
 }
 let linkedSubject: string | null = null
 let linkCount = 0
@@ -45,6 +46,7 @@ const oidcService = {
     return {
       purpose: transaction.purpose,
       claims: {
+        iss: 'https://idp.example.com',
         sub: transaction.purpose.kind === 'link' ? 'browser-link-subject' : 'browser-oidc-subject',
         email: 'browser-oidc@example.test',
         emailVerified: true,
@@ -68,7 +70,7 @@ app.route(
   '/',
   oidcRoutes({
     getOidcService: async () => oidcService,
-    getUserByOidcSubject: async () => user,
+    getUserByOidcIdentity: async () => user,
     getUserByUsername: async () => user,
     createUser: async () => {
       createUserCount += 1

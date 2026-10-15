@@ -16,6 +16,7 @@ vi.mock('@/core/ops/backup', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/core/ops/backup')>()
   return {
     ...actual,
+    assertDatabaseCopyTargetEmpty: vi.fn(actual.assertDatabaseCopyTargetEmpty),
     copyDatabaseTables,
     createBackup: vi.fn(actual.createBackup),
     restoreBackup: vi.fn(actual.restoreBackup),
@@ -23,7 +24,12 @@ vi.mock('@/core/ops/backup', async (importOriginal) => {
 })
 
 const { migrateBackend } = await import('@/core/ops/migrate-backend')
-const { createBackup, restoreBackup } = await import('@/core/ops/backup')
+const {
+  assertDatabaseCopyTargetEmpty,
+  createBackup,
+  DatabaseCopyTargetNotEmptyError,
+  restoreBackup,
+} = await import('@/core/ops/backup')
 
 function tgt(name: string) {
   return join(process.env.DIGARR_MIGRATE_DATA_ROOT as string, name)
@@ -33,6 +39,7 @@ describe('migrateBackend failure paths', () => {
   beforeEach(() => {
     process.env.DIGARR_MIGRATE_DATA_ROOT = mkdtempSync(join(tmpdir(), 'digarr-migfail-'))
     copyDatabaseTables.mockReset()
+    vi.mocked(assertDatabaseCopyTargetEmpty).mockClear()
     vi.mocked(createBackup).mockClear()
     vi.mocked(restoreBackup).mockClear()
   })
@@ -40,35 +47,59 @@ describe('migrateBackend failure paths', () => {
     delete process.env.DIGARR_MIGRATE_DATA_ROOT
   })
 
-  it('delegates the copy from a repeatable-read, read-only source transaction', async () => {
+  it.each([false, true])(
+    'delegates a repeatable-read, read-only copy with overwrite=%s',
+    async (overwrite) => {
+      const src = await makeTestDb()
+      try {
+        await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
+        copyDatabaseTables.mockImplementation(async (sourceTx) => {
+          const isolation = await sourceTx.execute(sql`show transaction_isolation`)
+          const readOnly = await sourceTx.execute(sql`show transaction_read_only`)
+          expect(
+            (isolation as unknown as { rows: { transaction_isolation: string }[] }).rows[0]
+              ?.transaction_isolation,
+          ).toBe('repeatable read')
+          expect(
+            (readOnly as unknown as { rows: { transaction_read_only: string }[] }).rows[0]
+              ?.transaction_read_only,
+          ).toBe('on')
+          return { tablesRestored: { users: 1 }, mismatches: [] }
+        })
+
+        const report = await migrateBackend({
+          sourceDb: src.db as never,
+          target: { backend: 'pglite', path: tgt('delegated') },
+          isPipelineRunning: () => false,
+          overwrite,
+        })
+
+        expect(copyDatabaseTables).toHaveBeenCalledOnce()
+        expect(copyDatabaseTables).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+          requireEmptyTarget: !overwrite,
+        })
+        expect(assertDatabaseCopyTargetEmpty).toHaveBeenCalledTimes(overwrite ? 0 : 1)
+        expect(createBackup).not.toHaveBeenCalled()
+        expect(restoreBackup).not.toHaveBeenCalled()
+        expect(report.tablesMigrated).toEqual({ users: 1 })
+        expect(report.verified).toBe(true)
+      } finally {
+        await src.close()
+      }
+    },
+  )
+
+  it('maps a populated target detected during the copy to target_not_empty', async () => {
     const src = await makeTestDb()
     try {
-      await src.db.insert(schema.users).values({ username: 'mig', passwordHash: 'x' })
-      copyDatabaseTables.mockImplementation(async (sourceTx) => {
-        const isolation = await sourceTx.execute(sql`show transaction_isolation`)
-        const readOnly = await sourceTx.execute(sql`show transaction_read_only`)
-        expect(
-          (isolation as unknown as { rows: { transaction_isolation: string }[] }).rows[0]
-            ?.transaction_isolation,
-        ).toBe('repeatable read')
-        expect(
-          (readOnly as unknown as { rows: { transaction_read_only: string }[] }).rows[0]
-            ?.transaction_read_only,
-        ).toBe('on')
-        return { tablesRestored: { users: 1 }, mismatches: [] }
-      })
-
-      const report = await migrateBackend({
-        sourceDb: src.db as never,
-        target: { backend: 'pglite', path: tgt('delegated') },
-        isPipelineRunning: () => false,
-      })
-
-      expect(copyDatabaseTables).toHaveBeenCalledOnce()
-      expect(createBackup).not.toHaveBeenCalled()
-      expect(restoreBackup).not.toHaveBeenCalled()
-      expect(report.tablesMigrated).toEqual({ users: 1 })
-      expect(report.verified).toBe(true)
+      copyDatabaseTables.mockRejectedValue(new DatabaseCopyTargetNotEmptyError(['settings']))
+      await expect(
+        migrateBackend({
+          sourceDb: src.db as never,
+          target: { backend: 'pglite', path: tgt('late-conflict') },
+          isPipelineRunning: () => false,
+        }),
+      ).rejects.toMatchObject({ code: 'target_not_empty' })
     } finally {
       await src.close()
     }

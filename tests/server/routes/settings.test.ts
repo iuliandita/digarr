@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { UserConnections } from '@/db/queries/users'
+import type { Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
@@ -260,6 +261,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       preferences: null,
       email: null,
       oidcSubject: null,
+      oidcIssuer: null,
       authProvider: 'local',
       listenbrainzUsername: null,
       listenbrainzToken: null,
@@ -294,6 +296,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       preferences: null,
       email: null,
       oidcSubject: null,
+      oidcIssuer: null,
       authProvider: 'local',
       listenbrainzUsername: null,
       listenbrainzToken: null,
@@ -346,7 +349,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     },
     runSubscription: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),
@@ -395,6 +398,185 @@ async function authedRequest(
     },
   })
 }
+
+function makePreferenceFixture(preferences: Partial<Preferences>) {
+  let stored = { ...mockSettings, preferences } as unknown as SettingsRow
+  const deps = makeDeps({
+    getSettings: vi.fn(async () => stored),
+    updateSettings: vi.fn(async (update) => {
+      stored = { ...stored, ...update }
+    }),
+  })
+  return { deps, read: () => stored }
+}
+
+const storedPreferenceSecrets = [
+  { fanartApiKey: 'private-fanart-key', webhookUrl: 'https://hooks.example/secret-token' },
+  {
+    fanartApiKey: 'enc:v1:stored-fanart-ciphertext',
+    webhookUrl: 'enc:v1:stored-webhook-ciphertext',
+  },
+]
+
+describe('settings preference secrets', () => {
+  it.each(
+    storedPreferenceSecrets.flatMap((secrets) =>
+      [true, false].flatMap((isAdmin) =>
+        [true, false].map((withChannels) => ({ secrets, isAdmin, withChannels })),
+      ),
+    ),
+  )(
+    'protects GET preferences for admin=$isAdmin channels=$withChannels with $secrets',
+    async ({ secrets, isAdmin, withChannels }) => {
+      const preferences: Partial<Preferences> = {
+        ...secrets,
+        scoreThreshold: 0.72,
+        ...(withChannels
+          ? {
+              channels: [
+                {
+                  id: 't1',
+                  type: 'telegram',
+                  enabled: true,
+                  events: ['digest'],
+                  botToken: 'channel-secret',
+                  chatId: '1',
+                },
+              ],
+            }
+          : {}),
+      }
+      const original = structuredClone(preferences)
+      const { deps, read } = makePreferenceFixture(preferences)
+      const user = await deps.getUserById(1)
+      deps.getUserById = vi.fn(async () => (user ? { ...user, isAdmin } : null))
+      const res = await authedRequest(createApp(deps), '/api/v1/settings')
+      expect(res.status).toBe(200)
+      const serialized = await res.text()
+      for (const secret of [...Object.values(secrets), 'channel-secret']) {
+        expect(serialized).not.toContain(secret)
+      }
+      const body = JSON.parse(serialized)
+      expect(body.preferences.scoreThreshold).toBe(0.72)
+      if (isAdmin) {
+        expect(body.preferences.fanartApiKey).toBe('***')
+        expect(body.preferences.webhookUrl).toBe('***')
+        if (withChannels) expect(body.preferences.channels[0].botToken).toBe('***')
+      } else {
+        expect(body.preferences).not.toHaveProperty('fanartApiKey')
+        expect(body.preferences).not.toHaveProperty('webhookUrl')
+        expect(body.preferences).not.toHaveProperty('channels')
+      }
+      expect(read().preferences).toEqual(original)
+    },
+  )
+
+  it.each(
+    storedPreferenceSecrets.flatMap((secrets) =>
+      ['normal', 'scheduleCron', 'digestCron'].map((path) => ({ secrets, path })),
+    ),
+  )('protects $path PATCH responses with $secrets', async ({ secrets, path }) => {
+    const { deps, read } = makePreferenceFixture({ ...secrets, scoreThreshold: 0.72 })
+    if (path === 'scheduleCron')
+      deps.restartScheduler = vi.fn(() => {
+        throw new Error('Invalid cron')
+      })
+    if (path === 'digestCron')
+      deps.restartDigestNotifier = vi.fn(async () => {
+        throw new Error('Invalid cron')
+      })
+    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preferences: path === 'normal' ? { scoreThreshold: 0.8 } : { [path]: 'not a cron' },
+      }),
+    })
+    expect(res.status).toBe(200)
+    const serialized = await res.text()
+    for (const secret of Object.values(secrets)) expect(serialized).not.toContain(secret)
+    const body = JSON.parse(serialized)
+    expect(body.preferences.fanartApiKey).toBe('***')
+    expect(body.preferences.webhookUrl).toBe('***')
+    if (path === 'normal') expect(body).not.toHaveProperty('warning')
+    else expect(body.warning).toBe('Settings saved but cron expression is invalid')
+    expect(read().preferences).toMatchObject(secrets)
+  })
+
+  it.each<Partial<Pick<Preferences, 'fanartApiKey' | 'webhookUrl'>>>([
+    ...storedPreferenceSecrets,
+    {},
+    { fanartApiKey: '', webhookUrl: '' },
+  ])('preserves stored values when preference placeholders are saved: %j', async (secrets) => {
+    const channels: Preferences['channels'] = [
+      {
+        id: 't1',
+        type: 'telegram',
+        enabled: true,
+        events: ['digest'],
+        botToken: 'enc:v1:stored-channel-ciphertext',
+        chatId: '1',
+      },
+    ]
+    const { deps, read } = makePreferenceFixture({
+      ...secrets,
+      scoreThreshold: 0.72,
+      rejectionCooldownDays: 45,
+      channels,
+    })
+    const app = createApp(deps)
+    const get = await authedRequest(app, '/api/v1/settings')
+    const body = await get.json()
+    for (const key of ['fanartApiKey', 'webhookUrl'] as const) {
+      expect(body.preferences[key]).toBe(secrets[key] ? '***' : secrets[key])
+    }
+    const res = await authedRequest(app, '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preferences: {
+          ...body.preferences,
+          fanartApiKey: body.preferences.fanartApiKey || '***',
+          webhookUrl: body.preferences.webhookUrl || '***',
+          scoreThreshold: 0.8,
+        },
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect(read().preferences).toEqual({
+      ...secrets,
+      scoreThreshold: 0.8,
+      rejectionCooldownDays: 45,
+      channels,
+    })
+    const after = await authedRequest(app, '/api/v1/settings')
+    const saved = await after.json()
+    expect(saved.preferences.channels[0].botToken).toBe('***')
+    for (const key of ['fanartApiKey', 'webhookUrl'] as const) {
+      expect(saved.preferences[key]).toBe(secrets[key] ? '***' : secrets[key])
+    }
+  })
+
+  it.each([
+    { fanartApiKey: 'replacement-key', webhookUrl: 'https://hooks.example/replacement' },
+    { fanartApiKey: '', webhookUrl: '' },
+  ])('persists explicit scalar preference replacements: %j', async (replacement) => {
+    const { deps, read } = makePreferenceFixture({
+      ...storedPreferenceSecrets[0],
+      scoreThreshold: 0.72,
+    })
+    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: replacement }),
+    })
+    expect(res.status).toBe(200)
+    expect(read().preferences).toEqual({ ...replacement, scoreThreshold: 0.72 })
+    const body = await res.json()
+    expect(body.preferences.fanartApiKey).toBe(replacement.fanartApiKey ? '***' : '')
+    expect(body.preferences.webhookUrl).toBe(replacement.webhookUrl ? '***' : '')
+  })
+})
 
 describe('GET /api/v1/settings', () => {
   it('returns settings with secrets masked', async () => {
@@ -532,6 +714,45 @@ describe('GET /api/v1/settings/plex/sections', () => {
 })
 
 describe('PATCH /api/v1/settings', () => {
+  it.each([true, false])(
+    'saves the global album discovery boolean %s for admins only',
+    async (value) => {
+      const updateSettings = vi.fn(async () => {})
+      const deps = makeDeps({ updateSettings })
+      const app = createApp(deps)
+      const request = () =>
+        authedRequest(app, '/api/v1/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value } }),
+        })
+
+      expect((await request()).status).toBe(200)
+      expect(updateSettings).toHaveBeenCalledWith({
+        preferences: { netNewAlbumDiscovery: value },
+      })
+      updateSettings.mockClear()
+      const admin = await deps.getUserById(1)
+      deps.getUserById = vi.fn(async () => (admin ? { ...admin, isAdmin: false } : null))
+      expect((await request()).status).toBe(403)
+      expect(updateSettings).not.toHaveBeenCalled()
+    },
+  )
+
+  it('rejects malformed global album discovery values without saving any settings', async () => {
+    const updateSettings = vi.fn(async () => {})
+    const app = createApp(makeDeps({ updateSettings }))
+    for (const value of ['true', 'false', 1, 0, null, [], {}]) {
+      const response = await authedRequest(app, '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value, scoreThreshold: 0.9 } }),
+      })
+      expect(response.status).toBe(400)
+    }
+    expect(updateSettings).not.toHaveBeenCalled()
+  })
+
   it('calls updateSettings and returns updated settings', async () => {
     const updateSettings = vi.fn(async () => {})
     const updatedSettings = { ...mockSettings, lidarrUrl: 'http://new:8686' }
@@ -809,6 +1030,7 @@ describe('PATCH /api/v1/settings', () => {
           preferences: {
             scoreThreshold: 0.72,
             rejectionCooldownDays: 45,
+            netNewAlbumDiscovery: true,
             subscriptionMode: 'active',
           },
         }) as unknown as SettingsRow,
@@ -827,6 +1049,7 @@ describe('PATCH /api/v1/settings', () => {
         preferences: {
           scoreThreshold: 0.72,
           rejectionCooldownDays: 45,
+          netNewAlbumDiscovery: true,
           subscriptionMode: 'ai-only',
         },
       }),
@@ -872,6 +1095,7 @@ describe('PATCH /api/v1/settings', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           listenbrainzUsername: null,
           listenbrainzToken: null,
@@ -1043,6 +1267,7 @@ describe('POST /api/v1/settings/test/:service', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           listenbrainzUsername: null,
           listenbrainzToken: null,
@@ -1120,6 +1345,7 @@ describe('POST /api/v1/settings/test/:service', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           ...defaultUserConnections,
           plexUrl: 'http://stored-plex:32400',
@@ -1542,6 +1768,7 @@ describe('POST /api/v1/settings/test/:service', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           listenbrainzUsername: null,
           listenbrainzToken: null,
@@ -1603,6 +1830,7 @@ describe('POST /api/v1/settings/test/:service', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           listenbrainzUsername: null,
           listenbrainzToken: null,
@@ -1773,6 +2001,7 @@ describe('per-user listening source connections', () => {
           preferences: null,
           email: null,
           oidcSubject: null,
+          oidcIssuer: null,
           authProvider: 'local',
           listenbrainzUsername: null,
           listenbrainzToken: null,

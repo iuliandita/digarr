@@ -1194,6 +1194,8 @@ export const ptBR = {
     'Usado quando o servidor de metadados do Lidarr estiver indisponível. Padrão: api.musicinfo.pro. Defina como a URL da sua própria instância se estiver auto-hospedando.',
   'settings.recommendationsSaved': 'Configurações de recomendações salvas',
   'settings.recommendationsFailed': 'Falha ao salvar configurações',
+  'settings.recommendationsPartiallySaved':
+    'As preferências pessoais foram salvas, mas não foi possível salvar as configurações globais de metadados.',
   'settings.scheduleTip':
     'Defina um agendamento cron para executar o pipeline de descoberta automaticamente. Toda semana às segundas é uma escolha popular.',
   'settings.librarySyncInterval': 'Sincronização da biblioteca',
@@ -1419,6 +1421,9 @@ export const ptBR = {
   'admin.exporting': 'Exportando...',
   'admin.includeCaches': 'Incluir caches',
   'admin.restoreFromBackup': 'Restaurar de backup',
+  'admin.restoreConfirmTitle': 'Restaurar backup?',
+  'admin.restoreConfirmMessage':
+    'Isso substitui os dados incluídos no backup. Faça primeiro um backup desta instância. Continuar?',
   'admin.lastAutoBackup': 'Último backup automático:',
   'admin.backupDownloaded': 'Backup baixado',
   'admin.backupFailed': 'Falha ao criar backup',

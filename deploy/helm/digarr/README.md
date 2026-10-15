@@ -10,7 +10,7 @@ Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existin
 
 ## Install
 
-Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. This also applies when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are supplied: HTTP starts before admin bootstrap. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets).
+Before installing, restrict access through Ingress or Gateway to trusted operators until the intended admin account exists and you have verified it. In v1.19.0, HTTP starts before environment-based admin bootstrap. On develop, configured admin creation finishes before HTTP opens; on an empty database, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` (at least 12 characters), or leave both unset for manual registration. Partial or short first-boot credentials stop startup, while existing accounts ignore these variables. See [first-boot access](../../../docs/AUTHENTICATION.md#users-and-targets) and [bootstrap recovery](../../../docs/OPERATIONS.md#unattended-setup).
 
 Create a values file and store database credentials in a Kubernetes Secret. This example uses an existing PostgreSQL database and TLS Ingress; replace the host, ingress class, and Secret names for your cluster:
 
@@ -71,11 +71,11 @@ helm install digarr deploy/helm/digarr \
 
 For bundled PostgreSQL, leave `postgresql.enabled=true`, omit `database.existingSecret`, and set `postgresql.auth.password` in a protected values file. Keep passwords out of command-line arguments.
 
-The chart currently inserts usernames, passwords, and database names into connection URLs without encoding ([#772](https://github.com/iuliandita/digarr/issues/772)). Use URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-._~`) for these chart values; a password generated with `openssl rand -hex 32` is suitable.
+Supply raw usernames, passwords, and database names in chart values. The chart percent-encodes each component when constructing `DATABASE_URL` and keeps bundled PostgreSQL server values unchanged. Do not pre-encode these values: a literal `%` is part of the credential or identifier.
 
-Do not percent-encode the bundled PostgreSQL password or database-name values themselves: they are also passed unchanged to the server.
+Use an application build containing the runtime database-name correction for reserved characters or names such as `.` and `..` ([#834](https://github.com/iuliandita/digarr/issues/834)). v1.19.0 images still require URI-unreserved database names other than `.` or `..`, even with an encoded URL. Before upgrading an existing installation with unusual names, follow the [database identifier precautions](../../../docs/guides/switching-backends.md#database-identifier-upgrades).
 
-For a user-managed database with other username, password, or database-name characters, set `postgresql.enabled=false` and use `database.existingSecret` containing a complete `DATABASE_URL` with percent-encoded username, password, and database-name components.
+For a user-managed database, `database.existingSecret` can supply a complete `DATABASE_URL`. The chart uses that Secret without constructing or re-encoding its URL; percent-encode the URL's username, password, and database-name components yourself.
 
 For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too. The chart defaults to a 512Mi app limit, so raise it explicitly for PGlite:
 

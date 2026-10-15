@@ -20,6 +20,7 @@ import {
   loginUser,
   migrateLegacySession,
   registerUser,
+  restoreBackupApi,
   updateSettings,
 } from '@/web/lib/api'
 import { setStoredLocale } from '@/web/lib/locale-storage'
@@ -277,6 +278,28 @@ describe('legacy session migration', () => {
 })
 
 describe('authenticated downloads', () => {
+  it.each([false, true])('confirms the multipart restore with force=%s', async (force) => {
+    const result = {
+      tablesRestored: { settings: 1 },
+      warnings: [],
+      encryptionMismatch: false,
+      affectedEncryptedFields: [],
+    }
+    fetchMock.mockResolvedValueOnce(jsonResponse(result))
+    const file = new File(['{}'], 'backup.json', { type: 'application/json' })
+
+    await expect(restoreBackupApi(file, force)).resolves.toEqual(result)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(`/api/v1/admin/restore?confirm=true${force ? '&force=true' : ''}`)
+    expect(init.method).toBe('POST')
+    const headers = expectCookieRequest(init, true)
+    expect(headers.has('Content-Type')).toBe(false)
+    expect(init.body).toBeInstanceOf(FormData)
+    expect((init.body as FormData).get('file')).toBe(file)
+  })
+
   it('uses cookie credentials and protects the raw POST backup download with CSRF', async () => {
     fetchMock.mockResolvedValue(successfulDownload())
 

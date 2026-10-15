@@ -174,12 +174,10 @@ describe('POST /api/v1/admin/migrate-backend', () => {
     }
   }, 30_000)
 
-  it('returns 409 target_not_empty when the target already holds data', async () => {
+  it('returns 409 target_not_empty when a userless target already holds settings', async () => {
     const src = await makeTestDb()
     try {
-      // The emptiness guard keys on the users table, so the source must have a user
-      // for the first migration to leave the target non-empty.
-      await src.db.insert(schema.users).values({ username: 'seed', passwordHash: 'x' })
+      await src.db.insert(schema.settings).values({ setupComplete: true })
       const { app } = createTestApp({ db: src.db as unknown as AppDependencies['db'] })
       const target = { backend: 'pglite' as const, path: `${tmpDir}/reuse` }
       const headers = {

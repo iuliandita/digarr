@@ -22,6 +22,7 @@ import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
 import { resolveProviderToken } from '@/core/provider-auth'
+import type { ScoredArtist } from '@/core/types'
 import { errMsg, logAndSanitize } from '@/core/validation'
 import { upsertArtist } from '@/db/queries/artists'
 import { getUserConnections } from '@/db/queries/users'
@@ -140,17 +141,17 @@ export function pipelineRoutes(deps: AppDependencies) {
     )
   })
 
-  // Stop the in-flight run and drop anything queued. Non-admin by design: a
-  // regular user who can start a scan can stop it (single-flight => one run
-  // total, so the blast radius matches "Run Scan"). Cooperative abort lands
-  // within ~one request timeout; a wedged run is force-reset after a grace
-  // window inside the orchestrator, so this never leaves the app stuck.
+  // The current write and its bookkeeping drain before the pipeline stops.
   router.post('/api/v1/pipeline/cancel', (c) => {
     const result = deps.orchestrator.cancel()
     return c.json(
       {
         cancelled: result.cancelled,
-        message: result.cancelled ? 'Pipeline stopping' : 'No pipeline run in progress',
+        message: result.cancelled
+          ? 'Pipeline stopping'
+          : deps.orchestrator.isRunning
+            ? 'Pipeline finishing'
+            : 'No pipeline run in progress',
       },
       202,
     )
@@ -307,42 +308,6 @@ export function pipelineRoutes(deps: AppDependencies) {
             : null
         const mb = createMusicBrainzClient()
 
-        // Add the seed artist directly (bypasses dedup, no Lidarr dependency)
-        try {
-          const existingMbids =
-            await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
-          const seedDiscovered = [
-            {
-              name: trimmedArtistName,
-              similarityScore: 1.0,
-              aiReasoning: 'Directly added from mood discovery.',
-              source: 'mood',
-            },
-          ]
-          // Resolve via MB only (no Lidarr image lookup - avoids SkyHook dependency)
-          const seedResolved = await resolve(seedDiscovered, mb)
-          const newSeeds = seedResolved.filter((s) => !existingMbids.has(s.mbid))
-          if (newSeeds.length > 0) {
-            const seedScored = score(
-              newSeeds,
-              [],
-              {
-                consensus: 0,
-                similarity: 0,
-                genreOverlap: 0,
-                aiConfidence: 0,
-                feedbackBoost: 0,
-                popularity: 0,
-              },
-              new Map(),
-            )
-            for (const s of seedScored) s.score = 1.0
-            await store(seedScored, deps.storeDb, { userId: quickDiscoverUserId })
-          }
-        } catch (err: unknown) {
-          console.warn('Seed artist store failed:', errMsg(err))
-        }
-
         // Get library MBIDs. Quick-discover prioritizes speed over freshness:
         // we read from the cache without triggering a sync. The background scheduler
         // keeps the cache fresh; an empty cache means no dedup (matches the old behavior).
@@ -357,6 +322,70 @@ export function pipelineRoutes(deps: AppDependencies) {
             ? new Set((await lidarr.getArtists()).map((a) => a.foreignArtistId))
             : new Set<string>()
         }
+
+        const prefs = mergePreferences(
+          await resolveUserPreferences(
+            async () => quickDiscoverUser,
+            settings.preferences,
+            quickDiscoverUserId,
+          ),
+        )
+        const rejectedMbids = await deps.storeDb.getRejectedMbids(
+          prefs.rejectionCooldownDays,
+          quickDiscoverUserId ?? null,
+        )
+        const blockedMbids = quickDiscoverUserId
+          ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
+          : new Set<string>()
+        const seedExistingMbids =
+          await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
+        for (const mbid of seedExistingMbids) libraryMbids.add(mbid)
+
+        let artistsStored = 0
+        const storeAndCount = async (artists: ScoredArtist[]) => {
+          if (artists.length === 0) return
+          const batchId = await store(artists, deps.storeDb, { userId: quickDiscoverUserId })
+          const batch = await deps.getBatch(batchId)
+          const added =
+            batch?.stats && typeof batch.stats === 'object' && 'added' in batch.stats
+              ? batch.stats.added
+              : undefined
+          if (
+            batch?.status !== 'completed' ||
+            typeof added !== 'number' ||
+            !Number.isSafeInteger(added) ||
+            added < 0 ||
+            added > artists.length
+          ) {
+            throw new Error(`Quick discover batch ${batchId} has invalid completed storage stats`)
+          }
+          artistsStored += added
+        }
+
+        // Direct adds retain full confidence but follow the owner's exclusion policy.
+        const seedResolved = await resolve(
+          [
+            {
+              name: trimmedArtistName,
+              similarityScore: 1.0,
+              aiReasoning: 'Directly added from mood discovery.',
+              source: 'mood',
+            },
+          ],
+          mb,
+        )
+        const seedScored = score(seedResolved, [], prefs.scoringWeights, new Map())
+        for (const artist of seedScored) artist.score = 1.0
+        await storeAndCount(
+          filter(
+            seedScored,
+            libraryMbids,
+            rejectedMbids,
+            blockedMbids,
+            prefs.rejectionCooldownDays,
+            prefs.scoreThreshold,
+          ),
+        )
 
         // Find similar artists via Last.fm + AI
         const discovered: Array<{
@@ -410,51 +439,26 @@ export function pipelineRoutes(deps: AppDependencies) {
           }
         }
 
-        if (discovered.length === 0) {
-          if (jobId != null && jobRecorder) {
-            await jobRecorder.complete(jobId, {
-              metadata: {
-                seedArtist: trimmedArtistName,
-                artistsDiscovered: 0,
-                artistsStored: 0,
-                ...(aiUsage ? { aiUsage } : {}),
-              },
-            })
-          }
-          return
-        }
+        if (discovered.length > 0) {
+          const resolved = await resolve(discovered, mb, undefined, lidarr ?? undefined)
+          const feedbackHistory = quickDiscoverUserId
+            ? await deps.storeDb.getFeedbackHistory(quickDiscoverUserId)
+            : await deps.storeDb.getFeedbackHistory()
+          const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
+          const existingMbids =
+            await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
+          for (const mbid of existingMbids) libraryMbids.add(mbid)
 
-        // Read per-user preferences for quick-discover, fallback to global
-        const qdPreferences = await resolveUserPreferences(
-          async () => quickDiscoverUser,
-          settings.preferences,
-          quickDiscoverUserId,
-        )
-        const prefs = mergePreferences(qdPreferences)
+          const filtered = filter(
+            scored,
+            libraryMbids,
+            rejectedMbids,
+            blockedMbids,
+            prefs.rejectionCooldownDays,
+            prefs.scoreThreshold,
+          )
 
-        const resolved = await resolve(discovered, mb, undefined, lidarr ?? undefined)
-        const rejectedMbids = await deps.storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
-        const blockedMbids = quickDiscoverUserId
-          ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
-          : new Set<string>()
-        const feedbackHistory = quickDiscoverUserId
-          ? await deps.storeDb.getFeedbackHistory(quickDiscoverUserId)
-          : await deps.storeDb.getFeedbackHistory()
-        const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
-        const existingMbids = await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
-        for (const mbid of existingMbids) libraryMbids.add(mbid)
-
-        const filtered = filter(
-          scored,
-          libraryMbids,
-          rejectedMbids,
-          blockedMbids,
-          prefs.rejectionCooldownDays,
-          prefs.scoreThreshold,
-        )
-
-        if (filtered.length > 0) {
-          await store(filtered, deps.storeDb, { userId: quickDiscoverUserId })
+          await storeAndCount(filtered)
         }
 
         if (jobId != null && jobRecorder) {
@@ -462,7 +466,7 @@ export function pipelineRoutes(deps: AppDependencies) {
             metadata: {
               seedArtist: trimmedArtistName,
               artistsDiscovered: discovered.length,
-              artistsStored: filtered.length,
+              artistsStored,
               ...(aiUsage ? { aiUsage } : {}),
             },
           })

@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { describe, expect, it, vi } from 'vitest'
+import { SetupAlreadyCompleteError, SetupOwnerRequiredError } from '@/db/queries/setup'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 
@@ -16,17 +17,6 @@ vi.mock('@/core/sessions', async () => {
     getSession: vi.fn(async (token: string) =>
       token === 'test-session-token' ? { userId: 42, token } : null,
     ),
-  }
-})
-
-const { updateUserConnectionsMock } = vi.hoisted(() => ({
-  updateUserConnectionsMock: vi.fn(async () => {}),
-}))
-vi.mock('@/db/queries/users', async () => {
-  const actual = await vi.importActual<typeof import('@/db/queries/users')>('@/db/queries/users')
-  return {
-    ...actual,
-    updateUserConnections: updateUserConnectionsMock,
   }
 })
 
@@ -73,6 +63,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       preferences: null,
       email: null,
       oidcSubject: null,
+      oidcIssuer: null,
       authProvider: 'local',
       listenbrainzUsername: null,
       listenbrainzToken: null,
@@ -127,7 +118,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     },
     runSubscription: vi.fn(async () => {}),
     getOidcService: vi.fn(async () => null),
-    getUserByOidcSubject: vi.fn(async () => null),
+    getUserByOidcIdentity: vi.fn(async () => null),
     getUserByEmail: vi.fn(async () => null),
     updateUser: vi.fn(async () => {}),
     listUsers: vi.fn(async () => []),
@@ -190,7 +181,7 @@ describe('POST /api/v1/setup/complete', () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(validBody),
     })
     expect(res.status).toBe(204)
@@ -201,7 +192,7 @@ describe('POST /api/v1/setup/complete', () => {
     const app = createApp(makeDeps({ completeSetup }))
     await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(validBody),
     })
     expect(completeSetup).toHaveBeenCalledTimes(1)
@@ -212,7 +203,7 @@ describe('POST /api/v1/setup/complete', () => {
     const { lidarrUrl: _, ...body } = validBody
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(400)
@@ -223,7 +214,7 @@ describe('POST /api/v1/setup/complete', () => {
     const { lidarrApiKey: _, ...body } = validBody
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(400)
@@ -234,7 +225,7 @@ describe('POST /api/v1/setup/complete', () => {
     const { aiProvider: _, ...body } = validBody
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(400)
@@ -245,7 +236,7 @@ describe('POST /api/v1/setup/complete', () => {
     const { aiModel: _, ...body } = validBody
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(400)
@@ -277,23 +268,26 @@ describe('POST /api/v1/setup/complete', () => {
     }
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(204)
-    expect(completeSetup).toHaveBeenCalledWith({
-      lidarrUrl: 'http://lidarr:8686',
-      lidarrApiKey: 'abc123',
-      aiProvider: 'ollama',
-      aiModel: 'llama3',
-    })
+    expect(completeSetup).toHaveBeenCalledWith(
+      {
+        lidarrUrl: 'http://lidarr:8686',
+        lidarrApiKey: 'abc123',
+        aiProvider: 'ollama',
+        aiModel: 'llama3',
+      },
+      { userId: 42 },
+    )
   })
 
   it('rejects emby fields when apiKey or userId are missing', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify({
         embyUrl: 'http://emby:8096',
         aiProvider: 'ollama',
@@ -303,56 +297,60 @@ describe('POST /api/v1/setup/complete', () => {
     expect(res.status).toBe(400)
   })
 
-  it('accepts emby fields and creates an emby-playlist target during setup completion', async () => {
-    updateUserConnectionsMock.mockClear()
-    const createTarget = vi.fn().mockResolvedValue({ id: 7 })
-    const deps = makeDeps({
-      getUserCount: vi.fn(async () => 1),
-      targetQueries: {
-        createTarget,
-        getTargetsByUser: vi.fn().mockResolvedValue([]),
-        getAllTargets: vi.fn().mockResolvedValue([]),
-        getTarget: vi.fn().mockResolvedValue(null),
-        updateTarget: vi.fn().mockResolvedValue(undefined),
-        deleteTarget: vi.fn().mockResolvedValue(undefined),
-      },
-    })
-    const app = createApp(deps)
-    const res = await app.request('/api/v1/setup/complete', {
+  it('hands Emby credentials and ownership to atomic completion', async () => {
+    const deps = makeDeps()
+    const res = await createApp(deps).request('/api/v1/setup/complete', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer test-session-token',
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
       body: JSON.stringify({
         embyUrl: 'http://emby:8096',
         embyApiKey: 'key',
         embyUserId: 'user-1',
         skipTlsVerify: true,
-        aiProvider: 'openai',
-        aiModel: 'gpt-5.4-mini',
+        aiProvider: 'ollama',
+        aiModel: 'llama3',
       }),
     })
     expect(res.status).toBe(204)
-    expect(createTarget).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'emby-playlist',
-        name: 'Emby',
-        config: {
-          url: 'http://emby:8096',
-          apiKey: 'key',
-          userId: 'user-1',
-          skipTlsVerify: true,
-        },
-        userId: 42,
-      }),
+    expect(deps.completeSetup).toHaveBeenCalledWith(
+      { skipTlsVerify: true, aiProvider: 'ollama', aiModel: 'llama3' },
+      { userId: 42, emby: { url: 'http://emby:8096', apiKey: 'key', userId: 'user-1' } },
     )
-    // Emby credentials must also land on the users row so library sync, the
-    // discovery plugin, and the listening fallback can read them post-setup.
-    expect(updateUserConnectionsMock).toHaveBeenCalledWith(expect.anything(), 42, {
-      embyUrl: 'http://emby:8096',
-      embyApiKey: 'key',
-      embyUserId: 'user-1',
+    expect(deps.targetQueries.createTarget).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { lidarrUrl: 'http://lidarr:8686', lidarrApiKey: 'key' },
+    { embyUrl: 'http://emby:8096', embyApiKey: 'key', embyUserId: 'user-1' },
+  ])('requires an owner for requested services before writes: %o', async (service) => {
+    const deps = makeDeps()
+    const res = await createApp(deps).request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aiProvider: 'ollama', aiModel: 'llama3', ...service }),
     })
+    expect(res.status).toBe(401)
+    expect(deps.completeSetup).not.toHaveBeenCalled()
+    expect(deps.targetQueries.createTarget).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { error: new Error('private-api-key'), status: 500 },
+    { error: new SetupOwnerRequiredError(), status: 401 },
+    { error: new SetupAlreadyCompleteError(), status: 409 },
+  ])('reports persistence failures safely with status $status', async ({ error, status }) => {
+    const secret = 'private-api-key'
+    const deps = makeDeps({ completeSetup: vi.fn().mockRejectedValue(error) })
+    const res = await createApp(deps).request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
+      body: JSON.stringify({ ...validBody, lidarrApiKey: secret }),
+    })
+    expect(res.status).toBe(status)
+    if (status !== 409)
+      expect(res.headers.get('content-type')).toContain('application/problem+json')
+    const response = await res.json()
+    if (status === 500) expect(response).toEqual(expect.objectContaining({ code: 'setup.failed' }))
+    expect(JSON.stringify(response)).not.toContain(secret)
   })
 })

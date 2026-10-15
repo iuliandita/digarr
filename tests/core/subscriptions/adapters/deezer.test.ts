@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ProviderAuthError } from '@/core/provider-auth'
 import { createDeezerAdapter } from '@/core/subscriptions/adapters/deezer'
 
 vi.mock('@/core/clients/deezer-user', () => ({
@@ -155,17 +156,19 @@ describe('createDeezerAdapter', () => {
     })
   })
 
-  describe('graceful degradation', () => {
-    it('returns empty artists when getToken throws', async () => {
+  it.each(['not_connected', 'token_unusable'] as const)(
+    'propagates %s without creating a client',
+    async (reason) => {
+      const error = new ProviderAuthError('deezer', reason, 'Reconnect Deezer in Settings')
       const adapter = createDeezerAdapter({
         getToken: async () => {
-          throw new Error('no token')
+          throw error
         },
       })
-      const result = await adapter.fetch({ feedType: 'favorites' })
-      expect(result.artists).toHaveLength(0)
-    })
-  })
+      await expect(adapter.fetch({ feedType: 'favorites' })).rejects.toBe(error)
+      expect(createDeezerUserClient).not.toHaveBeenCalled()
+    },
+  )
 
   describe('unknown feed type', () => {
     it('returns empty artists', async () => {

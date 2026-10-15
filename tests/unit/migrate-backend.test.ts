@@ -1,9 +1,16 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { PGlite } from '@electric-sql/pglite'
 import { sql } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/pglite'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BACKUP_TABLE_BY_KEY, copyDatabaseTables } from '@/core/ops/backup'
+import {
+  assertDatabaseCopyTargetEmpty,
+  BACKUP_TABLE_BY_KEY,
+  copyDatabaseTables,
+  DatabaseCopyTargetNotEmptyError,
+} from '@/core/ops/backup'
 import { migrateBackend } from '@/core/ops/migrate-backend'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
@@ -128,7 +135,9 @@ describe('migrateBackend', () => {
     )
     expect(report.excludedTables).toEqual(['sessions', 'rateLimitBuckets'])
     expect(report.mismatches).toEqual([])
-    expect(report.targetEnvHint).toMatch(/DB_PATH=/)
+    expect(report.targetEnvHint).toBe(
+      `Unset DATABASE_URL, DATABASE_URL_FILE and DB_HOST and set DB_PATH=${tgt('ok')}, then restart.`,
+    )
     await src.close()
   })
 
@@ -238,6 +247,112 @@ describe('migrateBackend', () => {
     expect(report.verified).toBe(true)
     await src.close()
   })
+
+  it.each(['settings', 'artists', 'recordingArtistCache'] as const)(
+    'preserves a populated %s target with no users unless overwrite is explicit',
+    async (key) => {
+      const src = await makeTestDb()
+      const path = tgt(`userless-${key}`)
+      const target = await makeTestDb({ path })
+      const table = {
+        settings: schema.settings,
+        artists: schema.artists,
+        recordingArtistCache: schema.recordingArtistCache,
+      }[key]
+      let expected: unknown[]
+      try {
+        if (key === 'settings') {
+          await target.db.insert(schema.settings).values({ setupComplete: true })
+        } else if (key === 'artists') {
+          await target.db
+            .insert(schema.artists)
+            .values({ mbid: '00000000-0000-0000-0000-000000000010', name: 'Keep me' })
+        } else {
+          await target.db.insert(schema.recordingArtistCache).values({
+            recordingMbid: '00000000-0000-0000-0000-000000000011',
+            artistMbid: '00000000-0000-0000-0000-000000000010',
+            artistName: 'Keep me',
+          })
+        }
+        expected = await target.db.select().from(table)
+        await expect(
+          copyDatabaseTables(src.db as never, target.db as never, { requireEmptyTarget: true }),
+        ).rejects.toBeInstanceOf(DatabaseCopyTargetNotEmptyError)
+        expect(await target.db.select().from(table)).toEqual(expected)
+      } finally {
+        await target.close()
+      }
+      try {
+        await expect(
+          migrateBackend({
+            sourceDb: src.db as never,
+            target: { backend: 'pglite', path },
+            isPipelineRunning: () => false,
+          }),
+        ).rejects.toMatchObject({ code: 'target_not_empty' })
+        const unchanged = await makeTestDb({ path })
+        try {
+          expect(await unchanged.db.select().from(table)).toEqual(expected)
+          expect(await unchanged.db.select().from(schema.users)).toEqual([])
+        } finally {
+          await unchanged.close()
+        }
+        const report = await migrateBackend({
+          sourceDb: src.db as never,
+          target: { backend: 'pglite', path },
+          isPipelineRunning: () => false,
+          overwrite: true,
+        })
+        expect(report.verified).toBe(true)
+      } finally {
+        await src.close()
+      }
+    },
+  )
+
+  it.each([false, true])(
+    'accepts an empty pre-migration target with partial schema: %s',
+    async (partial) => {
+      const client = new PGlite()
+      const db = drizzle(client)
+      try {
+        if (partial) await db.execute(sql`CREATE TABLE settings (id integer)`)
+        await expect(
+          assertDatabaseCopyTargetEmpty(db as never, { allowMissingTables: true }),
+        ).resolves.toBeUndefined()
+        await expect(assertDatabaseCopyTargetEmpty(db as never)).rejects.toThrow()
+      } finally {
+        await client.close()
+      }
+    },
+  )
+
+  it.each([
+    { stage: 'catalog', response: undefined },
+    { stage: 'catalog', response: { rows: [] } },
+    { stage: 'catalog', response: { rows: [{ present: 'false' }] } },
+    { stage: 'table', response: { rows: null } },
+    { stage: 'table', response: { rows: [{}] } },
+  ])('fails closed for a malformed $stage response: $response', async ({ stage, response }) => {
+    const execute = vi.fn()
+    if (stage === 'table') execute.mockResolvedValueOnce({ rows: [{ present: true }] })
+    execute.mockResolvedValueOnce(response)
+    await expect(
+      assertDatabaseCopyTargetEmpty({ execute } as never, { allowMissingTables: true }),
+    ).rejects.toThrow(/Cannot verify target database emptiness/)
+  })
+
+  it.each(['catalog', 'table'])(
+    'propagates %s read failures without treating them as empty',
+    async (stage) => {
+      const execute = vi.fn()
+      if (stage === 'table') execute.mockResolvedValueOnce({ rows: [{ present: true }] })
+      execute.mockRejectedValueOnce(new Error('permission denied'))
+      await expect(
+        assertDatabaseCopyTargetEmpty({ execute } as never, { allowMissingTables: true }),
+      ).rejects.toThrow('permission denied')
+    },
+  )
 
   it('refuses when the target is the same cluster as the source (fingerprint match)', async () => {
     // File-backed source so a second handle on the same dir yields the same system_identifier.

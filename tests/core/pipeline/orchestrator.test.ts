@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Mock all pipeline stages
 // ---------------------------------------------------------------------------
 
+vi.mock('@/core/notifications', () => ({ dispatch: vi.fn().mockResolvedValue(undefined) }))
+
 vi.mock('@/core/pipeline/analyze', () => ({
   analyze: vi.fn(),
 }))
@@ -85,6 +87,7 @@ const { PipelineCancelledError } = await import('@/core/pipeline/cancel')
 type SyncForUser = NonNullable<
   import('@/core/pipeline/orchestrator').PipelineDeps['librarySync']
 >['syncForUser']
+const { dispatch } = await import('@/core/notifications')
 const { analyze } = await import('@/core/pipeline/analyze')
 const { discover } = await import('@/core/pipeline/discover')
 const { resolve } = await import('@/core/pipeline/resolve')
@@ -282,7 +285,7 @@ describe('PipelineOrchestrator', () => {
     await setupClientMocks()
   })
 
-  it('runs all pipeline stages in order', async () => {
+  it.each([1, 2])('runs all pipeline stages in order for user %s', async (userId) => {
     const db = makeDb()
     const order: string[] = []
 
@@ -316,10 +319,11 @@ describe('PipelineOrchestrator', () => {
       settings: defaultSettings,
       providerRegistry,
       librarySync: { syncForUser },
-      userId: 1,
+      userId,
     })
 
     expect(order).toEqual(['analyze', 'discover', 'resolve', 'score', 'filter', 'store'])
+    expect(db.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(90, userId)
   })
 
   it('passes response and prompt locales from pipeline deps into AI discovery', async () => {
@@ -1287,6 +1291,196 @@ describe('PipelineOrchestrator', () => {
       // Let the aborted run settle.
       await new Promise((r) => setTimeout(r, 0))
       expect(orchestrator.isRunning).toBe(false)
+    })
+
+    it('keeps ownership beyond the old grace period until store and cancel bookkeeping settle', async () => {
+      vi.useFakeTimers()
+      try {
+        let releaseStore!: () => void
+        let enterStore!: () => void
+        let releaseCancel!: () => void
+        let enterCancel!: () => void
+        const stored = new Promise<void>((r) => {
+          enterStore = r
+        })
+        const heldStore = new Promise<void>((r) => {
+          releaseStore = r
+        })
+        const cancelling = new Promise<void>((r) => {
+          enterCancel = r
+        })
+        const heldCancel = new Promise<void>((r) => {
+          releaseCancel = r
+        })
+        mockStore.mockImplementationOnce(async () => {
+          enterStore()
+          await heldStore
+          return 42
+        })
+        const jobRecorder = {
+          start: vi.fn().mockResolvedValue(11),
+          complete: vi.fn(),
+          fail: vi.fn(),
+          cancel: vi.fn(async () => {
+            enterCancel()
+            await heldCancel
+          }),
+          markStuck: vi.fn(),
+        }
+        const terminal = vi.fn()
+        orchestrator.on('progress', (e) => {
+          if (e.stage === 'complete' || e.stage === 'cancelled') terminal(e, orchestrator.isRunning)
+        })
+        const deps = {
+          db: makeDb(),
+          settings: defaultSettings,
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        }
+        const run = orchestrator.run(deps)
+        const rejection = expect(run).rejects.toBeInstanceOf(PipelineCancelledError)
+        await stored
+        expect(orchestrator.cancel()).toEqual({ cancelled: true })
+        await vi.advanceTimersByTimeAsync(16_000)
+        expect(orchestrator.isRunning).toBe(true)
+        expect(terminal).not.toHaveBeenCalled()
+        await expect(orchestrator.run({ ...deps, userId: 2 })).rejects.toThrow('already running')
+        releaseStore()
+        await cancelling
+        expect(orchestrator.isRunning).toBe(true)
+        expect(terminal).not.toHaveBeenCalled()
+        releaseCancel()
+        await rejection
+        expect(jobRecorder.complete).not.toHaveBeenCalled()
+        expect(dispatch).not.toHaveBeenCalled()
+        expect(terminal).toHaveBeenCalledExactlyOnceWith(
+          expect.objectContaining({ stage: 'cancelled', userId: 1 }),
+          false,
+        )
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('declines cancellation after committing completion and waits for job bookkeeping', async () => {
+      let release!: () => void
+      let enter!: () => void
+      const entered = new Promise<void>((r) => {
+        enter = r
+      })
+      const held = new Promise<void>((r) => {
+        release = r
+      })
+      const jobRecorder = {
+        start: vi.fn().mockResolvedValue(11),
+        complete: vi.fn(async () => {
+          enter()
+          await held
+        }),
+        fail: vi.fn(),
+        cancel: vi.fn(),
+        markStuck: vi.fn(),
+      }
+      const terminal = vi.fn()
+      orchestrator.on('progress', (e) => {
+        if (e.stage === 'complete') terminal(e, orchestrator.isRunning)
+      })
+      const run = orchestrator.run({
+        db: makeDb(),
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+        jobRecorder,
+      })
+      await entered
+      expect(orchestrator.cancel()).toEqual({ cancelled: false })
+      expect(orchestrator.isRunning).toBe(true)
+      expect(terminal).not.toHaveBeenCalled()
+      release()
+      await run
+      expect(jobRecorder.cancel).not.toHaveBeenCalled()
+      expect(terminal).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ userId: 1 }),
+        false,
+      )
+    })
+
+    it('reports failed cancellation bookkeeping as an error without a cancelled terminal', async () => {
+      const cleanupError = new Error('cancel database failed')
+      const jobRecorder = {
+        start: vi.fn().mockResolvedValue(11),
+        complete: vi.fn(),
+        fail: vi.fn().mockResolvedValue(undefined),
+        cancel: vi.fn().mockRejectedValue(cleanupError),
+        markStuck: vi.fn(),
+      }
+      mockDiscover.mockImplementationOnce(async () => {
+        orchestrator.cancel()
+        return discovered
+      })
+      const errors = vi.fn()
+      const terminal = vi.fn()
+      orchestrator.on('error', errors)
+      orchestrator.on('progress', (e) => {
+        if (e.stage === 'cancelled') terminal(e)
+      })
+      await expect(
+        orchestrator.run({
+          db: makeDb(),
+          settings: defaultSettings,
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        }),
+      ).rejects.toBeInstanceOf(AggregateError)
+      expect(errors).toHaveBeenCalledWith(
+        expect.objectContaining({ errors: expect.arrayContaining([cleanupError]) }),
+      )
+      expect(terminal).not.toHaveBeenCalled()
+      expect(orchestrator.isRunning).toBe(false)
+    })
+
+    it('preserves a synchronously started run when a terminal listener starts new work', async () => {
+      let nextRun: Promise<{ batchId: number }> | undefined
+      let release!: () => void
+      let enter!: () => void
+      const entered = new Promise<void>((r) => {
+        enter = r
+      })
+      const held = new Promise<void>((r) => {
+        release = r
+      })
+      mockStore.mockResolvedValueOnce(42).mockImplementationOnce(async () => {
+        enter()
+        await held
+        return 43
+      })
+      const deps = {
+        db: makeDb(),
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+      }
+      orchestrator.once('progress', () => {})
+      const listener = (e: { stage: string; userId: number }) => {
+        if (e.stage !== 'complete') return
+        orchestrator.off('progress', listener)
+        expect(e.userId).toBe(1)
+        expect(orchestrator.isRunning).toBe(false)
+        nextRun = orchestrator.run({ ...deps, userId: 2 })
+      }
+      orchestrator.on('progress', listener)
+      await orchestrator.run(deps)
+      await entered
+      expect(orchestrator.currentUserId).toBe(2)
+      expect(orchestrator.isRunning).toBe(true)
+      release()
+      await nextRun
     })
 
     it('reports nothing to cancel when idle', () => {

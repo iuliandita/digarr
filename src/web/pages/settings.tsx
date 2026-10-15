@@ -3156,7 +3156,7 @@ function TargetsTab() {
   )
 }
 
-function RecommendationsTab() {
+function RecommendationsTab({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data: prefs, isLoading: prefsLoading } = useQuery({
@@ -3183,6 +3183,7 @@ function RecommendationsTab() {
       prefs={prefs}
       settings={(settings ?? {}) as Settings}
       queryClient={queryClient}
+      isAdmin={isAdmin}
     />
   )
 }
@@ -3191,10 +3192,12 @@ function RecommendationsTabInner({
   prefs,
   settings,
   queryClient,
+  isAdmin,
 }: {
   prefs: Record<string, unknown>
   settings: Settings
   queryClient: ReturnType<typeof useQueryClient>
+  isAdmin: boolean
 }) {
   const { t } = useI18n()
   const { hash } = useLocation()
@@ -3265,6 +3268,7 @@ function RecommendationsTabInner({
 
   async function handleSave() {
     setSaving(true)
+    let personalPreferencesSaved = false
     try {
       await updateUserPreferences({
         scoreThreshold,
@@ -3295,18 +3299,27 @@ function RecommendationsTabInner({
         fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
         metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
-      await updateSettings({
-        audiodbApiKey: audiodbApiKey === '***' ? undefined : audiodbApiKey || null,
-        audiodbProxyImages,
-        wikidataEnabled,
-      })
-      setAudiodbProxyFlag(audiodbProxyImages)
+      personalPreferencesSaved = true
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       queryClient.invalidateQueries({ queryKey: ['recommendations'] })
-      queryClient.invalidateQueries({ queryKey: ['settings'] })
+      if (isAdmin) {
+        await updateSettings({
+          audiodbApiKey: audiodbApiKey === '***' ? undefined : audiodbApiKey || null,
+          audiodbProxyImages,
+          wikidataEnabled,
+        })
+        setAudiodbProxyFlag(audiodbProxyImages)
+        queryClient.invalidateQueries({ queryKey: ['settings'] })
+      }
       toast.success(t('settings.recommendationsSaved'))
     } catch {
-      toast.error(t('settings.recommendationsFailed'))
+      toast.error(
+        t(
+          personalPreferencesSaved
+            ? 'settings.recommendationsPartiallySaved'
+            : 'settings.recommendationsFailed',
+        ),
+      )
     } finally {
       setSaving(false)
     }
@@ -3536,29 +3549,33 @@ function RecommendationsTabInner({
               {t('settings.imageSources')}
             </h3>
             <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
-            <Field label={t('settings.audiodb.apiKey')} id="audiodb-api-key">
-              <Input
-                id="audiodb-api-key"
-                type="password"
-                value={audiodbApiKey}
-                onChange={(e) => setAudiodbApiKey(e.target.value)}
-                placeholder={t('settings.audiodb.apiKeyPlaceholder')}
-              />
-            </Field>
-            <label className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                checked={audiodbProxyImages}
-                onChange={(e) => setAudiodbProxyImages(e.target.checked)}
-                className="mt-1"
-              />
-              <span className="text-sm">
-                {t('settings.audiodb.proxyImages')}
-                <span className="block text-micro text-muted">
-                  {t('settings.audiodb.proxyHint')}
-                </span>
-              </span>
-            </label>
+            {isAdmin && (
+              <>
+                <Field label={t('settings.audiodb.apiKey')} id="audiodb-api-key">
+                  <Input
+                    id="audiodb-api-key"
+                    type="password"
+                    value={audiodbApiKey}
+                    onChange={(e) => setAudiodbApiKey(e.target.value)}
+                    placeholder={t('settings.audiodb.apiKeyPlaceholder')}
+                  />
+                </Field>
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={audiodbProxyImages}
+                    onChange={(e) => setAudiodbProxyImages(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm">
+                    {t('settings.audiodb.proxyImages')}
+                    <span className="block text-micro text-muted">
+                      {t('settings.audiodb.proxyHint')}
+                    </span>
+                  </span>
+                </label>
+              </>
+            )}
             <Field label={t('settings.fieldFanartApiKey')} id="fanart-api-key">
               <Input
                 id="fanart-api-key"
@@ -3579,20 +3596,22 @@ function RecommendationsTabInner({
             <p className="text-micro text-muted">{t('settings.metadataFallbackHelp')}</p>
           </section>
 
-          <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              {t('settings.wikidata.title')}
-            </h3>
-            <label className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                checked={wikidataEnabled}
-                onChange={(e) => setWikidataEnabled(e.target.checked)}
-                className="mt-1"
-              />
-              <span className="text-sm">{t('settings.wikidata.enabled')}</span>
-            </label>
-          </section>
+          {isAdmin && (
+            <section className="space-y-4">
+              <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+                {t('settings.wikidata.title')}
+              </h3>
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={wikidataEnabled}
+                  onChange={(e) => setWikidataEnabled(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm">{t('settings.wikidata.enabled')}</span>
+              </label>
+            </section>
+          )}
         </div>
       </CollapsibleSection>
 
@@ -4209,7 +4228,7 @@ export function SettingsPage() {
       <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
       {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
       {tab === 'targets' && <TargetsTab />}
-      {tab === 'recommendations' && <RecommendationsTab />}
+      {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
       {tab === 'blocked' && (
         <div className="space-y-8">
           <BlockedArtistsTab />

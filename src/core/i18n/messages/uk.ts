@@ -1193,6 +1193,8 @@ export const uk = {
     'Використовується, коли сервер метаданих Lidarr недоступний. За замовчуванням api.musicinfo.pro. Вкажіть URL свого екземпляра hearring-aid, якщо ви самостійно його розгортаєте.',
   'settings.recommendationsSaved': 'Налаштування рекомендацій збережено',
   'settings.recommendationsFailed': 'Не вдалося зберегти налаштування',
+  'settings.recommendationsPartiallySaved':
+    'Особисті налаштування збережено, але не вдалося зберегти глобальні налаштування метаданих.',
   'settings.scheduleTip':
     'Встановіть cron-розклад для автоматичного запуску конвеєра. Популярний вибір - щопонеділка.',
   'settings.librarySyncInterval': 'Синхронізація бібліотеки',
@@ -1418,6 +1420,9 @@ export const uk = {
   'admin.exporting': 'Експорт...',
   'admin.includeCaches': 'Включити кеш',
   'admin.restoreFromBackup': 'Відновити з копії',
+  'admin.restoreConfirmTitle': 'Відновити резервну копію?',
+  'admin.restoreConfirmMessage':
+    'Дані, включені до резервної копії, буде замінено. Спочатку створіть резервну копію цього екземпляра. Продовжити?',
   'admin.lastAutoBackup': 'Остання авто-копія:',
   'admin.backupDownloaded': 'Копію завантажено',
   'admin.backupFailed': 'Не вдалося створити копію',

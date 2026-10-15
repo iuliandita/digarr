@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
+import { REJECTION_REASONS, type RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { stripControlChars } from '@/core/text/strip-control-chars'
 import { idParamSchema } from './validator'
 
@@ -36,18 +36,30 @@ export const updateRecommendationSchema = z.object({
   permanent: z.boolean().optional(),
 })
 
-export const bulkRecommendationSchema = z.object({
-  ids: z.array(z.number().int().positive()).min(1).max(MAX_BULK_IDS),
-  action: z.enum(['approve', 'reject']),
-  targetId: z.string().optional(),
-  qualityProfileId: z.number().int().optional(),
-  metadataProfileId: z.number().int().optional(),
-  rootFolderId: z.number().int().optional(),
-  // Reject-only: apply one shared reason (and optional permanent block) across
-  // every selected id. Omitted => the existing reason-less fast path.
-  reason: z.enum(REJECTION_REASONS).nullish(),
-  permanent: z.boolean().default(false),
-})
+function isPermanentRejectionCompatible(value: {
+  permanent: boolean
+  reason?: RejectionReason | null
+}): boolean {
+  return !(value.permanent && value.reason === 'not_right_now')
+}
+
+export const bulkRecommendationSchema = z
+  .object({
+    ids: z.array(z.number().int().positive()).min(1).max(MAX_BULK_IDS),
+    action: z.enum(['approve', 'reject']),
+    targetId: z.string().optional(),
+    qualityProfileId: z.number().int().optional(),
+    metadataProfileId: z.number().int().optional(),
+    rootFolderId: z.number().int().optional(),
+    // Reject-only: apply one shared reason (and optional permanent block) across
+    // every selected id. Omitted => the existing reason-less fast path.
+    reason: z.enum(REJECTION_REASONS).nullish(),
+    permanent: z.boolean().default(false),
+  })
+  .refine((v) => v.action !== 'reject' || isPermanentRejectionCompatible(v), {
+    message: 'not_right_now is incompatible with permanent',
+    path: ['permanent'],
+  })
 
 // PATCH /api/v1/recommendations/:id/status payload (when status='rejected'):
 // captures structured reason + optional freeform text + permanent-block flag.
@@ -63,7 +75,7 @@ export const rejectStatusSchema = z
       .nullish(),
     permanent: z.boolean().default(false),
   })
-  .refine((v) => !(v.permanent && v.reason === 'not_right_now'), {
+  .refine(isPermanentRejectionCompatible, {
     message: 'not_right_now is incompatible with permanent',
     path: ['permanent'],
   })

@@ -365,6 +365,7 @@ export const getFeedbackSummary = () =>
       genre: string
       approved: number
       rejected: number
+      other: number
       total: number
       rate: number
     }>
@@ -1169,7 +1170,7 @@ export async function downloadBackup(includeCaches = false): Promise<void> {
 export const restoreBackupApi = async (file: File, force = false) => {
   const formData = new FormData()
   formData.append('file', file)
-  const qs = force ? '?force=true' : ''
+  const qs = force ? '?confirm=true&force=true' : '?confirm=true'
   return fetchApi<{
     tablesRestored: Record<string, number>
     warnings: string[]

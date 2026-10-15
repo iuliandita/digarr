@@ -48,6 +48,7 @@ export type MBReleaseGroup = {
   id: string
   title: string
   type: string
+  secondaryTypes?: string[]
   firstReleaseDate?: string
 }
 
@@ -218,26 +219,97 @@ export function createMusicBrainzClient() {
     artistMbid: string,
     types: readonly string[] = ['album', 'ep', 'single'],
   ): Promise<MBReleaseGroup[]> {
-    const params = new URLSearchParams({
-      artist: artistMbid,
-      type: types.join('|'),
-      fmt: 'json',
-      limit: '100',
-    })
-    const data = await request<{
-      'release-groups': Array<{
-        id: string
-        title: string
-        'primary-type'?: string
-        'first-release-date'?: string
-      }>
-    }>(`/release-group?${params}`)
-    return (data['release-groups'] ?? []).map((rg) => ({
-      id: rg.id,
-      title: rg.title,
-      type: rg['primary-type'] ?? 'Other',
-      firstReleaseDate: rg['first-release-date'],
-    }))
+    const limit = 100
+    const maxPages = 100
+    const releaseGroups: MBReleaseGroup[] = []
+    const seenIds = new Set<string>()
+    let offset = 0
+    let totalCount: number | undefined
+
+    for (let page = 0; page < maxPages; page += 1) {
+      const params = new URLSearchParams({
+        artist: artistMbid,
+        type: types.join('|'),
+        fmt: 'json',
+        limit: String(limit),
+        offset: String(offset),
+      })
+      const data = await request<{
+        'release-group-count'?: unknown
+        'release-group-offset'?: unknown
+        'release-groups'?: Array<{
+          id: string
+          title: string
+          'primary-type'?: string
+          'secondary-types'?: unknown
+          'first-release-date'?: string
+        }>
+      }>(`/release-group?${params}`)
+
+      for (const key of ['release-group-count', 'release-group-offset'] as const) {
+        const value = data[key]
+        if (value !== undefined && (!Number.isSafeInteger(value) || (value as number) < 0)) {
+          throw new Error(`MusicBrainz invalid ${key} for artist ${artistMbid}`)
+        }
+      }
+      const pageOffset = data['release-group-offset']
+      if (pageOffset !== undefined && pageOffset !== offset) {
+        throw new Error(`MusicBrainz release-group offset mismatch for artist ${artistMbid}`)
+      }
+      const pageCount = data['release-group-count'] as number | undefined
+      if (pageCount !== undefined) {
+        if (totalCount !== undefined && pageCount !== totalCount) {
+          throw new Error(`MusicBrainz release-group count changed for artist ${artistMbid}`)
+        }
+        totalCount = pageCount
+      }
+
+      if (page > 0 && !Array.isArray(data['release-groups'])) {
+        throw new Error(`MusicBrainz invalid release-group page for artist ${artistMbid}`)
+      }
+      const groups = data['release-groups'] ?? []
+      if (
+        groups.length > limit ||
+        (totalCount !== undefined && offset + groups.length > totalCount)
+      ) {
+        throw new Error(`MusicBrainz inconsistent release-group page for artist ${artistMbid}`)
+      }
+      if (groups.length === 0) {
+        if (totalCount !== undefined && offset < totalCount) {
+          throw new Error(`MusicBrainz incomplete release groups for artist ${artistMbid}`)
+        }
+        return releaseGroups
+      }
+
+      const previousSize = seenIds.size
+      for (const group of groups) {
+        if (seenIds.has(group.id)) continue
+        seenIds.add(group.id)
+        releaseGroups.push({
+          id: group.id,
+          title: group.title,
+          type: group['primary-type'] ?? 'Other',
+          secondaryTypes:
+            Array.isArray(group['secondary-types']) &&
+            group['secondary-types'].every((type) => typeof type === 'string')
+              ? group['secondary-types']
+              : undefined,
+          firstReleaseDate: group['first-release-date'],
+        })
+      }
+      if (seenIds.size === previousSize) {
+        throw new Error(
+          `MusicBrainz release-group pagination made no progress for artist ${artistMbid}`,
+        )
+      }
+      offset += groups.length
+      if (totalCount !== undefined ? offset === totalCount : groups.length < limit) {
+        return releaseGroups
+      }
+    }
+    throw new Error(
+      `MusicBrainz incomplete release groups after ${maxPages} pages for artist ${artistMbid}`,
+    )
   }
 
   async function getRecordings(artistMbid: string, limit = 25): Promise<MBRecording[]> {

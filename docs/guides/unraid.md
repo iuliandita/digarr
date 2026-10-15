@@ -17,7 +17,7 @@ PostgreSQL, that stays fully supported via the optional Database URL field (see
 - Unraid 6.9+. The **Community Applications** plugin is needed only for Option A.
 - Access to an AI provider or local model. Hosted providers need an API key; a local Ollama server does not. Configure this during setup.
 
-The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it, including when `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` are configured. The HTTP listener opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). The template exposes the service on host interfaces unless you restrict the binding or firewall.
+The first account becomes admin. Restrict access to the published port until the intended admin account exists and you have verified it. In v1.19.0, HTTP opens before environment-based bootstrap finishes ([#785](https://github.com/iuliandita/digarr/issues/785)). On develop, configured admin creation finishes before HTTP opens: with no users, set both initial-account fields and use at least 12 password characters, or leave both blank for manual registration. Partial or short first-boot credentials stop startup; existing accounts ignore these fields. The template exposes the service on host interfaces unless you restrict the binding or firewall. See [bootstrap recovery](../OPERATIONS.md#unattended-setup).
 
 ---
 
@@ -64,7 +64,7 @@ new releases through the `latest` tag.
 
 Switch **Advanced View** on in the container form to expose advanced fields. The bundled template includes Allowed Origin, Encryption Key, and Allow Insecure Cookies. Published store templates can lag behind it; use the add-variable steps above for any missing field.
 
-The personal companion corrections merged in [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4), and its published template matches the current fields and help. [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) remains pending as of October 8, 2026; the Community Applications store still needs the workarounds below. After that PR merges, verify the published store template before removing them.
+The personal companion corrections merged in [iuliandita/unraid-templates PR #4](https://github.com/iuliandita/unraid-templates/pull/4), and paired-bootstrap descriptions merged in [personal PR #5](https://github.com/iuliandita/unraid-templates/pull/5). Its published fields and help now match the bundled template. The community bootstrap copy remains tracked in [#843](https://github.com/iuliandita/digarr/issues/843). [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697) remains pending as of October 15, 2026; the Community Applications store still needs the workarounds below. After that PR merges, verify the published store template before removing its pending notes or workarounds.
 
 The current store help omits the HTTP-cookie variable and has stale password, database encoding, origin, model, TLS, and webhook guidance. Follow the settings below, use at least 12 characters for the initial password, manually add `DIGARR_ALLOW_INSECURE_COOKIES` for direct HTTP, and change saved connections in the UI after setup.
 
@@ -79,8 +79,8 @@ The bundled template exposes these fields (matching
 | Data | path `/app/data` | Yes | Persistent storage for the embedded database. Default maps `/mnt/user/appdata/digarr/data` -> `/app/data`. Must be writable by the container user (uid 1000) |
 | Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` -- leave it matching the Data mapping |
 | Database URL | `DATABASE_URL` | No (advanced) | Leave empty to use the embedded database. Set only to use an external PostgreSQL, e.g. `postgresql://digarr:pass@host:5432/digarr`; percent-encode username, password, and database-name components when needed (see [Advanced section](#advanced-external-postgresql)) |
-| Initial Username | `DIGARR_INITIAL_USERNAME` | No | Auto-creates this admin user on first boot |
-| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Password for the initial admin (min 12 chars) |
+| Initial Username | `DIGARR_INITIAL_USERNAME` | No | Set with Initial Password to create the first admin; leave both blank for manual registration. Ignored when users exist |
+| Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Set with Initial Username, at least 12 characters. Ignored when users exist; does not reset passwords |
 | AI Provider | `AI_PROVIDER` | No | `anthropic`, `openai`, `gemini`, `ollama`, `openai-compatible` (or set in UI) |
 | AI Model | `AI_MODEL` | No | Model name for the chosen provider |
 | AI API Key | `AI_API_KEY` | No | API key for the AI provider |
@@ -129,8 +129,8 @@ settings across updates. With external PostgreSQL, persist the Postgres database
 
 1. Click **Apply** to create and start the container.
 2. Open the **WebUI** link (or `http://<server-ip>:3000`).
-3. If `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD` are configured, sign in with those and complete any unfinished setup. Otherwise, complete setup and register the first admin account when prompted. The setup wizard saves configuration; it does not create an account.
-4. After signing in, verify the saved connections and targets in Settings. Configure missing ones there: setup performed before authentication cannot save user-scoped connections or targets ([#783](https://github.com/iuliandita/digarr/issues/783)).
+3. If `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD` are configured, sign in with those and complete any unfinished setup. Otherwise, on develop create the first admin account before the wizard. In v1.19.0, register and sign in before submitting service connections; the wizard itself does not create an account.
+4. On develop, requested settings, Emby credentials and Lidarr/Emby targets save in one transaction; a failed save leaves setup retryable. Verify service reachability in Settings afterward. v1.19.0 can report success without saving a connection or target; configure missing ones in Settings ([#783](https://github.com/iuliandita/digarr/issues/783)).
 5. Database migrations run automatically on every startup. With the embedded
    database this is self-contained; with external PostgreSQL, if Digarr starts
    before Postgres is ready it retries with backoff, so transient startup-order
@@ -160,9 +160,11 @@ network is the simplest option).
    When `DATABASE_URL` is set, Digarr uses PostgreSQL and ignores the embedded
    database; the `/app/data` mapping is then unused.
 
-Digarr passes an explicit `DATABASE_URL` unchanged. Percent-encode the username, password, and database-name components when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Keep the original, unencoded password in `POSTGRES_PASSWORD`, direct `DB_PASS`, or a password file. Enter real credentials in the protected configuration or GUI, not command-line arguments. For separate `DB_*` settings, use only URI-unreserved characters (`A-Z`, `a-z`, `0-9`, `-`, `.`, `_`, `~`) in `DB_USER` and `DB_NAME`; other names require a complete, percent-encoded `DATABASE_URL` ([#773](https://github.com/iuliandita/digarr/issues/773)). `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. If you add `DB_PASS_FILE` or `DATABASE_URL_FILE` yourself, mount the file where container UID 1000 can read it. A configured unreadable file stops startup unless its corresponding nonempty direct variable takes precedence; the error names the variable without exposing the path or contents.
+An explicit `DATABASE_URL` takes precedence over separate settings. Percent-encode the username, password, and database-name components when needed, not the whole URL: `pass#word` becomes `pass%23word`, and a literal `%` becomes `%25`. Keep the original, unencoded password in `POSTGRES_PASSWORD`, direct `DB_PASS`, or a password file. Enter real credentials in the protected configuration or GUI, not command-line arguments. For separate `DB_*` settings, supply raw `DB_USER`, `DB_PASS`, and `DB_NAME`; Digarr encodes each component once. Do not pre-encode these values. The unreleased runtime also preserves encoded reserved database names; v1.19.0 requires URI-unreserved usernames and database names other than `.` or `..`. See [database identifier upgrades](switching-backends.md#database-identifier-upgrades) before changing an existing installation. `DB_PASS_FILE` trims surrounding whitespace, so password files must not contain intentional leading or trailing whitespace. If you add `DB_PASS_FILE` or `DATABASE_URL_FILE` yourself, mount the file where container UID 1000 can read it. A configured unreadable file stops startup unless its corresponding nonempty direct variable takes precedence; the error names the variable without exposing the path or contents.
 
 ## Updating
+
+On develop, migration 0054 requires existing SSO bindings to undergo [verified issuer recovery](../AUTHENTICATION.md#recovering-legacy-oidc-bindings). Before updating an SSO deployment, retain a tested native backup, matching encryption key and previous image. Its missing column makes the old-schema automatic snapshot stop safely; use the documented one-upgrade override only after backup verification and re-enable it afterward. Stop the container before using the recovery helper against its mounted PGlite data. The XML fields and moving companion image channels do not change.
 
 Digarr publishes multi-arch images (amd64 + arm64). Read the target release notes before updating; the store's moving `latest` tag can cross a database migration.
 

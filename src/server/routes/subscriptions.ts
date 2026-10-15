@@ -784,6 +784,17 @@ export function subscriptionRoutes(deps: AppDependencies) {
       await deps.runSubscription(id)
     } catch (err: unknown) {
       const msg = errMsg(err)
+      if (loaded.subscription.sourceType === 'deezer') {
+        return c.json(
+          {
+            error:
+              'Deezer request failed. Check your Deezer connection in Settings and reconnect if needed.',
+            service: 'deezer',
+            retryable: true,
+          },
+          503,
+        )
+      }
       if (
         msg.includes('401') ||
         msg.includes('403') ||

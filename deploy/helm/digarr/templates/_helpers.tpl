@@ -59,6 +59,10 @@ Database secret name -- prefers existingSecret, falls back to chart-managed secr
 {{- end }}
 {{- end }}
 
+{{- define "digarr.urlComponent" -}}
+{{- . | urlquery | replace "+" "%20" -}}
+{{- end }}
+
 {{/*
 PostgreSQL hostname -- bundled service or external host.
 */}}

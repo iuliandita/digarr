@@ -1,5 +1,8 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ProviderAuthError } from '@/core/provider-auth'
+import { createDeezerAdapter } from '@/core/subscriptions/adapters/deezer'
+import { createSpotifyPlaylistAdapter } from '@/core/subscriptions/adapters/spotify-playlist'
 import { runSubscription } from '@/core/subscriptions/runner'
 import type {
   SubscriptionAdapter,
@@ -127,6 +130,12 @@ describe('runSubscription', () => {
         metadata: expect.objectContaining({ artistsFound: 0, artistsNew: 0 }),
       }),
     )
+    expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+      lastRunAt: expect.any(Date),
+      lastResultCount: 0,
+      lastError: null,
+    })
+    expect(deps.jobRecorder.fail).not.toHaveBeenCalled()
     expect(result.artistsFound).toBe(0)
     expect(result.artistsNew).toBe(0)
   })
@@ -204,6 +213,82 @@ describe('runSubscription', () => {
       expect.anything(),
       expect.objectContaining({ subscriptionId: 42, userId: 5 }),
     )
+  })
+
+  it.each(['not_connected', 'token_unusable'] as const)(
+    'records a Deezer %s failure without overwriting the previous result count',
+    async (reason) => {
+      const error = new ProviderAuthError('deezer', reason, 'Reconnect Deezer in Settings')
+      const adapter = createDeezerAdapter({
+        getToken: async () => {
+          throw error
+        },
+      })
+      const deps = makeDeps()
+      const subscription = makeSubscription({
+        userId: 42,
+        sourceType: 'deezer',
+        sourceConfig: { feedType: 'favorites' },
+      })
+
+      await expect(runSubscription(subscription, adapter, deps)).rejects.toBe(error)
+
+      expect(deps.jobRecorder.start).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 42, subscriptionId: 1 }),
+      )
+      expect(deps.jobRecorder.fail).toHaveBeenCalledWith(10, error.message)
+      expect(deps.jobRecorder.complete).not.toHaveBeenCalled()
+      expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+        lastRunAt: expect.any(Date),
+        lastError: error.message,
+      })
+      expect(resolveMock).not.toHaveBeenCalled()
+    },
+  )
+
+  it('records a late Spotify playlist page failure before resolving or storing partial artists', async () => {
+    const token = 'owner-playlist-token'
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            items: [{ item: { type: 'track', artists: [{ name: 'Early artist', id: 'early' }] } }],
+            next: 'https://api.spotify.com/v1/playlists/testPlaylist123/items?offset=1&limit=50',
+            offset: 0,
+            limit: 50,
+            total: 2,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(token, { status: 503 }))
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      const getToken = vi.fn().mockResolvedValue(token)
+      const adapter = createSpotifyPlaylistAdapter({ getToken })
+      const deps = makeDeps()
+      const subscription = makeSubscription({
+        userId: 42,
+        sourceType: 'spotify-playlist',
+        sourceConfig: { playlistId: 'testPlaylist123' },
+        maxArtistsPerRun: 2,
+      })
+      await expect(runSubscription(subscription, adapter, deps)).rejects.toThrow(/Spotify playlist/)
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+      expect(getToken).toHaveBeenCalledOnce()
+      expect(deps.jobRecorder.fail).toHaveBeenCalledWith(10, expect.stringContaining('503'))
+      expect(deps.jobRecorder.fail).not.toHaveBeenCalledWith(10, expect.stringContaining(token))
+      expect(deps.jobRecorder.complete).not.toHaveBeenCalled()
+      expect(deps.queries.updateSubscription).toHaveBeenCalledWith(1, {
+        lastRunAt: expect.any(Date),
+        lastError: expect.stringContaining('503'),
+      })
+      expect(resolveMock).not.toHaveBeenCalled()
+      expect(storeMock).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('records error and re-throws on adapter failure', async () => {

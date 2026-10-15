@@ -2,7 +2,7 @@
 
 ## Dev setup
 
-Install Bun, Node.js 22.18 or newer (Vitest and the documentation AST check run under Node), Docker, and the PostgreSQL client tools (`pg_isready`). Development uses local ports 5432, 3000, and 5173; browser tests also use 3011 for the mock sign-in provider. Keep these ports free.
+CI and container images use Bun 1.4.3. Install Bun, Node.js 22.18 or newer (Vitest and the documentation AST check run under Node), Docker, and the PostgreSQL client tools (`pg_isready`). Development uses local ports 5432, 3000, and 5173; browser tests also use 3011 for the mock sign-in provider. Keep these ports free.
 
 ```sh
 git clone https://github.com/iuliandita/digarr.git
@@ -81,6 +81,12 @@ bun run test:e2e:a11y # Accessibility checks
 Tests live in `tests/`. Keep them close to the code they cover. Route-contract coverage lives in `tests/api-routes/`; browser coverage lives in `tests/e2e/browser/`; accessibility coverage lives in `tests/e2e/a11y/`. Install browsers with `bunx playwright install --with-deps chromium firefox` first. With `DATABASE_URL` or complete `DB_HOST`/`DB_USER`/`DB_NAME` settings (including values in `.env`), Playwright derives a `<database>_playwright` database, terminates its connections, and drops and recreates it on every run. Use an isolated development server and an account with database create/drop permissions; never point this at a database you need to keep. Without an external database configuration, browser tests use temporary PGlite storage and need no PostgreSQL server. By default, Playwright starts an isolated backend on `:3000`, Vite on `:5173`, and the mock sign-in provider on `:3011`. Set `PLAYWRIGHT_SKIP_WEBSERVER=1` only when all required test servers are already running.
 
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
+
+### Container compatibility checks
+
+The Compatibility workflow tests rootless Podman on Linux and Docker through Colima on hosted macOS Intel. The macOS job remains advisory. Its VM startup has a 15-minute limit and uses explicit guest DNS resolvers, following [Colima's DNS guidance](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#colima-cannot-access-the-internet). Startup failures collect VM diagnostics; later failures also collect host and guest DNS diagnostics. Persistent failures still fail the job after the existing bounded Compose retries.
+
+Changes to this bootstrap need an actual macOS workflow run: verify PostgreSQL, PGlite, and persistence after restart, plus the final assertion gate. A working Docker daemon alone does not establish application compatibility. The final gate runs even after failure and requires readiness and both backend assertions.
 
 ## Translations
 

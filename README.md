@@ -72,7 +72,9 @@ docker run -d --name digarr --restart unless-stopped -p 127.0.0.1:3000:3000 \
 
 This local-only HTTP example needs OpenSSL and saves the key in protected `digarr.env`. Retain that file for container recreation and recovery. The cookie override avoids browser-dependent Secure-cookie handling on localhost. For other devices, configure an [HTTPS public origin](docs/AUTHENTICATION.md#public-origin-and-reverse-proxies); deliberate HTTP exposes session cookies to interception.
 
-Open `http://localhost:3000` and complete setup. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
+Open `http://localhost:3000` and complete setup. On develop, create the first account or sign in before the wizard. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
+
+For unattended first boot on develop, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before starting. The configured admin must be created before HTTP opens; partial credentials or a password shorter than 12 characters stop startup. Leave both unset for manual registration. These settings never reset an existing account. Restrict access until you verify the intended admin, especially on v1.19.0 where HTTP opens before bootstrap finishes. See [first-boot access](docs/AUTHENTICATION.md#users-and-targets).
 
 Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
@@ -80,12 +82,12 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 
 ## Your first recommendations
 
-1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
+1. Sign in, then choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider. On develop, requested settings, connections, and targets save together; a failed save leaves setup retryable.
 2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
-4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; non-admin saves can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums; the net-new album toggle does not persist in v1.19.0.
+4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed. On develop, personal saves work for non-admins and global metadata controls are admin-only; v1.19.0 can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums. On develop, the default-off net-new album toggle also persists; v1.19.0 cannot save it.
 
-CSV and playlist imports process the listed artists into recommendations through separate subscription runs. Spotify's `Import Liked Songs` does the same for saved tracks. Imports do not become inputs to a normal scan.
+CSV and playlist imports process the listed artists into recommendations through separate subscription runs. Spotify's `Import Liked Songs` does the same for saved tracks. Imports do not become inputs to a normal scan. Spotify playlist imports on develop honor the saved artist cap across pages; see [limits and playlist access](docs/API.md#subscriptions).
 
 A scan can complete with a failed source. Admins can check Job History for partial results; other users can refresh Discover. Services without similar-artist lookup still contribute their supported listening and library data. See the [pipeline guide](docs/ARCHITECTURE.md#pipeline) for the details.
 
@@ -103,6 +105,8 @@ Use Settings for connections, scoring, schedules, preferences, and language. [Au
 ## Backup and restore
 
 Application JSON exports preserve persistent application state and reject unsafe partial restores before writes. Required automatic-backup failures stop migrations. Retain the matching encryption key separately, and use a native consistent database backup for exact schema rollback. Read [backup boundaries and recovery](docs/guides/switching-backends.md#backup-boundaries-and-recovery) before upgrading or restoring, including the explicit native-backup procedure for older schemas. [Operations](docs/OPERATIONS.md#backup--restore) covers application exports and version-specific upgrade notes.
+
+On develop, selecting a backup in Settings > Administration opens a replacement confirmation before any upload. An encryption-key mismatch requires a separate **Restore Anyway** confirmation; retain the original key whenever possible.
 
 ## Deployment
 

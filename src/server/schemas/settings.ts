@@ -70,6 +70,7 @@ const preferencesSchema = z
     rejectionCooldownDays: z.number().int().min(0).optional(),
     topArtistsLimit: z.number().int().min(1).optional(),
     librarySeedRatio: z.number().min(0).max(1).optional(),
+    netNewAlbumDiscovery: z.boolean().optional(),
     primaryGenres: preferredGenreListSchema.optional(),
     secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),

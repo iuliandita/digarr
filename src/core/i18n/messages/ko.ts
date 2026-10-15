@@ -1160,6 +1160,8 @@ export const ko = {
     'Lidarr 메타데이터 서버가 다운될 때 사용됩니다. 기본값은 api.musicinfo.pro. 셀프 호스팅 시 자체 인스턴스 URL을 설정하세요.',
   'settings.recommendationsSaved': '추천 설정이 저장되었습니다',
   'settings.recommendationsFailed': '설정 저장에 실패했습니다',
+  'settings.recommendationsPartiallySaved':
+    '개인 설정은 저장되었지만 전역 메타데이터 설정을 저장하지 못했습니다.',
   'settings.scheduleTip':
     'Cron 일정을 설정하여 탐색 파이프라인을 자동 실행합니다. 매주 월요일이 인기 있는 선택입니다.',
   'settings.librarySyncInterval': '라이브러리 동기화',
@@ -1381,6 +1383,9 @@ export const ko = {
   'admin.exporting': '내보내는 중...',
   'admin.includeCaches': '캐시 포함',
   'admin.restoreFromBackup': '백업에서 복원',
+  'admin.restoreConfirmTitle': '백업을 복원할까요?',
+  'admin.restoreConfirmMessage':
+    '백업에 포함된 데이터가 교체됩니다. 먼저 이 인스턴스를 백업하세요. 계속할까요?',
   'admin.lastAutoBackup': '마지막 자동 백업:',
   'admin.backupDownloaded': '백업 다운로드 완료',
   'admin.backupFailed': '백업 생성 실패',

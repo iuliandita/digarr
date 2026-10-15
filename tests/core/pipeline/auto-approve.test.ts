@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { type AutoApproveDeps, autoApprove } from '@/core/pipeline/auto-approve'
+import { PipelineCancelledError } from '@/core/pipeline/cancel'
 
 function makeDeps(overrides: Partial<AutoApproveDeps> = {}): AutoApproveDeps {
   return {
@@ -521,6 +522,199 @@ describe('autoApprove()', () => {
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(11, 'add_failed', {
       targetActions: { 'lidarr-1': { status: 'failed', externalId: 123, error: 'album missing' } },
       lidarrError: 'album missing',
+    })
+  })
+  it.each(['artist-success', 'artist-failure', 'album-success'])(
+    'drains and persists an attempted %s before stopping',
+    async (scenario) => {
+      const controller = new AbortController()
+      const album = scenario.startsWith('album')
+      const success = !scenario.endsWith('failure')
+      let release!: () => void
+      const held = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      let entered!: () => void
+      const started = new Promise<void>((resolve) => {
+        entered = resolve
+      })
+      const add = vi.fn(async () => {
+        entered()
+        await held
+        return {
+          success,
+          targetType: 'lidarr',
+          targetId: 1,
+          externalId: 99,
+          error: success ? undefined : 'target failed',
+        }
+      })
+      const second = vi.fn()
+      const deps = makeDeps({
+        getRecommendationsByBatch: vi.fn().mockResolvedValue(
+          [1, 2].map((id) => ({
+            id,
+            score: 1,
+            status: 'pending',
+            kind: album ? 'album' : 'artist',
+            recommendedReleaseGroupId: album ? 'rg' : null,
+            artist: { mbid: `mbid-${id}`, name: 'A' },
+          })),
+        ),
+        getEnabledTargets: vi.fn().mockResolvedValue([
+          {
+            id: 'first',
+            type: 'lidarr',
+            capabilities: [album ? 'addAlbum' : 'addArtist'],
+            addArtist: add,
+            addAlbum: add,
+          },
+          {
+            id: 'second',
+            type: 'lidarr',
+            capabilities: [album ? 'addAlbum' : 'addArtist'],
+            addArtist: second,
+            addAlbum: second,
+          },
+        ]),
+        jobRecorder: {
+          start: vi.fn().mockResolvedValue(11),
+          complete: vi.fn(),
+          fail: vi.fn(),
+          cancel: vi.fn(),
+          markStuck: vi.fn(),
+        },
+      })
+      const run = autoApprove(
+        1,
+        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
+        deps,
+        controller.signal,
+      )
+      const rejected = expect(run).rejects.toThrow(
+        success ? PipelineCancelledError : 'target failed',
+      )
+      await started
+      controller.abort()
+      expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
+      release()
+      await rejected
+      expect(add).toHaveBeenCalledOnce()
+      expect(second).not.toHaveBeenCalled()
+      expect(deps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(
+        1,
+        success ? 'added_to_lidarr' : 'add_failed',
+        expect.objectContaining({
+          targetActions: {
+            first: expect.objectContaining({ status: success ? 'added' : 'failed' }),
+          },
+        }),
+      )
+      expect(success ? deps.jobRecorder?.complete : deps.jobRecorder?.fail).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('cancels a started target job without invoking its target when job creation drains', async () => {
+    const controller = new AbortController()
+    const deps = makeDeps({
+      jobRecorder: {
+        start: vi.fn(async () => {
+          controller.abort()
+          return 11
+        }),
+        cancel: vi.fn(),
+        complete: vi.fn(),
+        fail: vi.fn(),
+        markStuck: vi.fn(),
+      },
+    })
+    const targets = await deps.getEnabledTargets()
+    await expect(
+      autoApprove(
+        1,
+        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
+        deps,
+        controller.signal,
+      ),
+    ).rejects.toBeInstanceOf(PipelineCancelledError)
+    expect(deps.jobRecorder?.cancel).toHaveBeenCalledWith(11)
+    expect(targets[0]?.addArtist).not.toHaveBeenCalled()
+    expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
+  })
+
+  it.each(['zero-target', 'invalid-album'])(
+    'drains a begun %s status write before stopping',
+    async (scenario) => {
+      const controller = new AbortController()
+      const deps = makeDeps({
+        getEnabledTargets: vi.fn().mockResolvedValue([]),
+        getRecommendationsByBatch: vi.fn().mockResolvedValue(
+          [1, 2].map((id) => ({
+            id,
+            score: 1,
+            status: 'pending',
+            kind: scenario === 'invalid-album' ? 'album' : 'artist',
+            recommendedReleaseGroupId: null,
+            artist: { mbid: 'a', name: 'A' },
+          })),
+        ),
+        updateRecommendationStatus: vi.fn(async () => {
+          controller.abort()
+        }),
+      })
+      await expect(
+        autoApprove(
+          1,
+          { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
+          deps,
+          controller.signal,
+        ),
+      ).rejects.toBeInstanceOf(PipelineCancelledError)
+      expect(deps.updateRecommendationStatus).toHaveBeenCalledOnce()
+    },
+  )
+  it('stops after warming without attempting a target or changing recommendation status', async () => {
+    const controller = new AbortController()
+    const deps = makeDeps({
+      warmArtist: vi.fn(async () => {
+        controller.abort()
+      }),
+    })
+    const targets = await deps.getEnabledTargets()
+    await expect(
+      autoApprove(
+        1,
+        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
+        deps,
+        controller.signal,
+      ),
+    ).rejects.toBeInstanceOf(PipelineCancelledError)
+    expect(targets[0]?.addArtist).not.toHaveBeenCalled()
+    expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
+  })
+
+  it('preserves an actual target exception and its action when cancellation arrives during the call', async () => {
+    const controller = new AbortController()
+    const failure = new Error('remote write failed')
+    const deps = makeDeps()
+    const targets = await deps.getEnabledTargets()
+    const add = vi.mocked(
+      targets[0]?.addArtist as NonNullable<(typeof targets)[number]['addArtist']>,
+    )
+    add.mockImplementationOnce(async () => {
+      controller.abort()
+      throw failure
+    })
+    await expect(
+      autoApprove(
+        1,
+        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
+        deps,
+        controller.signal,
+      ),
+    ).rejects.toBe(failure)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(1, 'add_failed', {
+      targetActions: { 'lidarr-1': { status: 'failed', error: failure.message } },
     })
   })
 })

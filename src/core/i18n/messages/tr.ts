@@ -1180,6 +1180,8 @@ export const tr = {
     "Lidarr'ın meta veri sunucusu kapalıyken kullanılır. Varsayılan api.musicinfo.pro. Kendi sunucunuzu barındırıyorsanız kendi hearring-aid örnek URL'nizi girin.",
   'settings.recommendationsSaved': 'Öneri ayarları kaydedildi',
   'settings.recommendationsFailed': 'Ayarlar kaydedilemedi',
+  'settings.recommendationsPartiallySaved':
+    'Kişisel tercihler kaydedildi, ancak genel meta veri ayarları kaydedilemedi.',
   'settings.scheduleTip':
     "Keşfetme pipeline'ını otomatik çalıştırmak için bir cron programı ayarlayın. Pazartesi günü haftalık seçim popüler bir tercihtir.",
   'settings.librarySyncInterval': 'Kütüphane eşitleme',
@@ -1404,6 +1406,9 @@ export const tr = {
   'admin.exporting': 'Disa aktariliyor...',
   'admin.includeCaches': 'Onbellekleri dahil et',
   'admin.restoreFromBackup': 'Yedekten geri yükle',
+  'admin.restoreConfirmTitle': 'Yedek geri yüklensin mi?',
+  'admin.restoreConfirmMessage':
+    'Bu işlem, yedekte yer alan verileri değiştirir. Önce bu kurulumun yedeğini alın. Devam edilsin mi?',
   'admin.lastAutoBackup': 'Son otomatik yedek:',
   'admin.backupDownloaded': 'Yedek indirildi',
   'admin.backupFailed': 'Yedek oluşturma başarısız',

@@ -107,7 +107,7 @@ describe('OidcService', () => {
         new URL('https://auth.example.com/authorize?state=mock-state'),
       )
       vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue({
-        claims: () => ({ sub: 'linked-subject' }),
+        claims: () => ({ iss: config.issuerUrl, sub: 'linked-subject' }),
       } as never)
       const purpose = {
         kind: 'link' as const,
@@ -276,6 +276,7 @@ describe('OidcService', () => {
       expect(result).toEqual({
         purpose: LOGIN_PURPOSE,
         claims: {
+          iss: config.issuerUrl,
           sub: 'user-123',
           email: 'alice@example.com',
           emailVerified: undefined,
@@ -287,6 +288,55 @@ describe('OidcService', () => {
       expect(result).not.toHaveProperty('refreshToken')
       expect(result).not.toHaveProperty('idToken')
       expect(result).not.toHaveProperty('expiresIn')
+    })
+
+    it.each(['https://auth.example.com/', 'https://auth.example.com/tenant%2Fone'])(
+      'preserves the validated issuer exactly: %s',
+      async (issuer) => {
+        vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+        vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+          new URL('https://auth.example.com/authorize'),
+        )
+        vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue({
+          claims: () => ({ iss: issuer, sub: 'user-123' }),
+        } as never)
+        const started = await service.getAuthorizationUrl(
+          'http://localhost/callback',
+          LOGIN_PURPOSE,
+        )
+
+        const result = await service.handleCallback(
+          callbackFor(started.state),
+          started.browserBinding,
+        )
+
+        expect(result.claims).toMatchObject({ iss: issuer, sub: 'user-123' })
+      },
+    )
+
+    it.each([
+      { iss: undefined, sub: 'user-123' },
+      { iss: '', sub: 'user-123' },
+      { iss: 42, sub: 'user-123' },
+      { iss: config.issuerUrl, sub: undefined },
+      { iss: config.issuerUrl, sub: '' },
+      { iss: config.issuerUrl, sub: 42 },
+    ])('rejects invalid identity claims: %j', async (claims) => {
+      vi.mocked(oidcClient.discovery).mockResolvedValue({} as never)
+      vi.mocked(oidcClient.buildAuthorizationUrl).mockReturnValue(
+        new URL('https://auth.example.com/authorize'),
+      )
+      vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue({
+        claims: () => claims,
+      } as never)
+      const started = await service.getAuthorizationUrl('http://localhost/callback', LOGIN_PURPOSE)
+
+      await expect(
+        service.handleCallback(callbackFor(started.state), started.browserBinding),
+      ).rejects.toThrow('Invalid OIDC identity claims')
+      await expect(
+        service.handleCallback(callbackFor(started.state), started.browserBinding),
+      ).rejects.toThrow('Unknown, expired, or invalid OIDC transaction')
     })
 
     it('cleans up pending auth after successful callback', async () => {
@@ -398,7 +448,7 @@ describe('OidcService', () => {
       let counter = 0
       vi.mocked(oidcClient.randomState).mockImplementation(() => `state-${counter++}`)
       const mockTokens = {
-        claims: () => ({ sub: 'user-123' }),
+        claims: () => ({ iss: config.issuerUrl, sub: 'user-123' }),
         expiresIn: () => 3600,
       }
       vi.mocked(oidcClient.authorizationCodeGrant).mockResolvedValue(mockTokens as never)

@@ -10,6 +10,7 @@ import {
   getPgliteDataDir,
   resolveDbBackend,
 } from './backend'
+import { postgresConnectionOptions } from './postgres-options'
 import * as schema from './schema'
 
 export const dbBackend = resolveDbBackend()
@@ -31,16 +32,17 @@ function buildPostgres(): Database {
         ? { rejectUnauthorized: false }
         : undefined
 
-  pgPool = new pg.Pool({
-    connectionString: buildDatabaseUrl(),
-    max: envConfig.dbPoolMax ?? 20,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: envConfig.dbConnectTimeoutMs,
-    // Cap any single query at 30s server-side. Protects against runaway
-    // reports/hygiene scans hogging a connection.
-    statement_timeout: 30_000,
-    ssl,
-  })
+  pgPool = new pg.Pool(
+    postgresConnectionOptions(buildDatabaseUrl(), {
+      max: envConfig.dbPoolMax ?? 20,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: envConfig.dbConnectTimeoutMs,
+      // Cap any single query at 30s server-side. Protects against runaway
+      // reports/hygiene scans hogging a connection.
+      statement_timeout: 30_000,
+      ssl,
+    }),
+  )
   return drizzlePg(pgPool, { schema })
 }
 

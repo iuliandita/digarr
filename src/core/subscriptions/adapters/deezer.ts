@@ -44,12 +44,7 @@ export function createDeezerAdapter(deps: {
       config: Record<string, unknown>,
       options?: { limit?: number },
     ): Promise<AdapterResult> {
-      let token: string
-      try {
-        token = await deps.getToken()
-      } catch {
-        return { artists: [] }
-      }
+      const token = await deps.getToken()
 
       const client = createDeezerUserClient(token)
       const limit = options?.limit

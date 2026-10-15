@@ -12,6 +12,7 @@ import {
   linkOidcIdentity,
   OidcIdentityInUseError,
   OidcLinkConflictError,
+  recoverLegacyOidcBinding,
 } from '@/db/queries/users'
 import { sessions, users } from '@/db/schema'
 
@@ -103,6 +104,7 @@ describe.runIf(Boolean(POSTGRES_URL))('linkOidcIdentity PostgreSQL concurrency',
     const sessionHash = hashSessionToken(fixture.token)
     return {
       userId: fixture.userId,
+      oidcIssuer: 'https://issuer.example',
       oidcSubject,
       passwordFingerprint: fingerprintPasswordHash(fixture.passwordHash),
       initiatingSessionHash: sessionHash,
@@ -110,7 +112,7 @@ describe.runIf(Boolean(POSTGRES_URL))('linkOidcIdentity PostgreSQL concurrency',
     }
   }
 
-  it('allows exactly one of two users to claim the same subject', async () => {
+  it('allows exactly one of two users to claim the same issuer and subject', async () => {
     const first = await createUserWithSession()
     const second = await createUserWithSession()
     const workerA = createNamedDb('oidc-link-unique-a')
@@ -133,6 +135,74 @@ describe.runIf(Boolean(POSTGRES_URL))('linkOidcIdentity PostgreSQL concurrency',
         .from(users)
         .where(eq(users.oidcSubject, sharedSubject))
       expect(owners).toHaveLength(1)
+    } finally {
+      await Promise.all([workerA.pool.end(), workerB.pool.end()])
+      await cleanupUsers([first.userId, second.userId])
+    }
+  })
+
+  it('allows two users to link the same subject under different issuers', async () => {
+    const first = await createUserWithSession()
+    const second = await createUserWithSession()
+    const subject = `issuer-scoped-${randomUUID()}`
+    try {
+      await Promise.all([
+        linkOidcIdentity(setupDb, linkParams(first, subject)),
+        linkOidcIdentity(setupDb, {
+          ...linkParams(second, subject),
+          oidcIssuer: 'https://other.example',
+        }),
+      ])
+      const owners = await setupDb
+        .select({ issuer: users.oidcIssuer })
+        .from(users)
+        .where(eq(users.oidcSubject, subject))
+      expect(owners.map((row) => row.issuer).sort()).toEqual([
+        'https://issuer.example',
+        'https://other.example',
+      ])
+    } finally {
+      await cleanupUsers([first.userId, second.userId])
+    }
+  })
+
+  it('allows exactly one concurrent recovery of a duplicated legacy subject into an issuer', async () => {
+    const first = await createUserWithSession()
+    const second = await createUserWithSession()
+    const workerA = createNamedDb('oidc-recovery-a')
+    const workerB = createNamedDb('oidc-recovery-b')
+    const subject = `legacy-duplicate-${randomUUID()}`
+    const issuer = 'https://historical.example/realm/'
+    try {
+      await setupDb
+        .update(users)
+        .set({ oidcSubject: subject })
+        .where(inArray(users.id, [first.userId, second.userId]))
+      const outcomes = await Promise.allSettled([
+        recoverLegacyOidcBinding(workerA.db, {
+          userId: first.userId,
+          subject,
+          issuer,
+          apply: true,
+        }),
+        recoverLegacyOidcBinding(workerB.db, {
+          userId: second.userId,
+          subject,
+          issuer,
+          apply: true,
+        }),
+      ])
+      expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1)
+      const rejected = outcomes.find(
+        (outcome): outcome is PromiseRejectedResult => outcome.status === 'rejected',
+      )
+      expect(rejected?.reason).toBeInstanceOf(OidcIdentityInUseError)
+      const rows = await setupDb
+        .select({ issuer: users.oidcIssuer })
+        .from(users)
+        .where(eq(users.oidcSubject, subject))
+      expect(rows.filter((row) => row.issuer === issuer)).toHaveLength(1)
+      expect(rows.filter((row) => row.issuer === null)).toHaveLength(1)
     } finally {
       await Promise.all([workerA.pool.end(), workerB.pool.end()])
       await cleanupUsers([first.userId, second.userId])

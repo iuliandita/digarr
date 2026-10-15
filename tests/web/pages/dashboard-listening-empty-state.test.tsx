@@ -91,6 +91,23 @@ vi.mock('@/web/lib/hooks', () => ({
 
 import { Dashboard } from '@/web/pages/dashboard'
 
+function mockCachedListeningRows() {
+  vi.mocked(getTopArtists).mockResolvedValue({
+    tracks: [{ artist: 'Cached artist', track: '12 plays', source: 'listenbrainz' }],
+    total: 1,
+    offset: 0,
+    limit: 5,
+    source: 'listenbrainz',
+    status: 'ok',
+  })
+  vi.mocked(getRecentTracks).mockResolvedValue({
+    tracks: [{ artist: 'Recent artist', track: 'Cached track', source: 'listenbrainz' }],
+    hasSource: true,
+    source: 'listenbrainz',
+    status: 'ok',
+  })
+}
+
 describe('Dashboard listening empty state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -196,26 +213,30 @@ describe('Dashboard listening empty state', () => {
     ).toBeInTheDocument()
     expect(screen.queryByText('No recent plays')).not.toBeInTheDocument()
   })
-  it('keeps cached listening rows visible when refresh fails', async () => {
-    vi.mocked(getTopArtists).mockResolvedValue({
-      tracks: [{ artist: 'Cached artist', track: '12 plays', source: 'listenbrainz' }],
-      total: 1,
-      offset: 0,
-      limit: 5,
-      source: 'listenbrainz',
-      status: 'ok',
-    })
-    vi.mocked(getRecentTracks).mockResolvedValue({
-      tracks: [{ artist: 'Recent artist', track: 'Cached track', source: 'listenbrainz' }],
-      hasSource: true,
-      source: 'listenbrainz',
-      status: 'ok',
-    })
+  it.each(['request', 'source'])('retains rows on %s failure and retries', async (failure) => {
+    mockCachedListeningRows()
     const { client } = renderWithQuery(<Dashboard />)
     await screen.findByText('Cached artist')
     await screen.findByText('Cached track')
-    vi.mocked(getTopArtists).mockRejectedValue(new Error('Refresh failed'))
-    vi.mocked(getRecentTracks).mockRejectedValue(new Error('Refresh failed'))
+    if (failure === 'request') {
+      vi.mocked(getTopArtists).mockRejectedValue(new Error('Refresh failed'))
+      vi.mocked(getRecentTracks).mockRejectedValue(new Error('Refresh failed'))
+    } else {
+      vi.mocked(getTopArtists).mockResolvedValue({
+        tracks: [],
+        total: 0,
+        offset: 0,
+        limit: 5,
+        source: null,
+        status: 'error',
+      })
+      vi.mocked(getRecentTracks).mockResolvedValue({
+        tracks: [],
+        hasSource: true,
+        source: null,
+        status: 'error',
+      })
+    }
     await act(async () => {
       await Promise.all([
         client.refetchQueries({ queryKey: ['dashboard-top-artists'] }),
@@ -229,5 +250,74 @@ describe('Dashboard listening empty state', () => {
     ).toHaveLength(2)
     expect(screen.getByText('Cached artist')).toBeInTheDocument()
     expect(screen.getByText('Cached track')).toBeInTheDocument()
+    vi.mocked(getTopArtists).mockResolvedValue({
+      tracks: [{ artist: 'Updated artist', track: '15 plays', source: 'listenbrainz' }],
+      total: 1,
+      offset: 0,
+      limit: 5,
+      source: 'listenbrainz',
+      status: 'ok',
+    })
+    vi.mocked(getRecentTracks).mockResolvedValue({
+      tracks: [{ artist: 'Updated recent artist', track: 'Updated track', source: 'listenbrainz' }],
+      hasSource: true,
+      source: 'listenbrainz',
+      status: 'ok',
+    })
+    for (const button of screen.getAllByRole('button', { name: 'Try again' })) {
+      fireEvent.click(button)
+    }
+    await screen.findByText('Updated artist')
+    await screen.findByText('Updated track')
+    expect(screen.queryByText('Cached artist')).not.toBeInTheDocument()
+    expect(screen.queryByText('Cached track')).not.toBeInTheDocument()
+    expect(screen.queryAllByRole('alert')).toHaveLength(0)
   })
+
+  it.each(['empty', 'not_configured'] as const)(
+    'replaces cached listening rows after a successful %s refresh',
+    async (status) => {
+      mockCachedListeningRows()
+      const { client } = renderWithQuery(<Dashboard />)
+      await screen.findByText('Cached artist')
+      await screen.findByText('Cached track')
+      vi.mocked(getTopArtists).mockResolvedValue({
+        tracks: [],
+        total: 0,
+        offset: 0,
+        limit: 5,
+        source: status === 'empty' ? 'listenbrainz' : null,
+        status,
+      })
+      vi.mocked(getRecentTracks).mockResolvedValue({
+        tracks: [],
+        hasSource: status === 'empty',
+        source: status === 'empty' ? 'listenbrainz' : null,
+        status,
+      })
+      await act(async () => {
+        await Promise.all([
+          client.refetchQueries({ queryKey: ['dashboard-top-artists'] }),
+          client.refetchQueries({ queryKey: ['dashboard-recent-tracks'] }),
+        ])
+      })
+      await waitFor(() => {
+        expect(screen.queryByText('Cached artist')).not.toBeInTheDocument()
+        expect(screen.queryByText('Cached track')).not.toBeInTheDocument()
+      })
+      expect(screen.queryAllByRole('alert')).toHaveLength(0)
+      if (status === 'empty') {
+        expect(screen.getByRole('heading', { name: 'Recently Played' })).toBeInTheDocument()
+        expect(
+          screen.getByText('No listening history for this period. Try another period.'),
+        ).toBeInTheDocument()
+        expect(screen.getByText('No recent plays')).toBeInTheDocument()
+        expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
+      } else {
+        expect(screen.getByText('Connect an account')).toBeInTheDocument()
+        expect(screen.queryByRole('heading', { name: 'Recently Played' })).not.toBeInTheDocument()
+        expect(screen.queryByText('No recent plays')).not.toBeInTheDocument()
+      }
+    },
+  )
 })

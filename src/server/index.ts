@@ -271,7 +271,7 @@ export function createApp(deps: AppDependencies) {
     '/',
     oidcRoutes({
       getOidcService: deps.getOidcService,
-      getUserByOidcSubject: deps.getUserByOidcSubject,
+      getUserByOidcIdentity: deps.getUserByOidcIdentity,
       getUserByUsername: deps.getUserByUsername,
       getUserCredentialsById: (id) => getUserCredentialsById(deps.db, id),
       createUser: deps.createUser,
