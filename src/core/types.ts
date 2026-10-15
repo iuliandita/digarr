@@ -1,5 +1,12 @@
 import type { SupportedLocale } from '@/core/i18n/locales'
 
+export type LibraryTrack = {
+  name: string
+  artist: string
+  path: string
+  duration?: number
+}
+
 export type GenreSource = 'native' | 'library' | 'artist-cache'
 
 export type GenreCoverage = {

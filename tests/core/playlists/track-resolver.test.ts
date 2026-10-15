@@ -170,6 +170,79 @@ describe('resolveTracksForArtist()', () => {
   })
 
   describe('local source', () => {
+    it.each(['empty', 'error', 'wrong artist', 'missing path', 'missing title'])(
+      'tries the next local connection after %s before catalog fallback',
+      async (failure) => {
+        const first = vi.fn()
+        if (failure === 'error') first.mockRejectedValue(new Error('token=private-secret'))
+        else
+          first.mockResolvedValue(
+            failure === 'empty'
+              ? []
+              : [
+                  {
+                    name: failure === 'missing title' ? ' ' : 'Creep',
+                    artist: failure === 'wrong artist' ? 'Another artist' : 'Radiohead',
+                    path: failure === 'missing path' ? ' ' : '/music/creep.flac',
+                  },
+                ],
+          )
+        const embySearch = vi.fn().mockResolvedValue(LOCAL_TRACKS)
+        const navidromeSearch = vi.fn()
+        const spotifySearch = vi.fn()
+        const result = await resolveTracksForArtistDetailed(
+          'Radiohead',
+          undefined,
+          {
+            jellyfinSearch: first,
+            embySearch,
+            navidromeSearch,
+            spotifySearch,
+          },
+          DEFAULT_CONFIG,
+        )
+        expect(result.tracks).toHaveLength(3)
+        expect(result.outcome.status).toBe('resolved')
+        expect(embySearch).toHaveBeenCalledWith('Radiohead')
+        expect(navidromeSearch).not.toHaveBeenCalled()
+        expect(spotifySearch).not.toHaveBeenCalled()
+      },
+    )
+
+    it('tries every local connection in order before catalog fallback and keeps failed outcomes distinct', async () => {
+      const order: string[] = []
+      const search = (label: string) =>
+        vi.fn(async () => {
+          order.push(label)
+          return []
+        })
+      const deps: TrackResolverDeps = {
+        jellyfinSearch: search('jellyfin'),
+        embySearch: search('emby'),
+        navidromeSearch: search('subsonic'),
+        plexSearch: search('plex'),
+        spotifySearch: search('spotify'),
+      }
+      const result = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        undefined,
+        deps,
+        DEFAULT_CONFIG,
+      )
+      expect(order).toEqual(['jellyfin', 'emby', 'subsonic', 'plex', 'spotify'])
+      expect(result.outcome.status).toBe('unmatched')
+      const failed = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        undefined,
+        {
+          ...deps,
+          embySearch: vi.fn().mockRejectedValue(new Error('unreachable')),
+        },
+        DEFAULT_CONFIG,
+      )
+      expect(failed.outcome.status).toBe('error')
+    })
+
     it('returns local tracks when jellyfinSearch is available', async () => {
       const deps: TrackResolverDeps = {
         jellyfinSearch: vi.fn().mockResolvedValue(LOCAL_TRACKS),

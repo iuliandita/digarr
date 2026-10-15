@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import type { ServiceTestResult } from '@/core/types'
+import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 import { createMediaServerQueue } from './media-server-queue'
@@ -113,6 +113,61 @@ export function createSubsonicClient(
       }))
   }
 
+  async function searchTracks(artistName: string, limit = 25): Promise<LibraryTrack[]> {
+    if (!Number.isFinite(limit)) throw new Error('Subsonic track search requires a finite limit')
+    const count = Math.min(100, Math.max(0, Math.trunc(limit)))
+    const query = artistName.trim()
+    if (!query || count === 0) return []
+    const body = unwrapSubsonicResponse(
+      await get<
+        SubsonicEnvelope<{
+          searchResult3?: {
+            song?: Array<{ title?: string; artist?: string; path?: string; duration?: number }>
+          }
+        }>
+      >(
+        restPath('search3', {
+          query,
+          artistCount: '0',
+          albumCount: '0',
+          songCount: String(count),
+          songOffset: '0',
+        }),
+      ),
+      'Subsonic track search failed',
+    )
+    const result = body.searchResult3
+    if (
+      !result ||
+      typeof result !== 'object' ||
+      Array.isArray(result) ||
+      (result.song !== undefined && !Array.isArray(result.song))
+    ) {
+      throw new Error('Malformed Subsonic track search response')
+    }
+    const tracks: LibraryTrack[] = []
+    for (const item of (result.song ?? []).slice(0, count)) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        throw new Error('Malformed Subsonic track search song')
+      }
+      const name = typeof item.title === 'string' ? item.title.trim() : ''
+      const artist = typeof item.artist === 'string' ? item.artist.trim() : ''
+      const path = typeof item.path === 'string' && item.path.trim() ? item.path : ''
+      if (!name || !artist || !path) continue
+      tracks.push({
+        name,
+        artist,
+        path,
+        ...(typeof item.duration === 'number' &&
+        Number.isFinite(item.duration) &&
+        item.duration >= 0
+          ? { duration: item.duration }
+          : {}),
+      })
+    }
+    return tracks
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const body = unwrapSubsonicResponse(
@@ -133,6 +188,7 @@ export function createSubsonicClient(
     getStarredArtists,
     getAllArtists,
     getAlbumsForArtist,
+    searchTracks,
     testConnection,
   }
 }

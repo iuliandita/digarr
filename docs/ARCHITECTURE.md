@@ -382,10 +382,18 @@ three points, allowing multiple albums per artist to survive a single run:
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
 - Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
 
-  The resolver supports local lookups, but the running app wires only Spotify,
-  Deezer, and MusicBrainz. Spotify search is wired only for a user with a stored
-  Spotify OAuth connection; Deezer search needs no account. Accepted `local` priorities do not search media
-  libraries ([#767](https://github.com/iuliandita/digarr/issues/767)).
+  Production resolver credentials come only from the playlist owner's saved
+  library connections. Jellyfin, Emby, and Subsonic use the saved operator TLS
+  verification preference. A `local` priority tries Jellyfin, Emby, Subsonic/Navidrome, then
+  Plex with their configured user/library/section scope and existing request
+  queues. Each provider search is bounded to 25 candidates. The first exact
+  normalized artist match with real title and file path wins; an empty or failed
+  lookup continues through local connections before catalog fallbacks. Tracks
+  are not combined across connections. File paths remain server paths, not
+  copied or verified-playable media. Shared Lidarr settings and export targets
+  are separate. Ownerless playlists use no private connections. Spotify search
+  is wired only for a user with a stored Spotify OAuth connection and resolves
+  its current token per search; Deezer search needs no account.
 
   MusicBrainz recordings are the final MBID-based fallback. They supply titles
   and recording IDs without playable URIs or paths. Exports link those rows to

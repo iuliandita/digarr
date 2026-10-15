@@ -8,7 +8,9 @@
       "digest": "915964485386c1d13a512fe9aa6724c24622f7e35921243263b05a2388ee744b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md"],
+        "docs": [
+          "docs/guides/unraid.md"
+        ],
         "note": "Record the merged and published personal template correction while preserving the pending Community Applications correction and store workarounds.",
         "breaking": "none",
         "migration": "",
@@ -200,7 +202,10 @@
       "digest": "5174ce0687cb4d6f9f0fcb791a63298ac01031c9df4476862dee10edcba38a12",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Configured DATABASE_URL_FILE and DB_PASS_FILE read failures stop startup with variable-only errors. Nonempty corresponding direct values retain precedence; readable files retain trimming and empty behavior. Existing env example reviewed with no new variable/default. Docker and Unraid read-permission guidance updated; existing template mappings remain valid.",
         "breaking": "Unreadable configured database secret files now stop startup instead of silently falling back. Verify mounts and UID1000 read permissions before updating; no database migration is added, and rollback restores the old silent fallback.",
         "migration": "",
@@ -246,7 +251,11 @@
       "digest": "cb55e6d9da49f8696ccd961ca59dd6536b7745a8711e601e2d37e7bbc9274dc8",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "The admin restore schema accepts an optional playlistExports array for older files; existing admin authorization, key checks, and confirmation requirements remain. Backup registry ownership/dependency checks prevent unsafe omitted-binding removal. New playlist recovery requires both playlist and target ownership and exposes no scope hashes or credentials.",
         "breaking": "none",
         "migration": "",
@@ -309,7 +318,11 @@
       "digest": "497cf5af4b5a0cacc97b08f91238fb8a2965785fb0f35fa1272e2f79c452b814",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Reviewed owner-scoped export projections and explicit local recovery reset, acknowledgement validation, hidden scope credentials, 404 ownership checks, 409 busy handling, and fail-closed retained playlist identities.",
         "breaking": "none",
         "migration": "",
@@ -464,7 +477,11 @@
       "digest": "354808dbd258c0f118c19fc5a450f15cb272e1199664bb1a2658b1d8bcbb06fa",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "README.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Add the playlist-operation conflict translation in all 15 locales for API recovery errors. Recovery remains API-only and existing layouts, controls, theme and locale persistence are unchanged; no screenshot update is needed. README links to the recovery contract.",
         "breaking": "none",
         "migration": "",
@@ -480,24 +497,24 @@
         "src/core/clients/deezer-user.ts": "674e72755e9f5b5bceb48b50cc4a49326921241f97644f3cda8dbdc1ed7ef825",
         "src/core/clients/deezer.ts": "22c8256142329a10879fa20368f801d745469cd95fe4497f2c8998486102dff4",
         "src/core/clients/discogs.ts": "5f8590ac95362349e83959e36a0a1895e92b532d98fbdbe2493cf2447e473d94",
-        "src/core/clients/emby.ts": "fbfafce8eecb4dcda75ceb1e7c77d26fc140d9b575a418baf467bb33571d859c",
+        "src/core/clients/emby.ts": "42038a7a23baa1dfd74d9c2280d7f4ed02ecdb1ab8f7ced0265477e99acbeb73",
         "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
         "src/core/clients/http.ts": "c66dfc2e9656a39b0799c7701157796e90b599d8adf6e12a1c34856156530811",
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
-        "src/core/clients/jellyfin.ts": "949cdf38d1878487d5d50a54460fadae90b72fb6d691c7766c0f09807f4ee738",
+        "src/core/clients/jellyfin.ts": "860b234856aa0f2a1b1cca39dd24a5783ca3edcd5632d71f52c84489f2365e35",
         "src/core/clients/lastfm.ts": "e1d56bf26e9f417f96b89f1965bca0b7afc0bb2fbfd16ad2bae3b3964853a9c6",
         "src/core/clients/lidarr.ts": "7c5c3bc9f3f71a2bcc75b74267a95de34fe1eb5eb1cc2c9b758ac287dca466c2",
         "src/core/clients/listenbrainz.ts": "7e594c0f1552692257561d54ee9c8383f47e142bb336b49672fc80dffd44d4f4",
-        "src/core/clients/media-browser.ts": "cefdefb1ca3d0c7e5cff8baea92a487610c1c95a611b71bc0f63f102ec4aceb9",
+        "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz.ts": "8c51c809bffa950add7c3362d62c8a0782613669dec790fc7f2b573db064ce3a",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "568c820fcbe727568ebb17ff1cdf0a9d084ccfa43ce2514c51e204b797d84831",
+        "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
         "src/core/clients/slskd.ts": "d4ba76011b8232366d32f710634d65c88c0ccdbc418d71862d6a16be3cf7d818",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
-        "src/core/clients/subsonic.ts": "ed31951db931fc5c32c03232348c166e57794f7e8b562733319488d87c782b9e",
+        "src/core/clients/subsonic.ts": "fd3a22c4274bba4ebad45b175a2f92f1689e1bc20379f3cfa4850860eb290d7e",
         "src/core/clients/tag-radio-resolver.ts": "683dd0135a5e8a2f865051f51b5c270730543fd020f933d2da1b880105dcceaf",
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "e0c37f564313ef4726e2bcf17afb780d192ce5a5bb9fe79cadb4c04e2fbd48a7",
@@ -580,6 +597,7 @@
         "src/core/playlists/export.ts": "4cecf722657df503436342ce2dfec06fb101ba5ada4dd8e5fc84159e9b357e51",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
         "src/core/playlists/generator.ts": "9bcd7bf0088fd9c6b08b1ba66833fae48e31514e44733e4f82d20fe833f9cf85",
+        "src/core/playlists/resolver-deps.ts": "fb4bf6626de207f1cbfcb4feca6c6f515af0c3646f205299ea9ac5a46d912957",
         "src/core/playlists/scheduler.ts": "d99b30a85702aeeccd3d2aa30e066ff15ab3aecf1ec47b4aee4f14dcb17091d1",
         "src/core/playlists/strategies/audition.ts": "a5b9997f4b54afd2c763bbf7180fe706aa9488171c43bb2b80d5445724f95e88",
         "src/core/playlists/strategies/genre-focus.ts": "4393801b18ea5d733ef2233bb5908d2b1271e41355ef864d95eda63418caa535",
@@ -588,8 +606,8 @@
         "src/core/playlists/strategies/types.ts": "e9017df7238bb1939845341c395bd2cf253f8101a93247b6c74dec30e5ad9bf8",
         "src/core/playlists/strategies/weekly-digest.ts": "ff51e16426ef4ce4b28e19c5f8c453573adc8e067d86dd3025d52af1a81389d5",
         "src/core/playlists/strategy-deps.ts": "1e1df71f3fc439f8574cc25f074c2abc7290cc89786f0bc989049e85e7bc6c73",
-        "src/core/playlists/track-resolver.ts": "3530e38acc507a13dfd1415bf743c6121b54523b4bc51c3635bcade33f740c52",
-        "src/core/playlists/types.ts": "0702cbc3f869b5212d2b35839f9a0624b103990392320637b52c5b90f1aea78a",
+        "src/core/playlists/track-resolver.ts": "a143f1b0a98251168c156da42c54df547c60cb9d610895bd68d45e1d21b4a503",
+        "src/core/playlists/types.ts": "103df693bced14be3b00f9fc407bfba267ba6562a20b3752ab8665eadd154aa2",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
         "src/core/plugins/emby.ts": "ad73fab18f531878937b7cbbcbb2c0c8ff13aff42fece578bbaef560d0469600",
         "src/core/plugins/jellyfin-family.ts": "e5bde5b7aaa28f346472a155e9db08a9e08734a241ebc0deebd280201ab52f06",
@@ -662,26 +680,26 @@
         "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
         "src/core/targets/types.ts": "d4a6074dbb81a918d020de577bcef7afa255927f16914c6320a90ff2e4d28cde",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
-        "src/core/types.ts": "7174f034d84b181799a1c530404962bac02d39bc580313c1ccc6daf9b6321f1e",
+        "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "2483db6720da1d0d6823e8495f9ec4c7e1767c4b382b455696adc11b3afccbe6",
+        "src/index.ts": "8a711dedf8a0af722195d24ba23e48906bd018e3148d7bdddb5f89911b8857a4",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "876d5394f360ed771cf28cbfea77c864e4af0cfdc2b55c8360eea362b3baf99a",
+      "digest": "8a5372ab5fe530a7f843d95a278e7150dcb5ecf2375deb1aa3b24c0c25a9343b",
       "review": {
         "outcome": "docs-updated",
         "docs": [
           "README.md",
+          "docs/API.md",
           "docs/ARCHITECTURE.md",
           "docs/OPERATIONS.md",
-          "docs/API.md",
           "CHANGELOG.md"
         ],
-        "note": "Prepared provider sessions verify destination scope and usable tracks before mutation. Persist a reservation before create and checkpoint IDs before follow-up writes; reuse IDs for replacement, preserve bindings on errors and stop automatic recreation. Document credential-rotation limits, explicit reset, partial remote contents, old untracked copies, and single-replica operation. Create-only recommendation exports retain their existing contract; void HTTP methods support successful empty mutation responses.",
+        "note": "Reviewed owner-scoped local lookup, saved user/library/section filters, bounded real-path exact-artist matching, first-success fallback, unchanged API defaults, current Spotify tokens and saved operator TLS preference. No UI layout, locale, deployment or companion-template contract changes.",
         "breaking": "none",
-        "migration": "Migration 0053 persists export identities and participates in recovery; follow the native-backup upgrade and matching-image rollback procedure in Operations.",
-        "digest": "876d5394f360ed771cf28cbfea77c864e4af0cfdc2b55c8360eea362b3baf99a"
+        "migration": "No database migration or new settings. Existing owner connections and operator TLS setting are reused; rollback restores generation without local lookup and preserves saved connections and tracks.",
+        "digest": "8a5372ab5fe530a7f843d95a278e7150dcb5ecf2375deb1aa3b24c0c25a9343b"
       }
     },
     "deployment": {
@@ -724,7 +742,9 @@
       "digest": "e46be4d0132ba03271e15360317c8aba465cd6f484e72299b4747251f273b817",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/helm/digarr/README.md"],
+        "docs": [
+          "deploy/helm/digarr/README.md"
+        ],
         "note": "Helm backup-volume comments and operator notes now distinguish persistent JSON state from ephemeral authorization and schema history, and explain that required backup failure stops migrations. Volume defaults, image channels, and manifest resources are unchanged; the chart snapshot was regenerated.",
         "breaking": "none",
         "migration": "",

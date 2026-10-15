@@ -3,6 +3,8 @@
 // and identical item shapes; only auth headers and Jellyfin's username
 // resolution differ, so those stay in the per-client factories.
 
+import type { LibraryTrack } from '@/core/types'
+
 export type MediaBrowserArtist = {
   name: string
   id: string
@@ -40,6 +42,82 @@ export type MediaBrowserLibrary = {
 }
 
 type RawItem = Record<string, unknown>
+
+export function trackSearchLimit(limit: number): number {
+  if (!Number.isFinite(limit)) throw new Error('Track search limit must be finite')
+  return Math.max(0, Math.min(100, Math.trunc(limit)))
+}
+
+export function trackSearchPath(
+  userId: string,
+  artistName: string,
+  libraryId: string | null,
+  limit: number,
+): string {
+  const params = new URLSearchParams({
+    Artists: artistName,
+    IncludeItemTypes: 'Audio',
+    Recursive: 'true',
+    Fields: 'Path',
+    Limit: String(limit),
+  })
+  if (libraryId) params.set('ParentId', libraryId)
+  return `/Users/${encodeURIComponent(userId)}/Items?${params}`
+}
+
+export function mapLibraryTracks(
+  response: unknown,
+  artistName: string,
+  limit: number,
+): LibraryTrack[] {
+  const items = (response as { Items?: unknown } | null)?.Items
+  if (
+    !Array.isArray(items) ||
+    items.some((item) => item === null || typeof item !== 'object' || Array.isArray(item))
+  ) {
+    throw new Error('Media server returned an invalid track collection')
+  }
+
+  const normalize = (value: string) =>
+    value.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+  const requestedArtist = normalize(artistName)
+  const tracks: LibraryTrack[] = []
+  for (const item of items.slice(0, limit) as RawItem[]) {
+    if (
+      typeof item.Name !== 'string' ||
+      !item.Name.trim() ||
+      typeof item.Path !== 'string' ||
+      !item.Path.trim() ||
+      /^[a-z][a-z\d+.-]*:\/\//i.test(item.Path.trim())
+    ) {
+      continue
+    }
+    const credits = Array.isArray(item.Artists)
+      ? item.Artists.filter(
+          (artist): artist is string => typeof artist === 'string' && !!artist.trim(),
+        )
+      : []
+    if (credits.length === 0 && Array.isArray(item.ArtistItems)) {
+      for (const artist of item.ArtistItems) {
+        if (artist && typeof artist.Name === 'string' && artist.Name.trim())
+          credits.push(artist.Name)
+      }
+    }
+    if (credits.length === 0 && typeof item.AlbumArtist === 'string' && item.AlbumArtist.trim()) {
+      credits.push(item.AlbumArtist)
+    }
+    const artist = credits.find((credit) => normalize(credit) === requestedArtist) ?? credits[0]
+    if (!artist) continue
+    const duration =
+      typeof item.RunTimeTicks === 'number' &&
+      Number.isFinite(item.RunTimeTicks) &&
+      item.RunTimeTicks >= 0
+        ? item.RunTimeTicks / 10_000_000
+        : undefined
+    tracks.push({ name: item.Name.trim(), artist: artist.trim(), path: item.Path, duration })
+  }
+  return tracks
+}
 
 // MusicArtist items are server-global, so ParentId on the generic Items
 // endpoint does not scope them - the dedicated /Artists endpoint does.

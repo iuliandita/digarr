@@ -13,7 +13,6 @@ import { createMusicBrainzClient } from './core/clients/musicbrainz'
 import { createPlexClient } from './core/clients/plex'
 import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
-import { createSpotifyClient } from './core/clients/spotify'
 import { createSubsonicClient } from './core/clients/subsonic'
 import { createTidalClient } from './core/clients/tidal'
 import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './core/crypto'
@@ -49,6 +48,7 @@ import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
 import { withPlaylistLock } from './core/playlists/generation-lock'
 import { generatePlaylist } from './core/playlists/generator'
+import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
 import { createDiscogsSource } from './core/plugins/discogs'
@@ -1017,28 +1017,6 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
   )
 }
 
-async function buildPlaylistResolverDeps(userId: number | null) {
-  const mbClient = createMusicBrainzClient()
-  const deezerClient = createDeezerClient()
-  const resolverDeps: import('./core/playlists/types').TrackResolverDeps = {
-    musicbrainzRecordings: (artistMbid) => mbClient.getRecordings(artistMbid),
-    deezerSearch: (query, limit = 10) => deezerClient.searchTracks(query, limit),
-  }
-
-  if (userId != null) {
-    const spotifyOAuthRow = await getOAuthToken(db, userId, 'spotify')
-    if (spotifyOAuthRow) {
-      resolverDeps.spotifySearch = async (query, limit = 10) => {
-        const accessToken = await resolveProviderToken(db, userId, 'spotify')
-        const client = createSpotifyClient(accessToken)
-        return client.searchTracks(query, limit)
-      }
-    }
-  }
-
-  return resolverDeps
-}
-
 async function executePlaylistGeneration(playlistId: number): Promise<void> {
   return withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId))
 }
@@ -1066,7 +1044,7 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
     })
 
     const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
-    const resolverDeps = await buildPlaylistResolverDeps(playlist.userId ?? null)
+    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId ?? null)
     const generation = await generatePlaylist(
       playlist.strategy as import('./db/schema').PlaylistStrategy,
       playlist.config,

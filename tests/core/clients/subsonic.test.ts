@@ -236,3 +236,110 @@ describe('subsonic client auth params', () => {
     expect(salts[1]).toBe(salts[0])
   })
 })
+
+describe('subsonic client.searchTracks()', () => {
+  const song = {
+    title: 'Roads',
+    artist: 'Portishead',
+    path: 'Portishead/Roads.flac',
+    duration: 302,
+  }
+
+  it.each([
+    { username: 'listener one', salt: 'salt-a', limit: 2 },
+    { username: 'other&listener', salt: 'salt-b', limit: 200 },
+  ])('uses the client credentials and encoded bounded song-only query: %j', async (options) => {
+    mockGet.mockResolvedValueOnce({ 'subsonic-response': { status: 'ok', searchResult3: {} } })
+    const client = createSubsonicClient('http://nav:4533', options.username, 'secret', {
+      salt: options.salt,
+    })
+
+    await client.searchTracks(' AC/DC & Friends? ', options.limit)
+
+    const request = new URL(String(mockGet.mock.calls[0]?.[0]), 'http://nav:4533')
+    expect(request.pathname).toBe('/rest/search3')
+    expect(Object.fromEntries(request.searchParams)).toEqual({
+      u: options.username,
+      t: createHash('md5').update(`secret${options.salt}`).digest('hex'),
+      s: options.salt,
+      v: '1.16.1',
+      c: 'digarr',
+      f: 'json',
+      query: 'AC/DC & Friends?',
+      artistCount: '0',
+      albumCount: '0',
+      songCount: String(Math.min(options.limit, 100)),
+      songOffset: '0',
+    })
+    expect(queueMocks.add).toHaveBeenCalledTimes(1)
+    expect(request.searchParams.has('p')).toBe(false)
+  })
+
+  it('maps real artist credits and paths with seconds while omitting incomplete tracks', async () => {
+    mockGet.mockResolvedValueOnce({
+      'subsonic-response': {
+        status: 'ok',
+        searchResult3: {
+          song: [
+            song,
+            { ...song, artist: 'Another credit', duration: Number.POSITIVE_INFINITY },
+            { ...song, duration: -1 },
+            { ...song, title: ' ' },
+            { ...song, artist: undefined },
+            { ...song, path: undefined, id: 'song-1' },
+            { ...song, path: ' ' },
+          ],
+        },
+      },
+    })
+    const client = createSubsonicClient('http://nav:4533', 'listener', 'secret')
+
+    await expect(client.searchTracks('Portishead')).resolves.toEqual([
+      { name: 'Roads', artist: 'Portishead', path: 'Portishead/Roads.flac', duration: 302 },
+      { name: 'Roads', artist: 'Another credit', path: 'Portishead/Roads.flac' },
+      { name: 'Roads', artist: 'Portishead', path: 'Portishead/Roads.flac' },
+    ])
+  })
+
+  it.each([
+    null,
+    {},
+    { 'subsonic-response': { status: 'ok' } },
+    { 'subsonic-response': { status: 'ok', searchResult3: null } },
+    { 'subsonic-response': { status: 'ok', searchResult3: { song: {} } } },
+    { 'subsonic-response': { status: 'ok', searchResult3: { song: null } } },
+    { 'subsonic-response': { status: 'ok', searchResult3: { song: [null] } } },
+    { 'subsonic-response': { status: 'ok', searchResult3: { song: [[]] } } },
+  ])('rejects malformed successful responses: %j', async (response) => {
+    mockGet.mockResolvedValueOnce(response)
+    const client = createSubsonicClient('http://nav:4533', 'listener', 'secret')
+
+    await expect(client.searchTracks('Portishead')).rejects.toThrow(/Malformed Subsonic/)
+  })
+
+  it.each(['envelope', 'network'])('surfaces %s failures', async (failure) => {
+    if (failure === 'envelope') {
+      mockGet.mockResolvedValueOnce({
+        'subsonic-response': { status: 'failed', error: { code: 40, message: 'Access denied' } },
+      })
+    } else mockGet.mockRejectedValueOnce(new Error('Network unavailable'))
+    const client = createSubsonicClient('http://nav:4533', 'listener', 'secret')
+
+    await expect(client.searchTracks('Portishead')).rejects.toThrow(
+      failure === 'envelope' ? 'Access denied' : 'Network unavailable',
+    )
+  })
+
+  it('accepts empty results and avoids broad searches for empty or invalid input', async () => {
+    const client = createSubsonicClient('http://nav:4533', 'listener', 'secret')
+    await expect(client.searchTracks(' ')).resolves.toEqual([])
+    await expect(client.searchTracks('Portishead', 0)).resolves.toEqual([])
+    await expect(client.searchTracks('Portishead', Number.NaN)).rejects.toThrow(/finite limit/)
+    expect(mockGet).not.toHaveBeenCalled()
+    mockGet.mockResolvedValueOnce({ 'subsonic-response': { status: 'ok', searchResult3: {} } })
+    await expect(client.searchTracks('Portishead')).resolves.toEqual([])
+    expect(
+      new URL(String(mockGet.mock.calls[0]?.[0]), 'http://nav').searchParams.get('songCount'),
+    ).toBe('25')
+  })
+})

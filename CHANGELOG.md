@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Wire playlist `local` priority to the owner's connected Jellyfin, Emby, Subsonic/Navidrome, and Plex libraries with saved user/library/section filters. Try local connections before configured catalog fallbacks, retain only exact-artist tracks with real file paths, and preserve API defaults. Paths do not prove player access or playback. Honor the saved TLS setting for Jellyfin, Emby, and Subsonic. No migration is added. [#767](https://github.com/iuliandita/digarr/issues/767), [#828](https://github.com/iuliandita/digarr/issues/828).
+
 - Send repeated `songIdToAdd` parameters when populating Navidrome playlists, matching the Subsonic API contract for both saved and create-only exports. [#826](https://github.com/iuliandita/digarr/issues/826).
 
 - Refresh saved remote playlists by persisted target IDs instead of creating a copy on every generation. Checkpoint creation, preserve known IDs after failures, and require explicit API recovery for uncertain creation or destination changes. Empty/unmatched exports preserve remote contents; there is no remote rollback or cross-replica replacement lock. Migration 0053 adds bindings to backups and backend copies; existing-schema upgrades need the verified native-backup override, and rollback needs the previous image's matching backup. See [operations](docs/OPERATIONS.md#playlists-and-notifications) for recovery and provider identity limits. [#765](https://github.com/iuliandita/digarr/issues/765).
