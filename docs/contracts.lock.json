@@ -170,22 +170,23 @@
         "src/db/queries/recommendations.ts": "18b266561a47db8a4bba4623876647bd4fe47304c93c0adc2a689a1ac4796f86",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
-        "src/db/queries/settings.ts": "ba83754a01665c8865664fadb7ac25ddeeebc2329302630a2ad248e1b15da5c4",
+        "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
+        "src/db/queries/setup.ts": "b5ab56689644ab1b17edb6d0e94cf47531d8102965b7b44d2675f116c1a5cbf6",
         "src/db/queries/slskd-jobs.ts": "e67c2a6f34f311b8fe3a7a715e65a1b58eef4152f62e64bda14e988b9aa677c7",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
-        "src/db/queries/targets.ts": "3187d4a8e0770df25af44c10017ad56a057fcb1a7c2987b8f7656869b008dbc1",
-        "src/db/queries/users.ts": "7fbecd13f0142103b01d7550f8676fce501d9d34df309df4d0da2f5abc6a99cf",
+        "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
+        "src/db/queries/users.ts": "f8bf839d2625d04849a647cebd0650ec4b1e3da8eb797b251b912a27b8d5829a",
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "eb20850067e71da7cce04475a6eeb7aded87def0d8433d6f3ddfcbd7f6fb8c2a",
+      "digest": "74fdea68240616b0160e7b141df0a88bebca78a71d8ad618a5f9a56098e7d311",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/switching-backends.md", "CHANGELOG.md"],
-        "note": "Issue 781 adds DATABASE_URL_FILE to the existing PGlite migration report hint, matching the complete backend-switching instructions. Marked develop fix versus v1.19.0 omission; source selection, copy transaction, encryption, schema and backup behavior are unchanged.",
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Initial HTTP setup now commits settings, requested owner Emby credentials and Lidarr/Emby targets in one transaction; owner and singleton locks prevent silent no-op saves and duplicate concurrent completion. Database-trigger rollback/retry tests and native PostgreSQL lock scheduling verified. Shared query parameter types support the same transaction; existing environment bootstrap remains separate.",
         "breaking": "none",
-        "migration": "Upgrade changes only guidance; no data migration is added. Existing backup requirements and rollback procedure remain unchanged; rollback to v1.19.0 restores the incomplete hint, so continue clearing DATABASE_URL_FILE manually.",
-        "digest": "eb20850067e71da7cce04475a6eeb7aded87def0d8433d6f3ddfcbd7f6fb8c2a"
+        "migration": "No schema or stored-data migration is added on upgrade; existing backup and rollback requirements remain unchanged. Rollback to v1.19.0 restores best-effort setup, so verify requested connections and targets manually after setup.",
+        "digest": "74fdea68240616b0160e7b141df0a88bebca78a71d8ad618a5f9a56098e7d311"
       }
     },
     "configuration": {
@@ -231,7 +232,7 @@
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "51de3ebc83b7a7bb17417a644dcd211cd27b982220531ce456e28271d6d13e08",
         "src/server/routes/oidc.ts": "221fec0de508dd55ebd0d374c6df0475d762c2080ba1b3423c666c330eae170a",
-        "src/server/routes/setup.ts": "319fde2dbfaff00b9b2847d85fe3e02521ee493c0d56eb3eaeabf3d08baac612",
+        "src/server/routes/setup.ts": "a487dce636f245402feded00604cf6eaeb891c3d6ed5f6a7c0646c7829c29a8f",
         "src/server/routes/users.ts": "f0a6cdc020e9e43f60fae3c4ed180d9d475827c203a6af09fe2ec972ae92cbd4",
         "src/server/schemas/admin.ts": "e3a05f9cd80edf946e8ebcfc0d553d89b0a2712c0be1a52a7b5e498067c73caf",
         "src/server/schemas/auth.ts": "0296b66d0db47e4ff30c92dc86a904b5c8566de009fc4a88d06f56051cca25c7",
@@ -239,19 +240,19 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "76ed8f725e772064618b3a9a77be84918b27b8c6572d78de90a3e67e86e4a969",
+      "digest": "0d105549bcba1bcc587a3e1c8359118e4ecac47803a73cc7a78df55b21c05401",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Issue 780 corrects only the updateEmailSchema comment: self-asserted email never links existing OIDC accounts. Reviewed existing explicit password/session linking and subject-only login, plus authentication guide and API; runtime schemas, routes, identity storage and documented behavior are unchanged. Missing issuer binding remains separately tracked in issue 799.",
+        "outcome": "docs-updated",
+        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Issue 783 validates complete nonblank service groups, requires an existing authenticated owner for requested Lidarr/Emby services and reports safe persistence failure. Browser registration precedes the wizard with verified cookie status; public AI-only API and environment bootstrap access remain unchanged. Documented develop versus v1.19 behavior; issuer binding and startup bootstrap remain separately tracked.",
         "breaking": "none",
         "migration": "",
-        "digest": "76ed8f725e772064618b3a9a77be84918b27b8c6572d78de90a3e67e86e4a969"
+        "digest": "0d105549bcba1bcc587a3e1c8359118e4ecac47803a73cc7a78df55b21c05401"
       }
     },
     "api": {
       "files": {
-        "src/server/deps.ts": "408d364bc0a4725323c8014a891cd93a49438cf4abbd9de7270e822dcbde90c1",
+        "src/server/deps.ts": "721236f4d9ee832c0cae53ce7544db6accfc5b3f1a62175a5f384a4b9b3a9e3a",
         "src/server/helpers/openapi-doc.ts": "b28973d7f8e2b439db9bf60b57d5823432cf04a5195da05ec14977972bf13245",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
@@ -302,14 +303,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "17552c03e7d498b55f4879e0b4bc3b0cab099bd63c07559879570fb8349a782c",
+      "digest": "faf1bfe4b7a71b98ee96b15c62850b3b39654be97b2e81135aea6c2480c85e8d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Manual Deezer subscription execution returns a source-specific 503 with retry guidance rather than a session 401 or Spotify service label. API guide describes persisted lastError, failed Job History and genuine empty success; endpoint schema and auth ownership stay unchanged.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Existing completeSetup dependency accepts optional owner/service options and runtime dispatches HTTP completion to atomic persistence. Documented complete service groups, conditional owner authentication, generic setup.failed 500 rollback, 409 concurrent completion and retained 204 success; no endpoint or response schema removal.",
         "breaking": "none",
-        "migration": "No endpoint or stored-data migration; existing run requests use the same path, owner check and body contract.",
-        "digest": "17552c03e7d498b55f4879e0b4bc3b0cab099bd63c07559879570fb8349a782c"
+        "migration": "",
+        "digest": "faf1bfe4b7a71b98ee96b15c62850b3b39654be97b2e81135aea6c2480c85e8d"
       }
     },
     "interface": {
@@ -349,7 +350,7 @@
         "src/web/components/approve-dialog.tsx": "e23f0306224c4755d2abfe0e5f9e7065436930e88ec1cee4303509b99c3984d3",
         "src/web/components/artist-enrichment-panel.tsx": "6bb679742243d5e8990ea02bbb638534845a9e02d116481ef62fca79be304a10",
         "src/web/components/artist-thumb.tsx": "f0fddfb4a814933f697b13ae7a1dc17798a1202776f1d0c515de431516be227b",
-        "src/web/components/auth-gate.tsx": "f427e33239c22d616691e2aa41f23c871339e87a647147d90bf3be1d1beec2f5",
+        "src/web/components/auth-gate.tsx": "dbb47d51ca1f39ab51f27333a76e8fdc56c626ba35df85ba35707afcd69b7e48",
         "src/web/components/blocked-albums-tab.tsx": "3d7c0ff3dbeb3fe1bfe10ad6b5609e37bbec77d9e9d0fa023b8e959f9711b608",
         "src/web/components/blocked-artists-tab.tsx": "d8ef51ec9c34c1f2aa56b186771d24bda622b17c316ecc65b20bc7b6b8ec2776",
         "src/web/components/bottom-nav.tsx": "e5a8262f7bd09db4f6e172586613a187837e624444d928e7b01cef21bb77eaa3",
@@ -457,14 +458,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "8e9925665083eb6943bb0430a9221956a5b3e4c644b92fc2bb1395806bc92fd5",
+      "digest": "a24325714339850797afea32d6f79e9354664b34f39257392625b7b5f51fb391",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Failed manual runs refetch subscriptions to reveal the existing saved error row and preserve the translated generic toast. No new strings, layout or screenshots are needed; existing locale coverage is unchanged.",
+        "docs": ["README.md", "docs/SCREENSHOTS.md", "docs/OPERATIONS.md"],
+        "note": "Fresh browser auth now shows existing translated registration before the unchanged setup wizard and verifies the resulting cookie before mounting children. Updated first-run order and screenshot scope note; no new strings, themes or form layouts. Existing setup failure toast resolves the server setup.failed translation.",
         "breaking": "none",
-        "migration": "No preference, theme, locale or stored-data migration; only the subscription query refreshes after a failed manual run.",
-        "digest": "8e9925665083eb6943bb0430a9221956a5b3e4c644b92fc2bb1395806bc92fd5"
+        "migration": "",
+        "digest": "a24325714339850797afea32d6f79e9354664b34f39257392625b7b5f51fb391"
       }
     },
     "features": {
@@ -662,17 +663,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "3398f05402b684024810cef02066f1f4f5c0eafafea8977b75516eee664a5665",
+        "src/index.ts": "54957037d2827850903137eb84594e04ff4127d4a6face120e08495acdf6de9b",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "14da17a34fbdd0f2e55ceae99c69a846b720cc3fbb9a11c28810d56f4dacc7ce",
+      "digest": "d64cb4056e89b4f7959f920c1009fc3585c48eb320cff07189fd9862b4bc5225",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed Spotify playlist pagination, saved distinct-artist caps, sparse page windows, local-file metadata, owner/collaborator access, 20-page incomplete-read failures and Job History behavior. Updated README, API, authentication, operations, roadmap and changelog; no UI, locale, screenshot or Unraid companion change.",
+        "note": "HTTP setup wiring now invokes atomic settings, connection and target persistence; direct environment bootstrap call is retained. Reviewed README, Docker/Unraid first-run guides, authentication, API, roadmap and screenshots. Current personal and Community Applications template fields remain compatible; pending CA template sync is preexisting and this change requires no cross-repository template edit.",
         "breaking": "none",
-        "migration": "No schema or stored-data migration; existing subscription owners, saved caps and import defaults are retained.",
-        "digest": "14da17a34fbdd0f2e55ceae99c69a846b720cc3fbb9a11c28810d56f4dacc7ce"
+        "migration": "",
+        "digest": "d64cb4056e89b4f7959f920c1009fc3585c48eb320cff07189fd9862b4bc5225"
       }
     },
     "deployment": {

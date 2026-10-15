@@ -329,17 +329,50 @@ describe('AuthGate', () => {
     expect(apiMocks.clearStoredToken).not.toHaveBeenCalled()
   })
 
-  it('mounts children when authentication is not required', async () => {
-    apiMocks.getAuthStatus.mockResolvedValue({
-      required: false,
-      hasUsers: false,
-      authenticated: false,
-      oidcEnabled: false,
-    })
+  it('requires the first account and verified cookie auth before mounting children', async () => {
+    apiMocks.getAuthStatus
+      .mockResolvedValueOnce({
+        required: false,
+        hasUsers: false,
+        authenticated: false,
+        oidcEnabled: false,
+      })
+      .mockResolvedValueOnce(authenticatedStatus)
 
     renderGate()
+    await screen.findByRole('button', { name: 'Create account' })
+    expect(screen.queryByText('secret area')).not.toBeInTheDocument()
 
+    await submitRegistration()
+
+    expect(apiMocks.registerUser).toHaveBeenCalledWith('admin', 'correct horse battery staple')
+    expect(apiMocks.getAuthStatus).toHaveBeenCalledTimes(2)
     await screen.findByText('secret area')
+  })
+
+  it('keeps registration visible when verification still reports no users or cookie auth', async () => {
+    apiMocks.getAuthStatus
+      .mockResolvedValueOnce({ ...unauthenticatedStatus, hasUsers: false })
+      .mockResolvedValueOnce({
+        required: false,
+        hasUsers: false,
+        authenticated: false,
+        oidcEnabled: false,
+      })
+
+    renderGate()
+    await screen.findByRole('button', { name: 'Create account' })
+
+    await submitRegistration()
+
+    expect(
+      await screen.findByText(
+        'The browser did not accept the session cookie. Check the public URL and HTTPS configuration.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create account' })).toBeInTheDocument()
+    expect(apiMocks.getAuthStatus).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText('secret area')).not.toBeInTheDocument()
   })
 
   it('does not replay migration when React re-enters the mount effect', async () => {

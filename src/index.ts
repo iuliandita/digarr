@@ -168,6 +168,7 @@ import {
   setDigestDeliveryPosition,
   updateSettings,
 } from './db/queries/settings'
+import { completeSetupWithServices } from './db/queries/setup'
 import {
   createSlskdJob,
   findActiveSlskdJobByWorkKey,
@@ -1273,7 +1274,7 @@ const app = createApp({
   isSetupComplete: () => isSetupComplete(db),
   getSettings: () => getSettings(db),
   updateSettings: (partial) => updateSettings(db, partial),
-  completeSetup: (config) => completeSetup(db, config),
+  completeSetup: (config, services) => completeSetupWithServices(db, config, services),
   getLastBatch: async () => {
     const batches = await listBatches(db)
     return batches[0] ?? null

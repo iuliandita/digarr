@@ -333,7 +333,7 @@ export async function getUserConnections(
 }
 
 export async function updateUserConnections(
-  db: Database,
+  db: DbOrTx,
   userId: number,
   data: Partial<UserConnections>,
 ): Promise<void> {

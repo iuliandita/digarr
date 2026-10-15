@@ -6,6 +6,8 @@ Digarr supports four authentication modes. Most deployments only need one.
 
 Restrict first-boot access until the intended admin exists and you have verified it. Environment-based admin bootstrap runs after HTTP starts and does not reserve the first account against public registration ([#785](https://github.com/iuliandita/digarr/issues/785)).
 
+On develop, the browser asks you to create the first account or sign in before opening the setup wizard. Requested Lidarr/Emby setup needs an existing authenticated owner; AI-only API bootstrap retains its existing first-run access rules. This does not change environment-based bootstrap.
+
 The first user becomes admin; admins can promote additional users in Settings > Users. Concurrent first-user signups cannot create multiple bootstrap admins. Upgrading does not restore roles removed by older versions; an admin can reassign them after review.
 
 In Settings > Targets, admins choose **Assigned user** when adding or editing a target. Each user's approvals use only their assigned targets. Create separate targets if several users need the same Lidarr instance. Admins manage the connection; ordinary users can test and use it without seeing saved credentials.

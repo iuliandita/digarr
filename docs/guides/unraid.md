@@ -129,8 +129,8 @@ settings across updates. With external PostgreSQL, persist the Postgres database
 
 1. Click **Apply** to create and start the container.
 2. Open the **WebUI** link (or `http://<server-ip>:3000`).
-3. If `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD` are configured, sign in with those and complete any unfinished setup. Otherwise, complete setup and register the first admin account when prompted. The setup wizard saves configuration; it does not create an account.
-4. After signing in, verify the saved connections and targets in Settings. Configure missing ones there: setup performed before authentication cannot save user-scoped connections or targets ([#783](https://github.com/iuliandita/digarr/issues/783)).
+3. If `DIGARR_INITIAL_USERNAME` / `DIGARR_INITIAL_PASSWORD` are configured, sign in with those and complete any unfinished setup. Otherwise, on develop create the first admin account before the wizard. In v1.19.0, register and sign in before submitting service connections; the wizard itself does not create an account.
+4. On develop, requested settings, Emby credentials and Lidarr/Emby targets save in one transaction; a failed save leaves setup retryable. Verify service reachability in Settings afterward. v1.19.0 can report success without saving a connection or target; configure missing ones in Settings ([#783](https://github.com/iuliandita/digarr/issues/783)).
 5. Database migrations run automatically on every startup. With the embedded
    database this is self-contained; with external PostgreSQL, if Digarr starts
    before Postgres is ready it retries with backoff, so transient startup-order

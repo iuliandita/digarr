@@ -18,6 +18,8 @@ The Compose stacks publish port 3000 on all host interfaces. Restrict access unt
 
 Before starting either stack, copy `.env.example` to `.env`. Set `ALLOWED_ORIGIN` to the exact browser URL, with no trailing slash, and save a generated `DIGARR_ENCRYPTION_KEY` there. Use the [protected key-generation procedure](../../docs/AUTHENTICATION.md#generate-a-new-encryption-key), then copy the value into `.env` with a trusted editor. Restrict access to this file and keep a separate backup of the key. For deliberate plain-HTTP access, also set `DIGARR_ALLOW_INSECURE_COOKIES=true`; HTTPS deployments should leave it false. See [authentication](../../docs/AUTHENTICATION.md#public-origin-and-reverse-proxies).
 
+On develop, open the WebUI and create the first account or sign in before completing the wizard. Requested Lidarr/Emby connections and targets save atomically with setup settings; if saving fails, correct the problem and retry. A successful save does not test external service reachability. Environment-based bootstrap remains separate.
+
 ### Embedded PGlite (single container)
 
 ```

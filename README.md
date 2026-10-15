@@ -72,7 +72,7 @@ docker run -d --name digarr --restart unless-stopped -p 127.0.0.1:3000:3000 \
 
 This local-only HTTP example needs OpenSSL and saves the key in protected `digarr.env`. Retain that file for container recreation and recovery. The cookie override avoids browser-dependent Secure-cookie handling on localhost. For other devices, configure an [HTTPS public origin](docs/AUTHENTICATION.md#public-origin-and-reverse-proxies); deliberate HTTP exposes session cookies to interception.
 
-Open `http://localhost:3000` and complete setup. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
+Open `http://localhost:3000` and complete setup. On develop, create the first account or sign in before the wizard. Passwords need 12 characters. The first account becomes admin; further local self-registration is closed by default. OIDC can still create accounts, so restrict access at your identity provider.
 
 Use `:latest` for the newest release, a minor tag like `:1.19` for patch updates, or a specific patch like `:1.19.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
@@ -80,7 +80,7 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 
 ## Your first recommendations
 
-1. Choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider.
+1. Sign in, then choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider. On develop, requested settings, connections, and targets save together; a failed save leaves setup retryable.
 2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
 4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed; non-admin saves can report failure after saving, so [verify through the preferences API](docs/API.md#auth). Use Release Radar or Library Gap-Fill for albums; the net-new album toggle does not persist in v1.19.0.

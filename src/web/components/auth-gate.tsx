@@ -120,7 +120,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       hasUsersRef.current = status.hasUsers
       setOidcEnabled(status.oidcEnabled ?? false)
 
-      if (!status.required && allowAuthenticated) {
+      if (!status.required && status.hasUsers && allowAuthenticated) {
         setState('not-required')
       } else if (status.authenticated && allowAuthenticated) {
         setState('authenticated')
@@ -211,7 +211,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       const status = await getAuthStatus()
       hasUsersRef.current = status.hasUsers
       setOidcEnabled(status.oidcEnabled ?? false)
-      if (!status.required) {
+      if (!status.required && status.hasUsers) {
         setState('not-required')
       } else if (status.authenticated) {
         setState('authenticated')

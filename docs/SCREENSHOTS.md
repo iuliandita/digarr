@@ -7,6 +7,8 @@ The descriptions below reflect v1.19.0. The captures predate its genre-priority 
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
+On develop, first-time browser setup starts with account creation before the existing wizard. These captures do not show that onboarding order; form layouts and translated labels are unchanged.
+
 ## Dashboard (dark)
 
 ![Dashboard](screenshots/dashboard-dark.png)

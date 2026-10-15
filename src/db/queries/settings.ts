@@ -1,7 +1,7 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import { envSettingsOverrides } from '@/config/env'
 import { decryptFields, encryptFields, SENSITIVE_SETTINGS } from '@/core/crypto'
-import type { Database } from '@/db'
+import type { Database, DbOrTx } from '@/db'
 import type { Preferences } from '@/db/schema'
 import { settings } from '@/db/schema'
 
@@ -49,7 +49,7 @@ export async function updateSettings(db: Database, partial: SettingsPartial): Pr
     .where(eq(settings.id, 1))
 }
 
-export async function completeSetup(db: Database, config: SetupConfig): Promise<SettingsRow> {
+export async function completeSetup(db: DbOrTx, config: SetupConfig): Promise<SettingsRow> {
   const encrypted = encryptFields(config, SENSITIVE_SETTINGS)
   const rows = await db
     .insert(settings)

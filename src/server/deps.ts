@@ -29,6 +29,7 @@ import type {
   StatusUpdateExtra,
 } from '@/db/queries/recommendations'
 import type { SettingsRow, SetupConfig } from '@/db/queries/settings'
+import type { SetupServices } from '@/db/queries/setup'
 import type { SubscriptionInsert, SubscriptionUpdate } from '@/db/queries/subscriptions'
 import type { subscriptions } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
@@ -60,7 +61,7 @@ export interface SettingsDeps {
   isSetupComplete: () => Promise<boolean>
   getSettings: () => Promise<SettingsRow | null>
   updateSettings: (partial: Record<string, unknown>) => Promise<void>
-  completeSetup: (config: SetupConfig) => Promise<unknown>
+  completeSetup: (config: SetupConfig, services?: SetupServices) => Promise<unknown>
 }
 
 // ---- Users / auth ----

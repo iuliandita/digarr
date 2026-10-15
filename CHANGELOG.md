@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Save initial setup settings, requested Emby credentials, and requested Lidarr/Emby targets atomically, with an existing authenticated service owner and complete connection fields. Failed persistence returns an error, rolls back, and permits retry; serialized completion prevents duplicate setup targets. The browser now creates or signs into an account before the wizard. AI-only API bootstrap and environment-based setup retain their existing access and startup behavior; no schema migration is added. [#783](https://github.com/iuliandita/digarr/issues/783).
+
 - Include `DATABASE_URL_FILE` in the embedded-backend migration hint so file-backed PostgreSQL settings are cleared before restarting with PGlite. No schema, configuration precedence or authentication behavior changes; the email-schema comment also no longer describes removed OIDC email auto-linking. [#780](https://github.com/iuliandita/digarr/issues/780), [#781](https://github.com/iuliandita/digarr/issues/781).
 
 - Paginate Spotify playlist imports and subscriptions through the current items endpoint and honor the saved distinct-artist cap across pages. Preserve collaboration credits and case-insensitive deduplication; fail incomplete or invalid reads instead of storing partial results. Reads are bounded to 20 pages/1,000 items and require playlist ownership or collaboration. Existing import/default caps remain 100/20 artists; no schema migration is added. See [subscription limits](docs/API.md#subscriptions). [#779](https://github.com/iuliandita/digarr/issues/779).

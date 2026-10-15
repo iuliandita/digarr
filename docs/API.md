@@ -203,15 +203,16 @@ Treat these as untrusted when rendering: the pass-through case is provider-contr
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/setup/status` | No | Check if setup is complete |
-| POST | `/api/v1/setup/complete` | No | Complete initial setup |
+| POST | `/api/v1/setup/complete` | Conditional | Complete initial setup; requested Lidarr/Emby services require an authenticated owner |
 
 Setup validation rules:
 - `aiProvider` and `aiModel` are required
 - Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
-- Emby is optional. A nonempty `embyUrl` requires `embyApiKey` and `embyUserId`; a key or user ID supplied without a URL is accepted and discarded. Always send the complete trio.
-- Creating a Lidarr target, saving the Emby connection, and creating an Emby playlist target require an authenticated caller. Register and authenticate before completing setup, or configure connections and targets afterward.
-- Those connection and target writes are best effort: their failure does not prevent a `204` response. Confirm the saved connection and targets after setup ([#783](https://github.com/iuliandita/digarr/issues/783)).
-- Completing setup does not create a user account. If setup finishes before any user exists, the next step is to register or sign in; protected routes stay locked until then
+- On develop, Emby is optional, but any nonblank `embyUrl`, `embyApiKey`, or `embyUserId` requires the complete trio. Incomplete Lidarr/Emby groups return `400` before persistence.
+- Requested Lidarr/Emby services require an authenticated owner who still exists; otherwise setup returns `401` without saving configuration. The browser creates or signs into an account before opening the wizard. Public AI-only API bootstrap remains available only while the existing authentication guard permits it.
+- On develop, global setup settings, the requested Emby connection, and requested Lidarr/Emby targets commit in one database transaction. `204` means all requested writes succeeded. A persistence failure returns generic `500` problem details with `code: setup.failed`, rolls back the writes, and leaves setup retryable. Completion is rechecked under a settings-row lock; concurrent/repeated completion returns `409` rather than creating duplicate targets. External service reachability is not verified by this commit.
+- v1.19.0 can discard incomplete Emby fields and return `204` despite failed connection/target writes; register and sign in first, then verify saved connections and targets ([#783](https://github.com/iuliandita/digarr/issues/783)). Environment-based bootstrap is unchanged by this fix.
+- Completing setup does not create a user account. API clients using AI-only bootstrap before registration must still register or sign in before accessing protected routes.
 
 **POST /api/v1/setup/complete** body:
 ```json
