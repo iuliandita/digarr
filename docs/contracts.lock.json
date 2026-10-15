@@ -284,7 +284,7 @@
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
         "src/server/routes/recommendations.ts": "4a05ac93ec2b0728d503515f915dcdb1ca4a116180549bd4a65ff6633dc35a74",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
-        "src/server/routes/settings.ts": "8af46d9a67e722de408b7fc8e3e20bafd51be214f460138fd921827e41d5d8a0",
+        "src/server/routes/settings.ts": "d229a6fabf5f6cdb2fdd16a5271d97256f5d5c4bb655be65378609e4345840fc",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
@@ -304,14 +304,14 @@
         "src/server/sse.ts": "2057dba6578d36403c03a617030f144e4227b7049120bf2cdcc796079cd5f54c",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "a3bf85848834f5e74b43dd9ecad0f873b63dd86c018c12ed9d51c35cba986cb8",
+      "digest": "82ef642663e654de65413b39e50214dca40536dec4142dbdd293c54c4e86d8ee",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Reviewed strict global preference validation, partial merges and admin permissions. Admins can now persist the optional netNewAlbumDiscovery boolean while unrelated values survive; malformed values remain rejected. User and global defaults and resolver wiring are unchanged. No schema migration or image/environment/Unraid contract changes.",
-        "breaking": "none",
-        "migration": "",
-        "digest": "a3bf85848834f5e74b43dd9ecad0f873b63dd86c018c12ed9d51c35cba986cb8"
+        "note": "Reviewed global scalar fanartApiKey and legacy webhookUrl projection on settings GET, normal PATCH and scheduler-warning returns. Admins receive a full mask and non-admins omit both; channel masking and capability flags stay unchanged. Incoming scalar masks preserve exact stored plaintext or ciphertext, including absent/empty values, while replacements and clearing remain supported. No decryption, at-rest policy, schema, auth permissions, deployment or Unraid companion changes.",
+        "breaking": "Settings clients can no longer read global scalar fanart or legacy webhook secrets from responses. Treat *** as a placeholder to preserve the saved value, or explicitly send a replacement or empty string.",
+        "migration": "No stored-data migration or backup-format change. Upgrade to apply response masking; review any previously shared responses and replace exposed provider credentials. Rollback restores the old exposure and save behavior.",
+        "digest": "82ef642663e654de65413b39e50214dca40536dec4142dbdd293c54c4e86d8ee"
       }
     },
     "interface": {
