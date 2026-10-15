@@ -150,7 +150,7 @@ jobs:
 
       - name: Start Docker through Colima
         id: docker
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
           colima start \
             --cpu 4 \
@@ -158,7 +158,9 @@ jobs:
             --disk 30 \
             --arch x86_64 \
             --vm-type vz \
-            --mount-type virtiofs
+            --mount-type virtiofs \
+            --dns 1.1.1.1 \
+            --dns 8.8.8.8
           docker info
           docker buildx version
           docker compose version
@@ -166,6 +168,7 @@ jobs:
 
       - name: Diagnose Colima startup
         if: failure() && steps.docker.outputs.ready != 'true'
+        timeout-minutes: 2
         run: |
           sw_vers
           uname -m
@@ -242,6 +245,15 @@ jobs:
           done
           curl -fsS http://localhost:3000/health | grep -q '"status":"ok"'
           echo "ran=true" >> "$GITHUB_OUTPUT"
+
+      - name: Diagnose Colima networking
+        if: failure() && steps.docker.outputs.ready == 'true'
+        timeout-minutes: 2
+        run: |
+          scutil --dns || true
+          colima ssh -- cat /etc/resolv.conf || true
+          colima ssh -- nslookup registry-1.docker.io || true
+          colima ssh -- nslookup auth.docker.io || true
 
       - name: Dump logs on failure
         if: failure() && steps.docker.outputs.ready == 'true'

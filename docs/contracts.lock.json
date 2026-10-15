@@ -736,7 +736,7 @@
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
         ".github/workflows/ci.yml": "21d97a3b5ce10c35e7d820ccf6b1cd09a170624b961e9b160fb968f745f0d0ee",
-        ".github/workflows/compatibility.yml": "285d82b4c5cb9cfe2011be6b8b92ef3fcd70db653b51e47a1cacbcdfbba8a643",
+        ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
         ".github/workflows/evals.yml": "abfc59364fff6b89877593a648072b5f18b22554492dad2340a80587acb1e86a",
@@ -750,14 +750,14 @@
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "0e310d7981fc7591a86a7e50bb3633d4bf7280c1b2855f9860fae0497ee07397",
+      "digest": "a58539a5510ba87c9145e514501b04d78831c4944403fb53895e96259a6da293",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "docs/OPERATIONS.md"],
-        "note": "Existing PostgreSQL concurrency CI step now executes the migration destination-lock regression alongside auth tests. No image, release channel, publication, companion template or version change is introduced; README connection and migration links stay accurate.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Reviewed advisory Compatibility bootstrap and contributor instructions. Documented explicit hosted guest DNS, the 15-minute startup allowance supported by late-readiness logs, bounded startup diagnostics and downstream network diagnostics before teardown, plus unchanged Compose retries and final backend assertion requirements. README, deployment and companion surfaces retain product channels, settings, ports, authentication and pins unchanged; no app or locale behavior change.",
         "breaking": "none",
-        "migration": "No release or deployment migration; the existing PostgreSQL test service and migration setup are reused.",
-        "digest": "0e310d7981fc7591a86a7e50bb3633d4bf7280c1b2855f9860fae0497ee07397"
+        "migration": "",
+        "digest": "a58539a5510ba87c9145e514501b04d78831c4944403fb53895e96259a6da293"
       }
     },
     "maintenance": {
