@@ -282,7 +282,7 @@ describe('PipelineOrchestrator', () => {
     await setupClientMocks()
   })
 
-  it('runs all pipeline stages in order', async () => {
+  it.each([1, 2])('runs all pipeline stages in order for user %s', async (userId) => {
     const db = makeDb()
     const order: string[] = []
 
@@ -316,10 +316,11 @@ describe('PipelineOrchestrator', () => {
       settings: defaultSettings,
       providerRegistry,
       librarySync: { syncForUser },
-      userId: 1,
+      userId,
     })
 
     expect(order).toEqual(['analyze', 'discover', 'resolve', 'score', 'filter', 'store'])
+    expect(db.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(90, userId)
   })
 
   it('passes response and prompt locales from pipeline deps into AI discovery', async () => {

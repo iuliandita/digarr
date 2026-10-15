@@ -354,7 +354,7 @@ export class PipelineOrchestrator extends EventEmitter {
         ),
       })
 
-      const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays)
+      const rejectedMbids = await db.getRejectedMbids(prefs.rejectionCooldownDays, userIdForSync)
       const blockedMbids = await db.getBlockedMbids(userIdForSync)
       const feedbackHistory = await db.getFeedbackHistory(userIdForSync)
 

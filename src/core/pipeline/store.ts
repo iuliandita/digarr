@@ -51,7 +51,7 @@ export interface StoreDb {
     kind?: 'artist' | 'album'
   }) => Promise<void>
 
-  getRejectedMbids: (cooldownDays: number) => Promise<Set<string>>
+  getRejectedMbids: (cooldownDays: number, userId: number | null) => Promise<Set<string>>
 
   getBlockedMbids: (userId: number) => Promise<Set<string>>
 

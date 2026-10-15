@@ -433,7 +433,10 @@ export function pipelineRoutes(deps: AppDependencies) {
         const prefs = mergePreferences(qdPreferences)
 
         const resolved = await resolve(discovered, mb, undefined, lidarr ?? undefined)
-        const rejectedMbids = await deps.storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
+        const rejectedMbids = await deps.storeDb.getRejectedMbids(
+          prefs.rejectionCooldownDays,
+          quickDiscoverUserId ?? null,
+        )
         const blockedMbids = quickDiscoverUserId
           ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
           : new Set<string>()

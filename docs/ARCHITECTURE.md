@@ -129,7 +129,7 @@ Pure functions live in `src/core/pipeline/`. The orchestrator
 
 Quick Discover separately stores the submitted seed before its similar-result filter. That direct seed bypasses library, block, cooldown, and threshold checks; job stored counts exclude it. See the [API contract](API.md#pipeline) and [#795](https://github.com/iuliandita/digarr/issues/795).
 
-Artist filtering applies per-user permanent blocks and a shared rejection cooldown. The cooldown query includes rejected recommendations from all accounts, using the current run's configured window. On shared installations, another user's rejection can suppress an artist ([#788](https://github.com/iuliandita/digarr/issues/788)).
+Artist filtering applies per-user permanent blocks and, on develop, owner-scoped rejection cooldowns. Pipeline, Quick Discover similar-result, and subscription reads pass an explicit owner to the cooldown query, using the current run's configured window. Account runs include only their own rejected rows; legacy unowned subscriptions include only unowned rows. Neither scope includes the other. Existing rows are preserved without reassignment. v1.19.0 instead includes rejected recommendations from all accounts ([#788](https://github.com/iuliandita/digarr/issues/788)).
 
 ### Analyze: source-relative weights
 

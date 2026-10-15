@@ -417,13 +417,19 @@ describe('GET /api/v1/pipeline/events', () => {
 })
 
 describe('POST /api/v1/pipeline/quick-discover', () => {
-  it('passes the resolved response locale into AI recommendations', async () => {
-    const getRecommendations = vi.fn().mockResolvedValue([])
-    const app = createApp(
-      makeDeps({
+  it.each([1, 2])(
+    'passes the resolved response locale and cooldown owner for user %s',
+    async (userId) => {
+      const getRecommendations = vi
+        .fn()
+        .mockResolvedValue([
+          { artistName: 'Similar Artist', confidence: 0.8, reasoning: 'Shared style' },
+        ])
+      const getRejectedMbids = vi.fn(async () => new Set<string>())
+      const deps = makeDeps({
         getUserCount: vi.fn(async () => 1),
         getUserById: vi.fn(async () => ({
-          id: 1,
+          id: userId,
           username: 'test',
           isAdmin: false,
           preferredLocale: 'de',
@@ -480,36 +486,43 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
         ),
         storeDb: {
           getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-          getRejectedMbids: vi.fn(async () => new Set<string>()),
+          getRejectedMbids,
           getBlockedMbids: vi.fn(async () => new Set<string>()),
           getFeedbackHistory: vi.fn(async () => new Map()),
         } as unknown as AppDependencies['storeDb'],
-      }),
-    )
+      })
+      const app = createApp(deps)
 
-    const { createSession } = await import('@/core/sessions')
-    await createSession(1, 'session-token')
+      const { createSession } = await import('@/core/sessions')
+      await createSession(userId, 'session-token')
 
-    const res = await authedRequest(app, '/api/v1/pipeline/quick-discover', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer session-token',
-        'Content-Type': 'application/json',
-        'X-Digarr-Locale': 'fr',
-      },
-      body: JSON.stringify({ artistName: 'Boards of Canada' }),
-    })
+      const res = await authedRequest(app, '/api/v1/pipeline/quick-discover', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer session-token',
+          'Content-Type': 'application/json',
+          'X-Digarr-Locale': 'fr',
+        },
+        body: JSON.stringify({ artistName: 'Boards of Canada' }),
+      })
 
-    expect(res.status).toBe(200)
-    await vi.waitFor(() => {
-      expect(getRecommendations).toHaveBeenCalledWith(
-        expect.objectContaining({
-          responseLocale: 'fr',
-          promptLocale: null,
-        }),
+      expect(res.status).toBe(200)
+      await vi.waitFor(() => {
+        expect(getRecommendations).toHaveBeenCalledWith(
+          expect.objectContaining({
+            responseLocale: 'fr',
+            promptLocale: null,
+          }),
+        )
+      })
+      await vi.waitFor(() => expect(deps.jobRecorder?.complete).toHaveBeenCalledOnce())
+      expect(deps.jobRecorder?.fail).not.toHaveBeenCalled()
+      expect(getRejectedMbids).toHaveBeenCalledExactlyOnceWith(
+        DEFAULT_PREFERENCES.rejectionCooldownDays,
+        userId,
       )
-    })
-  })
+    },
+  )
 
   it('does not let an ambiguous latin-script artist name override the resolved locale', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])

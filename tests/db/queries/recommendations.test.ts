@@ -179,7 +179,7 @@ describe('getRejectedArtistMbids', () => {
     const rows = [{ mbid: 'mbid-1' }, { mbid: 'mbid-2' }, { mbid: 'mbid-3' }]
     const db = makeMockDb(rows)
 
-    const result = await getRejectedArtistMbids(db, 90)
+    const result = await getRejectedArtistMbids(db, 90, 1)
 
     expect(result).toBeInstanceOf(Set)
     expect(result.size).toBe(3)
@@ -190,7 +190,7 @@ describe('getRejectedArtistMbids', () => {
 
   it('returns empty Set when no rejected artists in cooldown window', async () => {
     const db = makeMockDb([])
-    const result = await getRejectedArtistMbids(db, 90)
+    const result = await getRejectedArtistMbids(db, 90, 1)
     expect(result.size).toBe(0)
   })
 
@@ -206,7 +206,7 @@ describe('getRejectedArtistMbids', () => {
       select: vi.fn().mockReturnValue(chain),
     } as unknown as Database
 
-    await getRejectedArtistMbids(db, 30)
+    await getRejectedArtistMbids(db, 30, 1)
 
     expect(chain.where).toHaveBeenCalledOnce()
   })

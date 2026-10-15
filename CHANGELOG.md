@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Scope rejection cooldowns to the run owner across scans, Quick Discover similar results, and subscriptions. Account runs exclude other accounts and legacy unowned rejections; unowned subscriptions consult only unowned rejections. Existing cooldown windows, permanent blocks, and the separate Quick Discover seed behavior are unchanged. This change adds no migration or row rewrite; rollback restores shared cooldowns. [#788](https://github.com/iuliandita/digarr/issues/788).
+
 - Give the advisory macOS compatibility VM 15 minutes to finish startup, configure explicit guest DNS resolvers, and collect bounded startup/network diagnostics. Existing Compose retries and the final PostgreSQL/PGlite assertion gate remain in place; actual hosted macOS checks are required to validate the bootstrap. [#787](https://github.com/iuliandita/digarr/issues/787), [#824](https://github.com/iuliandita/digarr/issues/824).
 
 - Reject bulk permanent blocks with reason `not_right_now` before any updates, using the same compatibility rule as individual rejection. API clients sending that combination now receive `400`; use a temporary rejection or a compatible permanent-block reason. Nullable or omitted bulk reasons, bulk approval, and the lack of bulk free-text support are unchanged. No schema migration is added. [#786](https://github.com/iuliandita/digarr/issues/786).

@@ -356,7 +356,7 @@ const storeDb: StoreDb = {
       await insertRecommendation(tx, { ...recData, artistId: row.id })
     })
   },
-  getRejectedMbids: (cooldownDays) => getRejectedArtistMbids(db, cooldownDays),
+  getRejectedMbids: (cooldownDays, userId) => getRejectedArtistMbids(db, cooldownDays, userId),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
@@ -862,7 +862,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
         )
       : null
 
-  const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays)
+  const rejectedMbids = await storeDb.getRejectedMbids(prefs.rejectionCooldownDays, sub.userId)
   const blockedMbids = sub.userId ? await storeDb.getBlockedMbids(sub.userId) : new Set<string>()
   const feedbackHistory = sub.userId
     ? await storeDb.getFeedbackHistory(sub.userId)
