@@ -398,6 +398,49 @@ export const BACKUP_TABLE_BY_KEY = Object.fromEntries(
   RESTORE_ORDER.map((spec) => [spec.key as keyof BackupData, spec.table]),
 ) as Partial<Record<keyof BackupData, AnyPgTable>>
 
+export class DatabaseCopyTargetNotEmptyError extends Error {
+  constructor(public readonly affectedTables: string[]) {
+    super('Target database is not empty. Re-run with overwrite=true to replace its contents.')
+    this.name = 'DatabaseCopyTargetNotEmptyError'
+  }
+}
+
+function targetProbeRows(result: unknown): Record<string, unknown>[] {
+  const rows = (result as { rows?: unknown } | null)?.rows
+  if (
+    !Array.isArray(rows) ||
+    rows.some((row) => row === null || typeof row !== 'object' || Array.isArray(row))
+  ) {
+    throw new Error('Cannot verify target database emptiness: invalid query response.')
+  }
+  return rows
+}
+
+export async function assertDatabaseCopyTargetEmpty(
+  db: Pick<OpsDb, 'execute'>,
+  options: { allowMissingTables?: boolean } = {},
+): Promise<void> {
+  for (const spec of RESTORE_ORDER) {
+    const name = getTableName(spec.table)
+    if (options.allowMissingTables) {
+      const rows = targetProbeRows(
+        await db.execute(sql`SELECT pg_catalog.to_regclass(${`"${name}"`}) IS NOT NULL AS present`),
+      )
+      if (rows.length !== 1 || typeof rows[0]?.present !== 'boolean') {
+        throw new Error('Cannot verify target database emptiness: invalid catalog response.')
+      }
+      if (!rows[0].present) continue
+    }
+    const rows = targetProbeRows(
+      await db.execute(sql`SELECT 1 AS present FROM ${sql.identifier(name)} LIMIT 1`),
+    )
+    if (rows.length > 1 || (rows.length === 1 && rows[0]?.present !== 1)) {
+      throw new Error('Cannot verify target database emptiness: invalid table response.')
+    }
+    if (rows.length > 0) throw new DatabaseCopyTargetNotEmptyError([name])
+  }
+}
+
 export class PartialBackupConflictError extends Error {
   constructor(
     public readonly affectedTables: string[],
@@ -478,11 +521,22 @@ async function checkRestoreSafety(tx: RestoreTx, backup: BackupFile): Promise<vo
 export async function copyDatabaseTables(
   source: Pick<OpsDb, 'select'>,
   target: OpsDb,
+  options: { requireEmptyTarget?: boolean } = {},
 ): Promise<DatabaseCopyResult> {
   const tablesRestored: Record<string, number> = {}
   const mismatches: DatabaseCopyMismatch[] = []
 
   await target.transaction(async (tx) => {
+    if (options.requireEmptyTarget) {
+      const tableNames = RESTORE_ORDER.map((spec) => getTableName(spec.table)).sort()
+      await tx.execute(
+        sql`LOCK TABLE ${sql.join(
+          tableNames.map((name) => sql.identifier(name)),
+          sql`, `,
+        )} IN SHARE ROW EXCLUSIVE MODE`,
+      )
+      await assertDatabaseCopyTargetEmpty(tx)
+    }
     for (const spec of [...RESTORE_ORDER].reverse()) {
       await spec.clear(tx)
     }

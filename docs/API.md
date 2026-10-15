@@ -1166,8 +1166,10 @@ A successful copy returns `200` with `MigrationReport`: `{ ok, verified, content
 | 422 | `migration_verify_failed` | Verification failed; the full report is in the `report` extension. |
 | 409 | `pipeline_running` | A pipeline is running. |
 | 409 | `migration_in_progress` | Another migration is running. |
-| 409 | `target_not_empty` | The target has users and `overwrite` is false. Other destination data is not protected when no users exist ([#775](https://github.com/iuliandita/digarr/issues/775)). |
+| 409 | `target_not_empty` | A copy-managed destination table has data and `overwrite` is false, including targets without users. On develop, checks run before target migrations and again under target table locks before any copy deletes ([#775](https://github.com/iuliandita/digarr/issues/775)). |
 | 409 | `same_database` | Source and target identify the same database. |
+
+A missing pre-migration table is compatible with a fresh or older target; inspection or lock failures abort. Schema migrations still run outside the copy transaction, and explicit overwrite still clears excluded sessions/rate limits outside it. Stop source and destination writers through cutover and take complete backups before replacing an existing target. No new schema migration is added by the destination-guard correction.
 
 The same-process copy preserves encrypted values and has no source/target key-mismatch check. Retain the running encryption key when restarting on the new backend.
 

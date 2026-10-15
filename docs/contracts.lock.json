@@ -139,12 +139,12 @@
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "17a11f3c319771e7fa54dc65f196a262ad89d0ae1b06afb7f3e3f0afd9de6f5e",
-        "src/core/ops/backup.ts": "cd1c31ebf18ec96f1e30196bececbb0aebbf3639bbcfe9d3cf1baef2be2d422a",
+        "src/core/ops/backup.ts": "840403e0dafc3c9237a6eea921202bc3b3cef317d78968b6f284e72efd03e8fe",
         "src/core/ops/cron-scheduler.ts": "98d5c7888eb6112adf6ae7fd6d1ce0c9cc549e51836d87ea79de704ee527a9f1",
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
-        "src/core/ops/migrate-backend.ts": "d2832ae978ea58d3860938c5d200cd7c5f34ddb23e315e2442ac36238dec1922",
+        "src/core/ops/migrate-backend.ts": "4722703ee3e3c69a2e7a3a3699badcf6733545e7f3bc2938593477b17d27ffcd",
         "src/core/ops/types.ts": "05133c0670a772c804601094eb2cd46e07bc92297dec21ea043e0d1283ef4b86",
         "src/core/ops/upgrade.ts": "9fbcd673397927afdf479c49978c36bf9472d6dcd04c81405327e32dc0347a03",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
@@ -178,14 +178,19 @@
         "src/db/schema.ts": "302012f364eebbac3d765b0306022815cab1f33e92045d13d79478bcfb00bfab",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "14bde4b80579b1648222e2797481e5a83aca5b16e35b049ecb7a5d5141aebf6f",
+      "digest": "a3ac4a033fed2516ae557686ba7f5ff56418fe013b00d13c5e457f340597493b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "docs/guides/switching-backends.md", "CHANGELOG.md"],
-        "note": "Both application and backend-copy PostgreSQL pools share public driver parsing with exact original database paths, explicit connection-option selection, unchanged TLS/query precedence and application-owned pool limits. Recovery guidance covers exact-name confirmation and old-parser limits. External Drizzle Kit parsing is explicitly excluded; there is no schema migration or automatic data movement.",
-        "breaking": "Correct database identifier parsing can select a different database from an old escaped or fallback name; do not allow writes until the populated database and role have been confirmed.",
-        "migration": "Take a consistent native backup of the actual current database and retain the encryption key, previous image and configuration before upgrading. Check current_database/current_user before and after cutover; choose the exact existing name or perform a separately verified backend copy. Rollback stops writes and restores the prior image/settings and matching native backup when data changed; it never merges databases.",
-        "digest": "14bde4b80579b1648222e2797481e5a83aca5b16e35b049ecb7a5d5141aebf6f"
+        "docs": [
+          "docs/guides/switching-backends.md",
+          "docs/OPERATIONS.md",
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
+        "note": "Migration checks every copy-managed destination table before schema preparation and under sorted table locks before deletes; rejects userless data and inspection failures, preserves explicit overwrite/default restore behavior, and documents stopped writers and existing schema side effects.",
+        "breaking": "none",
+        "migration": "Upgrade adds no schema migration or data rewrite; existing destinations now need explicit overwrite if any copy-managed row exists. Rollback restores the users-only guard. Retain consistent native backups of both databases and the exact encryption key before replacement; target schema preparation and explicit-overwrite ephemeral clearing remain outside the copy transaction.",
+        "digest": "a3ac4a033fed2516ae557686ba7f5ff56418fe013b00d13c5e457f340597493b"
       }
     },
     "configuration": {
@@ -731,7 +736,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "913cde5144321bf7451c02b29c229ddaa4a0d9824204b4ee2a4da178b4e33259",
+        ".github/workflows/ci.yml": "21d97a3b5ce10c35e7d820ccf6b1cd09a170624b961e9b160fb968f745f0d0ee",
         ".github/workflows/compatibility.yml": "285d82b4c5cb9cfe2011be6b8b92ef3fcd70db653b51e47a1cacbcdfbba8a643",
         ".github/workflows/dependabot-bun-lockfile.yml": "ba8f553020ff99515d1aa3ef1b70c3ecc6c8685143935ad4d049e7970b939301",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -746,14 +751,14 @@
         "package.json": "9856dcd9d24420333a1cbea17e9dd809e76d57ef9c6a8409fec9c45cdaa62a8e",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8",
+      "digest": "0e310d7981fc7591a86a7e50bb3633d4bf7280c1b2855f9860fae0497ee07397",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "docs/OPERATIONS.md"],
-        "note": "Promoted the already resolved pg-connection-string 2.14.0 to an exact direct production dependency for its public parser API; no package versions or dependency graph entries upgraded. Release triggers, signing, image publishing, version surfaces and CI policy are unchanged. Changelog, operations and roadmap state runtime scope and identifier-selection upgrade risk.",
-        "breaking": "Operators relying on a misdecoded database name must verify and deliberately select the populated database before starting the corrected runtime.",
-        "migration": "No schema migration or automatic database rename. Review the exact-name native-backup/cutover/rollback guide before release; external Drizzle Kit remains outside this runtime correction.",
-        "digest": "0dc0194c6baa47f6217690b7d75235ac4fc6321ecf4191726419bff12ec2e0f8"
+        "note": "Existing PostgreSQL concurrency CI step now executes the migration destination-lock regression alongside auth tests. No image, release channel, publication, companion template or version change is introduced; README connection and migration links stay accurate.",
+        "breaking": "none",
+        "migration": "No release or deployment migration; the existing PostgreSQL test service and migration setup are reused.",
+        "digest": "0e310d7981fc7591a86a7e50bb3633d4bf7280c1b2855f9860fae0497ee07397"
       }
     },
     "maintenance": {

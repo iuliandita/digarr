@@ -61,7 +61,7 @@ the Backup & Restore section). The panel shows the currently active backend.
 
 ### 2. Choose a target
 
-Use a fresh, dedicated target database or directory. Take a complete backup before selecting any existing destination. The nonempty-target guard checks only for users: a target containing other application data but no users can be cleared and replaced even with `overwrite=false` ([#775](https://github.com/iuliandita/digarr/issues/775)). A successful connection test does not establish that the destination is empty.
+Use a fresh, dedicated target database or directory. Take a complete, consistent backup before selecting any existing destination, and keep the matching encryption key. On develop, any row in a table the copy replaces requires explicit `overwrite=true`, including settings, artists and caches when no users exist. The guard checks existing tables before schema migrations and checks again under table locks inside the copy transaction before clearing data. Failed inspections abort instead of assuming the destination is empty. v1.19.0 checks only users and can replace other data without overwrite consent ([#775](https://github.com/iuliandita/digarr/issues/775)). A successful connection test does not establish that the destination is empty.
 
 Select one:
 
@@ -101,13 +101,16 @@ Click **Migrate**. The operation:
 
 1. Freezes writes on all non-migration routes and pauses background scheduler
    ticks (maintenance lock).
-2. Runs schema migrations on the target (creates all tables).
+2. Refuses populated copy-managed tables unless overwrite is explicit, then runs schema migrations on the target (creates missing tables).
 3. Opens a consistent `REPEATABLE READ READ ONLY` transaction on the source.
-4. Copies tables in foreign-key order inside one target transaction, using
-   bounded insert chunks.
+4. Unless overwrite is explicit, locks the copy-managed target tables against
+   writers and checks emptiness again. Copies tables in foreign-key order inside
+   that same transaction, using bounded insert chunks.
 5. Verifies each table by row count and SHA-256 content hash before loading the
    next table.
 6. Releases the maintenance lock.
+
+Stop other applications writing to the destination as well. The locked check waits for existing writers; if their committed rows make a table nonempty, the copy refuses with `409 target_not_empty` before clearing it. Target writers can resume after the transaction ends, so keep them stopped through report inspection and cutover.
 
 The migration does not modify the source database. If a copy write fails, the target
 copy transaction rolls back. Target schema migrations and, during an overwrite,
@@ -194,6 +197,8 @@ Both backends use the running process's encryption key during the copy. Keep tha
 ---
 
 ## Reversibility
+
+The destination-guard correction adds no schema migration. Rolling back to v1.19.0 restores its users-only check; use a fresh target or take and verify its complete backup before authorizing an overwrite. A refused guarded copy does not require restoring rows, but target schema migrations may already have run before the final check.
 
 Migration copies data once; it does not keep the two backends synchronized. The original backend does not receive writes made after cutover. Pointing environment settings back at it and restarting resumes the old state, omitting later accounts, preferences, approvals, and other changes. Direct switch-back is appropriate only before writes begin on the new backend, or when abandoning those newer changes is intentional.
 
