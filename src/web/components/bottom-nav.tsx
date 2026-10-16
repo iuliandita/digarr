@@ -21,12 +21,13 @@ export function BottomNav() {
                 to={item.to}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-1 rounded-control px-0.5 transition-colors focus-ring',
+                  'flex min-h-11 w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-control px-0.5 transition-colors focus-ring',
                   active ? 'text-accent' : 'text-muted hover:text-text',
                 )}
               >
                 <item.icon size={20} aria-hidden="true" />
-                <span className="w-full truncate text-center text-micro font-medium [font-stretch:85%]">
+                {/* Wrap to two lines instead of truncating long labels (de, ja). */}
+                <span className="line-clamp-2 w-full hyphens-auto break-words text-center text-micro leading-tight font-medium [font-stretch:85%]">
                   {t(item.labelKey)}
                 </span>
               </Link>

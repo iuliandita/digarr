@@ -100,6 +100,7 @@ import { PlaylistCard } from '@/web/components/playlist-card'
 import {
   approveRecommendation,
   approveToTarget,
+  getAuthStatus,
   getDashboardActivity,
   getDashboardGenreCoverage,
   getDashboardTaste,
@@ -110,6 +111,7 @@ import {
   getSubscriptions,
   getTopArtists,
   listTargets,
+  rescanArtists,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
 
@@ -439,6 +441,36 @@ describe('Dashboard', () => {
     expect(screen.getByText('Quotidien')).toBeInTheDocument()
     expect(screen.getByText('Jamais')).toBeInTheDocument()
     expect(screen.getByText('Désactivé')).toBeInTheDocument()
+  })
+
+  it('does not fire an image rescan when an admin opens the dashboard', async () => {
+    setupMocks()
+    vi.mocked(getAuthStatus).mockResolvedValue({
+      required: true,
+      hasUsers: true,
+      authenticated: true,
+      isAdmin: true,
+    })
+    renderWithQuery(<Dashboard />)
+
+    await screen.findByText('Sigur Ros')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(rescanArtists).not.toHaveBeenCalled()
+  })
+
+  it('explains an empty Recently Approved list instead of drawing placeholder tiles', async () => {
+    setupMocks()
+    mockGetRecommendations.mockImplementation((params) => {
+      const p = params as Record<string, string> | undefined
+      if (p?.status === 'pending') return Promise.resolve({ items: [pendingRec], total: 1 })
+      return Promise.resolve({ items: [], total: 0 })
+    })
+
+    renderWithQuery(<Dashboard />)
+
+    expect(
+      await screen.findByText('Nothing approved yet. Artists you approve show up here.'),
+    ).toBeInTheDocument()
   })
 
   it('shows add_failed recommendations in Recently Approved', async () => {

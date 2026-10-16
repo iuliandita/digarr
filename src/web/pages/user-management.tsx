@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
@@ -15,6 +16,12 @@ import {
   updateUserAdmin,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+
+const AUTH_PROVIDER_KEYS: Partial<Record<string, MessageKey>> = {
+  local: 'userManagement.authProviderLocal',
+  oidc: 'userManagement.authProviderOidc',
+  proxy: 'userManagement.authProviderProxy',
+}
 
 export function UserManagementPage({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n()
@@ -77,7 +84,7 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
 
   return (
     <div className={embedded ? 'space-y-6' : 'p-6 space-y-6 max-w-6xl mx-auto'}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {embedded ? (
           <h2 className="text-lead font-semibold text-text">{t('userManagement.title')}</h2>
         ) : (
@@ -147,11 +154,13 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
           return (
             <div
               key={user.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface"
+              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-border bg-surface"
             >
-              <div>
-                <span className="font-medium text-text">{user.username}</span>
-                {user.email && <span className="text-sm text-muted ml-2">{user.email}</span>}
+              <div className="min-w-0">
+                <span className="font-medium text-text break-all">{user.username}</span>
+                {user.email && (
+                  <span className="text-sm text-muted ml-2 break-all">{user.email}</span>
+                )}
                 <div className="flex gap-2 mt-1">
                   {user.isAdmin && (
                     <span className="text-xs px-1.5 py-0.5 rounded bg-accent/10 text-accent">
@@ -159,11 +168,14 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
                     </span>
                   )}
                   <span className="text-xs px-1.5 py-0.5 rounded bg-bg text-muted border border-border">
-                    {user.authProvider}
+                    {(() => {
+                      const key = AUTH_PROVIDER_KEYS[user.authProvider]
+                      return key ? t(key) : user.authProvider
+                    })()}
                   </span>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"

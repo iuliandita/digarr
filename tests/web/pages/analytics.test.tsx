@@ -33,7 +33,7 @@ vi.mock('@/web/lib/api', () => ({
   getTimeToAct: vi.fn().mockResolvedValue([]),
 }))
 
-import { getAnalyticsBatches } from '@/web/lib/api'
+import { getAnalyticsBatches, getAnalyticsOverview } from '@/web/lib/api'
 import { AnalyticsPage } from '@/web/pages/analytics'
 
 describe('AnalyticsPage', () => {
@@ -87,5 +87,15 @@ describe('AnalyticsPage', () => {
     const column = await screen.findByTitle(/10 recs \(4 approved\)/)
     expect(column).toHaveClass('h-full')
     expect(column.querySelectorAll('[style*="height"]')).toHaveLength(2)
+  })
+})
+
+describe('AnalyticsPage load errors', () => {
+  it('shows an error notice and no fabricated zeros when the overview fails', async () => {
+    vi.mocked(getAnalyticsOverview).mockRejectedValueOnce(new Error('403'))
+    renderWithQuery(<AnalyticsPage />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("Some analytics couldn't be loaded.")
+    expect(screen.getAllByText('N/A').length).toBeGreaterThanOrEqual(4)
   })
 })

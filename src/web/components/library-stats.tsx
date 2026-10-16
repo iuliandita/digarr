@@ -33,14 +33,14 @@ export function LibraryStatsDisplay({ stats }: Props) {
       subValue:
         stats.totalArtists > 0
           ? `${Math.round((stats.monitoredArtists / stats.totalArtists) * 100)}%`
-          : '--',
+          : t('common.notAvailable'),
     },
     ...(stats.totalAlbums > 0
       ? [{ label: t('libraryStats.albums'), value: stats.totalAlbums }]
       : []),
     {
       label: t('libraryStats.freeSpace'),
-      value: totalFreeSpace > 0 ? formatBytes(totalFreeSpace) : '--',
+      value: totalFreeSpace > 0 ? formatBytes(totalFreeSpace) : t('common.notAvailable'),
     },
   ]
 

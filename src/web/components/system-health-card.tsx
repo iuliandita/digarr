@@ -28,7 +28,7 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
   })
 
   function formatUntil(iso: string | null): string {
-    if (!iso) return '--'
+    if (!iso) return t('common.notAvailable')
     const diff = new Date(iso).getTime() - Date.now()
     if (diff < 0) return t('systemHealth.overdue')
     const mins = Math.floor(diff / 60000)
@@ -129,7 +129,9 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
         <SummaryCard
           label={t('systemHealth.librarySync')}
           value={
-            data.librarySync?.lastRun ? formatRelativeTime(locale, data.librarySync.lastRun) : '--'
+            data.librarySync?.lastRun
+              ? formatRelativeTime(locale, data.librarySync.lastRun)
+              : t('common.notAvailable')
           }
         />
       </div>

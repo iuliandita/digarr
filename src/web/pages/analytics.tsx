@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { Hint } from '../components/hint'
 import { StatCard } from '../components/stat-card'
+import { Notice } from '../components/ui/notice'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   type AnalyticsBatch,
@@ -383,7 +384,7 @@ function TimeToActCards({ data }: { data: TimeToAct[] }) {
   const rejected = data.find((d) => d.status === 'rejected')
 
   function fmt(days: number | undefined): string {
-    if (days == null) return '--'
+    if (days == null) return t('common.notAvailable')
     if (days < 1 / 24) return `${Math.round(days * 24 * 60)}m`
     if (days < 1) return `${Math.round(days * 24)}h`
     return `${days.toFixed(1)}d`
@@ -415,11 +416,19 @@ function TimeToActCards({ data }: { data: TimeToAct[] }) {
 
 export function AnalyticsPage() {
   const { locale, t } = useI18n()
-  const { data: overview, isLoading: overviewLoading } = useQuery({
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    isError: overviewError,
+  } = useQuery({
     queryKey: ['analytics', 'overview'],
     queryFn: getAnalyticsOverview,
   })
-  const { data: batches, isLoading: batchesLoading } = useQuery({
+  const {
+    data: batches,
+    isLoading: batchesLoading,
+    isError: batchesError,
+  } = useQuery({
     queryKey: ['analytics', 'batches'],
     queryFn: getAnalyticsBatches,
   })
@@ -439,10 +448,13 @@ export function AnalyticsPage() {
     queryKey: ['analytics', 'trend'],
     queryFn: getApprovalTrend,
   })
-  const { data: timeToAct } = useQuery({
+  const { data: timeToAct, isError: timeToActError } = useQuery({
     queryKey: ['analytics', 'time-to-act'],
     queryFn: getTimeToAct,
   })
+  const anyError = overviewError || batchesError || timeToActError
+  const na = t('common.notAvailable')
+  const overviewValue = <T,>(value: T) => (overviewLoading || overviewError ? na : value)
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
@@ -451,27 +463,29 @@ export function AnalyticsPage() {
         {t('analytics.introTip')}
       </Hint>
 
+      {anyError && <Notice tone="error">{t('analytics.loadFailed')}</Notice>}
+
       {/* Overview cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
           label={t('analytics.totalRecs')}
-          value={overviewLoading ? '--' : (overview?.totalRecs ?? 0)}
+          value={overviewValue(overview?.totalRecs ?? 0)}
           loading={overviewLoading}
         />
         <StatCard
           label={t('analytics.approvalRate')}
-          value={overviewLoading ? '--' : pct(overview?.approvalRate ?? 0)}
+          value={overviewValue(pct(overview?.approvalRate ?? 0))}
           loading={overviewLoading}
         />
         <StatCard
           label={t('analytics.avgScore')}
-          value={overviewLoading ? '--' : Math.round((overview?.avgScore ?? 0) * 100)}
+          value={overviewValue(Math.round((overview?.avgScore ?? 0) * 100))}
           subValue={t('analytics.outOf100')}
           loading={overviewLoading}
         />
         <StatCard
           label={t('analytics.totalBatches')}
-          value={overviewLoading ? '--' : (overview?.totalBatches ?? 0)}
+          value={overviewValue(overview?.totalBatches ?? 0)}
           loading={overviewLoading}
         />
       </div>

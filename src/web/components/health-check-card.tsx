@@ -14,13 +14,37 @@ const FIX_HINT_KEYS: Record<string, MessageKey> = {
   'missing-wikidata': 'libraryHealth.fixHint.missingWikidata',
 }
 
-// Per-check i18n keys used by the (future) localised overrides of the backend's
-// hardcoded English CHECK_META.name/description strings. Referenced here so the
-// i18n-check orphan detector sees them.
-export const HEALTH_CHECK_I18N_KEYS = [
-  'libraryHealth.artistsMissingWikidata.title',
-  'libraryHealth.artistsMissingWikidata.description',
-] as const
+// The server sends English CHECK_META text; translate by check id and fall back to it.
+const CHECK_TEXT_KEYS: Record<string, { name: MessageKey; description: MessageKey }> = {
+  'missing-metadata': {
+    name: 'libraryHealth.check.missingMetadata.name',
+    description: 'libraryHealth.check.missingMetadata.description',
+  },
+  unmonitored: {
+    name: 'libraryHealth.check.unmonitored.name',
+    description: 'libraryHealth.check.unmonitored.description',
+  },
+  'missing-albums': {
+    name: 'libraryHealth.check.missingAlbums.name',
+    description: 'libraryHealth.check.missingAlbums.description',
+  },
+  'duplicate-artists': {
+    name: 'libraryHealth.check.duplicateArtists.name',
+    description: 'libraryHealth.check.duplicateArtists.description',
+  },
+  'genre-gaps': {
+    name: 'libraryHealth.check.genreGaps.name',
+    description: 'libraryHealth.check.genreGaps.description',
+  },
+  'image-gaps': {
+    name: 'libraryHealth.check.imageGaps.name',
+    description: 'libraryHealth.check.imageGaps.description',
+  },
+  'missing-wikidata': {
+    name: 'libraryHealth.artistsMissingWikidata.title',
+    description: 'libraryHealth.artistsMissingWikidata.description',
+  },
+}
 
 const CHECK_ICONS: Record<string, React.ReactNode> = {
   'missing-metadata': <Search size={16} className="text-muted shrink-0" />,
@@ -84,6 +108,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
   const hasMore = check.items.length > PREVIEW_COUNT
   const fixDisabled = fixing || check.count === 0 || !check.fixable
   const fixHintKey = FIX_HINT_KEYS[check.id]
+  const textKeys = CHECK_TEXT_KEYS[check.id]
 
   return (
     <div
@@ -98,9 +123,11 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
               className={`w-1.5 h-1.5 rounded-full shrink-0 ${severityDotClass(check.severity)}`}
             />
             {CHECK_ICONS[check.id]}
-            {check.name}
+            {textKeys ? t(textKeys.name) : check.name}
           </p>
-          <p className="text-xs text-muted mt-0.5">{check.description}</p>
+          <p className="text-xs text-muted mt-0.5">
+            {textKeys ? t(textKeys.description) : check.description}
+          </p>
         </div>
         <span
           className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${severityBadgeClass(check.severity)}`}

@@ -5,6 +5,7 @@ import {
   findAsciiMarkers,
   findCatalogIssues,
   findDashIssues,
+  findDashLiterals,
   findFormalAddress,
   findHardcodedUiStrings,
 } from '../../scripts/i18n-check'
@@ -130,5 +131,26 @@ describe('hardcoded UI string checks', () => {
     `
 
     expect(findHardcodedUiStrings('example.tsx', source)).toHaveLength(5)
+  })
+})
+
+describe('findDashLiterals', () => {
+  it.each([
+    ["const empty = value ?? '--'", '"\'--\'"'],
+    ['<p>Run — then wait</p>', '"—"'],
+    ['<p>Run &mdash; then wait</p>', '"&mdash;"'],
+    ['toast.error(`Failed -- retry`)', '" -- "'],
+  ])('flags %s', (source, hit) => {
+    expect(findDashLiterals('example.tsx', source)).toEqual([`example.tsx:1: ${hit}`])
+  })
+
+  it('ignores comments and CSS custom properties', () => {
+    const source = [
+      '// see the docs — not user facing',
+      '/* block -- comment */',
+      "const cls = 'pb-(--bottom-stack) [color:var(--accent)]'",
+      "const url = 'https://example.com/a--b'",
+    ].join('\n')
+    expect(findDashLiterals('example.tsx', source)).toEqual([])
   })
 })

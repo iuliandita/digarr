@@ -258,6 +258,25 @@ export function findDashIssues(messages: Record<string, string>): string[] {
     .map(([key, value]) => `${key}: "${value}"`)
 }
 
+// The same rule for web source: a literal '--' placeholder, a spaced " -- " dash, an
+// em/en dash or its HTML entity in a string or JSX text all reach the screen.
+const DASH_LITERAL_PATTERNS = [/(['"`])--\1/g, /[–—]/g, /&[mn]dash;/g, / -- /g]
+
+export function findDashLiterals(file: string, source: string): string[] {
+  const code = source
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:\\])\/\/.*$/gm, (m, lead: string) => lead + ' '.repeat(m.length - lead.length))
+  const issues: string[] = []
+  for (const pattern of DASH_LITERAL_PATTERNS) {
+    for (const match of code.matchAll(pattern)) {
+      if (match.index == null) continue
+      const line = code.slice(0, match.index).split('\n').length
+      issues.push(`${file}:${line}: ${JSON.stringify(match[0])}`)
+    }
+  }
+  return issues
+}
+
 function collectSourceFiles(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
@@ -364,6 +383,17 @@ export async function main(): Promise<void> {
     failed = true
     console.error('Hardcoded user-facing strings:')
     for (const issue of hardcodedUi) console.error(`  - ${issue}`)
+  }
+
+  const dashLiterals = webFiles.flatMap((file) =>
+    findDashLiterals(file, readFileSync(file, 'utf8')),
+  )
+  if (dashLiterals.length > 0) {
+    failed = true
+    console.error(
+      'Dash placeholders or em/en dashes in web source (use a plain hyphen or a catalog key):',
+    )
+    for (const issue of dashLiterals) console.error(`  - ${issue}`)
   }
 
   if (failed) {

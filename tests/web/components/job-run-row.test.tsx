@@ -48,3 +48,35 @@ describe('JobRunRow source results', () => {
     expect(screen.getByText(expected)).toBeInTheDocument()
   })
 })
+
+describe('JobRunRow readability', () => {
+  const base: JobRun = {
+    id: 2,
+    type: 'library_sync',
+    status: 'failed',
+    userId: 1,
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+    durationMs: 10,
+    error: 'connect ECONNREFUSED',
+    metadata: { source: 'plex' },
+    sourceResults: null,
+    subscriptionId: null,
+    batchId: null,
+  }
+
+  it('names the library source and labels the status in text', () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: vi.fn(() => 'en'), setItem: vi.fn() },
+    })
+    render(
+      <I18nProvider>
+        <JobRunRow job={base} />
+      </I18nProvider>,
+    )
+    expect(screen.getByText('Plex')).toBeInTheDocument()
+    expect(screen.getByText('failed')).toBeInTheDocument()
+    expect(screen.queryByText('!')).toBeNull()
+  })
+})

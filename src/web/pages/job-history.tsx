@@ -18,11 +18,18 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
     { key: 'playlist', label: t('jobHistory.playlists') },
   ]
   const [type, setType] = useState('')
+  const [failuresOnly, setFailuresOnly] = useState(false)
   const [offset, setOffset] = useState(0)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['jobs', type, offset],
-    queryFn: () => listJobs({ type: type || undefined, limit: PAGE_SIZE, offset }),
+    queryKey: ['jobs', type, failuresOnly, offset],
+    queryFn: () =>
+      listJobs({
+        type: type || undefined,
+        status: failuresOnly ? 'failed' : undefined,
+        limit: PAGE_SIZE,
+        offset,
+      }),
     staleTime: 15_000,
   })
 
@@ -54,6 +61,17 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
             {tab.label}
           </button>
         ))}
+        <label className="ml-auto flex items-center gap-2 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={failuresOnly}
+            onChange={(e) => {
+              setFailuresOnly(e.target.checked)
+              setOffset(0)
+            }}
+          />
+          {t('jobHistory.failuresOnly')}
+        </label>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-surface">

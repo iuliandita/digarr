@@ -7,6 +7,7 @@ export const ptBR = {
   'app.theme': 'Tema',
   'app.themeSettings': 'Configurações do tema',
   'app.mainNavigation': 'Navegação principal',
+  'app.skipToContent': 'Pular para o conteúdo',
   'app.toggleMenu': 'Alternar menu',
   'app.themeMode': 'Modo',
   'app.themeModeDark': 'Escuro',
@@ -87,6 +88,8 @@ export const ptBR = {
   'subscriptions.resumeAll': 'Retomar tudo',
   'dashboard.todaysPick': 'Destaque de hoje',
   'dashboard.recentlyApproved': 'Aprovado recentemente',
+  'dashboard.noRecentlyApproved':
+    'Nada aprovado ainda. Os artistas que você aprovar aparecem aqui.',
   'dashboard.viewAll': 'Ver tudo',
   'dashboard.discover': 'Descubra',
   'discover.all': 'Todos',
@@ -127,6 +130,7 @@ export const ptBR = {
   'genreDetail.backToGenres': 'Voltar aos gêneros',
   'genreDetail.createSubscription': 'Criar assinatura',
   'analytics.title': 'Análises',
+  'analytics.loadFailed': 'Não foi possível carregar algumas estatísticas.',
   'dashboard.title': 'Painel',
   'discover.title': 'Descobrir',
   'jobHistory.title': 'Histórico de tarefas',
@@ -410,6 +414,10 @@ export const ptBR = {
   'jobHistory.of': 'de',
   'jobHistory.pipeline': 'Fluxo de descoberta',
   'jobHistory.librarySync': 'Sincronização da biblioteca',
+  'jobHistory.seedArtist': 'Semente: {artist}',
+  'jobHistory.targetAddArtist': 'Adicionar {artist}',
+  'jobHistory.targetAddAlbum': 'Adicionar álbum de {artist}',
+  'jobHistory.failuresOnly': 'Somente falhas',
   'jobHistory.playlists': 'Listas de reprodução',
   'jobHistory.quickDiscover': 'Descoberta rápida',
   'jobHistory.showing': 'Mostrando',
@@ -700,6 +708,9 @@ export const ptBR = {
     'Cada usuário tem suas próprias recomendações, preferências e fontes de escuta. Os administradores podem gerenciar configurações globais.',
   'userManagement.noUsers': 'Nenhum usuário encontrado.',
   'userManagement.adminBadge': 'administrador',
+  'userManagement.authProviderLocal': 'Conta local',
+  'userManagement.authProviderOidc': 'OIDC / SSO',
+  'userManagement.authProviderProxy': 'Proxy reverso',
   'userManagement.cannotRemoveOwnAdmin':
     'Não é possível remover sua própria função de administrador',
   'userManagement.lastAdminCannotRemove': 'Último administrador - não é possível remover',
@@ -1196,6 +1207,22 @@ export const ptBR = {
   'artist.externalLinks.discogs': 'Discogs',
   'artist.externalLinks.musicbrainz': 'MusicBrainz',
   'libraryHealth.artistsMissingWikidata.title': 'Artistas sem enriquecimento do Wikidata',
+  'libraryHealth.check.missingMetadata.name': 'Metadados ausentes',
+  'libraryHealth.check.missingMetadata.description':
+    'Artistas no Lidarr sem gêneros e sem imagem no cache local.',
+  'libraryHealth.check.unmonitored.name': 'Artistas não monitorados',
+  'libraryHealth.check.unmonitored.description': 'Artistas no Lidarr que não estão monitorados.',
+  'libraryHealth.check.missingAlbums.name': 'Arquivos de álbum ausentes',
+  'libraryHealth.check.missingAlbums.description':
+    'Artistas monitorados com álbuns que têm faixas, mas nenhum arquivo baixado.',
+  'libraryHealth.check.duplicateArtists.name': 'Artistas duplicados',
+  'libraryHealth.check.duplicateArtists.description':
+    'Artistas com o mesmo nome sob MBIDs diferentes.',
+  'libraryHealth.check.genreGaps.name': 'Gêneros ausentes',
+  'libraryHealth.check.genreGaps.description':
+    'Artistas sem tags de gênero no Lidarr nem no cache local.',
+  'libraryHealth.check.imageGaps.name': 'Imagens ausentes',
+  'libraryHealth.check.imageGaps.description': 'Artistas no cache local sem URL de imagem.',
   'libraryHealth.artistsMissingWikidata.description':
     'Buscar descrições e links externos para artistas sem dados do Wikidata em cache.',
   'settings.metadataFallbackHelp':
@@ -1415,6 +1442,9 @@ export const ptBR = {
   'jobHistory.targetOperation': 'Operação de destino',
   'jobHistory.playlistGeneration': 'Geração de playlist',
   'jobHistory.stuckLabel': 'travado',
+  'jobHistory.statusCompleted': 'concluído',
+  'jobHistory.statusFailed': 'falhou',
+  'jobHistory.statusRunning': 'em execução',
   'jobHistory.cancelledLabel': 'cancelado',
   'jobHistory.errorLabel': 'Erro:',
   'jobHistory.sourceResultsLabel': 'Resultados da fonte:',

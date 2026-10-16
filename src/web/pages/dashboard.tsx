@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AlbumPicker } from '../components/album-picker'
@@ -34,7 +34,6 @@ import {
   getUserPreferences,
   type ListeningTopRange,
   listTargets,
-  rescanArtists,
   type SchedulerJob,
   type Subscription,
   type TasteGenre,
@@ -581,26 +580,6 @@ export function Dashboard() {
     targetId?: string
   } | null>(null)
   const [albumPickerRec, setAlbumPickerRec] = useState<Recommendation | null>(null)
-
-  // Auto-rescan images for artists that are missing them (once per mount)
-  const rescannedRef = useRef(false)
-  useEffect(() => {
-    if (!isAdmin || rescannedRef.current) return
-    const all = [
-      ...((pickData?.items ?? []) as Recommendation[]),
-      ...((approvedData?.items ?? []) as Recommendation[]),
-    ]
-    const missing = all.some((r) => !r.artist.imageUrl)
-    if (missing && all.length > 0) {
-      rescannedRef.current = true
-      rescanArtists()
-        .then(() => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-          queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-        })
-        .catch(() => {})
-    }
-  }, [isAdmin, pickData, approvedData, queryClient])
 
   const allPending = (pickData?.items ?? []) as Recommendation[]
 

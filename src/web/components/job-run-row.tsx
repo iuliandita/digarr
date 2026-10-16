@@ -25,6 +25,24 @@ const SOURCE_REASON_KEYS: Record<string, MessageKey> = {
   not_configured: 'jobHistory.sourceNotConfigured',
 }
 
+const STATUS_BADGES: Record<string, { key: MessageKey; className: string }> = {
+  completed: { key: 'jobHistory.statusCompleted', className: 'bg-approve/15 text-approve' },
+  failed: { key: 'jobHistory.statusFailed', className: 'bg-reject/15 text-reject' },
+  stuck: { key: 'jobHistory.stuckLabel', className: 'bg-warning/20 text-warning' },
+  cancelled: { key: 'jobHistory.cancelledLabel', className: 'bg-muted/20 text-muted' },
+  running: { key: 'jobHistory.statusRunning', className: 'bg-info/15 text-info' },
+}
+
+// Brand names; library sync rows otherwise all read "Library Sync".
+const LIBRARY_SOURCE_NAMES: Record<string, string> = {
+  plex: 'Plex',
+  jellyfin: 'Jellyfin',
+  emby: 'Emby',
+  lidarr: 'Lidarr',
+  subsonic: 'Subsonic',
+  navidrome: 'Navidrome',
+}
+
 function sourceLabel(
   value: string,
   keys: Record<string, MessageKey>,
@@ -42,17 +60,22 @@ function jobDescription(job: JobRun, t: (key: MessageKey) => string): string {
         ? t('jobHistory.scheduledScan')
         : t('jobHistory.manualScan')
     case 'quick_discover':
-      return meta.seedArtist ? `Seed: ${meta.seedArtist}` : t('jobHistory.quickDiscoverType')
+      return meta.seedArtist
+        ? t('jobHistory.seedArtist').replace('{artist}', String(meta.seedArtist))
+        : t('jobHistory.quickDiscoverType')
     case 'subscription':
       return String(meta.adapterType ?? t('jobHistory.subscriptionRun'))
     case 'target':
-      return meta.artistName
-        ? `${meta.action ?? 'add'} "${meta.artistName}"`
-        : t('jobHistory.targetOperation')
+      if (!meta.artistName) return t('jobHistory.targetOperation')
+      return t(
+        meta.action === 'addAlbum' ? 'jobHistory.targetAddAlbum' : 'jobHistory.targetAddArtist',
+      ).replace('{artist}', String(meta.artistName))
     case 'playlist':
       return String(meta.playlistName ?? t('jobHistory.playlistGeneration'))
-    case 'library_sync':
-      return t('jobHistory.librarySync')
+    case 'library_sync': {
+      const source = typeof meta.source === 'string' ? meta.source : ''
+      return LIBRARY_SOURCE_NAMES[source] ?? (source || t('jobHistory.librarySync'))
+    }
     default:
       return job.type
   }
@@ -76,16 +99,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
   const typeLabelKey = TYPE_LABEL_KEYS[job.type]
   const metadata = job.metadata ?? {}
 
-  const statusColor =
-    job.status === 'completed'
-      ? 'text-approve'
-      : job.status === 'failed'
-        ? 'text-reject'
-        : job.status === 'stuck'
-          ? 'text-warning'
-          : job.status === 'cancelled'
-            ? 'text-muted'
-            : 'text-info'
+  const statusBadge = STATUS_BADGES[job.status]
 
   const statsText = jobStats(job, t)
 
@@ -102,31 +116,15 @@ export function JobRunRow({ job }: { job: JobRun }) {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`font-mono text-xs ${statusColor}`}>
-            {job.status === 'completed'
-              ? '*'
-              : job.status === 'failed'
-                ? '!'
-                : job.status === 'stuck'
-                  ? '?'
-                  : job.status === 'cancelled'
-                    ? 'x'
-                    : '~'}
+          <span
+            className={`rounded px-1.5 py-0.5 text-xs ${statusBadge?.className ?? 'bg-info/15 text-info'}`}
+          >
+            {statusBadge ? t(statusBadge.key) : job.status}
           </span>
           <span className="text-sm font-medium text-text">
             {typeLabelKey ? t(typeLabelKey) : job.type}
           </span>
           <span className="text-sm text-muted">{jobDescription(job, t)}</span>
-          {job.status === 'stuck' && (
-            <span className="rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
-              {t('jobHistory.stuckLabel')}
-            </span>
-          )}
-          {job.status === 'cancelled' && (
-            <span className="rounded bg-muted/20 px-1.5 py-0.5 text-xs text-muted">
-              {t('jobHistory.cancelledLabel')}
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-4 text-xs text-muted">
           <span>{formatDuration(job.durationMs)}</span>

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAlbums } from '../lib/api'
+import { useI18n } from '../lib/i18n'
 import { hueFromName } from '../lib/utils'
 import { Skeleton } from './ui/skeleton'
 
@@ -74,6 +75,7 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
 }
 
 export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
+  const { t } = useI18n()
   if (loading) {
     return (
       <div className="grid grid-cols-3 gap-1.5">
@@ -86,11 +88,9 @@ export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
 
   if (recs.length === 0) {
     return (
-      <div className="grid grid-cols-3 gap-1.5 min-h-[200px]">
-        {SLOTS.map((key) => (
-          <div key={key} className="aspect-square rounded-lg bg-bg border border-border" />
-        ))}
-      </div>
+      <p className="rounded-lg border border-border bg-bg p-4 text-sm text-muted">
+        {t('dashboard.noRecentlyApproved')}
+      </p>
     )
   }
 
@@ -103,9 +103,6 @@ export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
           mbid={rec.artist.mbid}
           imageUrl={rec.artist.imageUrl}
         />
-      ))}
-      {SLOTS.slice(recs.length).map((key) => (
-        <div key={key} className="aspect-square rounded-lg bg-bg border border-border" />
       ))}
     </div>
   )
