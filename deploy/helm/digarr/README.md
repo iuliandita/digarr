@@ -6,7 +6,7 @@ Run Digarr on Kubernetes with embedded PGlite, bundled PostgreSQL, or an existin
 
 - Kubernetes `>= 1.29`
 - Helm `>= 3.14`
-- Persistent storage for the selected backend. PostgreSQL is bundled by default. For an external database, set `postgresql.enabled=false` and supply `database.existingSecret` or the database connection values. Setting `database.host` alone does not disable the bundled server.
+- Persistent storage for the selected backend. PostgreSQL is bundled by default. For an external database, set `postgresql.enabled=false` and supply `database.existingSecret` or the database connection values. Setting `database.host` alone does not disable the bundled server. An external PostgreSQL must be version 15 or newer (migrations create `NULLS NOT DISTINCT` unique indexes); the bundled server is PostgreSQL 17.
 
 ## Install
 
@@ -97,7 +97,7 @@ backups:
 |-------|---------|---------|
 | `replicaCount` | `1` | App pods. Keep at 1; external Postgres alone does not make Digarr safe for multiple replicas. |
 | `image.tag` | release version in values.yaml | Used when no digest is set. Update `image.digest` as well when choosing another image. |
-| `image.digest` | set by CI | Immutable digest pinning. |
+| `image.digest` | set by CI | Immutable digest pinning. To float a tag such as `stable`, set `image.digest: null` in your values file (or `--set image.digest=null`); an empty string fails schema validation. |
 | `ingress.enabled` | `false` | Classic Ingress resource. |
 | `ingress.controllerNamespace` | `ingress-nginx` | NetworkPolicy source namespace for the Ingress or Gateway data plane. |
 | `gateway.enabled` | `false` | Gateway API HTTPRoute instead of Ingress. |
@@ -111,6 +111,7 @@ backups:
 | `extraEnvFrom` | `[]` | Extra envFrom entries (e.g. whole OIDC secret). |
 | `namespace.create` | `false` | Emit a Namespace with PSA `restricted` enforced. |
 | `networkPolicy.enabled` | `true` | NetworkPolicy restricting ingress and egress; see Network access below. |
+| `networkPolicy.extraEgress` | `[]` | Extra egress rules appended to the app NetworkPolicy, for private-network services. |
 
 See `values.yaml` for the full surface.
 
@@ -140,7 +141,7 @@ scaling; keep `replicaCount: 1` until distributed coordination is implemented.
 
 ## Network access
 
-The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fd00::/8`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add a separate NetworkPolicy with the required destinations and ports before connecting those services. For Gateway deployments, set `ingress.controllerNamespace` to the Gateway data-plane namespace, despite the value name. For example:
+The default NetworkPolicy allows inbound traffic from `ingress.controllerNamespace`, DNS, the chart-labeled database pods on port 5432, and HTTP/HTTPS on ports 80 and 443 except for IPv4 RFC1918 ranges, `169.254.0.0/16`, and IPv6 `fc00::/7` and `fe80::/10`. It does not automatically allow an external database, Lidarr, local AI, or a media server on a private network or another port. Add those destinations with `networkPolicy.extraEgress` (below) or a separate NetworkPolicy before connecting those services. With `postgresql.enabled=false` and the default policy, an external database on a private address is unreachable and the app cannot start; the install notes warn about this. For Gateway deployments, set `ingress.controllerNamespace` to the Gateway data-plane namespace, despite the value name. For example:
 
 ```yaml
 ingress:
@@ -149,7 +150,20 @@ ingress:
 
 Replace `gateway-system` with the namespace of the controller pods that send traffic to Digarr. If both Ingress and Gateway controllers need access from different namespaces, add a supplemental ingress NetworkPolicy for the second namespace. Disabling `networkPolicy.enabled` removes the chart's restrictions; do that only if another policy provides the intended controls.
 
-For the external database in the install example, apply a supplemental policy before starting Digarr. Replace the documentation address below with the database's actual address, and adjust the namespace, release label, and port to match your deployment:
+`networkPolicy.extraEgress` takes standard NetworkPolicy egress rules and renders them after the chart's own rules. It is empty by default, so the restrictive default is unchanged. For the external database in the install example, add its address before starting Digarr (replace the documentation address with the database's actual address and port):
+
+```yaml
+networkPolicy:
+  extraEgress:
+    - to:
+        - ipBlock:
+            cidr: 192.0.2.10/32
+      ports:
+        - protocol: TCP
+          port: 5432
+```
+
+The same rule works for Lidarr, a local AI server, or a media server; add one entry per destination and port. Alternatively, apply a supplemental policy yourself; adjust the namespace, release label, and port to match your deployment:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -173,7 +187,7 @@ spec:
           port: 5432
 ```
 
-NetworkPolicies are additive, so this retains the chart's existing rules. For another in-cluster database, select its pods and namespace instead of pinning a pod IP. The database must also accept connections from the app's network.
+NetworkPolicies are additive, so a supplemental policy retains the chart's existing rules. For another in-cluster database, select its pods and namespace instead of pinning a pod IP. The database must also accept connections from the app's network.
 
 ## Secrets
 
@@ -206,6 +220,6 @@ so changes to chart-rendered configuration and database secrets trigger a rollou
 
 A Helm rollback restores Kubernetes resources, not the database schema. Do not run an older image against an already-migrated database unless its compatibility is established. Restore a compatible backup into a separate database when a schema downgrade is required; see [backup and restore](../../../docs/guides/switching-backends.md#backup-boundaries-and-recovery).
 
-PostgreSQL deployments use a rolling update with `maxUnavailable: 0` and `maxSurge: 1`, briefly overlapping two app processes despite process-local schedulers and locks. For an upgrade without that overlap, scale the deployment to zero, wait for the old pod to terminate, then run the upgrade with `replicaCount=1`; this introduces downtime. PGlite uses `Recreate`, so updates have downtime. The app marks `/health` as draining before shutdown, but that does not guarantee uninterrupted traffic through every proxy.
+PostgreSQL deployments use a rolling update with `maxUnavailable: 0` and `maxSurge: 1`, briefly overlapping two app processes despite process-local schedulers and locks. For an upgrade without that overlap, scale the deployment to zero, wait for the old pod to terminate, then run the upgrade with `replicaCount=1`; this introduces downtime. PGlite, and any release with `backups.persistence.enabled=true` (the backup volume is `ReadWriteOnce`), use `Recreate`, so updates have downtime. The app marks `/health` as draining before shutdown, but that does not guarantee uninterrupted traffic through every proxy.
 
-Backups use `emptyDir` unless `backups.persistence.enabled=true`. An `emptyDir` is lost when a pod is replaced, including during an upgrade. Keep persistent JSON exports and a separate off-cluster copy of a complete database or data-volume backup.
+Bundled PostgreSQL with `postgresql.persistence.enabled=false` keeps its data directory on an `emptyDir`, which is lost when the pod is replaced. Backups use `emptyDir` unless `backups.persistence.enabled=true`. An `emptyDir` is lost when a pod is replaced, including during an upgrade. Keep persistent JSON exports and a separate off-cluster copy of a complete database or data-volume backup.

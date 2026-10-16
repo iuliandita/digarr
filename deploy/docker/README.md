@@ -5,17 +5,19 @@ production or local development. Use Docker Compose 2.24.0 or newer: the stacks 
 
 For a new single-host installation, PGlite is the simplest starting point. Choose PostgreSQL when you need a separate database service and its standard backup and administration tools. Two bases are provided:
 
-- `docker-compose.yml` -- the default. Runs the app plus a bundled
+- `docker-compose.yml` - the default. Runs the app plus a bundled
   PostgreSQL container, sharing a single password secret. The database lives in
   the `pgdata` volume and persists across image re-pulls.
-- `docker-compose.pglite.yml` -- single container with the embedded PGlite
+- `docker-compose.pglite.yml` - single container with the embedded PGlite
   database (real PostgreSQL compiled to Wasm, in-process). No database sidecar,
   no database-password secret. Data lives in the `data` volume.
 
-The v2.0.0 container build and both runtime variants use Bun 1.4.3 with
-flavor-specific multi-platform digest pins. This runtime update adds no settings
-or database migration; use the existing backup and rollback guidance for the
-complete release batch.
+An external PostgreSQL (via `DATABASE_URL`) must be version 15 or newer: migrations create `NULLS NOT DISTINCT` unique indexes. The bundled stack pins PostgreSQL 17.
+
+The container build and both runtime variants pin a Bun version and
+flavor-specific multi-platform digests in the `Dockerfile`. A runtime-only update
+adds no settings or database migration; use the existing backup and rollback
+guidance for the complete release batch.
 
 ## Production
 
@@ -287,9 +289,11 @@ The Postgres base compose file uses the `_FILE` env convention with a single sec
 Postgres reads its password from `POSTGRES_PASSWORD_FILE`, and the app reads the
 same file via `DB_PASS_FILE`, then assembles `DATABASE_URL` from `DB_HOST`,
 `DB_USER`, `DB_NAME`, and that password. The password therefore lives in exactly
-one configuration file -- `secrets/postgres_password`. PostgreSQL reads it when initializing the database; changing the file later does not update the initialized role password. Coordinate password rotation with PostgreSQL before restarting the app. Digarr trims surrounding whitespace from `DB_PASS_FILE`, so password files must not contain intentional leading or trailing whitespace. Create that file before starting the stack; see
+one configuration file - `secrets/postgres_password`. PostgreSQL reads it when initializing the database; changing the file later does not update the initialized role password. Coordinate password rotation with PostgreSQL before restarting the app. Digarr trims surrounding whitespace from `DB_PASS_FILE`, so password files must not contain intentional leading or trailing whitespace. Create that file before starting the stack; see
 `secrets/postgres_password.example` for the format (one line, the password
 only). File-backed Compose secrets retain host ownership and mode: the app runs as UID 1000 and must be able to read this file. If the host user differs, use `sudo chown 1000:1000 secrets/postgres_password` and keep mode `0600`; the PostgreSQL entrypoint reads it as root.
+
+The `postgres` service does not read `.env`: it receives only the `POSTGRES_*` values that `docker-compose.yml` derives from `DB_USER`, `DB_NAME`, and the password file, so app secrets in `.env` stay out of the database container. If you set `POSTGRES_USER`, `POSTGRES_DB`, or `POSTGRES_PASSWORD` in `.env`, they no longer reach PostgreSQL; use `DB_USER` and `DB_NAME` instead, and keep the password in `secrets/postgres_password`.
 
 A nonempty direct `DATABASE_URL` or `DB_PASS` takes precedence over its corresponding `_FILE` setting. Otherwise, a configured file must be readable: startup stops with a message naming the failed variable, without its path or contents. Verify the mount and UID 1000 read permission before restarting. Readable files are trimmed; empty files remain unset. This prevents unreadable database files from silently selecting another backend. Check `/health` for the intended backend when startup succeeds.
 

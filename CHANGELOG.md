@@ -6,6 +6,11 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
+- Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
+
 ### Changed
 
 - Start the web UI refresh with a shared foundation: Digarr now ships its own variable font (Roboto Flex, served from the app, covering Latin, Cyrillic, Greek and Vietnamese; Japanese, Korean and Chinese keep the system font), a type scale, control and surface radius, elevation and focus-ring tokens derived from each theme, and native controls that follow the theme's light or dark mode. Every theme and palette is unchanged. Status colors (success, error, warning) now follow the active theme instead of fixed colors, and accent buttons use the theme's accent text color. The Dashboard shows its page title, sentence-case section headings and consistent empty and error states. With reduced motion requested by the system, transitions and scroll animations are skipped; loading spinners keep turning. Collapsible sections in Settings and Administration stay loaded while closed, so input inside them is no longer reset when you close and reopen them. [#889](https://github.com/iuliandita/digarr/issues/889).
@@ -16,6 +21,13 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Every translation now addresses you informally, matching the English (du, tu, je, ты, sen and so on); German, French, Romanian, Russian, Ukrainian, Turkish and part of Dutch used the formal form. Dashes in all languages are plain hyphens; em dashes, en dashes and `--` are gone. Translators: changing an English string now fails `bun run i18n:check` until its translations are updated and `bun run i18n:stamp` records it. (#903)
 
 ### Fixed
+
+- Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
+- Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).
+- Helm: bundled PostgreSQL with `postgresql.persistence.enabled=false` now gets an `emptyDir` for its data directory instead of a read-only path, and its NetworkPolicy carries the release namespace (#911).
+- Helm: the app switches to the `Recreate` update strategy when `backups.persistence.enabled=true`, so a rolling update no longer waits on a ReadWriteOnce volume held by the old pod (#911).
+- Helm: the egress rules now exclude IPv6 `fc00::/7` and `fe80::/10`, and the unused `LOG_LEVEL` setting is removed from the chart and the raw manifests (#911).
+- Docs: `GET /api/v1/library/sources` is documented as available to any signed-in user, the OpenAPI document now says it is partial and marks admin operations, and `bun run check:api-docs` compares the Auth column with route admin guards. Also corrected stale details (OIDC identity, Albums kind filter, album override table, probe text), documented `DB_PORT`, `DB_POOL_MAX`, and `DB_CONNECT_TIMEOUT_MS`, replaced ` -- ` dashes in prose, and noted that deleting a user keeps job history entries unlinked (#911).
 
 - About 700 translated strings across all 14 languages were wrong, stale or misspelled: mistranslations (an AI model shown as a fashion model, a library health hint describing the wrong action), descriptions that predate English changes, missing diacritics (many in Polish and Turkish), and two different words for the same screen element. (#903)
 - About 80 more strings had lost their accents, mostly in French ("Bibliotheque", "donnees"), plus a few in Spanish, Dutch, Romanian, Turkish and Portuguese. A new advisory spell check (`bun run i18n:spell`, also a non-blocking CI job) found them and will flag new ones. (#906)

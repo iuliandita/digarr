@@ -26,7 +26,9 @@ and is vulnerable to network interception. See
 
 Locale fallback is route-specific. Pipeline run and Quick Discover use `X-Digarr-Locale`, then the saved user locale, `Accept-Language`, and English. Auth messages, settings probes, and the Spotify Liked Songs import use the request header, then `Accept-Language` and English; these paths do not consult the saved locale. API clients should send `X-Digarr-Locale` explicitly for predictable messages on locale-aware routes.
 
-Admin-only endpoints return 403 for non-admin users. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs.
+Admin-only endpoints return 403 for non-admin users, as `application/problem+json` on most routes and as plain `{ "error": "..." }` on a few older ones. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs.
+
+Error bodies use three shapes. Newer routes return `application/problem+json` (`type`, `title`, `status`, optional `detail`). Request-body validation failures return `{ "error": "...", "code": "validation_failed", "details": [...] }` with `400`. Older routes return plain `{ "error": "..." }`. Clients should read `error` or `detail`/`title` rather than assume one shape. Status codes are not uniform across routes: for example, a missing settings row returns `404` from `GET /api/v1/settings` and `400` from the pipeline routes, an oversized CSV upload returns `413`, and unmet setup state returns `409` from setup routes or `403` with `redirect: "/setup"` from the setup guard.
 
 ---
 
@@ -78,6 +80,8 @@ Offset-paginated routes:
 |--------|------|------|-------------|
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
+
+The OpenAPI document is partial: it describes 19 of the 155 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
 
 OpenAPI coverage currently includes auth status/login/register/session
 migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
@@ -329,6 +333,15 @@ Locale notes:
 }
 ```
 
+The parser coerces rather than rejects most fields:
+- `modeId` is required; a missing or unknown mode returns `400` with `{ "error": "..." }`
+- `settingsMode` other than `"advanced"` becomes `"easy"`
+- `fallbackPolicy` other than `"strict"` becomes `"allow-fallback"`
+- `rawUserSettings`, `normalizedSettings`, and `providerContext` that are not plain objects become `{}`
+- an empty `normalizedSettings` falls back to `rawUserSettings`
+- only the fields above are read; other keys (including `settings`) are ignored, so a client that sends only `settings` runs the mode with empty settings
+- a mode that is currently unavailable returns `400` with its reason; a pipeline already running returns `409` problem+json
+
 **POST /api/v1/discovery-modes/run** behavior:
 - Returns `202 { "message": "Discovery run started", "jobId": 123 }` after validation; the actual run continues in the background
 - The accepted response includes `jobId`. Admin clients can poll `/api/v1/jobs/:id`; job endpoints return `403` for non-admins. Ordinary users can refresh Discover to see stored recommendations; the bundled mode card shows the accepted-run feedback, not an unrestricted job-detail subscription
@@ -355,7 +368,7 @@ v1.19.0 has no `other` field and labels every non-approved acted-on row as `reje
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `duplicate`, `queued` (comma-separated)
-- `kind` - `artist` or `album`; omitted or unrecognized values return both. Backs the Discover kind filter and the Albums tab (`?kind=album`)
+- `kind` - `artist` or `album`; omitted or unrecognized values return both. Backs the Discover kind filter (Albums is `?kind=album`)
 - `batchId` - filter by batch
 - `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`, `taste`
 - `tasteTier` - optional `primary` or `secondary`; secondary excludes primary matches
@@ -507,6 +520,8 @@ returns `204` even when the row is already absent.
 
 Path params:
 - `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
+
+**PATCH /api/v1/subscriptions/:id** accepts only these optional fields: `name`, `enabled`, `sourceConfig`, `maxArtistsPerRun`, `listenerRange`, `cron`, `scoreThreshold` (0 to 1), `scoringWeightPreset`, and `scoringWeightOverrides`. The body is strict: any other key, including `sourceType`, `sourceProvider`, `action`, and a `null` `scoreThreshold`, returns `400` validation failure, so send only the fields you are changing. Success returns `204`; a subscription that does not exist or belongs to another user returns `404` problem+json. Changing `enabled` or `cron` reschedules the job.
 
 In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog and adds optional `secondaryTypes` metadata when MusicBrainz provides a valid string array. This list is not restricted to studio albums; the coverage-only rule below does not change album picking, Release Radar or release matching.
 
@@ -793,7 +808,7 @@ Locale notes:
 
 Errors:
 - `400` when no AI provider is configured
-- `502` with `{ "error": "AI provider request failed (<provider>/<model>): <detail>" }` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` -- pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
+- `502` with `{ "error": "AI provider request failed (<provider>/<model>): <detail>" }` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` - pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
 
 ---
 
@@ -841,7 +856,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 | GET | `/api/v1/library/stats` | Admin | Library statistics |
 | POST | `/api/v1/library/warm` | Admin | Warm SkyHook cache for MBIDs (202) |
 | GET | `/api/v1/library/warm/status` | Admin | SkyHook warm status |
-| GET | `/api/v1/library/sources` | Admin | Per-source sync state for global + per-user library sources |
+| GET | `/api/v1/library/sources` | Yes | Per-source sync state for global + per-user library sources |
 | POST | `/api/v1/library/sync` | Admin | Run a manual library sync for all sources or a specific source |
 | GET | `/api/v1/library/unreconciled` | Admin | List unreconciled library artists still needing a match |
 | GET | `/api/v1/library/unreconciled-albums` | Admin | List unreconciled library albums still needing a release-group match |
@@ -946,7 +961,7 @@ Override notes:
 Album override notes:
 - Set `correctAlbumMbid` to `null` or `""` to store an ignore decision instead of a correction
 - `correctAlbumMbid`, when present, must be a valid release-group UUID
-- Album overrides persist in a separate `album_override` table keyed by `(userId, source, sourceAlbumId)`
+- Album overrides persist in the separate `library_album_match_overrides` table keyed by `(userId, source, sourceAlbumId)`
 - Corrections and ignores apply to that user's owned albums (album coverage and Gap-Fill) as soon as they are saved; the synced library rows, including shared Lidarr rows, keep the source match
 
 **GET /api/v1/library/album-coverage/:artistMbid** notes:

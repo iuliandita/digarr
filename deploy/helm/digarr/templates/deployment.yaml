@@ -12,7 +12,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
-    {{- if eq .Values.database.backend "pglite" }}
+    {{- if or (eq .Values.database.backend "pglite") .Values.backups.persistence.enabled }}
     type: Recreate
     {{- else }}
     type: RollingUpdate

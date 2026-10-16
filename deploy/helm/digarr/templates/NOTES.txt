@@ -38,6 +38,22 @@ the port-forward, set ALLOWED_ORIGIN=http://localhost:3000 and
 DIGARR_ALLOW_INSECURE_COOKIES=true, then restart the app. Keep insecure cookies
 disabled for an HTTPS public origin.
 
+{{- $originSet := false }}
+{{- range .Values.extraEnv }}{{ if eq .name "ALLOWED_ORIGIN" }}{{ $originSet = true }}{{ end }}{{ end }}
+{{- if and (or .Values.ingress.enabled .Values.gateway.enabled) (not $originSet) (not .Values.extraEnvFrom) }}
+
+WARNING: ALLOWED_ORIGIN is not set in extraEnv. Behind an Ingress or Gateway,
+sign-in and CSRF checks need the exact public origin. Add it to extraEnv, for
+example name ALLOWED_ORIGIN with value https://digarr.example.com.
+{{- end }}
+{{- if and (eq .Values.database.backend "postgres") (not .Values.postgresql.enabled) .Values.networkPolicy.enabled }}
+
+WARNING: postgresql.enabled=false with networkPolicy.enabled=true. The chart's
+egress policy blocks private addresses, so an external database on a private
+network is unreachable and the app cannot start. Add the database address and
+port to networkPolicy.extraEgress (see the chart README, Network access).
+{{- end }}
+
 2. Database migrations run automatically on startup. Required backup failures
    stop startup before migrations; see the recovery guide for older schemas.
 {{- if not .Values.backups.persistence.enabled }}

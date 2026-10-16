@@ -135,6 +135,18 @@ Digarr waits for every queued file to succeed, asks Lidarr to identify the files
 
 If Digarr stops after submitting a download or import but before saving its confirmation, the next run may retry it or report a failure even though the external service accepted it. Check slskd transfers and Lidarr before retrying manually.
 
+## Database connection settings
+
+These apply to an external PostgreSQL server (`DATABASE_URL` or `DB_HOST`); embedded PGlite ignores them. Restart Digarr after changing them.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `DB_PORT` | `5432` | Port used when the connection is assembled from `DB_HOST`, `DB_USER`, `DB_NAME`, and the password. Ignored when `DATABASE_URL` is set. |
+| `DB_POOL_MAX` | `20` | Maximum connections in the application pool. Keep it below the server's `max_connections` minus other clients. |
+| `DB_CONNECT_TIMEOUT_MS` | none for the application pool; `10000` for a backend-migration target | Milliseconds to wait for a new connection. Unset means the application pool waits without a limit, so a dead server can stall requests; set a value such as `10000` to fail fast. |
+
+Individual queries are capped at 30 seconds server-side regardless of these settings.
+
 ## Backup & restore
 
 Download application-level backups through Settings > Administration or the API.

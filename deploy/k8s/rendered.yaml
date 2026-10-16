@@ -70,7 +70,8 @@ spec:
         - ipBlock:
             cidr: ::/0
             except:
-              - fd00::/8
+              - fc00::/7
+              - fe80::/10
       ports:
         - protocol: TCP
           port: 443
@@ -82,6 +83,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: digarr-postgresql
+  namespace: digarr
   labels:
     helm.sh/chart: digarr-2.0.1
     app.kubernetes.io/name: digarr
@@ -155,7 +157,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 data:
   PORT: "3000"
-  LOG_LEVEL: "info"
 ---
 # Source: digarr/templates/postgresql.yaml
 apiVersion: v1
@@ -238,7 +239,7 @@ spec:
         app.kubernetes.io/instance: digarr
         app.kubernetes.io/component: app
       annotations:
-        checksum/config: 09456dfe4134e503660e45eff1a18f88716f1a5ec49b129faf6ab0587dfc5217
+        checksum/config: 22d24877968cd5d8cd8a3773c86a00b64ab265ec271d03a1a564809d10bc7749
         checksum/sensitive-config: b8502fdc5b119a3623a5dd4402554cce7453ef77bcc3b77b1c3d0d455f31ab8e
     spec:
       serviceAccountName: digarr
@@ -355,7 +356,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: postgresql
-          image: "postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73"
+          image: "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
           imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true
