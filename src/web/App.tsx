@@ -652,8 +652,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
         </nav>
-        {/* Mobile padding clears the fixed bottom nav and the home-indicator inset */}
-        <main className="pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
+        {/* Clears the fixed bottom nav, home-indicator inset and preview player */}
+        <main className="pb-(--bottom-stack)">{children}</main>
         <BottomNav />
         <KeyboardShortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
         <PreviewPlayer
@@ -682,7 +682,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               : undefined
           }
         />
-        <footer className="hidden md:block fixed bottom-2 right-3 text-micro text-muted select-none pointer-events-none z-10">
+        <footer className="hidden md:block fixed bottom-[calc(var(--player-offset)+0.5rem)] right-3 text-micro text-muted select-none pointer-events-none z-10">
           v{VERSION}
           {CHANNEL === 'nightly' ? ` (${GIT_SHA.slice(0, 7)})` : ''}
         </footer>
@@ -707,7 +707,11 @@ function InnerApp() {
     return (
       <>
         <SetupWizard onComplete={() => setSetupComplete(true)} />
-        <Toaster theme="system" />
+        <Toaster
+          theme="system"
+          offset={{ bottom: 'calc(var(--player-offset) + 1.5rem)' }}
+          mobileOffset={{ bottom: 'calc(var(--bottom-stack) + 0.75rem)' }}
+        />
       </>
     )
   }
@@ -755,7 +759,11 @@ function InnerApp() {
             </Suspense>
           </AppShell>
         </ErrorBoundary>
-        <Toaster theme="system" />
+        <Toaster
+          theme="system"
+          offset={{ bottom: 'calc(var(--player-offset) + 1.5rem)' }}
+          mobileOffset={{ bottom: 'calc(var(--bottom-stack) + 0.75rem)' }}
+        />
       </BrowserRouter>
     </QueryClientProvider>
   )

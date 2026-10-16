@@ -1641,7 +1641,7 @@ export function DiscoverPage() {
 
       {/* Bulk action toolbar */}
       {bulkMode && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm">
+        <div className="fixed bottom-[calc(var(--bottom-stack)+0.75rem)] left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm">
           <span className="text-muted tabular-nums">
             {t('albumPicker.selectedCount').replace('{0}', String(checkedIds.size))}
           </span>
@@ -1679,7 +1679,7 @@ export function DiscoverPage() {
 
       {/* Undo toast */}
       {undoEntry && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm text-text">
+        <div className="fixed bottom-[calc(var(--bottom-stack)+0.75rem)] left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm text-text">
           <span>{t('discover.actionApplied')}</span>
           <button
             type="button"
@@ -1763,7 +1763,7 @@ export function DiscoverPage() {
               })
           }
           aria-label={t('app.runScan')}
-          className="md:hidden fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full bg-accent text-accent-fg shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
+          className="md:hidden fixed bottom-[calc(var(--bottom-stack)+1rem)] right-4 z-40 w-12 h-12 rounded-full bg-accent text-accent-fg shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

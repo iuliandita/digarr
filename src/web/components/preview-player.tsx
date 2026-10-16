@@ -34,9 +34,8 @@ type Props = {
 }
 
 /**
- * Global mini-player bar fixed to the bottom of the viewport.
- * On mobile it sits above the 56px bottom nav (bottom-14); on md+ it sits at
- * bottom-0. Only renders when a preview is active (loading or playing).
+ * Global mini-player bar fixed to the bottom of the viewport, above the mobile bottom
+ * nav. Only renders when a preview is active (loading or playing).
  */
 export function PreviewPlayer({
   playing,
@@ -69,7 +68,23 @@ export function PreviewPlayer({
       spotify.onPlaybackUnavailable()
     }
   }, [queueActive, spotifyControllerFailed, spotifyUrl, spotify.onPlaybackUnavailable])
-  if (!source && !loading && !queue) return null
+  const visible = Boolean(source || loading || queue)
+  const sectionRef = useRef<HTMLElement>(null)
+  // Publishes the bar height so bars, toasts and page padding stack above it (see index.css).
+  useEffect(() => {
+    const el = sectionRef.current
+    const root = document.documentElement
+    if (!visible || !el) return
+    const publish = () => root.style.setProperty('--player-offset', `${el.offsetHeight}px`)
+    publish()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    observer?.observe(el)
+    return () => {
+      observer?.disconnect()
+      root.style.removeProperty('--player-offset')
+    }
+  }, [visible])
+  if (!visible) return null
 
   const sourceLabel = source ? SOURCE_LABELS[source.type] : null
   const showYouTubeIframe = playing && source?.type === 'youtube-embed'
@@ -84,7 +99,8 @@ export function PreviewPlayer({
 
   return (
     <section
-      className="fixed bottom-14 md:bottom-0 left-0 right-0 z-50 bg-surface border-t border-border shadow-lg"
+      ref={sectionRef}
+      className="fixed bottom-(--nav-offset) left-0 right-0 z-30 bg-surface border-t border-border shadow-lg"
       aria-label={t('preview.playerRegion')}
     >
       <div className="max-w-3xl mx-auto px-4 py-2">

@@ -152,7 +152,7 @@ export function GenresPage() {
           disabled={seeding}
           aria-label={seeding ? t('genres.seeding') : t('genres.seed')}
           title={seeding ? t('genres.seeding') : t('genres.seedFromLibrary')}
-          className="md:hidden fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full bg-accent text-accent-fg shadow-lg flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-opacity"
+          className="md:hidden fixed bottom-[calc(var(--bottom-stack)+1rem)] right-4 z-40 w-12 h-12 rounded-full bg-accent text-accent-fg shadow-lg flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
           {seeding ? (
             <svg

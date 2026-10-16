@@ -564,6 +564,20 @@ body {
   color-scheme: light;
 }
 
+/* One offset scale for fixed bottom surfaces, stacked nav < player < bars and toasts. The
+   preview player writes its measured height to --player-offset while it is visible. */
+:root {
+  --nav-offset: calc(3.5rem + env(safe-area-inset-bottom));
+  --player-offset: 0px;
+  --bottom-stack: calc(var(--nav-offset) + var(--player-offset));
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --nav-offset: 0px;
+  }
+}
+
 /* Unlayered, so this beats Tailwind utilities without !important. Spinners stay: they are the
    only sign that work is in progress. */
 @media (prefers-reduced-motion: reduce) {
