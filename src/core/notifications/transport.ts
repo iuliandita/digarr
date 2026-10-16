@@ -8,6 +8,7 @@ import {
   isPrivateIp,
   isRfc1918,
   normalizeIp,
+  redactSecrets,
 } from '../validation'
 
 export type PostResult = { ok: boolean; status?: number; error?: string }
@@ -95,10 +96,16 @@ export async function post(
     }
     return { ok: true, status: res.status }
   } catch (err: unknown) {
-    console.error(
-      `POST to ${safeUrl} failed: ${redact(err instanceof Error ? err.message : String(err))}`,
+    const raw = err instanceof Error ? err.message : 'request failed'
+    // Fetch errors can quote the URL, and webhook URLs carry their token in the path.
+    const error = redactSecrets(
+      raw.split(url).join(safeUrl).split(fetchUrl.toString()).join(safeUrl),
+      Object.entries(opts.headers ?? {})
+        .filter(([name]) => !/^content-type$/i.test(name))
+        .flatMap(([, value]) => [value, value.replace(/^(?:Bearer|Basic)\s+/i, '')]),
     )
-    return { ok: false, error: err instanceof Error ? err.message : 'request failed' }
+    console.error(`POST to ${safeUrl} failed: ${error}`)
+    return { ok: false, error }
   } finally {
     clearTimeout(timeout)
   }

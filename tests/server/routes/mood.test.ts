@@ -108,6 +108,37 @@ describe('POST /api/v1/mood/discover', () => {
     expect(body.error).toContain('client error 404')
   })
 
+  it('removes the configured AI key from a provider error', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const app = new Hono()
+    app.route(
+      '/',
+      moodRoutes(
+        makeDeps({
+          providerRegistry: {
+            create: vi.fn().mockResolvedValue({
+              getRecommendations: vi
+                .fn()
+                .mockRejectedValue(new Error('client error 401: bad key test-key')),
+              testConnection: vi.fn(),
+            }),
+          } as unknown as MoodDeps['providerRegistry'],
+        }),
+      ),
+    )
+
+    const res = await app.request('/api/v1/mood/discover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'chill vibes' }),
+    })
+
+    expect(res.status).toBe(502)
+    expect(await res.text()).not.toContain('test-key')
+    expect(JSON.stringify(error.mock.calls)).not.toContain('test-key')
+    error.mockRestore()
+  })
+
   it('passes responseLocale into the AI prompt builder', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([
       {

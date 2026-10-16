@@ -73,7 +73,12 @@ export async function getValidToken(
 
   if (!res.ok) {
     // The upstream body can echo the credentials that were just posted.
-    const body = redactSecrets(await res.text().catch(() => '')).slice(0, 300)
+    const body = redactSecrets(await res.text().catch(() => ''), [
+      token.refreshToken,
+      token.accessToken,
+      refreshConfig.clientSecret,
+      headers.Authorization,
+    ]).slice(0, 300)
     console.error(`[oauth] Token refresh failed for ${provider}: ${res.status} ${body}`)
     return null
   }

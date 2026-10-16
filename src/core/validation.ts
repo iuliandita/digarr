@@ -12,9 +12,27 @@ export function isValidMbid(value: unknown): value is string {
   return typeof value === 'string' && MBID_RE.test(value)
 }
 
-export function redactSecrets(text: string): string {
+const MIN_KNOWN_SECRET_LENGTH = 4
+const SECRET_FIELD = String.raw`[\w-]*(?:api_?key|apikey|token|secret|password|authorization|auth|signature|sig)`
+const JSON_SECRET_FIELD_RE = new RegExp(`("${SECRET_FIELD}"\\s*:\\s*)"(?:[^"\\\\]|\\\\.)*"`, 'gi')
+
+/**
+ * Pattern-based redaction plus exact removal of `knownSecrets`, the configured
+ * values a caller just sent upstream (prefix-less keys match no pattern).
+ */
+export function redactSecrets(
+  text: string,
+  knownSecrets: readonly (string | null | undefined)[] = [],
+): string {
+  let out = text
+  const exact = knownSecrets
+    .filter((s): s is string => typeof s === 'string' && s.length >= MIN_KNOWN_SECRET_LENGTH)
+    .flatMap((s) => [s, encodeURIComponent(s)])
+    .sort((a, b) => b.length - a.length)
+  for (const secret of exact) out = out.split(secret).join('[redacted]')
   return (
-    text
+    out
+      .replace(JSON_SECRET_FIELD_RE, '$1"[redacted]"')
       .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[redacted]')
       .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
       // The `[\w-]*` prefix catches snake_cased forms such as `client_secret=`
