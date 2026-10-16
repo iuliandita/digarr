@@ -105,7 +105,11 @@ so translations cannot silently fall behind the English.
 - **Formal address** -- per-locale formal pronouns (`Sie`, `vous`, `u`, `вы`,
   ...). A word that only looks formal (German "Sie" meaning "they") goes in
   `FORMAL_ADDRESS_ALLOWLIST` as `locale:key`.
-- **Dash style** -- em dashes, en dashes or `--` in any catalog.
+- **Dash style** -- em dashes, en dashes or `--` in any catalog. The same rule
+  covers `src/web` source: a `'--'` placeholder, a spaced ` -- ` dash, an
+  em or en dash, or `&mdash;`/`&ndash;` in a string or JSX text fails. Use a
+  plain hyphen or a catalog key such as `common.notAvailable`. Comments are
+  ignored.
 - **Orphaned keys** -- keys present in `en.ts` but not referenced
   anywhere in `src/**/*.{ts,tsx}` outside `i18n/messages/`. Template
   literal access is resolved to exact live keys from the discovery, rejection,

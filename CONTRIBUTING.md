@@ -90,7 +90,7 @@ Changes to this bootstrap need an actual macOS workflow run: verify PostgreSQL, 
 
 ## Translations
 
-Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations. Changing an English value means updating its translations too, then running `bun run i18n:stamp`; the check fails until you do. Translations address the user informally and use a plain hyphen for dashes, never an em dash or `--`.
+Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations. Changing an English value means updating its translations too, then running `bun run i18n:stamp`; the check fails until you do. Translations address the user informally and use a plain hyphen for dashes, never an em dash or `--`. The check applies the same dash rule to string literals and JSX text in `src/web`, so use `common.notAvailable` instead of a `'--'` placeholder.
 
 ## Recommendation quality
 

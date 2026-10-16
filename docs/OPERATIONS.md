@@ -31,7 +31,7 @@ Cancellation accepted by `cancelled: true` is still in progress. Once final succ
 
 v1.19.0 can continue writes and additions after its backstop clears the running indicator, and can still report completion. On every version, follow the [migration prerequisites](guides/switching-backends.md#prerequisites) and wait for all active jobs and writers; pipeline settlement alone does not establish whole-application quiescence. See [pipeline cancellation](API.md#pipeline) for the API behavior.
 
-Admins can inspect Job History for failures and partial results. The stuck detector checks at startup and every five minutes. It marks a running job `stuck` when its elapsed time exceeds these fixed limits:
+Admins can inspect Job History for failures and partial results; the Failures only filter hides routine runs, and library sync rows name their source. The stuck detector checks at startup and every five minutes. It marks a running job `stuck` when its elapsed time exceeds these fixed limits:
 
 | Job type | Time limit |
 |----------|------------|
