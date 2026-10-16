@@ -4,13 +4,14 @@ import pg from 'pg'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { tryConsume } from '@/core/clients/rate-limiter'
 import * as schema from '@/db/schema'
+import { failIfDbRequired } from '../../helpers/require-db'
 
 const { Pool } = pg
 
 // Real Postgres integration test: the rate limiter's correctness lives in
 // Postgres itself (atomic ON CONFLICT + LEAST() refill), so mocks would
-// verify nothing meaningful. Skips gracefully without DATABASE_URL.
-const DATABASE_URL = process.env.DATABASE_URL ?? 'postgresql://digarr:digarr@localhost:5432/digarr'
+// verify nothing meaningful. Skips without DATABASE_URL unless DIGARR_REQUIRE_TEST_DB=1.
+const DATABASE_URL = process.env.DATABASE_URL
 
 const pool = new Pool({ connectionString: DATABASE_URL })
 const db = drizzle(pool, { schema })
@@ -20,10 +21,16 @@ let pgAvailable = true
 describe('rate-limiter', () => {
   beforeEach(async () => {
     if (!pgAvailable) return
+    if (!DATABASE_URL) {
+      pgAvailable = false
+      failIfDbRequired(new Error('DATABASE_URL is not set'))
+      return
+    }
     try {
       await db.execute(sql`DELETE FROM rate_limit_buckets`)
-    } catch {
+    } catch (err) {
       pgAvailable = false
+      failIfDbRequired(err)
     }
   })
 
