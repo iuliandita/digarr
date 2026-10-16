@@ -105,7 +105,7 @@ export const tr = {
   'discover.loadFailed': 'Öneriler yüklenemedi.',
   'discover.emptyFiltered': 'Seçilen on yıllarla eşleşen öneri yok.',
   'discover.clearFilters': 'Filtreleri temizle',
-  'discover.pageRange': '{2} içinden {0}--{1}',
+  'discover.pageRange': '{2} içinden {0}-{1}',
   'discover.emptyAll':
     'Henüz öneri yok. Başlamak için favori sanatçılardan bazılarını içe aktar veya ilk taramanı çalıştır.',
   'discover.emptyApproved':
@@ -178,7 +178,7 @@ export const tr = {
     'Emby Dashboard -> Kullanıcılar -> (kullanıcı seç) altında bulunur. URL, kullanıcı kimliğini içerir.',
   'setup.embyUserIdPlaceholder': 'Emby kullanıcı kimliği',
   'setup.embyUrl': "Emby URL'si",
-  'setup.failed': 'Kurulum başarısız oldu -- lütfen tekrar dene',
+  'setup.failed': 'Kurulum başarısız oldu - lütfen tekrar dene',
   'setup.getApiKey': 'API anahtarını al',
   'setup.howManageMusic': 'Müziği nasıl yönetiyorsun?',
   'setup.initialSetup': 'İlk kurulum',
@@ -314,7 +314,7 @@ export const tr = {
   'discover.exported': 'dışa aktarıldı',
   'discover.hideFeedbackInsights': 'Geri bildirim içgörülerini gizle',
   'discover.moodTip':
-    'İpucu: Ne dinlemek istediğini kendi sözlerinle, istediğin dilde anlat -- örneğin "yağmurlu gün cazı" ya da "neşeli 90\\\'lar popu".',
+    'İpucu: Ne dinlemek istediğini kendi sözlerinle, istediğin dilde anlat - örneğin "yağmurlu gün cazı" ya da "neşeli 90\\\'lar popu".',
   'discover.noPendingAbove': 'Yukarıda bekleyen öneri yok',
   'discover.noPendingBelow': 'Aşağıda bekleyen öneri yok',
   'discover.noPendingToClear': 'Temizlenecek bekleyen öneri yok',
@@ -338,8 +338,8 @@ export const tr = {
   'discover.restoredToPending': 'Beklemede durumuna geri yüklendi',
   'discover.retryFailed': 'Yeniden deneme başarısız oldu',
   'discover.scanAlreadyRunning': 'Tarama zaten çalışıyor',
-  'discover.scanStarted': 'Tarama başlatıldı -- ilerleme için Panoyu kontrol et',
-  'discover.scanQueued': 'Tarama sıraya alındı (sıra {0}) -- mevcut çalışma bitince başlayacak',
+  'discover.scanStarted': 'Tarama başlatıldı - ilerleme için Panoyu kontrol et',
+  'discover.scanQueued': 'Tarama sıraya alındı (sıra {0}) - mevcut çalışma bitince başlayacak',
   'discover.scanStartFailed': 'Tarama başlatılamadı',
   'discover.select': 'Seç',
   'discover.showFeedbackInsights': 'Geri bildirim içgörülerini göster',
@@ -370,7 +370,7 @@ export const tr = {
     'Sanatçıları öneri kuyruğuna eklemek için + Kuyruğa ekle düğmesini kullan; ardından Discover sayfasında gözden geçirebilirsin.',
   'genreDetail.subGenres': 'Alt türler',
   'genreDetail.tabDeepCuts': 'Gizli cevherler',
-  'genreDetail.tabDeepCutsDescription': 'Gizli cevherler -- düşük popülerliğe sahip niş sanatçılar',
+  'genreDetail.tabDeepCutsDescription': 'Gizli cevherler - düşük popülerliğe sahip niş sanatçılar',
   'genreDetail.tabLibrary': 'Kitaplığında',
   'genreDetail.tabLibraryDescription': 'Müzik kitaplığında zaten bulunan sanatçılar',
   'genreDetail.tabRecommended': 'Önerilen',
@@ -681,11 +681,11 @@ export const tr = {
   'userManagement.noUsers': 'Hiçbir kullanıcı bulunamadı.',
   'userManagement.adminBadge': 'yönetici',
   'userManagement.cannotRemoveOwnAdmin': 'Kendi yönetici rolünü kaldıramazsın',
-  'userManagement.lastAdminCannotRemove': 'Son yönetici -- kaldırılamıyor',
+  'userManagement.lastAdminCannotRemove': 'Son yönetici - kaldırılamıyor',
   'userManagement.removeAdmin': 'Yöneticiyi kaldır',
   'userManagement.makeAdmin': 'Yönetici yap',
   'userManagement.cannotDeleteSelf': 'Kendini silemezsin',
-  'userManagement.lastAdminCannotDelete': 'Son yönetici -- silinemiyor',
+  'userManagement.lastAdminCannotDelete': 'Son yönetici - silinemiyor',
   'userManagement.deleteUser': 'Kullanıcıyı sil',
   'userManagement.deleteUserPrompt': 'Kullanıcıyı sil',
   'recommendation.sourceGenre': 'Tür',
@@ -731,7 +731,7 @@ export const tr = {
   'pipeline.firstScanDescription':
     'Digarr müzik zevkini analiz ediyor ve beğenebileceğin sanatçıları buluyor. Bu genellikle ilk çalıştırmada 2-5 dakika sürer.',
   'pipeline.runningFor': 'Çalışıyor',
-  'pipeline.stalled': 'Bu normalden uzun sürüyor -- biraz daha bekle',
+  'pipeline.stalled': 'Bu normalden uzun sürüyor - biraz daha bekle',
   'pipeline.stop': 'Taramayı durdur',
   'pipeline.stopping': 'Durduruluyor...',
   'pipeline.cancelled': 'Tarama durduruldu',
@@ -741,12 +741,12 @@ export const tr = {
   'libraryHealth.rescanningSoon': 'doğrulamak için 30 saniye içinde yeniden tarama',
   'libraryHealth.updated': 'Güncellendi',
   'libraryHealth.processed': 'İşlendi',
-  'libraryHealth.fixFailed': 'Düzeltme başarısız oldu -- Lidarr bağlantısını kontrol et',
+  'libraryHealth.fixFailed': 'Düzeltme başarısız oldu - Lidarr bağlantısını kontrol et',
   'libraryHealth.rescan': 'Yeniden tara',
   'libraryHealth.introTip':
     "Kitaplık sağlığı, Lidarr kitaplığında eksik meta verileri, albümleri, görselleri ve Wikidata bağlantılarını, izlenmeyen veya yinelenen sanatçıları ve tür boşluklarını denetler. Zamanlanmış olarak çalışır; yeniden denetlemek için Şimdi eşitle'yi kullan.",
   'libraryHealth.scanningBanner':
-    'Kütüphane sağlığının taranması -- büyük kütüphaneler için bu işlem birkaç dakika sürebilir. Sonuçlar tamamlandığında görünecektir.',
+    'Kütüphane sağlığının taranması - büyük kütüphaneler için bu işlem birkaç dakika sürebilir. Sonuçlar tamamlandığında görünecektir.',
   'libraryHealth.pendingRescan':
     'Düzeltme sonuçlarını doğrulamak için otomatik yeniden tarama planlandı...',
   'libraryHealth.noChecks':
@@ -815,7 +815,7 @@ export const tr = {
   'search.sourcesActive': 'Kaynaklar ({0})',
   'search.clearFilters': 'Filtreleri temizle',
   'search.minChars': 'Arama için en az 2 karakter gir',
-  'search.failed': 'Arama başarısız -- tekrar dene',
+  'search.failed': 'Arama başarısız - tekrar dene',
   'search.noResultsFor': 'Şu arama için sanatçı bulunamadı:',
   'discoveryMode.available': 'Kullanılabilir',
   'discoveryMode.unavailable': 'Kullanılamıyor',
@@ -959,13 +959,13 @@ export const tr = {
   'importArtists.playlistPlaceholder': 'Çalma listesi URL veya ID',
   'importArtists.go': 'Başlat',
   'importArtists.importingLikedSongs':
-    'Beğenilen şarkılar aktarılıyor -- yeni sanatçılar kısa süre içinde Keşfet sayfasında görünecek',
+    'Beğenilen şarkılar aktarılıyor - yeni sanatçılar kısa süre içinde Keşfet sayfasında görünecek',
   'importArtists.importingPlaylist':
-    'Çalma listesi sanatçıları aktarılıyor -- kısa süre içinde Keşfet sayfasında görünecekler',
+    'Çalma listesi sanatçıları aktarılıyor - kısa süre içinde Keşfet sayfasında görünecekler',
   'importArtists.importingCsv':
-    '{0} sanatçı aktarılıyor -- kısa süre içinde Keşfet sayfasında görünecekler',
+    '{0} sanatçı aktarılıyor - kısa süre içinde Keşfet sayfasında görünecekler',
   'importArtists.importingCsvTruncated':
-    '{0} sanatçı aktarılıyor (500 ile sınırlı) -- kısa süre içinde Keşfet sayfasında görünecekler',
+    '{0} sanatçı aktarılıyor (500 ile sınırlı) - kısa süre içinde Keşfet sayfasında görünecekler',
   'importArtists.failedImport': 'Aktarım başlatılamadı',
   'importArtists.failedPlaylist': 'Çalma listesi aktarımı başlatılamadı',
   'importArtists.failedCsv': 'CSV dosyası aktarılamadı',
@@ -1022,7 +1022,7 @@ export const tr = {
   'settings.createSpotifyApp': 'Spotify Developer Uygulaması oluştur',
   'settings.getPersonalAccessToken': 'Kişisel erişim belirteci al',
   'settings.connected': 'bağlı',
-  'settings.lidarrDescription': 'Müzik kütüphane yöneticisi -- sanatçı eklemek için gerekli.',
+  'settings.lidarrDescription': 'Müzik kütüphane yöneticisi - sanatçı eklemek için gerekli.',
   'settings.lidarrPublicUrlHelp':
     "Lidarr sanatçı sayfalarına bağlanmak için tarayıcıdan erişilebilir URL. API URL'si tarayıcıdan zaten ulaşılabiliyorsa boş bırak.",
   'settings.aiTip':
@@ -1037,7 +1037,7 @@ export const tr = {
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
   'settings.sending': 'Gönderiliyor...',
   'settings.connectionsTip':
-    'En az bir dinleme kaynağı bağla -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby veya Discogs. Keşif, zaten dinlediğin ya da sahip olduğun sanatçılardan başlar.',
+    'En az bir dinleme kaynağı bağla - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby veya Discogs. Keşif, zaten dinlediğin ya da sahip olduğun sanatçılardan başlar.',
   'settings.listenbrainzDescription': 'Açık kaynak dinleme geçmişi takibi.',
   'settings.lastfmDescription': 'Müzik scrobbling ve dinleme geçmişi.',
   'settings.spotifyDescription': "Spotify'dan dinleme geçmişi.",
@@ -1327,7 +1327,7 @@ export const tr = {
   'service.testing': 'Test ediliyor...',
   'service.saved': 'Kaydedildi',
   'service.testPassed': 'Test başarılı',
-  'service.testPassedUnsaved': 'Test başarılı -- henüz kaydedilmedi',
+  'service.testPassedUnsaved': 'Test başarılı - henüz kaydedilmedi',
   'oauth.connectedTitle': 'Bağlandı',
   'oauth.connectedBody': '{0} artık bağlı.',
   'oauth.failedTitle': 'Bağlantı başarısız',
@@ -1587,7 +1587,7 @@ export const tr = {
   'preview.reason.playback-failed': 'Ses oynatma başarısız',
   'preview.reason.controller-unavailable': 'Spotify oynatıcısı kullanılamıyor',
   'preview.noPreviewAvailable': 'Bu sanatçı için önizleme yok',
-  'preview.playbackBlocked': 'Oynatma tarayıcı tarafından engellendi -- tekrar tıklamayı dene',
+  'preview.playbackBlocked': 'Oynatma tarayıcı tarafından engellendi - tekrar tıklamayı dene',
   'genres.noneFound': 'Tür bulunamadı.',
   'common.dismiss': 'Kapat',
   'hint.dismissHint': 'İpucunu kapat',
@@ -1599,14 +1599,14 @@ export const tr = {
   'target.action.addToLidarr': "Lidarr'a ekle",
   'pipeline.message.loadingLibrary': 'Kitaplığın yükleniyor...',
   'pipeline.message.firstSyncBackground':
-    'İlk kitaplık eşitlemesi arka planda çalışıyor -- bunu beklemeden devam ediliyor',
+    'İlk kitaplık eşitlemesi arka planda çalışıyor - bunu beklemeden devam ediliyor',
   'pipeline.message.loadedLibrarySingular': '{1} kaynaktan {0} kitaplık sanatçısı yüklendi',
   'pipeline.message.loadedLibraryPlural': '{1} kaynaktan {0} kitaplık sanatçısı yüklendi',
   'pipeline.message.buildingProfile': 'Zevk profilin oluşturuluyor...',
   'pipeline.message.profiled': '{0} öne çıkan sanatçı ve {1} tür profillendi',
   'pipeline.message.findingSimilar': 'Tüm kaynaklardan benzer sanatçılar aranıyor...',
   'pipeline.message.aiSourceFailed':
-    'Yapay zeka sağlayıcısı başarısız oldu: {0} -- yapay zeka önerileri olmadan devam ediliyor',
+    'Yapay zeka sağlayıcısı başarısız oldu: {0} - yapay zeka önerileri olmadan devam ediliyor',
   'pipeline.message.discovered': '{0} aday sanatçı bulundu',
   'pipeline.message.resolving': '{0} sanatçı MusicBrainz üzerinden çözülüyor...',
   'pipeline.message.scoring': 'Çözülen {0} sanatçı puanlanıyor...',
@@ -1625,7 +1625,7 @@ export const tr = {
   'pipeline.message.resolutionComplete': 'Çözüm tamamlandı',
   'firstSyncBanner.title': 'Kitaplık kataloğun oluşturuluyor',
   'firstSyncBanner.body':
-    'Digarr, kitaplığını MusicBrainz ile eşleştiriyor. MusicBrainz hız sınırı dakikada yaklaşık 60 sanatçıya izin verir, bu nedenle 5.000 sanatçılık bir kitaplığın tam olarak eşitlenmesi yaklaşık 80 dakika sürer. Bu sadece bir kez gerçekleşir -- sonraki eşitlemeler yerel önbelleği kullanır ve saniyeler içinde tamamlanır.',
+    'Digarr, kitaplığını MusicBrainz ile eşleştiriyor. MusicBrainz hız sınırı dakikada yaklaşık 60 sanatçıya izin verir, bu nedenle 5.000 sanatçılık bir kitaplığın tam olarak eşitlenmesi yaklaşık 80 dakika sürer. Bu sadece bir kez gerçekleşir - sonraki eşitlemeler yerel önbelleği kullanır ve saniyeler içinde tamamlanır.',
   'librarySync.message.syncingSource': '{0} eşitleniyor...',
   'errors.auth.invalidCredentials': 'Geçersiz kimlik bilgileri',
   'errors.auth.notAuthenticated': 'Kimlik doğrulanmadı',

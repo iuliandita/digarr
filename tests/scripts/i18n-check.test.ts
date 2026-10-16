@@ -73,7 +73,7 @@ describe('i18n check catalog quality', () => {
     expect(findFormalAddress(locale, { example: informal })).toEqual([])
   })
 
-  it('flags em dashes, en dashes and a lone hyphen used as a dash', () => {
+  it('flags em dashes, en dashes and double hyphens but accepts a plain hyphen', () => {
     expect(
       findDashIssues({
         a: 'Fehler \u2013 erneut',
@@ -81,7 +81,7 @@ describe('i18n check catalog quality', () => {
         c: 'Failed -- retry',
         d: '2-50 Zeichen',
       }),
-    ).toEqual(['a: "Fehler \u2013 erneut"', 'b: "Failed - retry"'])
+    ).toEqual(['a: "Fehler \u2013 erneut"', 'c: "Failed -- retry"'])
   })
 })
 

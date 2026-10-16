@@ -426,7 +426,7 @@ describe('SettingsPage', () => {
     })
     expect(within(card).getByText('Saved')).toBeInTheDocument()
     fireEvent.click(within(card).getByRole('button', { name: 'Test Connection' }))
-    expect(await within(card).findByText('Test passed -- not saved yet')).toBeInTheDocument()
+    expect(await within(card).findByText('Test passed - not saved yet')).toBeInTheDocument()
   })
 
   it('defaults to Connections tab showing Lidarr section', async () => {

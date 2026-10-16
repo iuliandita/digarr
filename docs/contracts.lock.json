@@ -323,24 +323,24 @@
         "public/sw.js": "d2ead1fe1da5389f0406ea997e171a98e8e63af7b5dcf35cdf4ed373d23ce3e7",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "7291f9fed76456889b2940bb53fe9d6bb7e6ee71095c425e92054944d3dbfe72",
-        "src/core/i18n/messages/de.ts": "9c33e2cc5639a283e680a4e2a22b1b07f947fdeb1d5e1d5e356d0b180fc63d41",
-        "src/core/i18n/messages/en.ts": "b90e26be02619433ce5e9f60f081384fbfd2debd696b56370dad6abb090120b3",
-        "src/core/i18n/messages/es.ts": "dc9cb25be1a30555b7aed7e129790850cfc60315efdf47c1a4ab83a5c04397fb",
-        "src/core/i18n/messages/fr.ts": "8b0398a49c690138f79b7b0ad1b86f3c9856447b6bc5a10991decf99511ecabf",
+        "src/core/i18n/messages/de.ts": "abf88edc81063fe7005f0b65a7017f3e444152edf40ba9b93ab47b6531821d38",
+        "src/core/i18n/messages/en.ts": "6eda68ffc3d2f0e0f9567fdd7e605ae2368b377dbf63738c29ba26bcdadd9510",
+        "src/core/i18n/messages/es.ts": "37dd0bfb4b879f5cbeb719aad848d3f7e3388de6f9e41f949ecc0f2b4e08df66",
+        "src/core/i18n/messages/fr.ts": "4a0deee94e0e92d744759bbb17c31f451cd5033f84cef2ed1c545f278652cee0",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "dd0e44309c29012f2eae203485413bac55e4b7bb4faa85e5211144fb369c339d",
-        "src/core/i18n/messages/ja.ts": "d6edcf0e0ceea5fbdc5fb9b35a3e0b498f147467b6cd24b35a58e5b514aa8559",
-        "src/core/i18n/messages/ko.ts": "5596a32540047aa7166c9f08758174b11f731ff9abf57fa19e544673ba3af020",
-        "src/core/i18n/messages/nl.ts": "dfc0d7be2d46c5f8ce6004fc6dea286d8b94121907ec2f15b55090cc5d3bc32c",
-        "src/core/i18n/messages/pl.ts": "7594eb65577d2dab4cf3d1651a627b2f511ff4221bdb12fdb8fb9c9876b9d4ae",
-        "src/core/i18n/messages/pt-BR.ts": "f5dd5dfe806e60ca75ecabddae5ee3978f7cff84f96b0bb21bab62e029cad7da",
-        "src/core/i18n/messages/ro.ts": "7dc4bfa4442290128e2f20b49d58336b3a2e40128d99ff22aeb16a312c123e45",
-        "src/core/i18n/messages/ru.ts": "4e171614669590c2e115682e48061060c85f848aeee55d10270408bc558308c1",
-        "src/core/i18n/messages/source-lock.json": "8ee829fe5097504711e8a9f2db247898591d83a5affe9093598b750e259ed299",
-        "src/core/i18n/messages/tr.ts": "8aa36609ec170ed878acb3d5a9f988c163e0de063fba8819e109ee2fc0a09fec",
+        "src/core/i18n/messages/it.ts": "57baf3d6eabb1f02b2d3754818a0b3765bfd75aecbff29e1631c1f23be7de127",
+        "src/core/i18n/messages/ja.ts": "9bdc4cdd6bedc7e6c17a6f73bbb44c97c2ca37519933f15f61ab3d8ed04062ea",
+        "src/core/i18n/messages/ko.ts": "831275f87f2bcbe2128451cac8a2ed627628335753665e5107134c84f4f55044",
+        "src/core/i18n/messages/nl.ts": "b394f6b44404d7c208819f5c8342ac2d05a1f544662bd492166fc29754148879",
+        "src/core/i18n/messages/pl.ts": "b8842df5ca0e37e9d08a310ee71d78f9fa4dceac1088d1cf9e35efbf790a88a6",
+        "src/core/i18n/messages/pt-BR.ts": "0f04c46dd03ecded8284f70c8c707ea1243bc53ae91fe41eefce25ba7e576688",
+        "src/core/i18n/messages/ro.ts": "7243cae7d300d04c7956cb71374736489ed0f3bfeaf5f4d5e67532ff1168450a",
+        "src/core/i18n/messages/ru.ts": "29688724a33dfadc1e0188c496b7a71b07b95228c81485fce0fd037ea742a770",
+        "src/core/i18n/messages/source-lock.json": "15ff097fcb828856ca69afef430d25b220ff8c29602c30759bcc1d1e76cecb6c",
+        "src/core/i18n/messages/tr.ts": "da225b1a2b7a8b53d02b0977499a682fd26b1f8a89bf76a5778399940877d4b4",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "5c2033dd127fa3b7722c5b80ae4f970b104b6d780bb4b7b845879eb64926b853",
-        "src/core/i18n/messages/zh-CN.ts": "18b386ea191feef87dd75e3c9c4daa879bec39e0a237709441a91bb286921c10",
+        "src/core/i18n/messages/uk.ts": "38774f0fc94e755b22ba452d2ae21e90b3ab2c797e42ad7e431899fa1a9e6ce3",
+        "src/core/i18n/messages/zh-CN.ts": "c34eb33e4a225822763795957f1d32aa3c475da88655e5466a71b6e08875fcf1",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -483,14 +483,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "d2e2536ebb014ac7fc130eb9298e05259eb26d186e61b510bad77e23501acc07",
+      "digest": "b6c417eaab2ab10952b15dfdf4d434f4b55bf6283fc1e4651bcb4a8672d11c1e",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "CONTRIBUTING.md"],
-        "note": "Translations corrected and switched to informal address, dashes normalized, contributor note on i18n:stamp",
+        "note": "Translations corrected and switched to informal address, plain hyphens instead of double hyphens, contributor note on i18n:stamp",
         "breaking": "none",
         "migration": "",
-        "digest": "d2e2536ebb014ac7fc130eb9298e05259eb26d186e61b510bad77e23501acc07"
+        "digest": "b6c417eaab2ab10952b15dfdf4d434f4b55bf6283fc1e4651bcb4a8672d11c1e"
       }
     },
     "features": {
@@ -797,7 +797,7 @@
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
-        "scripts/i18n-check.ts": "13e021612efdf478603436c5cac1291fd6175f6f4f35910e0379b965388a382e",
+        "scripts/i18n-check.ts": "c4ce6edabd5186aa8af382f204c57b14176b8945aa89da57ecb7f753f8f1f5ea",
         "scripts/i18n-machine-translate.ts": "3d4a74ac57345ef30ac28baab4422ad8cba1d3cd4190c6d21cfab2b2c42cbc10",
         "scripts/i18n-source-lock.ts": "4c4e956bca944562784aee5bba959c0cc9c21537e85e42af9c1b99d7b6cb74c6",
         "scripts/i18n-stamp.ts": "3e96ef4b7381d15262fa555c93a523505a2defff92b84c13acfcfc2baa665ecf",
@@ -808,14 +808,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "7c0e6649792a1fa01b9fa9e7b2e9d2b054dd6d9b1c496b0cb116981f7946b39c",
+      "digest": "fed05d8e6a20cb9bdad6f11d53851420a12c58cb4969c7b612aba5d0a7c1bb17",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CONTRIBUTING.md"],
-        "note": "The i18n check now verifies English source hashes, informal address and punctuation style; i18n:stamp records the hashes",
+        "note": "The i18n check verifies English source hashes, informal address and punctuation style; i18n:stamp records the hashes",
         "breaking": "none",
         "migration": "",
-        "digest": "7c0e6649792a1fa01b9fa9e7b2e9d2b054dd6d9b1c496b0cb116981f7946b39c"
+        "digest": "fed05d8e6a20cb9bdad6f11d53851420a12c58cb4969c7b612aba5d0a7c1bb17"
       }
     }
   }

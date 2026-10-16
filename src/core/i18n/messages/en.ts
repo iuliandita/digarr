@@ -106,7 +106,7 @@ export const en = {
   'discover.loadFailed': "Couldn't load recommendations.",
   'discover.emptyFiltered': 'No recommendations match the selected decades.',
   'discover.clearFilters': 'Clear filters',
-  'discover.pageRange': '{0}--{1} of {2}',
+  'discover.pageRange': '{0}-{1} of {2}',
   'discover.emptyAll':
     'No recommendations yet. Import some favorite artists or run your first scan to get started.',
   'discover.emptyApproved':
@@ -178,7 +178,7 @@ export const en = {
     'Found under Emby Dashboard -> Users -> (select user). The URL contains the user ID.',
   'setup.embyUserIdPlaceholder': 'Emby user ID',
   'setup.embyUrl': 'Emby URL',
-  'setup.failed': 'Setup failed -- please try again',
+  'setup.failed': 'Setup failed - please try again',
   'setup.getApiKey': 'Get API key',
   'setup.howManageMusic': 'How do you manage music?',
   'setup.initialSetup': 'Initial setup',
@@ -314,7 +314,7 @@ export const en = {
   'discover.exported': 'exported',
   'discover.hideFeedbackInsights': 'Hide feedback insights',
   'discover.moodTip':
-    'Tip: describe what you are in the mood for in your own words, in any language -- like "rainy day jazz" or "upbeat 90s pop".',
+    'Tip: describe what you are in the mood for in your own words, in any language - like "rainy day jazz" or "upbeat 90s pop".',
   'discover.noPendingAbove': 'No pending recommendations above',
   'discover.noPendingBelow': 'No pending recommendations below',
   'discover.noPendingToClear': 'No pending recommendations to clear',
@@ -338,9 +338,8 @@ export const en = {
   'discover.restoredToPending': 'Restored to pending',
   'discover.retryFailed': 'Retry failed',
   'discover.scanAlreadyRunning': 'Scan already running',
-  'discover.scanStarted': 'Scan started -- check Dashboard for progress',
-  'discover.scanQueued':
-    'Scan queued (position {0}) -- it will start when the current run finishes',
+  'discover.scanStarted': 'Scan started - check Dashboard for progress',
+  'discover.scanQueued': 'Scan queued (position {0}) - it will start when the current run finishes',
   'discover.scanStartFailed': 'Failed to start scan',
   'discover.select': 'Select',
   'discover.showFeedbackInsights': 'Show feedback insights',
@@ -357,7 +356,7 @@ export const en = {
   'genreDetail.artistPlural': 'artists',
   'genreDetail.artistSingular': 'artist',
   'genreDetail.emptyDeepCuts':
-    'No deep cuts found. These appear after scanning -- artists with low popularity or few genre tags.',
+    'No deep cuts found. These appear after scanning - artists with low popularity or few genre tags.',
   'genreDetail.emptyLibrary': 'No artists in your library for this genre.',
   'genreDetail.emptyRecommended':
     'No recommended artists yet. Run a scan and approve some recommendations first.',
@@ -371,7 +370,7 @@ export const en = {
     'Use the + Queue button to add artists to your recommendation queue for review on the Discover page.',
   'genreDetail.subGenres': 'Sub-genres',
   'genreDetail.tabDeepCuts': 'Deep Cuts',
-  'genreDetail.tabDeepCutsDescription': 'Hidden gems -- niche artists with low popularity',
+  'genreDetail.tabDeepCutsDescription': 'Hidden gems - niche artists with low popularity',
   'genreDetail.tabLibrary': 'In Your Library',
   'genreDetail.tabLibraryDescription': 'Artists already in your music library',
   'genreDetail.tabRecommended': 'Recommended',
@@ -680,11 +679,11 @@ export const en = {
   'userManagement.noUsers': 'No users found.',
   'userManagement.adminBadge': 'admin',
   'userManagement.cannotRemoveOwnAdmin': "Can't remove your own admin role",
-  'userManagement.lastAdminCannotRemove': 'Last admin -- cannot remove',
+  'userManagement.lastAdminCannotRemove': 'Last admin - cannot remove',
   'userManagement.removeAdmin': 'Remove admin',
   'userManagement.makeAdmin': 'Make admin',
   'userManagement.cannotDeleteSelf': "Can't delete yourself",
-  'userManagement.lastAdminCannotDelete': 'Last admin -- cannot delete',
+  'userManagement.lastAdminCannotDelete': 'Last admin - cannot delete',
   'userManagement.deleteUser': 'Delete user',
   'userManagement.deleteUserPrompt': 'Delete user',
   'recommendation.sourceGenre': 'Genre',
@@ -707,8 +706,8 @@ export const en = {
   'todaysPick.matchScore': 'Match score',
   'todaysPick.match': 'match',
   'todaysPick.skipHint':
-    'Skip shows you the next artist without rejecting -- skipped artists will come back in future scans.',
-  'todaysPick.skipTitle': 'Skip for now -- this artist will come back later',
+    'Skip shows you the next artist without rejecting - skipped artists will come back in future scans.',
+  'todaysPick.skipTitle': 'Skip for now - this artist will come back later',
   'pipeline.stage.collect': 'Reading library',
   'pipeline.stage.analyze': 'Building taste profile',
   'pipeline.stage.discover': 'Finding new artists',
@@ -731,7 +730,7 @@ export const en = {
   'pipeline.firstScanDescription':
     'Digarr is analyzing your music taste and finding artists you might like. This usually takes 2-5 minutes on the first run.',
   'pipeline.runningFor': 'Running for',
-  'pipeline.stalled': 'This is taking longer than usual -- hang tight',
+  'pipeline.stalled': 'This is taking longer than usual - hang tight',
   'pipeline.stop': 'Stop scan',
   'pipeline.stopping': 'Stopping...',
   'pipeline.cancelled': 'Scan stopped',
@@ -741,12 +740,12 @@ export const en = {
   'libraryHealth.rescanningSoon': 're-scanning in 30s to verify',
   'libraryHealth.updated': 'Updated',
   'libraryHealth.processed': 'Processed',
-  'libraryHealth.fixFailed': 'Fix failed -- check Lidarr connection',
+  'libraryHealth.fixFailed': 'Fix failed - check Lidarr connection',
   'libraryHealth.rescan': 'Re-scan',
   'libraryHealth.introTip':
     'Library health checks your Lidarr library for missing metadata, albums, images, and Wikidata links, unmonitored or duplicate artists, and genre gaps. It runs on a schedule; use Sync Now to check again.',
   'libraryHealth.scanningBanner':
-    'Scanning library health -- this may take several minutes for large libraries. Results will appear when complete.',
+    'Scanning library health - this may take several minutes for large libraries. Results will appear when complete.',
   'libraryHealth.pendingRescan': 'Auto re-scan scheduled to verify fix results...',
   'libraryHealth.noChecks': 'No health checks available. Run a scan to inspect your library.',
   'libraryHealth.syncNow': 'Sync Now',
@@ -818,7 +817,7 @@ export const en = {
   'search.sourcesActive': 'Sources ({0})',
   'search.clearFilters': 'Clear filters',
   'search.minChars': 'Type at least 2 characters to search',
-  'search.failed': 'Search failed -- try again',
+  'search.failed': 'Search failed - try again',
   'search.noResultsFor': 'No artists found for',
 
   // Discovery Mode Card
@@ -964,13 +963,13 @@ export const en = {
   'importArtists.playlistPlaceholder': 'Playlist URL or ID',
   'importArtists.go': 'Go',
   'importArtists.importingLikedSongs':
-    'Importing your liked songs -- new artists will appear on the Discover page shortly',
+    'Importing your liked songs - new artists will appear on the Discover page shortly',
   'importArtists.importingPlaylist':
-    'Importing playlist artists -- they will appear on the Discover page shortly',
+    'Importing playlist artists - they will appear on the Discover page shortly',
   'importArtists.importingCsv':
-    'Importing {0} artists -- they will appear on the Discover page shortly',
+    'Importing {0} artists - they will appear on the Discover page shortly',
   'importArtists.importingCsvTruncated':
-    'Importing {0} artists (limited to 500) -- they will appear on the Discover page shortly',
+    'Importing {0} artists (limited to 500) - they will appear on the Discover page shortly',
   'importArtists.failedImport': 'Failed to start import',
   'importArtists.failedPlaylist': 'Failed to start playlist import',
   'importArtists.failedCsv': 'Failed to import CSV file',
@@ -1033,7 +1032,7 @@ export const en = {
   'settings.createSpotifyApp': 'Create a Spotify Developer App',
   'settings.getPersonalAccessToken': 'Get personal access token',
   'settings.connected': 'connected',
-  'settings.lidarrDescription': 'Music library manager -- required for adding artists.',
+  'settings.lidarrDescription': 'Music library manager - required for adding artists.',
   'settings.lidarrPublicUrlHelp':
     'Browser-accessible URL for linking to Lidarr artist pages. Leave empty if the API URL is already reachable from your browser.',
   'settings.aiTip':
@@ -1048,7 +1047,7 @@ export const en = {
   'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':
-    'Connect at least one listening source -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, or Discogs. Discovery starts from the artists you already play or own.',
+    'Connect at least one listening source - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, or Discogs. Discovery starts from the artists you already play or own.',
   'settings.listenbrainzDescription': 'Open-source listening history tracking.',
   'settings.lastfmDescription': 'Music scrobbling and listening history.',
   'settings.spotifyDescription': 'Listening history from Spotify.',
@@ -1339,7 +1338,7 @@ export const en = {
   'service.testing': 'Testing...',
   'service.saved': 'Saved',
   'service.testPassed': 'Test passed',
-  'service.testPassedUnsaved': 'Test passed -- not saved yet',
+  'service.testPassedUnsaved': 'Test passed - not saved yet',
 
   // OAuth connect callback banner
   'oauth.connectedTitle': 'Connected',
@@ -1641,7 +1640,7 @@ export const en = {
   'preview.reason.playback-failed': 'Audio playback failed',
   'preview.reason.controller-unavailable': 'Spotify player unavailable',
   'preview.noPreviewAvailable': 'No preview available for this artist',
-  'preview.playbackBlocked': 'Playback blocked by browser -- try clicking again',
+  'preview.playbackBlocked': 'Playback blocked by browser - try clicking again',
 
   // Genre grid empty state
   'genres.noneFound': 'No genres found.',
@@ -1665,13 +1664,13 @@ export const en = {
   // Pipeline progress messages (emitted via SSE, shown in the UI)
   'pipeline.message.loadingLibrary': 'Loading your library...',
   'pipeline.message.firstSyncBackground':
-    'First library sync running in background -- proceeding without it',
+    'First library sync running in background - proceeding without it',
   'pipeline.message.loadedLibrarySingular': 'Loaded {0} library artists across {1} source',
   'pipeline.message.loadedLibraryPlural': 'Loaded {0} library artists across {1} sources',
   'pipeline.message.buildingProfile': 'Building your taste profile...',
   'pipeline.message.profiled': 'Profiled {0} top artists, {1} genres',
   'pipeline.message.findingSimilar': 'Finding similar artists from all sources...',
-  'pipeline.message.aiSourceFailed': 'AI provider failed: {0} -- continuing without AI suggestions',
+  'pipeline.message.aiSourceFailed': 'AI provider failed: {0} - continuing without AI suggestions',
   'pipeline.message.discovered': 'Discovered {0} candidate artists',
   'pipeline.message.resolving': 'Resolving {0} artists via MusicBrainz...',
   'pipeline.message.scoring': 'Scoring {0} resolved artists...',
@@ -1693,7 +1692,7 @@ export const en = {
   // Library first-sync banner
   'firstSyncBanner.title': 'Building your library catalog',
   'firstSyncBanner.body':
-    'Digarr is matching your library against MusicBrainz. The MusicBrainz rate limit allows roughly 60 artists per minute, so a 5,000-artist library takes around 80 minutes to fully reconcile. This only happens once -- subsequent syncs use the local cache and complete in seconds.',
+    'Digarr is matching your library against MusicBrainz. The MusicBrainz rate limit allows roughly 60 artists per minute, so a 5,000-artist library takes around 80 minutes to fully reconcile. This only happens once - subsequent syncs use the local cache and complete in seconds.',
 
   // Library sync progress messages
   'librarySync.message.syncingSource': 'Syncing {0}...',

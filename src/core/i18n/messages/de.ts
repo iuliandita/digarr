@@ -107,7 +107,7 @@ export const de = {
   'discover.loadFailed': 'Empfehlungen konnten nicht geladen werden.',
   'discover.emptyFiltered': 'Keine Empfehlungen passen zu den gewählten Jahrzehnten.',
   'discover.clearFilters': 'Filter zurücksetzen',
-  'discover.pageRange': '{0}--{1} von {2}',
+  'discover.pageRange': '{0}-{1} von {2}',
   'discover.emptyAll':
     'Noch keine Empfehlungen. Importiere einige Lieblingskünstler oder führe deinen ersten Scan durch, um loszulegen.',
   'discover.emptyApproved':
@@ -180,7 +180,7 @@ export const de = {
     'Gefunden unter Emby Dashboard -> Benutzer -> (Benutzer auswählen). Die URL enthält die Benutzer-ID.',
   'setup.embyUserIdPlaceholder': 'Emby-Benutzer-ID',
   'setup.embyUrl': 'Emby-URL',
-  'setup.failed': 'Einrichtung fehlgeschlagen -- bitte erneut versuchen',
+  'setup.failed': 'Einrichtung fehlgeschlagen - bitte erneut versuchen',
   'setup.getApiKey': 'API-Schlüssel abrufen',
   'setup.howManageMusic': 'Wie verwaltest du deine Musik?',
   'setup.initialSetup': 'Ersteinrichtung',
@@ -318,7 +318,7 @@ export const de = {
   'discover.exported': 'exportiert',
   'discover.hideFeedbackInsights': 'Feedback-Einblicke ausblenden',
   'discover.moodTip':
-    'Tipp: Beschreibe in eigenen Worten und in jeder Sprache, worauf du Lust hast -- zum Beispiel „Jazz für Regentage“ oder „gut gelaunter 90er-Pop“.',
+    'Tipp: Beschreibe in eigenen Worten und in jeder Sprache, worauf du Lust hast - zum Beispiel „Jazz für Regentage“ oder „gut gelaunter 90er-Pop“.',
   'discover.noPendingAbove': 'Keine ausstehenden Empfehlungen oben',
   'discover.noPendingBelow': 'Keine ausstehenden Empfehlungen unten',
   'discover.noPendingToClear': 'Keine ausstehenden Empfehlungen zum Löschen',
@@ -343,9 +343,9 @@ export const de = {
   'discover.restoredToPending': 'Auf „Ausstehend“ zurückgesetzt',
   'discover.retryFailed': 'Wiederholungsversuch fehlgeschlagen',
   'discover.scanAlreadyRunning': 'Scan läuft bereits',
-  'discover.scanStarted': 'Scan gestartet -- Fortschritt im Dashboard prüfen',
+  'discover.scanStarted': 'Scan gestartet - Fortschritt im Dashboard prüfen',
   'discover.scanQueued':
-    'Scan in Warteschlange (Position {0}) -- startet, sobald der aktuelle Lauf endet',
+    'Scan in Warteschlange (Position {0}) - startet, sobald der aktuelle Lauf endet',
   'discover.scanStartFailed': 'Scan konnte nicht gestartet werden',
   'discover.select': 'Auswählen',
   'discover.showFeedbackInsights': 'Feedback-Einblicke anzeigen',
@@ -362,7 +362,7 @@ export const de = {
   'genreDetail.artistPlural': 'Künstler',
   'genreDetail.artistSingular': 'Künstler',
   'genreDetail.emptyDeepCuts':
-    'Keine Geheimtipps gefunden. Sie erscheinen nach einem Scan -- Künstler mit geringer Popularität oder nur wenigen Genre-Tags.',
+    'Keine Geheimtipps gefunden. Sie erscheinen nach einem Scan - Künstler mit geringer Popularität oder nur wenigen Genre-Tags.',
   'genreDetail.emptyLibrary': 'Keine Künstler dieses Genres in deiner Bibliothek.',
   'genreDetail.emptyRecommended':
     'Noch keine empfohlenen Künstler. Führe zuerst einen Scan aus und genehmige einige Empfehlungen.',
@@ -377,7 +377,7 @@ export const de = {
   'genreDetail.subGenres': 'Subgenres',
   'genreDetail.tabDeepCuts': 'Geheimtipps',
   'genreDetail.tabDeepCutsDescription':
-    'Versteckte Perlen -- Nischenkünstler mit geringer Popularität',
+    'Versteckte Perlen - Nischenkünstler mit geringer Popularität',
   'genreDetail.tabLibrary': 'In deiner Bibliothek',
   'genreDetail.tabLibraryDescription':
     'Künstler, die sich bereits in deiner Musikbibliothek befinden',
@@ -700,11 +700,11 @@ export const de = {
   'userManagement.adminBadge': 'Administrator',
   'userManagement.cannotRemoveOwnAdmin':
     'Deine eigene Administratorrolle kann nicht entfernt werden',
-  'userManagement.lastAdminCannotRemove': 'Letzter Administrator -- kann nicht entfernt werden',
+  'userManagement.lastAdminCannotRemove': 'Letzter Administrator - kann nicht entfernt werden',
   'userManagement.removeAdmin': 'Administrator entfernen',
   'userManagement.makeAdmin': 'Mach zum Administrator',
   'userManagement.cannotDeleteSelf': 'Du kannst dich nicht selbst löschen',
-  'userManagement.lastAdminCannotDelete': 'Letzter Administrator -- kann nicht gelöscht werden',
+  'userManagement.lastAdminCannotDelete': 'Letzter Administrator - kann nicht gelöscht werden',
   'userManagement.deleteUser': 'Benutzer löschen',
   'userManagement.deleteUserPrompt': 'Benutzer löschen',
   'recommendation.sourceGenre': 'Musikgenre',
@@ -727,8 +727,8 @@ export const de = {
   'todaysPick.matchScore': 'Trefferquote',
   'todaysPick.match': 'Treffer',
   'todaysPick.skipHint':
-    'Überspringen zeigt dir den nächsten Künstler an, ohne ihn abzulehnen -- übersprungene Künstler werden bei zukünftigen Scans wieder angezeigt.',
-  'todaysPick.skipTitle': 'Überspringe es vorerst -- dieser Künstler wird später wiederkommen',
+    'Überspringen zeigt dir den nächsten Künstler an, ohne ihn abzulehnen - übersprungene Künstler werden bei zukünftigen Scans wieder angezeigt.',
+  'todaysPick.skipTitle': 'Überspringe es vorerst - dieser Künstler wird später wiederkommen',
   'pipeline.stage.collect': 'Bibliothek wird eingelesen',
   'pipeline.stage.analyze': 'Geschmacksprofil aufbauen',
   'pipeline.stage.discover': 'Suche nach neuen Künstlern',
@@ -751,7 +751,7 @@ export const de = {
   'pipeline.firstScanDescription':
     'Digarr analysiert deinen Musikgeschmack und findet Künstler, die dir gefallen könnten. Dies dauert beim ersten Durchlauf normalerweise 2-5 Minuten.',
   'pipeline.runningFor': 'Aktiv seit',
-  'pipeline.stalled': 'Das dauert länger als üblich -- bitte kurz warten',
+  'pipeline.stalled': 'Das dauert länger als üblich - bitte kurz warten',
   'pipeline.stop': 'Scan stoppen',
   'pipeline.stopping': 'Wird gestoppt...',
   'pipeline.cancelled': 'Scan gestoppt',
@@ -761,12 +761,12 @@ export const de = {
   'libraryHealth.rescanningSoon': 'Erneutes Scannen in 30 Sekunden zur Überprüfung',
   'libraryHealth.updated': 'Aktualisiert',
   'libraryHealth.processed': 'Verarbeitet',
-  'libraryHealth.fixFailed': 'Fehlerbehebung fehlgeschlagen -- Lidarr-Verbindung überprüfen',
+  'libraryHealth.fixFailed': 'Fehlerbehebung fehlgeschlagen - Lidarr-Verbindung überprüfen',
   'libraryHealth.rescan': 'Erneut scannen',
   'libraryHealth.introTip':
     'Die Bibliotheksprüfung durchsucht deine Lidarr-Bibliothek nach fehlenden Metadaten, Alben, Bildern und Wikidata-Links, nicht überwachten oder doppelten Künstlern und Genrelücken. Sie läuft nach Zeitplan; mit „Jetzt synchronisieren“ prüfst du erneut.',
   'libraryHealth.scanningBanner':
-    'Überprüfung des Zustands der Bibliothek -- dies kann bei großen Bibliotheken mehrere Minuten dauern. Nach Abschluss werden die Ergebnisse angezeigt.',
+    'Überprüfung des Zustands der Bibliothek - dies kann bei großen Bibliotheken mehrere Minuten dauern. Nach Abschluss werden die Ergebnisse angezeigt.',
   'libraryHealth.pendingRescan':
     'Automatischer erneuter Scan zur Überprüfung der Korrekturergebnisse geplant ...',
   'libraryHealth.noChecks':
@@ -836,7 +836,7 @@ export const de = {
   'search.sourcesActive': 'Quellen ({0})',
   'search.clearFilters': 'Filter zurücksetzen',
   'search.minChars': 'Mindestens 2 Zeichen eingeben',
-  'search.failed': 'Suche fehlgeschlagen -- erneut versuchen',
+  'search.failed': 'Suche fehlgeschlagen - erneut versuchen',
   'search.noResultsFor': 'Keine Künstler gefunden für',
   'discoveryMode.available': 'Verfügbar',
   'discoveryMode.unavailable': 'Nicht verfügbar',
@@ -982,13 +982,13 @@ export const de = {
   'importArtists.playlistPlaceholder': 'Playlist-URL oder -ID',
   'importArtists.go': 'Los',
   'importArtists.importingLikedSongs':
-    'Gelikte Songs werden importiert -- neue Künstler erscheinen bald auf der Entdecken-Seite',
+    'Gelikte Songs werden importiert - neue Künstler erscheinen bald auf der Entdecken-Seite',
   'importArtists.importingPlaylist':
-    'Playlist-Künstler werden importiert -- sie erscheinen bald auf der Entdecken-Seite',
+    'Playlist-Künstler werden importiert - sie erscheinen bald auf der Entdecken-Seite',
   'importArtists.importingCsv':
-    '{0} Künstler werden importiert -- sie erscheinen bald auf der Entdecken-Seite',
+    '{0} Künstler werden importiert - sie erscheinen bald auf der Entdecken-Seite',
   'importArtists.importingCsvTruncated':
-    '{0} Künstler werden importiert (auf 500 begrenzt) -- sie erscheinen bald auf der Entdecken-Seite',
+    '{0} Künstler werden importiert (auf 500 begrenzt) - sie erscheinen bald auf der Entdecken-Seite',
   'importArtists.failedImport': 'Import konnte nicht gestartet werden',
   'importArtists.failedPlaylist': 'Playlist-Import konnte nicht gestartet werden',
   'importArtists.failedCsv': 'CSV-Datei konnte nicht importiert werden',
@@ -1047,7 +1047,7 @@ export const de = {
   'settings.getPersonalAccessToken': 'Persönlichen Zugriffstoken abrufen',
   'settings.connected': 'verbunden',
   'settings.lidarrDescription':
-    'Musikbibliotheksmanager -- erforderlich zum Hinzufügen von Künstlern.',
+    'Musikbibliotheksmanager - erforderlich zum Hinzufügen von Künstlern.',
   'settings.lidarrPublicUrlHelp':
     'Im Browser erreichbare URL für Links zu Lidarr-Künstlerseiten. Leer lassen, wenn die API-URL bereits über den Browser erreichbar ist.',
   'settings.aiTip':
@@ -1062,7 +1062,7 @@ export const de = {
   'settings.aiPrivacyBadgeLocal': 'Vollständig lokal',
   'settings.sending': 'Wird gesendet...',
   'settings.connectionsTip':
-    'Verbinde mindestens eine Hörquelle -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby oder Discogs. Die Entdeckung geht von den Künstlern aus, die du schon hörst oder besitzt.',
+    'Verbinde mindestens eine Hörquelle - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby oder Discogs. Die Entdeckung geht von den Künstlern aus, die du schon hörst oder besitzt.',
   'settings.listenbrainzDescription': 'Open-Source-Hörverlaufsverfolgung.',
   'settings.lastfmDescription': 'Musik-Scrobbling und Hörverlauf.',
   'settings.spotifyDescription': 'Hörverlauf von Spotify.',
@@ -1267,12 +1267,12 @@ export const de = {
   'settings.proxyDisabled':
     'Proxy-Authentifizierung ist deaktiviert. Setze PROXY_AUTH_ENABLED=true in deiner Umgebung, um sie zu aktivieren.',
   'settings.loadingPreferences': 'Einstellungen werden geladen...',
-  'settings.spotifyLikedSongsStarted': 'Spotify Gelikte Songs -- Import gestartet',
+  'settings.spotifyLikedSongsStarted': 'Spotify Gelikte Songs - Import gestartet',
   'settings.importStartedAgain': 'Import erneut gestartet',
   'settings.playlistImportStarted': 'Playlist-Import gestartet',
   'settings.playlistImportStartedAgain': 'Import für diese Playlist erneut gestartet',
-  'settings.deezerFavoritesStarted': 'Deezer Favoriten -- Import gestartet',
-  'settings.deezerFollowedStarted': 'Deezer Gefolgte Künstler -- Import gestartet',
+  'settings.deezerFavoritesStarted': 'Deezer Favoriten - Import gestartet',
+  'settings.deezerFollowedStarted': 'Deezer Gefolgte Künstler - Import gestartet',
   'settings.deezerDisconnected': 'Deezer getrennt',
   'settings.spotifyDisconnected': 'Spotify getrennt',
   'settings.authSaved': 'Authentifizierungseinstellungen gespeichert',
@@ -1357,7 +1357,7 @@ export const de = {
   'service.testing': 'Wird getestet...',
   'service.saved': 'Gespeichert',
   'service.testPassed': 'Test bestanden',
-  'service.testPassedUnsaved': 'Test bestanden -- noch nicht gespeichert',
+  'service.testPassedUnsaved': 'Test bestanden - noch nicht gespeichert',
   'oauth.connectedTitle': 'Verbunden',
   'oauth.connectedBody': '{0} ist jetzt verbunden.',
   'oauth.failedTitle': 'Verbindung fehlgeschlagen',
@@ -1624,7 +1624,7 @@ export const de = {
   'preview.reason.playback-failed': 'Audiowiedergabe fehlgeschlagen',
   'preview.reason.controller-unavailable': 'Spotify-Player nicht verfügbar',
   'preview.noPreviewAvailable': 'Keine Vorschau für diesen Künstler verfügbar',
-  'preview.playbackBlocked': 'Wiedergabe vom Browser blockiert -- bitte erneut klicken',
+  'preview.playbackBlocked': 'Wiedergabe vom Browser blockiert - bitte erneut klicken',
   'genres.noneFound': 'Keine Genres gefunden.',
   'common.dismiss': 'Schließen',
   'hint.dismissHint': 'Hinweis schließen',
@@ -1636,14 +1636,14 @@ export const de = {
   'target.action.addToLidarr': 'Zu Lidarr hinzufügen',
   'pipeline.message.loadingLibrary': 'Bibliothek wird geladen...',
   'pipeline.message.firstSyncBackground':
-    'Erste Bibliothekssynchronisierung läuft im Hintergrund -- Vorgang wird ohne sie fortgesetzt',
+    'Erste Bibliothekssynchronisierung läuft im Hintergrund - Vorgang wird ohne sie fortgesetzt',
   'pipeline.message.loadedLibrarySingular': '{0} Bibliotheks-Künstler aus {1} Quelle geladen',
   'pipeline.message.loadedLibraryPlural': '{0} Bibliotheks-Künstler aus {1} Quellen geladen',
   'pipeline.message.buildingProfile': 'Geschmacksprofil wird erstellt...',
   'pipeline.message.profiled': '{0} Top-Künstler, {1} Genres profiliert',
   'pipeline.message.findingSimilar': 'Ähnliche Künstler aus allen Quellen werden gesucht...',
   'pipeline.message.aiSourceFailed':
-    'KI-Anbieter fehlgeschlagen: {0} -- Fortsetzung ohne KI-Vorschläge',
+    'KI-Anbieter fehlgeschlagen: {0} - Fortsetzung ohne KI-Vorschläge',
   'pipeline.message.discovered': '{0} Künstler-Kandidaten entdeckt',
   'pipeline.message.resolving': '{0} Künstler werden über MusicBrainz aufgelöst...',
   'pipeline.message.scoring': '{0} aufgelöste Künstler werden bewertet...',
@@ -1663,7 +1663,7 @@ export const de = {
   'pipeline.message.resolutionComplete': 'Auflösung abgeschlossen',
   'firstSyncBanner.title': 'Bibliothekskatalog wird aufgebaut',
   'firstSyncBanner.body':
-    'Digarr gleicht deine Bibliothek mit MusicBrainz ab. Das MusicBrainz-Rate-Limit erlaubt etwa 60 Künstler pro Minute, eine Bibliothek mit 5.000 Künstlern braucht also rund 80 Minuten für die vollständige Synchronisierung. Das geschieht nur einmal -- spätere Synchronisierungen nutzen den lokalen Cache und sind in Sekunden fertig.',
+    'Digarr gleicht deine Bibliothek mit MusicBrainz ab. Das MusicBrainz-Rate-Limit erlaubt etwa 60 Künstler pro Minute, eine Bibliothek mit 5.000 Künstlern braucht also rund 80 Minuten für die vollständige Synchronisierung. Das geschieht nur einmal - spätere Synchronisierungen nutzen den lokalen Cache und sind in Sekunden fertig.',
   'librarySync.message.syncingSource': '{0} wird synchronisiert...',
   'errors.auth.invalidCredentials': 'Ungültige Anmeldedaten',
   'errors.auth.notAuthenticated': 'Nicht authentifiziert',

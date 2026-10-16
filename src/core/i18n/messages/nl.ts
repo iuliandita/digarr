@@ -107,7 +107,7 @@ export const nl = {
   'discover.loadFailed': 'Aanbevelingen konden niet worden geladen.',
   'discover.emptyFiltered': 'Geen aanbevelingen passen bij de gekozen decennia.',
   'discover.clearFilters': 'Filters wissen',
-  'discover.pageRange': '{0}--{1} van {2}',
+  'discover.pageRange': '{0}-{1} van {2}',
   'discover.emptyAll':
     'Nog geen aanbevelingen. Importeer enkele favoriete artiesten of voer je eerste scan uit om aan de slag te gaan.',
   'discover.emptyApproved':
@@ -318,7 +318,7 @@ export const nl = {
   'discover.exported': 'geëxporteerd',
   'discover.hideFeedbackInsights': 'Feedbackinzichten verbergen',
   'discover.moodTip':
-    'Tip: beschrijf in je eigen woorden, in elke taal, waar je zin in hebt -- bijvoorbeeld "jazz voor een regenachtige dag" of "vrolijke jaren-90-pop".',
+    'Tip: beschrijf in je eigen woorden, in elke taal, waar je zin in hebt - bijvoorbeeld "jazz voor een regenachtige dag" of "vrolijke jaren-90-pop".',
   'discover.noPendingAbove': 'Geen openstaande aanbevelingen hierboven',
   'discover.noPendingBelow': 'Geen openstaande aanbevelingen hieronder',
   'discover.noPendingToClear': 'Geen openstaande aanbevelingen om te wissen',
@@ -343,8 +343,8 @@ export const nl = {
   'discover.restoredToPending': 'Hersteld naar in behandeling',
   'discover.retryFailed': 'Mislukte items opnieuw proberen',
   'discover.scanAlreadyRunning': 'Scan wordt al uitgevoerd',
-  'discover.scanStarted': 'Scan gestart -- bekijk het Dashboard voor de voortgang',
-  'discover.scanQueued': 'Scan in wachtrij (positie {0}) -- start zodra de huidige run klaar is',
+  'discover.scanStarted': 'Scan gestart - bekijk het Dashboard voor de voortgang',
+  'discover.scanQueued': 'Scan in wachtrij (positie {0}) - start zodra de huidige run klaar is',
   'discover.scanStartFailed': 'Kan het scannen niet starten',
   'discover.select': 'Selecteer',
   'discover.showFeedbackInsights': 'Feedbackinzichten tonen',
@@ -375,7 +375,7 @@ export const nl = {
     'Gebruik de knop + In wachtrij om artiesten toe te voegen aan je aanbevelingswachtrij voor beoordeling op de pagina Ontdekken.',
   'genreDetail.subGenres': 'Subgenres',
   'genreDetail.tabDeepCuts': 'Verborgen parels',
-  'genreDetail.tabDeepCutsDescription': 'Verborgen parels -- nicheartiesten met lage populariteit',
+  'genreDetail.tabDeepCutsDescription': 'Verborgen parels - nicheartiesten met lage populariteit',
   'genreDetail.tabLibrary': 'In je bibliotheek',
   'genreDetail.tabLibraryDescription': 'Artiesten die al in je muziekbibliotheek staan',
   'genreDetail.tabRecommended': 'Aanbevolen',
@@ -692,11 +692,11 @@ export const nl = {
   'userManagement.noUsers': 'Geen gebruikers gevonden.',
   'userManagement.adminBadge': 'beheerder',
   'userManagement.cannotRemoveOwnAdmin': 'Kan je eigen beheerdersrol niet verwijderen',
-  'userManagement.lastAdminCannotRemove': 'Laatste beheerder -- kan niet verwijderen',
+  'userManagement.lastAdminCannotRemove': 'Laatste beheerder - kan niet verwijderen',
   'userManagement.removeAdmin': 'Beheerder verwijderen',
   'userManagement.makeAdmin': 'Beheerder maken',
   'userManagement.cannotDeleteSelf': 'Je kunt jezelf niet verwijderen',
-  'userManagement.lastAdminCannotDelete': 'Laatste beheerder -- kan niet verwijderen',
+  'userManagement.lastAdminCannotDelete': 'Laatste beheerder - kan niet verwijderen',
   'userManagement.deleteUser': 'Gebruiker verwijderen',
   'userManagement.deleteUserPrompt': 'Gebruiker verwijderen',
   'recommendation.sourceGenre': 'Muziekgenre',
@@ -743,7 +743,7 @@ export const nl = {
   'pipeline.firstScanDescription':
     'Digarr analyseert je muzieksmaak en vindt artiesten die je misschien leuk vindt. Dit duurt gewoonlijk 2-5 minuten bij de eerste run.',
   'pipeline.runningFor': 'Actief sinds',
-  'pipeline.stalled': 'Dit duurt langer dan normaal -- nog even geduld',
+  'pipeline.stalled': 'Dit duurt langer dan normaal - nog even geduld',
   'pipeline.stop': 'Scan stoppen',
   'pipeline.stopping': 'Stoppen...',
   'pipeline.cancelled': 'Scan gestopt',
@@ -753,12 +753,12 @@ export const nl = {
   'libraryHealth.rescanningSoon': 'opnieuw scannen in 30 seconden om te verifiëren',
   'libraryHealth.updated': 'Bijgewerkt',
   'libraryHealth.processed': 'Verwerkt',
-  'libraryHealth.fixFailed': 'Oplossing mislukt -- controleer Lidarr-verbinding',
+  'libraryHealth.fixFailed': 'Oplossing mislukt - controleer Lidarr-verbinding',
   'libraryHealth.rescan': 'Opnieuw scannen',
   'libraryHealth.introTip':
     "Bibliotheekgezondheid controleert je Lidarr-bibliotheek op ontbrekende metadata, albums, afbeeldingen en Wikidata-links, niet-gevolgde of dubbele artiesten en genregaten. Het draait volgens schema; gebruik 'Nu synchroniseren' om opnieuw te controleren.",
   'libraryHealth.scanningBanner':
-    'Bibliotheekstatus scannen -- dit kan enkele minuten duren voor grote bibliotheken. De resultaten verschijnen wanneer voltooid.',
+    'Bibliotheekstatus scannen - dit kan enkele minuten duren voor grote bibliotheken. De resultaten verschijnen wanneer voltooid.',
   'libraryHealth.pendingRescan':
     'Automatisch opnieuw scannen gepland om de oplossingsresultaten te verifiëren...',
   'libraryHealth.noChecks':
@@ -826,7 +826,7 @@ export const nl = {
   'search.sourcesActive': 'Bronnen ({0})',
   'search.clearFilters': 'Filters wissen',
   'search.minChars': 'Typ minimaal 2 tekens om te zoeken',
-  'search.failed': 'Zoeken mislukt -- probeer opnieuw',
+  'search.failed': 'Zoeken mislukt - probeer opnieuw',
   'search.noResultsFor': 'Geen artiesten gevonden voor',
   'discoveryMode.available': 'Beschikbaar',
   'discoveryMode.unavailable': 'Niet beschikbaar',
@@ -971,13 +971,13 @@ export const nl = {
   'importArtists.playlistPlaceholder': 'Afspeellijst-URL of -ID',
   'importArtists.go': 'Starten',
   'importArtists.importingLikedSongs':
-    'Gelikte nummers worden geimporteerd -- nieuwe artiesten verschijnen binnenkort op de Ontdek-pagina',
+    'Gelikte nummers worden geimporteerd - nieuwe artiesten verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingPlaylist':
-    'Afspeellijstartiesten worden geimporteerd -- ze verschijnen binnenkort op de Ontdek-pagina',
+    'Afspeellijstartiesten worden geimporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingCsv':
-    '{0} artiesten worden geimporteerd -- ze verschijnen binnenkort op de Ontdek-pagina',
+    '{0} artiesten worden geimporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingCsvTruncated':
-    '{0} artiesten worden geimporteerd (beperkt tot 500) -- ze verschijnen binnenkort op de Ontdek-pagina',
+    '{0} artiesten worden geimporteerd (beperkt tot 500) - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.failedImport': 'Importeren kon niet worden gestart',
   'importArtists.failedPlaylist': 'Afspeellijstimport kon niet worden gestart',
   'importArtists.failedCsv': 'CSV-bestand kon niet worden geimporteerd',
@@ -1035,7 +1035,7 @@ export const nl = {
   'settings.getPersonalAccessToken': 'Persoonlijk toegangstoken ophalen',
   'settings.connected': 'verbonden',
   'settings.lidarrDescription':
-    'Muziekbibliotheekmanager -- vereist voor het toevoegen van artiesten.',
+    'Muziekbibliotheekmanager - vereist voor het toevoegen van artiesten.',
   'settings.lidarrPublicUrlHelp':
     "Via browser bereikbare URL voor links naar Lidarr-artiestenpagina's. Leeg laten als de API-URL al via de browser bereikbaar is.",
   'settings.aiTip':
@@ -1050,7 +1050,7 @@ export const nl = {
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.sending': 'Bezig met verzenden...',
   'settings.connectionsTip':
-    'Koppel minstens één luisterbron -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby of Discogs. Ontdekken begint bij de artiesten die je al afspeelt of bezit.',
+    'Koppel minstens één luisterbron - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby of Discogs. Ontdekken begint bij de artiesten die je al afspeelt of bezit.',
   'settings.listenbrainzDescription': 'Open-source luistergeschiedenisregistratie.',
   'settings.lastfmDescription': 'Muziek-scrobbling en luistergeschiedenis.',
   'settings.spotifyDescription': 'Luistergeschiedenis van Spotify.',
@@ -1343,7 +1343,7 @@ export const nl = {
   'service.testing': 'Testen...',
   'service.saved': 'Opgeslagen',
   'service.testPassed': 'Test geslaagd',
-  'service.testPassedUnsaved': 'Test geslaagd -- nog niet opgeslagen',
+  'service.testPassedUnsaved': 'Test geslaagd - nog niet opgeslagen',
   'oauth.connectedTitle': 'Verbonden',
   'oauth.connectedBody': '{0} is nu verbonden.',
   'oauth.failedTitle': 'Verbinden mislukt',
@@ -1606,7 +1606,7 @@ export const nl = {
   'preview.reason.playback-failed': 'Audio afspelen mislukt',
   'preview.reason.controller-unavailable': 'Spotify-speler niet beschikbaar',
   'preview.noPreviewAvailable': 'Geen voorbeeld beschikbaar voor deze artiest',
-  'preview.playbackBlocked': 'Afspelen geblokkeerd door browser -- probeer opnieuw te klikken',
+  'preview.playbackBlocked': 'Afspelen geblokkeerd door browser - probeer opnieuw te klikken',
   'genres.noneFound': 'Geen genres gevonden.',
   'common.dismiss': 'Sluiten',
   'hint.dismissHint': 'Tip sluiten',
@@ -1618,13 +1618,13 @@ export const nl = {
   'target.action.addToLidarr': 'Toevoegen aan Lidarr',
   'pipeline.message.loadingLibrary': 'Je bibliotheek wordt geladen...',
   'pipeline.message.firstSyncBackground':
-    'Eerste bibliotheeksynchronisatie loopt op de achtergrond -- we gaan zonder verder',
+    'Eerste bibliotheeksynchronisatie loopt op de achtergrond - we gaan zonder verder',
   'pipeline.message.loadedLibrarySingular': '{0} bibliotheekartiesten geladen uit {1} bron',
   'pipeline.message.loadedLibraryPlural': '{0} bibliotheekartiesten geladen uit {1} bronnen',
   'pipeline.message.buildingProfile': 'Je smaakprofiel wordt opgebouwd...',
   'pipeline.message.profiled': 'Geprofileerd: {0} topartiesten, {1} genres',
   'pipeline.message.findingSimilar': 'Vergelijkbare artiesten zoeken uit alle bronnen...',
-  'pipeline.message.aiSourceFailed': 'AI-provider mislukt: {0} -- doorgaan zonder AI-suggesties',
+  'pipeline.message.aiSourceFailed': 'AI-provider mislukt: {0} - doorgaan zonder AI-suggesties',
   'pipeline.message.discovered': '{0} kandidaat-artiesten ontdekt',
   'pipeline.message.resolving': '{0} artiesten ophalen via MusicBrainz...',
   'pipeline.message.scoring': '{0} opgehaalde artiesten worden gescoord...',
@@ -1643,7 +1643,7 @@ export const nl = {
   'pipeline.message.resolutionComplete': 'Resolutie voltooid',
   'firstSyncBanner.title': 'Je bibliotheekcatalogus wordt opgebouwd',
   'firstSyncBanner.body':
-    'Digarr matcht je bibliotheek met MusicBrainz. De MusicBrainz-snelheidslimiet staat ongeveer 60 artiesten per minuut toe, dus een bibliotheek van 5.000 artiesten doet er ongeveer 80 minuten over om volledig te worden verwerkt. Dit gebeurt maar één keer -- volgende synchronisaties gebruiken de lokale cache en zijn binnen seconden klaar.',
+    'Digarr matcht je bibliotheek met MusicBrainz. De MusicBrainz-snelheidslimiet staat ongeveer 60 artiesten per minuut toe, dus een bibliotheek van 5.000 artiesten doet er ongeveer 80 minuten over om volledig te worden verwerkt. Dit gebeurt maar één keer - volgende synchronisaties gebruiken de lokale cache en zijn binnen seconden klaar.',
   'librarySync.message.syncingSource': '{0} wordt gesynchroniseerd...',
   'errors.auth.invalidCredentials': 'Ongeldige inloggegevens',
   'errors.auth.notAuthenticated': 'Niet aangemeld',

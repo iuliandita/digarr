@@ -107,7 +107,7 @@ export const fr = {
   'discover.loadFailed': 'Impossible de charger les recommandations.',
   'discover.emptyFiltered': 'Aucune recommandation ne correspond aux décennies choisies.',
   'discover.clearFilters': 'Effacer les filtres',
-  'discover.pageRange': '{0}--{1} sur {2}',
+  'discover.pageRange': '{0}-{1} sur {2}',
   'discover.emptyAll':
     "Aucune recommandation pour l'instant. Importe quelques artistes préférés ou lance ta première analyse pour commencer.",
   'discover.emptyApproved':
@@ -180,7 +180,7 @@ export const fr = {
     "Trouvé sous Emby Dashboard -> Utilisateurs -> (sélectionner l'utilisateur). L'URL contient l'ID utilisateur.",
   'setup.embyUserIdPlaceholder': 'ID utilisateur Emby',
   'setup.embyUrl': "URL d'Emby",
-  'setup.failed': 'La configuration a échoué -- réessaie',
+  'setup.failed': 'La configuration a échoué - réessaie',
   'setup.getApiKey': 'Obtenir la clé API',
   'setup.howManageMusic': 'Comment gères-tu la musique ?',
   'setup.initialSetup': 'Configuration initiale',
@@ -319,7 +319,7 @@ export const fr = {
   'discover.exported': 'exporté',
   'discover.hideFeedbackInsights': 'Masquer les retours',
   'discover.moodTip':
-    "Astuce : décris avec tes propres mots, dans n'importe quelle langue, ce que tu as envie d'écouter -- par exemple « jazz pour un jour de pluie » ou « pop entraînante des années 90 ».",
+    "Astuce : décris avec tes propres mots, dans n'importe quelle langue, ce que tu as envie d'écouter - par exemple « jazz pour un jour de pluie » ou « pop entraînante des années 90 ».",
   'discover.noPendingAbove': 'Aucune recommandation en attente ci-dessus',
   'discover.noPendingBelow': 'Aucune recommandation en attente ci-dessous',
   'discover.noPendingToClear': 'Aucune recommandation en attente à effacer',
@@ -344,8 +344,8 @@ export const fr = {
   'discover.restoredToPending': 'Restauré en attente',
   'discover.retryFailed': 'La nouvelle tentative a échoué',
   'discover.scanAlreadyRunning': 'Le scan est déjà en cours',
-  'discover.scanStarted': 'Scan lancé -- vérifie le tableau de bord pour la progression',
-  'discover.scanQueued': 'Scan en attente (position {0}) -- démarrera à la fin du scan en cours',
+  'discover.scanStarted': 'Scan lancé - vérifie le tableau de bord pour la progression',
+  'discover.scanQueued': 'Scan en attente (position {0}) - démarrera à la fin du scan en cours',
   'discover.scanStartFailed': "Échec du démarrage de l'analyse",
   'discover.select': 'Sélectionner',
   'discover.showFeedbackInsights': 'Afficher les retours',
@@ -692,11 +692,11 @@ export const fr = {
   'userManagement.noUsers': 'Aucun utilisateur trouvé.',
   'userManagement.adminBadge': 'administrateur',
   'userManagement.cannotRemoveOwnAdmin': 'Impossible de retirer ton propre role admin',
-  'userManagement.lastAdminCannotRemove': 'Dernier admin -- suppression impossible',
+  'userManagement.lastAdminCannotRemove': 'Dernier admin - suppression impossible',
   'userManagement.removeAdmin': "Retirer l'admin",
   'userManagement.makeAdmin': 'Rendre admin',
   'userManagement.cannotDeleteSelf': 'Impossible de te supprimer',
-  'userManagement.lastAdminCannotDelete': 'Dernier admin -- suppression impossible',
+  'userManagement.lastAdminCannotDelete': 'Dernier admin - suppression impossible',
   'userManagement.deleteUser': "Supprimer l'utilisateur",
   'userManagement.deleteUserPrompt': "Supprimer l'utilisateur",
   'recommendation.sourceGenre': 'Style musical',
@@ -719,8 +719,8 @@ export const fr = {
   'todaysPick.matchScore': 'Score de correspondance',
   'todaysPick.match': 'correspondance',
   'todaysPick.skipHint':
-    'Passer affiche le prochain artiste sans le rejeter -- il reviendra lors de futurs scans.',
-  'todaysPick.skipTitle': "Passer pour l'instant -- cet artiste reviendra plus tard",
+    'Passer affiche le prochain artiste sans le rejeter - il reviendra lors de futurs scans.',
+  'todaysPick.skipTitle': "Passer pour l'instant - cet artiste reviendra plus tard",
   'pipeline.stage.collect': 'Lecture de la bibliothèque',
   'pipeline.stage.analyze': 'Construction du profil musical',
   'pipeline.stage.discover': 'Recherche de nouveaux artistes',
@@ -743,7 +743,7 @@ export const fr = {
   'pipeline.firstScanDescription':
     'Digarr analyse tes goûts musicaux et cherche des artistes qui pourraient te plaire. Cela prend généralement 2 a 5 minutes au premier lancement.',
   'pipeline.runningFor': 'En cours depuis',
-  'pipeline.stalled': 'Cela prend plus de temps que d’habitude -- patiente',
+  'pipeline.stalled': 'Cela prend plus de temps que d’habitude - patiente',
   'pipeline.stop': 'Arrêter le scan',
   'pipeline.stopping': 'Arrêt...',
   'pipeline.cancelled': 'Scan arrêté',
@@ -753,7 +753,7 @@ export const fr = {
   'libraryHealth.rescanningSoon': 'nouveau scan dans 30 s pour vérification',
   'libraryHealth.updated': 'Mis à jour',
   'libraryHealth.processed': 'Traité',
-  'libraryHealth.fixFailed': 'La correction a échoué -- vérifie la connexion Lidarr',
+  'libraryHealth.fixFailed': 'La correction a échoué - vérifie la connexion Lidarr',
   'libraryHealth.rescan': 'Relancer le scan',
   'libraryHealth.introTip':
     "La santé de la bibliothèque vérifie ta bibliothèque Lidarr : métadonnées, albums, images et liens Wikidata manquants, artistes non surveillés ou en double, et lacunes de genres. Elle s'exécute selon un planning ; utilise « Synchroniser maintenant » pour vérifier à nouveau.",
@@ -827,7 +827,7 @@ export const fr = {
   'search.sourcesActive': 'Sources ({0})',
   'search.clearFilters': 'Effacer les filtres',
   'search.minChars': 'Tape au moins 2 caractères pour rechercher',
-  'search.failed': 'Recherche échouée -- réessaie',
+  'search.failed': 'Recherche échouée - réessaie',
   'search.noResultsFor': 'Aucun artiste trouvé pour',
   'discoveryMode.available': 'Disponible',
   'discoveryMode.unavailable': 'Indisponible',
@@ -976,13 +976,13 @@ export const fr = {
   'importArtists.playlistPlaceholder': 'URL ou ID de la playlist',
   'importArtists.go': 'Lancer',
   'importArtists.importingLikedSongs':
-    'Importation de tes titres aimés -- les nouveaux artistes apparaîtront bientôt sur la page Découvrir',
+    'Importation de tes titres aimés - les nouveaux artistes apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingPlaylist':
-    'Importation des artistes de la playlist -- ils apparaîtront bientôt sur la page Découvrir',
+    'Importation des artistes de la playlist - ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingCsv':
-    'Importation de {0} artistes -- ils apparaîtront bientôt sur la page Découvrir',
+    'Importation de {0} artistes - ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingCsvTruncated':
-    'Importation de {0} artistes (limité à 500) -- ils apparaîtront bientôt sur la page Découvrir',
+    'Importation de {0} artistes (limité à 500) - ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.failedImport': "Échec du démarrage de l'importation",
   'importArtists.failedPlaylist': "Échec du démarrage de l'importation de la playlist",
   'importArtists.failedCsv': "Échec de l'importation du fichier CSV",
@@ -1040,7 +1040,7 @@ export const fr = {
   'settings.getPersonalAccessToken': "Obtenir un jeton d'accès personnel",
   'settings.connected': 'connecté',
   'settings.lidarrDescription':
-    'Gestionnaire de bibliothèque musicale -- requis pour ajouter des artistes.',
+    'Gestionnaire de bibliothèque musicale - requis pour ajouter des artistes.',
   'settings.lidarrPublicUrlHelp':
     "URL accessible depuis le navigateur pour lier les pages d'artistes Lidarr. Laisse vide si l'URL de l'API est déjà accessible depuis ton navigateur.",
   'settings.aiTip':
@@ -1055,7 +1055,7 @@ export const fr = {
   'settings.aiPrivacyBadgeLocal': 'Entièrement local',
   'settings.sending': 'Envoi...',
   'settings.connectionsTip':
-    "Connecte au moins une source d'écoute -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby ou Discogs. La découverte part des artistes que tu écoutes ou possèdes déjà.",
+    "Connecte au moins une source d'écoute - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby ou Discogs. La découverte part des artistes que tu écoutes ou possèdes déjà.",
   'settings.listenbrainzDescription': "Suivi de l'historique d'écoute open source.",
   'settings.lastfmDescription': "Scrobbling et historique d'écoute.",
   'settings.spotifyDescription': "Historique d'écoute depuis Spotify.",
@@ -1351,7 +1351,7 @@ export const fr = {
   'service.testing': 'Test...',
   'service.saved': 'Enregistré',
   'service.testPassed': 'Test réussi',
-  'service.testPassedUnsaved': 'Test réussi -- pas encore enregistré',
+  'service.testPassedUnsaved': 'Test réussi - pas encore enregistré',
   'oauth.connectedTitle': 'Connecté',
   'oauth.connectedBody': '{0} est maintenant connecté.',
   'oauth.failedTitle': 'Échec de la connexion',
@@ -1629,7 +1629,7 @@ export const fr = {
   'target.action.addToLidarr': 'Ajouter à Lidarr',
   'pipeline.message.loadingLibrary': 'Chargement de ta bibliothèque...',
   'pipeline.message.firstSyncBackground':
-    "La première synchronisation de la bibliothèque s'exécute en arrière-plan -- on continue sans elle",
+    "La première synchronisation de la bibliothèque s'exécute en arrière-plan - on continue sans elle",
   'pipeline.message.loadedLibrarySingular':
     '{0} artistes de la bibliothèque chargés depuis {1} source',
   'pipeline.message.loadedLibraryPlural':
@@ -1638,7 +1638,7 @@ export const fr = {
   'pipeline.message.profiled': 'Profilé : {0} artistes principaux, {1} genres',
   'pipeline.message.findingSimilar': "Recherche d'artistes similaires depuis toutes les sources...",
   'pipeline.message.aiSourceFailed':
-    'Le fournisseur IA a échoué : {0} -- poursuite sans suggestions IA',
+    'Le fournisseur IA a échoué : {0} - poursuite sans suggestions IA',
   'pipeline.message.discovered': '{0} artistes candidats découverts',
   'pipeline.message.resolving': 'Résolution de {0} artistes via MusicBrainz...',
   'pipeline.message.scoring': 'Notation de {0} artistes résolus...',
@@ -1658,7 +1658,7 @@ export const fr = {
   'pipeline.message.resolutionComplete': 'Résolution terminée',
   'firstSyncBanner.title': 'Construction du catalogue de ta bibliothèque',
   'firstSyncBanner.body':
-    "Digarr fait correspondre ta bibliothèque à MusicBrainz. La limite de débit de MusicBrainz autorise environ 60 artistes par minute, une bibliothèque de 5 000 artistes prend donc environ 80 minutes pour être entièrement réconciliée. Cela ne se produit qu'une seule fois -- les synchronisations suivantes utilisent le cache local et se terminent en quelques secondes.",
+    "Digarr fait correspondre ta bibliothèque à MusicBrainz. La limite de débit de MusicBrainz autorise environ 60 artistes par minute, une bibliothèque de 5 000 artistes prend donc environ 80 minutes pour être entièrement réconciliée. Cela ne se produit qu'une seule fois - les synchronisations suivantes utilisent le cache local et se terminent en quelques secondes.",
   'librarySync.message.syncingSource': 'Synchronisation de {0}...',
   'errors.auth.invalidCredentials': 'Identifiants non valides',
   'errors.auth.notAuthenticated': 'Non authentifié',

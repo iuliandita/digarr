@@ -106,7 +106,7 @@ export const uk = {
   'discover.loadFailed': 'Не вдалося завантажити рекомендації.',
   'discover.emptyFiltered': 'Немає рекомендацій для вибраних десятиліть.',
   'discover.clearFilters': 'Скинути фільтри',
-  'discover.pageRange': '{0}--{1} з {2}',
+  'discover.pageRange': '{0}-{1} з {2}',
   'discover.emptyAll':
     'Рекомендацій ще немає. Щоб почати, імпортуй улюблених виконавців або запусти перше сканування.',
   'discover.emptyApproved':
@@ -179,7 +179,7 @@ export const uk = {
     'Знайти в Emby Dashboard -> Users -> (вибери користувача). URL-адреса містить ідентифікатор користувача.',
   'setup.embyUserIdPlaceholder': 'ID користувача Emby',
   'setup.embyUrl': 'URL Emby',
-  'setup.failed': 'Помилка налаштування -- спробуй ще раз',
+  'setup.failed': 'Помилка налаштування - спробуй ще раз',
   'setup.getApiKey': 'Отримай ключ API',
   'setup.howManageMusic': 'Як ти керуєш музикою?',
   'setup.initialSetup': 'Початкове налаштування',
@@ -317,7 +317,7 @@ export const uk = {
   'discover.exported': 'експортований',
   'discover.hideFeedbackInsights': 'Приховати аналітику відгуків',
   'discover.moodTip':
-    'Порада: опиши своїми словами, будь-якою мовою, що тобі хочеться послухати -- наприклад, «джаз для дощового дня» чи «бадьорий поп 90-х».',
+    'Порада: опиши своїми словами, будь-якою мовою, що тобі хочеться послухати - наприклад, «джаз для дощового дня» чи «бадьорий поп 90-х».',
   'discover.noPendingAbove': 'Вище немає рекомендацій, що очікують на розгляд',
   'discover.noPendingBelow': 'Нижче немає рекомендацій, що очікують на розгляд',
   'discover.noPendingToClear': 'Немає незавершених рекомендацій для очищення',
@@ -342,8 +342,8 @@ export const uk = {
   'discover.restoredToPending': 'Відновлено до стану очікування',
   'discover.retryFailed': 'Повторна спроба не вдалася',
   'discover.scanAlreadyRunning': 'Сканування вже виконується',
-  'discover.scanStarted': 'Сканування запущено -- перевір Панель для прогресу',
-  'discover.scanQueued': 'Сканування в черзі (позиція {0}) -- почнеться після завершення поточного',
+  'discover.scanStarted': 'Сканування запущено - перевір Панель для прогресу',
+  'discover.scanQueued': 'Сканування в черзі (позиція {0}) - почнеться після завершення поточного',
   'discover.scanStartFailed': 'Не вдалося почати сканування',
   'discover.select': 'Вибери',
   'discover.showFeedbackInsights': 'Показати аналітику відгуків',
@@ -375,7 +375,7 @@ export const uk = {
   'genreDetail.subGenres': 'Піджанри',
   'genreDetail.tabDeepCuts': 'Рідкісні знахідки',
   'genreDetail.tabDeepCutsDescription':
-    'Приховані перлини -- нішеві виконавці з низькою популярністю',
+    'Приховані перлини - нішеві виконавці з низькою популярністю',
   'genreDetail.tabLibrary': 'У твоїй бібліотеці',
   'genreDetail.tabLibraryDescription': 'Виконавці, які вже є у твоїй музичній бібліотеці',
   'genreDetail.tabRecommended': 'Рекомендовані',
@@ -689,11 +689,11 @@ export const uk = {
   'userManagement.noUsers': 'Користувачів не знайдено.',
   'userManagement.adminBadge': 'адмін',
   'userManagement.cannotRemoveOwnAdmin': 'Не вдається видалити власну роль адміністратора',
-  'userManagement.lastAdminCannotRemove': 'Останній адмін -- неможливо видалити',
+  'userManagement.lastAdminCannotRemove': 'Останній адмін - неможливо видалити',
   'userManagement.removeAdmin': 'Видалити адміністратора',
   'userManagement.makeAdmin': 'Зробити адміном',
   'userManagement.cannotDeleteSelf': 'Не можна видалити себе',
-  'userManagement.lastAdminCannotDelete': 'Останній адмін -- неможливо видалити',
+  'userManagement.lastAdminCannotDelete': 'Останній адмін - неможливо видалити',
   'userManagement.deleteUser': 'Видалити користувача',
   'userManagement.deleteUserPrompt': 'Видалити користувача',
   'recommendation.sourceGenre': 'Жанр',
@@ -716,8 +716,8 @@ export const uk = {
   'todaysPick.matchScore': 'Оцінка збігу',
   'todaysPick.match': 'збіг',
   'todaysPick.skipHint':
-    'Пропустити показує наступного виконавця без відхилення -- пропущені виконавці повертаються під час майбутніх сканувань.',
-  'todaysPick.skipTitle': 'Наразі пропустити -- цей виконавець повернеться пізніше',
+    'Пропустити показує наступного виконавця без відхилення - пропущені виконавці повертаються під час майбутніх сканувань.',
+  'todaysPick.skipTitle': 'Наразі пропустити - цей виконавець повернеться пізніше',
   'pipeline.stage.collect': 'Бібліотека для читання',
   'pipeline.stage.analyze': 'Побудова смакового профілю',
   'pipeline.stage.discover': 'Пошук нових артистів',
@@ -740,7 +740,7 @@ export const uk = {
   'pipeline.firstScanDescription':
     'Digarr аналізує твій музичний смак і знаходить виконавців, які можуть тобі сподобатися. Зазвичай це займає 2-5 хвилин під час першого запуску.',
   'pipeline.runningFor': 'У роботі',
-  'pipeline.stalled': 'Це триває довше, ніж зазвичай -- зачекай трохи',
+  'pipeline.stalled': 'Це триває довше, ніж зазвичай - зачекай трохи',
   'pipeline.stop': 'Зупинити сканування',
   'pipeline.stopping': 'Зупинка...',
   'pipeline.cancelled': 'Сканування зупинено',
@@ -750,12 +750,12 @@ export const uk = {
   'libraryHealth.rescanningSoon': 'повторне сканування через 30 секунд для перевірки',
   'libraryHealth.updated': 'Оновлено',
   'libraryHealth.processed': 'Оброблено',
-  'libraryHealth.fixFailed': 'Не вдалося виправити -- перевір підключення Lidarr',
+  'libraryHealth.fixFailed': 'Не вдалося виправити - перевір підключення Lidarr',
   'libraryHealth.rescan': 'Повторне сканування',
   'libraryHealth.introTip':
     'Перевірка бібліотеки шукає у твоїй бібліотеці Lidarr відсутні метадані, альбоми, зображення та посилання Wikidata, невідстежуваних або дубльованих виконавців і прогалини в жанрах. Вона запускається за розкладом; натисни «Синхронізувати зараз», щоб перевірити знову.',
   'libraryHealth.scanningBanner':
-    'Сканування стану бібліотеки -- для великих бібліотек це може зайняти кілька хвилин. Результати з’являться після завершення.',
+    'Сканування стану бібліотеки - для великих бібліотек це може зайняти кілька хвилин. Результати з’являться після завершення.',
   'libraryHealth.pendingRescan':
     'Автоматичне повторне сканування заплановано для перевірки результатів виправлення...',
   'libraryHealth.noChecks':
@@ -824,7 +824,7 @@ export const uk = {
   'search.sourcesActive': 'Джерела ({0})',
   'search.clearFilters': 'Скинути фільтри',
   'search.minChars': 'Введи щонайменше 2 символи для пошуку',
-  'search.failed': 'Помилка пошуку -- спробуй ще раз',
+  'search.failed': 'Помилка пошуку - спробуй ще раз',
   'search.noResultsFor': 'Виконавців не знайдено для',
   'discoveryMode.available': 'Доступно',
   'discoveryMode.unavailable': 'Недоступно',
@@ -930,7 +930,7 @@ export const uk = {
   'discoveryMode.field.helpRawTagExpression':
     'Заміни конструктор тегів прямим синтаксисом ListenBrainz, наприклад (trip hop):2:(ambient):1',
   'discoveryMode.field.helpRecordingCount':
-    'Типове значення -- 25. Більші значення збільшують різноманітність, але працюють повільніше через обмеження MusicBrainz (приблизно 1 секунда на запис).',
+    'Типове значення - 25. Більші значення збільшують різноманітність, але працюють повільніше через обмеження MusicBrainz (приблизно 1 секунда на запис).',
   'discoveryMode.field.helpPopularityMin':
     '0-100. Виключає записи з популярністю нижче цього значення.',
   'discoveryMode.field.helpPopularityMax':
@@ -971,13 +971,13 @@ export const uk = {
   'importArtists.playlistPlaceholder': 'URL або ID плейлиста',
   'importArtists.go': 'Далі',
   'importArtists.importingLikedSongs':
-    "Імпортування вподобаних пісень -- нові виконавці незабаром з'являться на сторінці Відкриття",
+    "Імпортування вподобаних пісень - нові виконавці незабаром з'являться на сторінці Відкриття",
   'importArtists.importingPlaylist':
-    "Імпортування виконавців плейлиста -- вони незабаром з'являться на сторінці Відкриття",
+    "Імпортування виконавців плейлиста - вони незабаром з'являться на сторінці Відкриття",
   'importArtists.importingCsv':
-    "Імпортування {0} виконавців -- вони незабаром з'являться на сторінці Відкриття",
+    "Імпортування {0} виконавців - вони незабаром з'являться на сторінці Відкриття",
   'importArtists.importingCsvTruncated':
-    "Імпортування {0} виконавців (обмежено 500) -- вони незабаром з'являться на сторінці Відкриття",
+    "Імпортування {0} виконавців (обмежено 500) - вони незабаром з'являться на сторінці Відкриття",
   'importArtists.failedImport': 'Не вдалося розпочати імпорт',
   'importArtists.failedPlaylist': 'Не вдалося розпочати імпорт плейлиста',
   'importArtists.failedCsv': 'Не вдалося імпортувати CSV-файл',
@@ -1035,8 +1035,7 @@ export const uk = {
   'settings.createSpotifyApp': 'Створити застосунок Spotify Developer',
   'settings.getPersonalAccessToken': 'Отримати особистий токен доступу',
   'settings.connected': 'підключено',
-  'settings.lidarrDescription':
-    'Менеджер музичної бібліотеки -- потрібен для додавання виконавців.',
+  'settings.lidarrDescription': 'Менеджер музичної бібліотеки - потрібен для додавання виконавців.',
   'settings.lidarrPublicUrlHelp':
     'URL, доступний у браузері, для посилань на сторінки виконавців у Lidarr. Залиш порожнім, якщо API URL вже доступний у браузері.',
   'settings.aiTip':
@@ -1051,7 +1050,7 @@ export const uk = {
   'settings.aiPrivacyBadgeLocal': 'Повністю локально',
   'settings.sending': 'Надсилання...',
   'settings.connectionsTip':
-    'Підключи хоча б одне джерело прослуховувань -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby або Discogs. Пошук починається з виконавців, яких ти вже слухаєш або маєш.',
+    'Підключи хоча б одне джерело прослуховувань - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby або Discogs. Пошук починається з виконавців, яких ти вже слухаєш або маєш.',
   'settings.listenbrainzDescription': 'Відкритий трекінг історії прослуховування.',
   'settings.lastfmDescription': 'Скроблінг музики та історія прослуховування.',
   'settings.spotifyDescription': 'Історія прослуховування зі Spotify.',
@@ -1164,7 +1163,7 @@ export const uk = {
   'settings.topArtistsLimit': 'Ліміт топ-виконавців',
   'settings.libraryDiscovery': 'Відкриття бібліотеки',
   'settings.libraryDiscoveryHelp':
-    'Яка частина відкриттів ґрунтується на твоїй бібліотеці Lidarr, а яка -- на історії прослуховування. Вищі значення знаходять виконавців, схожих на тих, що вже є в тебе. Нижчі значення більше покладаються на дані ListenBrainz/Last.fm.',
+    'Яка частина відкриттів ґрунтується на твоїй бібліотеці Lidarr, а яка - на історії прослуховування. Вищі значення знаходять виконавців, схожих на тих, що вже є в тебе. Нижчі значення більше покладаються на дані ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Частка початкових даних з бібліотеки',
   'settings.imageSources': 'Джерела зображень',
   'settings.imageSourcesHelp':
@@ -1345,7 +1344,7 @@ export const uk = {
   'service.testing': 'Тестування...',
   'service.saved': 'Збережено',
   'service.testPassed': 'Перевірку пройдено',
-  'service.testPassedUnsaved': 'Перевірку пройдено -- ще не збережено',
+  'service.testPassedUnsaved': 'Перевірку пройдено - ще не збережено',
   'oauth.connectedTitle': 'Підключено',
   'oauth.connectedBody': '{0} тепер підключено.',
   'oauth.failedTitle': 'Не вдалося підключити',
@@ -1593,7 +1592,7 @@ export const uk = {
   'approveDialog.metadataProfile': 'Профіль метаданих',
   'approveDialog.rootFolder': 'Коренева папка',
   'cardStack.counter': '{0} з {1}',
-  'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч -- щоб відхилити',
+  'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч - щоб відхилити',
   'serviceCard.testConnection': 'Перевірити підключення',
   'preview.unavailableSummary': 'Недоступні попередні прослуховування: {count} із {total} вибраних',
   'preview.reason.missing-links': 'Немає посилань для попереднього прослуховування',
@@ -1604,7 +1603,7 @@ export const uk = {
   'preview.reason.playback-failed': 'Помилка відтворення аудіо',
   'preview.reason.controller-unavailable': 'Програвач Spotify недоступний',
   'preview.noPreviewAvailable': 'Попередній перегляд для цього виконавця недоступний',
-  'preview.playbackBlocked': 'Відтворення заблоковано браузером -- спробуй натиснути ще раз',
+  'preview.playbackBlocked': 'Відтворення заблоковано браузером - спробуй натиснути ще раз',
   'genres.noneFound': 'Жанрів не знайдено.',
   'common.dismiss': 'Закрити',
   'hint.dismissHint': 'Закрити підказку',
@@ -1616,13 +1615,13 @@ export const uk = {
   'target.action.addToLidarr': 'Додати до Lidarr',
   'pipeline.message.loadingLibrary': 'Завантаження твоєї бібліотеки...',
   'pipeline.message.firstSyncBackground':
-    'Перша синхронізація бібліотеки працює у фоні -- продовжуємо без неї',
+    'Перша синхронізація бібліотеки працює у фоні - продовжуємо без неї',
   'pipeline.message.loadedLibrarySingular': 'Завантажено {0} виконавців з бібліотеки з {1} джерела',
   'pipeline.message.loadedLibraryPlural': 'Завантажено {0} виконавців з бібліотеки з {1} джерел',
   'pipeline.message.buildingProfile': 'Створення твого профілю смаків...',
   'pipeline.message.profiled': 'Профільовано {0} топ-виконавців, {1} жанрів',
   'pipeline.message.findingSimilar': 'Пошук схожих виконавців з усіх джерел...',
-  'pipeline.message.aiSourceFailed': 'Помилка AI-провайдера: {0} -- продовжуємо без AI-пропозицій',
+  'pipeline.message.aiSourceFailed': 'Помилка AI-провайдера: {0} - продовжуємо без AI-пропозицій',
   'pipeline.message.discovered': 'Знайдено {0} виконавців-кандидатів',
   'pipeline.message.resolving': 'Зіставлення {0} виконавців через MusicBrainz...',
   'pipeline.message.scoring': 'Оцінювання {0} зіставлених виконавців...',
@@ -1642,7 +1641,7 @@ export const uk = {
   'pipeline.message.resolutionComplete': 'Зіставлення завершено',
   'firstSyncBanner.title': 'Створення каталогу твоєї бібліотеки',
   'firstSyncBanner.body':
-    'Digarr зіставляє твою бібліотеку з MusicBrainz. Ліміт запитів MusicBrainz дозволяє приблизно 60 виконавців на хвилину, тому повне зіставлення бібліотеки з 5 000 виконавців займає близько 80 хвилин. Це відбувається лише один раз -- наступні синхронізації використовують локальний кеш і завершуються за кілька секунд.',
+    'Digarr зіставляє твою бібліотеку з MusicBrainz. Ліміт запитів MusicBrainz дозволяє приблизно 60 виконавців на хвилину, тому повне зіставлення бібліотеки з 5 000 виконавців займає близько 80 хвилин. Це відбувається лише один раз - наступні синхронізації використовують локальний кеш і завершуються за кілька секунд.',
   'librarySync.message.syncingSource': 'Синхронізація {0}...',
   'errors.auth.invalidCredentials': 'Недійсні облікові дані',
   'errors.auth.notAuthenticated': 'Не автентифіковано',

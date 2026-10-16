@@ -106,7 +106,7 @@ export const ru = {
   'discover.loadFailed': 'Не удалось загрузить рекомендации.',
   'discover.emptyFiltered': 'Нет рекомендаций для выбранных десятилетий.',
   'discover.clearFilters': 'Сбросить фильтры',
-  'discover.pageRange': '{0}--{1} из {2}',
+  'discover.pageRange': '{0}-{1} из {2}',
   'discover.emptyAll':
     'Пока нет рекомендаций. Импортируй любимых исполнителей или запусти первое сканирование, чтобы начать.',
   'discover.emptyApproved':
@@ -317,7 +317,7 @@ export const ru = {
   'discover.exported': 'экспортировано',
   'discover.hideFeedbackInsights': 'Скрыть аналитику отзывов',
   'discover.moodTip':
-    'Совет: опиши своими словами, на любом языке, что тебе хочется послушать -- например, «джаз для дождливого дня» или «бодрый поп 90-х».',
+    'Совет: опиши своими словами, на любом языке, что тебе хочется послушать - например, «джаз для дождливого дня» или «бодрый поп 90-х».',
   'discover.noPendingAbove': 'Нет невыполненных рекомендаций выше.',
   'discover.noPendingBelow': 'Нет ожидающих рекомендаций ниже.',
   'discover.noPendingToClear': 'Нет ожидающих рекомендаций для очистки',
@@ -342,9 +342,9 @@ export const ru = {
   'discover.restoredToPending': 'Восстановлено в статусе ожидания',
   'discover.retryFailed': 'Повторная попытка не удалась',
   'discover.scanAlreadyRunning': 'Сканирование уже выполняется',
-  'discover.scanStarted': 'Сканирование запущено -- проверь Панель для прогресса',
+  'discover.scanStarted': 'Сканирование запущено - проверь Панель для прогресса',
   'discover.scanQueued':
-    'Сканирование в очереди (позиция {0}) -- начнётся после завершения текущего',
+    'Сканирование в очереди (позиция {0}) - начнётся после завершения текущего',
   'discover.scanStartFailed': 'Не удалось запустить сканирование',
   'discover.select': 'Выбрать',
   'discover.showFeedbackInsights': 'Показать аналитику отзывов',
@@ -376,7 +376,7 @@ export const ru = {
   'genreDetail.subGenres': 'Поджанры',
   'genreDetail.tabDeepCuts': 'Редкости',
   'genreDetail.tabDeepCutsDescription':
-    'Скрытые жемчужины -- нишевые исполнители с низкой популярностью',
+    'Скрытые жемчужины - нишевые исполнители с низкой популярностью',
   'genreDetail.tabLibrary': 'В твоей библиотеке',
   'genreDetail.tabLibraryDescription':
     'Исполнители, которые уже есть в твоей музыкальной библиотеке',
@@ -692,11 +692,11 @@ export const ru = {
   'userManagement.noUsers': 'Пользователи не найдены.',
   'userManagement.adminBadge': 'администратор',
   'userManagement.cannotRemoveOwnAdmin': 'Не могу удалить свою роль администратора',
-  'userManagement.lastAdminCannotRemove': 'Последний администратор -- невозможно удалить.',
+  'userManagement.lastAdminCannotRemove': 'Последний администратор - невозможно удалить.',
   'userManagement.removeAdmin': 'Снять роль администратора',
   'userManagement.makeAdmin': 'Сделать администратором',
   'userManagement.cannotDeleteSelf': 'Не могу удалить себя',
-  'userManagement.lastAdminCannotDelete': 'Последний администратор -- невозможно удалить.',
+  'userManagement.lastAdminCannotDelete': 'Последний администратор - невозможно удалить.',
   'userManagement.deleteUser': 'Удалить пользователя',
   'userManagement.deleteUserPrompt': 'Удалить пользователя',
   'recommendation.sourceGenre': 'Жанр',
@@ -719,8 +719,8 @@ export const ru = {
   'todaysPick.matchScore': 'Оценка совпадения',
   'todaysPick.match': 'совпадение',
   'todaysPick.skipHint':
-    'Пропустить показывает следующего исполнителя, не отклоняя его -- пропущенные исполнители будут возвращаться при будущих сканированиях.',
-  'todaysPick.skipTitle': 'Пропусти сейчас -- этот исполнитель вернется позже.',
+    'Пропустить показывает следующего исполнителя, не отклоняя его - пропущенные исполнители будут возвращаться при будущих сканированиях.',
+  'todaysPick.skipTitle': 'Пропусти сейчас - этот исполнитель вернется позже.',
   'pipeline.stage.collect': 'Чтение библиотеки',
   'pipeline.stage.analyze': 'Формируем вкусовой профиль',
   'pipeline.stage.discover': 'Поиск новых исполнителей',
@@ -744,7 +744,7 @@ export const ru = {
   'pipeline.firstScanDescription':
     'Digarr анализирует твой музыкальный вкус и находит исполнителей, которые могут тебе понравиться. Обычно при первом запуске это занимает 2-5 минут.',
   'pipeline.runningFor': 'В работе',
-  'pipeline.stalled': 'Это занимает больше времени, чем обычно -- подожди немного',
+  'pipeline.stalled': 'Это занимает больше времени, чем обычно - подожди немного',
   'pipeline.stop': 'Остановить сканирование',
   'pipeline.stopping': 'Остановка...',
   'pipeline.cancelled': 'Сканирование остановлено',
@@ -754,7 +754,7 @@ export const ru = {
   'libraryHealth.rescanningSoon': 'повторное сканирование через 30 секунд для проверки',
   'libraryHealth.updated': 'Обновлено',
   'libraryHealth.processed': 'Обработано',
-  'libraryHealth.fixFailed': 'Исправление не удалось -- проверь подключение к Lidarr',
+  'libraryHealth.fixFailed': 'Исправление не удалось - проверь подключение к Lidarr',
   'libraryHealth.rescan': 'Повторное сканирование',
   'libraryHealth.introTip':
     'Проверка библиотеки ищет в твоей библиотеке Lidarr отсутствующие метаданные, альбомы, изображения и ссылки Wikidata, неотслеживаемых или повторяющихся исполнителей и пробелы в жанрах. Она запускается по расписанию; нажми «Синхронизировать сейчас», чтобы проверить снова.',
@@ -829,7 +829,7 @@ export const ru = {
   'search.sourcesActive': 'Источники ({0})',
   'search.clearFilters': 'Сбросить фильтры',
   'search.minChars': 'Введи не менее 2 символов для поиска',
-  'search.failed': 'Ошибка поиска -- попробуй ещё раз',
+  'search.failed': 'Ошибка поиска - попробуй ещё раз',
   'search.noResultsFor': 'Исполнители не найдены для',
   'discoveryMode.available': 'Доступно',
   'discoveryMode.unavailable': 'Недоступно',
@@ -936,7 +936,7 @@ export const ru = {
   'discoveryMode.field.helpRawTagExpression':
     'Замени конструктор тегов прямым синтаксисом ListenBrainz, например (trip hop):2:(ambient):1',
   'discoveryMode.field.helpRecordingCount':
-    'Значение по умолчанию -- 25. Большие значения повышают разнообразие, но работают медленнее из-за ограничения MusicBrainz (около 1 секунды на запись).',
+    'Значение по умолчанию - 25. Большие значения повышают разнообразие, но работают медленнее из-за ограничения MusicBrainz (около 1 секунды на запись).',
   'discoveryMode.field.helpPopularityMin':
     '0-100. Исключает записи с популярностью ниже этого значения.',
   'discoveryMode.field.helpPopularityMax':
@@ -977,13 +977,12 @@ export const ru = {
   'importArtists.playlistPlaceholder': 'URL или ID плейлиста',
   'importArtists.go': 'Далее',
   'importArtists.importingLikedSongs':
-    'Импорт понравившихся песен -- новые исполнители скоро появятся на странице Открытий',
+    'Импорт понравившихся песен - новые исполнители скоро появятся на странице Открытий',
   'importArtists.importingPlaylist':
-    'Импорт исполнителей плейлиста -- они скоро появятся на странице Открытий',
-  'importArtists.importingCsv':
-    'Импорт {0} исполнителей -- они скоро появятся на странице Открытий',
+    'Импорт исполнителей плейлиста - они скоро появятся на странице Открытий',
+  'importArtists.importingCsv': 'Импорт {0} исполнителей - они скоро появятся на странице Открытий',
   'importArtists.importingCsvTruncated':
-    'Импорт {0} исполнителей (ограничено 500) -- они скоро появятся на странице Открытий',
+    'Импорт {0} исполнителей (ограничено 500) - они скоро появятся на странице Открытий',
   'importArtists.failedImport': 'Не удалось начать импорт',
   'importArtists.failedPlaylist': 'Не удалось начать импорт плейлиста',
   'importArtists.failedCsv': 'Не удалось импортировать CSV-файл',
@@ -1042,7 +1041,7 @@ export const ru = {
   'settings.getPersonalAccessToken': 'Получить персональный токен доступа',
   'settings.connected': 'подключено',
   'settings.lidarrDescription':
-    'Менеджер музыкальной библиотеки -- необходим для добавления исполнителей.',
+    'Менеджер музыкальной библиотеки - необходим для добавления исполнителей.',
   'settings.lidarrPublicUrlHelp':
     'URL, доступный в браузере, для ссылок на страницы исполнителей в Lidarr. Оставь пустым, если API URL уже доступен в браузере.',
   'settings.aiTip':
@@ -1057,7 +1056,7 @@ export const ru = {
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.sending': 'Отправка...',
   'settings.connectionsTip':
-    'Подключи хотя бы один источник прослушиваний -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby или Discogs. Поиск начинается с исполнителей, которых ты уже слушаешь или собрал.',
+    'Подключи хотя бы один источник прослушиваний - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby или Discogs. Поиск начинается с исполнителей, которых ты уже слушаешь или собрал.',
   'settings.listenbrainzDescription': 'Открытое отслеживание истории прослушивания.',
   'settings.lastfmDescription': 'Скробблинг и история прослушивания.',
   'settings.spotifyDescription': 'История прослушивания из Spotify.',
@@ -1171,7 +1170,7 @@ export const ru = {
   'settings.topArtistsLimit': 'Лимит топ-исполнителей',
   'settings.libraryDiscovery': 'Поиск по библиотеке',
   'settings.libraryDiscoveryHelp':
-    'Какая часть поиска основана на твоей библиотеке Lidarr, а какая -- на истории прослушивания. Более высокие значения находят исполнителей, похожих на тех, что уже есть у тебя. Более низкие значения больше полагаются на данные ListenBrainz/Last.fm.',
+    'Какая часть поиска основана на твоей библиотеке Lidarr, а какая - на истории прослушивания. Более высокие значения находят исполнителей, похожих на тех, что уже есть у тебя. Более низкие значения больше полагаются на данные ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Доля начальных данных из библиотеки',
   'settings.imageSources': 'Источники изображений',
   'settings.imageSourcesHelp':
@@ -1350,7 +1349,7 @@ export const ru = {
   'service.testing': 'Тестирование...',
   'service.saved': 'Сохранено',
   'service.testPassed': 'Проверка пройдена',
-  'service.testPassedUnsaved': 'Проверка пройдена -- ещё не сохранено',
+  'service.testPassedUnsaved': 'Проверка пройдена - ещё не сохранено',
   'oauth.connectedTitle': 'Подключено',
   'oauth.connectedBody': '{0} теперь подключён.',
   'oauth.failedTitle': 'Не удалось подключиться',
@@ -1600,7 +1599,7 @@ export const ru = {
   'approveDialog.metadataProfile': 'Профиль метаданных',
   'approveDialog.rootFolder': 'Корневая папка',
   'cardStack.counter': '{0} из {1}',
-  'cardStack.swipeHint': 'Свайп вправо -- одобрить, влево -- отклонить',
+  'cardStack.swipeHint': 'Свайп вправо - одобрить, влево - отклонить',
   'serviceCard.testConnection': 'Проверить подключение',
   'preview.unavailableSummary': 'Недоступно предпросмотров: {count} из {total} выбранных',
   'preview.reason.missing-links': 'Нет ссылок на предпросмотр',
@@ -1611,7 +1610,7 @@ export const ru = {
   'preview.reason.playback-failed': 'Ошибка воспроизведения аудио',
   'preview.reason.controller-unavailable': 'Плеер Spotify недоступен',
   'preview.noPreviewAvailable': 'Предпросмотр для этого исполнителя недоступен',
-  'preview.playbackBlocked': 'Воспроизведение заблокировано браузером -- попробуй нажать ещё раз',
+  'preview.playbackBlocked': 'Воспроизведение заблокировано браузером - попробуй нажать ещё раз',
   'genres.noneFound': 'Жанры не найдены.',
   'common.dismiss': 'Закрыть',
   'hint.dismissHint': 'Закрыть подсказку',
@@ -1623,14 +1622,14 @@ export const ru = {
   'target.action.addToLidarr': 'Добавить в Lidarr',
   'pipeline.message.loadingLibrary': 'Загрузка твоей библиотеки...',
   'pipeline.message.firstSyncBackground':
-    'Первая синхронизация библиотеки работает в фоне -- продолжаем без неё',
+    'Первая синхронизация библиотеки работает в фоне - продолжаем без неё',
   'pipeline.message.loadedLibrarySingular':
     'Загружено {0} исполнителей библиотеки из {1} источника',
   'pipeline.message.loadedLibraryPlural': 'Загружено {0} исполнителей библиотеки из {1} источников',
   'pipeline.message.buildingProfile': 'Создание профиля твоих предпочтений...',
   'pipeline.message.profiled': 'Профилировано {0} топ-исполнителей, {1} жанров',
   'pipeline.message.findingSimilar': 'Поиск похожих исполнителей по всем источникам...',
-  'pipeline.message.aiSourceFailed': 'Сбой поставщика ИИ: {0} -- продолжаем без предложений ИИ',
+  'pipeline.message.aiSourceFailed': 'Сбой поставщика ИИ: {0} - продолжаем без предложений ИИ',
   'pipeline.message.discovered': 'Найдено {0} кандидатов',
   'pipeline.message.resolving': 'Сопоставление {0} исполнителей через MusicBrainz...',
   'pipeline.message.scoring': 'Оценка {0} сопоставленных исполнителей...',
@@ -1650,7 +1649,7 @@ export const ru = {
   'pipeline.message.resolutionComplete': 'Сопоставление завершено',
   'firstSyncBanner.title': 'Создание каталога твоей библиотеки',
   'firstSyncBanner.body':
-    'Digarr сопоставляет твою библиотеку с MusicBrainz. Лимит запросов MusicBrainz позволяет обрабатывать около 60 исполнителей в минуту, поэтому полное сопоставление библиотеки из 5 000 исполнителей занимает около 80 минут. Это происходит только один раз -- последующие синхронизации используют локальный кэш и завершаются за секунды.',
+    'Digarr сопоставляет твою библиотеку с MusicBrainz. Лимит запросов MusicBrainz позволяет обрабатывать около 60 исполнителей в минуту, поэтому полное сопоставление библиотеки из 5 000 исполнителей занимает около 80 минут. Это происходит только один раз - последующие синхронизации используют локальный кэш и завершаются за секунды.',
   'librarySync.message.syncingSource': 'Синхронизация {0}...',
   'errors.auth.invalidCredentials': 'Неверные учётные данные',
   'errors.auth.notAuthenticated': 'Не аутентифицирован',
