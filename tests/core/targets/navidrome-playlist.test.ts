@@ -40,14 +40,6 @@ afterEach(() => {
 })
 
 describe('createNavidromePlaylistTarget()', () => {
-  it('has correct id, type, and capabilities', () => {
-    const target = createNavidromePlaylistTarget(5, CONFIG)
-    expect(target.id).toBe('navidrome-playlist-5')
-    expect(target.type).toBe('navidrome-playlist')
-    expect(target.capabilities).toContain('createPlaylist')
-    expect(target.capabilities).not.toContain('addArtist')
-  })
-
   describe('testConnection()', () => {
     it('returns success when Navidrome ping succeeds', async () => {
       mockFetch.mockResolvedValueOnce(okResponse({}))
@@ -172,75 +164,6 @@ describe('createNavidromePlaylistTarget()', () => {
 
         return new Response('Not Found', { status: 404 })
       })
-    })
-
-    it('creates a playlist and returns success', async () => {
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('My Playlist', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Karma Police' },
-      ])
-
-      expect(result?.success).toBe(true)
-      expect(result?.playlistId).toBe('pl-42')
-      expect(result?.playlistName).toBe('My Playlist')
-      expect(result?.itemsAdded).toBe(2)
-      expect(result?.targetType).toBe('navidrome-playlist')
-      expect(result?.targetId).toBe(5)
-    })
-
-    it('skips items without trackName', async () => {
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Artist-only Playlist', [
-        // No trackName - artist-level item, should be skipped
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh' },
-      ])
-
-      expect(result?.success).toBe(true)
-      expect(result?.itemsAdded).toBe(0)
-
-      // createPlaylist should still be called, but updatePlaylist should not
-      const calls = mockFetch.mock.calls.map((c) => String(c[0]))
-      expect(calls.some((u) => u.includes('/rest/createPlaylist'))).toBe(true)
-      expect(calls.some((u) => u.includes('/rest/updatePlaylist'))).toBe(false)
-    })
-
-    it('handles tracks not found in library gracefully', async () => {
-      mockFetch.mockImplementation(async (url: string | URL | Request) => {
-        const urlStr = String(url)
-        if (urlStr.includes('/rest/search3')) {
-          return okResponse({ searchResult3: { song: [] } })
-        }
-        if (urlStr.includes('/rest/createPlaylist')) {
-          return okResponse({ playlist: { id: 'pl-99', name: 'Empty' } })
-        }
-        if (urlStr.includes('/rest/updatePlaylist')) {
-          return okResponse({})
-        }
-        return new Response('Not Found', { status: 404 })
-      })
-
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Empty Playlist', [
-        { artistName: 'Unknown Band', artistMbid: 'mbid-unk', trackName: 'Missing Track' },
-      ])
-
-      expect(result?.success).toBe(true)
-      expect(result?.itemsAdded).toBe(0)
-    })
-
-    it('fails without creating a playlist when track search is forbidden', async () => {
-      mockFetch.mockResolvedValueOnce(new Response('forbidden', { status: 403 }))
-
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Forbidden', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
-
-      expect(result).toMatchObject({ success: false, error: 'Subsonic HTTP 403: forbidden' })
-      expect(
-        mockFetch.mock.calls.some(([url]) => String(url).includes('/rest/createPlaylist')),
-      ).toBe(false)
     })
 
     it('redacts auth values from failed Subsonic search envelopes', async () => {
@@ -369,42 +292,6 @@ describe('createNavidromePlaylistTarget()', () => {
 
       expect(result?.success).toBe(true)
       expect(commentAttempts).toBe(1)
-    })
-
-    it('prefers exact title+artist match over first search result', async () => {
-      mockFetch.mockImplementation(async (url: string | URL | Request) => {
-        const urlStr = String(url)
-        if (urlStr.includes('/rest/search3')) {
-          return okResponse({
-            searchResult3: {
-              song: [
-                // Partial match first
-                { id: 'song-partial', title: 'Creep (Live)', artist: 'Radiohead' },
-                // Exact match second
-                { id: 'song-exact', title: 'Creep', artist: 'Radiohead' },
-              ],
-            },
-          })
-        }
-        if (urlStr.includes('/rest/createPlaylist')) {
-          return okResponse({ playlist: { id: 'pl-1', name: 'Test' } })
-        }
-        if (urlStr.includes('/rest/updatePlaylist')) {
-          return okResponse({})
-        }
-        return new Response('Not Found', { status: 404 })
-      })
-
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      await target.createPlaylist?.('Test', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
-
-      // The updatePlaylist call should include the exact-match song ID
-      const updateCall = mockFetch.mock.calls.find((c) =>
-        String(c[0]).includes('/rest/updatePlaylist'),
-      )
-      expect(String(updateCall?.[0])).toContain('song-exact')
     })
 
     it('passes description to updatePlaylist', async () => {

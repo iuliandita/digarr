@@ -1,4 +1,5 @@
 import { createLidarrClient } from '@/core/clients/lidarr'
+import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
 import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
 
@@ -7,7 +8,6 @@ import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
 // album silently never gets monitored. Poll briefly until the albums appear.
 const ALBUM_POLL_ATTEMPTS = 6
 const ALBUM_POLL_DELAY_MS = 1500
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export type LidarrTargetConfig = {
   url: string

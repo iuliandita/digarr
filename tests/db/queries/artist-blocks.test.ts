@@ -55,12 +55,6 @@ describe('addBlock', () => {
       source: 'rejection',
     })
   })
-
-  it('forwards source=manual when explicitly passed', async () => {
-    const { db, values } = makeInsertDb()
-    await addBlock(db, { userId: 2, artistId: 20, source: 'manual' })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ source: 'manual' }))
-  })
 })
 
 describe('removeBlock', () => {

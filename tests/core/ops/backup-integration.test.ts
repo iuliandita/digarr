@@ -8,10 +8,11 @@ import { decryptField, encryptField, initEncryption } from '@/core/crypto'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import type { BackupData, BackupFile } from '@/core/ops/types'
 import * as schema from '@/db/schema'
+import { assertDisposableDatabase, failIfDbRequired } from '../../helpers/require-db'
 
 const { Pool } = pg
 
-const DATABASE_URL = process.env.DATABASE_URL ?? 'postgresql://digarr:digarr@localhost:5432/digarr'
+const DATABASE_URL = process.env.DATABASE_URL
 
 const pool = new Pool({ connectionString: DATABASE_URL })
 const db = drizzle(pool, { schema })
@@ -49,10 +50,17 @@ function makeBackup(data: Partial<BackupData> = {}): BackupFile {
 }
 
 beforeAll(async () => {
+  if (!DATABASE_URL) {
+    pgAvailable = false
+    failIfDbRequired(new Error('DATABASE_URL is not set'))
+    return
+  }
+  assertDisposableDatabase(DATABASE_URL)
   try {
     await db.execute(sql`SELECT 1`)
-  } catch {
+  } catch (err) {
     pgAvailable = false
+    failIfDbRequired(err)
   }
 })
 

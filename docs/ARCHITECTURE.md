@@ -217,7 +217,7 @@ score threshold.
 Extension points use registries or configuration maps:
 
 - `DiscoverySource` - listening-source plugins in `src/core/plugins/`, registered through `SourceRegistry`; add new IDs to `LISTENING_SOURCE_IDS` for unconfigured-source reporting
-- `LibrarySource` - library-sync adapters in `src/core/library/sources/`, registered through `LibrarySourceRegistry` and ordered by MBID quality
+- `LibrarySource` - library-sync adapters in `src/core/library/sources/`, built through the sync orchestrator's `buildGlobalSources` and `buildPerUserSources` callbacks and ordered by MBID quality
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)

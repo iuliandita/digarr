@@ -4,13 +4,10 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type ReconcilerContext, reconcileArtist } from '@/core/library/reconciler'
 import { createLibrarySyncStore } from '@/core/library/store'
+import { dbSuiteEnabled } from '../../helpers/require-db'
 
 let userId: number
-const SHOULD_RUN =
-  process.env.DATABASE_URL !== undefined ||
-  (process.env.DB_HOST !== undefined &&
-    process.env.DB_USER !== undefined &&
-    process.env.DB_NAME !== undefined)
+const SHOULD_RUN = dbSuiteEnabled()
 let db: import('@/db').Database
 let users: typeof import('@/db/schema').users
 

@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import { envConfig } from '@/config/env'
+import { sleep } from '@/core/sleep'
 import { VERSION } from '@/version'
 
 const BASE_URL = envConfig.musicbrainzUrl
@@ -112,10 +113,6 @@ function parseRetryAfterMs(header: string | null): number | null {
     return Math.min(Math.max(when - Date.now(), 0), MAX_RETRY_AFTER_MS)
   }
   return null
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // Single shared rate gate. MusicBrainz enforces ~1 req/s per consumer; every

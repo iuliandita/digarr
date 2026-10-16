@@ -80,6 +80,8 @@ bun run test:e2e:a11y # Accessibility checks
 
 Tests live in `tests/`. Keep them close to the code they cover. Route-contract coverage lives in `tests/api-routes/`; browser coverage lives in `tests/e2e/browser/`; accessibility coverage lives in `tests/e2e/a11y/`. Install browsers with `bunx playwright install --with-deps chromium firefox` first. With `DATABASE_URL` or complete `DB_HOST`/`DB_USER`/`DB_NAME` settings (including values in `.env`), Playwright derives a `<database>_playwright` database, terminates its connections, and drops and recreates it on every run. Use an isolated development server and an account with database create/drop permissions; never point this at a database you need to keep. Without an external database configuration, browser tests use temporary PGlite storage and need no PostgreSQL server. By default, Playwright starts an isolated backend on `:3000`, Vite on `:5173`, and the mock sign-in provider on `:3011`. Set `PLAYWRIGHT_SKIP_WEBSERVER=1` only when all required test servers are already running.
 
+A few unit suites (library sync, backup, rate limiter, and the PostgreSQL concurrency tests) run only when `DATABASE_URL` is set, and the backup suite truncates every table it touches. Point it at a throwaway database whose name contains `test`; it refuses other names unless `DIGARR_ALLOW_DESTRUCTIVE_TEST_DB=1` is set. CI sets `DIGARR_REQUIRE_TEST_DB=1` so these suites fail instead of skipping when PostgreSQL is unavailable.
+
 For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. CI also runs the smoke and browser suites, but the expectation is that branch diffs affecting those paths get a local pass first.
 
 ### Container compatibility checks

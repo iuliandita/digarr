@@ -1,7 +1,5 @@
 import type { GenreInfo } from './types'
 
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
-
 export interface GenreQueries {
   upsertGenre: (data: {
     name: string
@@ -31,11 +29,6 @@ export class GenreService {
       .trim()
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
-  }
-
-  isStale(genre: { cachedAt: Date | null }): boolean {
-    if (genre.cachedAt === null) return true
-    return Date.now() - genre.cachedAt.getTime() > CACHE_TTL_MS
   }
 
   async seedFromLibrary(artists: Array<{ genres: string[] }>): Promise<void> {
