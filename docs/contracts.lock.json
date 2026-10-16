@@ -411,10 +411,10 @@
         "src/web/components/ui/card.tsx": "55d10877a7ece79dadb712352ee14946866e2aa778ebe563d01da7340358af11",
         "src/web/components/ui/disclosure.tsx": "f218ecb538399bd1600a0cc66d5c3aa677cd9aea0b4434072a99ee0cd286fd9a",
         "src/web/components/ui/empty-state.tsx": "1d9bfa9b9ab780e57b1e189bea4396b2705277c4c81ad9ce797aa070c395a104",
-        "src/web/components/ui/input.tsx": "939ce4445e40146386fb7002176bc8eedfb57e76558e4fae21bfd26b1994d808",
+        "src/web/components/ui/input.tsx": "fad21bebd81f221c773e4219382c3198738bc7aa6a8574f97ccacbbe1af87ac7",
         "src/web/components/ui/notice.tsx": "2982b28d1817fd75a7553b335228e699189d30a72548e4a5481b15f45976893b",
         "src/web/components/ui/page-header.tsx": "a75b94d38bd2a4191b4e9fcec6c0f7e2d462c00a4eda3bddfd6ae8e95b855b26",
-        "src/web/components/ui/select.tsx": "a82daf0d582085d0493e6cd63558ed54bebc3327fe0ad77c16e7d602d2cfefad",
+        "src/web/components/ui/select.tsx": "d1bf3a859cf27e8ef45e86731bddecd984994c1265794bec9f1bef394726f833",
         "src/web/components/ui/skeleton.tsx": "1d33366a895e482264f4fa13030ef65269396d281554c46a31d356137e3ef11e",
         "src/web/hooks/use-audition-queue.ts": "f546b67ce9f458a8bc2418e173a99acfbd37efa5ce33308b968a2ec366dc60fe",
         "src/web/hooks/use-click-outside.ts": "4b5d69046fdd1307242e0560e7367f1e9647660cd3ca2dcb8becff9315765621",
@@ -464,14 +464,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "4d383b41655884e98eaa371018abc21f38a45216147c468dbd8e318739a67542",
+      "digest": "5209bb01c8ba664f2b72b83dd578a0a34473b62d76159f59aee66a277a177750",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
-        "note": "Foundation of the UI refresh: self-hosted Roboto Flex, type/radius/elevation/focus tokens derived per theme, theme-token status colors, Disclosure keeps content mounted, Dashboard page title and empty/error states, reduced motion. Changelog entry added; screenshot doc notes the captures predate the refresh and will be recaptured at the end of #889. README and OPERATIONS unaffected: no setup, config, or behavior contract changes.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Text field and select focus now draws one 2px ring over the border instead of a recolored border plus an offset outline; styling only, already covered by the foundation changelog entry.",
         "breaking": "none",
         "migration": "",
-        "digest": "4d383b41655884e98eaa371018abc21f38a45216147c468dbd8e318739a67542"
+        "digest": "5209bb01c8ba664f2b72b83dd578a0a34473b62d76159f59aee66a277a177750"
       }
     },
     "features": {
