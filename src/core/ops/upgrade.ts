@@ -3,6 +3,8 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
+  rmSync,
   statSync,
   unlinkSync,
   writeFileSync,
@@ -141,19 +143,27 @@ export async function autoBackup(
   toVersion: string | null,
 ): Promise<string> {
   const dir = getBackupDir()
-  mkdirSync(dir, { recursive: true })
+  mkdirSync(dir, { recursive: true, mode: 0o700 })
 
   const backup = await createBackupSnapshot(db, {
     includeCaches: true,
     tolerateMissingSchema: true,
   })
-  const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15)
+  const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 17)
   const from = fromVersion ?? 'fresh'
   const to = toVersion ?? 'unknown'
   const filename = `pre-migrate-${ts}-${from}-${to}.json`
   const filepath = join(dir, filename)
 
-  writeFileSync(filepath, JSON.stringify(backup, null, 2), 'utf-8')
+  // Write under a name the listing ignores, so a failed write never counts as the latest backup.
+  const tmpPath = join(dir, `.${filename}.tmp`)
+  try {
+    writeFileSync(tmpPath, JSON.stringify(backup, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    renameSync(tmpPath, filepath)
+  } catch (error) {
+    rmSync(tmpPath, { force: true })
+    throw error
+  }
   pruneOldBackups(dir)
 
   if (backup.absentSchema) {

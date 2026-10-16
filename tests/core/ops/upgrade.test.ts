@@ -17,6 +17,8 @@ vi.mock('node:fs', async (importOriginal) => {
     existsSync: vi.fn().mockReturnValue(true),
     readdirSync: vi.fn().mockReturnValue([]),
     unlinkSync: vi.fn(),
+    renameSync: vi.fn(),
+    rmSync: vi.fn(),
     statSync: vi.fn().mockReturnValue({ mtimeMs: Date.now(), mtime: new Date() }),
   }
 })
