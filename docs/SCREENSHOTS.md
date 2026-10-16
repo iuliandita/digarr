@@ -87,7 +87,7 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 
 ![Settings](screenshots/settings.png)
 
-The tab row keeps native horizontal scrolling and shows conditional chevrons plus edge fades when more tabs are hidden in either direction. Selecting or deep-linking a tab scrolls it into view.
+Since the UI refresh, Settings sections sit in a grouped side menu (Personal, Library & services, Admin) on desktop and a grouped select on small screens; the capture above predates it. Each service is a collapsed row with its status (Not configured, Saved, Test passed, Error, or Connected for OAuth links), and rarely used fields sit in collapsed Advanced blocks.
 
 In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 

@@ -113,7 +113,7 @@ For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`
 
 ## Connecting Plex listeners
 
-In Settings > Connections > Your Connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
+In Settings > Connections > Your connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
 
 Settings reloads music-library names from your saved Plex connection. If Plex is unavailable or the selected library no longer exists, the saved section ID remains visible; loading the names does not change your selection.
 
