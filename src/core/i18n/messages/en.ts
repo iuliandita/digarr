@@ -271,8 +271,6 @@ export const en = {
   'dashboard.prev': 'Prev',
   'dashboard.next': 'Next',
   'dashboard.nowPlaying': 'Now playing',
-  'dashboard.listeningTip':
-    'Your listening data comes from ListenBrainz or Last.fm. Make sure your token is set in Settings for accurate results.',
   'dashboard.manage': 'Manage',
   'dashboard.nextRun': 'next',
   'dashboard.noRunsYet': 'No runs yet',
@@ -283,12 +281,8 @@ export const en = {
   'dashboard.subscriptions': 'Subscriptions',
   'dashboard.subscriptionsEmpty':
     "You haven't set up any automatic discovery yet. Digarr can find new artists for you on a schedule.",
-  'dashboard.subscriptionsTip':
-    'Subscriptions automatically find new artists on a schedule. Check the Subscriptions page to set one up.',
   'dashboard.tasteEmpty':
     "As you approve or reject artist recommendations, Digarr learns your taste and gets better at finding music you'll like.",
-  'dashboard.tasteTip':
-    'Your taste profile is built from your listening history and approved recommendations. Connect more sources in Settings for richer taste analysis.',
   'dashboard.yourTaste': 'Your Taste',
   'discover.actionApplied': 'Action applied.',
   'discover.approveAllAbove': 'Approve All Above',
@@ -501,7 +495,7 @@ export const en = {
   'playlists.createFailed': 'Failed to create playlist',
   'playlists.created': 'Playlist created',
   'playlists.emptyHint':
-    'Playlists let Digarr automatically push curated digests to Jellyfin, Navidrome, or Plex on a schedule. Connect a media server in Settings first.',
+    'Build playlists from approved or pending artists, download them as M3U or XSPF, or push them to Spotify, Navidrome, Jellyfin, Emby, or Plex.',
   'playlists.nextGeneration': 'Next generation',
   'playlists.noScheduleConfigured': 'No schedule configured',
   'playlists.playlistPlural': 'playlists',
@@ -712,7 +706,7 @@ export const en = {
   'todaysPick.matchScore': 'Match score',
   'todaysPick.match': 'match',
   'todaysPick.skipHint':
-    'Skip shows you the next artist without rejecting - skipped artists will come back in future scans.',
+    'Skip shows you the next artist without rejecting -- skipped artists will come back in future scans.',
   'todaysPick.skipTitle': 'Skip for now - this artist will come back later',
   'pipeline.stage.collect': 'Reading library',
   'pipeline.stage.analyze': 'Building taste profile',
@@ -749,7 +743,7 @@ export const en = {
   'libraryHealth.fixFailed': 'Fix failed - check Lidarr connection',
   'libraryHealth.rescan': 'Re-scan',
   'libraryHealth.introTip':
-    'Library health checks your Lidarr library for common issues like missing metadata, unmonitored artists, or genre gaps. Run a scan to see what needs attention.',
+    'Library health checks your Lidarr library for missing metadata, albums, images, and Wikidata links, unmonitored or duplicate artists, and genre gaps. It runs on a schedule; use Sync Now to check again.',
   'libraryHealth.scanningBanner':
     'Scanning library health - this may take several minutes for large libraries. Results will appear when complete.',
   'libraryHealth.pendingRescan': 'Auto re-scan scheduled to verify fix results...',
@@ -1042,7 +1036,7 @@ export const en = {
   'settings.lidarrPublicUrlHelp':
     'Browser-accessible URL for linking to Lidarr artist pages. Leave empty if the API URL is already reachable from your browser.',
   'settings.aiTip':
-    'Choose an AI provider to power recommendations. Ollama runs locally for free. Cloud providers (Claude, GPT, Gemini) need API keys.',
+    'Choose the AI provider that suggests artists. Ollama or any OpenAI-compatible server can run locally; hosted providers need an API key.',
   'settings.aiDescription': 'Generates music recommendations.',
   'settings.aiOpenAiCompatibleHelp':
     'Works with Groq, OpenRouter, LiteLLM, LocalAI, and any OpenAI-compatible endpoint. API key is optional for local services.',
@@ -1053,7 +1047,7 @@ export const en = {
   'settings.aiPrivacyBadgeLocal': 'Fully local',
   'settings.sending': 'Sending...',
   'settings.connectionsTip':
-    'Connect your listening sources first - ListenBrainz, Last.fm, Spotify, or Plex. The pipeline uses your listening history to find similar artists.',
+    'Connect at least one listening source -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby, or Discogs. Discovery starts from the artists you already play or own.',
   'settings.listenbrainzDescription': 'Open-source listening history tracking.',
   'settings.lastfmDescription': 'Music scrobbling and listening history.',
   'settings.spotifyDescription': 'Listening history from Spotify.',
@@ -1095,7 +1089,7 @@ export const en = {
   'settings.lidarrPreferencesSaved': 'Lidarr preferences saved',
   'settings.lidarrPreferencesFailed': 'Failed to save Lidarr preferences',
   'settings.targetsTip':
-    'Targets define where approved recommendations go - Lidarr for downloads, Spotify for playlists, or media servers for direct playback.',
+    'Targets decide where approved artists go: Lidarr or slskd for downloads, Spotify or your Navidrome, Jellyfin, Emby, or Plex server for playlists, or a file export.',
   'settings.addTarget': 'Add Target',
   'settings.noTargets':
     'No targets configured. Approved recommendations will be saved as a curated list.',
@@ -1132,7 +1126,7 @@ export const en = {
   'settings.approvalActionLidarrSlskd':
     'Approval action: queue in slskd and import through Lidarr.',
   'settings.recommendationsTip':
-    'Scoring weights control how recommendations are ranked. Tweak these to emphasize genre overlap, AI confidence, or similarity.',
+    'Genres and the score threshold decide what you see. Scoring weights, further down, decide how candidates are ranked.',
   'settings.scoreThreshold': 'Score threshold',
   'settings.minScoreToShow': 'Minimum score to show recommendation',
   'settings.scoringWeights': 'Scoring Weights',
@@ -1191,7 +1185,7 @@ export const en = {
   'settings.recommendationsPartiallySaved':
     'Personal preferences saved, but global metadata settings failed to save.',
   'settings.scheduleTip':
-    'Set a cron schedule to run the discovery pipeline automatically. Weekly on Monday is a popular choice.',
+    'Pick a preset or enter a cron expression to run discovery automatically. Daily or weekly suits most libraries.',
   'settings.librarySyncInterval': 'Library Sync',
   'settings.librarySyncIntervalHours': 'Sync interval (hours)',
   'settings.librarySyncIntervalHelp':
@@ -1223,6 +1217,10 @@ export const en = {
   'settings.passwordTooShort': 'Password must be at least 12 characters',
   'settings.currentPasswordIncorrect': 'Current password is incorrect',
   'settings.language': 'Language',
+  'settings.tips': 'Tips',
+  'settings.tipsDescription': 'Bring back the help tips you dismissed.',
+  'settings.showTipsAgain': 'Show tips again',
+  'settings.tipsRestored': 'Tips will show again.',
   'settings.app': 'App',
   'settings.installDigarr': 'Install Digarr',
   'settings.installIosHint': 'Tap the share button, then "Add to Home Screen"',
@@ -1241,7 +1239,7 @@ export const en = {
   'settings.oidcDescription':
     'Configure OpenID Connect for single sign-on. After saving, users will see a "Sign in with SSO" button on the login page.',
   'settings.authTip':
-    'Configure OIDC/SSO to let users sign in with Authentik, Authelia, or any OpenID Connect provider.',
+    'Let people sign in with an OpenID Connect provider such as Authentik or Authelia, or through a reverse proxy that passes the signed-in user.',
   'settings.reverseProxyAuth': 'Reverse Proxy Auth',
   'settings.reverseProxyDescription':
     'When enabled, Digarr trusts an HTTP header from a configured reverse proxy and auto-provisions users from it.',

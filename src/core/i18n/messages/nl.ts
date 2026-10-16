@@ -275,8 +275,6 @@ export const nl = {
   'dashboard.prev': 'Vorige',
   'dashboard.next': 'Volgende',
   'dashboard.nowPlaying': 'Speelt nu',
-  'dashboard.listeningTip':
-    'Uw luistergegevens zijn afkomstig van ListenBrainz of Last.fm. Zorg ervoor dat uw token in Instellingen is ingevuld voor nauwkeurige resultaten.',
   'dashboard.manage': 'Beheren',
   'dashboard.nextRun': 'volgende',
   'dashboard.noRunsYet': 'Nog geen runs',
@@ -287,12 +285,8 @@ export const nl = {
   'dashboard.subscriptions': 'Abonnementen',
   'dashboard.subscriptionsEmpty':
     'U heeft nog geen automatische detectie ingesteld. Digarr kan volgens een schema nieuwe artiesten voor u vinden.',
-  'dashboard.subscriptionsTip':
-    'Abonnementen vinden automatisch nieuwe artiesten volgens een schema. Kijk op de pagina Abonnementen om er een in te stellen.',
   'dashboard.tasteEmpty':
     'Terwijl u aanbevelingen van artiesten goedkeurt of afwijst, leert Digarr uw smaak kennen en wordt hij beter in het vinden van muziek die u leuk vindt.',
-  'dashboard.tasteTip':
-    'Uw smaakprofiel wordt opgebouwd op basis van uw luistergeschiedenis en goedgekeurde aanbevelingen. Verbind meer bronnen in Instellingen voor een rijkere smaakanalyse.',
   'dashboard.yourTaste': 'Jouw muzieksmaak',
   'discover.actionApplied': 'Actie toegepast.',
   'discover.approveAllAbove': 'Keur alles hierboven goed',
@@ -510,7 +504,7 @@ export const nl = {
   'playlists.createFailed': 'Kan afspeellijst niet maken',
   'playlists.created': 'Afspeellijst gemaakt',
   'playlists.emptyHint':
-    'Met afspeellijsten kan Digarr automatisch samengestelde samenvattingen volgens een schema naar Jellyfin, Navidrome of Plex pushen. Verbind eerst een mediaserver in Instellingen.',
+    'Maak afspeellijsten van goedgekeurde of openstaande artiesten, download ze als M3U of XSPF, of stuur ze naar Spotify, Navidrome, Jellyfin, Emby of Plex.',
   'playlists.nextGeneration': 'Volgende generatie',
   'playlists.noScheduleConfigured': 'Geen schema geconfigureerd',
   'playlists.playlistPlural': 'afspeellijsten',
@@ -762,7 +756,7 @@ export const nl = {
   'libraryHealth.fixFailed': 'Oplossing mislukt - controleer Lidarr-verbinding',
   'libraryHealth.rescan': 'Opnieuw scannen',
   'libraryHealth.introTip':
-    'De bibliotheekstatus controleert uw Lidarr-bibliotheek op veelvoorkomende problemen zoals ontbrekende metadata, niet-gecontroleerde artiesten of hiaten in het genre. Voer een scan uit om te zien wat aandacht nodig heeft.',
+    "Bibliotheekgezondheid controleert je Lidarr-bibliotheek op ontbrekende metadata, albums, afbeeldingen en Wikidata-links, niet-gevolgde of dubbele artiesten en genregaten. Het draait volgens schema; gebruik 'Nu synchroniseren' om opnieuw te controleren.",
   'libraryHealth.scanningBanner':
     'Bibliotheekstatus scannen - dit kan enkele minuten duren voor grote bibliotheken. De resultaten verschijnen wanneer voltooid.',
   'libraryHealth.pendingRescan':
@@ -1043,7 +1037,7 @@ export const nl = {
   'settings.lidarrPublicUrlHelp':
     "Via browser bereikbare URL voor links naar Lidarr-artiestenpagina's. Leeg laten als de API-URL al via de browser bereikbaar is.",
   'settings.aiTip':
-    'Kies een AI-aanbieder voor aanbevelingen. Ollama draait gratis lokaal. Cloudaanbieders (Claude, GPT, Gemini) vereisen API-sleutels.',
+    'Kies de AI-provider die artiesten voorstelt. Ollama of elke OpenAI-compatibele server kan lokaal draaien; gehoste providers hebben een API-sleutel nodig.',
   'settings.aiDescription': 'Genereert muziekaanbevelingen.',
   'settings.aiOpenAiCompatibleHelp':
     'Werkt met Groq, OpenRouter, LiteLLM, LocalAI en elk OpenAI-compatibel eindpunt. API-sleutel is optioneel voor lokale diensten.',
@@ -1054,7 +1048,7 @@ export const nl = {
   'settings.aiPrivacyBadgeLocal': 'Volledig lokaal',
   'settings.sending': 'Bezig met verzenden...',
   'settings.connectionsTip':
-    'Verbind eerst je luisterbronnen - ListenBrainz, Last.fm, Spotify of Plex. De pipeline gebruikt je luistergeschiedenis om vergelijkbare artiesten te vinden.',
+    'Koppel minstens één luisterbron -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby of Discogs. Ontdekken begint bij de artiesten die je al afspeelt of bezit.',
   'settings.listenbrainzDescription': 'Open-source luistergeschiedenisregistratie.',
   'settings.lastfmDescription': 'Muziek-scrobbling en luistergeschiedenis.',
   'settings.spotifyDescription': 'Luistergeschiedenis van Spotify.',
@@ -1095,7 +1089,7 @@ export const nl = {
   'settings.lidarrPreferencesSaved': 'Lidarr-voorkeuren opgeslagen',
   'settings.lidarrPreferencesFailed': 'Lidarr-voorkeuren konden niet worden opgeslagen',
   'settings.targetsTip':
-    'Doelen bepalen waar goedgekeurde aanbevelingen naartoe gaan - Lidarr voor downloads, Spotify voor afspeellijsten, of mediaservers voor directe weergave.',
+    'Doelen bepalen waar goedgekeurde artiesten heen gaan: Lidarr of slskd voor downloads, Spotify of je Navidrome-, Jellyfin-, Emby- of Plex-server voor afspeellijsten, of een bestandsexport.',
   'settings.addTarget': 'Doel toevoegen',
   'settings.noTargets':
     'Geen doelen geconfigureerd. Goedgekeurde aanbevelingen worden opgeslagen als gecureerde lijst.',
@@ -1133,7 +1127,7 @@ export const nl = {
   'settings.approvalActionLidarrSlskd':
     'Goedkeuringsactie: in slskd in de wachtrij zetten en via Lidarr importeren.',
   'settings.recommendationsTip':
-    'Beoordelingsgewichten bepalen hoe aanbevelingen worden gerangschikt. Pas ze aan om genre-overlap, AI-zekerheid of gelijkenis te benadrukken.',
+    'Genres en de scoredrempel bepalen wat je ziet. De scoregewichten verderop bepalen hoe kandidaten worden gerangschikt.',
   'settings.scoreThreshold': 'Scoredrempel',
   'settings.minScoreToShow': 'Minimumscore om aanbeveling te tonen',
   'settings.scoringWeights': 'Beoordelingsgewichten',
@@ -1193,7 +1187,7 @@ export const nl = {
   'settings.recommendationsPartiallySaved':
     'Persoonlijke voorkeuren opgeslagen, maar de globale metadata-instellingen konden niet worden opgeslagen.',
   'settings.scheduleTip':
-    'Stel een cron-schema in om de ontdekkingspipeline automatisch uit te voeren. Wekelijks op maandag is een populaire keuze.',
+    'Kies een voorinstelling of voer een cron-expressie in om ontdekking automatisch uit te voeren. Dagelijks of wekelijks past bij de meeste bibliotheken.',
   'settings.librarySyncInterval': 'Bibliotheeksynchronisatie',
   'settings.librarySyncIntervalHours': 'Synchronisatie-interval (uren)',
   'settings.librarySyncIntervalHelp':
@@ -1225,6 +1219,10 @@ export const nl = {
   'settings.passwordTooShort': 'Wachtwoord moet minimaal 12 tekens bevatten',
   'settings.currentPasswordIncorrect': 'Huidig wachtwoord is onjuist',
   'settings.language': 'Taal',
+  'settings.tips': 'Tips',
+  'settings.tipsDescription': 'Haal de hulptips terug die je hebt verborgen.',
+  'settings.showTipsAgain': 'Tips weer tonen',
+  'settings.tipsRestored': 'Tips worden weer getoond.',
   'settings.app': 'Applicatie',
   'settings.installDigarr': 'Digarr installeren',
   'settings.installIosHint': 'Tik op de deelknop en dan op "Voeg toe aan beginscherm"',
@@ -1243,7 +1241,7 @@ export const nl = {
   'settings.oidcDescription':
     'OpenID Connect configureren voor single sign-on. Na het opslaan zien gebruikers een knop "Aanmelden met SSO" op de inlogpagina.',
   'settings.authTip':
-    'Configureer OIDC/SSO zodat gebruikers kunnen inloggen met Authentik, Authelia of een andere OpenID Connect-aanbieder.',
+    'Laat mensen inloggen via een OpenID Connect-provider zoals Authentik of Authelia, of via een reverse proxy die de ingelogde gebruiker doorgeeft.',
   'settings.reverseProxyAuth': 'Reverse-proxyauthenticatie',
   'settings.reverseProxyDescription':
     'Indien ingeschakeld vertrouwt Digarr een HTTP-header van een geconfigureerde reverse proxy en worden gebruikers automatisch daarvandaan aangemaakt.',

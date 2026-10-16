@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
@@ -103,10 +103,8 @@ describe('DiscoveryModeCard i18n', () => {
       screen.getByText('Collega ListenBrainz, Spotify o Last.fm per usare questa modalità.'),
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ignora' }))
-    expect(
-      screen.queryByText('Collega ListenBrainz, Spotify o Last.fm per usare questa modalità.'),
-    ).not.toBeInTheDocument()
+    // The reason is status, so it stays visible until the mode becomes available
+    expect(screen.queryByRole('button', { name: 'Ignora' })).not.toBeInTheDocument()
   })
 
   it('translates the not-implemented-yet availability reason', () => {

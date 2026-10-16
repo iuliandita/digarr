@@ -4,7 +4,7 @@ import { useI18n } from '../lib/i18n'
 
 type HintProps = {
   id: string
-  type?: 'inline' | 'spotlight' | 'empty-state' | 'post-action'
+  type?: 'inline' | 'spotlight' | 'post-action'
   children: React.ReactNode
   className?: string
 }
@@ -46,21 +46,6 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
           className="shrink-0 text-muted hover:text-text transition-colors"
         >
           <X size={13} aria-hidden="true" />
-        </button>
-      </div>
-    )
-  }
-
-  if (type === 'empty-state') {
-    return (
-      <div className={`text-center space-y-3 py-6 ${className}`}>
-        <div className="text-sm text-muted max-w-sm mx-auto">{children}</div>
-        <button
-          type="button"
-          onClick={() => dismissHint(id)}
-          className="text-xs text-muted hover:text-text transition-colors underline underline-offset-2"
-        >
-          {t('common.dismiss')}
         </button>
       </div>
     )

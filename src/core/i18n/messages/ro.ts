@@ -275,8 +275,6 @@ export const ro = {
   'dashboard.prev': 'Înapoi',
   'dashboard.next': 'Înainte',
   'dashboard.nowPlaying': 'Se redă acum',
-  'dashboard.listeningTip':
-    'Datele dvs. de ascultare provin de la ListenBrainz sau Last.fm. Asigurați-vă că simbolul este setat în Setări pentru rezultate precise.',
   'dashboard.manage': 'Gestionați',
   'dashboard.nextRun': 'în continuare',
   'dashboard.noRunsYet': 'Încă nu există curse',
@@ -287,12 +285,8 @@ export const ro = {
   'dashboard.subscriptions': 'Abonamente',
   'dashboard.subscriptionsEmpty':
     'Nu ați configurat încă nicio descoperire automată. Digarr poate găsi artiști noi pentru dvs. după un program.',
-  'dashboard.subscriptionsTip':
-    'Abonamentele găsesc automat artiști noi într-un program. Verificați pagina Abonamente pentru a configura unul.',
   'dashboard.tasteEmpty':
     'Pe măsură ce aprobați sau respingeți recomandările de artiști, Digarr vă învață gusturile și devine mai bun la a găsi muzica care v-ar plăcea.',
-  'dashboard.tasteTip':
-    'Profilul dvs. de gust este construit din istoricul dvs. de ascultare și recomandările aprobate. Conectați mai multe surse în Setări pentru o analiză mai bogată a gustului.',
   'dashboard.yourTaste': 'Gustul dvs. muzical',
   'discover.actionApplied': 'Acțiune aplicată.',
   'discover.approveAllAbove': 'Aprobați toate cele de mai sus',
@@ -511,7 +505,7 @@ export const ro = {
   'playlists.createFailed': 'Nu s-a putut crea lista de redare',
   'playlists.created': 'Lista de redare creată',
   'playlists.emptyHint':
-    'Listele de redare îi permit lui Digarr să împingă automat rezumate organizate către Jellyfin, Navidrome sau Plex într-un program. Conectați mai întâi un server media în Setări.',
+    'Creați playlisturi din artiști aprobați sau în așteptare, descărcați-le ca M3U sau XSPF ori trimiteți-le în Spotify, Navidrome, Jellyfin, Emby sau Plex.',
   'playlists.nextGeneration': 'Generația următoare',
   'playlists.noScheduleConfigured': 'Nu a fost configurat niciun program',
   'playlists.playlistPlural': 'liste de redare',
@@ -727,7 +721,7 @@ export const ro = {
   'todaysPick.matchScore': 'Scor de potrivire',
   'todaysPick.match': 'potrivire',
   'todaysPick.skipHint':
-    'Omiterea vă arată următorul artist fără a-l respinge - artiștii omiși vor reveni în scanările viitoare.',
+    'Omiterea vă arată următorul artist fără a-l respinge -- artiștii omiși vor reveni în scanările viitoare.',
   'todaysPick.skipTitle': 'Omiteți deocamdată - acest artist va reveni mai târziu',
   'pipeline.stage.collect': 'Biblioteca de lectură',
   'pipeline.stage.analyze': 'Construirea profilului gustului',
@@ -765,7 +759,7 @@ export const ro = {
   'libraryHealth.fixFailed': 'Remedierea a eșuat - verificați conexiunea Lidarr',
   'libraryHealth.rescan': 'Re-scanați',
   'libraryHealth.introTip':
-    'Starea bibliotecii verifică biblioteca dvs. Lidarr pentru probleme obișnuite, cum ar fi metadate lipsă, artiști nemonitorizați sau lacune de gen. Rulați o scanare pentru a vedea ce necesită atenție.',
+    'Starea bibliotecii verifică biblioteca Lidarr pentru metadate, albume, imagini și linkuri Wikidata lipsă, artiști nemonitorizați sau duplicați și goluri de gen. Rulează programat; folosiți „Sincronizează acum” pentru a verifica din nou.',
   'libraryHealth.scanningBanner':
     'Scanarea sănătății bibliotecii - acest lucru poate dura câteva minute pentru bibliotecile mari. Rezultatele vor apărea când sunt finalizate.',
   'libraryHealth.pendingRescan':
@@ -1049,7 +1043,7 @@ export const ro = {
   'settings.lidarrPublicUrlHelp':
     'URL accesibil din browser pentru legarea la paginile de artiști din Lidarr. Lăsați gol dacă URL-ul API este deja accesibil din browserul dvs.',
   'settings.aiTip':
-    'Alegeți un furnizor AI pentru recomandări. Ollama funcționează local gratuit. Furnizorii cloud (Claude, GPT, Gemini) necesită chei API.',
+    'Alegeți furnizorul AI care sugerează artiști. Ollama sau orice server compatibil OpenAI poate rula local; furnizorii găzduiți au nevoie de o cheie API.',
   'settings.aiDescription': 'Generează recomandări muzicale.',
   'settings.aiOpenAiCompatibleHelp':
     'Funcționează cu Groq, OpenRouter, LiteLLM, LocalAI și orice endpoint compatibil OpenAI. Cheia API este opțională pentru serviciile locale.',
@@ -1060,7 +1054,7 @@ export const ro = {
   'settings.aiPrivacyBadgeLocal': 'Complet local',
   'settings.sending': 'Se trimite...',
   'settings.connectionsTip':
-    'Conectați mai întâi sursele de ascultare - ListenBrainz, Last.fm, Spotify sau Plex. Pipeline-ul folosește istoricul dvs. de ascultare pentru a găsi artiști similari.',
+    'Conectați cel puțin o sursă de ascultare -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby sau Discogs. Descoperirea pornește de la artiștii pe care îi ascultați sau îi dețineți deja.',
   'settings.listenbrainzDescription': 'Urmărire open source a istoricului de ascultare.',
   'settings.lastfmDescription': 'Scrobbling muzical și istoric de ascultare.',
   'settings.spotifyDescription': 'Istoric de ascultare din Spotify.',
@@ -1104,7 +1098,7 @@ export const ro = {
   'settings.lidarrPreferencesSaved': 'Preferințe Lidarr salvate',
   'settings.lidarrPreferencesFailed': 'Imposibil de salvat preferințele Lidarr',
   'settings.targetsTip':
-    'Destinațiile definesc unde ajung recomandările aprobate - Lidarr pentru descărcări, Spotify pentru liste de redare, sau servere media pentru redare directă.',
+    'Destinațiile decid unde ajung artiștii aprobați: Lidarr sau slskd pentru descărcări, Spotify ori serverul Navidrome, Jellyfin, Emby sau Plex pentru playlisturi, ori un export în fișier.',
   'settings.addTarget': 'Adăugați destinație',
   'settings.noTargets':
     'Nicio destinație configurată. Recomandările aprobate vor fi salvate ca listă curată.',
@@ -1143,7 +1137,7 @@ export const ro = {
   'settings.approvalActionLidarrSlskd':
     'Acțiune de aprobare: pune la coadă în slskd și importă prin Lidarr.',
   'settings.recommendationsTip':
-    'Ponderile de punctaj controlează clasificarea recomandărilor. Ajustați-le pentru a pune accent pe suprapunerea genurilor, încrederea IA sau similaritate.',
+    'Genurile și pragul de scor decid ce vedeți. Ponderile scorului, mai jos, decid cum sunt ordonați candidații.',
   'settings.scoreThreshold': 'Prag de punctaj',
   'settings.minScoreToShow': 'Punctaj minim pentru a afișa o recomandare',
   'settings.scoringWeights': 'Ponderi de punctaj',
@@ -1203,7 +1197,7 @@ export const ro = {
   'settings.recommendationsPartiallySaved':
     'Preferințele personale au fost salvate, dar setările globale pentru metadate nu au putut fi salvate.',
   'settings.scheduleTip':
-    'Setați o planificare cron pentru a rula pipeline-ul de descoperire automat. O dată pe săptămână, luni, este o alegere populară.',
+    'Alegeți o presetare sau introduceți o expresie cron pentru a rula descoperirea automat. Zilnic sau săptămânal se potrivește majorității bibliotecilor.',
   'settings.librarySyncInterval': 'Sync bibliotecă',
   'settings.librarySyncIntervalHours': 'Interval de sincronizare (ore)',
   'settings.librarySyncIntervalHelp':
@@ -1235,6 +1229,10 @@ export const ro = {
   'settings.passwordTooShort': 'Parola trebuie să aibă cel puțin 12 caractere',
   'settings.currentPasswordIncorrect': 'Parola curentă este incorectă',
   'settings.language': 'Limbă',
+  'settings.tips': 'Sfaturi',
+  'settings.tipsDescription': 'Readuceți sfaturile de ajutor pe care le-ați închis.',
+  'settings.showTipsAgain': 'Afișează din nou sfaturile',
+  'settings.tipsRestored': 'Sfaturile vor fi afișate din nou.',
   'settings.app': 'Aplicație',
   'settings.installDigarr': 'Instalați Digarr',
   'settings.installIosHint': 'Apăsați butonul de partajare, apoi „Adăugați la ecranul principal"',
@@ -1253,7 +1251,7 @@ export const ro = {
   'settings.oidcDescription':
     'Configurați OpenID Connect pentru autentificare unică. După salvare, utilizatorii vor vedea un buton „Autentificați-vă cu SSO" pe pagina de conectare.',
   'settings.authTip':
-    'Configurați OIDC/SSO pentru a permite utilizatorilor să se autentifice cu Authentik, Authelia sau orice furnizor OpenID Connect.',
+    'Permiteți autentificarea printr-un furnizor OpenID Connect precum Authentik sau Authelia, ori printr-un proxy invers care transmite utilizatorul autentificat.',
   'settings.reverseProxyAuth': 'Autentificare prin proxy invers',
   'settings.reverseProxyDescription':
     'Când este activat, Digarr are încredere într-un antet HTTP de la un proxy invers configurat și provizionează automat utilizatorii din acesta.',

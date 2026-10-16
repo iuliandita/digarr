@@ -788,9 +788,6 @@ export function Dashboard() {
             }}
             onPageChange={setListenPage}
           />
-          <Hint id="dashboard-listening-tip" type="inline">
-            {t('dashboard.listeningTip')}
-          </Hint>
           <RecentActivity
             data={recentTracksData}
             error={recentTracksError}
@@ -805,15 +802,9 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
-          <Hint id="dashboard-subscriptions-tip" type="inline">
-            {t('dashboard.subscriptionsTip')}
-          </Hint>
         </div>
         <div className="space-y-3">
           <TasteProfile genres={tasteData} coverage={genreCoverageData} loading={tasteLoading} />
-          <Hint id="dashboard-taste-tip" type="inline">
-            {t('dashboard.tasteTip')}
-          </Hint>
         </div>
       </div>
 

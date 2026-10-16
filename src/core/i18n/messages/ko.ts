@@ -269,8 +269,6 @@ export const ko = {
   'dashboard.prev': '이전',
   'dashboard.next': '다음',
   'dashboard.nowPlaying': '재생 중',
-  'dashboard.listeningTip':
-    '청취 데이터는 ListenBrainz 또는 Last.fm에서 제공됩니다. 정확한 결과를 얻으려면 설정에서 토큰이 설정되어 있는지 확인하세요.',
   'dashboard.manage': '관리',
   'dashboard.nextRun': '다음',
   'dashboard.noRunsYet': '아직 실행 없음',
@@ -281,12 +279,8 @@ export const ko = {
   'dashboard.subscriptions': '구독',
   'dashboard.subscriptionsEmpty':
     '아직 자동 검색을 설정하지 않았습니다. Digarr는 일정에 따라 새로운 아티스트를 찾아줄 수 있습니다.',
-  'dashboard.subscriptionsTip':
-    '구독하면 일정에 따라 자동으로 새로운 아티스트를 찾을 수 있습니다. 구독 페이지를 확인하여 설정하세요.',
   'dashboard.tasteEmpty':
     '아티스트 추천을 승인하거나 거부하면 Digarr는 귀하의 취향을 학습하고 귀하가 좋아할 음악을 더 잘 찾을 수 있습니다.',
-  'dashboard.tasteTip':
-    '귀하의 취향 프로필은 청취 기록과 승인된 추천을 바탕으로 구축됩니다. 더 풍부한 맛 분석을 위해 설정에서 더 많은 소스를 연결하세요.',
   'dashboard.yourTaste': '음악 취향',
   'discover.actionApplied': '작업이 적용되었습니다.',
   'discover.approveAllAbove': '위 모두 승인',
@@ -503,7 +497,7 @@ export const ko = {
   'playlists.createFailed': '재생목록을 생성하지 못했습니다.',
   'playlists.created': '재생목록이 생성되었습니다.',
   'playlists.emptyHint':
-    '재생 목록을 사용하면 Digarr가 일정에 따라 선별된 다이제스트를 Jellyfin, Navidrome 또는 Plex에 자동으로 푸시할 수 있습니다. 먼저 설정에서 미디어 서버를 연결하세요.',
+    '승인했거나 대기 중인 아티스트로 플레이리스트를 만들고, M3U나 XSPF로 내려받거나 Spotify, Navidrome, Jellyfin, Emby, Plex로 보낼 수 있습니다.',
   'playlists.nextGeneration': '차세대',
   'playlists.noScheduleConfigured': '구성된 일정이 없습니다.',
   'playlists.playlistPlural': '재생목록',
@@ -749,7 +743,7 @@ export const ko = {
   'libraryHealth.fixFailed': '수정 실패 - Lidarr 연결을 확인하세요',
   'libraryHealth.rescan': '다시 스캔',
   'libraryHealth.introTip':
-    '라이브러리 상태는 Lidarr 라이브러리에서 누락된 메타데이터, 모니터링되지 않는 아티스트 또는 장르 격차와 같은 일반적인 문제를 확인합니다. 검사를 실행하여 주의가 필요한 사항을 확인하세요.',
+    "라이브러리 상태 점검은 Lidarr 라이브러리에서 누락된 메타데이터, 앨범, 이미지, Wikidata 링크와 모니터링되지 않거나 중복된 아티스트, 장르 공백을 확인합니다. 일정에 따라 실행되며, '지금 동기화'로 다시 확인할 수 있습니다.",
   'libraryHealth.scanningBanner':
     '라이브러리 상태 검색 중 - 대규모 라이브러리의 경우 몇 분 정도 걸릴 수 있습니다. 완료되면 결과가 표시됩니다.',
   'libraryHealth.pendingRescan': '수정 결과를 확인하기 위해 자동 재검사가 예약되었습니다...',
@@ -1020,7 +1014,7 @@ export const ko = {
   'settings.lidarrPublicUrlHelp':
     'Lidarr 아티스트 페이지 링크에 사용할 브라우저 접근 가능 URL. API URL이 이미 브라우저에서 접근 가능하면 비워두세요.',
   'settings.aiTip':
-    '추천 기능을 구동할 AI 제공자를 선택하세요. Ollama는 로컬에서 무료로 실행됩니다. 클라우드 제공자(Claude, GPT, Gemini)는 API Key가 필요합니다.',
+    '아티스트를 추천할 AI 제공자를 선택하세요. Ollama나 OpenAI 호환 서버는 로컬에서 실행할 수 있고, 호스팅 제공자는 API 키가 필요합니다.',
   'settings.aiDescription': '음악 추천을 생성합니다.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI 및 모든 OpenAI 호환 엔드포인트와 함께 작동합니다. 로컬 서비스의 API Key는 선택 사항입니다.',
@@ -1031,7 +1025,7 @@ export const ko = {
   'settings.aiPrivacyBadgeLocal': '완전 로컬',
   'settings.sending': '전송 중...',
   'settings.connectionsTip':
-    '먼저 청취 소스를 연결하세요 - ListenBrainz, Last.fm, Spotify, 또는 Plex. 파이프라인이 청취 기록을 활용해 유사한 아티스트를 찾습니다.',
+    '청취 소스를 하나 이상 연결하세요 -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby 또는 Discogs. 디스커버리는 이미 듣거나 소장한 아티스트에서 시작합니다.',
   'settings.listenbrainzDescription': '오픈소스 청취 기록 추적.',
   'settings.lastfmDescription': '음악 스크로블링 및 청취 기록.',
   'settings.spotifyDescription': 'Spotify의 청취 기록.',
@@ -1072,7 +1066,7 @@ export const ko = {
   'settings.lidarrPreferencesSaved': 'Lidarr 설정이 저장되었습니다',
   'settings.lidarrPreferencesFailed': 'Lidarr 설정 저장에 실패했습니다',
   'settings.targetsTip':
-    '대상은 승인된 추천이 전달될 곳을 정의합니다 - 다운로드는 Lidarr, 재생목록은 Spotify, 또는 직접 재생은 미디어 서버.',
+    '타깃은 승인한 아티스트를 보낼 곳을 정합니다. 다운로드는 Lidarr 또는 slskd, 플레이리스트는 Spotify나 Navidrome, Jellyfin, Emby, Plex 서버, 또는 파일 내보내기입니다.',
   'settings.addTarget': '대상 추가',
   'settings.noTargets': '설정된 대상이 없습니다. 승인된 추천은 큐레이션 목록으로 저장됩니다.',
   'settings.targetAdded': '대상이 추가되었습니다',
@@ -1107,7 +1101,7 @@ export const ko = {
   'settings.approvalActionSlskd': '승인 작업: slskd에만 대기열에 넣기.',
   'settings.approvalActionLidarrSlskd': '승인 작업: slskd에 대기열에 넣고 Lidarr로 가져오기.',
   'settings.recommendationsTip':
-    '점수 가중치는 추천 순위를 제어합니다. 장르 겹침, AI 신뢰도, 유사도를 강조하도록 조정할 수 있습니다.',
+    '장르와 점수 기준이 보이는 항목을 정합니다. 아래의 점수 가중치는 후보의 순위를 정합니다.',
   'settings.scoreThreshold': '점수 임계값',
   'settings.minScoreToShow': '추천을 표시할 최소 점수',
   'settings.scoringWeights': '점수 가중치',
@@ -1166,7 +1160,7 @@ export const ko = {
   'settings.recommendationsPartiallySaved':
     '개인 설정은 저장되었지만 전역 메타데이터 설정을 저장하지 못했습니다.',
   'settings.scheduleTip':
-    'Cron 일정을 설정하여 탐색 파이프라인을 자동 실행합니다. 매주 월요일이 인기 있는 선택입니다.',
+    '프리셋을 고르거나 cron 표현식을 입력해 디스커버리를 자동으로 실행하세요. 대부분의 라이브러리는 매일 또는 매주면 충분합니다.',
   'settings.librarySyncInterval': '라이브러리 동기화',
   'settings.librarySyncIntervalHours': '동기화 간격(시간)',
   'settings.librarySyncIntervalHelp':
@@ -1197,6 +1191,10 @@ export const ko = {
   'settings.passwordTooShort': '비밀번호는 12자 이상이어야 합니다',
   'settings.currentPasswordIncorrect': '현재 비밀번호가 올바르지 않습니다',
   'settings.language': '언어',
+  'settings.tips': '도움말',
+  'settings.tipsDescription': '닫은 도움말을 다시 표시합니다.',
+  'settings.showTipsAgain': '도움말 다시 보기',
+  'settings.tipsRestored': '도움말이 다시 표시됩니다.',
   'settings.app': '앱',
   'settings.installDigarr': 'Digarr 설치',
   'settings.installIosHint': '공유 버튼을 탭한 후 "홈 화면에 추가"를 선택하세요',
@@ -1215,7 +1213,7 @@ export const ko = {
   'settings.oidcDescription':
     '싱글 사인온을 위해 OpenID Connect를 설정합니다. 저장 후 로그인 페이지에 "SSO로 로그인" 버튼이 표시됩니다.',
   'settings.authTip':
-    'OIDC/SSO를 설정하여 Authentik, Authelia, 또는 모든 OpenID Connect 제공자로 로그인할 수 있게 합니다.',
+    'Authentik이나 Authelia 같은 OpenID Connect 제공자, 또는 로그인한 사용자를 전달하는 리버스 프록시를 통해 로그인하게 하세요.',
   'settings.reverseProxyAuth': '리버스 프록시 인증',
   'settings.reverseProxyDescription':
     '활성화하면 Digarr가 설정된 리버스 프록시의 HTTP 헤더를 신뢰하고 해당 헤더에서 사용자를 자동으로 생성합니다.',

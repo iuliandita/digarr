@@ -274,8 +274,6 @@ export const es = {
   'dashboard.prev': 'Anterior',
   'dashboard.next': 'Siguiente',
   'dashboard.nowPlaying': 'Reproduciendo ahora',
-  'dashboard.listeningTip':
-    'Tus datos de escucha provienen de ListenBrainz o Last.fm. Asegúrese de que su token esté configurado en Configuración para obtener resultados precisos.',
   'dashboard.manage': 'Administrar',
   'dashboard.nextRun': 'siguiente',
   'dashboard.noRunsYet': 'Aún no hay carreras',
@@ -286,12 +284,8 @@ export const es = {
   'dashboard.subscriptions': 'Suscripciones',
   'dashboard.subscriptionsEmpty':
     'Aún no has configurado ningún descubrimiento automático. Digarr puede encontrar nuevos artistas para usted según un cronograma.',
-  'dashboard.subscriptionsTip':
-    'Las suscripciones encuentran automáticamente nuevos artistas según un cronograma. Consulte la página de Suscripciones para configurar una.',
   'dashboard.tasteEmpty':
     'A medida que apruebas o rechazas recomendaciones de artistas, Digarr aprende tus gustos y mejora en la búsqueda de música que te guste.',
-  'dashboard.tasteTip':
-    'Su perfil de gusto se construye a partir de su historial de escucha y recomendaciones aprobadas. Conecte más fuentes en Configuración para obtener un análisis de sabor más rico.',
   'dashboard.yourTaste': 'Tu gusto musical',
   'discover.actionApplied': 'Acción aplicada.',
   'discover.approveAllAbove': 'Aprobar todo lo anterior',
@@ -511,7 +505,7 @@ export const es = {
   'playlists.createFailed': 'No se pudo crear la lista de reproducción',
   'playlists.created': 'Lista de reproducción creada',
   'playlists.emptyHint':
-    'Las listas de reproducción permiten a Digarr enviar automáticamente resúmenes seleccionados a Jellyfin, Navidrome o Plex según un cronograma. Primero conecte un servidor de medios en Configuración.',
+    'Crea listas a partir de artistas aprobados o pendientes, descárgalas como M3U o XSPF, o envíalas a Spotify, Navidrome, Jellyfin, Emby o Plex.',
   'playlists.nextGeneration': 'Próxima generación',
   'playlists.noScheduleConfigured': 'No hay horario configurado',
   'playlists.playlistPlural': 'listas de reproducción',
@@ -764,7 +758,7 @@ export const es = {
   'libraryHealth.fixFailed': 'Error en la solución: verifique la conexión Lidarr',
   'libraryHealth.rescan': 'Volver a escanear',
   'libraryHealth.introTip':
-    'El estado de la biblioteca comprueba su biblioteca Lidarr en busca de problemas comunes, como metadatos faltantes, artistas no monitoreados o lagunas de género. Ejecute un escaneo para ver qué necesita atención.',
+    'La salud de la biblioteca revisa tu biblioteca de Lidarr en busca de metadatos, álbumes, imágenes y enlaces de Wikidata que faltan, artistas sin supervisar o duplicados y huecos de género. Se ejecuta de forma programada; usa «Sincronizar ahora» para volver a revisar.',
   'libraryHealth.scanningBanner':
     'Exploración del estado de la biblioteca: esto puede tardar varios minutos en el caso de bibliotecas grandes. Los resultados aparecerán cuando esté completo.',
   'libraryHealth.pendingRescan':
@@ -1045,7 +1039,7 @@ export const es = {
   'settings.lidarrPublicUrlHelp':
     'URL accesible desde el navegador para enlazar a las páginas de artistas de Lidarr. Déjala vacía si la URL de la API ya es accesible desde tu navegador.',
   'settings.aiTip':
-    'Elige un proveedor de IA para las recomendaciones. Ollama funciona en local de forma gratuita. Los proveedores en la nube (Claude, GPT, Gemini) requieren claves API.',
+    'Elige el proveedor de IA que sugiere artistas. Ollama o cualquier servidor compatible con OpenAI puede ejecutarse en local; los proveedores alojados necesitan una clave de API.',
   'settings.aiDescription': 'Genera recomendaciones musicales.',
   'settings.aiOpenAiCompatibleHelp':
     'Compatible con Groq, OpenRouter, LiteLLM, LocalAI y cualquier endpoint compatible con OpenAI. La clave API es opcional para servicios locales.',
@@ -1056,7 +1050,7 @@ export const es = {
   'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.sending': 'Enviando...',
   'settings.connectionsTip':
-    'Conecta primero tus fuentes de escucha: ListenBrainz, Last.fm, Spotify o Plex. El pipeline usa tu historial de escucha para encontrar artistas similares.',
+    'Conecta al menos una fuente de escucha -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby o Discogs. El descubrimiento parte de los artistas que ya escuchas o tienes.',
   'settings.listenbrainzDescription': 'Seguimiento del historial de escucha de código abierto.',
   'settings.lastfmDescription': 'Scrobbling de música e historial de escucha.',
   'settings.spotifyDescription': 'Historial de escucha desde Spotify.',
@@ -1101,7 +1095,7 @@ export const es = {
   'settings.lidarrPreferencesSaved': 'Preferencias de Lidarr guardadas',
   'settings.lidarrPreferencesFailed': 'Error al guardar las preferencias de Lidarr',
   'settings.targetsTip':
-    'Los destinos definen adónde van las recomendaciones aprobadas: Lidarr para descargas, Spotify para listas o servidores multimedia para reproducción directa.',
+    'Los destinos deciden adónde van los artistas aprobados: Lidarr o slskd para descargas, Spotify o tu servidor Navidrome, Jellyfin, Emby o Plex para listas de reproducción, o una exportación a archivo.',
   'settings.addTarget': 'Añadir destino',
   'settings.noTargets':
     'No hay destinos configurados. Las recomendaciones aprobadas se guardarán como lista curada.',
@@ -1140,7 +1134,7 @@ export const es = {
   'settings.approvalActionLidarrSlskd':
     'Acción de aprobación: poner en cola en slskd e importar a través de Lidarr.',
   'settings.recommendationsTip':
-    'Los pesos de puntuación controlan cómo se ordenan las recomendaciones. Ajústalos para dar más relevancia a la coincidencia de géneros, la confianza de la IA o la similitud.',
+    'Los géneros y el umbral de puntuación deciden lo que ves. Los pesos de puntuación, más abajo, deciden cómo se ordenan los candidatos.',
   'settings.scoreThreshold': 'Umbral de puntuación',
   'settings.minScoreToShow': 'Puntuación mínima para mostrar una recomendación',
   'settings.scoringWeights': 'Pesos de puntuación',
@@ -1200,7 +1194,7 @@ export const es = {
   'settings.recommendationsPartiallySaved':
     'Se guardaron las preferencias personales, pero no se pudieron guardar los ajustes globales de metadatos.',
   'settings.scheduleTip':
-    'Establece una programación cron para ejecutar el pipeline automáticamente. Una vez a la semana, los lunes, es una opción popular.',
+    'Elige un ajuste predefinido o escribe una expresión cron para ejecutar el descubrimiento automáticamente. Diario o semanal sirve para la mayoría de las bibliotecas.',
   'settings.librarySyncInterval': 'Sincronización de biblioteca',
   'settings.librarySyncIntervalHours': 'Intervalo de sincronización (horas)',
   'settings.librarySyncIntervalHelp':
@@ -1232,6 +1226,10 @@ export const es = {
   'settings.passwordTooShort': 'La contraseña debe tener al menos 12 caracteres',
   'settings.currentPasswordIncorrect': 'La contraseña actual es incorrecta',
   'settings.language': 'Idioma',
+  'settings.tips': 'Consejos',
+  'settings.tipsDescription': 'Recupera los consejos de ayuda que descartaste.',
+  'settings.showTipsAgain': 'Mostrar consejos de nuevo',
+  'settings.tipsRestored': 'Los consejos se mostrarán de nuevo.',
   'settings.app': 'Aplicación',
   'settings.installDigarr': 'Instalar Digarr',
   'settings.installIosHint': 'Toca el botón de compartir y luego "Añadir a pantalla de inicio"',
@@ -1250,7 +1248,7 @@ export const es = {
   'settings.oidcDescription':
     'Configura OpenID Connect para el inicio de sesión único. Al guardar, los usuarios verán un botón "Iniciar sesión con SSO" en la página de inicio de sesión.',
   'settings.authTip':
-    'Configura OIDC/SSO para que los usuarios puedan iniciar sesión con Authentik, Authelia o cualquier proveedor OpenID Connect.',
+    'Permite iniciar sesión con un proveedor OpenID Connect como Authentik o Authelia, o a través de un proxy inverso que transmita el usuario autenticado.',
   'settings.reverseProxyAuth': 'Autenticación por proxy inverso',
   'settings.reverseProxyDescription':
     'Cuando está activado, Digarr confía en una cabecera HTTP de un proxy inverso configurado y crea usuarios automáticamente a partir de ella.',

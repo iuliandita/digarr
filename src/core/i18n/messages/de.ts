@@ -274,8 +274,6 @@ export const de = {
   'dashboard.prev': 'Zurück',
   'dashboard.next': 'Weiter',
   'dashboard.nowPlaying': 'Läuft gerade',
-  'dashboard.listeningTip':
-    'Ihre Hördaten stammen von ListenBrainz oder Last.fm. Stellen Sie sicher, dass Ihr Token in den Einstellungen festgelegt ist, um genaue Ergebnisse zu erhalten.',
   'dashboard.manage': 'Verwalten',
   'dashboard.nextRun': 'als nächstes',
   'dashboard.noRunsYet': 'Noch keine Durchläufe',
@@ -286,12 +284,8 @@ export const de = {
   'dashboard.subscriptions': 'Abonnements',
   'dashboard.subscriptionsEmpty':
     'Sie haben noch keine automatische Erkennung eingerichtet. Digarr kann nach einem Zeitplan neue Künstler für Sie finden.',
-  'dashboard.subscriptionsTip':
-    'Abonnements finden automatisch nach einem Zeitplan neue Künstler. Schauen Sie auf der Seite „Abonnements“ nach, um eines einzurichten.',
   'dashboard.tasteEmpty':
     'Wenn Sie Künstlerempfehlungen genehmigen oder ablehnen, lernt Digarr Ihren Geschmack kennen und wird besser darin, Musik zu finden, die Ihnen gefällt.',
-  'dashboard.tasteTip':
-    'Ihr Geschmacksprofil basiert auf Ihrem Hörverlauf und genehmigten Empfehlungen. Verbinden Sie in den Einstellungen weitere Quellen für eine umfassendere Geschmacksanalyse.',
   'dashboard.yourTaste': 'Ihr Musikgeschmack',
   'discover.actionApplied': 'Aktion angewendet.',
   'discover.approveAllAbove': 'Genehmigen Sie alles oben',
@@ -516,7 +510,7 @@ export const de = {
   'playlists.createFailed': 'Die Wiedergabeliste konnte nicht erstellt werden',
   'playlists.created': 'Playlist erstellt',
   'playlists.emptyHint':
-    'Mit Playlists kann Digarr kuratierte Digests nach einem Zeitplan automatisch an Jellyfin, Navidrome oder Plex senden. Verbinden Sie zunächst einen Medienserver in den Einstellungen.',
+    'Erstellen Sie Playlists aus genehmigten oder ausstehenden Künstlern, laden Sie sie als M3U oder XSPF herunter oder senden Sie sie an Spotify, Navidrome, Jellyfin, Emby oder Plex.',
   'playlists.nextGeneration': 'Nächste Generation',
   'playlists.noScheduleConfigured': 'Kein Zeitplan konfiguriert',
   'playlists.playlistPlural': 'Wiedergabelisten',
@@ -772,7 +766,7 @@ export const de = {
   'libraryHealth.fixFailed': 'Fehlerbehebung fehlgeschlagen – Lidarr-Verbindung überprüfen',
   'libraryHealth.rescan': 'Erneut scannen',
   'libraryHealth.introTip':
-    'Der Bibliotheksstatus überprüft Ihre Lidarr-Bibliothek auf häufige Probleme wie fehlende Metadaten, nicht überwachte Künstler oder Genrelücken. Führen Sie einen Scan durch, um zu sehen, was Aufmerksamkeit erfordert.',
+    'Die Bibliotheksprüfung durchsucht Ihre Lidarr-Bibliothek nach fehlenden Metadaten, Alben, Bildern und Wikidata-Links, nicht überwachten oder doppelten Künstlern und Genrelücken. Sie läuft nach Zeitplan; mit „Jetzt synchronisieren“ prüfen Sie erneut.',
   'libraryHealth.scanningBanner':
     'Überprüfung des Zustands der Bibliothek – dies kann bei großen Bibliotheken mehrere Minuten dauern. Nach Abschluss werden die Ergebnisse angezeigt.',
   'libraryHealth.pendingRescan':
@@ -1055,7 +1049,7 @@ export const de = {
   'settings.lidarrPublicUrlHelp':
     'Im Browser erreichbare URL für Links zu Lidarr-Künstlerseiten. Leer lassen, wenn die API-URL bereits über den Browser erreichbar ist.',
   'settings.aiTip':
-    'Wähle einen KI-Anbieter für Empfehlungen. Ollama läuft kostenlos lokal. Cloud-Anbieter (Claude, GPT, Gemini) benötigen API-Keys.',
+    'Wählen Sie den KI-Anbieter, der Künstler vorschlägt. Ollama oder jeder OpenAI-kompatible Server kann lokal laufen; gehostete Anbieter brauchen einen API-Schlüssel.',
   'settings.aiDescription': 'Erstellt Musikempfehlungen.',
   'settings.aiOpenAiCompatibleHelp':
     'Kompatibel mit Groq, OpenRouter, LiteLLM, LocalAI und jedem OpenAI-kompatiblen Endpunkt. API-Key ist für lokale Dienste optional.',
@@ -1066,7 +1060,7 @@ export const de = {
   'settings.aiPrivacyBadgeLocal': 'Vollständig lokal',
   'settings.sending': 'Wird gesendet...',
   'settings.connectionsTip':
-    'Verbinde zuerst deine Hörquellen – ListenBrainz, Last.fm, Spotify oder Plex. Die Pipeline nutzt deinen Hörverlauf, um ähnliche Künstler zu finden.',
+    'Verbinden Sie mindestens eine Hörquelle -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby oder Discogs. Die Entdeckung geht von den Künstlern aus, die Sie schon hören oder besitzen.',
   'settings.listenbrainzDescription': 'Open-Source-Hörverlaufsverfolgung.',
   'settings.lastfmDescription': 'Musik-Scrobbling und Hörverlauf.',
   'settings.spotifyDescription': 'Hörverlauf von Spotify.',
@@ -1108,7 +1102,7 @@ export const de = {
   'settings.lidarrPreferencesSaved': 'Lidarr-Einstellungen gespeichert',
   'settings.lidarrPreferencesFailed': 'Lidarr-Einstellungen konnten nicht gespeichert werden',
   'settings.targetsTip':
-    'Ziele legen fest, wohin genehmigte Empfehlungen gehen – Lidarr zum Herunterladen, Spotify für Playlists oder Medienserver für die direkte Wiedergabe.',
+    'Ziele legen fest, wohin genehmigte Künstler gehen: Lidarr oder slskd für Downloads, Spotify oder Ihr Navidrome-, Jellyfin-, Emby- oder Plex-Server für Playlists oder ein Dateiexport.',
   'settings.addTarget': 'Ziel hinzufügen',
   'settings.noTargets':
     'Keine Ziele konfiguriert. Genehmigte Empfehlungen werden als kuratierte Liste gespeichert.',
@@ -1147,7 +1141,7 @@ export const de = {
   'settings.approvalActionLidarrSlskd':
     'Freigabeaktion: in slskd in die Warteschlange stellen und über Lidarr importieren.',
   'settings.recommendationsTip':
-    'Bewertungsgewichte steuern das Ranking der Empfehlungen. Passe sie an, um Genre-Überschneidung, KI-Konfidenz oder Ähnlichkeit zu betonen.',
+    'Genres und die Mindestbewertung bestimmen, was Sie sehen. Die Bewertungsgewichte weiter unten bestimmen, wie Kandidaten sortiert werden.',
   'settings.scoreThreshold': 'Bewertungsschwelle',
   'settings.minScoreToShow': 'Mindestpunktzahl zum Anzeigen einer Empfehlung',
   'settings.scoringWeights': 'Bewertungsgewichte',
@@ -1207,7 +1201,7 @@ export const de = {
   'settings.recommendationsPartiallySaved':
     'Persönliche Einstellungen gespeichert, aber die globalen Metadateneinstellungen konnten nicht gespeichert werden.',
   'settings.scheduleTip':
-    'Lege einen Cron-Zeitplan für die automatische Ausführung der Entdeckungs-Pipeline fest. Wöchentlich montags ist eine beliebte Wahl.',
+    'Wählen Sie eine Vorlage oder geben Sie einen Cron-Ausdruck ein, um die Entdeckung automatisch auszuführen. Täglich oder wöchentlich passt für die meisten Bibliotheken.',
   'settings.librarySyncInterval': 'Bibliothekssync',
   'settings.librarySyncIntervalHours': 'Sync-Intervall (Stunden)',
   'settings.librarySyncIntervalHelp':
@@ -1239,6 +1233,10 @@ export const de = {
   'settings.passwordTooShort': 'Passwort muss mindestens 12 Zeichen lang sein',
   'settings.currentPasswordIncorrect': 'Aktuelles Passwort ist falsch',
   'settings.language': 'Sprache',
+  'settings.tips': 'Tipps',
+  'settings.tipsDescription': 'Blenden Sie ausgeblendete Hilfetipps wieder ein.',
+  'settings.showTipsAgain': 'Tipps wieder anzeigen',
+  'settings.tipsRestored': 'Tipps werden wieder angezeigt.',
   'settings.app': 'Anwendung',
   'settings.installDigarr': 'Digarr installieren',
   'settings.installIosHint': 'Teilen-Button antippen, dann „Zum Home-Bildschirm"',
@@ -1258,7 +1256,7 @@ export const de = {
   'settings.oidcDescription':
     'OpenID Connect für Single Sign-On konfigurieren. Nach dem Speichern sehen Nutzer einen „Mit SSO anmelden"-Button auf der Anmeldeseite.',
   'settings.authTip':
-    'OIDC/SSO konfigurieren, damit Nutzer sich mit Authentik, Authelia oder einem beliebigen OpenID-Connect-Anbieter anmelden können.',
+    'Lassen Sie Personen sich über einen OpenID-Connect-Anbieter wie Authentik oder Authelia anmelden oder über einen Reverse Proxy, der den angemeldeten Benutzer weitergibt.',
   'settings.reverseProxyAuth': 'Reverse-Proxy-Authentifizierung',
   'settings.reverseProxyDescription':
     'Wenn aktiviert, vertraut Digarr einem HTTP-Header eines konfigurierten Reverse-Proxys und stellt Nutzer automatisch darüber bereit.',

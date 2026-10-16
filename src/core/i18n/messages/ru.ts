@@ -273,8 +273,6 @@ export const ru = {
   'dashboard.prev': 'Назад',
   'dashboard.next': 'Далее',
   'dashboard.nowPlaying': 'Сейчас играет',
-  'dashboard.listeningTip':
-    'Данные о прослушивании поступают из ListenBrainz или Last.fm. Убедитесь, что ваш токен установлен в настройках для получения точных результатов.',
   'dashboard.manage': 'Управление',
   'dashboard.nextRun': 'следующий',
   'dashboard.noRunsYet': 'Запусков пока нет',
@@ -285,12 +283,8 @@ export const ru = {
   'dashboard.subscriptions': 'Подписки',
   'dashboard.subscriptionsEmpty':
     'Вы еще не настроили автоматическое обнаружение. Digarr может найти для вас новых исполнителей по расписанию.',
-  'dashboard.subscriptionsTip':
-    'Подписки автоматически находят новых исполнителей по расписанию. Посетите страницу «Подписки», чтобы настроить ее.',
   'dashboard.tasteEmpty':
     'Когда вы одобряете или отклоняете рекомендации исполнителя, Digarr изучает ваш вкус и становится лучше в поиске музыки, которая вам нравится.',
-  'dashboard.tasteTip':
-    'Ваш вкусовой профиль формируется на основе вашей истории прослушивания и утвержденных рекомендаций. Подключите больше источников в настройках для более детального анализа вкуса.',
   'dashboard.yourTaste': 'Ваш музыкальный вкус',
   'discover.actionApplied': 'Действие применено.',
   'discover.approveAllAbove': 'Одобрить все вышеперечисленное',
@@ -512,7 +506,7 @@ export const ru = {
   'playlists.createFailed': 'Не удалось создать плейлист',
   'playlists.created': 'Плейлист создан',
   'playlists.emptyHint':
-    'Списки воспроизведения позволяют Digarr автоматически отправлять специально подобранные дайджесты в Jellyfin, Navidrome или Plex по расписанию. Сначала подключите медиасервер в настройках.',
+    'Собирайте плейлисты из одобренных или ожидающих исполнителей, скачивайте их в M3U или XSPF или отправляйте в Spotify, Navidrome, Jellyfin, Emby или Plex.',
   'playlists.nextGeneration': 'Следующее поколение',
   'playlists.noScheduleConfigured': 'Расписание не настроено',
   'playlists.playlistPlural': 'плейлисты',
@@ -766,7 +760,7 @@ export const ru = {
   'libraryHealth.fixFailed': 'Исправление не удалось — проверьте подключение к Lidarr',
   'libraryHealth.rescan': 'Повторное сканирование',
   'libraryHealth.introTip':
-    'Состояние библиотеки проверяет вашу библиотеку Lidarr на наличие распространенных проблем, таких как отсутствие метаданных, неотслеживаемые исполнители или пробелы в жанрах. Запустите сканирование, чтобы увидеть, что требует внимания.',
+    'Проверка библиотеки ищет в вашей библиотеке Lidarr отсутствующие метаданные, альбомы, изображения и ссылки Wikidata, неотслеживаемых или повторяющихся исполнителей и пробелы в жанрах. Она запускается по расписанию; нажмите «Синхронизировать сейчас», чтобы проверить снова.',
   'libraryHealth.scanningBanner':
     'Проверка работоспособности библиотеки. Для больших библиотек это может занять несколько минут. Результаты появятся после завершения.',
   'libraryHealth.pendingRescan':
@@ -1051,7 +1045,7 @@ export const ru = {
   'settings.lidarrPublicUrlHelp':
     'URL, доступный в браузере, для ссылок на страницы исполнителей в Lidarr. Оставьте пустым, если API URL уже доступен в браузере.',
   'settings.aiTip':
-    'Выберите провайдера AI для рекомендаций. Ollama работает локально бесплатно. Облачные сервисы (Claude, GPT, Gemini) требуют API Key.',
+    'Выберите поставщика ИИ, который предлагает исполнителей. Ollama или любой OpenAI-совместимый сервер можно запустить локально; облачным поставщикам нужен ключ API.',
   'settings.aiDescription': 'Генерирует музыкальные рекомендации.',
   'settings.aiOpenAiCompatibleHelp':
     'Совместим с Groq, OpenRouter, LiteLLM, LocalAI и любым OpenAI-совместимым эндпоинтом. API Key необязателен для локальных сервисов.',
@@ -1062,7 +1056,7 @@ export const ru = {
   'settings.aiPrivacyBadgeLocal': 'Полностью локально',
   'settings.sending': 'Отправка...',
   'settings.connectionsTip':
-    'Сначала подключите источники прослушивания - ListenBrainz, Last.fm, Spotify или Plex. Конвейер использует вашу историю прослушивания для поиска похожих исполнителей.',
+    'Подключите хотя бы один источник прослушиваний -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby или Discogs. Поиск начинается с исполнителей, которых вы уже слушаете или собрали.',
   'settings.listenbrainzDescription': 'Открытое отслеживание истории прослушивания.',
   'settings.lastfmDescription': 'Скробблинг и отслеживание музыки.',
   'settings.spotifyDescription': 'История прослушивания из Spotify.',
@@ -1105,7 +1099,7 @@ export const ru = {
   'settings.lidarrPreferencesSaved': 'Настройки Lidarr сохранены',
   'settings.lidarrPreferencesFailed': 'Не удалось сохранить настройки Lidarr',
   'settings.targetsTip':
-    'Назначения определяют, куда попадают одобренные рекомендации - Lidarr для загрузки, Spotify для плейлистов или медиасерверы для воспроизведения.',
+    'Цели определяют, куда отправляются одобренные исполнители: Lidarr или slskd для загрузок, Spotify или ваш сервер Navidrome, Jellyfin, Emby или Plex для плейлистов, либо экспорт в файл.',
   'settings.addTarget': 'Добавить назначение',
   'settings.noTargets':
     'Назначения не настроены. Одобренные рекомендации будут сохранены как кураторский список.',
@@ -1144,7 +1138,7 @@ export const ru = {
   'settings.approvalActionLidarrSlskd':
     'Действие одобрения: ставить в очередь в slskd и импортировать через Lidarr.',
   'settings.recommendationsTip':
-    'Веса оценивания определяют рейтинг рекомендаций. Настройте их для акцента на совпадении жанров, уверенности AI или схожести.',
+    'Жанры и порог оценки определяют, что вы видите. Веса оценки ниже определяют порядок кандидатов.',
   'settings.scoreThreshold': 'Порог оценки',
   'settings.minScoreToShow': 'Минимальная оценка для отображения рекомендации',
   'settings.scoringWeights': 'Веса оценивания',
@@ -1205,7 +1199,7 @@ export const ru = {
   'settings.recommendationsPartiallySaved':
     'Личные настройки сохранены, но не удалось сохранить глобальные настройки метаданных.',
   'settings.scheduleTip':
-    'Установите cron-расписание для автоматического запуска конвейера. Популярный выбор - каждый понедельник.',
+    'Выберите шаблон или введите выражение cron, чтобы поиск запускался автоматически. Для большинства библиотек подходит ежедневно или еженедельно.',
   'settings.librarySyncInterval': 'Синхронизация библиотеки',
   'settings.librarySyncIntervalHours': 'Интервал синхронизации (часы)',
   'settings.librarySyncIntervalHelp':
@@ -1237,6 +1231,10 @@ export const ru = {
   'settings.passwordTooShort': 'Пароль должен быть не менее 12 символов',
   'settings.currentPasswordIncorrect': 'Текущий пароль неверен',
   'settings.language': 'Язык',
+  'settings.tips': 'Подсказки',
+  'settings.tipsDescription': 'Верните подсказки, которые вы скрыли.',
+  'settings.showTipsAgain': 'Показать подсказки снова',
+  'settings.tipsRestored': 'Подсказки снова будут показаны.',
   'settings.app': 'Приложение',
   'settings.installDigarr': 'Установить Digarr',
   'settings.installIosHint': 'Нажмите кнопку «Поделиться», затем «На экран «Домой»',
@@ -1255,7 +1253,7 @@ export const ru = {
   'settings.oidcDescription':
     'Настройте OpenID Connect для единого входа. После сохранения пользователи увидят кнопку «Войти через SSO» на странице входа.',
   'settings.authTip':
-    'Настройте OIDC/SSO для входа через Authentik, Authelia или любого OpenID Connect-провайдера.',
+    'Разрешите вход через провайдера OpenID Connect, например Authentik или Authelia, или через обратный прокси, который передаёт вошедшего пользователя.',
   'settings.reverseProxyAuth': 'Аутентификация через обратный прокси',
   'settings.reverseProxyDescription':
     'Если включено, Digarr доверяет HTTP-заголовку от настроенного обратного прокси и автоматически создаёт пользователей.',

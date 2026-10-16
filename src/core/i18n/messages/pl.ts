@@ -274,8 +274,6 @@ export const pl = {
   'dashboard.prev': 'Poprzedni',
   'dashboard.next': 'Następny',
   'dashboard.nowPlaying': 'Odtwarzanie',
-  'dashboard.listeningTip':
-    'Twoje dane o słuchaniu pochodzą z ListenBrainz lub Last.fm. Aby uzyskać dokładne wyniki, upewnij się, że Twój token jest ustawiony w Ustawieniach.',
   'dashboard.manage': 'Zarządzaj',
   'dashboard.nextRun': 'następny',
   'dashboard.noRunsYet': 'Brak uruchomień',
@@ -286,12 +284,8 @@ export const pl = {
   'dashboard.subscriptions': 'Subskrypcje',
   'dashboard.subscriptionsEmpty':
     'Nie skonfigurowałeś jeszcze żadnego automatycznego wykrywania. Digarr może znaleźć dla Ciebie nowych artystów zgodnie z harmonogramem.',
-  'dashboard.subscriptionsTip':
-    'Subskrypcje automatycznie wyszukują nowych artystów zgodnie z harmonogramem. Sprawdź stronę Subskrypcje, aby ją skonfigurować.',
   'dashboard.tasteEmpty':
     'Gdy zatwierdzasz lub odrzucasz rekomendacje wykonawców, Digarr poznaje Twój gust i coraz lepiej znajduje muzykę, która Ci się spodoba.',
-  'dashboard.tasteTip':
-    'Twój profil gustu jest tworzony na podstawie Twojej historii słuchania i zatwierdzonych rekomendacji. Podłącz więcej źródeł w Ustawieniach, aby uzyskać bogatszą analizę smaku.',
   'dashboard.yourTaste': 'Twój gust muzyczny',
   'discover.actionApplied': 'Zastosowano działanie.',
   'discover.approveAllAbove': 'Zatwierdź wszystko powyżej',
@@ -510,7 +504,7 @@ export const pl = {
   'playlists.createFailed': 'Nie udało się utworzyć playlisty',
   'playlists.created': 'Utworzono playlistę',
   'playlists.emptyHint':
-    'Listy odtwarzania pozwalają Digarrowi automatycznie przesyłać wybrane skróty do Jellyfin, Navidrome lub Plex zgodnie z harmonogramem. Najpierw podłącz serwer multimediów w Ustawieniach.',
+    'Twórz playlisty z zatwierdzonych lub oczekujących wykonawców, pobieraj je jako M3U lub XSPF albo wysyłaj do Spotify, Navidrome, Jellyfin, Emby lub Plex.',
   'playlists.nextGeneration': 'Następna generacja',
   'playlists.noScheduleConfigured': 'Nie skonfigurowano harmonogramu',
   'playlists.playlistPlural': 'listy odtwarzania',
@@ -762,7 +756,7 @@ export const pl = {
   'libraryHealth.fixFailed': 'Naprawa nie powiodła się — sprawdź połączenie Lidarr',
   'libraryHealth.rescan': 'Zeskanuj ponownie',
   'libraryHealth.introTip':
-    'Stan biblioteki sprawdza bibliotekę Lidarr pod kątem typowych problemów, takich jak brakujące metadane, niemonitorowani artyści lub luki gatunkowe. Uruchom skanowanie, aby zobaczyć, co wymaga uwagi.',
+    'Kondycja biblioteki sprawdza bibliotekę Lidarr pod kątem brakujących metadanych, albumów, obrazów i linków Wikidata, niemonitorowanych lub zduplikowanych wykonawców oraz luk gatunkowych. Działa według harmonogramu; użyj „Synchronizuj teraz”, aby sprawdzić ponownie.',
   'libraryHealth.scanningBanner':
     'Skanowanie stanu bibliotek — w przypadku dużych bibliotek może to zająć kilka minut. Wyniki pojawią się po zakończeniu.',
   'libraryHealth.pendingRescan':
@@ -1040,7 +1034,7 @@ export const pl = {
   'settings.lidarrPublicUrlHelp':
     'URL dostępny z przegladarki do linkow do stron artystów w Lidarr. Pozostaw puste, jesli URL API jest juz dostępny z przegladarki.',
   'settings.aiTip':
-    'Wybierz dostawcę AI do rekomendacji. Ollama działa lokalnie za darmo. Dostawcy chmurowi (Claude, GPT, Gemini) wymagają kluczy API.',
+    'Wybierz dostawcę AI, który proponuje wykonawców. Ollama lub dowolny serwer zgodny z OpenAI może działać lokalnie; dostawcy hostowani wymagają klucza API.',
   'settings.aiDescription': 'Generuje rekomendacje muzyczne.',
   'settings.aiOpenAiCompatibleHelp':
     'Działa z Groq, OpenRouter, LiteLLM, LocalAI i dowolnym punktem końcowym zgodnym z OpenAI. Klucz API jest opcjonalny dla usług lokalnych.',
@@ -1051,7 +1045,7 @@ export const pl = {
   'settings.aiPrivacyBadgeLocal': 'W pelni lokalnie',
   'settings.sending': 'Wysylanie...',
   'settings.connectionsTip':
-    'Najpierw połącz swoje źródła słuchania - ListenBrainz, Last.fm, Spotify lub Plex. Pipeline używa historii słuchania, aby znajdować podobnych artystów.',
+    'Połącz co najmniej jedno źródło słuchania -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby lub Discogs. Odkrywanie zaczyna się od wykonawców, których już słuchasz lub masz.',
   'settings.listenbrainzDescription': 'Scrobbling historii słuchania - open source.',
   'settings.lastfmDescription': 'Scrobbling muzyki i historia słuchania.',
   'settings.spotifyDescription': 'Historia słuchania ze Spotify.',
@@ -1093,7 +1087,7 @@ export const pl = {
   'settings.lidarrPreferencesSaved': 'Preferencje Lidarr zapisane',
   'settings.lidarrPreferencesFailed': 'Nie udało się zapisać preferencji Lidarr',
   'settings.targetsTip':
-    'Cele okresla, gdzie trafiaja zatwierdzone rekomendacje - Lidarr do pobierania, Spotify na playlisty lub serwery multimediow do bezposredniego odtwarzania.',
+    'Cele decydują, dokąd trafiają zatwierdzeni wykonawcy: Lidarr lub slskd do pobierania, Spotify albo serwer Navidrome, Jellyfin, Emby lub Plex do playlist, albo eksport do pliku.',
   'settings.addTarget': 'Dodaj cel',
   'settings.noTargets':
     'Nie skonfigurowano celów. Zatwierdzone rekomendacje będą zapisywane jako lista kurowana.',
@@ -1131,7 +1125,7 @@ export const pl = {
   'settings.approvalActionLidarrSlskd':
     'Akcja zatwierdzania: kolejkowanie w slskd i import przez Lidarr.',
   'settings.recommendationsTip':
-    'Wagi oceniania kontroluja kolejnosc rekomendacji. Dostosuj je, aby podkreslic powiazania gatunkowe, pewnosc AI lub podobienstwo.',
+    'Gatunki i próg wyniku decydują o tym, co widzisz. Wagi punktacji, niżej, decydują o kolejności kandydatów.',
   'settings.scoreThreshold': 'Prog oceny',
   'settings.minScoreToShow': 'Minimalna ocena do wyswietlenia rekomendacji',
   'settings.scoringWeights': 'Wagi oceniania',
@@ -1191,7 +1185,7 @@ export const pl = {
   'settings.recommendationsPartiallySaved':
     'Zapisano preferencje osobiste, ale nie udało się zapisać globalnych ustawień metadanych.',
   'settings.scheduleTip':
-    'Ustaw harmonogram cron, aby automatycznie uruchamiać pipeline odkrywania. Popularna opcja to co tydzień w poniedziałek.',
+    'Wybierz ustawienie wstępne lub wpisz wyrażenie cron, aby odkrywanie uruchamiało się automatycznie. Codziennie lub co tydzień wystarcza dla większości bibliotek.',
   'settings.librarySyncInterval': 'Synchronizacja biblioteki',
   'settings.librarySyncIntervalHours': 'Interwał synchronizacji (godziny)',
   'settings.librarySyncIntervalHelp':
@@ -1223,6 +1217,10 @@ export const pl = {
   'settings.passwordTooShort': 'Hasło musi mieć co najmniej 12 znaków',
   'settings.currentPasswordIncorrect': 'Aktualne hasło jest nieprawidłowe',
   'settings.language': 'Jezyk',
+  'settings.tips': 'Wskazówki',
+  'settings.tipsDescription': 'Przywróć ukryte wskazówki.',
+  'settings.showTipsAgain': 'Pokaż wskazówki ponownie',
+  'settings.tipsRestored': 'Wskazówki będą znowu widoczne.',
   'settings.app': 'Aplikacja',
   'settings.installDigarr': 'Zainstaluj Digarr',
   'settings.installIosHint':
@@ -1242,7 +1240,7 @@ export const pl = {
   'settings.oidcDescription':
     'Skonfiguruj OpenID Connect dla logowania jednokrotnego. Po zapisaniu użytkownicy zobaczą przycisk „Zaloguj się przez SSO” na stronie logowania.',
   'settings.authTip':
-    'Skonfiguruj OIDC/SSO, aby użytkownicy mogli logować się przez Authentik, Authelia lub dowolnego dostawcę OpenID Connect.',
+    'Pozwól logować się przez dostawcę OpenID Connect, takiego jak Authentik lub Authelia, albo przez reverse proxy przekazujące zalogowanego użytkownika.',
   'settings.reverseProxyAuth': 'Uwierzytelnianie przez reverse proxy',
   'settings.reverseProxyDescription':
     'Po włączeniu Digarr ufa nagłówkowi HTTP od skonfigurowanego reverse proxy i automatycznie tworzy konta użytkowników.',

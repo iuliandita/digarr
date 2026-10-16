@@ -56,12 +56,10 @@ export function DiscoveryModeCard({
       </div>
 
       {!mode.availability.enabled && availabilityReason && (
-        <DiscoveryModeInfoBox
-          storageKey={`digarr:discovery-mode:${mode.id}:availability`}
-          title={t('discoveryMode.notAvailableBecause')}
-        >
+        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted">
+          <div className="mb-1 font-medium text-text">{t('discoveryMode.notAvailableBecause')}</div>
           {availabilityReason}
-        </DiscoveryModeInfoBox>
+        </div>
       )}
 
       {mode.availability.enabled && mode.availability.fallbackUsed && availabilityReason && (

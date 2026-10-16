@@ -257,8 +257,6 @@ export const zhCN = {
   'dashboard.prev': '上一页',
   'dashboard.next': '下一页',
   'dashboard.nowPlaying': '正在播放',
-  'dashboard.listeningTip':
-    '您的收听数据来自 ListenBrainz 或 Last.fm。请确保已在“设置”中填写令牌，以获得更准确的结果。',
   'dashboard.manage': '管理',
   'dashboard.nextRun': '下一个',
   'dashboard.noRunsYet': '尚无运行记录',
@@ -268,11 +266,8 @@ export const zhCN = {
   'dashboard.setUpAutomaticDiscovery': '设置自动发现',
   'dashboard.subscriptions': '订阅',
   'dashboard.subscriptionsEmpty': '您还没有设置自动发现。Digarr 可以按计划为您寻找新艺人。',
-  'dashboard.subscriptionsTip': '订阅会按计划自动查找新艺人。请前往“订阅”页面进行设置。',
   'dashboard.tasteEmpty':
     '当您批准或拒绝艺人推荐时，Digarr 会逐步学习您的口味，更擅长找到您会喜欢的音乐。',
-  'dashboard.tasteTip':
-    '您的口味画像建立在收听历史和已批准推荐之上。可在“设置”中连接更多来源，以获得更完整的口味分析。',
   'dashboard.yourTaste': '您的音乐口味',
   'discover.actionApplied': '已采取行动。',
   'discover.approveAllAbove': '批准以上所有内容',
@@ -472,7 +467,7 @@ export const zhCN = {
   'playlists.createFailed': '创建播放列表失败',
   'playlists.created': '播放列表已创建',
   'playlists.emptyHint':
-    '播放列表让 Digarr 自动按计划将精选摘要推送到 Jellyfin、Navidrome 或 Plex。首先在“设置”中连接媒体服务器。',
+    '用已批准或待定的艺人生成播放列表，下载为 M3U 或 XSPF，或推送到 Spotify、Navidrome、Jellyfin、Emby 或 Plex。',
   'playlists.nextGeneration': '下一代',
   'playlists.noScheduleConfigured': '没有配置时间表',
   'playlists.playlistPlural': '播放列表',
@@ -713,7 +708,7 @@ export const zhCN = {
   'libraryHealth.fixFailed': '修复失败——检查 Lidarr 连接',
   'libraryHealth.rescan': '重新扫描',
   'libraryHealth.introTip':
-    '库运行状况会检查您的 Lidarr 库是否存在常见问题，例如元数据缺失、艺术家不受监控或流派差距。运行扫描以查看需要注意的事项。',
+    '音乐库健康检查会查找 Lidarr 音乐库中缺失的元数据、专辑、图片和 Wikidata 链接，未监控或重复的艺人，以及流派空缺。它按计划运行；点击“立即同步”可重新检查。',
   'libraryHealth.scanningBanner':
     '扫描库的运行状况——对于大型库来说这可能需要几分钟的时间。完成后将显示结果。',
   'libraryHealth.pendingRescan': '计划自动重新扫描以验证修复结果...',
@@ -965,7 +960,7 @@ export const zhCN = {
   'settings.lidarrPublicUrlHelp':
     '浏览器可访问的 Lidarr 艺术家页面链接 URL。如果 API URL 已可从浏览器访问，可留空。',
   'settings.aiTip':
-    '选择 AI 提供商来驱动推荐功能。Ollama 可免费本地运行。云端服务（Claude、GPT、Gemini）需要 API Key。',
+    '选择用来推荐艺人的 AI 服务商。Ollama 或任何兼容 OpenAI 的服务器可在本地运行；托管服务商需要 API 密钥。',
   'settings.aiDescription': '生成音乐推荐。',
   'settings.aiOpenAiCompatibleHelp':
     '兼容 Groq、OpenRouter、LiteLLM、LocalAI 及任何 OpenAI 兼容端点。本地服务 API Key 可选填。',
@@ -976,7 +971,7 @@ export const zhCN = {
   'settings.aiPrivacyBadgeLocal': '完全本地',
   'settings.sending': '发送中...',
   'settings.connectionsTip':
-    '请先连接你的收听来源——ListenBrainz、Last.fm、Spotify 或 Plex。流水线会根据你的收听记录寻找相似艺术家。',
+    '至少连接一个收听来源 -- ListenBrainz、Last.fm、Spotify、Plex、Jellyfin、Emby 或 Discogs。发现会从你已经在听或已收藏的艺人开始。',
   'settings.listenbrainzDescription': '开源收听历史追踪。',
   'settings.lastfmDescription': '音乐打点记录与收听历史。',
   'settings.spotifyDescription': '来自 Spotify 的收听历史。',
@@ -1013,7 +1008,7 @@ export const zhCN = {
   'settings.lidarrPreferencesSaved': 'Lidarr 偏好已保存',
   'settings.lidarrPreferencesFailed': '保存 Lidarr 偏好失败',
   'settings.targetsTip':
-    '目标定义了批准的推荐去向——Lidarr 用于下载，Spotify 用于播放列表，或媒体服务器直接播放。',
+    '目标决定已批准艺人的去向：用 Lidarr 或 slskd 下载，用 Spotify 或你的 Navidrome、Jellyfin、Emby、Plex 服务器生成播放列表，或导出为文件。',
   'settings.addTarget': '添加目标',
   'settings.noTargets': '未配置目标。批准的推荐将保存为精选列表。',
   'settings.targetAdded': '目标已添加',
@@ -1047,7 +1042,7 @@ export const zhCN = {
   'settings.approvalActionSlskd': '批准操作：仅在 slskd 中排队。',
   'settings.approvalActionLidarrSlskd': '批准操作：在 slskd 中排队并通过 Lidarr 导入。',
   'settings.recommendationsTip':
-    '评分权重控制推荐排序方式。可调整以侧重流派重合度、AI 置信度或相似度。',
+    '流派和分数阈值决定你能看到什么。下方的评分权重决定候选艺人的排序。',
   'settings.scoreThreshold': '评分阈值',
   'settings.minScoreToShow': '显示推荐的最低评分',
   'settings.scoringWeights': '评分权重',
@@ -1101,7 +1096,8 @@ export const zhCN = {
   'settings.recommendationsSaved': '推荐设置已保存',
   'settings.recommendationsFailed': '保存设置失败',
   'settings.recommendationsPartiallySaved': '个人偏好设置已保存，但全局元数据设置保存失败。',
-  'settings.scheduleTip': '设置 Cron 计划自动运行发现流水线。每周一运行是常见选择。',
+  'settings.scheduleTip':
+    '选择预设或输入 cron 表达式即可自动运行发现。对大多数音乐库来说，每天或每周一次就够了。',
   'settings.librarySyncInterval': '资料库同步',
   'settings.librarySyncIntervalHours': '同步间隔（小时）',
   'settings.librarySyncIntervalHelp': '控制 Digarr 刷新资料库同步数据并自动重新运行检查的频率。',
@@ -1131,6 +1127,10 @@ export const zhCN = {
   'settings.passwordTooShort': '密码至少需要 12 个字符',
   'settings.currentPasswordIncorrect': '当前密码不正确',
   'settings.language': '语言',
+  'settings.tips': '提示',
+  'settings.tipsDescription': '重新显示你已关闭的帮助提示。',
+  'settings.showTipsAgain': '重新显示提示',
+  'settings.tipsRestored': '提示将重新显示。',
   'settings.app': '应用',
   'settings.installDigarr': '安装 Digarr',
   'settings.installIosHint': '点击分享按钮，然后选择"添加到主屏幕"',
@@ -1147,7 +1147,7 @@ export const zhCN = {
   'settings.oidcDescription':
     '配置 OpenID Connect 单点登录。保存后，用户登录页面将看到"使用 SSO 登录"按钮。',
   'settings.authTip':
-    '配置 OIDC/SSO，让用户通过 Authentik、Authelia 或任意 OpenID Connect 提供商登录。',
+    '允许用户通过 Authentik、Authelia 等 OpenID Connect 提供商登录，或通过传递已登录用户的反向代理登录。',
   'settings.reverseProxyAuth': '反向代理认证',
   'settings.reverseProxyDescription':
     '启用后，Digarr 信任来自配置的反向代理的 HTTP 头，并据此自动创建用户。',

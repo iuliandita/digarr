@@ -8,6 +8,7 @@ import { Field } from '../../components/field'
 import { LanguageSelect } from '../../components/language-switcher'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
+import { useHints } from '../../hooks/use-hints'
 import { useInstallPrompt } from '../../hooks/use-install-prompt'
 import {
   AUTH_EXPIRED_EVENT,
@@ -38,6 +39,7 @@ export function AccountTab() {
   const [email, setEmail] = useState('')
   const [savingEmail, setSavingEmail] = useState(false)
   const { canInstall, showIosHint, promptInstall, dismiss } = useInstallPrompt()
+  const { resetHints, dismissedCount } = useHints()
 
   useEffect(() => {
     setEmail(user?.email ?? '')
@@ -248,6 +250,26 @@ export function AccountTab() {
         <Field label={t('common.language')} id="preferred-locale">
           <LanguageSelect id="preferred-locale" value={locale} onChange={handleLocaleChange} />
         </Field>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lead font-semibold text-text">{t('settings.tips')}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted">{t('settings.tipsDescription')}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={dismissedCount === 0}
+            onClick={() => {
+              resetHints().then(
+                () => toast.success(t('settings.tipsRestored')),
+                (err) => toast.error(errMsg(err)),
+              )
+            }}
+          >
+            {t('settings.showTipsAgain')}
+          </Button>
+        </div>
       </section>
 
       {(canInstall || showIosHint) && (

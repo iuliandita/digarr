@@ -86,6 +86,7 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'nl:nav.albums',
   'nl:discover.statusFilter',
   'nl:discover.kind.albums',
+  'nl:settings.tips',
   'nl:recommendation.albumBadge',
   'nl:discoveryMode.option.japan',
   'nl:discoveryMode.option.canada',

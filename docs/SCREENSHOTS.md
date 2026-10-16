@@ -103,7 +103,7 @@ In v2.0.0, Settings > Administration asks for confirmation before uploading a se
 
 ![Account](screenshots/settings-account.png)
 
-The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. This capture uses a sample account with OIDC enabled.
+The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. A Tips section brings back dismissed help tips. This capture uses a sample account with OIDC enabled.
 
 ## Settings > Connections > Your Connections
 

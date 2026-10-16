@@ -274,8 +274,6 @@ export const ptBR = {
   'dashboard.prev': 'Anterior',
   'dashboard.next': 'Próximo',
   'dashboard.nowPlaying': 'Tocando agora',
-  'dashboard.listeningTip':
-    'Seus dados de audição vêm de ListenBrainz ou Last.fm. Certifique-se de que seu token esteja definido em Configurações para obter resultados precisos.',
   'dashboard.manage': 'Gerenciar',
   'dashboard.nextRun': 'próximo',
   'dashboard.noRunsYet': 'Ainda não há corridas',
@@ -286,12 +284,8 @@ export const ptBR = {
   'dashboard.subscriptions': 'Assinaturas',
   'dashboard.subscriptionsEmpty':
     'Você ainda não configurou nenhuma descoberta automática. Digarr pode encontrar novos artistas para você de acordo com uma programação.',
-  'dashboard.subscriptionsTip':
-    'As assinaturas encontram automaticamente novos artistas de acordo com uma programação. Verifique a página de assinaturas para configurar uma.',
   'dashboard.tasteEmpty':
     'À medida que você aprova ou rejeita recomendações de artistas, Digarr aprende seu gosto e fica melhor em encontrar músicas que você gosta.',
-  'dashboard.tasteTip':
-    'Seu perfil de gosto é construído a partir de seu histórico de audição e recomendações aprovadas. Conecte mais fontes em Configurações para uma análise de sabor mais rica.',
   'dashboard.yourTaste': 'Seu gosto musical',
   'discover.actionApplied': 'Ação aplicada.',
   'discover.approveAllAbove': 'Aprovar tudo acima',
@@ -513,7 +507,7 @@ export const ptBR = {
   'playlists.createFailed': 'Falha ao criar lista de reprodução',
   'playlists.created': 'Lista de reprodução criada',
   'playlists.emptyHint':
-    'As listas de reprodução permitem que o Digarr envie automaticamente resumos selecionados para Jellyfin, Navidrome ou Plex de acordo com uma programação. Conecte primeiro um servidor de mídia em Configurações.',
+    'Crie playlists a partir de artistas aprovados ou pendentes, baixe-as como M3U ou XSPF, ou envie-as para Spotify, Navidrome, Jellyfin, Emby ou Plex.',
   'playlists.nextGeneration': 'Próxima geração',
   'playlists.noScheduleConfigured': 'Nenhuma programação configurada',
   'playlists.playlistPlural': 'listas de reprodução',
@@ -728,7 +722,7 @@ export const ptBR = {
   'todaysPick.matchScore': 'Pontuação de compatibilidade',
   'todaysPick.match': 'compatibilidade',
   'todaysPick.skipHint':
-    'Skip mostra o próximo artista sem rejeitar - os artistas ignorados retornarão em digitalizações futuras.',
+    'Skip mostra o próximo artista sem rejeitar -- os artistas ignorados retornarão em digitalizações futuras.',
   'todaysPick.skipTitle': 'Pule por enquanto - este artista voltará mais tarde',
   'pipeline.stage.collect': 'Biblioteca de leitura',
   'pipeline.stage.analyze': 'Construindo perfil de gosto',
@@ -765,7 +759,7 @@ export const ptBR = {
   'libraryHealth.fixFailed': 'Falha na correção – verifique a conexão Lidarr',
   'libraryHealth.rescan': 'Digitalizar novamente',
   'libraryHealth.introTip':
-    'A integridade da biblioteca verifica sua biblioteca Lidarr em busca de problemas comuns, como falta de metadados, artistas não monitorados ou lacunas de gênero. Execute uma varredura para ver o que precisa de atenção.',
+    'A saúde da biblioteca verifica sua biblioteca do Lidarr em busca de metadados, álbuns, imagens e links do Wikidata ausentes, artistas não monitorados ou duplicados e lacunas de gênero. Ela roda em um agendamento; use "Sincronizar agora" para verificar de novo.',
   'libraryHealth.scanningBanner':
     'Verificando a integridade da biblioteca – isso pode levar vários minutos para bibliotecas grandes. Os resultados aparecerão quando concluído.',
   'libraryHealth.pendingRescan':
@@ -1046,7 +1040,7 @@ export const ptBR = {
   'settings.lidarrPublicUrlHelp':
     'URL acessível pelo navegador para vincular às páginas de artistas do Lidarr. Deixe vazio se a URL da API já for acessível pelo navegador.',
   'settings.aiTip':
-    'Escolha um provedor de IA para as recomendações. O Ollama funciona localmente de graça. Provedores na nuvem (Claude, GPT, Gemini) precisam de chaves de API.',
+    'Escolha o provedor de IA que sugere artistas. O Ollama ou qualquer servidor compatível com OpenAI pode rodar localmente; provedores hospedados precisam de uma chave de API.',
   'settings.aiDescription': 'Gera recomendações musicais.',
   'settings.aiOpenAiCompatibleHelp':
     'Funciona com Groq, OpenRouter, LiteLLM, LocalAI e qualquer endpoint compatível com OpenAI. A chave de API é opcional para serviços locais.',
@@ -1057,7 +1051,7 @@ export const ptBR = {
   'settings.aiPrivacyBadgeLocal': 'Totalmente local',
   'settings.sending': 'Enviando...',
   'settings.connectionsTip':
-    'Conecte suas fontes de escuta primeiro - ListenBrainz, Last.fm, Spotify ou Plex. O pipeline usa seu histórico de escuta para encontrar artistas similares.',
+    'Conecte pelo menos uma fonte de audição -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby ou Discogs. A descoberta parte dos artistas que você já ouve ou tem.',
   'settings.listenbrainzDescription': 'Rastreamento de histórico de escuta de código aberto.',
   'settings.lastfmDescription': 'Scrobbling de música e histórico de escuta.',
   'settings.spotifyDescription': 'Histórico de escuta do Spotify.',
@@ -1101,7 +1095,7 @@ export const ptBR = {
   'settings.lidarrPreferencesSaved': 'Preferências do Lidarr salvas',
   'settings.lidarrPreferencesFailed': 'Falha ao salvar as preferências do Lidarr',
   'settings.targetsTip':
-    'Os destinos definem para onde vão as recomendações aprovadas - Lidarr para downloads, Spotify para playlists, ou servidores de mídia para reprodução direta.',
+    'Os destinos decidem para onde vão os artistas aprovados: Lidarr ou slskd para downloads, Spotify ou seu servidor Navidrome, Jellyfin, Emby ou Plex para playlists, ou uma exportação em arquivo.',
   'settings.addTarget': 'Adicionar destino',
   'settings.noTargets':
     'Nenhum destino configurado. As recomendações aprovadas serão salvas como lista curada.',
@@ -1140,7 +1134,7 @@ export const ptBR = {
   'settings.approvalActionLidarrSlskd':
     'Ação de aprovação: enfileirar no slskd e importar pelo Lidarr.',
   'settings.recommendationsTip':
-    'Os pesos de pontuação controlam como as recomendações são classificadas. Ajuste-os para enfatizar sobreposição de gênero, confiança da IA ou similaridade.',
+    'Os gêneros e o limite de pontuação decidem o que você vê. Os pesos de pontuação, mais abaixo, decidem como os candidatos são ordenados.',
   'settings.scoreThreshold': 'Limite de pontuação',
   'settings.minScoreToShow': 'Pontuação mínima para exibir recomendação',
   'settings.scoringWeights': 'Pesos de pontuação',
@@ -1200,7 +1194,7 @@ export const ptBR = {
   'settings.recommendationsPartiallySaved':
     'As preferências pessoais foram salvas, mas não foi possível salvar as configurações globais de metadados.',
   'settings.scheduleTip':
-    'Defina um agendamento cron para executar o pipeline de descoberta automaticamente. Toda semana às segundas é uma escolha popular.',
+    'Escolha uma predefinição ou digite uma expressão cron para executar a descoberta automaticamente. Diário ou semanal atende à maioria das bibliotecas.',
   'settings.librarySyncInterval': 'Sincronização da biblioteca',
   'settings.librarySyncIntervalHours': 'Intervalo de sincronização (horas)',
   'settings.librarySyncIntervalHelp':
@@ -1232,6 +1226,10 @@ export const ptBR = {
   'settings.passwordTooShort': 'A senha deve ter pelo menos 12 caracteres',
   'settings.currentPasswordIncorrect': 'A senha atual está incorreta',
   'settings.language': 'Idioma',
+  'settings.tips': 'Dicas',
+  'settings.tipsDescription': 'Traga de volta as dicas de ajuda que você dispensou.',
+  'settings.showTipsAgain': 'Mostrar dicas novamente',
+  'settings.tipsRestored': 'As dicas vão aparecer de novo.',
   'settings.app': 'Aplicativo',
   'settings.installDigarr': 'Instalar Digarr',
   'settings.installIosHint':
@@ -1251,7 +1249,7 @@ export const ptBR = {
   'settings.oidcDescription':
     'Configure o OpenID Connect para login único. Após salvar, os usuários verão um botão "Entrar com SSO" na página de login.',
   'settings.authTip':
-    'Configure OIDC/SSO para que os usuários possam entrar com Authentik, Authelia ou qualquer provedor OpenID Connect.',
+    'Permita o login com um provedor OpenID Connect como Authentik ou Authelia, ou por um proxy reverso que repasse o usuário autenticado.',
   'settings.reverseProxyAuth': 'Autenticação por proxy reverso',
   'settings.reverseProxyDescription':
     'Quando ativado, o Digarr confia em um header HTTP de um proxy reverso configurado e provisiona usuários automaticamente a partir dele.',

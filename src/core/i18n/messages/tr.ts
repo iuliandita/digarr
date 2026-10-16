@@ -272,8 +272,6 @@ export const tr = {
   'dashboard.prev': 'Önceki',
   'dashboard.next': 'Sonraki',
   'dashboard.nowPlaying': 'Şimdi çalıyor',
-  'dashboard.listeningTip':
-    "Dinleme verileriniz ListenBrainz veya Last.fm'den gelir. Doğru sonuçlar için jetonunuzun Ayarlar'da ayarlandığından emin olun.",
   'dashboard.manage': 'Yönet',
   'dashboard.nextRun': 'sonraki',
   'dashboard.noRunsYet': 'Henüz çalıştırma yok',
@@ -284,12 +282,8 @@ export const tr = {
   'dashboard.subscriptions': 'Abonelikler',
   'dashboard.subscriptionsEmpty':
     'Henüz herhangi bir otomatik keşif ayarlamadınız. Digarr bir programa göre sizin için yeni sanatçılar bulabilir.',
-  'dashboard.subscriptionsTip':
-    'Abonelikler belirli bir programa göre otomatik olarak yeni sanatçıları bulur. Abonelik ayarlamak için Abonelikler sayfasını kontrol edin.',
   'dashboard.tasteEmpty':
     'Sanatçı önerilerini onayladıkça veya reddettikçe Digarr zevkinizi öğrenir ve beğeneceğiniz müziği bulma konusunda daha iyi hale gelir.',
-  'dashboard.tasteTip':
-    "Zevk profiliniz, dinleme geçmişinizden ve onaylanmış önerilerden oluşturulur. Daha zengin tat analizi için Ayarlar'da daha fazla kaynak bağlayın.",
   'dashboard.yourTaste': 'Müzik zevkin',
   'discover.actionApplied': 'İşlem uygulandı.',
   'discover.approveAllAbove': 'Yukarıdakilerin Tümünü Onaylayın',
@@ -503,7 +497,7 @@ export const tr = {
   'playlists.createFailed': 'Oynatma listesi oluşturulamadı',
   'playlists.created': 'Oynatma listesi oluşturuldu',
   'playlists.emptyHint':
-    "Çalma listeleri, Digarr'ın seçilmiş özetleri belirli bir programa göre otomatik olarak Jellyfin, Navidrome veya Plex'e göndermesine olanak tanır. Önce Ayarlar'da bir medya sunucusuna bağlanın.",
+    "Onaylanan veya bekleyen sanatçılardan çalma listeleri oluşturun, M3U ya da XSPF olarak indirin veya Spotify, Navidrome, Jellyfin, Emby ya da Plex'e gönderin.",
   'playlists.nextGeneration': 'Gelecek nesil',
   'playlists.noScheduleConfigured': 'Yapılandırılan program yok',
   'playlists.playlistPlural': 'çalma listeleri',
@@ -753,7 +747,7 @@ export const tr = {
   'libraryHealth.fixFailed': 'Düzeltme başarısız oldu - Lidarr bağlantısını kontrol edin',
   'libraryHealth.rescan': 'Yeniden tara',
   'libraryHealth.introTip':
-    'Kitaplık sağlığı, Lidarr kitaplığınızı eksik meta veriler, izlenmeyen sanatçılar veya tür boşlukları gibi genel sorunlara karşı kontrol eder. Neye dikkat edilmesi gerektiğini görmek için bir tarama çalıştırın.',
+    "Kitaplık sağlığı, Lidarr kitaplığınızda eksik meta verileri, albümleri, görselleri ve Wikidata bağlantılarını, izlenmeyen veya yinelenen sanatçıları ve tür boşluklarını denetler. Zamanlanmış olarak çalışır; yeniden denetlemek için Şimdi eşitle'yi kullanın.",
   'libraryHealth.scanningBanner':
     'Kütüphane sağlığının taranması - büyük kütüphaneler için bu işlem birkaç dakika sürebilir. Sonuçlar tamamlandığında görünecektir.',
   'libraryHealth.pendingRescan':
@@ -1033,7 +1027,7 @@ export const tr = {
   'settings.lidarrPublicUrlHelp':
     "Lidarr sanatçı sayfalarına bağlanmak için tarayıcıdan erişilebilir URL. API URL'si tarayıcıdan zaten ulaşılabiliyorsa boş bırakın.",
   'settings.aiTip':
-    'Öneriler için bir AI sağlayıcısı seçin. Ollama yerel olarak ücretsiz çalışır. Bulut sağlayıcıları (Claude, GPT, Gemini) API anahtarı gerektirir.',
+    'Sanatçı öneren yapay zekâ sağlayıcısını seçin. Ollama veya OpenAI uyumlu herhangi bir sunucu yerelde çalışabilir; barındırılan sağlayıcılar API anahtarı ister.',
   'settings.aiDescription': 'Müzik önerileri oluşturur.',
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile çalışır. Yerel hizmetler için API anahtarı isteğe bağlıdır.',
@@ -1044,7 +1038,7 @@ export const tr = {
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
   'settings.sending': 'Gonderiliyor...',
   'settings.connectionsTip':
-    'Önce dinleme kaynaklarınızı bağlayın - ListenBrainz, Last.fm, Spotify veya Plex. Pipeline, benzer sanatçıları bulmak için dinleme geçmişinizi kullanır.',
+    'En az bir dinleme kaynağı bağlayın -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby veya Discogs. Keşif, zaten dinlediğiniz ya da sahip olduğunuz sanatçılardan başlar.',
   'settings.listenbrainzDescription': 'Açık kaynak dinleme geçmişi takibi.',
   'settings.lastfmDescription': 'Müzik scrobbling ve dinleme geçmişi.',
   'settings.spotifyDescription': "Spotify'dan dinleme geçmişi.",
@@ -1087,7 +1081,7 @@ export const tr = {
   'settings.lidarrPreferencesSaved': 'Lidarr tercihleri kaydedildi',
   'settings.lidarrPreferencesFailed': 'Lidarr tercihleri kaydedilemedi',
   'settings.targetsTip':
-    'Hedefler, onaylanan onerilerin nereye gidecegini belirler - indirmeler için Lidarr, oynatma listeleri için Spotify veya dogrudan oynatma için medya sunuculari.',
+    'Hedefler, onaylanan sanatçıların nereye gideceğini belirler: indirmeler için Lidarr veya slskd, çalma listeleri için Spotify ya da Navidrome, Jellyfin, Emby veya Plex sunucunuz, ya da dosyaya dışa aktarma.',
   'settings.addTarget': 'Hedef ekle',
   'settings.noTargets':
     'Hedef yapilandirilmamis. Onaylanan öneriler kuratif liste olarak kaydedilecek.',
@@ -1126,7 +1120,7 @@ export const tr = {
   'settings.approvalActionLidarrSlskd':
     'Onay eylemi: slskd’de kuyruğa al ve Lidarr üzerinden içe aktar.',
   'settings.recommendationsTip':
-    'Puanlama ağırlıkları önerilerin nasıl sıralandığını kontrol eder. Tür örtüşmesini, AI güvenini veya benzerliği vurgulamak için ayarlayın.',
+    'Türler ve puan eşiği ne göreceğinizi belirler. Aşağıdaki puan ağırlıkları adayların nasıl sıralanacağını belirler.',
   'settings.scoreThreshold': 'Puan Esiği',
   'settings.minScoreToShow': 'Öneriyi gostermek için minimum puan',
   'settings.scoringWeights': 'Puanlama Agirliklari',
@@ -1186,7 +1180,7 @@ export const tr = {
   'settings.recommendationsPartiallySaved':
     'Kişisel tercihler kaydedildi, ancak genel meta veri ayarları kaydedilemedi.',
   'settings.scheduleTip':
-    "Keşfetme pipeline'ını otomatik çalıştırmak için bir cron programı ayarlayın. Pazartesi günü haftalık seçim popüler bir tercihtir.",
+    'Keşfi otomatik çalıştırmak için bir hazır ayar seçin veya bir cron ifadesi girin. Çoğu kitaplık için günlük ya da haftalık yeterlidir.',
   'settings.librarySyncInterval': 'Kütüphane eşitleme',
   'settings.librarySyncIntervalHours': 'Eşitleme aralığı (saat)',
   'settings.librarySyncIntervalHelp':
@@ -1218,6 +1212,10 @@ export const tr = {
   'settings.passwordTooShort': 'Şifre en az 12 karakter olmalıdır',
   'settings.currentPasswordIncorrect': 'Mevcut şifre yanlis',
   'settings.language': 'Dil',
+  'settings.tips': 'İpuçları',
+  'settings.tipsDescription': 'Kapattığınız yardım ipuçlarını geri getirin.',
+  'settings.showTipsAgain': 'İpuçlarını yeniden göster',
+  'settings.tipsRestored': 'İpuçları yeniden gösterilecek.',
   'settings.app': 'Uygulama',
   'settings.installDigarr': "Digarr'i Yükle",
   'settings.installIosHint': '"Paylas" dugmesine, ardindan "Ana Ekrana Ekle"ye dokunun',
@@ -1235,7 +1233,7 @@ export const tr = {
   'settings.oidcDescription':
     "Tek oturum açma için OpenID Connect'i yapılandırın. Kaydettikten sonra kullanıcılar giriş sayfasında “SSO ile oturum aç” düğmesini görecek.",
   'settings.authTip':
-    "Kullanıcıların Authentik, Authelia veya herhangi bir OpenID Connect sağlayıcısıyla oturum açmasına izin vermek için OIDC/SSO'yu yapılandırın.",
+    'Kullanıcıların Authentik veya Authelia gibi bir OpenID Connect sağlayıcısıyla ya da oturum açmış kullanıcıyı ileten bir ters vekil sunucu üzerinden giriş yapmasına izin verin.',
   'settings.reverseProxyAuth': 'Ters Proxy Kimlik Dogrulamasi',
   'settings.reverseProxyDescription':
     "Etkinleştirildiğinde Digarr, yapılandırılmış bir ters proxy'den gelen HTTP başlığına güvenir ve kullanıcıları otomatik olarak ekler.",

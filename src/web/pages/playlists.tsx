@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
-import { Hint } from '../components/hint'
 import { PlaylistCard } from '../components/playlist-card'
 import { PlaylistForm } from '../components/playlist-form'
 import { Skeleton } from '../components/ui/skeleton'
@@ -193,9 +192,7 @@ export function PlaylistsPage() {
             <Plus size={15} aria-hidden="true" />
             {t('playlists.create')}
           </button>
-          <Hint id="playlists-empty-state" type="empty-state" className="max-w-sm mx-auto">
-            {t('playlists.emptyHint')}
-          </Hint>
+          <p className="text-xs text-muted max-w-sm mx-auto">{t('playlists.emptyHint')}</p>
         </div>
       ) : (
         <>
