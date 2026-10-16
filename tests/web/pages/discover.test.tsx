@@ -59,6 +59,8 @@ vi.mock('@/web/lib/api', () => ({
   approveRecommendation: vi.fn(),
   approveToTarget: vi.fn(),
   bulkAction: vi.fn(),
+  deleteAlbumBlock: vi.fn(),
+  deleteArtistBlock: vi.fn(),
   getWarmStatuses: vi.fn(),
   getPopularAlbums: vi.fn(),
   getPopularAlbumsAvailability: vi
@@ -88,6 +90,8 @@ import {
   approveRecommendation,
   approveToTarget,
   bulkAction,
+  deleteAlbumBlock,
+  deleteArtistBlock,
   getAuthStatus,
   getCurrentUser,
   getRecommendations,
@@ -120,6 +124,9 @@ const makeRec = (
     aiReasoning: string | null
     sources: Record<string, number> | null
     lidarrError: string | null
+    kind: 'artist' | 'album'
+    recommendedReleaseGroupId: string | null
+    recommendedReleaseGroupTitle: string | null
   }> = {},
 ) => ({
   id: 1,
@@ -800,4 +807,46 @@ describe('DiscoverPage', () => {
       })
     })
   })
+
+  it.each([
+    ['artist', makeRec(), 'Test Artist', 'artist'],
+    [
+      'album',
+      makeRec({
+        kind: 'album',
+        recommendedReleaseGroupId: 'rg-1',
+        recommendedReleaseGroupTitle: 'Souvlaki',
+      }),
+      'Souvlaki by Test Artist',
+      'album',
+    ],
+  ])(
+    'removes the %s block it created and names it in the toast',
+    async (_kind, rec, name, blockKind) => {
+      localStorage.setItem('digarr:discover-view', 'stack')
+      setupMockApi([rec])
+      mockUpdateRecommendation.mockResolvedValue({ status: 'rejected' })
+      ;(deleteArtistBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+      ;(deleteAlbumBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+
+      renderWithQuery(<DiscoverPage />)
+
+      await screen.findAllByText('Test Artist')
+      fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+      const dialog = await screen.findByRole('dialog', { name: /Why are you rejecting/ })
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Wrong genre or style for me' }))
+      fireEvent.click(within(dialog).getByLabelText(/show this artist again/i))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Block forever' }))
+
+      expect(await screen.findByText(`Rejected and blocked ${name}`)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+
+      await waitFor(() => {
+        expect(mockUpdateRecommendation).toHaveBeenLastCalledWith(1, { status: 'pending' })
+        if (blockKind === 'album') expect(deleteAlbumBlock).toHaveBeenCalledWith('rg-1')
+        else expect(deleteArtistBlock).toHaveBeenCalledWith(10)
+      })
+    },
+    15_000,
+  )
 })

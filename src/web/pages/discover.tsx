@@ -20,7 +20,11 @@ import {
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
-import { type Recommendation, RecommendationCard } from '../components/recommendation-card'
+import {
+  type Recommendation,
+  RecommendationCard,
+  recommendationDisplayName,
+} from '../components/recommendation-card'
 import { RejectionPicker } from '../components/rejection-picker'
 import { SwipeCard } from '../components/swipe-card'
 import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
@@ -37,6 +41,8 @@ import {
   approveRecommendation,
   approveToTarget,
   bulkAction,
+  deleteAlbumBlock,
+  deleteArtistBlock,
   getAuthStatus,
   getFeedbackSummary,
   getRecommendations,
@@ -97,6 +103,11 @@ function initialKindFromParam(value: string | null): KindFilter {
 }
 
 const PAGE_SIZE = 50
+const UNDO_MESSAGE_KEYS = {
+  approved: 'discover.undoApproved',
+  rejected: 'discover.undoRejected',
+  blocked: 'discover.undoBlocked',
+} as const satisfies Record<string, MessageKey>
 const CLEAR_ALL_BATCH_SIZE = 200
 
 /** Surfaces why a "Popular albums" approval failed, falling back to a generic message. */
@@ -580,15 +591,41 @@ export function DiscoverPage() {
 
   // Undo toast
 
-  type UndoEntry = { id: number; prevStatus: string }
+  type UndoAction = 'approved' | 'rejected' | 'blocked'
+  type UndoEntry = {
+    id: number
+    prevStatus: string
+    action: UndoAction
+    name: string
+    block?: { artistId: number } | { releaseGroupMbid: string }
+  }
   const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null)
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const itemsRef = useRef<Recommendation[]>([])
+  itemsRef.current = items
 
-  const showUndo = useCallback((entry: UndoEntry) => {
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
-    setUndoEntry(entry)
-    undoTimerRef.current = setTimeout(() => setUndoEntry(null), 5000)
-  }, [])
+  const showUndo = useCallback(
+    (id: number, prevStatus: string, action: UndoAction) => {
+      const rec = itemsRef.current.find((item) => item.id === id)
+      // Mirrors the server: album recs with a release group get an album block, else an artist block.
+      const block =
+        action !== 'blocked' || !rec
+          ? undefined
+          : rec.kind === 'album' && rec.recommendedReleaseGroupId
+            ? { releaseGroupMbid: rec.recommendedReleaseGroupId }
+            : { artistId: rec.artist.id }
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+      setUndoEntry({
+        id,
+        prevStatus,
+        action,
+        name: rec ? recommendationDisplayName(rec, t) : '',
+        block,
+      })
+      undoTimerRef.current = setTimeout(() => setUndoEntry(null), 5000)
+    },
+    [t],
+  )
 
   const handleUndo = useCallback(async () => {
     if (!undoEntry) return
@@ -597,6 +634,8 @@ export function DiscoverPage() {
     setUndoEntry(null)
     try {
       await updateRecommendation(entry.id, { status: entry.prevStatus })
+      if (entry.block && 'artistId' in entry.block) await deleteArtistBlock(entry.block.artistId)
+      else if (entry.block) await deleteAlbumBlock(entry.block.releaseGroupMbid)
       toast.success(t('discover.undone'))
       refetch()
     } catch {
@@ -649,7 +688,7 @@ export function DiscoverPage() {
           monitorOption: option,
           selectedAlbumIds,
         })
-        if (reportApprovalOutcome(res, t)) showUndo({ id, prevStatus })
+        if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
         refetch()
       } catch (err) {
         toast.error(approveErrorMessage(err, t('dashboard.approveFailed'), t))
@@ -678,7 +717,7 @@ export function DiscoverPage() {
           res = await updateRecommendation(id, { status: newStatus })
         }
         if (filter !== 'rejected') {
-          if (reportApprovalOutcome(res, t)) showUndo({ id, prevStatus })
+          if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
         } else {
           toast.success(t('discover.restoredToPending'))
         }
@@ -715,7 +754,7 @@ export function DiscoverPage() {
         if (payload?.reasonText) body.reasonText = payload.reasonText
         if (payload?.permanent) body.permanent = true
         await updateRecommendation(id, body)
-        showUndo({ id, prevStatus })
+        showUndo(id, prevStatus, payload?.permanent ? 'blocked' : 'rejected')
         refetch()
       } catch {
         toast.error(t('discover.rejectFailed'))
@@ -936,9 +975,6 @@ export function DiscoverPage() {
     },
     [expandedId],
   )
-
-  const itemsRef = useRef(items)
-  itemsRef.current = items
 
   const selectedIdRef = useRef(selectedId)
   selectedIdRef.current = selectedId
@@ -1427,7 +1463,11 @@ export function DiscoverPage() {
       {/* Undo toast */}
       {undoEntry && (
         <div className="fixed bottom-[calc(var(--bottom-stack)+0.75rem)] left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 bg-surface border border-border rounded-lg shadow-lg text-sm text-text">
-          <span>{t('discover.actionApplied')}</span>
+          <span role="status">
+            {undoEntry.name
+              ? t(UNDO_MESSAGE_KEYS[undoEntry.action]).replace('{name}', undoEntry.name)
+              : t('discover.actionApplied')}
+          </span>
           <button
             type="button"
             onClick={handleUndo}

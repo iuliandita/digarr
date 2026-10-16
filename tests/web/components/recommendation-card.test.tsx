@@ -465,3 +465,61 @@ describe('RecommendationCard', () => {
     expect(play).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('RecommendationCard expand control', () => {
+  it('exposes a named expand button with sibling actions', () => {
+    const onClick = vi.fn()
+    const onApprove = vi.fn()
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={vi.fn()}
+        onClick={onClick}
+      />,
+    )
+
+    const card = screen.getByTestId('rec-card-button')
+    expect(card).not.toHaveAttribute('role')
+    expect(card).not.toHaveAttribute('tabindex')
+    const expand = screen.getByTestId('rec-card-expand')
+    expect(expand.tagName).toBe('BUTTON')
+    expect(expand).toHaveAttribute('aria-expanded', 'false')
+    expect(expand.querySelector('button')).toBeNull()
+
+    fireEvent.click(expand)
+    expect(onClick).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: /approve/i }))
+    expect(onApprove).toHaveBeenCalledTimes(1)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('gives two albums by one artist distinct accessible names', () => {
+    const album = (id: number, title: string) =>
+      makeRec({
+        id,
+        kind: 'album',
+        recommendedReleaseGroupId: `rg-${id}`,
+        recommendedReleaseGroupTitle: title,
+      })
+    withPreview(
+      <>
+        <RecommendationCard
+          recommendation={album(1, 'Souvlaki')}
+          onApprove={vi.fn()}
+          onReject={vi.fn()}
+        />
+        <RecommendationCard
+          recommendation={album(2, 'Pygmalion')}
+          onApprove={vi.fn()}
+          onReject={vi.fn()}
+        />
+      </>,
+    )
+
+    const names = screen.getAllByTestId('rec-card-expand').map((b) => b.getAttribute('aria-label'))
+    expect(names[0]).toContain('Souvlaki')
+    expect(names[1]).toContain('Pygmalion')
+    expect(names[0]).not.toBe(names[1])
+  })
+})

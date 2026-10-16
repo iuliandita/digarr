@@ -101,12 +101,27 @@ function StackCard({
       {/* Card body */}
       <div className="flex flex-col flex-1 p-4 gap-3">
         {/* Artist name + disambiguation */}
-        <div>
-          <h2 className="text-xl font-bold text-text leading-tight">{rec.artist.name}</h2>
-          {rec.artist.disambiguation && (
-            <p className="text-xs text-muted mt-0.5">{rec.artist.disambiguation}</p>
-          )}
-        </div>
+        {rec.kind === 'album' ? (
+          <div>
+            <span
+              data-testid="rec-kind-album"
+              className="bg-accent/15 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+            >
+              {t('recommendation.albumBadge')}
+            </span>
+            <h2 className="text-xl font-bold text-text leading-tight mt-0.5">
+              {rec.recommendedReleaseGroupTitle ?? rec.artist.name}
+            </h2>
+            <p className="text-xs text-muted mt-0.5">{rec.artist.name}</p>
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-xl font-bold text-text leading-tight">{rec.artist.name}</h2>
+            {rec.artist.disambiguation && (
+              <p className="text-xs text-muted mt-0.5">{rec.artist.disambiguation}</p>
+            )}
+          </div>
+        )}
 
         {/* Genre/tag pills */}
         {allTags.length > 0 && (

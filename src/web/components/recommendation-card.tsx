@@ -42,6 +42,19 @@ export type Recommendation = {
   }
 }
 
+/** Accessible/display name: album recs carry the album title so two albums by one artist differ. */
+export function recommendationDisplayName(
+  rec: Pick<Recommendation, 'kind' | 'recommendedReleaseGroupTitle' | 'artist'>,
+  t: (key: MessageKey) => string,
+): string {
+  if (rec.kind === 'album' && rec.recommendedReleaseGroupTitle) {
+    return t('recommendation.albumByArtist')
+      .replace('{album}', rec.recommendedReleaseGroupTitle)
+      .replace('{artist}', rec.artist.name)
+  }
+  return rec.artist.name
+}
+
 type RecommendationCardProps = {
   recommendation: Recommendation
   onApprove: (id: number) => void
@@ -616,32 +629,42 @@ export function RecommendationCard({
     }
   }
 
+  const displayName = recommendationDisplayName(rec, t)
+  const titleButton = (title: string) => (
+    <button
+      type="button"
+      data-testid="rec-card-expand"
+      aria-label={displayName}
+      aria-expanded={bulkMode ? undefined : expanded}
+      aria-pressed={bulkMode ? isChecked : undefined}
+      onClick={(e) => {
+        e.stopPropagation()
+        handleCardClick()
+      }}
+      className="text-left rounded-sm focus-ring"
+    >
+      {title}
+    </button>
+  )
+
   return (
     <div className="relative group">
       {/* Bulk mode checkbox overlay */}
       {bulkMode && (
-        <button
-          type="button"
-          className="absolute top-2 left-2 z-20 bg-transparent border-none p-0"
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleSelect?.(rec.id)
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={() => onToggleSelect?.(rec.id)}
-            className="w-4 h-4 accent-accent cursor-pointer"
-            aria-label={`${t('recommendation.select')} ${rec.artist.name}`}
-            tabIndex={-1}
-          />
-        </button>
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => onToggleSelect?.(rec.id)}
+          className="absolute top-2 left-2 z-20 w-4 h-4 accent-accent cursor-pointer"
+          aria-label={`${t('recommendation.select')} ${displayName}`}
+        />
       )}
-      {/* biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] - nesting <button> inside <button> is invalid HTML */}
+      {/* Mouse convenience only: the title button is the keyboard/AT expand control, so the
+          action buttons stay siblings instead of nesting inside an interactive wrapper. */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: see above */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: see above */}
       <div
-        role="button"
-        tabIndex={0}
         data-testid="rec-card-button"
         className={cn(
           'bg-surface border rounded-lg transition-all cursor-pointer w-full text-left flex flex-col relative',
@@ -652,14 +675,6 @@ export function RecommendationCard({
               : 'border-border hover:border-border/80',
         )}
         onClick={handleCardClick}
-        onKeyDown={(e) => {
-          // Nested controls handle their own Enter/Space; only the card itself toggles
-          if (e.target !== e.currentTarget) return
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            handleCardClick()
-          }
-        }}
       >
         {layout === 'grid' && (
           <div
@@ -716,14 +731,14 @@ export function RecommendationCard({
                     </span>
                   )}
                   <h3 className="text-lg font-semibold text-text leading-tight mt-0.5">
-                    {rec.recommendedReleaseGroupTitle ?? rec.artist.name}
+                    {titleButton(rec.recommendedReleaseGroupTitle ?? rec.artist.name)}
                   </h3>
                   <p className="text-xs text-muted mt-0.5">{rec.artist.name}</p>
                 </div>
               ) : (
                 <div className="min-w-0">
                   <h3 className="text-lg font-semibold text-text leading-tight">
-                    {rec.artist.name}
+                    {titleButton(rec.artist.name)}
                   </h3>
                   {rec.artist.disambiguation && (
                     <p className="text-xs text-muted mt-0.5">{rec.artist.disambiguation}</p>
