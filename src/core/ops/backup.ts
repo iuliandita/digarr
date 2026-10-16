@@ -105,13 +105,17 @@ async function probeLiveSchema(db: Pick<OpsDb, 'execute'>): Promise<SchemaProbe>
   const result = await db.execute(sql`
     SELECT table_name, column_name
     FROM information_schema.columns
-    WHERE table_schema = 'public'
+    WHERE table_schema = current_schema()
   `)
   const live = new Map<string, Set<string>>()
   for (const row of result.rows as { table_name: string; column_name: string }[]) {
     const columns = live.get(row.table_name) ?? new Set<string>()
     columns.add(row.column_name)
     live.set(row.table_name, columns)
+  }
+  // An empty or wrong-schema probe would otherwise read as "everything absent" and succeed.
+  if (!live.has('settings') && !live.has('users')) {
+    throw new Error('Pre-migration snapshot found no Digarr tables in the current schema')
   }
   return { live, absent: { tables: [], columns: {} } }
 }

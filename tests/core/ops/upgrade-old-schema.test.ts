@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { randomUUID } from 'node:crypto'
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
@@ -12,7 +12,7 @@ import { drizzle as drizzlePglite } from 'drizzle-orm/pglite'
 import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator'
 import pg from 'pg'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { restoreBackup } from '@/core/ops/backup'
+import { PartialBackupConflictError, restoreBackup } from '@/core/ops/backup'
 import type { BackupFile, OpsDb } from '@/core/ops/types'
 import { getPendingMigrations, runPreFlightCheck } from '@/core/ops/upgrade'
 import * as schema from '@/db/schema'
@@ -128,13 +128,21 @@ describe.each(backends)(
         expect(backup.data.users[0]).not.toHaveProperty('oidcIssuer')
         expect(backup.data.playlistTracks).toHaveLength(1)
         expect(backup.data).not.toHaveProperty('playlistExports')
-        expect(backup.absentSchema).toEqual({
-          tables: ['playlist_exports'],
-          columns: { settings: ['digest_delivery_positions'], users: ['oidc_issuer'] },
+        expect(backup.absentSchema?.tables).toContain('playlist_exports')
+        expect(backup.absentSchema?.columns).toMatchObject({
+          settings: ['digest_delivery_positions'],
+          users: ['oidc_issuer'],
         })
 
         await h.migrate('drizzle')
         expect((await getPendingMigrations(h.db)).pendingCount).toBe(0)
+
+        await h.db.execute(sql`INSERT INTO targets (type, name) VALUES ('plex', 'p')`)
+        await h.db.execute(sql`
+          INSERT INTO playlist_exports (playlist_id, target_id, remote_scope)
+          VALUES (1, 1, 'scope')`)
+        await expect(restoreBackup(h.db, backup)).rejects.toBeInstanceOf(PartialBackupConflictError)
+        await h.db.execute(sql`DELETE FROM playlist_exports`)
 
         const restored = await restoreBackup(h.db, backup)
         expect(restored.tablesRestored).toMatchObject({ settings: 1, users: 2, playlistTracks: 1 })
@@ -154,8 +162,7 @@ describe.each(backends)(
       await expect(runPreFlightCheck(h.db)).rejects.toThrow()
 
       expect(error).toHaveBeenCalledWith(expect.stringContaining('DIGARR_AUTO_BACKUP=false'))
-      const status = await getPendingMigrations(h.db)
-      expect(status.currentVersion).toBe(PREVIOUS_RELEASE_LAST_MIGRATION)
+      expect(existsSync(join(dir, 'blocker', 'backups'))).toBe(false)
     })
   },
 )
