@@ -3,7 +3,7 @@
 The checked-in screenshots use the Youtarr theme. Most were captured from
 v1.10.0; Analytics was refreshed from v1.12.0. Discovery Modes, Settings, and Your Connections show v1.15.1 (`d276d94`) in their footers; Library Reconciliation shows v1.14.0. The Account capture was added with v1.17.0 (commit `e36d7d8a`); its exact running build was not recorded.
 
-The descriptions below reflect v2.0.0. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
+The descriptions below reflect v2.0.1. The captures predate its genre-priority controls, playlist generation outcomes, Audition failure summary, and dashboard history states; these are described below rather than shown in the older images. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 

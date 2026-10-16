@@ -1,6 +1,6 @@
 # Configuration and operations
 
-These notes describe v2.0.0. Start with the [README](../README.md) for installation. Most connection, playlist, notification, and maintenance settings live in the web UI; public origin and the environment settings below require a restart.
+These notes describe v2.0.1. Start with the [README](../README.md) for installation. Most connection, playlist, notification, and maintenance settings live in the web UI; public origin and the environment settings below require a restart.
 
 <a id="known-limitations-in-v1190"></a>
 
@@ -163,8 +163,8 @@ This upgrade runs three migrations:
 
 1. Stop every app instance and other writers. Record the previous image and configuration, retain the exact `DIGARR_ENCRYPTION_KEY` separately, and keep a working local-admin login or session.
 2. Take a native consistent backup: `pg_dump -Fc` for PostgreSQL, or an archive/snapshot of the entire stopped PGlite data volume. Verify restoration into a separate database or data directory with the previous compatible image and original key before upgrading. A readable archive listing alone does not verify recovery. Follow the [complete backup procedures](../deploy/docker/README.md#back-up-and-update).
-3. v2.0.0 as released fails its JSON pre-migration snapshot against the v1.19.0 schema (missing the fields and table added by 0052, 0053, and 0054). Only after the native backup and separate restore are verified, set `DIGARR_AUTO_BACKUP=false` for this one upgrade. Later releases tolerate that gap and need no override; investigate any other backup failure.
-4. Start v2.0.0 once to run migrations. If legacy OIDC bindings exist, stop the app again and use the recovery helper's locked dry run, then `--apply`, for each verified identity. Keep every process off a PGlite directory while the helper uses it. Leave unverifiable accounts unbound.
+3. v2.0.1 and later write the JSON pre-migration snapshot against the v1.19.0 schema without an override. v2.0.0 as released fails it (missing the fields and table added by 0052, 0053, and 0054); only if you are installing v2.0.0, and only after the native backup and separate restore are verified, set `DIGARR_AUTO_BACKUP=false` for this one upgrade. Investigate any other backup failure.
+4. Start the new version once to run migrations. If legacy OIDC bindings exist, stop the app again and use the recovery helper's locked dry run, then `--apply`, for each verified identity. Keep every process off a PGlite directory while the helper uses it. Leave unverifiable accounts unbound.
 5. If you set the override, re-enable automatic backups by removing it or setting `DIGARR_AUTO_BACKUP=true`. Restart, check `/health` for the intended version/backend, and verify local login, recovered SSO, saved connections, playlist outcomes, and digest scheduling. Keep the original backup and image until recovery is verified.
 
 If admin settings responses from v1.19.0 were shared, review them for exposed fanart credentials or legacy webhook URLs and replace exposed credentials with their provider. v2.0.0 masks these values for admins and omits them for other users; upgrading does not revoke earlier exposure.

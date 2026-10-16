@@ -712,11 +712,11 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0e29f929c9747d8be2f51387becfaf8cc517403f3c6c50ac4b2c8dee89be4e61",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "8460a99dae6271fbf949e19d1ef5a894e08f20dc4f2cce0aa41f55cb0a03a41e",
+        "deploy/k8s/rendered.yaml": "7ccb5911657fc59ee9c8428a67197dd2aacf6e63624b82097a09bf61f2c20d36",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "cdbef75a8512e92b91a62fdc055a2e195edbb5ccb6f014189d8720aa3aa91037",
+      "digest": "63f0c59ec9b78b36dce6bb070e5c5162c2861508ec63a5bcd246bc4846b8dae1",
       "review": {
         "outcome": "docs-updated",
         "docs": [
@@ -725,10 +725,10 @@
           "docs/guides/unraid.md",
           "CHANGELOG.md"
         ],
-        "note": "Review Bun 1.4.3 image variants, version-only Helm regeneration, bootstrap failure behavior, exact database identifiers and combined upgrade steps. Keep published image pins unchanged until digest sync and community template status pending.",
-        "breaking": "Legacy OIDC upgrade needs verified issuer recovery and a matching native backup; incomplete first-boot credentials now stop startup.",
+        "note": "Version-only chart and rendered manifest bump to 2.0.1, with upgrade guidance in the Docker, chart and Unraid guides now saying 2.0.1 and later need no backup override and only 2.0.0 as released does. Published image pins and digests stay at 2.0.0 until the post-publish digest sync; no variable, port, volume, permission or WebUI changes.",
+        "breaking": "none",
         "migration": "",
-        "digest": "cdbef75a8512e92b91a62fdc055a2e195edbb5ccb6f014189d8720aa3aa91037"
+        "digest": "63f0c59ec9b78b36dce6bb070e5c5162c2861508ec63a5bcd246bc4846b8dae1"
       }
     },
     "release": {
@@ -746,17 +746,17 @@
         ".github/workflows/release.yml": "59df9e5106292421322e75b2f358ad69053a57efc83f1d73bb03095434a6b43f",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "37e213c0b4f6d7c73867f84d5cd05cd1a6e51e8a5d210c6c2789e2340cc9b38d",
+        "package.json": "f2c7a0e50dd4a2e9ae36a61d4eb190916d7ff5a6a753471bc8af1120595545dd",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "641c2efa27798a5e6bda0bbba819f7e1c67ddafcb4c66fd313694e1b3aeae976",
+      "digest": "de2a09a9b218749ad9ef067a3d70624e609f7d3e83204af8f7eedf47bdbc887c",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "CI change only appends the new upgrade-old-schema test to the existing PostgreSQL test file list; no release, tag, image, channel, or promotion behavior changes.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md", "docs/OPERATIONS.md"],
+        "note": "Patch release v2.0.1 bumps every class A surface together: package.json, chart, changelog section, roadmap header and highlights, README banner and pin example, API header, Compose pin comments. No workflow, channel or promotion change; image pins stay at 2.0.0 until digest sync.",
         "breaking": "none",
         "migration": "",
-        "digest": "641c2efa27798a5e6bda0bbba819f7e1c67ddafcb4c66fd313694e1b3aeae976"
+        "digest": "de2a09a9b218749ad9ef067a3d70624e609f7d3e83204af8f7eedf47bdbc887c"
       }
     },
     "maintenance": {

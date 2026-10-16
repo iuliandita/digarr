@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-10-15 | Current: v2.0.0
+> Updated: 2026-10-16 | Current: v2.0.1
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v2.0.0 fixes discovery filtering, album coverage and approval, saved playlist exports, setup, and recovery. OIDC identities now use exact issuer/subject pairs; existing SSO installations require verified recovery after migration. Read the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) before updating.
+v2.0.0 fixes discovery filtering, album coverage and approval, saved playlist exports, setup, and recovery. OIDC identities now use exact issuer/subject pairs; existing SSO installations require verified recovery after migration. v2.0.1 fixes the automatic pre-migration backup for databases one release behind. Read the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) before updating.
 
 Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Next priorities are better recommendations, usable playlists, and clear reports of what reached each target. Security and reliability remain release requirements.
 
@@ -19,9 +19,10 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 - First-account creation precedes the browser setup wizard; configured admin bootstrap completes before HTTP opens.
 - Settings saves respect user/admin permissions, mask secret-bearing preferences, and retain explicit configuration failures.
 - Exact OIDC issuer/subject matching includes a dry-run recovery helper for verified legacy identities.
+- The pre-migration backup reads only the tables and columns the database already has, so upgrades from the previous release no longer need the backup override.
 - v2.0.0 publishes separate signed Alpine and Debian container inventories with explicit amd64 scope. See the [release assets](https://github.com/iuliandita/digarr/releases/tag/v2.0.0) and [verification instructions](../deploy/docker/README.md#verifying-image-signatures).
 
-See [v2.0.0](../CHANGELOG.md#v200---2026-10-15) for the full changes and migration requirements.
+See [v2.0.1](../CHANGELOG.md#v201---2026-10-16) and [v2.0.0](../CHANGELOG.md#v200---2026-10-15) for the full changes and migration requirements.
 
 ## Known integration limitations
 

@@ -278,8 +278,9 @@ Current codes:
 
 Before upgrading, stop app writers, verify a native database backup by restoring
 it separately, and retain the matching encryption key and previous image. The
-current automatic snapshot cannot read the old schema without `oidc_issuer`;
-use the understood, one-upgrade `DIGARR_AUTO_BACKUP=false` override from
+automatic snapshot of v2.0.0 as released cannot read the old schema without
+`oidc_issuer`; v2.0.1 and later can. For v2.0.0 only, use the understood,
+one-upgrade `DIGARR_AUTO_BACKUP=false` override from
 [Operations](OPERATIONS.md#backup--restore), then re-enable it. Fresh databases
 need no override. Keep a working local-admin session or local login available.
 
