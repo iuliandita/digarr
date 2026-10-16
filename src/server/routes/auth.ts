@@ -32,7 +32,7 @@ import {
   updateLocaleSchema,
   updatePreferencesSchema,
 } from '@/server/schemas/auth'
-import { preferredGenreListSchema } from '@/server/schemas/settings'
+import { preferencesSchema, preferredGenreListSchema } from '@/server/schemas/settings'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -498,6 +498,12 @@ export function authRoutes(deps: AppDependencies) {
         )
       filtered[key] = parsed.data
     }
+
+    const validated = preferencesSchema.safeParse(filtered)
+    if (!validated.success) {
+      return problem(c, 'invalid-preferences', 'Invalid preference values', 400)
+    }
+    Object.assign(filtered, validated.data)
 
     // SSRF protection: validate metadataFallbackUrl against private IP ranges
     const fallbackUrl = filtered.metadataFallbackUrl

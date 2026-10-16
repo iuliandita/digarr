@@ -43,6 +43,13 @@ describe('crypto', () => {
       expect(decryptField(enc)).toBe(plain)
     })
 
+    it('keeps an empty string empty, including one stored as ciphertext', () => {
+      expect(encryptField('')).toBe('')
+      const stored = encryptWithLegacyKey('', 'test-key-please-do-not-use-in-prod')
+      expect(stored).toMatch(/^enc:v1:[^.]+\.\.[^.]+$/)
+      expect(decryptField(stored)).toBe('')
+    })
+
     it('round-trips long strings', () => {
       const plain = 'x'.repeat(10_000)
       const enc = encryptField(plain)

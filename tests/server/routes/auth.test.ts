@@ -1676,6 +1676,32 @@ describe('PATCH /api/v1/auth/me/preferences', () => {
     expect(set).toHaveBeenCalledTimes(2)
   })
 
+  it.each([
+    { rejectionCooldownDays: 'soon' },
+    { rejectionCooldownDays: -1 },
+    { scoreThreshold: 2 },
+    { topArtistsLimit: 1.5 },
+    { autoApproveMonitorOption: 'some' },
+    { scoringWeights: { consensus: 'high' } },
+  ])('rejects invalid preference value %j before writing', async (body) => {
+    const update = vi.fn()
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps({ db: { update } as unknown as AppDependencies['db'] })))
+
+    const res = await app.request('/api/v1/auth/me/preferences', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    expect(res.status).toBe(400)
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('rejects legacy read-only token auth', async () => {
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
