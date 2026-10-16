@@ -16,6 +16,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Settings now validates the `?tab=` link: an unknown tab, or an admin tab opened by a member, falls back to Connections instead of mounting admin panels that then fail their requests. Admin links still open once the account's role has loaded. [#888](https://github.com/iuliandita/digarr/issues/888).
 
+### Fixed
+
+- Settings now validates the `?tab=` link: an unknown tab, or an admin tab opened by a member, falls back to Connections instead of mounting admin panels that then fail their requests. Admin links still open once the account's role has loaded. [#888](https://github.com/iuliandita/digarr/issues/888).
+
 ## v2.0.1 - 2026-10-16
 
 ### Upgrade notes

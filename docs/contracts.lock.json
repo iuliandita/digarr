@@ -470,6 +470,7 @@
         "src/web/pages/settings/schedule-tab.tsx": "f6b5026881a4e26939cd5342b0802b721b5e1281c0d47ad788c576d5af3e2fc7",
         "src/web/pages/settings/settings-nav.tsx": "9e7457c0561810d4aeb70e5483925f8cf848516c9067a6710af5e0f88d9aa9d8",
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
+        "src/web/pages/settings/tab-bar.tsx": "2d152bd4eae0b62eb2b76932ef726f8eb8d4add1f04169b3e1edb7272950eaac",
         "src/web/pages/settings/tabs.ts": "c3bbed204fcbabad289f54544e48333a5c1ee8e47652213f924ba5c42664a602",
         "src/web/pages/settings/targets-tab.tsx": "47f275dd39a2a674efcf86ce51fd50a966194f4f0a4e8841583c28b38d74f1fa",
         "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
@@ -479,14 +480,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "3c057aae67a9a5765bfb7340bee95d25dc60223bba8c9173d5fbcbe66effd23d",
+      "digest": "60eb3b71d0797a47436dbbd12cc64fd65cd3f44ac20c00a95be09e913ad9b18b",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md", "docs/OPERATIONS.md"],
         "note": "Settings uses a grouped side menu (mobile grouped select) with unchanged tab ids and URLs; services collapse into status rows (Saved, Test passed, Test passed -- not saved yet, Error, Connected for OAuth) where edits clear stale test results; rarely used fields move into Advanced blocks that open when non-default; TIDAL app vs personal TIDAL rows named apart; headings sentence-cased, so the 'Your connections' UI path is updated in OPERATIONS (and AUTHENTICATION). Changelog and SCREENSHOTS Settings note updated; captures are refreshed at the end of the UI refresh.",
         "breaking": "none",
         "migration": "",
-        "digest": "3c057aae67a9a5765bfb7340bee95d25dc60223bba8c9173d5fbcbe66effd23d"
+        "digest": "60eb3b71d0797a47436dbbd12cc64fd65cd3f44ac20c00a95be09e913ad9b18b"
       }
     },
     "features": {
