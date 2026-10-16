@@ -217,9 +217,9 @@ describe('Emby scheduled playlist session', () => {
       playlistName: 'Original',
     })
     const writes = fetchMock.mock.calls.filter(([, init]) => init.method !== 'GET')
-    expect(writes.map(([, init]) => init.method)).toEqual(['POST', 'DELETE', 'POST'])
-    expect(new URL(writes[1]?.[0]).searchParams.get('EntryIds')).toBe('entry-1')
-    expect(new URL(writes[2]?.[0]).searchParams.get('Ids')).toBe('track-1')
+    expect(writes.map(([, init]) => init.method)).toEqual(['POST', 'POST', 'DELETE'])
+    expect(new URL(writes[1]?.[0]).searchParams.get('Ids')).toBe('track-1')
+    expect(new URL(writes[2]?.[0]).searchParams.get('EntryIds')).toBe('entry-1')
   })
 
   it('redacts transport errors during identity preparation', async () => {

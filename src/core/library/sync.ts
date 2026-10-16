@@ -9,6 +9,7 @@ import type { LibrarySource } from './sources/types'
 import { emptyLibrarySyncCounts, type LibrarySyncStore } from './store'
 
 const LIBRARY_SYNC_JOB_TYPE: JobType = 'library_sync'
+const FRESH_FRACTION = 0.9
 
 /** Sentinel substring used by callers to detect "source not configured" failures
  *  and trigger fallback retry logic. Keep in sync with syncSpecificSource error msg. */
@@ -91,10 +92,12 @@ function deduplicateAlbums(
 export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
   const inFlight = new Map<string, Promise<SourceSyncResult>>()
 
-  function isStale(lastCompleted: Date | null): boolean {
-    if (!lastCompleted) return true
-    const ageMs = Date.now() - lastCompleted.getTime()
-    return ageMs > deps.staleHours * 60 * 60 * 1000
+  function isFresh(state: Awaited<ReturnType<LibrarySyncStore['getLibrarySyncState']>>): boolean {
+    if (state?.lastSyncStatus !== 'completed' || !state.lastSyncCompletedAt) return false
+    const since = state.lastSyncStartedAt ?? state.lastSyncCompletedAt
+    // The scheduler ticks once per staleHours; a full-period threshold would skip every
+    // other tick whenever a sync started a little after its tick.
+    return Date.now() - since.getTime() < deps.staleHours * 60 * 60 * 1000 * FRESH_FRACTION
   }
 
   async function syncSource(
@@ -120,7 +123,7 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
   ): Promise<SourceSyncResult> {
     if (!options?.force) {
       const state = await deps.store.getLibrarySyncState(userId, source.id)
-      if (state?.lastSyncCompletedAt && !isStale(state.lastSyncCompletedAt)) {
+      if (state && isFresh(state)) {
         return { source: source.id, status: 'skipped_fresh', counts: state.lastSyncCounts }
       }
     }
@@ -149,11 +152,13 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       const overrides = userId != null ? await deps.store.getAllOverrides(userId) : new Map()
       const knownMbids =
         userId != null ? await deps.store.getKnownMbidsForUser(userId) : new Set<string>()
+      const previousMatches = await deps.store.listArtistMatches(userId, source.id)
       const counts = emptyLibrarySyncCounts()
       const ctx: ReconcilerContext = {
         userId,
         overrides,
         knownMbids,
+        previousMatches,
         mbClient: deps.mbClient,
         cacheLookup: (nameNormalized) =>
           userId != null

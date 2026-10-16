@@ -102,6 +102,7 @@ type MockDeps = {
   healthStateGet: ReturnType<typeof vi.fn>
   healthStateStart: ReturnType<typeof vi.fn>
   healthStateSave: ReturnType<typeof vi.fn>
+  healthStateFailed: ReturnType<typeof vi.fn>
 }
 
 function makeMocks(): MockDeps {
@@ -119,6 +120,7 @@ function makeMocks(): MockDeps {
     healthStateGet: vi.fn(async (): Promise<LibraryHealthState | null> => null),
     healthStateStart: vi.fn(async () => {}),
     healthStateSave: vi.fn(async () => {}),
+    healthStateFailed: vi.fn(async () => {}),
   }
 }
 
@@ -165,6 +167,7 @@ function makeService(mocks: MockDeps): LibraryHealthService {
         lastCompletedAt: Date
         lastError: string | null
       }) => Promise<void>,
+      markScanFailed: mocks.healthStateFailed as unknown as (error: string) => Promise<void>,
     },
   })
 }
@@ -228,6 +231,37 @@ describe('LibraryHealthService', () => {
       expect(state?.lastCompletedAt).toBeInstanceOf(Date)
       expect(state?.lastError).toBeNull()
       expect(state?.checks.find((check) => check.id === 'unmonitored')?.count).toBe(1)
+    })
+
+    it('reports partial missing-album results when some album lookups fail', async () => {
+      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
+      mocks.getAlbums.mockImplementation(async (artistId: number) => {
+        if (artistId === ARTIST_PORTISHEAD.id) throw new Error('Lidarr 503')
+        return [ALBUM_NO_FILES]
+      })
+
+      const results = await service.runChecks()
+
+      expect(results.find((check) => check.id === 'missing-albums')?.count).toBe(1)
+      expect(mocks.healthStateSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastError: expect.stringContaining('failed for 1 of 2 monitored artists'),
+        }),
+      )
+    })
+
+    it('records a failed scan when every album lookup fails', async () => {
+      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
+      mocks.getAlbums.mockRejectedValue(new Error('Lidarr 503'))
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      service.startScan()
+      await vi.waitFor(() => expect(service.scanning).toBe(false))
+
+      expect(mocks.healthStateSave).not.toHaveBeenCalled()
+      expect(mocks.healthStateFailed).toHaveBeenCalledWith(
+        expect.stringContaining('Album lookups failed for all 2 monitored artists'),
+      )
     })
   })
 
@@ -681,16 +715,35 @@ describe('LibraryHealthService', () => {
       expect(progress.errors[0]).toContain('Lidarr down')
     })
 
-    it('returns completed status with zero items when no cached results', async () => {
-      // Don't run runChecks first - cachedResults is null
+    it('refuses to fix without any scan results instead of reporting success', async () => {
       const fresh = makeService(mocks)
-      mocks.setArtistsMonitored.mockResolvedValue([])
 
-      const progress = await fresh.fixCheck('unmonitored')
+      await expect(fresh.fixCheck('unmonitored')).rejects.toThrow('run a library health scan')
+      expect(mocks.setArtistsMonitored).not.toHaveBeenCalled()
+    })
 
-      expect(progress.total).toBe(0)
-      expect(progress.completed).toBe(0)
-      expect(progress.status).toBe('completed')
+    it('fixes from persisted results after a restart', async () => {
+      mocks.healthStateGet.mockResolvedValue({
+        checks: [
+          {
+            id: 'unmonitored',
+            name: 'Unmonitored Artists',
+            description: '',
+            severity: 'info',
+            fixable: true,
+            count: 1,
+            items: [{ artistId: 7, artistName: 'Bjork', mbid: 'x', detail: 'Not monitored' }],
+          },
+        ],
+        lastStartedAt: null,
+        lastCompletedAt: new Date(),
+        lastError: null,
+      })
+
+      const progress = await makeService(mocks).fixCheck('unmonitored')
+
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith([7], true)
+      expect(progress).toMatchObject({ total: 1, completed: 1, status: 'completed' })
     })
 
     it('bulk-flips all unmonitored artists in a single setArtistsMonitored call', async () => {
@@ -928,18 +981,6 @@ describe('LibraryHealthService', () => {
       const results = await service.runChecks()
       const check = results.find((r) => r.id === 'missing-albums')
 
-      expect(check?.count).toBe(0)
-    })
-
-    it('handles getAlbums errors gracefully', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD])
-      mocks.getAlbums.mockRejectedValue(new Error('API timeout'))
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-albums')
-
-      // Error is swallowed; artist treated as having no problem albums
       expect(check?.count).toBe(0)
     })
   })

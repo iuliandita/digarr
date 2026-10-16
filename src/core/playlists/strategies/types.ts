@@ -12,6 +12,8 @@ export type StrategyDeps = {
   getApprovedArtists: (opts: {
     since?: Date
     genre?: string
+    /** Normalized keywords, any of which may appear in a normalized genre. */
+    genreKeywords?: string[]
     limit?: number
   }) => Promise<StrategyArtist[]>
   getOlderApprovedArtists: (opts: { olderThan: Date; limit: number }) => Promise<StrategyArtist[]>

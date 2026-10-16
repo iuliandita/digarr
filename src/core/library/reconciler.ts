@@ -49,8 +49,44 @@ export type ReconcilerContext = {
   cacheLookup: (
     nameNormalized: string,
   ) => Promise<Array<{ mbid: string; name: string; source: string }>>
+  /** This source's previous matches by sourceArtistId, kept when MusicBrainz is unavailable. */
+  previousMatches?: Map<string, PreviousArtistMatch>
   /** Mutable accumulator updated as the run progresses; surfaced to UI */
   counts: LibrarySyncCounts
+}
+
+export type PreviousArtistMatch = {
+  nameNormalized: string
+  mbid: string
+  matchMethod: NonNullable<ReconciledArtist['matchMethod']>
+  matchConfidence: number | null
+}
+
+const MATCH_COUNT_KEY = {
+  mbid: 'matchedMbid',
+  name_exact: 'matchedNameExact',
+  name_anchored: 'matchedNameAnchored',
+  name_disambiguated: 'matchedDisambiguated',
+} as const
+
+function lookupFailedRow(
+  artist: LibraryArtist,
+  nameNormalized: string,
+  ctx: ReconcilerContext,
+): ReconciledArtist {
+  const previous = ctx.previousMatches?.get(artist.sourceArtistId)
+  if (previous && previous.nameNormalized === nameNormalized) {
+    ctx.counts[MATCH_COUNT_KEY[previous.matchMethod]] += 1
+    return matchedRow(
+      artist,
+      nameNormalized,
+      previous.mbid,
+      previous.matchMethod,
+      previous.matchConfidence ?? 0,
+    )
+  }
+  bumpLookupFailed(ctx.counts)
+  return unreconciledRow(artist, nameNormalized, 'lookup_failed')
 }
 
 function matchedRow(
@@ -124,28 +160,29 @@ export async function reconcileArtist(
   }
 
   // Step 2: cache short-circuit
-  const cached = await ctx.cacheLookup(nameNormalized)
-  if (cached.length === 1 && cached[0]) {
+  // The same artist cached from several sources is one match, not an ambiguity.
+  const cachedMbids = new Set((await ctx.cacheLookup(nameNormalized)).map((row) => row.mbid))
+  const [cachedMbid] = cachedMbids
+  if (cachedMbids.size === 1 && cachedMbid) {
     ctx.counts.cacheHits += 1
     ctx.counts.matchedNameAnchored += 1
-    return matchedRow(artist, nameNormalized, cached[0].mbid, 'name_anchored', 0.85)
+    return matchedRow(artist, nameNormalized, cachedMbid, 'name_anchored', 0.85)
   }
 
   // Cache miss or ambiguous: fall through to MB API.
   // MB errors (5xx, timeout, network) are soft-failed so one flaky upstream
-  // call doesn't abort the whole sync. The artist is left unreconciled and
-  // will retry on the next sync run.
+  // call doesn't abort the whole sync. The artist keeps its previous match, or
+  // is left unreconciled, and retries on the next sync run.
   ctx.counts.mbApiCalls += 1
   let mbResult: Awaited<ReturnType<MBClient['searchArtist']>>
   try {
     mbResult = await ctx.mbClient.searchArtist(nameNormalized)
   } catch (err) {
     bumpMbFailed(ctx.counts)
-    bumpLookupFailed(ctx.counts)
     console.warn(
-      `[library-reconcile] MB searchArtist failed for "${artist.name}"; leaving unreconciled: ${mbErrorMessage(err)}`,
+      `[library-reconcile] MB searchArtist failed for "${artist.name}": ${mbErrorMessage(err)}`,
     )
-    return unreconciledRow(artist, nameNormalized, 'lookup_failed')
+    return lookupFailedRow(artist, nameNormalized, ctx)
   }
   const candidates = (mbResult.artists ?? []).filter(
     (c) => normalizeArtistName(c.name) === nameNormalized,
@@ -186,15 +223,14 @@ export async function reconcileArtist(
         } catch (err) {
           bumpMbFailed(ctx.counts)
           console.warn(
-            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}"; leaving artist unreconciled: ${mbErrorMessage(err)}`,
+            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}": ${mbErrorMessage(err)}`,
           )
           return { candidate: c, overlap: 0, lookupFailed: true }
         }
       }),
     )
     if (scored.some((result) => result.lookupFailed)) {
-      bumpLookupFailed(ctx.counts)
-      return unreconciledRow(artist, nameNormalized, 'lookup_failed')
+      return lookupFailedRow(artist, nameNormalized, ctx)
     }
     scored.sort((a, b) => b.overlap - a.overlap)
     const winner = scored[0]

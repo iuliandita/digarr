@@ -34,7 +34,7 @@ function makeStore(): LibrarySyncStore {
       cacheHits: 0,
       mbApiCalls: 0,
     })),
-    replaceLibraryAlbums: vi.fn(async () => ({ total: 0 })),
+    listArtistMatches: vi.fn(async () => new Map()),
     findReconciledByNormalizedName: vi.fn(async () => []),
     getLibrarySyncState: vi.fn(async () => null),
     upsertLibrarySyncState: vi.fn(async () => {}),
@@ -193,6 +193,32 @@ describe('createSyncOrchestrator', () => {
     const forced = await sync.syncForUser(1, { force: true })
     expect(forced.results[0]?.status).toBe('completed')
     expect(a.listArtists).toHaveBeenCalled()
+  })
+
+  it.each([
+    ['a sync started just under one period ago', 5.5, 'completed'],
+    ['a failed last sync', 0, 'failed'],
+  ])('syncs again after %s', async (_label, startedHoursAgo, lastSyncStatus) => {
+    const a = source('a')
+    a.listArtists = vi.fn(async () => [])
+    store.getLibrarySyncState = vi.fn(async () => ({
+      userId: 1,
+      source: 'a',
+      lastSyncStartedAt: new Date(Date.now() - startedHoursAgo * 3_600_000),
+      lastSyncCompletedAt: new Date(),
+      lastSyncStatus,
+      lastSyncError: null,
+      lastSyncCounts: null,
+    }))
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+    expect((await sync.syncForUser(1)).results[0]?.status).toBe('completed')
   })
 
   it('coalesces parallel calls to the same (user, source)', async () => {
