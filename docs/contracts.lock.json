@@ -486,7 +486,7 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
-        "note": "Help tips refreshed: stale copy rewritten, dashboard tips trimmed, Show tips again in Account, availability reasons no longer dismissible",
+        "note": "Help tips refreshed, stale copy rewritten, dashboard tips trimmed, Show tips again in Account",
         "breaking": "none",
         "migration": "",
         "digest": "5f65e7662a2586653ca06160adff9819b6531270fd9093b3ccf342d3309d4d5d"
