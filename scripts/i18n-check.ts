@@ -251,10 +251,10 @@ export function findFormalAddress(locale: string, messages: Record<string, strin
     .map(([key, value]) => `${key}: "${value}"`)
 }
 
-// User-visible text uses -- as a dash: no em/en dashes and no lone " - ".
+// User-visible text uses a plain hyphen as a dash: no em/en dashes and no "--".
 export function findDashIssues(messages: Record<string, string>): string[] {
   return Object.entries(messages)
-    .filter(([, value]) => /[–—]| - /.test(value))
+    .filter(([, value]) => /[–—]|--/.test(value))
     .map(([key, value]) => `${key}: "${value}"`)
 }
 

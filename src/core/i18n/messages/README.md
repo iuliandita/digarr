@@ -18,8 +18,8 @@ Translations for digarr's 15 supported locales.
   voice: du (de), tu (fr, es, it, ro), je (nl), ty (pl), ты (ru), ти (uk),
   sen (tr), você (pt-BR). Japanese, Korean and Chinese keep their usual polite
   UI register.
-- Use `--` for a dash in user-visible text, never an em or en dash. Ranges use
-  a plain hyphen (`2-50`).
+- Use a plain hyphen for a dash in user-visible text (`Setup failed - try
+  again`, `2-50`), never an em dash, en dash or `--`.
 
 ## Resolution order
 
@@ -105,7 +105,7 @@ so translations cannot silently fall behind the English.
 - **Formal address** -- per-locale formal pronouns (`Sie`, `vous`, `u`, `вы`,
   ...). A word that only looks formal (German "Sie" meaning "they") goes in
   `FORMAL_ADDRESS_ALLOWLIST` as `locale:key`.
-- **Dash style** -- em or en dashes, or a lone ` - ` used as a dash, in any catalog.
+- **Dash style** -- em dashes, en dashes or `--` in any catalog.
 - **Orphaned keys** -- keys present in `en.ts` but not referenced
   anywhere in `src/**/*.{ts,tsx}` outside `i18n/messages/`. Template
   literal access is resolved to exact live keys from the discovery, rejection,

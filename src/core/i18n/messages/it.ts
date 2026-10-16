@@ -107,7 +107,7 @@ export const it = {
   'discover.loadFailed': 'Impossibile caricare i consigli.',
   'discover.emptyFiltered': 'Nessun consiglio corrisponde ai decenni selezionati.',
   'discover.clearFilters': 'Cancella filtri',
-  'discover.pageRange': '{0}--{1} di {2}',
+  'discover.pageRange': '{0}-{1} di {2}',
   'discover.emptyAll':
     'Nessun consiglio ancora. Importa alcuni artisti preferiti o esegui la prima scansione per iniziare.',
   'discover.emptyApproved':
@@ -319,7 +319,7 @@ export const it = {
   'discover.exported': 'esportato',
   'discover.hideFeedbackInsights': 'Nascondi gli insight del feedback',
   'discover.moodTip':
-    'Suggerimento: descrivi con parole tue, in qualsiasi lingua, cosa hai voglia di ascoltare -- per esempio "jazz per una giornata di pioggia" o "pop allegro anni 90".',
+    'Suggerimento: descrivi con parole tue, in qualsiasi lingua, cosa hai voglia di ascoltare - per esempio "jazz per una giornata di pioggia" o "pop allegro anni 90".',
   'discover.noPendingAbove': 'Nessuna raccomandazione in sospeso sopra',
   'discover.noPendingBelow': 'Nessuna raccomandazione in sospeso sotto',
   'discover.noPendingToClear': 'Nessuna raccomandazione in sospeso da cancellare',
@@ -344,9 +344,9 @@ export const it = {
   'discover.restoredToPending': 'Ripristinato in sospeso',
   'discover.retryFailed': 'Nuovo tentativo fallito',
   'discover.scanAlreadyRunning': 'Scansione già in corso',
-  'discover.scanStarted': 'Scansione avviata -- controlla il Cruscotto per i progressi',
+  'discover.scanStarted': 'Scansione avviata - controlla il Cruscotto per i progressi',
   'discover.scanQueued':
-    'Scansione in coda (posizione {0}) -- partirà al termine della scansione corrente',
+    'Scansione in coda (posizione {0}) - partirà al termine della scansione corrente',
   'discover.scanStartFailed': 'Impossibile avviare la scansione',
   'discover.select': 'Seleziona',
   'discover.showFeedbackInsights': 'Mostra gli insight del feedback',
@@ -378,7 +378,7 @@ export const it = {
   'genreDetail.subGenres': 'Sottogeneri',
   'genreDetail.tabDeepCuts': 'Chicche nascoste',
   'genreDetail.tabDeepCutsDescription':
-    'Chicche nascoste -- artisti di nicchia con bassa popolarità',
+    'Chicche nascoste - artisti di nicchia con bassa popolarità',
   'genreDetail.tabLibrary': 'Nella tua libreria',
   'genreDetail.tabLibraryDescription': 'Artisti già presenti nella tua libreria musicale',
   'genreDetail.tabRecommended': 'Consigliati',
@@ -747,7 +747,7 @@ export const it = {
   'pipeline.firstScanDescription':
     'Digarr sta analizzando i tuoi gusti musicali e trovando artisti che potrebbero piacerti. Di solito ci vogliono 2-5 minuti alla prima esecuzione.',
   'pipeline.runningFor': 'In esecuzione da',
-  'pipeline.stalled': 'Sta richiedendo più tempo del solito -- attendi',
+  'pipeline.stalled': 'Sta richiedendo più tempo del solito - attendi',
   'pipeline.stop': 'Ferma scansione',
   'pipeline.stopping': 'Arresto...',
   'pipeline.cancelled': 'Scansione interrotta',
@@ -832,7 +832,7 @@ export const it = {
   'search.sourcesActive': 'Fonti ({0})',
   'search.clearFilters': 'Cancella filtri',
   'search.minChars': 'Digita almeno 2 caratteri per cercare',
-  'search.failed': 'Ricerca non riuscita -- riprova',
+  'search.failed': 'Ricerca non riuscita - riprova',
   'search.noResultsFor': 'Nessun artista trovato per',
   'discoveryMode.available': 'Disponibile',
   'discoveryMode.unavailable': 'Non disponibile',
@@ -976,13 +976,13 @@ export const it = {
   'importArtists.playlistPlaceholder': 'URL o ID della playlist',
   'importArtists.go': 'Vai',
   'importArtists.importingLikedSongs':
-    'Importazione dei brani preferiti -- i nuovi artisti appariranno a breve nella pagina Scopri',
+    'Importazione dei brani preferiti - i nuovi artisti appariranno a breve nella pagina Scopri',
   'importArtists.importingPlaylist':
-    'Importazione degli artisti della playlist -- appariranno a breve nella pagina Scopri',
+    'Importazione degli artisti della playlist - appariranno a breve nella pagina Scopri',
   'importArtists.importingCsv':
-    'Importazione di {0} artisti -- appariranno a breve nella pagina Scopri',
+    'Importazione di {0} artisti - appariranno a breve nella pagina Scopri',
   'importArtists.importingCsvTruncated':
-    'Importazione di {0} artisti (limite 500) -- appariranno a breve nella pagina Scopri',
+    'Importazione di {0} artisti (limite 500) - appariranno a breve nella pagina Scopri',
   'importArtists.failedImport': "Impossibile avviare l'importazione",
   'importArtists.failedPlaylist': "Impossibile avviare l'importazione della playlist",
   'importArtists.failedCsv': 'Impossibile importare il file CSV',
@@ -1040,7 +1040,7 @@ export const it = {
   'settings.getPersonalAccessToken': 'Ottieni token di accesso personale',
   'settings.connected': 'connesso',
   'settings.lidarrDescription':
-    'Gestore della libreria musicale -- necessario per aggiungere artisti.',
+    'Gestore della libreria musicale - necessario per aggiungere artisti.',
   'settings.lidarrPublicUrlHelp':
     "URL accessibile dal browser per collegare le pagine degli artisti in Lidarr. Lascia vuoto se l'URL API è già raggiungibile dal browser.",
   'settings.aiTip':
@@ -1055,7 +1055,7 @@ export const it = {
   'settings.aiPrivacyBadgeLocal': 'Completamente locale',
   'settings.sending': 'Invio...',
   'settings.connectionsTip':
-    'Collega almeno una fonte di ascolto -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby o Discogs. La scoperta parte dagli artisti che già ascolti o possiedi.',
+    'Collega almeno una fonte di ascolto - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby o Discogs. La scoperta parte dagli artisti che già ascolti o possiedi.',
   'settings.listenbrainzDescription': 'Tracciamento open source della cronologia di ascolto.',
   'settings.lastfmDescription': 'Scrobbling musicale e cronologia di ascolto.',
   'settings.spotifyDescription': 'Cronologia di ascolto da Spotify.',
@@ -1352,7 +1352,7 @@ export const it = {
   'service.testing': 'Verifica...',
   'service.saved': 'Salvato',
   'service.testPassed': 'Test superato',
-  'service.testPassedUnsaved': 'Test superato -- non ancora salvato',
+  'service.testPassedUnsaved': 'Test superato - non ancora salvato',
   'oauth.connectedTitle': 'Collegato',
   'oauth.connectedBody': '{0} è ora collegato.',
   'oauth.failedTitle': 'Connessione non riuscita',
@@ -1627,14 +1627,14 @@ export const it = {
   'target.action.addToLidarr': 'Aggiungi a Lidarr',
   'pipeline.message.loadingLibrary': 'Caricamento della libreria...',
   'pipeline.message.firstSyncBackground':
-    'La prima sincronizzazione della libreria è in esecuzione in background -- proseguiamo senza di essa',
+    'La prima sincronizzazione della libreria è in esecuzione in background - proseguiamo senza di essa',
   'pipeline.message.loadedLibrarySingular': 'Caricati {0} artisti della libreria da {1} fonte',
   'pipeline.message.loadedLibraryPlural': 'Caricati {0} artisti della libreria da {1} fonti',
   'pipeline.message.buildingProfile': 'Costruzione del tuo profilo di gusti...',
   'pipeline.message.profiled': 'Profilati {0} artisti principali, {1} generi',
   'pipeline.message.findingSimilar': 'Ricerca di artisti simili da tutte le fonti...',
   'pipeline.message.aiSourceFailed':
-    'Provider IA non riuscito: {0} -- si continua senza suggerimenti IA',
+    'Provider IA non riuscito: {0} - si continua senza suggerimenti IA',
   'pipeline.message.discovered': '{0} artisti candidati scoperti',
   'pipeline.message.resolving': 'Risoluzione di {0} artisti tramite MusicBrainz...',
   'pipeline.message.scoring': 'Valutazione di {0} artisti risolti...',
@@ -1654,7 +1654,7 @@ export const it = {
   'pipeline.message.resolutionComplete': 'Risoluzione completa',
   'firstSyncBanner.title': 'Costruzione del catalogo della libreria',
   'firstSyncBanner.body':
-    'Digarr sta confrontando la tua libreria con MusicBrainz. Il limite di richieste di MusicBrainz consente circa 60 artisti al minuto, quindi una libreria di 5.000 artisti impiega circa 80 minuti per la riconciliazione completa. Questo accade una sola volta -- le sincronizzazioni successive usano la cache locale e si completano in pochi secondi.',
+    'Digarr sta confrontando la tua libreria con MusicBrainz. Il limite di richieste di MusicBrainz consente circa 60 artisti al minuto, quindi una libreria di 5.000 artisti impiega circa 80 minuti per la riconciliazione completa. Questo accade una sola volta - le sincronizzazioni successive usano la cache locale e si completano in pochi secondi.',
   'librarySync.message.syncingSource': 'Sincronizzazione di {0}...',
   'errors.auth.invalidCredentials': 'Credenziali non valide',
   'errors.auth.notAuthenticated': 'Non autenticato',

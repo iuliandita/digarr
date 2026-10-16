@@ -107,7 +107,7 @@ export const ro = {
   'discover.loadFailed': 'Recomandările nu au putut fi încărcate.',
   'discover.emptyFiltered': 'Nicio recomandare nu corespunde deceniilor alese.',
   'discover.clearFilters': 'Șterge filtrele',
-  'discover.pageRange': '{0}--{1} din {2}',
+  'discover.pageRange': '{0}-{1} din {2}',
   'discover.emptyAll':
     'Încă nu există recomandări. Importă câțiva artiști preferați sau rulează prima scanare pentru a începe.',
   'discover.emptyApproved':
@@ -180,7 +180,7 @@ export const ro = {
     'Găsit sub Emby Dashboard -> Users -> (selectează utilizator). URL-ul conține ID-ul utilizatorului.',
   'setup.embyUserIdPlaceholder': 'ID utilizator Emby',
   'setup.embyUrl': 'URL Emby',
-  'setup.failed': 'Configurarea a eșuat -- încearcă din nou',
+  'setup.failed': 'Configurarea a eșuat - încearcă din nou',
   'setup.getApiKey': 'Obține cheia API',
   'setup.howManageMusic': 'Cum gestionezi muzica?',
   'setup.initialSetup': 'Configurare inițială',
@@ -319,7 +319,7 @@ export const ro = {
   'discover.exported': 'exportate',
   'discover.hideFeedbackInsights': 'Ascunde informațiile de feedback',
   'discover.moodTip':
-    'Sfat: descrie în cuvintele tale, în orice limbă, ce ai chef să asculți -- de exemplu „jazz pentru o zi ploioasă” sau „pop vesel din anii 90”.',
+    'Sfat: descrie în cuvintele tale, în orice limbă, ce ai chef să asculți - de exemplu „jazz pentru o zi ploioasă” sau „pop vesel din anii 90”.',
   'discover.noPendingAbove': 'Nu există recomandări în așteptare mai sus',
   'discover.noPendingBelow': 'Nu există recomandări în așteptare mai jos',
   'discover.noPendingToClear': 'Nu există recomandări în așteptare de șters',
@@ -344,9 +344,9 @@ export const ro = {
   'discover.restoredToPending': 'Restabilit în așteptare',
   'discover.retryFailed': 'Reîncercarea a eșuat',
   'discover.scanAlreadyRunning': 'Scanarea rulează deja',
-  'discover.scanStarted': 'Scanarea a început -- verifică Panoul pentru progres',
+  'discover.scanStarted': 'Scanarea a început - verifică Panoul pentru progres',
   'discover.scanQueued':
-    'Scanare în coadă (poziția {0}) -- va începe după ce se termină rularea curentă',
+    'Scanare în coadă (poziția {0}) - va începe după ce se termină rularea curentă',
   'discover.scanStartFailed': 'Nu s-a pornit scanarea',
   'discover.select': 'Selectează',
   'discover.showFeedbackInsights': 'Arată informațiile de feedback',
@@ -377,7 +377,7 @@ export const ro = {
     'Folosește butonul + Coadă pentru a adăuga artiști în coada ta de recomandări și a-i revizui în pagina Discover.',
   'genreDetail.subGenres': 'Subgenuri',
   'genreDetail.tabDeepCuts': 'Perle ascunse',
-  'genreDetail.tabDeepCutsDescription': 'Perle ascunse -- artiști de nișă cu popularitate scăzută',
+  'genreDetail.tabDeepCutsDescription': 'Perle ascunse - artiști de nișă cu popularitate scăzută',
   'genreDetail.tabLibrary': 'În biblioteca ta',
   'genreDetail.tabLibraryDescription': 'Artiști deja prezenți în biblioteca ta muzicală',
   'genreDetail.tabRecommended': 'Recomandați',
@@ -693,11 +693,11 @@ export const ro = {
   'userManagement.noUsers': 'Nu s-au găsit utilizatori.',
   'userManagement.adminBadge': 'administrator',
   'userManagement.cannotRemoveOwnAdmin': 'Nu-ți poți elimina propriul rol de administrator',
-  'userManagement.lastAdminCannotRemove': 'Ultimul administrator -- nu poate fi eliminat',
+  'userManagement.lastAdminCannotRemove': 'Ultimul administrator - nu poate fi eliminat',
   'userManagement.removeAdmin': 'Elimină admin',
   'userManagement.makeAdmin': 'Fă administrator',
   'userManagement.cannotDeleteSelf': 'Nu-ți poți șterge propriul cont',
-  'userManagement.lastAdminCannotDelete': 'Ultimul administrator -- nu se poate șterge',
+  'userManagement.lastAdminCannotDelete': 'Ultimul administrator - nu se poate șterge',
   'userManagement.deleteUser': 'Șterge utilizatorul',
   'userManagement.deleteUserPrompt': 'Șterge utilizatorul',
   'recommendation.sourceGenre': 'Gen',
@@ -720,8 +720,8 @@ export const ro = {
   'todaysPick.matchScore': 'Scor de potrivire',
   'todaysPick.match': 'potrivire',
   'todaysPick.skipHint':
-    'Omiterea îți arată următorul artist fără a-l respinge -- artiștii omiși vor reveni în scanările viitoare.',
-  'todaysPick.skipTitle': 'Omite deocamdată -- acest artist va reveni mai târziu',
+    'Omiterea îți arată următorul artist fără a-l respinge - artiștii omiși vor reveni în scanările viitoare.',
+  'todaysPick.skipTitle': 'Omite deocamdată - acest artist va reveni mai târziu',
   'pipeline.stage.collect': 'Citirea bibliotecii',
   'pipeline.stage.analyze': 'Construirea profilului gustului',
   'pipeline.stage.discover': 'Găsirea de noi artiști',
@@ -745,7 +745,7 @@ export const ro = {
   'pipeline.firstScanDescription':
     'Digarr îți analizează gustul muzical și găsește artiști care ți-ar putea plăcea. Acest lucru durează de obicei 2-5 minute la prima rulare.',
   'pipeline.runningFor': 'În execuție de',
-  'pipeline.stalled': 'Durează mai mult decât de obicei -- mai așteaptă puțin',
+  'pipeline.stalled': 'Durează mai mult decât de obicei - mai așteaptă puțin',
   'pipeline.stop': 'Oprește scanarea',
   'pipeline.stopping': 'Se oprește...',
   'pipeline.cancelled': 'Scanare oprită',
@@ -755,12 +755,12 @@ export const ro = {
   'libraryHealth.rescanningSoon': 're-scanare în 30 de secunde pentru a verifica',
   'libraryHealth.updated': 'Actualizat',
   'libraryHealth.processed': 'Procesat',
-  'libraryHealth.fixFailed': 'Remedierea a eșuat -- verifică conexiunea Lidarr',
+  'libraryHealth.fixFailed': 'Remedierea a eșuat - verifică conexiunea Lidarr',
   'libraryHealth.rescan': 'Re-scanează',
   'libraryHealth.introTip':
     'Starea bibliotecii verifică biblioteca Lidarr pentru metadate, albume, imagini și linkuri Wikidata lipsă, artiști nemonitorizați sau duplicați și goluri de gen. Rulează programat; folosește „Sincronizează acum” pentru a verifica din nou.',
   'libraryHealth.scanningBanner':
-    'Scanarea sănătății bibliotecii -- acest lucru poate dura câteva minute pentru bibliotecile mari. Rezultatele vor apărea când sunt finalizate.',
+    'Scanarea sănătății bibliotecii - acest lucru poate dura câteva minute pentru bibliotecile mari. Rezultatele vor apărea când sunt finalizate.',
   'libraryHealth.pendingRescan':
     'Scanarea automată a fost programată pentru a verifica rezultatele remedierii...',
   'libraryHealth.noChecks':
@@ -829,7 +829,7 @@ export const ro = {
   'search.sourcesActive': 'Surse ({0})',
   'search.clearFilters': 'Șterge filtrele',
   'search.minChars': 'Introdu cel puțin 2 caractere pentru a căuta',
-  'search.failed': 'Căutarea a eșuat -- încearcă din nou',
+  'search.failed': 'Căutarea a eșuat - încearcă din nou',
   'search.noResultsFor': 'Niciun artist găsit pentru',
   'discoveryMode.available': 'Disponibil',
   'discoveryMode.unavailable': 'Indisponibil',
@@ -977,13 +977,12 @@ export const ro = {
   'importArtists.playlistPlaceholder': 'URL sau ID listă de redare',
   'importArtists.go': 'Mergi',
   'importArtists.importingLikedSongs':
-    'Se importă melodiile apreciate -- artiștii noi vor apărea în curând pe pagina Descoperă',
+    'Se importă melodiile apreciate - artiștii noi vor apărea în curând pe pagina Descoperă',
   'importArtists.importingPlaylist':
-    'Se importă artiștii din lista de redare -- vor apărea în curând pe pagina Descoperă',
-  'importArtists.importingCsv':
-    'Se importă {0} artiști -- vor apărea în curând pe pagina Descoperă',
+    'Se importă artiștii din lista de redare - vor apărea în curând pe pagina Descoperă',
+  'importArtists.importingCsv': 'Se importă {0} artiști - vor apărea în curând pe pagina Descoperă',
   'importArtists.importingCsvTruncated':
-    'Se importă {0} artiști (limitat la 500) -- vor apărea în curând pe pagina Descoperă',
+    'Se importă {0} artiști (limitat la 500) - vor apărea în curând pe pagina Descoperă',
   'importArtists.failedImport': 'Imposibil de pornit importul',
   'importArtists.failedPlaylist': 'Imposibil de pornit importul listei de redare',
   'importArtists.failedCsv': 'Imposibil de importat fișierul CSV',
@@ -1041,7 +1040,7 @@ export const ro = {
   'settings.getPersonalAccessToken': 'Obține token de acces personal',
   'settings.connected': 'conectat',
   'settings.lidarrDescription':
-    'Manager de bibliotecă muzicală -- necesar pentru adăugarea artiștilor.',
+    'Manager de bibliotecă muzicală - necesar pentru adăugarea artiștilor.',
   'settings.lidarrPublicUrlHelp':
     'URL accesibil din browser pentru legarea la paginile de artiști din Lidarr. Lasă gol dacă URL-ul API este deja accesibil din browserul tău.',
   'settings.aiTip':
@@ -1056,7 +1055,7 @@ export const ro = {
   'settings.aiPrivacyBadgeLocal': 'Complet local',
   'settings.sending': 'Se trimite...',
   'settings.connectionsTip':
-    'Conectează cel puțin o sursă de ascultare -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby sau Discogs. Descoperirea pornește de la artiștii pe care îi asculți sau îi deții deja.',
+    'Conectează cel puțin o sursă de ascultare - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby sau Discogs. Descoperirea pornește de la artiștii pe care îi asculți sau îi deții deja.',
   'settings.listenbrainzDescription': 'Urmărire open source a istoricului de ascultare.',
   'settings.lastfmDescription': 'Scrobbling muzical și istoric de ascultare.',
   'settings.spotifyDescription': 'Istoric de ascultare din Spotify.',
@@ -1350,7 +1349,7 @@ export const ro = {
   'service.testing': 'Testare...',
   'service.saved': 'Salvat',
   'service.testPassed': 'Test reușit',
-  'service.testPassedUnsaved': 'Test reușit -- încă nesalvat',
+  'service.testPassedUnsaved': 'Test reușit - încă nesalvat',
   'oauth.connectedTitle': 'Conectat',
   'oauth.connectedBody': '{0} este acum conectat.',
   'oauth.failedTitle': 'Conectare eșuată',
@@ -1612,7 +1611,7 @@ export const ro = {
   'preview.reason.playback-failed': 'Redarea audio a eșuat',
   'preview.reason.controller-unavailable': 'Playerul Spotify este indisponibil',
   'preview.noPreviewAvailable': 'Nu există previzualizare pentru acest artist',
-  'preview.playbackBlocked': 'Redare blocată de browser -- încearcă să dai clic din nou',
+  'preview.playbackBlocked': 'Redare blocată de browser - încearcă să dai clic din nou',
   'genres.noneFound': 'Nu s-au găsit genuri.',
   'common.dismiss': 'Închide',
   'hint.dismissHint': 'Închide indiciul',
@@ -1624,14 +1623,14 @@ export const ro = {
   'target.action.addToLidarr': 'Adaugă la Lidarr',
   'pipeline.message.loadingLibrary': 'Se încarcă biblioteca ta...',
   'pipeline.message.firstSyncBackground':
-    'Prima sincronizare a bibliotecii rulează în fundal -- continuăm fără ea',
+    'Prima sincronizare a bibliotecii rulează în fundal - continuăm fără ea',
   'pipeline.message.loadedLibrarySingular':
     'S-au încărcat {0} artiști din bibliotecă din {1} sursă',
   'pipeline.message.loadedLibraryPlural': 'S-au încărcat {0} artiști din bibliotecă din {1} surse',
   'pipeline.message.buildingProfile': 'Se construiește profilul tău muzical...',
   'pipeline.message.profiled': 'Profilați {0} artiști de top, {1} genuri',
   'pipeline.message.findingSimilar': 'Se caută artiști similari din toate sursele...',
-  'pipeline.message.aiSourceFailed': 'Furnizorul AI a eșuat: {0} -- se continuă fără sugestii AI',
+  'pipeline.message.aiSourceFailed': 'Furnizorul AI a eșuat: {0} - se continuă fără sugestii AI',
   'pipeline.message.discovered': 'S-au descoperit {0} artiști candidați',
   'pipeline.message.resolving': 'Se rezolvă {0} artiști prin MusicBrainz...',
   'pipeline.message.scoring': 'Se punctează {0} artiști rezolvați...',
@@ -1651,7 +1650,7 @@ export const ro = {
   'pipeline.message.resolutionComplete': 'Rezolvare completă',
   'firstSyncBanner.title': 'Se construiește catalogul bibliotecii tale',
   'firstSyncBanner.body':
-    'Digarr potrivește biblioteca ta cu MusicBrainz. Limita de rată MusicBrainz permite aproximativ 60 de artiști pe minut, deci o bibliotecă de 5.000 de artiști durează aproximativ 80 de minute pentru reconciliere completă. Acest proces are loc o singură dată -- sincronizările ulterioare folosesc memoria cache locală și se finalizează în câteva secunde.',
+    'Digarr potrivește biblioteca ta cu MusicBrainz. Limita de rată MusicBrainz permite aproximativ 60 de artiști pe minut, deci o bibliotecă de 5.000 de artiști durează aproximativ 80 de minute pentru reconciliere completă. Acest proces are loc o singură dată - sincronizările ulterioare folosesc memoria cache locală și se finalizează în câteva secunde.',
   'librarySync.message.syncingSource': 'Se sincronizează {0}...',
   'errors.auth.invalidCredentials': 'Credențiale nevalide',
   'errors.auth.notAuthenticated': 'Neautentificat',

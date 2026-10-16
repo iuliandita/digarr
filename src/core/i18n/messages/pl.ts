@@ -107,7 +107,7 @@ export const pl = {
   'discover.loadFailed': 'Nie udało się wczytać rekomendacji.',
   'discover.emptyFiltered': 'Żadne rekomendacje nie pasują do wybranych dekad.',
   'discover.clearFilters': 'Wyczyść filtry',
-  'discover.pageRange': '{0}--{1} z {2}',
+  'discover.pageRange': '{0}-{1} z {2}',
   'discover.emptyAll':
     'Nie ma jeszcze rekomendacji. Aby rozpocząć, zaimportuj ulubionych artystów lub uruchom pierwszy skan.',
   'discover.emptyApproved':
@@ -318,7 +318,7 @@ export const pl = {
   'discover.exported': 'eksportowane',
   'discover.hideFeedbackInsights': 'Ukryj informacje zwrotne',
   'discover.moodTip':
-    'Wskazówka: opisz własnymi słowami, w dowolnym języku, na co masz ochotę -- na przykład „jazz na deszczowy dzień” albo „energiczny pop z lat 90.”.',
+    'Wskazówka: opisz własnymi słowami, w dowolnym języku, na co masz ochotę - na przykład „jazz na deszczowy dzień” albo „energiczny pop z lat 90.”.',
   'discover.noPendingAbove': 'Brak oczekujących rekomendacji powyżej',
   'discover.noPendingBelow': 'Brak oczekujących rekomendacji poniżej',
   'discover.noPendingToClear': 'Brak oczekujących rekomendacji do usunięcia',
@@ -343,9 +343,9 @@ export const pl = {
   'discover.restoredToPending': 'Przywrócono do stanu oczekującego',
   'discover.retryFailed': 'Ponowna próba nie powiodła się',
   'discover.scanAlreadyRunning': 'Skanowanie już trwa',
-  'discover.scanStarted': 'Skanowanie uruchomione -- sprawdź Panel, aby zobaczyć postęp',
+  'discover.scanStarted': 'Skanowanie uruchomione - sprawdź Panel, aby zobaczyć postęp',
   'discover.scanQueued':
-    'Skanowanie w kolejce (pozycja {0}) -- rozpocznie się po zakończeniu bieżącego',
+    'Skanowanie w kolejce (pozycja {0}) - rozpocznie się po zakończeniu bieżącego',
   'discover.scanStartFailed': 'Nie udało się rozpocząć skanowania',
   'discover.select': 'Wybierz',
   'discover.showFeedbackInsights': 'Pokaż informacje zwrotne',
@@ -376,7 +376,7 @@ export const pl = {
     'Użyj przycisku + Do kolejki, aby dodać artystów do kolejki rekomendacji do sprawdzenia na stronie Odkrywaj.',
   'genreDetail.subGenres': 'Podgatunki',
   'genreDetail.tabDeepCuts': 'Perełki',
-  'genreDetail.tabDeepCutsDescription': 'Ukryte perełki -- niszowi artyści o niskiej popularności',
+  'genreDetail.tabDeepCutsDescription': 'Ukryte perełki - niszowi artyści o niskiej popularności',
   'genreDetail.tabLibrary': 'W Twojej bibliotece',
   'genreDetail.tabLibraryDescription': 'Artyści, którzy już są w Twojej bibliotece muzycznej',
   'genreDetail.tabRecommended': 'Polecani',
@@ -692,11 +692,11 @@ export const pl = {
   'userManagement.noUsers': 'Nie znaleziono żadnych użytkowników.',
   'userManagement.adminBadge': 'administrator',
   'userManagement.cannotRemoveOwnAdmin': 'Nie można usunąć własnej roli administratora',
-  'userManagement.lastAdminCannotRemove': 'Ostatni administrator -- nie można usunąć',
+  'userManagement.lastAdminCannotRemove': 'Ostatni administrator - nie można usunąć',
   'userManagement.removeAdmin': 'Usuń administratora',
   'userManagement.makeAdmin': 'Zrób administratora',
   'userManagement.cannotDeleteSelf': 'Nie możesz się usunąć',
-  'userManagement.lastAdminCannotDelete': 'Ostatni administrator -- nie można usunąć',
+  'userManagement.lastAdminCannotDelete': 'Ostatni administrator - nie można usunąć',
   'userManagement.deleteUser': 'Usuń użytkownika',
   'userManagement.deleteUserPrompt': 'Usuń użytkownika',
   'recommendation.sourceGenre': 'Gatunek',
@@ -719,8 +719,8 @@ export const pl = {
   'todaysPick.matchScore': 'Wynik dopasowania',
   'todaysPick.match': 'dopasowanie',
   'todaysPick.skipHint':
-    'Pomiń pokazuje następnego artystę bez odrzucania -- pominięci artyści wrócą w przyszłych skanach.',
-  'todaysPick.skipTitle': 'Na razie pomiń -- ten artysta wróci później',
+    'Pomiń pokazuje następnego artystę bez odrzucania - pominięci artyści wrócą w przyszłych skanach.',
+  'todaysPick.skipTitle': 'Na razie pomiń - ten artysta wróci później',
   'pipeline.stage.collect': 'Odczytywanie biblioteki',
   'pipeline.stage.analyze': 'Budowanie profilu smakowego',
   'pipeline.stage.discover': 'Znalezienie nowych artystów',
@@ -743,7 +743,7 @@ export const pl = {
   'pipeline.firstScanDescription':
     'Digarr analizuje Twój gust muzyczny i znajduje artystów, którzy mogą Ci się spodobać. Przy pierwszym uruchomieniu zwykle zajmuje to 2-5 minut.',
   'pipeline.runningFor': 'Aktywne od',
-  'pipeline.stalled': 'To trwa dłużej niż zwykle -- chwilę cierpliwości',
+  'pipeline.stalled': 'To trwa dłużej niż zwykle - chwilę cierpliwości',
   'pipeline.stop': 'Zatrzymaj skanowanie',
   'pipeline.stopping': 'Zatrzymywanie...',
   'pipeline.cancelled': 'Skanowanie zatrzymane',
@@ -753,12 +753,12 @@ export const pl = {
   'libraryHealth.rescanningSoon': 'ponowne skanowanie za 30 s w celu sprawdzenia',
   'libraryHealth.updated': 'Zaktualizowano',
   'libraryHealth.processed': 'Przetworzono',
-  'libraryHealth.fixFailed': 'Naprawa nie powiodła się -- sprawdź połączenie Lidarr',
+  'libraryHealth.fixFailed': 'Naprawa nie powiodła się - sprawdź połączenie Lidarr',
   'libraryHealth.rescan': 'Zeskanuj ponownie',
   'libraryHealth.introTip':
     'Kondycja biblioteki sprawdza bibliotekę Lidarr pod kątem brakujących metadanych, albumów, obrazów i linków Wikidata, niemonitorowanych lub zduplikowanych wykonawców oraz luk gatunkowych. Działa według harmonogramu; użyj „Synchronizuj teraz”, aby sprawdzić ponownie.',
   'libraryHealth.scanningBanner':
-    'Skanowanie stanu bibliotek -- w przypadku dużych bibliotek może to zająć kilka minut. Wyniki pojawią się po zakończeniu.',
+    'Skanowanie stanu bibliotek - w przypadku dużych bibliotek może to zająć kilka minut. Wyniki pojawią się po zakończeniu.',
   'libraryHealth.pendingRescan':
     'Zaplanowano automatyczne ponowne skanowanie w celu sprawdzenia wyników naprawy...',
   'libraryHealth.noChecks':
@@ -828,7 +828,7 @@ export const pl = {
   'search.sourcesActive': 'Źródła ({0})',
   'search.clearFilters': 'Wyczyść filtry',
   'search.minChars': 'Wpisz co najmniej 2 znaki, aby wyszukać',
-  'search.failed': 'Wyszukiwanie nie powiodło się -- spróbuj ponownie',
+  'search.failed': 'Wyszukiwanie nie powiodło się - spróbuj ponownie',
   'search.noResultsFor': 'Nie znaleziono artystów dla',
   'discoveryMode.available': 'Dostępny',
   'discoveryMode.unavailable': 'Niedostępny',
@@ -971,13 +971,12 @@ export const pl = {
   'importArtists.playlistPlaceholder': 'URL lub ID playlisty',
   'importArtists.go': 'Start',
   'importArtists.importingLikedSongs':
-    'Importowanie polubionych utworów -- nowi artyści pojawią się wkrótce na stronie Odkryj',
+    'Importowanie polubionych utworów - nowi artyści pojawią się wkrótce na stronie Odkryj',
   'importArtists.importingPlaylist':
-    'Importowanie artystów z playlisty -- pojawią się wkrótce na stronie Odkryj',
-  'importArtists.importingCsv':
-    'Importowanie {0} artystów -- pojawią się wkrótce na stronie Odkryj',
+    'Importowanie artystów z playlisty - pojawią się wkrótce na stronie Odkryj',
+  'importArtists.importingCsv': 'Importowanie {0} artystów - pojawią się wkrótce na stronie Odkryj',
   'importArtists.importingCsvTruncated':
-    'Importowanie {0} artystów (ograniczone do 500) -- pojawią się wkrótce na stronie Odkryj',
+    'Importowanie {0} artystów (ograniczone do 500) - pojawią się wkrótce na stronie Odkryj',
   'importArtists.failedImport': 'Nie udało się uruchomić importu',
   'importArtists.failedPlaylist': 'Nie udało się uruchomić importu playlisty',
   'importArtists.failedCsv': 'Nie udało się zaimportować pliku CSV',
@@ -1034,7 +1033,7 @@ export const pl = {
   'settings.createSpotifyApp': 'Utwórz aplikację Spotify Developer',
   'settings.getPersonalAccessToken': 'Pobierz osobisty token dostępu',
   'settings.connected': 'połączony',
-  'settings.lidarrDescription': 'Menedżer biblioteki muzycznej -- wymagany do dodawania artystów.',
+  'settings.lidarrDescription': 'Menedżer biblioteki muzycznej - wymagany do dodawania artystów.',
   'settings.lidarrPublicUrlHelp':
     'URL dostępny z przeglądarki do linków do stron artystów w Lidarr. Pozostaw puste, jeśli URL API jest już dostępny z przeglądarki.',
   'settings.aiTip':
@@ -1049,8 +1048,8 @@ export const pl = {
   'settings.aiPrivacyBadgeLocal': 'W pełni lokalnie',
   'settings.sending': 'Wysyłanie...',
   'settings.connectionsTip':
-    'Połącz co najmniej jedno źródło słuchania -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby lub Discogs. Odkrywanie zaczyna się od wykonawców, których już słuchasz lub masz.',
-  'settings.listenbrainzDescription': 'Scrobbling historii słuchania -- open source.',
+    'Połącz co najmniej jedno źródło słuchania - ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby lub Discogs. Odkrywanie zaczyna się od wykonawców, których już słuchasz lub masz.',
+  'settings.listenbrainzDescription': 'Scrobbling historii słuchania - open source.',
   'settings.lastfmDescription': 'Scrobbling muzyki i historia słuchania.',
   'settings.spotifyDescription': 'Historia słuchania ze Spotify.',
   'settings.spotifyImportDescription':
@@ -1342,7 +1341,7 @@ export const pl = {
   'service.testing': 'Testowanie...',
   'service.saved': 'Zapisano',
   'service.testPassed': 'Test zaliczony',
-  'service.testPassedUnsaved': 'Test zaliczony -- jeszcze nie zapisano',
+  'service.testPassedUnsaved': 'Test zaliczony - jeszcze nie zapisano',
   'oauth.connectedTitle': 'Połączono',
   'oauth.connectedBody': '{0} jest teraz połączony.',
   'oauth.failedTitle': 'Połączenie nieudane',
@@ -1601,7 +1600,7 @@ export const pl = {
   'preview.reason.controller-unavailable': 'Odtwarzacz Spotify jest niedostępny',
   'preview.noPreviewAvailable': 'Brak dostępnego podglądu dla tego wykonawcy',
   'preview.playbackBlocked':
-    'Odtwarzanie zablokowane przez przeglądarkę -- spróbuj kliknąć ponownie',
+    'Odtwarzanie zablokowane przez przeglądarkę - spróbuj kliknąć ponownie',
   'genres.noneFound': 'Nie znaleziono gatunków.',
   'common.dismiss': 'Odrzuć',
   'hint.dismissHint': 'Odrzuć wskazówkę',
@@ -1613,13 +1612,13 @@ export const pl = {
   'target.action.addToLidarr': 'Dodaj do Lidarr',
   'pipeline.message.loadingLibrary': 'Wczytywanie biblioteki...',
   'pipeline.message.firstSyncBackground':
-    'Pierwsza synchronizacja biblioteki działa w tle -- kontynuujemy bez niej',
+    'Pierwsza synchronizacja biblioteki działa w tle - kontynuujemy bez niej',
   'pipeline.message.loadedLibrarySingular': 'Wczytano {0} artystów z {1} źródła',
   'pipeline.message.loadedLibraryPlural': 'Wczytano {0} artystów z {1} źródeł',
   'pipeline.message.buildingProfile': 'Tworzenie profilu Twoich gustów...',
   'pipeline.message.profiled': 'Sprofilowano {0} ulubionych artystów, {1} gatunków',
   'pipeline.message.findingSimilar': 'Wyszukiwanie podobnych artystów ze wszystkich źródeł...',
-  'pipeline.message.aiSourceFailed': 'Dostawca AI zawiódł: {0} -- kontynuacja bez sugestii AI',
+  'pipeline.message.aiSourceFailed': 'Dostawca AI zawiódł: {0} - kontynuacja bez sugestii AI',
   'pipeline.message.discovered': 'Znaleziono {0} potencjalnych artystów',
   'pipeline.message.resolving': 'Rozwiązywanie {0} artystów przez MusicBrainz...',
   'pipeline.message.scoring': 'Ocenianie {0} rozwiązanych artystów...',
@@ -1639,7 +1638,7 @@ export const pl = {
   'pipeline.message.resolutionComplete': 'Rozwiązywanie zakończone',
   'firstSyncBanner.title': 'Budowanie katalogu biblioteki',
   'firstSyncBanner.body':
-    'Digarr dopasowuje twoją bibliotekę do MusicBrainz. Limit zapytań MusicBrainz pozwala na około 60 artystów na minutę, więc biblioteka licząca 5000 artystów potrzebuje około 80 minut do pełnego uzgodnienia. Dzieje się to tylko raz -- kolejne synchronizacje korzystają z lokalnej pamięci podręcznej i kończą się w kilka sekund.',
+    'Digarr dopasowuje twoją bibliotekę do MusicBrainz. Limit zapytań MusicBrainz pozwala na około 60 artystów na minutę, więc biblioteka licząca 5000 artystów potrzebuje około 80 minut do pełnego uzgodnienia. Dzieje się to tylko raz - kolejne synchronizacje korzystają z lokalnej pamięci podręcznej i kończą się w kilka sekund.',
   'librarySync.message.syncingSource': 'Synchronizacja {0}...',
   'errors.auth.invalidCredentials': 'Nieprawidłowe dane logowania',
   'errors.auth.notAuthenticated': 'Nie uwierzytelniono',

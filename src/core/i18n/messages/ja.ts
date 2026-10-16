@@ -107,7 +107,7 @@ export const ja = {
   'discover.loadFailed': 'おすすめを読み込めませんでした。',
   'discover.emptyFiltered': '選択した年代に一致するおすすめはありません。',
   'discover.clearFilters': 'フィルターをクリア',
-  'discover.pageRange': '{2} 件中 {0}--{1}',
+  'discover.pageRange': '{2} 件中 {0}-{1}',
   'discover.emptyAll':
     'まだ推奨事項はありません。お気に入りのアーティストをインポートするか、最初のスキャンを実行して始めてください。',
   'discover.emptyApproved':
@@ -180,7 +180,7 @@ export const ja = {
     'Emby ダッシュボード -> ユーザー -> (ユーザーの選択) にあります。 URLにはユーザーIDが含まれています。',
   'setup.embyUserIdPlaceholder': 'EmbyユーザーID',
   'setup.embyUrl': 'Emby URL',
-  'setup.failed': 'セットアップに失敗しました -- もう一度お試しください',
+  'setup.failed': 'セットアップに失敗しました - もう一度お試しください',
   'setup.getApiKey': 'APIキーを取得する',
   'setup.howManageMusic': '音楽はどのように管理していますか？',
   'setup.initialSetup': '初期設定',
@@ -317,7 +317,7 @@ export const ja = {
   'discover.exported': 'エクスポート済み',
   'discover.hideFeedbackInsights': 'フィードバック分析を隠す',
   'discover.moodTip':
-    'ヒント: 聴きたい気分を自分の言葉で、どの言語でも説明してください -- 例:「雨の日のジャズ」「明るい90年代ポップ」。',
+    'ヒント: 聴きたい気分を自分の言葉で、どの言語でも説明してください - 例:「雨の日のジャズ」「明るい90年代ポップ」。',
   'discover.noPendingAbove': '上記に保留中の推奨事項はありません',
   'discover.noPendingBelow': '下記に保留中の推奨事項はありません',
   'discover.noPendingToClear': 'クリアすべき保留中の推奨事項はありません',
@@ -342,9 +342,9 @@ export const ja = {
   'discover.restoredToPending': '保留状態に戻りました',
   'discover.retryFailed': '再試行に失敗しました',
   'discover.scanAlreadyRunning': 'スキャンはすでに実行中です',
-  'discover.scanStarted': 'スキャンを開始しました -- 進行状況はダッシュボードで確認してください',
+  'discover.scanStarted': 'スキャンを開始しました - 進行状況はダッシュボードで確認してください',
   'discover.scanQueued':
-    'スキャンを順番待ちに追加しました (順番 {0}) -- 現在の実行が終わると開始します',
+    'スキャンを順番待ちに追加しました (順番 {0}) - 現在の実行が終わると開始します',
   'discover.scanStartFailed': 'スキャンの開始に失敗しました',
   'discover.select': '選択',
   'discover.showFeedbackInsights': 'フィードバック分析を表示',
@@ -375,7 +375,7 @@ export const ja = {
     'Discover ページで確認できるよう、+ キューに追加 ボタンでアーティストをおすすめキューに追加します。',
   'genreDetail.subGenres': 'サブジャンル',
   'genreDetail.tabDeepCuts': 'ディープカット',
-  'genreDetail.tabDeepCutsDescription': '隠れた名アーティスト -- 人気度が低いニッチなアーティスト',
+  'genreDetail.tabDeepCutsDescription': '隠れた名アーティスト - 人気度が低いニッチなアーティスト',
   'genreDetail.tabLibrary': 'ライブラリ内',
   'genreDetail.tabLibraryDescription': 'すでに音楽ライブラリにあるアーティスト',
   'genreDetail.tabRecommended': 'おすすめ',
@@ -690,7 +690,7 @@ export const ja = {
   'userManagement.removeAdmin': '管理者権限を削除',
   'userManagement.makeAdmin': '管理者にする',
   'userManagement.cannotDeleteSelf': '自分自身を削除できません',
-  'userManagement.lastAdminCannotDelete': '最終管理者 -- 削除できません',
+  'userManagement.lastAdminCannotDelete': '最終管理者 - 削除できません',
   'userManagement.deleteUser': 'ユーザーの削除',
   'userManagement.deleteUserPrompt': 'ユーザーの削除',
   'recommendation.sourceGenre': 'ジャンル',
@@ -714,7 +714,7 @@ export const ja = {
   'todaysPick.match': '一致',
   'todaysPick.skipHint':
     'スキップすると、拒否せずに次のアーティストが表示されます。スキップされたアーティストは今後のスキャンで戻ってきます。',
-  'todaysPick.skipTitle': '今はスキップしてください -- このアーティストは後で戻ってきます',
+  'todaysPick.skipTitle': '今はスキップしてください - このアーティストは後で戻ってきます',
   'pipeline.stage.collect': 'ライブラリの読み込み',
   'pipeline.stage.analyze': '好みのプロファイルを構築する',
   'pipeline.stage.discover': '新しいアーティストを見つける',
@@ -737,7 +737,7 @@ export const ja = {
   'pipeline.firstScanDescription':
     'Digarr はあなたの音楽の好みを分析し、好みそうなアーティストを見つけます。通常、最初の実行には 2 ～ 5 分かかります。',
   'pipeline.runningFor': '実行時間',
-  'pipeline.stalled': '通常より時間がかかっています -- しばらくお待ちください',
+  'pipeline.stalled': '通常より時間がかかっています - しばらくお待ちください',
   'pipeline.stop': 'スキャンを停止',
   'pipeline.stopping': '停止中...',
   'pipeline.cancelled': 'スキャンを停止しました',
@@ -747,12 +747,12 @@ export const ja = {
   'libraryHealth.rescanningSoon': '30秒後に再スキャンして確認します',
   'libraryHealth.updated': '更新されました',
   'libraryHealth.processed': '処理済み',
-  'libraryHealth.fixFailed': '修正に失敗しました -- Lidarr 接続を確認してください',
+  'libraryHealth.fixFailed': '修正に失敗しました - Lidarr 接続を確認してください',
   'libraryHealth.rescan': '再スキャン',
   'libraryHealth.introTip':
     'ライブラリの健全性チェックは、Lidarr ライブラリのメタデータ・アルバム・画像・Wikidata リンクの欠落、未監視や重複のアーティスト、ジャンルの抜けを調べます。定期的に実行されます。「今すぐ同期」で再チェックできます。',
   'libraryHealth.scanningBanner':
-    'ライブラリの健全性をスキャンしています -- 大規模なライブラリの場合、これには数分かかる場合があります。完了すると結果が表示されます。',
+    'ライブラリの健全性をスキャンしています - 大規模なライブラリの場合、これには数分かかる場合があります。完了すると結果が表示されます。',
   'libraryHealth.pendingRescan':
     '修正結果を確認するために自動再スキャンがスケジュールされています...',
   'libraryHealth.noChecks':
@@ -819,7 +819,7 @@ export const ja = {
   'search.sourcesActive': 'ソース ({0})',
   'search.clearFilters': 'フィルターをクリア',
   'search.minChars': '検索するには2文字以上入力してください',
-  'search.failed': '検索に失敗しました -- もう一度お試しください',
+  'search.failed': '検索に失敗しました - もう一度お試しください',
   'search.noResultsFor': 'アーティストが見つかりませんでした：',
   'discoveryMode.available': '利用可能',
   'discoveryMode.unavailable': '利用不可',
@@ -964,13 +964,13 @@ export const ja = {
   'importArtists.playlistPlaceholder': 'プレイリスト URL または ID',
   'importArtists.go': '開始',
   'importArtists.importingLikedSongs':
-    'お気に入りの曲をインポートしています -- まもなく Discover ページに新しいアーティストが表示されます',
+    'お気に入りの曲をインポートしています - まもなく Discover ページに新しいアーティストが表示されます',
   'importArtists.importingPlaylist':
-    'プレイリストのアーティストをインポートしています -- まもなく Discover ページに表示されます',
+    'プレイリストのアーティストをインポートしています - まもなく Discover ページに表示されます',
   'importArtists.importingCsv':
-    '{0} 件のアーティストをインポートしています -- まもなく Discover ページに表示されます',
+    '{0} 件のアーティストをインポートしています - まもなく Discover ページに表示されます',
   'importArtists.importingCsvTruncated':
-    '{0} 件のアーティストをインポートしています（500件に制限） -- まもなく Discover ページに表示されます',
+    '{0} 件のアーティストをインポートしています（500件に制限） - まもなく Discover ページに表示されます',
   'importArtists.failedImport': 'インポートの開始に失敗しました',
   'importArtists.failedPlaylist': 'プレイリストのインポート開始に失敗しました',
   'importArtists.failedCsv': 'CSV ファイルのインポートに失敗しました',
@@ -1027,7 +1027,7 @@ export const ja = {
   'settings.createSpotifyApp': 'Spotify Developer App を作成',
   'settings.getPersonalAccessToken': '個人アクセストークンを取得',
   'settings.connected': '接続済み',
-  'settings.lidarrDescription': '音楽ライブラリマネージャー -- アーティストの追加に必要です。',
+  'settings.lidarrDescription': '音楽ライブラリマネージャー - アーティストの追加に必要です。',
   'settings.lidarrPublicUrlHelp':
     'ブラウザからアクセスできる Lidarr アーティストページの URL。API URL がブラウザからすでに到達可能な場合は空白のままにしてください。',
   'settings.aiTip':
@@ -1042,7 +1042,7 @@ export const ja = {
   'settings.aiPrivacyBadgeLocal': '完全にローカル',
   'settings.sending': '送信中...',
   'settings.connectionsTip':
-    '再生履歴のソースを少なくとも 1 つ接続してください -- ListenBrainz、Last.fm、Spotify、Plex、Jellyfin、Emby、Discogs。ディスカバリーはすでに聴いている・持っているアーティストから始まります。',
+    '再生履歴のソースを少なくとも 1 つ接続してください - ListenBrainz、Last.fm、Spotify、Plex、Jellyfin、Emby、Discogs。ディスカバリーはすでに聴いている・持っているアーティストから始まります。',
   'settings.listenbrainzDescription': 'オープンソースの視聴履歴トラッキング。',
   'settings.lastfmDescription': '音楽スクロブルと視聴履歴。',
   'settings.spotifyDescription': 'Spotify からの視聴履歴。',
@@ -1329,7 +1329,7 @@ export const ja = {
   'service.testing': 'テスト中...',
   'service.saved': '保存済み',
   'service.testPassed': 'テスト成功',
-  'service.testPassedUnsaved': 'テスト成功 -- 未保存',
+  'service.testPassedUnsaved': 'テスト成功 - 未保存',
   'oauth.connectedTitle': '接続しました',
   'oauth.connectedBody': '{0}が接続されました。',
   'oauth.failedTitle': '接続に失敗しました',
@@ -1601,7 +1601,7 @@ export const ja = {
   'target.action.addToLidarr': 'Lidarrに追加',
   'pipeline.message.loadingLibrary': 'ライブラリを読み込み中...',
   'pipeline.message.firstSyncBackground':
-    '初回のライブラリ同期がバックグラウンドで実行中です -- 同期を待たずに進めます',
+    '初回のライブラリ同期がバックグラウンドで実行中です - 同期を待たずに進めます',
   'pipeline.message.loadedLibrarySingular':
     '{1} 件のソースから {0} 名のライブラリアーティストを読み込みました',
   'pipeline.message.loadedLibraryPlural':
@@ -1609,7 +1609,7 @@ export const ja = {
   'pipeline.message.buildingProfile': '好みのプロファイルを構築中...',
   'pipeline.message.profiled': '上位アーティスト{0}名、ジャンル{1}件をプロファイリング',
   'pipeline.message.findingSimilar': 'すべてのソースから類似アーティストを検索中...',
-  'pipeline.message.aiSourceFailed': 'AIプロバイダーが失敗しました: {0} -- AI提案なしで続行します',
+  'pipeline.message.aiSourceFailed': 'AIプロバイダーが失敗しました: {0} - AI提案なしで続行します',
   'pipeline.message.discovered': '{0}名の候補アーティストを発見',
   'pipeline.message.resolving': 'MusicBrainz経由で{0}名のアーティストを解決中...',
   'pipeline.message.scoring': '解決済みの{0}名のアーティストをスコアリング中...',
