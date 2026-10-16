@@ -483,7 +483,7 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Settings split from one 4,254-line file into src/web/pages/settings/ modules with no visual change (pixel diff of all 11 tabs identical apart from the displayed dev port); tab links validated against a typed tab model after the role loads (#888), changelog Fixed entry added. Range also carries the stacked navigation change already documented in CHANGELOG and docs/SCREENSHOTS.md.",
+        "note": "Settings split from one 4,254-line file into src/web/pages/settings/ modules with no visual change (pixel diff of all 11 tabs identical apart from the displayed dev port); tab links validated against a typed tab model after the role loads (#888), changelog Fixed entry added.",
         "breaking": "none",
         "migration": "",
         "digest": "ce9a2f0f170c653ef795692f813120c0a1bfd5c9b4312423adf52aad7464f1e6"
