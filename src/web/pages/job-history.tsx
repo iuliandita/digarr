@@ -51,8 +51,8 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
             }}
             className={`rounded px-3 py-1 text-sm ${
               type === tab.key
-                ? 'bg-accent text-white'
-                : 'bg-surface-alt text-muted hover:text-text'
+                ? 'bg-accent text-accent-fg'
+                : 'bg-surface-2 text-muted hover:text-text'
             }`}
           >
             {tab.label}
@@ -81,7 +81,7 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
               type="button"
               onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
               disabled={offset === 0}
-              className="rounded bg-surface-alt px-3 py-1 disabled:opacity-50"
+              className="rounded bg-surface-2 px-3 py-1 disabled:opacity-50"
             >
               {t('common.previous')}
             </button>
@@ -89,7 +89,7 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
               type="button"
               onClick={() => setOffset(offset + PAGE_SIZE)}
               disabled={offset + PAGE_SIZE >= data.total}
-              className="rounded bg-surface-alt px-3 py-1 disabled:opacity-50"
+              className="rounded bg-surface-2 px-3 py-1 disabled:opacity-50"
             >
               {t('common.next')}
             </button>

@@ -39,7 +39,7 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
   if (isLoading || !data) {
     return (
       <div className="rounded-lg border border-border bg-surface p-4">
-        <div className="h-24 animate-pulse rounded bg-surface-alt" />
+        <div className="h-24 animate-pulse rounded bg-surface-2" />
       </div>
     )
   }

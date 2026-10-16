@@ -12,6 +12,10 @@ import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
 import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
+import { Button } from '../components/ui/button'
+import { EmptyState } from '../components/ui/empty-state'
+import { Notice } from '../components/ui/notice'
+import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   type ActivityEntry,
@@ -65,7 +69,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-sm font-semibold text-text uppercase tracking-wide">{title}</h2>
+      <h2 className="text-lead font-semibold text-text">{title}</h2>
       {linkText && linkTo && (
         <Link to={linkTo} className="text-xs text-accent underline">
           {linkText}
@@ -91,12 +95,15 @@ function SubscriptionPulse({
           linkText={t('dashboard.getStarted')}
           linkTo="/subscriptions"
         />
-        <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
-          <p className="text-sm text-muted">{t('dashboard.subscriptionsEmpty')}</p>
-          <Link to="/subscriptions" className="text-xs text-accent underline inline-block">
-            {t('dashboard.setUpAutomaticDiscovery')}
-          </Link>
-        </div>
+        <EmptyState
+          className="bg-surface border border-border rounded-surface"
+          message={t('dashboard.subscriptionsEmpty')}
+          action={
+            <Link to="/subscriptions" className="text-caption text-accent underline">
+              {t('dashboard.setUpAutomaticDiscovery')}
+            </Link>
+          }
+        />
       </div>
     )
   }
@@ -156,15 +163,16 @@ function rangeLabelKey(
 function ListeningHistoryError({ onRetry }: { onRetry: () => void }) {
   const { t } = useI18n()
   return (
-    <div
-      role="alert"
-      className="bg-surface border border-border rounded-lg p-6 text-center space-y-2"
+    <Notice
+      tone="error"
+      action={
+        <Button variant="link" size="sm" className="px-2" onClick={onRetry}>
+          {t('errorBoundary.retry')}
+        </Button>
+      }
     >
-      <p className="text-sm text-muted">{t('dashboard.listeningFailed')}</p>
-      <button type="button" onClick={onRetry} className="text-xs text-accent underline">
-        {t('errorBoundary.retry')}
-      </button>
-    </div>
+      {t('dashboard.listeningFailed')}
+    </Notice>
   )
 }
 
@@ -202,9 +210,7 @@ function ListeningHistory({
   return (
     <div>
       <div className="flex items-center justify-between mb-3 gap-2">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('dashboard.listeningHistory')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('dashboard.listeningHistory')}</h2>
         <div className="flex gap-1 flex-wrap justify-end">
           {LISTENING_TOP_RANGES.map((r) => (
             <button
@@ -221,25 +227,23 @@ function ListeningHistory({
       {state === 'error' && <ListeningHistoryError onRetry={onRetry} />}
       {!data || data.tracks.length === 0 ? (
         state === 'error' ? null : (
-          <div className="bg-surface border border-border rounded-lg p-6 text-center space-y-2">
-            <p className="text-sm text-muted">
-              {t(
-                state === 'loading'
-                  ? 'common.loading'
-                  : state === 'empty'
-                    ? 'dashboard.listeningEmpty'
-                    : 'dashboard.connectListening',
-              )}
-            </p>
-            {state === 'not_configured' && (
-              <Link
-                to="/settings?tab=connections"
-                className="text-xs text-accent underline inline-block"
-              >
-                {t('dashboard.connectAccount')}
-              </Link>
+          <EmptyState
+            className="bg-surface border border-border rounded-surface"
+            message={t(
+              state === 'loading'
+                ? 'common.loading'
+                : state === 'empty'
+                  ? 'dashboard.listeningEmpty'
+                  : 'dashboard.connectListening',
             )}
-          </div>
+            action={
+              state === 'not_configured' && (
+                <Link to="/settings?tab=connections" className="text-caption text-accent underline">
+                  {t('dashboard.connectAccount')}
+                </Link>
+              )
+            }
+          />
         )
       ) : (
         <div className="bg-surface border border-border rounded-lg">
@@ -300,15 +304,14 @@ function RecentActivity({
   const failed = error || data?.status === 'error'
   return (
     <div>
-      <h2 className="text-sm font-semibold text-text uppercase tracking-wide mb-3">
-        {t('dashboard.recentPlays')}
-      </h2>
+      <h2 className="text-lead font-semibold text-text mb-3">{t('dashboard.recentPlays')}</h2>
       {failed && <ListeningHistoryError onRetry={onRetry} />}
       {!data || data.tracks.length === 0 ? (
         failed ? null : (
-          <div className="bg-surface border border-border rounded-lg p-6 text-center">
-            <p className="text-sm text-muted">{t('dashboard.recentPlaysEmpty')}</p>
-          </div>
+          <EmptyState
+            className="bg-surface border border-border rounded-surface"
+            message={t('dashboard.recentPlaysEmpty')}
+          />
         )
       ) : (
         <div className="bg-surface border border-border rounded-lg divide-y divide-border">
@@ -358,7 +361,7 @@ function TasteProfile({
             ))}
           </div>
         ) : !genres || genres.length === 0 ? (
-          <p className="text-sm text-muted text-center py-4">{t('dashboard.tasteEmpty')}</p>
+          <EmptyState className="py-4" message={t('dashboard.tasteEmpty')} />
         ) : (
           <div className="space-y-2.5">
             {genres.map((g, i) => (
@@ -406,7 +409,7 @@ function ActivityFeed({
             ))}
           </div>
         ) : !entries || entries.length === 0 ? (
-          <p className="text-sm text-muted text-center py-6">{t('dashboard.activityEmpty')}</p>
+          <EmptyState className="py-6" message={t('dashboard.activityEmpty')} />
         ) : (
           <div className="divide-y divide-border">
             {entries.map((entry) => (
@@ -705,7 +708,7 @@ export function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
-      <h1 className="sr-only">{t('dashboard.title')}</h1>
+      <PageHeader title={t('dashboard.title')} />
       {/* Pipeline progress (self-hides) */}
       <PipelineProgress
         onComplete={() => {
@@ -723,7 +726,7 @@ export function Dashboard() {
       {/* Today's Pick - full-width hero, the daily-return hook */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-text">{t('dashboard.todaysPick')}</h2>
+          <h2 className="text-lead font-semibold text-text">{t('dashboard.todaysPick')}</h2>
           <Link to="/discover" className="text-xs text-accent underline">
             {t('dashboard.discover')}
           </Link>

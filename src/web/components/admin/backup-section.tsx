@@ -102,7 +102,7 @@ export function BackupSection() {
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className="px-3 py-1.5 text-sm font-medium rounded-md bg-accent text-white hover:bg-accent/90 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm font-medium rounded-md bg-accent text-accent-fg hover:bg-accent/90 disabled:opacity-50"
         >
           {downloading ? t('admin.exporting') : t('admin.downloadBackup')}
         </button>

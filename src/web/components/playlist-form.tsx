@@ -117,7 +117,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard handled via document useEffect above
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
       onClick={onCancel}
       role="dialog"
       aria-modal="true"

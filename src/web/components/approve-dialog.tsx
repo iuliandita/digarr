@@ -85,7 +85,7 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
           {loading ? (
             <p className="text-sm text-muted">{t('approveDialog.loadingProfiles')}</p>
           ) : error ? (
-            <p className="text-sm text-red-400">{t('approveDialog.loadFailed')}</p>
+            <p className="text-sm text-reject">{t('approveDialog.loadFailed')}</p>
           ) : (
             <div className="space-y-3">
               <label className="block">

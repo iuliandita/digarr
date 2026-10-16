@@ -73,7 +73,7 @@ function runStatus(
   if (run.status === 'failed' || run.error)
     return { label: t('common.failed'), className: 'text-reject' }
   if (run.status === 'running') return { label: t('common.running'), className: 'text-accent' }
-  if (run.status === 'stuck') return { label: t('common.stuck'), className: 'text-amber-500' }
+  if (run.status === 'stuck') return { label: t('common.stuck'), className: 'text-warning' }
   return { label: t('common.done'), className: 'text-approve' }
 }
 

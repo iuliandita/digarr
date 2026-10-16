@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { getDiscoveryModes, getJob, runDiscoveryMode } from '../lib/api'
 import { waitForDiscoveryRunCompletion } from '../lib/discovery-run-feedback'
 import { useI18n } from '../lib/i18n'
+import { prefersReducedMotion } from '../lib/utils'
 import { DiscoveryModeCard } from './discovery-mode-card'
 
 export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: string | null }) {
@@ -21,7 +22,10 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
     }
 
     const requestedCard = document.getElementById(`discovery-mode-${requestedModeId}`)
-    requestedCard?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    requestedCard?.scrollIntoView({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'center',
+    })
     requestedCard?.focus({ preventScroll: true })
   }, [discoveryModes, requestedModeId])
 

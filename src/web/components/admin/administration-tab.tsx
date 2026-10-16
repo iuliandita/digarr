@@ -1,4 +1,4 @@
-import { CollapsibleSection } from '@/web/components/collapsible-section'
+import { Disclosure } from '@/web/components/ui/disclosure'
 import { useI18n } from '@/web/lib/i18n'
 import { BackupSection } from './backup-section'
 import { HygieneSection } from './hygiene-section'
@@ -10,21 +10,21 @@ export function AdministrationTab() {
 
   return (
     <div className="space-y-4 max-w-lg">
-      <CollapsibleSection title={t('admin.backupRestore')} defaultOpen>
+      <Disclosure title={t('admin.backupRestore')} defaultOpen>
         <BackupSection />
-      </CollapsibleSection>
+      </Disclosure>
 
-      <CollapsibleSection title={t('admin.migrateBackend')}>
+      <Disclosure title={t('admin.migrateBackend')}>
         <MigrateBackendSection />
-      </CollapsibleSection>
+      </Disclosure>
 
-      <CollapsibleSection title={t('admin.dataHygiene')}>
+      <Disclosure title={t('admin.dataHygiene')}>
         <HygieneSection />
-      </CollapsibleSection>
+      </Disclosure>
 
-      <CollapsibleSection title={t('admin.upgradeInfo')}>
+      <Disclosure title={t('admin.upgradeInfo')}>
         <UpgradeSection />
-      </CollapsibleSection>
+      </Disclosure>
     </div>
   )
 }

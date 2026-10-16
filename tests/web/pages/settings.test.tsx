@@ -775,7 +775,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     const addButton = await screen.findByText('Add channel')
-    const card = addButton.closest('.rounded-lg') as HTMLElement
+    const card = screen.getByRole('group', { name: 'Notifications' })
     expect(card).toBeTruthy()
 
     // No type-specific fields until a channel is added.
@@ -837,8 +837,8 @@ describe('SettingsPage', () => {
     mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
     renderWithQuery(<SettingsPage />)
 
-    const addButton = await screen.findByText('Add channel')
-    const card = addButton.closest('.rounded-lg') as HTMLElement
+    await screen.findByText('Add channel')
+    const card = screen.getByRole('group', { name: 'Notifications' })
 
     // The masked secret shows an empty input with a keep placeholder.
     const botInput = within(card).getByLabelText('Bot token') as HTMLInputElement

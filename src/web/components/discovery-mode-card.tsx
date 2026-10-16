@@ -35,7 +35,7 @@ export function DiscoveryModeCard({
           <h3 className="text-base font-semibold text-text">
             {modeLabel}
             {mode.stability === 'experimental' && (
-              <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-600">
+              <span className="ml-2 rounded bg-warning/20 px-1.5 py-0.5 text-xs font-medium text-warning">
                 {t('search.experimental')}
               </span>
             )}

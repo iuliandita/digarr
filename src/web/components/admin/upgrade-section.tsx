@@ -25,7 +25,7 @@ export function UpgradeSection() {
         <span className="text-sm text-muted">{t('admin.pendingMigrations')}</span>
         <span className="text-sm text-text">
           {data.pendingCount === 0 ? (
-            <span className="text-green-500">{t('admin.upToDate')}</span>
+            <span className="text-approve">{t('admin.upToDate')}</span>
           ) : (
             <button
               type="button"

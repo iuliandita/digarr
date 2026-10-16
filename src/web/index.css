@@ -1,17 +1,53 @@
 @import "tailwindcss";
 
-/* Compact text sizes for badges, pills, labels */
+/* Compact text size for badges, pills, labels */
 @utility text-micro {
-  font-size: 0.625rem; /* 10px */
-}
-@utility text-micro-sm {
-  font-size: 0.5625rem; /* 9px */
-}
-@utility text-micro-lg {
   font-size: 0.6875rem; /* 11px */
+  line-height: 1rem;
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }
 
 @theme {
+  --font-sans: "Roboto Flex Variable", system-ui, -apple-system, sans-serif;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.125rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+  --text-lead: 1rem;
+  --text-lead--line-height: 1.5rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-headline: 1.5rem;
+  --text-headline--line-height: 2rem;
+  --text-display: 2rem;
+  --text-display--line-height: 2.5rem;
+
+  --radius-control: 0.5rem;
+  --radius-surface: 0.75rem;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.08), 0 1px 3px rgb(0 0 0 / 0.06);
+  --shadow-menu: 0 4px 12px rgb(0 0 0 / 0.14), 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-dialog: 0 16px 40px rgb(0 0 0 / 0.24), 0 2px 6px rgb(0 0 0 / 0.1);
+
+  --default-transition-duration: 120ms;
+
+  /* Derived per theme: [data-theme] sets the base tokens on the root element these resolve on */
+  --color-surface-2: color-mix(in oklab, var(--color-surface) 95%, var(--color-text));
+  --color-surface-3: color-mix(in oklab, var(--color-surface) 90%, var(--color-text));
+  --color-border-subtle: color-mix(in oklab, var(--color-border) 60%, var(--color-surface));
+  --color-ring: var(--color-accent);
+  --color-overlay: color-mix(in oklab, var(--color-bg) 70%, transparent);
+  --color-accent-hover: color-mix(in oklab, var(--color-accent) 88%, var(--color-text));
+
   --color-bg: #1a1b26;
   --color-surface: #24283b;
   --color-border: #3b4261;
@@ -515,9 +551,33 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
+}
+
+[data-theme$="-dark"] {
+  color-scheme: dark;
+}
+
+[data-theme$="-light"] {
+  color-scheme: light;
+}
+
+/* Unlayered, so this beats Tailwind utilities without !important. Spinners stay: they are the
+   only sign that work is in progress. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.animate-spin),
+  *:not(.animate-spin)::before,
+  *:not(.animate-spin)::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Prevent pull-to-refresh interfering with swipe gestures in standalone mode */

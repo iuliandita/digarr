@@ -1,4 +1,5 @@
 import type * as React from 'react'
+import { useId } from 'react'
 import { useI18n } from '../lib/i18n'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
@@ -64,11 +65,12 @@ export function ServiceCard({
   children,
 }: ServiceCardProps) {
   const { t } = useI18n()
+  const titleId = useId()
   return (
-    <Card>
+    <Card role="group" aria-labelledby={titleId}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle>
+          <CardTitle id={titleId}>
             <span className="flex items-center gap-2">
               {icon}
               {name}

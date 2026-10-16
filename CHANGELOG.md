@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- Start the web UI refresh with a shared foundation: Digarr now ships its own variable font (Roboto Flex, served from the app, covering Latin, Cyrillic, Greek and Vietnamese; Japanese, Korean and Chinese keep the system font), a type scale, control and surface radius, elevation and focus-ring tokens derived from each theme, and native controls that follow the theme's light or dark mode. Every theme and palette is unchanged. Status colors (success, error, warning) now follow the active theme instead of fixed colors, and accent buttons use the theme's accent text color. The Dashboard shows its page title, sentence-case section headings and consistent empty and error states. With reduced motion requested by the system, transitions and scroll animations are skipped; loading spinners keep turning. Collapsible sections in Settings and Administration stay loaded while closed, so input inside them is no longer reset when you close and reopen them. [#889](https://github.com/iuliandita/digarr/issues/889).
+
 ## v2.0.1 - 2026-10-16
 
 ### Upgrade notes

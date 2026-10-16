@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { App } from './App'
+import '@fontsource-variable/roboto-flex/wdth.css'
 import './index.css'
 import { I18nProvider } from './lib/i18n'
 

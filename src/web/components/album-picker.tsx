@@ -89,7 +89,7 @@ export function AlbumPicker({
     /* biome-ignore lint/a11y/noStaticElementInteractions: backdrop click-to-dismiss is intentional; keyboard handled by Escape key */
     /* biome-ignore lint/a11y/useKeyWithClickEvents: close button inside provides keyboard alternative */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel()
       }}

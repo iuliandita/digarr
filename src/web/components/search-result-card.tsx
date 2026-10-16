@@ -159,7 +159,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
             <button
               type="button"
               onClick={handlePreview}
-              className="flex items-center gap-1 text-micro-lg text-muted hover:text-text transition-colors"
+              className="flex items-center gap-1 text-micro text-muted hover:text-text transition-colors"
               title={isPlaying ? t('recommendation.stopPreview') : t('recommendation.playPreview')}
             >
               {isPlaying ? <Pause size={12} /> : <Play size={12} />}
@@ -172,7 +172,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               type="button"
               onClick={handleQuickDiscover}
               disabled={queuing}
-              className="flex items-center gap-1 text-micro-lg text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-1 text-micro text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
               title={t('searchResultCard.addToQueue')}
             >
               <Zap size={12} />

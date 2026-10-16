@@ -127,7 +127,7 @@ export function LibraryUnreconciledReviewRow({
         </div>
       </div>
 
-      {error && <div className="text-xs text-red-500">{error}</div>}
+      {error && <div className="text-xs text-reject">{error}</div>}
     </fieldset>
   )
 }

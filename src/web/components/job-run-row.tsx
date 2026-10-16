@@ -78,22 +78,22 @@ export function JobRunRow({ job }: { job: JobRun }) {
 
   const statusColor =
     job.status === 'completed'
-      ? 'text-green-500'
+      ? 'text-approve'
       : job.status === 'failed'
-        ? 'text-red-500'
+        ? 'text-reject'
         : job.status === 'stuck'
-          ? 'text-amber-500'
+          ? 'text-warning'
           : job.status === 'cancelled'
             ? 'text-muted'
-            : 'text-blue-500'
+            : 'text-info'
 
   const statsText = jobStats(job, t)
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: nested interactive elements require div wrapper
     <div
-      className={`cursor-pointer border-b border-border px-4 py-3 hover:bg-surface-alt ${
-        job.status === 'stuck' ? 'bg-amber-500/5' : ''
+      className={`cursor-pointer border-b border-border px-4 py-3 hover:bg-surface-2 ${
+        job.status === 'stuck' ? 'bg-warning/5' : ''
       }`}
       onClick={() => setExpanded(!expanded)}
       role="button"
@@ -118,7 +118,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
           </span>
           <span className="text-sm text-muted">{jobDescription(job, t)}</span>
           {job.status === 'stuck' && (
-            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+            <span className="rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
               {t('jobHistory.stuckLabel')}
             </span>
           )}
@@ -143,9 +143,9 @@ export function JobRunRow({ job }: { job: JobRun }) {
               key={source}
               className={
                 result.status === 'ok'
-                  ? 'text-green-500'
+                  ? 'text-approve'
                   : result.status === 'error'
-                    ? 'text-red-500'
+                    ? 'text-reject'
                     : 'text-muted'
               }
             >
@@ -158,7 +158,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
       {expanded && (
         <div className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
           {job.error && (
-            <div className="rounded bg-red-500/10 p-2 text-red-500">
+            <div className="rounded bg-reject/10 p-2 text-reject">
               <strong>{t('jobHistory.errorLabel')}</strong> {job.error}
             </div>
           )}
@@ -172,9 +172,9 @@ export function JobRunRow({ job }: { job: JobRun }) {
                     <span
                       className={
                         result.status === 'ok'
-                          ? 'text-green-500'
+                          ? 'text-approve'
                           : result.status === 'error'
-                            ? 'text-red-500'
+                            ? 'text-reject'
                             : 'text-muted'
                       }
                     >
@@ -192,7 +192,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
           {Object.keys(metadata).length > 0 && (
             <div>
               <strong className="text-muted">{t('jobHistory.metadataLabel')}</strong>
-              <pre className="mt-1 overflow-auto rounded bg-surface-alt p-2 text-xs">
+              <pre className="mt-1 overflow-auto rounded bg-surface-2 p-2 text-xs">
                 {JSON.stringify(metadata, null, 2)}
               </pre>
             </div>

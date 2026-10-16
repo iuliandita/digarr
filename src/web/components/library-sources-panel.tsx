@@ -6,9 +6,9 @@ import { getLibrarySources, triggerLibrarySync } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
 function statusColor(status: string | null): string {
-  if (status === 'completed') return 'text-green-500'
-  if (status === 'failed') return 'text-red-500'
-  if (status === 'running') return 'text-amber-500'
+  if (status === 'completed') return 'text-approve'
+  if (status === 'failed') return 'text-reject'
+  if (status === 'running') return 'text-warning'
   return 'text-muted'
 }
 
@@ -139,7 +139,7 @@ export function LibrarySourcesPanel() {
 
                     {typeof counts.mbApiCallsFailed === 'number' && counts.mbApiCallsFailed > 0 && (
                       <div
-                        className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400"
+                        className="flex items-start gap-1.5 text-xs text-warning"
                         data-testid={`mb-warning-${row.source}`}
                       >
                         <AlertTriangle size={12} className="mt-0.5 shrink-0" />
@@ -170,7 +170,7 @@ export function LibrarySourcesPanel() {
                 )}
 
                 {row.lastSyncError && (
-                  <div className="text-xs text-red-500">{row.lastSyncError}</div>
+                  <div className="text-xs text-reject">{row.lastSyncError}</div>
                 )}
               </div>
             )

@@ -211,7 +211,7 @@ export function MigrateBackendSection() {
           type="button"
           onClick={() => setShowConfirm(true)}
           disabled={migrating || testing}
-          className="px-3 py-1.5 text-sm font-medium rounded-md bg-destructive text-white hover:bg-destructive/90 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm font-medium rounded-md bg-reject text-bg hover:bg-reject/90 disabled:opacity-50"
         >
           {migrating ? t('admin.migrateRunning') : t('admin.migrateRun')}
         </button>
@@ -234,7 +234,7 @@ export function MigrateBackendSection() {
           )}
 
           {rowMismatches.length > 0 && (
-            <p className="text-xs text-amber-500">
+            <p className="text-xs text-warning">
               {t('admin.migrateVerifyFailed').replace(
                 '{0}',
                 rowMismatches.map((m) => m.table).join(', '),
@@ -243,7 +243,7 @@ export function MigrateBackendSection() {
           )}
 
           {contentMismatches.length > 0 && (
-            <p className="text-xs text-amber-500">
+            <p className="text-xs text-warning">
               {t('admin.migrateContentMismatch').replace(
                 '{0}',
                 contentMismatches.map((m) => m.table).join(', '),

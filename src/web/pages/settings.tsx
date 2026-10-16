@@ -12,7 +12,6 @@ import { AdministrationTab } from '../components/admin/administration-tab'
 import { setAudiodbProxyFlag } from '../components/artist-thumb'
 import { BlockedAlbumsTab } from '../components/blocked-albums-tab'
 import { BlockedArtistsTab } from '../components/blocked-artists-tab'
-import { CollapsibleSection } from '../components/collapsible-section'
 import { Field } from '../components/field'
 import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
@@ -38,6 +37,7 @@ import {
 import { SystemHealthCard } from '../components/system-health-card'
 import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
+import { Disclosure } from '../components/ui/disclosure'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
 import { Skeleton } from '../components/ui/skeleton'
@@ -79,6 +79,7 @@ import {
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { broadcastSessionChanged } from '../lib/session-broadcast'
+import { prefersReducedMotion } from '../lib/utils'
 import JobHistoryPage from './job-history'
 import { UserManagementPage } from './user-management'
 
@@ -205,7 +206,7 @@ function TabBar({
       `[data-settings-tab="${active}"]`,
     )
     activeTab?.scrollIntoView?.({
-      behavior: 'smooth',
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       block: 'nearest',
       inline: 'nearest',
     })
@@ -214,7 +215,10 @@ function TabBar({
   function scrollTabs(direction: -1 | 1) {
     const element = scrollRef.current
     if (!element) return
-    element.scrollBy({ behavior: 'smooth', left: direction * element.clientWidth * 0.75 })
+    element.scrollBy({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      left: direction * element.clientWidth * 0.75,
+    })
   }
 
   return (
@@ -712,7 +716,7 @@ function NotificationChannelsCard({
                   {t('settings.channels.allowPrivate')}
                 </label>
                 {channel.allowPrivateTarget && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                  <p className="text-xs text-warning">
                     {t('settings.channels.allowPrivateWarning')}
                   </p>
                 )}
@@ -1499,7 +1503,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             description={
               <span>
                 {t('settings.tidalDescription')}{' '}
-                <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
                   {t('search.experimental')}
                 </span>
               </span>
@@ -1925,7 +1929,7 @@ function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           description={
             <span>
               {t('settings.tidalConnectDescription')}{' '}
-              <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+              <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
                 {t('search.experimental')}
               </span>
             </span>
@@ -3258,7 +3262,10 @@ function RecommendationsTabInner({
     if (!targetsNetNewAlbumDiscovery) return
 
     const target = document.getElementById('net-new-album-discovery')
-    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target?.scrollIntoView({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'center',
+    })
     target?.focus({ preventScroll: true })
   }, [targetsNetNewAlbumDiscovery])
 
@@ -3370,12 +3377,10 @@ function RecommendationsTabInner({
       </section>
 
       {/* Tuning - collapsed by default */}
-      <CollapsibleSection title={t('settings.scoringWeights')}>
+      <Disclosure title={t('settings.scoringWeights')}>
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3">
-            <span
-              className={`text-xs tabular-nums ${weightsOk ? 'text-muted' : 'text-yellow-400'}`}
-            >
+            <span className={`text-xs tabular-nums ${weightsOk ? 'text-muted' : 'text-warning'}`}>
               {t('settings.totalWeight')} {weightSum.toFixed(2)}
               {weightsOk ? '' : ` ${t('settings.shouldSumToOne')}`}
             </span>
@@ -3436,9 +3441,9 @@ function RecommendationsTabInner({
           />
           <p className="text-xs text-muted">{t('settings.popularityHelp')}</p>
         </div>
-      </CollapsibleSection>
+      </Disclosure>
 
-      <CollapsibleSection title={t('settings.autoApprove')}>
+      <Disclosure title={t('settings.autoApprove')}>
         <div className="space-y-4 pt-2">
           <p className="text-xs text-muted">{t('settings.autoApproveDescription')}</p>
           <label className="flex items-center gap-2">
@@ -3480,10 +3485,12 @@ function RecommendationsTabInner({
             </div>
           )}
         </div>
-      </CollapsibleSection>
+      </Disclosure>
 
       {/* Advanced - collapsed by default */}
-      <CollapsibleSection
+      {/* Keyed so a hash link arriving while this tab is mounted still opens the section */}
+      <Disclosure
+        key={targetsNetNewAlbumDiscovery ? 'targeted' : 'default'}
         title={t('settings.advancedSettings')}
         defaultOpen={targetsNetNewAlbumDiscovery}
       >
@@ -3613,7 +3620,7 @@ function RecommendationsTabInner({
             </section>
           )}
         </div>
-      </CollapsibleSection>
+      </Disclosure>
 
       <Button onClick={handleSave} disabled={saving}>
         {saving ? t('settings.saving') : t('settings.save')}

@@ -141,7 +141,7 @@ export function StreamingLinks({
           <button
             type="button"
             onClick={onPlay}
-            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border border-green-500/40 text-green-500 bg-surface/50 hover:opacity-80 transition-opacity"
+            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border border-approve/40 text-approve bg-surface/50 hover:opacity-80 transition-opacity"
           >
             {isPlaying ? t('streaming.stopShort') : t('streaming.playShort')}
           </button>

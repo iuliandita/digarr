@@ -3,7 +3,7 @@ import type * as React from 'react'
 import { cn } from '../../lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors',
+  'inline-flex items-center rounded-full px-2 py-0.5 text-caption font-medium',
   {
     variants: {
       variant: {
@@ -12,6 +12,7 @@ const badgeVariants = cva(
         success: 'bg-approve/20 text-approve',
         destructive: 'bg-reject/20 text-reject',
         info: 'bg-info/20 text-info',
+        warning: 'bg-warning/20 text-warning',
       },
     },
     defaultVariants: {
@@ -21,11 +22,11 @@ const badgeVariants = cva(
 )
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  return <span className={cn(badgeVariants({ variant }), className)} {...props} />
 }
 
 export { Badge, badgeVariants }

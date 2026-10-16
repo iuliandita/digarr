@@ -33,7 +33,7 @@ export function GenreCard({ name, slug, artistCount, exampleArtists }: GenreCard
           : t('genres.artistCountPlural').replace('{0}', String(artistCount))}
       </p>
       {exampleArtists && exampleArtists.length > 0 && (
-        <p className="text-micro-lg text-muted/70 mt-1.5 truncate">{exampleArtists.join(', ')}</p>
+        <p className="text-micro text-muted/70 mt-1.5 truncate">{exampleArtists.join(', ')}</p>
       )}
     </button>
   )

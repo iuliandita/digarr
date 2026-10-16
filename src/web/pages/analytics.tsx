@@ -313,7 +313,7 @@ function ScoreDistribution({ buckets }: { buckets: ScoreBucket[] }) {
       </div>
       <div className="flex gap-1 mt-1.5">
         {buckets.map((b) => (
-          <span key={b.bucket} className="flex-1 text-center text-micro-sm text-muted truncate">
+          <span key={b.bucket} className="flex-1 text-center text-micro text-muted truncate">
             {b.bucket.replace('%', '')}
           </span>
         ))}

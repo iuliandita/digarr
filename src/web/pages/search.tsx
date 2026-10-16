@@ -137,7 +137,7 @@ export function SearchPage() {
             >
               {s.label}
               {s.stability === 'experimental' && (
-                <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-600">
+                <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
                   {t('search.experimental')}
                 </span>
               )}

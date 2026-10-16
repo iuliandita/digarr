@@ -87,7 +87,7 @@ const SLSKD_STATUS_LABELS: Partial<Record<string, MessageKey>> = {
 
 function getSourceBadgeClass(sourceKey: string): string {
   const prefix = sourceKey.split(':')[0] ?? sourceKey
-  return SUBSCRIPTION_COLORS[prefix] ?? 'bg-zinc-500/20 text-zinc-400'
+  return SUBSCRIPTION_COLORS[prefix] ?? 'bg-muted/20 text-muted'
 }
 
 const ANALYTICS_SOURCE_KEYS: Partial<Record<string, MessageKey>> = {
@@ -872,7 +872,7 @@ export function RecommendationCard({
               )}
               <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5 flex items-baseline gap-0.5">
                 <span className="text-accent text-lg font-bold leading-none">{pct}</span>
-                <span className="text-white/50 text-micro-sm ml-1 uppercase tracking-wider">
+                <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
                   {t('recommendation.match')}
                 </span>
               </div>

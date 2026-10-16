@@ -174,7 +174,7 @@ export function TodaysPick({
         >
           <span className="text-accent text-xl font-bold leading-none">{scorePercent}</span>
           <span className="text-accent/70 text-xs font-semibold">%</span>
-          <span className="text-white/50 text-micro-sm ml-1 uppercase tracking-wider">
+          <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
             {t('todaysPick.match')}
           </span>
         </div>

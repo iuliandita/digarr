@@ -7,6 +7,8 @@ The descriptions below reflect v2.0.1. The captures predate its genre-priority c
 `bun scripts/capture-screenshots.ts`; see that script's header for environment
 variables.
 
+The web UI refresh tracked in [#889](https://github.com/iuliandita/digarr/issues/889) changes the font, type scale and surface styling; these captures predate it and will be recaptured once the refresh is complete.
+
 In v2.0.0, first-time browser setup starts with account creation before the existing wizard. These captures do not show that onboarding order; form layouts and translated labels are unchanged.
 
 ## Dashboard (dark)

@@ -153,7 +153,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
           {playlist.name}
         </p>
         <span
-          className={`shrink-0 text-micro-lg font-medium px-2 py-0.5 rounded-full ${badge.className}`}
+          className={`shrink-0 text-micro font-medium px-2 py-0.5 rounded-full ${badge.className}`}
         >
           {badge.label.startsWith('playlist.') ? t(badge.label as never) : badge.label}
         </span>
@@ -247,7 +247,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
       </div>
 
       {!playlist.enabled && (
-        <p className="text-micro-lg text-muted/60 text-center -mt-1">{t('common.disabled')}</p>
+        <p className="text-micro text-muted/60 text-center -mt-1">{t('common.disabled')}</p>
       )}
       {showDeleteConfirm && (
         <ConfirmDialog

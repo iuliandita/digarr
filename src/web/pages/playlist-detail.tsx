@@ -393,7 +393,7 @@ export function PlaylistDetailPage() {
         <div className="flex items-start gap-3 flex-wrap">
           <h1 className="text-2xl font-bold text-text leading-tight">{playlist.name}</h1>
           <span
-            className={`mt-0.5 text-micro-lg font-medium px-2 py-0.5 rounded-full ${badge.className}`}
+            className={`mt-0.5 text-micro font-medium px-2 py-0.5 rounded-full ${badge.className}`}
           >
             {badge.label.startsWith('playlist.') ? t(badge.label as never) : badge.label}
           </span>
