@@ -1031,7 +1031,7 @@ export const tr = {
   'settings.aiOpenAiCompatibleHelp':
     'Groq, OpenRouter, LiteLLM, LocalAI ve OpenAI uyumlu herhangi bir son nokta ile çalışır. Yerel hizmetler için API anahtarı isteğe bağlıdır.',
   'settings.aiPrivacyNoteHosted':
-    'Kesif istekleri seçtigin saglayiciya kendi sartlari altinda gonderilir. Sunucunda kalmasi için localhost uzerinde Ollama veya yerel bir OpenAI uyumlu son nokta kullan.',
+    'Kesif istekleri seçtigin saglayiciya kendi sartlari altında gönderilir. Sunucunda kalması için localhost uzerinde Ollama veya yerel bir OpenAI uyumlu son nokta kullan.',
   'settings.aiPrivacyNoteLocal': 'Keşif istekleri sunucunda kalır.',
   'settings.aiPrivacyBadgeHosted': 'Veriler sunucundan ayrılır',
   'settings.aiPrivacyBadgeLocal': 'Tamamen yerel',
@@ -1280,7 +1280,7 @@ export const tr = {
   'settings.copyRedirectUri': "Yönlendirme URI'sini kopyala",
   'settings.saved': 'kaydedildi',
   'settings.daily': 'Günlük',
-  'settings.weekly': 'Haftalik',
+  'settings.weekly': 'Haftalık',
   'settings.biweekly': 'İki haftada bir',
   'settings.monthly': 'Aylık',
   'settings.embyUserIdHelp':
@@ -1372,7 +1372,7 @@ export const tr = {
   'jobHistory.discovered': 'keşfedilen',
   'jobHistory.stored': 'kaydedilen',
   'jobHistory.new': 'yeni',
-  'jobHistory.pipelineScan': 'Pipeline taramasi',
+  'jobHistory.pipelineScan': 'Pipeline taraması',
   'jobHistory.quickDiscoverType': 'Hızlı keşfetme',
   'jobHistory.subscriptionType': 'Abonelik',
   'jobHistory.targetType': 'Hedef',

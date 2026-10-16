@@ -10,6 +10,7 @@
     "start": "bun dist/server/index.js",
     "i18n:check": "bun scripts/i18n-check.ts",
     "i18n:stamp": "bun scripts/i18n-stamp.ts",
+    "i18n:spell": "bun scripts/i18n-spell.ts",
     "check:docker-identity": "./scripts/check-docker-identity.sh",
     "check:versions": "bun scripts/check-version-drift.ts",
     "check:api-docs": "bun scripts/check-api-docs.ts",

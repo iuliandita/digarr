@@ -219,3 +219,33 @@ jobs:
         run: bun run test:e2e:a11y
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
+
+  i18n-spell:
+    # Advisory only: dictionaries miss product names and compounds, so the
+    # report goes to the job summary and never fails the build.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.3"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Install hunspell dictionaries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends hunspell hunspell-de-de hunspell-es \
+            hunspell-fr hunspell-it hunspell-nl hunspell-pl hunspell-pt-br hunspell-ro \
+            hunspell-ru hunspell-tr hunspell-uk
+      - name: Spell check translations
+        run: |
+          {
+            echo '### Translation spell check (advisory)'
+            echo '```'
+            bun run --silent i18n:spell
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"

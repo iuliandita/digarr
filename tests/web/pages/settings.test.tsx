@@ -1357,7 +1357,7 @@ describe('SettingsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Destinations' }))
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter une destination' }))
-    fireEvent.change(screen.getByLabelText('Categorie'), { target: { value: 'slskd' } })
+    fireEvent.change(screen.getByLabelText('Catégorie'), { target: { value: 'slskd' } })
 
     expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
   })

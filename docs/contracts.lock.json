@@ -325,19 +325,19 @@
         "src/core/i18n/locales.ts": "7291f9fed76456889b2940bb53fe9d6bb7e6ee71095c425e92054944d3dbfe72",
         "src/core/i18n/messages/de.ts": "abf88edc81063fe7005f0b65a7017f3e444152edf40ba9b93ab47b6531821d38",
         "src/core/i18n/messages/en.ts": "6eda68ffc3d2f0e0f9567fdd7e605ae2368b377dbf63738c29ba26bcdadd9510",
-        "src/core/i18n/messages/es.ts": "37dd0bfb4b879f5cbeb719aad848d3f7e3388de6f9e41f949ecc0f2b4e08df66",
-        "src/core/i18n/messages/fr.ts": "4a0deee94e0e92d744759bbb17c31f451cd5033f84cef2ed1c545f278652cee0",
+        "src/core/i18n/messages/es.ts": "224dae9191890deb7cd2d53d0628d2d3438630c8fc05bd19d4f273b1b5be3adc",
+        "src/core/i18n/messages/fr.ts": "408f64e6fa663b43c9362e8b266fdc87a0c65693e84aa5d4f3578ec7db792dcd",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
         "src/core/i18n/messages/it.ts": "57baf3d6eabb1f02b2d3754818a0b3765bfd75aecbff29e1631c1f23be7de127",
         "src/core/i18n/messages/ja.ts": "9bdc4cdd6bedc7e6c17a6f73bbb44c97c2ca37519933f15f61ab3d8ed04062ea",
         "src/core/i18n/messages/ko.ts": "831275f87f2bcbe2128451cac8a2ed627628335753665e5107134c84f4f55044",
-        "src/core/i18n/messages/nl.ts": "b394f6b44404d7c208819f5c8342ac2d05a1f544662bd492166fc29754148879",
+        "src/core/i18n/messages/nl.ts": "5e81b54f21eee77aa10518e8fa3839752059259264e3b668837c29d3f11e2d50",
         "src/core/i18n/messages/pl.ts": "b8842df5ca0e37e9d08a310ee71d78f9fa4dceac1088d1cf9e35efbf790a88a6",
-        "src/core/i18n/messages/pt-BR.ts": "0f04c46dd03ecded8284f70c8c707ea1243bc53ae91fe41eefce25ba7e576688",
-        "src/core/i18n/messages/ro.ts": "7243cae7d300d04c7956cb71374736489ed0f3bfeaf5f4d5e67532ff1168450a",
+        "src/core/i18n/messages/pt-BR.ts": "6d4e10dd94551a6829097f33aee6ef6f59dc9351d0ea34966efe52a091516605",
+        "src/core/i18n/messages/ro.ts": "f0deb5849c86f116ff6a1681af726a2deef20c50b23f403f606fa824da864c07",
         "src/core/i18n/messages/ru.ts": "29688724a33dfadc1e0188c496b7a71b07b95228c81485fce0fd037ea742a770",
         "src/core/i18n/messages/source-lock.json": "15ff097fcb828856ca69afef430d25b220ff8c29602c30759bcc1d1e76cecb6c",
-        "src/core/i18n/messages/tr.ts": "da225b1a2b7a8b53d02b0977499a682fd26b1f8a89bf76a5778399940877d4b4",
+        "src/core/i18n/messages/tr.ts": "377681c7742cc92ee727a1dd0045d56c3a48575d9c1f511edf54aedff3f707d9",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
         "src/core/i18n/messages/uk.ts": "38774f0fc94e755b22ba452d2ae21e90b3ab2c797e42ad7e431899fa1a9e6ce3",
         "src/core/i18n/messages/zh-CN.ts": "c34eb33e4a225822763795957f1d32aa3c475da88655e5466a71b6e08875fcf1",
@@ -483,14 +483,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "b6c417eaab2ab10952b15dfdf4d434f4b55bf6283fc1e4651bcb4a8672d11c1e",
+      "digest": "55ea49f3c2c5e21dcd73c46462091ea15b912b6a529efedaef12ea13c8f718a1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "CONTRIBUTING.md"],
-        "note": "Translations corrected and switched to informal address, plain hyphens instead of double hyphens, contributor note on i18n:stamp",
+        "docs": ["CHANGELOG.md"],
+        "note": "Restored stripped accents in French, Spanish, Dutch, Romanian, Turkish and Portuguese strings found by the new spell check",
         "breaking": "none",
         "migration": "",
-        "digest": "b6c417eaab2ab10952b15dfdf4d434f4b55bf6283fc1e4651bcb4a8672d11c1e"
+        "digest": "55ea49f3c2c5e21dcd73c46462091ea15b912b6a529efedaef12ea13c8f718a1"
       }
     },
     "features": {
@@ -756,7 +756,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "b68e8f46f3f66baa8d8061fc737d235ba1fa91bda04a8be49e4da1130b5c5044",
+        ".github/workflows/ci.yml": "0c28f0a1e9c93e819f791ac130bbc0cea349678885ffbdc1d2a2fefeff204e0c",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -768,17 +768,17 @@
         ".github/workflows/release.yml": "59df9e5106292421322e75b2f358ad69053a57efc83f1d73bb03095434a6b43f",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "4b801d240ff6b04668f925950af1dfd778233534852283195aa7f28e5898a905",
+        "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "30f7ea3e22e1ae0d33ccba2f974a719afe19c479be5a3c46130931a9793af772",
+      "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Adds the i18n:stamp package script only; the version is unchanged",
+        "note": "Adds a non-blocking CI job for the translation spell check and its package script; no version or image change",
         "breaking": "none",
         "migration": "",
-        "digest": "30f7ea3e22e1ae0d33ccba2f974a719afe19c479be5a3c46130931a9793af772"
+        "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa"
       }
     },
     "maintenance": {
@@ -800,6 +800,7 @@
         "scripts/i18n-check.ts": "c4ce6edabd5186aa8af382f204c57b14176b8945aa89da57ecb7f753f8f1f5ea",
         "scripts/i18n-machine-translate.ts": "fc2551b0deca5e789b2afb6cdb1864042789dae66869e582a7af992a8043f592",
         "scripts/i18n-source-lock.ts": "4c4e956bca944562784aee5bba959c0cc9c21537e85e42af9c1b99d7b6cb74c6",
+        "scripts/i18n-spell.ts": "1477e836997708feebe0314ca48b57238f19b15552b394d50f053f08c9916037",
         "scripts/i18n-stamp.ts": "3e96ef4b7381d15262fa555c93a523505a2defff92b84c13acfcfc2baa665ecf",
         "scripts/import-artist-metadata.ts": "0ce7cb594ea6311ff59ac8a655d35007538b46611154c94d61e3c5c81ddb41c9",
         "scripts/k8s-sync.sh": "0927212719ded7e714726e86955096f56036c5c35195dac891474351bb4c78d7",
@@ -808,14 +809,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "bbb60d20c52a798ee40c9753ac86cf02b0e8fdc2133c7a22efd171cb74333dad",
+      "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CONTRIBUTING.md"],
-        "note": "i18n:translate gains a stale-only mode and asks for informal address and plain hyphens; workflow documented in the catalog README",
+        "note": "Adds the advisory hunspell spell check for catalogs; usage documented in the catalog README",
         "breaking": "none",
         "migration": "",
-        "digest": "bbb60d20c52a798ee40c9753ac86cf02b0e8fdc2133c7a22efd171cb74333dad"
+        "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d"
       }
     }
   }

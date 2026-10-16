@@ -1418,7 +1418,7 @@ export const ro = {
   'jobHistory.sourceNotConfigured': 'Sursa nu este configurată',
   'jobHistory.metadataLabel': 'Metadate:',
   'jobHistory.artists': 'artiști',
-  'recommendation.ownStudioAlbums': 'Detii {0}/{1} albume de studio',
+  'recommendation.ownStudioAlbums': 'Deții {0}/{1} albume de studio',
   'recommendation.owned': 'Deținute',
   'recommendation.missingAlbums': 'Lipsă',
   'admin.backupRestore': 'Backup și restaurare',

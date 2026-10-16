@@ -1213,7 +1213,7 @@ export const ptBR = {
   'settings.emailHelp':
     'Salve um e-mail de contato para sua conta. Isso não vincula uma identidade SSO.',
   'settings.emailAddress': 'Endereço de e-mail',
-  'settings.emailPlaceholder': 'voce@exemplo.com',
+  'settings.emailPlaceholder': 'você@exemplo.com',
   'settings.saveEmail': 'Salvar e-mail',
   'settings.emailSaved': 'E-mail atualizado',
   'settings.emailTaken': 'Esse e-mail já está em uso',

@@ -123,6 +123,18 @@ key set.
 
 Run locally: `bun run i18n:check`.
 
+## Spell check (advisory)
+
+`bun run i18n:spell [<locale>...]` runs hunspell over the translated catalogs
+and lists each unknown word once per language, with the key it appears in. It
+catches typos and stripped accents the ASCII-marker list misses. It needs
+`hunspell` plus the dictionaries (Debian/Ubuntu `hunspell-de-de`,
+`hunspell-fr`, ...; or set `DICPATH` to a folder of `.aff`/`.dic` files);
+languages without a dictionary are skipped and named. Japanese, Korean and
+Chinese are not checked. Correct words the dictionary does not know go in
+`scripts/i18n-spell-allowlist.txt`. CI runs it in the non-blocking
+`i18n-spell` job and posts the report to the job summary.
+
 ## Accented characters
 
 Accented characters (`ü`, `é`, `á`, `ñ`, `ç`, `ö`, `ł`, `ș`, `ü`, etc.)

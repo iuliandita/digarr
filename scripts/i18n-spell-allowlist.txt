@@ -1,0 +1,74 @@
+# Correct words the hunspell dictionaries do not know: product names, tech
+# loanwords and example artists or genres. One per line, exact case.
+
+# Products, services and protocols
+Airsonic
+Haiku
+hearring
+Nano
+PostgreSQL
+Apprise
+Authelia
+Authentik
+Connect
+fanart
+Gemini
+localhost
+musicinfo
+OpenID
+PGlite
+Sonnet
+Telegram
+tv
+
+# Tech terms commonly kept as loanwords
+app
+backend
+cookie
+cron
+Cron
+Dashboard
+endpoint
+feed
+feedback
+Flow
+pipeline
+playlist
+Playlist
+playlists
+Playlists
+preset
+Preset
+proxy
+Scan
+Scrobbling
+Secure
+Sync
+tag
+tags
+token
+Token
+true
+Webhook
+webhook
+Weekly
+ИИ
+плейлист
+Плейлист
+плейлиста
+Пресет
+
+# Example artists and genres used in hints
+ambient
+Attack
+hop
+Massive
+Portishead
+Radiohead
+shoegaze
+Shoegaze
+trip
+
+# Units and abbreviations
+h
+min

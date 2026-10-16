@@ -971,16 +971,16 @@ export const nl = {
   'importArtists.playlistPlaceholder': 'Afspeellijst-URL of -ID',
   'importArtists.go': 'Starten',
   'importArtists.importingLikedSongs':
-    'Gelikte nummers worden geimporteerd - nieuwe artiesten verschijnen binnenkort op de Ontdek-pagina',
+    'Gelikte nummers worden geïmporteerd - nieuwe artiesten verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingPlaylist':
-    'Afspeellijstartiesten worden geimporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
+    'Afspeellijstartiesten worden geïmporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingCsv':
-    '{0} artiesten worden geimporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
+    '{0} artiesten worden geïmporteerd - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.importingCsvTruncated':
-    '{0} artiesten worden geimporteerd (beperkt tot 500) - ze verschijnen binnenkort op de Ontdek-pagina',
+    '{0} artiesten worden geïmporteerd (beperkt tot 500) - ze verschijnen binnenkort op de Ontdek-pagina',
   'importArtists.failedImport': 'Importeren kon niet worden gestart',
   'importArtists.failedPlaylist': 'Afspeellijstimport kon niet worden gestart',
-  'importArtists.failedCsv': 'CSV-bestand kon niet worden geimporteerd',
+  'importArtists.failedCsv': 'CSV-bestand kon niet worden geïmporteerd',
   'librarySources.title': 'Bibliotheekbronnen',
   'librarySources.syncAll': 'Alles synchroniseren',
   'librarySources.syncStarted': 'Synchronisatie gestart',
@@ -1416,7 +1416,7 @@ export const nl = {
   'recommendation.owned': 'In bezit',
   'recommendation.missingAlbums': 'Ontbrekend',
   'admin.backupRestore': 'Back-up en herstel',
-  'admin.dataHygiene': 'Gegevenshygiene',
+  'admin.dataHygiene': 'Gegevenshygiëne',
   'admin.upgradeInfo': 'Upgrade-info',
   'admin.downloadBackup': 'Back-up downloaden',
   'admin.exporting': 'Exporteren...',
