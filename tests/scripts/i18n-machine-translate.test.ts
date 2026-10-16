@@ -2,10 +2,13 @@
 
 import { describe, expect, it } from 'vitest'
 import {
+  applyCatalogUpdates,
   buildChatCompletionsUrl,
   buildTranslationMessages,
+  findStaleSourceKeys,
   validateTranslatedCatalog,
 } from '../../scripts/i18n-machine-translate'
+import { computeSourceLock } from '../../scripts/i18n-source-lock'
 
 describe('i18n machine translation helpers', () => {
   it('passes real source strings to the model without escaping them', () => {
@@ -73,5 +76,41 @@ describe('i18n machine translation helpers', () => {
     expect(buildChatCompletionsUrl('https://api.openai.com/v1/')).toBe(
       'https://api.openai.com/v1/chat/completions',
     )
+  })
+
+  it('picks only keys whose English changed or is new since the stamp', () => {
+    const lock = computeSourceLock({ same: 'Save', edited: 'Delete' })
+    expect(findStaleSourceKeys({ same: 'Save', edited: 'Remove', fresh: 'New' }, lock)).toEqual([
+      'edited',
+      'fresh',
+    ])
+  })
+
+  it('shows the previous translation so updates keep their terminology', () => {
+    const messages = buildTranslationMessages('en', 'de', { a: 'Remove' }, { a: 'Löschen' })
+    expect(messages[1]?.content).toContain('"a": "Löschen"')
+    expect(messages[0]?.content).toMatch(/informally/)
+  })
+
+  it('rewrites changed entries in place and inserts new keys in English order', () => {
+    const file = [
+      'export const de = {',
+      "  'a': 'Alt',",
+      "  'b':",
+      "    'Zweite Zeile',",
+      "  'd': 'Vier',",
+      '} as const',
+      '',
+    ].join('\n')
+    const updated = applyCatalogUpdates(file, { b: "Neu's", c: 'Drei' }, ['a', 'b', 'c', 'd'])
+    expect(updated.split('\n')).toEqual([
+      'export const de = {',
+      "  'a': 'Alt',",
+      `  'b': "Neu's",`,
+      "  'c': 'Drei',",
+      "  'd': 'Vier',",
+      '} as const',
+      '',
+    ])
   })
 })

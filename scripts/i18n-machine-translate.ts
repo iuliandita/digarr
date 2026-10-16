@@ -5,21 +5,27 @@
  *
  * Usage:
  *   bun scripts/i18n-machine-translate.ts <locale> [--write]
+ *   bun scripts/i18n-machine-translate.ts --stale [<locale>...] [--write]
  *
  * Defaults to a dry run that prints the translated catalog as formatted JSON.
  * Pass --write to update the locale file in src/core/i18n/messages/.
+ * --stale translates only keys whose English differs from source-lock.json,
+ * in every locale (or the ones named), and edits just those entries. Review
+ * the result, then run `bun run i18n:stamp`.
  */
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SUPPORTED_LOCALES } from '../src/core/i18n/locales'
-import { getMessages } from '../src/core/i18n/messages'
+import { getMessages, getRawMessages } from '../src/core/i18n/messages'
 import { PROTECTED_I18N_TERMS } from '../src/core/i18n/protected-terms'
+import { findSourceLockDrift, readSourceLock } from './i18n-source-lock'
 
 const args = process.argv.slice(2)
 const targetLocale = args.find((arg) => !arg.startsWith('-'))
 const writeOutput = args.includes('--write')
+const staleOnly = args.includes('--stale')
 const sourceLocale = 'en'
 
 const baseUrl = process.env.TRANSLATION_BASE_URL?.trim() || undefined
@@ -86,23 +92,73 @@ export function buildTranslationMessages(
   sourceLocaleValue: string,
   targetLocaleValue: string,
   catalog: Record<string, string>,
+  previous: Record<string, string> = {},
 ) {
+  const user = [
+    `Source locale: ${sourceLocaleValue}`,
+    `Target locale: ${targetLocaleValue}`,
+    'Translate this catalog:',
+    JSON.stringify(catalog, null, 2),
+  ]
+  if (Object.keys(previous).length > 0) {
+    user.push(
+      'These keys were translated before the English changed. Update them to match the new English and keep their terminology:',
+      JSON.stringify(previous, null, 2),
+    )
+  }
   return [
     {
       role: 'system' as const,
       content:
-        'Translate the provided JSON object into the target language. Return JSON only, with the exact same keys, no markdown, no commentary, and preserve placeholders, punctuation, line breaks, artist names, and product names exactly.',
+        'Translate the provided JSON object into the target language. Return JSON only, with the exact same keys, no markdown, no commentary, and preserve placeholders, punctuation, line breaks, artist names, and product names exactly. Address the user informally (for example du, tu, je, ty, ты, ти, sen), and write a dash as -- rather than an em or en dash.',
     },
-    {
-      role: 'user' as const,
-      content: [
-        `Source locale: ${sourceLocaleValue}`,
-        `Target locale: ${targetLocaleValue}`,
-        'Translate this catalog:',
-        JSON.stringify(catalog, null, 2),
-      ].join('\n\n'),
-    },
+    { role: 'user' as const, content: user.join('\n\n') },
   ]
+}
+
+export function findStaleSourceKeys(
+  source: Record<string, string>,
+  lock: Record<string, string>,
+): string[] {
+  const { changed, added } = findSourceLockDrift(source, lock)
+  return [...changed, ...added]
+}
+
+function quoteCatalogValue(value: string): string {
+  const escaped = value.replace(/\\/g, '\\\\').replace(/\n/g, '\\n')
+  return value.includes("'") ? `"${escaped.replace(/"/g, '\\"')}"` : `'${escaped}'`
+}
+
+// Rewrites only the given keys of a locale catalog file, inserting new keys
+// after the closest preceding key in English order. Biome reflows the result.
+export function applyCatalogUpdates(
+  fileText: string,
+  updates: Record<string, string>,
+  keyOrder: string[],
+): string {
+  const lines = fileText.split('\n')
+  const findEntry = (key: string): [number, number] | null => {
+    const start = lines.findIndex((line) => line.startsWith(`  '${key}':`))
+    if (start < 0) return null
+    let end = start
+    while (end < lines.length - 1 && !lines[end]?.trimEnd().endsWith(',')) end++
+    return [start, end]
+  }
+  for (const key of keyOrder) {
+    const value = updates[key]
+    if (value === undefined) continue
+    const entry = `  '${key}': ${quoteCatalogValue(value)},`
+    const existing = findEntry(key)
+    if (existing) {
+      lines.splice(existing[0], existing[1] - existing[0] + 1, entry)
+      continue
+    }
+    const earlier = keyOrder.slice(0, keyOrder.indexOf(key)).reverse()
+    const anchor = earlier.map(findEntry).find((found) => found != null)
+    const insertAt = anchor ? anchor[1] + 1 : lines.findIndex((line) => line.endsWith('{')) + 1
+    lines.splice(insertAt, 0, entry)
+  }
+  return lines.join('\n')
 }
 
 export function validateTranslatedCatalog(
@@ -152,14 +208,19 @@ async function translateCatalog({
   baseUrl,
   model,
   targetLocale,
+  source = sourceMessages,
+  previous = {},
 }: {
   baseUrl: string
   model: string
   targetLocale: string
+  source?: Record<string, string>
+  previous?: Record<string, string>
 }): Promise<Record<string, string>> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`
-  const messages = buildTranslationMessages(sourceLocale, targetLocale, sourceMessages)
+  const requestedKeys = Object.keys(source)
+  const messages = buildTranslationMessages(sourceLocale, targetLocale, source, previous)
 
   const res = await fetch(buildChatCompletionsUrl(baseUrl), {
     method: 'POST',
@@ -190,7 +251,7 @@ async function translateCatalog({
   const missing: string[] = []
   const invalid: string[] = []
 
-  for (const key of expectedKeys) {
+  for (const key of requestedKeys) {
     const value = parsed[key]
     if (typeof value !== 'string') {
       if (value === undefined) missing.push(key)
@@ -200,7 +261,7 @@ async function translateCatalog({
     catalog[key] = value
   }
 
-  const extra = Object.keys(parsed).filter((key) => !expectedKeys.includes(key))
+  const extra = Object.keys(parsed).filter((key) => !requestedKeys.includes(key))
   if (missing.length > 0 || invalid.length > 0 || extra.length > 0) {
     const parts: string[] = []
     if (missing.length > 0) parts.push(`missing: ${missing.join(', ')}`)
@@ -209,12 +270,65 @@ async function translateCatalog({
     throw new Error(`Translated catalog failed validation (${parts.join('; ')})`)
   }
 
-  validateTranslatedCatalog(sourceMessages, catalog)
+  validateTranslatedCatalog(source, catalog)
 
   return catalog
 }
 
+async function translateStale(): Promise<void> {
+  const source = getRawMessages(sourceLocale) as Record<string, string>
+  const staleKeys = findStaleSourceKeys(source, readSourceLock())
+  if (staleKeys.length === 0) {
+    console.log('No English changes since the last stamp.')
+    return
+  }
+  const named = args.filter((arg) => !arg.startsWith('-'))
+  const locales = (named.length > 0 ? named : SUPPORTED_LOCALES).filter((l) => l !== sourceLocale)
+  const subset = Object.fromEntries(staleKeys.map((key) => [key, source[key] as string]))
+  const keyOrder = Object.keys(source)
+  for (const locale of locales) {
+    if (!SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])) {
+      throw new Error(`Unsupported locale: ${locale}`)
+    }
+    const current = getRawMessages(locale as (typeof SUPPORTED_LOCALES)[number]) as Record<
+      string,
+      string
+    >
+    const previous = Object.fromEntries(
+      staleKeys.filter((key) => current[key] != null).map((key) => [key, current[key] as string]),
+    )
+    const translated = await translateCatalog({
+      baseUrl: baseUrl as string,
+      model,
+      targetLocale: locale,
+      source: subset,
+      previous,
+    })
+    for (const key of Object.keys(translated)) {
+      translated[key] = (translated[key] as string).replace(/\s*[\u2013\u2014]\s*/g, ' -- ')
+    }
+    if (!writeOutput) {
+      console.log(JSON.stringify({ [locale]: translated }, null, 2))
+      continue
+    }
+    const file = path.resolve(scriptDir, `../src/core/i18n/messages/${locale}.ts`)
+    await writeFile(file, applyCatalogUpdates(await readFile(file, 'utf8'), translated, keyOrder))
+    console.log(`Updated ${staleKeys.length} keys in ${locale}`)
+  }
+  if (writeOutput)
+    console.log('Review the changes, run `bun run lint:fix`, then `bun run i18n:stamp`.')
+}
+
 export async function main(): Promise<void> {
+  if (staleOnly) {
+    if (!baseUrl) {
+      console.error('TRANSLATION_BASE_URL must be set for translation generation')
+      process.exit(1)
+    }
+    await translateStale()
+    return
+  }
+
   if (!targetLocale) {
     console.error('Usage: bun scripts/i18n-machine-translate.ts <locale> [--write]')
     process.exit(1)
